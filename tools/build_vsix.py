@@ -24,17 +24,22 @@ import zipfile
 
 # Files copied into the extension/ folder of the package, relative to the
 # extension directory.
-_EXTENSION_FILES = [
+_TEXT_FILES = [
     "package.json",
     "language-configuration.json",
     "README.md",
     "syntaxes/storyarc.tmLanguage.json",
+]
+# Binary assets copied byte-for-byte.
+_BINARY_FILES = [
+    "icon.png",
 ]
 
 _CONTENT_TYPES = """<?xml version="1.0" encoding="utf-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="json" ContentType="application/json" />
   <Default Extension="md" ContentType="text/markdown" />
+  <Default Extension="png" ContentType="image/png" />
   <Default Extension="vsixmanifest" ContentType="text/xml" />
 </Types>
 """
@@ -62,6 +67,7 @@ def _manifest(meta: dict) -> str:
   <Assets>
     <Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true" />
     <Asset Type="Microsoft.VisualStudio.Services.Content.Details" Path="extension/README.md" Addressable="true" />
+    <Asset Type="Microsoft.VisualStudio.Services.Icons.Default" Path="extension/icon.png" Addressable="true" />
   </Assets>
 </PackageManifest>
 """
@@ -81,9 +87,13 @@ def build() -> str:
     with zipfile.ZipFile(out_path, "w", zipfile.ZIP_DEFLATED) as vsix:
         vsix.writestr("[Content_Types].xml", _CONTENT_TYPES)
         vsix.writestr("extension.vsixmanifest", _manifest(meta))
-        for rel in _EXTENSION_FILES:
+        for rel in _TEXT_FILES:
             src = os.path.join(ext_dir, rel)
             with open(src, "r", encoding="utf-8") as fh:
+                vsix.writestr("extension/" + rel, fh.read())
+        for rel in _BINARY_FILES:
+            src = os.path.join(ext_dir, rel)
+            with open(src, "rb") as fh:
                 vsix.writestr("extension/" + rel, fh.read())
 
     print(f"wrote {out_path}")

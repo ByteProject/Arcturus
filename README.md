@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="artworks/arcturus_artwork.png" alt="Arcturus" width="860">
+</p>
+
 # Arcturus
 
 **Arcturus is a programming language and compiler for the Infocom Z-machine.**
