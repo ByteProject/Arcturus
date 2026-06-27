@@ -250,9 +250,10 @@ handlers for examine, take, drop, push, pull, turn, and the like (section
 `room`: `name`, `desc`, `lit`, `visited`, and the direction properties
 (`north`, `south`, `east`, `west`, `northeast`, `northwest`, `southeast`,
 `southwest`, `up`, `down`, `in`, `out`), each an object defaulting `nothing`.
-Default `go <direction>` reads the matching property and moves the player, or
-prints "You can't go that way." A room overrides one direction with its own
-`on go <direction>`.
+Default `go <direction>` reads the matching property and moves the player, or,
+when there is no exit, prints "You can't go that way." A room overrides one
+direction with its own `on go <direction>`. The full movement model, including
+computed exits and the blocked-direction fallback, is section 11a.
 
 `container of thing`: `openable`, `open`, `transparent`, `capacity`. Contents
 are children, in scope when open or transparent. Default open, close, and put
@@ -302,6 +303,58 @@ using the corresponding Z-machine facilities.
 
 Every default message is a Cosmos string, overridable globally by replacing
 the Cosmos default or locally by handling the verb on an object or kind.
+
+## 11a. Movement and blocked directions
+
+The `go` verb reads the room's direction property for the chosen direction and
+moves the player to the room it names. The model has four tiers, from most
+specific to least, with no per-room boilerplate required:
+
+1. A static exit: `north cellar` names the destination room directly.
+2. A computed exit: a direction property may be a `block` (01, section 6), so
+   an exit can depend on world state. The block returns a room to allow the
+   move or `nothing` to refuse it:
+
+   ```
+   room cave_mouth
+       name "Cave Mouth"
+
+       north block
+           if portcullis is open
+               return inner_hall
+           return nothing
+   ```
+
+   Because Cosmos reads every live direction to list exits (see
+   `verbose_exits` in section 14), direction blocks must be free of side
+   effects: reading an exit may happen more than once per turn.
+3. A per-direction override: `on go <direction>` runs custom logic or a custom
+   message for one direction, as the Cloak of Darkness foyer does for north.
+   Ending the handler consumes the action; `continue` falls through to the
+   normal move.
+4. A per-room fallback: `on go other` fires for any direction that has no exit
+   and no specific `on go <direction>` handler. It is the room-wide
+   "you cannot go that way here" hook, replacing Inform's `cant_go` without a
+   new property:
+
+   ```
+   room ledge
+       name "Narrow Ledge"
+       east cliff_path
+
+       on go other
+           say "You can only go east from here."
+           stop
+   ```
+
+   `other` is not a direction; it is the reserved fallback operand of `go`,
+   matched only after a real exit and a specific direction handler have both
+   been ruled out, so genuine exits and specific overrides always win.
+
+When a direction has no exit and the room defines no `on go other`, the global
+behavior applies: by default "You can't go that way.", or, with
+`summon.verbose_exits` (section 14), an automatically listed set of the room's
+available exits.
 
 ## 12. Standard responses
 
@@ -380,6 +433,16 @@ release build: a scope and tree dump, teleport to a room, pull a distant
 object to the player, set a property, and show an object's state. These speed
 testing and never ship.
 
+`summon.verbose_exits`. Helpful blocked-direction messages, game-wide. When a
+player tries a direction with no exit, instead of the default "You can't go
+that way." Cosmos lists the room's available exits, for example "You can only
+go north or east from here." The list is computed from the room's live
+direction properties each time, so it stays correct as exits open and close;
+computed direction blocks (section 11a) are read to build it, which is why they
+must be side-effect free. The phrasing is an ordinary overridable Cosmos
+string, and a room's own `on go other` (section 11a) takes precedence over the
+listed message. This replaces hand-writing a blocked message in every room.
+
 ## 15. Overriding Cosmos in practice
 
 Four patterns, in increasing scope: change one message by handling the verb
@@ -421,7 +484,9 @@ Cloak of Darkness:
 ## Appendix A: Cosmos-reserved names
 
 Direction names: `north`, `south`, `east`, `west`, `northeast`, `northwest`,
-`southeast`, `southwest`, `up`, `down`, `in`, `out`.
+`southeast`, `southwest`, `up`, `down`, `in`, `out`. The `go` verb also
+reserves `other` as the blocked-direction fallback operand (`on go other`,
+section 11a); it is not itself a direction.
 
 Standard kinds: `thing`, `room`, `container`, `supporter`, `door`, `person`.
 
@@ -437,7 +502,8 @@ Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,
 `lock`, `unlock`, `switch_on`, `switch_off`, `push`, `pull`, `turn`, `give`,
 `show`, `talk`, `wait`, `again`.
 
-Summonable features: `conversations`, `debug`, `language`, `abbreviations`.
+Summonable features: `conversations`, `debug`, `language`, `abbreviations`,
+`verbose_exits`.
 
 ## Appendix B: standard grammar lines
 
