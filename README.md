@@ -55,12 +55,14 @@ Cloak of Darkness.
 Arcturus uses three source extensions, named after the star:
 
 - **`.storyarc`** — a *story*: an author's game, the program you compile.
-- **`.prelude`** — a *Cosmos library file*. The library is the prelude loaded
-  before your story; the standard library is editable Arcturus source you can
-  read and override.
-- **`.granule`** — an *extension*: a reusable add-on. Granules are the
-  convection cells that tile the Sun's photosphere; since Arcturus is a star,
-  an extension is a granule on its surface.
+- **`.prelude`** — a *core Cosmos library file*. The library is the prelude
+  loaded before your story; the standard library is editable Arcturus source you
+  can read and override.
+- **`.granule`** — a *summoned module*: anything brought in with `summon`,
+  whether a third-party extension or an optional Cosmos feature or language pack
+  (it loads only when summoned). Granules are the convection cells that tile the
+  Sun's photosphere; since Arcturus is a star, a summoned module is a granule on
+  its surface.
 
 ## Output
 

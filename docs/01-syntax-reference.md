@@ -29,9 +29,12 @@ reference programs across all documents.
 ## 2. Lexical structure
 
 Arcturus source uses three file extensions, named after the star: `.storyarc`
-for a story (an author's game), `.prelude` for a Cosmos library file (the
-prelude loaded before the story), and `.granule` for an extension (a granule on
-the star's surface). All three are the same language and lex identically; the
+for a story (an author's game), `.prelude` for a core Cosmos library file (the
+prelude loaded before the story), and `.granule` for a summoned module (a
+granule on the star's surface). A granule is anything brought in with `summon`,
+whether a third-party extension or an optional Cosmos feature or language pack;
+it loads only when summoned. The core Cosmos library is `.prelude`; everything
+opt-in is a `.granule`. All three are the same language and lex identically; the
 extension only signals the file's role.
 
 Source is UTF-8; the compiler maps text to ZSCII at build time.
@@ -520,8 +523,9 @@ An extension is ordinary Arcturus source exposing kinds, verbs, blocks, and
 grains, carried in a `.granule` file. It may define its own summonable
 sub-features.
 
-The dotted form enables a built-in feature that ships with Cosmos or the
-compiler but is off by default:
+The dotted form enables a built-in feature that ships with Cosmos but is off by
+default. Each such feature is itself a granule, an official one distributed with
+Cosmos, so the dotted summons load granules just as the file form does:
 
 ```
 summon.conversations          // the talk-menu system (02)
@@ -531,10 +535,12 @@ summon.abbreviations "game.abbr"  // use a custom abbreviation set for text
 ```
 
 `summon.conversations` and `summon.debug` are described in 02.
-`summon.language` swaps the Cosmos message strings for a language pack.
-`summon.abbreviations` overrides the compiler's default abbreviation table
-with a file, typically produced by the arcabbr tool, for maximum text
-compression.
+`summon.language` selects a Cosmos language pack (a granule), which overrides
+not only the message strings and standard vocabulary but the parser's grammar
+logic where a language needs it (02). `summon.abbreviations` is the exception
+to the rule: its argument is a data file, the abbreviation table produced by the
+arcabbr tool, not a granule; it overrides the compiler's default table for
+maximum text compression.
 
 ## 14. Grains
 
