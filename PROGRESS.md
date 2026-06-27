@@ -80,8 +80,7 @@ generate a story file.
   library file), `.granule` (extension). The specs were updated to match: the
   syntax reference (docs/01) now documents all three extensions, and the
   Cosmos/parser spec (docs/02) refers to library files as `.prelude` and
-  extensions as `.granule`. Internal "Claude Code phase" framing in the specs
-  was changed to "implementation phase" for public reading.
+  extensions as `.granule`.
 
 ### Documentation policy
 
