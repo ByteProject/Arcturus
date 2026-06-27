@@ -66,6 +66,27 @@ def encode(text: str) -> bytes:
     return bytes(out)
 
 
+def encode_dict_word(word: str) -> bytes:
+    """Encode a word as a fixed 6-byte dictionary entry (Z-machine standard 1.1,
+    section 13). In version 5 a dictionary word is exactly nine Z-characters
+    packed into three words (six bytes); longer words are truncated, so words
+    sharing a nine-Z-character prefix collide. The text is lowercased by the
+    caller; padding uses Z-char 5 and the end bit is set on the final word."""
+    zchars: list[int] = []
+    for c in word:
+        zchars.extend(_char_to_zchars(c))
+    zchars = zchars[:9]
+    while len(zchars) < 9:
+        zchars.append(5)
+    out = bytearray()
+    for i in range(0, 9, 3):
+        w = (zchars[i] << 10) | (zchars[i + 1] << 5) | zchars[i + 2]
+        out.append((w >> 8) & 0xFF)
+        out.append(w & 0xFF)
+    out[-2] |= 0x80  # end-of-string bit on the third (final) word
+    return bytes(out)
+
+
 def decode(data: bytes) -> str:
     """Decode a packed Z-string. Used by the tests to round-trip encode().
     Handles the v5 single shifts, the A2 escape, newline, and space; it does

@@ -3,14 +3,15 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""Code generation for the version 5 backend (milestone B3).
+"""Code generation for the version 5 backend.
 
-This is the minimum viable backend: it emits a valid z5 story file that prints
-the banner, runs the `on start` handler's `say` lines, and quits. There are no
-routine calls, no objects in the tree yet, and no expressions; the main code is
-one straight-line instruction stream at the initial program counter.
+Lays out the complete story file: the header, the global variables, the input
+buffers, the object table (objects.py), the abbreviations area, the dictionary
+(dictionary.py), and the high-memory code and strings. The entry stub calls a
+main routine that prints the banner and runs the `on start` handler, lowered by
+lower.py; the assembler (assembler.py) encodes and links the routines.
 
-The object table, dictionary, and turn loop arrive with Cosmos (B4). The
+The full turn loop and the rest of the handlers arrive with Cosmos (B4.5). The
 construct-to-opcode mapping is recorded in docs/04-codegen-mapping.md.
 """
 
@@ -20,6 +21,7 @@ import datetime
 
 from . import __version__
 from . import ast
+from . import dictionary
 from . import objects as objmod
 from . import storyfile
 from . import worldmodel as wm
@@ -32,6 +34,18 @@ from .lower import Context, compile_block
 _GLOBALS_BYTES = 240 * 2  # 240 globals
 _PROP_DEFAULTS_BYTES = 63 * 2  # property defaults table (v4+: 63 words)
 _ABBREV_BYTES = 96 * 2  # 96 abbreviation entries, empty for now
+
+# Input buffers (dynamic memory). They sit at fixed addresses right after the
+# globals so the parser and the demos can reference them as constants: the
+# header is 64 bytes and the globals 480, so the text buffer starts at 544. A
+# text buffer is [max-length, current-length, chars...]; a parse buffer is
+# [max-words, parsed-count, (dict-addr, length, position) x max-words].
+TEXT_BUFFER_ADDR = storyfile.HEADER_SIZE + _GLOBALS_BYTES
+TEXT_BUFFER_MAX = 60
+_TEXT_BUFFER_BYTES = 2 + TEXT_BUFFER_MAX
+PARSE_BUFFER_ADDR = TEXT_BUFFER_ADDR + _TEXT_BUFFER_BYTES
+PARSE_BUFFER_MAX = 12
+_PARSE_BUFFER_BYTES = 2 + PARSE_BUFFER_MAX * 4
 
 
 class CodegenError(ArcError):
@@ -72,10 +86,6 @@ def _start_handler(world: wm.World):
     return None
 
 
-def _empty_dictionary() -> bytes:
-    # 0 word separators, entry length 9 (6 text + 3 data), 0 entries.
-    return bytes([0x00, 0x09, 0x00, 0x00])
-
 
 # Builtin numeric references get fixed global slots; game globals follow.
 _BUILTIN_GLOBALS = ["turns", "score", "max_score", "player", "here"]
@@ -101,8 +111,14 @@ def build_story(world: wm.World, entry: Routine, routines: list, layout=None) ->
     just the empty property-defaults table."""
     sf = storyfile.StoryFile(version=5)
 
-    # Dynamic memory: globals and the object table.
+    # Dynamic memory: globals, the input buffers, and the object table.
     globals_addr = sf.append(bytes(_GLOBALS_BYTES))
+    text_buf = bytearray(_TEXT_BUFFER_BYTES)
+    text_buf[0] = TEXT_BUFFER_MAX
+    sf.append(bytes(text_buf))  # lands at TEXT_BUFFER_ADDR
+    parse_buf = bytearray(_PARSE_BUFFER_BYTES)
+    parse_buf[0] = PARSE_BUFFER_MAX
+    sf.append(bytes(parse_buf))  # lands at PARSE_BUFFER_ADDR
     if layout is not None:
         objects_addr = sf.append(bytes(layout.table))
         # Make the property-table pointers absolute now the base is known.
@@ -111,10 +127,12 @@ def build_story(world: wm.World, entry: Routine, routines: list, layout=None) ->
     else:
         objects_addr = sf.append(bytes(_PROP_DEFAULTS_BYTES))
 
-    # Static memory: abbreviations and the dictionary.
+    # Static memory: abbreviations and the dictionary built from the program's
+    # vocabulary.
     static_base = sf.here()
     abbrev_addr = sf.append(bytes(_ABBREV_BYTES))
-    dict_addr = sf.append(_empty_dictionary())
+    dict_bytes, _word_offsets = dictionary.build(world)
+    dict_addr = sf.append(dict_bytes)
 
     # High memory: the entry stub and routines, run from the initial PC.
     high_base = sf.here()
