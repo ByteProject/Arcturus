@@ -4,6 +4,7 @@
     "description": "The official syntax highlighter for the Arcturus programming language for Infocom's Z-machine.",
     "version": "0.1.0",
     "publisher": "ByteProject",
+    "icon": "icon.png",
     "author": {
         "name": "Stefan Vogt"
     },
