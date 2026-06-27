@@ -18,7 +18,9 @@ import sys
 from . import __version__
 from .astdump import dump
 from .errors import ArcError
+from .irdump import dump as dump_ir
 from .parser import parse
+from .sema import analyze
 
 _BANNER = f'''Arcturus {__version__}
 
@@ -59,6 +61,11 @@ def _build_argparser() -> argparse.ArgumentParser:
         help="print the parsed abstract syntax tree",
     )
     ap.add_argument(
+        "--dump-ir",
+        action="store_true",
+        help="print the analyzed world-model IR",
+    )
+    ap.add_argument(
         "--version", action="version", version=f"Arcturus {__version__}"
     )
     return ap
@@ -90,16 +97,26 @@ def main(argv: list[str] | None = None) -> int:
         print(dump(program))
         return 0
 
+    try:
+        world = analyze(program, filename=args.source)
+    except ArcError as exc:
+        print(exc.format(), file=sys.stderr)
+        return 1
+
+    if args.dump_ir:
+        print(dump_ir(world))
+        return 0
+
     if args.output:
         print(
             "arcc: error: code generation is not implemented yet "
-            "(this milestone parses only)",
+            "(this milestone parses and checks only)",
             file=sys.stderr,
         )
         return 2
 
-    decls = len(program.decls)
-    print(f"{args.source}: parsed cleanly ({decls} top-level declarations)")
+    objects = len(world.objects)
+    print(f"{args.source}: parsed and checked cleanly ({objects} objects)")
     return 0
 
 

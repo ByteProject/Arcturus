@@ -42,4 +42,4 @@ def test_standalone_runs_without_package(tmp_path):
         env=env,
     )
     assert result.returncode == 0, result.stderr
-    assert "parsed cleanly" in result.stdout
+    assert "checked cleanly" in result.stdout

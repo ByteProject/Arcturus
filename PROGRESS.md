@@ -12,8 +12,8 @@ Last updated: 2026-06-27.
 |-----------|-------------|--------|
 | B0 | Project scaffold and VS Code extension | done |
 | B1 | Lexer and parser producing an AST, with unit tests | done |
-| B2 | Semantic analysis and the world-model IR | next |
-| B3 | Z-machine backend MVP (smallest valid story file) | pending |
+| B2 | Semantic analysis and the world-model IR | done |
+| B3 | Z-machine backend MVP (smallest valid story file) | next |
 | B4 | Cosmos compiled: parser, turn loop, standard verbs | pending |
 | B5 | Size pass (dead-code elimination, abbreviations, codegen) | pending |
 | B6 | Feature-complete for a real game | pending |
@@ -49,8 +49,22 @@ generate a story file.
   strings with whitespace collapse and `${...}` interpolation, UUID literals),
   `ast`, `parser` (recursive descent plus precedence climbing), `astdump`, and
   the `arcc` CLI.
-- Done-test green: both example sources parse cleanly. 62 unit tests pass.
+- Done-test green: both example sources parse cleanly.
 - `is`-as-property-test versus `is`-as-equality is deliberately left to B2.
+
+### B2: semantic analysis and the world-model IR
+
+- `arcturus/` gains `prelude` (the standard Cosmos environment as data,
+  injected into the analyzer so nothing about Cosmos is hardcoded; it will be
+  replaced by compiling real `.prelude` source in B4), `worldmodel` (the IR),
+  `sema` (the analysis passes), and `irdump` (`arcc --dump-ir`).
+- Passes: collect declarations, resolve kind chains, build the program-wide
+  property table (one type per property, type-clash diagnostic, provisional
+  attribute-vs-slot storage), then resolve bodies (name resolution, the
+  `is`-test disambiguation, the boolean-condition check, declare-before-change,
+  and handler event and operand validation).
+- Done-test green: the world-model IR for both example games is correct. The
+  CLI parses and checks by default.
 
 ### Distribution and housekeeping
 
@@ -75,9 +89,8 @@ When a change affects anything the public-facing documentation describes, the
 docs are updated in the same step. New conventions are recorded here as they
 are introduced.
 
-## Next: B2
+## Next: B3
 
-Semantic analysis and the world-model intermediate representation: resolve
-objects, kinds, the property/attribute storage choice, `is`-test
-disambiguation, scope, verbs, and handlers. Done-test: the IR for both example
-games is correct. A plan will be restated before implementation begins.
+The z5 backend MVP: emit a valid Z-machine version 5 story file for the
+smallest program (one room, print, quit) with a correct banner. Done-test: it
+runs on Frotz. A plan will be restated before implementation begins.
