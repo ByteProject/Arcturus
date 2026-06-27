@@ -216,6 +216,15 @@ answers, Cosmos runs the grain's response (a `say`, a `do` block, or its
 inline body) and treats the action as handled. Grains are checked after real
 objects, so a real object always wins. See section 14.
 
+Language seam. The parser is written in Arcturus, split into a language
+agnostic skeleton (reading the line, computing scope, dispatching the action,
+the turn loop) and language-specific routines (tokenizing and normalizing
+words, resolving the verb, matching a noun phrase, and applying word order).
+The English routines are the default; a language pack (section 14) overrides
+the language-specific routines through ordinary resolution to handle a
+language's morphology and grammar, without forking the skeleton. The skeleton
+makes no English-specific assumption about word order, articles, or inflection.
+
 ## 9. The action pipeline
 
 An action carries its verb, `noun`, and optional `second`. Cosmos dispatches
@@ -399,9 +408,11 @@ control structures.
 
 ## 14. Summonable features
 
-These ship with Cosmos and the compiler but are off until summoned (01,
-section 13). Dead-code elimination keeps an unsummoned feature out of the
-story file entirely.
+These ship with Cosmos but are off until summoned (01, section 13). Each is a
+granule, an official one distributed with Cosmos: a separate `.granule` module
+that enters the build only when summoned, so dead-code elimination keeps an
+unsummoned feature out of the story file entirely. Only the core Cosmos library
+is `.prelude`; everything opt-in here is a granule.
 
 `summon.conversations`. The talk-menu system, the equivalent of PunyInform's
 talk_menu. A person gains conversation topics, each a quip with an optional
@@ -427,14 +438,17 @@ Topics with `when` appear only when their condition holds; `once` topics
 retire after use. The exact menu rendering and selection handling are part of
 the conversations feature source and may evolve.
 
-`summon.language "<name>"`. Localization. Cosmos messages are held as a
-resource table keyed by message id; a language pack (for example
-`cosmos/lang/es.prelude`) supplies translated strings and is selected by
-this directive, English being the default. The pack overrides only Cosmos's
-own messages and standard vocabulary; an author's strings are written in
-whatever language they choose. Spanish is the first planned pack; packs are
-maintained alongside the main Cosmos sources. A pack may also supply
-localized direction and verb words.
+`summon.language "<name>"`. Localization. A language pack is a granule (for
+example `cosmos/lang/spanish.granule`) selected by this directive, English
+being the default. Cosmos messages are held as a resource table keyed by
+message id, and the pack supplies translated strings and localized standard
+vocabulary, including direction and verb words. A pack may also override the
+parser's grammar logic, not only its strings: inflected languages parse
+differently from English (verb conjugation, gender and number agreement, clitic
+pronouns, contractions, freer word order), so a pack replaces the language
+specific parser routines through ordinary resolution (section 8). An author's
+own strings are written in whatever language they choose. Spanish is the first
+planned pack; packs are maintained alongside the main Cosmos sources.
 
 `summon.debug`. Debugging verbs for testing, excluded automatically from a
 release build: a scope and tree dump, teleport to a room, pull a distant
