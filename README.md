@@ -10,7 +10,7 @@ It is a high-level, readable language for writing interactive fiction: text
 adventures in the tradition of *Zork* and the modern works that still run on the
 Z-machine. You describe a world (rooms, things, verbs, and the behavior that
 hangs off them) and the compiler produces a standard Z-machine story file that
-plays on Frotz, Bocfel, and other interpreters, old and new.
+plays on Frotz, Ozmoo, Eris, Vezza and other interpreters, old and new.
 
 Arcturus is designed and written by **Stefan Vogt**. The compiler is written in
 Python and depends only on the standard library, so it runs anywhere Python
