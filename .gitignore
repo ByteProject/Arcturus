@@ -18,4 +18,5 @@ dist/
 
 # VS Code extension build artifacts
 editors/vscode/node_modules/
-editors/vscode/*.vsix
+# The packaged .vsix is committed as the easy-install artifact; rebuild it with
+# tools/build_vsix.py.

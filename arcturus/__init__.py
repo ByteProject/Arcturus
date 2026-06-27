@@ -1,12 +1,14 @@
-"""Arcturus: a compiler for a high-level interactive-fiction language that
-emits standard Z-machine version 5 story files.
+# __init__.py
+# part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+# Copyright (c) 2026, Stefan Vogt.
+# https://github.com/ByteProject/Arcturus
 
-This package contains the compiler. The runtime library (Cosmos) is written in
-Arcturus itself and lives under cosmos/. The compiler uses the Python standard
-library only.
+"""Arcturus: a programming language and compiler for the Infocom Z-machine.
+
+The compiler is written in Python and depends only on the standard library, so
+it runs on a bare interpreter. The standard library, Cosmos, is written in
+Arcturus itself and is compiled together with the author's program; the
+compiler hardcodes nothing about it, including its version.
 """
 
 __version__ = "0.1.0"
-
-# The library version reported in the banner (see docs/02 section 3).
-COSMOS_VERSION = "0.1"

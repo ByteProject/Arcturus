@@ -1,14 +1,29 @@
 {
     "name": "arcturus",
     "displayName": "Arcturus",
-    "description": "Syntax highlighting for the Arcturus interactive-fiction language (.storyarc).",
+    "description": "The official syntax highlighter for the Arcturus programming language for Infocom's Z-machine.",
     "version": "0.1.0",
-    "publisher": "arcturus",
+    "publisher": "ByteProject",
+    "author": {
+        "name": "Stefan Vogt"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ByteProject/Arcturus"
+    },
     "engines": {
         "vscode": "^1.70.0"
     },
     "categories": [
         "Programming Languages"
+    ],
+    "keywords": [
+        "arcturus",
+        "interactive fiction",
+        "z-machine",
+        "infocom",
+        "storyarc"
     ],
     "contributes": {
         "languages": [
@@ -19,7 +34,9 @@
                     "storyarc"
                 ],
                 "extensions": [
-                    ".storyarc"
+                    ".storyarc",
+                    ".prelude",
+                    ".granule"
                 ],
                 "configuration": "./language-configuration.json"
             }

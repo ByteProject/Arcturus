@@ -1,3 +1,8 @@
+# tokens.py
+# part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+# Copyright (c) 2026, Stefan Vogt.
+# https://github.com/ByteProject/Arcturus
+
 """Token kinds and the reserved-word set for the Arcturus lexer.
 
 A token has a kind, a value, and a 1-based source position. Most kinds carry

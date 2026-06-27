@@ -1,3 +1,8 @@
+# errors.py
+# part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+# Copyright (c) 2026, Stefan Vogt.
+# https://github.com/ByteProject/Arcturus
+
 """Compile-time diagnostics.
 
 Every error raised by the lexer, parser, and later semantic analysis is an

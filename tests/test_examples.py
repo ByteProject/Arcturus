@@ -1,3 +1,8 @@
+# test_examples.py
+# part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+# Copyright (c) 2026, Stefan Vogt.
+# https://github.com/ByteProject/Arcturus
+
 """The B1 done-test: both conformance example games parse cleanly, plus
 structural checks that the parse captured the right shapes."""
 
