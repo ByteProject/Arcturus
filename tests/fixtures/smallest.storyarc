@@ -1,0 +1,20 @@
+// The smallest Arcturus program that produces a running story file: a game
+// block, an on start handler, and one room. Used by tests/test_backend.py and
+// handy for running the B3 backend by hand. Not a playable game yet (no verbs
+// or turn loop until Cosmos, B4).
+
+game
+    title    "Smallest"
+    headline "An Arcturus Demo"
+    author   "Stefan Vogt"
+    release  1
+    serial   "260627"
+    start    void
+
+on start
+    say "Hello from Arcturus."
+    say "The smallest story that runs on a Z-machine."
+
+room void
+    name "The Void"
+    desc "Nothing here yet."

@@ -6,6 +6,7 @@
 """The B3 done-test: the backend emits a valid z5 story file for the smallest
 program, and it runs on Frotz."""
 
+import os
 import shutil
 import subprocess
 
@@ -15,19 +16,10 @@ from arcturus.codegen import generate, CodegenError
 from arcturus.parser import parse
 from arcturus.sema import analyze
 
-MINIMAL = (
-    'game\n'
-    '    title  "Test Story"\n'
-    '    author "Tester"\n'
-    '    serial "260627"\n'
-    '    start void\n'
-    '\n'
-    'on start\n'
-    '    say "Hello from the test."\n'
-    '\n'
-    'room void\n'
-    '    name "The Void"\n'
-)
+FIXTURE = os.path.join(os.path.dirname(__file__), "fixtures", "smallest.storyarc")
+
+with open(FIXTURE, "r", encoding="utf-8") as _fh:
+    MINIMAL = _fh.read()
 
 
 def compile_z5(src):
@@ -74,6 +66,6 @@ def test_runs_on_frotz(tmp_path):
     )
     out = result.stdout
     # The banner and the start text both appear, and the game ran to a clean end.
-    assert "Test Story" in out
+    assert "Smallest" in out
     assert "Release 1 / Serial number 260627 / Arcturus" in out
-    assert "Hello from the test." in out
+    assert "Hello from Arcturus." in out
