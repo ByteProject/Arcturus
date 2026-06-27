@@ -12,7 +12,8 @@ import subprocess
 
 import pytest
 
-from arcturus.codegen import generate, CodegenError
+from arcturus.codegen import generate
+from arcturus.errors import ArcError
 from arcturus.parser import parse
 from arcturus.sema import analyze
 
@@ -42,9 +43,11 @@ def test_emits_valid_z5_header():
     assert data[0x12:0x18] == b"260627"
 
 
-def test_interpolation_in_start_is_rejected():
-    src = 'on start\n    say "turns: ${turns}"\n'
-    with pytest.raises(CodegenError):
+def test_object_interpolation_is_rejected_until_b43():
+    # Numeric interpolation works now; printing an object name or an article
+    # needs the object table (B4.3).
+    src = 'on start\n    say "${the player}"\n'
+    with pytest.raises(ArcError):
         compile_z5(src)
 
 
