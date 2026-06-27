@@ -20,8 +20,10 @@ import datetime
 
 from . import __version__
 from . import ast
+from . import objects as objmod
 from . import storyfile
 from . import worldmodel as wm
+from . import zstring
 from .assembler import Routine, RoutineRef, link
 from .errors import ArcError
 from .lower import Context, compile_block
@@ -92,15 +94,22 @@ def _globals_map(world: wm.World) -> dict:
     return m
 
 
-def build_story(world: wm.World, entry: Routine, routines: list) -> bytes:
+def build_story(world: wm.World, entry: Routine, routines: list, layout=None) -> bytes:
     """Assemble a complete z5 image from the entry stub and routines, laying out
-    the standard memory regions. Shared by generate() and the backend tests."""
+    the standard memory regions. Shared by generate() and the backend tests.
+    `layout` is the object table (objects.Layout); without it the object area is
+    just the empty property-defaults table."""
     sf = storyfile.StoryFile(version=5)
 
-    # Dynamic memory: globals and the object table (property defaults, no
-    # objects yet).
+    # Dynamic memory: globals and the object table.
     globals_addr = sf.append(bytes(_GLOBALS_BYTES))
-    objects_addr = sf.append(bytes(_PROP_DEFAULTS_BYTES))
+    if layout is not None:
+        objects_addr = sf.append(bytes(layout.table))
+        # Make the property-table pointers absolute now the base is known.
+        for ptr_pos, target in layout.prop_pointers:
+            sf.set_word(objects_addr + ptr_pos, objects_addr + target)
+    else:
+        objects_addr = sf.append(bytes(_PROP_DEFAULTS_BYTES))
 
     # Static memory: abbreviations and the dictionary.
     static_base = sf.here()
@@ -111,6 +120,18 @@ def build_story(world: wm.World, entry: Routine, routines: list) -> bytes:
     high_base = sf.here()
     blob, initial_pc = link(entry, routines, high_base)
     sf.append(blob)
+
+    # Packed strings (object descriptions) live in high memory, 4-aligned so
+    # their packed addresses are exact; backpatch the object table with them.
+    if layout is not None:
+        string_packed: dict[str, int] = {}
+        for sid, text in layout.strings.items():
+            while sf.here() % 4 != 0:
+                sf.append(b"\x00")
+            string_packed[sid] = sf.here() // 4
+            sf.append(zstring.encode(text))
+        for offset, sid in layout.string_fixups:
+            sf.set_word(objects_addr + offset, string_packed[sid])
 
     m = _meta(world)
     sf.set_word(storyfile.H_RELEASE, m.get("release", 1))
@@ -134,6 +155,7 @@ def generate(world: wm.World) -> bytes:
     banner and runs the `on start` handler. The full turn loop and the rest of
     the handlers arrive with Cosmos (B4.5)."""
     gmap = _globals_map(world)
+    layout = objmod.build_layout(world)
 
     entry = Routine("__entry__", entry=True)
     entry.op("call_vn", RoutineRef("__main__"))
@@ -143,10 +165,10 @@ def generate(world: wm.World) -> bytes:
     main.op("print", text=banner_text(world))
     handler = _start_handler(world)
     if handler is not None:
-        ctx = Context(world, gmap)
+        ctx = Context(world, gmap, layout=layout)
         ctx.prescan(handler.body)
         compile_block(main, ctx, handler.body)
         main.nlocals = ctx.nlocals()
     main.op("rfalse")
 
-    return build_story(world, entry, [main])
+    return build_story(world, entry, [main], layout=layout)

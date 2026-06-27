@@ -74,10 +74,58 @@ The banner is emitted by the compiler as a stand-in. From B4 the banner is
 Cosmos's responsibility (docs/02 section 3), where the library contributes its
 own name and version; the compiler continues to hardcode nothing about Cosmos.
 
-## 5. Not yet lowered
+## 5. Routines and the value model (B4.1, B4.2)
 
-Deferred to later milestones: objects emitted into the tree and a populated
-dictionary, routines and `call`, local variables and the stack, expressions and
-branches, control flow, string interpolation and value printing, the parser and
-turn loop (B4), and abbreviation-based text compression and dense-codegen
-tightening (B5).
+Routines have a v5 header (one byte of local count, no initial values) and are
+reached by packed address (byte address / 4), so each is 4-aligned. The entry
+stub at the initial PC calls the main routine and quits. The assembler
+(`arcturus/assembler.py`) encodes all instruction forms and the linker
+backpatches call targets, branches, and jumps.
+
+Expression lowering (`arcturus/lower.py`) is stack-based and right-first: an
+expression evaluates onto the stack and a computing opcode stores its result
+where asked. Binary operands are pushed right-first so the opcode reads them in
+source order; a temporary preserves source order only when an operand contains
+a block call. Conditions branch directly, with short-circuit `and`/`or` and
+`not` folded into branch targets, never materializing a boolean.
+
+| Construct | Lowering |
+|-----------|----------|
+| `+ - * / mod` | `add` / `sub` / `mul` / `div` / `mod` |
+| `< > <= >=` | `jl` / `jg` (with negation for `<=` / `>=`) |
+| `is` / `is not` (equality) | `je` |
+| `let`, `change` to local/global | `store` / `push` into the variable |
+| number `say` | `print_num` |
+| `if` / `else`, `while`, number `switch` | labels, `jz`/`je`/`jl`/`jg`, `jump` |
+| `return`, `finish` | `ret` / `rfalse`, `quit` |
+| block call | `call_vs` / `call_vn` |
+
+## 6. The object table (B4.3)
+
+The object table (`arcturus/objects.py`) carries the property defaults, the
+object entries (48 attribute bits, the parent/sibling/child tree, a
+property-table pointer), and each object's property table (the Z-encoded short
+name from `name`, then slot properties in descending number). Boolean
+properties become attributes; `desc` holds a packed string address backpatched
+once high memory is laid out.
+
+| Construct | Lowering |
+|-----------|----------|
+| an object name as a value | its object-number constant |
+| `now x is attr` / `is not` | `set_attr` / `clear_attr` |
+| `x is attr` (property test) | `test_attr` |
+| `x.prop` read | `get_prop` |
+| `change x.prop to v` | `put_prop` |
+| `move x to y` / `to nothing` | `insert_obj` / `remove_obj` |
+| `x holds y`, `y in x` | `jin` |
+| `say` an object, `${the obj}` | `print_obj` (article printed literally for now) |
+| `say` a text property | `print_paddr` |
+
+## 7. Not yet lowered
+
+Deferred to later milestones: the dictionary and input tokenizing, `for each`,
+string switches, list properties (`add`/`remove`/`words`), computed (`block`)
+properties and text-property writes, the `a`/`an` choice by sound, dynamic
+property access (`here.(dir)`), the parser, scope, and the turn loop (B4.4 to
+B4.5), and abbreviation-based text compression and dense-codegen tightening
+(B5).

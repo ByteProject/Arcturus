@@ -31,6 +31,9 @@ from .errors import ArcError
 _ARITH = {"+": "add", "-": "sub", "*": "mul", "/": "div", "mod": "mod"}
 _MAX_LOCALS = 15
 
+# Builtin references that hold an object number at run time (docs/02 section 2).
+_OBJECT_BUILTINS = {"player", "here", "noun", "second", "self"}
+
 
 class LowerError(ArcError):
     pass
@@ -40,9 +43,10 @@ class Context:
     """Per-routine state: the local-variable assignment and a temporary pool
     above the named locals."""
 
-    def __init__(self, world: wm.World, globals_map: dict, params=()):
+    def __init__(self, world: wm.World, globals_map: dict, params=(), layout=None):
         self.world = world
         self.globals = globals_map
+        self.layout = layout
         self.named: dict[str, int] = {}
         slot = 1
         for p in params:
@@ -91,13 +95,19 @@ class Context:
             return self.named[name]
         if name in self.globals:
             return self.globals[name]
-        if name in self.world.objects:
-            raise LowerError(
-                f"'{name}' is an object; object access needs the object table "
-                "(B4.3)",
-                line,
-            )
         raise LowerError(f"unresolved name '{name}'", line)
+
+    def is_object_name(self, name: str) -> bool:
+        return self.layout is not None and name in self.layout.obj_number
+
+    def obj_number(self, name: str) -> int:
+        return self.layout.obj_number[name]
+
+    def attr_number(self, name: str):
+        return None if self.layout is None else self.layout.attr_number.get(name)
+
+    def prop_number(self, name: str):
+        return None if self.layout is None else self.layout.prop_number.get(name)
 
 
 def _collect_lets(body, out: list) -> None:
@@ -145,7 +155,11 @@ def _is_leaf(ctx: Context, expr) -> bool:
     if isinstance(expr, (ast.Number, ast.Bool, ast.Nothing)):
         return True
     if isinstance(expr, ast.Name):
-        return expr.ident in ctx.named or expr.ident in ctx.globals
+        return (
+            expr.ident in ctx.named
+            or expr.ident in ctx.globals
+            or ctx.is_object_name(expr.ident)
+        )
     return False
 
 
@@ -155,9 +169,13 @@ def _leaf_operand(ctx: Context, expr):
     if isinstance(expr, ast.Bool):
         return Const(1 if expr.value else 0)
     if isinstance(expr, ast.Nothing):
-        return Const(0)
+        return Const(0)  # the null object
     if isinstance(expr, ast.Name):
-        return Variable(ctx.resolve_var(expr.ident, expr.line))
+        if expr.ident in ctx.named or expr.ident in ctx.globals:
+            return Variable(ctx.resolve_var(expr.ident, expr.line))
+        if ctx.is_object_name(expr.ident):
+            return Const(ctx.obj_number(expr.ident))  # an object number constant
+        raise LowerError(f"unresolved name '{expr.ident}'", expr.line)
     raise LowerError("not a leaf expression", getattr(expr, "line", 0))
 
 
@@ -203,12 +221,24 @@ def eval_expr(rt: Routine, ctx: Context, expr, dest=None) -> None:
         _call(rt, ctx, expr, dest)
         return
 
-    if isinstance(expr, (ast.Dot, ast.DynDot)):
+    if isinstance(expr, ast.Dot):
+        pnum = ctx.prop_number(expr.prop)
+        if pnum is None:
+            raise LowerError(
+                f"cannot read property '{expr.prop}' as a value", expr.line
+            )
+        objop, t = _operand(rt, ctx, expr.obj)
+        rt.op("get_prop", objop, Const(pnum), store=dest)
+        if t is not None:
+            ctx.free_temp(t)
+        return
+
+    if isinstance(expr, ast.DynDot):
         raise LowerError(
-            "property access needs the object table (B4.3)", getattr(expr, "line", 0)
+            "computed property access needs the parser (B4.5)", expr.line
         )
 
-    raise LowerError("unsupported expression in B4.2", getattr(expr, "line", 0))
+    raise LowerError("unsupported expression", getattr(expr, "line", 0))
 
 
 def _operand(rt: Routine, ctx: Context, expr):
@@ -321,9 +351,8 @@ def _emit_test(rt, ctx, expr, label, on_true):
     if isinstance(expr, ast.IsTest):
         res = ctx.world.is_resolutions.get(id(expr))
         if res == wm.IS_PROPERTY:
-            raise LowerError(
-                "attribute tests need the object table (B4.3)", expr.line
-            )
+            _attr_test(rt, ctx, expr, label, on_true)
+            return
         t = not on_true if expr.negated else on_true
         opa, opb, tmp = _two_operands(rt, ctx, expr.left, expr.right)
         rt.op("je", opa, opb, branch=(label, t))
@@ -331,12 +360,36 @@ def _emit_test(rt, ctx, expr, label, on_true):
             ctx.free_temp(tmp)
         return
     if isinstance(expr, ast.Binary) and expr.op in ("holds", "in"):
-        raise LowerError("tree tests need the object table (B4.3)", expr.line)
+        # holds: left holds right => right is in left; in: left is in right.
+        if expr.op == "holds":
+            child, parent = expr.right, expr.left
+        else:
+            child, parent = expr.left, expr.right
+        opa, opb, tmp = _two_operands(rt, ctx, child, parent)
+        rt.op("jin", opa, opb, branch=(label, on_true))
+        if tmp is not None:
+            ctx.free_temp(tmp)
+        return
     # Any other expression: evaluate to a value and test against zero.
     op, t = _operand(rt, ctx, expr)
     rt.op("jz", op, branch=(label, not on_true))
     if t is not None:
         ctx.free_temp(t)
+
+
+def _attr_test(rt, ctx, expr: ast.IsTest, label, on_true):
+    prop = expr.right.ident
+    attr = ctx.attr_number(prop)
+    t = not on_true if expr.negated else on_true
+    objop, tmp = _operand(rt, ctx, expr.left)
+    if attr is not None:
+        rt.op("test_attr", objop, Const(attr), branch=(label, t))
+    else:  # a boolean stored as a slot property: read it and test against zero
+        pnum = ctx.prop_number(prop)
+        rt.op("get_prop", objop, Const(pnum), store=Variable(STACK))
+        rt.op("jz", Variable(STACK), branch=(label, not t))
+    if tmp is not None:
+        ctx.free_temp(tmp)
 
 
 # --------------------------------------------------------------------------
@@ -383,10 +436,12 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> None:
         else:
             eval_expr(rt, ctx, s.expr, Variable(STACK))
             rt.op("pull", Variable(STACK))
-    elif isinstance(s, (ast.Now, ast.Move, ast.Add, ast.Remove)):
-        raise LowerError(
-            "tree and property statements need the object table (B4.3)", s.line
-        )
+    elif isinstance(s, ast.Now):
+        _now(rt, ctx, s)
+    elif isinstance(s, ast.Move):
+        _move(rt, ctx, s)
+    elif isinstance(s, (ast.Add, ast.Remove)):
+        raise LowerError("list properties need the dictionary stage (B4.4)", s.line)
     elif isinstance(s, ast.Continue):
         raise LowerError("'continue' belongs to action dispatch (B4.5)", s.line)
     elif isinstance(s, ast.ForEach):
@@ -398,11 +453,55 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> None:
 
 
 def _change(rt, ctx, s: ast.Change):
-    if not isinstance(s.target, ast.Name):
-        raise LowerError(
-            "changing a property needs the object table (B4.3)", s.line
-        )
-    eval_expr(rt, ctx, s.value, Variable(ctx.resolve_var(s.target.ident, s.line)))
+    if isinstance(s.target, ast.Name):
+        eval_expr(rt, ctx, s.value, Variable(ctx.resolve_var(s.target.ident, s.line)))
+        return
+    if isinstance(s.target, ast.Dot):
+        pnum = ctx.prop_number(s.target.prop)
+        if pnum is None:
+            raise LowerError(
+                f"cannot change property '{s.target.prop}'", s.line
+            )
+        if isinstance(s.value, ast.StringLit):
+            raise LowerError(
+                "writing a text property needs string allocation (B4.5)", s.line
+            )
+        valop, tv = _operand(rt, ctx, s.value)
+        objop, to = _operand(rt, ctx, s.target.obj)
+        rt.op("put_prop", objop, Const(pnum), valop)
+        if to is not None:
+            ctx.free_temp(to)
+        if tv is not None:
+            ctx.free_temp(tv)
+        return
+    raise LowerError("unsupported change target", s.line)
+
+
+def _now(rt, ctx, s: ast.Now):
+    attr = ctx.attr_number(s.prop)
+    objop, t = _operand(rt, ctx, s.target)
+    if attr is not None:
+        rt.op("clear_attr" if s.negated else "set_attr", objop, Const(attr))
+    else:
+        pnum = ctx.prop_number(s.prop)
+        if pnum is None:
+            raise LowerError(f"unknown property '{s.prop}'", s.line)
+        rt.op("put_prop", objop, Const(pnum), Const(0 if s.negated else 1))
+    if t is not None:
+        ctx.free_temp(t)
+
+
+def _move(rt, ctx, s: ast.Move):
+    if isinstance(s.dest, ast.Nothing):
+        objop, t = _operand(rt, ctx, s.obj)
+        rt.op("remove_obj", objop)
+        if t is not None:
+            ctx.free_temp(t)
+        return
+    opa, opb, tmp = _two_operands(rt, ctx, s.obj, s.dest)
+    rt.op("insert_obj", opa, opb)
+    if tmp is not None:
+        ctx.free_temp(tmp)
 
 
 def _say(rt, ctx, value):
@@ -413,24 +512,45 @@ def _say(rt, ctx, value):
                     rt.op("print", text=part.text)
             else:  # StringInterp
                 if part.article is not None:
-                    raise LowerError(
-                        "article and object printing need the object table "
-                        "(B4.3)",
-                        getattr(value, "line", 0),
-                    )
-                _say_value(rt, ctx, part.expr)
+                    # The a/an choice by sound is a Cosmos refinement (B4.5);
+                    # for now the typed article is printed as written.
+                    rt.op("print", text=part.article + " ")
+                    _say_object(rt, ctx, part.expr)
+                else:
+                    _say_value(rt, ctx, part.expr)
     else:
         _say_value(rt, ctx, value)
     rt.op("new_line")
 
 
+def _is_object_expr(ctx, expr) -> bool:
+    if isinstance(expr, ast.Name):
+        return ctx.is_object_name(expr.ident) or expr.ident in _OBJECT_BUILTINS
+    return False
+
+
 def _say_value(rt, ctx, expr):
-    if isinstance(expr, ast.Name) and expr.ident in ctx.world.objects:
-        raise LowerError(
-            "printing an object name needs the object table (B4.3)", expr.line
-        )
+    if _is_object_expr(ctx, expr):
+        _say_object(rt, ctx, expr)
+        return
+    if isinstance(expr, ast.Dot) and ctx.world.properties.get(
+        expr.prop
+    ) and ctx.world.properties[expr.prop].type == "text":
+        # A text property holds a packed string address.
+        op, t = _operand(rt, ctx, expr)  # get_prop is handled by eval via _operand
+        rt.op("print_paddr", op)
+        if t is not None:
+            ctx.free_temp(t)
+        return
     op, t = _operand(rt, ctx, expr)
     rt.op("print_num", op)
+    if t is not None:
+        ctx.free_temp(t)
+
+
+def _say_object(rt, ctx, expr):
+    op, t = _operand(rt, ctx, expr)
+    rt.op("print_obj", op)
     if t is not None:
         ctx.free_temp(t)
 
