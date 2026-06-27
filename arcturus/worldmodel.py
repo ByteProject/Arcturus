@@ -1,0 +1,159 @@
+# worldmodel.py
+# part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+# Copyright (c) 2026, Stefan Vogt.
+# https://github.com/ByteProject/Arcturus
+
+"""The world-model intermediate representation.
+
+Semantic analysis (sema.py) turns the AST into this checked, resolved model:
+the objects and their kind chains, the program-wide property table with each
+property's type and provisional storage, the verbs and actions, the handlers
+with their dispatch specificity, and the grains. Code generation (a later
+milestone) consumes the World; it does not look at the AST again.
+
+Storage on a property is provisional here. A boolean-only property is an
+attribute candidate; everything else is a slot. The final bit packing, the
+48-bit budget, and dead-code elimination are the size pass (B5); this model
+records the intent so it is visible early.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Optional
+
+from . import ast
+
+# Provisional storage classes.
+STORE_ATTRIBUTE = "attribute"  # a boolean-only property: an attribute bit
+STORE_SLOT = "slot"  # a number, text, object, list, or block: a property slot
+
+
+@dataclass
+class Property:
+    name: str
+    type: str  # one of prelude.ALL_TYPES
+    origin: str  # "standard" or "game"
+    storage: str  # STORE_ATTRIBUTE or STORE_SLOT (provisional)
+    # Every site that fixes or uses the type, for clash diagnostics.
+    decl_sites: list[tuple[str, int]] = field(default_factory=list)
+
+    @property
+    def bool_only(self) -> bool:
+        return self.type == "bool"
+
+
+@dataclass
+class Kind:
+    name: str
+    parent: Optional[str]
+    origin: str  # "standard" or "game"
+    chain: list[str] = field(default_factory=list)  # self ... root
+    # A kind supplies default properties and shared handlers to its instances.
+    props: dict[str, "ast.Expr"] = field(default_factory=dict)
+    handlers: list["Handler"] = field(default_factory=list)
+    grains: list["Grain"] = field(default_factory=list)
+    decl: Optional[ast.KindDecl] = None
+    line: int = 0
+
+
+@dataclass
+class Handler:
+    events: list[str]
+    after: bool
+    pattern: list[ast.PatternItem]
+    when: Optional[ast.Expr]
+    body: list[ast.Stmt]
+    owner: Optional[str]  # the object or kind name, or None for a top-level rule
+    origin_kind: bool  # True if declared on a kind (vs an instance/room/rule)
+    line: int = 0
+
+
+@dataclass
+class Grain:
+    verbs: list[str]
+    words: list[str]
+    owner: str
+    line: int = 0
+
+
+@dataclass
+class Obj:
+    name: str
+    category: str  # "room" or "thing"
+    kind: str  # the immediate kind: a declared kind, or "thing"/"room"
+    chain: list[str] = field(default_factory=list)  # kind chain, nearest first
+    location: Optional[str] = None  # initial tree parent (an object name)
+    # Property name -> the initial value expression set on this object.
+    props: dict[str, ast.Expr] = field(default_factory=dict)
+    handlers: list[Handler] = field(default_factory=list)
+    grains: list[Grain] = field(default_factory=list)
+    decl: Optional[ast.ObjectDecl] = None
+    line: int = 0
+
+
+@dataclass
+class GrammarLine:
+    action: str
+    items: list[ast.GrammarItem]
+
+
+@dataclass
+class Verb:
+    words: list[str]
+    grammar: list[GrammarLine]
+    line: int = 0
+
+
+@dataclass
+class Global:
+    name: str
+    type: str
+    value: ast.Expr
+    line: int = 0
+
+
+@dataclass
+class Constant:
+    name: str
+    type: str
+    value: ast.Expr
+    line: int = 0
+
+
+@dataclass
+class Block:
+    name: str
+    params: list[str]
+    body: list[ast.Stmt]
+    line: int = 0
+
+
+# How an `is` test resolved (docs/01 section 9).
+IS_PROPERTY = "property"  # right side is a boolean property: an attribute test
+IS_EQUALITY = "equality"  # otherwise: an equality / identity comparison
+
+
+@dataclass
+class World:
+    game: Optional[ast.GameBlock] = None
+    start_room: Optional[str] = None
+    kinds: dict[str, Kind] = field(default_factory=dict)
+    objects: dict[str, Obj] = field(default_factory=dict)
+    properties: dict[str, Property] = field(default_factory=dict)
+    verbs: list[Verb] = field(default_factory=list)
+    actions: set[str] = field(default_factory=set)
+    globals: dict[str, Global] = field(default_factory=dict)
+    constants: dict[str, Constant] = field(default_factory=dict)
+    blocks: dict[str, Block] = field(default_factory=dict)
+    free_handlers: list[Handler] = field(default_factory=list)
+    summons: list[ast.Summon] = field(default_factory=list)
+    # Resolution of every `is` test, keyed by the node's identity.
+    is_resolutions: dict[int, str] = field(default_factory=dict)
+
+    def all_handlers(self):
+        for obj in self.objects.values():
+            yield from obj.handlers
+        for kind in self.kinds.values():
+            yield from kind.handlers
+        yield from self.free_handlers

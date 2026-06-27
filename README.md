@@ -25,12 +25,12 @@ Arcturus is in **active development and is not yet ready for production**. It
 cannot compile a playable game today. The compiler is being built milestone by
 milestone:
 
-- **Done:** project scaffold, the language specification, and the compiler front
-  end (lexer and parser) for the full language, with the two reference games
-  parsing cleanly.
-- **In progress:** semantic analysis and the world-model representation.
-- **Next:** the Z-machine code generator, then the Cosmos library, then a size
-  pass, graphics, and beyond.
+- **Done:** project scaffold, the language specification, the compiler front
+  end (lexer and parser) for the full language, and semantic analysis with the
+  checked world-model representation, with the two reference games parsing and
+  checking cleanly.
+- **In progress:** the Z-machine code generator.
+- **Next:** the Cosmos library, then a size pass, graphics, and beyond.
 
 Follow this README's status section and `PROGRESS.md` for where things stand.
 

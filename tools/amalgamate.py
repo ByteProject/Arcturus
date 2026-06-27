@@ -31,7 +31,10 @@ import sys
 # submodules in dependency order so the relative imports resolve from the
 # already-registered modules.
 _PACKAGE = "arcturus"
-_MODULE_ORDER = ["errors", "tokens", "ast", "lexer", "parser", "astdump", "cli"]
+_MODULE_ORDER = [
+    "errors", "tokens", "ast", "lexer", "parser", "prelude", "worldmodel",
+    "sema", "astdump", "irdump", "cli",
+]
 
 _HEADER = '''#!/usr/bin/env python3
 # arcc
