@@ -26,11 +26,12 @@ cannot compile a playable game today. The compiler is being built milestone by
 milestone:
 
 - **Done:** project scaffold, the language specification, the compiler front
-  end (lexer and parser) for the full language, and semantic analysis with the
-  checked world-model representation, with the two reference games parsing and
-  checking cleanly.
-- **In progress:** the Z-machine code generator.
-- **Next:** the Cosmos library, then a size pass, graphics, and beyond.
+  end (lexer and parser), semantic analysis with the checked world-model
+  representation, and a Z-machine code generator that emits a valid z5 story
+  file (the smallest program runs on Frotz).
+- **In progress:** the Cosmos library: the parser, the turn loop, and the
+  standard verbs, written in Arcturus.
+- **Next:** a size pass, then graphics, and beyond.
 
 Follow this README's status section and `PROGRESS.md` for where things stand.
 
