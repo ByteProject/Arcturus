@@ -120,8 +120,19 @@ Frotz at each runnable step):
 - [x] B4.2 - expressions, control flow, and the statement set
 - [x] B4.3 - the object table (attributes, properties, tree, short names)
 - [x] B4.4 - the dictionary and input tokenizing
-- [ ] B4.5 - Cosmos in Arcturus: parser, scope/light, pipeline, turn loop, verbs
+- B4.5 - Cosmos in Arcturus (staged):
+  - [x] B4.5a - compile all handlers and blocks to routines
+  - [ ] B4.5b - dispatch (Arcturus dispatcher + compiler-wired handlers)
+  - [ ] B4.5c - scope and light
+  - [ ] B4.5d - the parser
+  - [ ] B4.5e - turn loop + standard verbs + banner
 - [ ] B4.6 - integration, DCE-friendly structure, docs
+
+B4.5 architecture (settled): the compiler provides reserved intrinsic built-ins
+that lower to opcodes (read_line, peek/poke, parse-buffer access); dispatch is
+model B (the compiler wires per-object/kind handler routines and Cosmos's
+Arcturus dispatcher walks the chain, handlers returning 1 = handled / 0 =
+continue); arcc auto-includes the bundled Cosmos unless an author forks a file.
 
 ## Next: B5
 

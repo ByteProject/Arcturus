@@ -26,9 +26,11 @@ from . import objects as objmod
 from . import storyfile
 from . import worldmodel as wm
 from . import zstring
-from .assembler import Routine, RoutineRef, link
+from .assembler import Const, Routine, RoutineRef, Variable, link
 from .errors import ArcError
 from .lower import Context, compile_block
+
+_CONST_ONE = Const(1)
 
 # Region sizes.
 _GLOBALS_BYTES = 240 * 2  # 240 globals
@@ -50,6 +52,19 @@ _PARSE_BUFFER_BYTES = 2 + PARSE_BUFFER_MAX * 4
 
 class CodegenError(ArcError):
     pass
+
+
+class StringPool:
+    """Strings allocated during lowering (text-property writes, dynamic text).
+    build_story lays them out in high memory and backpatches their addresses."""
+
+    def __init__(self) -> None:
+        self.strings: dict[str, str] = {}
+
+    def add(self, text: str) -> str:
+        sid = f"s{len(self.strings)}"
+        self.strings[sid] = text
+        return sid
 
 
 def _meta(world: wm.World) -> dict:
@@ -87,8 +102,9 @@ def _start_handler(world: wm.World):
 
 
 
-# Builtin numeric references get fixed global slots; game globals follow.
-_BUILTIN_GLOBALS = ["turns", "score", "max_score", "player", "here"]
+# Builtin references get fixed global slots; game globals follow. turns/score/
+# max_score are numbers; player/here/noun/second hold object numbers at run time.
+_BUILTIN_GLOBALS = ["turns", "score", "max_score", "player", "here", "noun", "second"]
 
 
 def _globals_map(world: wm.World) -> dict:
@@ -104,7 +120,9 @@ def _globals_map(world: wm.World) -> dict:
     return m
 
 
-def build_story(world: wm.World, entry: Routine, routines: list, layout=None) -> bytes:
+def build_story(
+    world: wm.World, entry: Routine, routines: list, layout=None, string_pool=None
+) -> bytes:
     """Assemble a complete z5 image from the entry stub and routines, laying out
     the standard memory regions. Shared by generate() and the backend tests.
     `layout` is the object table (objects.Layout); without it the object area is
@@ -136,20 +154,29 @@ def build_story(world: wm.World, entry: Routine, routines: list, layout=None) ->
 
     # High memory: the entry stub and routines, run from the initial PC.
     high_base = sf.here()
-    blob, initial_pc = link(entry, routines, high_base)
+    blob, initial_pc, strrefs = link(entry, routines, high_base)
+    blob_start = sf.here()
     sf.append(blob)
 
-    # Packed strings (object descriptions) live in high memory, 4-aligned so
-    # their packed addresses are exact; backpatch the object table with them.
+    # Packed strings (object descriptions and strings allocated during lowering)
+    # live in high memory, 4-aligned so their packed addresses are exact.
+    all_strings: dict[str, str] = {}
     if layout is not None:
-        string_packed: dict[str, int] = {}
-        for sid, text in layout.strings.items():
-            while sf.here() % 4 != 0:
-                sf.append(b"\x00")
-            string_packed[sid] = sf.here() // 4
-            sf.append(zstring.encode(text))
+        all_strings.update(layout.strings)
+    if string_pool is not None:
+        all_strings.update(string_pool.strings)
+    string_packed: dict[str, int] = {}
+    for sid, text in all_strings.items():
+        while sf.here() % 4 != 0:
+            sf.append(b"\x00")
+        string_packed[sid] = sf.here() // 4
+        sf.append(zstring.encode(text))
+    # Backpatch the object table (desc properties) and the code (string refs).
+    if layout is not None:
         for offset, sid in layout.string_fixups:
             sf.set_word(objects_addr + offset, string_packed[sid])
+    for pos, sid in strrefs:
+        sf.set_word(blob_start + pos, string_packed[sid])
 
     m = _meta(world)
     sf.set_word(storyfile.H_RELEASE, m.get("release", 1))
@@ -166,27 +193,95 @@ def build_story(world: wm.World, entry: Routine, routines: list, layout=None) ->
     return sf.finalize()
 
 
+def _self_operand(world: wm.World, handler: wm.Handler, layout):
+    """What `self` is inside a handler routine: an object/room handler knows its
+    owner at compile time (a constant), while a kind or free-standing handler
+    runs for whichever object is the noun (the noun global)."""
+    if (
+        handler.owner is not None
+        and not handler.origin_kind
+        and handler.owner in layout.obj_number
+    ):
+        return Const(layout.obj_number[handler.owner])
+    return Variable(_globals_map(world)["noun"])
+
+
+def _compile_handler(world, gmap, layout, pool, handler, name) -> Routine:
+    rt = Routine(name, nlocals=0)
+    ctx = Context(
+        world,
+        gmap,
+        layout=layout,
+        self_value=_self_operand(world, handler, layout),
+        in_handler=True,
+        string_pool=pool,
+    )
+    ctx.prescan(handler.body)
+    compile_block(rt, ctx, handler.body)
+    rt.op("ret", _CONST_ONE)  # falling off the end consumes the action
+    rt.nlocals = ctx.nlocals()
+    return rt
+
+
+def _compile_block(world, gmap, layout, pool, blk) -> Routine:
+    rt = Routine("blk_" + blk.name, nlocals=len(blk.params))
+    ctx = Context(world, gmap, params=blk.params, layout=layout, string_pool=pool)
+    ctx.prescan(blk.body)
+    compile_block(rt, ctx, blk.body)
+    rt.op("rfalse")  # default return value if the block does not return one
+    rt.nlocals = ctx.nlocals()
+    return rt
+
+
+def build_routines(world: wm.World, gmap: dict, layout, pool):
+    """Emit a routine for the main entry, every `block`, and every handler
+    except `on start` (which runs inside main for now). Returns the main
+    routine, the extra routines, and a registry mapping each handler to its
+    routine name for the dispatcher (B4.5b)."""
+    main = Routine("__main__", nlocals=0)
+    main.op("print", text=banner_text(world))
+    start = _start_handler(world)
+    if start is not None:
+        ctx = Context(world, gmap, layout=layout, in_handler=True, string_pool=pool)
+        ctx.prescan(start.body)
+        compile_block(main, ctx, start.body)
+        main.nlocals = ctx.nlocals()
+    main.op("rfalse")
+
+    routines = []
+    for blk in world.blocks.values():
+        routines.append(_compile_block(world, gmap, layout, pool, blk))
+
+    registry = []
+    n = 0
+    for handler in world.all_handlers():
+        if "start" in handler.events:
+            continue  # on start is compiled into main
+        name = f"h{n}"
+        n += 1
+        routines.append(_compile_handler(world, gmap, layout, pool, handler, name))
+        registry.append((handler, name))
+
+    return main, routines, registry
+
+
 def generate(world: wm.World) -> bytes:
     """Lower the world model to a complete z5 story file image.
 
-    The entry stub calls the main routine and quits; the main routine prints the
-    banner and runs the `on start` handler. The full turn loop and the rest of
-    the handlers arrive with Cosmos (B4.5)."""
+    The entry stub calls the main routine and quits; main prints the banner and
+    runs `on start`. Every other handler and every block is compiled to its own
+    routine. The dispatcher and turn loop that drive the handlers arrive with
+    Cosmos (B4.5b onward)."""
     gmap = _globals_map(world)
     layout = objmod.build_layout(world)
+    pool = StringPool()
 
     entry = Routine("__entry__", entry=True)
     entry.op("call_vn", RoutineRef("__main__"))
     entry.op("quit")
 
-    main = Routine("__main__", nlocals=0)
-    main.op("print", text=banner_text(world))
-    handler = _start_handler(world)
-    if handler is not None:
-        ctx = Context(world, gmap, layout=layout)
-        ctx.prescan(handler.body)
-        compile_block(main, ctx, handler.body)
-        main.nlocals = ctx.nlocals()
-    main.op("rfalse")
+    main, routines, _registry = build_routines(world, gmap, layout, pool)
 
-    return build_story(world, entry, [main], layout=layout)
+    return build_story(
+        world, entry, [main] + routines, layout=layout, string_pool=pool
+    )

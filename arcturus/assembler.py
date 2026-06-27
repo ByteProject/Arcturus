@@ -38,6 +38,7 @@ class Operand:
     kind: int
     value: int
     routine: Optional[str] = None  # set when this is an unresolved call target
+    string: Optional[str] = None  # set when this is an unresolved packed-string ref
 
 
 def Const(v: int) -> Operand:
@@ -58,6 +59,12 @@ def RoutineRef(name: str) -> Operand:
     """A call target: a large-constant placeholder, patched with the routine's
     packed address at link time."""
     return Operand(LARGE, 0, routine=name)
+
+
+def StringRef(sid: str) -> Operand:
+    """A reference to a packed string (by id): a large-constant placeholder,
+    patched with the string's packed address at link time."""
+    return Operand(LARGE, 0, string=sid)
 
 
 # Opcode table: name -> (form, code, stores, branches, has_text).
@@ -178,7 +185,7 @@ class Routine:
         if form == "1OP":
             # 10ttxxxx: tt is the operand type, opcode in the low four bits.
             op = operands[0]
-            self._note_routine_ref(op, len(self.code) + 1)  # operand follows the opcode byte
+            self._note_ref(op, len(self.code) + 1)  # operand follows the opcode byte
             return bytes([0x80 | (op.kind << 4) | code]) + self._operand_bytes(op)
         if form == "2OP":
             return self._encode_2op(code, operands)
@@ -213,9 +220,9 @@ class Routine:
         out.append(types)
         base = len(out)  # operands begin after the opcode and types bytes
         for i, op in enumerate(operands):
-            # A call target's address is not known yet: record where its two
-            # placeholder bytes sit so the linker can patch the packed address.
-            self._note_routine_ref(op, len(self.code) + base + self._span(operands[:i]))
+            # A call target or string address is not known yet: record where its
+            # two placeholder bytes sit so the linker can patch the packed value.
+            self._note_ref(op, len(self.code) + base + self._span(operands[:i]))
             out += self._operand_bytes(op)
         return bytes(out)
 
@@ -228,9 +235,11 @@ class Routine:
             return bytes([(op.value >> 8) & 0xFF, op.value & 0xFF])
         return bytes([op.value & 0xFF])
 
-    def _note_routine_ref(self, op: Operand, offset_in_code: int) -> None:
+    def _note_ref(self, op: Operand, offset_in_code: int) -> None:
         if op.routine is not None:
             self.fixups.append(_Fixup(offset_in_code, "call", op.routine))
+        elif op.string is not None:
+            self.fixups.append(_Fixup(offset_in_code, "strref", op.string))
 
     def _emit_branch(self, label: str, on_true: bool) -> None:
         # Reserve two bytes; resolved at link time (we always use the wide form
@@ -239,9 +248,11 @@ class Routine:
         self.code += b"\x00\x00"
 
 
-def link(entry: Routine, routines: list[Routine], base_addr: int) -> tuple[bytes, int]:
+def link(entry: Routine, routines: list[Routine], base_addr: int):
     """Lay out the entry stub and routines in high memory starting at base_addr.
-    Returns the high-memory blob and the initial program counter."""
+    Returns the high-memory blob, the initial program counter, and the list of
+    (absolute-offset-in-blob, string-id) packed-string references still to be
+    resolved once the strings are laid out (by the caller, in build_story)."""
     blob = bytearray()
     starts: dict[str, int] = {}
 
@@ -262,11 +273,16 @@ def link(entry: Routine, routines: list[Routine], base_addr: int) -> tuple[bytes
         code_starts[r.name] = len(blob)
         blob += r.code
 
-    # Backpatch each routine's (and the entry's) fixups.
+    # Backpatch each routine's (and the entry's) fixups. String references are
+    # collected for the caller, which knows the string addresses.
+    strrefs: list[tuple[int, str]] = []
     for r in [entry] + routines:
         cs = code_starts[r.name]
         for fx in r.fixups:
             pos = cs + fx.offset
+            if fx.kind == "strref":
+                strrefs.append((pos, fx.target))
+                continue
             if fx.kind == "call":
                 if fx.target not in packed:
                     raise KeyError(f"call to unknown routine '{fx.target}'")
@@ -291,4 +307,4 @@ def link(entry: Routine, routines: list[Routine], base_addr: int) -> tuple[bytes
                 blob[pos] = (offset >> 8) & 0xFF
                 blob[pos + 1] = offset & 0xFF
 
-    return bytes(blob), base_addr + entry_code_start
+    return bytes(blob), base_addr + entry_code_start, strrefs

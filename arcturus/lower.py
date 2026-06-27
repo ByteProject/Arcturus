@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from . import ast
 from . import worldmodel as wm
-from .assembler import Const, Routine, Variable, RoutineRef, STACK
+from .assembler import Const, Routine, Variable, RoutineRef, StringRef, STACK
 from .errors import ArcError
 
 _ARITH = {"+": "add", "-": "sub", "*": "mul", "/": "div", "mod": "mod"}
@@ -43,10 +43,29 @@ class Context:
     """Per-routine state: the local-variable assignment and a temporary pool
     above the named locals."""
 
-    def __init__(self, world: wm.World, globals_map: dict, params=(), layout=None):
+    def __init__(
+        self,
+        world: wm.World,
+        globals_map: dict,
+        params=(),
+        layout=None,
+        self_value=None,
+        in_handler: bool = False,
+        string_pool=None,
+    ):
         self.world = world
         self.globals = globals_map
         self.layout = layout
+        # Pool for strings allocated during lowering (e.g. a text-property
+        # write); build_story lays them out and patches their packed addresses.
+        self.string_pool = string_pool
+        # What `self` resolves to in this routine: a constant object number for
+        # an object/room handler, or the noun variable for a kind/free handler.
+        self.self_value = self_value
+        # In a handler, `stop` and `continue` return a dispatch code (1 = the
+        # action is consumed, 0 = pass to the next handler). In a block they are
+        # an ordinary return / an error.
+        self.in_handler = in_handler
         self.named: dict[str, int] = {}
         slot = 1
         for p in params:
@@ -155,6 +174,8 @@ def _is_leaf(ctx: Context, expr) -> bool:
     if isinstance(expr, (ast.Number, ast.Bool, ast.Nothing)):
         return True
     if isinstance(expr, ast.Name):
+        if expr.ident == "self":
+            return ctx.self_value is not None
         return (
             expr.ident in ctx.named
             or expr.ident in ctx.globals
@@ -171,6 +192,8 @@ def _leaf_operand(ctx: Context, expr):
     if isinstance(expr, ast.Nothing):
         return Const(0)  # the null object
     if isinstance(expr, ast.Name):
+        if expr.ident == "self" and ctx.self_value is not None:
+            return ctx.self_value
         if expr.ident in ctx.named or expr.ident in ctx.globals:
             return Variable(ctx.resolve_var(expr.ident, expr.line))
         if ctx.is_object_name(expr.ident):
@@ -422,7 +445,9 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> None:
             _say(rt, ctx, s.message)
         rt.op("quit")
     elif isinstance(s, ast.Stop):
-        rt.op("rfalse")
+        # In a handler, stop consumes the action (return 1); elsewhere it is a
+        # plain return.
+        rt.op("ret", Const(1)) if ctx.in_handler else rt.op("rfalse")
     elif isinstance(s, ast.If):
         _if(rt, ctx, s)
     elif isinstance(s, ast.While):
@@ -443,7 +468,9 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> None:
     elif isinstance(s, (ast.Add, ast.Remove)):
         raise LowerError("list properties need the dictionary stage (B4.4)", s.line)
     elif isinstance(s, ast.Continue):
-        raise LowerError("'continue' belongs to action dispatch (B4.5)", s.line)
+        if not ctx.in_handler:
+            raise LowerError("'continue' is only valid in a handler", s.line)
+        rt.op("ret", Const(0))  # pass the action to the next handler
     elif isinstance(s, ast.ForEach):
         raise LowerError("'for each' needs the object table (B4.3)", s.line)
     elif isinstance(s, ast.Schedule):
@@ -463,9 +490,22 @@ def _change(rt, ctx, s: ast.Change):
                 f"cannot change property '{s.target.prop}'", s.line
             )
         if isinstance(s.value, ast.StringLit):
-            raise LowerError(
-                "writing a text property needs string allocation (B4.5)", s.line
+            # A text-property write stores the packed address of a new string.
+            if any(isinstance(p, ast.StringInterp) for p in s.value.parts):
+                raise LowerError(
+                    "interpolated text in a property write is not supported", s.line
+                )
+            if ctx.string_pool is None:
+                raise LowerError("no string pool available", s.line)
+            text = "".join(
+                p.text for p in s.value.parts if isinstance(p, ast.StringText)
             )
+            sid = ctx.string_pool.add(text)
+            objop, to = _operand(rt, ctx, s.target.obj)
+            rt.op("put_prop", objop, Const(pnum), StringRef(sid))
+            if to is not None:
+                ctx.free_temp(to)
+            return
         valop, tv = _operand(rt, ctx, s.value)
         objop, to = _operand(rt, ctx, s.target.obj)
         rt.op("put_prop", objop, Const(pnum), valop)
