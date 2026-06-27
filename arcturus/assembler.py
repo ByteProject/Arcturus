@@ -71,15 +71,24 @@ _OPCODES = {
     "quit": ("0OP", 0x0A, False, False, False),
     # 1OP
     "jz": ("1OP", 0x00, False, True, False),
+    "get_parent": ("1OP", 0x03, True, False, False),
     "inc": ("1OP", 0x05, False, False, False),
     "dec": ("1OP", 0x06, False, False, False),
+    "remove_obj": ("1OP", 0x09, False, False, False),
+    "print_obj": ("1OP", 0x0A, False, False, False),
     "ret": ("1OP", 0x0B, False, False, False),
     "print_paddr": ("1OP", 0x0D, False, False, False),
     # 2OP
     "je": ("2OP", 0x01, False, True, False),
     "jl": ("2OP", 0x02, False, True, False),
     "jg": ("2OP", 0x03, False, True, False),
+    "jin": ("2OP", 0x06, False, True, False),
+    "test_attr": ("2OP", 0x0A, False, True, False),
+    "set_attr": ("2OP", 0x0B, False, False, False),
+    "clear_attr": ("2OP", 0x0C, False, False, False),
     "store": ("2OP", 0x0D, False, False, False),
+    "insert_obj": ("2OP", 0x0E, False, False, False),
+    "get_prop": ("2OP", 0x11, True, False, False),
     "and": ("2OP", 0x09, True, False, False),
     "or": ("2OP", 0x08, True, False, False),
     "add": ("2OP", 0x14, True, False, False),
@@ -94,6 +103,7 @@ _OPCODES = {
     "print_char": ("VAR", 0x05, False, False, False),
     "push": ("VAR", 0x08, False, False, False),
     "pull": ("VAR", 0x09, False, False, False),
+    "put_prop": ("VAR", 0x03, False, False, False),
 }
 
 

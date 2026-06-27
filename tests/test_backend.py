@@ -43,12 +43,18 @@ def test_emits_valid_z5_header():
     assert data[0x12:0x18] == b"260627"
 
 
-def test_object_interpolation_is_rejected_until_b43():
-    # Numeric interpolation works now; printing an object name or an article
-    # needs the object table (B4.3).
-    src = 'on start\n    say "${the player}"\n'
-    with pytest.raises(ArcError):
-        compile_z5(src)
+def test_object_and_article_interpolation_compiles():
+    # Article and object-name printing work as of B4.3.
+    src = (
+        'thing gem\n'
+        '    name "gem"\n'
+        'on start\n'
+        '    say "You see ${the gem}."\n'
+        'room void\n'
+        '    name "v"\n'
+    )
+    data = compile_z5(src)
+    assert data[0x00] == 5
 
 
 def _frotz():
