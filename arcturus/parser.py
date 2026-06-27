@@ -331,14 +331,19 @@ class Parser:
         line = self.cur.line
         self.expect_kw("on")
         after = self.accept_kw("after")
-        event = self._parse_event_name()
+        # One handler may answer several verbs, separated by commas
+        # (on attack, push, pull). Operand alternatives still use `or`.
+        events = [self._parse_event_name()]
+        while self.check_op(","):
+            self.advance()
+            events.append(self._parse_event_name())
         pattern = self._parse_pattern()
         when = None
         if self.accept_kw("when"):
             when = self.parse_expr()
         self.expect_newline()
         body = self.parse_stmt_block()
-        return ast.Handler(event, after, pattern, when, body, line)
+        return ast.Handler(events, after, pattern, when, body, line)
 
     def _parse_event_name(self) -> str:
         # Most event names are ordinary identifiers; `start` is also a core

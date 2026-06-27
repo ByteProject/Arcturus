@@ -222,10 +222,18 @@ An action carries its verb, `noun`, and optional `second`. Cosmos dispatches
 it as one chain of handlers, most specific first:
 
 1. the `noun` object's own `on <verb>` handler,
-2. its kind chain, nearest kind first,
-3. the room's `on <verb>` handler,
-4. any free-standing top-level `on <verb>` rule,
-5. the Cosmos default `on <verb>` handler.
+2. the `noun` object's own `on other` handler,
+3. its kind chain, nearest kind first, each kind's `on <verb>` before its
+   `on other`,
+4. the room's `on <verb>` handler, then the room's `on other`,
+5. any free-standing top-level `on <verb>` rule,
+6. the Cosmos default `on <verb>` handler.
+
+`on other` is the catch-all (01, section 12): at each level a specific
+`on <verb>` is tried before that level's `on other`, so an object's own
+`on other` is its private default, sitting below its specific handlers but
+above the kind chain. A handler that lists several verbs (`on attack, push,
+pull`) is a specific handler for each of those verbs.
 
 Each handler runs until it ends or calls `continue`. Ending consumes the
 action and stops the chain; `continue` passes to the next handler. If the

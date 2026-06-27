@@ -113,20 +113,20 @@ def test_handler_simple():
     decl = only("thing lever\n    on pull\n        now lever is pulled\n")
     h = decl.members[0]
     assert isinstance(h, ast.Handler)
-    assert h.event == "pull"
+    assert h.events == ["pull"]
     assert h.pattern == []
 
 
 def test_handler_on_start_keyword_event():
     decl = only("on start\n    say \"hi\"\n")
     assert isinstance(decl, ast.Handler)
-    assert decl.event == "start"
+    assert decl.events == ["start"]
 
 
 def test_handler_with_operand_and_prep():
     decl = only("on put ruby in chest\n    say \"ok\"\n")
     h = decl
-    assert h.event == "put"
+    assert h.events == ["put"]
     assert isinstance(h.pattern[0], ast.Operand)
     assert h.pattern[0].names == ["ruby"]
     assert isinstance(h.pattern[1], ast.Prep) and h.pattern[1].word == "in"
@@ -140,7 +140,7 @@ def test_handler_or_alternatives():
 
 def test_handler_go_direction():
     decl = only("on go north\n    say \"no\"\n")
-    assert decl.event == "go"
+    assert decl.events == ["go"]
     assert decl.pattern[0].names == ["north"]
 
 
@@ -153,6 +153,34 @@ def test_handler_after_and_when():
 def test_handler_match_noun_keyword():
     decl = only("on take noun\n    say \"x\"\n")
     assert decl.pattern[0].names == ["noun"]
+
+
+def test_handler_multi_verb():
+    decl = only(
+        "thing rock\n"
+        "    on attack, push, pull\n"
+        "        say \"It is too far away for this.\"\n"
+        "        stop\n"
+    )
+    h = decl.members[0]
+    assert isinstance(h, ast.Handler)
+    assert h.events == ["attack", "push", "pull"]
+    assert h.pattern == []
+
+
+def test_handler_multi_verb_with_operand():
+    decl = only("on push, pull lever\n    say \"stuck\"\n")
+    assert decl.events == ["push", "pull"]
+    assert isinstance(decl.pattern[0], ast.Operand)
+    assert decl.pattern[0].names == ["lever"]
+
+
+def test_handler_on_other():
+    decl = only("thing statue\n    on other\n        say \"silence\"\n")
+    h = decl.members[0]
+    assert isinstance(h, ast.Handler)
+    assert h.events == ["other"]
+    assert h.pattern == []
 
 
 # -- verbs -----------------------------------------------------------------

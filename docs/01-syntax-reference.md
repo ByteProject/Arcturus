@@ -447,6 +447,23 @@ on put ruby or ring in chest
 The handler fires when `noun` is the ruby or the ring and `second` is the
 chest, with `noun` bound to whichever matched.
 
+One handler may answer several verbs at once, by listing the verbs separated
+by commas, so a shared response is written once:
+
+```
+on attack, push, pull
+    say "It is too far away for this."
+    stop
+```
+
+Comma joins verbs; `or` joins operand alternatives. The two combine, and any
+operands apply to every listed verb:
+
+```
+on push, pull lever
+    say "The lever does not budge."
+```
+
 A `when` guard restricts a handler to a condition:
 
 ```
@@ -461,6 +478,28 @@ does not run; this is the common "instead" case. To run your code and then
 also let the next, more general handler or the Cosmos default run, end with
 `continue`. To react after the action completes, use `on after <verb> ...`.
 The full ordering is in 02.
+
+`on other` is the catch-all handler: it fires for any action on the object
+that no specific `on <verb>` handler caught. It is the object's own default,
+the least specific of its handlers, running before the action climbs to the
+kind, the room, or the Cosmos default; `stop` consumes the action and
+`continue` passes it on. This is the equivalent of an Inform `default:` branch:
+
+```
+thing statue
+    name "marble statue"
+
+    on examine
+        say "A nobleman, nose long since chipped away."
+
+    on other
+        say "The statue suffers your attentions in silence."
+```
+
+Here examine has its own reply and every other verb falls to `on other`. The
+name `other` always means "anything not otherwise matched": as a verb here, and
+as the fallback direction in `on go other` (02). Its place in the dispatch
+chain is defined in 02, section 9.
 
 Core events Cosmos fires, defined in 02: `on start`, `on enter`,
 `on each_turn`, and the action events named by verbs.
@@ -813,8 +852,11 @@ kind_decl      := "kind" id [ "of" id ] INDENT { member } DEDENT
 member         := property_decl | handler | grains_block
 property_decl  := id [ value ] | id "list" number | id "block"
                   INDENT { statement } DEDENT
-handler        := "on" [ "after" ] event [ "when" expr ]
-                  INDENT { statement } DEDENT
+handler        := "on" [ "after" ] event { "," event } [ pattern ]
+                  [ "when" expr ] INDENT { statement } DEDENT
+event          := id            (* a verb or action name, or "other" *)
+pattern        := { operand | word }
+operand        := id { "or" id }
 grains_block   := "grains" INDENT { grain } DEDENT
 grain          := verbs words ( "say" string | "do" id
                               | INDENT { statement } DEDENT )

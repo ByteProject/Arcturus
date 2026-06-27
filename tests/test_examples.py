@@ -38,7 +38,7 @@ def test_brass_lantern_parses_cleanly():
     # The lever's pull handler ends by exposing the ruby and printing.
     lever = objs["lever"]
     pull = next(m for m in lever.members if isinstance(m, ast.Handler))
-    assert pull.event == "pull"
+    assert pull.events == ["pull"]
 
     # The ruby's take handler finishes with an interpolated message (${turns}).
     ruby = objs["ruby"]
@@ -52,7 +52,7 @@ def test_brass_lantern_parses_cleanly():
     guarded = [
         m
         for m in cellar.members
-        if isinstance(m, ast.Handler) and m.event == "each_turn"
+        if isinstance(m, ast.Handler) and "each_turn" in m.events
     ]
     assert guarded and guarded[0].when is not None
 
@@ -75,7 +75,7 @@ def test_cloak_of_darkness_parses_cleanly():
     go_north = [
         m
         for m in foyer.members
-        if isinstance(m, ast.Handler) and m.event == "go"
+        if isinstance(m, ast.Handler) and "go" in m.events
     ]
     assert go_north and go_north[0].pattern[0].names == ["north"]
     assert any(isinstance(m, ast.GrainsBlock) for m in foyer.members)
