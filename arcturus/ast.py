@@ -351,7 +351,10 @@ PatternItem = Union[Operand, Prep]
 
 @dataclass
 class Handler:
-    event: str
+    # One or more action names. A header may list several verbs separated by
+    # commas (on attack, push, pull), so this is always a list with at least
+    # one entry. `other` is the catch-all (docs/01 section 12).
+    events: list[str]
     after: bool = False
     pattern: list[PatternItem] = field(default_factory=list)
     when: Optional[Expr] = None
