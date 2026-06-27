@@ -22,13 +22,8 @@ from . import __version__
 from . import ast
 from . import storyfile
 from . import worldmodel as wm
-from . import zstring
+from .assembler import Routine, link
 from .errors import ArcError
-
-# 0OP opcodes used here (Z-machine standard 1.1, section 14).
-OP_PRINT = 0xB2  # print the inline literal Z-string that follows
-OP_NEW_LINE = 0xBB
-OP_QUIT = 0xBA
 
 # Region sizes.
 _GLOBALS_BYTES = 240 * 2  # 240 globals
@@ -65,10 +60,6 @@ def banner_text(world: wm.World) -> str:
     line2 = f"{headline} by {author}"
     line3 = f"Release {release} / Serial number {serial} / Arcturus {_compiler_version()}"
     return f"\n{title}\n{line2}\n{line3}\n\n"
-
-
-def _print(text: str) -> bytes:
-    return bytes([OP_PRINT]) + zstring.encode(text)
 
 
 def _start_handler(world: wm.World):
@@ -118,8 +109,19 @@ def _empty_dictionary() -> bytes:
     return bytes([0x00, 0x09, 0x00, 0x00])
 
 
-def generate(world: wm.World) -> bytes:
-    """Lower the world model to a complete z5 story file image."""
+def _emit_main(entry: Routine, world: wm.World) -> None:
+    """The provisional main code: print the banner, run the on start say lines,
+    then quit (B3 behavior, now expressed through the assembler)."""
+    entry.op("print", text=banner_text(world))
+    for line in _start_text(world):
+        entry.op("print", text=line)
+        entry.op("new_line")
+    entry.op("quit")
+
+
+def build_story(world: wm.World, entry: Routine, routines: list) -> bytes:
+    """Assemble a complete z5 image from the entry stub and routines, laying out
+    the standard memory regions. Shared by generate() and the backend tests."""
     sf = storyfile.StoryFile(version=5)
 
     # Dynamic memory: globals and the object table (property defaults, no
@@ -132,19 +134,11 @@ def generate(world: wm.World) -> bytes:
     abbrev_addr = sf.append(bytes(_ABBREV_BYTES))
     dict_addr = sf.append(_empty_dictionary())
 
-    # High memory: the main code, run from the initial program counter.
-    code = bytearray()
-    code += _print(banner_text(world))
-    for line in _start_text(world):
-        code += _print(line)
-        code.append(OP_NEW_LINE)
-    code.append(OP_QUIT)
-
+    # High memory: the entry stub and routines, run from the initial PC.
     high_base = sf.here()
-    initial_pc = high_base
-    sf.append(bytes(code))
+    blob, initial_pc = link(entry, routines, high_base)
+    sf.append(blob)
 
-    # Header.
     m = _meta(world)
     sf.set_word(storyfile.H_RELEASE, m.get("release", 1))
     sf.set_word(storyfile.H_HIGH_BASE, high_base)
@@ -158,3 +152,10 @@ def generate(world: wm.World) -> bytes:
     sf.set_serial(serial)
 
     return sf.finalize()
+
+
+def generate(world: wm.World) -> bytes:
+    """Lower the world model to a complete z5 story file image."""
+    entry = Routine("__entry__", entry=True)
+    _emit_main(entry, world)
+    return build_story(world, entry, [])
