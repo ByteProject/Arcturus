@@ -103,9 +103,27 @@ When a change affects anything the public-facing documentation describes, the
 docs are updated in the same step. New conventions are recorded here as they
 are introduced.
 
-## Next: B4
+## In progress: B4 — Cosmos compiled by the compiler
 
-Cosmos compiled by the compiler: the parser, the turn loop, and the standard
-verbs, written in Arcturus and compiled together with the game. Done-test: both
-example games are playable start to finish on Frotz. A plan will be restated
-before implementation begins.
+The parser, turn loop, and standard verbs, written in Arcturus and compiled
+together with the game. Done-test: both example games playable start to finish
+on Frotz. Decisions settled: parser/scope/dispatch/loop/verbs live in Arcturus,
+with the compiler providing only low-level intrinsics; the parser keeps a
+language seam so a language pack can override grammar logic; the verb set for
+B4 is what the two games exercise (the full set rounds out in B6).
+
+Subgoals (each with its own done-test; the story file is handed off to run on
+Frotz at each runnable step):
+
+- [x] B4.1 - routines, locals, stack, CALL (the instruction assembler)
+- [ ] B4.2 - expressions, control flow, and the statement set
+- [ ] B4.3 - the object table (attributes, properties, tree, short names)
+- [ ] B4.4 - the dictionary and input tokenizing
+- [ ] B4.5 - Cosmos in Arcturus: parser, scope/light, pipeline, turn loop, verbs
+- [ ] B4.6 - integration, DCE-friendly structure, docs
+
+## Next: B5
+
+The size pass: dead-code elimination, the arcabbr abbreviation pipeline, and
+codegen tightening. Target: a representative game at or (per the project bar)
+under its PunyInform-equivalent size.
