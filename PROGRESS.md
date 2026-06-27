@@ -119,7 +119,7 @@ Frotz at each runnable step):
 - [x] B4.1 - routines, locals, stack, CALL (the instruction assembler)
 - [x] B4.2 - expressions, control flow, and the statement set
 - [x] B4.3 - the object table (attributes, properties, tree, short names)
-- [ ] B4.4 - the dictionary and input tokenizing
+- [x] B4.4 - the dictionary and input tokenizing
 - [ ] B4.5 - Cosmos in Arcturus: parser, scope/light, pipeline, turn loop, verbs
 - [ ] B4.6 - integration, DCE-friendly structure, docs
 

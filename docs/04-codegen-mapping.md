@@ -121,11 +121,23 @@ once high memory is laid out.
 | `say` an object, `${the obj}` | `print_obj` (article printed literally for now) |
 | `say` a text property | `print_paddr` |
 
-## 7. Not yet lowered
+## 7. The dictionary and input (B4.4)
 
-Deferred to later milestones: the dictionary and input tokenizing, `for each`,
-string switches, list properties (`add`/`remove`/`words`), computed (`block`)
-properties and text-property writes, the `a`/`an` choice by sound, dynamic
-property access (`here.(dir)`), the parser, scope, and the turn loop (B4.4 to
-B4.5), and abbreviation-based text compression and dense-codegen tightening
-(B5).
+The dictionary (`arcturus/dictionary.py`) holds every matchable word - verb
+words (multi-word phrases split into tokens), object `words`, and grain words -
+as 6-byte Z-encoded entries truncated to nine Z-characters, sorted so the
+interpreter's tokenizer can binary-search, with three data bytes per entry
+reserved for the parser. The compiler provides the low-level intrinsics the
+parser sits on: `aread` reads a line into the text buffer and tokenizes it into
+the parse buffer against the dictionary, and `loadb`/`storeb`/`loadw`/`storew`
+read and write memory. The text and parse buffers sit at fixed dynamic-memory
+addresses just after the globals (`TEXT_BUFFER_ADDR`, `PARSE_BUFFER_ADDR`).
+
+## 8. Not yet lowered
+
+Deferred to later milestones: wiring each object's `words` to dictionary
+addresses and noun resolution, `for each`, string switches, list properties
+(`add`/`remove`), computed (`block`) properties and text-property writes, the
+`a`/`an` choice by sound, dynamic property access (`here.(dir)`), the parser,
+scope, and the turn loop (B4.5), and abbreviation-based text compression and
+dense-codegen tightening (B5).

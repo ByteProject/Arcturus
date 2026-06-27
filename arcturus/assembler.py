@@ -88,6 +88,8 @@ _OPCODES = {
     "clear_attr": ("2OP", 0x0C, False, False, False),
     "store": ("2OP", 0x0D, False, False, False),
     "insert_obj": ("2OP", 0x0E, False, False, False),
+    "loadw": ("2OP", 0x0F, True, False, False),
+    "loadb": ("2OP", 0x10, True, False, False),
     "get_prop": ("2OP", 0x11, True, False, False),
     "and": ("2OP", 0x09, True, False, False),
     "or": ("2OP", 0x08, True, False, False),
@@ -98,6 +100,9 @@ _OPCODES = {
     "mod": ("2OP", 0x18, True, False, False),
     # VAR
     "call_vs": ("VAR", 0x00, True, False, False),
+    "storew": ("VAR", 0x01, False, False, False),
+    "storeb": ("VAR", 0x02, False, False, False),
+    "aread": ("VAR", 0x04, True, False, False),  # read+tokenize; v5 stores the terminator
     "call_vn": ("VAR", 0x19, False, False, False),
     "print_num": ("VAR", 0x06, False, False, False),
     "print_char": ("VAR", 0x05, False, False, False),
