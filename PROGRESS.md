@@ -13,8 +13,8 @@ Last updated: 2026-06-27.
 | B0 | Project scaffold and VS Code extension | done |
 | B1 | Lexer and parser producing an AST, with unit tests | done |
 | B2 | Semantic analysis and the world-model IR | done |
-| B3 | Z-machine backend MVP (smallest valid story file) | next |
-| B4 | Cosmos compiled: parser, turn loop, standard verbs | pending |
+| B3 | Z-machine backend MVP (smallest valid story file) | done |
+| B4 | Cosmos compiled: parser, turn loop, standard verbs | next |
 | B5 | Size pass (dead-code elimination, abbreviations, codegen) | pending |
 | B6 | Feature-complete for a real game | pending |
 | B7 | Graphics via `arc_image` | pending |
@@ -66,6 +66,21 @@ generate a story file.
 - Done-test green: the world-model IR for both example games is correct. The
   CLI parses and checks by default.
 
+### B3: the z5 backend MVP
+
+- `arcturus/` gains `zstring` (the ZSCII / Z-string encoder), `storyfile` (the
+  header and region assembler, with checksum and length), and `codegen` (lower
+  the world model to a complete z5 image). `arcc -o game.z5` now writes a story
+  file. The construct-to-opcode mapping is documented in
+  docs/04-codegen-mapping.md.
+- The smallest program (a `game` block, an `on start` with `say` lines, and one
+  room) compiles to a valid z5 that prints the banner and the start text, then
+  quits. The banner is emitted by the compiler as a provisional stand-in; it
+  becomes Cosmos's job at B4, and the compiler still hardcodes nothing about
+  the library.
+- Done-test green: the generated story file runs on Frotz (verified with
+  `dfrotz`; the test skips cleanly where no interpreter is present).
+
 ### Distribution and housekeeping
 
 - The compiler is developed as a modular package but shipped as a single
@@ -88,8 +103,9 @@ When a change affects anything the public-facing documentation describes, the
 docs are updated in the same step. New conventions are recorded here as they
 are introduced.
 
-## Next: B3
+## Next: B4
 
-The z5 backend MVP: emit a valid Z-machine version 5 story file for the
-smallest program (one room, print, quit) with a correct banner. Done-test: it
-runs on Frotz. A plan will be restated before implementation begins.
+Cosmos compiled by the compiler: the parser, the turn loop, and the standard
+verbs, written in Arcturus and compiled together with the game. Done-test: both
+example games are playable start to finish on Frotz. A plan will be restated
+before implementation begins.

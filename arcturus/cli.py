@@ -17,6 +17,7 @@ import sys
 
 from . import __version__
 from .astdump import dump
+from .codegen import generate
 from .errors import ArcError
 from .irdump import dump as dump_ir
 from .parser import parse
@@ -108,12 +109,19 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.output:
-        print(
-            "arcc: error: code generation is not implemented yet "
-            "(this milestone parses and checks only)",
-            file=sys.stderr,
-        )
-        return 2
+        try:
+            story = generate(world)
+        except ArcError as exc:
+            print(exc.format(), file=sys.stderr)
+            return 1
+        try:
+            with open(args.output, "wb") as fh:
+                fh.write(story)
+        except OSError as exc:
+            print(f"arcc: error: cannot write {args.output}: {exc}", file=sys.stderr)
+            return 2
+        print(f"{args.source}: wrote {args.output} ({len(story)} bytes)")
+        return 0
 
     objects = len(world.objects)
     print(f"{args.source}: parsed and checked cleanly ({objects} objects)")
