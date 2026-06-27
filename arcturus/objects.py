@@ -120,22 +120,31 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
         _emit_property_table(world, layout, name, eff)
 
         entry = entries_at + (num - 1) * _ENTRY_SIZE
-        # Attributes (48 bits, attribute 0 = bit 7 of byte 0).
+        # Attributes are 48 bits across the first six bytes, most significant
+        # bit first: attribute a lives in byte a//8 at bit (7 - a%8). Set the
+        # bit only when the object's effective boolean for that property is true.
         for pname, decl in eff.items():
             anum = layout.attr_number.get(pname)
             if anum is not None and _bool_value(decl):
                 table[entry + anum // 8] |= 0x80 >> (anum % 8)
+        # A v4+ object entry is 14 bytes: six attribute bytes (set above), then
+        # the parent, sibling, and child object numbers as 16-bit words, then a
+        # pointer to this object's property table (standard 1.1, section 12.3.2).
         parent, sibling, child = tree[name]
         _put_word(table, entry + 6, parent)
         _put_word(table, entry + 8, sibling)
         _put_word(table, entry + 10, child)
-        # The property-table pointer is absolute; resolved in build_story.
+        # The pointer must be an absolute story-file address, but the object
+        # table's base is not fixed until build_story places it, so record the
+        # relative target and let build_story add the base.
         layout.prop_pointers.append((entry + 12, prop_addr))
 
 
 def _emit_property_table(world, layout, name, eff) -> None:
     table = layout.table
-    # Short name from `name`.
+    # The property table opens with the object's short name: a length byte
+    # giving the number of 2-byte words in the Z-string, then the Z-string
+    # itself (standard 1.1, section 12.3.1). It comes from the `name` property.
     short = ""
     if "name" in eff and eff["name"].form == ast.PROP_VALUE and eff["name"].values:
         v = eff["name"].values[0]
@@ -145,16 +154,19 @@ def _emit_property_table(world, layout, name, eff) -> None:
     table.append(len(encoded) // 2)
     table += encoded
 
-    # Slot properties in descending property number.
+    # Then the properties, which must be listed in descending property number
+    # (the interpreter relies on this ordering). Every value Arcturus stores is
+    # two bytes, so each uses the one-byte size form: bit 6 set means "two data
+    # bytes", and the low five bits hold the property number (section 12.4.2.1).
     items = []
     for pname, decl in eff.items():
         pnum = layout.prop_number.get(pname)
         if pnum is not None:
             items.append((pnum, pname, decl))
     for pnum, pname, decl in sorted(items, reverse=True):
-        table.append(0x40 | pnum)  # one-byte size form, two data bytes
+        table.append(0x40 | pnum)  # bit 6 = two data bytes; low bits = number
         data_at = len(table)
-        table += b"\x00\x00"
+        table += b"\x00\x00"  # placeholder, filled by _fill_property
         _fill_property(world, layout, pname, decl, data_at)
 
 

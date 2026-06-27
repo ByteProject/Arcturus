@@ -164,38 +164,52 @@ class Routine:
     # -- encoding ----------------------------------------------------------
 
     def _encode(self, form: str, code: int, operands: list[Operand]) -> bytes:
+        # The top two bits of the first byte choose the instruction form
+        # (standard 1.1, section 4.3). Short form (10xxxxxx) covers 0OP and 1OP;
+        # the next two bits give the single operand's type (11 = none, i.e. 0OP).
         if form == "0OP":
+            # 1011xxxx: operand type 11 (none), opcode in the low four bits.
             return bytes([0xB0 | code])
         if form == "1OP":
+            # 10ttxxxx: tt is the operand type, opcode in the low four bits.
             op = operands[0]
-            self._note_routine_ref(op, len(self.code) + 1)  # opcode byte precedes operand
+            self._note_routine_ref(op, len(self.code) + 1)  # operand follows the opcode byte
             return bytes([0x80 | (op.kind << 4) | code]) + self._operand_bytes(op)
         if form == "2OP":
             return self._encode_2op(code, operands)
         if form == "VAR":
+            # Variable form, true VAR opcode: 111xxxxx = 0xE0 | opcode number.
             return self._encode_var(0xE0 | code, operands)
         raise ValueError(form)
 
     def _encode_2op(self, code: int, operands: list[Operand]) -> bytes:
         a, b = operands
-        # Long form requires both operands to be small constants or variables.
+        # Long form (0xxxxxxx) is the compact two-operand encoding but can only
+        # carry small constants and variables: bit 6 is operand 1's type and bit
+        # 5 operand 2's type (0 = small constant, 1 = variable), opcode in the
+        # low five bits. One operand byte each (standard 1.1, section 4.4.1).
         if a.kind in (SMALL, VAR) and b.kind in (SMALL, VAR):
             bit6 = 0x40 if a.kind == VAR else 0
             bit5 = 0x20 if b.kind == VAR else 0
             return bytes([bit6 | bit5 | code, a.value & 0xFF, b.value & 0xFF])
-        # Otherwise encode in variable form (0xC0 | opcode number).
+        # A large constant cannot fit long form, so fall back to the variable
+        # form of the same 2OP opcode: 110xxxxx = 0xC0 | opcode number.
         return self._encode_var(0xC0 | code, operands)
 
     def _encode_var(self, opbyte: int, operands: list[Operand]) -> bytes:
+        # Variable form: the opcode byte, then a types byte giving the type of
+        # each of up to four operands in two-bit fields (high field first),
+        # 11 marking an omitted operand, then the operands themselves.
         out = bytearray([opbyte])
         types = 0
         for i in range(4):
             kind = operands[i].kind if i < len(operands) else OMITTED
             types |= kind << ((3 - i) * 2)
         out.append(types)
-        base = len(out)
+        base = len(out)  # operands begin after the opcode and types bytes
         for i, op in enumerate(operands):
-            # Record a call-target fixup at the position this operand will occupy.
+            # A call target's address is not known yet: record where its two
+            # placeholder bytes sit so the linker can patch the packed address.
             self._note_routine_ref(op, len(self.code) + base + self._span(operands[:i]))
             out += self._operand_bytes(op)
         return bytes(out)
