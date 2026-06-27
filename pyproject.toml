@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arcturus"
+version = "0.1.0"
+description = "A high-level interactive-fiction language compiler that emits Z-machine version 5 story files."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Stefan" }]
+# The compiler runtime depends on the Python standard library only. No runtime
+# dependencies, so `arcturus` runs on a bare interpreter (see CLAUDE.md).
+dependencies = []
+
+[project.optional-dependencies]
+# Development-only tooling. pytest is the test runner; it is never required to
+# run the compiler itself.
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+arcturus = "arcturus.cli:main"
+arcc = "arcturus.cli:main"
+
+[tool.setuptools]
+packages = ["arcturus"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

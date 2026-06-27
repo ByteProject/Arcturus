@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.eggs/
+build/
+dist/
+
+# Editor and OS
+.DS_Store
+*.swp
+
+# Build output
+*.z5
+*.z8
+!tests/golden/**/*.z5
+
+# VS Code extension build artifacts
+editors/vscode/node_modules/
+editors/vscode/*.vsix

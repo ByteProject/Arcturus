@@ -1,0 +1,85 @@
+game
+    title  "The Brass Lantern"
+    author "Stefan"
+    UUID   7f3a9c20-1e44-4b8a-9d51-6c2f0b9a7e10
+    start  hallway
+
+on start
+    say "A cold draught curls up from somewhere below."
+    say "You came for the ruby. You should find some light first."
+
+
+room hallway
+    name "Hallway"
+    desc "A bare stone hallway. Worn steps lead down into the dark, north."
+    north cellar
+
+thing lantern in hallway
+    name  "brass lantern"
+    words brass, lantern, lamp
+    desc  "A battered brass lantern, switchable if you care to."
+    switchable
+    lit   false
+
+    on switch_on
+        now self is lit
+        say "The lantern catches with a soft hiss."
+
+    on switch_off
+        now self is not lit
+        say "The flame gutters out, and the dark leans in."
+
+
+room cellar
+    name "Cellar"
+    desc "A damp cellar of black stone. A squat pedestal stands at its
+          centre, a rusted lever set into the base."
+    south hallway
+
+    on enter
+        if not (player holds lantern and lantern is lit)
+            say "You grope down the steps, but sense wins over greed,
+                 and you back up into the hallway."
+            move player to hallway
+            stop
+
+    on each_turn when ruby is hidden
+        say "Somewhere water ticks against stone, patient and unhurried."
+
+
+thing pedestal in cellar
+    name "stone pedestal"
+    desc "Waist high and cold, a rusted lever set into its base."
+    fixed
+
+thing lever in cellar
+    name "rusted lever"
+    desc "A stubby iron lever, begging to be pulled."
+    fixed
+    pulled false
+
+    on pull
+        if lever is pulled
+            say "It will not give a second time."
+            stop
+        now lever is pulled
+        now ruby is not hidden
+        change ruby.desc to "The ruby sits exposed, drinking the lantern."
+        say "The lever grinds down. A panel slides back, and a red gleam
+             answers the light."
+
+
+thing ruby in cellar
+    name  "blood ruby"
+    words red, blood, ruby, gem, jewel
+    desc  "A ruby the size of a plum, drinking the light, giving back fire."
+    hidden
+
+    on take
+        move ruby to player
+        say "It is warm in your hand, almost a pulse."
+        finish "*** You carry the blood ruby home in ${turns} turns ***"
+
+
+verb "pull", "yank"
+    pull noun

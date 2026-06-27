@@ -1,0 +1,35 @@
+{
+    "name": "arcturus",
+    "displayName": "Arcturus",
+    "description": "Syntax highlighting for the Arcturus interactive-fiction language (.storyarc).",
+    "version": "0.1.0",
+    "publisher": "arcturus",
+    "engines": {
+        "vscode": "^1.70.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "storyarc",
+                "aliases": [
+                    "Arcturus",
+                    "storyarc"
+                ],
+                "extensions": [
+                    ".storyarc"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "storyarc",
+                "scopeName": "source.storyarc",
+                "path": "./syntaxes/storyarc.tmLanguage.json"
+            }
+        ]
+    }
+}

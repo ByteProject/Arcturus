@@ -1,0 +1,111 @@
+game
+    title  "Cloak of Darkness"
+    author "Roger Firth, ported to Arcturus"
+    UUID   2a1f8e63-9b07-4c2d-8f3a-5e1d6042b7c9
+    start  foyer
+
+global disturbed = 0
+
+on start
+    say "Hurrying through the rain-swept November night, you are glad to
+         see the bright lights of the Opera House. It is surprising that
+         there are no others around, but you make your way to the
+         cloakroom to hang up your things."
+
+
+room foyer
+    name "Foyer of the Opera House"
+    desc "You are standing in a spacious hall, splendidly decorated in red
+          and gold, with glittering chandeliers overhead. The entrance from
+          the street is to the north, and there are doorways south and west."
+    south bar
+    west  cloakroom
+
+    on go north
+        say "You have only just arrived, and besides, the weather outside
+             seems to be getting worse."
+        stop
+
+    grains
+        examine "chandeliers" or "decoration" say "Glittering, and far out
+            of reach."
+
+
+room cloakroom
+    name "Cloakroom"
+    desc "The walls of this small room were clearly once lined with hooks,
+          though now only one remains. The exit is a door to the east."
+    east foyer
+
+
+thing hook of supporter in cloakroom
+    name  "small brass hook"
+    words small, brass, hook, peg
+    fixed
+
+    on examine
+        if hook holds cloak
+            say "A small brass hook, with a cloak hanging on it."
+        else
+            say "A small brass hook, screwed to the wall."
+        stop
+
+
+thing cloak in player
+    name  "velvet cloak"
+    words black, velvet, satin, dark, cloak
+    desc  "A handsome cloak, of velvet trimmed with satin, and slightly
+           spattered with raindrops. Its blackness is so deep that it
+           almost seems to suck light from the room."
+    wearable
+    worn
+
+    on drop
+        say "This is no place to leave a smart cloak lying around."
+        stop
+
+
+room bar
+    name "Foyer Bar"
+    desc "The bar, much rougher than you would have guessed after the
+          opulence of the foyer to the north, is completely empty. There
+          seems to be some sort of message scrawled in the sawdust on the
+          floor."
+    north foyer
+    lit  false
+
+    on enter
+        if player holds cloak
+            now bar is not lit
+        else
+            now bar is lit
+
+    on each_turn when bar is not lit
+        change disturbed to disturbed + 1
+        say "Blundering around in the dark isn't a good idea!"
+
+
+thing message in bar
+    name  "scrawled message"
+    words message, sawdust, floor, dust, writing
+    fixed
+
+    on examine
+        if bar is not lit
+            say "It is too dark to see anything."
+            stop
+        if disturbed < 2
+            say "The message, neatly marked in the sawdust, reads:"
+            finish "*** You have won ***"
+        else
+            say "The message has been carelessly trampled, making it hard
+                 to read. You can just make out the words:"
+            finish "*** You have lost ***"
+        stop
+
+
+verb "read"
+    examine noun
+
+verb "hang"
+    put noun on noun

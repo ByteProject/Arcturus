@@ -1,0 +1,146 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Arcturus",
+    "scopeName": "source.storyarc",
+    "patterns": [
+        { "include": "#comments" },
+        { "include": "#declarations" },
+        { "include": "#strings" },
+        { "include": "#uuid" },
+        { "include": "#numbers" },
+        { "include": "#constants" },
+        { "include": "#builtins" },
+        { "include": "#keywords" },
+        { "include": "#operators" }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line.double-slash.storyarc",
+                    "match": "//.*$"
+                }
+            ]
+        },
+        "declarations": {
+            "patterns": [
+                {
+                    "comment": "Declaration heads that introduce a named entity.",
+                    "match": "^\\s*(kind|room|thing)\\s+([A-Za-z][A-Za-z0-9_]*)",
+                    "captures": {
+                        "1": { "name": "keyword.declaration.storyarc" },
+                        "2": { "name": "entity.name.type.storyarc" }
+                    }
+                },
+                {
+                    "match": "^\\s*(block)\\s+([A-Za-z][A-Za-z0-9_]*)",
+                    "captures": {
+                        "1": { "name": "keyword.declaration.storyarc" },
+                        "2": { "name": "entity.name.function.storyarc" }
+                    }
+                },
+                {
+                    "match": "^\\s*(global|constant)\\s+([A-Za-z][A-Za-z0-9_]*)",
+                    "captures": {
+                        "1": { "name": "keyword.declaration.storyarc" },
+                        "2": { "name": "variable.other.storyarc" }
+                    }
+                },
+                {
+                    "match": "^\\s*(game|verb|grains)\\b",
+                    "captures": {
+                        "1": { "name": "keyword.declaration.storyarc" }
+                    }
+                },
+                {
+                    "comment": "summon and summon.feature directives.",
+                    "match": "^\\s*(summon)(\\.[A-Za-z][A-Za-z0-9_]*)?",
+                    "captures": {
+                        "1": { "name": "keyword.control.import.storyarc" },
+                        "2": { "name": "support.function.summon.storyarc" }
+                    }
+                }
+            ]
+        },
+        "strings": {
+            "name": "string.quoted.double.storyarc",
+            "begin": "\"",
+            "end": "\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape.storyarc",
+                    "match": "\\\\([\"\\\\$n])"
+                },
+                {
+                    "name": "meta.interpolation.storyarc",
+                    "begin": "\\$\\{",
+                    "end": "\\}",
+                    "beginCaptures": {
+                        "0": { "name": "punctuation.section.interpolation.begin.storyarc" }
+                    },
+                    "endCaptures": {
+                        "0": { "name": "punctuation.section.interpolation.end.storyarc" }
+                    },
+                    "patterns": [
+                        { "include": "#numbers" },
+                        { "include": "#constants" },
+                        { "include": "#builtins" },
+                        { "include": "#operators" },
+                        {
+                            "match": "\\b([A-Za-z][A-Za-z0-9_]*)\\b",
+                            "name": "variable.other.interpolated.storyarc"
+                        }
+                    ]
+                }
+            ]
+        },
+        "uuid": {
+            "name": "constant.other.uuid.storyarc",
+            "match": "\\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\b"
+        },
+        "numbers": {
+            "name": "constant.numeric.storyarc",
+            "match": "\\b-?[0-9]+\\b"
+        },
+        "constants": {
+            "name": "constant.language.storyarc",
+            "match": "\\b(true|false|nothing)\\b"
+        },
+        "builtins": {
+            "name": "variable.language.storyarc",
+            "match": "\\b(self|player|here|noun|second|turns|score|max_score)\\b"
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.storyarc",
+                    "match": "\\b(if|else|while|for|each|switch|case|when|return|stop|continue|finish|do|on|after|every)\\b"
+                },
+                {
+                    "name": "keyword.other.statement.storyarc",
+                    "match": "\\b(let|change|now|move|add|remove|say|to|from|start)\\b"
+                },
+                {
+                    "name": "storage.type.storyarc",
+                    "match": "\\b(list|block)\\b"
+                },
+                {
+                    "name": "support.type.metadata.storyarc",
+                    "match": "\\b(title|headline|author|release|serial|UUID)\\b"
+                }
+            ]
+        },
+        "operators": {
+            "patterns": [
+                {
+                    "name": "keyword.operator.word.storyarc",
+                    "match": "\\b(is|not|and|or|holds|in|of|mod)\\b"
+                },
+                {
+                    "name": "keyword.operator.storyarc",
+                    "match": "(<=|>=|<|>|\\+|-|\\*|/|=|\\.)"
+                }
+            ]
+        }
+    }
+}
