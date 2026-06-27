@@ -1,3 +1,8 @@
+# test_standalone.py
+# part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+# Copyright (c) 2026, Stefan Vogt.
+# https://github.com/ByteProject/Arcturus
+
 """Guards the standalone single-file build: tools/amalgamate.py must produce an
 `arcc` script that runs on a bare interpreter, with no package on sys.path, and
 parses the example games. This keeps the distributable artifact from drifting

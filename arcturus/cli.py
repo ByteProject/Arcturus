@@ -1,8 +1,13 @@
-"""The arcturus / arcc command-line interface.
+# cli.py
+# part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+# Copyright (c) 2026, Stefan Vogt.
+# https://github.com/ByteProject/Arcturus
 
-For the current milestones the CLI parses a .storyarc source file and reports
-success or a precise diagnostic. Code generation to a z5 story file (the -o
-option) arrives in a later milestone.
+"""The arcc command-line interface.
+
+For the current milestones the CLI parses a story file and reports success or a
+precise diagnostic. Code generation to a Z-machine story file (the -o option)
+arrives in a later milestone.
 """
 
 from __future__ import annotations
@@ -15,16 +20,33 @@ from .astdump import dump
 from .errors import ArcError
 from .parser import parse
 
+_BANNER = f'''Arcturus {__version__}
 
-def main(argv: list[str] | None = None) -> int:
-    argv = sys.argv[1:] if argv is None else argv
+This program is a compiler of Infocom format (also called "Z-machine") story
+files. It is written in Python and needs only the standard library.
+Copyright (c) 2026, Stefan Vogt.
+
+Usage: "arcc [options] <file.storyarc>"'''
+
+
+def _build_argparser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(
         prog="arcc",
-        description="Compile Arcturus (.storyarc) interactive fiction.",
+        description="Compile Arcturus (.storyarc) file to Z-machine format.",
     )
-    ap.add_argument("source", nargs="?", help="the .storyarc source file")
+    ap.add_argument("source", nargs="?", help="the .storyarc story file")
     ap.add_argument(
-        "-o", "--output", metavar="FILE", help="the z5 story file to write"
+        "-o", "--output", metavar="FILE", help="the story file to write"
+    )
+    ap.add_argument(
+        "-L",
+        "--lib",
+        action="append",
+        default=[],
+        metavar="DIR",
+        help="add a directory to the search path for Cosmos prelude (.prelude) "
+        "and extension (.granule) files; repeatable. Lets a project summon the "
+        "shared library rather than carry its own copy.",
     )
     ap.add_argument(
         "--check",
@@ -39,11 +61,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument(
         "--version", action="version", version=f"Arcturus {__version__}"
     )
+    return ap
+
+
+def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    ap = _build_argparser()
     args = ap.parse_args(argv)
 
     if not args.source:
-        ap.print_usage(sys.stderr)
-        print("arcc: error: no source file given", file=sys.stderr)
+        print(_BANNER, file=sys.stderr)
         return 2
 
     try:

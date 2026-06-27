@@ -1,22 +1,49 @@
-# Arcturus for VS Code
+# Arcturus for Visual Studio Code
 
-Syntax highlighting and basic editor support for the Arcturus interactive-
-fiction language (`.storyarc`).
+The official syntax highlighter for the **Arcturus** programming language for
+Infocom's Z-machine, by Stefan Vogt.
 
-## Features
+## About Arcturus
 
-- TextMate grammar covering comments, strings with `${...}` interpolation and
-  escapes, numbers, UUID literals, declaration heads (`game`, `room`, `thing`,
-  `kind`, `verb`, `block`), keywords, operators, and built-in references.
-- A language configuration providing the `//` line comment, bracket matching,
-  and indentation rules for the indentation-based block structure.
+Arcturus is a programming language and compiler for writing interactive fiction
+that runs on the Infocom Z-machine, the virtual machine behind classics like
+*Zork* and the modern interpreters that still play them. You write a high-level,
+readable description of a world (rooms, things, verbs, and the behavior that
+hangs off them) and the compiler produces a standard Z-machine story file.
 
-## Installing locally
+The compiler is written in Python; the standard library, Cosmos, is written in
+Arcturus itself. The full project and its documentation live at
+[github.com/ByteProject/Arcturus](https://github.com/ByteProject/Arcturus).
 
-Copy or symlink this `vscode` directory into your VS Code extensions folder:
+## What this extension does
 
-```
-ln -s "$PWD/editors/vscode" ~/.vscode/extensions/arcturus
-```
+- A TextMate grammar for Arcturus source: comments, strings with `${...}`
+  interpolation and escapes, numbers, UUID literals, declaration heads
+  (`game`, `room`, `thing`, `kind`, `verb`, `block`), keywords, operators, and
+  built-in references.
+- A language configuration: the `//` line comment, bracket matching, and
+  indentation rules for the indentation-based block structure.
 
-Then reload VS Code. Opening any `.storyarc` file activates the grammar.
+It activates for the three Arcturus source extensions:
+
+- `.storyarc` — a story (an Arcturus game).
+- `.prelude` — a Cosmos library file.
+- `.granule` — an Arcturus extension.
+
+## Installing
+
+Install the packaged extension (`arcturus-0.1.0.vsix`) one of two ways:
+
+- In VS Code, open the Extensions view, click the `...` menu, choose
+  **Install from VSIX...**, and select the `.vsix` file.
+- Or from a terminal:
+
+  ```
+  code --install-extension arcturus-0.1.0.vsix
+  ```
+
+This works the same on macOS, Windows, and Linux. After installing, open any
+`.storyarc`, `.prelude`, or `.granule` file and highlighting is active.
+
+To rebuild the `.vsix` from source after editing the grammar, run
+`python3 tools/build_vsix.py` from the repository root.

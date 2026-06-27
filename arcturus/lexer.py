@@ -1,3 +1,8 @@
+# lexer.py
+# part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+# Copyright (c) 2026, Stefan Vogt.
+# https://github.com/ByteProject/Arcturus
+
 r"""The Arcturus lexer.
 
 Turns UTF-8 source into a flat token stream with explicit NEWLINE, INDENT, and

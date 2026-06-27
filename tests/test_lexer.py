@@ -1,3 +1,8 @@
+# test_lexer.py
+# part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+# Copyright (c) 2026, Stefan Vogt.
+# https://github.com/ByteProject/Arcturus
+
 """Lexer unit tests: token kinds, indentation, strings, UUID, and the
 representative lexical errors from docs/01 section 16."""
 
