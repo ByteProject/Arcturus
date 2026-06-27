@@ -18,8 +18,8 @@ is the authoring layer; everything below it is existing, mature
 infrastructure. The compiler is written in Python.
 
 Ultimate goal: write the final part of the Hibernated trilogy in Arcturus.
-The reference material here must be detailed enough that Claude Code can
-implement the toolchain and later assist in authoring the game.
+The reference material here must be detailed enough to implement the toolchain
+from, and to author games against once it is built.
 
 ## 2. Locked decisions
 
@@ -65,26 +65,26 @@ side once Arcturus itself is done.
 
 ## 3. Reference document set
 
-Produced in this order; dependencies flow downward. Documents 01 and 02 are
-written here. Documents 03 to 05 move into the Claude Code phase: they are
+Produced in this order; dependencies flow downward. Documents 00 to 02 are the
+design record. Documents 03 to 05 belong to the implementation phase: they are
 implementation work guided by 00 to 02, produced as the compiler is built
 rather than written in advance.
 
 - 00-roadmap.md (this document): charter, decisions, milestones, index.
 - 01-syntax-reference.md: the authoritative language definition. Grammar,
   every construct with semantics and examples, the standard vocabulary,
-  idiomatic patterns, and errors. Strong enough for Claude Code to author
-  from. Highest priority.
+  idiomatic patterns, and errors. Strong enough to author from. Highest
+  priority.
 - 02-cosmos-and-parser.md: the runtime. The Cosmos library as editable
   template, the standard kinds and verbs, the parser, the action pipeline,
   the banner, scope and light, the turn loop, and the summonable optional
   features (conversations, localization, debug).
-- 03-compiler-pipeline.md (Claude Code phase): lexer, parser, semantic
+- 03-compiler-pipeline.md (implementation phase): lexer, parser, semantic
   analysis, world-model lowering, z-code generation, text compression, and
   story-file assembly, with the size levers marked.
-- 04-codegen-mapping.md (Claude Code phase): the construct-to-z5 opcode
+- 04-codegen-mapping.md (implementation phase): the construct-to-z5 opcode
   reference.
-- 05-conformance.md (Claude Code phase): the test plan, with the two example
+- 05-conformance.md (implementation phase): the test plan, with the two example
   games as golden tests and a size regression baseline.
 
 The two worked examples in 01, the Brass Lantern and Cloak of Darkness, are
@@ -142,8 +142,8 @@ pipeline, separate from this project.
 
 ## 7. Milestones
 
-Track A is design, produced here. Track B is implementation in Claude Code.
-Each milestone has a concrete done-test.
+Track A is design. Track B is implementation. Each milestone has a concrete
+done-test.
 
 ### Track A: design (reference material)
 
@@ -153,7 +153,7 @@ Each milestone has a concrete done-test.
 - A2: Cosmos and parser spec. Done when every verb and behavior the two
   examples rely on is specified, including scope, light, and the turn loop.
 
-### Track B: implementation (Claude Code)
+### Track B: implementation
 
 - B0: project scaffold and the VS Code syntax-highlighting extension, so
   source is readable from the first line written.
@@ -179,7 +179,10 @@ Each milestone has a concrete done-test.
   art while the same story file still runs unchanged on Frotz.
 - B8: write Hibernated 3 in Arcturus. The goal.
 
-## 8. What is next
+## 8. Status
 
-The handoff bridge: a CLAUDE.md and a handoff prompt that point Claude Code
-at documents 00 to 02, fix the build method, and start it at B0 and B1.
+The design tracks (A0 to A2) are complete and recorded in this document set.
+Implementation is underway: B0 (scaffold and editor extension) and B1 (lexer,
+parser, and AST) are done, with both example games parsing cleanly, and B2
+(semantic analysis and the world-model IR) is next. Current progress against
+these milestones is tracked in PROGRESS.md.
