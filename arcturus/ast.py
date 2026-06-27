@@ -1,0 +1,471 @@
+"""Abstract syntax tree for Arcturus.
+
+The nodes mirror the grammar in docs/01 appendix B. Every node carries a
+source line for diagnostics. The tree is deliberately close to the surface
+syntax; semantic resolution (the property/attribute choice, is-as-property-test
+versus is-as-equality, scope, dead-code elimination) belongs to later
+milestones and is not done here.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Optional, Union
+
+
+# --------------------------------------------------------------------------
+# String literals: a sequence of literal text and interpolated expressions.
+# --------------------------------------------------------------------------
+
+
+@dataclass
+class StringText:
+    text: str
+
+
+@dataclass
+class StringInterp:
+    # The interpolated expression, already parsed. `article` is the optional
+    # leading article helper (a, an, the, A, An, The); see docs/01 section 15.
+    expr: "Expr"
+    article: Optional[str] = None
+
+
+StringPart = Union[StringText, StringInterp]
+
+
+# --------------------------------------------------------------------------
+# Expressions
+# --------------------------------------------------------------------------
+
+
+class Expr:
+    """Base class for expression nodes."""
+
+
+@dataclass
+class Number(Expr):
+    value: int
+    line: int = 0
+
+
+@dataclass
+class StringLit(Expr):
+    parts: list[StringPart]
+    line: int = 0
+
+
+@dataclass
+class Bool(Expr):
+    value: bool
+    line: int = 0
+
+
+@dataclass
+class Nothing(Expr):
+    line: int = 0
+
+
+@dataclass
+class Name(Expr):
+    """An identifier: an object, kind, property, global, local, or builtin
+    reference (self, player, here, noun, second, turns, ...). Which one it is
+    resolved in semantic analysis."""
+
+    ident: str
+    line: int = 0
+
+
+@dataclass
+class Dot(Expr):
+    """Property read: obj.prop ."""
+
+    obj: Expr
+    prop: str
+    line: int = 0
+
+
+@dataclass
+class DynDot(Expr):
+    """Computed property read: obj.(expr), as in here.(dir)."""
+
+    obj: Expr
+    index: Expr
+    line: int = 0
+
+
+@dataclass
+class Call(Expr):
+    """A block call: name(args...)."""
+
+    name: str
+    args: list[Expr]
+    line: int = 0
+
+
+@dataclass
+class Unary(Expr):
+    op: str  # "not" or "-"
+    operand: Expr
+    line: int = 0
+
+
+@dataclass
+class Binary(Expr):
+    """Arithmetic or comparison: +, -, *, /, mod, <, >, <=, >=, holds, in."""
+
+    op: str
+    left: Expr
+    right: Expr
+    line: int = 0
+
+
+@dataclass
+class Logic(Expr):
+    op: str  # "and" or "or"
+    left: Expr
+    right: Expr
+    line: int = 0
+
+
+@dataclass
+class IsTest(Expr):
+    """left is right / left is not right. Whether this is a boolean property
+    test or an equality is decided in semantic analysis (docs/01 section 9)."""
+
+    left: Expr
+    right: Expr
+    negated: bool = False
+    line: int = 0
+
+
+# --------------------------------------------------------------------------
+# Statements
+# --------------------------------------------------------------------------
+
+
+class Stmt:
+    """Base class for statement nodes."""
+
+
+@dataclass
+class Let(Stmt):
+    name: str
+    value: Expr
+    line: int = 0
+
+
+@dataclass
+class Change(Stmt):
+    target: Expr  # a Name or a Dot (an lvalue)
+    value: Expr
+    line: int = 0
+
+
+@dataclass
+class Now(Stmt):
+    """now <obj> is [not] <property>."""
+
+    target: Expr
+    prop: str
+    negated: bool = False
+    line: int = 0
+
+
+@dataclass
+class Move(Stmt):
+    obj: Expr
+    dest: Expr
+    line: int = 0
+
+
+@dataclass
+class Add(Stmt):
+    value: Expr
+    target: Expr  # a list property place
+    line: int = 0
+
+
+@dataclass
+class Remove(Stmt):
+    value: Expr
+    target: Expr
+    line: int = 0
+
+
+@dataclass
+class Say(Stmt):
+    value: Expr
+    line: int = 0
+
+
+@dataclass
+class Stop(Stmt):
+    line: int = 0
+
+
+@dataclass
+class Continue(Stmt):
+    line: int = 0
+
+
+@dataclass
+class Finish(Stmt):
+    message: Optional[Expr] = None
+    line: int = 0
+
+
+@dataclass
+class Return(Stmt):
+    value: Optional[Expr] = None
+    line: int = 0
+
+
+@dataclass
+class ExprStmt(Stmt):
+    """A bare expression used as a statement, typically a block call."""
+
+    expr: Expr
+    line: int = 0
+
+
+@dataclass
+class Schedule(Stmt):
+    """after <n> turns do <event> / every <n> turns do <event> (docs/02 s.13)."""
+
+    every: bool
+    count: Expr
+    event: str
+    line: int = 0
+
+
+@dataclass
+class IfClause:
+    """One arm of an if/else-if chain. cond is None for the final else."""
+
+    cond: Optional[Expr]
+    body: list[Stmt]
+    line: int = 0
+
+
+@dataclass
+class If(Stmt):
+    clauses: list[IfClause]
+    line: int = 0
+
+
+@dataclass
+class While(Stmt):
+    cond: Expr
+    body: list[Stmt]
+    line: int = 0
+
+
+@dataclass
+class ForEach(Stmt):
+    var: str
+    relation: str  # "in" (tree children / list elements) or "of" (instances)
+    source: Expr
+    body: list[Stmt]
+    line: int = 0
+
+
+@dataclass
+class Case:
+    values: list[Expr]  # empty list marks the else case
+    body: list[Stmt]
+    line: int = 0
+
+
+@dataclass
+class Switch(Stmt):
+    subject: Expr
+    cases: list[Case]
+    line: int = 0
+
+
+# --------------------------------------------------------------------------
+# Declarations and members
+# --------------------------------------------------------------------------
+
+
+@dataclass
+class MetaLine:
+    key: str
+    value: object  # str, int, or a Name for an object reference (start)
+    line: int = 0
+
+
+@dataclass
+class GameBlock:
+    meta: list[MetaLine]
+    line: int = 0
+
+
+@dataclass
+class Summon:
+    target: str  # a filename string, an extension id, or a feature id
+    is_feature: bool = False  # True for the summon.<feature> dotted form
+    arg: Optional[str] = None  # the optional string argument of a feature
+    line: int = 0
+
+
+# Property declaration forms (docs/01 section 6).
+PROP_VALUE = "value"  # name <value> (or a comma list, as for words)
+PROP_BOOL = "bool"  # bare name, a boolean defaulting to true
+PROP_LIST = "list"  # name list <n>
+PROP_BLOCK = "block"  # name block + an indented computed body
+
+
+@dataclass
+class PropertyDecl:
+    name: str
+    form: str
+    values: list[Expr] = field(default_factory=list)  # PROP_VALUE
+    capacity: Optional[int] = None  # PROP_LIST
+    body: list[Stmt] = field(default_factory=list)  # PROP_BLOCK
+    line: int = 0
+
+
+@dataclass
+class Operand:
+    """One operand position in a handler header, with `or` alternatives."""
+
+    names: list[str]
+
+
+@dataclass
+class Prep:
+    """A literal preposition word between operands (in, on, with, to, ...)."""
+
+    word: str
+
+
+PatternItem = Union[Operand, Prep]
+
+
+@dataclass
+class Handler:
+    event: str
+    after: bool = False
+    pattern: list[PatternItem] = field(default_factory=list)
+    when: Optional[Expr] = None
+    body: list[Stmt] = field(default_factory=list)
+    line: int = 0
+
+
+@dataclass
+class Grain:
+    verbs: list[str]
+    words: list[str]
+    # Exactly one of these is set: a single say string, a do-block name, or an
+    # indented statement body.
+    say: Optional[Expr] = None
+    do: Optional[str] = None
+    body: list[Stmt] = field(default_factory=list)
+    line: int = 0
+
+
+@dataclass
+class GrainsBlock:
+    grains: list[Grain]
+    line: int = 0
+
+
+Member = Union[PropertyDecl, Handler, GrainsBlock]
+
+
+@dataclass
+class ObjectDecl:
+    category: str  # "room" or "thing"
+    name: str
+    parent: Optional[str] = None  # of <kind>
+    location: Optional[str] = None  # in <location>
+    members: list[Member] = field(default_factory=list)
+    line: int = 0
+
+
+@dataclass
+class KindDecl:
+    name: str
+    parent: Optional[str] = None
+    members: list[Member] = field(default_factory=list)
+    line: int = 0
+
+
+@dataclass
+class Slot:
+    kind: str  # "noun", "held", "multi", "text", "direction"
+
+
+@dataclass
+class Word:
+    text: str  # a literal preposition word in a grammar line
+
+
+GrammarItem = Union[Slot, Word]
+
+
+@dataclass
+class GrammarLine:
+    action: str
+    items: list[GrammarItem]
+    line: int = 0
+
+
+@dataclass
+class VerbDecl:
+    words: list[str]
+    grammar: list[GrammarLine]
+    line: int = 0
+
+
+@dataclass
+class GlobalDecl:
+    name: str
+    value: Expr
+    line: int = 0
+
+
+@dataclass
+class ConstantDecl:
+    name: str
+    value: Expr
+    line: int = 0
+
+
+@dataclass
+class BlockDecl:
+    name: str
+    params: list[str]
+    body: list[Stmt]
+    line: int = 0
+
+
+@dataclass
+class GrainsAttach:
+    """Grains attached to an existing object from outside its body:
+    <object>.grains (docs/01 section 14)."""
+
+    target: str
+    grains: list[Grain]
+    line: int = 0
+
+
+Decl = Union[
+    GameBlock,
+    Summon,
+    KindDecl,
+    ObjectDecl,
+    VerbDecl,
+    GlobalDecl,
+    ConstantDecl,
+    BlockDecl,
+    Handler,
+    GrainsAttach,
+]
+
+
+@dataclass
+class Program:
+    decls: list[Decl] = field(default_factory=list)

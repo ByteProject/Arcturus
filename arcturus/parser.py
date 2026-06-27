@@ -1,0 +1,949 @@
+"""The Arcturus parser.
+
+Recursive descent over the token stream from the lexer, producing the AST in
+ast.py. Declarations and statements are parsed top-down; expressions use
+precedence-climbing. The grammar followed is docs/01 appendix B, with the
+runtime constructs (grains attach, scheduling) from docs/02.
+
+The parser records structure only. The is-as-property-test versus
+is-as-equality decision, scope, the property/attribute storage choice, and
+dead-code elimination are semantic concerns handled in later milestones.
+"""
+
+from __future__ import annotations
+
+from . import ast
+from . import tokens as T
+from .errors import ArcError
+from .lexer import RawInterp, tokenize
+
+# Articles recognized at the start of an interpolation (docs/01 section 15).
+_ARTICLES = frozenset({"a", "an", "the", "A", "An", "The"})
+
+_META_KEYS = frozenset(
+    {"title", "headline", "author", "release", "serial", "UUID", "start"}
+)
+
+_GRAMMAR_SLOTS = frozenset({"held", "multi", "text", "direction"})
+
+
+class Parser:
+    def __init__(self, toks: list[T.Token], filename: str = "<source>") -> None:
+        self.toks = toks
+        self.filename = filename
+        self.i = 0
+
+    # -- token cursor ------------------------------------------------------
+
+    @property
+    def cur(self) -> T.Token:
+        return self.toks[self.i]
+
+    def _at(self, offset: int = 0) -> T.Token:
+        j = self.i + offset
+        if j >= len(self.toks):
+            return self.toks[-1]
+        return self.toks[j]
+
+    def advance(self) -> T.Token:
+        tok = self.toks[self.i]
+        if self.i < len(self.toks) - 1:
+            self.i += 1
+        return tok
+
+    def check(self, kind: str) -> bool:
+        return self.cur.kind == kind
+
+    def check_kw(self, word: str) -> bool:
+        return self.cur.is_kw(word)
+
+    def check_op(self, sym: str) -> bool:
+        return self.cur.is_op(sym)
+
+    def accept_kw(self, word: str) -> bool:
+        if self.cur.is_kw(word):
+            self.advance()
+            return True
+        return False
+
+    # -- errors ------------------------------------------------------------
+
+    def _error(self, message: str, tok: T.Token | None = None) -> ArcError:
+        tok = tok or self.cur
+        return ArcError(message, tok.line, tok.column, self.filename)
+
+    @staticmethod
+    def _describe(tok: T.Token) -> str:
+        if tok.kind == T.EOF:
+            return "end of file"
+        if tok.kind == T.NEWLINE:
+            return "end of line"
+        if tok.kind in (T.INDENT, T.DEDENT):
+            return "a change in indentation"
+        if tok.kind in (T.KW, T.OP):
+            return f"'{tok.value}'"
+        return repr(tok.value)
+
+    def expect(self, kind: str, what: str | None = None) -> T.Token:
+        if self.cur.kind == kind:
+            return self.advance()
+        raise self._error(f"expected {what or kind}, got {self._describe(self.cur)}")
+
+    def expect_kw(self, word: str) -> T.Token:
+        if self.cur.is_kw(word):
+            return self.advance()
+        raise self._error(f"expected '{word}', got {self._describe(self.cur)}")
+
+    def expect_op(self, sym: str) -> T.Token:
+        if self.cur.is_op(sym):
+            return self.advance()
+        raise self._error(f"expected '{sym}', got {self._describe(self.cur)}")
+
+    def expect_name(self, what: str = "a name") -> T.Token:
+        if self.cur.kind == T.NAME:
+            return self.advance()
+        raise self._error(f"expected {what}, got {self._describe(self.cur)}")
+
+    def _kind_name(self, what: str) -> str:
+        """A kind reference: an ordinary identifier or one of the builtin kinds
+        `thing` and `room`, which are keywords (docs/01 section 5)."""
+        if self.cur.kind == T.NAME:
+            return self.advance().value
+        if self.cur.kind == T.KW and self.cur.value in ("thing", "room"):
+            return self.advance().value
+        raise self._error(f"expected {what}, got {self._describe(self.cur)}")
+
+    def _object_ref_name(self, what: str) -> str:
+        """A name that refers to an object: an ordinary identifier or one of the
+        builtin object keywords (player, here, self, noun, second)."""
+        if self.cur.kind == T.NAME:
+            return self.advance().value
+        if self.cur.kind == T.KW and self.cur.value in (
+            "player",
+            "here",
+            "self",
+            "noun",
+            "second",
+        ):
+            return self.advance().value
+        raise self._error(f"expected {what}, got {self._describe(self.cur)}")
+
+    def expect_newline(self) -> None:
+        self.expect(T.NEWLINE, "end of line")
+
+    # -- entry -------------------------------------------------------------
+
+    def parse(self) -> ast.Program:
+        decls: list[ast.Decl] = []
+        while not self.check(T.EOF):
+            if self.check(T.NEWLINE):
+                self.advance()
+                continue
+            decls.append(self.parse_toplevel())
+        return ast.Program(decls)
+
+    def parse_toplevel(self) -> ast.Decl:
+        t = self.cur
+        if t.is_kw("game"):
+            return self.parse_game()
+        if t.is_kw("summon"):
+            return self.parse_summon()
+        if t.is_kw("kind"):
+            return self.parse_kind()
+        if t.is_kw("room") or t.is_kw("thing"):
+            return self.parse_object()
+        if t.is_kw("verb"):
+            return self.parse_verb()
+        if t.is_kw("global"):
+            return self.parse_global()
+        if t.is_kw("constant"):
+            return self.parse_constant()
+        if t.is_kw("block"):
+            return self.parse_block_decl()
+        if t.is_kw("on"):
+            return self.parse_handler()
+        if t.kind == T.NAME:
+            return self.parse_grains_attach()
+        raise self._error(
+            f"expected a top-level declaration, got {self._describe(t)}"
+        )
+
+    # -- indented bodies ---------------------------------------------------
+
+    def parse_stmt_block(self) -> list[ast.Stmt]:
+        """An indented block of statements (handler, control flow, computed
+        property, block routine)."""
+        self.expect(T.INDENT, "an indented block")
+        stmts: list[ast.Stmt] = []
+        while not self.check(T.DEDENT):
+            if self.check(T.EOF):
+                raise self._error("unexpected end of file inside an indented block")
+            if self.check(T.NEWLINE):
+                self.advance()
+                continue
+            stmts.append(self.parse_statement())
+        self.expect(T.DEDENT)
+        return stmts
+
+    def parse_members(self) -> list[ast.Member]:
+        self.expect(T.INDENT, "an indented body")
+        members: list[ast.Member] = []
+        while not self.check(T.DEDENT):
+            if self.check(T.EOF):
+                raise self._error("unexpected end of file inside an object body")
+            if self.check(T.NEWLINE):
+                self.advance()
+                continue
+            members.append(self.parse_member())
+        self.expect(T.DEDENT)
+        return members
+
+    # -- game block --------------------------------------------------------
+
+    def parse_game(self) -> ast.GameBlock:
+        line = self.cur.line
+        self.expect_kw("game")
+        self.expect_newline()
+        self.expect(T.INDENT, "the game metadata block")
+        meta: list[ast.MetaLine] = []
+        while not self.check(T.DEDENT):
+            if self.check(T.NEWLINE):
+                self.advance()
+                continue
+            meta.append(self.parse_meta_line())
+        self.expect(T.DEDENT)
+        return ast.GameBlock(meta, line)
+
+    def parse_meta_line(self) -> ast.MetaLine:
+        tok = self.cur
+        if tok.kind != T.KW or tok.value not in _META_KEYS:
+            raise self._error(
+                f"expected a game metadata key (title, headline, author, "
+                f"release, serial, UUID, start), got {self._describe(tok)}"
+            )
+        key = tok.value
+        self.advance()
+        if key in ("title", "headline", "author", "serial"):
+            value: object = self._plain_text(self.expect(T.STRING, "a string"))
+        elif key == "release":
+            value = self.expect(T.NUMBER, "a number").value
+        elif key == "UUID":
+            value = self.expect(T.UUID, "a UUID").value
+        else:  # start
+            value = self.expect_name("a room name").value
+        self.expect_newline()
+        return ast.MetaLine(key, value, tok.line)
+
+    # -- summon ------------------------------------------------------------
+
+    def parse_summon(self) -> ast.Summon:
+        line = self.cur.line
+        self.expect_kw("summon")
+        if self.check_op("."):
+            self.advance()
+            feature = self.expect_name("a feature name").value
+            arg = None
+            if self.check(T.STRING):
+                arg = self._plain_text(self.advance())
+            self.expect_newline()
+            return ast.Summon(feature, is_feature=True, arg=arg, line=line)
+        if self.check(T.STRING):
+            target = self._plain_text(self.advance())
+        elif self.check(T.NAME):
+            target = self.advance().value
+        else:
+            raise self._error(
+                "expected a file string or an extension name after 'summon'"
+            )
+        self.expect_newline()
+        return ast.Summon(target, is_feature=False, line=line)
+
+    # -- object and kind ---------------------------------------------------
+
+    def parse_object(self) -> ast.ObjectDecl:
+        line = self.cur.line
+        category = self.advance().value  # room or thing
+        name = self.expect_name("an object name").value
+        parent = None
+        location = None
+        if self.accept_kw("of"):
+            parent = self._kind_name("a kind name")
+        if self.accept_kw("in"):
+            location = self._object_ref_name("a location name")
+        self.expect_newline()
+        members = self.parse_members()
+        return ast.ObjectDecl(category, name, parent, location, members, line)
+
+    def parse_kind(self) -> ast.KindDecl:
+        line = self.cur.line
+        self.expect_kw("kind")
+        name = self.expect_name("a kind name").value
+        parent = None
+        if self.accept_kw("of"):
+            parent = self._kind_name("a parent kind name")
+        self.expect_newline()
+        members = self.parse_members()
+        return ast.KindDecl(name, parent, members, line)
+
+    def parse_member(self) -> ast.Member:
+        if self.check_kw("on"):
+            return self.parse_handler()
+        if self.check_kw("grains"):
+            return self.parse_grains_block()
+        if self.check(T.NAME):
+            return self.parse_property()
+        raise self._error(
+            "expected a property, an 'on' handler, or a 'grains' block, "
+            f"got {self._describe(self.cur)}"
+        )
+
+    def parse_property(self) -> ast.PropertyDecl:
+        tok = self.expect_name("a property name")
+        name = tok.value
+        if self.check(T.NEWLINE):
+            self.advance()
+            return ast.PropertyDecl(name, ast.PROP_BOOL, line=tok.line)
+        if self.check_kw("list"):
+            self.advance()
+            cap = self.expect(T.NUMBER, "a list capacity").value
+            self.expect_newline()
+            return ast.PropertyDecl(name, ast.PROP_LIST, capacity=cap, line=tok.line)
+        if self.check_kw("block"):
+            self.advance()
+            self.expect_newline()
+            body = self.parse_stmt_block()
+            return ast.PropertyDecl(name, ast.PROP_BLOCK, body=body, line=tok.line)
+        values = [self.parse_expr()]
+        while self.check_op(","):
+            self.advance()
+            values.append(self.parse_expr())
+        self.expect_newline()
+        return ast.PropertyDecl(name, ast.PROP_VALUE, values=values, line=tok.line)
+
+    # -- handlers ----------------------------------------------------------
+
+    def parse_handler(self) -> ast.Handler:
+        line = self.cur.line
+        self.expect_kw("on")
+        after = self.accept_kw("after")
+        event = self._parse_event_name()
+        pattern = self._parse_pattern()
+        when = None
+        if self.accept_kw("when"):
+            when = self.parse_expr()
+        self.expect_newline()
+        body = self.parse_stmt_block()
+        return ast.Handler(event, after, pattern, when, body, line)
+
+    def _parse_event_name(self) -> str:
+        # Most event names are ordinary identifiers; `start` is also a core
+        # keyword (the game metadata key), so accept it here too.
+        if self.check(T.NAME):
+            return self.advance().value
+        if self.check_kw("start"):
+            return self.advance().value
+        raise self._error(
+            f"expected an event name after 'on', got {self._describe(self.cur)}"
+        )
+
+    def _parse_pattern(self) -> list[ast.PatternItem]:
+        items: list[ast.PatternItem] = []
+        while not (self.check(T.NEWLINE) or self.check_kw("when")):
+            names = [self._parse_operand_name()]
+            while self.accept_kw("or"):
+                names.append(self._parse_operand_name())
+            items.append(ast.Operand(names))
+            if not (self.check(T.NEWLINE) or self.check_kw("when")):
+                # A literal preposition word joining operands (in, on, with).
+                word = self.advance().value
+                items.append(ast.Prep(word))
+        return items
+
+    def _parse_operand_name(self) -> str:
+        if self.check(T.NAME):
+            return self.advance().value
+        # The matched-object keywords and the builtin kinds may appear as
+        # handler operands (on take noun; on put thing in chest).
+        if self.cur.kind == T.KW and self.cur.value in (
+            "noun",
+            "second",
+            "thing",
+            "room",
+        ):
+            return self.advance().value
+        raise self._error(
+            "expected an object, kind, or direction name in the handler "
+            f"header, got {self._describe(self.cur)}"
+        )
+
+    # -- grains ------------------------------------------------------------
+
+    def parse_grains_block(self) -> ast.GrainsBlock:
+        line = self.cur.line
+        self.expect_kw("grains")
+        self.expect_newline()
+        grains = self._parse_grain_body()
+        return ast.GrainsBlock(grains, line)
+
+    def parse_grains_attach(self) -> ast.GrainsAttach:
+        line = self.cur.line
+        target = self.expect_name("an object name").value
+        self.expect_op(".")
+        self.expect_kw("grains")
+        self.expect_newline()
+        grains = self._parse_grain_body()
+        return ast.GrainsAttach(target, grains, line)
+
+    def _parse_grain_body(self) -> list[ast.Grain]:
+        self.expect(T.INDENT, "an indented grains body")
+        grains: list[ast.Grain] = []
+        while not self.check(T.DEDENT):
+            if self.check(T.NEWLINE):
+                self.advance()
+                continue
+            grains.append(self._parse_grain())
+        self.expect(T.DEDENT)
+        return grains
+
+    def _parse_grain(self) -> ast.Grain:
+        line = self.cur.line
+        verbs = [self.expect_name("a grain verb").value]
+        while self.check_op(","):
+            self.advance()
+            verbs.append(self.expect_name("a grain verb").value)
+        words = [self._plain_text(self.expect(T.STRING, "a scenery word"))]
+        while self.accept_kw("or"):
+            words.append(self._plain_text(self.expect(T.STRING, "a scenery word")))
+        if self.accept_kw("say"):
+            say = self.parse_expr()
+            self.expect_newline()
+            return ast.Grain(verbs, words, say=say, line=line)
+        if self.accept_kw("do"):
+            do = self.expect_name("a block name").value
+            self.expect_newline()
+            return ast.Grain(verbs, words, do=do, line=line)
+        if self.check(T.NEWLINE):
+            self.advance()
+            body = self.parse_stmt_block()
+            return ast.Grain(verbs, words, body=body, line=line)
+        raise self._error(
+            "expected a grain response: 'say', 'do', or an indented body, "
+            f"got {self._describe(self.cur)}"
+        )
+
+    # -- verbs -------------------------------------------------------------
+
+    def parse_verb(self) -> ast.VerbDecl:
+        line = self.cur.line
+        self.expect_kw("verb")
+        words = [self._plain_text(self.expect(T.STRING, "a verb word"))]
+        while self.check_op(","):
+            self.advance()
+            words.append(self._plain_text(self.expect(T.STRING, "a verb word")))
+        self.expect_newline()
+        self.expect(T.INDENT, "an indented grammar body")
+        grammar: list[ast.GrammarLine] = []
+        while not self.check(T.DEDENT):
+            if self.check(T.NEWLINE):
+                self.advance()
+                continue
+            grammar.append(self._parse_grammar_line())
+        self.expect(T.DEDENT)
+        return ast.VerbDecl(words, grammar, line)
+
+    def _parse_grammar_line(self) -> ast.GrammarLine:
+        line = self.cur.line
+        action = self.expect_name("an action name").value
+        items: list[ast.GrammarItem] = []
+        while not self.check(T.NEWLINE):
+            items.append(self._parse_grammar_item())
+        self.expect_newline()
+        return ast.GrammarLine(action, items, line)
+
+    def _parse_grammar_item(self) -> ast.GrammarItem:
+        tok = self.cur
+        if tok.is_kw("noun"):
+            self.advance()
+            return ast.Slot("noun")
+        if tok.kind == T.NAME and tok.value in _GRAMMAR_SLOTS:
+            self.advance()
+            return ast.Slot(tok.value)
+        # A literal preposition word (in, on, with, to, ...).
+        self.advance()
+        return ast.Word(tok.value)
+
+    # -- globals, constants, blocks ----------------------------------------
+
+    def parse_global(self) -> ast.GlobalDecl:
+        line = self.cur.line
+        self.expect_kw("global")
+        name = self.expect_name("a global name").value
+        self.expect_op("=")
+        value = self.parse_expr()
+        self.expect_newline()
+        return ast.GlobalDecl(name, value, line)
+
+    def parse_constant(self) -> ast.ConstantDecl:
+        line = self.cur.line
+        self.expect_kw("constant")
+        name = self.expect_name("a constant name").value
+        self.expect_op("=")
+        value = self.parse_expr()
+        self.expect_newline()
+        return ast.ConstantDecl(name, value, line)
+
+    def parse_block_decl(self) -> ast.BlockDecl:
+        line = self.cur.line
+        self.expect_kw("block")
+        name = self.expect_name("a block name").value
+        self.expect_op("(")
+        params: list[str] = []
+        if not self.check_op(")"):
+            params.append(self.expect_name("a parameter name").value)
+            while self.check_op(","):
+                self.advance()
+                params.append(self.expect_name("a parameter name").value)
+        self.expect_op(")")
+        self.expect_newline()
+        body = self.parse_stmt_block()
+        return ast.BlockDecl(name, params, body, line)
+
+    # -- statements --------------------------------------------------------
+
+    def parse_statement(self) -> ast.Stmt:
+        t = self.cur
+        if t.kind == T.KW:
+            handler = _STMT_KEYWORDS.get(t.value)
+            if handler is not None:
+                return handler(self)
+        if t.kind == T.NAME:
+            return self._parse_expr_statement()
+        raise self._error(f"expected a statement, got {self._describe(t)}")
+
+    def _parse_let(self) -> ast.Let:
+        line = self.cur.line
+        self.expect_kw("let")
+        name = self.expect_name("a local name").value
+        self.expect_op("=")
+        value = self.parse_expr()
+        self.expect_newline()
+        return ast.Let(name, value, line)
+
+    def _parse_change(self) -> ast.Change:
+        line = self.cur.line
+        self.expect_kw("change")
+        target = self.parse_postfix()
+        if not isinstance(target, (ast.Name, ast.Dot, ast.DynDot)):
+            raise self._error(
+                "the left side of 'change' must be a local, a global, or a "
+                "property"
+            )
+        self.expect_kw("to")
+        value = self.parse_expr()
+        self.expect_newline()
+        return ast.Change(target, value, line)
+
+    def _parse_now(self) -> ast.Now:
+        line = self.cur.line
+        self.expect_kw("now")
+        target = self.parse_postfix()
+        self.expect_kw("is")
+        negated = self.accept_kw("not")
+        prop = self.expect_name("a boolean property name").value
+        self.expect_newline()
+        return ast.Now(target, prop, negated, line)
+
+    def _parse_move(self) -> ast.Move:
+        line = self.cur.line
+        self.expect_kw("move")
+        obj = self.parse_postfix()
+        self.expect_kw("to")
+        dest = self.parse_expr()
+        self.expect_newline()
+        return ast.Move(obj, dest, line)
+
+    def _parse_add(self) -> ast.Add:
+        line = self.cur.line
+        self.expect_kw("add")
+        value = self.parse_expr()
+        self.expect_kw("to")
+        target = self.parse_postfix()
+        self.expect_newline()
+        return ast.Add(value, target, line)
+
+    def _parse_remove(self) -> ast.Remove:
+        line = self.cur.line
+        self.expect_kw("remove")
+        value = self.parse_expr()
+        self.expect_kw("from")
+        target = self.parse_postfix()
+        self.expect_newline()
+        return ast.Remove(value, target, line)
+
+    def _parse_say(self) -> ast.Say:
+        line = self.cur.line
+        self.expect_kw("say")
+        value = self.parse_expr()
+        self.expect_newline()
+        return ast.Say(value, line)
+
+    def _parse_stop(self) -> ast.Stop:
+        line = self.cur.line
+        self.expect_kw("stop")
+        self.expect_newline()
+        return ast.Stop(line)
+
+    def _parse_continue(self) -> ast.Continue:
+        line = self.cur.line
+        self.expect_kw("continue")
+        self.expect_newline()
+        return ast.Continue(line)
+
+    def _parse_finish(self) -> ast.Finish:
+        line = self.cur.line
+        self.expect_kw("finish")
+        message = None if self.check(T.NEWLINE) else self.parse_expr()
+        self.expect_newline()
+        return ast.Finish(message, line)
+
+    def _parse_return(self) -> ast.Return:
+        line = self.cur.line
+        self.expect_kw("return")
+        value = None if self.check(T.NEWLINE) else self.parse_expr()
+        self.expect_newline()
+        return ast.Return(value, line)
+
+    def _parse_if(self) -> ast.If:
+        line = self.cur.line
+        self.expect_kw("if")
+        cond = self.parse_expr()
+        self.expect_newline()
+        body = self.parse_stmt_block()
+        clauses = [ast.IfClause(cond, body, line)]
+        while self.check_kw("else"):
+            eline = self.cur.line
+            self.advance()
+            if self.accept_kw("if"):
+                econd = self.parse_expr()
+                self.expect_newline()
+                ebody = self.parse_stmt_block()
+                clauses.append(ast.IfClause(econd, ebody, eline))
+            else:
+                self.expect_newline()
+                ebody = self.parse_stmt_block()
+                clauses.append(ast.IfClause(None, ebody, eline))
+                break
+        return ast.If(clauses, line)
+
+    def _parse_while(self) -> ast.While:
+        line = self.cur.line
+        self.expect_kw("while")
+        cond = self.parse_expr()
+        self.expect_newline()
+        body = self.parse_stmt_block()
+        return ast.While(cond, body, line)
+
+    def _parse_for(self) -> ast.ForEach:
+        line = self.cur.line
+        self.expect_kw("for")
+        self.expect_kw("each")
+        var = self.expect_name("a loop variable").value
+        if self.accept_kw("in"):
+            relation = "in"
+        elif self.accept_kw("of"):
+            relation = "of"
+        else:
+            raise self._error("expected 'in' or 'of' in a 'for each' loop")
+        source = self.parse_expr()
+        self.expect_newline()
+        body = self.parse_stmt_block()
+        return ast.ForEach(var, relation, source, body, line)
+
+    def _parse_switch(self) -> ast.Switch:
+        line = self.cur.line
+        self.expect_kw("switch")
+        subject = self.parse_expr()
+        self.expect_newline()
+        self.expect(T.INDENT, "an indented switch body")
+        cases: list[ast.Case] = []
+        while not self.check(T.DEDENT):
+            if self.check(T.NEWLINE):
+                self.advance()
+                continue
+            cline = self.cur.line
+            if self.accept_kw("case"):
+                values = [self.parse_expr()]
+                while self.check_op(","):
+                    self.advance()
+                    values.append(self.parse_expr())
+                self.expect_newline()
+                cbody = self.parse_stmt_block()
+                cases.append(ast.Case(values, cbody, cline))
+            elif self.accept_kw("else"):
+                self.expect_newline()
+                cbody = self.parse_stmt_block()
+                cases.append(ast.Case([], cbody, cline))
+            else:
+                raise self._error(
+                    f"expected 'case' or 'else' in a switch, "
+                    f"got {self._describe(self.cur)}"
+                )
+        self.expect(T.DEDENT)
+        return ast.Switch(subject, cases, line)
+
+    def _parse_schedule(self) -> ast.Schedule:
+        line = self.cur.line
+        every = self.cur.is_kw("every")
+        self.advance()  # after or every
+        count = self.parse_expr()
+        unit = self.expect_name("the word 'turns'")
+        if unit.value != "turns":
+            raise self._error("expected 'turns' in a scheduling statement", unit)
+        self.expect_kw("do")
+        event = self.expect_name("an event name").value
+        self.expect_newline()
+        return ast.Schedule(every, count, event, line)
+
+    def _parse_expr_statement(self) -> ast.ExprStmt:
+        line = self.cur.line
+        expr = self.parse_expr()
+        self.expect_newline()
+        return ast.ExprStmt(expr, line)
+
+    # -- expressions -------------------------------------------------------
+
+    def parse_expr(self) -> ast.Expr:
+        return self._parse_or()
+
+    def _parse_or(self) -> ast.Expr:
+        left = self._parse_and()
+        while self.check_kw("or"):
+            line = self.cur.line
+            self.advance()
+            right = self._parse_and()
+            left = ast.Logic("or", left, right, line)
+        return left
+
+    def _parse_and(self) -> ast.Expr:
+        left = self._parse_not()
+        while self.check_kw("and"):
+            line = self.cur.line
+            self.advance()
+            right = self._parse_not()
+            left = ast.Logic("and", left, right, line)
+        return left
+
+    def _parse_not(self) -> ast.Expr:
+        if self.check_kw("not"):
+            line = self.cur.line
+            self.advance()
+            return ast.Unary("not", self._parse_not(), line)
+        return self._parse_compare()
+
+    def _parse_compare(self) -> ast.Expr:
+        left = self._parse_additive()
+        while True:
+            if self.check_kw("is"):
+                line = self.cur.line
+                self.advance()
+                negated = self.accept_kw("not")
+                right = self._parse_additive()
+                left = ast.IsTest(left, right, negated, line)
+            elif self.check_kw("holds"):
+                line = self.cur.line
+                self.advance()
+                right = self._parse_additive()
+                left = ast.Binary("holds", left, right, line)
+            elif self.check_kw("in"):
+                line = self.cur.line
+                self.advance()
+                right = self._parse_additive()
+                left = ast.Binary("in", left, right, line)
+            elif self.cur.kind == T.OP and self.cur.value in ("<", ">", "<=", ">="):
+                op = self.cur.value
+                line = self.cur.line
+                self.advance()
+                right = self._parse_additive()
+                left = ast.Binary(op, left, right, line)
+            else:
+                break
+        return left
+
+    def _parse_additive(self) -> ast.Expr:
+        left = self._parse_mul()
+        while self.cur.kind == T.OP and self.cur.value in ("+", "-"):
+            op = self.cur.value
+            line = self.cur.line
+            self.advance()
+            right = self._parse_mul()
+            left = ast.Binary(op, left, right, line)
+        return left
+
+    def _parse_mul(self) -> ast.Expr:
+        left = self._parse_unary()
+        while (self.cur.kind == T.OP and self.cur.value in ("*", "/")) or self.check_kw(
+            "mod"
+        ):
+            op = self.cur.value
+            line = self.cur.line
+            self.advance()
+            right = self._parse_unary()
+            left = ast.Binary(op, left, right, line)
+        return left
+
+    def _parse_unary(self) -> ast.Expr:
+        if self.check_op("-"):
+            line = self.cur.line
+            self.advance()
+            return ast.Unary("-", self._parse_unary(), line)
+        return self.parse_postfix()
+
+    def parse_postfix(self) -> ast.Expr:
+        e = self._parse_primary()
+        while True:
+            if self.check_op("."):
+                line = self.cur.line
+                self.advance()
+                if self.check_op("("):
+                    self.advance()
+                    index = self.parse_expr()
+                    self.expect_op(")")
+                    e = ast.DynDot(e, index, line)
+                else:
+                    prop = self.expect_name("a property name").value
+                    e = ast.Dot(e, prop, line)
+            elif self.check_op("(") and isinstance(e, ast.Name):
+                line = self.cur.line
+                self.advance()
+                args = self._parse_args()
+                self.expect_op(")")
+                e = ast.Call(e.ident, args, line)
+            else:
+                break
+        return e
+
+    def _parse_args(self) -> list[ast.Expr]:
+        args: list[ast.Expr] = []
+        if self.check_op(")"):
+            return args
+        args.append(self.parse_expr())
+        while self.check_op(","):
+            self.advance()
+            args.append(self.parse_expr())
+        return args
+
+    def _parse_primary(self) -> ast.Expr:
+        t = self.cur
+        if t.kind == T.NUMBER:
+            self.advance()
+            return ast.Number(t.value, t.line)
+        if t.kind == T.STRING:
+            self.advance()
+            return self._build_string(t)
+        if t.kind == T.NAME:
+            self.advance()
+            return ast.Name(t.value, t.line)
+        if t.kind == T.KW:
+            if t.value in ("true", "false"):
+                self.advance()
+                return ast.Bool(t.value == "true", t.line)
+            if t.value == "nothing":
+                self.advance()
+                return ast.Nothing(t.line)
+            if t.value in ("self", "player", "here", "noun", "second"):
+                self.advance()
+                return ast.Name(t.value, t.line)
+            # The builtin kinds `thing` and `room` may be named as values, for
+            # example as the source of `for each door of room`.
+            if t.value in ("thing", "room"):
+                self.advance()
+                return ast.Name(t.value, t.line)
+        if t.is_op("("):
+            self.advance()
+            e = self.parse_expr()
+            self.expect_op(")")
+            return e
+        raise self._error(f"expected an expression, got {self._describe(t)}")
+
+    # -- strings and interpolation -----------------------------------------
+
+    def _build_string(self, tok: T.Token) -> ast.StringLit:
+        out: list[ast.StringPart] = []
+        for part in tok.value:
+            if isinstance(part, ast.StringText):
+                out.append(part)
+            else:  # RawInterp
+                expr, article = self._parse_interp(part)
+                out.append(ast.StringInterp(expr, article))
+        return ast.StringLit(out, tok.line)
+
+    def _parse_interp(self, raw: RawInterp) -> tuple[ast.Expr, str | None]:
+        sub_tokens = tokenize(raw.source, self.filename)
+        sub = Parser(sub_tokens, self.filename)
+        article = None
+        if sub.cur.kind == T.NAME and sub.cur.value in _ARTICLES:
+            nxt = sub._at(1)
+            if nxt.kind not in (T.NEWLINE, T.EOF):
+                article = sub.cur.value
+                sub.advance()
+        if sub.cur.kind in (T.NEWLINE, T.EOF):
+            raise ArcError(
+                "empty interpolation ${...} in string",
+                raw.line,
+                raw.column,
+                self.filename,
+            )
+        expr = sub.parse_expr()
+        if sub.cur.kind == T.NEWLINE:
+            sub.advance()
+        if sub.cur.kind != T.EOF:
+            raise ArcError(
+                f"unexpected tokens after interpolation expression "
+                f"{Parser._describe(sub.cur)}",
+                raw.line,
+                raw.column,
+                self.filename,
+            )
+        return expr, article
+
+    def _plain_text(self, tok: T.Token) -> str:
+        out: list[str] = []
+        for part in tok.value:
+            if isinstance(part, ast.StringText):
+                out.append(part.text)
+            else:
+                raise ArcError(
+                    "interpolation is not allowed here",
+                    tok.line,
+                    tok.column,
+                    self.filename,
+                )
+        return "".join(out)
+
+
+# Statement keyword -> the bound method that parses it. Built after the class
+# so the methods exist.
+_STMT_KEYWORDS = {
+    "let": Parser._parse_let,
+    "change": Parser._parse_change,
+    "now": Parser._parse_now,
+    "move": Parser._parse_move,
+    "add": Parser._parse_add,
+    "remove": Parser._parse_remove,
+    "say": Parser._parse_say,
+    "stop": Parser._parse_stop,
+    "continue": Parser._parse_continue,
+    "finish": Parser._parse_finish,
+    "return": Parser._parse_return,
+    "if": Parser._parse_if,
+    "while": Parser._parse_while,
+    "for": Parser._parse_for,
+    "switch": Parser._parse_switch,
+    "after": Parser._parse_schedule,
+    "every": Parser._parse_schedule,
+}
+
+
+def parse(src: str, filename: str = "<source>") -> ast.Program:
+    toks = tokenize(src, filename)
+    return Parser(toks, filename).parse()

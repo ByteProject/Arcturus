@@ -27,14 +27,32 @@ editors/vscode/  the syntax-highlighting extension
 
 The compiler uses the Python standard library only and targets Python 3.11+.
 
-```
-arcc examples/brass-lantern.storyarc -o build/brass-lantern.z5
-pytest
-```
+### For distribution: one standalone script
 
-During early milestones the CLI parses and reports on a source file:
+The shipped compiler is a single self-contained file with no dependencies and
+no installation. Build it from the package, then run it on a bare interpreter:
 
 ```
-arcc examples/brass-lantern.storyarc --check
-arcc examples/brass-lantern.storyarc --dump-ast
+python3 tools/amalgamate.py build/arcc
+python3 build/arcc examples/brass-lantern.storyarc
+```
+
+`build/arcc` is the artifact the interactive-fiction community downloads and
+runs directly (`./arcc game.storyarc`). The `arcturus/` package is the
+development source of truth; `arcc` is generated from it verbatim, so the two
+never differ.
+
+### For development: the package
+
+```
+python3 -m arcturus examples/brass-lantern.storyarc
+python3 -m pytest
+```
+
+During the early milestones the CLI parses and reports on a source file; code
+generation arrives later:
+
+```
+python3 -m arcturus examples/brass-lantern.storyarc --check
+python3 -m arcturus examples/brass-lantern.storyarc --dump-ast
 ```
