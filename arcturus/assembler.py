@@ -92,6 +92,8 @@ _OPCODES = {
     "call_vn": ("VAR", 0x19, False, False, False),
     "print_num": ("VAR", 0x06, False, False, False),
     "print_char": ("VAR", 0x05, False, False, False),
+    "push": ("VAR", 0x08, False, False, False),
+    "pull": ("VAR", 0x09, False, False, False),
 }
 
 
@@ -141,6 +143,13 @@ class Routine:
 
     def label(self, name: str) -> None:
         self.labels[name] = len(self.code)
+
+    def jump(self, label: str) -> None:
+        """Unconditional jump (1OP:jump) to a label. Its operand is a signed
+        offset, resolved at link time."""
+        self.code.append(0x8C)  # 1OP, large-constant operand, opcode 0x0C
+        self.fixups.append(_Fixup(len(self.code), "jump", label))
+        self.code += b"\x00\x00"
 
     # -- encoding ----------------------------------------------------------
 
@@ -235,7 +244,7 @@ def link(entry: Routine, routines: list[Routine], base_addr: int) -> tuple[bytes
                 value = packed[fx.target]
                 blob[pos] = (value >> 8) & 0xFF
                 blob[pos + 1] = value & 0xFF
-            else:  # branch
+            elif fx.kind == "branch":
                 target = r.labels[fx.target]
                 # New PC = address-after-branch-data + offset - 2, so for a
                 # destination at code offset `target`, offset = target - fx.offset.
@@ -247,5 +256,10 @@ def link(entry: Routine, routines: list[Routine], base_addr: int) -> tuple[bytes
                 # bit 6 = 0 selects the two-byte (wide) form
                 blob[pos] = hi
                 blob[pos + 1] = word & 0xFF
+            else:  # jump: a signed 16-bit offset operand
+                target = r.labels[fx.target]
+                offset = (target - fx.offset) & 0xFFFF
+                blob[pos] = (offset >> 8) & 0xFF
+                blob[pos + 1] = offset & 0xFF
 
     return bytes(blob), base_addr + entry_code_start

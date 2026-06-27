@@ -22,8 +22,9 @@ from . import __version__
 from . import ast
 from . import storyfile
 from . import worldmodel as wm
-from .assembler import Routine, link
+from .assembler import Routine, RoutineRef, link
 from .errors import ArcError
+from .lower import Context, compile_block
 
 # Region sizes.
 _GLOBALS_BYTES = 240 * 2  # 240 globals
@@ -69,54 +70,26 @@ def _start_handler(world: wm.World):
     return None
 
 
-def _start_text(world: wm.World) -> list[str]:
-    """The literal lines the `on start` handler says. B3 supports only `say`
-    of plain text in the start handler."""
-    handler = _start_handler(world)
-    if handler is None:
-        return []
-    lines: list[str] = []
-    for stmt in handler.body:
-        if isinstance(stmt, ast.Say):
-            lines.append(_literal(stmt.value, stmt.line))
-        elif isinstance(stmt, (ast.Stop,)):
-            break
-        else:
-            raise CodegenError(
-                "the B3 backend supports only `say` of plain text in 'on "
-                "start'; richer code generation arrives in a later milestone",
-                getattr(stmt, "line", 0),
-            )
-    return lines
-
-
-def _literal(expr: ast.Expr, line: int) -> str:
-    if not isinstance(expr, ast.StringLit):
-        raise CodegenError("expected a literal string", line)
-    out: list[str] = []
-    for part in expr.parts:
-        if isinstance(part, ast.StringText):
-            out.append(part.text)
-        else:
-            raise CodegenError(
-                "string interpolation is not supported yet (B3)", line
-            )
-    return "".join(out)
-
-
 def _empty_dictionary() -> bytes:
     # 0 word separators, entry length 9 (6 text + 3 data), 0 entries.
     return bytes([0x00, 0x09, 0x00, 0x00])
 
 
-def _emit_main(entry: Routine, world: wm.World) -> None:
-    """The provisional main code: print the banner, run the on start say lines,
-    then quit (B3 behavior, now expressed through the assembler)."""
-    entry.op("print", text=banner_text(world))
-    for line in _start_text(world):
-        entry.op("print", text=line)
-        entry.op("new_line")
-    entry.op("quit")
+# Builtin numeric references get fixed global slots; game globals follow.
+_BUILTIN_GLOBALS = ["turns", "score", "max_score", "player", "here"]
+
+
+def _globals_map(world: wm.World) -> dict:
+    m: dict = {}
+    n = 16
+    for name in _BUILTIN_GLOBALS:
+        m[name] = n
+        n += 1
+    for name in world.globals:
+        if name not in m:
+            m[name] = n
+            n += 1
+    return m
 
 
 def build_story(world: wm.World, entry: Routine, routines: list) -> bytes:
@@ -155,7 +128,25 @@ def build_story(world: wm.World, entry: Routine, routines: list) -> bytes:
 
 
 def generate(world: wm.World) -> bytes:
-    """Lower the world model to a complete z5 story file image."""
+    """Lower the world model to a complete z5 story file image.
+
+    The entry stub calls the main routine and quits; the main routine prints the
+    banner and runs the `on start` handler. The full turn loop and the rest of
+    the handlers arrive with Cosmos (B4.5)."""
+    gmap = _globals_map(world)
+
     entry = Routine("__entry__", entry=True)
-    _emit_main(entry, world)
-    return build_story(world, entry, [])
+    entry.op("call_vn", RoutineRef("__main__"))
+    entry.op("quit")
+
+    main = Routine("__main__", nlocals=0)
+    main.op("print", text=banner_text(world))
+    handler = _start_handler(world)
+    if handler is not None:
+        ctx = Context(world, gmap)
+        ctx.prescan(handler.body)
+        compile_block(main, ctx, handler.body)
+        main.nlocals = ctx.nlocals()
+    main.op("rfalse")
+
+    return build_story(world, entry, [main])

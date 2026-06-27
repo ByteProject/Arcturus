@@ -14,14 +14,15 @@ Last updated: 2026-06-27.
 | B1 | Lexer and parser producing an AST, with unit tests | done |
 | B2 | Semantic analysis and the world-model IR | done |
 | B3 | Z-machine backend MVP (smallest valid story file) | done |
-| B4 | Cosmos compiled: parser, turn loop, standard verbs | next |
+| B4 | Cosmos compiled: parser, turn loop, standard verbs | in progress |
 | B5 | Size pass (dead-code elimination, abbreviations, codegen) | pending |
 | B6 | Feature-complete for a real game | pending |
 | B7 | Graphics via `arc_image` | pending |
 | B8 | Write the target game in Arcturus | pending |
 
-Not production-ready: the compiler parses and reports today but does not yet
-generate a story file.
+Not production-ready: the compiler generates valid z5 story files for the
+language subset built so far, but the runtime (parser, turn loop, verbs) is not
+in place yet, so it cannot compile a playable game.
 
 ## Toolchain
 
@@ -116,7 +117,7 @@ Subgoals (each with its own done-test; the story file is handed off to run on
 Frotz at each runnable step):
 
 - [x] B4.1 - routines, locals, stack, CALL (the instruction assembler)
-- [ ] B4.2 - expressions, control flow, and the statement set
+- [x] B4.2 - expressions, control flow, and the statement set
 - [ ] B4.3 - the object table (attributes, properties, tree, short names)
 - [ ] B4.4 - the dictionary and input tokenizing
 - [ ] B4.5 - Cosmos in Arcturus: parser, scope/light, pipeline, turn loop, verbs
