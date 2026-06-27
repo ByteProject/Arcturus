@@ -63,7 +63,17 @@ generate a story file.
   Cosmos library, including its version (the library will declare its own, used
   only for the in-game banner).
 - File-extension conventions fixed: `.storyarc` (story), `.prelude` (Cosmos
-  library file), `.granule` (extension).
+  library file), `.granule` (extension). The specs were updated to match: the
+  syntax reference (docs/01) now documents all three extensions, and the
+  Cosmos/parser spec (docs/02) refers to library files as `.prelude` and
+  extensions as `.granule`. Internal "Claude Code phase" framing in the specs
+  was changed to "implementation phase" for public reading.
+
+### Documentation policy
+
+When a change affects anything the public-facing documentation describes, the
+docs are updated in the same step. New conventions are recorded here as they
+are introduced.
 
 ## Next: B2
 

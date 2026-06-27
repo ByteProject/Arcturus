@@ -7,7 +7,7 @@ behavior that surface drives.
 
 Scope boundary. The compiler pipeline that turns a program plus Cosmos into a
 z5 story file, the construct-to-opcode mapping, and the text-compression
-implementation are owned in the Claude Code phase (roadmap 03 to 05). This
+implementation are owned in the implementation phase (roadmap 03 to 05). This
 document is the behavioral specification those stages must satisfy. Smallest
 possible z-code is a standing requirement on all of it.
 
@@ -50,10 +50,10 @@ on take noun
     say "Taken."
 ```
 
-Cosmos ships as a set of files (for example `cosmos/world.storyarc`,
-`cosmos/verbs.storyarc`, `cosmos/parser.storyarc`, `cosmos/banner.storyarc`).
-The build includes them unless the author supplies their own copies, which is
-how a wholesale fork works. Dead-code elimination ensures unused Cosmos verbs
+Cosmos ships as a set of library files, each with the `.prelude` extension (for
+example `cosmos/world.prelude`, `cosmos/verbs.prelude`, `cosmos/parser.prelude`,
+`cosmos/banner.prelude`). The build includes them unless the author supplies
+their own copies, which is how a wholesale fork works. Dead-code elimination ensures unused Cosmos verbs
 and properties never reach the story file.
 
 ## 2. Runtime globals and story metadata
@@ -368,7 +368,7 @@ the conversations feature source and may evolve.
 
 `summon.language "<name>"`. Localization. Cosmos messages are held as a
 resource table keyed by message id; a language pack (for example
-`cosmos/lang/es.storyarc`) supplies translated strings and is selected by
+`cosmos/lang/es.prelude`) supplies translated strings and is selected by
 this directive, English being the default. The pack overrides only Cosmos's
 own messages and standard vocabulary; an author's strings are written in
 whatever language they choose. Spanish is the first planned pack; packs are
