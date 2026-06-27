@@ -1,0 +1,476 @@
+# Arcturus Cosmos and Parser
+
+Status: draft v2. This document defines the runtime: Cosmos (the standard
+library), the parser, the action pipeline, and the banner. The language
+surface is defined in 01-syntax-reference.md; this document defines the
+behavior that surface drives.
+
+Scope boundary. The compiler pipeline that turns a program plus Cosmos into a
+z5 story file, the construct-to-opcode mapping, and the text-compression
+implementation are owned in the Claude Code phase (roadmap 03 to 05). This
+document is the behavioral specification those stages must satisfy. Smallest
+possible z-code is a standing requirement on all of it.
+
+The two worked examples in 01 (the Brass Lantern and Cloak of Darkness) are
+the conformance cases; section 16 reconciles each with the model here.
+
+## 1. Cosmos as an editable template
+
+Cosmos is not a compiled black box. It is ordinary Arcturus source, shipped as
+a default and compiled together with the author's program. It defines the
+standard kinds, the standard verbs and their grammar, the default action
+behavior, the messages, the banner, and the turn loop.
+
+Three layers, from fixed to free:
+
+1. Core and runtime: the compiler and the primitives it relies on (the object
+   tree, attribute and property access, the parse and print intrinsics).
+   Fixed.
+2. Cosmos: everything in this document, written in Arcturus. Shipped as a
+   default the author can read, override piecemeal, or fork wholesale.
+3. The game: the author's program, only what differs from Cosmos.
+
+Overriding uses the ordinary resolution order from 01 (sections 5 and 12):
+the author's handlers are more specific than Cosmos's, so they win, falling
+back with `continue`. A default is just the least specific handler. The
+standard take, for example, is defined in Cosmos in plain Arcturus:
+
+```
+verb "take", "get", "pick"
+    take noun
+
+on take noun
+    if noun is fixed
+        say "${The noun} is fixed in place."
+        stop
+    if player holds noun
+        say "You already have ${the noun}."
+        stop
+    move noun to player
+    say "Taken."
+```
+
+Cosmos ships as a set of files (for example `cosmos/world.storyarc`,
+`cosmos/verbs.storyarc`, `cosmos/parser.storyarc`, `cosmos/banner.storyarc`).
+The build includes them unless the author supplies their own copies, which is
+how a wholesale fork works. Dead-code elimination ensures unused Cosmos verbs
+and properties never reach the story file.
+
+## 2. Runtime globals and story metadata
+
+Built-in references usable in any handler or block:
+
+- `player`: the player object, an instance of `person`.
+- `here`: the room the player is in, maintained as the player moves.
+- `turns`: a number, the elapsed turn count, starting at 0.
+- `score`, `max_score`: numbers for games that keep score.
+- `nothing`: the null object.
+
+Cosmos owns `here` and `turns`; assigning to them is a compile error. The
+author may change `score`.
+
+Story metadata from the `game` block (01, section 4) is carried into the
+story file: `title`, `headline`, `author`, `release`, `serial`, and `UUID`.
+If `serial` is omitted Cosmos uses the build date in YYMMDD form. The `UUID`
+is written as an IFID array in static memory, in the form Inform uses
+(`UUID://<uuid>//`), so IFDB and similar tools can identify the game; the
+compiler emits it without a warning.
+
+## 3. The banner
+
+Cosmos prints the banner at game start, before `on start` output. It carries
+everything Inform's banner does, and names both the compiler and the library:
+
+```
+The Brass Lantern
+An Interactive Fiction by Stefan
+Release 1 / Serial number 260626 / Arcturus 0.1  Cosmos 0.1
+```
+
+Line one is `title`. Line two is `headline` plus "by" and `author`, with
+sensible defaults if either is absent. Line three carries the release number,
+the serial, and then the compiler and library as a single final field,
+Inform-style: the compiler name and version (Arcturus) followed by the
+library name and version (Cosmos), separated by spaces rather than a slash.
+The compiler and library versions are build constants, not author-set. A game
+may replace the banner by handling the banner event, but the default carries
+the standard information.
+
+## 4. The object tree and the in/on relation
+
+Containment is the Z-machine object tree: one parent per object, reached with
+`in`, `move`, `holds`, and `for each`. The tree stores only parent and child.
+
+The in-versus-on distinction is carried by the parent's kind: a child of a
+`container` is in it, a child of a `supporter` is on it, a child of a
+`person` or the player is carried, or worn if its `worn` property is set.
+Cosmos uses the parent's kind to choose the preposition when listing or
+describing contents and to decide scope.
+
+## 5. Scope and visibility
+
+Scope is the set of objects the parser considers when resolving a noun, and
+that an action may touch. Cosmos computes it each time it parses a noun.
+
+In scope, when the location is lit: the room `here` and its direct contents
+(minus `hidden` and concealed objects); everything the player holds or wears,
+recursively; the contents of any in-scope `container` that is `open` or
+`transparent`; the contents of any in-scope `supporter`; and objects reached
+through these recursively.
+
+Two predicates Cosmos provides for conditions: `<obj> is visible` (in scope
+and the location lit; examining needs this) and `<obj> is reachable` (visible
+and not behind a closed container; taking and most physical actions need
+this). `hidden` removes an object from scope entirely until cleared.
+`scenery` keeps it referable for examining but omits it from contents
+listings and refuses taking.
+
+## 6. Light and darkness
+
+Cosmos computes light automatically. The location is lit when the room's own
+`lit` is true, or an in-scope object has `lit` true and gives light. A room's
+`lit` means the room is independently lit; a thing's `lit` means it is
+glowing.
+
+When the location is dark, scope collapses to what the player carries, room
+contents are not visible, and visibility-dependent actions report "It is
+pitch dark, and you can see nothing." Movement is still allowed unless a room
+blocks it. Because light is computed, authors rarely set it by hand; a game
+that needs special behavior overrides at the room, as the Cloak bar does.
+
+## 7. The turn loop
+
+Each turn Cosmos runs:
+
+1. If the player entered a new room this turn, describe it: print the room
+   `name`, the `desc` if unseen or on look, then the listed contents, and
+   fire the room's `on enter`.
+2. Print the prompt (default ">").
+3. Read a line and tokenize it (section 8).
+4. Parse: identify the verb, fill slots, resolve nouns in scope,
+   disambiguate. On failure, print the refusal and skip to step 7.
+5. Dispatch the action through the pipeline (section 9).
+6. Run `on after` handlers if the action completed.
+7. Fire active `on each_turn` handlers (the room's, and in-scope objects'),
+   subject to their `when` guards, then fire any scheduled events (section
+   13).
+8. Increment `turns`. If a `finish` ended the game, print the final message
+   and stop.
+9. Loop.
+
+The room is described once on entry. The status line (room name and score or
+turns) is maintained continuously by the interpreter.
+
+## 8. The parser
+
+The parser turns input into an action with bound objects.
+
+Tokenizing. Input is lowercased and split on spaces and punctuation. Noise
+words ("the", "a", "an", "my") are dropped. Remaining tokens are matched
+against the dictionary, which holds every verb word, every object's `words`,
+and all grain words (section 14). An object's printed `name` is not matched;
+matchable vocabulary comes only from `words`, which keeps the dictionary
+small and under the author's control. Dictionary entries are truncated to the
+Z-machine word resolution, so long words collide on their prefix; this is a
+property of the format.
+
+Verb resolution. The first verb word selects a `verb` declaration; its
+grammar lines are tried in order, and the first whose shape matches wins,
+producing an action and slot fillers.
+
+Noun resolution and adjectives. Arcturus has no separate adjective type;
+adjectives are ordinary entries in an object's `words`, ranked the same as
+nouns. A typed noun phrase matches an in-scope object when every content word
+typed appears in that object's `words`. The parser scores each candidate by
+how many typed words it matches and takes the single best:
+
+- No object matches: "You can't see any such thing.", or the darkness
+  message.
+- One object matches best: it fills the slot.
+- Several tie: disambiguation asks "Which do you mean, the X or the Y?",
+  printing the full `name` of each, and reads a reply that adds a
+  distinguishing word.
+
+So typing more adjectives narrows the result: with a brass hook and an iron
+hook in scope, "hook" is ambiguous and prompts, "brass hook" resolves
+directly, and after a prompt a bare "brass" selects. `held` matches the same
+way but also requires the player to hold the object. The most recent match
+feeds pronouns ("it", "them").
+
+The `name`-versus-`words` split is the only lever needed: a word in `name` is
+printed but not matched, a word in `words` is matched but not printed, and a
+word you want both printed and typed simply appears in each. There is no "the
+brass one" anaphora in v1; that advanced parser feature is deferred.
+
+Multi and all. A `multi` slot matches several objects; "all" expands to the
+reasonable set for the verb, minus any named after "except". The action runs
+once per object.
+
+Unknown words. A token in no dictionary entry gives "I don't know the word
+'<token>'." A known word used where no grammar line accepts it gives "You
+can't do that." These are Cosmos strings and are overridable.
+
+Grains. When a `noun` slot finds no real object but the typed word is a grain
+word on `here` or an in-scope object, and the action's verb is one the grain
+answers, Cosmos runs the grain's response (a `say`, a `do` block, or its
+inline body) and treats the action as handled. Grains are checked after real
+objects, so a real object always wins. See section 14.
+
+## 9. The action pipeline
+
+An action carries its verb, `noun`, and optional `second`. Cosmos dispatches
+it as one chain of handlers, most specific first:
+
+1. the `noun` object's own `on <verb>` handler,
+2. its kind chain, nearest kind first,
+3. the room's `on <verb>` handler,
+4. any free-standing top-level `on <verb>` rule,
+5. the Cosmos default `on <verb>` handler.
+
+Each handler runs until it ends or calls `continue`. Ending consumes the
+action and stops the chain; `continue` passes to the next handler. If the
+chain reaches the Cosmos default and it ends, the action took its standard
+effect.
+
+After phase. If the action completed, Cosmos runs `on after <verb>` handlers
+in the same specificity order. A `when` guard that does not hold makes a
+handler skipped, and the chain continues as if it were absent.
+
+This is leaner than Inform's rulebooks: one ordered chain, an explicit
+`continue`, and an `after` pass, expressing instead, before-with-continue,
+and after without further machinery.
+
+## 10. Standard kinds
+
+`thing` (base): `name`, `words`, `desc`; booleans `fixed`, `scenery`,
+`hidden`, `concealed`, `wearable`, `worn`, `lit`, `edible`, `proper`. Default
+handlers for examine, take, drop, push, pull, turn, and the like (section
+12).
+
+`room`: `name`, `desc`, `lit`, `visited`, and the direction properties
+(`north`, `south`, `east`, `west`, `northeast`, `northwest`, `southeast`,
+`southwest`, `up`, `down`, `in`, `out`), each an object defaulting `nothing`.
+Default `go <direction>` reads the matching property and moves the player, or
+prints "You can't go that way." A room overrides one direction with its own
+`on go <direction>`.
+
+`container of thing`: `openable`, `open`, `transparent`, `capacity`. Contents
+are children, in scope when open or transparent. Default open, close, and put
+in.
+
+`supporter of thing`: `capacity`. Contents are children, always in scope on
+top. Default put on.
+
+`door of thing`: `open`, `openable`, `lockable`, `locked`, `key`, and the two
+rooms it joins. Appears in both rooms; blocks movement when closed.
+
+`person of thing`: animate, holds and wears objects, default refuses being
+taken and routes the talk verb (section 11). `player` is the distinguished
+instance.
+
+## 11. Standard verbs
+
+The core set, each with the action a handler matches. Words after the action
+are alternative inputs.
+
+- look (l): describe `here`.
+- examine (x), look at, read: print `desc`. Needs visibility.
+- search noun: describe a container's or supporter's contents.
+- take (get, pick up): move to player; refuse if fixed.
+- drop: move to `here`; refuse if worn until removed.
+- put noun in noun, put noun on noun.
+- wear (don) noun; take off (remove, doff) noun.
+- inventory (i, inv).
+- go direction (n, s, e, w, ne, nw, se, sw, u, d, in, out).
+- enter noun, exit (out).
+- open noun, close (shut) noun.
+- lock noun with noun, unlock noun with noun.
+- switch on noun, switch off noun (turn on, turn off).
+- push, pull, turn noun: default "Nothing obvious happens." unless handled.
+- give noun to noun, show noun to noun.
+- talk to noun (talk, speak to): the conversation action (below).
+- wait (z), again (g).
+
+The talk action. `talk to <person>` dispatches the `talk` action on the
+person. Without the conversations feature, the Cosmos default routes to the
+person's own `on talk` handler, or prints "There is no reply." With
+`summon.conversations` (section 14), `talk to <person>` opens that person's
+topic menu instead.
+
+Meta verbs: save, restore, undo, quit, score, and a verbose-or-brief toggle,
+using the corresponding Z-machine facilities.
+
+Every default message is a Cosmos string, overridable globally by replacing
+the Cosmos default or locally by handling the verb on an object or kind.
+
+## 12. Standard responses
+
+Representative defaults, all overridable: take a fixed object, "${The noun}
+is fixed in place."; take something held, "You already have ${the noun}.";
+take success, "Taken."; drop, "Dropped."; examine with no desc, "You see
+nothing special about ${the noun}."; no exit, "You can't go that way."; a
+closed container, "${The noun} is closed."; darkness, "It is pitch dark, and
+you can see nothing."; an unhandled push, pull, or turn, "Nothing obvious
+happens."
+
+## 13. Naming, articles, daemons, and timers
+
+Naming. `name` is the printed short name; the object identifier is never
+printed. Article helpers: `${a noun}` chooses a or an by sound, `${the
+noun}`, and capitalized `${A noun}` and `${The noun}` for sentence starts. An
+object with `proper` set takes no article. When Cosmos lists several objects
+it joins them with commas and a final "and", each with its indefinite
+article.
+
+Recurring behavior uses `on each_turn` guarded by `when` (01, section 12). A
+room's each_turn is active while the player is there; an object's while it is
+in scope. For behavior after a set number of turns, Cosmos provides two
+scheduling helpers that fire from the turn loop's step 7:
+
+```
+after 3 turns do collapse_tunnel
+every 5 turns do tide_shifts
+```
+
+`after` schedules a one-shot, `every` a recurring event; each names an
+ordinary `on <event>` handler. This gives timers and daemons without new
+control structures.
+
+## 14. Summonable features
+
+These ship with Cosmos and the compiler but are off until summoned (01,
+section 13). Dead-code elimination keeps an unsummoned feature out of the
+story file entirely.
+
+`summon.conversations`. The talk-menu system, the equivalent of PunyInform's
+talk_menu. A person gains conversation topics, each a quip with an optional
+guard and an optional one-shot flag. `talk to <person>` presents the
+available topics as a numbered menu; selecting one prints its response and
+may change state, reveal or retire topics, or end the conversation. A sketch
+of the authoring surface:
+
+```
+summon.conversations
+
+thing barman of person in bar
+    name "barman"
+
+    topic "Ask about the cloak" when player holds cloak
+        say "He eyes the black velvet. \"Best hang that up,\" he says."
+
+    topic "Ask about the message" once
+        say "\"Folk scrawl all sorts in the dark,\" he shrugs."
+```
+
+Topics with `when` appear only when their condition holds; `once` topics
+retire after use. The exact menu rendering and selection handling are part of
+the conversations feature source and may evolve.
+
+`summon.language "<name>"`. Localization. Cosmos messages are held as a
+resource table keyed by message id; a language pack (for example
+`cosmos/lang/es.storyarc`) supplies translated strings and is selected by
+this directive, English being the default. The pack overrides only Cosmos's
+own messages and standard vocabulary; an author's strings are written in
+whatever language they choose. Spanish is the first planned pack; packs are
+maintained alongside the main Cosmos sources. A pack may also supply
+localized direction and verb words.
+
+`summon.debug`. Debugging verbs for testing, excluded automatically from a
+release build: a scope and tree dump, teleport to a room, pull a distant
+object to the player, set a property, and show an object's state. These speed
+testing and never ship.
+
+## 15. Overriding Cosmos in practice
+
+Four patterns, in increasing scope: change one message by handling the verb
+on the object; change a verb everywhere with a top-level `on <verb>` rule;
+add a verb with a `verb` declaration plus its `on <verb>` default (as the
+Brass Lantern's pull and the Cloak's hang); or fork a Cosmos file by copying
+it into the project and editing it, so the build uses the local copy. Most
+games use only the first three; the fourth exists so Cosmos is never a
+ceiling.
+
+## 16. How the examples use Cosmos
+
+The Brass Lantern:
+
+- The cellar uses automatic light: with no `lit` of its own it is dark until
+  the player brings the switched-on lantern, whose `lit` lights the room. The
+  example's `on enter` additionally bounces the player back, a stricter
+  custom behavior than standard darkness; both are valid.
+- `switch_on` and `switch_off` are Cosmos verbs; the lantern's handlers
+  replace the default messages, consuming the action.
+- `pull` is an added verb; the lever's handler consumes it, so the default
+  "Nothing obvious happens." never runs.
+- `${turns}` reads the Cosmos turn counter, and the foyer's grain shows cheap
+  scenery answering examine without an object.
+
+Cloak of Darkness:
+
+- The foyer blocks north with `on go north`, a room-level override at pipeline
+  step 3, and carries a grain for the chandeliers.
+- The cloak is `wearable` and starts `worn`; Cosmos's wear and take-off verbs
+  manage `worn`, and putting it on the hook clears `worn` as part of put-on.
+- The hook is a `supporter`; its child the cloak is on it and in scope, so
+  `hook holds cloak` is the test the hook's examine uses.
+- The bar overrides automatic light at the room: its `on enter` sets the room
+  dark while the player holds the cloak and lit otherwise.
+- The `disturbed` global, the each_turn counter, and the two `finish` endings
+  are all language-level and need nothing from Cosmos beyond the turn loop.
+
+## Appendix A: Cosmos-reserved names
+
+Direction names: `north`, `south`, `east`, `west`, `northeast`, `northwest`,
+`southeast`, `southwest`, `up`, `down`, `in`, `out`.
+
+Standard kinds: `thing`, `room`, `container`, `supporter`, `door`, `person`.
+
+Standard boolean properties: `fixed`, `scenery`, `hidden`, `concealed`,
+`wearable`, `worn`, `lit`, `edible`, `proper`, `switchable`, `openable`,
+`open`, `lockable`, `locked`, `visited`.
+
+Standard value properties: `name`, `words`, `desc`, `capacity`, `key`,
+`score`, `max_score`, `turns`.
+
+Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,
+`wear`, `take_off`, `inventory`, `go`, `enter`, `exit`, `open`, `close`,
+`lock`, `unlock`, `switch_on`, `switch_off`, `push`, `pull`, `turn`, `give`,
+`show`, `talk`, `wait`, `again`.
+
+Summonable features: `conversations`, `debug`, `language`, `abbreviations`.
+
+## Appendix B: standard grammar lines
+
+```
+verb "look", "l"                  -> look
+verb "examine", "x", "look at"    -> examine noun
+verb "read"                       -> examine noun
+verb "search"                     -> search noun
+verb "take", "get", "pick up"     -> take noun
+verb "drop", "put down"           -> drop noun
+verb "put", "place"               -> put noun in noun
+                                     put noun on noun
+verb "wear", "don"                -> wear noun
+verb "take off", "remove", "doff" -> take_off noun
+verb "inventory", "i", "inv"      -> inventory
+verb "go"                         -> go direction
+verb "enter"                      -> enter noun
+verb "exit", "out"                -> exit
+verb "open"                       -> open noun
+verb "close", "shut"              -> close noun
+verb "lock"                       -> lock noun with noun
+verb "unlock"                     -> unlock noun with noun
+verb "switch on", "turn on"       -> switch_on noun
+verb "switch off", "turn off"     -> switch_off noun
+verb "push", "press"              -> push noun
+verb "pull", "yank"               -> pull noun
+verb "turn", "rotate"             -> turn noun
+verb "give"                       -> give noun to noun
+verb "show"                       -> show noun to noun
+verb "talk to", "talk", "speak to" -> talk noun
+verb "wait", "z"                  -> wait
+verb "again", "g"                 -> again
+```
+
+The direction slot is special to GO: it matches a direction name and reads
+the matching room property rather than resolving an object.

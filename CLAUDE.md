@@ -1,0 +1,97 @@
+# Arcturus
+
+Arcturus is a high-level interactive-fiction language with its own compiler,
+written in Python, that emits standard Z-machine version 5 story files. The
+standard library is named Cosmos. The end goal is to write the final part of
+the Hibernated trilogy in Arcturus.
+
+This file is the standing context for the project. Read it first, then the
+three specifications under docs/, which are authoritative.
+
+## Authoritative documents
+
+- docs/00-roadmap.md: charter, locked decisions, milestones, the size
+  strategy, and the graphics plan.
+- docs/01-syntax-reference.md: the language. Grammar, every construct, and two
+  worked example games that are the conformance anchors.
+- docs/02-cosmos-and-parser.md: the runtime. Cosmos as an editable library,
+  the parser, the action pipeline, the banner, scope and light, the turn loop,
+  and the summonable features.
+
+When code and a document disagree, the document wins: fix the code, or if the
+document is wrong, propose the change and update the document in the same
+commit.
+
+## Locked decisions
+
+- Target: conformant Z-machine version 5. A --v8 build flag is a later option
+  for large modern-only releases; same codegen, two header values differ.
+- Smallest possible z-code is a primary objective, judged alongside
+  correctness. Levers in order: whole-program dead-code elimination,
+  abbreviation-based text compression, dense codegen (docs/00 section 5).
+- The compiler is Python with zero runtime dependencies, so `arcturus` runs on
+  a bare interpreter. Tests may use pytest as a dev-only dependency.
+- Cosmos is the standard library, written in Arcturus itself and shipped as an
+  editable template, not a black box. Overriding is ordinary handler
+  resolution: most specific wins, `continue` defers to the next.
+- No custom virtual machine, no transpile-to-Inform-6, no PunyInform runtime.
+  The compiler emits z5 directly.
+- Source extension .storyarc. Compiler binary `arcturus`, short form `arcc`.
+
+## Repository layout
+
+```
+CLAUDE.md
+docs/            00-02 specs (authoritative); 03-05 produced as you build
+arcturus/        the compiler package (lexer, parser, ast, sema, codegen, cli)
+cosmos/          the Cosmos library in .storyarc (world, verbs, parser, banner)
+tools/           arcabbr.py and other Python tools
+examples/        brass-lantern.storyarc, cloak-of-darkness.storyarc
+tests/           unit and golden tests
+editors/vscode/  the syntax-highlighting extension
+pyproject.toml
+```
+
+## Build, run, test
+
+- Compile: `arcc examples/brass-lantern.storyarc -o build/brass-lantern.z5`
+  (z5 by default; `--v8` for version 8).
+- Test: `pytest`.
+- Verify a built story on a reference interpreter (Frotz or Bocfel); the same
+  file must also run on Ceres for the 8-bit target.
+
+## Coding standards
+
+- Python 3.11 or later. Standard library only for the compiler runtime.
+- Clear module boundaries: lexer, parser, AST, semantic analysis and the
+  world-model IR, codegen, z5 story-file assembly, CLI.
+- Plain ASCII punctuation in all generated code, comments, and documents. No
+  em dashes; use commas, colons, semicolons, parentheses, or shorter
+  sentences.
+- Every milestone lands with tests and a green done-test before the next.
+
+## Non-goals (do not build these here)
+
+- Disk-image building or BuildTools integration. The project ends at a z5
+  file; packaging is handled separately, later, elsewhere.
+- A custom VM or a new interpreter. Graphics (docs/00 section 6) extend an
+  existing owned interpreter and are a late milestone, not now.
+
+## Method
+
+- git first: initialize the repo before writing code, and commit per milestone
+  with the done-test named in the message.
+- Use subagents for tool installation (pytest, a z-machine interpreter for
+  testing) so the main thread stays on design and code.
+- Work milestone by milestone from docs/00 section 7 (B0 to B8). Each has a
+  concrete done-test; do not advance until it passes.
+- Produce docs/03-compiler-pipeline.md, docs/04-codegen-mapping.md, and
+  docs/05-conformance.md as the matching work is done, so the design record
+  stays current.
+
+## Conformance
+
+The two example games are the golden tests. The Brass Lantern and Cloak of
+Darkness (docs/01 sections 17 and 18) must compile, run correctly on Frotz,
+and run on Ceres, and their story files are tracked for size regression
+against a PunyInform-equivalent build.
