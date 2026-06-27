@@ -1,14 +1,14 @@
 # Arcturus Syntax Reference
 
 Status: draft v2. This is the authoritative definition of the Arcturus
-language surface and its semantics, at the level an author or Claude Code
-needs to write correct programs.
+language surface and its semantics, at the level an author needs to write
+correct programs.
 
 Scope boundary. This document defines the language. The runtime behavior the
 language drives, the standard library (named Cosmos), the parser, the action
 pipeline, the banner, and the optional summonable features are defined in
 02-cosmos-and-parser.md. The lowering of each construct to z5 is owned in the
-Claude Code phase (03 and 04). Where this document says "Cosmos provides X",
+implementation phase (03 and 04). Where this document says "Cosmos provides X",
 X is specified in 02.
 
 The worked examples in sections 17 and 18, the Brass Lantern and the iconic
@@ -27,6 +27,12 @@ reference programs across all documents.
 5. Errors at compile time, not surprises at run time.
 
 ## 2. Lexical structure
+
+Arcturus source uses three file extensions, named after the star: `.storyarc`
+for a story (an author's game), `.prelude` for a Cosmos library file (the
+prelude loaded before the story), and `.granule` for an extension (a granule on
+the star's surface). All three are the same language and lex identically; the
+extension only signals the file's role.
 
 Source is UTF-8; the compiler maps text to ZSCII at build time.
 
@@ -463,16 +469,17 @@ Core events Cosmos fires, defined in 02: `on start`, `on enter`,
 
 `summon` brings external code or an optional built-in feature into the build.
 
-Importing an extension, a separate Arcturus source file written by you or a
-third party:
+Importing an extension, a separate Arcturus source file (a `.granule`) written
+by you or a third party:
 
 ```
-summon "extensions/lockpicking.storyarc"
+summon "extensions/lockpicking.granule"
 summon weather
 ```
 
 An extension is ordinary Arcturus source exposing kinds, verbs, blocks, and
-grains. It may define its own summonable sub-features.
+grains, carried in a `.granule` file. It may define its own summonable
+sub-features.
 
 The dotted form enables a built-in feature that ships with Cosmos or the
 compiler but is off by default:
