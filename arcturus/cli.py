@@ -13,6 +13,7 @@ arrives in a later milestone.
 from __future__ import annotations
 
 import argparse
+import platform
 import sys
 
 from . import __version__
@@ -24,13 +25,31 @@ from .irdump import dump as dump_ir
 from .parser import parse
 from .sema import analyze
 
-_BANNER = f'''Arcturus {__version__}
+def _host_os() -> str:
+    """A short label for the host operating system, for the banner tag line:
+    MacOS ARM, Linux64, Windows, and so on."""
+    name = platform.system()
+    machine = (platform.machine() or "").lower()
+    if name == "Darwin":
+        return "MacOS ARM" if machine in ("arm64", "aarch64") else "MacOS x86"
+    if name == "Linux":
+        return "Linux64" if machine in ("x86_64", "aarch64", "arm64") else "Linux32"
+    if name == "Windows":
+        return "Windows"
+    return name or "unknown"
 
-This program is a compiler of Infocom format (also called "Z-machine") story
-files. It is written in Python and needs only the standard library.
-Copyright (c) 2026, Stefan Vogt.
 
-Usage: "arcc [options] <file.storyarc>"'''
+def _banner() -> str:
+    return (
+        f'Arcturus {__version__} -- [  arcc  |  python3  |  stdlib  |  {_host_os()}  ]\n'
+        'Copyright (c) 2026, Stefan Vogt.\n'
+        'https://github.com/ByteProject/Arcturus\n'
+        '\n'
+        'This is the compiler for the Arcturus programming language. Type -h for help.\n'
+        'Compiles them to Infocom format, also called Z-machine story files.\n'
+        '\n'
+        'Usage: "arcc [options] <file.storyarc>"\n'
+    )
 
 
 def _build_argparser() -> argparse.ArgumentParser:
@@ -84,7 +103,7 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     if not args.source:
-        print(_BANNER, file=sys.stderr)
+        print(_banner(), file=sys.stderr)
         return 2
 
     try:
