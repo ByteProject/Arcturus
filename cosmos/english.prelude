@@ -17,9 +17,40 @@ block resolve_verb()
     if d is nothing
         return 0
     let flags = peek_byte(d + 6)
-    if flags is 0
-        return 0
-    return peek_byte(d + 7)
+    if flags is 128
+        let base = peek_byte(d + 7)
+        let p = find_particle()
+        if p is not nothing
+            let c = compound(base, p)
+            if c is not nothing
+                return c
+        return base
+    if flags is 64
+        return peek_byte(d + 7)
+    return 0
+
+// A verb particle after the verb (the "off" in "switch off"), as its id.
+block find_particle()
+    let n = word_count()
+    let i = 1
+    while i < n
+        let d = word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 32
+                return peek_byte(d + 7)
+        change i to i + 1
+    return nothing
+
+// Combine a base verb with a particle into a multi-word action. The base comes
+// from the verb word (switch and turn resolve to switch_on); "off" flips it, and
+// turns take into take_off.
+block compound(base, particle)
+    if particle is 2
+        if base is action_id("take")
+            return action_id("take_off")
+        if base is action_id("switch_on")
+            return action_id("switch_off")
+    return nothing
 
 // The chosen direction's property number, from the first direction word typed
 // (a direction word's dictionary entry is flagged with bit 6, and byte 2 holds
@@ -106,6 +137,21 @@ block msg_empty_handed()
 
 block msg_dark_room()
     say "It is pitch dark; you can't see a thing."
+
+block msg_no_switch()
+    say "That isn't something you can switch."
+
+block msg_cant_wear()
+    say "You can't wear that."
+
+block msg_worn()
+    say "You put it on."
+
+block msg_not_worn()
+    say "You aren't wearing that."
+
+block msg_removed()
+    say "You take it off."
 
 // One line of an inventory listing.
 block list_held(obj)

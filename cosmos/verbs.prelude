@@ -100,3 +100,54 @@ on inventory
         list_held(obj)
     if carrying is 0
         msg_empty_handed()
+
+
+// Multi-word verbs. The parser combines a verb with a particle ("switch" + "off"
+// -> switch_off, "take" + "off" -> take_off); these declarations register the
+// actions and supply defaults that an object overrides (the lantern's
+// on switch_on / on switch_off).
+
+verb "switch", "turn"
+    switch_on noun
+    switch_off noun
+
+on switch_on
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_no_switch()
+
+on switch_off
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_no_switch()
+
+
+verb "wear", "don"
+    wear noun
+
+on wear
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if not (noun is wearable)
+        msg_cant_wear()
+        stop
+    move noun to player
+    now noun is worn
+    msg_worn()
+
+
+verb "remove", "doff"
+    take_off noun
+
+on take_off
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if not (noun is worn)
+        msg_not_worn()
+        stop
+    now noun is not worn
+    msg_removed()

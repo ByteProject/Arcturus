@@ -28,11 +28,18 @@ from . import zstring
 _SEPARATORS = [ord("."), ord(",")]
 # Per-entry data bytes: [flags, b1, b2]. flags bit 7 marks a verb word (b1 = its
 # action number); flags bit 6 marks a direction word (b1 = the go action, b2 =
-# the direction's property number), so the parser can resolve both.
+# the direction's property number); flags bit 5 marks a verb particle (b1 = its
+# id), so the parser can resolve all three.
 _DATA_BYTES = 3
 _ENTRY_LEN = 6 + _DATA_BYTES
 _VERB_FLAG = 0x80
 _DIR_FLAG = 0x40
+_PARTICLE_FLAG = 0x20
+
+# Verb particles for multi-word verbs (switch on, take off). English; moves into
+# the language pack when localized. up/down/in/out are omitted (they are
+# direction words); the examples only need on/off.
+_PARTICLE_WORDS = {"on": 1, "off": 2}
 
 # English direction words (with abbreviations) mapped to their canonical
 # direction property. This vocabulary is English; it moves into the language
@@ -101,6 +108,7 @@ def build(world: wm.World, action_numbers=None, direction_props=None) -> tuple[b
     words = set(collect_vocab(world))
     if direction_props:
         words |= set(direction_props)
+    words |= set(_PARTICLE_WORDS)
     encoded = {w: zstring.encode_dict_word(w) for w in words}
     # Map each distinct encoded entry to its three data bytes.
     enc_data: dict[bytes, bytes] = {}
@@ -110,6 +118,8 @@ def build(world: wm.World, action_numbers=None, direction_props=None) -> tuple[b
         go = action_numbers["go"]
         for word, prop in direction_props.items():
             enc_data[encoded[word]] = bytes([_DIR_FLAG, go & 0xFF, prop & 0xFF])
+    for word, pid in _PARTICLE_WORDS.items():
+        enc_data[encoded[word]] = bytes([_PARTICLE_FLAG, pid, 0])
     # Distinct entries, sorted by encoded bytes for binary search.
     distinct = sorted(set(encoded.values()))
 
