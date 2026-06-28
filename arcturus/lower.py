@@ -79,6 +79,9 @@ class Context:
         # action is consumed, 0 = pass to the next handler). In a block they are
         # an ordinary return / an error.
         self.in_handler = in_handler
+        # Locals currently known to hold an object (a `for each` over the tree),
+        # so `say` prints the object's name rather than its number.
+        self.object_locals: set = set()
         self.named: dict[str, int] = {}
         slot = 1
         for p in params:
@@ -552,7 +555,7 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> None:
             raise LowerError("'continue' is only valid in a handler", s.line)
         rt.op("ret", Const(0))  # pass the action to the next handler
     elif isinstance(s, ast.ForEach):
-        raise LowerError("'for each' needs the object table (B4.3)", s.line)
+        _for_each(rt, ctx, s)
     elif isinstance(s, ast.Schedule):
         raise LowerError("scheduling needs the turn loop (B4.5)", s.line)
     else:
@@ -645,7 +648,11 @@ def _say(rt, ctx, value):
 
 def _is_object_expr(ctx, expr) -> bool:
     if isinstance(expr, ast.Name):
-        return ctx.is_object_name(expr.ident) or expr.ident in _OBJECT_BUILTINS
+        return (
+            ctx.is_object_name(expr.ident)
+            or expr.ident in _OBJECT_BUILTINS
+            or expr.ident in ctx.object_locals
+        )
     return False
 
 
@@ -687,6 +694,42 @@ def _if(rt, ctx, s: ast.If):
             rt.jump(end)
             rt.label(nxt)
     rt.label(end)
+
+
+def _is_list_source(ctx, source) -> bool:
+    if isinstance(source, ast.Dot):
+        p = ctx.world.properties.get(source.prop)
+        return p is not None and p.type == "list"
+    return False
+
+
+def _for_each(rt, ctx, s: ast.ForEach):
+    """`for each x in <object>` walks the object's tree children with
+    get_child / get_sibling. (List iteration and `for each ... of <kind>` over
+    instances are not lowered yet.)"""
+    if s.relation == "of":
+        raise LowerError(
+            "'for each ... of <kind>' over instances is not supported yet", s.line
+        )
+    if _is_list_source(ctx, s.source):
+        raise LowerError("list iteration is not supported yet", s.line)
+    xslot = ctx.resolve_var(s.var, s.line)
+    objop, t = _operand(rt, ctx, s.source)
+    body = ctx.new_label()
+    done = ctx.new_label()
+    # x = first child; if none, skip the loop.
+    rt.op("get_child", objop, store=Variable(xslot), branch=(body, True))
+    rt.jump(done)
+    rt.label(body)
+    had = s.var in ctx.object_locals
+    ctx.object_locals.add(s.var)  # the loop var holds an object
+    compile_block(rt, ctx, s.body)
+    if not had:
+        ctx.object_locals.discard(s.var)
+    # x = next sibling; loop while one exists.
+    rt.op("get_sibling", Variable(xslot), store=Variable(xslot), branch=(body, True))
+    rt.label(done)
+    _free(ctx, t)
 
 
 def _while(rt, ctx, s: ast.While):
