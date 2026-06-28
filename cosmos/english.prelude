@@ -41,6 +41,20 @@ block find_word(container, target)
             return obj
     return nothing
 
+// Turn-loop and room-description wording. These are English; a language pack
+// (spanish.granule) replaces this file and so replaces the messages too.
+
+// The input prompt, on its own line.
+block prompt()
+    say ""
+    show(">")
+
+// One line of a room's contents listing.
+block list_item(obj)
+    show("You can see ")
+    print_name(obj)
+    say " here."
+
 // Match a noun: the first typed word after the verb that names an object in
 // scope (the room, then what the player carries). Adjective scoring and full
 // disambiguation are refined later.

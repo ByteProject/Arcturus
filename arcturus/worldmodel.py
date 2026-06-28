@@ -28,6 +28,20 @@ from . import ast
 STORE_ATTRIBUTE = "attribute"  # a boolean-only property: an attribute bit
 STORE_SLOT = "slot"  # a number, text, object, list, or block: a property slot
 
+# The life-cycle events the turn loop fires (not verbs): the game's opening, a
+# room being entered, and the per-turn pulse. They share the action-number space
+# with verbs so the loop can fire them through the same react routines.
+EVENT_NAMES = frozenset({"start", "enter", "each_turn"})
+
+
+def action_numbers(world: "World") -> dict:
+    """The deterministic action -> number map (0 means no action), shared by
+    codegen (react routines, dictionary verb data) and lower (event firing).
+    Verbs and the life-cycle events live in one numbering so a react routine can
+    switch on either."""
+    names = sorted(set(world.actions) | {"other"} | EVENT_NAMES)
+    return {name: i + 1 for i, name in enumerate(names)}
+
 
 @dataclass
 class Property:

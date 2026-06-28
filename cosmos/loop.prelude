@@ -1,0 +1,39 @@
+// loop.prelude
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// The turn loop (docs/02 section 10), the heart of a running game. The compiler
+// hands control here after printing the banner (the __main__ shim). The loop
+// fires the opening event, describes the starting room, then repeats: prompt,
+// parse, dispatch the action, fire the per-turn events, count the turn. A `finish`
+// in any handler quits, ending the loop.
+
+block run_game()
+    run_free(ev_start())
+    describe_room()
+    while true
+        prompt()
+        let act = parse()
+        if act is not nothing
+            dispatch(act)
+            fire_turn()
+            tick()
+
+// The per-turn pulse: the room's `on each_turn`, then any free `on each_turn`
+// rules. Their `when` guards are compiled into the handlers themselves.
+block fire_turn()
+    if here is not nothing
+        let r = handler_of(here)
+        if r is not nothing
+            call_handler(r, ev_each_turn())
+    run_free(ev_each_turn())
+
+// Describe the current room: its name, its description, and what it contains.
+block describe_room()
+    say here
+    if desc_addr(here) is not nothing
+        say here.desc
+    for each obj in here
+        if obj is not player
+            list_item(obj)
