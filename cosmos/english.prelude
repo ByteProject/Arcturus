@@ -91,9 +91,11 @@ block find_word(container, target)
 // Turn-loop and room-description wording. These are English; a language pack
 // (spanish.granule) replaces this file and so replaces the messages too.
 
-// The input prompt, on its own line.
+// The input prompt. It requests a paragraph break (one blank line before it,
+// collapsed with any the turn already pending) rather than forcing its own, so
+// responses are separated from the next prompt by exactly one blank line.
 block prompt()
-    say ""
+    par()
     show(">")
 
 // One line of a room's contents listing.
@@ -146,6 +148,9 @@ block msg_no_switch()
 block msg_cant_wear()
     say "You can't wear that."
 
+block msg_already_worn()
+    say "You're already wearing that."
+
 block msg_worn()
     say "You put it on."
 
@@ -191,10 +196,12 @@ block confirm_quit()
 block msg_farewell()
     say "Thanks for playing."
 
-// One line of an inventory listing.
+// One line of an inventory listing; a worn item is tagged.
 block list_held(obj)
     show("  ")
     print_name(obj)
+    if obj is worn
+        show(" (worn)")
     say ""
 
 // Match one word against an object in scope: the room first, then what the
