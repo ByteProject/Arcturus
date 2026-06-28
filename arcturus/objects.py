@@ -30,7 +30,11 @@ from . import zstring
 _NUM_DEFAULTS = 63  # property-defaults table size in v4+
 _ENTRY_SIZE = 14  # object entry size in v4+
 _MAX_ATTRIBUTES = 48
-_MAX_PROPERTIES = 63
+_MAX_PROPERTIES = 62  # user properties 1..62; 63 is reserved for react
+
+# Property 63 holds the packed address of the object's react routine (B4.5b);
+# the dispatcher reads it to run the object's handlers.
+REACT_PROP = 63
 
 # Properties that are not stored as numbered properties.
 _SPECIAL = {"name", "words"}
@@ -49,6 +53,11 @@ class Layout:
     # relative here and made absolute (plus the object-table base) in build_story.
     # Each entry is (offset-of-pointer-word, relative-target-offset).
     prop_pointers: list[tuple[int, int]] = field(default_factory=list)
+    # (offset within `table`, routine name) to patch with a routine's packed
+    # address - used for the react property (B4.5b).
+    routine_fixups: list[tuple[int, str]] = field(default_factory=list)
+    # Objects that have a react routine; their react property (63) is emitted.
+    react_objects: set = field(default_factory=set)
 
 
 def _effective_props(world: wm.World, obj: wm.Obj) -> dict:
@@ -72,8 +81,10 @@ def _bool_value(decl: ast.PropertyDecl) -> bool:
     return False
 
 
-def build_layout(world: wm.World) -> Layout:
+def build_layout(world: wm.World, react_objects=None) -> Layout:
     layout = Layout()
+    if react_objects:
+        layout.react_objects = set(react_objects)
 
     # Object numbers (1..N), in collection order.
     for i, name in enumerate(world.objects, start=1):
@@ -154,10 +165,19 @@ def _emit_property_table(world, layout, name, eff) -> None:
     table.append(len(encoded) // 2)
     table += encoded
 
-    # Then the properties, which must be listed in descending property number
-    # (the interpreter relies on this ordering). Every value Arcturus stores is
-    # two bytes, so each uses the one-byte size form: bit 6 set means "two data
-    # bytes", and the low five bits hold the property number (section 12.4.2.1).
+    # Properties are listed in descending property number. React (63) is the
+    # highest, so it comes first: a two-byte value holding the packed address of
+    # this object's react routine, backpatched in build_story via a routine
+    # fixup (the object table base is not known until then).
+    if name in layout.react_objects:
+        layout.table.append(0x40 | REACT_PROP)
+        data_at = len(layout.table)
+        layout.table += b"\x00\x00"
+        layout.routine_fixups.append((data_at, "react_" + name))
+
+    # Then the user properties. Every value Arcturus stores is two bytes, so each
+    # uses the one-byte size form: bit 6 set means "two data bytes", and the low
+    # five bits hold the property number (section 12.4.2.1).
     items = []
     for pname, decl in eff.items():
         pnum = layout.prop_number.get(pname)
