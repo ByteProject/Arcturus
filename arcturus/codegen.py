@@ -283,7 +283,13 @@ def _start_handler(world: wm.World):
 
 # Builtin references get fixed global slots; game globals follow. turns/score/
 # max_score are numbers; player/here/noun/second hold object numbers at run time.
-_BUILTIN_GLOBALS = ["turns", "score", "max_score", "player", "here", "noun", "second", "way", "grain"]
+# turns/score/max_score are numbers; player/here/noun/second hold object numbers;
+# way/grain are the parser's direction and scenery; par_pending is the library's
+# paragraph-break flag (internal, set by par(), honored by the print layer).
+_BUILTIN_GLOBALS = [
+    "turns", "score", "max_score", "player", "here", "noun", "second",
+    "way", "grain", "par_pending",
+]
 
 
 def _globals_map(world: wm.World) -> dict:

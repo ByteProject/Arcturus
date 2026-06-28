@@ -35,17 +35,24 @@ block fire_turn()
     if here is not nothing
         let r = handler_of(here)
         if r is not nothing
+            par()
             call_handler(r, ev_each_turn())
+    par()
     run_free(ev_each_turn())
 
 // Describe the current room: its name, its description, and what it contains.
 block describe_room()
+    par()
     if is_lit() is 0
         msg_dark_room()
         return
     say here
     if desc_addr(here) is not nothing
         say here.desc
+    let listed = 0
     for each obj in here
         if obj is not player and not (obj is hidden) and not (obj is concealed)
+            if listed is 0
+                par()
+            change listed to 1
             list_item(obj)

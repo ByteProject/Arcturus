@@ -48,6 +48,9 @@ INTRINSICS = frozenset({
     # tick advances the turn counter, set_here updates the room (both globals are
     # read-only to author code, so the loop changes them through intrinsics).
     "tick", "set_here",
+    # par requests a paragraph break before the next printed text (the library
+    # controls vertical spacing; the print layer honors the flag).
+    "par",
     # desc_addr is the address of an object's desc property (0 if absent), so the
     # room describer can skip a missing description.
     "desc_addr",
@@ -459,6 +462,13 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("store", Const(ctx.globals["here"]), op)
         _free(ctx, t)
         _place(rt, Const(0), dest)
+    elif name == "par":
+        # par(): mark a pending paragraph break; the print layer flushes it as a
+        # single blank line before the next text, collapsing repeats.
+        slot = ctx.globals.get("par_pending")
+        if slot is not None:
+            rt.op("store", Const(slot), Const(1))
+        _place(rt, Const(0), dest)
     elif name == "words_addr":
         # words_addr(obj): the address of the object's words array (0 if none).
         op, t = _operand(rt, ctx, args[0])
@@ -748,7 +758,22 @@ def _move(rt, ctx, s: ast.Move):
         ctx.free_temp(tmp)
 
 
+def _flush_par(rt, ctx):
+    """Emit a pending paragraph break: if par_pending is set, print one blank
+    line and clear it. Runs before any text output so the library can request a
+    break without the author managing newlines."""
+    slot = ctx.globals.get("par_pending")
+    if slot is None:
+        return
+    skip = ctx.new_label()
+    rt.op("jz", Variable(slot), branch=(skip, True))
+    rt.op("new_line")
+    rt.op("store", Const(slot), Const(0))
+    rt.label(skip)
+
+
 def _say(rt, ctx, value, newline=True):
+    _flush_par(rt, ctx)
     if isinstance(value, ast.StringLit):
         for part in value.parts:
             if isinstance(part, ast.StringText):
