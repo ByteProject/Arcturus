@@ -10,6 +10,7 @@
 // in any handler quits, ending the loop.
 
 block run_game()
+    move player to here
     run_free(ev_start())
     describe_room()
     while true
@@ -19,6 +20,14 @@ block run_game()
             dispatch(act)
             fire_turn()
             tick()
+
+// Fire the current room's `on enter` (the loop and the go verb call this after
+// the player arrives). The handler may move the player elsewhere (a bounce).
+block fire_enter()
+    if here is not nothing
+        let r = handler_of(here)
+        if r is not nothing
+            call_handler(r, ev_enter())
 
 // The per-turn pulse: the room's `on each_turn`, then any free `on each_turn`
 // rules. Their `when` guards are compiled into the handlers themselves.

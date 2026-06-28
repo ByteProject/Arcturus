@@ -124,6 +124,7 @@ _BUILTINS = {
     "turns": T_NUMBER,
     "score": T_NUMBER,
     "max_score": T_NUMBER,
+    "way": T_NUMBER,  # the chosen direction's property number, set by the parser
 }
 
 # Objects Cosmos provides. `player` is the distinguished person instance.

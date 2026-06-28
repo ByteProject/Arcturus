@@ -26,11 +26,28 @@ from . import zstring
 
 # Characters that are tokens in their own right (so "lamp,box" splits).
 _SEPARATORS = [ord("."), ord(",")]
-# Per-entry data bytes: [flags, action, reserved]. flags bit 7 marks a verb word
-# and action is its action number, so the parser can resolve the verb.
+# Per-entry data bytes: [flags, b1, b2]. flags bit 7 marks a verb word (b1 = its
+# action number); flags bit 6 marks a direction word (b1 = the go action, b2 =
+# the direction's property number), so the parser can resolve both.
 _DATA_BYTES = 3
 _ENTRY_LEN = 6 + _DATA_BYTES
 _VERB_FLAG = 0x80
+_DIR_FLAG = 0x40
+
+# English direction words (with abbreviations) mapped to their canonical
+# direction property. This vocabulary is English; it moves into the language
+# pack (spanish.granule) when localized. The parser turns a direction word into
+# the go action plus the direction's property number (see english.prelude).
+_DIRECTION_WORDS = {
+    "north": "north", "n": "north", "south": "south", "s": "south",
+    "east": "east", "e": "east", "west": "west", "w": "west",
+    "northeast": "northeast", "ne": "northeast",
+    "northwest": "northwest", "nw": "northwest",
+    "southeast": "southeast", "se": "southeast",
+    "southwest": "southwest", "sw": "southwest",
+    "up": "up", "u": "up", "down": "down", "d": "down",
+    "in": "in", "out": "out",
+}
 
 
 def collect_vocab(world: wm.World) -> set:
@@ -76,17 +93,23 @@ def _verb_actions(world: wm.World, action_numbers) -> dict:
     return out
 
 
-def build(world: wm.World, action_numbers=None) -> tuple[bytes, dict]:
+def build(world: wm.World, action_numbers=None, direction_props=None) -> tuple[bytes, dict]:
     """Return the dictionary bytes and a word -> offset (within the dictionary)
-    map for the entry each word resolves to. Verb words carry their action in
-    their data bytes when action_numbers is given."""
-    words = collect_vocab(world)
+    map for the entry each word resolves to. Verb words carry their action, and
+    direction words (from direction_props: word -> property number) carry the go
+    action and the direction property, in their data bytes."""
+    words = set(collect_vocab(world))
+    if direction_props:
+        words |= set(direction_props)
     encoded = {w: zstring.encode_dict_word(w) for w in words}
-    verb_action = _verb_actions(world, action_numbers)
-    # Map each distinct encoded entry to a verb action, if any word for it is a verb.
-    enc_action: dict[bytes, int] = {}
-    for word, action in verb_action.items():
-        enc_action[encoded[word]] = action
+    # Map each distinct encoded entry to its three data bytes.
+    enc_data: dict[bytes, bytes] = {}
+    for word, action in _verb_actions(world, action_numbers).items():
+        enc_data[encoded[word]] = bytes([_VERB_FLAG, action & 0xFF, 0])
+    if direction_props and action_numbers and "go" in action_numbers:
+        go = action_numbers["go"]
+        for word, prop in direction_props.items():
+            enc_data[encoded[word]] = bytes([_DIR_FLAG, go & 0xFF, prop & 0xFF])
     # Distinct entries, sorted by encoded bytes for binary search.
     distinct = sorted(set(encoded.values()))
 
@@ -100,10 +123,17 @@ def build(world: wm.World, action_numbers=None) -> tuple[bytes, dict]:
     for enc in distinct:
         offset_of[enc] = len(out)
         out += enc
-        if enc in enc_action:
-            out += bytes([_VERB_FLAG, enc_action[enc] & 0xFF, 0])
-        else:
-            out += bytes(_DATA_BYTES)
+        out += enc_data.get(enc, bytes(_DATA_BYTES))
 
     word_offset = {w: offset_of[encoded[w]] for w in words}
     return bytes(out), word_offset
+
+
+def direction_props(layout) -> dict:
+    """word -> direction property number, for the words whose canonical
+    direction is a property in this program's object table."""
+    out: dict = {}
+    for word, canonical in _DIRECTION_WORDS.items():
+        if canonical in layout.prop_number:
+            out[word] = layout.prop_number[canonical]
+    return out

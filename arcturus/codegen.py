@@ -37,14 +37,25 @@ _EVENT_NAMES = wm.EVENT_NAMES
 _action_numbers = wm.action_numbers  # the shared action -> number map
 
 
+def _is_dir_pattern(h: wm.Handler) -> bool:
+    """True for `on go <direction>`: a single operand naming a direction, guarded
+    at run time on the chosen direction (the `way` global)."""
+    return (
+        "go" in h.events
+        and len(h.pattern) == 1
+        and isinstance(h.pattern[0], ast.Operand)
+        and len(h.pattern[0].names) == 1
+    )
+
+
 def _react_handlers(obj: wm.Obj, actions: dict):
-    """The object's own pattern-less handlers, as (action, handler), covering
-    both verb actions and the life-cycle events (enter, each_turn) the turn loop
-    fires on this object. Operand-pattern handlers, the kind chain, and `other`
-    are deferred to B4.5d/e; free rules go through react_free."""
+    """The object's own handlers, as (action, handler): verb actions, the
+    life-cycle events the loop fires here (enter, each_turn), and `on go
+    <direction>` overrides (guarded on the direction). Other operand patterns
+    (noun, string) are still deferred; free rules go through react_free."""
     out = []
     for h in obj.handlers:
-        if h.pattern:
+        if h.pattern and not _is_dir_pattern(h):
             continue
         for ev in h.events:
             if ev in actions and ev != "other":
@@ -60,9 +71,10 @@ def _react_objects(world: wm.World, actions: dict) -> set:
     }
 
 
-def gen_react_routines(world: wm.World, actions: dict, registry) -> list:
+def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gmap=None) -> list:
     """A react_<obj> routine for every object that has react handlers, calling
-    the per-handler routines by their registry names."""
+    the per-handler routines by their registry names. layout/gmap are needed only
+    to guard `on go <direction>` overrides on the chosen direction."""
     hname = {id(h): nm for h, nm in registry}
     out = []
     for objname, obj in world.objects.items():
@@ -71,8 +83,8 @@ def gen_react_routines(world: wm.World, actions: dict, registry) -> list:
             continue
         groups: dict = {}
         for action, h in pairs:
-            groups.setdefault(action, []).append(hname[id(h)])
-        out.append(_gen_react(objname, groups, actions))
+            groups.setdefault(action, []).append((hname[id(h)], h))
+        out.append(_gen_react(objname, groups, actions, layout, gmap))
     # react_free is always present (even empty) so the turn loop and dispatcher
     # can call it unconditionally.
     out.append(gen_react_free(world, actions, registry))
@@ -104,25 +116,38 @@ def gen_react_free(world: wm.World, actions: dict, registry) -> Routine:
         # In the no-Cosmos fallback `on start` is compiled into main, not
         # registered; skip any free handler without a routine.
         if id(h) in hname:
-            groups.setdefault(action, []).append(hname[id(h)])
+            groups.setdefault(action, []).append((hname[id(h)], h))
     return _gen_react("free", groups, actions)
 
 
-def _gen_react(objname: str, groups: dict, actions: dict) -> Routine:
+def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None) -> Routine:
     """react_<obj>(action): switch on the action number; for each action run the
-    object's handler routine(s) in order, returning 1 as soon as one consumes
-    the action (returns 1), else 0."""
+    object's handler routine(s) in order, returning 1 as soon as one consumes the
+    action (returns 1), else 0. An `on go <direction>` handler is guarded so it
+    only runs when the chosen direction (the `way` global) matches."""
     rt = Routine("react_" + objname, nlocals=1)  # local 1 = the action number
     run_label = {}
     for i, action in enumerate(groups):
         run_label[action] = f"run{i}"
         rt.op("je", Variable(1), Const(actions[action]), branch=(run_label[action], True))
     rt.op("ret", Const(0))  # no handled action
-    for action, hnames in groups.items():
+    skip_n = 0
+    for action, handlers in groups.items():
         rt.label(run_label[action])
-        for hn in hnames:
-            rt.op("call_vs", RoutineRef(hn), store=Variable(STACK))
-            rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
+        for hn, h in handlers:
+            if _is_dir_pattern(h):
+                # Run this handler only when `way` equals the named direction's
+                # property number; otherwise fall through to the next handler.
+                prop = layout.prop_number[h.pattern[0].names[0]]
+                skip = f"skipdir{skip_n}"
+                skip_n += 1
+                rt.op("je", Variable(gmap["way"]), Const(prop), branch=(skip, False))
+                rt.op("call_vs", RoutineRef(hn), store=Variable(STACK))
+                rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
+                rt.label(skip)
+            else:
+                rt.op("call_vs", RoutineRef(hn), store=Variable(STACK))
+                rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
         rt.op("ret", Const(0))  # this action's chain did not consume it
     rt.label("__handled__")
     rt.op("ret", _CONST_ONE)
@@ -195,7 +220,7 @@ def _start_handler(world: wm.World):
 
 # Builtin references get fixed global slots; game globals follow. turns/score/
 # max_score are numbers; player/here/noun/second hold object numbers at run time.
-_BUILTIN_GLOBALS = ["turns", "score", "max_score", "player", "here", "noun", "second"]
+_BUILTIN_GLOBALS = ["turns", "score", "max_score", "player", "here", "noun", "second", "way"]
 
 
 def _globals_map(world: wm.World) -> dict:
@@ -240,7 +265,8 @@ def build_story(
     # vocabulary.
     static_base = sf.here()
     abbrev_addr = sf.append(bytes(_ABBREV_BYTES))
-    dict_bytes, word_offsets = dictionary.build(world, _action_numbers(world))
+    dprops = dictionary.direction_props(layout) if layout is not None else None
+    dict_bytes, word_offsets = dictionary.build(world, _action_numbers(world), dprops)
     dict_addr = sf.append(dict_bytes)
 
     # High memory: the entry stub and routines, run from the initial PC.
@@ -410,7 +436,7 @@ def generate(world: wm.World) -> bytes:
     entry.op("quit")
 
     main, routines, registry = build_routines(world, gmap, layout, pool)
-    react_routines = gen_react_routines(world, actions, registry)
+    react_routines = gen_react_routines(world, actions, registry, layout, gmap)
 
     return build_story(
         world,

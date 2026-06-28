@@ -45,9 +45,9 @@ INTRINSICS = frozenset({
     # show prints without a trailing newline (say always adds one); print_name
     # prints an object's short name (so messages can name a passed-in object).
     "show", "print_name",
-    # tick advances the turn counter (turns is read-only to author code, so the
-    # loop bumps it through this intrinsic).
-    "tick",
+    # tick advances the turn counter, set_here updates the room (both globals are
+    # read-only to author code, so the loop changes them through intrinsics).
+    "tick", "set_here",
     # desc_addr is the address of an object's desc property (0 if absent), so the
     # room describer can skip a missing description.
     "desc_addr",
@@ -288,9 +288,16 @@ def eval_expr(rt: Routine, ctx: Context, expr, dest=None) -> None:
         return
 
     if isinstance(expr, ast.DynDot):
-        raise LowerError(
-            "computed property access needs the parser (B4.5)", expr.line
-        )
+        # obj.(expr): read the property whose number is computed at run time
+        # (the turn loop uses here.(way) to follow the chosen direction).
+        objop, to = _operand(rt, ctx, expr.obj)
+        propop, tp = _operand(rt, ctx, expr.index)
+        rt.op("get_prop", objop, propop, store=dest)
+        if to is not None:
+            ctx.free_temp(to)
+        if tp is not None:
+            ctx.free_temp(tp)
+        return
 
     raise LowerError("unsupported expression", getattr(expr, "line", 0))
 
@@ -431,6 +438,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # tick(): advance the turn counter (the loop owns turns).
         slot = Variable(ctx.globals["turns"])
         rt.op("add", slot, Const(1), store=slot)
+        _place(rt, Const(0), dest)
+    elif name == "set_here":
+        # set_here(room): the loop owns the here global (read-only to authors).
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("store", Const(ctx.globals["here"]), op)
+        _free(ctx, t)
         _place(rt, Const(0), dest)
     elif name == "words_addr":
         # words_addr(obj): the address of the object's words array (0 if none).
