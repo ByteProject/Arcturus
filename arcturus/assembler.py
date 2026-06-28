@@ -83,6 +83,7 @@ _OPCODES = {
     "get_parent": ("1OP", 0x03, True, False, False),
     "inc": ("1OP", 0x05, False, False, False),
     "dec": ("1OP", 0x06, False, False, False),
+    "get_prop_len": ("1OP", 0x04, True, False, False),  # length of a property from its data address
     "remove_obj": ("1OP", 0x09, False, False, False),
     "print_obj": ("1OP", 0x0A, False, False, False),
     "ret": ("1OP", 0x0B, False, False, False),
@@ -100,6 +101,7 @@ _OPCODES = {
     "loadw": ("2OP", 0x0F, True, False, False),
     "loadb": ("2OP", 0x10, True, False, False),
     "get_prop": ("2OP", 0x11, True, False, False),
+    "get_prop_addr": ("2OP", 0x12, True, False, False),  # data address of a property (0 if absent)
     "and": ("2OP", 0x09, True, False, False),
     "or": ("2OP", 0x08, True, False, False),
     "add": ("2OP", 0x14, True, False, False),
