@@ -38,7 +38,7 @@ from .objects import REACT_PROP
 INTRINSICS = frozenset({
     "read_line", "peek_byte", "peek_word", "poke_byte", "poke_word",
     "word_count", "word_dict", "word_len", "word_pos", "call_handler",
-    "handler_of",
+    "handler_of", "parent_of",
 })
 
 _ARITH = {"+": "add", "-": "sub", "*": "mul", "/": "div", "mod": "mod"}
@@ -384,6 +384,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # default) if it has none.
         op, t = _operand(rt, ctx, args[0])
         rt.op("get_prop", op, Const(REACT_PROP), store=dest)
+        _free(ctx, t)
+    elif name == "parent_of":
+        # parent_of(obj): the object's parent in the tree (0 if detached).
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("get_parent", op, store=dest)
         _free(ctx, t)
 
 
