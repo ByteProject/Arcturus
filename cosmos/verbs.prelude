@@ -72,6 +72,7 @@ on drop
         msg_not_holding()
         stop
     move noun to here
+    now noun is not worn
     msg_dropped()
 
 
@@ -147,12 +148,15 @@ on wear
     if not (noun is wearable)
         msg_cant_wear()
         stop
+    if noun is worn
+        msg_already_worn()
+        stop
     move noun to player
     now noun is worn
     msg_worn()
 
 
-verb "remove", "doff"
+verb "remove", "doff", "disrobe", "shed"
     take_off noun
 
 on take_off
