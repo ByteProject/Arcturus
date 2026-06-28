@@ -1,0 +1,57 @@
+// scope.prelude
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// Scope and light (docs/02 sections 5 and 6), written in Arcturus. Scope is the
+// set of objects the parser considers and an action may touch; light decides
+// whether the location is lit, which collapses scope to what the player carries
+// when dark. Closed/transparent container nuances and held-container recursion
+// are refined later; this covers the room, its contents, carried items, and the
+// contents of in-scope supporters and open containers.
+
+// Is the location lit? The room's own lit, or an in-scope object glowing.
+block is_lit()
+    if here is lit
+        return 1
+    for each held in player
+        if held is lit
+            return 1
+    for each near in here
+        if near is lit
+            return 1
+    return 0
+
+// Is obj in scope right now?
+block in_scope(obj)
+    if obj is player
+        return 1
+    if is_lit() is 0
+        // Dark: only what the player carries is in scope.
+        if obj in player
+            return 1
+        return 0
+    if obj is here
+        return 1
+    let p = parent_of(obj)
+    if p is here
+        return 1
+    if p is player
+        return 1
+    if p is not nothing
+        // On a supporter, or inside an open container, that is itself in scope.
+        if p is supporter
+            return in_scope(p)
+        if p is container
+            if p is open
+                return in_scope(p)
+    return 0
+
+// Visible needs light (examining); reachable also needs to not be shut away.
+block visible(obj)
+    if is_lit() is 0
+        return 0
+    return in_scope(obj)
+
+block reachable(obj)
+    return visible(obj)

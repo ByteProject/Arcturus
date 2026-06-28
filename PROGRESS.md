@@ -123,7 +123,7 @@ Frotz at each runnable step):
 - B4.5 - Cosmos in Arcturus (staged):
   - [x] B4.5a - compile all handlers and blocks to routines
   - [x] B4.5b - dispatch (Arcturus dispatcher + compiler-wired handlers)
-  - [ ] B4.5c - scope and light
+  - [x] B4.5c - scope and light
   - [ ] B4.5d - the parser
   - [ ] B4.5e - turn loop + standard verbs + banner
 - [ ] B4.6 - integration, DCE-friendly structure, docs
