@@ -32,6 +32,18 @@ H_CHECKSUM = 0x1C
 
 HEADER_SIZE = 64
 
+# Fixed memory layout shared by codegen and the lowering. The header is 64 bytes
+# and the 240 globals 480, so the input buffers sit at known addresses: the text
+# buffer is [max-length, current-length, chars...]; the parse buffer is
+# [max-words, count, (dict-addr, length, position) x max-words].
+GLOBALS_BYTES = 240 * 2
+TEXT_BUFFER_ADDR = HEADER_SIZE + GLOBALS_BYTES  # 544
+TEXT_BUFFER_MAX = 60
+TEXT_BUFFER_BYTES = 2 + TEXT_BUFFER_MAX
+PARSE_BUFFER_ADDR = TEXT_BUFFER_ADDR + TEXT_BUFFER_BYTES  # 606
+PARSE_BUFFER_MAX = 12
+PARSE_BUFFER_BYTES = 2 + PARSE_BUFFER_MAX * 4
+
 # File-length scale by version: the stored length is the real length divided by
 # this (section 11.1.6).
 _LENGTH_SCALE = {1: 2, 2: 2, 3: 2, 4: 4, 5: 4, 6: 8, 7: 8, 8: 8}

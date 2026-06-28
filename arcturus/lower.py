@@ -24,9 +24,19 @@ LowerError for them.
 from __future__ import annotations
 
 from . import ast
+from . import storyfile
 from . import worldmodel as wm
 from .assembler import Const, Routine, Variable, RoutineRef, StringRef, STACK
 from .errors import ArcError
+
+# Reserved intrinsic functions: calls that lower to opcodes, not a routine call.
+# They are the low-level primitives Cosmos's parser and loop sit on (the bridge
+# agreed for B4.5). read_line tokenizes a typed line; peek/poke access memory;
+# word_* read the parse buffer; call_handler calls a routine by its address.
+INTRINSICS = frozenset({
+    "read_line", "peek_byte", "peek_word", "poke_byte", "poke_word",
+    "word_count", "word_dict", "word_len", "word_pos", "call_handler",
+})
 
 _ARITH = {"+": "add", "-": "sub", "*": "mul", "/": "div", "mod": "mod"}
 _MAX_LOCALS = 15
@@ -304,6 +314,9 @@ def _binop(rt, ctx, opname, a, b, dest):
 
 
 def _call(rt, ctx, expr: ast.Call, dest):
+    if expr.name in INTRINSICS:
+        _intrinsic(rt, ctx, expr, dest)
+        return
     if expr.name not in ctx.world.blocks:
         raise LowerError(f"call to unknown block '{expr.name}'", expr.line)
     # Push arguments right-first so they pop in order behind the routine address.
@@ -312,6 +325,64 @@ def _call(rt, ctx, expr: ast.Call, dest):
     operands = [RoutineRef("blk_" + expr.name)]
     operands += [Variable(STACK)] * len(expr.args)
     rt.op("call_vs", *operands, store=dest)
+
+
+def _intrinsic(rt, ctx, call: ast.Call, dest):
+    name, args = call.name, call.args
+    parse = Const(storyfile.PARSE_BUFFER_ADDR)
+
+    if name == "read_line":
+        rt.op("aread", Const(storyfile.TEXT_BUFFER_ADDR), parse, store=dest)
+    elif name == "word_count":
+        rt.op("loadb", parse, Const(1), store=dest)  # parse[1] = the word count
+    elif name == "peek_byte":
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("loadb", op, Const(0), store=dest)
+        _free(ctx, t)
+    elif name == "peek_word":
+        opa, opb, t = _two_operands(rt, ctx, args[0], args[1])
+        rt.op("loadw", opa, opb, store=dest)
+        _free(ctx, t)
+    elif name == "poke_byte":
+        # storeb(addr, 0, v): push v then addr so addr is read first.
+        eval_expr(rt, ctx, args[1], Variable(STACK))
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("storeb", Variable(STACK), Const(0), Variable(STACK))
+        _place(rt, Const(0), dest)  # poke returns nothing useful
+    elif name == "poke_word":
+        eval_expr(rt, ctx, args[2], Variable(STACK))
+        eval_expr(rt, ctx, args[1], Variable(STACK))
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("storew", Variable(STACK), Variable(STACK), Variable(STACK))
+        _place(rt, Const(0), dest)
+    elif name == "word_dict":
+        # parse buffer word i: dict-address word at word index 1 + 2*i.
+        _word_index(rt, ctx, args[0], scale=2, base=1)
+        rt.op("loadw", parse, Variable(STACK), store=dest)
+    elif name == "word_len":
+        _word_index(rt, ctx, args[0], scale=4, base=4)  # byte 2 + 4*i + 2
+        rt.op("loadb", parse, Variable(STACK), store=dest)
+    elif name == "word_pos":
+        _word_index(rt, ctx, args[0], scale=4, base=5)  # byte 2 + 4*i + 3
+        rt.op("loadb", parse, Variable(STACK), store=dest)
+    elif name == "call_handler":
+        # call_handler(addr, action): call the routine at addr with one argument.
+        eval_expr(rt, ctx, args[1], Variable(STACK))
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("call_vs", Variable(STACK), Variable(STACK), store=dest)
+
+
+def _word_index(rt, ctx, expr, scale, base):
+    """Leave base + scale*expr on the stack (the parse-buffer index for word i)."""
+    op, t = _operand(rt, ctx, expr)
+    rt.op("mul", op, Const(scale), store=Variable(STACK))
+    rt.op("add", Variable(STACK), Const(base), store=Variable(STACK))
+    _free(ctx, t)
+
+
+def _free(ctx, temp):
+    if temp is not None:
+        ctx.free_temp(temp)
 
 
 def _materialize_bool(rt, ctx, expr, dest):
