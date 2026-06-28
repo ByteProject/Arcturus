@@ -38,7 +38,7 @@ from .objects import REACT_PROP
 INTRINSICS = frozenset({
     "read_line", "peek_byte", "peek_word", "poke_byte", "poke_word",
     "word_count", "word_dict", "word_len", "word_pos", "call_handler",
-    "handler_of", "parent_of",
+    "handler_of", "parent_of", "words_addr", "words_count",
 })
 
 _ARITH = {"+": "add", "-": "sub", "*": "mul", "/": "div", "mod": "mod"}
@@ -390,6 +390,24 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         op, t = _operand(rt, ctx, args[0])
         rt.op("get_parent", op, store=dest)
         _free(ctx, t)
+    elif name == "words_addr":
+        # words_addr(obj): the address of the object's words array (0 if none).
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("get_prop_addr", op, Const(_words_prop(ctx)), store=dest)
+        _free(ctx, t)
+    elif name == "words_count":
+        # words_count(obj): how many words the object has (the array length / 2).
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("get_prop_addr", op, Const(_words_prop(ctx)), store=Variable(STACK))
+        rt.op("get_prop_len", Variable(STACK), store=Variable(STACK))
+        rt.op("div", Variable(STACK), Const(2), store=dest)
+        _free(ctx, t)
+
+
+def _words_prop(ctx) -> int:
+    if ctx.layout is None or "words" not in ctx.layout.prop_number:
+        raise LowerError("words_addr/words_count need the object table with a words property")
+    return ctx.layout.prop_number["words"]
 
 
 def _word_index(rt, ctx, expr, scale, base):

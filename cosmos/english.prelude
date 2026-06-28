@@ -1,0 +1,60 @@
+// english.prelude
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// The English language layer of the parser (docs/02 section 8, the language
+// seam). These routines hold every English-specific assumption - the verb is the
+// first word, a noun phrase is matched by set membership of its words, no
+// inflection - so a language pack (for example spanish.granule) can replace this
+// file to handle a language's morphology and grammar without touching the
+// language-agnostic skeleton in parser.prelude.
+
+// Resolve the verb: the first word, if its dictionary entry is flagged a verb.
+// Returns the action number, or 0 if the first word is not a known verb.
+block resolve_verb()
+    let d = word_dict(0)
+    if d is nothing
+        return 0
+    let flags = peek_byte(d + 6)
+    if flags is 0
+        return 0
+    return peek_byte(d + 7)
+
+// Does the object's vocabulary include this dictionary word?
+block has_word(obj, target)
+    let addr = words_addr(obj)
+    if addr is nothing
+        return 0
+    let count = words_count(obj)
+    let i = 0
+    while i < count
+        if peek_word(addr, i) is target
+            return 1
+        change i to i + 1
+    return 0
+
+// The first child of container whose vocabulary includes the word.
+block find_word(container, target)
+    for each obj in container
+        if has_word(obj, target)
+            return obj
+    return nothing
+
+// Match a noun: the first typed word after the verb that names an object in
+// scope (the room, then what the player carries). Adjective scoring and full
+// disambiguation are refined later.
+block match_noun()
+    let n = word_count()
+    let i = 1
+    while i < n
+        let target = word_dict(i)
+        if target is not nothing
+            let here_match = find_word(here, target)
+            if here_match is not nothing
+                return here_match
+            let held_match = find_word(player, target)
+            if held_match is not nothing
+                return held_match
+        change i to i + 1
+    return nothing
