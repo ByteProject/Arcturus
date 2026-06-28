@@ -41,12 +41,13 @@ def _host_os() -> str:
 
 def _banner() -> str:
     return (
-        f'Arcturus {__version__} -- [  arcc  |  python3  |  stdlib  |  {_host_os()}  ]\n'
+        f'Arcturus -- [ arcc {__version__} | Cosmos {cosmos_lib.COSMOS_VERSION} '
+        f'| python3 | stdlib | {_host_os()} ]\n'
         'Copyright (c) 2026, Stefan Vogt.\n'
         'https://github.com/ByteProject/Arcturus\n'
         '\n'
         'This is the compiler for the Arcturus programming language. Type -h for help.\n'
-        'Compiles them to Infocom format, also called Z-machine story files.\n'
+        'Compiles to Infocom format, also called Z-machine story files.\n'
         '\n'
         'Usage: "arcc [options] <file.storyarc>"\n'
     )
