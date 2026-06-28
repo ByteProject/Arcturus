@@ -78,6 +78,8 @@ _OPCODES = {
     "quit": ("0OP", 0x0A, False, False, False),
     # 1OP
     "jz": ("1OP", 0x00, False, True, False),
+    "get_sibling": ("1OP", 0x01, True, True, False),  # stores the sibling, branches if it exists
+    "get_child": ("1OP", 0x02, True, True, False),  # stores the child, branches if it exists
     "get_parent": ("1OP", 0x03, True, False, False),
     "inc": ("1OP", 0x05, False, False, False),
     "dec": ("1OP", 0x06, False, False, False),
