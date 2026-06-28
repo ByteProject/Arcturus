@@ -74,7 +74,12 @@ class Analyzer:
         w = self.world
         # Seed standard kinds so the chain resolves against Cosmos.
         for sk in self.env.kinds.values():
-            w.kinds[sk.name] = wm.Kind(sk.name, sk.parent, "standard")
+            kind = wm.Kind(sk.name, sk.parent, "standard")
+            # Rooms are lit by default; a dark room declares `lit false`, which
+            # overrides this on the instance.
+            if sk.name == "room":
+                kind.props["lit"] = ast.PropertyDecl(name="lit", form=ast.PROP_BOOL)
+            w.kinds[sk.name] = kind
         # Seed standard objects (player).
         for name, kind in self.env.objects.items():
             w.objects[name] = wm.Obj(name, "thing", kind, line=0)

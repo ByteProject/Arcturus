@@ -39,3 +39,64 @@ on go
     set_here(parent_of(player))
     now here is visited
     describe_room()
+
+
+// Handling objects. Each default runs last in the chain, so an object's own
+// handler (the ruby's on take, the cloak's on drop) overrides it.
+
+verb "take", "get", "carry"
+    take noun
+
+on take
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if noun is fixed
+        msg_fixed()
+        stop
+    if player holds noun
+        msg_have_it()
+        stop
+    move noun to player
+    msg_taken()
+
+
+verb "drop"
+    drop noun
+
+on drop
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if not (player holds noun)
+        msg_not_holding()
+        stop
+    move noun to here
+    msg_dropped()
+
+
+verb "examine", "x"
+    examine noun
+
+on examine
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if desc_addr(noun) is nothing
+        msg_nothing_special()
+        stop
+    say noun.desc
+
+
+verb "inventory", "i", "inv"
+    inventory
+
+on inventory
+    let carrying = 0
+    for each obj in player
+        if carrying is 0
+            msg_carrying()
+        change carrying to carrying + 1
+        list_held(obj)
+    if carrying is 0
+        msg_empty_handed()

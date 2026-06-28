@@ -76,6 +76,43 @@ block msg_cant_go()
 block msg_no_direction()
     say "Go where?"
 
+// Object-verb responses.
+block msg_taken()
+    say "Taken."
+
+block msg_dropped()
+    say "Dropped."
+
+block msg_fixed()
+    say "That is fixed in place."
+
+block msg_cant_see()
+    say "You can't see that here."
+
+block msg_have_it()
+    say "You already have that."
+
+block msg_not_holding()
+    say "You aren't holding that."
+
+block msg_nothing_special()
+    say "You see nothing special."
+
+block msg_carrying()
+    say "You are carrying:"
+
+block msg_empty_handed()
+    say "You are empty-handed."
+
+block msg_dark_room()
+    say "It is pitch dark; you can't see a thing."
+
+// One line of an inventory listing.
+block list_held(obj)
+    show("  ")
+    print_name(obj)
+    say ""
+
 // Match a noun: the first typed word after the verb that names an object in
 // scope (the room, then what the player carries). Adjective scoring and full
 // disambiguation are refined later.

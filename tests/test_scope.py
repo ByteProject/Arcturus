@@ -39,6 +39,7 @@ WORLD = (
     '    name "rock"\n'
     'room dark_room\n'
     '    name "Dark Room"\n'
+    '    lit false\n'  # rooms are lit by default; this one opts out
     'thing lamp in player\n'
     '    name "lamp"\n'
     '    lit false\n'
