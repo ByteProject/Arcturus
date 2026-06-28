@@ -219,7 +219,7 @@ Sub-step order (each ends green; one Frotz hand-off at .6):
 .1 turn-loop spine + banner + on start + each_turn + room description + look  [DONE]
 .2 movement (go + directions; DynDot here.(dir); on go <dir>; cant-go default)  [DONE]
 .3 object verbs take/drop/inventory/examine + defaults + swappable messages  [DONE]
-.4 multi-word (particle) + two-noun (put on/hang) + wear/take_off
+.4 multi-word (particle) + two-noun (put on/hang) + wear/take_off  [4a+4b DONE; two-noun put-on remains]
 .5 scenery grains (examine "string") + msg_scenery default + on enter wiring
 .6 integrate both games end to end; B4 done-test on Frotz; hand off
 
@@ -292,6 +292,28 @@ B4.5e.3 done (committed). Object verbs:
   default; the dark bar shows "pitch dark" and its on each_turn fires. brass
   take/examine/inventory/drop all work. tests/test_verbs.py. 168 tests pass.
   (The brass walkthrough still needs "switch on" - a multi-word verb, B4.5e.4.)
+
+B4.5e.4a done (committed 2f8d019). Multi-word verbs via particles:
+- dictionary: particle words (on/off) flagged bit 5 with an id (_PARTICLE_WORDS;
+  up/down/in/out stay direction words). action_id("name") intrinsic.
+- english.prelude resolve_verb splits verb (128) / direction (64); find_particle
+  + compound remap (switch+off -> switch_off, take+off -> take_off).
+- verbs.prelude: switch/turn, wear/don, remove/doff + defaults. THE BRASS LANTERN
+  PLAYS END TO END. tests/test_particle.py.
+
+B4.5e.4b done (committed e1a5d10). Vocabulary + hidden:
+- objects.object_words: explicit words + name words (rooms: explicit only); the
+  object table emits a words array for every object; dictionary.collect_vocab
+  uses the same merge. A named-but-wordless object (brass pedestal, lever) is now
+  matchable.
+- describe_room skips hidden/concealed; parser find_word skips hidden. The ruby
+  is unseeable/untakeable until the lever clears its hidden flag.
+- Brass plays to its full walkthrough. tests/test_vocab_scope.py. 172 tests pass.
+
+REMAINING for B4.5e: two-noun grammar (put noun on noun / "hang cloak on hook" -
+the Cloak win), then .5 grains (examine "chandeliers" + msg_scenery "Just some
+scenery. Don't worry about it."), then .6 both games end to end (B4 done-test,
+hand off). Brass is fully playable; Cloak needs the two-noun put-on.
 
 - Turn loop (`cosmos/loop.prelude`, called from the entry instead of the current
   banner+on-start main): describe the room on entry (name, desc via print_paddr,
