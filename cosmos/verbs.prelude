@@ -151,3 +151,33 @@ on take_off
         stop
     now noun is not worn
     msg_removed()
+
+
+// Two-noun verbs. "put noun on noun" (and "hang") puts an object onto a
+// supporter or into an open container; the parser resolves the second noun.
+
+verb "put", "place"
+    put noun on noun
+    put noun in noun
+
+on put
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if second is nothing
+        msg_put_where()
+        stop
+    if second is supporter
+        move noun to second
+        now noun is not worn
+        msg_done()
+        stop
+    if second is container
+        if second is open
+            move noun to second
+            now noun is not worn
+            msg_done()
+            stop
+        msg_closed()
+        stop
+    msg_cant_put()
