@@ -32,22 +32,17 @@ from .lower import Context, compile_block
 
 _CONST_ONE = Const(1)
 
-# Region sizes.
-_GLOBALS_BYTES = 240 * 2  # 240 globals
+# Region sizes and the input-buffer layout (the buffer constants live in
+# storyfile so the lowering can share them; re-exported here for callers/tests).
+_GLOBALS_BYTES = storyfile.GLOBALS_BYTES
 _PROP_DEFAULTS_BYTES = 63 * 2  # property defaults table (v4+: 63 words)
 _ABBREV_BYTES = 96 * 2  # 96 abbreviation entries, empty for now
-
-# Input buffers (dynamic memory). They sit at fixed addresses right after the
-# globals so the parser and the demos can reference them as constants: the
-# header is 64 bytes and the globals 480, so the text buffer starts at 544. A
-# text buffer is [max-length, current-length, chars...]; a parse buffer is
-# [max-words, parsed-count, (dict-addr, length, position) x max-words].
-TEXT_BUFFER_ADDR = storyfile.HEADER_SIZE + _GLOBALS_BYTES
-TEXT_BUFFER_MAX = 60
-_TEXT_BUFFER_BYTES = 2 + TEXT_BUFFER_MAX
-PARSE_BUFFER_ADDR = TEXT_BUFFER_ADDR + _TEXT_BUFFER_BYTES
-PARSE_BUFFER_MAX = 12
-_PARSE_BUFFER_BYTES = 2 + PARSE_BUFFER_MAX * 4
+TEXT_BUFFER_ADDR = storyfile.TEXT_BUFFER_ADDR
+TEXT_BUFFER_MAX = storyfile.TEXT_BUFFER_MAX
+_TEXT_BUFFER_BYTES = storyfile.TEXT_BUFFER_BYTES
+PARSE_BUFFER_ADDR = storyfile.PARSE_BUFFER_ADDR
+PARSE_BUFFER_MAX = storyfile.PARSE_BUFFER_MAX
+_PARSE_BUFFER_BYTES = storyfile.PARSE_BUFFER_BYTES
 
 
 class CodegenError(ArcError):
