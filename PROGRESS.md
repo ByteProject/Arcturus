@@ -122,7 +122,7 @@ Frotz at each runnable step):
 - [x] B4.4 - the dictionary and input tokenizing
 - B4.5 - Cosmos in Arcturus (staged):
   - [x] B4.5a - compile all handlers and blocks to routines
-  - [ ] B4.5b - dispatch (Arcturus dispatcher + compiler-wired handlers)
+  - [x] B4.5b - dispatch (Arcturus dispatcher + compiler-wired handlers)
   - [ ] B4.5c - scope and light
   - [ ] B4.5d - the parser
   - [ ] B4.5e - turn loop + standard verbs + banner
@@ -165,9 +165,11 @@ Four pieces; the Frotz hand-off is at piece 4 (driven dispatch). Status:
   Cosmos by default (--no-cosmos opts out). amalgamate embeds the .prelude
   sources. cosmos/core.prelude is a minimal marker for now; prelude.py still
   seeds the standard kinds/properties until they move into Cosmos source.
-- [ ] **Piece 4 - Arcturus dispatcher** (cosmos/dispatch.prelude): walk
-  noun.react -> here.react -> free rules -> default, via call_handler. Frotz
-  hand-off: driven dispatch with continue/stop honored.
+- [x] **Piece 4 - Arcturus dispatcher** (committed). cosmos/dispatch.prelude
+  walks noun.react -> here.react (free rules + default join in B4.5e) via the
+  handler_of + call_handler intrinsics. Done-test on Frotz: dispatch(pull) with
+  noun = red/blue routes to each object's own handler ("Red pulled." /
+  "Blue pulled."). B4.5b complete.
 
 ## Next: B5
 
