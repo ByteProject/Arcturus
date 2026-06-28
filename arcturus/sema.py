@@ -221,7 +221,7 @@ class Analyzer:
                     self._add_grain(g, owner, on_kind)
 
     def _add_grain(self, g: ast.Grain, owner: str, on_kind: bool) -> None:
-        grain = wm.Grain(g.verbs, g.words, owner, g.line)
+        grain = wm.Grain(g.verbs, g.words, owner, g.say, g.do, g.body, g.line)
         if on_kind:
             self.world.kinds[owner].grains.append(grain)
         else:

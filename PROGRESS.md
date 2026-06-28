@@ -219,8 +219,8 @@ Sub-step order (each ends green; one Frotz hand-off at .6):
 .1 turn-loop spine + banner + on start + each_turn + room description + look  [DONE]
 .2 movement (go + directions; DynDot here.(dir); on go <dir>; cant-go default)  [DONE]
 .3 object verbs take/drop/inventory/examine + defaults + swappable messages  [DONE]
-.4 multi-word (particle) + two-noun (put on/hang) + wear/take_off  [4a+4b DONE; two-noun put-on remains]
-.5 scenery grains (examine "string") + msg_scenery default + on enter wiring
+.4 multi-word (particle) + two-noun (put on/hang) + wear/take_off  [DONE - 4a/4b/4c]
+.5 scenery grains (examine "string") + msg_scenery default + on enter wiring  [DONE]
 .6 integrate both games end to end; B4 done-test on Frotz; hand off
 
 Implementation notes discovered (B4.5e.1):

@@ -88,6 +88,11 @@ class Grain:
     verbs: list[str]
     words: list[str]
     owner: str
+    # The response, exactly one of which is set (mirrors ast.Grain): a say
+    # string, a do-block name, or an inline statement body.
+    say: Optional["ast.Expr"] = None
+    do: Optional[str] = None
+    body: list["ast.Stmt"] = field(default_factory=list)
     line: int = 0
 
 

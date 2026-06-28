@@ -41,7 +41,7 @@ INTRINSICS = frozenset({
     "handler_of", "parent_of", "words_addr", "words_count",
     # The turn loop fires life-cycle events: run_free runs the free rules for an
     # action, and ev_* name the event action numbers (start, enter, each_turn).
-    "run_free", "ev_start", "ev_enter", "ev_each_turn", "action_id",
+    "run_free", "ev_start", "ev_enter", "ev_each_turn", "action_id", "run_grain",
     # show prints without a trailing newline (say always adds one); print_name
     # prints an object's short name (so messages can name a passed-in object).
     "show", "print_name",
@@ -419,6 +419,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         op, t = _operand(rt, ctx, args[0])
         rt.op("call_vs", RoutineRef("react_free"), op, store=dest)
         _free(ctx, t)
+    elif name == "run_grain":
+        # run_grain(id, action): route a matched scenery grain to its routine.
+        eval_expr(rt, ctx, args[1], Variable(STACK))  # action (local 2)
+        eval_expr(rt, ctx, args[0], Variable(STACK))  # id (local 1)
+        rt.op("call_vs", RoutineRef("grain_dispatch"),
+              Variable(STACK), Variable(STACK), store=dest)
     elif name in ("ev_start", "ev_enter", "ev_each_turn"):
         # The event's action number, so the loop can fire it through react.
         evname = name[3:]
