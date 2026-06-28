@@ -13,6 +13,7 @@ arrives in a later milestone.
 from __future__ import annotations
 
 import argparse
+import os
 import platform
 import sys
 
@@ -93,15 +94,73 @@ def _build_argparser() -> argparse.ArgumentParser:
         help="compile the game alone, without the bundled Cosmos library",
     )
     ap.add_argument(
+        "--extract-library",
+        metavar="DIR",
+        help="write the bundled Cosmos library (.prelude/.granule) into DIR for "
+        "editing, then exit. Fork it wholesale and compile against it with -L DIR.",
+    )
+    ap.add_argument(
+        "--eject-language",
+        nargs="?",
+        const=".",
+        metavar="DIR",
+        help="write the English language file (english.prelude) into DIR (default: "
+        "the current directory) for message customization, then exit.",
+    )
+    ap.add_argument(
         "--version", action="version", version=f"Arcturus {__version__}"
     )
     return ap
+
+
+def _write_library_files(target_dir: str, names) -> int:
+    sources = cosmos_lib.prelude_sources()
+    if not sources:
+        print("arcc: error: no bundled Cosmos library to write", file=sys.stderr)
+        return 2
+    missing = [n for n in names if n not in sources]
+    if missing:
+        print(f"arcc: error: not in the bundled library: {', '.join(missing)}",
+              file=sys.stderr)
+        return 2
+    os.makedirs(target_dir, exist_ok=True)
+    for name in names:
+        with open(os.path.join(target_dir, name), "w", encoding="utf-8") as fh:
+            fh.write(sources[name])
+    return 0
+
+
+def _extract_library(target_dir: str) -> int:
+    """Write the whole bundled Cosmos library to DIR for wholesale forking."""
+    names = list(cosmos_lib.prelude_sources())
+    rc = _write_library_files(target_dir, names)
+    if rc == 0:
+        print(f"arcc: wrote {len(names)} Cosmos library files to {target_dir}/ "
+              f"(compile against them with -L {target_dir})")
+    return rc
+
+
+def _eject_language(target_dir: str) -> int:
+    """Write just the English language file for message customization."""
+    name = "english.prelude"
+    rc = _write_library_files(target_dir, [name])
+    if rc == 0:
+        out = os.path.join(target_dir, name)
+        print(f"arcc: wrote {out} (edit its msg_* blocks, then summon it or "
+              f"compile with -L {target_dir})")
+    return rc
 
 
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     ap = _build_argparser()
     args = ap.parse_args(argv)
+
+    # Library-extraction utilities run without a story file.
+    if args.extract_library is not None:
+        return _extract_library(args.extract_library)
+    if args.eject_language is not None:
+        return _eject_language(args.eject_language)
 
     if not args.source:
         print(_banner(), file=sys.stderr)
