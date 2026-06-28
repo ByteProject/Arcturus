@@ -175,6 +175,22 @@ block msg_scenery()
 block msg_no_verb()
     say "That's not a verb I recognise."
 
+// Ask the player to confirm quitting; returns 1 for yes. The question and the
+// yes test (a leading 'y') are English, so they live in the language layer.
+block confirm_quit()
+    show("Are you sure you want to quit? ")
+    let term = read_line()
+    let c = text_char(0)
+    if c is 121
+        return 1
+    if c is 89
+        return 1
+    return 0
+
+// The farewell, overridable for a custom send-off.
+block msg_farewell()
+    say "Thanks for playing."
+
 // One line of an inventory listing.
 block list_held(obj)
     show("  ")

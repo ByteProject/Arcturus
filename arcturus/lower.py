@@ -51,6 +51,9 @@ INTRINSICS = frozenset({
     # par requests a paragraph break before the next printed text (the library
     # controls vertical spacing; the print layer honors the flag).
     "par",
+    # do_quit ends the session (the quit opcode); text_char reads a typed
+    # character from the input buffer (for a yes/no confirmation).
+    "do_quit", "text_char",
     # desc_addr is the address of an object's desc property (0 if absent), so the
     # room describer can skip a missing description.
     "desc_addr",
@@ -469,6 +472,17 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         if slot is not None:
             rt.op("store", Const(slot), Const(1))
         _place(rt, Const(0), dest)
+    elif name == "do_quit":
+        # do_quit(): end the session.
+        rt.op("quit")
+        _place(rt, Const(0), dest)
+    elif name == "text_char":
+        # text_char(i): the i-th character typed on the last input line. In v5 the
+        # text buffer holds the characters from byte 2 onward (byte 1 is the count).
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("add", Const(storyfile.TEXT_BUFFER_ADDR + 2), op, store=Variable(STACK))
+        rt.op("loadb", Variable(STACK), Const(0), store=dest)
+        _free(ctx, t)
     elif name == "words_addr":
         # words_addr(obj): the address of the object's words array (0 if none).
         op, t = _operand(rt, ctx, args[0])

@@ -88,13 +88,17 @@ on examine
     say noun.desc
 
 
-// Meta verbs. quit ends the session immediately for now; a confirmation prompt
-// and save/restore/restart arrive with the meta-verb set in B5.
+// Meta verbs. quit confirms first, then says the farewell and ends. Override
+// on quit for a custom send-off, reusing confirm_quit() and do_quit().
+// (save/restore/restart arrive with the meta-verb set in B5.)
 verb "quit", "q"
     quit
 
 on quit
-    finish "Thanks for playing."
+    if confirm_quit() is 0
+        stop
+    msg_farewell()
+    do_quit()
 
 
 verb "inventory", "i", "inv"
