@@ -13,6 +13,9 @@ Notes:
   can still override it per object or room).
 - Synonyms are listed with the canonical verb; they all map to one action.
 - The sensory verbs are left in S because you want them there.
+- Arcturus shows full room descriptions always, so there are no look modes
+  (verbose/brief/superbrief); those verbs are dropped. The Inform meta cruft
+  (notify, sorry, mild oaths) is dropped too.
 
 ## Movement and space
 
@@ -30,8 +33,8 @@ Notes:
 |---|---|---|---|
 | examine, x, look at, watch | examine | print the desc, else "nothing special" | S |
 | read | examine | read text, or examine | S |
-| search, look in, look inside | search | list contents, else "nothing of interest" | S |
-| look under | look_under | "nothing under it" | S |
+| search, look in, look inside | search | list contents, else "nothing of interest" | E |
+| look under | look_under | "nothing under it" | E |
 | touch, feel, pat | touch | "you feel nothing unexpected" (flavor) | S |
 | smell, sniff | smell | "smells about as expected" (flavor) | S |
 | listen, hear | listen | "nothing answers" (flavor) | S |
@@ -47,7 +50,7 @@ Notes:
 | insert ... in | insert | into an open container (a sibling of put) | S |
 | give, offer, feed, pay ... to | give | offer to a living thing | S |
 | show, display, present ... to | show | show to a living thing | S |
-| throw ... at | throw | throw at a target, usually futile | S |
+| throw ... at | throw | throw at a target, usually futile | E |
 | empty, empty out, empty ... into | empty | tip a container out | E |
 
 ## Wearing
@@ -90,10 +93,10 @@ Notes:
 | Verb and synonyms | Action | Default behavior | Set |
 |---|---|---|---|
 | talk, talk to, greet | talk | "doesn't seem up for a conversation" | S |
-| ask ... about | ask | "has nothing to say on the matter" | S |
-| ask ... for | ask_for | "declines to hand it over" | S |
-| tell ... about | tell | "this provokes no reaction" | S |
-| answer, say ... to | answer | "no reaction" | S |
+| ask ... about | ask | "has nothing to say on the matter" | E |
+| ask ... for | ask_for | "declines to hand it over" | E |
+| tell ... about | tell | "this provokes no reaction" | E |
+| answer, say ... to | answer | "no reaction" | E |
 | shout, yell, scream | shout | "no one answers" (flavor) | E |
 
 ## Body, action, idle
@@ -106,14 +109,14 @@ Notes:
 | jump, hop | jump | flavor (your jump line) | S |
 | wait, z | wait | "time slips by" | S |
 | again, g | again | repeat the last command | S |
-| kiss, hug, embrace | kiss | "now is hardly the moment" | E |
+| kiss, hug, embrace | kiss | "now is hardly the moment" | S |
 | wave, wave hands | wave | "you wave, to no effect" (flavor) | E |
 | sit, sit on, lie | sit | "nothing here to sit on" | E |
 | stand, get up | stand | "you are already standing" | E |
 | sleep, nap | sleep | "no place to nod off" (flavor) | E |
 | swim | swim | "no water deep enough" | E |
 | swing | swing | "nothing to swing on" | E |
-| sing | sing | "the room is unmoved" (flavor) | E |
+| sing | sing | "the room is unmoved" (flavor) | S |
 | think, ponder | think | "a fine idea, in principle" (flavor) | E |
 | pray | pray | "you murmur a few words" (flavor) | E |
 | buy, purchase | buy | "nothing here is for sale" | E |
@@ -131,11 +134,4 @@ Notes:
 | restart | restart | restart from the beginning | S |
 | undo | undo | undo the last turn | S |
 | quit, q | quit | confirm, then end | S |
-| verbose, long | lookmode | always print full room descriptions | S |
-| brief, normal | lookmode | full description only on first visit | S |
-| superbrief, short | lookmode | never print room descriptions | E |
-| notify on, notify off | notify | toggle score notifications | S |
-| oops, o | oops | correct the last word you mistyped | S |
-| sorry | sorry | "no need to apologize" (flavor) | E |
-| drat, darn, curses, bother | mild | mild oath (flavor) | E |
-| xyzzy | xyzzy | a wink (flavor) | E |
+| xyzzy | xyzzy | a wink (flavor) | S |
