@@ -194,7 +194,7 @@ done-test.
 - B7: the reference interpreter, Actaea. A Standard 1.1 conformant z5/z8
   interpreter in Python with a tkinter GUI, built under `actaea/`, that plays any
   well-formed story file and is the testing ground for `arc_image`. Its design is
-  actaea/06-actaea-design.md (milestones M1 to M11; headless VM core through M6,
+  docs/06-actaea-design.md (milestones M1 to M11; headless VM core through M6,
   GUI from M7). This milestone marks the language and library feature-complete;
   only graphics remain.
 - B8: `arc_image` on modern systems (section 6). The capability guard and EXT
