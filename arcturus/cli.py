@@ -16,6 +16,7 @@ import argparse
 import sys
 
 from . import __version__
+from . import cosmos as cosmos_lib
 from .astdump import dump
 from .codegen import generate
 from .errors import ArcError
@@ -67,6 +68,11 @@ def _build_argparser() -> argparse.ArgumentParser:
         help="print the analyzed world-model IR",
     )
     ap.add_argument(
+        "--no-cosmos",
+        action="store_true",
+        help="compile the game alone, without the bundled Cosmos library",
+    )
+    ap.add_argument(
         "--version", action="version", version=f"Arcturus {__version__}"
     )
     return ap
@@ -97,6 +103,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.dump_ast:
         print(dump(program))
         return 0
+
+    # Compile the game together with the bundled Cosmos library (docs/02).
+    if not args.no_cosmos:
+        program = cosmos_lib.combined_program(program)
 
     try:
         world = analyze(program, filename=args.source)
