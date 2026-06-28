@@ -55,7 +55,7 @@ standard but squeeze/blow/burn/buy/consult/swim/etc.) get their messages with th
 |---|---|---|
 | msg_taken | take, success | Got it. |
 | msg_fixed | take a fixed thing | ${The noun} stays exactly where it is. |
-| msg_take_scenery | take scenery | ${The noun} is hardly worth carrying off. |
+| msg_scenery | take a scenery object, or any verb a grain does not answer | Just some scenery. Don't worry about it. |
 | msg_have_it | take what you already hold | You already have ${the noun}. |
 | msg_take_self | take yourself | You keep a firm grip on yourself. |
 | msg_dropped | drop, success | Down it goes. |
