@@ -59,6 +59,8 @@ _DIRECTION_WORDS = {
 
 def collect_vocab(world: wm.World) -> set:
     """Every matchable word in the program, lowercased."""
+    from . import objects  # local import avoids a module cycle
+
     words: set = set()
     for verb in world.verbs:
         for phrase in verb.words:
@@ -66,11 +68,9 @@ def collect_vocab(world: wm.World) -> set:
             for token in phrase.lower().split():
                 words.add(token)
     for obj in world.objects.values():
-        wd = obj.props.get("words")
-        if wd is not None and wd.form == ast.PROP_VALUE:
-            for v in wd.values:
-                if isinstance(v, ast.Name):
-                    words.add(v.ident.lower())
+        # An object's matchable vocabulary (explicit words plus its name words),
+        # computed the same way the object table emits it.
+        words.update(objects.object_words(objects._effective_props(world, obj), obj.category == "room"))
         for grain in obj.grains:
             for gw in grain.words:
                 words.add(gw.lower())
