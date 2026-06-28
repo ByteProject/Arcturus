@@ -54,9 +54,9 @@ INTRINSICS = frozenset({
     # do_quit ends the session (the quit opcode); text_char reads a typed
     # character from the input buffer (for a yes/no confirmation).
     "do_quit", "text_char",
-    # desc_addr is the address of an object's desc property (0 if absent), so the
-    # room describer can skip a missing description.
-    "desc_addr",
+    # desc_addr / intro_addr give the address of an object's desc / intro
+    # property (0 if absent), so the room describer can test for one.
+    "desc_addr", "intro_addr",
 })
 
 _ARITH = {"+": "add", "-": "sub", "*": "mul", "/": "div", "mod": "mod"}
@@ -488,13 +488,15 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         op, t = _operand(rt, ctx, args[0])
         rt.op("get_prop_addr", op, Const(_words_prop(ctx)), store=dest)
         _free(ctx, t)
-    elif name == "desc_addr":
-        # desc_addr(obj): the address of the object's desc property (0 if it has
-        # none), so the room describer can skip a missing description.
+    elif name in ("desc_addr", "intro_addr"):
+        # desc_addr(obj)/intro_addr(obj): the address of the object's desc or
+        # intro property (0 if it has none), so the room describer can tell
+        # whether one is present before printing it.
+        prop = name[:-5]  # "desc" or "intro"
         op, t = _operand(rt, ctx, args[0])
-        pnum = ctx.prop_number("desc")
+        pnum = ctx.prop_number(prop)
         if pnum is None:
-            raise LowerError("desc_addr needs a desc property")
+            raise LowerError(f"{name} needs a {prop} property")
         rt.op("get_prop_addr", op, Const(pnum), store=dest)
         _free(ctx, t)
     elif name == "words_count":

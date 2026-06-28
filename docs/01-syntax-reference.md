@@ -135,6 +135,21 @@ again: the vocabulary the parser matches, holding the object's nouns and
 adjectives as equal entries. `name` is printed but not typed; `words` is
 typed but not printed. Adjectives are simply words in `words` (02, section 8).
 
+The `intro` property is an object's initial appearance in a room description.
+While the object sits untouched in place, the room lists it with its `intro`
+text, as its own paragraph, instead of the plain "You can see X here." The
+moment the player first takes it, Cosmos sets the `moved` attribute and the
+object reverts to the plain listing. A fixed or static object is never taken, so
+its `intro` shows for as long as it is in view, which makes `intro` the way to
+write set dressing that reads as prose rather than a list:
+
+```
+thing statue in hall
+    name  "marble statue"
+    fixed
+    intro "A marble statue of a forgotten king dominates the room."
+```
+
 Containment is the Z-machine object tree: one parent per object, set with
 `in`, changed with `move`, read with `holds`, `in`, and `for each`. The tree
 is a separate axis from properties and is never reached with the dot.
