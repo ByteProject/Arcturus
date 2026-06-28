@@ -54,9 +54,13 @@ def prelude_sources() -> dict:
 
 def combined_program(game: ast.Program) -> ast.Program:
     """Prepend the Cosmos declarations to the game's, yielding one program to
-    analyze and compile."""
+    analyze and compile. Cosmos blocks are tagged `library` so a game block of
+    the same name overrides them (most-specific-wins)."""
     decls: list = []
     for name, src in prelude_sources().items():
-        decls.extend(parse(src, name).decls)
+        for d in parse(src, name).decls:
+            if isinstance(d, ast.BlockDecl):
+                d.origin = "library"
+            decls.append(d)
     decls.extend(game.decls)
     return ast.Program(decls)

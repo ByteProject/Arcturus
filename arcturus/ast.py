@@ -448,6 +448,10 @@ class BlockDecl:
     params: list[str]
     body: list[Stmt]
     line: int = 0
+    # Where the block came from: "library" (a Cosmos .prelude), "granule" (a
+    # summoned module), or "game" (the author's story). A game or granule block
+    # overrides a library block of the same name (most-specific-wins).
+    origin: str = "game"
 
 
 @dataclass

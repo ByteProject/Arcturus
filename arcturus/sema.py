@@ -123,9 +123,15 @@ class Analyzer:
                     decl.name, self._value_type(decl.value), decl.value, decl.line
                 )
             elif isinstance(decl, ast.BlockDecl):
-                self._seen(decl.name, decl.line)
+                prior = w.blocks.get(decl.name)
+                # A game or granule block overrides a library block of the same
+                # name; any other repeat is a genuine duplicate.
+                if prior is not None and prior.origin == "library" and decl.origin != "library":
+                    pass
+                else:
+                    self._seen(decl.name, decl.line)
                 w.blocks[decl.name] = wm.Block(
-                    decl.name, decl.params, decl.body, decl.line
+                    decl.name, decl.params, decl.body, decl.line, decl.origin
                 )
             elif isinstance(decl, ast.Handler):
                 w.free_handlers.append(self._make_handler(decl, None, False))
