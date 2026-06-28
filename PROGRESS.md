@@ -200,10 +200,60 @@ The parser, split along the language seam.
 - `cosmos/english.prelude` (SWAPPABLE language layer): `resolve_verb`,
   `has_word`/`find_word`, `match_noun`. tests/test_parse_command.py.
 
-### B4.5e plan (NEXT - turn loop, standard verbs, banner; the B4 done-test)
+### B4.5e plan (IN PROGRESS - turn loop, standard verbs, banner; the B4 done-test)
 
 Goal: both example games (brass-lantern, cloak-of-darkness) playable start to
 finish on Frotz.
+
+Decisions (Stefan, this session):
+- Multi-word verbs ("switch on", "take off") = PARTICLE in the language layer:
+  the English layer recognizes a known particle after the verb and selects the
+  combined action. Stays swappable.
+- Frotz hand-off = ONCE at the end (B4.5e.6); I verify each sub-step myself.
+- GRAINS / scenery: for an action a grain does NOT handle (e.g. "take
+  chandelier" when only `examine` is defined), the library prints a default,
+  `msg_scenery()` = "Just some scenery. Don't worry about it." This is the
+  grain's catch-all, in the swappable English layer. Lands in B4.5e.5.
+
+Sub-step order (each ends green; one Frotz hand-off at .6):
+.1 turn-loop spine + banner + on start + each_turn + room description + look  [DONE]
+.2 movement (go + directions; DynDot here.(dir); on go <dir>; cant-go default)
+.3 object verbs take/drop/inventory/examine + defaults + swappable messages
+.4 multi-word (particle) + two-noun (put on/hang) + wear/take_off
+.5 scenery grains (examine "string") + msg_scenery default + on enter wiring
+.6 integrate both games end to end; B4 done-test on Frotz; hand off
+
+Implementation notes discovered (B4.5e.1):
+- Globals default to 0; nothing initializes here/player. Startup must set the
+  here global = start room obj#, player global = player obj#, and player's tree
+  parent = start room. Plan: initialize these in build_story / objmod.
+- Events fire via react: add start/enter/each_turn to _action_numbers; include
+  event handlers in react routines (with `when` guard support); emit
+  react_free(action) for free handlers (on start, free each_turn, later
+  defaults). Loop fires them via intrinsics (fire_start/fire_enter/fire_each_turn).
+- `when` guard not yet compiled: a handler with `when` must skip (return 0) when
+  the guard is false. Add to _compile_handler.
+- __main__ becomes a thin shim: print banner, call blk_run_game (the loop) when
+  Cosmos provides it; else old behavior (banner + on start) for unit tests.
+- Pattern handlers (on go north, on examine "string") still skipped in react -
+  operand-pattern dispatch is .2/.5 work.
+
+B4.5e.1 done (committed). What landed:
+- worldmodel.action_numbers + EVENT_NAMES (shared by codegen and lower); events
+  start/enter/each_turn share the action-number space with verbs.
+- react routines now include event handlers; `when` guards compiled (skip ->
+  return 0); react_free(action) bundles free rules (always emitted).
+- __main__ is a shim: banner, then call blk_run_game when Cosmos provides it.
+- build_story bootstraps here = start room, player = player object.
+- cosmos/loop.prelude (run_game, fire_turn, describe_room), cosmos/verbs.prelude
+  (look + on look default), dispatch.prelude calls run_free last.
+- New intrinsics: run_free, ev_start/ev_enter/ev_each_turn, show (no-newline
+  print), print_name, tick (advance turns), desc_addr (skip missing desc).
+- BUG FIXED (latent, important): the call-statement discard used
+  `pull Variable(STACK)`, which is an INDIRECT pull (pops the var number, then
+  the value = two pops) -> stack underflow. Now discards into a scratch temp.
+  Also read_line now clears text-buffer byte 1 each read (v5 "inconsistent
+  input buffer"). tests/test_loop.py. 164 tests pass.
 
 - Turn loop (`cosmos/loop.prelude`, called from the entry instead of the current
   banner+on-start main): describe the room on entry (name, desc via print_paddr,

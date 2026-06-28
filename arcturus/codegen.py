@@ -28,31 +28,26 @@ from . import worldmodel as wm
 from . import zstring
 from .assembler import Const, Routine, RoutineRef, STACK, Variable, link
 from .errors import ArcError
-from .lower import Context, compile_block
+from .lower import Context, compile_block, cond_jump
 
 _CONST_ONE = Const(1)
 
 # Events fired by the turn loop (not by verb dispatch); excluded from react.
-_EVENT_NAMES = {"start", "enter", "each_turn"}
-
-
-def _action_numbers(world: wm.World) -> dict:
-    """A deterministic action -> number map (0 means no action). The parser
-    reuses this in B4.5d."""
-    names = sorted(set(world.actions) | {"other"})
-    return {name: i + 1 for i, name in enumerate(names)}
+_EVENT_NAMES = wm.EVENT_NAMES
+_action_numbers = wm.action_numbers  # the shared action -> number map
 
 
 def _react_handlers(obj: wm.Obj, actions: dict):
-    """The object's own pattern-less verb-action handlers, as (action, handler).
-    Operand-pattern handlers, free rules, the kind chain, and `other` are
-    deferred to B4.5d/e."""
+    """The object's own pattern-less handlers, as (action, handler), covering
+    both verb actions and the life-cycle events (enter, each_turn) the turn loop
+    fires on this object. Operand-pattern handlers, the kind chain, and `other`
+    are deferred to B4.5d/e; free rules go through react_free."""
     out = []
     for h in obj.handlers:
         if h.pattern:
             continue
         for ev in h.events:
-            if ev in actions and ev not in _EVENT_NAMES and ev != "other":
+            if ev in actions and ev != "other":
                 out.append((ev, h))
     return out
 
@@ -78,7 +73,39 @@ def gen_react_routines(world: wm.World, actions: dict, registry) -> list:
         for action, h in pairs:
             groups.setdefault(action, []).append(hname[id(h)])
         out.append(_gen_react(objname, groups, actions))
+    # react_free is always present (even empty) so the turn loop and dispatcher
+    # can call it unconditionally.
+    out.append(gen_react_free(world, actions, registry))
     return out
+
+
+def _free_react_handlers(world: wm.World, actions: dict):
+    """Free-standing rules (owner None), as (action, handler): the game's
+    `on start`, free `on each_turn` pulses, and (from B4.5e.3) the Cosmos default
+    verbs. These have no object owner, so they run through react_free."""
+    out = []
+    for h in world.free_handlers:
+        if h.pattern:
+            continue
+        for ev in h.events:
+            if ev in actions and ev != "other":
+                out.append((ev, h))
+    return out
+
+
+def gen_react_free(world: wm.World, actions: dict, registry) -> Routine:
+    """react_free(action): the free-rule equivalent of a react_<obj> routine.
+    The turn loop calls it for life-cycle events (start, each_turn) and the
+    dispatcher calls it last in the action chain. Always emitted (empty when
+    there are no free rules) so callers can reference it unconditionally."""
+    hname = {id(h): nm for h, nm in registry}
+    groups: dict = {}
+    for action, h in _free_react_handlers(world, actions):
+        # In the no-Cosmos fallback `on start` is compiled into main, not
+        # registered; skip any free handler without a routine.
+        if id(h) in hname:
+            groups.setdefault(action, []).append(hname[id(h)])
+    return _gen_react("free", groups, actions)
 
 
 def _gen_react(objname: str, groups: dict, actions: dict) -> Routine:
@@ -248,6 +275,18 @@ def build_story(
     for pos, sid in strrefs:
         sf.set_word(blob_start + pos, string_packed[sid])
 
+    # Bootstrap the location globals so the turn loop starts in the right place:
+    # here = the start room, player = the player object. Globals default to 0, so
+    # without this the loop would begin in "nothing". Driven tests still set their
+    # own values at run time; this only seeds the defaults.
+    if layout is not None:
+        gmap = _globals_map(world)
+        start = world.start_room
+        if start and start in layout.obj_number:
+            sf.set_word(globals_addr + (gmap["here"] - 16) * 2, layout.obj_number[start])
+        if "player" in layout.obj_number:
+            sf.set_word(globals_addr + (gmap["player"] - 16) * 2, layout.obj_number["player"])
+
     m = _meta(world)
     sf.set_word(storyfile.H_RELEASE, m.get("release", 1))
     sf.set_word(storyfile.H_HIGH_BASE, high_base)
@@ -287,8 +326,17 @@ def _compile_handler(world, gmap, layout, pool, handler, name) -> Routine:
         string_pool=pool,
     )
     ctx.prescan(handler.body)
+    # A `when` guard: if the condition is false the handler does not apply, so
+    # skip the body and pass the action on (return 0).
+    skip = None
+    if handler.when is not None:
+        skip = ctx.new_label()
+        cond_jump(rt, ctx, handler.when, skip, False)
     compile_block(rt, ctx, handler.body)
     rt.op("ret", _CONST_ONE)  # falling off the end consumes the action
+    if skip is not None:
+        rt.label(skip)
+        rt.op("ret", Const(0))
     rt.nlocals = ctx.nlocals()
     return rt
 
@@ -308,25 +356,35 @@ def build_routines(world: wm.World, gmap: dict, layout, pool):
     except `on start` (which runs inside main for now). Returns the main
     routine, the extra routines, and a registry mapping each handler to its
     routine name for the dispatcher (B4.5b)."""
+    # __main__ prints the banner and then hands control to the Cosmos turn loop
+    # (block run_game). When Cosmos is absent (unit tests on a bare world) there
+    # is no loop, so __main__ falls back to running `on start` inline, preserving
+    # the older behavior those tests rely on.
     main = Routine("__main__", nlocals=0)
     main.op("print", text=banner_text(world))
-    start = _start_handler(world)
-    if start is not None:
-        ctx = Context(world, gmap, layout=layout, in_handler=True, string_pool=pool)
-        ctx.prescan(start.body)
-        compile_block(main, ctx, start.body)
-        main.nlocals = ctx.nlocals()
+    if "run_game" in world.blocks:
+        main.op("call_vn", RoutineRef("blk_run_game"))
+    else:
+        start = _start_handler(world)
+        if start is not None:
+            ctx = Context(world, gmap, layout=layout, in_handler=True, string_pool=pool)
+            ctx.prescan(start.body)
+            compile_block(main, ctx, start.body)
+            main.nlocals = ctx.nlocals()
     main.op("rfalse")
 
     routines = []
     for blk in world.blocks.values():
         routines.append(_compile_block(world, gmap, layout, pool, blk))
 
+    # Every handler becomes a routine the dispatcher / turn loop can call; `start`
+    # is no longer special (it runs through react_free via the loop).
+    inline_start = "run_game" not in world.blocks
     registry = []
     n = 0
     for handler in world.all_handlers():
-        if "start" in handler.events:
-            continue  # on start is compiled into main
+        if inline_start and "start" in handler.events:
+            continue  # compiled into main in the no-Cosmos fallback
         name = f"h{n}"
         n += 1
         routines.append(_compile_handler(world, gmap, layout, pool, handler, name))

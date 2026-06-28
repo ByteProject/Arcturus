@@ -39,6 +39,18 @@ INTRINSICS = frozenset({
     "read_line", "peek_byte", "peek_word", "poke_byte", "poke_word",
     "word_count", "word_dict", "word_len", "word_pos", "call_handler",
     "handler_of", "parent_of", "words_addr", "words_count",
+    # The turn loop fires life-cycle events: run_free runs the free rules for an
+    # action, and ev_* name the event action numbers (start, enter, each_turn).
+    "run_free", "ev_start", "ev_enter", "ev_each_turn",
+    # show prints without a trailing newline (say always adds one); print_name
+    # prints an object's short name (so messages can name a passed-in object).
+    "show", "print_name",
+    # tick advances the turn counter (turns is read-only to author code, so the
+    # loop bumps it through this intrinsic).
+    "tick",
+    # desc_addr is the address of an object's desc property (0 if absent), so the
+    # room describer can skip a missing description.
+    "desc_addr",
 })
 
 _ARITH = {"+": "add", "-": "sub", "*": "mul", "/": "div", "mod": "mod"}
@@ -341,6 +353,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
     parse = Const(storyfile.PARSE_BUFFER_ADDR)
 
     if name == "read_line":
+        # Clear the count of pre-existing input (text buffer byte 1) before each
+        # read; v5 aread leaves it set to the prior line's length, and a stale
+        # count makes interpreters try to redisplay old input ("inconsistent
+        # input buffer").
+        rt.op("storeb", Const(storyfile.TEXT_BUFFER_ADDR), Const(1), Const(0))
         rt.op("aread", Const(storyfile.TEXT_BUFFER_ADDR), parse, store=dest)
     elif name == "word_count":
         rt.op("loadb", parse, Const(1), store=dest)  # parse[1] = the word count
@@ -390,10 +407,44 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         op, t = _operand(rt, ctx, args[0])
         rt.op("get_parent", op, store=dest)
         _free(ctx, t)
+    elif name == "run_free":
+        # run_free(action): run the free rules for an action (react_free).
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("call_vs", RoutineRef("react_free"), op, store=dest)
+        _free(ctx, t)
+    elif name in ("ev_start", "ev_enter", "ev_each_turn"):
+        # The event's action number, so the loop can fire it through react.
+        evname = name[3:]
+        _place(rt, Const(wm.action_numbers(ctx.world)[evname]), dest)
+    elif name == "show":
+        # show(text): print without a trailing newline (for prompts and for
+        # building a sentence around a named object).
+        _say(rt, ctx, args[0], newline=False)
+        _place(rt, Const(0), dest)
+    elif name == "print_name":
+        # print_name(obj): the object's short name, no newline.
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("print_obj", op)
+        _free(ctx, t)
+        _place(rt, Const(0), dest)
+    elif name == "tick":
+        # tick(): advance the turn counter (the loop owns turns).
+        slot = Variable(ctx.globals["turns"])
+        rt.op("add", slot, Const(1), store=slot)
+        _place(rt, Const(0), dest)
     elif name == "words_addr":
         # words_addr(obj): the address of the object's words array (0 if none).
         op, t = _operand(rt, ctx, args[0])
         rt.op("get_prop_addr", op, Const(_words_prop(ctx)), store=dest)
+        _free(ctx, t)
+    elif name == "desc_addr":
+        # desc_addr(obj): the address of the object's desc property (0 if it has
+        # none), so the room describer can skip a missing description.
+        op, t = _operand(rt, ctx, args[0])
+        pnum = ctx.prop_number("desc")
+        if pnum is None:
+            raise LowerError("desc_addr needs a desc property")
+        rt.op("get_prop_addr", op, Const(pnum), store=dest)
         _free(ctx, t)
     elif name == "words_count":
         # words_count(obj): how many words the object has (the array length / 2).
@@ -578,12 +629,15 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> None:
     elif isinstance(s, ast.Switch):
         _switch(rt, ctx, s)
     elif isinstance(s, ast.ExprStmt):
+        # A discarded expression: store its value into a scratch local and free
+        # it. (We cannot "pull" into the stack to drop a value: `pull` with a
+        # variable operand is an indirect store and would pop twice.)
+        t = ctx.alloc_temp()
         if isinstance(s.expr, ast.Call):
-            _call(rt, ctx, s.expr, Variable(STACK))
-            rt.op("pull", Variable(STACK))  # discard the result
+            _call(rt, ctx, s.expr, Variable(t))
         else:
-            eval_expr(rt, ctx, s.expr, Variable(STACK))
-            rt.op("pull", Variable(STACK))
+            eval_expr(rt, ctx, s.expr, Variable(t))
+        ctx.free_temp(t)
     elif isinstance(s, ast.Now):
         _now(rt, ctx, s)
     elif isinstance(s, ast.Move):
@@ -667,7 +721,7 @@ def _move(rt, ctx, s: ast.Move):
         ctx.free_temp(tmp)
 
 
-def _say(rt, ctx, value):
+def _say(rt, ctx, value, newline=True):
     if isinstance(value, ast.StringLit):
         for part in value.parts:
             if isinstance(part, ast.StringText):
@@ -683,7 +737,8 @@ def _say(rt, ctx, value):
                     _say_value(rt, ctx, part.expr)
     else:
         _say_value(rt, ctx, value)
-    rt.op("new_line")
+    if newline:
+        rt.op("new_line")
 
 
 def _is_object_expr(ctx, expr) -> bool:

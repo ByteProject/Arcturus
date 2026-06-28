@@ -9,8 +9,9 @@
 // consumes the action (returns 1). A react routine runs the object's own
 // handlers and its kind chain.
 //
-// Free-standing rules and the Cosmos default handlers join the chain in B4.5e,
-// together with the turn loop that calls dispatch with the parsed action.
+// The chain is most-specific first: the noun, then the room, then the
+// free-standing rules and the Cosmos default verbs (react_free). Each link may
+// consume the action (return 1); the first that does ends the walk.
 
 block dispatch(action)
     if noun is not nothing
@@ -23,3 +24,4 @@ block dispatch(action)
         if s is not nothing
             if call_handler(s, action) is 1
                 return
+    run_free(action)
