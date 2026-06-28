@@ -191,11 +191,11 @@ done-test.
   codegen tightening. Done when a representative game is at or below its
   PunyInform-equivalent size (Cloak of Darkness is 27K in PunyInform), measured
   with the full library in place.
-- B7: the reference interpreter. A modern z5/z8 interpreter in Python and
-  tkinter that runs standard story files and is the testing ground for
-  `arc_image`. Done when it plays both example games and a design document
-  (authored with the entity behind the 8-bit, Amiga, and Atari ST interpreters)
-  is settled. This milestone marks the language and library feature-complete;
+- B7: the reference interpreter, Actaea. A Standard 1.1 conformant z5/z8
+  interpreter in Python with a tkinter GUI, built under `actaea/`, that plays any
+  well-formed story file and is the testing ground for `arc_image`. Its design is
+  docs/06-actaea-design.md (milestones M1 to M11; headless VM core through M6,
+  GUI from M7). This milestone marks the language and library feature-complete;
   only graphics remain.
 - B8: `arc_image` on modern systems (section 6). The capability guard and EXT
   opcode contract, room and scene art rendered from PNGs in the reference
