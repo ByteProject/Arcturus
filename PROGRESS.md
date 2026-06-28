@@ -134,6 +134,46 @@ model B (the compiler wires per-object/kind handler routines and Cosmos's
 Arcturus dispatcher walks the chain, handlers returning 1 = handled / 0 =
 continue); arcc auto-includes the bundled Cosmos unless an author forks a file.
 
+### B4.5b work log (detailed, for resuming mid-stage)
+
+Four pieces; the Frotz hand-off is at piece 4 (driven dispatch). Status:
+
+- [x] **Piece 1 - intrinsic built-ins** (committed). `lower.INTRINSICS` recognizes
+  reserved calls and emits opcodes: `read_line` (aread), `peek_byte/word`,
+  `poke_byte/word`, `word_count/word_dict/word_len/word_pos` (parse-buffer
+  accessors), `call_handler(addr, action)` (call-by-address). Buffer-layout
+  constants live in `storyfile` (TEXT_BUFFER_ADDR=544, PARSE_BUFFER_ADDR=606).
+- [~] **Piece 2 - react routines + react-property wiring** (IN PROGRESS, uncommitted).
+  Plan/mechanism:
+  - Compiler emits `react_<objname>(action)` per object that has pattern-less
+    verb-action own-handlers (events that are verbs or `other`, excluding the
+    events start/enter/each_turn, and skipping handlers with operand patterns
+    for now - so `on go north`, free rules, kind chains are deferred to B4.5d/e).
+    The routine switches on the action number; per action it calls the handler
+    routine(s) (the `h<n>` from B4.5a, via the registry from build_routines) and
+    returns 1 if one returns 1 (handled), else 0.
+  - Action numbering: a deterministic action->int map (sorted world.actions plus
+    `other`), to be added in codegen; the parser (B4.5d) reuses it.
+  - The react routine's packed address is stored in a reserved object property
+    number **63** (`__react__`); user properties capped at 62. objects.py emits
+    it for objects in a `react_objects` set (new build_layout param), with a
+    routine fixup `(offset, "react_<objname>")` in a new `layout.routine_fixups`.
+  - build_story backpatches routine_fixups using the packed-address map.
+  - DONE in the working tree so far: `assembler.link` now returns a 4-tuple
+    `(blob, pc, strrefs, packed)`; build_story and test_assembler updated to
+    unpack it (`packed_routines` captured in build_story, not yet used). Nothing
+    else of piece 2 written yet.
+  - TODO next: action numbering; react-handler selection helper (shared by the
+    react_objects set and the routine generation); `_gen_react` routine builder;
+    objects.py react property + routine_fixups + react_objects param; build_story
+    patch loop; a driven harness test (set noun, get noun.__react__ via get_prop,
+    call_handler it, assert the handler ran) on Frotz.
+- [ ] **Piece 3 - Cosmos-compilation pipeline** (minimal Cosmos compiled with the
+  game; sema resolves against it; prelude.py kept as fallback seed).
+- [ ] **Piece 4 - Arcturus dispatcher** (cosmos/dispatch.prelude): walk
+  noun.react -> here.react -> free rules -> default, via call_handler. Frotz
+  hand-off: driven dispatch with continue/stop honored.
+
 ## Next: B5
 
 The size pass: dead-code elimination, the arcabbr abbreviation pipeline, and

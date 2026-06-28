@@ -307,4 +307,4 @@ def link(entry: Routine, routines: list[Routine], base_addr: int):
                 blob[pos] = (offset >> 8) & 0xFF
                 blob[pos + 1] = offset & 0xFF
 
-    return bytes(blob), base_addr + entry_code_start, strrefs
+    return bytes(blob), base_addr + entry_code_start, strrefs, packed
