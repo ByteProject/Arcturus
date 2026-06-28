@@ -600,6 +600,15 @@ desc "A damp cellar of black stone. A squat pedestal stands at its
       centre, a rusted lever set into the base."
 ```
 
+Because a real line break collapses to a space, a forced line break is written
+`\n` (Arcturus's spelling of Inform's `^`); `\n\n` leaves a blank line, a
+paragraph break. A `say` already ends its line, so `\n` is only for breaks
+within a line of text:
+
+```
+say "Hey\n\nThis is two lines below.\n\n\nAnd this three."
+```
+
 Interpolation embeds an expression with `${ }`; printing an object prints its
 `name`. Article helpers: `${the ruby}`, `${a ruby}`, and the capitalized
 `${The ruby}`, `${A ruby}`; an object with `proper` set takes no article.
