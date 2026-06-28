@@ -4,7 +4,7 @@ A living log of where the project stands, maintained as work proceeds. The
 authoritative plan is `docs/00-roadmap.md` (milestones B0 to B8); this file
 tracks status against it and records decisions made during implementation.
 
-Last updated: 2026-06-27.
+Last updated: 2026-06-28.
 
 ## Status at a glance
 
@@ -20,10 +20,13 @@ Last updated: 2026-06-27.
 | B7 | Graphics via `arc_image` | pending |
 | B8 | Write the target game in Arcturus | pending |
 
-Not production-ready: the compiler generates valid z5 story files, and Cosmos
-(dispatch, scope/light, the parser) is being built in Arcturus. The turn loop
-and standard verbs (B4.5e) are not yet in place, so a full game is not yet
-playable end to end.
+B4 done-test GREEN: both example games (The Brass Lantern and Cloak of Darkness)
+compile with the standalone arcc and are winnable start to finish on Frotz
+(tests/test_examples.py). Cosmos - the turn loop, movement, standard verbs,
+scope/light, the parser, and grains - is written in Arcturus. Sizes today,
+before the B5 size pass: brass-lantern.z5 5472 bytes, cloak-of-darkness.z5 5940
+bytes (well under the ~22-23K PunyInform benchmark). Remaining in B4: B4.6
+(integration polish and docs/03-05).
 
 ## Toolchain
 
@@ -126,7 +129,7 @@ Frotz at each runnable step):
   - [x] B4.5b - dispatch (Arcturus dispatcher + compiler-wired handlers)
   - [x] B4.5c - scope and light
   - [x] B4.5d - the parser
-  - [ ] B4.5e - turn loop + standard verbs + banner
+  - [x] B4.5e - turn loop + standard verbs + banner (both games winnable on Frotz)
 - [ ] B4.6 - integration, DCE-friendly structure, docs
 
 B4.5 architecture (settled): the compiler provides reserved intrinsic built-ins

@@ -4,12 +4,19 @@
 # https://github.com/ByteProject/Arcturus
 
 """The B1 done-test: both conformance example games parse cleanly, plus
-structural checks that the parse captured the right shapes."""
+structural checks that the parse captured the right shapes. Also the B4 done-test
+(below): each game compiles and is winnable start to finish on Frotz."""
 
 import os
+import shutil
+import subprocess
 
-from arcturus import ast
+import pytest
+
+from arcturus import ast, cosmos
+from arcturus.codegen import generate
 from arcturus.parser import parse
+from arcturus.sema import analyze
 
 EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
@@ -18,6 +25,24 @@ def load(name):
     path = os.path.join(EXAMPLES, name)
     with open(path, "r", encoding="utf-8") as fh:
         return parse(fh.read(), path)
+
+
+def _frotz():
+    return shutil.which("dfrotz") or shutil.which("frotz")
+
+
+def _compile_example(name):
+    with open(os.path.join(EXAMPLES, name), "r", encoding="utf-8") as fh:
+        return generate(analyze(cosmos.combined_program(parse(fh.read(), name))))
+
+
+def _play(name, commands, tmp_path):
+    story = tmp_path / "game.z5"
+    story.write_bytes(_compile_example(name))
+    return subprocess.run(
+        [_frotz(), "-p", str(story)], input="".join(c + "\n" for c in commands),
+        capture_output=True, text=True, timeout=20,
+    ).stdout
 
 
 def objects(prog):
@@ -101,3 +126,46 @@ def _collect_finishes(stmts):
             for case in s.cases:
                 found.extend(_collect_finishes(case.body))
     return found
+
+
+# -- B4 done-test: both games compile and are winnable on Frotz ---------------
+
+
+def test_examples_compile_to_v5():
+    assert _compile_example("brass-lantern.storyarc")[0x00] == 5
+    assert _compile_example("cloak-of-darkness.storyarc")[0x00] == 5
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_brass_lantern_winnable_on_frotz(tmp_path):
+    out = _play(
+        "brass-lantern.storyarc",
+        # Light the lantern, descend, reveal the ruby, take it.
+        ["take lantern", "switch on lantern", "north", "pull lever", "take ruby"],
+        tmp_path,
+    )
+    assert "The lantern catches with a soft hiss." in out  # the lantern's switch_on
+    assert "The lever grinds down" in out  # the lever reveals the ruby
+    assert "You carry the blood ruby home" in out  # the winning finish
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_cloak_of_darkness_winnable_on_frotz(tmp_path):
+    out = _play(
+        "cloak-of-darkness.storyarc",
+        # Hang the cloak so the bar is lit, then read the message.
+        ["west", "hang cloak on hook", "east", "south", "read message"],
+        tmp_path,
+    )
+    assert "*** You have won ***" in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_cloak_grain_and_scenery_default_on_frotz(tmp_path):
+    out = _play(
+        "cloak-of-darkness.storyarc",
+        ["examine chandeliers", "take decoration"],
+        tmp_path,
+    )
+    assert "Glittering, and far out of reach." in out  # the grain answers examine
+    assert "Just some scenery. Don't worry about it." in out  # the scenery default
