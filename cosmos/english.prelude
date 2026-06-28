@@ -155,26 +155,76 @@ block msg_not_worn()
 block msg_removed()
     say "You take it off."
 
+block msg_put_where()
+    say "Put it where?"
+
+block msg_done()
+    say "Done."
+
+block msg_closed()
+    say "It is closed."
+
+block msg_cant_put()
+    say "You can't put things there."
+
 // One line of an inventory listing.
 block list_held(obj)
     show("  ")
     print_name(obj)
     say ""
 
+// Match one word against an object in scope: the room first, then what the
+// player carries.
+block scope_match(target)
+    let in_room = find_word(here, target)
+    if in_room is not nothing
+        return in_room
+    return find_word(player, target)
+
 // Match a noun: the first typed word after the verb that names an object in
-// scope (the room, then what the player carries). Adjective scoring and full
-// disambiguation are refined later.
+// scope. Adjective scoring and full disambiguation are refined later.
 block match_noun()
     let n = word_count()
     let i = 1
     while i < n
         let target = word_dict(i)
         if target is not nothing
-            let here_match = find_word(here, target)
-            if here_match is not nothing
-                return here_match
-            let held_match = find_word(player, target)
-            if held_match is not nothing
-                return held_match
+            let o = scope_match(target)
+            if o is not nothing
+                return o
         change i to i + 1
     return nothing
+
+// Resolve the command's objects into the noun (and, for a two-noun verb like
+// "put noun on noun", the second). The verb's dictionary entry flags whether it
+// takes a second noun (data byte 2).
+block resolve_objects()
+    change noun to nothing
+    change second to nothing
+    let d = word_dict(0)
+    if d is not nothing
+        if peek_byte(d + 6) is 128
+            if peek_byte(d + 8) is 1
+                resolve_two_nouns()
+                return 1
+    change noun to match_noun()
+    return 1
+
+// Two distinct in-scope objects: the first becomes the noun, the next different
+// one the second. The preposition between them is simply skipped (it names no
+// object).
+block resolve_two_nouns()
+    let n = word_count()
+    let i = 1
+    while i < n
+        let target = word_dict(i)
+        if target is not nothing
+            let o = scope_match(target)
+            if o is not nothing
+                if noun is nothing
+                    change noun to o
+                else
+                    if o is not noun
+                        change second to o
+        change i to i + 1
+    return 1

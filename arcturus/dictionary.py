@@ -67,6 +67,11 @@ def collect_vocab(world: wm.World) -> set:
             # A multi-word verb ("take off") contributes each of its tokens.
             for token in phrase.lower().split():
                 words.add(token)
+        # Literal prepositions in the grammar (the "on" of put noun on noun).
+        for line in verb.grammar:
+            for it in line.items:
+                if isinstance(it, ast.Word):
+                    words.add(it.text.lower())
     for obj in world.objects.values():
         # An object's matchable vocabulary (explicit words plus its name words),
         # computed the same way the object table emits it.
@@ -79,6 +84,24 @@ def collect_vocab(world: wm.World) -> set:
             for gw in grain.words:
                 words.add(gw.lower())
     return words
+
+
+def _two_noun_verbs(world: wm.World) -> set:
+    """Single-word verbs with a grammar line taking two noun slots (put noun on
+    noun), so the parser knows to resolve a second noun."""
+    out: set = set()
+    for verb in world.verbs:
+        two = any(
+            sum(1 for it in line.items if isinstance(it, ast.Slot)) >= 2
+            for line in verb.grammar
+        )
+        if not two:
+            continue
+        for phrase in verb.words:
+            tokens = phrase.lower().split()
+            if len(tokens) == 1:
+                out.add(tokens[0])
+    return out
 
 
 def _verb_actions(world: wm.World, action_numbers) -> dict:
@@ -112,8 +135,10 @@ def build(world: wm.World, action_numbers=None, direction_props=None) -> tuple[b
     encoded = {w: zstring.encode_dict_word(w) for w in words}
     # Map each distinct encoded entry to its three data bytes.
     enc_data: dict[bytes, bytes] = {}
+    two_noun = _two_noun_verbs(world)
     for word, action in _verb_actions(world, action_numbers).items():
-        enc_data[encoded[word]] = bytes([_VERB_FLAG, action & 0xFF, 0])
+        b2 = 1 if word in two_noun else 0  # data byte 2: takes a second noun
+        enc_data[encoded[word]] = bytes([_VERB_FLAG, action & 0xFF, b2])
     if direction_props and action_numbers and "go" in action_numbers:
         go = action_numbers["go"]
         for word, prop in direction_props.items():
