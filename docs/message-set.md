@@ -19,7 +19,7 @@ standard but squeeze/blow/burn/buy/consult/swim/etc.) get their messages with th
 | msg_no_it | "it"/"them" with nothing to refer to | You'll have to say what you mean. |
 | msg_be_specific | the noun is ambiguous | You'll have to be more specific. |
 | msg_nothing_again | "again" with no previous command | There's nothing to repeat. |
-| msg_only_animate | give/show/talk aimed at a thing, not a person | You'd do better trying that with something alive. |
+| msg_only_animate | give/show/talk aimed at a thing, not a person | If you continue talking to objects, it might be time for another therapy session. |
 
 ## Room and light
 
@@ -44,7 +44,7 @@ standard but squeeze/blow/burn/buy/consult/swim/etc.) get their messages with th
 | Block | When | Wording |
 |---|---|---|
 | msg_nothing_special | examine, no description | Nothing about ${the noun} rewards a closer look. |
-| msg_touch | touch, default | You touch ${the noun}. It feels just as it looks. |
+| msg_touch | touch, default | You touch ${the noun}. You feel nothing that your eyes didn't already see. |
 | msg_smell | smell, default | ${The noun} smells about as you'd expect. |
 | msg_listen | listen, default | You listen. Nothing answers. |
 | msg_taste | taste, default | Best not. |
@@ -64,8 +64,8 @@ standard but squeeze/blow/burn/buy/consult/swim/etc.) get their messages with th
 | msg_put_where | put with no destination | On what, or in what? |
 | msg_cant_put | the target won't hold it | ${The noun} won't hold it. |
 | msg_closed | put into a closed container | ${The noun} is shut. |
-| msg_give | give to a person, default | ${The noun} doesn't want ${the second}, thanks all the same. |
-| msg_show | show to a person, default | ${The noun} takes a look, unimpressed. |
+| msg_give | give to a person, default | ${The noun} doesn't want ${the second}. Outrageous. |
+| msg_show | show to a person, default | Seems like ${the noun} is not really into that. |
 
 ## Wearing
 
@@ -140,7 +140,7 @@ standard but squeeze/blow/burn/buy/consult/swim/etc.) get their messages with th
 | msg_farewell | quit confirmed | We'll leave it there. |
 | msg_score | score | You have scored ${score} of a possible ${max_score}. |
 | msg_saved | save ok | Saved. |
-| msg_save_failed | save failed | The save didn't take. |
+| msg_save_failed | save failed | Something went wrong with that save. |
 | msg_restore_failed | restore failed | That save couldn't be restored. |
 | msg_confirm_restart | restart | Start over from the very beginning? |
 | msg_undone | undo ok | Taken back. |

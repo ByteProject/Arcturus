@@ -133,5 +133,6 @@ Notes:
 | restore | restore | restore a saved game | S |
 | restart | restart | restart from the beginning | S |
 | undo | undo | undo the last turn | S |
+| oops, o | oops | correct the last word you mistyped | S |
 | quit, q | quit | confirm, then end | S |
 | xyzzy | xyzzy | a wink (flavor) | S |
