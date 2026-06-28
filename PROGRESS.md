@@ -218,7 +218,7 @@ Decisions (Stefan, this session):
 Sub-step order (each ends green; one Frotz hand-off at .6):
 .1 turn-loop spine + banner + on start + each_turn + room description + look  [DONE]
 .2 movement (go + directions; DynDot here.(dir); on go <dir>; cant-go default)  [DONE]
-.3 object verbs take/drop/inventory/examine + defaults + swappable messages
+.3 object verbs take/drop/inventory/examine + defaults + swappable messages  [DONE]
 .4 multi-word (particle) + two-noun (put on/hang) + wear/take_off
 .5 scenery grains (examine "string") + msg_scenery default + on enter wiring
 .6 integrate both games end to end; B4 done-test on Frotz; hand off
@@ -276,6 +276,22 @@ B4.5e.2 done (committed). Movement:
 - Verified on Frotz: brass north groped back to the hallway (enter bounce),
   south = can't go; cloak north = the foyer override, west = real exit.
   tests/test_movement.py. 166 tests pass.
+
+B4.5e.3 done (committed). Object verbs:
+- verbs.prelude: take/get/carry, drop, examine/x, inventory/i/inv with default
+  free handlers; each runs last so an object handler (ruby on take, cloak on
+  drop) overrides it. Messages live in english.prelude (msg_taken, msg_dropped,
+  msg_fixed, msg_cant_see, msg_not_holding, msg_nothing_special, msg_carrying,
+  msg_empty_handed, msg_dark_room) plus list_held.
+- describe_room now checks is_lit(): a dark room prints msg_dark_room instead of
+  its contents.
+- ROOMS ARE LIT BY DEFAULT: the room standard kind seeds `lit` true
+  (sema._collect), and a dark room overrides with `lit false`. (Updated
+  tests/test_scope.py: its dark room now declares `lit false`.)
+- Verified on Frotz: cloak examine/inventory; the cloak's on drop overrides the
+  default; the dark bar shows "pitch dark" and its on each_turn fires. brass
+  take/examine/inventory/drop all work. tests/test_verbs.py. 168 tests pass.
+  (The brass walkthrough still needs "switch on" - a multi-word verb, B4.5e.4.)
 
 - Turn loop (`cosmos/loop.prelude`, called from the entry instead of the current
   banner+on-start main): describe the room on entry (name, desc via print_paddr,

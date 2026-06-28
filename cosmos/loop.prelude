@@ -40,6 +40,9 @@ block fire_turn()
 
 // Describe the current room: its name, its description, and what it contains.
 block describe_room()
+    if is_lit() is 0
+        msg_dark_room()
+        return
     say here
     if desc_addr(here) is not nothing
         say here.desc
