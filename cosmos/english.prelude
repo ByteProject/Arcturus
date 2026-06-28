@@ -170,6 +170,11 @@ block msg_cant_put()
 block msg_scenery()
     say "Just some scenery. Don't worry about it."
 
+// Printed when the first word names no verb or direction. (Placeholder voice;
+// the standard message set gets its fresh wording in B5.)
+block msg_no_verb()
+    say "That's not a verb I recognise."
+
 // One line of an inventory listing.
 block list_held(obj)
     show("  ")

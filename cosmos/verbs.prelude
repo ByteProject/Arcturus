@@ -88,6 +88,15 @@ on examine
     say noun.desc
 
 
+// Meta verbs. quit ends the session immediately for now; a confirmation prompt
+// and save/restore/restart arrive with the meta-verb set in B5.
+verb "quit", "q"
+    quit
+
+on quit
+    finish "Thanks for playing."
+
+
 verb "inventory", "i", "inv"
     inventory
 

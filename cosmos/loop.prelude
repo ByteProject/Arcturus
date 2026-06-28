@@ -16,7 +16,10 @@ block run_game()
     while true
         prompt()
         let act = parse()
-        if act is not nothing
+        if act is 0
+            if word_count() is not 0
+                msg_no_verb()
+        else
             dispatch(act)
             fire_turn()
             tick()
