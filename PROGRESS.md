@@ -20,9 +20,10 @@ Last updated: 2026-06-27.
 | B7 | Graphics via `arc_image` | pending |
 | B8 | Write the target game in Arcturus | pending |
 
-Not production-ready: the compiler generates valid z5 story files for the
-language subset built so far, but the runtime (parser, turn loop, verbs) is not
-in place yet, so it cannot compile a playable game.
+Not production-ready: the compiler generates valid z5 story files, and Cosmos
+(dispatch, scope/light, the parser) is being built in Arcturus. The turn loop
+and standard verbs (B4.5e) are not yet in place, so a full game is not yet
+playable end to end.
 
 ## Toolchain
 
@@ -170,6 +171,103 @@ Four pieces; the Frotz hand-off is at piece 4 (driven dispatch). Status:
   handler_of + call_handler intrinsics. Done-test on Frotz: dispatch(pull) with
   noun = red/blue routes to each object's own handler ("Red pulled." /
   "Blue pulled."). B4.5b complete.
+
+### B4.5c work log (done, committed)
+
+Scope and light. Three sub-steps:
+- `for each x in <object>` lowers to a get_child / get_sibling loop (lower.py
+  `_for_each`); the loop var is object-typed (`ctx.object_locals`) so `say`
+  prints names. List iteration and `for each ... of <kind>` are still deferred.
+- Kinds-as-attributes: each kind gets an attribute, set on every instance in its
+  chain (`objects.Layout.kind_attr`); `obj is <kind>` resolves to `IS_KIND`
+  (sema) and lowers to `test_attr` (lower `_kind_test`). docs/01 section 9 done.
+- `cosmos/scope.prelude`: `is_lit`, `in_scope`, `visible`, `reachable` in
+  Arcturus; new `parent_of` intrinsic (get_parent). tests/test_scope.py.
+
+### B4.5d work log (done, committed)
+
+The parser, split along the language seam.
+- `objects.py`: `words` is now a numbered property holding an array of
+  dictionary addresses (two-byte size form; `layout.word_fixups` backpatched in
+  build_story with the absolute dict address). Only `name` stays special.
+- `dictionary.build(world, action_numbers)`: single-word verb entries set data
+  byte 0 bit 7 (verb flag) and data byte 1 (action number). Multi-word verbs
+  ("take off") deferred to B4.5e.
+- assembler: `get_prop_addr` / `get_prop_len`. lower intrinsics: `words_addr`,
+  `words_count` (use `layout.prop_number["words"]`).
+- `cosmos/parser.prelude` (skeleton, language-agnostic): `parse()` reads a line,
+  resolves the verb, resolves the noun, sets the noun global, returns the action.
+- `cosmos/english.prelude` (SWAPPABLE language layer): `resolve_verb`,
+  `has_word`/`find_word`, `match_noun`. tests/test_parse_command.py.
+
+### B4.5e plan (NEXT - turn loop, standard verbs, banner; the B4 done-test)
+
+Goal: both example games (brass-lantern, cloak-of-darkness) playable start to
+finish on Frotz.
+
+- Turn loop (`cosmos/loop.prelude`, called from the entry instead of the current
+  banner+on-start main): describe the room on entry (name, desc via print_paddr,
+  list contents, fire `on enter`); print the prompt; `parse()`; `dispatch(action)`;
+  `on after`; fire active `on each_turn` (room + in-scope) subject to `when`;
+  scheduled events; increment `turns`; if `finish` ended the game, print and stop.
+- Events fired by the loop, not verb dispatch: `on start`, `on enter`,
+  `on each_turn`. The compiler must wire these (event routines the loop calls,
+  e.g. per-room enter/each_turn). `on start` currently runs inside main - move it
+  into the loop's startup.
+- Dispatch chain completion: dispatch.prelude currently does noun.react ->
+  here.react. B4.5e adds free-standing rules and the Cosmos default handlers to
+  the chain. The Cosmos default verbs (take/drop/examine/...) are themselves
+  handlers; decide how defaults plug in (likely a per-action default routine the
+  dispatcher calls last, or Cosmos `on <verb>` free rules).
+- Standard verbs the two games need (Cosmos Arcturus + defaults + messages):
+  look, examine (x/read), take (get), drop, put-on (hang), wear, take_off,
+  inventory, go (+ `on go <direction>` operand-pattern dispatch, `on go other`,
+  directions as room properties read via here.(dir) -> needs DynDot lowering,
+  still deferred), switch_on/off, pull. Multi-word verbs (take off, switch on)
+  and two-noun grammar + prepositions (put noun on noun) get wired here.
+- Banner: move into Cosmos (`cosmos/banner.prelude`), reading the game metadata.
+  The compiler still injects metadata; Cosmos declares its own version for the
+  banner. The provisional compiler banner (`codegen.banner_text`) retires.
+- MESSAGES ARE SWAPPABLE (decided with Stefan): do NOT inline `say "Taken."` in
+  verb code. Verbs reference messages by id/block in the English layer (e.g.
+  `msg_taken()`), and the English strings live in the swappable layer alongside
+  the parser routines + standard vocabulary, so `summon.language "Spanish"`
+  swaps parser logic + vocabulary + messages in one move. Verb LOGIC stays
+  language-agnostic; verb TEXT lives in the swappable layer.
+- Likely still-needed compiler work for B4.5e: DynDot lowering (here.(dir)) for
+  directions; operand-pattern dispatch (`on go north`, `on put x in y`) so react
+  routines guard on the matched noun/second/direction; two-noun grammar in the
+  parser (second noun + prepositions); contents-listing.
+- Done-test: both games playable on Frotz, handed to Stefan. This is also the B4
+  done-test (B4.5 and B4 complete together).
+
+### Resume state (key facts to recall after a context reset)
+
+- Milestones B0-B3 done; B4.5a-d done; **B4.5e is next** (above). HEAD is the
+  B4.5d commit; working tree clean except this PROGRESS update.
+- Test count ~162 (`python3 -m pytest`); Frotz tests use `dfrotz` and skip if
+  absent. Run tests with `python3 -m pytest` (Python 3.14 default).
+- Cosmos is real source under `cosmos/`: core, dispatch, scope, parser, english
+  (.prelude). `arcc` auto-includes them (`cosmos.combined_program`); the
+  standalone build embeds them (`tools/amalgamate.py` sets `cosmos._EMBEDDED`).
+  prelude.py still SEEDS the standard kinds/properties (provisional); they move
+  into Cosmos source incrementally.
+- Compiler intrinsics (lower.INTRINSICS, lower to opcodes): read_line, peek_byte,
+  peek_word, poke_byte, poke_word, word_count, word_dict, word_len, word_pos,
+  call_handler, handler_of, parent_of, words_addr, words_count.
+- Dispatch model B: `codegen.gen_react_routines` -> react_<obj>(action); react
+  address in property 63 (`objects.REACT_PROP`); `cosmos/dispatch.prelude` calls
+  it via handler_of + call_handler. Action numbers: `codegen._action_numbers`.
+- Driven-harness test pattern (tests/test_dispatch.py, test_scope.py,
+  test_parse_command.py): `analyze(cosmos.combined_program(parse(GAME)))`, then
+  `build_routines` + `gen_react_routines`, then a hand-assembled `__main__`
+  Routine that sets globals via `store Const(gmap[name]) Const(value)` and calls
+  Cosmos blocks `blk_<name>`, then `build_story`. dfrotz fed input via stdin.
+- Standing rules (see memory): never set git identity (plain `git commit`,
+  ByteProject <stefan@8-bit.info>); interpreter verification is Stefan's hand-off
+  (build the .z5, give size + run command, PAUSE, don't advance until he's run
+  it); comment the arcane code for humans; keep public docs in sync; commit each
+  sub-step with a clear message.
 
 ## Next: B5
 
