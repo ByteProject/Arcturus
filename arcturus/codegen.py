@@ -213,7 +213,7 @@ def build_story(
     # vocabulary.
     static_base = sf.here()
     abbrev_addr = sf.append(bytes(_ABBREV_BYTES))
-    dict_bytes, word_offsets = dictionary.build(world)
+    dict_bytes, word_offsets = dictionary.build(world, _action_numbers(world))
     dict_addr = sf.append(dict_bytes)
 
     # High memory: the entry stub and routines, run from the initial PC.
