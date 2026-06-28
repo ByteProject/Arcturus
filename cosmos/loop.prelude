@@ -55,7 +55,12 @@ block describe_room()
     let listed = 0
     for each obj in here
         if obj is not player and not (obj is hidden) and not (obj is concealed)
-            if listed is 0
+            if intro_addr(obj) is not nothing and not (obj is moved)
                 par()
-            change listed to 1
-            list_item(obj)
+                say obj.intro
+                change listed to 0
+            else
+                if listed is 0
+                    par()
+                change listed to 1
+                list_item(obj)

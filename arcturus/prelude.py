@@ -86,12 +86,19 @@ _STD_BOOL_PROPS = [
     "fixed", "scenery", "hidden", "concealed", "wearable", "worn", "lit",
     "edible", "proper", "switchable", "openable", "open", "lockable", "locked",
     "visited",
+    # Set the first time the player takes an object; while clear, the object
+    # shows its `intro` text in a room description instead of the plain listing.
+    "moved",
 ]
 
 # Standard value properties and their types.
 _STD_VALUE_PROPS = {
     "name": T_TEXT,
     "desc": T_TEXT,
+    # The object's initial appearance: shown in the room description while the
+    # object sits untouched in place (until it has `moved`), in place of the
+    # plain "You can see X here." Useful for set dressing and static objects.
+    "intro": T_TEXT,
     "words": T_LIST,
     "capacity": T_NUMBER,
     "key": T_OBJECT,

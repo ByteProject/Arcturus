@@ -58,6 +58,7 @@ on take
         msg_have_it()
         stop
     move noun to player
+    now noun is moved
     msg_taken()
 
 
