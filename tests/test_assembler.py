@@ -56,7 +56,7 @@ def test_call_records_fixup_and_links():
     entry.op("quit")
     compute = a.Routine("compute", nlocals=0)
     compute.op("ret", a.Const(7))
-    blob, pc, _strrefs = a.link(entry, [compute], 0x400)
+    blob, pc, _strrefs, _packed = a.link(entry, [compute], 0x400)
     # The entry stub starts at the base address.
     assert pc == 0x400
     # The call operand (entry bytes 2..3) holds compute's packed address.

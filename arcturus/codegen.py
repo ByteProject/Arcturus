@@ -149,7 +149,7 @@ def build_story(
 
     # High memory: the entry stub and routines, run from the initial PC.
     high_base = sf.here()
-    blob, initial_pc, strrefs = link(entry, routines, high_base)
+    blob, initial_pc, strrefs, packed_routines = link(entry, routines, high_base)
     blob_start = sf.here()
     sf.append(blob)
 
