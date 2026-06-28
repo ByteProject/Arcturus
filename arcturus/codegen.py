@@ -26,11 +26,80 @@ from . import objects as objmod
 from . import storyfile
 from . import worldmodel as wm
 from . import zstring
-from .assembler import Const, Routine, RoutineRef, Variable, link
+from .assembler import Const, Routine, RoutineRef, STACK, Variable, link
 from .errors import ArcError
 from .lower import Context, compile_block
 
 _CONST_ONE = Const(1)
+
+# Events fired by the turn loop (not by verb dispatch); excluded from react.
+_EVENT_NAMES = {"start", "enter", "each_turn"}
+
+
+def _action_numbers(world: wm.World) -> dict:
+    """A deterministic action -> number map (0 means no action). The parser
+    reuses this in B4.5d."""
+    names = sorted(set(world.actions) | {"other"})
+    return {name: i + 1 for i, name in enumerate(names)}
+
+
+def _react_handlers(obj: wm.Obj, actions: dict):
+    """The object's own pattern-less verb-action handlers, as (action, handler).
+    Operand-pattern handlers, free rules, the kind chain, and `other` are
+    deferred to B4.5d/e."""
+    out = []
+    for h in obj.handlers:
+        if h.pattern:
+            continue
+        for ev in h.events:
+            if ev in actions and ev not in _EVENT_NAMES and ev != "other":
+                out.append((ev, h))
+    return out
+
+
+def _react_objects(world: wm.World, actions: dict) -> set:
+    return {
+        name
+        for name, obj in world.objects.items()
+        if _react_handlers(obj, actions)
+    }
+
+
+def gen_react_routines(world: wm.World, actions: dict, registry) -> list:
+    """A react_<obj> routine for every object that has react handlers, calling
+    the per-handler routines by their registry names."""
+    hname = {id(h): nm for h, nm in registry}
+    out = []
+    for objname, obj in world.objects.items():
+        pairs = _react_handlers(obj, actions)
+        if not pairs:
+            continue
+        groups: dict = {}
+        for action, h in pairs:
+            groups.setdefault(action, []).append(hname[id(h)])
+        out.append(_gen_react(objname, groups, actions))
+    return out
+
+
+def _gen_react(objname: str, groups: dict, actions: dict) -> Routine:
+    """react_<obj>(action): switch on the action number; for each action run the
+    object's handler routine(s) in order, returning 1 as soon as one consumes
+    the action (returns 1), else 0."""
+    rt = Routine("react_" + objname, nlocals=1)  # local 1 = the action number
+    run_label = {}
+    for i, action in enumerate(groups):
+        run_label[action] = f"run{i}"
+        rt.op("je", Variable(1), Const(actions[action]), branch=(run_label[action], True))
+    rt.op("ret", Const(0))  # no handled action
+    for action, hnames in groups.items():
+        rt.label(run_label[action])
+        for hn in hnames:
+            rt.op("call_vs", RoutineRef(hn), store=Variable(STACK))
+            rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
+        rt.op("ret", Const(0))  # this action's chain did not consume it
+    rt.label("__handled__")
+    rt.op("ret", _CONST_ONE)
+    return rt
 
 # Region sizes and the input-buffer layout (the buffer constants live in
 # storyfile so the lowering can share them; re-exported here for callers/tests).
@@ -166,10 +235,13 @@ def build_story(
             sf.append(b"\x00")
         string_packed[sid] = sf.here() // 4
         sf.append(zstring.encode(text))
-    # Backpatch the object table (desc properties) and the code (string refs).
+    # Backpatch the object table (desc properties and react routine addresses)
+    # and the code (string refs).
     if layout is not None:
         for offset, sid in layout.string_fixups:
             sf.set_word(objects_addr + offset, string_packed[sid])
+        for offset, rname in layout.routine_fixups:
+            sf.set_word(objects_addr + offset, packed_routines[rname])
     for pos, sid in strrefs:
         sf.set_word(blob_start + pos, string_packed[sid])
 
@@ -268,15 +340,21 @@ def generate(world: wm.World) -> bytes:
     routine. The dispatcher and turn loop that drive the handlers arrive with
     Cosmos (B4.5b onward)."""
     gmap = _globals_map(world)
-    layout = objmod.build_layout(world)
+    actions = _action_numbers(world)
+    layout = objmod.build_layout(world, react_objects=_react_objects(world, actions))
     pool = StringPool()
 
     entry = Routine("__entry__", entry=True)
     entry.op("call_vn", RoutineRef("__main__"))
     entry.op("quit")
 
-    main, routines, _registry = build_routines(world, gmap, layout, pool)
+    main, routines, registry = build_routines(world, gmap, layout, pool)
+    react_routines = gen_react_routines(world, actions, registry)
 
     return build_story(
-        world, entry, [main] + routines, layout=layout, string_pool=pool
+        world,
+        entry,
+        [main] + routines + react_routines,
+        layout=layout,
+        string_pool=pool,
     )

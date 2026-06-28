@@ -143,31 +143,22 @@ Four pieces; the Frotz hand-off is at piece 4 (driven dispatch). Status:
   `poke_byte/word`, `word_count/word_dict/word_len/word_pos` (parse-buffer
   accessors), `call_handler(addr, action)` (call-by-address). Buffer-layout
   constants live in `storyfile` (TEXT_BUFFER_ADDR=544, PARSE_BUFFER_ADDR=606).
-- [~] **Piece 2 - react routines + react-property wiring** (IN PROGRESS, uncommitted).
-  Plan/mechanism:
-  - Compiler emits `react_<objname>(action)` per object that has pattern-less
-    verb-action own-handlers (events that are verbs or `other`, excluding the
-    events start/enter/each_turn, and skipping handlers with operand patterns
-    for now - so `on go north`, free rules, kind chains are deferred to B4.5d/e).
-    The routine switches on the action number; per action it calls the handler
-    routine(s) (the `h<n>` from B4.5a, via the registry from build_routines) and
-    returns 1 if one returns 1 (handled), else 0.
-  - Action numbering: a deterministic action->int map (sorted world.actions plus
-    `other`), to be added in codegen; the parser (B4.5d) reuses it.
-  - The react routine's packed address is stored in a reserved object property
-    number **63** (`__react__`); user properties capped at 62. objects.py emits
-    it for objects in a `react_objects` set (new build_layout param), with a
-    routine fixup `(offset, "react_<objname>")` in a new `layout.routine_fixups`.
-  - build_story backpatches routine_fixups using the packed-address map.
-  - DONE in the working tree so far: `assembler.link` now returns a 4-tuple
-    `(blob, pc, strrefs, packed)`; build_story and test_assembler updated to
-    unpack it (`packed_routines` captured in build_story, not yet used). Nothing
-    else of piece 2 written yet.
-  - TODO next: action numbering; react-handler selection helper (shared by the
-    react_objects set and the routine generation); `_gen_react` routine builder;
-    objects.py react property + routine_fixups + react_objects param; build_story
-    patch loop; a driven harness test (set noun, get noun.__react__ via get_prop,
-    call_handler it, assert the handler ran) on Frotz.
+- [x] **Piece 2 - react routines + react-property wiring** (committed). As built:
+  - `codegen._action_numbers` is the deterministic action->int map (sorted
+    world.actions + `other`); the parser (B4.5d) reuses it.
+  - `codegen._react_handlers` selects an object's pattern-less verb-action
+    own-handlers (excluding events start/enter/each_turn and `other`; operand
+    patterns / free rules / kind chains deferred to B4.5d/e).
+  - `codegen.gen_react_routines` emits `react_<objname>(action)` (local 1 = the
+    action number): a `je`-chain on the action that calls the handler routine(s)
+    (the `h<n>` from B4.5a) and returns 1 the moment one returns 1, else 0.
+  - `objects.REACT_PROP = 63` holds the react routine's packed address (user
+    props capped at 62). build_layout takes `react_objects`; objects.py emits the
+    react property (first, descending order) with a routine fixup in
+    `layout.routine_fixups`; build_story patches it via the link packed map.
+  - Verified on Frotz (tests/test_react.py): a harness reads object.react with
+    get_prop(63) and call_handlers it - pull runs the body (1), pull again hits
+    the stop guard (1), examine has no handler (0).
 - [ ] **Piece 3 - Cosmos-compilation pipeline** (minimal Cosmos compiled with the
   game; sema resolves against it; prelude.py kept as fallback seed).
 - [ ] **Piece 4 - Arcturus dispatcher** (cosmos/dispatch.prelude): walk
