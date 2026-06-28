@@ -41,7 +41,7 @@ INTRINSICS = frozenset({
     "handler_of", "parent_of", "words_addr", "words_count",
     # The turn loop fires life-cycle events: run_free runs the free rules for an
     # action, and ev_* name the event action numbers (start, enter, each_turn).
-    "run_free", "ev_start", "ev_enter", "ev_each_turn",
+    "run_free", "ev_start", "ev_enter", "ev_each_turn", "action_id",
     # show prints without a trailing newline (say always adds one); print_name
     # prints an object's short name (so messages can name a passed-in object).
     "show", "print_name",
@@ -423,6 +423,14 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # The event's action number, so the loop can fire it through react.
         evname = name[3:]
         _place(rt, Const(wm.action_numbers(ctx.world)[evname]), dest)
+    elif name == "action_id":
+        # action_id("take_off"): the action number for a named action, so the
+        # parser can remap a particle verb (switch + off -> switch_off).
+        text = "".join(p.text for p in args[0].parts if isinstance(p, ast.StringText))
+        num = wm.action_numbers(ctx.world).get(text)
+        if num is None:
+            raise LowerError(f"action_id: unknown action '{text}'")
+        _place(rt, Const(num), dest)
     elif name == "show":
         # show(text): print without a trailing newline (for prompts and for
         # building a sentence around a named object).

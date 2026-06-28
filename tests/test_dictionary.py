@@ -49,7 +49,7 @@ def test_entries_are_sorted_six_byte_words():
     entry_len = data[1 + nsep]
     count = (data[2 + nsep] << 8) | data[3 + nsep]
     assert entry_len == 9  # 6 text + 3 data
-    assert count == 5
+    assert count == 7  # take, get, brass, lamp, lantern, plus the on/off particles
     base = 4 + nsep
     # The 6-byte text of consecutive entries is strictly ascending (sorted).
     prev = None
