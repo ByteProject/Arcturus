@@ -34,7 +34,7 @@ _PACKAGE = "arcturus"
 _MODULE_ORDER = [
     "errors", "tokens", "ast", "lexer", "parser", "prelude", "worldmodel",
     "sema", "zstring", "storyfile", "assembler", "objects", "dictionary",
-    "lower", "codegen", "astdump", "irdump", "cli",
+    "lower", "codegen", "cosmos", "astdump", "irdump", "cli",
 ]
 
 _HEADER = '''#!/usr/bin/env python3
@@ -69,6 +69,9 @@ def _bootstrap():
         sys.modules["arcturus." + name] = mod
         setattr(pkg, name, mod)
         exec(compile(_MODULES[name], "arcturus/" + name + ".py", "exec"), mod.__dict__)
+    # Embed the Cosmos library so the single-file build carries it (no cosmos/
+    # directory at run time).
+    sys.modules["arcturus.cosmos"]._EMBEDDED = _COSMOS
     return sys.modules["arcturus.cli"]
 
 
@@ -91,6 +94,15 @@ def build(output_path: str) -> None:
     init_src = _read(pkg_dir, "__init__")
     module_srcs = {name: _read(pkg_dir, name) for name in _MODULE_ORDER}
 
+    # The Cosmos library sources, embedded so the single-file build carries them.
+    cosmos_dir = os.path.join(repo_root, "cosmos")
+    cosmos_srcs = {}
+    if os.path.isdir(cosmos_dir):
+        for name in sorted(os.listdir(cosmos_dir)):
+            if name.endswith(".prelude"):
+                with open(os.path.join(cosmos_dir, name), "r", encoding="utf-8") as fh:
+                    cosmos_srcs[name] = fh.read()
+
     parts = [_HEADER]
     parts.append(f"\n_MODULE_ORDER = {_MODULE_ORDER!r}\n")
     # repr() yields a valid, fully escaped Python string literal for any source.
@@ -98,6 +110,10 @@ def build(output_path: str) -> None:
     parts.append("\n_MODULES = {\n")
     for name in _MODULE_ORDER:
         parts.append(f"    {name!r}: {module_srcs[name]!r},\n")
+    parts.append("}\n")
+    parts.append("\n_COSMOS = {\n")
+    for name in sorted(cosmos_srcs):
+        parts.append(f"    {name!r}: {cosmos_srcs[name]!r},\n")
     parts.append("}\n")
     parts.append(_LOADER)
     script = "".join(parts)

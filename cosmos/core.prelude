@@ -1,0 +1,16 @@
+// core.prelude
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// The core of Cosmos, the Arcturus standard library, written in Arcturus and
+// compiled together with the author's game. This file is intentionally minimal
+// for now (milestone B4.5b); the parser, scope, action pipeline, turn loop, and
+// standard verbs are added file by file through B4.5c to B4.5e. Until then the
+// compiler still seeds the standard kinds and properties from its provisional
+// table (prelude.py); those move into Cosmos source as the runtime grows.
+
+// A marker block, proving Cosmos compiles together with the game. It will be
+// replaced by real library code as Cosmos is built out.
+block cosmos_ready()
+    return 1

@@ -159,8 +159,12 @@ Four pieces; the Frotz hand-off is at piece 4 (driven dispatch). Status:
   - Verified on Frotz (tests/test_react.py): a harness reads object.react with
     get_prop(63) and call_handlers it - pull runs the body (1), pull again hits
     the stop guard (1), examine has no handler (0).
-- [ ] **Piece 3 - Cosmos-compilation pipeline** (minimal Cosmos compiled with the
-  game; sema resolves against it; prelude.py kept as fallback seed).
+- [x] **Piece 3 - Cosmos-compilation pipeline** (committed). cosmos.py loads
+  cosmos/*.prelude (or the embedded copies in the single-file arcc) and
+  combined_program prepends their decls to the game's; the CLI compiles game +
+  Cosmos by default (--no-cosmos opts out). amalgamate embeds the .prelude
+  sources. cosmos/core.prelude is a minimal marker for now; prelude.py still
+  seeds the standard kinds/properties until they move into Cosmos source.
 - [ ] **Piece 4 - Arcturus dispatcher** (cosmos/dispatch.prelude): walk
   noun.react -> here.react -> free rules -> default, via call_handler. Frotz
   hand-off: driven dispatch with continue/stop honored.
