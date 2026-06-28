@@ -36,8 +36,9 @@ _MAX_PROPERTIES = 62  # user properties 1..62; 63 is reserved for react
 # the dispatcher reads it to run the object's handlers.
 REACT_PROP = 63
 
-# Properties that are not stored as numbered properties.
-_SPECIAL = {"name", "words"}
+# `name` is the short name, not a numbered property. `words` IS a numbered
+# property, holding an array of dictionary addresses (filled in B4.5d.1).
+_SPECIAL = {"name"}
 
 
 @dataclass
@@ -57,6 +58,9 @@ class Layout:
     # (offset within `table`, routine name) to patch with a routine's packed
     # address - used for the react property (B4.5b).
     routine_fixups: list[tuple[int, str]] = field(default_factory=list)
+    # (offset within `table`, word) to patch with the word's dictionary address,
+    # for each entry of an object's words property (B4.5d).
+    word_fixups: list[tuple[int, str]] = field(default_factory=list)
     # Objects that have a react routine; their react property (63) is emitted.
     react_objects: set = field(default_factory=set)
 
@@ -198,10 +202,28 @@ def _emit_property_table(world, layout, name, eff) -> None:
         if pnum is not None:
             items.append((pnum, pname, decl))
     for pnum, pname, decl in sorted(items, reverse=True):
+        if pname == "words":
+            _emit_words(layout, pnum, decl)
+            continue
         table.append(0x40 | pnum)  # bit 6 = two data bytes; low bits = number
         data_at = len(table)
         table += b"\x00\x00"  # placeholder, filled by _fill_property
         _fill_property(world, layout, pname, decl, data_at)
+
+
+def _emit_words(layout: Layout, pnum: int, decl: ast.PropertyDecl) -> None:
+    """The words property is an array of dictionary addresses (two bytes each).
+    It uses the two-byte size form (section 12.4.2.1): first byte bit 7 set with
+    the property number, second byte bit 7 set with the data length. Each entry
+    is backpatched with its word's dictionary address."""
+    words = [v.ident.lower() for v in decl.values if isinstance(v, ast.Name)]
+    length = len(words) * 2
+    layout.table.append(0x80 | pnum)
+    layout.table.append(0x80 | (length & 0x3F))
+    for w in words:
+        data_at = len(layout.table)
+        layout.table += b"\x00\x00"
+        layout.word_fixups.append((data_at, w))
 
 
 def _fill_property(world, layout, pname, decl, data_at) -> None:

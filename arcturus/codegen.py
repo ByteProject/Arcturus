@@ -213,7 +213,7 @@ def build_story(
     # vocabulary.
     static_base = sf.here()
     abbrev_addr = sf.append(bytes(_ABBREV_BYTES))
-    dict_bytes, _word_offsets = dictionary.build(world)
+    dict_bytes, word_offsets = dictionary.build(world)
     dict_addr = sf.append(dict_bytes)
 
     # High memory: the entry stub and routines, run from the initial PC.
@@ -242,6 +242,9 @@ def build_story(
             sf.set_word(objects_addr + offset, string_packed[sid])
         for offset, rname in layout.routine_fixups:
             sf.set_word(objects_addr + offset, packed_routines[rname])
+        # Each words-property entry gets its word's absolute dictionary address.
+        for offset, word in layout.word_fixups:
+            sf.set_word(objects_addr + offset, dict_addr + word_offsets[word])
     for pos, sid in strrefs:
         sf.set_word(blob_start + pos, string_packed[sid])
 
