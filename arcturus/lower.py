@@ -28,14 +28,17 @@ from . import storyfile
 from . import worldmodel as wm
 from .assembler import Const, Routine, Variable, RoutineRef, StringRef, STACK
 from .errors import ArcError
+from .objects import REACT_PROP
 
 # Reserved intrinsic functions: calls that lower to opcodes, not a routine call.
 # They are the low-level primitives Cosmos's parser and loop sit on (the bridge
 # agreed for B4.5). read_line tokenizes a typed line; peek/poke access memory;
-# word_* read the parse buffer; call_handler calls a routine by its address.
+# word_* read the parse buffer; call_handler calls a routine by its address;
+# handler_of reads an object's react routine address (for the dispatcher).
 INTRINSICS = frozenset({
     "read_line", "peek_byte", "peek_word", "poke_byte", "poke_word",
     "word_count", "word_dict", "word_len", "word_pos", "call_handler",
+    "handler_of",
 })
 
 _ARITH = {"+": "add", "-": "sub", "*": "mul", "/": "div", "mod": "mod"}
@@ -370,6 +373,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         eval_expr(rt, ctx, args[1], Variable(STACK))
         eval_expr(rt, ctx, args[0], Variable(STACK))
         rt.op("call_vs", Variable(STACK), Variable(STACK), store=dest)
+    elif name == "handler_of":
+        # handler_of(obj): the object's react routine address, or 0 (the property
+        # default) if it has none.
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("get_prop", op, Const(REACT_PROP), store=dest)
+        _free(ctx, t)
 
 
 def _word_index(rt, ctx, expr, scale, base):

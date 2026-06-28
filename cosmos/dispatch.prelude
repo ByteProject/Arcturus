@@ -1,0 +1,25 @@
+// dispatch.prelude
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// The action pipeline (docs/02 section 9), written in Arcturus. Given an action,
+// it walks the chain most-specific first - the noun, then the room - calling each
+// object's react routine (wired by the compiler) and stopping at the first that
+// consumes the action (returns 1). A react routine runs the object's own
+// handlers and its kind chain.
+//
+// Free-standing rules and the Cosmos default handlers join the chain in B4.5e,
+// together with the turn loop that calls dispatch with the parsed action.
+
+block dispatch(action)
+    if noun is not nothing
+        let r = handler_of(noun)
+        if r is not nothing
+            if call_handler(r, action) is 1
+                return
+    if here is not nothing
+        let s = handler_of(here)
+        if s is not nothing
+            if call_handler(s, action) is 1
+                return
