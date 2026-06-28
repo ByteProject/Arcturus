@@ -47,5 +47,5 @@ block describe_room()
     if desc_addr(here) is not nothing
         say here.desc
     for each obj in here
-        if obj is not player
+        if obj is not player and not (obj is hidden) and not (obj is concealed)
             list_item(obj)

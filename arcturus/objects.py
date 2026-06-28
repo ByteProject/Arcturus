@@ -198,10 +198,19 @@ def _emit_property_table(world, layout, name, eff) -> None:
     # five bits hold the property number (section 12.4.2.1).
     items = []
     for pname, decl in eff.items():
+        if pname == "words":
+            continue  # emitted from the merged vocabulary below
         pnum = layout.prop_number.get(pname)
         if pnum is not None:
             items.append((pnum, pname, decl))
-    for pnum, pname, decl in sorted(items, reverse=True):
+    # The words property is the object's matchable vocabulary: its explicit
+    # `words` plus the significant words of its `name`. It is emitted for every
+    # object that has any, so a thing named but lacking `words` is still parsable.
+    words_prop = layout.prop_number.get("words")
+    vocab = object_words(eff, world.objects[name].category == "room")
+    if words_prop is not None and vocab:
+        items.append((words_prop, "words", vocab))
+    for pnum, pname, decl in sorted(items, reverse=True, key=lambda it: it[0]):
         if pname == "words":
             _emit_words(layout, pnum, decl)
             continue
@@ -211,12 +220,28 @@ def _emit_property_table(world, layout, name, eff) -> None:
         _fill_property(world, layout, pname, decl, data_at)
 
 
-def _emit_words(layout: Layout, pnum: int, decl: ast.PropertyDecl) -> None:
+def object_words(eff: dict, is_room: bool = False) -> list:
+    """An object's matchable vocabulary: its explicit `words`, then any new words
+    from its `name` (so `name "rusted lever"` makes lever and rusted match even
+    with no `words` line). Rooms contribute only explicit words, not their name,
+    so a room name is not a noun the player can take or examine."""
+    words: list = []
+    if "words" in eff:
+        words.extend(v.ident.lower() for v in eff["words"].values if isinstance(v, ast.Name))
+    if not is_room and "name" in eff and eff["name"].form == ast.PROP_VALUE and eff["name"].values:
+        v = eff["name"].values[0]
+        if isinstance(v, ast.StringLit):
+            for w in _plain(v).lower().split():
+                if w.isalnum() and w not in words:
+                    words.append(w)
+    return words
+
+
+def _emit_words(layout: Layout, pnum: int, words: list) -> None:
     """The words property is an array of dictionary addresses (two bytes each).
     It uses the two-byte size form (section 12.4.2.1): first byte bit 7 set with
     the property number, second byte bit 7 set with the data length. Each entry
     is backpatched with its word's dictionary address."""
-    words = [v.ident.lower() for v in decl.values if isinstance(v, ast.Name)]
     length = len(words) * 2
     layout.table.append(0x80 | pnum)
     layout.table.append(0x80 | (length & 0x3F))

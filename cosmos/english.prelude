@@ -79,11 +79,13 @@ block has_word(obj, target)
         change i to i + 1
     return 0
 
-// The first child of container whose vocabulary includes the word.
+// The first child of container whose vocabulary includes the word. A hidden
+// object (one not yet discovered) cannot be referred to.
 block find_word(container, target)
     for each obj in container
         if has_word(obj, target)
-            return obj
+            if not (obj is hidden)
+                return obj
     return nothing
 
 // Turn-loop and room-description wording. These are English; a language pack
