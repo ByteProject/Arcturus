@@ -60,7 +60,8 @@ block describe_room()
                 say obj.intro
                 change listed to 0
             else
-                if listed is 0
-                    par()
-                change listed to 1
-                list_item(obj)
+                if not (obj is scenery)
+                    if listed is 0
+                        par()
+                    change listed to 1
+                    list_item(obj)

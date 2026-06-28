@@ -51,6 +51,9 @@ on take
     if noun is nothing
         msg_cant_see()
         stop
+    if noun is scenery
+        msg_scenery()
+        stop
     if noun is fixed
         msg_fixed()
         stop

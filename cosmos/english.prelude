@@ -172,9 +172,6 @@ block msg_taken()
 block msg_fixed()
     say "${The noun} stays exactly where it is."
 
-block msg_take_scenery()
-    say "${The noun} is hardly worth carrying off."
-
 block msg_have_it()
     say "You already have ${the noun}."
 
