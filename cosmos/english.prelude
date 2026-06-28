@@ -104,81 +104,216 @@ block list_item(obj)
     print_name(obj)
     say " here."
 
-// Movement responses.
+// Standard messages (docs/message-set.md). Each is an overridable block: an
+// author redefines msg_<name>() in the story to change the wording.
+
+// Parser.
+block msg_cant_see()
+    say "You see nothing of the sort here."
+
+block msg_no_it()
+    say "You'll have to say what you mean."
+
+block msg_be_specific()
+    say "You'll have to be more specific."
+
+block msg_nothing_again()
+    say "There's nothing to repeat."
+
+block msg_only_animate()
+    say "If you continue talking to objects, it might be time for another therapy session."
+
+// Room and light.
+block msg_dark_room()
+    say "Pitch black. Even your hands have gone missing."
+
+block msg_too_dark()
+    say "It's too dark to make anything out."
+
+// Movement.
 block msg_cant_go()
-    say "You can't go that way."
+    say "There's no exit in that direction."
 
 block msg_no_direction()
-    say "Go where?"
+    say "Which way?"
 
-// Object-verb responses.
+block msg_cant_enter()
+    say "You can't get inside ${the noun}."
+
+block msg_already_there()
+    say "You're already there."
+
+block msg_not_inside()
+    say "You aren't inside anything to leave."
+
+block msg_cant_climb()
+    say "${The noun} isn't for climbing."
+
+// Sensory.
+block msg_nothing_special()
+    say "Nothing about ${the noun} rewards a closer look."
+
+block msg_touch()
+    say "You touch ${the noun}. You feel nothing that your eyes didn't already see."
+
+block msg_smell()
+    say "${The noun} smells about as you'd expect."
+
+block msg_listen()
+    say "You listen. Nothing answers."
+
+block msg_taste()
+    say "Best not."
+
+// Carrying and giving.
 block msg_taken()
-    say "Taken."
-
-block msg_dropped()
-    say "Dropped."
+    say "Got it."
 
 block msg_fixed()
-    say "That is fixed in place."
+    say "${The noun} stays exactly where it is."
 
-block msg_cant_see()
-    say "You can't see that here."
+block msg_take_scenery()
+    say "${The noun} is hardly worth carrying off."
 
 block msg_have_it()
-    say "You already have that."
+    say "You already have ${the noun}."
+
+block msg_take_self()
+    say "You keep a firm grip on yourself."
+
+block msg_dropped()
+    say "Down it goes."
 
 block msg_not_holding()
-    say "You aren't holding that."
-
-block msg_nothing_special()
-    say "You see nothing special."
-
-block msg_carrying()
-    say "You are carrying:"
-
-block msg_empty_handed()
-    say "You are empty-handed."
-
-block msg_dark_room()
-    say "It is pitch dark; you can't see a thing."
-
-block msg_no_switch()
-    say "That isn't something you can switch."
-
-block msg_cant_wear()
-    say "You can't wear that."
-
-block msg_already_worn()
-    say "You're already wearing that."
-
-block msg_worn()
-    say "You put it on."
-
-block msg_not_worn()
-    say "You aren't wearing that."
-
-block msg_removed()
-    say "You take it off."
-
-block msg_put_where()
-    say "Put it where?"
+    say "You aren't carrying ${the noun}."
 
 block msg_done()
     say "Done."
 
-block msg_closed()
-    say "It is closed."
+block msg_put_where()
+    say "On what, or in what?"
 
 block msg_cant_put()
-    say "You can't put things there."
+    say "${The second} won't hold it."
 
+block msg_closed()
+    say "${The second} is shut."
+
+block msg_give()
+    say "${The second} doesn't want ${the noun}. Outrageous."
+
+block msg_show()
+    say "Seems like ${the second} is not really into that."
+
+// Wearing.
+block msg_worn()
+    say "On it goes."
+
+block msg_already_worn()
+    say "You're already wearing ${the noun}."
+
+block msg_cant_wear()
+    say "${The noun} was never meant to be worn."
+
+block msg_removed()
+    say "Off it comes."
+
+block msg_not_worn()
+    say "You aren't wearing ${the noun}."
+
+// Doors, containers, locks.
+block msg_opened()
+    say "Open."
+
+block msg_already_open()
+    say "${The noun} is already open."
+
+block msg_cant_open()
+    say "${The noun} doesn't open."
+
+block msg_open_locked()
+    say "${The noun} is locked."
+
+block msg_closed_it()
+    say "Shut."
+
+block msg_already_shut()
+    say "${The noun} is already shut."
+
+block msg_cant_close()
+    say "${The noun} doesn't close."
+
+block msg_locked()
+    say "Locked."
+
+block msg_cant_lock()
+    say "${The noun} doesn't lock."
+
+block msg_close_first()
+    say "You'd have to close ${the noun} first."
+
+block msg_wrong_key()
+    say "${The second} doesn't fit."
+
+block msg_unlocked()
+    say "Unlocked."
+
+block msg_cant_unlock()
+    say "${The noun} doesn't unlock."
+
+// Operating.
+block msg_no_switch()
+    say "${The noun} isn't the switching kind."
+
+block msg_already_on()
+    say "${The noun} is already on."
+
+block msg_already_off()
+    say "${The noun} is already off."
+
+block msg_no_effect()
+    say "${The noun} holds firm."
+
+// Body, action, idle.
+block msg_attack()
+    say "Hitting things rarely helps, and it won't start now."
+
+block msg_eat()
+    say "${The noun} is not on the menu."
+
+block msg_drink()
+    say "Nothing here is worth a sip."
+
+block msg_jump()
+    say "You hop on the spot. Nothing comes of it, but it felt good."
+
+block msg_wait()
+    say "Time slips by."
+
+block msg_kiss()
+    say "Now is hardly the moment."
+
+block msg_sing()
+    say "You manage a few bars. The room is unmoved."
+
+// Conversation.
+block msg_no_talk()
+    say "${The noun} doesn't seem up for a conversation."
+
+// Inventory.
+block msg_carrying()
+    say "You're carrying:"
+
+block msg_empty_handed()
+    say "You're carrying precisely nothing."
+
+// Scenery default.
 block msg_scenery()
     say "Just some scenery. Don't worry about it."
 
-// Printed when the first word names no verb or direction. (Placeholder voice;
-// the standard message set gets its fresh wording in B5.)
+// Printed when the first word names no verb or direction.
 block msg_no_verb()
-    say "That's not a verb I recognise."
+    say "Those words don't add up to anything."
 
 // Ask the player to confirm quitting; returns 1 for yes. The question and the
 // yes test (a leading 'y') are English, so they live in the language layer.
@@ -194,7 +329,7 @@ block confirm_quit()
 
 // The farewell, overridable for a custom send-off.
 block msg_farewell()
-    say "Thanks for playing."
+    say "We'll leave it there."
 
 // One line of an inventory listing; a worn item is tagged.
 block list_held(obj)

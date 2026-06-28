@@ -71,9 +71,9 @@ def test_object_verbs_on_frotz(tmp_path):
         [_frotz(), "-p", str(story)], input=script,
         capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "That is fixed in place." in out  # take a fixed object
+    assert "The marble statue stays exactly where it is." in out  # take a fixed object
     assert "It glitters." in out  # examine
-    assert "Taken." in out  # take default
-    assert "You are carrying:" in out and "gold coin" in out  # inventory
+    assert "Got it." in out  # take default
+    assert "You're carrying:" in out and "gold coin" in out  # inventory
     assert "You cannot bear to part with the gem." in out  # on drop override
-    assert "It is pitch dark; you can't see a thing." in out  # darkness
+    assert "Pitch black. Even your hands have gone missing." in out  # darkness

@@ -53,5 +53,5 @@ def test_movement_on_frotz(tmp_path):
     ).stdout
     assert "The Study" in out  # walked north through a static exit
     assert "The south door is locked." in out  # on go south override fired
-    assert "You can't go that way." in out  # east has no exit
+    assert "There's no exit in that direction." in out  # east has no exit
     assert out.count("The Hall") >= 2  # started in the hall and walked back

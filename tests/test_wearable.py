@@ -47,10 +47,10 @@ def test_wear_remove_on_frotz(tmp_path):
         input="wear scarf\ni\nwear scarf\ndisrobe scarf\ni\n",
         capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "You put it on." in out  # first wear
+    assert "On it goes." in out  # first wear
     assert "wool scarf (worn)" in out  # inventory tags the worn item
-    assert "You're already wearing that." in out  # second wear refused
-    assert "You take it off." in out  # disrobe removes it
+    assert "You're already wearing the wool scarf." in out  # second wear refused
+    assert "Off it comes." in out  # disrobe removes it
     # after removal, inventory shows it without the worn tag
-    tail = out.rsplit("You take it off.", 1)[1]
+    tail = out.rsplit("Off it comes.", 1)[1]
     assert "wool scarf" in tail and "wool scarf (worn)" not in tail
