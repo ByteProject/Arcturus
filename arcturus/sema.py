@@ -525,8 +525,9 @@ class Analyzer:
     def _resolve_is(self, expr: ast.IsTest, locals_: set) -> None:
         self._check_expr(expr.left, locals_)
         right = expr.right
-        # A bare identifier naming a boolean property is a property test;
-        # otherwise the comparison is an equality (docs/01 section 9).
+        # A bare identifier naming a boolean property is a property test; a kind
+        # name is a kind-membership test; otherwise the comparison is an equality
+        # (docs/01 section 9).
         if isinstance(right, ast.Name):
             prop = self.world.properties.get(right.ident)
             is_obj = (
@@ -541,6 +542,9 @@ class Analyzer:
                         expr.line,
                     )
                 self.world.is_resolutions[id(expr)] = wm.IS_PROPERTY
+                return
+            if right.ident in self.world.kinds:
+                self.world.is_resolutions[id(expr)] = wm.IS_KIND
                 return
         self.world.is_resolutions[id(expr)] = wm.IS_EQUALITY
         self._check_expr(right, locals_)

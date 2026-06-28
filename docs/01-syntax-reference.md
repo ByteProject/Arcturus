@@ -342,10 +342,20 @@ if lantern is lit
 if door is not locked
 ```
 
-Disambiguation: when the right operand is a bare identifier naming a boolean
-property of the left operand's kind, `is` is a property test; otherwise it is
-equality. A name that is both a boolean property and an object used with `is`
-is a compile-time clash to rename.
+Kind-membership test: `<obj> is <kind>` and `<obj> is not <kind>` when the right
+side names a kind, testing whether the object is of that kind (any kind in its
+chain):
+
+```
+if hook is supporter
+if noun is not container
+```
+
+Disambiguation: when the right operand is a bare identifier, `is` is a property
+test if it names a declared boolean property, a kind-membership test if it names
+a kind, and otherwise an equality. A name that is both a boolean property and an
+object (or a kind and an object) used with `is` is a compile-time clash to
+rename.
 
 Logic: `and`, `or`, `not`, short-circuiting.
 Property read with the dot, chainable: `ruby.value`, `hallway.north.name`.

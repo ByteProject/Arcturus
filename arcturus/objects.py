@@ -44,6 +44,7 @@ _SPECIAL = {"name", "words"}
 class Layout:
     obj_number: dict[str, int] = field(default_factory=dict)
     attr_number: dict[str, int] = field(default_factory=dict)
+    kind_attr: dict[str, int] = field(default_factory=dict)  # kind name -> attribute
     prop_number: dict[str, int] = field(default_factory=dict)
     table: bytearray = field(default_factory=bytearray)
     # (offset within `table`, string id) to patch with a packed string address.
@@ -106,6 +107,14 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
             layout.prop_number[name] = p
             p += 1
 
+    # Kinds get attributes too, so `obj is <kind>` lowers to a test_attr: an
+    # object carries the attribute of every kind in its chain (B4.5c).
+    for kname in sorted(world.kinds):
+        if a >= _MAX_ATTRIBUTES:
+            raise _err("more than 48 attributes (properties plus kinds)")
+        layout.kind_attr[kname] = a
+        a += 1
+
     _emit_table(world, layout)
     return layout
 
@@ -138,6 +147,11 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
             anum = layout.attr_number.get(pname)
             if anum is not None and _bool_value(decl):
                 table[entry + anum // 8] |= 0x80 >> (anum % 8)
+        # Kind-membership attributes: one for each kind in the object's chain.
+        for kname in obj.chain:
+            katt = layout.kind_attr.get(kname)
+            if katt is not None:
+                table[entry + katt // 8] |= 0x80 >> (katt % 8)
         # A v4+ object entry is 14 bytes: six attribute bytes (set above), then
         # the parent, sibling, and child object numbers as 16-bit words, then a
         # pointer to this object's property table (standard 1.1, section 12.3.2).

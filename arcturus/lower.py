@@ -141,6 +141,9 @@ class Context:
     def attr_number(self, name: str):
         return None if self.layout is None else self.layout.attr_number.get(name)
 
+    def kind_attr(self, name: str):
+        return None if self.layout is None else self.layout.kind_attr.get(name)
+
     def prop_number(self, name: str):
         return None if self.layout is None else self.layout.prop_number.get(name)
 
@@ -459,6 +462,9 @@ def _emit_test(rt, ctx, expr, label, on_true):
         if res == wm.IS_PROPERTY:
             _attr_test(rt, ctx, expr, label, on_true)
             return
+        if res == wm.IS_KIND:
+            _kind_test(rt, ctx, expr, label, on_true)
+            return
         t = not on_true if expr.negated else on_true
         opa, opb, tmp = _two_operands(rt, ctx, expr.left, expr.right)
         rt.op("je", opa, opb, branch=(label, t))
@@ -481,6 +487,17 @@ def _emit_test(rt, ctx, expr, label, on_true):
     rt.op("jz", op, branch=(label, not on_true))
     if t is not None:
         ctx.free_temp(t)
+
+
+def _kind_test(rt, ctx, expr: ast.IsTest, label, on_true):
+    # `obj is <kind>`: test the kind's attribute (set on every instance of the
+    # kind, B4.5c).
+    att = ctx.kind_attr(expr.right.ident)
+    t = not on_true if expr.negated else on_true
+    objop, tmp = _operand(rt, ctx, expr.left)
+    rt.op("test_attr", objop, Const(att), branch=(label, t))
+    if tmp is not None:
+        ctx.free_temp(tmp)
 
 
 def _attr_test(rt, ctx, expr: ast.IsTest, label, on_true):

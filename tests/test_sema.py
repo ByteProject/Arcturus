@@ -126,6 +126,17 @@ def test_is_property_versus_equality():
     assert vals.count(wm.IS_EQUALITY) == 1
 
 
+def test_is_kind_resolution():
+    w = sema(
+        "thing hook of supporter\n"
+        "    name \"h\"\n"
+        "    on examine\n"
+        "        if hook is supporter\n"
+        "            say \"yes\"\n"
+    )
+    assert wm.IS_KIND in w.is_resolutions.values()
+
+
 def test_is_clash_when_name_is_both_property_and_object():
     expect_error(
         "thing shiny\n"
