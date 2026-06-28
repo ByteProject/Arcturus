@@ -21,6 +21,7 @@ import datetime
 
 from . import __version__
 from . import ast
+from . import cosmos
 from . import dictionary
 from . import objects as objmod
 from . import storyfile
@@ -268,8 +269,12 @@ def banner_text(world: wm.World) -> str:
     author = m.get("author", "Anonymous")
     release = m.get("release", 1)
     serial = m.get("serial") or datetime.date.today().strftime("%y%m%d")
+    cosmos_v = ".".join(cosmos.COSMOS_VERSION.split(".")[:2])
     line2 = f"{headline} by {author}"
-    line3 = f"Release {release} / Serial number {serial} / Arcturus {_compiler_version()}"
+    line3 = (
+        f"Release {release} / Serial number {serial} / "
+        f"Arcturus {_compiler_version()} / Cosmos {cosmos_v}"
+    )
     return f"\n{title}\n{line2}\n{line3}\n\n"
 
 

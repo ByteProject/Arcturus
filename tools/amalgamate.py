@@ -34,7 +34,7 @@ _PACKAGE = "arcturus"
 _MODULE_ORDER = [
     "errors", "tokens", "ast", "lexer", "parser", "prelude", "worldmodel",
     "sema", "zstring", "storyfile", "assembler", "objects", "dictionary",
-    "lower", "codegen", "cosmos", "astdump", "irdump", "cli",
+    "lower", "cosmos", "codegen", "astdump", "irdump", "cli",
 ]
 
 _HEADER = '''#!/usr/bin/env python3
