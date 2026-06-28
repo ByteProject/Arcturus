@@ -21,19 +21,28 @@ The name is a star, Arcturus, and the narrative arc every story is built on.
 
 ## Project status
 
-Arcturus is in **active development and is not yet ready for production**. It
-cannot compile a playable game today. The compiler is being built milestone by
-milestone:
+Arcturus is in **active development**. It is not at a 1.0 release yet, but it
+already compiles complete, playable games. The two worked examples - **The Brass
+Lantern** and the classic **Cloak of Darkness** - compile with the standalone
+`arcc` and are winnable start to finish on Frotz, with the entire Cosmos runtime
+(turn loop, movement, verbs, scope and light, the parser, and scenery) written in
+Arcturus itself. Early days for size, too: Cloak builds to under 6 KB before any
+dedicated size pass.
 
-- **Done:** project scaffold, the language specification, the compiler front
-  end (lexer and parser), semantic analysis with the checked world-model
-  representation, and a Z-machine code generator that emits a valid z5 story
-  file (the smallest program runs on Frotz).
-- **In progress:** the Cosmos library: the parser, the turn loop, and the
-  standard verbs, written in Arcturus.
-- **Next:** a size pass, then graphics, and beyond.
+The road from here, milestone by milestone:
 
-Follow this README's status section and `PROGRESS.md` for where things stand.
+- **Done:** the language spec, the compiler (lexer, parser, semantic analysis,
+  Z-machine code generation), and Cosmos far enough that both example games play
+  end to end.
+- **Next:** a feature-complete library (the full standard verb set, meta verbs,
+  an opt-in status line and extended verbs as summonable granules, and a fresh
+  standard message set), then a size pass benchmarked against PunyInform.
+- **After that:** a modern reference interpreter, the `arc_image` graphics path
+  (modern systems first, then the 8-bit and 16-bit retro machines), and porting
+  two existing games - Ghosts of Blackwood Manor and The Curse of Rabenstein - as
+  the proving ground. Reaching 1.0 is tied to those ports.
+
+Follow this section and `PROGRESS.md` for where things stand.
 
 ## The language
 
@@ -83,23 +92,27 @@ no installation. Build it from the package:
 python3 tools/amalgamate.py build/arcc
 ```
 
-This produces `build/arcc`, the standalone compiler. Run it on an example:
+This produces `build/arcc`, the standalone compiler, with the whole Cosmos
+library embedded inside it - nothing else to install or locate. Compile an
+example to a story file and play it:
 
 ```
-python3 build/arcc examples/brass-lantern.storyarc
+python3 build/arcc examples/brass-lantern.storyarc -o brass-lantern.z5
+frotz brass-lantern.z5
 ```
 
-(While Arcturus is still in development the compiler parses and reports; code
-generation is a coming milestone.) Useful options:
+Useful options:
 
 ```
-python3 build/arcc game.storyarc --dump-ast   # show the parsed syntax tree
-python3 build/arcc -L path/to/cosmos game.storyarc   # add a library search path
+python3 build/arcc game.storyarc -o game.z5    # compile to a z5 story file
+python3 build/arcc game.storyarc --dump-ast    # show the parsed syntax tree
+python3 build/arcc -L path/to/cosmos game.storyarc   # use a forked library
 python3 build/arcc --version
 ```
 
-The `-L` option points the compiler at a shared Cosmos library so a project does
-not have to carry its own copy of the prelude files.
+Cosmos travels inside `arcc`, so the compiler works wherever you put it. To hack
+the library, the `-L` option points at your own copy of the prelude and granule
+files (a forthcoming `--extract-library` writes the embedded copies out for you).
 
 ### Run from the package (for development)
 

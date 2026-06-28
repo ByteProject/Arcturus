@@ -2,8 +2,12 @@
 
 Arcturus is a high-level interactive-fiction language with its own compiler,
 written in Python, that emits standard Z-machine version 5 story files. The
-standard library is named Cosmos. The end goal is to write the final part of
-the Hibernated trilogy in Arcturus.
+standard library is named Cosmos. The end goal is a complete, hackable IF
+toolchain - compiler, editable library, a modern reference interpreter, and an
+optional `arc_image` graphics path down to 8-bit machines - validated by porting
+two existing games to Arcturus: Ghosts of Blackwood Manor (text) and The Curse of
+Rabenstein (from DAAD, the graphics testbed). Writing Hibernated 3 stays Stefan's
+own goal, pursued separately; this project stays focused on Arcturus itself.
 
 This file is the standing context for the project. Read it first, then the
 three specifications under docs/, which are authoritative.
