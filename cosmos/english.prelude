@@ -21,6 +21,20 @@ block resolve_verb()
         return 0
     return peek_byte(d + 7)
 
+// The chosen direction's property number, from the first direction word typed
+// (a direction word's dictionary entry is flagged with bit 6, and byte 2 holds
+// the direction property). Returns nothing if no direction was named.
+block find_direction()
+    let n = word_count()
+    let i = 0
+    while i < n
+        let d = word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 64
+                return peek_byte(d + 8)
+        change i to i + 1
+    return nothing
+
 // Does the object's vocabulary include this dictionary word?
 block has_word(obj, target)
     let addr = words_addr(obj)
@@ -54,6 +68,13 @@ block list_item(obj)
     show("You can see ")
     print_name(obj)
     say " here."
+
+// Movement responses.
+block msg_cant_go()
+    say "You can't go that way."
+
+block msg_no_direction()
+    say "Go where?"
 
 // Match a noun: the first typed word after the verb that names an object in
 // scope (the room, then what the player carries). Adjective scoring and full

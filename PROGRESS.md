@@ -217,7 +217,7 @@ Decisions (Stefan, this session):
 
 Sub-step order (each ends green; one Frotz hand-off at .6):
 .1 turn-loop spine + banner + on start + each_turn + room description + look  [DONE]
-.2 movement (go + directions; DynDot here.(dir); on go <dir>; cant-go default)
+.2 movement (go + directions; DynDot here.(dir); on go <dir>; cant-go default)  [DONE]
 .3 object verbs take/drop/inventory/examine + defaults + swappable messages
 .4 multi-word (particle) + two-noun (put on/hang) + wear/take_off
 .5 scenery grains (examine "string") + msg_scenery default + on enter wiring
@@ -254,6 +254,28 @@ B4.5e.1 done (committed). What landed:
   the value = two pops) -> stack underflow. Now discards into a scratch temp.
   Also read_line now clears text-buffer byte 1 each read (v5 "inconsistent
   input buffer"). tests/test_loop.py. 164 tests pass.
+
+B4.5e.2 done (committed). Movement:
+- `way` global (chosen direction's property number; builtin, writable). DynDot
+  here.(way) lowers to get_prop with a variable property operand. set_here
+  intrinsic (here is read-only to authors).
+- Direction words (north/n/.../in/out) added to the dictionary, flagged bit 6,
+  data byte1 = go action, byte2 = the direction property number
+  (dictionary._DIRECTION_WORDS, English -> language pack later). build_story
+  passes dictionary.direction_props(layout).
+- english.prelude find_direction (scans tokens for a direction word -> its prop);
+  parser.prelude sets `way` each turn. verbs.prelude: go verb + default `on go`
+  (follow the static exit, fire enter, reconcile here after a bounce, describe;
+  else msg_cant_go / msg_no_direction). loop.prelude fire_enter block; run_game
+  does `move player to here` at startup.
+- Operand-pattern dispatch: `on go <direction>` handlers are now included in
+  react, guarded by `way == <direction prop>` (codegen._is_dir_pattern;
+  gen_react_routines/_gen_react take layout+gmap). Other operand patterns
+  (noun/string) still deferred (.4/.5). Computed exits (block-valued directions,
+  tier 2) and `on go other` (tier 4) deferred - examples do not use them.
+- Verified on Frotz: brass north groped back to the hallway (enter bounce),
+  south = can't go; cloak north = the foyer override, west = real exit.
+  tests/test_movement.py. 166 tests pass.
 
 - Turn loop (`cosmos/loop.prelude`, called from the entry instead of the current
   banner+on-start main): describe the room on entry (name, desc via print_paddr,

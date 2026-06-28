@@ -19,5 +19,6 @@ block parse()
     let act = resolve_verb()
     if act is 0
         return 0
+    change way to find_direction()
     change noun to match_noun()
     return act

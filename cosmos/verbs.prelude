@@ -16,3 +16,26 @@ verb "look", "l"
 
 on look
     describe_room()
+
+
+// Movement. The parser sets `way` to the chosen direction's property (a bare
+// direction word, or go + a direction). A room can override one direction with
+// its own `on go <direction>`, which runs first and consumes the action; this
+// default handles the rest: follow a static exit, or refuse the move.
+verb "go", "walk", "run"
+    go
+
+on go
+    if way is nothing
+        msg_no_direction()
+        stop
+    let dest = here.(way)
+    if dest is nothing
+        msg_cant_go()
+        stop
+    move player to dest
+    set_here(dest)
+    fire_enter()
+    set_here(parent_of(player))
+    now here is visited
+    describe_room()
