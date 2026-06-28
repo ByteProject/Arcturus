@@ -62,6 +62,19 @@ def test_entries_are_sorted_six_byte_words():
     assert data[offsets["lamp"] : offsets["lamp"] + 6] == zstring.encode_dict_word("lamp")
 
 
+def test_verb_words_carry_their_action():
+    from arcturus.codegen import _action_numbers
+
+    w = world()
+    actions = _action_numbers(w)
+    data, off = dictionary.build(w, actions)
+    # 'take'/'get' are verb words for the take action; 'lamp' is a plain noun.
+    for verb in ("take", "get"):
+        flags, action = data[off[verb] + 6], data[off[verb] + 7]
+        assert flags & 0x80 and action == actions["take"]
+    assert data[off["lamp"] + 6] & 0x80 == 0  # not a verb
+
+
 # -- end to end on Frotz: read a line, echo per-word recognition -----------
 
 
