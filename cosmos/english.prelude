@@ -167,6 +167,9 @@ block msg_closed()
 block msg_cant_put()
     say "You can't put things there."
 
+block msg_scenery()
+    say "Just some scenery. Don't worry about it."
+
 // One line of an inventory listing.
 block list_held(obj)
     show("  ")
@@ -201,6 +204,7 @@ block match_noun()
 block resolve_objects()
     change noun to nothing
     change second to nothing
+    change grain to 0
     let d = word_dict(0)
     if d is not nothing
         if peek_byte(d + 6) is 128
@@ -208,7 +212,24 @@ block resolve_objects()
                 resolve_two_nouns()
                 return 1
     change noun to match_noun()
+    if noun is nothing
+        change grain to find_scenery()
     return 1
+
+// A scenery grain word (flagged bit 4) whose owner is in scope; returns the
+// grain id (so dispatch can route to its response or the scenery default).
+block find_scenery()
+    let n = word_count()
+    let i = 1
+    while i < n
+        let d = word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 16
+                let owner = peek_byte(d + 8)
+                if in_scope(owner)
+                    return peek_byte(d + 7)
+        change i to i + 1
+    return 0
 
 // Two distinct in-scope objects: the first becomes the noun, the next different
 // one the second. The preposition between them is simply skipped (it names no

@@ -71,10 +71,11 @@ def _react_objects(world: wm.World, actions: dict) -> set:
     }
 
 
-def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gmap=None) -> list:
+def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gmap=None, pool=None) -> list:
     """A react_<obj> routine for every object that has react handlers, calling
     the per-handler routines by their registry names. layout/gmap are needed only
-    to guard `on go <direction>` overrides on the chosen direction."""
+    to guard `on go <direction>` overrides on the chosen direction. Also emits
+    react_free and the grain routines so the dispatcher can call them all."""
     hname = {id(h): nm for h, nm in registry}
     out = []
     for objname, obj in world.objects.items():
@@ -85,10 +86,72 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
         for action, h in pairs:
             groups.setdefault(action, []).append((hname[id(h)], h))
         out.append(_gen_react(objname, groups, actions, layout, gmap))
-    # react_free is always present (even empty) so the turn loop and dispatcher
-    # can call it unconditionally.
+    # react_free and grain_dispatch are always present (even empty) so the turn
+    # loop and dispatcher can call them unconditionally.
     out.append(gen_react_free(world, actions, registry))
+    out.extend(gen_grain_routines(world, actions, gmap, layout, pool))
     return out
+
+
+def _all_grains(world: wm.World):
+    """Every grain attached to an object, as (index, grain, owner_name), in a
+    deterministic order shared by codegen and the dictionary. Kind grains are not
+    placed yet (they would need per-instance scope)."""
+    out = []
+    for objname, obj in world.objects.items():
+        for grain in obj.grains:
+            out.append((len(out), grain, objname))
+    return out
+
+
+def gen_grain_routines(world, actions, gmap, layout, pool) -> list:
+    """A grain<i>(action) routine per grain (answer the grain's verbs, else the
+    scenery default) plus grain_dispatch(id, action) that routes to it. Grains are
+    scenery: words with a response but no object entry (docs/01 section 14).
+    grain_dispatch is always emitted (even with no grains) so Cosmos dispatch can
+    call it unconditionally."""
+    grains = _all_grains(world)
+    routines = []
+    for idx, grain, owner in grains:
+        routines.append(_compile_grain(world, gmap, layout, pool, grain, idx, owner, actions))
+    disp = Routine("grain_dispatch", nlocals=2)  # local 1 = id (index+1), 2 = action
+    for idx, _g, _o in grains:
+        disp.op("je", Variable(1), Const(idx + 1), branch=(f"g{idx}", True))
+    disp.op("ret", Const(0))
+    for idx, _g, _o in grains:
+        disp.label(f"g{idx}")
+        disp.op("call_vn", RoutineRef(f"grain{idx}"), Variable(2))
+        disp.op("ret", _CONST_ONE)
+    routines.append(disp)
+    return routines
+
+
+def _compile_grain(world, gmap, layout, pool, grain, idx, owner, actions) -> Routine:
+    """grain<i>(action): if the action is one the grain answers, run its response;
+    otherwise print the scenery default. The grain always consumes the action."""
+    owner_num = layout.obj_number.get(owner, 0)
+    ctx = Context(
+        world, gmap, params=["__action__"], layout=layout,
+        in_handler=True, string_pool=pool, self_value=Const(owner_num),
+    )
+    if grain.say is not None:
+        body = [ast.Say(grain.say)]
+    elif grain.do is not None:
+        body = [ast.ExprStmt(ast.Call(grain.do, []))]
+    else:
+        body = grain.body
+    rt = Routine(f"grain{idx}", nlocals=1)
+    for v in grain.verbs:
+        if v in actions:
+            rt.op("je", Variable(1), Const(actions[v]), branch=("respond", True))
+    rt.op("call_vn", RoutineRef("blk_msg_scenery"))  # an unanswered verb: scenery
+    rt.op("ret", _CONST_ONE)
+    rt.label("respond")
+    ctx.prescan(body)
+    compile_block(rt, ctx, body)
+    rt.op("ret", _CONST_ONE)
+    rt.nlocals = ctx.nlocals()
+    return rt
 
 
 def _free_react_handlers(world: wm.World, actions: dict):
@@ -220,7 +283,7 @@ def _start_handler(world: wm.World):
 
 # Builtin references get fixed global slots; game globals follow. turns/score/
 # max_score are numbers; player/here/noun/second hold object numbers at run time.
-_BUILTIN_GLOBALS = ["turns", "score", "max_score", "player", "here", "noun", "second", "way"]
+_BUILTIN_GLOBALS = ["turns", "score", "max_score", "player", "here", "noun", "second", "way", "grain"]
 
 
 def _globals_map(world: wm.World) -> dict:
@@ -266,7 +329,15 @@ def build_story(
     static_base = sf.here()
     abbrev_addr = sf.append(bytes(_ABBREV_BYTES))
     dprops = dictionary.direction_props(layout) if layout is not None else None
-    dict_bytes, word_offsets = dictionary.build(world, _action_numbers(world), dprops)
+    # Scenery grain words: word -> (grain id, owner object), shared with codegen's
+    # grain routine indices.
+    scenery = {}
+    if layout is not None:
+        for idx, grain, owner in _all_grains(world):
+            onum = layout.obj_number.get(owner, 0)
+            for w in grain.words:
+                scenery[w.lower()] = (idx + 1, onum)
+    dict_bytes, word_offsets = dictionary.build(world, _action_numbers(world), dprops, scenery)
     dict_addr = sf.append(dict_bytes)
 
     # High memory: the entry stub and routines, run from the initial PC.
@@ -436,7 +507,7 @@ def generate(world: wm.World) -> bytes:
     entry.op("quit")
 
     main, routines, registry = build_routines(world, gmap, layout, pool)
-    react_routines = gen_react_routines(world, actions, registry, layout, gmap)
+    react_routines = gen_react_routines(world, actions, registry, layout, gmap, pool)
 
     return build_story(
         world,

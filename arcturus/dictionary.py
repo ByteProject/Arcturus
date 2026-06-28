@@ -35,6 +35,7 @@ _ENTRY_LEN = 6 + _DATA_BYTES
 _VERB_FLAG = 0x80
 _DIR_FLAG = 0x40
 _PARTICLE_FLAG = 0x20
+_SCENERY_FLAG = 0x10  # a grain word: data byte 1 = grain id (index+1), byte 2 = owner object
 
 # Verb particles for multi-word verbs (switch on, take off). English; moves into
 # the language pack when localized. up/down/in/out are omitted (they are
@@ -123,11 +124,12 @@ def _verb_actions(world: wm.World, action_numbers) -> dict:
     return out
 
 
-def build(world: wm.World, action_numbers=None, direction_props=None) -> tuple[bytes, dict]:
+def build(world: wm.World, action_numbers=None, direction_props=None, scenery=None) -> tuple[bytes, dict]:
     """Return the dictionary bytes and a word -> offset (within the dictionary)
-    map for the entry each word resolves to. Verb words carry their action, and
-    direction words (from direction_props: word -> property number) carry the go
-    action and the direction property, in their data bytes."""
+    map for the entry each word resolves to. Verb words carry their action,
+    direction words carry the go action and the direction property, and scenery
+    (grain) words (from `scenery`: word -> (grain id, owner object)) carry their
+    grain, in their data bytes."""
     words = set(collect_vocab(world))
     if direction_props:
         words |= set(direction_props)
@@ -145,6 +147,9 @@ def build(world: wm.World, action_numbers=None, direction_props=None) -> tuple[b
             enc_data[encoded[word]] = bytes([_DIR_FLAG, go & 0xFF, prop & 0xFF])
     for word, pid in _PARTICLE_WORDS.items():
         enc_data[encoded[word]] = bytes([_PARTICLE_FLAG, pid, 0])
+    if scenery:
+        for word, (gid, owner) in scenery.items():
+            enc_data[encoded[word]] = bytes([_SCENERY_FLAG, gid & 0xFF, owner & 0xFF])
     # Distinct entries, sorted by encoded bytes for binary search.
     distinct = sorted(set(encoded.values()))
 
