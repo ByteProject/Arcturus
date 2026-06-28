@@ -146,6 +146,7 @@ class Block:
     params: list[str]
     body: list[ast.Stmt]
     line: int = 0
+    origin: str = "game"  # library / granule / game; see ast.BlockDecl
 
 
 # How an `is` test resolved (docs/01 section 9).
