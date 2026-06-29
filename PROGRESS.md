@@ -543,13 +543,14 @@ container model.)
 CONTAINER SCOPE AND KNOWLEDGE MODEL (settled with Stefan, 2026-06-29; a core
 parser/world-model improvement, NOT a granule - "better than Inform" for
 containers). Two layers:
-- Layer 1, SCOPE: the parser's noun-matcher (scope_match/match_noun/find_word in
-  english.prelude) recurses into objects in scope, matching the rule in_scope()
-  already uses: an object inside a container is reachable iff the container is in
-  scope AND (it is `open` OR `clear`); a supporter's contents are reachable when
-  the supporter is. New standard attribute `clear` (Inform's `transparent`,
-  renamed - Stefan). This fixes nested-object matching (the coin-in-an-open-box
-  case that read as a parser bug).
+- Layer 1, SCOPE: DONE (committed). scope_match now recurses via scope_match_in +
+  see_into (english.prelude), matching the in_scope rule: an object inside a
+  container is reachable iff the container is in scope AND (it is `open` OR
+  `clear`); a supporter's contents are reachable when the supporter is. New
+  standard attribute `clear` (Inform's `transparent`, renamed). Fixes the
+  coin-in-an-open-box matching; closed opaque containers shield their contents.
+  find_word removed (scope_match_in subsumes it). tests/test_container_scope.py
+  (open/closed/clear/supporter). brass +84 bytes for the recursion.
 - Layer 2, KNOWLEDGE (the major improvement): new standard attribute `seen`,
   auto-set whenever an object is described/listed to the player. A closed OPAQUE
   container lists its already-seen contents for memory; contents never seen stay

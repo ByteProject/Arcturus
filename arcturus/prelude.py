@@ -86,6 +86,10 @@ _STD_BOOL_PROPS = [
     "fixed", "scenery", "hidden", "concealed", "wearable", "worn", "lit",
     "edible", "named", "switchable", "openable", "open", "lockable", "locked",
     "visited",
+    # A see-through container: you can see and reach its contents even when it is
+    # closed (a glass jar). Our equivalent of Inform's `transparent`. An open or
+    # `clear` container puts its contents in scope; a closed opaque one does not.
+    "clear",
     # Set the first time the player takes an object; while clear, the object
     # shows its `intro` text in a room description instead of the plain listing.
     "moved",

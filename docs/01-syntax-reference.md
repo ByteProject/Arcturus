@@ -268,6 +268,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `switchable` | Can be switched on and off; the `switch` verb applies. |
 | `openable` | Can be opened and closed; the `open` / `close` verbs apply. |
 | `open` | Currently open (a container or door). Set by `open`, cleared by `close`. A closed container hides its contents from scope. |
+| `clear` | A see-through container (a glass jar): its contents are in scope and referable even when closed. An open or `clear` container exposes its contents; a closed opaque one shields them. |
 | `lockable` | Can be locked and unlocked with a key (`lock` / `unlock`). |
 | `locked` | Currently locked; blocks `open` until unlocked with the matching key. |
 | `visited` | The room has been entered before (Cosmos sets it on entry). Use it to vary a room's description on return. |
