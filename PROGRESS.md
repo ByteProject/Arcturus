@@ -779,6 +779,16 @@ file), the arcabbr abbreviation pipeline, and codegen tightening. Target: a
 representative game strictly under its PunyInform-equivalent size (Cloak is 27K
 in Puny). Measured with the full library in place. See [[size-benchmark-puny]].
 
+- [ ] DCE MUST prune UNREFERENCED PRELUDE BLOCKS (reachability sweep over the
+  call graph from the entry, drop any block nothing reaches). Today codegen
+  compiles every world.blocks entry unconditionally, so feature-only wording that
+  correctly lives in english.prelude still ships into games that never touch the
+  feature. Concrete first case: line_you / line_reply / line_end (the you/reply
+  topic framing) cost ~64 bytes on brass/cloak even though those games have no
+  conversations. The placement is right (the language layer is english.prelude);
+  the gap is only that unreferenced library blocks are not yet stripped. This
+  sweep also trims the ~70 message + ~45 verb routines currently shipped wholesale.
+
 ASK/TELL CONVERSATION EXAMPLE: DEFERRED until the topic system is complete (a
 draft conversation.storyarc was made and then removed - premature, and the name
 clashed with conversations.granule). When built, give it a NON-"conversation"
