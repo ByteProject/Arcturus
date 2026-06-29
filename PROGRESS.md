@@ -694,12 +694,28 @@ TOPIC SYSTEM is mid-build. Sub-steps:
   unknown subject -> default). Example sizes unchanged (dispatch is in the
   granule). docs/verb-set.md conversation rows updated. STILL TODO in sub-step 5:
   gate converse OFF when conversations is summoned (redirect to TALK TO).
-- [ ] 4. NEXT: conversations granule: talk to <animate> paints the visible topic labels
-  as a numbered menu in the upper window (reuse statusline's split_window/
-  set_window/set_cursor), reads a choice, runs that topic's body, redraws until
-  exit. Wins over ask/tell.
-- [ ] 5. mutual exclusion wiring (conversations present -> ask/tell topic path off;
-  ask/tell then redirect "just TALK TO her").
+- [x] 4. conversations granule DONE (this commit). cosmos/conversations.granule:
+  TALK TO a person lists their visible topics as a NUMBERED menu, press the
+  number to run one (read_key -> the new read_char VAR opcode 0x16), the exchange
+  prints, the menu redraws as topics reveal/retire/unlock, 0 or ENTER ends it.
+  CLEAN INLINE design (Stefan: Puny's upper-window talk menu is ugly UX, ours is
+  sugar): prints in the MAIN window, single keypress, no split_window/paging/dash
+  separators. SEAM: base `on talk` now calls a block talk_to(person) (default =
+  msg_no_talk in verbs.prelude); conversations overrides talk_to -> run_talk (a
+  granule block overrides a library block, sema line 131). run_talk loop:
+  count_visible/draw_menu/menu_choice/run_nth, all overridable blocks. NEW:
+  assembler read_char (VAR 0x16, stores), lower read_key() intrinsic. Proven on
+  Frotz (tests/test_conversations.py: numbered menu, reveal adds an option, once
+  retires it, 0 exits, clean return). Examples +12 bytes (talk_to seam, always
+  referenced). docs/02 section 14 + docs/04 section 8 updated.
+- [ ] 5. NEXT: mutual exclusion wiring (conversations present -> ask/tell topic path off;
+  ask/tell then redirect "just TALK TO her"). PLAN: a library-default block
+  (e.g. `block conversation_is_menu() return 0` in a prelude) that conversations
+  overrides to return 1; extendedverbs' on ask/tell gate converse on it and
+  redirect when the menu owns talking. Must be a LIBRARY block both granules
+  reference (a granule cannot override another granule's block - sema 131 only
+  lets non-library override library; two granules -> duplicate error). Also build
+  a conversations showcase .storyarc once the exclusion lands.
 KEY FILES for the runtime: objects.py (emit a per-object topic table like the
 words array), codegen.py (gen topic body routines like react/grain routines),
 lower.py (lower ast.Line / ast.TopicToggle), cosmos/extendedverbs.granule (ask/

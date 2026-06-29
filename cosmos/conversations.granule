@@ -1,0 +1,105 @@
+// conversations.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// summon.conversations: the menu presentation of the `topic` model. TALK TO a
+// person and their topics in view are listed as a numbered menu; press the
+// number to ask that one. The exchange prints, the menu returns updated (topics
+// reveal, retire, or unlock by `when` exactly as in the ask/tell path), and 0 or
+// ENTER ends it. This is the same topic model the extendedverbs ask/tell path
+// uses, just shown as a list instead of typed by subject; the two are two views
+// of one thing and are mutually exclusive (the menu wins; the mutual-exclusion
+// wiring is the next pass).
+//
+// Deliberately simpler than a fixed upper-window menu: it prints inline in the
+// main window and selects with a single keypress, so there is no window juggling
+// and it reads cleanly. Every line of wording is an overridable block.
+
+// Override the base talk_to seam: talking to a person opens the topic menu.
+block talk_to(person)
+    run_talk(person)
+
+// The menu loop: draw, read a choice, run that topic, repeat until the player
+// steps back or the topics run dry.
+block run_talk(person)
+    if count_visible(person) is 0
+        msg_no_topics()
+        return 0
+    let talking = 1
+    while talking is 1
+        draw_menu(person)
+        let pick = menu_choice(count_visible(person))
+        if pick is 0
+            change talking to 0
+        else
+            run_nth(person, pick)
+            if count_visible(person) is 0
+                change talking to 0
+    msg_talk_over()
+
+// Print the numbered list of the topics currently in view.
+block draw_menu(person)
+    par()
+    say "Talk to ${the person} about:"
+    let i = 0
+    let n = 0
+    while i < topics_count(person)
+        if topic_visible(person, i)
+            change n to n + 1
+            show("  ")
+            show(n)
+            show(". ")
+            topic_label(person, i)
+            say ""
+        change i to i + 1
+    say "(Press a number to ask, or 0 to step back.)"
+
+// Read keypresses until one is a valid choice: a digit 1..count returns that
+// number; 0, ENTER, or Q ends the conversation (returns 0). Anything else is
+// ignored and we read again, so a stray key does not redraw or exit.
+block menu_choice(count)
+    while true
+        let key = read_key()
+        if key is 13
+            return 0
+        if key is 48
+            return 0
+        if key is 81
+            return 0
+        if key is 113
+            return 0
+        let pick = key - 48
+        if pick >= 1
+            if pick <= count
+                return pick
+
+// How many of the person's topics are in view right now.
+block count_visible(person)
+    let i = 0
+    let n = 0
+    while i < topics_count(person)
+        if topic_visible(person, i)
+            change n to n + 1
+        change i to i + 1
+    return n
+
+// Run the pick-th visible topic (counting from 1, in declaration order), which
+// is exactly how draw_menu numbered them.
+block run_nth(person, pick)
+    let i = 0
+    let n = 0
+    while i < topics_count(person)
+        if topic_visible(person, i)
+            change n to n + 1
+            if n is pick
+                topic_run(person, i)
+                return 0
+        change i to i + 1
+
+// Wording, all overridable.
+block msg_no_topics()
+    say "You can't think of anything worth raising right now."
+
+block msg_talk_over()
+    say "You let the conversation rest there."

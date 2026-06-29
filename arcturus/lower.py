@@ -62,6 +62,9 @@ INTRINSICS = frozenset({
     # par requests a paragraph break before the next printed text (the library
     # controls vertical spacing; the print layer honors the flag).
     "par",
+    # read_key reads a single keypress (no echo, no Enter) and returns its ZSCII
+    # code, for the conversations menu's press-a-number selection.
+    "read_key",
     # do_quit ends the session (the quit opcode); text_char reads a typed
     # character from the input buffer (for a yes/no confirmation). do_restart
     # restarts the story from the beginning (the restart opcode). do_save /
@@ -507,6 +510,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         if slot is not None:
             rt.op("store", Const(slot), Const(1))
         _place(rt, Const(0), dest)
+    elif name == "read_key":
+        # read_key(): read one keypress, returning its ZSCII code. The first
+        # read_char operand is the input device, always 1 in v5.
+        rt.op("read_char", Const(1), store=dest)
     elif name == "do_quit":
         # do_quit(): end the session.
         rt.op("quit")

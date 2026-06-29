@@ -418,12 +418,14 @@ that enters the build only when summoned, so dead-code elimination keeps an
 unsummoned feature out of the story file entirely. Only the core Cosmos library
 is `.prelude`; everything opt-in here is a granule.
 
-`summon.conversations`. The talk-menu system, the equivalent of PunyInform's
-talk_menu. A person gains conversation topics, each a quip with an optional
-guard and an optional one-shot flag. `talk to <person>` presents the
-available topics as a numbered menu; selecting one prints its response and
-may change state, reveal or retire topics, or end the conversation. A sketch
-of the authoring surface:
+`summon.conversations`. The menu presentation of the `topic` model. `talk to
+<person>` lists the topics in view as a numbered menu; the player presses the
+number to ask one, the exchange prints, and the menu redraws (topics reveal,
+retire, or unlock by `when` exactly as on the ask/tell path) until 0 or ENTER
+ends it. The menu prints inline in the main window and selects with a single
+keypress (the `read_key` intrinsic, backed by the `read_char` opcode), so there
+is no upper-window juggling; every line of wording is an overridable block
+(`draw_menu`, `msg_no_topics`, `msg_talk_over`). A sketch:
 
 ```
 summon.conversations
@@ -431,16 +433,20 @@ summon.conversations
 thing barman of person in bar
     name "barman"
 
-    topic "Ask about the cloak" when player holds cloak
-        say "He eyes the black velvet. \"Best hang that up,\" he says."
+    topic cloak "the cloak" words cloak when player holds cloak
+        you "About this cloak of yours."
+        reply "Best hang that up, sir. It unsettles the regulars."
 
-    topic "Ask about the message" once
-        say "\"Folk scrawl all sorts in the dark,\" he shrugs."
+    topic message "the message" words message once
+        reply "Folk scrawl all sorts in the dark. I pay it no mind."
 ```
 
-Topics with `when` appear only when their condition holds; `once` topics
-retire after use. The exact menu rendering and selection handling are part of
-the conversations feature source and may evolve.
+This is the same `topic` construct the Infocom-style ask/tell path uses (docs/01
+section 14, the extendedverbs verbs): `words` are the ask/tell subject words,
+`when` gates visibility, `hidden` plus `reveal`/`hide` unlock by name, `once`
+retires after use, and `you`/`reply`/`say` form the exchange. The two are two
+views of one model and are mutually exclusive: when conversations is summoned the
+menu owns talking and the ask/tell topic dispatch steps aside.
 
 `summon.language "<name>"`. Localization. A language pack is a granule (for
 example `cosmos/lang/spanish.granule`) selected by this directive, English
