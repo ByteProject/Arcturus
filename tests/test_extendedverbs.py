@@ -54,10 +54,10 @@ def test_extended_verbs_on_frotz(tmp_path):
         capture_output=True, text=True, timeout=15,
     ).stdout
     assert "You find gold coin." in out  # search lists the chest's contents
-    assert "to dig here" in out  # an intransitive flavor verb
-    assert "fine idea in principle" in out  # think
-    assert "You give the grey pebble a polish." in out  # rub default on an object
-    assert "has nothing to say" in out  # ask a living thing (flavor)
+    assert "The ground keeps its secrets." in out  # an intransitive flavor verb (dig)
+    assert "A fine idea. Nothing comes of it." in out  # think
+    assert "You polish the grey pebble." in out  # rub default on an object
+    assert "stays mum" in out  # ask a living thing (flavor)
     assert "The guard does not enjoy that." in out  # the guard's own on rub overrides
     assert "You have scored 0 of a possible 0" in out  # fullscore breakdown
 
@@ -70,5 +70,5 @@ def test_unsummoned_verbs_are_unknown_on_frotz(tmp_path):
         [_frotz(), "-p", str(story)],
         input="dig\n", capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "to dig here" not in out  # the verb is not in the build
+    assert "keeps its secrets" not in out  # the dig verb is not in the build
     assert "don't add up" in out  # the standard unknown-verb reply
