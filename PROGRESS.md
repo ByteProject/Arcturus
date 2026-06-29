@@ -541,9 +541,45 @@ reference doc (B5.6). Full granule set settled with Stefan:
   passes its -L + the story dir. Unsummoned granules are never read, so never
   ship. tests/test_summon.py (override wins on Frotz; unknown-feature and
   missing-file errors).
-- B5.5b: extendedverbs. NOT trivial - it carries the Infocom-style ask/tell/
-  answer TOPIC conversation system plus search/look_under/throw etc. (the E side
-  of docs/verb-set.md). The topic-driven conversation path lives here.
+- B5.5b: extendedverbs. Two passes. v1 = the plain E verbs (search, look_under,
+  throw, empty, set, rub, squeeze, tie, cut, dig, fill, burn, blow, wave, sit,
+  stand, sleep, swim, swing, think, pray, buy, consult, shout, fullscore +
+  ask/ask_for/tell/answer with FLAVOR defaults), mirroring the sensory pattern;
+  messages live in the granule (message-set.md defers them). search lists
+  contents, empty tips out, fullscore breaks down score. NO new syntax - build
+  anytime. v2 = the ask/tell TOPIC dispatch on the conversation model below.
+
+CONVERSATION MODEL (settled with Stefan, 2026-06-29; the spec for B5.5b v2 +
+B5.5e). Studied Puny's ext_talk_menu.h (../PunyInform/lib) - powerful but a
+NIGHTMARE: positional flat talk_array rows, hand-managed integer topic IDs,
+trailing-int follow-up lists, a separate hand-numbered ext_flags system, and
+imperative ActivateTopic/InactivateTopic + a TalkRoom class. We keep the
+capability, drop the bookkeeping, because we own the compiler. The Arcturus model:
+- One unified `topic` declaration per person (Option A), feeding BOTH presentations:
+  `topic <subject> "<menu label>" [words a, b] [when <cond>] [once] [hidden]` with
+  a body. <subject> is a barename id; the string is the menu label; `words`
+  (OPTIONAL) are the ask/tell match words - only needed for the Infocom path, a
+  conversations-only topic needs none.
+- Visibility GATES BOTH ask/tell and the menu (Stefan: gate both). Mechanisms:
+  `when <cond>` (live, declarative - replaces Puny's IDs+flags+ActivateTopic for
+  milestone/location/state); `hidden` initial + `reveal <topic>` / `hide <topic>`
+  by NAME (the explicit-unlock case); `once` retires after use. Both `when` and
+  reveal/hide are offered.
+- Body lines: `player "..."` and `reply "..."` AUTO-QUOTE and AUTO-ATTRIBUTE with
+  a speaker prefix - `You: "..."` / `<NPC name>: "..."` (Puny TMPrintLine style,
+  best for following long exchanges; labels/format overridable). `say "..."` =
+  plain stage direction. Mix freely. (Auto-quoting fixes Stefan's long-standing
+  Puny annoyance of having to override the extension just to get quotes.)
+- MUTUAL EXCLUSION: ask/tell (extendedverbs) and conversations are two
+  presentations of the same topics; they must NEVER both be live. If both are
+  summoned, conversations WINS and ask/tell topic dispatch is OFF; ask/tell then
+  give a redirect ("To speak with Linda, just TALK TO her."), not a flavor fail.
+- Complexity lives in the COMPILER: `topic` is a NEW construct (token, parser,
+  ast.TopicDecl, sema, a per-person topic table the granules walk at runtime);
+  the screen opcodes from statusline paint the menu in the upper window.
+- BUILD ORDER: extendedverbs v1 (plain verbs) -> the topic construct + model +
+  conversations menu -> ask/tell topic dispatch (extendedverbs v2) -> mutual-
+  exclusion wiring.
 - B5.5c DONE (committed): verbose_exits. The granule overrides msg_cant_go to
   list the room's live exits ("You can only go north or east from here.") - no
   `on go other` needed after all, overriding the one message suffices. Three new
@@ -578,11 +614,11 @@ reference doc (B5.6). Full granule set settled with Stefan:
   sync (test_examples decl count 11 -> 12). Cloak with statusline is ~11.9K.
   The statusline showcase's `on take` guards scoring on `not moved` (award the
   point once; dropping and re-taking does not re-score).
-- B5.5e: conversations. The MENU talk system (talk_menu equivalent): TALK TO
-  <animate> paints a topic menu in the UPPER window (needs statusline's window
-  work first), topics enabled/disabled from code by milestone/location. Puny's
-  talk_menu setup is a nightmare; ours must be syntactic sugar. DESIGN the
-  authoring surface WITH Stefan before coding. Non-trivial.
+- B5.5e: conversations. The MENU presentation of the CONVERSATION MODEL above:
+  TALK TO <animate> paints the person's visible topic labels as a numbered menu
+  in the upper window (reuses statusline's screen opcodes), selection runs the
+  topic body, the menu redraws as topics reveal/hide/retire, until exit. Built on
+  the shared topic table; wins over ask/tell when both summoned.
 - B5.5f: debug. Testing verbs (tree, scope, teleport, fetch-distant-object, set
   prop, show state). NO release-exclude switch - opt-in via summon is the
   exclusion. Arcturus-named primaries with Inform synonyms (e.g. fetch/purloin,
