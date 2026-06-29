@@ -11,8 +11,10 @@
 // with the turn loop and the verbs in B4.5e.
 
 // Read and parse one command. Returns the action number (0 if none was
-// understood) and sets the noun.
+// understood) and sets the noun. A 0 return with parse_fault set means a verb was
+// understood but it named an object out of scope; the loop reports "can't see".
 block parse()
+    change parse_fault to 0
     let term = read_line()
     if word_count() is 0
         return 0
@@ -21,4 +23,6 @@ block parse()
         return 0
     change way to find_direction()
     resolve_objects()
+    if parse_fault is 1
+        return 0
     return act
