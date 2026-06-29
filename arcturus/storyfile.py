@@ -43,6 +43,10 @@ TEXT_BUFFER_BYTES = 2 + TEXT_BUFFER_MAX
 PARSE_BUFFER_ADDR = TEXT_BUFFER_ADDR + TEXT_BUFFER_BYTES  # 606
 PARSE_BUFFER_MAX = 12
 PARSE_BUFFER_BYTES = 2 + PARSE_BUFFER_MAX * 4
+# A backup of the parse buffer, kept so "oops" can patch the previous command's
+# offending word and re-resolve it without re-reading the line.
+OOPS_PARSE_ADDR = PARSE_BUFFER_ADDR + PARSE_BUFFER_BYTES  # 656
+OOPS_PARSE_BYTES = PARSE_BUFFER_BYTES
 
 # File-length scale by version: the stored length is the real length divided by
 # this (section 11.1.6).

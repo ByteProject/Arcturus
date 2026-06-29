@@ -58,6 +58,9 @@ INTRINSICS = frozenset({
     # opcodes; each returns the opcode result (0 fail, 1 saved, 2 resumed).
     "do_quit", "text_char", "do_restart",
     "do_save", "do_restore", "do_save_undo", "do_restore_undo",
+    # parse_addr / oops_addr give the live parse buffer and its oops backup, so
+    # the language layer can snapshot a command and patch it for "oops".
+    "parse_addr", "oops_addr",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr",
@@ -500,6 +503,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # do_restore_undo(): undo to the last checkpoint. On success jumps back to
         # the do_save_undo point (so this only returns 0 on failure).
         rt.op("restore_undo", store=dest)
+    elif name == "parse_addr":
+        # parse_addr(): the address of the live parse buffer.
+        _place(rt, Const(storyfile.PARSE_BUFFER_ADDR), dest)
+    elif name == "oops_addr":
+        # oops_addr(): the address of the parse-buffer backup kept for oops.
+        _place(rt, Const(storyfile.OOPS_PARSE_ADDR), dest)
     elif name == "text_char":
         # text_char(i): the i-th character typed on the last input line. In v5 the
         # text buffer holds the characters from byte 2 onward (byte 1 is the count).

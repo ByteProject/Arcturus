@@ -144,6 +144,9 @@ _BUILTINS = {
     "last_second": T_OBJECT,
     "last_way": T_NUMBER,
     "last_grain": T_NUMBER,
+    # oops correction: a flag and the offending word's parse-buffer index.
+    "oops_ready": T_NUMBER,
+    "oops_word": T_NUMBER,
 }
 
 # Objects Cosmos provides. `player` is the distinguished person instance.
