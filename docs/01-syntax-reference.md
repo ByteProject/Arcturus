@@ -139,9 +139,12 @@ The `intro` property is an object's initial appearance in a room description.
 While the object sits untouched in place, the room lists it with its `intro`
 text, as its own paragraph, instead of the plain "You can see X here." The
 moment the player first takes it, Cosmos sets the `moved` attribute and the
-object reverts to the plain listing. A fixed or static object is never taken, so
-its `intro` shows for as long as it is in view, which makes `intro` the way to
-write set dressing that reads as prose rather than a list:
+object reverts to the plain listing. `intro` replaces the whole generated line:
+for a container, that includes the `(contains ...)` contents listing, on the
+principle that an author who writes the prose owns the description (mention the
+contents in the `intro` itself if they should show). A fixed or static object is
+never taken, so its `intro` shows for as long as it is in view, which makes
+`intro` the way to write set dressing that reads as prose rather than a list:
 
 ```
 thing statue in hall
