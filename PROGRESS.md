@@ -527,6 +527,32 @@ examples/granules/ (verbose-exits.storyarc is the first). These are demo/teachin
 games, kept apart from the two conformance anchors (brass-lantern, cloak) which
 stay in examples/.
 
+CONTAINER SCOPE AND KNOWLEDGE MODEL (settled with Stefan, 2026-06-29; a core
+parser/world-model improvement, NOT a granule - "better than Inform" for
+containers). Two layers:
+- Layer 1, SCOPE: the parser's noun-matcher (scope_match/match_noun/find_word in
+  english.prelude) recurses into objects in scope, matching the rule in_scope()
+  already uses: an object inside a container is reachable iff the container is in
+  scope AND (it is `open` OR `clear`); a supporter's contents are reachable when
+  the supporter is. New standard attribute `clear` (Inform's `transparent`,
+  renamed - Stefan). This fixes nested-object matching (the coin-in-an-open-box
+  case that read as a parser bug).
+- Layer 2, KNOWLEDGE (the major improvement): new standard attribute `seen`,
+  auto-set whenever an object is described/listed to the player. A closed OPAQUE
+  container lists its already-seen contents for memory; contents never seen stay
+  hidden (no x-ray vision into a sealed box). Listed-but-closed contents are
+  matched only to redirect: `take ring` through a closed box -> "open the box
+  first" (Stefan picked option b). SIZE: `seen` and `clear` are free attribute
+  bits (objects already carry the 48-bit attribute field), so zero data cost; the
+  cost is modest code in the describe/list path + the closed-container listing.
+- LISTING FORMAT (Stefan, article-free): `box (contains coin, grandma's teeth and
+  sugarcookkie)` - no a/an/the, the word "contains", list as "X, Y and Z". Applies
+  to inventory and room listings. We have `${the noun}` (definite, literal "the");
+  automatic a/an is NOT implemented and articles are deliberately avoided here.
+  Broader article/pronoun question (a robot referred to as "it") is deferred.
+- SEQUENCING: TBD with Stefan - do it before or after the conversation topic
+  system. (It is foundational; the topic system's "ask about <thing>" benefits.)
+
 REMAINING in B5 - the granules, built and tested one at a time (B5.5), then the
 reference doc (B5.6). Full granule set settled with Stefan:
 - B5.5a DONE (committed): the summon LOADER. cosmos.combined_program now takes
