@@ -935,24 +935,47 @@ def _say_object(rt, ctx, expr):
 
 
 def _say_with_article(rt, ctx, article, expr):
-    """Print the article ("the"/"The"/"a"/"an") then the object's name, UNLESS the
-    object is `named` (a thing with a proper name like Linda or Excalibur), which
-    takes no article. So ${The noun} reads "The sword" for an ordinary object but
-    "Linda" for a named one. (The a/an-by-sound choice is a separate later
-    refinement; the typed article is used as written.)"""
+    """Print the article then the object's name. Two refinements over a literal
+    article: a `named` object (Linda, Excalibur) takes no article at all; and the
+    indefinite article auto-picks "a" vs "an" from the object's `an` attribute
+    (which the compiler derived from the name). So ${The noun} reads "The sword"
+    or "Linda", and ${a noun} reads "a coin" or "an apple"."""
     op, t = _operand(rt, ctx, expr)
-    attr = ctx.attr_number("named")
+    named_attr = ctx.attr_number("named")
     has_named = ctx.layout is not None and ctx.layout.has_named
-    if attr is not None and has_named:
+    skip = None
+    if named_attr is not None and has_named:
         skip = ctx.new_label()
-        rt.op("test_attr", op, Const(attr), branch=(skip, True))  # named: no article
-        rt.op("print", text=article + " ")
-        rt.label(skip)
+        rt.op("test_attr", op, Const(named_attr), branch=(skip, True))  # named: none
+    if article.lower() in ("a", "an"):
+        _print_indefinite(rt, ctx, op, article[0].isupper())
     else:
         rt.op("print", text=article + " ")
+    if skip is not None:
+        rt.label(skip)
     rt.op("print_obj", op)
     if t is not None:
         ctx.free_temp(t)
+
+
+def _print_indefinite(rt, ctx, op, cap):
+    """Print "a "/"an " (capitalized when `cap`), choosing by the object's `an`
+    attribute. The author wrote ${a obj} or ${an obj}; the actual choice is the
+    object's, so the article is always right regardless of which was typed."""
+    a_word = "A " if cap else "a "
+    an_word = "An " if cap else "an "
+    an_attr = ctx.attr_number("an")
+    if an_attr is None:
+        rt.op("print", text=a_word)
+        return
+    use_an = ctx.new_label()
+    done = ctx.new_label()
+    rt.op("test_attr", op, Const(an_attr), branch=(use_an, True))
+    rt.op("print", text=a_word)
+    rt.jump(done)
+    rt.label(use_an)
+    rt.op("print", text=an_word)
+    rt.label(done)
 
 
 def _if(rt, ctx, s: ast.If):

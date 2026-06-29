@@ -81,6 +81,18 @@ def _effective_props(world: wm.World, obj: wm.Obj) -> dict:
     return merged
 
 
+def _name_first_letter(decl) -> str:
+    """The first letter of a text property's literal value (the object's name),
+    lowercased, or '' if it cannot be read. Used to derive the a/an article."""
+    if decl is not None and decl.form == ast.PROP_VALUE and decl.values:
+        v = decl.values[0]
+        if isinstance(v, ast.StringLit):
+            for part in v.parts:
+                if isinstance(part, ast.StringText) and part.text.strip():
+                    return part.text.strip()[0].lower()
+    return ""
+
+
 def _bool_value(decl: ast.PropertyDecl) -> bool:
     if decl.form == ast.PROP_BOOL:
         return True
@@ -165,6 +177,13 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
             anum = layout.attr_number.get(pname)
             if anum is not None and _bool_value(decl):
                 table[entry + anum // 8] |= 0x80 >> (anum % 8)
+        # Indefinite article: when the author did not set `an` either way, derive
+        # it from the name (a vowel-initial name takes "an"), so listings read
+        # "an apple" / "a coin" with no author work.
+        an_num = layout.attr_number.get("an")
+        if an_num is not None and "an" not in eff:
+            if _name_first_letter(eff.get("name")) in ("a", "e", "i", "o", "u"):
+                table[entry + an_num // 8] |= 0x80 >> (an_num % 8)
         # Kind-membership attributes: one for each kind in the object's chain.
         for kname in obj.chain:
             katt = layout.kind_attr.get(kname)

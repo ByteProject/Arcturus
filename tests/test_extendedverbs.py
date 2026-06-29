@@ -53,7 +53,7 @@ def test_extended_verbs_on_frotz(tmp_path):
         input="search chest\ndig\nthink\nrub pebble\nask guard about pebble\nrub guard\nfullscore\n",
         capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "You find gold coin." in out  # search lists the chest's contents
+    assert "You find a gold coin." in out  # search lists the chest's contents
     assert "The ground keeps its secrets." in out  # an intransitive flavor verb (dig)
     assert "A fine idea. Nothing comes of it." in out  # think
     assert "You polish the grey pebble." in out  # rub default on an object

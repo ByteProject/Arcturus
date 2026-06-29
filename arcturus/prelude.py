@@ -92,6 +92,12 @@ _STD_BOOL_PROPS = [
     # A living thing: people and creatures. The conversation and give verbs apply
     # only to the animate; the person kind sets it by default.
     "animate",
+    # Set when the indefinite article should be "an" instead of "a". The compiler
+    # derives it from the object's name (a vowel-initial name -> "an") unless the
+    # author sets it explicitly, so "an apple" / "a coin" come out right with no
+    # author work; declare `an` (or `an false`) only for the odd exception (an
+    # hour, a unicorn).
+    "an",
 ]
 
 # Standard value properties and their types.

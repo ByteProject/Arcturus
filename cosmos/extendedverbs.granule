@@ -49,7 +49,7 @@ block search_contents(obj)
                 show("You find ")
             else
                 show(", ")
-            print_name(x)
+            show("${a x}")
             change n to n + 1
     if n is 0
         msg_search_nothing()

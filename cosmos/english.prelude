@@ -109,9 +109,7 @@ block prompt()
 
 // One line of a room's contents listing.
 block list_item(obj)
-    show("You can see ")
-    print_name(obj)
-    say " here."
+    say "You can see ${a obj} here."
 
 // Standard messages (docs/message-set.md). Each is an overridable block: an
 // author redefines msg_<name>() in the story to change the wording.
@@ -374,7 +372,7 @@ block msg_cant_oops()
 // One line of an inventory listing; a worn item is tagged.
 block list_held(obj)
     show("  ")
-    print_name(obj)
+    show("${a obj}")
     if obj is worn
         show(" (worn)")
     say ""
