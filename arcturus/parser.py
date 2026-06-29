@@ -295,12 +295,49 @@ class Parser:
             return self.parse_handler()
         if self.check_kw("grains"):
             return self.parse_grains_block()
+        if self.check_kw("topic"):
+            return self.parse_topic()
         if self.check(T.NAME):
             return self.parse_property()
         raise self._error(
-            "expected a property, an 'on' handler, or a 'grains' block, "
-            f"got {self._describe(self.cur)}"
+            "expected a property, an 'on' handler, a 'grains' block, or a "
+            f"'topic', got {self._describe(self.cur)}"
         )
+
+    def parse_topic(self) -> ast.TopicDecl:
+        line = self.cur.line
+        self.expect_kw("topic")
+        subject = self.expect_name("a topic id").value
+        label = self.parse_expr()  # the menu label string
+        words: list[str] = []
+        when = None
+        once = False
+        hidden = False
+        # Modifiers in any order until the end of the header line.
+        while not self.check(T.NEWLINE):
+            if self.check_kw("when"):
+                self.advance()
+                when = self.parse_expr()
+            elif self.check(T.NAME) and self.cur.value == "words":
+                self.advance()
+                words.append(self.expect_name("a topic match word").value)
+                while self.check_op(","):
+                    self.advance()
+                    words.append(self.expect_name("a topic match word").value)
+            elif self.check(T.NAME) and self.cur.value == "once":
+                self.advance()
+                once = True
+            elif self.check(T.NAME) and self.cur.value == "hidden":
+                self.advance()
+                hidden = True
+            else:
+                raise self._error(
+                    "expected 'words', 'when', 'once', or 'hidden' in the topic "
+                    f"header, got {self._describe(self.cur)}"
+                )
+        self.expect_newline()
+        body = self.parse_stmt_block()
+        return ast.TopicDecl(subject, label, words, when, once, hidden, body, line)
 
     def parse_property(self) -> ast.PropertyDecl:
         tok = self.expect_name("a property name")
@@ -562,6 +599,22 @@ class Parser:
         prop = self.expect_name("a boolean property name").value
         self.expect_newline()
         return ast.Now(target, prop, negated, line)
+
+    def _parse_line(self) -> ast.Line:
+        line = self.cur.line
+        who = self.cur.value  # "you" or "reply"
+        self.advance()
+        text = self.parse_expr()
+        self.expect_newline()
+        return ast.Line(who, text, line)
+
+    def _parse_topic_toggle(self) -> ast.TopicToggle:
+        line = self.cur.line
+        reveal = self.cur.value == "reveal"
+        self.advance()
+        target = self.expect_name("a topic id").value
+        self.expect_newline()
+        return ast.TopicToggle(reveal, target, line)
 
     def _parse_move(self) -> ast.Move:
         line = self.cur.line
@@ -951,6 +1004,10 @@ _STMT_KEYWORDS = {
     "switch": Parser._parse_switch,
     "after": Parser._parse_schedule,
     "every": Parser._parse_schedule,
+    "you": Parser._parse_line,
+    "reply": Parser._parse_line,
+    "reveal": Parser._parse_topic_toggle,
+    "hide": Parser._parse_topic_toggle,
 }
 
 

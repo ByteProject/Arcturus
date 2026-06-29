@@ -227,6 +227,11 @@ class Analyzer:
             elif isinstance(m, ast.GrainsBlock):
                 for g in m.grains:
                     self._add_grain(g, owner, on_kind)
+            elif isinstance(m, ast.TopicDecl):
+                if on_kind:
+                    w.kinds[owner].topics.append(m)
+                else:
+                    w.objects[owner].topics.append(m)
 
     def _add_grain(self, g: ast.Grain, owner: str, on_kind: bool) -> None:
         grain = wm.Grain(g.verbs, g.words, owner, g.say, g.do, g.body, g.line)
