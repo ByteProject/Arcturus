@@ -35,6 +35,11 @@ block run_turn(act)
         change meta_turn to 1
         do_undo()
         return 0
+    if act is action_id("oops")
+        change act to fix_oops()
+        if act is 0
+            change meta_turn to 1
+            return 0
     if act is action_id("again")
         if last_act is 0
             change meta_turn to 1
@@ -64,6 +69,8 @@ block run_turn(act)
         change last_second to second
         change last_way to way
         change last_grain to grain
+    // Snapshot this command's unrecognized word (if any) for a following "oops".
+    note_oops()
     return 0
 
 // Undo the previous turn. restore_undo, on success, resumes at the save_undo in

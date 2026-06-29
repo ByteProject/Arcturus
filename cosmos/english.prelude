@@ -368,6 +368,9 @@ block msg_undone()
 block msg_cant_undo()
     say "There's nothing to take back."
 
+block msg_cant_oops()
+    say "There's nothing to put right."
+
 // One line of an inventory listing; a worn item is tagged.
 block list_held(obj)
     show("  ")
@@ -405,6 +408,7 @@ block resolve_objects()
     change noun to nothing
     change second to nothing
     change grain to 0
+    change parse_fault to 0
     let d = word_dict(0)
     if d is not nothing
         if peek_byte(d + 6) is 128
@@ -496,3 +500,46 @@ block resolve_two_nouns()
         if unseen_second is 1
             change parse_fault to 1
     return 1
+
+// Remember the command just parsed so a following "oops" can correct it: find the
+// first unrecognized word (one with no dictionary entry), and if there is one,
+// snapshot the parse buffer and note that word's index. With no unknown word,
+// clear the flag, so "oops" after a fully understood command has nothing to fix.
+block note_oops()
+    change oops_ready to 0
+    let n = word_count()
+    let i = 1
+    while i < n
+        if word_dict(i) is nothing
+            change oops_word to i
+            change oops_ready to 1
+            copy_bytes(parse_addr(), oops_addr(), 2 + 4 * n)
+            return 0
+        change i to i + 1
+    return 0
+
+// Correct the previous command's unrecognized word with the word typed after
+// "oops", then re-resolve the patched command and return its action (0 if there
+// is nothing to correct or the fix does not parse). run_turn dispatches the
+// result as an ordinary turn.
+block fix_oops()
+    if oops_ready is 0
+        msg_cant_oops()
+        return 0
+    let fix = word_dict(1)
+    if fix is nothing
+        msg_cant_oops()
+        return 0
+    // Restore the saved command, then overwrite the bad word's dictionary slot
+    // (the two-byte entry at parse offset 2 + 4*index) with the correction.
+    copy_bytes(oops_addr(), parse_addr(), 2 + 4 * peek_byte(oops_addr() + 1))
+    poke_word(parse_addr(), 1 + 2 * oops_word, fix)
+    let act = resolve_verb()
+    if act is 0
+        return 0
+    change way to find_direction()
+    resolve_objects()
+    if parse_fault is 1
+        msg_cant_see()
+        return 0
+    return act

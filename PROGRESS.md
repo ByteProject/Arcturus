@@ -489,11 +489,21 @@ DONE in B5 (continued):
   (intercepted in run_turn before dispatch, like undo; meta commands are not
   remembered). msg_nothing_again when there is nothing yet. tests/test_meta.py.
 
+- B5.4d.3b - oops (full, committed): corrects the previous command's misspelled
+  word. Cleaner than text-buffer surgery: the resolvers read only the parse
+  buffer's dictionary addresses, so oops snapshots the failed command's parse
+  buffer (note_oops, into a new reserved OOPS_PARSE region after the parse buffer;
+  storyfile.OOPS_PARSE_ADDR), records the first unrecognized word's index
+  (oops_word/oops_ready globals), and on "oops X" patches that word's dict-address
+  slot with X's and re-resolves (fix_oops), returning the corrected action for
+  run_turn to dispatch. No @tokenise needed. New intrinsics parse_addr/oops_addr;
+  copy_bytes util in parser.prelude; msg_cant_oops. resolve_objects now resets
+  parse_fault (fix_oops reuses it). tests/test_meta.py (typo corrected; nothing to
+  correct). B5.4d COMPLETE: score, save, restore, restart, undo, again, oops,
+  xyzzy, quit-no-tick, parser can't-see.
+
 REMAINING in B5:
-- B5.4d.3b (NEXT): oops. Needs the parser to record the offending (unrecognized)
-  word's position, a backup of the raw input line, character splicing of the
-  correction, and a @tokenise opcode to re-parse. Bigger lift than the rest of the
-  meta set; scope TBD with Stefan. - score, save, restore, restart, undo, again,
+- B5.5 (NEXT): summon.statusline + summon.extendedverbs granules - score, save, restore, restart, undo, again,
   oops, xyzzy. Need new intrinsics for save/restore/restart/undo opcodes; score
   uses the score/max_score globals. Messages msg_score/saved/save_failed/
   restore_failed/confirm_restart/undone/cant_undo/xyzzy still need adding (most
@@ -515,7 +525,7 @@ KEY FACTS for resume:
   in cosmos/english.prelude as overridable msg_* blocks.
 - Sizes today (pre-DCE, bloated by ~70 message + ~45 verb routines, all shipped
   until B6 DCE): brass ~9.5K, cloak ~10K. Still far under Puny's 27K for Cloak.
-- 208 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
+- 210 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
   with python3 tools/amalgamate.py build/arcc; rebuild the example .z5 via
   build/arcc after any cosmos/ change. Throwaway test .z5 go to the scratchpad,
   not build/ (build/ holds only arcc + the two example games).

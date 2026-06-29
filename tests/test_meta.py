@@ -162,3 +162,29 @@ def test_again_with_nothing_to_repeat_on_frotz(tmp_path):
         capture_output=True, text=True, timeout=15,
     ).stdout
     assert "There's nothing to repeat." in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_oops_corrects_a_typo_on_frotz(tmp_path):
+    story = tmp_path / "m.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="take cdoin\noops coin\ninventory\n",  # fix the misspelled noun
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "You see nothing of the sort here." in out  # the typo failed
+    assert "Got it." in out  # oops re-ran it as "take coin"
+    assert "gold coin" in out  # and the coin is now in hand
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_oops_with_nothing_to_correct_on_frotz(tmp_path):
+    story = tmp_path / "m.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="look\noops coin\n",  # the previous command was understood
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "There's nothing to put right." in out

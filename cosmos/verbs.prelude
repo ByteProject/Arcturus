@@ -165,6 +165,9 @@ verb "undo"
 verb "again", "g"
     again
 
+verb "oops"
+    oops
+
 
 // The magic word. Not a meta verb (it is a normal, if fruitless, action), so it
 // takes a turn like any other; an author can override it for a real effect.

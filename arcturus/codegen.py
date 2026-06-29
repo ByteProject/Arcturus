@@ -301,6 +301,9 @@ _BUILTIN_GLOBALS = [
     "turns", "score", "max_score", "player", "here", "noun", "second",
     "way", "grain", "par_pending", "parse_fault", "meta_turn",
     "last_act", "last_noun", "last_second", "last_way", "last_grain",
+    # oops_ready flags that the previous command had an unrecognized word;
+    # oops_word is that word's parse-buffer index, for "oops" to correct.
+    "oops_ready", "oops_word",
 ]
 
 
@@ -334,6 +337,7 @@ def build_story(
     parse_buf = bytearray(_PARSE_BUFFER_BYTES)
     parse_buf[0] = PARSE_BUFFER_MAX
     sf.append(bytes(parse_buf))  # lands at PARSE_BUFFER_ADDR
+    sf.append(bytes(storyfile.OOPS_PARSE_BYTES))  # lands at OOPS_PARSE_ADDR
     if layout is not None:
         objects_addr = sf.append(bytes(layout.table))
         # Make the property-table pointers absolute now the base is known.
