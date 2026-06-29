@@ -17,11 +17,12 @@ Last updated: 2026-06-28.
 | B4 | Cosmos compiled: parser, turn loop, standard verbs | done |
 | B5 | Feature-complete library and a fair benchmark | in progress |
 | B6 | Size pass (DCE, abbreviations, codegen) | pending |
-| B7 | The reference interpreter, Actaea | pending |
-| B8 | arc_image on modern systems (PNG) | pending |
-| B9 | arc_image on retro systems | pending |
-| B10 | Port Ghosts of Blackwood Manor (text) | pending |
-| B11 | Port The Curse of Rabenstein (from DAAD) | pending |
+| B7 | Language packs (Spanish, German) | pending |
+| B8 | The reference interpreter, Actaea | pending |
+| B9 | arc_image on modern systems (PNG) | pending |
+| B10 | arc_image on retro systems | pending |
+| B11 | Port Ghosts of Blackwood Manor (text) | pending |
+| B12 | Port The Curse of Rabenstein (from DAAD) | pending |
 
 Roadmap restructured 2026-06-28 (docs/00 section 7): feature-complete library
 (B5) comes BEFORE the size pass (B6) so the PunyInform benchmark is fair; then
@@ -508,20 +509,52 @@ DONE in B5 (continued):
   coin"), and must immediately follow the mistyped line. tests/test_meta.py
   (misspelled-verb correction).
 
-REMAINING in B5:
-- B5.5 (NEXT): summon.statusline + summon.extendedverbs granules - score, save, restore, restart, undo, again,
-  oops, xyzzy. Need new intrinsics for save/restore/restart/undo opcodes; score
-  uses the score/max_score globals. Messages msg_score/saved/save_failed/
-  restore_failed/confirm_restart/undone/cant_undo/xyzzy still need adding (most
-  are in docs/message-set.md Meta section but NOT yet in english.prelude). Note:
-  meta verbs should not tick the turn (a cancelled quit currently does; fix here).
-- B5.5: summon.statusline and summon.extendedverbs granules. Needs the
-  summon-load mechanism (parse + include a .granule when summoned; granule blocks
-  get origin "granule" and can override library blocks). statusline needs the
-  window opcodes (split_window/set_window/set_cursor). extendedverbs holds the E
-  verbs from docs/verb-set.md with their messages.
+ROADMAP RENUMBER (2026-06-29, Stefan): language packs become their own milestone
+B7 (Spanish + German), pushing the rest down one: B8 Actaea, B9 arc_image modern,
+B10 arc_image retro, B11 Ghosts, B12 Rabenstein. docs/00, README, CLAUDE.md and
+[[roadmap-milestones]] updated to match.
+
+REMAINING in B5 - the granules, built and tested one at a time (B5.5), then the
+reference doc (B5.6). Full granule set settled with Stefan:
+- B5.5a (NEXT): the summon LOADER. `summon` already parses to ast.Summon and
+  collects into w.summons (parser.parse_summon, sema), but nothing loads it yet.
+  Build: resolve each summon (a dotted feature -> a bundled .granule; a "file"
+  -> story-dir then -L) to source, parse + prepend like cosmos.combined_program,
+  tag blocks origin "granule" (already supported by override-by-block), and DCE
+  so an unsummoned granule never ships. Done-test: a game granule loads and
+  overrides a library block. Also the `summon "file.granule"` extension form.
+- B5.5b: extendedverbs. NOT trivial - it carries the Infocom-style ask/tell/
+  answer TOPIC conversation system plus search/look_under/throw etc. (the E side
+  of docs/verb-set.md). The topic-driven conversation path lives here.
+- B5.5c: verbose_exits (small; the showcase granule). Needs `on go other`
+  (tier-4 dispatch, deferred in B4) and reading side-effect-free computed
+  direction blocks to list live exits.
+- B5.5d: statusline. The window opcodes (split_window/set_window/set_cursor/
+  set_text_style) - the start of the screen model, reused by conversations and
+  later Actaea/B8.
+- B5.5e: conversations. The MENU talk system (talk_menu equivalent): TALK TO
+  <animate> paints a topic menu in the UPPER window (needs statusline's window
+  work first), topics enabled/disabled from code by milestone/location. Puny's
+  talk_menu setup is a nightmare; ours must be syntactic sugar. DESIGN the
+  authoring surface WITH Stefan before coding. Non-trivial.
+- B5.5f: debug. Testing verbs (tree, scope, teleport, fetch-distant-object, set
+  prop, show state). NO release-exclude switch - opt-in via summon is the
+  exclusion. Arcturus-named primaries with Inform synonyms (e.g. fetch/purloin,
+  warp/gonear, inspect/showobj). Lock the names when building.
 - B5.6: finalize the message/verb reference doc (docs/05) from message-set.md +
   verb-set.md once the set is complete.
+
+ABBREVIATIONS (B6, before any size test; a compiler feature, not a runtime
+granule): the compiler bakes in a standard abbreviation set (Inform's ceiling is
+96 table entries) used by default. A `--make-abbreviations <file.storyarc>` flag
+reads the story's strings, resolves the granules it summons (library + user
+paths), pools all those strings, computes an optimized set, and writes ONE
+abbreviations.granule in Arcturus syntax (declarations the compiler parses, so it
+lexes like everything else and the VS Code extension highlights it). The author
+summons it; on recompile the encoder intercepts that summon as compile-time data
+(not runtime blocks) and uses it instead of the baked-in set. Two-pass flow.
+Saner than zabbrv (no Inform transcript). docs/01 section 13 wording to be
+reconciled when built.
 
 KEY FACTS for resume:
 - Verb pattern: declare `verb "x", "syn" \n x noun`, then a free `on x` default

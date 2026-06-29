@@ -47,7 +47,7 @@ rediscovered.
   milestone via the `arc_image` property: a capability-guarded additive layer
   using a custom EXT opcode that Arcturus-aware interpreters render and
   standard interpreters skip unread, so the story file stays conformant z5
-  throughout (see section 6 and milestone B7). This extends an existing owned
+  throughout (see section 6 and milestone B8). This extends an existing owned
   interpreter such as Eris; it is never a forked or new VM.
 - No PunyInform as the runtime, and no transpile-to-Inform-6 step. The
   compiler emits z5 directly, in the spirit of Dialog's dialogc.
@@ -132,7 +132,7 @@ interpreter, which simply ignores a property it does not read. On an
 Arcturus-aware interpreter, Cosmos reads the property on room entry and passes
 the name as a numeric resource id to a custom EXT opcode; the interpreter loads
 the picture. Art is authored once as PNGs. On modern systems (the reference
-interpreter, B7-B8) the PNG renders directly; for retro targets (B9) a tool
+interpreter, B8-B9) the PNG renders directly; for retro targets (B10) a tool
 converts each PNG into the machine's native or a trimmed, RLE-compressed format
 (.kla on C64, .iff on Amiga, distinct again on a CPC), kept small for 8-bit
 machines.
@@ -178,34 +178,49 @@ done-test.
   library-controlled paragraph breaks, the unrecognized-verb reply, and quit.)
 - B5: feature-complete library and a fair benchmark. The full standard verb
   set at parity with PunyInform (including flavor verbs like jump), the meta
-  verbs (save, restore, restart, quit), and a fresh, distinctive standard
-  message set - not Inform's or Dialog's. Summonable features ship as embedded
-  granules: `summon.statusline` (opt-in, forkable, configurable) and
-  `summon.extendedverbs`. Message and verb overrides without unpacking the
-  library, via a same-named block in the game or a language granule that wins
-  over the Cosmos default (most-specific-wins, section 2). The single-file
-  `arcc` embeds Cosmos and all shipped granules; `arcc --extract-library DIR`
-  writes them out for wholesale hacking, and a lighter option drops just the
-  language granule beside the story for message customization.
-- B6: size pass. Dead-code elimination, the arcabbr abbreviation pipeline, and
-  codegen tightening. Done when a representative game is at or below its
+  verbs (score, save, restore, restart, undo, again, oops, quit), and a fresh,
+  distinctive standard message set - not Inform's or Dialog's. The summon loader,
+  then the summonable features as embedded granules, built and tested one at a
+  time: `summon.extendedverbs` (the extended verb set, including the Infocom-style
+  ask/tell topic conversation logic), `summon.statusline` (an opt-in status line,
+  the first of the window work), `summon.verbose_exits` (auto-listed exits),
+  `summon.conversations` (a menu-driven talk system painted in the upper window,
+  the talk_menu equivalent, with code-toggled topics and an easy authoring
+  surface), and `summon.debug` (testing verbs, kept out of a release simply by not
+  summoning them; Arcturus-named with Inform synonyms). Message and verb overrides
+  without unpacking the library, via a same-named block in the game or a granule
+  that wins over the Cosmos default (most-specific-wins, section 2). The
+  single-file `arcc` embeds Cosmos and all shipped granules; `arcc
+  --extract-library DIR` writes them out for wholesale hacking.
+- B6: size pass. Dead-code elimination, the abbreviation pipeline, and codegen
+  tightening. The compiler bakes in a standard abbreviation set used by default;
+  a `--make-abbreviations <file.storyarc>` flag curates the string pool from the
+  story plus its resolved granules (library and user), computes an optimized set,
+  and writes a single `abbreviations.granule` in Arcturus syntax. The author
+  summons it, and on recompile the encoder uses it instead of the baked-in set
+  (a two-pass flow). Done when a representative game is at or below its
   PunyInform-equivalent size (Cloak of Darkness is 27K in PunyInform), measured
   with the full library in place.
-- B7: the reference interpreter, Actaea. A Standard 1.1 conformant z5/z8
+- B7: language packs. Spanish and German Cosmos translations, each a granule
+  selected by `summon.language` - a message table keyed by id, localized
+  vocabulary (directions and verbs), and parser grammar overrides where an
+  inflected language needs them (the language seam, section 8 of docs/02). Each
+  pack curates its own abbreviations via the B6 pipeline. A large milestone in its
+  own right; the language seam is designed but unbuilt.
+- B8: the reference interpreter, Actaea. A Standard 1.1 conformant z5/z8
   interpreter in Python with a tkinter GUI, built under `actaea/`, that plays any
   well-formed story file and is the testing ground for `arc_image`. Its design is
   docs/06-actaea-design.md (milestones M1 to M11; headless VM core through M6,
-  GUI from M7). This milestone marks the language and library feature-complete;
-  only graphics remain.
-- B8: `arc_image` on modern systems (section 6). The capability guard and EXT
+  GUI from M7).
+- B9: `arc_image` on modern systems (section 6). The capability guard and EXT
   opcode contract, room and scene art rendered from PNGs in the reference
   interpreter, with the same story file still running unchanged on Frotz.
-- B9: `arc_image` on retro systems. Per-platform image formats (a C64 differs
+- B10: `arc_image` on retro systems. Per-platform image formats (a C64 differs
   from a CPC), the PNG-to-retro porting tools Arcturus drives, and the spec
   addenda for how the owned Standard 1.1 interpreters extend to render them.
-- B10: port Ghosts of Blackwood Manor to Arcturus - text only, pushing z5
+- B11: port Ghosts of Blackwood Manor to Arcturus - text only, pushing z5
   features hard. The advanced-feature benchmark.
-- B11: port The Curse of Rabenstein from DAAD to Arcturus. Trivial as a port,
+- B12: port The Curse of Rabenstein from DAAD to Arcturus. Trivial as a port,
   it exercises the `arc_image` graphics path end to end (its art is ready for
   the retro targets) and ships as a worked example game.
 

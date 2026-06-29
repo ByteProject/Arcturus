@@ -81,7 +81,7 @@ pyproject.toml
 - A custom VM for running Arcturus games. They emit standard z5 and run on any
   conformant interpreter, so the compiler never ships a runtime. (The Actaea
   reference interpreter and arc_image graphics are their own later milestones,
-  B7 to B9, built here but not during the language and library work.)
+  B8 to B10, built here but not during the language and library work.)
 
 ## Method
 
@@ -89,7 +89,7 @@ pyproject.toml
   with the done-test named in the message.
 - Use subagents for tool installation (pytest, a z-machine interpreter for
   testing) so the main thread stays on design and code.
-- Work milestone by milestone from docs/00 section 7 (B0 to B11). Each has a
+- Work milestone by milestone from docs/00 section 7 (B0 to B12). Each has a
   concrete done-test; do not advance until it passes.
 - Produce docs/03-compiler-pipeline.md, docs/04-codegen-mapping.md, and
   docs/05-conformance.md as the matching work is done, so the design record
@@ -102,7 +102,7 @@ Darkness (docs/01 sections 17 and 18) must compile, run correctly on Frotz,
 and run on Ceres, and their story files are tracked for size regression
 against a PunyInform-equivalent build.
 
-## Actaea (milestone B7): the reference interpreter
+## Actaea (milestone B8): the reference interpreter
 
 Actaea is a Standard 1.1 conformant Z-machine interpreter for versions 5 and 8,
 written in Python with a tkinter GUI, built in this repo under `actaea/`. It
@@ -113,12 +113,12 @@ design.md is authoritative for it.
   grid for the upper window; Quetzal save and restore with in-memory undo and
   restart. No sound. No arc_image.
 - arc_image is not part of Actaea. It is built later, in this same project, as
-  milestones B8 and B9. Actaea only keeps the cell model decoupled so that work
+  milestones B9 and B10. Actaea only keeps the cell model decoupled so that work
   is an extension. Nothing in Actaea's M1 to M11 touches graphics.
 - Architecture: a headless VM core with a hard boundary to the tkinter front-
   end. The core passes conformance through a console harness before the GUI
   exists.
 - Conformance: CZECH and Praxix headless (the M6 gate), and TerpEtude for the
   screen and input features.
-- Milestones M1 to M11 in docs/06 are the breakdown of B7. Headless through M6,
+- Milestones M1 to M11 in docs/06 are the breakdown of B8. Headless through M6,
   GUI from M7, the cell grid its own milestone (M8) with a visible done-test.

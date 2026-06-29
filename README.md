@@ -12,7 +12,7 @@ Z-machine. You describe a world (rooms, things, verbs, and the behavior that
 hangs off them) and the compiler produces a standard Z-machine story file that
 plays on Frotz, Ozmoo, Eris, Vezza and other interpreters, old and new.
 
-Arcturus is designed and written by **Stefan Vogt**. The compiler is written in
+Arcturus is designed and written by **Stefan Vogquitt**. The compiler is written in
 Python and depends only on the standard library, so it runs anywhere Python
 does, with nothing to install. The standard library, **Cosmos**, is written in
 Arcturus itself and ships as editable source rather than a black box.
@@ -34,13 +34,15 @@ The road from here, milestone by milestone:
 - **Done:** the language spec, the compiler (lexer, parser, semantic analysis,
   Z-machine code generation), and Cosmos far enough that both example games play
   end to end.
-- **Next:** a feature-complete library (the full standard verb set, meta verbs,
-  an opt-in status line and extended verbs as summonable granules, and a fresh
-  standard message set), then a size pass benchmarked against PunyInform.
-- **After that:** a modern reference interpreter, the `arc_image` graphics path
-  (modern systems first, then the 8-bit and 16-bit retro machines), and porting
-  two existing games - Ghosts of Blackwood Manor and The Curse of Rabenstein - as
-  the proving ground. Reaching 1.0 is tied to those ports.
+- **Next:** a feature-complete library (the full standard verb set, the meta
+  verbs, a fresh standard message set, and the summonable granules - extended
+  verbs, an opt-in status line, verbose exits, a menu-driven conversation system,
+  and debug verbs), then a size pass benchmarked against PunyInform.
+- **After that:** Spanish and German language packs, a modern reference
+  interpreter, the `arc_image` graphics path (modern systems first, then the
+  8-bit and 16-bit retro machines), and porting two existing games - Ghosts of
+  Blackwood Manor and The Curse of Rabenstein - as the proving ground. Reaching
+  1.0 is tied to those ports.
 
 Follow this section and `PROGRESS.md` for where things stand.
 
