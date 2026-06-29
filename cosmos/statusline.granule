@@ -34,10 +34,11 @@ block prompt()
     show(">")
 
 // Paint the one-line bar: reverse video across the width, the room name at the
-// left, and a compact "Score: <score>/<turns>" at the right. The compact form is
-// deliberate, so the bar fits a 40-column screen (a C64) as readily as a modern
-// terminal. For a wider, modern-style bar ("Score: N   Moves: M"), redefine this
-// block in your story; it overrides the granule's.
+// left, and the score and moves at the right. The right side adapts to the screen
+// width the way PunyInform does: a wide screen (54 columns or more) gets the full
+// "Score: <n>   Moves: <n>", and a narrow retro screen (a 40-column C64, a 53-
+// column Spectrum) gets the compact "Score: <score>/<turns>" so it still fits.
+// Redefine this block in your story to change the layout entirely.
 block draw_status()
     let w = screen_width()
     if w is 0
@@ -54,14 +55,22 @@ block draw_status()
     // Left: the current room.
     set_cursor(1, 2)
     print_name(here)
-    // Right: "Score: s/t", right-aligned. Its width varies with the digit counts,
-    // so measure it (status_digits) and start that many columns in from the edge.
-    let width = 9 + status_digits(score) + status_digits(turns)
-    set_cursor(1, w - width)
-    show("Score: ")
-    show(score)
-    show("/")
-    show(turns)
+    // Right, right-aligned: measure the text (status_digits, since the digit
+    // counts vary) and start that many columns in from the edge.
+    if w < 54
+        // Compact: "Score: s/t". "Score: " is 7 and "/" is 1, so 8 fixed chars.
+        set_cursor(1, w - 8 - status_digits(score) - status_digits(turns))
+        show("Score: ")
+        show(score)
+        show("/")
+        show(turns)
+    else
+        // Full: "Score: n   Moves: n". "Score: " 7 + "   Moves: " 10 = 17 fixed.
+        set_cursor(1, w - 17 - status_digits(score) - status_digits(turns))
+        show("Score: ")
+        show(score)
+        show("   Moves: ")
+        show(turns)
     set_style(0)
     set_window(0)
 

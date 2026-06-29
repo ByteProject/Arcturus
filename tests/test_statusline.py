@@ -39,25 +39,35 @@ def _frotz():
     return shutil.which("dfrotz") or shutil.which("frotz")
 
 
-@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
-def test_statusline_paints_and_updates_on_frotz(tmp_path):
-    story = tmp_path / "s.z5"
-    story.write_bytes(_build(WITH))
-    out = subprocess.run(
-        [_frotz(), "-p", str(story)],
+def _run(story, width):
+    return subprocess.run(
+        [_frotz(), "-p", "-w", str(width), str(story)],
         input="east\n", capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "Score:" in out  # the bar is painted
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_statusline_full_on_a_wide_screen(tmp_path):
+    story = tmp_path / "s.z5"
+    story.write_bytes(_build(WITH))
+    out = _run(story, 80)  # >= 54 columns: the full Score:/Moves: form
+    assert "Score:" in out and "Moves:" in out
     assert "The Hall" in out and "The Garden" in out  # the room shows in the bar
-    assert "0/1" in out  # compact "Score: score/turns"; the turn count advances
+    assert "Moves: 1" in out  # the move count advances
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_statusline_compact_on_a_narrow_screen(tmp_path):
+    story = tmp_path / "s.z5"
+    story.write_bytes(_build(WITH))
+    out = _run(story, 40)  # a 40-column C64: the compact "Score: score/turns"
+    assert "Score:" in out
+    assert "0/1" in out  # score 0, one turn taken
+    assert "Moves:" not in out  # the wide form is not used here
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_without_summon_has_no_bar_on_frotz(tmp_path):
     story = tmp_path / "s.z5"
     story.write_bytes(_build(WITHOUT))
-    out = subprocess.run(
-        [_frotz(), "-p", str(story)],
-        input="east\n", capture_output=True, text=True, timeout=15,
-    ).stdout
-    assert "Score:" not in out
+    assert "Score:" not in _run(story, 80)
