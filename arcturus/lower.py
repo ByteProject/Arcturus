@@ -77,6 +77,10 @@ INTRINSICS = frozenset({
     # verbose_exits granule can list a room's live exits. exit_prop/exit_name are
     # backed by routines codegen emits only when these intrinsics are used.
     "exits_count", "exit_prop", "exit_name",
+    # Screen model (v5), for the statusline granule: the upper window, cursor,
+    # text style, and the screen width from the header. Each lowers to an opcode,
+    # so they cost nothing unless a granule calls them.
+    "split_window", "set_window", "set_cursor", "set_style", "screen_width",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr",
@@ -537,6 +541,33 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         eval_expr(rt, ctx, args[0], Variable(STACK))
         rt.op("call_vn", RoutineRef("cosmos_exit_name"), Variable(STACK))
         _place(rt, Const(0), dest)
+    elif name == "split_window":
+        # split_window(n): reserve n lines for the upper window.
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("split_window", op)
+        _free(ctx, t)
+        _place(rt, Const(0), dest)
+    elif name == "set_window":
+        # set_window(n): select window 0 (main) or 1 (upper).
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("set_window", op)
+        _free(ctx, t)
+        _place(rt, Const(0), dest)
+    elif name == "set_cursor":
+        # set_cursor(line, column): move the upper-window cursor (1-based).
+        opa, opb, t = _two_operands(rt, ctx, args[0], args[1])
+        rt.op("set_cursor", opa, opb)
+        _free(ctx, t)
+        _place(rt, Const(0), dest)
+    elif name == "set_style":
+        # set_style(s): text style bits (0 normal, 1 reverse, 2 bold, 4 italic).
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("set_text_style", op)
+        _free(ctx, t)
+        _place(rt, Const(0), dest)
+    elif name == "screen_width":
+        # screen_width(): the screen width in characters (header byte 0x21).
+        rt.op("loadb", Const(0), Const(0x21), store=dest)
     elif name == "text_char":
         # text_char(i): the i-th character typed on the last input line. In v5 the
         # text buffer holds the characters from byte 2 onward (byte 1 is the count).

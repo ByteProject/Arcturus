@@ -121,6 +121,15 @@ _OPCODES = {
     "push": ("VAR", 0x08, False, False, False),
     "pull": ("VAR", 0x09, False, False, False),
     "put_prop": ("VAR", 0x03, False, False, False),
+    # Screen-model VAR opcodes (v5): the upper window and cursor, used by the
+    # statusline granule. split_window reserves N upper lines; set_window selects
+    # window 0 (main) or 1 (upper); set_cursor moves within the upper window;
+    # set_text_style sets reverse/bold/etc; erase_window clears one (or all).
+    "split_window": ("VAR", 0x0A, False, False, False),
+    "set_window": ("VAR", 0x0B, False, False, False),
+    "erase_window": ("VAR", 0x0D, False, False, False),
+    "set_cursor": ("VAR", 0x0F, False, False, False),
+    "set_text_style": ("VAR", 0x11, False, False, False),
     # EXT (v5+). save/restore store a result (0 fail, 1 the original pass, 2 the
     # post-restore resume); save_undo/restore_undo behave the same for undo.
     "save": ("EXT", 0x00, True, False, False),
