@@ -20,7 +20,14 @@ from __future__ import annotations
 import os
 
 from . import ast
+from .errors import ArcError
 from .parser import parse
+
+# Dotted features that the loader does not resolve to a plain runtime granule:
+# `language` selects a translation pack (milestone B7) and `abbreviations` is
+# consumed by the compiler's text encoder, not compiled as runtime blocks (B6).
+# They parse and are recognized here, but loading them is handled elsewhere.
+_NON_GRANULE_FEATURES = {"language", "abbreviations"}
 
 # The Cosmos library version. It is independent of the compiler version: the
 # bundled library can move ahead of (or behind) arcc, and since the embedded
@@ -31,11 +38,12 @@ COSMOS_VERSION = "0.1.0"
 _EMBEDDED = None
 
 
-def prelude_sources() -> dict:
-    """Return {filename: source} for the bundled Cosmos prelude files, in a
-    stable order."""
+def _bundled_sources(suffix: str) -> dict:
+    """Return {filename: source} for the bundled Cosmos files with the given
+    suffix (".prelude" or ".granule"), in a stable order. The amalgamated build
+    embeds them via _EMBEDDED; the package build reads cosmos/ from disk."""
     if _EMBEDDED is not None:
-        return dict(_EMBEDDED)
+        return {n: s for n, s in _EMBEDDED.items() if n.endswith(suffix)}
     # In the amalgamated build the module has no __file__; Cosmos is embedded
     # there via _EMBEDDED, so an absent file just means "no directory to read".
     module_file = globals().get("__file__")
@@ -46,21 +54,98 @@ def prelude_sources() -> dict:
     out: dict = {}
     if os.path.isdir(cosmos_dir):
         for name in sorted(os.listdir(cosmos_dir)):
-            if name.endswith(".prelude"):
+            if name.endswith(suffix):
                 with open(os.path.join(cosmos_dir, name), "r", encoding="utf-8") as fh:
                     out[name] = fh.read()
     return out
 
 
-def combined_program(game: ast.Program) -> ast.Program:
-    """Prepend the Cosmos declarations to the game's, yielding one program to
-    analyze and compile. Cosmos blocks are tagged `library` so a game block of
-    the same name overrides them (most-specific-wins)."""
+def prelude_sources() -> dict:
+    """Return {filename: source} for the bundled Cosmos prelude files."""
+    return _bundled_sources(".prelude")
+
+
+def granule_sources() -> dict:
+    """Return {filename: source} for the bundled Cosmos granule files (the
+    official summonable features that ship inside arcc)."""
+    return _bundled_sources(".granule")
+
+
+def _summons(program: ast.Program) -> list:
+    return [d for d in program.decls if isinstance(d, ast.Summon)]
+
+
+def _resolve_summon(s: ast.Summon, bundled: dict, lib_dirs, story_dir):
+    """Resolve one summon to (key, source, srcname), or (None, None, None) for a
+    feature the loader does not compile as runtime blocks (language,
+    abbreviations). Raises ArcError on a missing file or unknown feature."""
+    if s.is_feature:
+        if s.target in _NON_GRANULE_FEATURES:
+            return None, None, None
+        fname = s.target + ".granule"
+        if fname in bundled:
+            return "feature:" + fname, bundled[fname], fname
+        raise ArcError(
+            f"summon: unknown built-in feature '{s.target}'", s.line,
+            filename="<summon>",
+        )
+    # A file summon ("path/to/x.granule"): search the story's directory first,
+    # then each -L directory.
+    rel = s.target
+    roots = ([story_dir] if story_dir else []) + list(lib_dirs)
+    for root in roots:
+        path = os.path.join(root, rel)
+        if os.path.isfile(path):
+            with open(path, "r", encoding="utf-8") as fh:
+                return "file:" + os.path.abspath(path), fh.read(), rel
+    # Also accept a path that is already absolute or relative to the cwd.
+    if os.path.isfile(rel):
+        with open(rel, "r", encoding="utf-8") as fh:
+            return "file:" + os.path.abspath(rel), fh.read(), rel
+    raise ArcError(f"summon: cannot find granule '{rel}'", s.line, filename="<summon>")
+
+
+def _load_granules(game: ast.Program, lib_dirs, story_dir) -> list:
+    """Resolve and parse every granule the game summons (transitively, since a
+    granule may summon another), each loaded once. Granule blocks are tagged
+    `granule` so they override a library block but yield to the game
+    (most-specific-wins). Unsummoned granules are never read, so they never ship."""
+    bundled = granule_sources()
+    loaded: dict = {}
+    order: list = []
+    worklist = _summons(game)
+    while worklist:
+        s = worklist.pop(0)
+        key, src, srcname = _resolve_summon(s, bundled, lib_dirs, story_dir)
+        if key is None or key in loaded:
+            continue
+        prog = parse(src, srcname)
+        gdecls: list = []
+        for d in prog.decls:
+            if isinstance(d, ast.BlockDecl):
+                d.origin = "granule"
+            gdecls.append(d)
+        loaded[key] = gdecls
+        order.append(key)
+        worklist.extend(_summons(prog))  # a granule may summon further granules
+    out: list = []
+    for key in order:
+        out.extend(loaded[key])
+    return out
+
+
+def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Program:
+    """Combine the Cosmos library, any summoned granules, and the game into one
+    program to analyze and compile. Order encodes precedence: library first
+    (tagged `library`), then granules (tagged `granule`), then the game, so a
+    game block overrides a granule block overrides a library block of the same
+    name (most-specific-wins). lib_dirs and story_dir locate file summons."""
     decls: list = []
     for name, src in prelude_sources().items():
         for d in parse(src, name).decls:
             if isinstance(d, ast.BlockDecl):
                 d.origin = "library"
             decls.append(d)
+    decls.extend(_load_granules(game, lib_dirs, story_dir))
     decls.extend(game.decls)
     return ast.Program(decls)
