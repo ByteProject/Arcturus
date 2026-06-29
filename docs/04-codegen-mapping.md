@@ -151,9 +151,16 @@ and object-relative pointer fixups).
 |-----------|----------|
 | a `topic` body | a `topic_<obj>_<i>` routine, `self` = the person |
 | a topic `when <cond>` | a `topicwhen_<obj>_<i>` guard returning 1/0 |
-| `you "..."` | `print` `You: "`, the text, then `"` |
-| `reply "..."` | `print_obj self`, `: "`, the text, then `"` |
+| `you "..."` | `call` `line_you`, the text, then `line_end` |
+| `reply "..."` | `call` `line_reply(self)`, the text, then `line_end` |
 | `reveal <id>` / `hide <id>` | clear / set the `hidden` bit in sibling `<id>`'s state byte (the index is resolved at compile time) |
+
+The compiler owns only the line's structure: open framing, the text (with
+interpolation), close framing. The wording - the speaker label, the separator,
+and the quotation marks - lives in the Cosmos blocks `line_you`, `line_reply`,
+and `line_end`, so a story can restyle it and a language pack can translate it.
+It deliberately is not in the conversations granule, because the ask/tell path
+uses these lines and runs with that granule absent.
 
 The conversation granules never touch this byte layout: they call the
 `cosmos_topic_*` backing routines (`arcturus/codegen.py`) through the

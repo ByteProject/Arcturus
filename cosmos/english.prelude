@@ -204,6 +204,22 @@ block msg_nothing_again()
 block msg_only_animate()
     say "If you continue talking to objects, it might be time for another therapy session."
 
+// Conversation lines. The `you` and `reply` topic sugar auto-quotes and
+// attributes a line of dialogue; the compiler supplies the line's text and
+// calls these for the framing. The speaker label, the separator, and the
+// quotation marks all live here, so a story can restyle them and a language
+// pack can translate them (German low-high quotes, French guillemets, a
+// different speaker tag). line_reply receives the speaking person; ${The x}
+// prints a named person bare (Linda) and others with the article (The guard).
+block line_you()
+    show("You: \"")
+
+block line_reply(speaker)
+    show("${The speaker}: \"")
+
+block line_end()
+    say "\""
+
 // Room and light.
 block msg_dark_room()
     say "Pitch black. Even your hands have gone missing."

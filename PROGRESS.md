@@ -662,16 +662,22 @@ TOPIC SYSTEM is mid-build. Sub-steps:
   exist (the table references them). codegen.gen_topic_helpers emits the
   cosmos_topic_* backing routines (count/rec/label/visible/run/matches) only
   when referenced (gated like the exit routines), so topics-without-granule pays
-  only the table+bodies. lower.py: ast.Line (you -> `You: "..."`, reply ->
-  `<self name>: "..."`, auto-quoted via _emit_say), ast.TopicToggle (reveal/hide
-  flips the sibling's HIDDEN state bit; subject -> index resolved at COMPILE time
-  via ctx.topic_index, a direct poke, no runtime lookup), and the topic_* intrinsics.
-  SUBJECT ADDRESSING: reveal/hide always target a sibling on self, so the compiler
-  knows the index; once-retirement folded into cosmos_topic_run. Proven on Frotz
+  only the table+bodies. lower.py: ast.Line (you/reply - the COMPILER owns only
+  the structure: it calls Cosmos blocks line_you / line_reply(self) / line_end for
+  the framing and emits the text in between via _emit_say. The wording - speaker
+  label, separator, auto-quote marks - lives in cosmos/english.prelude
+  (overridable + translatable, reachable by the ask/tell path which runs WITHOUT
+  conversations.granule; deliberately NOT in the granule, where ask/tell users
+  could not reach it). ast.TopicToggle (reveal/hide flips the sibling's HIDDEN
+  state bit; subject -> index resolved at COMPILE time via ctx.topic_index, a
+  direct poke, no runtime lookup), and the topic_* intrinsics. SUBJECT
+  ADDRESSING: reveal/hide always target a sibling on self, so the compiler knows
+  the index; once-retirement folded into cosmos_topic_run. Proven on Frotz
   (tests/test_topics.py test_topic_runtime_on_frotz: visibility gating by
-  hidden/when, auto-quote+attribute, reveal unhides, once retires). Example sizes
-  unchanged (12068/12916; the new standard prop renumbers but does not grow).
-  docs/04 section 8 records the lowering.
+  hidden/when, auto-quote+attribute, reveal unhides, once retires). Examples
+  +64 bytes (12132/12980) for the three always-on line_* prelude blocks (dead in
+  non-conversation games, dropped by B6 DCE). docs/04 section 8 + message-set.md
+  record the lowering and the overridable blocks.
 - [ ] 3. NEXT: ask/tell dispatch (extendedverbs v2): ask <person> about <subject> ->
   match subject words against the person's topic table, run the matching topic's
   body if visible (when true, not hidden, not retired-if-once); retire once

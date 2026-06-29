@@ -950,22 +950,21 @@ def _emit_say(rt, ctx, value):
 
 
 def _line(rt, ctx, s: ast.Line):
-    """A conversation line: `you "..."` prints `You: "..."`, `reply "..."` prints
-    `<the person>: "..."` (the person is `self`). The text is auto-quoted, which
-    is the whole point of the sugar (no override just to get quotation marks).
-    The prefix wording is provisional here; the conversations granule may take it
-    over for translation when the menu lands."""
+    """A conversation line: `you "..."` is the player, `reply "..."` is the
+    person being spoken to (`self`). The compiler owns only the structure - open
+    framing, the line's text (interpolation and all), close framing - while the
+    wording lives in Cosmos: line_you / line_reply / line_end print the speaker
+    label, separator, and quotation marks. That keeps the framing overridable and
+    translatable and, crucially, reachable for the ask/tell path, which runs
+    without the conversations granule."""
     _flush_par(rt, ctx)
     if s.who == "reply":
-        # Attribute to the speaking person by name, then the quoted line.
-        if ctx.self_value is not None:
-            rt.op("print_obj", ctx.self_value)
-        rt.op("print", text=': "')
+        speaker = ctx.self_value if ctx.self_value is not None else Const(0)
+        rt.op("call_vn", RoutineRef("blk_line_reply"), speaker)
     else:  # "you": the player's own line
-        rt.op("print", text='You: "')
+        rt.op("call_vn", RoutineRef("blk_line_you"))
     _emit_say(rt, ctx, s.text)
-    rt.op("print", text='"')
-    rt.op("new_line")
+    rt.op("call_vn", RoutineRef("blk_line_end"))
 
 
 def _topic_toggle(rt, ctx, s: ast.TopicToggle):
