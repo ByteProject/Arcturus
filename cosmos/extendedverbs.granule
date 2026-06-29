@@ -307,31 +307,31 @@ block msg_search_nothing()
     say "Nothing worth the effort turns up."
 
 block msg_search_closed()
-    say "${The noun} is shut."
+    say "Schroedinger's loot remains safe, mostly because ${the noun} is completely shut."
 
 block msg_throw()
-    say "You think better of it."
+    say "Gravity has already been discovered; there is no need for you to test it again."
 
 block msg_rub()
-    say "You polish ${the noun}. It remains unimpressed."
+    say "You give ${the noun} a thorough buffing. It continues to judge you in silence."
 
 block msg_squeeze()
-    say "${The noun} keeps its counsel."
+    say "You give ${the noun} an uncomfortably long squeeze. Let's just move on."
 
 block msg_tie()
-    say "Knots won't help you here."
+    say "Stringing things together won't help you unravel this particular problem."
 
 block msg_cut()
-    say "Cutting it solves nothing."
+    say "${The noun} seems firmly opposed to being cut."
 
 block msg_fill()
-    say "There's nothing here to fill ${the noun} with."
+    say "${The noun} remains empty, mostly because you don't have anything to put in it."
 
 block msg_burn()
-    say "Arson solves nothing here."
+    say "Starting a fire here seems like a quick way to create a much bigger problem."
 
 block msg_blow()
-    say "You blow. The dust is briefly impressed."
+    say "You unleash a mighty breath. The local climate remains entirely unaffected."
 
 block msg_set()
     say "Set it to what, exactly?"
@@ -340,7 +340,7 @@ block msg_empty()
     say "You up-end ${the noun}. Nothing of note falls out."
 
 block msg_buy()
-    say "Nothing here is for sale."
+    say "Your wealth is profoundly useless in this exact situation."
 
 block msg_consult()
     say "${The noun} has nothing to say on the matter."
@@ -358,7 +358,7 @@ block msg_stand()
     say "You're already on your feet."
 
 block msg_sleep()
-    say "This is no place to nod off."
+    say "You consider curling up into a ball and ignoring the plot, but your sense of duty rudely keeps you awake."
 
 block msg_swim()
     say "There's nowhere here to swim."
@@ -370,10 +370,10 @@ block msg_think()
     say "A fine idea. Nothing comes of it."
 
 block msg_pray()
-    say "You murmur a few words. The silence, at least, is respectful."
+    say "You ask the heavens for a hint. The heavens remain conspicuously silent."
 
 block msg_shout()
-    say "You shout. The echo is unimpressed."
+    say "You test the location's acoustics with a loud yell. The results are entirely underwhelming."
 
 block msg_ask()
     say "${The noun} stays mum on the subject."
