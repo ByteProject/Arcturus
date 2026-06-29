@@ -36,6 +36,11 @@ _VERB_FLAG = 0x80
 _DIR_FLAG = 0x40
 _PARTICLE_FLAG = 0x20
 _SCENERY_FLAG = 0x10  # a grain word: data byte 1 = grain id (index+1), byte 2 = owner object
+# flags bit 3 marks a grammar preposition (the "to"/"with" joining two noun
+# slots), so the parser knows where the first noun phrase ends and the second
+# begins. Words already flagged otherwise (on/in are a particle/direction) are
+# left as they are; the parser treats any flagged word as a phrase boundary.
+_PREPOSITION_FLAG = 0x08
 
 # Verb particles for multi-word verbs (switch on, take off). English; moves into
 # the language pack when localized. up/down/in/out are omitted (they are
@@ -85,6 +90,18 @@ def collect_vocab(world: wm.World) -> set:
             for gw in grain.words:
                 words.add(gw.lower())
     return words
+
+
+def _preposition_words(world: wm.World) -> set:
+    """Literal preposition words in verb grammar (the "to" of give noun to noun),
+    lowercased, so the parser can mark the boundary between two noun phrases."""
+    out: set = set()
+    for verb in world.verbs:
+        for line in verb.grammar:
+            for it in line.items:
+                if isinstance(it, ast.Word):
+                    out.add(it.text.lower())
+    return out
 
 
 def _two_noun_verbs(world: wm.World) -> set:
@@ -150,6 +167,12 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
     if scenery:
         for word, (gid, owner) in scenery.items():
             enc_data[encoded[word]] = bytes([_SCENERY_FLAG, gid & 0xFF, owner & 0xFF])
+    # Prepositions last, and only where nothing else claimed the word: on/in are
+    # already a particle/direction, and the parser treats those as boundaries too.
+    for word in _preposition_words(world):
+        enc = encoded[word]
+        if enc not in enc_data:
+            enc_data[enc] = bytes([_PREPOSITION_FLAG, 0, 0])
     # Distinct entries, sorted by encoded bytes for binary search.
     distinct = sorted(set(encoded.values()))
 

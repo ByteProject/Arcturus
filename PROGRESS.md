@@ -438,9 +438,18 @@ DONE in B5 (continued):
   msg_only_animate), insert (a sibling of put into an open container). Added
   `insert` to prelude._STD_ACTIONS. Messages were already in english.prelude.
   tests/test_functional.py (open/close/lock/unlock/insert/give/show/enter/exit on
-  Frotz). NOTE: a give/show target out of scope makes the parser bind the verb's
-  single noun to the recipient (resolve_two_nouns fills `noun` first) - keep the
-  gift in scope (in hand) when giving.
+  Frotz).
+- Two-noun slot binding by position (folded into B5.4c): resolve_two_nouns now
+  binds the first noun phrase (before the preposition) to `noun` and the phrase
+  after it to `second`, instead of "first in-scope match wins, next distinct is
+  second". This closes a real gap: with the gift out of scope, "give coin to
+  guard" no longer slid the guard into the noun slot; the gift stays unresolved
+  and the verb reports msg_cant_see. New dictionary preposition flag (0x08,
+  dictionary._PREPOSITION_FLAG / _preposition_words) marks the grammar's literal
+  "to"/"with"; on/in already carry a particle/direction flag, and the parser's
+  is_separator treats any flagged word as the phrase boundary. tests/
+  test_functional.py::test_two_noun_binds_by_position_on_frotz. (`after` is a
+  reserved word - the boundary local is `past_prep`.)
 
 REMAINING in B5:
 - B5.4d (NEXT): meta verbs on z-opcodes - score, save, restore, restart, undo, again,
@@ -465,7 +474,7 @@ KEY FACTS for resume:
   in cosmos/english.prelude as overridable msg_* blocks.
 - Sizes today (pre-DCE, bloated by ~70 message + ~45 verb routines, all shipped
   until B6 DCE): brass ~9.5K, cloak ~10K. Still far under Puny's 27K for Cloak.
-- 198 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
+- 199 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
   with python3 tools/amalgamate.py build/arcc; rebuild the example .z5 via
   build/arcc after any cosmos/ change. Throwaway test .z5 go to the scratchpad,
   not build/ (build/ holds only arcc + the two example games).
