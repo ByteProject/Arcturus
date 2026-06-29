@@ -515,6 +515,18 @@ B7 (Spanish + German), pushing the rest down one: B8 Actaea, B9 arc_image modern
 B10 arc_image retro, B11 Ghosts, B12 Rabenstein. docs/00, README, CLAUDE.md and
 [[roadmap-milestones]] updated to match.
 
+BANNER SPACING FIX (2026-06-29): the opening screen showed TWO blank lines between
+the banner and the first text (the banner string hardcoded a trailing blank AND
+describe_room requested a par; dfrotz collapsed it but interactive frotz showed
+both). Fixed by letting the paragraph model own it: banner_text ends on a single
+\n, and run_game does par() before run_free(ev_start), collapsed with
+describe_room's par -> exactly one blank, whether or not an `on start` prints.
+
+GRANULE EXAMPLES (Stefan): each shipped granule gets a showcase game under
+examples/granules/ (verbose-exits.storyarc is the first). These are demo/teaching
+games, kept apart from the two conformance anchors (brass-lantern, cloak) which
+stay in examples/.
+
 REMAINING in B5 - the granules, built and tested one at a time (B5.5), then the
 reference doc (B5.6). Full granule set settled with Stefan:
 - B5.5a DONE (committed): the summon LOADER. cosmos.combined_program now takes

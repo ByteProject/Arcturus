@@ -275,7 +275,11 @@ def banner_text(world: wm.World) -> str:
         f"Release {release} / Serial number {serial} / "
         f"Arcturus {_compiler_version()} / Cosmos {cosmos_v}"
     )
-    return f"\n{title}\n{line2}\n{line3}\n\n"
+    # End on a single newline; the blank line that separates the banner from the
+    # first text is a paragraph break the turn loop requests (run_game), so the
+    # spacing is owned by the one paragraph model instead of hardcoded here (which
+    # otherwise doubled up with describe_room's par on the opening screen).
+    return f"\n{title}\n{line2}\n{line3}\n"
 
 
 def _start_handler(world: wm.World):
