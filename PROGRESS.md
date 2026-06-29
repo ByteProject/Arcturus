@@ -808,11 +808,15 @@ which were Puny's). It showcases the full topic feature set on the ASK path:
 retirement, a `when player holds opener` guard (the murder weapon can only be
 raised while held), you/reply auto-quote+attribution, and `say` stage directions
 mixed in. The suspect's own `on tell` is the manual escape hatch beside the
-sugar: ASK runs topics, TELL he handles himself. GUIDED: TALK TO CRALE is the hub
-- his `on talk` walks his topic table and lists the lines of questioning open
-right now (topics_count/topic_visible/topic_label), so the player never guesses a
-subject; the list is live (revealed topics appear, `once` topics drop off, the
-weapon appears once you hold the opener). That `on talk` listing is the prose
-preview of what sub-step 4's menu will paint. Verified on Frotz. Like the other
-examples/granules/*.storyarc it is an untested showcase artifact (the behavior is
-covered by tests/test_topics.py test_ask_tell_dispatch_on_frotz).
+sugar: ASK runs topics, TELL he handles himself. TWO AUTHOR LESSONS (Stefan's
+redirect, do not regress): (1) Infocom conversation REPLACES generic chatter -
+the suspect's `on talk` does NOT list topics; it turns TALK TO him into a redirect
+("be specific: ask him about something, or tell him what you've got"), so there is
+no dead "nothing to say" path and the player learns ask/tell. (2) Guidance is the
+detective's INNER VOICE, not a menu: a free `on start` opens on the first thread
+("...The alibi."), and every topic body ENDS with an unquoted line of internal
+monologue naming the next thread to pull (alibi -> "push him on the ticket" ->
+"take the opener, make him look at it" -> "go for the truth"). NO topics_count/
+topic_label listing in this example (that introspection belongs to sub-step 4's
+menu). Verified on Frotz. Like the other examples/granules/*.storyarc it is an
+untested showcase artifact (behavior covered by test_ask_tell_dispatch_on_frotz).
