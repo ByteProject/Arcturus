@@ -11,6 +11,11 @@
 
 block run_game()
     move player to here
+    // Request the paragraph break that separates the banner from the opening
+    // text. The banner ends on a single newline; this par() (collapsed with the
+    // one describe_room requests) yields exactly one blank line, whether or not
+    // an `on start` prints first.
+    par()
     run_free(ev_start())
     describe_room()
     while true
