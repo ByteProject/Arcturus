@@ -557,7 +557,12 @@ reference doc (B5.6). Full granule set settled with Stefan:
   exclusion. Arcturus-named primaries with Inform synonyms (e.g. fetch/purloin,
   warp/gonear, inspect/showobj). Lock the names when building.
 - B5.6: finalize the message/verb reference doc (docs/05) from message-set.md +
-  verb-set.md once the set is complete.
+  verb-set.md once the set is complete. ALSO (Stefan, 2026-06-29): document every
+  shipped granule for authors - how to summon it and what it does - so the
+  summonable features are discoverable. Likely a dedicated granule reference in
+  docs (and a README pointer), covering extendedverbs, statusline, verbose_exits,
+  conversations, debug (and noting language/abbreviations as B7/B6). Reconcile
+  docs/01 section 13 and docs/02 section 14 with what actually shipped.
 
 ABBREVIATIONS (B6, before any size test; a compiler feature, not a runtime
 granule): the compiler bakes in a standard abbreviation set (Inform's ceiling is
