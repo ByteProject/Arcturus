@@ -1,0 +1,388 @@
+// extendedverbs.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// The extended verb set: summon it with `summon.extendedverbs`. These are the
+// verbs beyond the always-in standard set (docs/verb-set.md, the E column) -
+// search, throw, dig, the idle and flavor actions, and the Infocom-style
+// conversation verbs ask/tell/answer. Most just speak a default an object can
+// override (most-specific-wins), exactly like the standard sensory verbs; search
+// lists what a container or supporter holds, and fullscore reports the score.
+//
+// The wording lives here, in the granule, so it ships only when summoned and an
+// author can reskin any line by redefining its msg_* block.
+//
+// NOTE (the topic conversation system). ask/tell/answer here give a flat default
+// reply. The richer Infocom topic dispatch (ask <person> about <subject> finding
+// an author-defined answer) is the second pass of this granule, built on the
+// shared `topic` model; when summon.conversations is also present, that menu
+// takes over and these verbs defer to it.
+
+// ---------------------------------------------------------------------------
+// Examining and rummaging.
+
+verb "search", "frisk"
+    search noun
+
+on search
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if noun is supporter
+        search_contents(noun)
+        stop
+    if noun is container
+        if not (noun is open)
+            msg_search_closed()
+            stop
+        search_contents(noun)
+        stop
+    msg_search_nothing()
+
+// List what an object holds, or report that it holds nothing of note.
+block search_contents(obj)
+    let n = 0
+    for each x in obj
+        if not (x is hidden)
+            if n is 0
+                show("You find ")
+            else
+                show(", ")
+            print_name(x)
+            change n to n + 1
+    if n is 0
+        msg_search_nothing()
+    else
+        say "."
+
+// ---------------------------------------------------------------------------
+// Acting on objects (futile by default; an object overrides for real effect).
+
+verb "throw", "chuck", "toss", "hurl"
+    throw noun at noun
+
+on throw
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_throw()
+
+
+verb "rub", "polish", "clean", "wipe", "scrub", "dust", "shine", "buff"
+    rub noun
+
+on rub
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_rub()
+
+
+verb "squeeze", "crush"
+    squeeze noun
+
+on squeeze
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_squeeze()
+
+
+verb "tie", "attach", "fasten", "secure"
+    tie noun to noun
+
+on tie
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_tie()
+
+
+verb "cut", "chop", "slice", "prune", "carve"
+    cut noun
+
+on cut
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_cut()
+
+
+verb "fill"
+    fill noun
+
+on fill
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_fill()
+
+
+verb "burn", "ignite", "torch", "kindle"
+    burn noun
+
+on burn
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_burn()
+
+
+verb "blow"
+    blow noun
+
+on blow
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_blow()
+
+
+verb "set", "adjust"
+    set noun to noun
+
+on set
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_set()
+
+
+verb "empty", "drain"
+    empty noun
+    empty noun into noun
+
+on empty
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_empty()
+
+
+verb "buy", "purchase"
+    buy noun
+
+on buy
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_buy()
+
+
+verb "consult", "reference"
+    consult noun about noun
+
+on consult
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_consult()
+
+// ---------------------------------------------------------------------------
+// Body and idle actions (intransitive; they just speak).
+
+verb "dig", "excavate"
+    dig
+    dig noun
+
+on dig
+    msg_dig()
+
+
+verb "wave", "brandish"
+    wave
+    wave noun
+
+on wave
+    msg_wave()
+
+
+verb "sit", "rest"
+    sit
+
+on sit
+    msg_sit()
+
+
+verb "stand"
+    stand
+
+on stand
+    msg_stand()
+
+
+verb "sleep", "nap", "doze"
+    sleep
+
+on sleep
+    msg_sleep()
+
+
+verb "swim", "dive", "paddle"
+    swim
+
+on swim
+    msg_swim()
+
+
+verb "swing"
+    swing
+
+on swing
+    msg_swing()
+
+
+verb "think", "ponder", "consider"
+    think
+
+on think
+    msg_think()
+
+
+verb "pray", "worship"
+    pray
+
+on pray
+    msg_pray()
+
+
+verb "shout", "yell", "scream", "holler"
+    shout
+
+on shout
+    msg_shout()
+
+// ---------------------------------------------------------------------------
+// Conversation (flat defaults; the topic system is the granule's second pass).
+// ask and tell address a living thing; an object earns the only-animate nudge.
+
+verb "ask", "interrogate", "query"
+    ask noun about noun
+    ask noun for noun
+
+on ask
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if not (noun is animate)
+        msg_only_animate()
+        stop
+    msg_ask()
+
+
+verb "tell", "inform"
+    tell noun about noun
+
+on tell
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if not (noun is animate)
+        msg_only_animate()
+        stop
+    msg_tell()
+
+
+verb "answer", "respond"
+    answer noun
+
+on answer
+    msg_answer()
+
+// ---------------------------------------------------------------------------
+// Meta: the full score breakdown (does not take a turn).
+
+verb "fullscore", "full"
+    fullscore
+
+on fullscore
+    change meta_turn to 1
+    msg_fullscore()
+
+// ---------------------------------------------------------------------------
+// The wording. Redefine any of these in your story to change a line.
+
+block msg_search_nothing()
+    say "You find nothing of interest."
+
+block msg_search_closed()
+    say "${The noun} is closed."
+
+block msg_throw()
+    say "Throwing ${the noun} about strikes you as a poor idea."
+
+block msg_rub()
+    say "You give ${the noun} a polish. It looks no different."
+
+block msg_squeeze()
+    say "You squeeze ${the noun}. It holds its shape."
+
+block msg_tie()
+    say "${The noun} won't tie to anything here."
+
+block msg_cut()
+    say "Cutting ${the noun} would gain you nothing."
+
+block msg_fill()
+    say "There's nothing here to fill ${the noun} with."
+
+block msg_burn()
+    say "Nothing here would set ${the noun} alight, and it's wiser not to try."
+
+block msg_blow()
+    say "You blow at ${the noun}. The air stirs, and nothing more."
+
+block msg_set()
+    say "Set it to what, exactly?"
+
+block msg_empty()
+    say "Nothing useful pours out of ${the noun}."
+
+block msg_buy()
+    say "Nothing here is for sale."
+
+block msg_consult()
+    say "You consult ${the noun}, but find nothing on the matter."
+
+block msg_dig()
+    say "You have neither the reason nor the tools to dig here."
+
+block msg_wave()
+    say "You wave. It feels vaguely ceremonial, and changes nothing."
+
+block msg_sit()
+    say "There's nothing here worth sitting on."
+
+block msg_stand()
+    say "You're already on your feet."
+
+block msg_sleep()
+    say "This is no place to nod off."
+
+block msg_swim()
+    say "There's no water here deep enough for swimming."
+
+block msg_swing()
+    say "There's nothing here to swing on."
+
+block msg_think()
+    say "A fine idea in principle. Nothing comes of it just now."
+
+block msg_pray()
+    say "You murmur a few words. The quiet, at least, feels respectful."
+
+block msg_shout()
+    say "You shout. Only silence answers."
+
+block msg_ask()
+    say "${The noun} has nothing to say on that."
+
+block msg_tell()
+    say "${The noun} greets your news with perfect indifference."
+
+block msg_answer()
+    say "Your words hang in the air, unanswered."
+
+block msg_fullscore()
+    say "You have scored ${score} of a possible ${max_score}, over ${turns} turns."

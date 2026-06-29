@@ -541,13 +541,24 @@ reference doc (B5.6). Full granule set settled with Stefan:
   passes its -L + the story dir. Unsummoned granules are never read, so never
   ship. tests/test_summon.py (override wins on Frotz; unknown-feature and
   missing-file errors).
-- B5.5b: extendedverbs. Two passes. v1 = the plain E verbs (search, look_under,
-  throw, empty, set, rub, squeeze, tie, cut, dig, fill, burn, blow, wave, sit,
-  stand, sleep, swim, swing, think, pray, buy, consult, shout, fullscore +
-  ask/ask_for/tell/answer with FLAVOR defaults), mirroring the sensory pattern;
-  messages live in the granule (message-set.md defers them). search lists
-  contents, empty tips out, fullscore breaks down score. NO new syntax - build
-  anytime. v2 = the ask/tell TOPIC dispatch on the conversation model below.
+- B5.5b v1 DONE (committed): extendedverbs. The plain E verbs - search, throw,
+  rub, squeeze, tie, cut, fill, burn, blow, set, empty, buy, consult, dig, wave,
+  sit, stand, sleep, swim, swing, think, pray, shout, ask, tell, answer,
+  fullscore - each a verb decl + free `on <action>` default speaking a granule
+  msg_* (the sensory pattern). search lists a container/supporter's contents;
+  fullscore prints a breakdown (meta, no tick); ask/tell need an animate target.
+  All wording in the granule (overridable); zero cost unsummoned (brass byte-
+  identical). An object overrides any default (most-specific-wins). NOTE: handling
+  an E verb (e.g. guard `on rub`) without summoning extendedverbs is a clean compile
+  error - you can't react to a verb you didn't bring in. tests/test_extendedverbs.py;
+  examples/granules/extended-verbs.storyarc. WORDING IS DRAFT - hand to Stefan to
+  redline (like the standard message set).
+  DEFERRED to v2 / parser refinement: multi-word forms (look under, look in, get
+  up, sit on) need the compound/particle system extended; ask vs ask_for by
+  preposition (about/for) needs action-by-preposition in the parser (v1 folds both
+  into ask); and noun matching is SHALLOW (objects nested in an open container are
+  not matched by the parser yet - affects all verbs, not just these).
+  v2 = the ask/tell TOPIC dispatch on the conversation model below.
 
 CONVERSATION MODEL (settled with Stefan, 2026-06-29; the spec for B5.5b v2 +
 B5.5e). Studied Puny's ext_talk_menu.h (../PunyInform/lib) - powerful but a
