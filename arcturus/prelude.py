@@ -136,6 +136,8 @@ _BUILTINS = {
     "max_score": T_NUMBER,
     "way": T_NUMBER,  # the chosen direction's property number, set by the parser
     "grain": T_NUMBER,  # the matched scenery grain (id+1), set by the parser
+    "parse_fault": T_NUMBER,  # set by the parser when a named object is out of scope
+    "meta_turn": T_NUMBER,  # set by a meta verb so the loop skips the turn pulse
 }
 
 # Objects Cosmos provides. `player` is the distinguished person instance.

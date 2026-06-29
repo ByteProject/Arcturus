@@ -451,8 +451,24 @@ DONE in B5 (continued):
   test_functional.py::test_two_noun_binds_by_position_on_frotz. (`after` is a
   reserved word - the boundary local is `past_prep`.)
 
+DONE in B5 (continued):
+- B5.4d.1 - turn control + parser can't-see + the no-opcode meta verbs: a meta
+  action sets the meta_turn global so the loop skips the per-turn pulse and the
+  turn count (fixes a cancelled quit costing a turn); the parser sets parse_fault
+  when the player names an object out of scope (any unflagged dictionary word that
+  no in-scope object answers to), and the loop reports msg_cant_see and skips the
+  turn. This also closes the give/show recipient gap (the symmetric half of the
+  position-binding fix): "give coin to wizard" with the wizard elsewhere now says
+  can't-see instead of the only-animate nudge. Verbs: score (msg_score, prints
+  ${score}/${max_score} via print_num), restart (msg_confirm_restart + yes_no +
+  do_restart, the new restart 0OP opcode), xyzzy (msg_xyzzy; a normal turn, not
+  meta). New globals parse_fault/meta_turn (codegen._BUILTIN_GLOBALS +
+  prelude._BUILTINS). yes_no() factored out of confirm_quit and shared with
+  restart. tests/test_meta.py. Grammar-named actions are auto-added to
+  world.actions, so meta verbs need no _STD_ACTIONS entry.
+
 REMAINING in B5:
-- B5.4d (NEXT): meta verbs on z-opcodes - score, save, restore, restart, undo, again,
+- B5.4d.2 (NEXT): save / restore / undo on z-opcodes - score, save, restore, restart, undo, again,
   oops, xyzzy. Need new intrinsics for save/restore/restart/undo opcodes; score
   uses the score/max_score globals. Messages msg_score/saved/save_failed/
   restore_failed/confirm_restart/undone/cant_undo/xyzzy still need adding (most
@@ -474,7 +490,7 @@ KEY FACTS for resume:
   in cosmos/english.prelude as overridable msg_* blocks.
 - Sizes today (pre-DCE, bloated by ~70 message + ~45 verb routines, all shipped
   until B6 DCE): brass ~9.5K, cloak ~10K. Still far under Puny's 27K for Cloak.
-- 199 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
+- 202 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
   with python3 tools/amalgamate.py build/arcc; rebuild the example .z5 via
   build/arcc after any cosmos/ change. Throwaway test .z5 go to the scratchpad,
   not build/ (build/ holds only arcc + the two example games).

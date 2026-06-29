@@ -52,8 +52,9 @@ INTRINSICS = frozenset({
     # controls vertical spacing; the print layer honors the flag).
     "par",
     # do_quit ends the session (the quit opcode); text_char reads a typed
-    # character from the input buffer (for a yes/no confirmation).
-    "do_quit", "text_char",
+    # character from the input buffer (for a yes/no confirmation). do_restart
+    # restarts the story from the beginning (the restart opcode).
+    "do_quit", "text_char", "do_restart",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr",
@@ -475,6 +476,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
     elif name == "do_quit":
         # do_quit(): end the session.
         rt.op("quit")
+        _place(rt, Const(0), dest)
+    elif name == "do_restart":
+        # do_restart(): restart the story from the beginning (never returns).
+        rt.op("restart")
         _place(rt, Const(0), dest)
     elif name == "text_char":
         # text_char(i): the i-th character typed on the last input line. In v5 the

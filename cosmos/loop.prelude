@@ -17,12 +17,17 @@ block run_game()
         prompt()
         let act = parse()
         if act is 0
-            if word_count() is not 0
-                msg_no_verb()
+            if parse_fault is 1
+                msg_cant_see()
+            else
+                if word_count() is not 0
+                    msg_no_verb()
         else
+            change meta_turn to 0
             dispatch(act)
-            fire_turn()
-            tick()
+            if meta_turn is 0
+                fire_turn()
+                tick()
 
 // Fire the current room's `on enter` (the loop and the go verb call this after
 // the player arrives). The handler may move the player elsewhere (a bounce).

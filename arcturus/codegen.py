@@ -291,9 +291,13 @@ def _start_handler(world: wm.World):
 # turns/score/max_score are numbers; player/here/noun/second hold object numbers;
 # way/grain are the parser's direction and scenery; par_pending is the library's
 # paragraph-break flag (internal, set by par(), honored by the print layer).
+# parse_fault flags that the player named an object that is not in scope (the
+# turn loop reports "you can't see that" and skips the turn); meta_turn flags an
+# action that does not advance the world (score, save, a cancelled quit), so the
+# loop skips the per-turn pulse and the turn count.
 _BUILTIN_GLOBALS = [
     "turns", "score", "max_score", "player", "here", "noun", "second",
-    "way", "grain", "par_pending",
+    "way", "grain", "par_pending", "parse_fault", "meta_turn",
 ]
 
 

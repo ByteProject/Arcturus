@@ -76,6 +76,7 @@ _OPCODES = {
     "print_ret": ("0OP", 0x03, False, False, True),
     "new_line": ("0OP", 0x0B, False, False, False),
     "quit": ("0OP", 0x0A, False, False, False),
+    "restart": ("0OP", 0x07, False, False, False),
     # 1OP
     "jz": ("1OP", 0x00, False, True, False),
     "get_sibling": ("1OP", 0x01, True, True, False),  # stores the sibling, branches if it exists
