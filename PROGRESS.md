@@ -556,9 +556,18 @@ reference doc (B5.6). Full granule set settled with Stefan:
   keeps all phrasing in Cosmos (translatable). Heavily commented as a teaching
   example. tests/test_verbose_exits.py (lists exits on Frotz; default untouched
   without the summon).
-- B5.5d: statusline. The window opcodes (split_window/set_window/set_cursor/
-  set_text_style) - the start of the screen model, reused by conversations and
-  later Actaea/B8.
+- B5.5d DONE (committed): statusline. A reverse-video bar painted before every
+  prompt: room name left, score/moves right, updating each turn. REDRAW HOOK =
+  the granule OVERRIDES prompt() (Cosmos calls prompt() before every command,
+  including the first after the opening room), so NO turn-loop change and zero
+  cost when unsummoned (examples byte-identical). New screen-model VAR opcodes in
+  the assembler (split_window 0x0A, set_window 0x0B, erase_window 0x0D, set_cursor
+  0x0F, set_text_style 0x11) and intrinsics split_window/set_window/set_cursor/
+  set_style/screen_width (screen_width reads header byte 0x21). The bar wording
+  lives in the granule (overridable/translatable). dumb-mode frotz reconstructs
+  the upper window, so it is checkable headless. tests/test_statusline.py;
+  examples/granules/statusline.storyarc (awards a point for the coin to show
+  score change). The screen opcodes also feed Actaea (B8) and conversations.
 - B5.5e: conversations. The MENU talk system (talk_menu equivalent): TALK TO
   <animate> paints a topic menu in the UPPER window (needs statusline's window
   work first), topics enabled/disabled from code by milestone/location. Puny's
@@ -596,7 +605,7 @@ KEY FACTS for resume:
   in cosmos/english.prelude as overridable msg_* blocks.
 - Sizes today (pre-DCE, bloated by ~70 message + ~45 verb routines, all shipped
   until B6 DCE): brass ~9.5K, cloak ~10K. Still far under Puny's 27K for Cloak.
-- 218 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
+- 221 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
   with python3 tools/amalgamate.py build/arcc; rebuild the example .z5 via
   build/arcc after any cosmos/ change. Throwaway test .z5 go to the scratchpad,
   not build/ (build/ holds only arcc + the two example games).

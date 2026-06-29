@@ -1,0 +1,61 @@
+// statusline.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// An opt-in status line: summon it with `summon.statusline`. A one-line bar is
+// painted across the top of the screen before every prompt, showing the current
+// room on the left and the score and move count on the right, the way most
+// Infocom games do.
+//
+// HOW IT WORKS. A status line is a screen feature, so it uses a handful of v5
+// screen intrinsics the compiler provides (each lowers straight to an opcode, so
+// they cost nothing unless a granule calls them):
+//
+//   split_window(n)        reserve n lines at the top as the "upper window"
+//   set_window(n)          draw into window 0 (main) or 1 (upper)
+//   set_cursor(line, col)  move the upper-window cursor (1-based)
+//   set_style(s)           text style: 0 normal, 1 reverse, 2 bold, 4 italic
+//   screen_width()         the screen width in characters, from the header
+//
+// The redraw hook is simply prompt(): Cosmos calls prompt() before reading every
+// command (including the first, right after the opening room), so overriding it
+// to paint the bar first means the line is always current, with no change to the
+// turn loop and nothing added to a story that does not summon this granule.
+//
+// To restyle the bar (drop reverse video, change the wording, reformat the right
+// side), redefine draw_status or prompt in your story; they override these.
+
+// The input prompt, extended: paint the bar, then do the ordinary prompt (the
+// paragraph break and the ">" the core library would have shown).
+block prompt()
+    draw_status()
+    par()
+    show(">")
+
+// Paint the one-line bar. Reverse video across the full width, the room name at
+// the left, score and moves at the right.
+block draw_status()
+    let w = screen_width()
+    if w is 0
+        change w to 64
+    split_window(1)
+    set_window(1)
+    set_style(1)
+    // Fill the line so the whole bar is in reverse video, not just the text.
+    set_cursor(1, 1)
+    let i = 1
+    while i < w
+        show(" ")
+        change i to i + 1
+    // Left: the current room.
+    set_cursor(1, 2)
+    print_name(here)
+    // Right: score and moves, a fixed offset in from the right edge.
+    set_cursor(1, w - 21)
+    show("Score: ")
+    show(score)
+    show("   Moves: ")
+    show(turns)
+    set_style(0)
+    set_window(0)
