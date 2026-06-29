@@ -304,55 +304,55 @@ on fullscore
 // The wording. Redefine any of these in your story to change a line.
 
 block msg_search_nothing()
-    say "You find nothing of interest."
+    say "Nothing worth the effort turns up."
 
 block msg_search_closed()
-    say "${The noun} is closed."
+    say "${The noun} is shut."
 
 block msg_throw()
-    say "Throwing ${the noun} about strikes you as a poor idea."
+    say "You think better of it."
 
 block msg_rub()
-    say "You give ${the noun} a polish. It looks no different."
+    say "You polish ${the noun}. It remains unimpressed."
 
 block msg_squeeze()
-    say "You squeeze ${the noun}. It holds its shape."
+    say "${The noun} keeps its counsel."
 
 block msg_tie()
-    say "${The noun} won't tie to anything here."
+    say "Knots won't help you here."
 
 block msg_cut()
-    say "Cutting ${the noun} would gain you nothing."
+    say "Cutting it solves nothing."
 
 block msg_fill()
     say "There's nothing here to fill ${the noun} with."
 
 block msg_burn()
-    say "Nothing here would set ${the noun} alight, and it's wiser not to try."
+    say "Arson solves nothing here."
 
 block msg_blow()
-    say "You blow at ${the noun}. The air stirs, and nothing more."
+    say "You blow. The dust is briefly impressed."
 
 block msg_set()
     say "Set it to what, exactly?"
 
 block msg_empty()
-    say "Nothing useful pours out of ${the noun}."
+    say "You up-end ${the noun}. Nothing of note falls out."
 
 block msg_buy()
     say "Nothing here is for sale."
 
 block msg_consult()
-    say "You consult ${the noun}, but find nothing on the matter."
+    say "${The noun} has nothing to say on the matter."
 
 block msg_dig()
-    say "You have neither the reason nor the tools to dig here."
+    say "The ground keeps its secrets."
 
 block msg_wave()
-    say "You wave. It feels vaguely ceremonial, and changes nothing."
+    say "You wave. The room declines to wave back."
 
 block msg_sit()
-    say "There's nothing here worth sitting on."
+    say "Nothing here invites sitting."
 
 block msg_stand()
     say "You're already on your feet."
@@ -361,28 +361,28 @@ block msg_sleep()
     say "This is no place to nod off."
 
 block msg_swim()
-    say "There's no water here deep enough for swimming."
+    say "There's nowhere here to swim."
 
 block msg_swing()
     say "There's nothing here to swing on."
 
 block msg_think()
-    say "A fine idea in principle. Nothing comes of it just now."
+    say "A fine idea. Nothing comes of it."
 
 block msg_pray()
-    say "You murmur a few words. The quiet, at least, feels respectful."
+    say "You murmur a few words. The silence, at least, is respectful."
 
 block msg_shout()
-    say "You shout. Only silence answers."
+    say "You shout. The echo is unimpressed."
 
 block msg_ask()
-    say "${The noun} has nothing to say on that."
+    say "${The noun} stays mum on the subject."
 
 block msg_tell()
-    say "${The noun} greets your news with perfect indifference."
+    say "${The noun} receives the news with magnificent indifference."
 
 block msg_answer()
-    say "Your words hang in the air, unanswered."
+    say "Your words go unanswered."
 
 block msg_fullscore()
-    say "You have scored ${score} of a possible ${max_score}, over ${turns} turns."
+    say "You have scored ${score} of a possible ${max_score}, in ${turns} turns."
