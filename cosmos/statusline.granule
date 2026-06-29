@@ -33,12 +33,15 @@ block prompt()
     par()
     show(">")
 
-// Paint the one-line bar. Reverse video across the full width, the room name at
-// the left, score and moves at the right.
+// Paint the one-line bar: reverse video across the width, the room name at the
+// left, and a compact "Score: <score>/<turns>" at the right. The compact form is
+// deliberate, so the bar fits a 40-column screen (a C64) as readily as a modern
+// terminal. For a wider, modern-style bar ("Score: N   Moves: M"), redefine this
+// block in your story; it overrides the granule's.
 block draw_status()
     let w = screen_width()
     if w is 0
-        change w to 64
+        change w to 40
     split_window(1)
     set_window(1)
     set_style(1)
@@ -51,11 +54,24 @@ block draw_status()
     // Left: the current room.
     set_cursor(1, 2)
     print_name(here)
-    // Right: score and moves, a fixed offset in from the right edge.
-    set_cursor(1, w - 21)
+    // Right: "Score: s/t", right-aligned. Its width varies with the digit counts,
+    // so measure it (status_digits) and start that many columns in from the edge.
+    let width = 9 + status_digits(score) + status_digits(turns)
+    set_cursor(1, w - width)
     show("Score: ")
     show(score)
-    show("   Moves: ")
+    show("/")
     show(turns)
     set_style(0)
     set_window(0)
+
+// How many digits a non-negative number prints as (scores and turn counts stay
+// well under five). Used to right-align the score block without a string length.
+block status_digits(n)
+    if n < 10
+        return 1
+    if n < 100
+        return 2
+    if n < 1000
+        return 3
+    return 4

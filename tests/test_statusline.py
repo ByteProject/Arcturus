@@ -47,9 +47,9 @@ def test_statusline_paints_and_updates_on_frotz(tmp_path):
         [_frotz(), "-p", str(story)],
         input="east\n", capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "Score:" in out and "Moves:" in out  # the bar is painted
+    assert "Score:" in out  # the bar is painted
     assert "The Hall" in out and "The Garden" in out  # the room shows in the bar
-    assert "Moves: 1" in out  # the move count advances after a turn
+    assert "0/1" in out  # compact "Score: score/turns"; the turn count advances
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
@@ -61,4 +61,3 @@ def test_without_summon_has_no_bar_on_frotz(tmp_path):
         input="east\n", capture_output=True, text=True, timeout=15,
     ).stdout
     assert "Score:" not in out
-    assert "Moves:" not in out
