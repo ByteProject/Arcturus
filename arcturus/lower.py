@@ -53,8 +53,11 @@ INTRINSICS = frozenset({
     "par",
     # do_quit ends the session (the quit opcode); text_char reads a typed
     # character from the input buffer (for a yes/no confirmation). do_restart
-    # restarts the story from the beginning (the restart opcode).
+    # restarts the story from the beginning (the restart opcode). do_save /
+    # do_restore and do_save_undo / do_restore_undo are the v5 EXT save and undo
+    # opcodes; each returns the opcode result (0 fail, 1 saved, 2 resumed).
     "do_quit", "text_char", "do_restart",
+    "do_save", "do_restore", "do_save_undo", "do_restore_undo",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr",
@@ -481,6 +484,22 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # do_restart(): restart the story from the beginning (never returns).
         rt.op("restart")
         _place(rt, Const(0), dest)
+    elif name == "do_save":
+        # do_save(): save the game. Stores 0 (failed), 1 (saved, original pass),
+        # or 2 (execution resumed here after a matching restore).
+        rt.op("save", store=dest)
+    elif name == "do_restore":
+        # do_restore(): restore a save. On success execution jumps back to the
+        # do_save point (so this only returns 0 on failure).
+        rt.op("restore", store=dest)
+    elif name == "do_save_undo":
+        # do_save_undo(): checkpoint for undo. Stores -1 (no undo), 0 (failed),
+        # 1 (saved), or 2 (resumed here via restore_undo).
+        rt.op("save_undo", store=dest)
+    elif name == "do_restore_undo":
+        # do_restore_undo(): undo to the last checkpoint. On success jumps back to
+        # the do_save_undo point (so this only returns 0 on failure).
+        rt.op("restore_undo", store=dest)
     elif name == "text_char":
         # text_char(i): the i-th character typed on the last input line. In v5 the
         # text buffer holds the characters from byte 2 onward (byte 1 is the count).

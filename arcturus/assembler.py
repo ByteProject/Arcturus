@@ -121,6 +121,12 @@ _OPCODES = {
     "push": ("VAR", 0x08, False, False, False),
     "pull": ("VAR", 0x09, False, False, False),
     "put_prop": ("VAR", 0x03, False, False, False),
+    # EXT (v5+). save/restore store a result (0 fail, 1 the original pass, 2 the
+    # post-restore resume); save_undo/restore_undo behave the same for undo.
+    "save": ("EXT", 0x00, True, False, False),
+    "restore": ("EXT", 0x01, True, False, False),
+    "save_undo": ("EXT", 0x09, True, False, False),
+    "restore_undo": ("EXT", 0x0A, True, False, False),
 }
 
 
@@ -197,6 +203,11 @@ class Routine:
         if form == "VAR":
             # Variable form, true VAR opcode: 111xxxxx = 0xE0 | opcode number.
             return self._encode_var(0xE0 | code, operands)
+        if form == "EXT":
+            # Extended form (v5+): the byte 0xBE, then the EXT opcode number, then
+            # a VAR-style types byte and operands. Used for save/restore and the
+            # undo opcodes (and later the v5 graphics/window extras).
+            return self._encode_var_form(bytes([0xBE, code]), operands)
         raise ValueError(form)
 
     def _encode_2op(self, code: int, operands: list[Operand]) -> bytes:
@@ -214,10 +225,15 @@ class Routine:
         return self._encode_var(0xC0 | code, operands)
 
     def _encode_var(self, opbyte: int, operands: list[Operand]) -> bytes:
-        # Variable form: the opcode byte, then a types byte giving the type of
-        # each of up to four operands in two-bit fields (high field first),
-        # 11 marking an omitted operand, then the operands themselves.
-        out = bytearray([opbyte])
+        # Variable form: the opcode byte, then a types byte and operands.
+        return self._encode_var_form(bytes([opbyte]), operands)
+
+    def _encode_var_form(self, prefix: bytes, operands: list[Operand]) -> bytes:
+        # `prefix` is the leading opcode byte(s) (one for VAR, two for EXT). Then a
+        # types byte gives the type of each of up to four operands in two-bit
+        # fields (high field first), 11 marking an omitted operand, then the
+        # operands themselves.
+        out = bytearray(prefix)
         types = 0
         for i in range(4):
             kind = operands[i].kind if i < len(operands) else OMITTED

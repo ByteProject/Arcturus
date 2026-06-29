@@ -127,6 +127,41 @@ on restart
     do_restart()
 
 
+// Saving and restoring. do_save returns 1 when the save is written; a successful
+// restore does not return into the restore handler at all, it resumes at the
+// do_save point with result 2 (so the save handler redescribes the room after a
+// restore). The restore handler is reached only when the restore fails.
+verb "save"
+    save
+
+on save
+    change meta_turn to 1
+    let r = do_save()
+    if r is 2
+        par()
+        describe_room()
+        stop
+    if r is 1
+        msg_saved()
+        stop
+    msg_save_failed()
+
+
+verb "restore"
+    restore
+
+on restore
+    change meta_turn to 1
+    let r = do_restore()
+    msg_restore_failed()
+
+
+// undo is intercepted by the turn loop (run_turn) before dispatch, so it needs
+// no handler here; the declaration just registers the verb and its action.
+verb "undo"
+    undo
+
+
 // The magic word. Not a meta verb (it is a normal, if fruitless, action), so it
 // takes a turn like any other; an author can override it for a real effect.
 verb "xyzzy"

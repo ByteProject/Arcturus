@@ -467,8 +467,24 @@ DONE in B5 (continued):
   restart. tests/test_meta.py. Grammar-named actions are auto-added to
   world.actions, so meta verbs need no _STD_ACTIONS entry.
 
+- B5.4d.2 - save / restore / undo on the v5 EXT opcodes. Added the EXT
+  instruction form to the assembler (0xBE + opcode byte + VAR-style types/operands
+  via the new _encode_var_form; opcodes save/restore/save_undo/restore_undo) and
+  the intrinsics do_save/do_restore/do_save_undo/do_restore_undo (each returns the
+  opcode result: 0 fail, 1 saved, 2 resumed). The turn loop now factors each turn
+  into run_turn(act): undo is intercepted before dispatch (do_undo -> restore_undo),
+  and every non-undo turn takes an undo checkpoint (do_save_undo) first, so a later
+  undo rewinds to just before the previous command (the PunyInform model: the undo
+  command itself takes no checkpoint, and a save_undo result of 2 means the machine
+  just resumed via restore_undo -> msg_undone + redescribe). save mirrors this: a
+  successful restore resumes at the do_save point with result 2, so the save
+  handler redescribes the room; the restore handler is reached only on failure.
+  Messages msg_saved/save_failed/restore_failed/undone/cant_undo added. Verified
+  headless on dfrotz incl. a full save/restore round-trip (dfrotz takes the save
+  filename from stdin). tests/test_meta.py.
+
 REMAINING in B5:
-- B5.4d.2 (NEXT): save / restore / undo on z-opcodes - score, save, restore, restart, undo, again,
+- B5.4d.3 (NEXT): again / oops (last-command buffering) - score, save, restore, restart, undo, again,
   oops, xyzzy. Need new intrinsics for save/restore/restart/undo opcodes; score
   uses the score/max_score globals. Messages msg_score/saved/save_failed/
   restore_failed/confirm_restart/undone/cant_undo/xyzzy still need adding (most
@@ -490,7 +506,7 @@ KEY FACTS for resume:
   in cosmos/english.prelude as overridable msg_* blocks.
 - Sizes today (pre-DCE, bloated by ~70 message + ~45 verb routines, all shipped
   until B6 DCE): brass ~9.5K, cloak ~10K. Still far under Puny's 27K for Cloak.
-- 202 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
+- 206 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
   with python3 tools/amalgamate.py build/arcc; rebuild the example .z5 via
   build/arcc after any cosmos/ change. Throwaway test .z5 go to the scratchpad,
   not build/ (build/ holds only arcc + the two example games).
