@@ -110,9 +110,21 @@ python3 build/arcc -L path/to/cosmos game.storyarc   # use a forked library
 python3 build/arcc --version
 ```
 
-Cosmos travels inside `arcc`, so the compiler works wherever you put it. To hack
-the library, the `-L` option points at your own copy of the prelude and granule
-files (a forthcoming `--extract-library` writes the embedded copies out for you).
+Cosmos travels inside `arcc`, so the compiler works wherever you put it, but it
+is never locked away. To hack the library:
+
+```
+python3 build/arcc --extract-library cosmos/   # write the whole library out to edit
+python3 build/arcc --eject-language .          # write just english.prelude (the messages)
+python3 build/arcc -L cosmos/ game.storyarc    # compile against your edited copy
+```
+
+`--extract-library` writes every bundled `.prelude` and `.granule` file into a
+directory for wholesale forking; `--eject-language` drops just the English
+language file (where the standard messages live) beside your story for quick
+message customization. Then `-L` points the compiler at your copy. For a single
+message, you do not even need to extract: redefine its block (for example
+`block msg_jump()`) in your own story and it overrides the library's.
 
 ### Run from the package (for development)
 
