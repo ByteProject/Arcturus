@@ -281,8 +281,13 @@ add "ruby" to ruby.synonyms
 remove "old" from chest.synonyms
 ```
 
-`say` prints text or a value; printing a number prints digits, an object
-prints its `name`: `say "Score: ${score}."`.
+`say` prints text or a value followed by a line break; printing a number prints
+digits, an object prints its `name`: `say "Score: ${score}."`. `show` prints the
+same way but without the trailing line break, for building one line from pieces:
+`show("You can only go ")` then more `show`/`say` calls finish the line, the last
+one ending it. Both honor the library's paragraph spacing (a pending blank line
+is flushed before either prints). Use `say` to finish a line, `show` to build
+one.
 
 `stop` ends the current handler or block immediately; in an action handler
 that also consumes the action (section 12). `continue` ends the current
