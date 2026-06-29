@@ -125,7 +125,7 @@ on inventory
 // actions and supply defaults that an object overrides (the lantern's
 // on switch_on / on switch_off).
 
-verb "switch", "turn"
+verb "switch"
     switch_on noun
     switch_off noun
 
@@ -202,3 +202,161 @@ on put
         msg_closed()
         stop
     msg_cant_put()
+
+
+// Sensory and flavor verbs. Each default just speaks; an object's own handler
+// overrides it (most-specific-wins). The noun-taking ones refuse when nothing
+// was named; jump/wait/sing/listen/drink read fine with no noun.
+
+verb "touch", "feel", "pat"
+    touch noun
+
+on touch
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_touch()
+
+
+verb "smell", "sniff"
+    smell noun
+
+on smell
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_smell()
+
+
+verb "taste", "lick"
+    taste noun
+
+on taste
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_taste()
+
+
+verb "listen", "hear"
+    listen
+    listen noun
+
+on listen
+    msg_listen()
+
+
+verb "eat"
+    eat noun
+
+on eat
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_eat()
+
+
+verb "drink", "sip", "swallow"
+    drink
+    drink noun
+
+on drink
+    msg_drink()
+
+
+verb "attack", "hit", "break", "kill", "fight", "smash"
+    attack noun
+
+on attack
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_attack()
+
+
+verb "kiss", "hug", "embrace"
+    kiss noun
+
+on kiss
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_kiss()
+
+
+verb "push", "press", "shove"
+    push noun
+
+on push
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_no_effect()
+
+
+verb "pull", "drag", "yank"
+    pull noun
+
+on pull
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_no_effect()
+
+
+verb "turn", "rotate", "twist", "screw", "unscrew"
+    turn noun
+
+on turn
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_no_effect()
+
+
+verb "climb", "scale"
+    climb noun
+
+on climb
+    if noun is nothing
+        msg_cant_see()
+        stop
+    msg_cant_climb()
+
+
+verb "read"
+    examine noun
+
+
+verb "talk", "greet"
+    talk noun
+
+on talk
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if noun is animate
+        msg_no_talk()
+        stop
+    msg_only_animate()
+
+
+verb "jump", "hop"
+    jump
+
+on jump
+    msg_jump()
+
+
+verb "wait", "z"
+    wait
+
+on wait
+    msg_wait()
+
+
+verb "sing"
+    sing
+
+on sing
+    msg_sing()
