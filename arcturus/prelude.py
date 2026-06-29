@@ -89,6 +89,9 @@ _STD_BOOL_PROPS = [
     # Set the first time the player takes an object; while clear, the object
     # shows its `intro` text in a room description instead of the plain listing.
     "moved",
+    # A living thing: people and creatures. The conversation and give verbs apply
+    # only to the animate; the person kind sets it by default.
+    "animate",
 ]
 
 # Standard value properties and their types.

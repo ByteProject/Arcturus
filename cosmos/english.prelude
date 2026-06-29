@@ -41,15 +41,24 @@ block find_particle()
         change i to i + 1
     return nothing
 
-// Combine a base verb with a particle into a multi-word action. The base comes
-// from the verb word (switch and turn resolve to switch_on); "off" flips it, and
-// turns take into take_off.
+// Combine a base verb with a particle into a multi-word action, only for the
+// verbs that take one: switch and turn with on/off become switch_on/switch_off,
+// and take with off becomes take_off. Any other base ignores the particle (so
+// "put X on Y" stays a put). Particle ids: on is 1, off is 2.
 block compound(base, particle)
-    if particle is 2
-        if base is action_id("take")
-            return action_id("take_off")
-        if base is action_id("switch_on")
+    if base is action_id("switch_on")
+        if particle is 1
+            return action_id("switch_on")
+        if particle is 2
             return action_id("switch_off")
+    if base is action_id("turn")
+        if particle is 1
+            return action_id("switch_on")
+        if particle is 2
+            return action_id("switch_off")
+    if base is action_id("take")
+        if particle is 2
+            return action_id("take_off")
     return nothing
 
 // The chosen direction's property number, from the first direction word typed
