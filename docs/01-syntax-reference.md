@@ -269,6 +269,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `openable` | Can be opened and closed; the `open` / `close` verbs apply. |
 | `open` | Currently open (a container or door). Set by `open`, cleared by `close`. A closed container hides its contents from scope. |
 | `clear` | A see-through container (a glass jar): its contents are in scope and referable even when closed. An open or `clear` container exposes its contents; a closed opaque one shields them. |
+| `seen` | Set once the player has been shown an object (a content of an open container, something taken or examined). A closed opaque container still lists the contents the player has `seen`, so they are not forgotten when put away; contents never seen stay hidden until the box is opened. Cosmos manages this; you rarely set it. |
 | `lockable` | Can be locked and unlocked with a key (`lock` / `unlock`). |
 | `locked` | Currently locked; blocks `open` until unlocked with the matching key. |
 | `visited` | The room has been entered before (Cosmos sets it on entry). Use it to vary a room's description on return. |

@@ -517,7 +517,7 @@ section 11a); it is not itself a direction.
 Standard kinds: `thing`, `room`, `container`, `supporter`, `door`, `person`.
 
 Standard boolean properties: `fixed`, `scenery`, `hidden`, `concealed`,
-`wearable`, `worn`, `lit`, `edible`, `named`, `an`, `clear`, `switchable`,
+`wearable`, `worn`, `lit`, `edible`, `named`, `an`, `clear`, `seen`, `switchable`,
 `openable`, `open`, `lockable`, `locked`, `visited`, `moved`, `animate`. The full
 table with each one's usage is in 01 section 6.
 

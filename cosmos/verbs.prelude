@@ -62,6 +62,7 @@ on take
         stop
     move noun to player
     now noun is moved
+    now noun is seen
     msg_taken()
 
 
@@ -87,6 +88,7 @@ on examine
     if noun is nothing
         msg_cant_see()
         stop
+    now noun is seen
     if desc_addr(noun) is nothing
         msg_nothing_special()
         stop
@@ -325,6 +327,7 @@ on open
         stop
     now noun is open
     msg_opened()
+    reveal_contents(noun)
 
 
 verb "close", "shut", "cover"
