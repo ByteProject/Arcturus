@@ -69,3 +69,27 @@ def test_functional_verbs_on_frotz(tmp_path):
     assert "not really into that" in out  # show to the guard
     assert "therapy" in out  # give to a non-animate (the only-animate nudge)
     assert "You aren't inside anything to leave." in out  # exit in the open
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_two_noun_binds_by_position_on_frotz(tmp_path):
+    # The gap: with the gift out of scope, the recipient must not slide into the
+    # noun slot. "give coin to guard" while the coin is locked away should report
+    # "you can't see the coin", not run the give against the guard.
+    story = tmp_path / "f.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
+    script = (
+        "unlock chest with brass key\n"
+        "open chest\n"
+        "take coin\n"
+        "insert coin in chest\n"  # the coin is now in the chest
+        "close chest\n"  # and out of scope
+        "give coin to guard\n"  # the gift is unseen; must not bind the guard
+    )
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input=script, capture_output=True, text=True, timeout=15,
+    ).stdout
+    # The give default's noun-is-nothing guard fires, not the recipient branch.
+    assert "You see nothing of the sort here." in out
+    assert "doesn't want" not in out  # the guard was never treated as the noun

@@ -400,21 +400,37 @@ block find_scenery()
         change i to i + 1
     return 0
 
-// Two distinct in-scope objects: the first becomes the noun, the next different
-// one the second. The preposition between them is simply skipped (it names no
-// object).
+// Is this dictionary word a phrase boundary rather than a noun word? Any flagged
+// word qualifies: the grammar preposition (bit 3), but also a particle or a
+// direction word (on/in), which separate the two noun phrases just as well.
+block is_separator(target)
+    if peek_byte(target + 6) is not 0
+        return 1
+    return 0
+
+// Bind the two noun slots by position, the way the grammar reads them: the words
+// before the preposition name the first noun, the words after it name the second.
+// The boundary is the first separator word (the "to" of "give X to Y", the "on"
+// of "put X on Y"). Binding by position, not by first-in-scope-wins, is what lets
+// an out-of-scope first noun stay unresolved (so the verb reports "you can't see
+// that") instead of letting the recipient slide into its slot.
 block resolve_two_nouns()
     let n = word_count()
     let i = 1
+    let past_prep = 0
     while i < n
         let target = word_dict(i)
         if target is not nothing
-            let o = scope_match(target)
-            if o is not nothing
-                if noun is nothing
-                    change noun to o
-                else
-                    if o is not noun
-                        change second to o
+            if is_separator(target)
+                change past_prep to 1
+            else
+                let o = scope_match(target)
+                if o is not nothing
+                    if past_prep is 0
+                        if noun is nothing
+                            change noun to o
+                    else
+                        if second is nothing
+                            change second to o
         change i to i + 1
     return 1
