@@ -24,6 +24,10 @@ block run_game()
                     msg_no_verb()
         else
             run_turn(act)
+        // Snapshot the line's unrecognized word (verb or noun, if any) so a
+        // following "oops" can correct it. Done here, after both the understood
+        // and the unknown-verb paths, so a mistyped verb is correctable too.
+        note_oops()
 
 // Carry out one understood command. Undo is handled here, not through dispatch:
 // every other command first takes an undo checkpoint (save_undo), so that a later
@@ -69,8 +73,6 @@ block run_turn(act)
         change last_second to second
         change last_way to way
         change last_grain to grain
-    // Snapshot this command's unrecognized word (if any) for a following "oops".
-    note_oops()
     return 0
 
 // Undo the previous turn. restore_undo, on success, resumes at the save_undo in

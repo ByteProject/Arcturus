@@ -179,6 +179,22 @@ def test_oops_corrects_a_typo_on_frotz(tmp_path):
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_oops_corrects_a_misspelled_verb_on_frotz(tmp_path):
+    # A mistyped verb never reaches the turn machinery, but oops still corrects it:
+    # the loop snapshots the line, and oops patches word 0 (the verb).
+    story = tmp_path / "m.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="tabe coin\noops take\ninventory\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "Those words don't add up to anything." in out  # the verb typo failed
+    assert "Got it." in out  # oops re-ran it as "take coin"
+    assert "gold coin" in out  # the coin is in hand
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_oops_with_nothing_to_correct_on_frotz(tmp_path):
     story = tmp_path / "m.z5"
     story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))

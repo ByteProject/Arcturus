@@ -501,6 +501,12 @@ DONE in B5 (continued):
   parse_fault (fix_oops reuses it). tests/test_meta.py (typo corrected; nothing to
   correct). B5.4d COMPLETE: score, save, restore, restart, undo, again, oops,
   xyzzy, quit-no-tick, parser can't-see.
+- oops now corrects a mistyped VERB too, not just a noun. note_oops scans from
+  word 0, and the note_oops call moved from run_turn into the run_game loop so it
+  also fires on the unknown-verb path (a bad verb returns act 0 and never reaches
+  run_turn). oops takes a single replacement word ("oops take", not "oops take
+  coin"), and must immediately follow the mistyped line. tests/test_meta.py
+  (misspelled-verb correction).
 
 REMAINING in B5:
 - B5.5 (NEXT): summon.statusline + summon.extendedverbs granules - score, save, restore, restart, undo, again,
@@ -525,7 +531,7 @@ KEY FACTS for resume:
   in cosmos/english.prelude as overridable msg_* blocks.
 - Sizes today (pre-DCE, bloated by ~70 message + ~45 verb routines, all shipped
   until B6 DCE): brass ~9.5K, cloak ~10K. Still far under Puny's 27K for Cloak.
-- 210 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
+- 211 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
   with python3 tools/amalgamate.py build/arcc; rebuild the example .z5 via
   build/arcc after any cosmos/ change. Throwaway test .z5 go to the scratchpad,
   not build/ (build/ holds only arcc + the two example games).
