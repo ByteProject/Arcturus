@@ -649,16 +649,30 @@ TOPIC SYSTEM is mid-build. Sub-steps:
   sema._collect_members appends TopicDecl. NOTE: the player's line keyword is
   `you` NOT `player` (player is the reserved player-object keyword). docs/01
   appendix A reserved words updated. tests/test_topics.py.
-- [ ] 2. NEXT: the RUNTIME. Lower each person's topics to a table Cosmos can walk
-  (per topic: match-word list, label string addr, when-guard routine addr or 0,
-  once/hidden flags + a runtime-mutable active/retired state, body routine addr).
-  Lower the body statements: ast.Line -> print "You: " / "<NPC name>: " then the
-  quoted text (auto-attribute via self for reply); ast.TopicToggle -> set/clear
-  the named topic's hidden/active state in the table. Likely intrinsics to read
-  the table + a per-person "topics" property pointing at it (mirror how `words`/
-  react are emitted in objects.py/codegen.py). Decide table layout + how Cosmos
-  addresses a topic by subject id (an index) for reveal/hide.
-- [ ] 3. ask/tell dispatch (extendedverbs v2): ask <person> about <subject> ->
+- [x] 2. THE RUNTIME (done, this commit). Each person with topics carries a
+  `topics` property (a standard T_LIST prop, objects.py) pointing at a runtime
+  topic table in dynamic memory: a count word, then a fixed TOPIC_REC=10-byte
+  record per topic [+0 body routine, +2 menu label, +4 when-guard (0 if none),
+  +6 match-word sub-array ptr (0 if none), +8 static flags (ONCE 0x01, HIDDEN
+  0x02), +9 mutable state (RETIRED 0x01, HIDDEN 0x02)], then the per-topic
+  match-word sub-arrays (count word + dict addrs). All wired by the existing
+  object-table fixups (routine/string/word/prop-pointer). codegen.gen_topic_
+  routines emits topic_<obj>_<i> body routines (self = the person) and
+  topicwhen_<obj>_<i> guards (return 1/0); these are ALWAYS emitted when topics
+  exist (the table references them). codegen.gen_topic_helpers emits the
+  cosmos_topic_* backing routines (count/rec/label/visible/run/matches) only
+  when referenced (gated like the exit routines), so topics-without-granule pays
+  only the table+bodies. lower.py: ast.Line (you -> `You: "..."`, reply ->
+  `<self name>: "..."`, auto-quoted via _emit_say), ast.TopicToggle (reveal/hide
+  flips the sibling's HIDDEN state bit; subject -> index resolved at COMPILE time
+  via ctx.topic_index, a direct poke, no runtime lookup), and the topic_* intrinsics.
+  SUBJECT ADDRESSING: reveal/hide always target a sibling on self, so the compiler
+  knows the index; once-retirement folded into cosmos_topic_run. Proven on Frotz
+  (tests/test_topics.py test_topic_runtime_on_frotz: visibility gating by
+  hidden/when, auto-quote+attribute, reveal unhides, once retires). Example sizes
+  unchanged (12068/12916; the new standard prop renumbers but does not grow).
+  docs/04 section 8 records the lowering.
+- [ ] 3. NEXT: ask/tell dispatch (extendedverbs v2): ask <person> about <subject> ->
   match subject words against the person's topic table, run the matching topic's
   body if visible (when true, not hidden, not retired-if-once); retire once
   topics. Gated OFF when conversations is summoned.

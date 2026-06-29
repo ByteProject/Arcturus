@@ -85,6 +85,11 @@ def collect_vocab(world: wm.World) -> set:
         for grain in obj.grains:
             for gw in grain.words:
                 words.add(gw.lower())
+        # A person's topic match-words (the ask/tell words) must be in the
+        # dictionary so the topic table's word entries can be backpatched.
+        for topic in obj.topics:
+            for tw in topic.words:
+                words.add(tw.lower())
     for kind in world.kinds.values():
         for grain in kind.grains:
             for gw in grain.words:

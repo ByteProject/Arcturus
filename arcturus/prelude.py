@@ -120,6 +120,11 @@ _STD_VALUE_PROPS = {
     "words": T_LIST,
     "capacity": T_NUMBER,
     "key": T_OBJECT,
+    # Conversation topics (docs/02 section 14). Authors never write this; the
+    # compiler synthesizes it from a person's `topic` declarations as the address
+    # of that person's runtime topic table (objects.py emits the table, the
+    # conversation granules walk it). T_LIST so it is a slot holding a pointer.
+    "topics": T_LIST,
 }
 
 # Direction properties on a room, each an object defaulting to nothing.

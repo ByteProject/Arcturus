@@ -84,6 +84,11 @@ INTRINSICS = frozenset({
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr",
+    # Conversation topics, for the ask/tell and menu granules: how many a person
+    # has, whether topic i is in view, printing its menu label, matching a subject
+    # word against it, and running its body. Each calls a cosmos_topic_* backing
+    # routine codegen emits only when one of these is used.
+    "topics_count", "topic_visible", "topic_label", "topic_matches", "topic_run",
 })
 
 _ARITH = {"+": "add", "-": "sub", "*": "mul", "/": "div", "mod": "mod"}
@@ -127,6 +132,9 @@ class Context:
         # Locals currently known to hold an object (a `for each` over the tree),
         # so `say` prints the object's name rather than its number.
         self.object_locals: set = set()
+        # When compiling a topic body: subject id -> table index, so `reveal`/
+        # `hide` can address a sibling topic by index (empty elsewhere).
+        self.topic_index: dict = {}
         self.named: dict[str, int] = {}
         slot = 1
         for p in params:
@@ -598,6 +606,38 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("get_prop_len", Variable(STACK), store=Variable(STACK))
         rt.op("div", Variable(STACK), Const(2), store=dest)
         _free(ctx, t)
+    elif name == "topics_count":
+        # topics_count(person): how many topics the person has (0 if none).
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("call_vs", RoutineRef("cosmos_topics_count"), Variable(STACK), store=dest)
+    elif name == "topic_visible":
+        # topic_visible(person, i): 1 if topic i is in view (not hidden/retired,
+        # `when` satisfied).
+        eval_expr(rt, ctx, args[1], Variable(STACK))
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("call_vs", RoutineRef("cosmos_topic_visible"),
+              Variable(STACK), Variable(STACK), store=dest)
+    elif name == "topic_label":
+        # topic_label(person, i): print topic i's menu label (no newline).
+        eval_expr(rt, ctx, args[1], Variable(STACK))
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("call_vn", RoutineRef("cosmos_topic_label"),
+              Variable(STACK), Variable(STACK))
+        _place(rt, Const(0), dest)
+    elif name == "topic_matches":
+        # topic_matches(person, i, word): 1 if topic i lists the dictionary word.
+        eval_expr(rt, ctx, args[2], Variable(STACK))
+        eval_expr(rt, ctx, args[1], Variable(STACK))
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("call_vs", RoutineRef("cosmos_topic_matches"),
+              Variable(STACK), Variable(STACK), Variable(STACK), store=dest)
+    elif name == "topic_run":
+        # topic_run(person, i): run topic i's exchange (retires it if `once`).
+        eval_expr(rt, ctx, args[1], Variable(STACK))
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("call_vn", RoutineRef("cosmos_topic_run"),
+              Variable(STACK), Variable(STACK))
+        _place(rt, Const(0), dest)
 
 
 def _words_prop(ctx) -> int:
@@ -751,6 +791,10 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> None:
         _change(rt, ctx, s)
     elif isinstance(s, ast.Say):
         _say(rt, ctx, s.value)
+    elif isinstance(s, ast.Line):
+        _line(rt, ctx, s)
+    elif isinstance(s, ast.TopicToggle):
+        _topic_toggle(rt, ctx, s)
     elif isinstance(s, ast.Return):
         if s.value is None:
             rt.op("rfalse")
@@ -882,6 +926,15 @@ def _flush_par(rt, ctx):
 
 def _say(rt, ctx, value, newline=True):
     _flush_par(rt, ctx)
+    _emit_say(rt, ctx, value)
+    if newline:
+        rt.op("new_line")
+
+
+def _emit_say(rt, ctx, value):
+    """Print a say value (a string with interpolation, or a bare expression)
+    with no paragraph flush and no trailing newline. _say wraps it with both;
+    _line wraps it with a speaker prefix and quotation marks."""
     if isinstance(value, ast.StringLit):
         for part in value.parts:
             if isinstance(part, ast.StringText):
@@ -894,8 +947,54 @@ def _say(rt, ctx, value, newline=True):
                     _say_value(rt, ctx, part.expr)
     else:
         _say_value(rt, ctx, value)
-    if newline:
-        rt.op("new_line")
+
+
+def _line(rt, ctx, s: ast.Line):
+    """A conversation line: `you "..."` prints `You: "..."`, `reply "..."` prints
+    `<the person>: "..."` (the person is `self`). The text is auto-quoted, which
+    is the whole point of the sugar (no override just to get quotation marks).
+    The prefix wording is provisional here; the conversations granule may take it
+    over for translation when the menu lands."""
+    _flush_par(rt, ctx)
+    if s.who == "reply":
+        # Attribute to the speaking person by name, then the quoted line.
+        if ctx.self_value is not None:
+            rt.op("print_obj", ctx.self_value)
+        rt.op("print", text=': "')
+    else:  # "you": the player's own line
+        rt.op("print", text='You: "')
+    _emit_say(rt, ctx, s.text)
+    rt.op("print", text='"')
+    rt.op("new_line")
+
+
+def _topic_toggle(rt, ctx, s: ast.TopicToggle):
+    """`reveal <id>` / `hide <id>`: set or clear the HIDDEN bit in a sibling
+    topic's live-state byte. The subject resolves to a table index at compile
+    time (topics only ever reveal/hide siblings on the same person, `self`), so
+    this is a direct poke with no runtime lookup."""
+    from .objects import TOPIC_REC, TOPIC_HIDDEN
+
+    if s.target not in ctx.topic_index:
+        raise LowerError(f"reveal/hide names an unknown topic '{s.target}'", s.line)
+    if ctx.self_value is None:
+        raise LowerError("reveal/hide is only valid inside a topic body", s.line)
+    tp = ctx.prop_number("topics")
+    if tp is None:
+        raise LowerError("reveal/hide needs the topics property", s.line)
+    idx = ctx.topic_index[s.target]
+    state_off = 2 + idx * TOPIC_REC + 9  # table header + record + state byte
+    # rec-state address = topics-table address + state_off.
+    rt.op("get_prop", ctx.self_value, Const(tp), store=Variable(STACK))
+    addr = ctx.alloc_temp()
+    rt.op("add", Variable(STACK), Const(state_off), store=Variable(addr))
+    rt.op("loadb", Variable(addr), Const(0), store=Variable(STACK))
+    if s.reveal:
+        rt.op("and", Variable(STACK), Const(0xFF ^ TOPIC_HIDDEN), store=Variable(STACK))
+    else:
+        rt.op("or", Variable(STACK), Const(TOPIC_HIDDEN), store=Variable(STACK))
+    rt.op("storeb", Variable(addr), Const(0), Variable(STACK))
+    ctx.free_temp(addr)
 
 
 def _is_object_expr(ctx, expr) -> bool:
