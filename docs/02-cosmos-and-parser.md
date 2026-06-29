@@ -524,8 +524,10 @@ Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,
 `lock`, `unlock`, `switch_on`, `switch_off`, `push`, `pull`, `turn`, `give`,
 `show`, `talk`, `wait`, `again`.
 
-Summonable features: `conversations`, `debug`, `language`, `abbreviations`,
-`verbose_exits`.
+Summonable features: `extendedverbs`, `statusline`, `verbose_exits`,
+`conversations`, `debug`, `language`, `abbreviations`. (`extendedverbs` and
+`statusline` are detailed with the granule work; `abbreviations` is summoned but
+consumed by the compiler's text encoder, not loaded as runtime blocks.)
 
 ## Appendix B: standard grammar lines
 
