@@ -93,11 +93,17 @@ Notes:
 | Verb and synonyms | Action | Default behavior | Set |
 |---|---|---|---|
 | talk, talk to, greet | talk | "doesn't seem up for a conversation" | S |
-| ask ... about | ask | "has nothing to say on the matter" | E |
-| ask ... for | ask_for | "declines to hand it over" | E |
-| tell ... about | tell | "this provokes no reaction" | E |
-| answer, say ... to | answer | "no reaction" | E |
+| ask ... about, ask ... for | ask | runs the person's matching `topic`, else "stays mum on the subject" | E |
+| tell ... about | tell | runs the person's matching `topic`, else "receives the news with indifference" | E |
+| answer, respond | answer | "your words go unanswered" | E |
 | shout, yell, scream | shout | "no one answers" (flavor) | E |
+
+ask and tell carry the Infocom-style topic dispatch: `ask <person> about
+<subject>` (or `tell ... about`) scans for a `topic` the person answers to and,
+if one is in view, runs its exchange; otherwise the verb speaks its flat default.
+The subject is a topic word, not an object, so the grammar is one noun plus a
+trailing preposition. When `summon.conversations` is present, the menu takes over
+and this topic dispatch defers to it.
 
 ## Body, action, idle
 

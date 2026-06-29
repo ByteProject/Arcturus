@@ -163,3 +163,55 @@ def test_topic_runtime_on_frotz(tmp_path):
     assert "The Louvre (shown)" in after
     assert "Ask about Paris" not in after
     assert "The weather" not in after
+
+
+# Sub-step 3: ask/tell topic dispatch through the extendedverbs granule. The
+# subject (paris, louvre) is a topic word, not an object, so the verb is one noun
+# plus a trailing preposition; the handler scans the typed words for a visible
+# topic. ask and tell share the path. Linda has `words woman` so she is in scope
+# under a name that is not also a topic word.
+ASKTELL = '''game
+    title "AskTell"
+    start hall
+summon.extendedverbs
+room hall
+    name "Hall"
+    desc "A bare hall."
+thing linda of person in hall
+    name "Linda"
+    named
+    words linda, woman
+    topic paris "Paris" words paris, france when true once
+        you "How do you like Paris?"
+        reply "I love it, especially the Louvre."
+        reveal louvre
+    topic louvre "The Louvre" words louvre, art hidden
+        reply "Ah, the art."
+'''
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_ask_tell_dispatch_on_frotz(tmp_path):
+    img = generate(analyze(cosmos.combined_program(parse(ASKTELL))))
+    story = tmp_path / "asktell.z5"
+    story.write_bytes(img)
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input=(
+            "ask linda about louvre\n"   # hidden at the start: no match, flat default
+            "ask linda about paris\n"    # runs, reveals louvre, retires paris (once)
+            "ask linda about paris\n"    # retired: flat default
+            "tell linda about louvre\n"  # now revealed: tell reaches it too
+            "ask linda about jupiter\n"  # no such topic: flat default
+        ),
+        capture_output=True, text=True, timeout=20,
+    ).stdout
+    parts = out.split(">")
+
+    # parts[0] is the banner/room; parts[1..5] are the five command responses.
+    assert "stays mum" in parts[1]  # louvre hidden -> flat default
+    assert 'You: "How do you like Paris?"' in parts[2]  # paris runs
+    assert 'Linda: "I love it, especially the Louvre."' in parts[2]
+    assert "stays mum" in parts[3]  # paris retired by `once`
+    assert 'Linda: "Ah, the art."' in parts[4]  # tell reaches the revealed topic
+    assert "stays mum" in parts[5]  # unknown subject -> flat default
