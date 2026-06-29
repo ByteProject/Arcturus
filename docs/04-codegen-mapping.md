@@ -133,7 +133,37 @@ the parse buffer against the dictionary, and `loadb`/`storeb`/`loadw`/`storew`
 read and write memory. The text and parse buffers sit at fixed dynamic-memory
 addresses just after the globals (`TEXT_BUFFER_ADDR`, `PARSE_BUFFER_ADDR`).
 
-## 8. Not yet lowered
+## 8. Conversation topics (B5)
+
+A person with `topic` declarations carries a `topics` property holding the
+address of a runtime topic table (`arcturus/objects.py`). The table is a count
+word followed by one fixed `TOPIC_REC`-byte record per topic, then the
+per-topic match-word sub-arrays. Each record holds the packed address of the
+topic's body routine and (if any) its `when`-guard routine, the packed address
+of its menu label string, a pointer to its match-word sub-array, a static flags
+byte (`once`, initial `hidden`), and a mutable live-state byte (`retired`,
+`hidden` now). The table lives in dynamic memory, so `reveal`/`hide` can flip a
+topic's visibility at run time. All four address kinds are filled by the same
+backpatch machinery the rest of the object table uses (routine, string, word,
+and object-relative pointer fixups).
+
+| Construct | Lowering |
+|-----------|----------|
+| a `topic` body | a `topic_<obj>_<i>` routine, `self` = the person |
+| a topic `when <cond>` | a `topicwhen_<obj>_<i>` guard returning 1/0 |
+| `you "..."` | `print` `You: "`, the text, then `"` |
+| `reply "..."` | `print_obj self`, `: "`, the text, then `"` |
+| `reveal <id>` / `hide <id>` | clear / set the `hidden` bit in sibling `<id>`'s state byte (the index is resolved at compile time) |
+
+The conversation granules never touch this byte layout: they call the
+`cosmos_topic_*` backing routines (`arcturus/codegen.py`) through the
+`topics_count` / `topic_visible` / `topic_label` / `topic_matches` /
+`topic_run` intrinsics. Those helpers ship only when one is referenced, so a
+game with topics but no conversation granule carries the table and bodies but
+none of the walking machinery; the body and guard routines are always emitted
+when topics exist, because the table references them.
+
+## 9. Not yet lowered
 
 Deferred to later milestones: wiring each object's `words` to dictionary
 addresses and noun resolution, `for each`, string switches, list properties

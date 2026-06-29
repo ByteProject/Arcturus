@@ -40,6 +40,36 @@ REACT_PROP = 63
 # property, holding an array of dictionary addresses (filled in B4.5d.1).
 _SPECIAL = {"name"}
 
+# The conversation topic table (docs/02 section 14). A person with `topic`
+# declarations carries a `topics` property holding the address of its table:
+# a count word, then one fixed-size record per topic, then the per-topic
+# match-word sub-arrays. Each record is TOPIC_REC bytes:
+#   +0 body routine    (2, packed)  the exchange to run
+#   +2 menu label      (2, packed)  the string shown in the conversations menu
+#   +4 when-guard      (2, packed)  visibility test routine, 0 if no `when`
+#   +6 match words     (2)          address of this topic's word sub-array, 0 none
+#   +8 flags           (1)          static: bit0 ONCE, bit1 HIDDEN at start
+#   +9 state           (1)          mutable: bit0 RETIRED, bit1 HIDDEN now
+# The granules read the table through the cosmos_topic_* backing routines, so
+# this byte layout lives only here and in codegen (which emits those routines).
+TOPIC_REC = 10
+TOPIC_ONCE = 0x01  # flags byte: retire this topic after it runs once
+TOPIC_HIDDEN = 0x02  # flags/state byte: out of view (initial flag and live state)
+TOPIC_RETIRED = 0x01  # state byte: a `once` topic that has already run
+
+
+def topic_routine_name(objname: str, idx: int) -> str:
+    """The routine that runs topic `idx` of object `objname` (its body). Named
+    deterministically so objects.py (the table) and codegen.py (the routine)
+    agree without a registry, exactly like react_<obj>."""
+    return f"topic_{objname}_{idx}"
+
+
+def topic_when_name(objname: str, idx: int) -> str:
+    """The visibility-guard routine for topic `idx` (its `when` condition),
+    emitted only when the topic has a `when`."""
+    return f"topicwhen_{objname}_{idx}"
+
 
 @dataclass
 class Layout:
@@ -160,14 +190,17 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
     entries_at = len(table)
     table += bytes(n * _ENTRY_SIZE)
 
-    # Build each object's property table and fill its entry.
+    # Build each object's property table and fill its entry. Objects with `topic`
+    # declarations record where their `topics` property pointer sits; the topic
+    # tables are appended after all property tables and the pointers patched.
+    topic_sites: dict[str, int] = {}
     tree = _build_tree(world, layout)
     for name, num in layout.obj_number.items():
         obj = world.objects[name]
         eff = _effective_props(world, obj)
 
         prop_addr = len(table)
-        _emit_property_table(world, layout, name, eff)
+        _emit_property_table(world, layout, name, eff, topic_sites)
 
         entry = entries_at + (num - 1) * _ENTRY_SIZE
         # Attributes are 48 bits across the first six bytes, most significant
@@ -201,8 +234,73 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
         # relative target and let build_story add the base.
         layout.prop_pointers.append((entry + 12, prop_addr))
 
+    # Topic tables, appended after every property table so a person's `topics`
+    # property can point at one. Done last because the records reference packed
+    # routine and string addresses resolved only at link time.
+    _emit_topic_tables(world, layout, topic_sites)
 
-def _emit_property_table(world, layout, name, eff) -> None:
+
+def _emit_topic_tables(world, layout, topic_sites: dict) -> None:
+    """Emit each person's topic table and patch its `topics` property pointer.
+    A table is a count word, then a TOPIC_REC record per topic, then the
+    per-topic match-word sub-arrays. The record fields are filled by fixups
+    resolved in build_story: the body and when-guard routines (routine_fixups),
+    the menu label (string_fixups), and the words sub-array pointer
+    (prop_pointers, made absolute against the object-table base). See TOPIC_REC."""
+    table = layout.table
+    for name, prop_site in topic_sites.items():
+        topics = world.objects[name].topics
+        table_off = len(table)
+        # Patch the object's `topics` property to point at this table.
+        layout.prop_pointers.append((prop_site, table_off))
+        _put_word(table, prop_site, 0)  # placeholder until build_story adds base
+        # Count word, then the fixed-size records.
+        table += bytes(2)
+        _put_word(table, table_off, len(topics))
+        word_ptr_sites = []
+        for idx, topic in enumerate(topics):
+            rec = len(table)
+            table += bytes(TOPIC_REC)
+            # +0 body routine, +4 when-guard: packed addresses via routine fixups.
+            layout.routine_fixups.append((rec + 0, topic_routine_name(name, idx)))
+            if topic.when is not None:
+                layout.routine_fixups.append((rec + 4, topic_when_name(name, idx)))
+            # +2 menu label: a packed string allocated into the layout's pool.
+            label = _topic_label(topic)
+            sid = f"topiclabel@{rec}"
+            layout.strings[sid] = label
+            layout.string_fixups.append((rec + 2, sid))
+            # +8 flags: ONCE and the initial HIDDEN bit (static); +9 state begins
+            # as the live mirror of HIDDEN so a hidden topic starts out of view.
+            flags = (TOPIC_ONCE if topic.once else 0) | (TOPIC_HIDDEN if topic.hidden else 0)
+            table[rec + 8] = flags
+            table[rec + 9] = TOPIC_HIDDEN if topic.hidden else 0
+            word_ptr_sites.append((rec + 6, topic.words))
+        # The match-word sub-arrays (count word + a dictionary address per word),
+        # pointed at from each record's +6 field.
+        for ptr_site, words in word_ptr_sites:
+            if not words:
+                continue
+            sub_off = len(table)
+            layout.prop_pointers.append((ptr_site, sub_off))
+            table += bytes(2)
+            _put_word(table, sub_off, len(words))
+            for w in words:
+                data_at = len(table)
+                table += bytes(2)
+                layout.word_fixups.append((data_at, w.lower()))
+
+
+def _topic_label(topic) -> str:
+    """The topic's menu label, as plain text. Interpolation in a label is not
+    supported (a menu line is a static string), so only the literal text counts."""
+    lbl = topic.label
+    if isinstance(lbl, ast.StringLit):
+        return _plain(lbl)
+    return ""
+
+
+def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     table = layout.table
     # The property table opens with the object's short name: a length byte
     # giving the number of 2-byte words in the Z-string, then the Z-string
@@ -243,6 +341,12 @@ def _emit_property_table(world, layout, name, eff) -> None:
     vocab = object_words(eff, world.objects[name].category == "room")
     if words_prop is not None and vocab:
         items.append((words_prop, "words", vocab))
+    # A person with `topic` declarations gets a `topics` property holding a
+    # pointer to its topic table; the table itself is appended after all property
+    # tables (the pointer is patched there, so only its site is reserved here).
+    topics_prop = layout.prop_number.get("topics")
+    if topics_prop is not None and world.objects[name].topics:
+        items.append((topics_prop, "topics", None))
     for pnum, pname, decl in sorted(items, reverse=True, key=lambda it: it[0]):
         if pname == "words":
             _emit_words(layout, pnum, decl)
@@ -250,6 +354,10 @@ def _emit_property_table(world, layout, name, eff) -> None:
         table.append(0x40 | pnum)  # bit 6 = two data bytes; low bits = number
         data_at = len(table)
         table += b"\x00\x00"  # placeholder, filled by _fill_property
+        if pname == "topics":
+            if topic_sites is not None:
+                topic_sites[name] = data_at  # patched in _emit_topic_tables
+            continue
         _fill_property(world, layout, pname, decl, data_at)
 
 

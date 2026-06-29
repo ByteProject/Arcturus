@@ -549,6 +549,160 @@ def gen_exit_routines(layout) -> list:
     return [prop, nm]
 
 
+def _topic_objects(world: wm.World):
+    """Objects carrying `topic` declarations, as (name, obj). Kind-level topics
+    are deferred for the same reason kind grains are (they need per-instance
+    scope), so only instances are placed."""
+    return [(n, o) for n, o in world.objects.items() if o.topics]
+
+
+def gen_topic_routines(world: wm.World, gmap: dict, layout, pool) -> list:
+    """For every person with topics, a body routine per topic and a when-guard
+    routine for each topic that has a `when`. The topic table (objects.py)
+    references these by their deterministic names, so they are always emitted
+    when topics exist, independent of whether a conversation granule walks the
+    table. Mirrors the react / grain routine pattern."""
+    routines = []
+    for name, obj in _topic_objects(world):
+        owner_num = layout.obj_number.get(name, 0)
+        for idx, topic in enumerate(obj.topics):
+            routines.append(
+                _compile_topic_body(world, gmap, layout, pool, obj.topics, owner_num, name, idx, topic)
+            )
+            if topic.when is not None:
+                routines.append(
+                    _compile_topic_when(world, gmap, layout, pool, owner_num, name, idx, topic.when)
+                )
+    return routines
+
+
+def _compile_topic_body(world, gmap, layout, pool, topics, owner_num, name, idx, topic) -> Routine:
+    """topic_<obj>_<idx>(): run the topic's exchange. `self` is the person, so a
+    `reply` line attributes to their name and `reveal`/`hide` address sibling
+    topics by index (resolved from the subject -> index map)."""
+    rt = Routine(objmod.topic_routine_name(name, idx), nlocals=0)
+    ctx = Context(
+        world, gmap, layout=layout, self_value=Const(owner_num),
+        in_handler=True, string_pool=pool,
+    )
+    # reveal/hide name a sibling topic; resolve the subject to its table index now.
+    ctx.topic_index = {t.subject: i for i, t in enumerate(topics)}
+    ctx.prescan(topic.body)
+    compile_block(rt, ctx, topic.body)
+    rt.op("rtrue")
+    rt.nlocals = ctx.nlocals()
+    return rt
+
+
+def _compile_topic_when(world, gmap, layout, pool, owner_num, name, idx, when) -> Routine:
+    """topicwhen_<obj>_<idx>(): the topic's visibility guard. Returns 1 when the
+    `when` condition holds, else 0, so cosmos_topic_visible can gate on it."""
+    rt = Routine(objmod.topic_when_name(name, idx), nlocals=0)
+    ctx = Context(
+        world, gmap, layout=layout, self_value=Const(owner_num),
+        in_handler=False, string_pool=pool,
+    )
+    ctx.prescan([])
+    yes = ctx.new_label()
+    cond_jump(rt, ctx, when, yes, True)
+    rt.op("ret", Const(0))
+    rt.label(yes)
+    rt.op("ret", _CONST_ONE)
+    rt.nlocals = ctx.nlocals()
+    return rt
+
+
+def gen_topic_helpers(layout) -> list:
+    """The cosmos_topic_* backing routines the conversation granules call to walk
+    a person's topic table without knowing its byte layout. Emitted only when
+    referenced (gated in generate), so a game with topics but no conversation
+    granule pays only for the table itself. The record layout is objmod.TOPIC_*."""
+    tp = layout.prop_number["topics"]
+    rec = objmod.TOPIC_REC
+
+    # cosmos_topics_count(person): the number of topics (0 if the person has none).
+    count = Routine("cosmos_topics_count", nlocals=2)  # 1=person, 2=table
+    count.op("get_prop", Variable(1), Const(tp), store=Variable(2))
+    count.op("jz", Variable(2), branch=("none", True))
+    count.op("loadw", Variable(2), Const(0), store=Variable(STACK))
+    count.op("ret", Variable(STACK))
+    count.label("none")
+    count.op("ret", Const(0))
+
+    # cosmos_topic_rec(person, i): the address of topic i's record (table + 2 +
+    # i*rec). Callers pass an index drawn from the count, so the table exists.
+    recrt = Routine("cosmos_topic_rec", nlocals=3)  # 1=person, 2=i, 3=table
+    recrt.op("get_prop", Variable(1), Const(tp), store=Variable(3))
+    recrt.op("mul", Variable(2), Const(rec), store=Variable(STACK))
+    recrt.op("add", Variable(3), Variable(STACK), store=Variable(STACK))
+    recrt.op("add", Variable(STACK), Const(2), store=Variable(STACK))
+    recrt.op("ret", Variable(STACK))
+
+    # cosmos_topic_label(person, i): print topic i's menu label (no newline). The
+    # label packed-string address is the word at rec+2 (loadw index 1).
+    label = Routine("cosmos_topic_label", nlocals=2)
+    label.op("call_vs", RoutineRef("cosmos_topic_rec"), Variable(1), Variable(2), store=Variable(STACK))
+    label.op("loadw", Variable(STACK), Const(1), store=Variable(STACK))
+    label.op("print_paddr", Variable(STACK))
+    label.op("rtrue")
+
+    # cosmos_topic_visible(person, i): 1 when topic i is in view: not retired, not
+    # hidden, and its `when` guard (rec+4) absent or true.
+    vis = Routine("cosmos_topic_visible", nlocals=4)  # 1=person,2=i,3=rec,4=when
+    vis.op("call_vs", RoutineRef("cosmos_topic_rec"), Variable(1), Variable(2), store=Variable(3))
+    vis.op("loadb", Variable(3), Const(9), store=Variable(STACK))  # live state byte
+    vis.op("and", Variable(STACK), Const(objmod.TOPIC_RETIRED | objmod.TOPIC_HIDDEN), store=Variable(STACK))
+    vis.op("jz", Variable(STACK), branch=("live", True))
+    vis.op("rfalse")  # retired or hidden
+    vis.label("live")
+    vis.op("loadw", Variable(3), Const(2), store=Variable(4))  # when-guard at rec+4
+    vis.op("jz", Variable(4), branch=("shown", True))  # no guard: visible
+    vis.op("call_vs", Variable(4), store=Variable(STACK))
+    vis.op("ret", Variable(STACK))
+    vis.label("shown")
+    vis.op("rtrue")
+
+    # cosmos_topic_run(person, i): run topic i's body, then retire it if `once`.
+    run = Routine("cosmos_topic_run", nlocals=3)  # 1=person,2=i,3=rec
+    run.op("call_vs", RoutineRef("cosmos_topic_rec"), Variable(1), Variable(2), store=Variable(3))
+    run.op("loadw", Variable(3), Const(0), store=Variable(STACK))  # body routine addr
+    run.op("call_vs", Variable(STACK), store=Variable(STACK))
+    run.op("loadb", Variable(3), Const(8), store=Variable(STACK))  # flags byte
+    run.op("and", Variable(STACK), Const(objmod.TOPIC_ONCE), store=Variable(STACK))
+    run.op("jz", Variable(STACK), branch=("done", True))
+    run.op("loadb", Variable(3), Const(9), store=Variable(STACK))  # state byte
+    run.op("or", Variable(STACK), Const(objmod.TOPIC_RETIRED), store=Variable(STACK))
+    run.op("storeb", Variable(3), Const(9), Variable(STACK))
+    run.label("done")
+    run.op("rtrue")
+
+    # cosmos_topic_matches(person, i, word): 1 if topic i's match-word array holds
+    # the dictionary address `word` (the ask/tell subject). 0 if no words.
+    match = Routine("cosmos_topic_matches", nlocals=5)  # 1=person,2=i,3=word,4=arr,5=k
+    match.op("call_vs", RoutineRef("cosmos_topic_rec"), Variable(1), Variable(2), store=Variable(STACK))
+    match.op("loadw", Variable(STACK), Const(3), store=Variable(4))  # words sub-array (rec+6)
+    match.op("jz", Variable(4), branch=("no", True))
+    match.op("loadw", Variable(4), Const(0), store=Variable(5))  # word count
+    match.label("loop")
+    match.op("jz", Variable(5), branch=("no", True))
+    match.op("loadw", Variable(4), Variable(5), store=Variable(STACK))  # the k-th word
+    match.op("je", Variable(STACK), Variable(3), branch=("yes", True))
+    match.op("sub", Variable(5), _CONST_ONE, store=Variable(5))
+    match.jump("loop")
+    match.label("yes")
+    match.op("rtrue")
+    match.label("no")
+    match.op("rfalse")
+
+    return [count, recrt, label, vis, run, match]
+
+
+_TOPIC_HELPER_NAMES = (
+    "cosmos_topics_count", "cosmos_topic_label", "cosmos_topic_visible",
+    "cosmos_topic_run", "cosmos_topic_matches",
+)
+
+
 def _references_routine(routines: list, name: str) -> bool:
     """True if any built routine calls the named routine (a call fixup targets
     it), used to emit a backing routine only when something actually needs it."""
@@ -577,7 +731,11 @@ def generate(world: wm.World) -> bytes:
 
     main, routines, registry = build_routines(world, gmap, layout, pool)
     react_routines = gen_react_routines(world, actions, registry, layout, gmap, pool)
-    all_routines = [main] + routines + react_routines
+    # Topic body and when-guard routines: emitted whenever a person has topics,
+    # because the topic table references them by name. The granule-facing
+    # cosmos_topic_* helpers are gated below.
+    topic_routines = gen_topic_routines(world, gmap, layout, pool)
+    all_routines = [main] + routines + react_routines + topic_routines
 
     # Emit the exit-enumeration backing routines only if something calls the
     # exit_prop / exit_name intrinsics (the verbose_exits granule). Unsummoned,
@@ -586,6 +744,12 @@ def generate(world: wm.World) -> bytes:
         all_routines, "cosmos_exit_name"
     ):
         all_routines += gen_exit_routines(layout)
+
+    # The cosmos_topic_* helpers ship only if a conversation granule calls one
+    # (ask/tell dispatch or the menu). A game with topics but no such granule
+    # carries the table and bodies but none of the walking machinery.
+    if any(_references_routine(all_routines, n) for n in _TOPIC_HELPER_NAMES):
+        all_routines += gen_topic_helpers(layout)
 
     return build_story(
         world,
