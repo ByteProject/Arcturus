@@ -189,6 +189,9 @@ block list_item(obj)
 block msg_cant_see()
     say "You see nothing of the sort here."
 
+block msg_open_first()
+    say "You'll have to open ${the shut_in} first."
+
 block msg_no_it()
     say "You'll have to say what you mean."
 
@@ -485,7 +488,45 @@ block scope_match(target)
     let in_room = scope_match_in(here, target)
     if in_room is not nothing
         return in_room
-    return scope_match_in(player, target)
+    let held = scope_match_in(player, target)
+    if held is not nothing
+        return held
+    // Nothing within reach. Is it something the player knows is shut inside a
+    // closed container here or carried? Return it, and note what must be opened,
+    // so the action can answer "open it first" rather than "you can't see that".
+    let here_shut = shut_search(here, target)
+    if here_shut is not nothing
+        return here_shut
+    return shut_search(player, target)
+
+// A closed opaque container: we cannot see into it.
+block shut_holds(obj)
+    if obj is open
+        return 0
+    if obj is clear
+        return 0
+    return 1
+
+// Among the closed opaque containers directly within `where`, a known (seen)
+// content matching the word. Records the blocking container in shut_in.
+block shut_search(where, target)
+    for each obj in where
+        if not (obj is hidden)
+            if obj is container
+                if shut_holds(obj)
+                    let known = shut_match(obj, target)
+                    if known is not nothing
+                        change shut_in to obj
+                        return known
+    return nothing
+
+block shut_match(holder, target)
+    for each x in holder
+        if not (x is hidden)
+            if x is seen
+                if has_word(x, target)
+                    return x
+    return nothing
 
 // Match a noun: the first typed word after the verb that names an object in
 // scope. Adjective scoring and full disambiguation are refined later.

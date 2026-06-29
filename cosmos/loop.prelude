@@ -40,6 +40,12 @@ block run_game()
 // resumed here via restore_undo, meaning the previous turn is being taken back.
 block run_turn(act)
     change meta_turn to 0
+    // The named object is known but shut inside a closed container: tell the
+    // player to open it rather than carrying out the action on something sealed.
+    if shut_in is not nothing
+        change meta_turn to 1
+        msg_open_first()
+        return 0
     if act is action_id("undo")
         change meta_turn to 1
         do_undo()
