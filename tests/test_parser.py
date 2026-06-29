@@ -307,7 +307,7 @@ def test_while_and_for_each():
 
 def test_switch():
     s = block_body(
-        "    switch reply\n"
+        "    switch answer\n"
         "        case \"yes\", \"y\"\n"
         "            say \"good\"\n"
         "        else\n"

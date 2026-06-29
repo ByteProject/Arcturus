@@ -67,6 +67,7 @@ class Kind:
     props: dict[str, "ast.Expr"] = field(default_factory=dict)
     handlers: list["Handler"] = field(default_factory=list)
     grains: list["Grain"] = field(default_factory=list)
+    topics: list["ast.TopicDecl"] = field(default_factory=list)
     decl: Optional[ast.KindDecl] = None
     line: int = 0
 
@@ -107,6 +108,7 @@ class Obj:
     props: dict[str, ast.Expr] = field(default_factory=dict)
     handlers: list[Handler] = field(default_factory=list)
     grains: list[Grain] = field(default_factory=list)
+    topics: list["ast.TopicDecl"] = field(default_factory=list)
     decl: Optional[ast.ObjectDecl] = None
     line: int = 0
 

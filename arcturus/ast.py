@@ -205,6 +205,23 @@ class Say(Stmt):
 
 
 @dataclass
+class Line(Stmt):
+    # A conversation line in a topic body: `you "..."` (the player) or
+    # `reply "..."` (the NPC), auto-quoted and auto-attributed when printed.
+    who: str  # "you" or "reply"
+    text: Expr
+    line: int = 0
+
+
+@dataclass
+class TopicToggle(Stmt):
+    # `reveal <id>` / `hide <id>`: show or hide another topic by its subject id.
+    reveal: bool
+    target: str
+    line: int = 0
+
+
+@dataclass
 class Stop(Stmt):
     line: int = 0
 
@@ -380,7 +397,23 @@ class GrainsBlock:
     line: int = 0
 
 
-Member = Union[PropertyDecl, Handler, GrainsBlock]
+@dataclass
+class TopicDecl:
+    # A conversation topic on a person (docs/02 section 14). `subject` is the id
+    # (used by reveal/hide); `label` is the menu line; `words` are the ask/tell
+    # match words (empty for conversations-only). `when` guards visibility, `once`
+    # retires after use, `hidden` starts it out of view. The body is the exchange.
+    subject: str
+    label: Expr
+    words: list[str] = field(default_factory=list)
+    when: Optional[Expr] = None
+    once: bool = False
+    hidden: bool = False
+    body: list[Stmt] = field(default_factory=list)
+    line: int = 0
+
+
+Member = Union[PropertyDecl, Handler, GrainsBlock, TopicDecl]
 
 
 @dataclass

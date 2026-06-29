@@ -926,7 +926,8 @@ Section 15 of 02 reconciles each example with the Cosmos model in detail.
 `else`, `while`, `for`, `each`, `switch`, `case`, `and`, `or`, `holds`,
 `when`, `self`, `player`, `here`, `noun`, `second`, `nothing`, `true`,
 `false`, `list`, `summon`, `grains`, `do`, `title`, `headline`, `author`,
-`release`, `serial`, `UUID`, `start`.
+`release`, `serial`, `UUID`, `start`, `mod`, `every`, `topic`, `you`, `reply`,
+`reveal`, `hide`.
 
 Grammar slot words (`held`, `multi`, `text`) and the standard direction and
 verb names are reserved by Cosmos rather than the core language; see 02.
