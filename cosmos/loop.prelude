@@ -35,6 +35,18 @@ block run_turn(act)
         change meta_turn to 1
         do_undo()
         return 0
+    if act is action_id("again")
+        if last_act is 0
+            change meta_turn to 1
+            msg_nothing_again()
+            return 0
+        // Replay the previous command by restoring its resolved operands, then
+        // fall through to dispatch it exactly as a fresh turn.
+        change act to last_act
+        change noun to last_noun
+        change second to last_second
+        change way to last_way
+        change grain to last_grain
     let r = do_save_undo()
     if r is 2
         change meta_turn to 1
@@ -46,6 +58,12 @@ block run_turn(act)
     if meta_turn is 0
         fire_turn()
         tick()
+        // Remember a real (non-meta) command so a later "again" can repeat it.
+        change last_act to act
+        change last_noun to noun
+        change last_second to second
+        change last_way to way
+        change last_grain to grain
     return 0
 
 // Undo the previous turn. restore_undo, on success, resumes at the save_undo in

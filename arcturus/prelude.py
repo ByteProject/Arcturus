@@ -138,6 +138,12 @@ _BUILTINS = {
     "grain": T_NUMBER,  # the matched scenery grain (id+1), set by the parser
     "parse_fault": T_NUMBER,  # set by the parser when a named object is out of scope
     "meta_turn": T_NUMBER,  # set by a meta verb so the loop skips the turn pulse
+    # The previous non-meta command, remembered so "again" can replay it.
+    "last_act": T_NUMBER,
+    "last_noun": T_OBJECT,
+    "last_second": T_OBJECT,
+    "last_way": T_NUMBER,
+    "last_grain": T_NUMBER,
 }
 
 # Objects Cosmos provides. `player` is the distinguished person instance.

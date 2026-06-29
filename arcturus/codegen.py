@@ -295,9 +295,12 @@ def _start_handler(world: wm.World):
 # turn loop reports "you can't see that" and skips the turn); meta_turn flags an
 # action that does not advance the world (score, save, a cancelled quit), so the
 # loop skips the per-turn pulse and the turn count.
+# last_* remember the previous non-meta command (its action and resolved
+# operands) so "again" can replay it.
 _BUILTIN_GLOBALS = [
     "turns", "score", "max_score", "player", "here", "noun", "second",
     "way", "grain", "par_pending", "parse_fault", "meta_turn",
+    "last_act", "last_noun", "last_second", "last_way", "last_grain",
 ]
 
 
