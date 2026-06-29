@@ -1,3 +1,7 @@
+// The Brass Lantern is a small adventure shown WITHOUT a status line, to keep it
+// minimal. To add one, summon the statusline granule (see the Cloak of Darkness
+// example and examples/granules/statusline.storyarc).
+
 game
     title  "The Brass Lantern"
     author "Stefan"

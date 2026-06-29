@@ -568,6 +568,15 @@ reference doc (B5.6). Full granule set settled with Stefan:
   the upper window, so it is checkable headless. tests/test_statusline.py;
   examples/granules/statusline.storyarc (awards a point for the coin to show
   score change). The screen opcodes also feed Actaea (B8) and conversations.
+  COMPACT FORMAT (Stefan): the bar shows "Score: <score>/<turns>" (score/turns,
+  like Puny), right-aligned via status_digits, so it fits a 40-column C64 / 53-col
+  Spectrum as well as a modern terminal; redefine draw_status for a wide "Moves:"
+  variant. Cloak now summons statusline (it is the apples-to-apples feature for
+  the B6 Puny benchmark - Puny's Cloak has one); brass-lantern deliberately does
+  NOT, with a header note. Both examples/cloak and docs/01 section 18 updated in
+  sync (test_examples decl count 11 -> 12). Cloak with statusline is ~11.9K.
+  The statusline showcase's `on take` guards scoring on `not moved` (award the
+  point once; dropping and re-taking does not re-score).
 - B5.5e: conversations. The MENU talk system (talk_menu equivalent): TALK TO
   <animate> paints a topic menu in the UPPER window (needs statusline's window
   work first), topics enabled/disabled from code by milestone/location. Puny's

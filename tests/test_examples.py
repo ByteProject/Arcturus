@@ -84,8 +84,8 @@ def test_brass_lantern_parses_cleanly():
 
 def test_cloak_of_darkness_parses_cleanly():
     prog = load("cloak-of-darkness.storyarc")
-    # game, global, on start, 4 rooms, 3 things, 2 verbs = 11 declarations.
-    assert len(prog.decls) == 11
+    # game, summon.statusline, global, on start, 4 rooms, 3 things, 2 verbs = 12.
+    assert len(prog.decls) == 12
     assert any(isinstance(d, ast.GlobalDecl) and d.name == "disturbed" for d in prog.decls)
 
     objs = objects(prog)

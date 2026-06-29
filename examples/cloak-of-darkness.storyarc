@@ -4,6 +4,9 @@ game
     UUID   2a1f8e63-9b07-4c2d-8f3a-5e1d6042b7c9
     start  foyer
 
+// The classic Cloak of Darkness shows a status line, so this port summons one.
+summon.statusline
+
 global disturbed = 0
 
 on start
