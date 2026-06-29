@@ -63,6 +63,10 @@ class Layout:
     word_fixups: list[tuple[int, str]] = field(default_factory=list)
     # Objects that have a react routine; their react property (63) is emitted.
     react_objects: set = field(default_factory=set)
+    # True if any object is `proper` (a named thing). The article in ${the noun}
+    # only needs its runtime proper-check when this holds, so a game with no
+    # proper objects pays nothing for it.
+    has_proper: bool = False
 
 
 def _effective_props(world: wm.World, obj: wm.Obj) -> dict:
@@ -110,6 +114,16 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
                 raise _err("more than 63 properties")
             layout.prop_number[name] = p
             p += 1
+
+    # Does any object resolve to `proper`? The article printer (${the noun}) uses
+    # this to skip its runtime proper-check entirely in a game with no named
+    # objects, so the common case costs nothing.
+    if "proper" in layout.attr_number:
+        for name in world.objects:
+            decl = _effective_props(world, world.objects[name]).get("proper")
+            if decl is not None and _bool_value(decl):
+                layout.has_proper = True
+                break
 
     # Kinds get attributes too, so `obj is <kind>` lowers to a test_attr: an
     # object carries the attribute of every kind in its chain (B4.5c).

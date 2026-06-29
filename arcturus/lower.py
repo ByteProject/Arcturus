@@ -889,10 +889,7 @@ def _say(rt, ctx, value, newline=True):
                     rt.op("print", text=part.text)
             else:  # StringInterp
                 if part.article is not None:
-                    # The a/an choice by sound is a Cosmos refinement (B4.5);
-                    # for now the typed article is printed as written.
-                    rt.op("print", text=part.article + " ")
-                    _say_object(rt, ctx, part.expr)
+                    _say_with_article(rt, ctx, part.article, part.expr)
                 else:
                     _say_value(rt, ctx, part.expr)
     else:
@@ -932,6 +929,27 @@ def _say_value(rt, ctx, expr):
 
 def _say_object(rt, ctx, expr):
     op, t = _operand(rt, ctx, expr)
+    rt.op("print_obj", op)
+    if t is not None:
+        ctx.free_temp(t)
+
+
+def _say_with_article(rt, ctx, article, expr):
+    """Print the article ("the"/"The"/"a"/"an") then the object's name, UNLESS the
+    object is `proper` (a named thing like Linda or Excalibur), which takes no
+    article. So ${The noun} reads "The sword" for an ordinary object but "Linda"
+    for a proper one. (The a/an-by-sound choice is a separate later refinement;
+    the typed article is used as written.)"""
+    op, t = _operand(rt, ctx, expr)
+    attr = ctx.attr_number("proper")
+    has_proper = ctx.layout is not None and ctx.layout.has_proper
+    if attr is not None and has_proper:
+        skip = ctx.new_label()
+        rt.op("test_attr", op, Const(attr), branch=(skip, True))  # proper: no article
+        rt.op("print", text=article + " ")
+        rt.label(skip)
+    else:
+        rt.op("print", text=article + " ")
     rt.op("print_obj", op)
     if t is not None:
         ctx.free_temp(t)
