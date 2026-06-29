@@ -631,7 +631,7 @@ say "Hey\n\nThis is two lines below.\n\n\nAnd this three."
 
 Interpolation embeds an expression with `${ }`; printing an object prints its
 `name`. Article helpers: `${the ruby}`, `${a ruby}`, and the capitalized
-`${The ruby}`, `${A ruby}`; an object with `proper` set takes no article.
+`${The ruby}`, `${A ruby}`; an object with `named` set takes no article.
 Their full behavior is in 02. Escapes: `\"`, `\\`, `\$`, and `\n`.
 
 ## 16. Diagnostics

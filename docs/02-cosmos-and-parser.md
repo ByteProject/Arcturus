@@ -260,7 +260,7 @@ and after without further machinery.
 ## 10. Standard kinds
 
 `thing` (base): `name`, `words`, `desc`; booleans `fixed`, `scenery`,
-`hidden`, `concealed`, `wearable`, `worn`, `lit`, `edible`, `proper`. Default
+`hidden`, `concealed`, `wearable`, `worn`, `lit`, `edible`, `named`. Default
 handlers for examine, take, drop, push, pull, turn, and the like (section
 12).
 
@@ -388,7 +388,7 @@ happens."
 Naming. `name` is the printed short name; the object identifier is never
 printed. Article helpers: `${a noun}` chooses a or an by sound, `${the
 noun}`, and capitalized `${A noun}` and `${The noun}` for sentence starts. An
-object with `proper` set takes no article. When Cosmos lists several objects
+object with `named` set takes no article. When Cosmos lists several objects
 it joins them with commas and a final "and", each with its indefinite
 article.
 
@@ -513,7 +513,7 @@ section 11a); it is not itself a direction.
 Standard kinds: `thing`, `room`, `container`, `supporter`, `door`, `person`.
 
 Standard boolean properties: `fixed`, `scenery`, `hidden`, `concealed`,
-`wearable`, `worn`, `lit`, `edible`, `proper`, `switchable`, `openable`,
+`wearable`, `worn`, `lit`, `edible`, `named`, `switchable`, `openable`,
 `open`, `lockable`, `locked`, `visited`.
 
 Standard value properties: `name`, `words`, `desc`, `capacity`, `key`,

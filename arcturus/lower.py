@@ -936,16 +936,16 @@ def _say_object(rt, ctx, expr):
 
 def _say_with_article(rt, ctx, article, expr):
     """Print the article ("the"/"The"/"a"/"an") then the object's name, UNLESS the
-    object is `proper` (a named thing like Linda or Excalibur), which takes no
-    article. So ${The noun} reads "The sword" for an ordinary object but "Linda"
-    for a proper one. (The a/an-by-sound choice is a separate later refinement;
-    the typed article is used as written.)"""
+    object is `named` (a thing with a proper name like Linda or Excalibur), which
+    takes no article. So ${The noun} reads "The sword" for an ordinary object but
+    "Linda" for a named one. (The a/an-by-sound choice is a separate later
+    refinement; the typed article is used as written.)"""
     op, t = _operand(rt, ctx, expr)
-    attr = ctx.attr_number("proper")
-    has_proper = ctx.layout is not None and ctx.layout.has_proper
-    if attr is not None and has_proper:
+    attr = ctx.attr_number("named")
+    has_named = ctx.layout is not None and ctx.layout.has_named
+    if attr is not None and has_named:
         skip = ctx.new_label()
-        rt.op("test_attr", op, Const(attr), branch=(skip, True))  # proper: no article
+        rt.op("test_attr", op, Const(attr), branch=(skip, True))  # named: no article
         rt.op("print", text=article + " ")
         rt.label(skip)
     else:
