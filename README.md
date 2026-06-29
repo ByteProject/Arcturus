@@ -12,7 +12,7 @@ Z-machine. You describe a world (rooms, things, verbs, and the behavior that
 hangs off them) and the compiler produces a standard Z-machine story file that
 plays on Frotz, Ozmoo, Eris, Vezza and other interpreters, old and new.
 
-Arcturus is designed and written by **Stefan Vogquitt**. The compiler is written in
+Arcturus is designed and written by **Stefan Vogt**. The compiler is written in
 Python and depends only on the standard library, so it runs anywhere Python
 does, with nothing to install. The standard library, **Cosmos**, is written in
 Arcturus itself and ships as editable source rather than a black box.
