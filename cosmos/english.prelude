@@ -502,13 +502,15 @@ block resolve_two_nouns()
     return 1
 
 // Remember the command just parsed so a following "oops" can correct it: find the
-// first unrecognized word (one with no dictionary entry), and if there is one,
-// snapshot the parse buffer and note that word's index. With no unknown word,
-// clear the flag, so "oops" after a fully understood command has nothing to fix.
+// first unrecognized word (one with no dictionary entry), verb or noun, and if
+// there is one, snapshot the parse buffer and note that word's index. With no
+// unknown word, clear the flag, so "oops" after an understood command has nothing
+// to fix. Scanning from word 0 means a mistyped verb is correctable too, but the
+// loop must call note_oops even when the verb did not parse (see run_game).
 block note_oops()
     change oops_ready to 0
     let n = word_count()
-    let i = 1
+    let i = 0
     while i < n
         if word_dict(i) is nothing
             change oops_word to i
