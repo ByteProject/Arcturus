@@ -183,9 +183,14 @@ def main(argv: list[str] | None = None) -> int:
         print(dump(program))
         return 0
 
-    # Compile the game together with the bundled Cosmos library (docs/02).
+    # Compile the game together with the bundled Cosmos library and any granules
+    # it summons (docs/02). Summoned files resolve relative to the story's own
+    # directory first, then the -L search path.
     if not args.no_cosmos:
-        program = cosmos_lib.combined_program(program)
+        story_dir = os.path.dirname(os.path.abspath(args.source))
+        program = cosmos_lib.combined_program(
+            program, lib_dirs=args.lib or (), story_dir=story_dir
+        )
 
     try:
         world = analyze(program, filename=args.source)

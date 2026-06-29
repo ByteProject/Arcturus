@@ -99,7 +99,9 @@ def build(output_path: str) -> None:
     cosmos_srcs = {}
     if os.path.isdir(cosmos_dir):
         for name in sorted(os.listdir(cosmos_dir)):
-            if name.endswith(".prelude"):
+            # The core library (.prelude) and the official summonable features
+            # (.granule) both travel inside arcc.
+            if name.endswith(".prelude") or name.endswith(".granule"):
                 with open(os.path.join(cosmos_dir, name), "r", encoding="utf-8") as fh:
                     cosmos_srcs[name] = fh.read()
 

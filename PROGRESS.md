@@ -516,13 +516,18 @@ B10 arc_image retro, B11 Ghosts, B12 Rabenstein. docs/00, README, CLAUDE.md and
 
 REMAINING in B5 - the granules, built and tested one at a time (B5.5), then the
 reference doc (B5.6). Full granule set settled with Stefan:
-- B5.5a (NEXT): the summon LOADER. `summon` already parses to ast.Summon and
-  collects into w.summons (parser.parse_summon, sema), but nothing loads it yet.
-  Build: resolve each summon (a dotted feature -> a bundled .granule; a "file"
-  -> story-dir then -L) to source, parse + prepend like cosmos.combined_program,
-  tag blocks origin "granule" (already supported by override-by-block), and DCE
-  so an unsummoned granule never ships. Done-test: a game granule loads and
-  overrides a library block. Also the `summon "file.granule"` extension form.
+- B5.5a DONE (committed): the summon LOADER. cosmos.combined_program now takes
+  lib_dirs + story_dir; _load_granules resolves every summon the game makes
+  (transitively - a granule may summon another), parses each once, tags its
+  BlockDecls origin "granule" (so it beats library, yields to game), and inserts
+  them between library and game. Feature summons (summon.x) resolve to a bundled
+  x.granule via granule_sources(); file summons ("path.granule") resolve story-dir
+  then -L then cwd. language/abbreviations are recognized but not loaded as runtime
+  blocks (B7/B6). Missing file or unknown feature is an ArcError. amalgamate now
+  embeds .granule too (cosmos._bundled_sources filters _EMBEDDED by suffix). CLI
+  passes its -L + the story dir. Unsummoned granules are never read, so never
+  ship. tests/test_summon.py (override wins on Frotz; unknown-feature and
+  missing-file errors).
 - B5.5b: extendedverbs. NOT trivial - it carries the Infocom-style ask/tell/
   answer TOPIC conversation system plus search/look_under/throw etc. (the E side
   of docs/verb-set.md). The topic-driven conversation path lives here.
@@ -564,7 +569,7 @@ KEY FACTS for resume:
   in cosmos/english.prelude as overridable msg_* blocks.
 - Sizes today (pre-DCE, bloated by ~70 message + ~45 verb routines, all shipped
   until B6 DCE): brass ~9.5K, cloak ~10K. Still far under Puny's 27K for Cloak.
-- 211 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
+- 215 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
   with python3 tools/amalgamate.py build/arcc; rebuild the example .z5 via
   build/arcc after any cosmos/ change. Throwaway test .z5 go to the scratchpad,
   not build/ (build/ holds only arcc + the two example games).
