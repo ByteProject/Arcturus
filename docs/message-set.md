@@ -121,8 +121,15 @@ standard but squeeze/blow/burn/buy/consult/swim/etc.) get their messages with th
 | Block | When | Wording |
 |---|---|---|
 | msg_no_talk | talk to a person, default | ${The noun} doesn't seem up for a conversation. |
+| line_you | the framing of a `you "..."` topic line | You: "..." |
+| line_reply | the framing of a `reply "..."` topic line | ${The speaker}: "..." |
+| line_end | the close of any topic line | "... |
 
-(talk aimed at a thing falls through to msg_only_animate, above.)
+(talk aimed at a thing falls through to msg_only_animate, above. line_you,
+line_reply, and line_end frame the `you` / `reply` conversation sugar: the
+speaker label, the separator, and the auto-quotes live here, so the wording is
+overridable and translatable and works whether or not the conversations granule
+is summoned.)
 
 ## Inventory
 
