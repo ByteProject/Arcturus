@@ -14,19 +14,25 @@ Last updated: 2026-06-28.
 | B1 | Lexer and parser producing an AST, with unit tests | done |
 | B2 | Semantic analysis and the world-model IR | done |
 | B3 | Z-machine backend MVP (smallest valid story file) | done |
-| B4 | Cosmos compiled: parser, turn loop, standard verbs | in progress |
-| B5 | Size pass (dead-code elimination, abbreviations, codegen) | pending |
-| B6 | Feature-complete for a real game | pending |
-| B7 | Graphics via `arc_image` | pending |
-| B8 | Write the target game in Arcturus | pending |
+| B4 | Cosmos compiled: parser, turn loop, standard verbs | done |
+| B5 | Feature-complete library and a fair benchmark | in progress |
+| B6 | Size pass (DCE, abbreviations, codegen) | pending |
+| B7 | The reference interpreter, Actaea | pending |
+| B8 | arc_image on modern systems (PNG) | pending |
+| B9 | arc_image on retro systems | pending |
+| B10 | Port Ghosts of Blackwood Manor (text) | pending |
+| B11 | Port The Curse of Rabenstein (from DAAD) | pending |
 
-B4 done-test GREEN: both example games (The Brass Lantern and Cloak of Darkness)
-compile with the standalone arcc and are winnable start to finish on Frotz
-(tests/test_examples.py). Cosmos - the turn loop, movement, standard verbs,
-scope/light, the parser, and grains - is written in Arcturus. Sizes today,
-before the B5 size pass: brass-lantern.z5 5472 bytes, cloak-of-darkness.z5 5940
-bytes (well under the ~22-23K PunyInform benchmark). Remaining in B4: B4.6
-(integration polish and docs/03-05).
+Roadmap restructured 2026-06-28 (docs/00 section 7): feature-complete library
+(B5) comes BEFORE the size pass (B6) so the PunyInform benchmark is fair; then
+the Actaea interpreter (B7), arc_image (B8 modern, B9 retro), and porting two
+games (B10 Ghosts, B11 Rabenstein). "Write Hibernated 3" is dropped as the
+project goal. See memory [[roadmap-milestones]].
+
+B4 is done: both example games (The Brass Lantern and Cloak of Darkness) compile
+with the standalone arcc and are winnable start to finish on Frotz
+(tests/test_examples.py). The full B4 work log is below; B5 progress is in the
+"In progress: B5" section near the end of this file.
 
 ## Toolchain
 
@@ -382,8 +388,85 @@ hand off). Brass is fully playable; Cloak needs the two-noun put-on.
   it); comment the arcane code for humans; keep public docs in sync; commit each
   sub-step with a clear message.
 
-## Next: B5
+## In progress: B5 - feature-complete library and a fair benchmark
 
-The size pass: dead-code elimination, the arcabbr abbreviation pipeline, and
-codegen tightening. Target: a representative game at or (per the project bar)
-under its PunyInform-equivalent size.
+Goal: the full standard verb set at PunyInform parity, the meta verbs, a fresh
+standard message set, and the summonable granules, so the eventual size
+comparison (B6) is honest. Memory: [[cosmos-distribution-and-hacking]],
+[[punyinform-reference]], [[no-em-dashes-ever]], [[library-paragraph-breaks]].
+
+DONE in B5 (committed):
+- Override-by-block (91c95f6): a game or granule block beats a Cosmos library
+  block of the same name (ast.BlockDecl.origin / wm.Block.origin; sema._collect;
+  cosmos.combined_program tags library blocks). The author's way to reskin a
+  message without unpacking the library. tests/test_override.py.
+- --extract-library DIR and --eject-language [DIR] (e9d50ab): write the bundled
+  library (or just english.prelude) out for hacking; compile against it with -L.
+  tests/test_cli_extract.py. README documents them (aec6491).
+- intro property + moved attribute (2a9faff): Inform's `initial`; an object shows
+  its intro text in a room until taken (sets `moved`), static objects keep it.
+  describe_room shows intro vs lists; take sets moved. tests/test_intro.py.
+- Scenery + grains unified on msg_scenery (2cd623d): dropped msg_take_scenery;
+  take of a scenery object gives the grain line; describe_room skips scenery from
+  the listing (still examinable).
+- The blessed message set in english.prelude (db8f580): all of docs/message-set.md
+  in the agreed voice (warm-to-witty), using ${the noun}/${The noun}/${the
+  second}. The wording is Stefan's; redlines applied (da473a2).
+- Sensory + flavor verbs + the animate model (71c3fc4): touch, smell, taste,
+  listen, eat, drink, attack, kiss, push, pull, turn, climb, read, talk, jump,
+  wait, sing. New `animate` attribute, set by the person kind (sema seeds it like
+  room+lit). talk to animate -> msg_no_talk; to an object -> msg_only_animate.
+  `turn` is its own verb now; compound() is base-aware (switch/turn +on/off,
+  take +off; everything else ignores particles so "put X on Y" stays put).
+  tests/test_flavor.py.
+- docs: 03-compiler-pipeline.md (ec53b55), verb-set.md (the S/E split, Stefan's),
+  message-set.md (the blessed wording). docs/01 documents intro.
+
+VERB SET PLAN: docs/verb-set.md has Stefan's standard/extended (S/E) split. The
+sensory verbs stay Standard. ask/tell/answer/ask_for/shout are EXTENDED (the
+Infocom topic system); talk stays Standard. kiss/sing/xyzzy Standard;
+search/look_under/throw Extended. Look modes (verbose/brief/superbrief), notify,
+sorry, and mild oaths are DROPPED entirely (full descriptions always). oops kept.
+
+REMAINING in B5:
+- B5.4c (NEXT): functional verbs with real state - open/close, lock/unlock (key,
+  already-open/shut, close-first, wrong-key), enter/exit, give/show (animate;
+  give X to Y has noun=gift, second=recipient, so msg_give reads "${The second}
+  doesn't want ${the noun}"), insert. Messages already exist in english.prelude
+  (msg_opened/already_open/cant_open/open_locked/closed_it/already_shut/cant_close/
+  locked/cant_lock/close_first/wrong_key/unlocked/cant_unlock, msg_give/msg_show).
+- B5.4d: meta verbs on z-opcodes - score, save, restore, restart, undo, again,
+  oops, xyzzy. Need new intrinsics for save/restore/restart/undo opcodes; score
+  uses the score/max_score globals. Messages msg_score/saved/save_failed/
+  restore_failed/confirm_restart/undone/cant_undo/xyzzy still need adding (most
+  are in docs/message-set.md Meta section but NOT yet in english.prelude). Note:
+  meta verbs should not tick the turn (a cancelled quit currently does; fix here).
+- B5.5: summon.statusline and summon.extendedverbs granules. Needs the
+  summon-load mechanism (parse + include a .granule when summoned; granule blocks
+  get origin "granule" and can override library blocks). statusline needs the
+  window opcodes (split_window/set_window/set_cursor). extendedverbs holds the E
+  verbs from docs/verb-set.md with their messages.
+- B5.6: finalize the message/verb reference doc (docs/05) from message-set.md +
+  verb-set.md once the set is complete.
+
+KEY FACTS for resume:
+- Verb pattern: declare `verb "x", "syn" \n x noun`, then a free `on x` default
+  handler that speaks msg_x (noun-requiring ones check `if noun is nothing:
+  msg_cant_see; stop`). Object/room handlers override via most-specific-wins
+  (noun -> room -> free default). Defaults live in cosmos/verbs.prelude; messages
+  in cosmos/english.prelude as overridable msg_* blocks.
+- Sizes today (pre-DCE, bloated by ~70 message + ~35 verb routines, all shipped
+  until B6 DCE): brass ~7.8K, cloak ~8.3K. Still far under Puny's 27K for Cloak.
+- ~196 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
+  with python3 tools/amalgamate.py build/arcc; rebuild the example .z5 via
+  build/arcc after any cosmos/ change. Throwaway test .z5 go to the scratchpad,
+  not build/ (build/ holds only arcc + the two example games).
+- HARD RULE: never output em dashes anywhere ([[no-em-dashes-ever]]). Commit with
+  git commit -F /dev/stdin <<'EOF' (heredoc) - backticks in -m are eaten by zsh.
+
+## Later: B6 size pass
+
+Dead-code elimination (unused Cosmos verbs/messages/properties never reach the
+file), the arcabbr abbreviation pipeline, and codegen tightening. Target: a
+representative game strictly under its PunyInform-equivalent size (Cloak is 27K
+in Puny). Measured with the full library in place. See [[size-benchmark-puny]].
