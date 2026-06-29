@@ -636,6 +636,44 @@ capability, drop the bookkeeping, because we own the compiler. The Arcturus mode
 - BUILD ORDER: extendedverbs v1 (plain verbs) -> the topic construct + model +
   conversations menu -> ask/tell topic dispatch (extendedverbs v2) -> mutual-
   exclusion wiring.
+
+>>> RESUME POINT (after compaction) <<<
+TOPIC SYSTEM is mid-build. Sub-steps:
+- [x] 1. PARSE + COLLECT + COMPILE INERT (committed 5594a5e). The `topic`
+  construct parses end to end and topics collect onto wm.Obj.topics /
+  wm.Kind.topics; codegen ignores them so a game with topics compiles inert.
+  Done: tokens (keywords topic/you/reply/reveal/hide), ast.TopicDecl (a Member)
+  + ast.Line(who="you"|"reply", text) + ast.TopicToggle(reveal, target),
+  parser.parse_topic (header modifiers words/when/once/hidden in any order) +
+  _parse_line + _parse_topic_toggle (registered in _STMT_KEYWORDS),
+  sema._collect_members appends TopicDecl. NOTE: the player's line keyword is
+  `you` NOT `player` (player is the reserved player-object keyword). docs/01
+  appendix A reserved words updated. tests/test_topics.py.
+- [ ] 2. NEXT: the RUNTIME. Lower each person's topics to a table Cosmos can walk
+  (per topic: match-word list, label string addr, when-guard routine addr or 0,
+  once/hidden flags + a runtime-mutable active/retired state, body routine addr).
+  Lower the body statements: ast.Line -> print "You: " / "<NPC name>: " then the
+  quoted text (auto-attribute via self for reply); ast.TopicToggle -> set/clear
+  the named topic's hidden/active state in the table. Likely intrinsics to read
+  the table + a per-person "topics" property pointing at it (mirror how `words`/
+  react are emitted in objects.py/codegen.py). Decide table layout + how Cosmos
+  addresses a topic by subject id (an index) for reveal/hide.
+- [ ] 3. ask/tell dispatch (extendedverbs v2): ask <person> about <subject> ->
+  match subject words against the person's topic table, run the matching topic's
+  body if visible (when true, not hidden, not retired-if-once); retire once
+  topics. Gated OFF when conversations is summoned.
+- [ ] 4. conversations granule: talk to <animate> paints the visible topic labels
+  as a numbered menu in the upper window (reuse statusline's split_window/
+  set_window/set_cursor), reads a choice, runs that topic's body, redraws until
+  exit. Wins over ask/tell.
+- [ ] 5. mutual exclusion wiring (conversations present -> ask/tell topic path off;
+  ask/tell then redirect "just TALK TO her").
+KEY FILES for the runtime: objects.py (emit a per-object topic table like the
+words array), codegen.py (gen topic body routines like react/grain routines),
+lower.py (lower ast.Line / ast.TopicToggle), cosmos/extendedverbs.granule (ask/
+tell v2), a new cosmos/conversations.granule. The CONVERSATION MODEL spec is the
+block just below.
+>>> END RESUME POINT <<<
 - B5.5c DONE (committed): verbose_exits. The granule overrides msg_cant_go to
   list the room's live exits ("You can only go north or east from here.") - no
   `on go other` needed after all, overriding the one message suffices. Three new
