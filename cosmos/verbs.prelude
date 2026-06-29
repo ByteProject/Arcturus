@@ -598,9 +598,15 @@ on talk
         msg_cant_see()
         stop
     if noun is animate
-        msg_no_talk()
+        talk_to(noun)
         stop
     msg_only_animate()
+
+// What happens when you talk to a living thing. The default is a flat brush-off;
+// the conversations granule overrides this block to open the topic menu instead.
+// (A person can still override `on talk` itself for a one-off custom exchange.)
+block talk_to(person)
+    msg_no_talk()
 
 
 verb "jump", "hop"

@@ -165,7 +165,9 @@ uses these lines and runs with that granule absent.
 The conversation granules never touch this byte layout: they call the
 `cosmos_topic_*` backing routines (`arcturus/codegen.py`) through the
 `topics_count` / `topic_visible` / `topic_label` / `topic_matches` /
-`topic_run` intrinsics. Those helpers ship only when one is referenced, so a
+`topic_run` intrinsics. The menu granule also uses `read_key` (the `read_char`
+VAR opcode, first operand 1) to read a single keypress for press-a-number
+selection. Those helpers ship only when one is referenced, so a
 game with topics but no conversation granule carries the table and bodies but
 none of the walking machinery; the body and guard routines are always emitted
 when topics exist, because the table references them.

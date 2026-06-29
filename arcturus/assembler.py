@@ -115,6 +115,10 @@ _OPCODES = {
     "storew": ("VAR", 0x01, False, False, False),
     "storeb": ("VAR", 0x02, False, False, False),
     "aread": ("VAR", 0x04, True, False, False),  # read+tokenize; v5 stores the terminator
+    # read_char reads a single keypress (no echo, no Enter), storing its ZSCII
+    # code. The first operand is the input device, always 1 in v5. Used by the
+    # conversations granule for press-a-number menu selection.
+    "read_char": ("VAR", 0x16, True, False, False),
     "call_vn": ("VAR", 0x19, False, False, False),
     "print_num": ("VAR", 0x06, False, False, False),
     "print_char": ("VAR", 0x05, False, False, False),
