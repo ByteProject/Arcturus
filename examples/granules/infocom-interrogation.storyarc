@@ -23,9 +23,12 @@
 //   arcc examples/granules/infocom-interrogation.storyarc -o interrogation.z5
 //   frotz interrogation.z5
 //
-// Things to try: ASK CRALE ABOUT HIS ALIBI, ASK HIM ABOUT THE TICKET, ASK ABOUT
-// REED, TAKE THE OPENER then ASK CRALE ABOUT THE WEAPON, ASK ABOUT THE TRUTH,
-// TELL CRALE ABOUT THE OPENER.
+// Start with TALK TO CRALE: he lists the lines of questioning open right now, so
+// you never have to guess a subject. Then ASK CRALE ABOUT HIS ALIBI, watch a new
+// line open, TALK again to see it, and follow the thread: ASK ABOUT THE TICKET,
+// ASK ABOUT REED. EXAMINE the OPENER, TAKE it, and a fresh line appears: ASK
+// CRALE ABOUT THE WEAPON. Press to ASK ABOUT THE TRUTH. TELL CRALE ABOUT anything
+// to see his own handler answer instead of a topic.
 
 game
     title "Infocom Interrogation"
@@ -45,7 +48,28 @@ thing suspect of person in cell
     named
     words crale, victor, suspect, man
     intro "Victor Crale sits across the table, hands folded, far too calm for a
-           man in his position."
+           man in his position. Time to question him."
+
+    // TALK TO CRALE is the hub: it lists the lines of questioning open right now,
+    // so the player never has to guess a subject word. The list is live - it
+    // walks the same topic table ASK does, so revealed topics appear and `once`
+    // topics drop off as the interrogation moves. (When the conversations granule
+    // lands, this is exactly what its menu will paint in the upper window.)
+    on talk
+        say "You lean in. \"Let's take it from the top, Mr. Crale.\""
+        let i = 0
+        let shown = 0
+        while i < topics_count(self)
+            if topic_visible(self, i)
+                if shown is 0
+                    say "You can ask him about:"
+                show("  ")
+                topic_label(self, i)
+                say ""
+                change shown to shown + 1
+            change i to i + 1
+        if shown is 0
+            say "He has said all he is going to say."
 
     // The interrogation. ASK reaches these; the first topic in view that the
     // player names a word of runs, then retires if it is `once`.
@@ -84,4 +108,4 @@ thing opener in cell
     words letter, opener, blade
     intro "A letter opener lies on the table between you, bagged as evidence."
     desc "A slim steel letter opener, tagged as evidence. The initials V.C. are
-          etched into the handle."
+          etched into the handle. Worth putting in front of him."

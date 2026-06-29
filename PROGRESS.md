@@ -808,6 +808,11 @@ which were Puny's). It showcases the full topic feature set on the ASK path:
 retirement, a `when player holds opener` guard (the murder weapon can only be
 raised while held), you/reply auto-quote+attribution, and `say` stage directions
 mixed in. The suspect's own `on tell` is the manual escape hatch beside the
-sugar: ASK runs topics, TELL he handles himself. Verified on Frotz. Like the
-other examples/granules/*.storyarc it is an untested showcase artifact (the
-behavior is covered by tests/test_topics.py test_ask_tell_dispatch_on_frotz).
+sugar: ASK runs topics, TELL he handles himself. GUIDED: TALK TO CRALE is the hub
+- his `on talk` walks his topic table and lists the lines of questioning open
+right now (topics_count/topic_visible/topic_label), so the player never guesses a
+subject; the list is live (revealed topics appear, `once` topics drop off, the
+weapon appears once you hold the opener). That `on talk` listing is the prose
+preview of what sub-step 4's menu will paint. Verified on Frotz. Like the other
+examples/granules/*.storyarc it is an untested showcase artifact (the behavior is
+covered by tests/test_topics.py test_ask_tell_dispatch_on_frotz).
