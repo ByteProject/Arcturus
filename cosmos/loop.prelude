@@ -23,11 +23,42 @@ block run_game()
                 if word_count() is not 0
                     msg_no_verb()
         else
-            change meta_turn to 0
-            dispatch(act)
-            if meta_turn is 0
-                fire_turn()
-                tick()
+            run_turn(act)
+
+// Carry out one understood command. Undo is handled here, not through dispatch:
+// every other command first takes an undo checkpoint (save_undo), so that a later
+// undo rewinds to just before it. When save_undo returns 2 the machine has just
+// resumed here via restore_undo, meaning the previous turn is being taken back.
+block run_turn(act)
+    change meta_turn to 0
+    if act is action_id("undo")
+        change meta_turn to 1
+        do_undo()
+        return 0
+    let r = do_save_undo()
+    if r is 2
+        change meta_turn to 1
+        msg_undone()
+        par()
+        describe_room()
+        return 0
+    dispatch(act)
+    if meta_turn is 0
+        fire_turn()
+        tick()
+    return 0
+
+// Undo the previous turn. restore_undo, on success, resumes at the save_undo in
+// run_turn (it does not return here); so reaching the line after it means the
+// undo failed, and reaching here with no turns yet means there is nothing to take
+// back.
+block do_undo()
+    if turns is 0
+        msg_cant_undo()
+        return 0
+    let r = do_restore_undo()
+    msg_cant_undo()
+    return 0
 
 // Fire the current room's `on enter` (the loop and the go verb call this after
 // the player arrives). The handler may move the player elsewhere (a bounce).

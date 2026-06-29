@@ -72,3 +72,69 @@ def test_unseen_recipient_cant_see_on_frotz(tmp_path):
     assert "You see nothing of the sort here." in out
     assert "doesn't want" not in out  # give never dispatched
     assert "therapy" not in out  # nor the only-animate nudge
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_undo_rewinds_a_turn_on_frotz(tmp_path):
+    story = tmp_path / "m.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="take coin\nundo\ninventory\n",  # undo the take, then look in hand
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "Got it." in out  # the take happened
+    assert "Taken back." in out  # then undo confirms
+    # After undo, the coin is back in the room and the hands are empty.
+    assert "You're carrying precisely nothing." in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_undo_with_nothing_to_undo_on_frotz(tmp_path):
+    story = tmp_path / "m.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="undo\n",  # first turn, nothing done yet
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "There's nothing to take back." in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_restart_confirmed_restarts_on_frotz(tmp_path):
+    story = tmp_path / "m.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="restart\ny\n",  # confirm: the story reboots and reprints its banner
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    # The banner serial line appears once at boot and again after the restart.
+    assert out.count("Cosmos") >= 2
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_save_restore_roundtrip_on_frotz(tmp_path):
+    # save after taking the coin, drop it, then restore: the restored state has
+    # the coin in hand again, and the save handler redescribes the room (the
+    # do_save result-2 resume path). dfrotz prompts for a filename each time.
+    story = tmp_path / "m.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
+    script = (
+        "take coin\n"
+        "save\nsnap.qzl\n"  # write the save (coin in hand)
+        "drop coin\n"  # change the world
+        "restore\nsnap.qzl\n"  # resumes at the save point, coin in hand again
+        "inventory\n"
+    )
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input=script, capture_output=True, text=True, timeout=15, cwd=tmp_path,
+    ).stdout
+    assert "Saved." in out  # do_save returned 1
+    assert "Down it goes." in out  # the drop took effect before restore
+    # After restore the coin is back in hand (the dropped state was discarded):
+    # the final inventory lists it, and is not the empty-handed message.
+    assert "You're carrying:" in out
+    assert "precisely nothing" not in out

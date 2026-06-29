@@ -353,6 +353,21 @@ block msg_confirm_restart()
 block msg_xyzzy()
     say "Nothing happens, but you feel briefly clever."
 
+block msg_saved()
+    say "Saved."
+
+block msg_save_failed()
+    say "Something went wrong with that save."
+
+block msg_restore_failed()
+    say "That save couldn't be restored."
+
+block msg_undone()
+    say "Taken back."
+
+block msg_cant_undo()
+    say "There's nothing to take back."
+
 // One line of an inventory listing; a worn item is tagged.
 block list_held(obj)
     show("  ")
