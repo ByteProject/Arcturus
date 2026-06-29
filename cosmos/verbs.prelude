@@ -204,6 +204,193 @@ on put
     msg_cant_put()
 
 
+// insert is a sibling of put: "insert noun in noun" drops an object into an open
+// container. Kept separate so "insert X in Y" reads naturally; the body mirrors
+// put's container branch.
+
+verb "insert"
+    insert noun in noun
+
+on insert
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if second is nothing
+        msg_put_where()
+        stop
+    if second is container
+        if second is open
+            move noun to second
+            now noun is not worn
+            msg_done()
+            stop
+        msg_closed()
+        stop
+    msg_cant_put()
+
+
+// Doors, containers, and locks. open/close act on the openable attribute (and
+// refuse a locked thing); lock/unlock need the lockable attribute and a matching
+// key. The grammar "lock noun with noun" puts the key in `second`; "lock noun"
+// alone falls back to the object's own `key` property. An object overrides any
+// of these with its own handler.
+
+verb "open", "uncover", "unwrap"
+    open noun
+
+on open
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if not (noun is openable)
+        msg_cant_open()
+        stop
+    if noun is locked
+        msg_open_locked()
+        stop
+    if noun is open
+        msg_already_open()
+        stop
+    now noun is open
+    msg_opened()
+
+
+verb "close", "shut", "cover"
+    close noun
+
+on close
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if not (noun is openable)
+        msg_cant_close()
+        stop
+    if not (noun is open)
+        msg_already_shut()
+        stop
+    now noun is not open
+    msg_closed_it()
+
+
+verb "lock"
+    lock noun with noun
+    lock noun
+
+on lock
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if not (noun is lockable)
+        msg_cant_lock()
+        stop
+    if noun is locked
+        msg_locked()
+        stop
+    if noun is open
+        msg_close_first()
+        stop
+    if second is nothing
+        change second to noun.key
+    if second is not noun.key
+        msg_wrong_key()
+        stop
+    now noun is locked
+    msg_locked()
+
+
+verb "unlock"
+    unlock noun with noun
+    unlock noun
+
+on unlock
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if not (noun is lockable)
+        msg_cant_unlock()
+        stop
+    if not (noun is locked)
+        msg_unlocked()
+        stop
+    if second is nothing
+        change second to noun.key
+    if second is not noun.key
+        msg_wrong_key()
+        stop
+    now noun is not locked
+    msg_unlocked()
+
+
+// Getting in and out. enter steps onto a supporter or into an open container;
+// exit leaves whatever the player is in or on, back to the room. A door or a
+// special enterable object overrides enter with its own handler (movement).
+
+verb "enter", "board"
+    enter noun
+
+on enter
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if player in noun
+        msg_already_there()
+        stop
+    if noun is supporter
+        move player to noun
+        msg_done()
+        stop
+    if noun is container
+        if not (noun is open)
+            msg_cant_enter()
+            stop
+        move player to noun
+        msg_done()
+        stop
+    msg_cant_enter()
+
+
+verb "exit", "leave"
+    exit
+
+on exit
+    if parent_of(player) is here
+        msg_not_inside()
+        stop
+    move player to here
+    msg_done()
+
+
+// Giving and showing need a living recipient. "give noun to noun" puts the gift
+// in `noun` and the recipient in `second`; both refuse politely (no NPC in the
+// base library wants anything), and a non-animate target gets the only-animate
+// nudge. A real NPC overrides give/show to actually accept.
+
+verb "give", "offer", "feed", "pay"
+    give noun to noun
+
+on give
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if not (second is animate)
+        msg_only_animate()
+        stop
+    msg_give()
+
+
+verb "show", "display", "present"
+    show noun to noun
+
+on show
+    if noun is nothing
+        msg_cant_see()
+        stop
+    if not (second is animate)
+        msg_only_animate()
+        stop
+    msg_show()
+
+
 // Sensory and flavor verbs. Each default just speaks; an object's own handler
 // overrides it (most-specific-wins). The noun-taking ones refuse when nothing
 // was named; jump/wait/sing/listen/drink read fine with no noun.

@@ -428,14 +428,22 @@ Infocom topic system); talk stays Standard. kiss/sing/xyzzy Standard;
 search/look_under/throw Extended. Look modes (verbose/brief/superbrief), notify,
 sorry, and mild oaths are DROPPED entirely (full descriptions always). oops kept.
 
+DONE in B5 (continued):
+- Functional verbs with real state (B5.4c): open/close (openable; refuse locked;
+  already-open/shut), lock/unlock (lockable + matching key; "lock noun with noun"
+  puts the key in second, "lock noun" falls back to noun.key; close-first;
+  wrong-key), enter/exit (onto a supporter / into an open container; exit back to
+  the room; "not inside anything" in the open), give/show (need an animate
+  recipient: "give noun to noun" -> noun=gift, second=recipient; non-animate gets
+  msg_only_animate), insert (a sibling of put into an open container). Added
+  `insert` to prelude._STD_ACTIONS. Messages were already in english.prelude.
+  tests/test_functional.py (open/close/lock/unlock/insert/give/show/enter/exit on
+  Frotz). NOTE: a give/show target out of scope makes the parser bind the verb's
+  single noun to the recipient (resolve_two_nouns fills `noun` first) - keep the
+  gift in scope (in hand) when giving.
+
 REMAINING in B5:
-- B5.4c (NEXT): functional verbs with real state - open/close, lock/unlock (key,
-  already-open/shut, close-first, wrong-key), enter/exit, give/show (animate;
-  give X to Y has noun=gift, second=recipient, so msg_give reads "${The second}
-  doesn't want ${the noun}"), insert. Messages already exist in english.prelude
-  (msg_opened/already_open/cant_open/open_locked/closed_it/already_shut/cant_close/
-  locked/cant_lock/close_first/wrong_key/unlocked/cant_unlock, msg_give/msg_show).
-- B5.4d: meta verbs on z-opcodes - score, save, restore, restart, undo, again,
+- B5.4d (NEXT): meta verbs on z-opcodes - score, save, restore, restart, undo, again,
   oops, xyzzy. Need new intrinsics for save/restore/restart/undo opcodes; score
   uses the score/max_score globals. Messages msg_score/saved/save_failed/
   restore_failed/confirm_restart/undone/cant_undo/xyzzy still need adding (most
@@ -455,9 +463,9 @@ KEY FACTS for resume:
   msg_cant_see; stop`). Object/room handlers override via most-specific-wins
   (noun -> room -> free default). Defaults live in cosmos/verbs.prelude; messages
   in cosmos/english.prelude as overridable msg_* blocks.
-- Sizes today (pre-DCE, bloated by ~70 message + ~35 verb routines, all shipped
-  until B6 DCE): brass ~7.8K, cloak ~8.3K. Still far under Puny's 27K for Cloak.
-- ~196 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
+- Sizes today (pre-DCE, bloated by ~70 message + ~45 verb routines, all shipped
+  until B6 DCE): brass ~9.5K, cloak ~10K. Still far under Puny's 27K for Cloak.
+- 198 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
   with python3 tools/amalgamate.py build/arcc; rebuild the example .z5 via
   build/arcc after any cosmos/ change. Throwaway test .z5 go to the scratchpad,
   not build/ (build/ holds only arcc + the two example games).

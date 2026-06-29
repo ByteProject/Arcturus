@@ -118,7 +118,7 @@ _STD_ACTIONS = {
     "look", "examine", "search", "take", "drop", "put", "wear", "take_off",
     "inventory", "go", "enter", "exit", "open", "close", "lock", "unlock",
     "switch_on", "switch_off", "push", "pull", "turn", "give", "show", "talk",
-    "wait", "again",
+    "wait", "again", "insert",
 }
 
 # Engine-fired events, plus the catch-all (docs/01 section 12, docs/02).
