@@ -1,0 +1,54 @@
+// verbose-exits.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the verbose_exits granule. Summon it, and a blocked direction
+// lists the room's open exits ("You can only go north or east from here.")
+// instead of the plain refusal. Compile and run:
+//
+//   arcc examples/granules/verbose-exits.storyarc -o verbose-exits.z5
+//   frotz verbose-exits.z5
+//
+// In any room, type a direction that has no exit to see the rest listed. The
+// rooms have one, two, three, and four exits, so you can see how the list reads.
+
+game
+    title "Verbose Exits Demo"
+    headline "A quick test of summon.verbose_exits"
+    author "Stefan Vogt"
+    start crossroads
+
+summon.verbose_exits
+
+room crossroads
+    name "The Crossroads"
+    desc "Paths run off in every direction. Try going UP (there is no exit) to see the others listed. Or just walk around."
+    north meadow
+    south cellar
+    east tower
+    west bridge
+
+room meadow
+    name "The Meadow"
+    desc "Open grass. The only way back is SOUTH. Try any other direction."
+    south crossroads
+
+room cellar
+    name "The Cellar"
+    desc "A dim cellar with two ways out. Try a blocked direction."
+    north crossroads
+    east tower
+
+room tower
+    name "The Tower"
+    desc "High up, with three ways off. Try a blocked direction."
+    west cellar
+    south crossroads
+    down bridge
+
+room bridge
+    name "The Bridge"
+    desc "A narrow bridge. Try going somewhere there is no exit."
+    east crossroads
+    up tower
