@@ -759,7 +759,9 @@ file), the arcabbr abbreviation pipeline, and codegen tightening. Target: a
 representative game strictly under its PunyInform-equivalent size (Cloak is 27K
 in Puny). Measured with the full library in place. See [[size-benchmark-puny]].
 
-CONVERSATION EXAMPLE (committed): examples/granules/conversation.storyarc shows
-the ask/tell path the MANUAL way (NPC on ask/on tell inspecting the second noun,
-continue to the default). Works on extendedverbs v1 today. TODO after topic
-sub-step 3: add/upgrade a topic-sugar version so examples cover both paths.
+ASK/TELL CONVERSATION EXAMPLE: DEFERRED until the topic system is complete (a
+draft conversation.storyarc was made and then removed - premature, and the name
+clashed with conversations.granule). When built, give it a NON-"conversation"
+name (it is the Infocom ask/tell path of extendedverbs, not the menu granule),
+and have it show BOTH the manual NPC on-ask/on-tell handlers AND the topic-sugar
+declarations once sub-step 3 lands.
