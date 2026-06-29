@@ -46,9 +46,9 @@ def test_intro_until_moved_on_frotz(tmp_path):
     # Up front, both show their intro, not the plain listing.
     opening = out.split(">")[0]
     assert "A guttering torch is wedged into a wall bracket." in opening
-    assert "You can see guttering torch here." not in opening
+    assert "You can see a guttering torch here." not in opening
     # After the torch has moved, the final look lists it plainly,
     final_look = out.rsplit("Down it goes.", 1)[1]
-    assert "You can see guttering torch here." in final_look
+    assert "You can see a guttering torch here." in final_look
     # but the static statue keeps its intro.
     assert "A marble statue dominates the room." in final_look

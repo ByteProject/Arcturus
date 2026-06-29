@@ -54,6 +54,6 @@ def test_paragraph_breaks_on_frotz(tmp_path):
     # A blank line separates the opening text from the room name,
     assert "Welcome in.\n\nThe Den" in out
     # the description from the contents,
-    assert "A snug room.\n\nYou can see red cushion here." in out
+    assert "A snug room.\n\nYou can see a red cushion here." in out
     # and the contents from the each_turn daemon.
     assert "here.\n\nA clock ticks." in out

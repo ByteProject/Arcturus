@@ -52,6 +52,6 @@ def test_turn_loop_runs_on_frotz(tmp_path):
     assert "Loop Test" in out  # the banner
     assert "Welcome in." in out  # on start fired
     assert "A snug room with a low ceiling." in out  # the room description
-    assert "You can see red cushion here." in out  # the contents listing
+    assert "You can see a red cushion here." in out  # the contents listing
     assert out.count("The Den") >= 2  # described at start and again after look
     assert "underflow" not in out.lower()  # the discard does not corrupt the stack
