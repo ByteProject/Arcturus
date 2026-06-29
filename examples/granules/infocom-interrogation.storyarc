@@ -83,8 +83,8 @@ thing suspect of person in cell
         you "Then explain the stub in your coat pocket. It's dated a week ago."
         say "His jaw tightens. The calm finally slips."
         reply "I... must have picked up the wrong one on my way out."
-        say "He's rattled now. And the letter opener is right there on the table,
-             his initials on the handle. Take it. Make him look at it."
+        say "He's rattled now. The letter opener is right there on the table, his
+             initials on the handle. Pick it up and ask him about it."
 
     topic reed "the victim" words reed, harlan, victim, partner
         you "Tell me about Harlan Reed."
@@ -115,3 +115,13 @@ thing opener in cell
     intro "A letter opener lies on the table between you, bagged as evidence."
     desc "A slim steel letter opener, tagged as evidence. The initials V.C. are
           etched into the handle."
+
+    // SHOW and GIVE are the natural way to put evidence to a suspect, but this is
+    // an ask/tell conversation: rather than dead-end on a flat default, the opener
+    // sends the player back to the verb that works. (These fire on the opener
+    // because it is the noun of "show opener to crale" / "give opener to crale".)
+    on show
+        say "He barely glances at it. \"A prop, Detective? If you have a question,
+             ask it.\""
+    on give
+        say "He won't take it. \"Hold on to your evidence. Ask me straight.\""
