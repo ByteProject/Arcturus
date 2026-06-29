@@ -254,12 +254,18 @@ on shout
     msg_shout()
 
 // ---------------------------------------------------------------------------
-// Conversation (flat defaults; the topic system is the granule's second pass).
-// ask and tell address a living thing; an object earns the only-animate nudge.
+// Conversation. ask and tell address a living thing; an object earns the
+// only-animate nudge. The Infocom topic dispatch: ask/tell <person> about
+// <subject> runs the person's matching `topic` if one is in view, else the verb
+// falls back to its flat default. The grammar is one noun plus a trailing
+// preposition (about/for) rather than two nouns, because the subject is a topic
+// word, not an object in scope - resolving it as a second noun would fault.
+// (When summon.conversations is also present, the menu takes over and this topic
+// dispatch defers to it; that mutual exclusion is wired in the conversations pass.)
 
 verb "ask", "interrogate", "query"
-    ask noun about noun
-    ask noun for noun
+    ask noun about
+    ask noun for
 
 on ask
     if noun is nothing
@@ -268,11 +274,13 @@ on ask
     if not (noun is animate)
         msg_only_animate()
         stop
+    if converse(noun) is 1
+        stop
     msg_ask()
 
 
 verb "tell", "inform"
-    tell noun about noun
+    tell noun about
 
 on tell
     if noun is nothing
@@ -281,7 +289,36 @@ on tell
     if not (noun is animate)
         msg_only_animate()
         stop
+    if converse(noun) is 1
+        stop
     msg_tell()
+
+// Find and run a topic the player named. Scanning the typed words for one a
+// visible topic answers to (in declaration order) lets ask and tell share one
+// path: a topic matches on its subject words, not on which verb reached it.
+// Returns 1 if a topic ran, so the verb knows whether to speak its flat default.
+block converse(person)
+    let count = topics_count(person)
+    let i = 0
+    while i < count
+        if topic_visible(person, i)
+            if subject_typed(person, i)
+                topic_run(person, i)
+                return 1
+        change i to i + 1
+    return 0
+
+// Did the player type a word this topic answers to (one of its match words)?
+block subject_typed(person, i)
+    let n = word_count()
+    let w = 1
+    while w < n
+        let target = word_dict(w)
+        if target is not nothing
+            if topic_matches(person, i, target)
+                return 1
+        change w to w + 1
+    return 0
 
 
 verb "answer", "respond"

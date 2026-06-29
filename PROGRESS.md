@@ -678,11 +678,23 @@ TOPIC SYSTEM is mid-build. Sub-steps:
   +64 bytes (12132/12980) for the three always-on line_* prelude blocks (dead in
   non-conversation games, dropped by B6 DCE). docs/04 section 8 + message-set.md
   record the lowering and the overridable blocks.
-- [ ] 3. NEXT: ask/tell dispatch (extendedverbs v2): ask <person> about <subject> ->
-  match subject words against the person's topic table, run the matching topic's
-  body if visible (when true, not hidden, not retired-if-once); retire once
-  topics. Gated OFF when conversations is summoned.
-- [ ] 4. conversations granule: talk to <animate> paints the visible topic labels
+- [x] 3. ask/tell dispatch (extendedverbs v2) DONE (this commit). In
+  cosmos/extendedverbs.granule: ask/tell are now ONE noun + a trailing preposition
+  (`ask noun about` / `ask noun for` / `tell noun about`), NOT two nouns - the
+  subject is a topic word, not an object, so a second-noun slot would set
+  parse_fault on it and the turn would abort before the handler ran. The handler
+  calls converse(noun): block converse scans the person's topics in declaration
+  order, and for each visible one (topic_visible) checks if the player typed a
+  word it answers to (block subject_typed -> topic_matches over word_dict); the
+  first match runs (topic_run, which retires `once`). ask and tell SHARE converse
+  (a topic matches on its subject words, not on the verb). No match -> the flat
+  default (msg_ask "stays mum on the subject" / msg_tell). Proven on Frotz
+  (tests/test_topics.py test_ask_tell_dispatch_on_frotz: hidden topic -> default,
+  ask runs+reveals+retires, retired -> default, tell reaches the revealed topic,
+  unknown subject -> default). Example sizes unchanged (dispatch is in the
+  granule). docs/verb-set.md conversation rows updated. STILL TODO in sub-step 5:
+  gate converse OFF when conversations is summoned (redirect to TALK TO).
+- [ ] 4. NEXT: conversations granule: talk to <animate> paints the visible topic labels
   as a numbered menu in the upper window (reuse statusline's split_window/
   set_window/set_cursor), reads a choice, runs that topic's body, redraws until
   exit. Wins over ask/tell.
