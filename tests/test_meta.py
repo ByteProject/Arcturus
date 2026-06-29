@@ -138,3 +138,27 @@ def test_save_restore_roundtrip_on_frotz(tmp_path):
     # the final inventory lists it, and is not the empty-handed message.
     assert "You're carrying:" in out
     assert "precisely nothing" not in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_again_replays_last_command_on_frotz(tmp_path):
+    story = tmp_path / "m.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="jump\nagain\ng\n",  # jump, then repeat it twice via again / g
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert out.count("You hop on the spot.") == 3
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_again_with_nothing_to_repeat_on_frotz(tmp_path):
+    story = tmp_path / "m.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="again\n",  # first command, nothing remembered yet
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "There's nothing to repeat." in out

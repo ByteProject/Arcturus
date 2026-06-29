@@ -156,10 +156,14 @@ on restore
     msg_restore_failed()
 
 
-// undo is intercepted by the turn loop (run_turn) before dispatch, so it needs
-// no handler here; the declaration just registers the verb and its action.
+// undo and again are intercepted by the turn loop (run_turn) before dispatch, so
+// they need no handler here; the declarations just register the verbs and their
+// actions. again replays the previous non-meta command.
 verb "undo"
     undo
+
+verb "again", "g"
+    again
 
 
 // The magic word. Not a meta verb (it is a normal, if fruitless, action), so it
