@@ -24,6 +24,7 @@ block copy_bytes(src, dst, n)
 // understood but it named an object out of scope; the loop reports "can't see".
 block parse()
     change parse_fault to 0
+    change shut_in to nothing
     let term = read_line()
     if word_count() is 0
         return 0

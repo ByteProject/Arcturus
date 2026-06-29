@@ -81,3 +81,21 @@ def test_supporter_contents_in_scope(tmp_path):
     story = tmp_path / "s.z5"
     story.write_bytes(_build(_game("open false")))  # the box is closed; the tray isn't
     assert "rewards a closer look" in _examine(story, "key")  # on a supporter: in scope
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_closed_box_remembers_and_redirects(tmp_path):
+    # The knowledge layer: a never-seen coin in a closed box is unknown; once seen
+    # (by opening), a closed box still lists it, and acting on it asks to open the
+    # box rather than denying it exists.
+    story = tmp_path / "s.z5"
+    story.write_bytes(_build(_game("open false")))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="take coin\nopen box\nclose box\nlook\ntake coin\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "You see nothing of the sort here." in out  # never seen: unknown
+    assert "Inside you find a gold coin." in out  # opening reveals it
+    assert "wooden box (contains a gold coin)" in out  # closed, but remembered
+    assert "You'll have to open the wooden box first." in out  # known but shut away

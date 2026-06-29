@@ -551,14 +551,19 @@ containers). Two layers:
   coin-in-an-open-box matching; closed opaque containers shield their contents.
   find_word removed (scope_match_in subsumes it). tests/test_container_scope.py
   (open/closed/clear/supporter). brass +84 bytes for the recursion.
-- Layer 2, KNOWLEDGE (the major improvement): new standard attribute `seen`,
-  auto-set whenever an object is described/listed to the player. A closed OPAQUE
-  container lists its already-seen contents for memory; contents never seen stay
-  hidden (no x-ray vision into a sealed box). Listed-but-closed contents are
-  matched only to redirect: `take ring` through a closed box -> "open the box
-  first" (Stefan picked option b). SIZE: `seen` and `clear` are free attribute
-  bits (objects already carry the 48-bit attribute field), so zero data cost; the
-  cost is modest code in the describe/list path + the closed-container listing.
+- Layer 2, KNOWLEDGE: DONE (committed). New `seen` attribute, set when an object
+  is shown (an open container's listed contents, take, examine, reveal_contents on
+  open). A container/supporter names its contents when listed -
+  "a wooden box (contains a gold coin and an apple)" (list_contents +
+  content_listable in english.prelude, using auto a/an and X-Y-and-Z); an open/
+  clear/supporter shows all, a closed opaque box shows only the seen ones (memory).
+  Opening a box reveals its contents at once (reveal_contents). The OPEN-FIRST
+  REDIRECT (option b): scope_match falls through to shut_search, which finds a
+  seen content in a closed opaque container, sets the shut_in global, and the loop
+  answers msg_open_first ("You'll have to open the X first.") instead of can't-see;
+  a never-seen content stays unknown (no x-ray). tests/test_container_scope.py
+  (remember + redirect), test_functional updated. SIZE: the whole container model
+  added ~840 bytes to brass (always-on; B6 DCE/abbrev will trim).
 - LISTING FORMAT (Stefan, article-free): `box (contains coin, grandma's teeth and
   sugarcookkie)` - no a/an/the, the word "contains", list as "X, Y and Z". Applies
   to inventory and room listings. We have `${the noun}` (definite, literal "the");

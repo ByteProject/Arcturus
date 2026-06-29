@@ -308,6 +308,9 @@ _BUILTIN_GLOBALS = [
     # oops_ready flags that the previous command had an unrecognized word;
     # oops_word is that word's parse-buffer index, for "oops" to correct.
     "oops_ready", "oops_word",
+    # shut_in holds the closed container a named object is known to be inside but
+    # shut away in, so the loop can answer "open it first" instead of "can't see".
+    "shut_in",
 ]
 
 

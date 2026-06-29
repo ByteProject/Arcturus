@@ -162,6 +162,8 @@ _BUILTINS = {
     # oops correction: a flag and the offending word's parse-buffer index.
     "oops_ready": T_NUMBER,
     "oops_word": T_NUMBER,
+    # The closed container a named-but-shut-away object sits in (open-first hint).
+    "shut_in": T_OBJECT,
 }
 
 # Objects Cosmos provides. `player` is the distinguished person instance.
