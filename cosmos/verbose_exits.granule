@@ -1,0 +1,69 @@
+// verbose_exits.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// An opt-in feature: summon it with `summon.verbose_exits`. When the player tries
+// a direction with no exit, instead of the plain "no exit that way" line, Cosmos
+// lists the room's currently open exits, for example "You can only go north or
+// east from here." The list is computed fresh every time, so it stays correct as
+// exits open and close during play.
+//
+// HOW IT WORKS (a small teaching example of a granule reaching one level deeper):
+// a granule is ordinary Arcturus, but this one leans on three intrinsics the
+// compiler provides for exactly this purpose. The compiler already knows which of
+// the standard directions (north, south, ...) are real properties in your game
+// and what their property numbers are, because it needs that for movement. These
+// intrinsics open a small window onto that knowledge:
+//
+//   exits_count()   how many directions are properties in this game (a constant)
+//   exit_prop(i)    the property number of the i-th such direction
+//   exit_name(i)    print the i-th direction's name (north, south, ...)
+//
+// With those, listing a room's exits is just: for each direction i, read the
+// room's property number exit_prop(i) with the dynamic-property form here.(p); if
+// it leads somewhere, name it. The wording lives here, in Cosmos, so it stays
+// overridable and a language pack can translate it. The backing routines for
+// exit_prop/exit_name are emitted by the compiler ONLY when this granule is
+// summoned, so an unsummoned verbose_exits costs the story file nothing.
+//
+// To override the phrasing, redefine msg_cant_go (or msg_no_exits) in your story.
+
+// Replace the standard blocked-direction reply with a live exit list. The go verb
+// calls msg_cant_go whenever the chosen direction has no exit, so overriding this
+// one block is all it takes; no extra grammar or handlers are needed.
+block msg_cant_go()
+    let n = exits_count()
+    // First pass: count the open exits, so the list can read naturally, with
+    // commas between and an "or" before the last one.
+    let total = 0
+    let i = 0
+    while i < n
+        let p = exit_prop(i)
+        if here.(p) is not nothing
+            change total to total + 1
+        change i to i + 1
+    if total is 0
+        msg_no_exits()
+        return 0
+    // Second pass: print the exits, choosing the connector by position.
+    show("You can only go ")
+    let shown = 0
+    change i to 0
+    while i < n
+        let q = exit_prop(i)
+        if here.(q) is not nothing
+            if shown is not 0
+                if shown is total - 1
+                    show(" or ")
+                else
+                    show(", ")
+            exit_name(i)
+            change shown to shown + 1
+        change i to i + 1
+    say " from here."
+    return 0
+
+// A room with no exits at all (rare, but possible while a game is sealed off).
+block msg_no_exits()
+    say "There's no way out of here at the moment."
