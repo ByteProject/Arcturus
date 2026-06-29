@@ -56,7 +56,7 @@ def test_extended_verbs_on_frotz(tmp_path):
     assert "You find a gold coin." in out  # search lists the chest's contents
     assert "The ground keeps its secrets." in out  # an intransitive flavor verb (dig)
     assert "A fine idea. Nothing comes of it." in out  # think
-    assert "You polish the grey pebble." in out  # rub default on an object
+    assert "You give the grey pebble a thorough buffing." in out  # rub default on an object
     assert "stays mum" in out  # ask a living thing (flavor)
     assert "The guard does not enjoy that." in out  # the guard's own on rub overrides
     assert "You have scored 0 of a possible 0" in out  # fullscore breakdown
