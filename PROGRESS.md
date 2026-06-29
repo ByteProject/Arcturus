@@ -24,11 +24,12 @@ Last updated: 2026-06-28.
 | B11 | Port Ghosts of Blackwood Manor (text) | pending |
 | B12 | Port The Curse of Rabenstein (from DAAD) | pending |
 
-Roadmap restructured 2026-06-28 (docs/00 section 7): feature-complete library
-(B5) comes BEFORE the size pass (B6) so the PunyInform benchmark is fair; then
-the Actaea interpreter (B7), arc_image (B8 modern, B9 retro), and porting two
-games (B10 Ghosts, B11 Rabenstein). "Write Hibernated 3" is dropped as the
-project goal. See memory [[roadmap-milestones]].
+Roadmap restructured 2026-06-28, renumbered 2026-06-29 (docs/00 section 7):
+feature-complete library (B5) comes BEFORE the size pass (B6) so the PunyInform
+benchmark is fair; then language packs (B7 Spanish + German), the Actaea
+interpreter (B8), arc_image (B9 modern, B10 retro), and porting two games (B11
+Ghosts, B12 Rabenstein). "Write Hibernated 3" is dropped as the project goal.
+See memory [[roadmap-milestones]].
 
 B4 is done: both example games (The Brass Lantern and Cloak of Darkness) compile
 with the standalone arcc and are winnable start to finish on Frotz
