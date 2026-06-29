@@ -29,6 +29,17 @@ from . import worldmodel as wm
 from .assembler import Const, Routine, Variable, RoutineRef, StringRef, STACK
 from .errors import ArcError
 from .objects import REACT_PROP
+from .prelude import _DIRECTIONS
+
+
+def exit_directions(layout):
+    """The standard directions that are actual properties in this program, in
+    canonical order. The verbose_exits granule iterates these to list a room's
+    live exits; the order is shared by the exit_prop/exit_name backing routines
+    (codegen) and the exits_count intrinsic so indices line up."""
+    if layout is None:
+        return []
+    return [d for d in _DIRECTIONS if d in layout.prop_number]
 
 # Reserved intrinsic functions: calls that lower to opcodes, not a routine call.
 # They are the low-level primitives Cosmos's parser and loop sit on (the bridge
@@ -61,6 +72,11 @@ INTRINSICS = frozenset({
     # parse_addr / oops_addr give the live parse buffer and its oops backup, so
     # the language layer can snapshot a command and patch it for "oops".
     "parse_addr", "oops_addr",
+    # exits_count / exit_prop / exit_name expose this program's direction
+    # properties (count, the i-th property number, and printing its name), so the
+    # verbose_exits granule can list a room's live exits. exit_prop/exit_name are
+    # backed by routines codegen emits only when these intrinsics are used.
+    "exits_count", "exit_prop", "exit_name",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr",
@@ -509,6 +525,18 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
     elif name == "oops_addr":
         # oops_addr(): the address of the parse-buffer backup kept for oops.
         _place(rt, Const(storyfile.OOPS_PARSE_ADDR), dest)
+    elif name == "exits_count":
+        # exits_count(): how many directions are properties in this program.
+        _place(rt, Const(len(exit_directions(ctx.layout))), dest)
+    elif name == "exit_prop":
+        # exit_prop(i): the property number of the i-th direction (0 out of range).
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("call_vs", RoutineRef("cosmos_exit_prop"), Variable(STACK), store=dest)
+    elif name == "exit_name":
+        # exit_name(i): print the i-th direction's name (no newline).
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("call_vn", RoutineRef("cosmos_exit_name"), Variable(STACK))
+        _place(rt, Const(0), dest)
     elif name == "text_char":
         # text_char(i): the i-th character typed on the last input line. In v5 the
         # text buffer holds the characters from byte 2 onward (byte 1 is the count).

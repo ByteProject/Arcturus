@@ -532,9 +532,18 @@ reference doc (B5.6). Full granule set settled with Stefan:
 - B5.5b: extendedverbs. NOT trivial - it carries the Infocom-style ask/tell/
   answer TOPIC conversation system plus search/look_under/throw etc. (the E side
   of docs/verb-set.md). The topic-driven conversation path lives here.
-- B5.5c: verbose_exits (small; the showcase granule). Needs `on go other`
-  (tier-4 dispatch, deferred in B4) and reading side-effect-free computed
-  direction blocks to list live exits.
+- B5.5c DONE (committed): verbose_exits. The granule overrides msg_cant_go to
+  list the room's live exits ("You can only go north or east from here.") - no
+  `on go other` needed after all, overriding the one message suffices. Three new
+  intrinsics surface the compiler's existing direction data: exits_count(),
+  exit_prop(i), exit_name(i) (lower.exit_directions gives the shared canonical
+  order). exit_prop/exit_name are backed by two je-chain routines codegen emits
+  ONLY when referenced (_references_routine gate in generate + gen_exit_routines),
+  so an unsummoned verbose_exits adds zero bytes - proven: brass/cloak sizes
+  unchanged (11120/11616). The granule reads here.(exit_prop(i)) via DynDot and
+  keeps all phrasing in Cosmos (translatable). Heavily commented as a teaching
+  example. tests/test_verbose_exits.py (lists exits on Frotz; default untouched
+  without the summon).
 - B5.5d: statusline. The window opcodes (split_window/set_window/set_cursor/
   set_text_style) - the start of the screen model, reused by conversations and
   later Actaea/B8.
@@ -570,7 +579,7 @@ KEY FACTS for resume:
   in cosmos/english.prelude as overridable msg_* blocks.
 - Sizes today (pre-DCE, bloated by ~70 message + ~45 verb routines, all shipped
   until B6 DCE): brass ~9.5K, cloak ~10K. Still far under Puny's 27K for Cloak.
-- 215 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
+- 218 tests; both example games still win. Run python3 -m pytest. Rebuild arcc
   with python3 tools/amalgamate.py build/arcc; rebuild the example .z5 via
   build/arcc after any cosmos/ change. Throwaway test .z5 go to the scratchpad,
   not build/ (build/ holds only arcc + the two example games).

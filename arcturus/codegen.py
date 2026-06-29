@@ -512,6 +512,46 @@ def build_routines(world: wm.World, gmap: dict, layout, pool):
     return main, routines, registry
 
 
+def gen_exit_routines(layout) -> list:
+    """The backing routines for the exit_prop / exit_name intrinsics: je-chains
+    over this program's direction properties, indexed in the same order as
+    lower.exit_directions. cosmos_exit_prop(i) returns the i-th direction's
+    property number; cosmos_exit_name(i) prints its canonical name. Emitted only
+    when those intrinsics are actually called (gated in generate), so an
+    unsummoned verbose_exits granule adds nothing to the story file."""
+    from .lower import exit_directions
+
+    dirs = exit_directions(layout)
+
+    prop = Routine("cosmos_exit_prop", nlocals=1)  # local 1 holds the index
+    for i in range(len(dirs)):
+        prop.op("je", Variable(1), Const(i), branch=(f"p{i}", True))
+    prop.op("ret", Const(0))  # index out of range
+    for i, name in enumerate(dirs):
+        prop.label(f"p{i}")
+        prop.op("ret", Const(layout.prop_number[name]))
+
+    nm = Routine("cosmos_exit_name", nlocals=1)
+    for i in range(len(dirs)):
+        nm.op("je", Variable(1), Const(i), branch=(f"n{i}", True))
+    nm.op("rtrue")  # index out of range: print nothing
+    for i, name in enumerate(dirs):
+        nm.label(f"n{i}")
+        nm.op("print", text=name)
+        nm.op("rtrue")
+    return [prop, nm]
+
+
+def _references_routine(routines: list, name: str) -> bool:
+    """True if any built routine calls the named routine (a call fixup targets
+    it), used to emit a backing routine only when something actually needs it."""
+    for r in routines:
+        for f in r.fixups:
+            if f.kind == "call" and f.target == name:
+                return True
+    return False
+
+
 def generate(world: wm.World) -> bytes:
     """Lower the world model to a complete z5 story file image.
 
@@ -530,11 +570,20 @@ def generate(world: wm.World) -> bytes:
 
     main, routines, registry = build_routines(world, gmap, layout, pool)
     react_routines = gen_react_routines(world, actions, registry, layout, gmap, pool)
+    all_routines = [main] + routines + react_routines
+
+    # Emit the exit-enumeration backing routines only if something calls the
+    # exit_prop / exit_name intrinsics (the verbose_exits granule). Unsummoned,
+    # they are never referenced and never ship.
+    if _references_routine(all_routines, "cosmos_exit_prop") or _references_routine(
+        all_routines, "cosmos_exit_name"
+    ):
+        all_routines += gen_exit_routines(layout)
 
     return build_story(
         world,
         entry,
-        [main] + routines + react_routines,
+        all_routines,
         layout=layout,
         string_pool=pool,
     )
