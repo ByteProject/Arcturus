@@ -88,14 +88,6 @@ block has_word(obj, target)
         change i to i + 1
     return 0
 
-// The first child of container whose vocabulary includes the word. A hidden
-// object (one not yet discovered) cannot be referred to.
-block find_word(container, target)
-    for each obj in container
-        if has_word(obj, target)
-            if not (obj is hidden)
-                return obj
-    return nothing
 
 // Turn-loop and room-description wording. These are English; a language pack
 // (spanish.granule) replaces this file and so replaces the messages too.
@@ -377,13 +369,42 @@ block list_held(obj)
         show(" (worn)")
     say ""
 
-// Match one word against an object in scope: the room first, then what the
-// player carries.
+// Can the player see and reach what is inside this object? A supporter's
+// contents are always in view; a container's only when it is open or `clear`
+// (see-through). This is the scope rule the noun matcher follows.
+block see_into(obj)
+    if obj is supporter
+        return 1
+    if obj is container
+        if obj is open
+            return 1
+        if obj is clear
+            return 1
+    return 0
+
+// Match one word against an object in scope, searching a container's contents
+// and recursing into whatever the player can see into (an open or clear
+// container, a supporter), the same way in_scope reaches nested objects. A
+// hidden object cannot be referred to; a closed opaque container shields its
+// contents from the matcher (they are out of scope until it is opened).
+block scope_match_in(container, target)
+    for each obj in container
+        if not (obj is hidden)
+            if has_word(obj, target)
+                return obj
+            if see_into(obj)
+                let inner = scope_match_in(obj, target)
+                if inner is not nothing
+                    return inner
+    return nothing
+
+// Match a word against an object in scope: the room first, then what the player
+// carries (and onward into containers and supporters within reach).
 block scope_match(target)
-    let in_room = find_word(here, target)
+    let in_room = scope_match_in(here, target)
     if in_room is not nothing
         return in_room
-    return find_word(player, target)
+    return scope_match_in(player, target)
 
 // Match a noun: the first typed word after the verb that names an object in
 // scope. Adjective scoring and full disambiguation are refined later.
