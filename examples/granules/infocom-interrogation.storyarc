@@ -5,30 +5,33 @@
 //
 // A showcase for the Infocom-style conversation: ask/tell <person> about
 // <subject>, built on the `topic` construct and dispatched by the extendedverbs
-// granule. A detective leans on a suspect across a steel table. The topics show
-// the whole feature set:
+// granule. A detective leans on a suspect across a steel table.
 //
-//   words   - the subjects a topic answers to (ALIBI, the TICKET, REED, ...)
-//   reveal  - asking about the alibi unlocks the ticket; the ticket unlocks the
-//             confession (a hidden topic comes into view)
-//   once    - the ticket contradiction and the confession land a single time
-//   when    - the murder weapon can only be raised while you are holding it
-//   you / reply / say - the question, the answer (auto-quoted and attributed),
-//             and plain stage directions, mixed freely
+// Two things this teaches an author:
 //
-// And the suspect's own `on tell` shows the manual escape hatch living right
-// beside the topic sugar: ASK runs topics, TELL he handles himself. Compile and
-// run:
+//  1. Infocom-style conversation REPLACES generic chatter. The suspect's
+//     `on talk` turns TALK TO him back into "be specific - ask or tell", so
+//     there is no dead "he has nothing to say" path and the player learns the
+//     two verbs that matter.
+//
+//  2. The player is guided by the detective's inner voice, not a menu. `on start`
+//     opens on the first thread, and every topic ends with an unquoted line of
+//     internal monologue that points at the next one. The topic feature carries
+//     the branching underneath:
+//       words   - the subjects a topic answers to
+//       reveal  - the alibi opens the ticket; the weapon opens the confession
+//       once    - the ticket contradiction and the confession land a single time
+//       when    - the weapon can only be raised while you are holding the opener
+//       you / reply / say - the question, the auto-quoted answer, the narration
+//
+//  The suspect's own `on tell` is the manual escape hatch: ASK runs topics, TELL
+//  he answers himself.
 //
 //   arcc examples/granules/infocom-interrogation.storyarc -o interrogation.z5
 //   frotz interrogation.z5
 //
-// Start with TALK TO CRALE: he lists the lines of questioning open right now, so
-// you never have to guess a subject. Then ASK CRALE ABOUT HIS ALIBI, watch a new
-// line open, TALK again to see it, and follow the thread: ASK ABOUT THE TICKET,
-// ASK ABOUT REED. EXAMINE the OPENER, TAKE it, and a fresh line appears: ASK
-// CRALE ABOUT THE WEAPON. Press to ASK ABOUT THE TRUTH. TELL CRALE ABOUT anything
-// to see his own handler answer instead of a topic.
+// Try TALK TO CRALE first (he sends you back to ask/tell), then follow your own
+// inner voice: it opens on the alibi, and each answer says where to push next.
 
 game
     title "Infocom Interrogation"
@@ -36,76 +39,79 @@ game
     author "Stefan Vogt"
     start cell
 
+summon.extendedverbs
+
+// The opening beat is pure inner monologue, before the room is even described:
+// it tells the player where to start. There is no menu and no list; the detective
+// thinks out loud, and the first thread is the alibi.
+on start
+    say "You have until morning to break him. Start where they always crack first,
+         you tell yourself. The alibi."
+
 room cell
     name "Interrogation Room"
     desc "One bulb, one steel table, two chairs, no window. The kind of room that
           makes innocent men sweat and guilty men go quiet."
-
-summon.extendedverbs
 
 thing suspect of person in cell
     name "Victor Crale"
     named
     words crale, victor, suspect, man
     intro "Victor Crale sits across the table, hands folded, far too calm for a
-           man in his position. Time to question him."
+           man in his position."
 
-    // TALK TO CRALE is the hub: it lists the lines of questioning open right now,
-    // so the player never has to guess a subject word. The list is live - it
-    // walks the same topic table ASK does, so revealed topics appear and `once`
-    // topics drop off as the interrogation moves. (When the conversations granule
-    // lands, this is exactly what its menu will paint in the upper window.)
+    // Infocom-style conversation turns off generic TALK: instead of a brush-off,
+    // the suspect points the player at the verbs that work. This is the lesson -
+    // you do not chat, you ask and you tell.
     on talk
-        say "You lean in. \"Let's take it from the top, Mr. Crale.\""
-        let i = 0
-        let shown = 0
-        while i < topics_count(self)
-            if topic_visible(self, i)
-                if shown is 0
-                    say "You can ask him about:"
-                show("  ")
-                topic_label(self, i)
-                say ""
-                change shown to shown + 1
-            change i to i + 1
-        if shown is 0
-            say "He has said all he is going to say."
+        say "You could trade small talk all night and learn nothing. Crale gives
+             up nothing for free. Be specific: ask him about something, or tell
+             him what you've got."
 
-    // The interrogation. ASK reaches these; the first topic in view that the
-    // player names a word of runs, then retires if it is `once`.
+    // The interrogation. ASK reaches these; the first topic in view whose words
+    // the player typed runs, then retires if it is `once`. Each body closes on a
+    // line of the detective's inner voice that names the next thread to pull.
 
     topic alibi "his alibi" words alibi, theater, night, where
         you "Where were you the night Harlan Reed died?"
         reply "The Orpheum. The late show. Ask anyone who was there."
         reveal ticket
+        say "The Orpheum. If that's a lie, the ticket stub in his coat won't match
+             the date. Push him on the ticket."
 
     topic ticket "the theater ticket" words ticket, stub, orpheum hidden once
-        you "Then explain the stub in your coat pocket. It is dated a week ago."
-        say "His jaw tightens. For the first time, the calm slips."
-        reply "I... must have grabbed the wrong one on my way out."
-        reveal confession
+        you "Then explain the stub in your coat pocket. It's dated a week ago."
+        say "His jaw tightens. The calm finally slips."
+        reply "I... must have picked up the wrong one on my way out."
+        say "He's rattled now. And the letter opener is right there on the table,
+             his initials on the handle. Take it. Make him look at it."
 
     topic reed "the victim" words reed, harlan, victim, partner
         you "Tell me about Harlan Reed."
         reply "A business partner. We had our differences. Who doesn't?"
+        say "Partners with differences. That's a motive, not a confession. Back to
+             the timeline."
 
     topic weapon "the murder weapon" words opener, blade, weapon, knife when player holds opener
-        you "This letter opener has your initials on the handle. V.C."
+        you "This letter opener. Your initials are on the handle. V.C."
         reply "Half the firm carries one just like it. It proves nothing."
+        reveal confession
+        say "His eyes won't leave the blade. He's almost there. Go for the truth."
 
     topic confession "the truth" words truth, confess, did, kill hidden once
         say "Crale stares at his hands for a long moment. Then his shoulders fall."
         reply "He was going to ruin me. I only went there to talk. The blade was
-               just lying there, and he laughed at me, and then it was done."
+               just lying there, and he laughed, and then it was done."
+        say "There it is. Signed and sealed. You've got him."
 
     // The manual escape hatch. The suspect handles TELL himself, so it overrides
     // the granule's topic dispatch for this verb: ASK runs topics, TELL does not.
     on tell
-        say "\"Tell me whatever you like, Detective. I am finished talking.\""
+        say "\"Tell me whatever you like, Detective. I'm finished talking.\""
 
 thing opener in cell
     name "letter opener"
     words letter, opener, blade
     intro "A letter opener lies on the table between you, bagged as evidence."
     desc "A slim steel letter opener, tagged as evidence. The initials V.C. are
-          etched into the handle. Worth putting in front of him."
+          etched into the handle."
