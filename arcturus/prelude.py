@@ -90,6 +90,11 @@ _STD_BOOL_PROPS = [
     # closed (a glass jar). Our equivalent of Inform's `transparent`. An open or
     # `clear` container puts its contents in scope; a closed opaque one does not.
     "clear",
+    # Set once the player has been shown an object (a content of an open container,
+    # something taken or examined). A closed opaque container still lists the
+    # contents the player has `seen`, so the player is not made to forget what they
+    # put away; contents never seen stay hidden until the box is opened.
+    "seen",
     # Set the first time the player takes an object; while clear, the object
     # shows its `intro` text in a room description instead of the plain listing.
     "moved",

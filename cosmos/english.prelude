@@ -99,9 +99,88 @@ block prompt()
     par()
     show(">")
 
-// One line of a room's contents listing.
+// What of a holder's contents should be listed: not hidden or concealed, and
+// either the holder shows its contents (a supporter, or an open or clear
+// container) or the player already knows the item is there (it is `seen`). That
+// last case is the memory - a closed opaque box still lists what you have seen.
+block content_listable(holder, x)
+    if x is hidden
+        return 0
+    if x is concealed
+        return 0
+    if holder is supporter
+        return 1
+    if holder is open
+        return 1
+    if holder is clear
+        return 1
+    if x is seen
+        return 1
+    return 0
+
+// Append " (contains a, b and c)" to a container or supporter just named, listing
+// the contents the player can see or remembers and marking each as seen. Prints
+// nothing when there is nothing to show. One level deep, by design.
+block list_contents(holder)
+    if holder is supporter
+        list_contents_run(holder)
+        return 0
+    if holder is container
+        list_contents_run(holder)
+    return 0
+
+block list_contents_run(holder)
+    let total = 0
+    for each x in holder
+        if content_listable(holder, x)
+            change total to total + 1
+    if total is 0
+        return 0
+    show(" (contains ")
+    let shown = 0
+    for each x in holder
+        if content_listable(holder, x)
+            if shown is not 0
+                if shown is total - 1
+                    show(" and ")
+                else
+                    show(", ")
+            show("${a x}")
+            now x is seen
+            change shown to shown + 1
+    show(")")
+    return 0
+
+// After a container is opened, name what is revealed inside (marking it seen), so
+// opening a box shows its contents at once rather than only on the next look.
+block reveal_contents(holder)
+    let total = 0
+    for each x in holder
+        if content_listable(holder, x)
+            change total to total + 1
+    if total is 0
+        return 0
+    show("Inside you find ")
+    let shown = 0
+    for each x in holder
+        if content_listable(holder, x)
+            if shown is not 0
+                if shown is total - 1
+                    show(" and ")
+                else
+                    show(", ")
+            show("${a x}")
+            now x is seen
+            change shown to shown + 1
+    say "."
+
+// One line of a room's contents listing, naming a container's or supporter's
+// contents in passing.
 block list_item(obj)
-    say "You can see ${a obj} here."
+    show("You can see ")
+    show("${a obj}")
+    list_contents(obj)
+    say " here."
 
 // Standard messages (docs/message-set.md). Each is an overridable block: an
 // author redefines msg_<name>() in the story to change the wording.
@@ -361,12 +440,14 @@ block msg_cant_undo()
 block msg_cant_oops()
     say "There's nothing to put right."
 
-// One line of an inventory listing; a worn item is tagged.
+// One line of an inventory listing; a worn item is tagged, a container or
+// supporter names what it holds.
 block list_held(obj)
     show("  ")
     show("${a obj}")
     if obj is worn
         show(" (worn)")
+    list_contents(obj)
     say ""
 
 // Can the player see and reach what is inside this object? A supporter's
