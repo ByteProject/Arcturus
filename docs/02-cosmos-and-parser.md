@@ -114,9 +114,13 @@ that an action may touch. Cosmos computes it each time it parses a noun.
 
 In scope, when the location is lit: the room `here` and its direct contents
 (minus `hidden` and concealed objects); everything the player holds or wears,
-recursively; the contents of any in-scope `container` that is `open` or
-`transparent`; the contents of any in-scope `supporter`; and objects reached
-through these recursively.
+recursively; the contents of any in-scope `container` that is `open` or `clear`
+(see-through); the contents of any in-scope `supporter`; and objects reached
+through these recursively. The noun matcher follows exactly this rule, recursing
+into open and `clear` containers and onto supporters, so a coin in an open box is
+referable while a coin in a closed opaque box is not: the closed lid shields its
+contents from scope until the box is opened. A `clear` container (a glass jar) is
+the exception, exposing its contents while still shut.
 
 Two predicates Cosmos provides for conditions: `<obj> is visible` (in scope
 and the location lit; examining needs this) and `<obj> is reachable` (visible
@@ -272,9 +276,9 @@ when there is no exit, prints "You can't go that way." A room overrides one
 direction with its own `on go <direction>`. The full movement model, including
 computed exits and the blocked-direction fallback, is section 11a.
 
-`container of thing`: `openable`, `open`, `transparent`, `capacity`. Contents
-are children, in scope when open or transparent. Default open, close, and put
-in.
+`container of thing`: `openable`, `open`, `clear`, `capacity`. Contents are
+children, in scope when the container is open or `clear` (see-through). Default
+open, close, and put in.
 
 `supporter of thing`: `capacity`. Contents are children, always in scope on
 top. Default put on.
@@ -513,8 +517,9 @@ section 11a); it is not itself a direction.
 Standard kinds: `thing`, `room`, `container`, `supporter`, `door`, `person`.
 
 Standard boolean properties: `fixed`, `scenery`, `hidden`, `concealed`,
-`wearable`, `worn`, `lit`, `edible`, `named`, `switchable`, `openable`,
-`open`, `lockable`, `locked`, `visited`.
+`wearable`, `worn`, `lit`, `edible`, `named`, `an`, `clear`, `switchable`,
+`openable`, `open`, `lockable`, `locked`, `visited`, `moved`, `animate`. The full
+table with each one's usage is in 01 section 6.
 
 Standard value properties: `name`, `words`, `desc`, `capacity`, `key`,
 `score`, `max_score`, `turns`.
