@@ -1,0 +1,87 @@
+// infocom-interrogation.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the Infocom-style conversation: ask/tell <person> about
+// <subject>, built on the `topic` construct and dispatched by the extendedverbs
+// granule. A detective leans on a suspect across a steel table. The topics show
+// the whole feature set:
+//
+//   words   - the subjects a topic answers to (ALIBI, the TICKET, REED, ...)
+//   reveal  - asking about the alibi unlocks the ticket; the ticket unlocks the
+//             confession (a hidden topic comes into view)
+//   once    - the ticket contradiction and the confession land a single time
+//   when    - the murder weapon can only be raised while you are holding it
+//   you / reply / say - the question, the answer (auto-quoted and attributed),
+//             and plain stage directions, mixed freely
+//
+// And the suspect's own `on tell` shows the manual escape hatch living right
+// beside the topic sugar: ASK runs topics, TELL he handles himself. Compile and
+// run:
+//
+//   arcc examples/granules/infocom-interrogation.storyarc -o interrogation.z5
+//   frotz interrogation.z5
+//
+// Things to try: ASK CRALE ABOUT HIS ALIBI, ASK HIM ABOUT THE TICKET, ASK ABOUT
+// REED, TAKE THE OPENER then ASK CRALE ABOUT THE WEAPON, ASK ABOUT THE TRUTH,
+// TELL CRALE ABOUT THE OPENER.
+
+game
+    title "Infocom Interrogation"
+    headline "A Cosmos conversation showcase"
+    author "Stefan Vogt"
+    start cell
+
+room cell
+    name "Interrogation Room"
+    desc "One bulb, one steel table, two chairs, no window. The kind of room that
+          makes innocent men sweat and guilty men go quiet."
+
+summon.extendedverbs
+
+thing suspect of person in cell
+    name "Victor Crale"
+    named
+    words crale, victor, suspect, man
+    intro "Victor Crale sits across the table, hands folded, far too calm for a
+           man in his position."
+
+    // The interrogation. ASK reaches these; the first topic in view that the
+    // player names a word of runs, then retires if it is `once`.
+
+    topic alibi "his alibi" words alibi, theater, night, where
+        you "Where were you the night Harlan Reed died?"
+        reply "The Orpheum. The late show. Ask anyone who was there."
+        reveal ticket
+
+    topic ticket "the theater ticket" words ticket, stub, orpheum hidden once
+        you "Then explain the stub in your coat pocket. It is dated a week ago."
+        say "His jaw tightens. For the first time, the calm slips."
+        reply "I... must have grabbed the wrong one on my way out."
+        reveal confession
+
+    topic reed "the victim" words reed, harlan, victim, partner
+        you "Tell me about Harlan Reed."
+        reply "A business partner. We had our differences. Who doesn't?"
+
+    topic weapon "the murder weapon" words opener, blade, weapon, knife when player holds opener
+        you "This letter opener has your initials on the handle. V.C."
+        reply "Half the firm carries one just like it. It proves nothing."
+
+    topic confession "the truth" words truth, confess, did, kill hidden once
+        say "Crale stares at his hands for a long moment. Then his shoulders fall."
+        reply "He was going to ruin me. I only went there to talk. The blade was
+               just lying there, and he laughed at me, and then it was done."
+
+    // The manual escape hatch. The suspect handles TELL himself, so it overrides
+    // the granule's topic dispatch for this verb: ASK runs topics, TELL does not.
+    on tell
+        say "\"Tell me whatever you like, Detective. I am finished talking.\""
+
+thing opener in cell
+    name "letter opener"
+    words letter, opener, blade
+    intro "A letter opener lies on the table between you, bagged as evidence."
+    desc "A slim steel letter opener, tagged as evidence. The initials V.C. are
+          etched into the handle."

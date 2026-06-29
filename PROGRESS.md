@@ -801,9 +801,13 @@ in Puny). Measured with the full library in place. See [[size-benchmark-puny]].
   the gap is only that unreferenced library blocks are not yet stripped. This
   sweep also trims the ~70 message + ~45 verb routines currently shipped wholesale.
 
-ASK/TELL CONVERSATION EXAMPLE: DEFERRED until the topic system is complete (a
-draft conversation.storyarc was made and then removed - premature, and the name
-clashed with conversations.granule). When built, give it a NON-"conversation"
-name (it is the Infocom ask/tell path of extendedverbs, not the menu granule),
-and have it show BOTH the manual NPC on-ask/on-tell handlers AND the topic-sugar
-declarations once sub-step 3 lands.
+ASK/TELL CONVERSATION EXAMPLE: DONE - examples/granules/infocom-interrogation.storyarc
+(a detective leaning on the suspect Victor Crale; deliberately not Linda/Paris,
+which were Puny's). It showcases the full topic feature set on the ASK path:
+`words` matching, the reveal chain (alibi -> ticket -> confession), `once`
+retirement, a `when player holds opener` guard (the murder weapon can only be
+raised while held), you/reply auto-quote+attribution, and `say` stage directions
+mixed in. The suspect's own `on tell` is the manual escape hatch beside the
+sugar: ASK runs topics, TELL he handles himself. Verified on Frotz. Like the
+other examples/granules/*.storyarc it is an untested showcase artifact (the
+behavior is covered by tests/test_topics.py test_ask_tell_dispatch_on_frotz).
