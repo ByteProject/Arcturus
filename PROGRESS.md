@@ -527,14 +527,18 @@ examples/granules/ (verbose-exits.storyarc is the first). These are demo/teachin
 games, kept apart from the two conformance anchors (brass-lantern, cloak) which
 stay in examples/.
 
-PROPER NOUNS DONE (committed 6cc1790): the `proper` standard attribute is now
-honored by ${the noun}/${The noun} - a proper object (Linda, Excalibur) prints
-with no article ("Linda holds firm.", not "The Linda"). lower._say_with_article
-skips the article when the object is `proper`; the runtime check is gated on
-layout.has_proper (no proper object in the program -> no check emitted, examples
-byte-identical). This is our equivalent of Puny's/Inform's proper. Needed once
-NPCs (named) and the container listings land. tests/test_proper.py. (Articles
-otherwise: ${the} is literal "the"; automatic a/an by sound still deferred.)
+NAMED OBJECTS DONE (6cc1790 + rename): the `named` standard attribute (renamed
+from `proper` per Stefan, to drop the Inform-ism) is honored by ${the noun}/${The
+noun} - a named object (Linda, Excalibur) prints with no article ("Linda holds
+firm.", not "The Linda"). lower._say_with_article skips the article when the
+object is `named`; the runtime check is gated on layout.has_named (no named object
+-> no check emitted, examples byte-identical). tests/test_named.py.
+ARTICLES (settled with Stefan): definite `the` done. Indefinite a/an = AUTO (low
+burden): compiler picks a/an by the name's first letter, `named` objects get
+none, with a per-object override for edge cases (an hour, a unicorn). Listings
+(room, inventory, AND container contents) all use articles: "You can see a gold
+coin here.", "box (contains a coin, an apple and a cookie)". (NEXT, before the
+container model.)
 
 CONTAINER SCOPE AND KNOWLEDGE MODEL (settled with Stefan, 2026-06-29; a core
 parser/world-model improvement, NOT a granule - "better than Inform" for

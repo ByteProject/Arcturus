@@ -84,7 +84,7 @@ _STD_KINDS = [
 # Standard boolean properties become attribute candidates (docs/02 appendix A).
 _STD_BOOL_PROPS = [
     "fixed", "scenery", "hidden", "concealed", "wearable", "worn", "lit",
-    "edible", "proper", "switchable", "openable", "open", "lockable", "locked",
+    "edible", "named", "switchable", "openable", "open", "lockable", "locked",
     "visited",
     # Set the first time the player takes an object; while clear, the object
     # shows its `intro` text in a room description instead of the plain listing.
