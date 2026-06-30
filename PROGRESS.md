@@ -4,7 +4,7 @@ A living log of where the project stands, maintained as work proceeds. The
 authoritative plan is `docs/00-roadmap.md` (milestones B0 to B8); this file
 tracks status against it and records decisions made during implementation.
 
-Last updated: 2026-06-28.
+Last updated: 2026-06-30.
 
 ## Status at a glance
 
@@ -15,8 +15,8 @@ Last updated: 2026-06-28.
 | B2 | Semantic analysis and the world-model IR | done |
 | B3 | Z-machine backend MVP (smallest valid story file) | done |
 | B4 | Cosmos compiled: parser, turn loop, standard verbs | done |
-| B5 | Feature-complete library and a fair benchmark | in progress |
-| B6 | Size pass (DCE, abbreviations, codegen) | pending |
+| B5 | Feature-complete library and a fair benchmark | done (library); B6 measures the benchmark |
+| B6 | Size pass (DCE, abbreviations, codegen) | NEXT |
 | B7 | Language packs (Spanish, German) | pending |
 | B8 | The reference interpreter, Actaea | pending |
 | B9 | arc_image on modern systems (PNG) | pending |
@@ -30,6 +30,94 @@ benchmark is fair; then language packs (B7 Spanish + German), the Actaea
 interpreter (B8), arc_image (B9 modern, B10 retro), and porting two games (B11
 Ghosts, B12 Rabenstein). "Write Hibernated 3" is dropped as the project goal.
 See memory [[roadmap-milestones]].
+
+>>> B6 HANDOVER CHECKPOINT (2026-06-30, written for compaction) <<<
+
+WHERE WE ARE. B5 is complete: the library is feature-complete and both example
+games win on Frotz. 247 tests pass (`python3 -m pytest`). Versions bumped this
+session: Cosmos 0.8, compiler 0.5. NEXT IS B6, the size pass, in three parts (do
+them in this order): DCE, then abbreviations, then codegen tightening. Target: a
+representative game strictly UNDER its PunyInform-equivalent size (Puny's Cloak is
+27K, standard-only). [[size-benchmark-puny]]
+
+WHAT LANDED IN B5 (this session, all committed). The whole topic/conversation
+arc: the `topic` construct (docs/01 s.15) + runtime topic table + you/reply/say/
+reveal/hide lowering; ask/tell topic dispatch in extendedverbs; the conversations
+MENU granule (numbered list pinned in the upper window, statusline-aware, divider,
+no residue, adaptive height); mutual exclusion (menu wins, ask/tell redirect via
+menu_owns_talk). The debug granule (tree/scope/fetch/purloin/warp/gonear/inspect/
+showobj) reaching out-of-scope objects through a reach_unscoped parser seam. The
+give/show "To whom?" fix. The THREE-FORM summon model (summon.x = bundled always;
+summon x.granule = story dir -> -L (absolute) -> bundled with a notice; summon
+"path" = explicit file) + --extract-library now writes granules + --eject-granule.
+Docs: docs/05-granules.md (new), the verb/message reference verified against the
+library (docs/verb-set.md, docs/message-set.md), docs/01/02/03 and README synced.
+
+THE B6 BASELINE (current sizes, pre-DCE, the full library is shipped into every
+game): brass 12228, cloak 13084, statusline 11528, conversations 13492,
+extended-verbs 15032, infocom-interrogation 17252.
+
+B6 PART 1 - DCE (the big lever; do first).
+- THE GAP: codegen.build_routines (arcturus/codegen.py, `for blk in
+  world.blocks.values()`) compiles EVERY block unconditionally. Most are dead in
+  a given game (the ~70 msg_* + ~45 verb-default blocks, the conversation framing,
+  the seam blocks). Need a reachability sweep over the routine call graph: mark
+  from the entry, drop any routine nothing reaches.
+- THE SUBTLETY (do not get this wrong): handlers and react routines are NOT
+  reached by direct call fixups from __main__. Dispatch is INDIRECT -
+  call_handler(handler_of(noun)) reads a react routine address out of the OBJECT
+  TABLE (objects.py routine_fixups), and react_<obj> calls the handler routines
+  (h<n>) by name (the registry from build_routines). A naive "follow RoutineRef
+  calls from main" would mark all handlers/react routines dead. SEED reachability
+  with: __entry__, __main__, every react_<obj>/react_free/grain<i>/topic_<obj>_<i>/
+  topicwhen_<obj>_<i> routine AND the handlers they dispatch to, then sweep
+  transitively. The dead candidates are unreferenced blk_<name> blocks.
+- ALREADY PARTIALLY DONE (the pattern to extend): compiler-emitted routines are
+  reference-gated - codegen._references_routine + the gates for cosmos_topic_*
+  (_TOPIC_HELPER_NAMES), cosmos_exit_* (gen_exit_routines), and topic body/when
+  routines (emitted only when topics exist). B6 generalizes this to a transitive
+  block sweep.
+- NO DOUBLE-COMPILE: an overridden library block is NOT compiled twice - sema
+  w.blocks[name] holds only the winning (override) version (last-wins), so the
+  library version is already gone. DCE only needs the unreferenced-prune.
+- CONCRETE DEAD CASES (verified): line_you/line_reply/line_end (english.prelude,
+  ~64 bytes, dead without conversations); status_bar/status_lines/menu_owns_talk
+  (loop.prelude, dead without conversations - this is why we used a library seam +
+  DCE rather than a compile-time summoned() check, Stefan's call). EXCEPTION:
+  reach_unscoped (english.prelude) is ALWAYS referenced (resolve_objects calls it),
+  a tiny `return nothing` wrapper DCE keeps - the one irreducible seam residue,
+  accepted.
+
+B6 PART 2 - ABBREVIATIONS. The abbrev area is empty today (codegen _ABBREV_BYTES
+= 96*2 zeros; zstring.encode ignores abbreviations). The 2-pass plan is the
+ABBREVIATIONS block further down this file: a baked-in default set; a
+`--make-abbreviations <file>` pass that pools the story's + summoned granules'
+strings, computes an optimized set (96-entry ceiling), and writes ONE
+abbreviations.granule the author summons; the encoder intercepts that summon as
+compile-time data. zstring.encode must emit abbreviation references (shift 2/3
+Z-chars) and the header/dictionary wiring.
+
+B6 PART 3 - codegen tightening (dense codegen, docs/00 section 5 levers).
+
+BUILD/TEST + HARD RULES (carry these): rebuild amalgam `python3
+tools/amalgamate.py build/arcc`; rebuild example .z5 after any cosmos/ change;
+throwaway .z5 -> scratchpad, not build/ (build/ is gitignored, holds arcc + the
+example .z5). Never em dashes [[no-em-dashes-ever]]. Commit with `git commit -F
+/dev/stdin <<'EOF'` heredoc (zsh eats backticks in -m); never amend/rewrite history
+[[never-override-git-identity]]; co-author trailer "Co-Authored-By: Claude Opus 4.8
+(1M context) <noreply@anthropic.com>". Interpreter verification is a hand-off
+[[interpreter-verification-is-handoff]]: build the .z5, verify on Frotz yourself,
+hand off with the size, PAUSE before advancing a milestone. The actaea/ dir stays
+UNTRACKED (Stefan's working file). The override/seam model DCE must respect:
+prelude blocks overridable, granule blocks forked; seams compose optional features
+[[cosmos-library-structure]]. WORK STYLE (Stefan, reinforced repeatedly this
+session): TALK THROUGH any design fork BEFORE implementing - do not build off a
+discussion until told to proceed.
+
+The ">>> RESUME POINT <<<" block below (topic system sub-step 2) is COMPLETE and
+superseded by this checkpoint; it remains as history.
+
+>>> END B6 HANDOVER CHECKPOINT <<<
 
 B4 is done: both example games (The Brass Lantern and Cloak of Darkness) compile
 with the standalone arcc and are winnable start to finish on Frotz
