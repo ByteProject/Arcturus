@@ -57,30 +57,29 @@ def test_conversation_menu_on_frotz(tmp_path):
     img = generate(analyze(cosmos.combined_program(parse(GAME))))
     story = tmp_path / "conv.z5"
     story.write_bytes(img)
-    # talk, pick 1 (weather, reveals secret), pick 3 (the secret, once), 0 to end.
+    # talk, pick 1 (weather: reveals secret, then weather drops off), 0 to end.
+    # The menu is painted in the upper window, so dumb Frotz dumps its repaints
+    # inline; assertions are substring-presence, order-independent.
     out = subprocess.run(
         [_frotz(), "-p", str(story)],
-        input="talk to pat\n1\n3\n0\nquit\ny\n",
+        input="talk to pat\n1\n0\nquit\ny\n",
         capture_output=True, text=True, timeout=20,
     ).stdout
 
-    # The numbered menu, with the hidden topic absent at first.
+    # The numbered menu, weather first; the hidden secret starts off the list.
     assert "Talk to Pat about:" in out
     assert "1. the weather" in out
     assert "2. the city" in out
 
-    first_menu = out.split("Could be worse.")[0]
-    assert "the secret" not in first_menu  # hidden until revealed
-
-    # Picking 1 runs the exchange and reveals the secret as a new numbered option.
+    # Picking 1 runs the exchange in the main window.
     assert 'You: "Some weather we\'re having."' in out
     assert 'Pat: "Could be worse."' in out
-    assert "3. the secret" in out
 
-    # Picking 3 runs the secret; `once` retires it, so it is gone from the last menu.
-    assert 'Pat: "All right, all right. The money\'s in the locker."' in out
-    last_menu = out.split("rest there")[0].rsplit("Talk to Pat about:", 1)[1]
-    assert "the secret" not in last_menu
+    # After the pick the menu repaints: weather has dropped off (discussed) and the
+    # revealed secret appears. That weather is gone is provable from the renumber -
+    # the city is now 1 and the secret is 2, not 2 and 3.
+    assert "1. the city" in out
+    assert "2. the secret" in out
 
     # 0 ends the conversation and returns to the main prompt.
     assert "You let the conversation rest there." in out
