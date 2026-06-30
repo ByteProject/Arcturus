@@ -21,7 +21,9 @@ block copy_bytes(src, dst, n)
 
 // Read and parse one command. Returns the action number (0 if none was
 // understood) and sets the noun. A 0 return with parse_fault set means a verb was
-// understood but it named an object out of scope; the loop reports "can't see".
+// understood but the rest did not fit: parse_fault 1 named an object out of scope
+// (the loop reports "can't see"), parse_fault 2 piled extra words onto a verb
+// that has no slot for them (the loop reports "extra words").
 block parse()
     change parse_fault to 0
     change shut_in to nothing
@@ -33,6 +35,6 @@ block parse()
         return 0
     change way to find_direction()
     resolve_objects()
-    if parse_fault is 1
+    if parse_fault is not 0
         return 0
     return act

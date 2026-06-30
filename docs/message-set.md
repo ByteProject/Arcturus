@@ -15,6 +15,7 @@ docs/verb-set.md.
 | Block | When it fires | Wording |
 |---|---|---|
 | msg_no_verb | first word is not a verb or direction | Those words don't add up to anything. |
+| msg_extra_words | a verb that takes no noun is given extra words (jump north, look cloak) | You lost me after that. |
 | msg_cant_see | a noun was named but nothing matches in scope | You see nothing of the sort here. |
 | msg_no_it | "it"/"them" with nothing to refer to | You'll have to say what you mean. |
 | msg_be_specific | the noun is ambiguous | You'll have to be more specific. |
