@@ -460,10 +460,13 @@ specific parser routines through ordinary resolution (section 8). An author's
 own strings are written in whatever language they choose. Spanish is the first
 planned pack; packs are maintained alongside the main Cosmos sources.
 
-`summon.debug`. Debugging verbs for testing, excluded automatically from a
-release build: a scope and tree dump, teleport to a room, pull a distant
-object to the player, set a property, and show an object's state. These speed
-testing and never ship.
+`summon.debug`. Developer verbs for testing, catalogued in 05: `tree` (the whole
+object tree), `scope` (what is reachable here), `fetch`/`purloin` (pull any object
+to you), `warp`/`gonear` (teleport to an object's room), and `inspect`/`showobj`
+(an object's location and attributes). They reach objects out of scope, which the
+parser normally refuses, through the `reach_unscoped` parser seam the granule
+overrides. There is no separate release build to strip them: not summoning the
+granule leaves them out entirely, which is the exclusion.
 
 `summon.verbose_exits`. Helpful blocked-direction messages, game-wide. When a
 player tries a direction with no exit, instead of the default "You can't go
