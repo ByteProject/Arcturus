@@ -293,6 +293,9 @@ block msg_cant_put()
 block msg_closed()
     say "${The second} is shut."
 
+block msg_to_whom()
+    say "To whom?"
+
 block msg_give()
     say "${The second} doesn't want ${the noun}. Outrageous."
 
