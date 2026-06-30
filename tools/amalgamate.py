@@ -33,8 +33,8 @@ import sys
 _PACKAGE = "arcturus"
 _MODULE_ORDER = [
     "errors", "tokens", "ast", "lexer", "parser", "prelude", "worldmodel",
-    "sema", "zstring", "storyfile", "assembler", "objects", "dictionary",
-    "lower", "cosmos", "codegen", "astdump", "irdump", "cli",
+    "sema", "zstring", "abbrev", "storyfile", "assembler", "objects",
+    "dictionary", "lower", "cosmos", "codegen", "astdump", "irdump", "cli",
 ]
 
 _HEADER = '''#!/usr/bin/env python3

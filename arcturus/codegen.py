@@ -20,6 +20,7 @@ from __future__ import annotations
 import datetime
 
 from . import __version__
+from . import abbrev
 from . import ast
 from . import cosmos
 from . import dictionary
@@ -354,9 +355,25 @@ def build_story(
         objects_addr = sf.append(bytes(_PROP_DEFAULTS_BYTES))
 
     # Static memory: abbreviations and the dictionary built from the program's
-    # vocabulary.
+    # vocabulary. The 96-word abbreviation table comes first; when a set is
+    # installed (set in generate(), empty in the driven backend tests) each
+    # abbreviation string is laid out just after the table, encoded literally so
+    # it holds no nested reference, and its table word points at the string's word
+    # address (byte address / 2). Unused entries share one empty string.
     static_base = sf.here()
     abbrev_addr = sf.append(bytes(_ABBREV_BYTES))
+    abbrevs = zstring.active_abbreviations()
+    if abbrevs:
+        empty_addr = sf.here()
+        sf.append(zstring.encode("", abbrevs=[]))
+        for k, s in enumerate(abbrevs):
+            while sf.here() % 2 != 0:
+                sf.append(b"\x00")
+            saddr = sf.here()
+            sf.append(zstring.encode(s, abbrevs=[]))
+            sf.set_word(abbrev_addr + k * 2, saddr // 2)
+        for k in range(len(abbrevs), _ABBREV_BYTES // 2):
+            sf.set_word(abbrev_addr + k * 2, empty_addr // 2)
     dprops = dictionary.direction_props(layout) if layout is not None else None
     # Scenery grain words: word -> (grain id, owner object), shared with codegen's
     # grain routine indices.
@@ -767,6 +784,28 @@ def generate(world: wm.World) -> bytes:
     runs `on start`. Every other handler and every block is compiled to its own
     routine. The dispatcher and turn loop that drive the handlers arrive with
     Cosmos (B4.5b onward)."""
+    # Install the abbreviation set before any text is encoded: the assembler packs
+    # inline print text as the routines are built, so the set has to be in force
+    # for the whole codegen pass, not just the string layout. Reset afterward so a
+    # later driven test (which never installs a set) is not contaminated.
+    zstring.set_abbreviations(_abbreviations_for(world))
+    try:
+        return _generate(world)
+    finally:
+        zstring.set_abbreviations([])
+
+
+def _abbreviations_for(world: wm.World) -> list:
+    """The abbreviation set for this compile: a summoned abbreviations.granule's
+    tuned set when the program supplies one (the --make-abbreviations opt-in),
+    otherwise the baked-in default. The override path is wired in B6.2d."""
+    override = getattr(world, "abbreviations", None)
+    if override:
+        return override
+    return abbrev.DEFAULT_ABBREVS
+
+
+def _generate(world: wm.World) -> bytes:
     gmap = _globals_map(world)
     actions = _action_numbers(world)
     layout = objmod.build_layout(world, react_objects=_react_objects(world, actions))

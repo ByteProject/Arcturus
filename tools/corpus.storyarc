@@ -1,0 +1,93 @@
+// corpus.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+//
+// NOT a game. This is the corpus tools/arcabbr.py compiles to harvest the text
+// of a standard-library story, from which it computes the baked-in default
+// abbreviation set (arcturus/abbrev.py, DEFAULT_ABBREVS).
+//
+// What matters here is reach, not length. Because every standard verb handler is
+// always live, the compiler emits the library's whole message set into any game,
+// so this corpus harvests all of that always-present text just by existing. The
+// prose is therefore kept short and deliberately plain: the library messages are
+// the universal text worth abbreviating in every game, and the optimizer finds
+// about as many profitable substrings in them as exist (roughly fifty). Padding
+// the corpus with long, distinctive description would only bake this corpus's
+// private vocabulary into the default, costing a stored string in every unrelated
+// game for no match; a game with a lot of its own prose gets a tuned set from the
+// slow --make-abbreviations pass instead. The objects below exist only to keep
+// the corpus a representative standard story (a container, a supporter, a lock, a
+// wearable, a dark room, a person), not to feed their words into the default.
+
+game
+    title  "The Standard Corpus"
+    author "Arcturus"
+    serial "000000"
+    start  hall
+
+room hall
+    name "The Hall"
+    desc "A plain hall runs north to a study and east to a pantry, with stairs
+          down to a cellar."
+    north study
+    east  pantry
+    down  cellar
+
+room study
+    name "The Study"
+    desc "A quiet room with a desk under the window."
+    south hall
+
+room pantry
+    name "The Pantry"
+    desc "A narrow room of empty shelves."
+    west hall
+
+room cellar
+    name "The Cellar"
+    desc "It is too dark to see once the light above is gone."
+    lit false
+    up hall
+
+thing desk of supporter in study
+    name "wooden desk"
+    words desk, table
+    desc "It is heavy, with a single shallow drawer."
+
+thing lamp in study
+    name "small lamp"
+    words lamp, light
+    desc "It gives a steady light, with a switch set in the base."
+    switchable
+
+thing box of container in pantry
+    name "plain box"
+    words box, crate
+    desc "It has a hinged lid and is closed for now."
+    openable
+    open false
+
+thing key in box
+    name "iron key"
+    words key
+    desc "It is old and fits a single lock."
+
+thing coat in hall
+    name "long coat"
+    words coat, cloak
+    desc "It is made of dark wool."
+    wearable
+
+thing hatch of door in pantry
+    name "low door"
+    words door, hatch
+    desc "It is set in the back wall, shut and locked."
+    openable
+    lockable
+    open false
+    locked
+
+thing keeper of person in hall
+    name "old keeper"
+    words keeper, caretaker, man, woman
+    desc "The keeper watches you with patient, unsurprised eyes."
