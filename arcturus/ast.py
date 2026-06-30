@@ -31,7 +31,7 @@ class StringText:
 @dataclass
 class StringInterp:
     # The interpolated expression, already parsed. `article` is the optional
-    # leading article helper (a, an, the, A, An, The); see docs/01 section 15.
+    # leading article helper (a, an, the, A, An, The); see docs/01 section 16.
     expr: "Expr"
     article: Optional[str] = None
 
