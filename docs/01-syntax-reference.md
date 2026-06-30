@@ -588,38 +588,32 @@ Core events Cosmos fires, defined in 02: `on start`, `on enter`,
 
 ## 13. Summon
 
-`summon` brings external code or an optional built-in feature into the build.
-
-Importing an extension, a separate Arcturus source file (a `.granule`) written
-by you or a third party:
-
-```
-summon "extensions/lockpicking.granule"
-summon weather
-```
-
-An extension is ordinary Arcturus source exposing kinds, verbs, blocks, and
-grains, carried in a `.granule` file. It may define its own summonable
-sub-features.
-
-The dotted form enables a built-in feature that ships with Cosmos but is off by
-default. Each such feature is itself a granule, an official one distributed with
-Cosmos, so the dotted summons load granules just as the file form does:
+`summon` brings an optional Cosmos feature, or your own granule, into the build.
+A granule is ordinary Arcturus source (kinds, verbs, blocks, grains) in a
+`.granule` file, loaded only when summoned. There are three forms, which differ
+in where the granule is found; the resolution rules and the fork workflow are in
+05.
 
 ```
-summon.conversations          // the talk-menu system (02)
-summon.debug                  // debugging verbs, excluded from release builds
-summon.language "Spanish"     // select a Cosmos language pack
-summon.abbreviations "game.abbr"  // use a custom abbreviation set for text
+summon.statusline                        // the bundled feature, always
+summon statusline.granule                // your copy if present, else bundled
+summon "extensions/lockpicking.granule"  // an explicit file
 ```
 
-`summon.conversations` and `summon.debug` are described in 02.
-`summon.language` selects a Cosmos language pack (a granule), which overrides
-not only the message strings and standard vocabulary but the parser's grammar
-logic where a language needs it (02). `summon.abbreviations` is the exception
-to the rule: its argument is a data file, the abbreviation table produced by the
-arcabbr tool, not a granule; it overrides the compiler's default table for
-maximum text compression.
+- The dotted form (`summon.statusline`) always uses the copy that ships inside
+  the compiler. It also carries the two non-granule features `summon.language
+  "<name>"`, which selects a language pack (a granule that overrides not only the
+  messages and vocabulary but the parser's grammar logic where a language needs
+  it, 02), and `summon.abbreviations`, a compiler text-compression option whose
+  argument is a data file rather than a granule.
+- The bare filename form (`summon statusline.granule`) prefers a copy in the
+  story's directory or a `-L` directory, and otherwise falls back to the bundled
+  one with a notice. This is how you summon a forked granule by name.
+- The quoted form is an explicit path, with no bundled fallback.
+
+The granules that ship with Cosmos - extended verbs, the status line, verbose
+exits, the conversation menu, and debug verbs - are catalogued in 05. Debug is
+opt-in by the summon alone; there is no separate release build to strip it.
 
 ## 14. Grains
 
