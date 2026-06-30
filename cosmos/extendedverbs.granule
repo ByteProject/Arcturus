@@ -274,6 +274,9 @@ on ask
     if not (noun is animate)
         msg_only_animate()
         stop
+    if menu_owns_talk() is 1
+        msg_use_talk()
+        stop
     if converse(noun) is 1
         stop
     msg_ask()
@@ -288,6 +291,9 @@ on tell
         stop
     if not (noun is animate)
         msg_only_animate()
+        stop
+    if menu_owns_talk() is 1
+        msg_use_talk()
         stop
     if converse(noun) is 1
         stop
@@ -411,6 +417,10 @@ block msg_pray()
 
 block msg_shout()
     say "You test the location's acoustics with a loud yell. The results are entirely underwhelming."
+
+// Shown when the conversations menu is also summoned: ask/tell defer to it.
+block msg_use_talk()
+    say "To get anywhere with ${the noun}, just TALK TO ${the noun}."
 
 block msg_ask()
     say "${The noun} stays mum on the subject."

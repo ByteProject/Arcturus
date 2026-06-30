@@ -83,3 +83,47 @@ def test_conversation_menu_on_frotz(tmp_path):
 
     # 0 ends the conversation and returns to the main prompt.
     assert "You let the conversation rest there." in out
+
+
+# When both presentations are summoned, the menu wins: ask/tell stop dispatching
+# topics and redirect the player to TALK TO (the mutual exclusion).
+BOTH = '''game
+    title "Both"
+    start hall
+summon.extendedverbs
+summon.conversations
+room hall
+    name "Hall"
+    desc "A bare hall."
+thing pat of person in hall
+    name "Pat"
+    named
+    words pat
+    topic weather "the weather" words weather
+        you "Some weather we're having."
+        reply "Could be worse."
+'''
+
+
+def test_both_summoned_compiles():
+    assert generate(analyze(cosmos.combined_program(parse(BOTH))))[0x00] == 5
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_menu_wins_over_ask_tell_on_frotz(tmp_path):
+    img = generate(analyze(cosmos.combined_program(parse(BOTH))))
+    story = tmp_path / "both.z5"
+    story.write_bytes(img)
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="ask pat about weather\ntalk to pat\n1\n0\nquit\ny\n",
+        capture_output=True, text=True, timeout=20,
+    ).stdout
+
+    # ask redirects to TALK TO and does NOT run the topic.
+    ask_part = out.split("Talk to Pat about:")[0]
+    assert "just TALK TO Pat" in ask_part
+    assert "Could be worse." not in ask_part
+
+    # The menu still runs the topic when picked.
+    assert "Could be worse." in out
