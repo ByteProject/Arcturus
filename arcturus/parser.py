@@ -244,6 +244,7 @@ class Parser:
     def parse_summon(self) -> ast.Summon:
         line = self.cur.line
         self.expect_kw("summon")
+        # summon.statusline - the dotted feature form (the bundled copy, always).
         if self.check_op("."):
             self.advance()
             feature = self.expect_name("a feature name").value
@@ -251,17 +252,25 @@ class Parser:
             if self.check(T.STRING):
                 arg = self._plain_text(self.advance())
             self.expect_newline()
-            return ast.Summon(feature, is_feature=True, arg=arg, line=line)
+            return ast.Summon(feature, form="feature", arg=arg, line=line)
+        # summon "x.granule" - the quoted path form (an explicit file).
         if self.check(T.STRING):
             target = self._plain_text(self.advance())
-        elif self.check(T.NAME):
-            target = self.advance().value
-        else:
-            raise self._error(
-                "expected a file string or an extension name after 'summon'"
-            )
-        self.expect_newline()
-        return ast.Summon(target, is_feature=False, line=line)
+            self.expect_newline()
+            return ast.Summon(target, form="path", line=line)
+        # summon statusline.granule - the bareword filename form. Reassemble the
+        # dotted name (statusline + . + granule) the lexer split into tokens.
+        if self.check(T.NAME):
+            parts = [self.advance().value]
+            while self.check_op("."):
+                self.advance()
+                parts.append(self.expect_name("a granule filename").value)
+            self.expect_newline()
+            return ast.Summon(".".join(parts), form="name", line=line)
+        raise self._error(
+            "expected a feature name, a granule filename, or a quoted path after "
+            "'summon'"
+        )
 
     # -- object and kind ---------------------------------------------------
 

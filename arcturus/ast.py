@@ -326,8 +326,13 @@ class GameBlock:
 
 @dataclass
 class Summon:
-    target: str  # a filename string, an extension id, or a feature id
-    is_feature: bool = False  # True for the summon.<feature> dotted form
+    # The three summon forms (docs/05). `target` is a feature id, a granule
+    # filename, or a path, depending on `form`:
+    #   "feature"  summon.statusline        - the bundled copy, always
+    #   "name"     summon statusline.granule - story dir, then -L dirs, then bundled
+    #   "path"     summon "x.granule"        - an explicit file, no bundled fallback
+    target: str
+    form: str = "feature"
     arg: Optional[str] = None  # the optional string argument of a feature
     line: int = 0
 

@@ -408,14 +408,18 @@ def test_interpolation_articles():
 
 
 def test_summon_forms():
-    f = only('summon "extensions/lockpicking.storyarc"\n')
-    assert isinstance(f, ast.Summon) and f.is_feature is False
-    ext = only("summon weather\n")
-    assert ext.target == "weather" and ext.is_feature is False
+    # Quoted path form.
+    f = only('summon "extensions/lockpicking.granule"\n')
+    assert isinstance(f, ast.Summon) and f.form == "path"
+    assert f.target == "extensions/lockpicking.granule"
+    # Bareword filename form (the lexer splits name.granule; the parser rejoins it).
+    ext = only("summon statusline.granule\n")
+    assert ext.target == "statusline.granule" and ext.form == "name"
+    # Dotted feature form, with and without an argument.
     feat = only('summon.language "Spanish"\n')
-    assert feat.is_feature is True and feat.target == "language" and feat.arg == "Spanish"
+    assert feat.form == "feature" and feat.target == "language" and feat.arg == "Spanish"
     feat2 = only("summon.conversations\n")
-    assert feat2.is_feature is True and feat2.arg is None
+    assert feat2.form == "feature" and feat2.arg is None
 
 
 def test_global_constant_block():

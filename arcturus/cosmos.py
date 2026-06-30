@@ -18,6 +18,7 @@ standalone compiler carries Cosmos with it.
 from __future__ import annotations
 
 import os
+import sys
 
 from . import ast
 from .errors import ArcError
@@ -75,11 +76,22 @@ def _summons(program: ast.Program) -> list:
     return [d for d in program.decls if isinstance(d, ast.Summon)]
 
 
+def _read_granule(path):
+    with open(path, "r", encoding="utf-8") as fh:
+        return "file:" + os.path.abspath(path), fh.read(), os.path.basename(path)
+
+
 def _resolve_summon(s: ast.Summon, bundled: dict, lib_dirs, story_dir):
     """Resolve one summon to (key, source, srcname), or (None, None, None) for a
     feature the loader does not compile as runtime blocks (language,
-    abbreviations). Raises ArcError on a missing file or unknown feature."""
-    if s.is_feature:
+    abbreviations). The three forms (docs/05):
+      feature  summon.statusline         - the bundled copy, always.
+      name     summon statusline.granule - story dir, then each -L dir, then the
+               bundled copy (with a notice when it falls back), else an error.
+      path     summon "x.granule"        - an explicit file (absolute, or for a
+               bare name the story dir then the cwd); no bundled fallback.
+    Raises ArcError on a missing file or unknown feature."""
+    if s.form == "feature":
         if s.target in _NON_GRANULE_FEATURES:
             return None, None, None
         fname = s.target + ".granule"
@@ -89,19 +101,39 @@ def _resolve_summon(s: ast.Summon, bundled: dict, lib_dirs, story_dir):
             f"summon: unknown built-in feature '{s.target}'", s.line,
             filename="<summon>",
         )
-    # A file summon ("path/to/x.granule"): search the story's directory first,
-    # then each -L directory.
+
+    if s.form == "name":
+        fname = s.target  # e.g. "statusline.granule"
+        roots = ([story_dir] if story_dir else []) + list(lib_dirs)
+        for root in roots:
+            path = os.path.join(root, fname)
+            if os.path.isfile(path):
+                return _read_granule(path)
+        if fname in bundled:
+            # Found nothing local; fall back to the bundled copy, and say so, so
+            # the author knows their fork was not picked up.
+            print(
+                f"arcc: note: '{fname}' not found in the story directory or any "
+                f"-L directory; using the bundled granule",
+                file=sys.stderr,
+            )
+            return "feature:" + fname, bundled[fname], fname
+        raise ArcError(
+            f"summon: cannot find granule '{fname}' (not local, no -L copy, and "
+            f"no bundled granule by that name)", s.line, filename="<summon>",
+        )
+
+    # form == "path": an explicit quoted file, no bundled fallback.
     rel = s.target
-    roots = ([story_dir] if story_dir else []) + list(lib_dirs)
-    for root in roots:
-        path = os.path.join(root, rel)
+    if os.path.isabs(rel) or os.path.dirname(rel):
+        # An absolute path, or a relative path with directories: as written.
+        candidates = [rel]
+    else:
+        # A bare filename: the story directory, then the cwd.
+        candidates = ([os.path.join(story_dir, rel)] if story_dir else []) + [rel]
+    for path in candidates:
         if os.path.isfile(path):
-            with open(path, "r", encoding="utf-8") as fh:
-                return "file:" + os.path.abspath(path), fh.read(), rel
-    # Also accept a path that is already absolute or relative to the cwd.
-    if os.path.isfile(rel):
-        with open(rel, "r", encoding="utf-8") as fh:
-            return "file:" + os.path.abspath(rel), fh.read(), rel
+            return _read_granule(path)
     raise ArcError(f"summon: cannot find granule '{rel}'", s.line, filename="<summon>")
 
 
