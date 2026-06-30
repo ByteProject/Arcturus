@@ -93,7 +93,7 @@ status 2. The banner reports the compiler version, the bundled Cosmos version,
 the runtime tags, and the host operating system, for example:
 
 ```
-Arcturus 0.5.0 -- [ arcc 0.5.0 | Cosmos 0.8.0 | python3 | stdlib | MacOS ARM ]
+Arcturus 0.5.0 -- [ arcc 0.5.0 | Cosmos 0.8.1 | python3 | stdlib | MacOS ARM ]
 ```
 
 Options:
