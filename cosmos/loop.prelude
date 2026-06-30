@@ -22,6 +22,13 @@ block status_bar()
 block status_lines()
     return 0
 
+// Does the conversations menu own talking? 0 by default; summon.conversations
+// overrides it to 1. When the menu is present it is the single conversation
+// surface, so the extendedverbs ask/tell topic dispatch defers to it and points
+// the player at TALK TO instead - the two are never both live (docs/02 s.14).
+block menu_owns_talk()
+    return 0
+
 block run_game()
     move player to here
     // Request the paragraph break that separates the banner from the opening

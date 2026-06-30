@@ -20,6 +20,11 @@
 block talk_to(person)
     run_talk(person)
 
+// With the menu summoned, it is the one conversation surface: the extendedverbs
+// ask/tell topic dispatch checks this and steps aside (it redirects to TALK TO).
+block menu_owns_talk()
+    return 1
+
 block run_talk(person)
     if count_visible(person) is 0
         msg_no_topics()

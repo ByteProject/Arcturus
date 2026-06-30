@@ -713,13 +713,18 @@ TOPIC SYSTEM is mid-build. Sub-steps:
   (+ cosmos_topic_retire), erase_window, screen_height. Proven on Frotz
   (tests/test_conversations.py). DIRECTIVE [[demos-include-statusline]]: demos/
   examples summon.statusline by default, must also work without.
-- [ ] 5. NEXT: mutual exclusion wiring (conversations present -> ask/tell topic path off;
-  ask/tell then redirect "just TALK TO her"). PLAN: a library-default block
-  (e.g. `block conversation_is_menu() return 0` in a prelude) that conversations
-  overrides to return 1; extendedverbs' on ask/tell gate converse on it and
-  redirect when the menu owns talking. Must be a LIBRARY block both granules
-  reference (a granule cannot override another granule's block - sema 131 only
-  lets non-library override library; two granules -> duplicate error).
+- [x] 5. mutual exclusion DONE (this commit). Library-default block
+  menu_owns_talk() (loop.prelude) returns 0; conversations overrides it to 1.
+  extendedverbs' on ask/on tell check `if menu_owns_talk() is 1` BEFORE converse
+  and redirect (msg_use_talk: "To get anywhere with X, just TALK TO X.") instead
+  of dispatching topics. So: extendedverbs alone -> ask/tell run topics;
+  conversations alone -> talk opens the menu; BOTH -> menu wins, ask/tell defer.
+  The seam is a LIBRARY block both granules reference (a granule cannot override
+  another granule's block); like status_bar it is dead-stripped by B6 DCE when
+  unused. Proven on Frotz (tests/test_conversations.py test_menu_wins_over_ask_
+  tell_on_frotz: ask redirects and does NOT run the topic; the menu still runs it).
+  THE TOPIC/CONVERSATION ARC IS COMPLETE (sub-steps 1-5 + both showcases:
+  infocom-interrogation.storyarc for ask/tell, conversations.storyarc for the menu).
 KEY FILES for the runtime: objects.py (emit a per-object topic table like the
 words array), codegen.py (gen topic body routines like react/grain routines),
 lower.py (lower ast.Line / ast.TopicToggle), cosmos/extendedverbs.granule (ask/
