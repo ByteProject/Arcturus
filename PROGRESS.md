@@ -817,9 +817,14 @@ in Puny). Measured with the full library in place. See [[size-benchmark-puny]].
   correctly lives in english.prelude still ships into games that never touch the
   feature. Concrete first case: line_you / line_reply / line_end (the you/reply
   topic framing) cost ~64 bytes on brass/cloak even though those games have no
-  conversations. The placement is right (the language layer is english.prelude);
-  the gap is only that unreferenced library blocks are not yet stripped. This
-  sweep also trims the ~70 message + ~45 verb routines currently shipped wholesale.
+  conversations. ALSO status_bar / status_lines (loop.prelude): the seam blocks
+  the conversations menu calls and statusline overrides; they are unreferenced
+  (and so strippable) in any game without conversations - this is why we did NOT
+  add a compile-time summoned() check, DCE handles it (Stefan, decided here, same
+  call as the line_* placement). The placement is right (a granule can only
+  override a LIBRARY block); the gap is only that unreferenced library blocks are
+  not yet stripped. This sweep also trims the ~70 message + ~45 verb routines
+  currently shipped wholesale.
 
 ASK/TELL CONVERSATION EXAMPLE: DONE - examples/granules/infocom-interrogation.storyarc
 (a detective leaning on the suspect Victor Crale; deliberately not Linda/Paris,
