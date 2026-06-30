@@ -97,9 +97,9 @@ Options:
 
 - `-o FILE`, `--output FILE`: write the story file to FILE. Without it the
   compiler parses and reports only.
-- `-L DIR`, `--lib DIR`: add a directory to the search path for Cosmos `.prelude`
-  and `.granule` files; repeatable. Used to compile against a forked library
-  (section 5).
+- `-L DIR`, `--lib DIR`: add an absolute directory to the search path for granule
+  (`.granule`) files a story summons by name; repeatable. Used to compile against
+  a forked library (section 5, docs/05). A relative `-L` is rejected.
 - `--check`: parse and analyze only, no code generation.
 - `--dump-ast`: print the parsed syntax tree and stop.
 - `--dump-ir`: print the analyzed world-model IR and stop.
@@ -110,6 +110,8 @@ Options:
 - `--eject-language [DIR]`: write just `english.prelude`, the language layer that
   holds the standard messages, into DIR (default: the current directory), then
   exit (section 5).
+- `--eject-granule NAME`: write a single bundled granule (for example
+  `statusline`) into the current directory for forking, then exit (section 5).
 - `--version`: print the version and exit.
 
 Exit status: 0 on success, 1 on a source error (parse or analysis, with a
@@ -125,26 +127,32 @@ By default the game is compiled together with the bundled Cosmos library
 (docs/02): `cosmos.combined_program` prepends the library declarations to the
 game's. `--no-cosmos` opts out.
 
-Overriding is most-specific-wins, the same rule used for handlers, extended to
-blocks. A block defined in the game (or in a summoned granule) overrides a Cosmos
-library block of the same name. This is how an author reskins a standard message
-without unpacking anything: redefine `msg_jump()` in the story and it replaces
-the library's. A duplicate that is not a game-over-library override is still an
-error.
+Overriding works against the prelude. A block defined in the game (or in a
+summoned granule) overrides a Cosmos *prelude* block of the same name: redefine
+`msg_jump()` in the story and it replaces the library's, with no unpacking. A
+granule's own blocks, by contrast, are not overridable from a story; to change a
+granule you fork it. That boundary is what keeps a granule distinct from a
+prelude (otherwise a granule would just be a renamed prelude), and a granule
+overriding a prelude is exactly what a language pack relies on. The full model -
+the override boundary, the summon forms, and the fork workflow - is docs/05.
 
 The library travels inside `arcc` (section 7), so the compiler never has to find
-it on disk. When an author wants to edit the library, three paths, lightest
+it on disk. When an author wants to change the library, four paths, lightest
 first:
 
-- Redefine a single block in the story (the override above).
-- `arcc --eject-language` writes `english.prelude` beside the story, to edit the
-  messages or start a translation, then compile with `-L`.
-- `arcc --extract-library DIR` writes the whole library out to fork wholesale,
-  then compile with `-L DIR`.
+- Redefine a single prelude block in the story (the override above).
+- `arcc --eject-granule <name>` writes one granule beside the story to fork it,
+  summoned by filename.
+- `arcc --eject-language` writes `english.prelude` to edit the messages or start
+  a translation.
+- `arcc --extract-library DIR` writes the whole library (preludes and granules)
+  to fork wholesale, compiled with `-L DIR` (absolute).
 
-When the compiler does read library files from disk (the development tree, or a
-`-L` directory), a summoned granule resolves relative to the story file's
-directory and then the `-L` path.
+A story summons a granule in one of three forms (docs/05, section 2):
+`summon.statusline` always uses the bundled copy; `summon statusline.granule`
+prefers a copy in the story directory or a `-L` directory and otherwise falls
+back to the bundled one with a notice; `summon "path"` is an explicit file with
+no fallback.
 
 ## 6. The intrinsic bridge
 
@@ -154,8 +162,12 @@ input and parse-buffer access (`read_line`, `word_count`, `word_dict`, and the
 rest), memory peek and poke, object-tree and property primitives (`parent_of`,
 `words_addr`, `get_prop` via the computed `here.(dir)` form), the dispatch
 helpers (`handler_of`, `call_handler`, `run_free`, `run_grain`), the life-cycle
-event numbers, and the output and turn-loop helpers (`show`, `print_name`, `par`,
-`tick`, `set_here`, `do_quit`). Everything else in Cosmos is normal Arcturus.
+event numbers, the output and turn-loop helpers (`show`, `print_name`, `par`,
+`tick`, `set_here`, `do_quit`), the v5 screen model the statusline and
+conversations granules draw with (`split_window`, `set_window`, `set_cursor`,
+`erase_window`, `screen_width`, `read_key`), and the topic-table accessors the
+conversation granules walk (`topics_count`, `topic_visible`, `topic_label`,
+`topic_run`). Everything else in Cosmos is normal Arcturus.
 
 ## 7. Distribution: the single-file arcc
 
