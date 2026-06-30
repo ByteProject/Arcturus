@@ -1,0 +1,73 @@
+// conversations.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the conversations granule: the menu presentation of the `topic`
+// model. TALK TO a person and their topics in view are listed as a numbered menu,
+// held static in the upper window while the conversation scrolls below; press the
+// number to ask one. It is summoned alongside the statusline (as a real game
+// would have it), so the score/room bar sits above the menu - the two coexist.
+//
+// The same `topic` model drives the typed ask/tell path (see
+// infocom-interrogation.storyarc); here it is the menu instead. Note that menu
+// topics need no `words`: you pick by number, not by typing a subject, so a
+// conversations-only person stays tidy.
+//
+//   arcc examples/granules/conversations.storyarc -o conversations.z5
+//   frotz conversations.z5
+//
+// Things to try: TALK TO ESME, then 1 (your fortune) - a new line opens. Follow
+// it down to her warning, which lands once and then leaves the list. TAKE the
+// COIN and talk again: a topic gated on holding it has appeared.
+
+game
+    title "The Seer's Tent"
+    headline "A Cosmos conversation-menu showcase"
+    author "Stefan Vogt"
+    start tent
+
+summon.statusline
+summon.conversations
+
+room tent
+    name "A Seer's Tent"
+    desc "Candlelight pools on a round table draped in star-stitched velvet. The
+          air is thick with incense, and shadows lean in from the canvas walls."
+
+thing esme of person in tent
+    name "Madame Esme"
+    named
+    words esme, madame, seer, woman
+
+    // reveal grows the menu, `once` and `when` shape it, and you / reply / say
+    // read just as on the ask/tell path - the topic model is the same.
+
+    topic fortune "your fortune"
+        you "What do you see for me?"
+        reply "A long road, and a choice at the end of it you will not want to make."
+        reveal road
+
+    topic cards "the tarot cards"
+        you "Tell me about these cards of yours."
+        reply "They do not foretell. They only show you what you already fear."
+
+    topic road "the long road" hidden
+        you "This road. Where does it lead?"
+        reply "North, into the dark. You knew that before you sat down."
+        reveal warning
+
+    topic warning "her warning" hidden once
+        say "She turns a single card and lays it between you. The Tower, inverted."
+        reply "When the moment comes, choose the living over the dead. That is all the cards will give."
+        change score to score + 1
+
+    topic coin "the silver coin" when player holds coin
+        you "What do I owe you for the reading?"
+        reply "Leave the coin where it lies. This was paid for in older coin than silver."
+
+thing coin in tent
+    name "silver coin"
+    words silver, coin
+    intro "A silver coin glints at the edge of the table."
+    desc "A worn silver coin, cold to the touch."

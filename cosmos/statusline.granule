@@ -42,6 +42,10 @@ block draw_status()
     status_bar()
     set_window(0)
 
+// One row, so the conversations menu leaves room for the bar above its list.
+block status_lines()
+    return 1
+
 // Paint the bar into row 1 of whatever upper window is current: reverse video
 // across the width, the room name at the left, the score and moves at the right.
 // The right side adapts to the screen width the way PunyInform does: a wide screen
