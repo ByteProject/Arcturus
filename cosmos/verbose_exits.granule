@@ -22,12 +22,12 @@
 //
 // With those, listing a room's exits is just: for each direction i, read the
 // room's property number exit_prop(i) with the dynamic-property form here.(p); if
-// it leads somewhere, name it. The wording lives here, in Cosmos, so it stays
-// overridable and a language pack can translate it. The backing routines for
-// exit_prop/exit_name are emitted by the compiler ONLY when this granule is
-// summoned, so an unsummoned verbose_exits costs the story file nothing.
+// it leads somewhere, name it. The backing routines for exit_prop/exit_name are
+// emitted by the compiler ONLY when this granule is summoned, so an unsummoned
+// verbose_exits costs the story file nothing.
 //
-// To override the phrasing, redefine msg_cant_go (or msg_no_exits) in your story.
+// To change the phrasing, fork the granule (this msg_cant_go override belongs to
+// it, so it is not overridable from a story while the granule is summoned).
 
 // Replace the standard blocked-direction reply with a live exit list. The go verb
 // calls msg_cant_go whenever the chosen direction has no exit, so overriding this

@@ -13,8 +13,10 @@
 // 0 or ENTER ends it and the menu folds away.
 //
 // This is the same `topic` model the extendedverbs ask/tell path walks; the two
-// are mutually exclusive views of one thing (the menu wins). Every line of
-// wording is an overridable block.
+// are mutually exclusive views of one thing (the menu wins). To change the menu
+// wording or layout, fork the granule. (The conversation line framing - line_you,
+// line_reply, line_end - lives in the prelude, not here, so that part stays
+// overridable from a story and translatable by a language pack.)
 
 // Override the base talk_to seam: talking to a person opens the topic menu.
 block talk_to(person)
@@ -141,7 +143,7 @@ block run_pick(person, pick)
                 return 0
         change i to i + 1
 
-// Wording, all overridable.
+// Wording (fork the granule to change it).
 block msg_no_topics()
     say "You can't think of anything worth raising right now."
 

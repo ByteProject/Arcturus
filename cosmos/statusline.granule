@@ -24,7 +24,8 @@
 // turn loop and nothing added to a story that does not summon this granule.
 //
 // To restyle the bar (drop reverse video, change the wording, reformat the right
-// side), redefine draw_status or prompt in your story; they override these.
+// side), fork the granule: extract it, edit draw_status / status_bar in your
+// copy, and summon that. A granule's blocks are not overridable from a story.
 
 // The input prompt, extended: paint the bar, then do the ordinary prompt (the
 // paragraph break and the ">" the core library would have shown).

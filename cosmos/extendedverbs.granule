@@ -10,8 +10,11 @@
 // override (most-specific-wins), exactly like the standard sensory verbs; search
 // lists what a container or supporter holds, and fullscore reports the score.
 //
-// The wording lives here, in the granule, so it ships only when summoned and an
-// author can reskin any line by redefining its msg_* block.
+// The wording lives here, in the granule, so it ships only when summoned. To
+// reskin its lines, fork the granule: extract it, edit your copy, and summon that
+// (a granule's own blocks are not overridable from a story; that is what keeps a
+// granule distinct from the prelude). An object can still override a verb's
+// effect through ordinary handler resolution (most-specific-wins), below.
 //
 // NOTE (the topic conversation system). ask/tell/answer here give a flat default
 // reply. The richer Infocom topic dispatch (ask <person> about <subject> finding
@@ -344,7 +347,7 @@ on fullscore
     msg_fullscore()
 
 // ---------------------------------------------------------------------------
-// The wording. Redefine any of these in your story to change a line.
+// The wording. Fork the granule to change any of these lines.
 
 block msg_search_nothing()
     say "Nothing worth the effort turns up."
