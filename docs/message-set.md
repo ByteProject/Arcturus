@@ -1,14 +1,14 @@
-# Arcturus standard message set
+# Arcturus message reference
 
-Working doc for B5: the default messages for the standard verbs and the parser,
-in the agreed voice (between warm and witty, leaning witty), referring to the
-noun where it reads better. Redline any wording. `${the noun}` prints the object
-with its article; `${The noun}` capitalizes it; `${the second}` is the second
-noun (give X to Y).
-
-Only the standard set is here. The extended verbs (ask/tell/answer, kiss is
-standard but squeeze/blow/burn/buy/consult/swim/etc.) get their messages with the
-`summon.extendedverbs` granule.
+Every default message Cosmos prints, listed by the block that prints it, so you
+know what to redefine to change a line. Each is an overridable prelude block:
+redefine `block <name>()` in your story and yours wins (a granule's own messages
+are forked instead; docs/05). Interpolation: `${the noun}` prints the object with
+its article, `${The noun}` capitalizes it, `${the second}` is the second noun
+(give X to Y), and `${score}`, `${max_score}`, `${turns}` print numbers. The
+standard messages come first; the extended-verb messages, which ship with
+`summon.extendedverbs`, follow at the end. The companion verb reference is
+docs/verb-set.md.
 
 ## Parser
 
@@ -62,10 +62,11 @@ standard but squeeze/blow/burn/buy/consult/swim/etc.) get their messages with th
 | msg_not_holding | drop what you don't hold | You aren't carrying ${the noun}. |
 | msg_done | put on/in, success | Done. |
 | msg_put_where | put with no destination | On what, or in what? |
-| msg_cant_put | the target won't hold it | ${The noun} won't hold it. |
-| msg_closed | put into a closed container | ${The noun} is shut. |
-| msg_give | give to a person, default | ${The noun} doesn't want ${the second}. Outrageous. |
-| msg_show | show to a person, default | Seems like ${the noun} is not really into that. |
+| msg_cant_put | the target won't hold it | ${The second} won't hold it. |
+| msg_closed | put into a closed container | ${The second} is shut. |
+| msg_give | give to a person, default | ${The second} doesn't want ${the noun}. Outrageous. |
+| msg_show | show to a person, default | Seems like ${the second} is not really into that. |
+| msg_to_whom | give/show with no recipient named | To whom? |
 
 ## Wearing
 
@@ -94,6 +95,7 @@ standard but squeeze/blow/burn/buy/consult/swim/etc.) get their messages with th
 | msg_wrong_key | the key doesn't fit | ${The second} doesn't fit. |
 | msg_unlocked | unlock, success | Unlocked. |
 | msg_cant_unlock | unlock the unlockable | ${The noun} doesn't unlock. |
+| msg_open_first | reach for something known to be shut inside a closed container | You'll have to open ${the shut_in} first. |
 
 ## Operating
 
@@ -143,7 +145,7 @@ is summoned.)
 
 | Block | When | Wording |
 |---|---|---|
-| msg_confirm_quit | quit | Are you sure you want to quit? |
+| confirm_quit | quit confirmation | Are you sure you want to quit? |
 | msg_farewell | quit confirmed | We'll leave it there. |
 | msg_score | score | You have scored ${score} of a possible ${max_score}. |
 | msg_saved | save ok | Saved. |
@@ -152,4 +154,42 @@ is summoned.)
 | msg_confirm_restart | restart | Start over from the very beginning? |
 | msg_undone | undo ok | Taken back. |
 | msg_cant_undo | nothing to undo | There's nothing to take back. |
+| msg_cant_oops | oops with nothing to correct | There's nothing to put right. |
 | msg_xyzzy | xyzzy | Nothing happens, but you feel briefly clever. |
+
+## Extended verbs (summon.extendedverbs)
+
+These ship only when the granule is summoned, and (being a granule's own blocks)
+are changed by forking the granule rather than redefining in a story.
+
+| Block | When | Wording |
+|---|---|---|
+| msg_search_nothing | search, nothing of note (or an empty container/supporter) | Nothing worth the effort turns up. |
+| msg_search_closed | search a closed container | Schroedinger's loot remains safe, mostly because ${the noun} is completely shut. |
+| msg_throw | throw something, default | Gravity has already been discovered; there is no need for you to test it again. |
+| msg_rub | rub, polish, clean, default | You give ${the noun} a thorough buffing. It continues to judge you in silence. |
+| msg_squeeze | squeeze, crush, default | You give ${the noun} an uncomfortably long squeeze. Let's just move on. |
+| msg_tie | tie, attach, fasten, default | Stringing things together won't help you unravel this particular problem. |
+| msg_cut | cut, chop, slice, default | ${The noun} seems firmly opposed to being cut. |
+| msg_fill | fill, default | ${The noun} remains empty, mostly because you don't have anything to put in it. |
+| msg_burn | burn, ignite, default | Starting a fire here seems like a quick way to create a much bigger problem. |
+| msg_blow | blow, default | You unleash a mighty breath. The local climate remains entirely unaffected. |
+| msg_set | set X to Y, default | Set it to what, exactly? |
+| msg_empty | empty a container, default | You up-end ${the noun}. Nothing of note falls out. |
+| msg_buy | buy, purchase, default | Your wealth is profoundly useless in this exact situation. |
+| msg_consult | consult X about Y, default | ${The noun} has nothing to say on the matter. |
+| msg_dig | dig | The ground keeps its secrets. |
+| msg_wave | wave | You wave. The room declines to wave back. |
+| msg_sit | sit | Nothing here invites sitting. |
+| msg_stand | stand | You're already on your feet. |
+| msg_sleep | sleep, nap | You consider curling up into a ball and ignoring the plot, but your sense of duty rudely keeps you awake. |
+| msg_swim | swim, dive | There's nowhere here to swim. |
+| msg_swing | swing | There's nothing here to swing on. |
+| msg_think | think, ponder | A fine idea. Nothing comes of it. |
+| msg_pray | pray | You ask the heavens for a hint. The heavens remain conspicuously silent. |
+| msg_shout | shout, yell, scream | You test the location's acoustics with a loud yell. The results are entirely underwhelming. |
+| msg_ask | ask a person about a topic, no match | ${The noun} stays mum on the subject. |
+| msg_tell | tell a person about a topic, no match | ${The noun} receives the news with magnificent indifference. |
+| msg_answer | answer, respond, default | Your words go unanswered. |
+| msg_use_talk | ask/tell when the conversations menu is summoned | To get anywhere with ${the noun}, just TALK TO ${the noun}. |
+| msg_fullscore | full score breakdown (no turn taken) | You have scored ${score} of a possible ${max_score}, in ${turns} turns. |
