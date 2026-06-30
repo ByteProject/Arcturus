@@ -46,6 +46,7 @@ def test_functional_verbs_on_frotz(tmp_path):
         "unlock chest with brass key\n"  # the right key
         "open chest\n"  # now opens
         "take coin\n"
+        "give coin\n"  # no recipient: must not test_attr on object 0
         "give coin to guard\n"  # animate recipient refuses (coin in hand)
         "show coin to guard\n"
         "give coin to chest\n"  # not animate -> the only-animate nudge
@@ -68,6 +69,8 @@ def test_functional_verbs_on_frotz(tmp_path):
     assert "doesn't want" in out  # give to the guard (animate)
     assert "not really into that" in out  # show to the guard
     assert "therapy" in out  # give to a non-animate (the only-animate nudge)
+    assert "To whom?" in out  # give with no recipient asks, does not crash
+    assert "test_attr" not in out  # the object-0 attribute-test bug is gone
     assert "You aren't inside anything to leave." in out  # exit in the open
 
 

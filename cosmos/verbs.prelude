@@ -447,6 +447,9 @@ on give
     if noun is nothing
         msg_cant_see()
         stop
+    if second is nothing
+        msg_to_whom()
+        stop
     if not (second is animate)
         msg_only_animate()
         stop
@@ -459,6 +462,9 @@ verb "show", "display", "present"
 on show
     if noun is nothing
         msg_cant_see()
+        stop
+    if second is nothing
+        msg_to_whom()
         stop
     if not (second is animate)
         msg_only_animate()
