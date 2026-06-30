@@ -818,12 +818,21 @@ def _attr_test(rt, ctx, expr: ast.IsTest, label, on_true):
 # --------------------------------------------------------------------------
 
 
-def compile_block(rt: Routine, ctx: Context, body) -> None:
+def compile_block(rt: Routine, ctx: Context, body) -> bool:
+    """Compile a statement list. Returns True if it unconditionally terminates
+    (every path returns or quits): then any statement after the terminator is dead
+    and not emitted, and the caller can drop an unreachable default-return (B6.3
+    dead-code peephole)."""
     for stmt in body:
-        compile_stmt(rt, ctx, stmt)
+        if compile_stmt(rt, ctx, stmt):
+            return True  # the rest of the block is unreachable
+    return False
 
 
-def compile_stmt(rt: Routine, ctx: Context, s) -> None:
+def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
+    """Lower one statement. Returns True if it unconditionally transfers control
+    away (return, stop, finish, continue, or an if/else all of whose paths do), so
+    the block knows the following statements cannot be reached."""
     if isinstance(s, ast.Let):
         eval_expr(rt, ctx, s.value, Variable(ctx.resolve_var(s.name, s.line)))
     elif isinstance(s, ast.Change):
@@ -842,16 +851,19 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> None:
             rt.op("ret", op)
             if t is not None:
                 ctx.free_temp(t)
+        return True
     elif isinstance(s, ast.Finish):
         if s.message is not None:
             _say(rt, ctx, s.message)
         rt.op("quit")
+        return True
     elif isinstance(s, ast.Stop):
         # In a handler, stop consumes the action (return 1); elsewhere it is a
         # plain return.
         rt.op("ret", Const(1)) if ctx.in_handler else rt.op("rfalse")
+        return True
     elif isinstance(s, ast.If):
-        _if(rt, ctx, s)
+        return _if(rt, ctx, s)
     elif isinstance(s, ast.While):
         _while(rt, ctx, s)
     elif isinstance(s, ast.Switch):
@@ -876,12 +888,14 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> None:
         if not ctx.in_handler:
             raise LowerError("'continue' is only valid in a handler", s.line)
         rt.op("ret", Const(0))  # pass the action to the next handler
+        return True
     elif isinstance(s, ast.ForEach):
         _for_each(rt, ctx, s)
     elif isinstance(s, ast.Schedule):
         raise LowerError("scheduling needs the turn loop (B4.5)", s.line)
     else:
         raise LowerError("unsupported statement in B4.2", getattr(s, "line", 0))
+    return False  # the statement falls through to whatever follows
 
 
 def _change(rt, ctx, s: ast.Change):
@@ -1115,18 +1129,29 @@ def _print_indefinite(rt, ctx, op, cap):
     rt.label(done)
 
 
-def _if(rt, ctx, s: ast.If):
+def _if(rt, ctx, s: ast.If) -> bool:
+    """Returns True if the whole if/else unconditionally terminates: there is an
+    else and every clause body terminates, so no path falls through to `end`. A
+    clause body that terminates also needs no jump to `end` (that jump would be
+    dead), so it is skipped."""
     end = ctx.new_label()
+    has_else = False
+    all_terminate = True
     for clause in s.clauses:
         if clause.cond is None:
-            compile_block(rt, ctx, clause.body)
+            has_else = True
+            term = compile_block(rt, ctx, clause.body)
+            all_terminate = all_terminate and term
         else:
             nxt = ctx.new_label()
             cond_jump(rt, ctx, clause.cond, nxt, False)
-            compile_block(rt, ctx, clause.body)
-            rt.jump(end)
+            term = compile_block(rt, ctx, clause.body)
+            if not term:
+                rt.jump(end)  # only needed when the body can fall through
+            all_terminate = all_terminate and term
             rt.label(nxt)
     rt.label(end)
+    return has_else and all_terminate
 
 
 def _is_list_source(ctx, source) -> bool:

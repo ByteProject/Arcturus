@@ -475,8 +475,8 @@ def _compile_handler(world, gmap, layout, pool, handler, name) -> Routine:
     if handler.when is not None:
         skip = ctx.new_label()
         cond_jump(rt, ctx, handler.when, skip, False)
-    compile_block(rt, ctx, handler.body)
-    rt.op("ret", _CONST_ONE)  # falling off the end consumes the action
+    if not compile_block(rt, ctx, handler.body):
+        rt.op("ret", _CONST_ONE)  # falling off the end consumes the action
     if skip is not None:
         rt.label(skip)
         rt.op("ret", Const(0))
@@ -488,8 +488,8 @@ def _compile_block(world, gmap, layout, pool, blk) -> Routine:
     rt = Routine("blk_" + blk.name, nlocals=len(blk.params))
     ctx = Context(world, gmap, params=blk.params, layout=layout, string_pool=pool)
     ctx.prescan(blk.body)
-    compile_block(rt, ctx, blk.body)
-    rt.op("rfalse")  # default return value if the block does not return one
+    if not compile_block(rt, ctx, blk.body):
+        rt.op("rfalse")  # default return value if the block does not return one
     rt.nlocals = ctx.nlocals()
     return rt
 
@@ -605,8 +605,8 @@ def _compile_topic_body(world, gmap, layout, pool, topics, owner_num, name, idx,
     # reveal/hide name a sibling topic; resolve the subject to its table index now.
     ctx.topic_index = {t.subject: i for i, t in enumerate(topics)}
     ctx.prescan(topic.body)
-    compile_block(rt, ctx, topic.body)
-    rt.op("rtrue")
+    if not compile_block(rt, ctx, topic.body):
+        rt.op("rtrue")
     rt.nlocals = ctx.nlocals()
     return rt
 
