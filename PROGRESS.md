@@ -16,7 +16,7 @@ Last updated: 2026-06-30.
 | B3 | Z-machine backend MVP (smallest valid story file) | done |
 | B4 | Cosmos compiled: parser, turn loop, standard verbs | done |
 | B5 | Feature-complete library and a fair benchmark | done (library); B6 measures the benchmark |
-| B6 | Size pass (DCE, abbreviations, codegen) | in progress (DCE + default abbrevs done) |
+| B6 | Size pass (DCE, abbreviations, codegen) | core done (DCE, abbrevs, codegen); opt-in --make-abbreviations left |
 | B7 | Language packs (Spanish, German) | pending |
 | B8 | The reference interpreter, Actaea | pending |
 | B9 | arc_image on modern systems (PNG) | pending |
@@ -141,19 +141,24 @@ Sizes with B6.1+B6.2: brass 11572, cloak 12336, statusline 10952, conversations
   already checks world.abbreviations - the override hook is stubbed, nothing sets
   it yet). zstring.encode + the optimizer are reused as-is.
 
-B6 PART 3 - codegen tightening: branch relaxation DONE (committed). assembler.
-Routine.relax() rewrites each routine's branches to the one-byte short form where
-the forward offset fits 2..63 (a fixpoint, since shrinking one branch pulls others
-into range), resolving branches + jumps intra-routine (PC-relative, so done before
-link places the routine) and leaving only call/strref fixups for link, repositioned.
-Saved ~124-400 bytes/example: brass 11768->11444, cloak 12528->12168 (~12.2K, back
-under NAIL), interrogation 16480->16080. All 247 tests pass; topic/menu examples
-verified on Frotz. docs/04 section 11. REMAINING peepholes (smaller, optional):
-one-byte jumps (small-const forward operand), branch-to-return (offset 0/1 =
-rfalse/rtrue when the target is a bare return), drop dead code after an
-unconditional ret/jump.
-
-B6 PART 3 - codegen tightening (dense codegen, docs/00 section 5 levers).
+B6 PART 3 - codegen tightening: DONE (committed). Five tightenings, docs/04 s.11:
+(1) canonical returns - emit rfalse/rtrue for ret 0/ret 1 (op-level; biggest, every
+handler/react/helper ends on return 0/1). (2) short-form branches - assembler.
+Routine.relax() rewrites a forward branch to the 1-byte form when its offset fits
+2..63. (3) branch-to-return - a branch whose target is a bare rfalse/rtrue returns
+via short offset 0/1. (4) one-byte jumps - a forward jump with offset 2..255 uses
+the small-const operand (0x9C). 2-4 are one fixpoint in relax() (shrinking one
+element pulls others into range; converges since offsets bottom out at 2, never the
+0/1 return range); branch+jump offsets are PC-relative/intra-routine so relax runs
+per routine before link, leaving only call/strref fixups. (5) dead code - lowering
+compile_block returns whether a statement list unconditionally terminates (return/
+stop/finish/continue, or if/else all-terminating); stops emitting after a
+terminator, _if drops the dead jump-to-end, codegen omits the default return after
+a terminating body. CUMULATIVE B6.3: cloak 12528->11324 (~11.3K), brass 11768->10620,
+interrogation 16480->15092 (~1.2K/game). All 247 tests pass; cloak reaches "*** You
+have won ***" on Frotz, topic/menu examples verified by hand. REMAINING B6 (optional,
+separate): the opt-in --make-abbreviations per-game pass (encoder + optimizer done;
+needs the CLI flag + granule writer + summon interception).
 
 BUILD/TEST + HARD RULES (carry these): rebuild amalgam `python3
 tools/amalgamate.py build/arcc`; rebuild example .z5 after any cosmos/ change;

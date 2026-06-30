@@ -242,27 +242,44 @@ left, until the table is full or nothing else pays.
 
 ## 11. Dense code generation (B6)
 
-The third size lever (docs/00 section 5) tightens the emitted code. The first pass
-is branch relaxation (`assembler.Routine.relax`). The assembler emits every branch
-in the two-byte wide form, but the Z-machine also has a one-byte short form for a
-forward offset of 2 to 63, which covers most branches in practice. Branch and jump
-offsets are PC-relative within a routine, so each routine is relaxed on its own,
-before the linker places it: the pass settles which branches can be short, rewrites
-the code to its final size, resolves the branch and jump offsets, and hands the
-linker only the inter-routine call and string-reference fixups, repositioned.
+The third size lever (docs/00 section 5) tightens the emitted code, through one
+emit-point peephole, the relaxation pass, and a lowering-level dead-code pass.
 
-Choosing the short forms is a fixpoint. Shortening one branch pulls every branch
-that spans it one byte closer to its target, which can bring a second branch into
-range, so the pass shrinks any branch that now fits and repeats until a pass
-changes nothing. Shrinking only ever shortens distances, and a forward branch to
-the very next instruction already has the minimum offset of 2, so an offset never
-drops into the 0/1 range the Z-machine reads as "return", and the iteration always
-converges. On the example games this reclaims a few hundred bytes each.
+At the emit point, a `ret 0` / `ret 1` (the two-byte 1OP form) is written as the
+one-byte `rfalse` / `rtrue`. Every handler, react routine, and helper ends on a
+"return 0/1", so this alone is the single largest saving.
+
+The relaxation pass (`assembler.Routine.relax`) settles each routine's intra-
+routine control flow. Branch and jump offsets are PC-relative within a routine, so
+the pass runs per routine before the linker places it: it sizes every branch and
+jump, resolves their offsets, rewrites the code to its final length, and hands the
+linker only the inter-routine call and string-reference fixups, repositioned. It
+applies three peepholes:
+
+- Short-form branches: a forward branch whose offset fits 2 to 63 takes the one-
+  byte form instead of the two-byte wide form.
+- Branch-to-return: a branch whose target is a bare `rfalse` / `rtrue` returns
+  directly through the short-form offset 0 / 1, never reaching the label.
+- One-byte jumps: a forward jump whose offset fits 2 to 255 uses the one-byte
+  small-constant operand (opcode 0x9C) instead of the two-byte form (0x8C).
+
+Sizing is a fixpoint: shortening one element pulls every element that spans it one
+byte closer to its target, which can bring another into range, so the pass shrinks
+what fits and repeats until nothing changes. Shrinking only ever shortens
+distances, and a forward offset bottoms out at its short-form minimum of 2, so it
+never drops into the 0/1 range the machine reads as "return", and it converges.
+
+The dead-code pass is in the lowering. `compile_block` reports whether a statement
+list unconditionally terminates (every path returns, stops, finishes, or
+continues, including an if/else all of whose clauses do); it stops emitting at the
+first terminator, since the rest is unreachable, `_if` skips the jump-to-end after
+a clause that already returned, and codegen omits the default return it would
+otherwise append to a body that already returns.
+
+Together these reclaim around 1.2K from each example game.
 
 ## 12. Not yet lowered
 
 Deferred to later milestones: the `a`/`an` choice by sound, kind-level grains and
 topics (they need per-instance scope), computed (`block`-valued) exits and
-`on go other`, the opt-in `--make-abbreviations` per-game pass, and the remaining
-dense-codegen peepholes (one-byte jumps, branch-to-return, dead code after an
-unconditional transfer).
+`on go other`, and the opt-in `--make-abbreviations` per-game pass.
