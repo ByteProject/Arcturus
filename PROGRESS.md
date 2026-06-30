@@ -141,6 +141,18 @@ Sizes with B6.1+B6.2: brass 11572, cloak 12336, statusline 10952, conversations
   already checks world.abbreviations - the override hook is stubbed, nothing sets
   it yet). zstring.encode + the optimizer are reused as-is.
 
+B6 PART 3 - codegen tightening: branch relaxation DONE (committed). assembler.
+Routine.relax() rewrites each routine's branches to the one-byte short form where
+the forward offset fits 2..63 (a fixpoint, since shrinking one branch pulls others
+into range), resolving branches + jumps intra-routine (PC-relative, so done before
+link places the routine) and leaving only call/strref fixups for link, repositioned.
+Saved ~124-400 bytes/example: brass 11768->11444, cloak 12528->12168 (~12.2K, back
+under NAIL), interrogation 16480->16080. All 247 tests pass; topic/menu examples
+verified on Frotz. docs/04 section 11. REMAINING peepholes (smaller, optional):
+one-byte jumps (small-const forward operand), branch-to-return (offset 0/1 =
+rfalse/rtrue when the target is a bare return), drop dead code after an
+unconditional ret/jump.
+
 B6 PART 3 - codegen tightening (dense codegen, docs/00 section 5 levers).
 
 BUILD/TEST + HARD RULES (carry these): rebuild amalgam `python3

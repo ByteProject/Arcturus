@@ -276,10 +276,93 @@ class Routine:
             self.fixups.append(_Fixup(offset_in_code, "strref", op.string))
 
     def _emit_branch(self, label: str, on_true: bool) -> None:
-        # Reserve two bytes; resolved at link time (we always use the wide form
-        # for simplicity in B4.1, tightened to one byte where it fits in B5).
+        # Reserve two bytes for the wide form; relax() later rewrites the branch to
+        # the one-byte short form where the offset fits (B6.3).
         self.fixups.append(_Fixup(len(self.code), "branch", label, on_true, True))
         self.code += b"\x00\x00"
+
+    def relax(self) -> None:
+        """Resolve this routine's branches and jumps, picking the one-byte short
+        branch form for every forward branch whose offset fits 2..63 (B6.3, the
+        dense-codegen size lever, docs/00 section 5). Branch and jump offsets are
+        PC-relative within the routine, so they can be settled here, before the
+        linker places the routine; only the inter-routine call and string-ref
+        fixups are left for link(), with their positions shifted to match the
+        shortened code.
+
+        Choosing short forms is a fixpoint: shortening one branch pulls every
+        branch that spans it one byte closer, which can bring a second branch into
+        range. Shrinking only ever shortens distances, so a forward offset never
+        drops below its 2-byte minimum of 2, and the iteration converges."""
+        branches = [f for f in self.fixups if f.kind == "branch"]
+        jumps = [f for f in self.fixups if f.kind == "jump"]
+        if not branches and not jumps:
+            return  # nothing intra-routine to settle; calls/strrefs stay for link
+        size = {id(f): 2 for f in branches}  # every branch starts wide
+
+        def shift(old_p: int) -> int:
+            return sum(2 - size[id(f)] for f in branches if f.offset < old_p)
+
+        def newpos(old_p: int) -> int:
+            return old_p - shift(old_p)
+
+        changed = True
+        while changed:
+            changed = False
+            for f in branches:
+                if size[id(f)] != 2:
+                    continue
+                off1 = newpos(self.labels[f.target]) - newpos(f.offset) + 1
+                if 2 <= off1 <= 63:  # short form: 6-bit forward offset, not a return (0/1)
+                    size[id(f)] = 1
+                    changed = True
+
+        by_pos = {}
+        for f in branches:
+            by_pos[f.offset] = ("branch", f)
+        for f in jumps:
+            by_pos[f.offset] = ("jump", f)
+        for f in self.fixups:
+            if f.kind in ("call", "strref"):
+                by_pos[f.offset] = ("keep", f)
+
+        new_code = bytearray()
+        new_fixups: list[_Fixup] = []
+        old = 0
+        n = len(self.code)
+        while old < n:
+            entry = by_pos.get(old)
+            if entry is None:
+                new_code.append(self.code[old])
+                old += 1
+                continue
+            kind, f = entry
+            if kind == "branch":
+                off = newpos(self.labels[f.target]) - newpos(old) + (1 if size[id(f)] == 1 else 0)
+                if size[id(f)] == 1:
+                    b = 0x40 | (off & 0x3F)  # short form: bit 6 set, 6-bit offset
+                    if f.on_true:
+                        b |= 0x80
+                    new_code.append(b)
+                else:
+                    word = off & 0x3FFF
+                    hi = word >> 8
+                    if f.on_true:
+                        hi |= 0x80
+                    new_code.append(hi)
+                    new_code.append(word & 0xFF)
+            elif kind == "jump":
+                off = (newpos(self.labels[f.target]) - newpos(old)) & 0xFFFF
+                new_code.append((off >> 8) & 0xFF)
+                new_code.append(off & 0xFF)
+            else:  # keep: an inter-routine fixup, repositioned, bytes copied as placeholder
+                new_fixups.append(_Fixup(len(new_code), f.kind, f.target, f.on_true, f.wide))
+                new_code.append(self.code[old])
+                new_code.append(self.code[old + 1])
+            old += 2
+        self.code = new_code
+        self.fixups = new_fixups
+        self.labels = {}
 
 
 def link(entry: Routine, routines: list[Routine], base_addr: int):
@@ -289,6 +372,12 @@ def link(entry: Routine, routines: list[Routine], base_addr: int):
     resolved once the strings are laid out (by the caller, in build_story)."""
     blob = bytearray()
     starts: dict[str, int] = {}
+
+    # Settle each routine's intra-routine branches and jumps first (and shorten the
+    # branches that fit), so the code is at its final size before it is placed.
+    entry.relax()
+    for r in routines:
+        r.relax()
 
     # The entry stub is placed first, with no routine header.
     starts[entry.name] = base_addr

@@ -240,9 +240,29 @@ greedy heuristic: it repeatedly takes the substring whose references would save 
 most bytes and blanks its occurrences so the next round re-scores against what is
 left, until the table is full or nothing else pays.
 
-## 11. Not yet lowered
+## 11. Dense code generation (B6)
+
+The third size lever (docs/00 section 5) tightens the emitted code. The first pass
+is branch relaxation (`assembler.Routine.relax`). The assembler emits every branch
+in the two-byte wide form, but the Z-machine also has a one-byte short form for a
+forward offset of 2 to 63, which covers most branches in practice. Branch and jump
+offsets are PC-relative within a routine, so each routine is relaxed on its own,
+before the linker places it: the pass settles which branches can be short, rewrites
+the code to its final size, resolves the branch and jump offsets, and hands the
+linker only the inter-routine call and string-reference fixups, repositioned.
+
+Choosing the short forms is a fixpoint. Shortening one branch pulls every branch
+that spans it one byte closer to its target, which can bring a second branch into
+range, so the pass shrinks any branch that now fits and repeats until a pass
+changes nothing. Shrinking only ever shortens distances, and a forward branch to
+the very next instruction already has the minimum offset of 2, so an offset never
+drops into the 0/1 range the Z-machine reads as "return", and the iteration always
+converges. On the example games this reclaims a few hundred bytes each.
+
+## 12. Not yet lowered
 
 Deferred to later milestones: the `a`/`an` choice by sound, kind-level grains and
 topics (they need per-instance scope), computed (`block`-valued) exits and
-`on go other`, the opt-in `--make-abbreviations` per-game pass, and dense-codegen
-tightening (B6 parts 2 and 3).
+`on go other`, the opt-in `--make-abbreviations` per-game pass, and the remaining
+dense-codegen peepholes (one-byte jumps, branch-to-return, dead code after an
+unconditional transfer).
