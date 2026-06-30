@@ -359,6 +359,13 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
                 topic_sites[name] = data_at  # patched in _emit_topic_tables
             continue
         _fill_property(world, layout, pname, decl, data_at)
+    # A property list is terminated by a size byte of zero (standard 1.1, section
+    # 12.4.1). Without it, get_prop_addr for an absent property walks past this
+    # object into whatever follows: it only ever "worked" because the object table
+    # was trailed by the zero-filled abbreviation table, so the first zero there
+    # ended the walk. Filling that table (B6 abbreviations) removed the accidental
+    # terminator, so each property list now ends with its own.
+    table.append(0)
 
 
 def object_words(eff: dict, is_room: bool = False) -> list:
