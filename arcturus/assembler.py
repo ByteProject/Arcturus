@@ -175,6 +175,16 @@ class Routine:
         branch: Optional[tuple] = None,  # (label, on_true)
         text: Optional[str] = None,
     ) -> None:
+        # Canonical returns (B6.3 peephole): `ret 0` and `ret 1` are the two-byte
+        # 1OP form; rfalse and rtrue are the one-byte 0OP equivalents. Emit the
+        # short form so every "return 0/1" site costs one byte instead of two.
+        if name == "ret" and len(operands) == 1:
+            o = operands[0]
+            if o.kind == SMALL and o.routine is None and o.string is None:
+                if o.value == 0:
+                    name, operands = "rfalse", ()
+                elif o.value == 1:
+                    name, operands = "rtrue", ()
         form, code, stores, branches, has_text = _OPCODES[name]
         self.code += self._encode(form, code, list(operands))
         if has_text:
