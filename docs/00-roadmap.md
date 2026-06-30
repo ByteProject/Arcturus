@@ -89,7 +89,12 @@ rather than written in advance.
   story-file assembly, with the size levers marked.
 - 04-codegen-mapping.md (implementation phase): the construct-to-z5 opcode
   reference.
-- 05-conformance.md (implementation phase): the test plan, with the two example
+- 05-granules.md: the author-facing reference for the summonable granules
+  (extendedverbs, statusline, verbose_exits, conversations, debug): how to summon
+  each, what it adds, the blocks an author can override, and how to write your
+  own granule.
+- 06-actaea-design.md: the Actaea reference interpreter (built in milestone B8).
+- 07-conformance.md (the final milestone): the test plan, with the two example
   games as golden tests and a size regression baseline.
 
 The two worked examples in 01, the Brass Lantern and Cloak of Darkness, are
