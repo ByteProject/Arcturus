@@ -577,10 +577,19 @@ block resolve_objects()
                 return 1
     change noun to match_noun()
     if noun is nothing
+        change noun to reach_unscoped()
+    if noun is nothing
         change grain to find_scenery()
         if grain is 0
             change parse_fault to named_unseen()
     return 1
+
+// A hook for reaching an object ordinary scope could not: nothing by default, so
+// a word that names something out of view stays unresolved (and the turn answers
+// "you can't see that"). The debug granule overrides this to match the word
+// against every object, so its fetch/warp/inspect verbs reach anything.
+block reach_unscoped()
+    return nothing
 
 // Did the player name an object word that nothing in scope answered to? Every
 // unflagged dictionary word is object vocabulary (verbs, directions, particles,
