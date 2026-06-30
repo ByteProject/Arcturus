@@ -31,15 +31,18 @@ Arcturus itself.
 The road from here, milestone by milestone:
 
 - **Done:** the language spec; the compiler (lexer, parser, semantic analysis,
-  Z-machine code generation); and a feature-complete Cosmos - the full standard
-  verb set, the meta verbs (score, save, restore, undo, again, oops), an original
+  Z-machine code generation); a feature-complete Cosmos - the full standard verb
+  set, the meta verbs (score, save, restore, undo, again, oops), an original
   standard message set, the `topic` conversation model, and the summonable
   granules: extended verbs, an opt-in status line, verbose exits, a menu-driven
-  conversation system, and debug verbs. Both example games play end to end.
-- **Next:** the size pass - whole-program dead-code elimination and
-  abbreviation-based text compression - benchmarked against PunyInform. Until
-  this pass lands the library ships everything it has, so current builds carry
-  code a given story does not use; trimming that is the milestone.
+  conversation system, and debug verbs; and the size pass - whole-program
+  dead-code elimination and abbreviation-based text compression, both built into
+  the compiler so every build is trimmed and packed with nothing to configure.
+  Both example games play end to end, and Cloak of Darkness compiles to about
+  12K, smaller than its PunyInform build (~27K).
+- **Next:** finishing the size pass - dense code generation, and an opt-in pass
+  that computes a per-game abbreviation set when an author wants to squeeze a
+  large story further than the baked-in default.
 - **After that:** Spanish and German language packs, a modern reference
   interpreter, the `arc_image` graphics path (modern systems first, then the
   8-bit and 16-bit retro machines), and porting two existing games - Ghosts of
@@ -60,6 +63,16 @@ to start writing Arcturus today:
   turn loop.
 - [docs/05-granules.md](docs/05-granules.md) — the summonable granules: how to
   summon them, how to fork one, and how to write your own.
+
+For the curious who want to see under the hood, two further documents cover how
+the compiler itself works:
+
+- [docs/03-compiler-pipeline.md](docs/03-compiler-pipeline.md) — the compiler:
+  the pass pipeline, the command-line interface, how Cosmos is bundled and
+  overridden, the single-file distribution, and the version model.
+- [docs/04-codegen-mapping.md](docs/04-codegen-mapping.md) — the backend: how
+  Arcturus constructs map to Z-machine opcodes and the story-file image, plus the
+  size levers (dead-code elimination and abbreviation text compression).
 
 A fuller wiki will follow as the project matures. For a taste, the two worked
 games live under [examples/](examples/) - the Brass Lantern and the classic
@@ -152,8 +165,8 @@ A Visual Studio Code extension provides syntax highlighting for `.storyarc`,
 `.prelude`, and `.granule` files. Install the packaged extension:
 
 - In VS Code: Extensions view, `...` menu, **Install from VSIX...**, then choose
-  [editors/vscode/arcturus-0.1.0.vsix](editors/vscode/arcturus-0.1.0.vsix); or
-- from a terminal: `code --install-extension editors/vscode/arcturus-0.1.0.vsix`
+  [editors/vscode/arcturus-0.2.0.vsix](editors/vscode/arcturus-0.2.0.vsix); or
+- from a terminal: `code --install-extension editors/vscode/arcturus-0.2.0.vsix`
 
 This works on macOS, Windows, and Linux. The extension source is under
 [editors/vscode/](editors/vscode/); rebuild the `.vsix` with

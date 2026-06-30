@@ -10,6 +10,9 @@
         { "include": "#numbers" },
         { "include": "#constants" },
         { "include": "#builtins" },
+        { "include": "#kinds" },
+        { "include": "#attributes" },
+        { "include": "#properties" },
         { "include": "#keywords" },
         { "include": "#operators" }
     ],
@@ -40,6 +43,14 @@
                     }
                 },
                 {
+                    "comment": "A topic declaration on a person: topic <id> \"label\" ...",
+                    "match": "^\\s*(topic)\\s+([A-Za-z][A-Za-z0-9_]*)",
+                    "captures": {
+                        "1": { "name": "keyword.declaration.storyarc" },
+                        "2": { "name": "entity.name.function.storyarc" }
+                    }
+                },
+                {
                     "match": "^\\s*(global|constant)\\s+([A-Za-z][A-Za-z0-9_]*)",
                     "captures": {
                         "1": { "name": "keyword.declaration.storyarc" },
@@ -53,11 +64,12 @@
                     }
                 },
                 {
-                    "comment": "summon and summon.feature directives.",
-                    "match": "^\\s*(summon)(\\.[A-Za-z][A-Za-z0-9_]*)?",
+                    "comment": "The three summon forms: summon.feature (bundled), summon name.granule (searched), summon \"path\" (a file, highlighted as a string).",
+                    "match": "^\\s*(summon)(?:(\\.[A-Za-z][A-Za-z0-9_]*)|\\s+([A-Za-z][A-Za-z0-9_]*\\.granule))?",
                     "captures": {
                         "1": { "name": "keyword.control.import.storyarc" },
-                        "2": { "name": "support.function.summon.storyarc" }
+                        "2": { "name": "support.function.summon.storyarc" },
+                        "3": { "name": "support.function.summon.storyarc" }
                     }
                 }
             ]
@@ -87,6 +99,11 @@
                         { "include": "#builtins" },
                         { "include": "#operators" },
                         {
+                            "comment": "The leading article of an interpolation: the/The/a/an.",
+                            "match": "\\b(the|The|a|an)\\b",
+                            "name": "keyword.other.article.storyarc"
+                        },
+                        {
                             "match": "\\b([A-Za-z][A-Za-z0-9_]*)\\b",
                             "name": "variable.other.interpolated.storyarc"
                         }
@@ -110,6 +127,30 @@
             "name": "variable.language.storyarc",
             "match": "\\b(self|player|here|noun|second|turns|score|max_score)\\b"
         },
+        "kinds": {
+            "comment": "Standard Cosmos kinds an object can be declared `of`.",
+            "name": "support.class.kind.storyarc",
+            "match": "\\b(container|supporter|door|person)\\b"
+        },
+        "attributes": {
+            "comment": "Standard Cosmos boolean attributes (docs/02).",
+            "name": "support.type.attribute.storyarc",
+            "match": "\\b(fixed|scenery|concealed|wearable|worn|lit|edible|named|switchable|openable|open|lockable|locked|visited|clear|seen|moved|animate)\\b"
+        },
+        "properties": {
+            "comment": "Standard Cosmos value properties and the topic modifiers.",
+            "patterns": [
+                {
+                    "name": "support.type.property.storyarc",
+                    "match": "\\b(name|desc|intro|words|capacity)\\b"
+                },
+                {
+                    "comment": "Topic header modifiers (docs/01 section 15).",
+                    "name": "keyword.other.modifier.storyarc",
+                    "match": "\\b(once|hidden)\\b"
+                }
+            ]
+        },
         "keywords": {
             "patterns": [
                 {
@@ -121,8 +162,13 @@
                     "match": "\\b(let|change|now|move|add|remove|say|to|from|start)\\b"
                 },
                 {
+                    "comment": "Conversation sugar in a topic body: the player's line, the NPC reply, and the reveal/hide toggles (docs/02 section 14).",
+                    "name": "keyword.other.conversation.storyarc",
+                    "match": "\\b(you|reply|reveal|hide)\\b"
+                },
+                {
                     "name": "storage.type.storyarc",
-                    "match": "\\b(list|block)\\b"
+                    "match": "\\b(list|block|topic)\\b"
                 },
                 {
                     "name": "support.type.metadata.storyarc",

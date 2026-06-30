@@ -18,9 +18,12 @@ Arcturus itself. The full project and its documentation live at
 ## What this extension does
 
 - A TextMate grammar for Arcturus source: comments, strings with `${...}`
-  interpolation and escapes, numbers, UUID literals, declaration heads
-  (`game`, `room`, `thing`, `kind`, `verb`, `block`), keywords, operators, and
-  built-in references.
+  interpolation, articles and escapes, numbers, UUID literals, declaration heads
+  (`game`, `room`, `thing`, `kind`, `verb`, `block`, `topic`), the three `summon`
+  forms, the standard Cosmos vocabulary (kinds such as `container` and `person`,
+  attributes such as `wearable` and `openable`, properties such as `desc` and
+  `intro`), the conversation sugar (`topic`, `you`, `reply`, `reveal`, `hide`),
+  keywords, operators, and built-in references.
 - A language configuration: the `//` line comment, bracket matching, and
   indentation rules for the indentation-based block structure.
 
@@ -32,14 +35,14 @@ It activates for the three Arcturus source extensions:
 
 ## Installing
 
-Install the packaged extension (`arcturus-0.1.0.vsix`) one of two ways:
+Install the packaged extension (`arcturus-0.2.0.vsix`) one of two ways:
 
 - In VS Code, open the Extensions view, click the `...` menu, choose
   **Install from VSIX...**, and select the `.vsix` file.
 - Or from a terminal:
 
   ```
-  code --install-extension arcturus-0.1.0.vsix
+  code --install-extension arcturus-0.2.0.vsix
   ```
 
 This works the same on macOS, Windows, and Linux. After installing, open any
