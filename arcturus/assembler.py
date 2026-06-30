@@ -292,26 +292,57 @@ class Routine:
         self.code += b"\x00\x00"
 
     def relax(self) -> None:
-        """Resolve this routine's branches and jumps, picking the one-byte short
-        branch form for every forward branch whose offset fits 2..63 (B6.3, the
-        dense-codegen size lever, docs/00 section 5). Branch and jump offsets are
-        PC-relative within the routine, so they can be settled here, before the
-        linker places the routine; only the inter-routine call and string-ref
-        fixups are left for link(), with their positions shifted to match the
-        shortened code.
+        """Tighten this routine's intra-routine control flow (B6.3, the dense-
+        codegen size lever, docs/00 section 5), then settle every branch and jump
+        offset, leaving only the inter-routine call and string-ref fixups for
+        link(), repositioned to match the shortened code. Three peepholes apply:
 
-        Choosing short forms is a fixpoint: shortening one branch pulls every
-        branch that spans it one byte closer, which can bring a second branch into
-        range. Shrinking only ever shortens distances, so a forward offset never
-        drops below its 2-byte minimum of 2, and the iteration converges."""
+        - Short-form branches: a forward branch whose offset fits 2..63 takes the
+          one-byte form instead of the two-byte wide form.
+        - Branch-to-return: a branch whose target is a bare rfalse / rtrue returns
+          directly through the short-form offset 0 / 1, never reaching the label.
+        - One-byte jumps: a forward jump whose offset fits 2..255 uses the one-byte
+          small-constant operand (opcode 0x9C) instead of the two-byte form (0x8C).
+
+        Sizing is a fixpoint: shortening one element pulls every element that spans
+        it closer to its target, which can bring another into range. Shrinking only
+        shortens distances, and a forward offset bottoms out at its short-form
+        minimum of 2, so it never reaches the 0/1 the machine reads as a return,
+        and the iteration converges. Offsets here are PC-relative within the
+        routine, so this is independent of where the linker places it."""
         branches = [f for f in self.fixups if f.kind == "branch"]
         jumps = [f for f in self.fixups if f.kind == "jump"]
         if not branches and not jumps:
             return  # nothing intra-routine to settle; calls/strrefs stay for link
-        size = {id(f): 2 for f in branches}  # every branch starts wide
+
+        # A branch whose target is a bare return (rfalse 0xB1 -> 0, rtrue 0xB0 -> 1)
+        # returns directly via the short offset; it is always one byte.
+        retval: dict = {}
+        for f in branches:
+            b = self.code[self.labels[f.target]]
+            if b == 0xB1:
+                retval[id(f)] = 0
+            elif b == 0xB0:
+                retval[id(f)] = 1
+
+        # Each relocatable element: a branch is two bytes at f.offset; a jump is
+        # three bytes starting at its opcode (f.offset - 1). `size` is the chosen
+        # encoded length, `start` the element's first byte, `span` its original.
+        start: dict = {}
+        span: dict = {}
+        size: dict = {}
+        for f in branches:
+            start[id(f)] = f.offset
+            span[id(f)] = 2
+            size[id(f)] = 1 if id(f) in retval else 2
+        for f in jumps:
+            start[id(f)] = f.offset - 1
+            span[id(f)] = 3
+            size[id(f)] = 3
+        elems = branches + jumps
 
         def shift(old_p: int) -> int:
-            return sum(2 - size[id(f)] for f in branches if f.offset < old_p)
+            return sum(span[id(f)] - size[id(f)] for f in elems if start[id(f)] < old_p)
 
         def newpos(old_p: int) -> int:
             return old_p - shift(old_p)
@@ -320,18 +351,25 @@ class Routine:
         while changed:
             changed = False
             for f in branches:
-                if size[id(f)] != 2:
+                if size[id(f)] != 2 or id(f) in retval:
                     continue
                 off1 = newpos(self.labels[f.target]) - newpos(f.offset) + 1
-                if 2 <= off1 <= 63:  # short form: 6-bit forward offset, not a return (0/1)
+                if 2 <= off1 <= 63:
                     size[id(f)] = 1
                     changed = True
+            for f in jumps:
+                if size[id(f)] != 3:
+                    continue
+                off = newpos(self.labels[f.target]) - newpos(start[id(f)])
+                if 2 <= off <= 255:  # one-byte small-constant operand (forward only)
+                    size[id(f)] = 2
+                    changed = True
 
-        by_pos = {}
+        by_pos: dict = {}
         for f in branches:
             by_pos[f.offset] = ("branch", f)
         for f in jumps:
-            by_pos[f.offset] = ("jump", f)
+            by_pos[f.offset - 1] = ("jump", f)
         for f in self.fixups:
             if f.kind in ("call", "strref"):
                 by_pos[f.offset] = ("keep", f)
@@ -348,7 +386,12 @@ class Routine:
                 continue
             kind, f = entry
             if kind == "branch":
-                off = newpos(self.labels[f.target]) - newpos(old) + (1 if size[id(f)] == 1 else 0)
+                if id(f) in retval:
+                    off = retval[id(f)]  # 0 = rfalse, 1 = rtrue, as a short-form offset
+                elif size[id(f)] == 1:
+                    off = newpos(self.labels[f.target]) - newpos(f.offset) + 1
+                else:
+                    off = newpos(self.labels[f.target]) - newpos(f.offset)
                 if size[id(f)] == 1:
                     b = 0x40 | (off & 0x3F)  # short form: bit 6 set, 6-bit offset
                     if f.on_true:
@@ -361,15 +404,25 @@ class Routine:
                         hi |= 0x80
                     new_code.append(hi)
                     new_code.append(word & 0xFF)
+                old += 2
             elif kind == "jump":
-                off = (newpos(self.labels[f.target]) - newpos(old)) & 0xFFFF
-                new_code.append((off >> 8) & 0xFF)
-                new_code.append(off & 0xFF)
+                op_new = newpos(start[id(f)])
+                target_new = newpos(self.labels[f.target])
+                if size[id(f)] == 2:
+                    off = target_new - op_new  # short jump: PC after = opcode + 2
+                    new_code.append(0x9C)  # 1OP, small-constant operand, jump
+                    new_code.append(off & 0xFF)
+                else:
+                    off = (target_new - op_new - 1) & 0xFFFF  # wide: operand is opcode+1
+                    new_code.append(0x8C)  # 1OP, large-constant operand, jump
+                    new_code.append((off >> 8) & 0xFF)
+                    new_code.append(off & 0xFF)
+                old += 3
             else:  # keep: an inter-routine fixup, repositioned, bytes copied as placeholder
                 new_fixups.append(_Fixup(len(new_code), f.kind, f.target, f.on_true, f.wide))
                 new_code.append(self.code[old])
                 new_code.append(self.code[old + 1])
-            old += 2
+                old += 2
         self.code = new_code
         self.fixups = new_fixups
         self.labels = {}
