@@ -172,11 +172,41 @@ game with topics but no conversation granule carries the table and bodies but
 none of the walking machinery; the body and guard routines are always emitted
 when topics exist, because the table references them.
 
-## 9. Not yet lowered
+## 9. Dead-code elimination (B6)
 
-Deferred to later milestones: wiring each object's `words` to dictionary
-addresses and noun resolution, `for each`, string switches, list properties
-(`add`/`remove`), computed (`block`) properties and text-property writes, the
-`a`/`an` choice by sound, dynamic property access (`here.(dir)`), the parser,
-scope, and the turn loop (B4.5), and abbreviation-based text compression and
-dense-codegen tightening (B5).
+The library is compiled in full, but a given game reaches only a fraction of it,
+so codegen runs a whole-program reachability sweep over the routine call graph
+and drops every routine the running story can never enter (`codegen.
+_prune_unreachable`, the first size lever of docs/00 section 5).
+
+The sweep marks from a set of roots, following only `call` fixups (the static
+"this routine calls that one" edges left by `RoutineRef` operands). The catch is
+that not every live routine is reached by a call: the dispatcher invokes a
+handler INDIRECTLY, reading a react or topic routine's packed address out of the
+object table (objects.py `routine_fixups`) and calling it by address with the
+`call_handler` intrinsic, an edge no scan of the code can see. So the roots are
+the entry stub PLUS every routine the data names: each `react_<obj>`, every topic
+body `topic_<obj>_<i>`, and every `when`-guard `topicwhen_<obj>_<i>`. From there
+the mark is transitive, so `react_free`, `grain_dispatch`, the `grain<i>`
+routines, and the `cosmos_*` helpers stay live exactly when something on a
+reachable path calls them (through the `run_free` / `run_grain` / topic
+intrinsics, which lower to ordinary `RoutineRef` calls).
+
+What stays unmarked is compiled in but never run, and in a typical game that is
+most of Cosmos: the message and verb-default blocks the story never triggers, the
+`you`/`reply`/`line_end` conversation framing when no topic runs, and the
+statusline and menu seams (`status_bar`, `status_lines`, `menu_owns_talk`) when
+neither granule is summoned. Dropping it is sound because a kept routine's call
+targets are themselves kept (they were followed) and its data references are roots
+(always kept), so the linker never dangles. The standard verb set is deliberately
+NOT reclaimed: each standard verb default is a free rule reached through
+`react_free`, so JUMP or LISTEN works in every game whether or not the author
+wrote a handler, and that is the always-present baseline the PunyInform size
+comparison is measured against.
+
+## 10. Not yet lowered
+
+Deferred to later milestones: the `a`/`an` choice by sound, kind-level grains and
+topics (they need per-instance scope), computed (`block`-valued) exits and
+`on go other`, and abbreviation-based text compression plus dense-codegen
+tightening (B6 parts 2 and 3).
