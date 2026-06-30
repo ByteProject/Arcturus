@@ -33,7 +33,7 @@ _NON_GRANULE_FEATURES = {"language", "abbreviations"}
 # The Cosmos library version. It is independent of the compiler version: the
 # bundled library can move ahead of (or behind) arcc, and since the embedded
 # library is not visible on disk, the banner reports it alongside arcc's version.
-COSMOS_VERSION = "0.8.0"
+COSMOS_VERSION = "0.8.1"
 
 # Set by the amalgamated build to a dict of {filename: source}.
 _EMBEDDED = None
