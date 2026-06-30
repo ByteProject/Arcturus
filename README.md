@@ -26,18 +26,20 @@ already compiles complete, playable games. The two worked examples - **The Brass
 Lantern** and the classic **Cloak of Darkness** - compile with the standalone
 `arcc` and are winnable start to finish on Frotz, with the entire Cosmos runtime
 (turn loop, movement, verbs, scope and light, the parser, and scenery) written in
-Arcturus itself. Early days for size, too: Cloak builds to under 6 KB before any
-dedicated size pass.
+Arcturus itself.
 
 The road from here, milestone by milestone:
 
-- **Done:** the language spec, the compiler (lexer, parser, semantic analysis,
-  Z-machine code generation), and Cosmos far enough that both example games play
-  end to end.
-- **Next:** a feature-complete library (the full standard verb set, the meta
-  verbs, a fresh standard message set, and the summonable granules - extended
-  verbs, an opt-in status line, verbose exits, a menu-driven conversation system,
-  and debug verbs), then a size pass benchmarked against PunyInform.
+- **Done:** the language spec; the compiler (lexer, parser, semantic analysis,
+  Z-machine code generation); and a feature-complete Cosmos - the full standard
+  verb set, the meta verbs (score, save, restore, undo, again, oops), an original
+  standard message set, the `topic` conversation model, and the summonable
+  granules: extended verbs, an opt-in status line, verbose exits, a menu-driven
+  conversation system, and debug verbs. Both example games play end to end.
+- **Next:** the size pass - whole-program dead-code elimination and
+  abbreviation-based text compression - benchmarked against PunyInform. Until
+  this pass lands the library ships everything it has, so current builds carry
+  code a given story does not use; trimming that is the milestone.
 - **After that:** Spanish and German language packs, a modern reference
   interpreter, the `arc_image` graphics path (modern systems first, then the
   8-bit and 16-bit retro machines), and porting two existing games - Ghosts of
@@ -56,10 +58,14 @@ to start writing Arcturus today:
 - [docs/02-cosmos-and-parser.md](docs/02-cosmos-and-parser.md) — the runtime:
   the Cosmos library, the parser, the action pipeline, scope, light, and the
   turn loop.
+- [docs/05-granules.md](docs/05-granules.md) — the summonable granules: how to
+  summon them, how to fork one, and how to write your own.
 
 A fuller wiki will follow as the project matures. For a taste, the two worked
-games live under [examples/](examples/): the Brass Lantern and the classic
-Cloak of Darkness.
+games live under [examples/](examples/) - the Brass Lantern and the classic
+Cloak of Darkness - and small feature showcases (the Infocom-style and
+menu-driven conversation systems, the status line, verbose exits, the extended
+verbs) live under [examples/granules/](examples/granules/).
 
 ## File extensions
 
@@ -108,7 +114,7 @@ Useful options:
 ```
 python3 build/arcc game.storyarc -o game.z5    # compile to a z5 story file
 python3 build/arcc game.storyarc --dump-ast    # show the parsed syntax tree
-python3 build/arcc -L path/to/cosmos game.storyarc   # use a forked library
+python3 build/arcc -L /abs/path/cosmos game.storyarc   # use a forked library
 python3 build/arcc --version
 ```
 
@@ -116,17 +122,22 @@ Cosmos travels inside `arcc`, so the compiler works wherever you put it, but it
 is never locked away. To hack the library:
 
 ```
-python3 build/arcc --extract-library cosmos/   # write the whole library out to edit
-python3 build/arcc --eject-language .          # write just english.prelude (the messages)
-python3 build/arcc -L cosmos/ game.storyarc    # compile against your edited copy
+python3 build/arcc --eject-granule statusline  # write one granule here, to fork it
+python3 build/arcc --eject-language .           # write english.prelude (the messages)
+python3 build/arcc --extract-library /abs/cosmos   # write the whole library out to edit
+python3 build/arcc -L /abs/cosmos game.storyarc    # compile against your edited copy
 ```
 
-`--extract-library` writes every bundled `.prelude` and `.granule` file into a
-directory for wholesale forking; `--eject-language` drops just the English
-language file (where the standard messages live) beside your story for quick
-message customization. Then `-L` points the compiler at your copy. For a single
-message, you do not even need to extract: redefine its block (for example
-`block msg_jump()`) in your own story and it overrides the library's.
+`--eject-granule` pulls a single granule out to fork one feature; summon your
+copy by name (`summon statusline.granule`) and it wins over the bundled one.
+`--eject-language` drops the English language file (where the standard messages
+live) beside your story for message customization or a translation.
+`--extract-library` writes every bundled `.prelude` and `.granule` for wholesale
+forking; then `-L` (an absolute path) points the compiler at your copy. For a
+single standard message you need not extract anything: redefine its block (for
+example `block msg_jump()`) in your own story and it overrides the library's. A
+granule's own blocks are not overridable that way - you fork the granule;
+[docs/05](docs/05-granules.md) covers the model.
 
 ### Run from the package (for development)
 
