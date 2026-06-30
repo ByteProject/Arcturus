@@ -722,6 +722,44 @@ def _references_routine(routines: list, name: str) -> bool:
     return False
 
 
+def _prune_unreachable(entry: Routine, routines: list, layout) -> list:
+    """Whole-program dead-code elimination: drop every routine the running story
+    can never reach (docs/00 section 5, the first size lever).
+
+    The reachability sweep walks the call graph from a set of roots, following
+    only `call` fixups (the static "this routine calls that one" edges). The
+    subtlety is that not every live routine is reached by a call: the dispatcher
+    invokes a handler INDIRECTLY, reading a react or topic routine's packed
+    address out of the object table (objects.py routine_fixups) and calling it by
+    address, an edge no static scan of the code can see. So we SEED the sweep with
+    the entry stub plus every routine the data names (`layout.routine_fixups`),
+    then mark transitively. Whatever stays unmarked is compiled in but never run:
+    in a given game that is most of Cosmos (the message and verb-default blocks the
+    story never triggers, the `you`/`reply` conversation framing when no topic
+    runs, the statusline/menu seams when neither granule is summoned). Dropping it
+    is safe because a kept routine's call targets are themselves kept (we followed
+    them) and its data references are roots (kept), so the linker never dangles."""
+    by_name = {r.name: r for r in routines}
+    by_name[entry.name] = entry  # the entry stub is linked separately, but seeds the sweep
+    reachable: set = set()
+    stack: list = [entry.name]
+    # Roots reached by address from data: react_<obj>, topic bodies, when-guards.
+    for _offset, rname in layout.routine_fixups:
+        stack.append(rname)
+    while stack:
+        nm = stack.pop()
+        if nm in reachable:
+            continue
+        reachable.add(nm)
+        r = by_name.get(nm)
+        if r is None:
+            continue
+        for f in r.fixups:
+            if f.kind == "call" and f.target not in reachable:
+                stack.append(f.target)
+    return [r for r in routines if r.name in reachable]
+
+
 def generate(world: wm.World) -> bytes:
     """Lower the world model to a complete z5 story file image.
 
@@ -759,6 +797,11 @@ def generate(world: wm.World) -> bytes:
     # carries the table and bodies but none of the walking machinery.
     if any(_references_routine(all_routines, n) for n in _TOPIC_HELPER_NAMES):
         all_routines += gen_topic_helpers(layout)
+
+    # Whole-program dead-code elimination (B6, the first size lever): the library
+    # is compiled in full, but a given game reaches only a fraction of it. Drop the
+    # rest before laying out high memory.
+    all_routines = _prune_unreachable(entry, all_routines, layout)
 
     return build_story(
         world,

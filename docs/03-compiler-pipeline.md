@@ -46,7 +46,10 @@ an earlier pass's representation.
 6. Code-generate and assemble (`codegen`, `objects`, `dictionary`, `zstring`,
    `assembler`, `storyfile`). The world model becomes a complete z5 image: the
    object table, the dictionary, Z-string text, the routines linked into high
-   memory, and the header. The construct-to-opcode mapping is docs/04.
+   memory, and the header. Before the routines are laid out, a whole-program
+   reachability sweep (`codegen._prune_unreachable`) drops every routine the
+   running story can never enter, the first size lever (docs/04 section 9). The
+   construct-to-opcode mapping is docs/04.
 
 `astdump` and `irdump` expose the intermediate forms for inspection (the
 `--dump-ast` and `--dump-ir` options).

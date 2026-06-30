@@ -16,7 +16,7 @@ Last updated: 2026-06-30.
 | B3 | Z-machine backend MVP (smallest valid story file) | done |
 | B4 | Cosmos compiled: parser, turn loop, standard verbs | done |
 | B5 | Feature-complete library and a fair benchmark | done (library); B6 measures the benchmark |
-| B6 | Size pass (DCE, abbreviations, codegen) | NEXT |
+| B6 | Size pass (DCE, abbreviations, codegen) | in progress (DCE done) |
 | B7 | Language packs (Spanish, German) | pending |
 | B8 | The reference interpreter, Actaea | pending |
 | B9 | arc_image on modern systems (PNG) | pending |
@@ -57,7 +57,25 @@ THE B6 BASELINE (current sizes, pre-DCE, the full library is shipped into every
 game): brass 12228, cloak 13084, statusline 11528, conversations 13492,
 extended-verbs 15032, infocom-interrogation 17252.
 
-B6 PART 1 - DCE (the big lever; do first).
+B6 PART 1 - DCE: DONE (committed). codegen._prune_unreachable runs a whole-program
+reachability sweep over the routine call graph right before build_story and drops
+every routine the running story can never enter. Roots = __entry__ + every routine
+the object/topic table names (layout.routine_fixups: react_<obj>, topic bodies,
+when-guards) - these are called by ADDRESS from data, so a follow-the-calls sweep
+would never see them; mark transitively over `call` fixups only. Sound: a kept
+routine's call targets are kept (followed) and its data refs are roots (kept), so
+the linker never dangles. SAVINGS (pre-abbrev): brass 12228->11892 (-336), cloak
+13084->12752 (-332), statusline -332, conversations -368, extended-verbs -372,
+interrogation -316. MODEST BY DESIGN: the standard verb set is always reachable via
+react_free (JUMP/LISTEN work in every game, handler or not - the always-on baseline
+the Puny comparison is measured against), so DCE only reclaims the genuinely-dead
+tail (line_*/seam blocks, unused message blocks, uncalled pattern handlers). The
+bulk size win is Part 2 (abbreviations). All 247 tests pass; both example
+walkthroughs still win on Frotz (test_examples) and the topic/menu granule examples
+verified by hand on dfrotz (ask/tell dispatch, the conversations menu, reveal/once,
+the statusline coexistence all intact). docs/04 section 9 + docs/03 step 6 record it.
+
+B6 PART 1 - DCE (the original plan, now done above; kept for the detail).
 - THE GAP: codegen.build_routines (arcturus/codegen.py, `for blk in
   world.blocks.values()`) compiles EVERY block unconditionally. Most are dead in
   a given game (the ~70 msg_* + ~45 verb-default blocks, the conversation framing,
