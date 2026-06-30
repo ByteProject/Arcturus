@@ -7,7 +7,7 @@
 
 Every error raised by the lexer, parser, and later semantic analysis is an
 ArcError carrying a source position, so the compiler can report a precise
-location (docs/01 section 16). Errors are surfaced at compile time, never as a
+location (docs/01 section 17). Errors are surfaced at compile time, never as a
 surprise at run time.
 """
 

@@ -11,7 +11,7 @@ pipeline, the banner, and the optional summonable features are defined in
 implementation phase (03 and 04). Where this document says "Cosmos provides X",
 X is specified in 02.
 
-The worked examples in sections 17 and 18, the Brass Lantern and the iconic
+The worked examples in sections 18 and 19, the Brass Lantern and the iconic
 Cloak of Darkness, use only constructs defined here and serve as the shared
 reference programs across all documents.
 
@@ -50,7 +50,7 @@ it. Use a consistent unit, four spaces recommended, and never mix tabs and
 spaces. An inconsistent indent is a compile error.
 
 Newlines are significant: one statement or declaration per line. A quoted
-string may span several physical lines (section 15).
+string may span several physical lines (section 16).
 
 ## 3. Values and types
 
@@ -658,7 +658,77 @@ and no real object in scope matches that word. The parser handling of grains
 is defined in 02. Grains cost only dictionary words and a small table, never
 an object entry.
 
-## 15. Output and text
+## 15. Topics and conversation
+
+A person (a thing that is `animate`, which the `person` kind sets) can hold
+conversation `topic`s. A topic is one subject the player can raise, together with
+the exchange that follows. Topics are inert on their own: a summoned feature
+presents them, either as the Infocom-style ask/tell verbs (`summon.extendedverbs`)
+or as a numbered menu (`summon.conversations`). The two are mutually exclusive,
+and the menu wins when both are present. How they are presented is defined in 02;
+this section defines the construct.
+
+A topic is declared in the person's body:
+
+```
+topic <subject> "<label>" [words a, b, ...] [when <cond>] [once] [hidden]
+    <body>
+```
+
+The header parts, with the modifiers in any order:
+
+- `<subject>` is a barename id, local to this person; `reveal` and `hide` address
+  topics by it.
+- `"<label>"` is the line shown in the conversations menu (any expression).
+- `words a, b, ...` are the words ask/tell match against (`ask <person> about
+  <word>`). They are optional: a menu-only topic needs none, since the player
+  picks it by number.
+- `when <cond>` guards visibility; the topic is offered only while the condition
+  holds, evaluated with `self` bound to the person.
+- `once` retires the topic after it runs.
+- `hidden` starts the topic out of view, until a `reveal` brings it in.
+
+The body is an ordinary statement block, so any statement is allowed. It adds
+four conversation forms:
+
+- `you "..."` prints the player's line, auto-quoted and attributed: `You: "..."`.
+- `reply "..."` prints the person's line, auto-quoted and attributed by name:
+  `<Name>: "..."` (the person is `self`).
+- `say "..."` is plain narration, a stage direction with no speaker or quotes.
+- `reveal <subject>` brings another of the person's topics into view; `hide
+  <subject>` takes one out of view.
+
+The speaker labels and the quotation marks live in overridable library blocks
+(`line_you`, `line_reply`, `line_end`), so a story or a language pack can restyle
+or translate the framing without touching the topics.
+
+A worked fragment:
+
+```
+thing esme of person in tent
+    name "Madame Esme"
+    named
+
+    topic fortune "your fortune"
+        you "What do you see for me?"
+        reply "A long road, and a choice you will not want to make."
+        reveal road
+
+    topic road "the long road" hidden once
+        you "This road. Where does it lead?"
+        reply "North, into the dark."
+
+    topic charm "the silver charm" words charm, relic when player holds charm
+        you "What is this charm worth to you?"
+        reply "More than you have. Keep it close."
+```
+
+Raising `fortune`, by asking or by picking it, runs the exchange and reveals
+`road`, which then appears (it began `hidden`); `road` is `once`, so it retires
+after one telling. The `charm` topic is offered only while the player holds the
+charm, and answers to `ask esme about charm` or `about relic`.
+
+## 16. Output and text
 
 A string is written in double quotes and may span physical lines; runs of
 whitespace, including line breaks, collapse to a single space, so
@@ -683,7 +753,7 @@ Interpolation embeds an expression with `${ }`; printing an object prints its
 `${The ruby}`, `${A ruby}`; an object with `named` set takes no article.
 Their full behavior is in 02. Escapes: `\"`, `\\`, `\$`, and `\n`.
 
-## 16. Diagnostics
+## 17. Diagnostics
 
 Representative compile-time errors:
 
@@ -696,7 +766,7 @@ Representative compile-time errors:
 - A name clash between a boolean property and an object used with `is`.
 - A `summon` of a missing file or unknown built-in feature.
 
-## 17. Worked example: The Brass Lantern
+## 18. Worked example: The Brass Lantern
 
 A complete, winnable game using only constructs defined above. Cosmos
 supplies the parser, the turn loop, the player, and the everyday verbs, so
@@ -790,7 +860,7 @@ verb "pull", "yank"
     pull noun
 ```
 
-## 18. Worked example: Cloak of Darkness
+## 19. Worked example: Cloak of Darkness
 
 The benchmark game implemented in nearly every IF system, the natural second
 conformance target. It exercises darkness, a wearable item that changes a

@@ -98,7 +98,7 @@ pyproject.toml
 ## Conformance
 
 The two example games are the golden tests. The Brass Lantern and Cloak of
-Darkness (docs/01 sections 17 and 18) must compile, run correctly on Frotz,
+Darkness (docs/01 sections 18 and 19) must compile, run correctly on Frotz,
 and run on Ceres, and their story files are tracked for size regression
 against a PunyInform-equivalent build.
 

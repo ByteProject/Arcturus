@@ -13,7 +13,7 @@ DEDENT tokens, in the spirit of Python's tokenizer. The lexer owns:
 - significant newlines: one statement or declaration per logical line;
 - strings: double-quoted, may span physical lines, runs of literal whitespace
   collapse to a single space, with \" \\ \$ \n escapes and ${ } interpolation
-  whose raw source is captured for the parser (docs/01 section 15);
+  whose raw source is captured for the parser (docs/01 section 16);
 - UUID literals: the 8-4-4-4-12 hex form, lexed whole so its hyphens are never
   read as minus operators;
 - numbers, identifiers and keywords, and operators.

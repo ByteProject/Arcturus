@@ -22,7 +22,7 @@ from . import tokens as T
 from .errors import ArcError
 from .lexer import RawInterp, tokenize
 
-# Articles recognized at the start of an interpolation (docs/01 section 15).
+# Articles recognized at the start of an interpolation (docs/01 section 16).
 _ARTICLES = frozenset({"a", "an", "the", "A", "An", "The"})
 
 _META_KEYS = frozenset(
