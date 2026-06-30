@@ -44,15 +44,25 @@ block run_talk(person)
                 set_window(0)
                 run_pick(person, pick)
 
-// Paint the numbered menu in the upper window and hold it there. The window is
-// sized to the list (header, the topics, a prompt line); selection by single
-// keypress caps the list at nine, so a tenth topic waits until one is discussed.
+// Paint the numbered menu in the upper window and hold it static there. The
+// window is sized to the list (this is where we beat Puny's fixed half-screen):
+// row 1 is the status bar (or blank without statusline), row 2 the header, then
+// the topics, the prompt, and a divider rule at the bottom border - laid out
+// contiguously with no empty rows. The double erase, before and after the resize,
+// is what keeps a shrinking menu from leaving a stale line behind: the first
+// clears the old (possibly taller) window, the second the new one. Selection by
+// single keypress caps the list at nine, so a tenth topic waits for a discard.
 block draw_menu(person, count)
-    let h = count + 2
-    split_window(h)
+    let w = screen_width()
+    if w is 0
+        change w to 40
+    let h = count + 4
     set_window(1)
     erase_window(1)
-    set_cursor(1, 1)
+    split_window(h)
+    erase_window(1)
+    status_bar()
+    set_cursor(2, 1)
     show("Talk to ${the person} about:")
     let i = 0
     let n = 0
@@ -60,13 +70,18 @@ block draw_menu(person, count)
         if topic_visible(person, i)
             if n < count
                 change n to n + 1
-                set_cursor(n + 1, 2)
+                set_cursor(n + 2, 2)
                 show(n)
                 show(". ")
                 topic_label(person, i)
         change i to i + 1
-    set_cursor(h, 1)
+    set_cursor(h - 1, 1)
     show("Press a number to ask, or 0 to leave.")
+    set_cursor(h, 1)
+    let d = 1
+    while d < w
+        show("-")
+        change d to d + 1
     set_window(0)
 
 // Read keypresses until a valid one: a digit 1..count returns it; 0, ENTER, or Q

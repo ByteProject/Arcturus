@@ -33,18 +33,25 @@ block prompt()
     par()
     show(">")
 
-// Paint the one-line bar: reverse video across the width, the room name at the
-// left, and the score and moves at the right. The right side adapts to the screen
-// width the way PunyInform does: a wide screen (54 columns or more) gets the full
-// "Score: <n>   Moves: <n>", and a narrow retro screen (a 40-column C64, a 53-
-// column Spectrum) gets the compact "Score: <score>/<turns>" so it still fits.
-// Redefine this block in your story to change the layout entirely.
+// Set up the one-row upper window and paint the bar into it. The painting itself
+// is status_bar (below), so the conversations menu can reuse it at the top of its
+// own taller window; this block owns only the window plumbing.
 block draw_status()
+    split_window(1)
+    set_window(1)
+    status_bar()
+    set_window(0)
+
+// Paint the bar into row 1 of whatever upper window is current: reverse video
+// across the width, the room name at the left, the score and moves at the right.
+// The right side adapts to the screen width the way PunyInform does: a wide screen
+// (54 columns or more) gets the full "Score: <n>   Moves: <n>", and a narrow retro
+// screen (a 40-column C64, a 53-column Spectrum) gets the compact
+// "Score: <score>/<turns>" so it still fits. Redefine this to change the layout.
+block status_bar()
     let w = screen_width()
     if w is 0
         change w to 40
-    split_window(1)
-    set_window(1)
     set_style(1)
     // Fill the line so the whole bar is in reverse video, not just the text.
     set_cursor(1, 1)
@@ -72,7 +79,6 @@ block draw_status()
         show("   Moves: ")
         show(turns)
     set_style(0)
-    set_window(0)
 
 // How many digits a non-negative number prints as (scores and turn counts stay
 // well under five). Used to right-align the score block without a string length.
