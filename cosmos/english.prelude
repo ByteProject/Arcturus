@@ -412,6 +412,11 @@ block msg_scenery()
 block msg_no_verb()
     say "Those words don't add up to anything."
 
+// The verb was understood, but it cannot use the words that followed it ("jump
+// north", "look cloak"). The verb is fine; the rest is one word too many.
+block msg_extra_words()
+    say "You lost me after that."
+
 // Read a yes/no answer; returns 1 for an answer that starts with y or Y. The
 // caller prints the question first, so this is shared by every confirmation. The
 // yes test (a leading 'y') is English, so it lives in the language layer.
@@ -562,8 +567,11 @@ block match_noun()
     return nothing
 
 // Resolve the command's objects into the noun (and, for a two-noun verb like
-// "put noun on noun", the second). The verb's dictionary entry flags whether it
-// takes a second noun (data byte 2).
+// "put noun on noun", the second). The verb's dictionary entry carries its noun
+// arity in data byte 2: 0 intransitive, 1 one noun, 2 two nouns. An intransitive
+// verb handed extra words (jump n, look cloak) is a command the grammar cannot
+// account for, so it sets parse_fault 2 and the loop answers msg_extra_words
+// rather than silently dropping the words.
 block resolve_objects()
     change noun to nothing
     change second to nothing
@@ -572,8 +580,16 @@ block resolve_objects()
     let d = word_dict(0)
     if d is not nothing
         if peek_byte(d + 6) is 128
-            if peek_byte(d + 8) is 1
+            let arity = peek_byte(d + 8)
+            let va = peek_byte(d + 7)
+            if arity is 2
                 resolve_two_nouns()
+                return 1
+            if arity is 0
+                // oops takes a trailing correction word, not a noun; never an error.
+                if va is not action_id("oops")
+                    if has_extra_words(va) is 1
+                        change parse_fault to 2
                 return 1
     change noun to match_noun()
     if noun is nothing
@@ -603,6 +619,25 @@ block named_unseen()
         if target is not nothing
             if peek_byte(target + 6) is 0
                 return 1
+        change i to i + 1
+    return 0
+
+// For an intransitive verb (no noun slot), is there a word after it the grammar
+// cannot use? Returns 1 the moment it finds one. A direction after `go` is the
+// exception: movement consumes it through `way`, so "go north" is whole, while
+// "jump north" or "look cloak" carries a word too many.
+block has_extra_words(act)
+    let n = word_count()
+    let i = 1
+    while i < n
+        let keep = 0
+        if act is action_id("go")
+            let d = word_dict(i)
+            if d is not nothing
+                if peek_byte(d + 6) is 64
+                    change keep to 1
+        if keep is 0
+            return 1
         change i to i + 1
     return 0
 

@@ -45,8 +45,11 @@ block run_game()
             if parse_fault is 1
                 msg_cant_see()
             else
-                if word_count() is not 0
-                    msg_no_verb()
+                if parse_fault is 2
+                    msg_extra_words()
+                else
+                    if word_count() is not 0
+                        msg_no_verb()
         else
             run_turn(act)
         // Snapshot the line's unrecognized word (verb or noun, if any) so a

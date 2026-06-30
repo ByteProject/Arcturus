@@ -27,9 +27,10 @@ from . import zstring
 # Characters that are tokens in their own right (so "lamp,box" splits).
 _SEPARATORS = [ord("."), ord(",")]
 # Per-entry data bytes: [flags, b1, b2]. flags bit 7 marks a verb word (b1 = its
-# action number); flags bit 6 marks a direction word (b1 = the go action, b2 =
-# the direction's property number); flags bit 5 marks a verb particle (b1 = its
-# id), so the parser can resolve all three.
+# action number, b2 = its noun arity: 0 intransitive, 1 one noun, 2 two nouns);
+# flags bit 6 marks a direction word (b1 = the go action, b2 = the direction's
+# property number); flags bit 5 marks a verb particle (b1 = its id), so the parser
+# can resolve all three.
 _DATA_BYTES = 3
 _ENTRY_LEN = 6 + _DATA_BYTES
 _VERB_FLAG = 0x80
@@ -109,21 +110,24 @@ def _preposition_words(world: wm.World) -> set:
     return out
 
 
-def _two_noun_verbs(world: wm.World) -> set:
-    """Single-word verbs with a grammar line taking two noun slots (put noun on
-    noun), so the parser knows to resolve a second noun."""
-    out: set = set()
+def _verb_arity(world: wm.World) -> dict:
+    """Single-word verb word -> how many noun slots its richest grammar line takes
+    (capped at 2). 0 marks an intransitive verb (jump, look, wait): the parser
+    uses this to reject a command that piles words onto a verb with no slot for
+    them, instead of silently dropping them. 2 marks a two-noun verb (put noun on
+    noun), so the parser resolves a second noun."""
+    out: dict = {}
     for verb in world.verbs:
-        two = any(
-            sum(1 for it in line.items if isinstance(it, ast.Slot)) >= 2
-            for line in verb.grammar
+        slots = max(
+            (sum(1 for it in line.items if isinstance(it, ast.Slot)) for line in verb.grammar),
+            default=0,
         )
-        if not two:
-            continue
+        if slots > 2:
+            slots = 2
         for phrase in verb.words:
             tokens = phrase.lower().split()
             if len(tokens) == 1:
-                out.add(tokens[0])
+                out[tokens[0]] = max(out.get(tokens[0], 0), slots)
     return out
 
 
@@ -159,9 +163,9 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
     encoded = {w: zstring.encode_dict_word(w) for w in words}
     # Map each distinct encoded entry to its three data bytes.
     enc_data: dict[bytes, bytes] = {}
-    two_noun = _two_noun_verbs(world)
+    arity = _verb_arity(world)
     for word, action in _verb_actions(world, action_numbers).items():
-        b2 = 1 if word in two_noun else 0  # data byte 2: takes a second noun
+        b2 = arity.get(word, 0)  # data byte 2: noun arity (0 intransitive, 1, or 2)
         enc_data[encoded[word]] = bytes([_VERB_FLAG, action & 0xFF, b2])
     if direction_props and action_numbers and "go" in action_numbers:
         go = action_numbers["go"]
