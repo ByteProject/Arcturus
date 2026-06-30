@@ -694,12 +694,21 @@ def gen_topic_helpers(layout) -> list:
     match.label("no")
     match.op("rfalse")
 
-    return [count, recrt, label, vis, run, match]
+    # cosmos_topic_retire(person, i): set topic i's RETIRED state bit, so the menu
+    # drops it after it is picked. Like cosmos_topic_run's once-path, but forced.
+    retire = Routine("cosmos_topic_retire", nlocals=3)  # 1=person,2=i,3=rec
+    retire.op("call_vs", RoutineRef("cosmos_topic_rec"), Variable(1), Variable(2), store=Variable(3))
+    retire.op("loadb", Variable(3), Const(9), store=Variable(STACK))  # state byte
+    retire.op("or", Variable(STACK), Const(objmod.TOPIC_RETIRED), store=Variable(STACK))
+    retire.op("storeb", Variable(3), Const(9), Variable(STACK))
+    retire.op("rtrue")
+
+    return [count, recrt, label, vis, run, match, retire]
 
 
 _TOPIC_HELPER_NAMES = (
     "cosmos_topics_count", "cosmos_topic_label", "cosmos_topic_visible",
-    "cosmos_topic_run", "cosmos_topic_matches",
+    "cosmos_topic_run", "cosmos_topic_matches", "cosmos_topic_retire",
 )
 
 

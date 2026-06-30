@@ -84,14 +84,17 @@ INTRINSICS = frozenset({
     # text style, and the screen width from the header. Each lowers to an opcode,
     # so they cost nothing unless a granule calls them.
     "split_window", "set_window", "set_cursor", "set_style", "screen_width",
+    "erase_window", "screen_height",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr",
     # Conversation topics, for the ask/tell and menu granules: how many a person
     # has, whether topic i is in view, printing its menu label, matching a subject
-    # word against it, and running its body. Each calls a cosmos_topic_* backing
-    # routine codegen emits only when one of these is used.
+    # word against it, running its body, and retiring it (so the menu drops a
+    # topic once it has been picked). Each calls a cosmos_topic_* backing routine
+    # codegen emits only when one of these is used.
     "topics_count", "topic_visible", "topic_label", "topic_matches", "topic_run",
+    "topic_retire",
 })
 
 _ARITH = {"+": "add", "-": "sub", "*": "mul", "/": "div", "mod": "mod"}
@@ -580,9 +583,20 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("set_text_style", op)
         _free(ctx, t)
         _place(rt, Const(0), dest)
+    elif name == "erase_window":
+        # erase_window(n): clear window n (1 = upper) so the menu repaints clean;
+        # -1 unsplits and clears the whole screen.
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("erase_window", op)
+        _free(ctx, t)
+        _place(rt, Const(0), dest)
     elif name == "screen_width":
         # screen_width(): the screen width in characters (header byte 0x21).
         rt.op("loadb", Const(0), Const(0x21), store=dest)
+    elif name == "screen_height":
+        # screen_height(): the screen height in lines (header byte 0x20), so the
+        # menu can cap the upper window to what fits.
+        rt.op("loadb", Const(0), Const(0x20), store=dest)
     elif name == "text_char":
         # text_char(i): the i-th character typed on the last input line. In v5 the
         # text buffer holds the characters from byte 2 onward (byte 1 is the count).
@@ -643,6 +657,15 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         eval_expr(rt, ctx, args[1], Variable(STACK))
         eval_expr(rt, ctx, args[0], Variable(STACK))
         rt.op("call_vn", RoutineRef("cosmos_topic_run"),
+              Variable(STACK), Variable(STACK))
+        _place(rt, Const(0), dest)
+    elif name == "topic_retire":
+        # topic_retire(person, i): retire topic i now, so the menu drops it once
+        # it has been picked (the ask/tell path does not call this, so typed
+        # topics stay re-askable unless `once`).
+        eval_expr(rt, ctx, args[1], Variable(STACK))
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("call_vn", RoutineRef("cosmos_topic_retire"),
               Variable(STACK), Variable(STACK))
         _place(rt, Const(0), dest)
 
