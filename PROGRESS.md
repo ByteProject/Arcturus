@@ -770,10 +770,21 @@ block just below.
   in the upper window (reuses statusline's screen opcodes), selection runs the
   topic body, the menu redraws as topics reveal/hide/retire, until exit. Built on
   the shared topic table; wins over ask/tell when both summoned.
-- B5.5f: debug. Testing verbs (tree, scope, teleport, fetch-distant-object, set
-  prop, show state). NO release-exclude switch - opt-in via summon is the
-  exclusion. Arcturus-named primaries with Inform synonyms (e.g. fetch/purloin,
-  warp/gonear, inspect/showobj). Lock the names when building.
+- B5.5f: debug DONE (cosmos/debug.granule). Verbs: tree (the whole object tree),
+  scope (what is reachable here), fetch/purloin (pull any object to you),
+  warp/gonear (teleport to an object's room), inspect/showobj (location +
+  attributes set). Opt-in via summon; not summoned = absent (no release switch).
+  KEY MECHANISM: fetch/warp/inspect reach OUT-OF-SCOPE objects, which the parser
+  normally aborts on ("you can't see that"). Added a parser seam reach_unscoped()
+  in english.prelude (library default `return nothing`, called by resolve_objects
+  after scope matching fails); debug overrides it to match the typed word against
+  EVERY object (find_any scans object numbers 1..object_count() via has_word - a
+  new object_count() compile-time intrinsic), but only for the debug verbs
+  (checked by action). The seam default is the one thing left in the core without
+  debug (a tiny `return nothing` the parser references, so DCE keeps it - decided
+  with Stefan, cheaper/cleaner than overriding named_unseen). Proven on Frotz
+  (tests/test_debug.py: fetch reaches an object in another room). NOT YET: set
+  prop / clear attr (Stefan's "set prop" - deferred; the 5 verbs are the core set).
 - B5.6: finalize the message/verb reference doc (docs/05) from message-set.md +
   verb-set.md once the set is complete. ALSO (Stefan, 2026-06-29): document every
   shipped granule for authors - how to summon it and what it does - so the

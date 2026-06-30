@@ -75,6 +75,9 @@ INTRINSICS = frozenset({
     # parse_addr / oops_addr give the live parse buffer and its oops backup, so
     # the language layer can snapshot a command and patch it for "oops".
     "parse_addr", "oops_addr",
+    # object_count gives the number of declared objects, so the debug granule can
+    # scan every object by number (not just those in scope).
+    "object_count",
     # exits_count / exit_prop / exit_name expose this program's direction
     # properties (count, the i-th property number, and printing its name), so the
     # verbose_exits granule can list a room's live exits. exit_prop/exit_name are
@@ -547,6 +550,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
     elif name == "oops_addr":
         # oops_addr(): the address of the parse-buffer backup kept for oops.
         _place(rt, Const(storyfile.OOPS_PARSE_ADDR), dest)
+    elif name == "object_count":
+        # object_count(): how many objects the program declares (1..N), so the
+        # debug granule can scan them all by number (the parser reaches only those
+        # in scope). A compile-time constant.
+        n = 0 if ctx.layout is None else len(ctx.layout.obj_number)
+        _place(rt, Const(n), dest)
     elif name == "exits_count":
         # exits_count(): how many directions are properties in this program.
         _place(rt, Const(len(exit_directions(ctx.layout))), dest)
