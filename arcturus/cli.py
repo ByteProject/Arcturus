@@ -69,9 +69,9 @@ def _build_argparser() -> argparse.ArgumentParser:
         action="append",
         default=[],
         metavar="DIR",
-        help="add a directory to the search path for Cosmos prelude (.prelude) "
-        "and extension (.granule) files; repeatable. Lets a project summon the "
-        "shared library rather than carry its own copy.",
+        help="add an ABSOLUTE directory to the search path for granule (.granule) "
+        "files a story summons by name; repeatable. Lets a project point at a "
+        "forked or shared library rather than carry its own copy.",
     )
     ap.add_argument(
         "--check",
@@ -108,13 +108,24 @@ def _build_argparser() -> argparse.ArgumentParser:
         "the current directory) for message customization, then exit.",
     )
     ap.add_argument(
+        "--eject-granule",
+        metavar="NAME",
+        help="write a single bundled granule (e.g. statusline) into the current "
+        "directory for forking, then exit. Edit it and summon it by name.",
+    )
+    ap.add_argument(
         "--version", action="version", version=f"Arcturus {__version__}"
     )
     return ap
 
 
+def _all_library_sources() -> dict:
+    """Every bundled Cosmos source, preludes and granules together."""
+    return {**cosmos_lib.prelude_sources(), **cosmos_lib.granule_sources()}
+
+
 def _write_library_files(target_dir: str, names) -> int:
-    sources = cosmos_lib.prelude_sources()
+    sources = _all_library_sources()
     if not sources:
         print("arcc: error: no bundled Cosmos library to write", file=sys.stderr)
         return 2
@@ -131,13 +142,30 @@ def _write_library_files(target_dir: str, names) -> int:
 
 
 def _extract_library(target_dir: str) -> int:
-    """Write the whole bundled Cosmos library to DIR for wholesale forking."""
-    names = list(cosmos_lib.prelude_sources())
+    """Write the whole bundled Cosmos library to DIR for wholesale forking: every
+    prelude AND every granule, so a project can point -L at it."""
+    names = list(_all_library_sources())
     rc = _write_library_files(target_dir, names)
     if rc == 0:
         print(f"arcc: wrote {len(names)} Cosmos library files to {target_dir}/ "
               f"(compile against them with -L {target_dir})")
     return rc
+
+
+def _eject_granule(name: str) -> int:
+    """Write a single bundled granule into the current directory, for forking one
+    feature next to a story. Accepts the bare name or the .granule filename."""
+    fname = name if name.endswith(".granule") else name + ".granule"
+    granules = cosmos_lib.granule_sources()
+    if fname not in granules:
+        avail = ", ".join(sorted(n[:-len(".granule")] for n in granules))
+        print(f"arcc: error: no bundled granule '{name}' (have: {avail})",
+              file=sys.stderr)
+        return 2
+    with open(fname, "w", encoding="utf-8") as fh:
+        fh.write(granules[fname])
+    print(f"arcc: wrote {fname} (edit it, then summon it by name: summon {fname})")
+    return 0
 
 
 def _eject_language(target_dir: str) -> int:
@@ -161,10 +189,19 @@ def main(argv: list[str] | None = None) -> int:
         return _extract_library(args.extract_library)
     if args.eject_language is not None:
         return _eject_language(args.eject_language)
+    if args.eject_granule is not None:
+        return _eject_granule(args.eject_granule)
 
     if not args.source:
         print(_banner(), file=sys.stderr)
         return 2
+
+    # -L directories must be absolute, so the library is deliberately placed and
+    # there is no ambiguity about what a story summons by name (docs/05).
+    for d in args.lib or ():
+        if not os.path.isabs(d):
+            print(f"arcc: error: -L path must be absolute: {d}", file=sys.stderr)
+            return 2
 
     try:
         with open(args.source, "r", encoding="utf-8") as fh:
