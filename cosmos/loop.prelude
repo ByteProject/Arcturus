@@ -16,6 +16,12 @@
 block status_bar()
     return 0
 
+// How many rows the status bar occupies: 0 by default, 1 once statusline is
+// summoned. The conversations menu reads this to know whether to leave room 1 for
+// the bar or reclaim it for the topic list, so it never wastes a blank line.
+block status_lines()
+    return 0
+
 block run_game()
     move player to here
     // Request the paragraph break that separates the banner from the opening

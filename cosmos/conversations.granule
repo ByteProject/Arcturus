@@ -44,25 +44,29 @@ block run_talk(person)
                 set_window(0)
                 run_pick(person, pick)
 
-// Paint the numbered menu in the upper window and hold it static there. The
-// window is sized to the list (this is where we beat Puny's fixed half-screen):
-// row 1 is the status bar (or blank without statusline), row 2 the header, then
-// the topics, the prompt, and a divider rule at the bottom border - laid out
-// contiguously with no empty rows. The double erase, before and after the resize,
-// is what keeps a shrinking menu from leaving a stale line behind: the first
-// clears the old (possibly taller) window, the second the new one. Selection by
-// single keypress caps the list at nine, so a tenth topic waits for a discard.
+// Paint the numbered menu in the upper window and hold it static there, sized to
+// the topics in view rather than reserving a fixed slice of the screen the way
+// PunyInform's talk menu does - a small dynamic refinement on the same idea.
+// Layout, top to bottom with no gaps: the status bar (only when statusline is
+// summoned), the header, the topics, the prompt, and a divider rule at the bottom
+// border. status_lines tells us whether a bar row is present, so without
+// statusline the menu reclaims row 1 and uses the full window. The double erase,
+// around the resize, keeps a shrinking menu from leaving a stale line behind: the
+// first clears the old (possibly taller) window, the second the new one. Single
+// keypress selection caps the list at nine, so a tenth topic waits for a discard.
 block draw_menu(person, count)
     let w = screen_width()
     if w is 0
         change w to 40
-    let h = count + 4
+    let top = status_lines()
+    let h = top + count + 3
     set_window(1)
     erase_window(1)
     split_window(h)
     erase_window(1)
-    status_bar()
-    set_cursor(2, 1)
+    if top is 1
+        status_bar()
+    set_cursor(top + 1, 1)
     show("Talk to ${the person} about:")
     let i = 0
     let n = 0
@@ -70,7 +74,7 @@ block draw_menu(person, count)
         if topic_visible(person, i)
             if n < count
                 change n to n + 1
-                set_cursor(n + 2, 2)
+                set_cursor(top + 1 + n, 2)
                 show(n)
                 show(". ")
                 topic_label(person, i)

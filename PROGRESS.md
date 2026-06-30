@@ -694,28 +694,32 @@ TOPIC SYSTEM is mid-build. Sub-steps:
   unknown subject -> default). Example sizes unchanged (dispatch is in the
   granule). docs/verb-set.md conversation rows updated. STILL TODO in sub-step 5:
   gate converse OFF when conversations is summoned (redirect to TALK TO).
-- [x] 4. conversations granule DONE (this commit). cosmos/conversations.granule:
-  TALK TO a person lists their visible topics as a NUMBERED menu, press the
-  number to run one (read_key -> the new read_char VAR opcode 0x16), the exchange
-  prints, the menu redraws as topics reveal/retire/unlock, 0 or ENTER ends it.
-  CLEAN INLINE design (Stefan: Puny's upper-window talk menu is ugly UX, ours is
-  sugar): prints in the MAIN window, single keypress, no split_window/paging/dash
-  separators. SEAM: base `on talk` now calls a block talk_to(person) (default =
-  msg_no_talk in verbs.prelude); conversations overrides talk_to -> run_talk (a
-  granule block overrides a library block, sema line 131). run_talk loop:
-  count_visible/draw_menu/menu_choice/run_nth, all overridable blocks. NEW:
-  assembler read_char (VAR 0x16, stores), lower read_key() intrinsic. Proven on
-  Frotz (tests/test_conversations.py: numbered menu, reveal adds an option, once
-  retires it, 0 exits, clean return). Examples +12 bytes (talk_to seam, always
-  referenced). docs/02 section 14 + docs/04 section 8 updated.
+- [x] 4. conversations granule DONE (+ examples/granules/conversations.storyarc,
+  the Seer's Tent showcase). cosmos/conversations.granule: TALK TO a person paints
+  their visible topics as a NUMBERED menu held STATIC in the upper window while the
+  conversation scrolls below; press the number (read_key -> the new read_char VAR
+  opcode 0x16) to run one, it drops off (topic_retire), and the menu repaints with
+  any topics revealed. 0/ENTER folds it away. STEFAN'S CORRECTION: Puny's talk menu
+  is bad as an IMPLEMENTATION experience (talk_array/flags/IDs), but its VISUAL is
+  the good part - static menu, conversation scrolls beneath. First pass wrongly did
+  a scrolling inline menu; reworked to the upper window. ADAPTIVE SIZING (Stefan:
+  this is where we improve on Puny's fixed half-screen) - h = status_lines + count
+  + 3, sized to the topics in view; double-erase around the resize kills shrink
+  residue; a dashes divider at the bottom border. STATUSLINE COEXISTENCE: factored
+  the bar into status_bar() (lib no-op, statusline overrides) + status_lines() (0
+  or 1); the menu paints the bar at row 1 when present and reclaims row 1 when not.
+  SEAM for talk: base `on talk` -> block talk_to(person) (default msg_no_talk);
+  conversations overrides talk_to -> run_talk. NEW intrinsics: read_key, topic_retire
+  (+ cosmos_topic_retire), erase_window, screen_height. Proven on Frotz
+  (tests/test_conversations.py). DIRECTIVE [[demos-include-statusline]]: demos/
+  examples summon.statusline by default, must also work without.
 - [ ] 5. NEXT: mutual exclusion wiring (conversations present -> ask/tell topic path off;
   ask/tell then redirect "just TALK TO her"). PLAN: a library-default block
   (e.g. `block conversation_is_menu() return 0` in a prelude) that conversations
   overrides to return 1; extendedverbs' on ask/tell gate converse on it and
   redirect when the menu owns talking. Must be a LIBRARY block both granules
   reference (a granule cannot override another granule's block - sema 131 only
-  lets non-library override library; two granules -> duplicate error). Also build
-  a conversations showcase .storyarc once the exclusion lands.
+  lets non-library override library; two granules -> duplicate error).
 KEY FILES for the runtime: objects.py (emit a per-object topic table like the
 words array), codegen.py (gen topic body routines like react/grain routines),
 lower.py (lower ast.Line / ast.TopicToggle), cosmos/extendedverbs.granule (ask/
