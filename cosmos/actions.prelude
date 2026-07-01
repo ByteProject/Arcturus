@@ -1,29 +1,23 @@
-// verbs.prelude
+// actions.prelude
 // part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// The standard verbs and their Cosmos default handlers (docs/02 section 11). A
-// default is an ordinary free-standing rule: it runs last in the dispatch chain
-// (after the noun and the room), so an object or room handler can override it by
-// consuming the action first, and `continue` defers back to it. Verb words live
-// here; their wording (the messages) lives in the swappable language layer.
+// THE STANDARD ACTION HANDLERS - the behaviour of the standard verbs (docs/02
+// section 11). This file is language-AGNOSTIC: it holds no verb words, no
+// prepositions, and no player-facing text. Each handler is keyed by an action
+// name (take, examine, put, ...) and works only on the normalized slots the
+// parser fills - `noun`, `second`, `way`, and the action - so it is identical in
+// every language. The verb words and grammar that map input onto those slots, and
+// the messages these handlers print, both live in the language layer
+// (english.prelude); a translator never opens this file.
 //
-// This file grows verb by verb through B4.5e. It begins with look.
-
-verb "look", "l"
-    look
+// A default handler is an ordinary free-standing rule: it runs last in the
+// dispatch chain (after the noun and the room), so an object or room handler can
+// override it by consuming the action first, and `continue` defers back to it.
 
 on look
     describe_room()
-
-
-// Movement. The parser sets `way` to the chosen direction's property (a bare
-// direction word, or go + a direction). A room can override one direction with
-// its own `on go <direction>`, which runs first and consumes the action; this
-// default handles the rest: follow a static exit, or refuse the move.
-verb "go", "walk", "run"
-    go
 
 on go
     if way is nothing
@@ -39,13 +33,6 @@ on go
     set_here(parent_of(player))
     now here is visited
     describe_room()
-
-
-// Handling objects. Each default runs last in the chain, so an object's own
-// handler (the ruby's on take, the cloak's on drop) overrides it.
-
-verb "take", "get", "carry"
-    take noun
 
 on take
     if noun is nothing
@@ -65,10 +52,6 @@ on take
     now noun is seen
     msg_taken()
 
-
-verb "drop"
-    drop noun
-
 on drop
     if noun is nothing
         msg_cant_see()
@@ -80,10 +63,6 @@ on drop
     now noun is not worn
     msg_dropped()
 
-
-verb "examine", "x"
-    examine noun
-
 on examine
     if noun is nothing
         msg_cant_see()
@@ -94,14 +73,6 @@ on examine
         stop
     say noun.desc
 
-
-// Meta verbs. These report on or steer the session rather than act in the world,
-// so each sets meta_turn: the loop then skips the per-turn pulse and the turn
-// count (a cancelled quit must not cost a turn). quit and restart confirm first.
-// Override on quit for a custom send-off, reusing confirm_quit() and do_quit().
-verb "quit", "q"
-    quit
-
 on quit
     change meta_turn to 1
     if confirm_quit() is 0
@@ -109,17 +80,9 @@ on quit
     msg_farewell()
     do_quit()
 
-
-verb "score"
-    score
-
 on score
     change meta_turn to 1
     msg_score()
-
-
-verb "restart"
-    restart
 
 on restart
     change meta_turn to 1
@@ -127,14 +90,6 @@ on restart
     if yes_no() is 0
         stop
     do_restart()
-
-
-// Saving and restoring. do_save returns 1 when the save is written; a successful
-// restore does not return into the restore handler at all, it resumes at the
-// do_save point with result 2 (so the save handler redescribes the room after a
-// restore). The restore handler is reached only when the restore fails.
-verb "save"
-    save
 
 on save
     change meta_turn to 1
@@ -148,40 +103,13 @@ on save
         stop
     msg_save_failed()
 
-
-verb "restore"
-    restore
-
 on restore
     change meta_turn to 1
     let r = do_restore()
     msg_restore_failed()
 
-
-// undo and again are intercepted by the turn loop (run_turn) before dispatch, so
-// they need no handler here; the declarations just register the verbs and their
-// actions. again replays the previous non-meta command.
-verb "undo"
-    undo
-
-verb "again", "g"
-    again
-
-verb "oops"
-    oops
-
-
-// The magic word. Not a meta verb (it is a normal, if fruitless, action), so it
-// takes a turn like any other; an author can override it for a real effect.
-verb "xyzzy"
-    xyzzy
-
 on xyzzy
     msg_xyzzy()
-
-
-verb "inventory", "i", "inv"
-    inventory
 
 on inventory
     let carrying = 0
@@ -192,16 +120,6 @@ on inventory
         list_held(obj)
     if carrying is 0
         msg_empty_handed()
-
-
-// Multi-word verbs. The parser combines a verb with a particle ("switch" + "off"
-// -> switch_off, "take" + "off" -> take_off); these declarations register the
-// actions and supply defaults that an object overrides (the lantern's
-// on switch_on / on switch_off).
-
-verb "switch"
-    switch_on noun
-    switch_off noun
 
 on switch_on
     if noun is nothing
@@ -214,10 +132,6 @@ on switch_off
         msg_cant_see()
         stop
     msg_no_switch()
-
-
-verb "wear", "don"
-    wear noun
 
 on wear
     if noun is nothing
@@ -233,10 +147,6 @@ on wear
     now noun is worn
     msg_worn()
 
-
-verb "remove", "doff", "disrobe", "shed"
-    take_off noun
-
 on take_off
     if noun is nothing
         msg_cant_see()
@@ -246,14 +156,6 @@ on take_off
         stop
     now noun is not worn
     msg_removed()
-
-
-// Two-noun verbs. "put noun on noun" (and "hang") puts an object onto a
-// supporter or into an open container; the parser resolves the second noun.
-
-verb "put", "place"
-    put noun on noun
-    put noun in noun
 
 on put
     if noun is nothing
@@ -277,14 +179,6 @@ on put
         stop
     msg_cant_put()
 
-
-// insert is a sibling of put: "insert noun in noun" drops an object into an open
-// container. Kept separate so "insert X in Y" reads naturally; the body mirrors
-// put's container branch.
-
-verb "insert"
-    insert noun in noun
-
 on insert
     if noun is nothing
         msg_cant_see()
@@ -301,16 +195,6 @@ on insert
         msg_closed()
         stop
     msg_cant_put()
-
-
-// Doors, containers, and locks. open/close act on the openable attribute (and
-// refuse a locked thing); lock/unlock need the lockable attribute and a matching
-// key. The grammar "lock noun with noun" puts the key in `second`; "lock noun"
-// alone falls back to the object's own `key` property. An object overrides any
-// of these with its own handler.
-
-verb "open", "uncover", "unwrap"
-    open noun
 
 on open
     if noun is nothing
@@ -329,10 +213,6 @@ on open
     msg_opened()
     reveal_contents(noun)
 
-
-verb "close", "shut", "cover"
-    close noun
-
 on close
     if noun is nothing
         msg_cant_see()
@@ -345,11 +225,6 @@ on close
         stop
     now noun is not open
     msg_closed_it()
-
-
-verb "lock"
-    lock noun with noun
-    lock noun
 
 on lock
     if noun is nothing
@@ -372,11 +247,6 @@ on lock
     now noun is locked
     msg_locked()
 
-
-verb "unlock"
-    unlock noun with noun
-    unlock noun
-
 on unlock
     if noun is nothing
         msg_cant_see()
@@ -394,14 +264,6 @@ on unlock
         stop
     now noun is not locked
     msg_unlocked()
-
-
-// Getting in and out. enter steps onto a supporter or into an open container;
-// exit leaves whatever the player is in or on, back to the room. A door or a
-// special enterable object overrides enter with its own handler (movement).
-
-verb "enter", "board"
-    enter noun
 
 on enter
     if noun is nothing
@@ -423,25 +285,12 @@ on enter
         stop
     msg_cant_enter()
 
-
-verb "exit", "leave"
-    exit
-
 on exit
     if parent_of(player) is here
         msg_not_inside()
         stop
     move player to here
     msg_done()
-
-
-// Giving and showing need a living recipient. "give noun to noun" puts the gift
-// in `noun` and the recipient in `second`; both refuse politely (no NPC in the
-// base library wants anything), and a non-animate target gets the only-animate
-// nudge. A real NPC overrides give/show to actually accept.
-
-verb "give", "offer", "feed", "pay"
-    give noun to noun
 
 on give
     if noun is nothing
@@ -455,10 +304,6 @@ on give
         stop
     msg_give()
 
-
-verb "show", "display", "present"
-    show noun to noun
-
 on show
     if noun is nothing
         msg_cant_see()
@@ -471,23 +316,11 @@ on show
         stop
     msg_show()
 
-
-// Sensory and flavor verbs. Each default just speaks; an object's own handler
-// overrides it (most-specific-wins). The noun-taking ones refuse when nothing
-// was named; jump/wait/sing/listen/drink read fine with no noun.
-
-verb "touch", "feel", "pat"
-    touch noun
-
 on touch
     if noun is nothing
         msg_cant_see()
         stop
     msg_touch()
-
-
-verb "smell", "sniff"
-    smell noun
 
 on smell
     if noun is nothing
@@ -495,27 +328,14 @@ on smell
         stop
     msg_smell()
 
-
-verb "taste", "lick"
-    taste noun
-
 on taste
     if noun is nothing
         msg_cant_see()
         stop
     msg_taste()
 
-
-verb "listen", "hear"
-    listen
-    listen noun
-
 on listen
     msg_listen()
-
-
-verb "eat"
-    eat noun
 
 on eat
     if noun is nothing
@@ -523,17 +343,8 @@ on eat
         stop
     msg_eat()
 
-
-verb "drink", "sip", "swallow"
-    drink
-    drink noun
-
 on drink
     msg_drink()
-
-
-verb "attack", "hit", "break", "kill", "fight", "smash"
-    attack noun
 
 on attack
     if noun is nothing
@@ -541,19 +352,11 @@ on attack
         stop
     msg_attack()
 
-
-verb "kiss", "hug", "embrace"
-    kiss noun
-
 on kiss
     if noun is nothing
         msg_cant_see()
         stop
     msg_kiss()
-
-
-verb "push", "press", "shove"
-    push noun
 
 on push
     if noun is nothing
@@ -561,19 +364,11 @@ on push
         stop
     msg_no_effect()
 
-
-verb "pull", "drag", "yank"
-    pull noun
-
 on pull
     if noun is nothing
         msg_cant_see()
         stop
     msg_no_effect()
-
-
-verb "turn", "rotate", "twist", "screw", "unscrew"
-    turn noun
 
 on turn
     if noun is nothing
@@ -581,23 +376,11 @@ on turn
         stop
     msg_no_effect()
 
-
-verb "climb", "scale"
-    climb noun
-
 on climb
     if noun is nothing
         msg_cant_see()
         stop
     msg_cant_climb()
-
-
-verb "read"
-    examine noun
-
-
-verb "talk", "greet"
-    talk noun
 
 on talk
     if noun is nothing
@@ -614,23 +397,11 @@ on talk
 block talk_to(person)
     msg_no_talk()
 
-
-verb "jump", "hop"
-    jump
-
 on jump
     msg_jump()
 
-
-verb "wait", "z"
-    wait
-
 on wait
     msg_wait()
-
-
-verb "sing"
-    sing
 
 on sing
     msg_sing()

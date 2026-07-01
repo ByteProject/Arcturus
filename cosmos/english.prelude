@@ -3,12 +3,30 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// The English language layer of the parser (docs/02 section 8, the language
-// seam). These routines hold every English-specific assumption - the verb is the
-// first word, a noun phrase is matched by set membership of its words, no
-// inflection - so a language pack (for example spanish.granule) can replace this
-// file to handle a language's morphology and grammar without touching the
-// language-agnostic skeleton in parser.prelude.
+// THE ENGLISH LANGUAGE LAYER. Everything about Arcturus that is specific to the
+// English language lives in this one file, so a translation is a fork of this
+// file alone (arcc --eject-language writes it out; docs/02 section 8, docs/05
+// section 6). It has three parts, in order:
+//
+//   1. THE PARSER - the blocks that teach the parser how to read English: which
+//      word is the verb, how a noun phrase is matched, how directions, particles
+//      ("switch OFF"), and two-noun prepositions ("put X ON Y") are recognized,
+//      and the oops correction. The language-agnostic skeleton that drives these
+//      lives in parser.prelude; these are the hooks it calls (the language seam).
+//   2. THE STANDARD VERBS - the vocabulary: every standard verb word and its
+//      grammar (its synonyms, whether it takes a noun or two, its prepositions).
+//      The behaviour behind each action is agnostic and lives in actions.prelude,
+//      keyed by action name; only the words are here.
+//   3. THE MESSAGES - every line the library prints to the player, each an
+//      overridable block, plus the room and content listing that frames them.
+//
+// A verb's WORDS are English and live here; a verb's LOGIC is not and lives in
+// actions.prelude. Redefine any message block in a story to reskin a line.
+
+// ==========================================================================
+// 1. THE PARSER
+// How English input becomes a verb, its nouns, and a direction.
+// ==========================================================================
 
 // Resolve the verb: the first word, if its dictionary entry is flagged a verb.
 // Returns the action number, or 0 if the first word is not a known verb.
@@ -75,6 +93,19 @@ block find_direction()
         change i to i + 1
     return nothing
 
+// English reads LOOK <noun> and LOOK AT <noun> as EXAMINE, the usual synonyms:
+// a bare LOOK describes the room, while LOOK CLOAK (or LOOK AT CLOAK) inspects the
+// cloak. parser.prelude calls this once the objects are known; here it remaps the
+// look action to examine when a noun or a scenery grain was named. A language pack
+// may override it for its own conventions.
+block remap_action(act)
+    if act is action_id("look")
+        if noun is not nothing
+            return action_id("examine")
+        if grain is not 0
+            return action_id("examine")
+    return act
+
 // Does the object's vocabulary include this dictionary word?
 block has_word(obj, target)
     let addr = words_addr(obj)
@@ -88,9 +119,451 @@ block has_word(obj, target)
         change i to i + 1
     return 0
 
+// Can the player see and reach what is inside this object? A supporter's
+// contents are always in view; a container's only when it is open or `clear`
+// (see-through). This is the scope rule the noun matcher follows.
+block see_into(obj)
+    if obj is supporter
+        return 1
+    if obj is container
+        if obj is open
+            return 1
+        if obj is clear
+            return 1
+    return 0
 
-// Turn-loop and room-description wording. These are English; a language pack
-// (spanish.granule) replaces this file and so replaces the messages too.
+// Match one word against an object in scope, searching a container's contents
+// and recursing into whatever the player can see into (an open or clear
+// container, a supporter), the same way in_scope reaches nested objects. A
+// hidden object cannot be referred to; a closed opaque container shields its
+// contents from the matcher (they are out of scope until it is opened).
+block scope_match_in(container, target)
+    for each obj in container
+        if not (obj is hidden)
+            if has_word(obj, target)
+                return obj
+            if see_into(obj)
+                let inner = scope_match_in(obj, target)
+                if inner is not nothing
+                    return inner
+    return nothing
+
+// Match a word against an object in scope: the room first, then what the player
+// carries (and onward into containers and supporters within reach).
+block scope_match(target)
+    let in_room = scope_match_in(here, target)
+    if in_room is not nothing
+        return in_room
+    let held = scope_match_in(player, target)
+    if held is not nothing
+        return held
+    // Nothing within reach. Is it something the player knows is shut inside a
+    // closed container here or carried? Return it, and note what must be opened,
+    // so the action can answer "open it first" rather than "you can't see that".
+    let here_shut = shut_search(here, target)
+    if here_shut is not nothing
+        return here_shut
+    return shut_search(player, target)
+
+// A closed opaque container: we cannot see into it.
+block shut_holds(obj)
+    if obj is open
+        return 0
+    if obj is clear
+        return 0
+    return 1
+
+// Among the closed opaque containers directly within `where`, a known (seen)
+// content matching the word. Records the blocking container in shut_in.
+block shut_search(where, target)
+    for each obj in where
+        if not (obj is hidden)
+            if obj is container
+                if shut_holds(obj)
+                    let known = shut_match(obj, target)
+                    if known is not nothing
+                        change shut_in to obj
+                        return known
+    return nothing
+
+block shut_match(holder, target)
+    for each x in holder
+        if not (x is hidden)
+            if x is seen
+                if has_word(x, target)
+                    return x
+    return nothing
+
+// Match a noun: the first typed word after the verb that names an object in
+// scope. Adjective scoring and full disambiguation are refined later.
+block match_noun()
+    let n = word_count()
+    let i = 1
+    while i < n
+        let target = word_dict(i)
+        if target is not nothing
+            let o = scope_match(target)
+            if o is not nothing
+                return o
+        change i to i + 1
+    return nothing
+
+// Resolve the command's objects into the noun (and, for a two-noun verb like
+// "put noun on noun", the second). The verb's dictionary entry carries its noun
+// arity in data byte 2: 0 intransitive, 1 one noun, 2 two nouns. An intransitive
+// verb handed extra words (jump n, look cloak) is a command the grammar cannot
+// account for, so it sets parse_fault 2 and the loop answers msg_extra_words
+// rather than silently dropping the words.
+block resolve_objects()
+    change noun to nothing
+    change second to nothing
+    change grain to 0
+    change parse_fault to 0
+    let d = word_dict(0)
+    if d is not nothing
+        if peek_byte(d + 6) is 128
+            let arity = peek_byte(d + 8)
+            let va = peek_byte(d + 7)
+            if arity is 2
+                resolve_two_nouns()
+                return 1
+            if arity is 0
+                // oops takes a trailing correction word, not a noun; never an error.
+                if va is not action_id("oops")
+                    if has_extra_words(va) is 1
+                        change parse_fault to 2
+                return 1
+    change noun to match_noun()
+    if noun is nothing
+        change noun to reach_unscoped()
+    if noun is nothing
+        change grain to find_scenery()
+        if grain is 0
+            change parse_fault to named_unseen()
+    return 1
+
+// A hook for reaching an object ordinary scope could not: nothing by default, so
+// a word that names something out of view stays unresolved (and the turn answers
+// "you can't see that"). The debug granule overrides this to match the word
+// against every object, so its fetch/warp/inspect verbs reach anything.
+block reach_unscoped()
+    return nothing
+
+// Did the player name an object word that nothing in scope answered to? Every
+// unflagged dictionary word is object vocabulary (verbs, directions, particles,
+// prepositions, and grain words all carry a flag byte), so an unflagged word that
+// the noun match did not consume names a thing that simply is not here.
+block named_unseen()
+    let n = word_count()
+    let i = 1
+    while i < n
+        let target = word_dict(i)
+        if target is not nothing
+            if peek_byte(target + 6) is 0
+                return 1
+        change i to i + 1
+    return 0
+
+// For an intransitive verb (no noun slot), is there a word after it the grammar
+// cannot use? Returns 1 the moment it finds one. A direction after `go` is the
+// exception: movement consumes it through `way`, so "go north" is whole, while
+// "jump north" or "look cloak" carries a word too many.
+block has_extra_words(act)
+    let n = word_count()
+    let i = 1
+    while i < n
+        let keep = 0
+        if act is action_id("go")
+            let d = word_dict(i)
+            if d is not nothing
+                if peek_byte(d + 6) is 64
+                    change keep to 1
+        if keep is 0
+            return 1
+        change i to i + 1
+    return 0
+
+// A scenery grain word (flagged bit 4) whose owner is in scope; returns the
+// grain id (so dispatch can route to its response or the scenery default).
+block find_scenery()
+    let n = word_count()
+    let i = 1
+    while i < n
+        let d = word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 16
+                let owner = peek_byte(d + 8)
+                if in_scope(owner)
+                    return peek_byte(d + 7)
+        change i to i + 1
+    return 0
+
+// Is this dictionary word a phrase boundary rather than a noun word? Any flagged
+// word qualifies: the grammar preposition (bit 3), but also a particle or a
+// direction word (on/in), which separate the two noun phrases just as well.
+block is_separator(target)
+    if peek_byte(target + 6) is not 0
+        return 1
+    return 0
+
+// Bind the two noun slots by position, the way the grammar reads them: the words
+// before the preposition name the first noun, the words after it name the second.
+// The boundary is the first separator word (the "to" of "give X to Y", the "on"
+// of "put X on Y"). Binding by position, not by first-in-scope-wins, is what lets
+// an out-of-scope first noun stay unresolved (so the verb reports "you can't see
+// that") instead of letting the recipient slide into its slot.
+block resolve_two_nouns()
+    let n = word_count()
+    let i = 1
+    let past_prep = 0
+    let unseen_first = 0
+    let unseen_second = 0
+    while i < n
+        let target = word_dict(i)
+        if target is not nothing
+            if is_separator(target)
+                change past_prep to 1
+            else
+                let o = scope_match(target)
+                if past_prep is 0
+                    if o is nothing
+                        change unseen_first to 1
+                    else
+                        if noun is nothing
+                            change noun to o
+                else
+                    if o is nothing
+                        change unseen_second to 1
+                    else
+                        if second is nothing
+                            change second to o
+        change i to i + 1
+    // A slot that named object words but bound nothing is a thing out of scope.
+    if noun is nothing
+        if unseen_first is 1
+            change parse_fault to 1
+    if second is nothing
+        if unseen_second is 1
+            change parse_fault to 1
+    return 1
+
+// Remember the command just parsed so a following "oops" can correct it: find the
+// first unrecognized word (one with no dictionary entry), verb or noun, and if
+// there is one, snapshot the parse buffer and note that word's index. With no
+// unknown word, clear the flag, so "oops" after an understood command has nothing
+// to fix. Scanning from word 0 means a mistyped verb is correctable too, but the
+// loop must call note_oops even when the verb did not parse (see run_game).
+block note_oops()
+    change oops_ready to 0
+    let n = word_count()
+    let i = 0
+    while i < n
+        if word_dict(i) is nothing
+            change oops_word to i
+            change oops_ready to 1
+            copy_bytes(parse_addr(), oops_addr(), 2 + 4 * n)
+            return 0
+        change i to i + 1
+    return 0
+
+// Correct the previous command's unrecognized word with the word typed after
+// "oops", then re-resolve the patched command and return its action (0 if there
+// is nothing to correct or the fix does not parse). run_turn dispatches the
+// result as an ordinary turn.
+block fix_oops()
+    if oops_ready is 0
+        msg_cant_oops()
+        return 0
+    let fix = word_dict(1)
+    if fix is nothing
+        msg_cant_oops()
+        return 0
+    // Restore the saved command, then overwrite the bad word's dictionary slot
+    // (the two-byte entry at parse offset 2 + 4*index) with the correction.
+    copy_bytes(oops_addr(), parse_addr(), 2 + 4 * peek_byte(oops_addr() + 1))
+    poke_word(parse_addr(), 1 + 2 * oops_word, fix)
+    let act = resolve_verb()
+    if act is 0
+        return 0
+    change way to find_direction()
+    resolve_objects()
+    if parse_fault is 1
+        msg_cant_see()
+        return 0
+    return act
+
+// ==========================================================================
+// 2. THE STANDARD VERBS
+// The verb vocabulary and grammar; the logic is in actions.prelude.
+// ==========================================================================
+
+// Bare LOOK describes the room; LOOK <noun> and LOOK AT <noun> are the usual
+// synonyms for EXAMINE, so the noun forms are accepted here and remapped to the
+// examine action once the noun is known (english.prelude, remap_action).
+verb "look", "l"
+    look
+    look noun
+    look at noun
+
+// Movement. The parser sets `way` to the chosen direction's property (a bare
+// direction word, or go + a direction). A room can override one direction with
+// its own `on go <direction>`, which runs first and consumes the action; this
+// default handles the rest: follow a static exit, or refuse the move.
+verb "go", "walk", "run"
+    go
+
+verb "take", "get", "carry"
+    take noun
+
+verb "drop"
+    drop noun
+
+verb "examine", "x"
+    examine noun
+
+// Meta verbs. These report on or steer the session rather than act in the world,
+// so each sets meta_turn: the loop then skips the per-turn pulse and the turn
+// count (a cancelled quit must not cost a turn). quit and restart confirm first.
+// Override on quit for a custom send-off, reusing confirm_quit() and do_quit().
+verb "quit", "q"
+    quit
+
+verb "score"
+    score
+
+verb "restart"
+    restart
+
+// Saving and restoring. do_save returns 1 when the save is written; a successful
+// restore does not return into the restore handler at all, it resumes at the
+// do_save point with result 2 (so the save handler redescribes the room after a
+// restore). The restore handler is reached only when the restore fails.
+verb "save"
+    save
+
+verb "restore"
+    restore
+
+// undo and again are intercepted by the turn loop (run_turn) before dispatch, so
+// they need no handler here; the declarations just register the verbs and their
+// actions. again replays the previous non-meta command.
+verb "undo"
+    undo
+
+verb "again", "g"
+    again
+
+verb "oops"
+    oops
+
+// The magic word. Not a meta verb (it is a normal, if fruitless, action), so it
+// takes a turn like any other; an author can override it for a real effect.
+verb "xyzzy"
+    xyzzy
+
+verb "inventory", "i", "inv"
+    inventory
+
+verb "switch"
+    switch_on noun
+    switch_off noun
+
+verb "wear", "don"
+    wear noun
+
+verb "remove", "doff", "disrobe", "shed"
+    take_off noun
+
+verb "put", "place"
+    put noun on noun
+    put noun in noun
+
+verb "insert"
+    insert noun in noun
+
+verb "open", "uncover", "unwrap"
+    open noun
+
+verb "close", "shut", "cover"
+    close noun
+
+verb "lock"
+    lock noun with noun
+    lock noun
+
+verb "unlock"
+    unlock noun with noun
+    unlock noun
+
+verb "enter", "board"
+    enter noun
+
+verb "exit", "leave"
+    exit
+
+verb "give", "offer", "feed", "pay"
+    give noun to noun
+
+verb "show", "display", "present"
+    show noun to noun
+
+verb "touch", "feel", "pat"
+    touch noun
+
+verb "smell", "sniff"
+    smell noun
+
+verb "taste", "lick"
+    taste noun
+
+verb "listen", "hear"
+    listen
+    listen noun
+
+verb "eat"
+    eat noun
+
+verb "drink", "sip", "swallow"
+    drink
+    drink noun
+
+verb "attack", "hit", "break", "kill", "fight", "smash"
+    attack noun
+
+verb "kiss", "hug", "embrace"
+    kiss noun
+
+verb "push", "press", "shove"
+    push noun
+
+verb "pull", "drag", "yank"
+    pull noun
+
+verb "turn", "rotate", "twist", "screw", "unscrew"
+    turn noun
+
+verb "climb", "scale"
+    climb noun
+
+verb "read"
+    examine noun
+
+verb "talk", "greet"
+    talk noun
+
+verb "jump", "hop"
+    jump
+
+verb "wait", "z"
+    wait
+
+verb "sing"
+    sing
+
+// ==========================================================================
+// 3. THE MESSAGES
+// Every line shown to the player, and the room and content listing.
+// ==========================================================================
 
 // The input prompt. It requests a paragraph break (one blank line before it,
 // collapsed with any the turn already pending) rather than forcing its own, so
@@ -181,9 +654,6 @@ block list_item(obj)
     show("${a obj}")
     list_contents(obj)
     say " here."
-
-// Standard messages (docs/message-set.md). Each is an overridable block: an
-// author redefines msg_<name>() in the story to change the wording.
 
 // Parser.
 block msg_cant_see()
@@ -476,276 +946,3 @@ block list_held(obj)
         show(" (worn)")
     list_contents(obj)
     say ""
-
-// Can the player see and reach what is inside this object? A supporter's
-// contents are always in view; a container's only when it is open or `clear`
-// (see-through). This is the scope rule the noun matcher follows.
-block see_into(obj)
-    if obj is supporter
-        return 1
-    if obj is container
-        if obj is open
-            return 1
-        if obj is clear
-            return 1
-    return 0
-
-// Match one word against an object in scope, searching a container's contents
-// and recursing into whatever the player can see into (an open or clear
-// container, a supporter), the same way in_scope reaches nested objects. A
-// hidden object cannot be referred to; a closed opaque container shields its
-// contents from the matcher (they are out of scope until it is opened).
-block scope_match_in(container, target)
-    for each obj in container
-        if not (obj is hidden)
-            if has_word(obj, target)
-                return obj
-            if see_into(obj)
-                let inner = scope_match_in(obj, target)
-                if inner is not nothing
-                    return inner
-    return nothing
-
-// Match a word against an object in scope: the room first, then what the player
-// carries (and onward into containers and supporters within reach).
-block scope_match(target)
-    let in_room = scope_match_in(here, target)
-    if in_room is not nothing
-        return in_room
-    let held = scope_match_in(player, target)
-    if held is not nothing
-        return held
-    // Nothing within reach. Is it something the player knows is shut inside a
-    // closed container here or carried? Return it, and note what must be opened,
-    // so the action can answer "open it first" rather than "you can't see that".
-    let here_shut = shut_search(here, target)
-    if here_shut is not nothing
-        return here_shut
-    return shut_search(player, target)
-
-// A closed opaque container: we cannot see into it.
-block shut_holds(obj)
-    if obj is open
-        return 0
-    if obj is clear
-        return 0
-    return 1
-
-// Among the closed opaque containers directly within `where`, a known (seen)
-// content matching the word. Records the blocking container in shut_in.
-block shut_search(where, target)
-    for each obj in where
-        if not (obj is hidden)
-            if obj is container
-                if shut_holds(obj)
-                    let known = shut_match(obj, target)
-                    if known is not nothing
-                        change shut_in to obj
-                        return known
-    return nothing
-
-block shut_match(holder, target)
-    for each x in holder
-        if not (x is hidden)
-            if x is seen
-                if has_word(x, target)
-                    return x
-    return nothing
-
-// Match a noun: the first typed word after the verb that names an object in
-// scope. Adjective scoring and full disambiguation are refined later.
-block match_noun()
-    let n = word_count()
-    let i = 1
-    while i < n
-        let target = word_dict(i)
-        if target is not nothing
-            let o = scope_match(target)
-            if o is not nothing
-                return o
-        change i to i + 1
-    return nothing
-
-// Resolve the command's objects into the noun (and, for a two-noun verb like
-// "put noun on noun", the second). The verb's dictionary entry carries its noun
-// arity in data byte 2: 0 intransitive, 1 one noun, 2 two nouns. An intransitive
-// verb handed extra words (jump n, look cloak) is a command the grammar cannot
-// account for, so it sets parse_fault 2 and the loop answers msg_extra_words
-// rather than silently dropping the words.
-block resolve_objects()
-    change noun to nothing
-    change second to nothing
-    change grain to 0
-    change parse_fault to 0
-    let d = word_dict(0)
-    if d is not nothing
-        if peek_byte(d + 6) is 128
-            let arity = peek_byte(d + 8)
-            let va = peek_byte(d + 7)
-            if arity is 2
-                resolve_two_nouns()
-                return 1
-            if arity is 0
-                // oops takes a trailing correction word, not a noun; never an error.
-                if va is not action_id("oops")
-                    if has_extra_words(va) is 1
-                        change parse_fault to 2
-                return 1
-    change noun to match_noun()
-    if noun is nothing
-        change noun to reach_unscoped()
-    if noun is nothing
-        change grain to find_scenery()
-        if grain is 0
-            change parse_fault to named_unseen()
-    return 1
-
-// A hook for reaching an object ordinary scope could not: nothing by default, so
-// a word that names something out of view stays unresolved (and the turn answers
-// "you can't see that"). The debug granule overrides this to match the word
-// against every object, so its fetch/warp/inspect verbs reach anything.
-block reach_unscoped()
-    return nothing
-
-// Did the player name an object word that nothing in scope answered to? Every
-// unflagged dictionary word is object vocabulary (verbs, directions, particles,
-// prepositions, and grain words all carry a flag byte), so an unflagged word that
-// the noun match did not consume names a thing that simply is not here.
-block named_unseen()
-    let n = word_count()
-    let i = 1
-    while i < n
-        let target = word_dict(i)
-        if target is not nothing
-            if peek_byte(target + 6) is 0
-                return 1
-        change i to i + 1
-    return 0
-
-// For an intransitive verb (no noun slot), is there a word after it the grammar
-// cannot use? Returns 1 the moment it finds one. A direction after `go` is the
-// exception: movement consumes it through `way`, so "go north" is whole, while
-// "jump north" or "look cloak" carries a word too many.
-block has_extra_words(act)
-    let n = word_count()
-    let i = 1
-    while i < n
-        let keep = 0
-        if act is action_id("go")
-            let d = word_dict(i)
-            if d is not nothing
-                if peek_byte(d + 6) is 64
-                    change keep to 1
-        if keep is 0
-            return 1
-        change i to i + 1
-    return 0
-
-// A scenery grain word (flagged bit 4) whose owner is in scope; returns the
-// grain id (so dispatch can route to its response or the scenery default).
-block find_scenery()
-    let n = word_count()
-    let i = 1
-    while i < n
-        let d = word_dict(i)
-        if d is not nothing
-            if peek_byte(d + 6) is 16
-                let owner = peek_byte(d + 8)
-                if in_scope(owner)
-                    return peek_byte(d + 7)
-        change i to i + 1
-    return 0
-
-// Is this dictionary word a phrase boundary rather than a noun word? Any flagged
-// word qualifies: the grammar preposition (bit 3), but also a particle or a
-// direction word (on/in), which separate the two noun phrases just as well.
-block is_separator(target)
-    if peek_byte(target + 6) is not 0
-        return 1
-    return 0
-
-// Bind the two noun slots by position, the way the grammar reads them: the words
-// before the preposition name the first noun, the words after it name the second.
-// The boundary is the first separator word (the "to" of "give X to Y", the "on"
-// of "put X on Y"). Binding by position, not by first-in-scope-wins, is what lets
-// an out-of-scope first noun stay unresolved (so the verb reports "you can't see
-// that") instead of letting the recipient slide into its slot.
-block resolve_two_nouns()
-    let n = word_count()
-    let i = 1
-    let past_prep = 0
-    let unseen_first = 0
-    let unseen_second = 0
-    while i < n
-        let target = word_dict(i)
-        if target is not nothing
-            if is_separator(target)
-                change past_prep to 1
-            else
-                let o = scope_match(target)
-                if past_prep is 0
-                    if o is nothing
-                        change unseen_first to 1
-                    else
-                        if noun is nothing
-                            change noun to o
-                else
-                    if o is nothing
-                        change unseen_second to 1
-                    else
-                        if second is nothing
-                            change second to o
-        change i to i + 1
-    // A slot that named object words but bound nothing is a thing out of scope.
-    if noun is nothing
-        if unseen_first is 1
-            change parse_fault to 1
-    if second is nothing
-        if unseen_second is 1
-            change parse_fault to 1
-    return 1
-
-// Remember the command just parsed so a following "oops" can correct it: find the
-// first unrecognized word (one with no dictionary entry), verb or noun, and if
-// there is one, snapshot the parse buffer and note that word's index. With no
-// unknown word, clear the flag, so "oops" after an understood command has nothing
-// to fix. Scanning from word 0 means a mistyped verb is correctable too, but the
-// loop must call note_oops even when the verb did not parse (see run_game).
-block note_oops()
-    change oops_ready to 0
-    let n = word_count()
-    let i = 0
-    while i < n
-        if word_dict(i) is nothing
-            change oops_word to i
-            change oops_ready to 1
-            copy_bytes(parse_addr(), oops_addr(), 2 + 4 * n)
-            return 0
-        change i to i + 1
-    return 0
-
-// Correct the previous command's unrecognized word with the word typed after
-// "oops", then re-resolve the patched command and return its action (0 if there
-// is nothing to correct or the fix does not parse). run_turn dispatches the
-// result as an ordinary turn.
-block fix_oops()
-    if oops_ready is 0
-        msg_cant_oops()
-        return 0
-    let fix = word_dict(1)
-    if fix is nothing
-        msg_cant_oops()
-        return 0
-    // Restore the saved command, then overwrite the bad word's dictionary slot
-    // (the two-byte entry at parse offset 2 + 4*index) with the correction.
-    copy_bytes(oops_addr(), parse_addr(), 2 + 4 * peek_byte(oops_addr() + 1))
-    poke_word(parse_addr(), 1 + 2 * oops_word, fix)
-    let act = resolve_verb()
-    if act is 0
-        return 0
-    change way to find_direction()
-    resolve_objects()
-    if parse_fault is 1
-        msg_cant_see()
-        return 0
-    return act

@@ -15,7 +15,7 @@ def test_extract_library_writes_all_files(tmp_path):
     assert rc == 0
     names = {p.name for p in tmp_path.glob("*.prelude")}
     # the core library files come out
-    assert {"core.prelude", "verbs.prelude", "english.prelude", "parser.prelude"} <= names
+    assert {"core.prelude", "actions.prelude", "english.prelude", "parser.prelude"} <= names
 
 
 def test_eject_language_writes_english(tmp_path):

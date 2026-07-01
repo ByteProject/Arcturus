@@ -48,7 +48,8 @@ commit.
 CLAUDE.md
 docs/            00-02 specs (authoritative); 03-05 produced as you build
 arcturus/        the compiler package (lexer, parser, ast, sema, codegen, cli)
-cosmos/          the Cosmos library in .storyarc (world, verbs, parser, banner)
+cosmos/          the Cosmos library in .prelude (english = language layer, actions,
+                 parser, scope, dispatch, loop, core) plus the .granule features
 tools/           arcabbr.py and other Python tools
 examples/        brass-lantern.storyarc, cloak-of-darkness.storyarc
 tests/           unit and golden tests
