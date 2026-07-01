@@ -108,6 +108,13 @@ _STD_BOOL_PROPS = [
     # author work; declare `an` (or `an false`) only for the odd exception (an
     # hour, a unicorn).
     "an",
+    # Grammatical gender for languages that need it (Spanish la/una, and the basis a
+    # language pack reads for its articles). Masculine is the default; the compiler
+    # derives `feminine` from a name ending in -a unless the author sets it, so
+    # "la lampara" / "el libro" come out right, with an override for the exceptions
+    # (el mapa, la mano). English ignores it. German, with no rule, uses an explicit
+    # article instead (added when German lands).
+    "feminine",
 ]
 
 # Standard value properties and their types.

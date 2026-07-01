@@ -579,6 +579,41 @@ verb "sing"
 // Every line shown to the player, and the room and content listing.
 // ==========================================================================
 
+// Articles. The compiler lowers ${the noun} / ${a noun} to a call to one of these
+// with the object and a capitalize flag (1 for ${The} / ${A}), so the article
+// words live here in the language layer, not in the compiler. A translation
+// redefines these two blocks for its own articles. English: "the", and "a" or
+// "an" chosen by the object's `an` attribute (the compiler derives that from the
+// name); a `named` object (Linda, Excalibur) takes no article at all. The named
+// check folds away in a game with no named objects (any_named).
+block art_the(obj, cap)
+    if any_named() is 1
+        if obj is named
+            print_name(obj)
+            return
+    if cap is 1
+        show("The ")
+    else
+        show("the ")
+    print_name(obj)
+
+block art_a(obj, cap)
+    if any_named() is 1
+        if obj is named
+            print_name(obj)
+            return
+    if obj is an
+        if cap is 1
+            show("An ")
+        else
+            show("an ")
+    else
+        if cap is 1
+            show("A ")
+        else
+            show("a ")
+    print_name(obj)
+
 // The input prompt. It requests a paragraph break (one blank line before it,
 // collapsed with any the turn already pending) rather than forcing its own, so
 // responses are separated from the next prompt by exactly one blank line.

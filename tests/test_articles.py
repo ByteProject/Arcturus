@@ -60,3 +60,33 @@ def test_indefinite_a_an_on_frotz(tmp_path):
     assert "You can see an iron sword here." in out  # vowel -> an
     assert "You can see Linda here." in out  # named -> no article
     assert "a iron" not in out and "an gold" not in out
+
+
+# The article words live in the language layer (art_the / art_a blocks), so a game
+# (or a language pack) can override them, and the compiler derives `feminine` from
+# a name ending in -a for a gendered language to read.
+GENDER_GAME = (
+    'game\n    title "G"\n    start sala\n'
+    'room sala\n    name "Sala"\n    desc "Una sala."\n'
+    'thing lampara in sala\n    name "lampara"\n    words lampara\n'
+    '    on examine\n        say "${The lampara}, ${a lampara}."\n        stop\n'
+    'thing libro in sala\n    name "libro"\n    words libro\n'
+    '    on examine\n        say "${The libro}, ${a libro}."\n        stop\n'
+    'block art_the(o, c)\n    if o is feminine\n        show("la ")\n'
+    '    else\n        show("el ")\n    print_name(o)\n'
+    'block art_a(o, c)\n    if o is feminine\n        show("una ")\n'
+    '    else\n        show("un ")\n    print_name(o)\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_gender_articles_override_on_frotz(tmp_path):
+    story = tmp_path / "g.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GENDER_GAME)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="examine lampara\nexamine libro\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "la lampara, una lampara." in out  # -a name: feminine, from art_the/art_a
+    assert "el libro, un libro." in out  # default masculine

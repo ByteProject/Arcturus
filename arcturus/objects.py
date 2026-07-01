@@ -143,6 +143,20 @@ def _name_first_letter(decl) -> str:
     return ""
 
 
+def _name_last_letter(decl) -> str:
+    """The last letter of the object's name, lowercased, or '' if unreadable. Used
+    to derive grammatical gender (a name ending in -a is feminine, for Spanish)."""
+    if decl is not None and decl.form == ast.PROP_VALUE and decl.values:
+        v = decl.values[0]
+        if isinstance(v, ast.StringLit):
+            text = "".join(
+                p.text for p in v.parts if isinstance(p, ast.StringText)
+            ).strip()
+            if text:
+                return text[-1].lower()
+    return ""
+
+
 def _bool_value(decl: ast.PropertyDecl) -> bool:
     if decl.form == ast.PROP_BOOL:
         return True
@@ -256,6 +270,13 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
         if an_num is not None and "an" not in eff:
             if _name_first_letter(eff.get("name")) in ("a", "e", "i", "o", "u"):
                 table[entry + an_num // 8] |= 0x80 >> (an_num % 8)
+        # Grammatical gender: when the author did not set `feminine`, derive it from
+        # the name (a name ending in -a is feminine), so a Spanish pack reads it for
+        # la/una with no author work. English never reads the bit.
+        fem_num = layout.attr_number.get("feminine")
+        if fem_num is not None and "feminine" not in eff:
+            if _name_last_letter(eff.get("name")) == "a":
+                table[entry + fem_num // 8] |= 0x80 >> (fem_num % 8)
         # Kind-membership attributes: one for each kind in the object's chain.
         for kname in obj.chain:
             katt = layout.kind_attr.get(kname)

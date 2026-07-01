@@ -55,7 +55,7 @@ INTRINSICS = frozenset({
     # a compile-time flag (1 if any object spans, else 0) the scope code guards on,
     # so `if any_spans() is 1` folds away and DCE drops the spans blocks when no
     # object spans (a static-if, see _if).
-    "spans_addr", "spans_count", "any_spans", "any_doors",
+    "spans_addr", "spans_count", "any_spans", "any_doors", "any_named",
     # The turn loop fires life-cycle events: run_free runs the free rules for an
     # action, and ev_* name the event action numbers (start, enter, each_turn).
     # tick_timers counts down the after/every schedule once per turn.
@@ -687,6 +687,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_doors(): the compile-time door flag (1 or 0), consumed by the go
         # handler's static `if any_doors() is 1`; a plain constant otherwise.
         _place(rt, Const(_any_doors(ctx)), dest)
+        return
+    elif name == "any_named":
+        # any_named(): the compile-time named flag (1 or 0), so the article blocks
+        # fold their `named` check away in a game with no proper-named objects.
+        _place(rt, Const(_any_named(ctx)), dest)
     elif name == "topics_count":
         # topics_count(person): how many topics the person has (0 if none).
         eval_expr(rt, ctx, args[0], Variable(STACK))
@@ -753,6 +758,13 @@ def _any_doors(ctx) -> int:
     """The compile-time door flag: 1 if any object is of the `door` kind, else 0.
     The go handler guards its door detour on this so it folds away when unused."""
     return 1 if (ctx.layout is not None and ctx.layout.has_doors) else 0
+
+
+def _any_named(ctx) -> int:
+    """The compile-time named flag: 1 if any object is `named` (a proper name),
+    else 0. The article blocks guard their named check on this so it folds away in
+    a game with no named objects."""
+    return 1 if (ctx.layout is not None and ctx.layout.has_named) else 0
 
 
 def _word_index(rt, ctx, expr, scale, base):
@@ -1193,47 +1205,18 @@ def _say_object(rt, ctx, expr):
 
 
 def _say_with_article(rt, ctx, article, expr):
-    """Print the article then the object's name. Two refinements over a literal
-    article: a `named` object (Linda, Excalibur) takes no article at all; and the
-    indefinite article auto-picks "a" vs "an" from the object's `an` attribute
-    (which the compiler derived from the name). So ${The noun} reads "The sword"
-    or "Linda", and ${a noun} reads "a coin" or "an apple"."""
+    """Print an object with its article, by calling the language layer. `${the x}`
+    and `${a x}` lower to a call to art_the / art_a (obj, cap), whose English
+    definitions print "the"/"a"/"an" and the name, and which a language pack
+    overrides for its own articles (el/la, der/die/das). Keeping the word choice in
+    Cosmos, not the compiler, is what makes articles translatable. cap is 1 for the
+    capitalized form (${The x})."""
     op, t = _operand(rt, ctx, expr)
-    named_attr = ctx.attr_number("named")
-    has_named = ctx.layout is not None and ctx.layout.has_named
-    skip = None
-    if named_attr is not None and has_named:
-        skip = ctx.new_label()
-        rt.op("test_attr", op, Const(named_attr), branch=(skip, True))  # named: none
-    if article.lower() in ("a", "an"):
-        _print_indefinite(rt, ctx, op, article[0].isupper())
-    else:
-        rt.op("print", text=article + " ")
-    if skip is not None:
-        rt.label(skip)
-    rt.op("print_obj", op)
+    cap = 1 if article[0].isupper() else 0
+    block = "blk_art_a" if article.lower() in ("a", "an") else "blk_art_the"
+    rt.op("call_vn", RoutineRef(block), op, Const(cap))
     if t is not None:
         ctx.free_temp(t)
-
-
-def _print_indefinite(rt, ctx, op, cap):
-    """Print "a "/"an " (capitalized when `cap`), choosing by the object's `an`
-    attribute. The author wrote ${a obj} or ${an obj}; the actual choice is the
-    object's, so the article is always right regardless of which was typed."""
-    a_word = "A " if cap else "a "
-    an_word = "An " if cap else "an "
-    an_attr = ctx.attr_number("an")
-    if an_attr is None:
-        rt.op("print", text=a_word)
-        return
-    use_an = ctx.new_label()
-    done = ctx.new_label()
-    rt.op("test_attr", op, Const(an_attr), branch=(use_an, True))
-    rt.op("print", text=a_word)
-    rt.jump(done)
-    rt.label(use_an)
-    rt.op("print", text=an_word)
-    rt.label(done)
 
 
 def _static_value(ctx, expr):
@@ -1248,6 +1231,8 @@ def _static_value(ctx, expr):
         return _any_spans(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_doors":
         return _any_doors(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_named":
+        return _any_named(ctx)
     # A constant folds to its value, so `if DEBUG is 1` (DEBUG a constant) decides
     # at compile time and an unused branch is never emitted.
     if isinstance(expr, ast.Name):
