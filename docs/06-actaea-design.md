@@ -14,10 +14,10 @@ Arcturus CLAUDE.md points to it. The milestones below (M1 to M11) are the
 breakdown of that single roadmap milestone.
 
 arc_image is explicitly not part of Actaea. You build it later, yourself, in
-this same project, as Arcturus milestones B8 and B9. Actaea is the plain,
+this same project, as Arcturus milestones B11 and B12. Actaea is the plain,
 conformant interpreter; bringing it to life never touches graphics. The only
-thing Actaea does for the later work is leave the cell model decoupled so B8
-and B9 are an extension rather than a rewrite (sections 6 and 14).
+thing Actaea does for the later work is leave the cell model decoupled so B11
+and B12 are an extension rather than a rewrite (sections 6 and 14).
 
 ## 1. What Actaea is
 
