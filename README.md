@@ -19,6 +19,24 @@ Arcturus itself and ships as editable source rather than a black box.
 
 The name is a star, Arcturus, and the narrative arc every story is built on.
 
+## Philosophy
+
+Arcturus is built for one thing and built for it well: writing modern adventure
+games for the Z-machine. It gives authors the constructs they actually reach for
+(rooms and things and kinds, containers and doors, scope and light, an NPC
+conversation model, daemons and timers, computed descriptions, multi-room
+scenery), each as clean syntactic sugar, so the common cases are short, readable,
+and hard to get wrong. This is a complete, powerful core, and Arcturus is its own
+language, not a dialect of any other.
+
+Cosmos, the standard library, is editable Arcturus source you own outright: read
+it, override any behavior, and reshape it to your game rather than work around a
+black box. Optional and specialized features are granules you summon, present only
+where a game wants them and costing nothing where it does not. And because
+Arcturus owns its whole pipeline (the compiler, the library, and the interpreter),
+it can be this expressive and still compile small, with whole-program optimization
+trimming every build to exactly what the game uses.
+
 ## Project status
 
 Arcturus is in **active development**. It is not at a 1.0 release yet, but it
