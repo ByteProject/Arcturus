@@ -31,23 +31,26 @@ Arcturus itself.
 The road from here, milestone by milestone:
 
 - **Done:** the language spec; the compiler (lexer, parser, semantic analysis,
-  Z-machine code generation); a feature-complete Cosmos - the full standard verb
-  set, the meta verbs (score, save, restore, undo, again, oops), an original
-  standard message set, the `topic` conversation model, and the summonable
-  granules: extended verbs, an opt-in status line, verbose exits, a menu-driven
-  conversation system, and debug verbs; and the size pass - whole-program
-  dead-code elimination and abbreviation-based text compression, both built into
-  the compiler so every build is trimmed and packed with nothing to configure.
-  Both example games play end to end, and Cloak of Darkness compiles to about
+  Z-machine code generation); and a feature-complete Cosmos written in Arcturus
+  itself - the full standard verb set, the meta verbs (score, save, restore,
+  undo, again, oops), an original standard message set, kinds and inheritance,
+  the container knowledge model, computed properties, daemons and timers, doors
+  (including two-sided doors) and multi-room scenery, the `topic` conversation
+  model, and the summonable granules: extended verbs, an opt-in status line,
+  verbose exits, a menu-driven conversation system, and debug verbs. The size
+  pass is complete: whole-program dead-code elimination, abbreviation-based text
+  compression (a baked-in default plus an opt-in per-game pass), and dense code
+  generation, all built into the compiler so every build is trimmed with nothing
+  to configure, and optional features cost nothing when a game does not use them.
+  Both example games play end to end, and Cloak of Darkness compiles to under
   12K, smaller than its PunyInform build (~27K).
-- **Next:** finishing the size pass - dense code generation, and an opt-in pass
-  that computes a per-game abbreviation set when an author wants to squeeze a
-  large story further than the baked-in default.
-- **After that:** Spanish and German language packs, a modern reference
-  interpreter, the `arc_image` graphics path (modern systems first, then the
-  8-bit and 16-bit retro machines), and porting two existing games - Ghosts of
-  Blackwood Manor and The Curse of Rabenstein - as the proving ground. Reaching
-  1.0 is tied to those ports.
+- **Next:** Spanish and German language packs, each a summonable granule that
+  localizes the messages, the vocabulary, and the parser grammar.
+- **After that:** porting real games as the proving ground - Hibernated 2 (the
+  first full-length game, and the maturity milestone) and Ghosts of Blackwood
+  Manor; then a modern reference interpreter, the `arc_image` graphics path
+  (modern systems first, then the 8-bit and 16-bit retro machines), and porting
+  The Curse of Rabenstein. Reaching 1.0 is tied to those ports.
 
 Follow this section and `PROGRESS.md` for where things stand.
 
