@@ -1,0 +1,1022 @@
+// spanish.prelude
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// THE SPANISH LANGUAGE LAYER (informal, tuteo). Selected with
+// `summon.language "spanish"`, it replaces english.prelude. A fork of the English
+// layer: the language-agnostic parser logic in section 1 is unchanged; the verbs,
+// the direction words, the articles, and every message are Spanish. First pass,
+// pending native review. It has three parts, in order:
+//
+//   1. THE PARSER - the blocks that teach the parser how to read English: which
+//      word is the verb, how a noun phrase is matched, how directions, particles
+//      ("switch OFF"), and two-noun prepositions ("put X ON Y") are recognized,
+//      and the oops correction. The language-agnostic skeleton that drives these
+//      lives in parser.prelude; these are the hooks it calls (the language seam).
+//   2. THE STANDARD VERBS - the vocabulary: every standard verb word and its
+//      grammar (its synonyms, whether it takes a noun or two, its prepositions).
+//      The behaviour behind each action is agnostic and lives in actions.prelude,
+//      keyed by action name; only the words are here.
+//   3. THE MESSAGES - every line the library prints to the player, each an
+//      overridable block, plus the room and content listing that frames them.
+//
+// A verb's WORDS are English and live here; a verb's LOGIC is not and lives in
+// actions.prelude. Redefine any message block in a story to reskin a line.
+
+// ==========================================================================
+// 1. THE PARSER
+// How English input becomes a verb, its nouns, and a direction.
+// ==========================================================================
+
+// Resolve the verb: the first word, if its dictionary entry is flagged a verb.
+// Returns the action number, or 0 if the first word is not a known verb.
+block resolve_verb()
+    let d = word_dict(0)
+    if d is nothing
+        return 0
+    let flags = peek_byte(d + 6)
+    if flags is 128
+        let base = peek_byte(d + 7)
+        let p = find_particle()
+        if p is not nothing
+            let c = compound(base, p)
+            if c is not nothing
+                return c
+        return base
+    if flags is 64
+        return peek_byte(d + 7)
+    return 0
+
+// A verb particle after the verb (the "off" in "switch off"), as its id.
+block find_particle()
+    let n = word_count()
+    let i = 1
+    while i < n
+        let d = word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 32
+                return peek_byte(d + 7)
+        change i to i + 1
+    return nothing
+
+// Combine a base verb with a particle into a multi-word action, only for the
+// verbs that take one: switch and turn with on/off become switch_on/switch_off,
+// and take with off becomes take_off. Any other base ignores the particle (so
+// "put X on Y" stays a put). Particle ids: on is 1, off is 2.
+block compound(base, particle)
+    if base is action_id("switch_on")
+        if particle is 1
+            return action_id("switch_on")
+        if particle is 2
+            return action_id("switch_off")
+    if base is action_id("turn")
+        if particle is 1
+            return action_id("switch_on")
+        if particle is 2
+            return action_id("switch_off")
+    if base is action_id("take")
+        if particle is 2
+            return action_id("take_off")
+    return nothing
+
+// The chosen direction's property number, from the first direction word typed
+// (a direction word's dictionary entry is flagged with bit 6, and byte 2 holds
+// the direction property). Returns nothing if no direction was named.
+block find_direction()
+    let n = word_count()
+    let i = 0
+    while i < n
+        let d = word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 64
+                return peek_byte(d + 8)
+        change i to i + 1
+    return nothing
+
+// English reads LOOK <noun> and LOOK AT <noun> as EXAMINE, the usual synonyms:
+// a bare LOOK describes the room, while LOOK CLOAK (or LOOK AT CLOAK) inspects the
+// cloak. parser.prelude calls this once the objects are known; here it remaps the
+// look action to examine when a noun or a scenery grain was named. A language pack
+// may override it for its own conventions.
+block remap_action(act)
+    if act is action_id("look")
+        if noun is not nothing
+            return action_id("examine")
+        if grain is not 0
+            return action_id("examine")
+    return act
+
+// Does the object's vocabulary include this dictionary word?
+block has_word(obj, target)
+    let addr = words_addr(obj)
+    if addr is nothing
+        return 0
+    let count = words_count(obj)
+    let i = 0
+    while i < count
+        if peek_word(addr, i) is target
+            return 1
+        change i to i + 1
+    return 0
+
+// Can the player see and reach what is inside this object? A supporter's
+// contents are always in view. A container's are in view when it is open, when
+// it is `clear` (see-through), or when it is not `openable` at all: a bowl or a
+// basket has no lid to shut, so its contents are always reachable. This is the
+// scope rule the noun matcher follows.
+block see_into(obj)
+    if obj is supporter
+        return 1
+    if obj is container
+        if obj is open
+            return 1
+        if obj is clear
+            return 1
+        if not (obj is openable)
+            return 1
+    return 0
+
+// Match one word against an object in scope, searching a container's contents
+// and recursing into whatever the player can see into (an open or clear
+// container, a supporter), the same way in_scope reaches nested objects. A
+// hidden object cannot be referred to; a closed opaque container shields its
+// contents from the matcher (they are out of scope until it is opened).
+block scope_match_in(container, target)
+    for each obj in container
+        if not (obj is hidden)
+            if has_word(obj, target)
+                return obj
+            if see_into(obj)
+                let inner = scope_match_in(obj, target)
+                if inner is not nothing
+                    return inner
+    return nothing
+
+// Match a word against an object in scope: the room first, then what the player
+// carries (and onward into containers and supporters within reach).
+block scope_match(target)
+    let in_room = scope_match_in(here, target)
+    if in_room is not nothing
+        return in_room
+    let held = scope_match_in(player, target)
+    if held is not nothing
+        return held
+    // An object that spans this room (a door reaching in from the far side, a
+    // piece of scenery visible from here) is in scope but not in the tree. The
+    // guard folds away in a game with no spanning objects (docs/01 section 5).
+    if any_spans() is 1
+        let spanned = spans_match(target)
+        if spanned is not nothing
+            return spanned
+    // Nothing within reach. Is it something the player knows is shut inside a
+    // closed container here or carried? Return it, and note what must be opened,
+    // so the action can answer "open it first" rather than "you can't see that".
+    let here_shut = shut_search(here, target)
+    if here_shut is not nothing
+        return here_shut
+    return shut_search(player, target)
+
+// A closed opaque container: we cannot see into it. The inverse of see_into for
+// a container: open, clear, or lidless (not openable) all mean it is not shut.
+block shut_holds(obj)
+    if obj is open
+        return 0
+    if obj is clear
+        return 0
+    if not (obj is openable)
+        return 0
+    return 1
+
+// Among the closed opaque containers directly within `where`, a known (seen)
+// content matching the word. Records the blocking container in shut_in.
+block shut_search(where, target)
+    for each obj in where
+        if not (obj is hidden)
+            if obj is container
+                if shut_holds(obj)
+                    let known = shut_match(obj, target)
+                    if known is not nothing
+                        change shut_in to obj
+                        return known
+    return nothing
+
+block shut_match(holder, target)
+    for each x in holder
+        if not (x is hidden)
+            if x is seen
+                if has_word(x, target)
+                    return x
+    return nothing
+
+// Match a noun: the first typed word after the verb that names an object in
+// scope. Adjective scoring and full disambiguation are refined later.
+block match_noun()
+    let n = word_count()
+    let i = 1
+    while i < n
+        let target = word_dict(i)
+        if target is not nothing
+            let o = scope_match(target)
+            if o is not nothing
+                return o
+        change i to i + 1
+    return nothing
+
+// Resolve the command's objects into the noun (and, for a two-noun verb like
+// "put noun on noun", the second). The verb's dictionary entry carries its noun
+// arity in data byte 2: 0 intransitive, 1 one noun, 2 two nouns. An intransitive
+// verb handed extra words (jump n, look cloak) is a command the grammar cannot
+// account for, so it sets parse_fault 2 and the loop answers msg_extra_words
+// rather than silently dropping the words.
+block resolve_objects()
+    change noun to nothing
+    change second to nothing
+    change grain to 0
+    change parse_fault to 0
+    let d = word_dict(0)
+    if d is not nothing
+        if peek_byte(d + 6) is 128
+            let arity = peek_byte(d + 8)
+            let va = peek_byte(d + 7)
+            if arity is 2
+                resolve_two_nouns()
+                return 1
+            if arity is 0
+                // oops takes a trailing correction word, not a noun; never an error.
+                if va is not action_id("oops")
+                    if has_extra_words(va) is 1
+                        change parse_fault to 2
+                return 1
+    change noun to match_noun()
+    if noun is nothing
+        change noun to reach_unscoped()
+    if noun is nothing
+        change grain to find_scenery()
+        if grain is 0
+            change parse_fault to named_unseen()
+    return 1
+
+// A hook for reaching an object ordinary scope could not: nothing by default, so
+// a word that names something out of view stays unresolved (and the turn answers
+// "you can't see that"). The debug granule overrides this to match the word
+// against every object, so its fetch/warp/inspect verbs reach anything.
+block reach_unscoped()
+    return nothing
+
+// Did the player name an object word that nothing in scope answered to? Every
+// unflagged dictionary word is object vocabulary (verbs, directions, particles,
+// prepositions, and grain words all carry a flag byte), so an unflagged word that
+// the noun match did not consume names a thing that simply is not here.
+block named_unseen()
+    let n = word_count()
+    let i = 1
+    while i < n
+        let target = word_dict(i)
+        if target is not nothing
+            if peek_byte(target + 6) is 0
+                return 1
+        change i to i + 1
+    return 0
+
+// For an intransitive verb (no noun slot), is there a word after it the grammar
+// cannot use? Returns 1 the moment it finds one. A direction after `go` is the
+// exception: movement consumes it through `way`, so "go north" is whole, while
+// "jump north" or "look cloak" carries a word too many.
+block has_extra_words(act)
+    let n = word_count()
+    let i = 1
+    while i < n
+        let keep = 0
+        if act is action_id("go")
+            let d = word_dict(i)
+            if d is not nothing
+                if peek_byte(d + 6) is 64
+                    change keep to 1
+        if keep is 0
+            return 1
+        change i to i + 1
+    return 0
+
+// A scenery grain word (flagged bit 4) whose owner is in scope; returns the
+// grain id (so dispatch can route to its response or the scenery default).
+block find_scenery()
+    let n = word_count()
+    let i = 1
+    while i < n
+        let d = word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 16
+                let owner = peek_byte(d + 8)
+                if in_scope(owner)
+                    return peek_byte(d + 7)
+        change i to i + 1
+    return 0
+
+// Is this dictionary word a phrase boundary rather than a noun word? Any flagged
+// word qualifies: the grammar preposition (bit 3), but also a particle or a
+// direction word (on/in), which separate the two noun phrases just as well.
+block is_separator(target)
+    if peek_byte(target + 6) is not 0
+        return 1
+    return 0
+
+// Bind the two noun slots by position, the way the grammar reads them: the words
+// before the preposition name the first noun, the words after it name the second.
+// The boundary is the first separator word (the "to" of "give X to Y", the "on"
+// of "put X on Y"). Binding by position, not by first-in-scope-wins, is what lets
+// an out-of-scope first noun stay unresolved (so the verb reports "you can't see
+// that") instead of letting the recipient slide into its slot.
+block resolve_two_nouns()
+    let n = word_count()
+    let i = 1
+    let past_prep = 0
+    let unseen_first = 0
+    let unseen_second = 0
+    while i < n
+        let target = word_dict(i)
+        if target is not nothing
+            if is_separator(target)
+                change past_prep to 1
+            else
+                let o = scope_match(target)
+                if past_prep is 0
+                    if o is nothing
+                        change unseen_first to 1
+                    else
+                        if noun is nothing
+                            change noun to o
+                else
+                    if o is nothing
+                        change unseen_second to 1
+                    else
+                        if second is nothing
+                            change second to o
+        change i to i + 1
+    // A slot that named object words but bound nothing is a thing out of scope.
+    if noun is nothing
+        if unseen_first is 1
+            change parse_fault to 1
+    if second is nothing
+        if unseen_second is 1
+            change parse_fault to 1
+    return 1
+
+// Remember the command just parsed so a following "oops" can correct it: find the
+// first unrecognized word (one with no dictionary entry), verb or noun, and if
+// there is one, snapshot the parse buffer and note that word's index. With no
+// unknown word, clear the flag, so "oops" after an understood command has nothing
+// to fix. Scanning from word 0 means a mistyped verb is correctable too, but the
+// loop must call note_oops even when the verb did not parse (see run_game).
+block note_oops()
+    change oops_ready to 0
+    let n = word_count()
+    let i = 0
+    while i < n
+        if word_dict(i) is nothing
+            change oops_word to i
+            change oops_ready to 1
+            copy_bytes(parse_addr(), oops_addr(), 2 + 4 * n)
+            return 0
+        change i to i + 1
+    return 0
+
+// Correct the previous command's unrecognized word with the word typed after
+// "oops", then re-resolve the patched command and return its action (0 if there
+// is nothing to correct or the fix does not parse). run_turn dispatches the
+// result as an ordinary turn.
+block fix_oops()
+    if oops_ready is 0
+        msg_cant_oops()
+        return 0
+    let fix = word_dict(1)
+    if fix is nothing
+        msg_cant_oops()
+        return 0
+    // Restore the saved command, then overwrite the bad word's dictionary slot
+    // (the two-byte entry at parse offset 2 + 4*index) with the correction.
+    copy_bytes(oops_addr(), parse_addr(), 2 + 4 * peek_byte(oops_addr() + 1))
+    poke_word(parse_addr(), 1 + 2 * oops_word, fix)
+    let act = resolve_verb()
+    if act is 0
+        return 0
+    change way to find_direction()
+    resolve_objects()
+    if parse_fault is 1
+        msg_cant_see()
+        return 0
+    return act
+
+// ==========================================================================
+// 2. THE STANDARD VERBS
+// The verb vocabulary and grammar; the logic is in actions.prelude.
+// ==========================================================================
+
+// Bare LOOK describes the room; LOOK <noun> and LOOK AT <noun> are the usual
+// synonyms for EXAMINE, so the noun forms are accepted here and remapped to the
+// examine action once the noun is known (english.prelude, remap_action).
+verb "mirar", "mira", "m"
+    look
+    look noun
+    look a noun
+
+// Movement. The parser sets `way` to the chosen direction's property (a bare
+// direction word, or go + a direction). A room can override one direction with
+// its own `on go <direction>`, which runs first and consumes the action; this
+// default handles the rest: follow a static exit, or refuse the move.
+verb "ir", "ve", "camina", "caminar", "corre", "correr"
+    go
+
+// The direction words: each maps its vocabulary to a fixed direction property.
+// This is the English set; a language pack redeclares these with its own words
+// (direction north "norte", "n"). The property names never change.
+direction north     "norte", "n"
+direction south     "sur", "s"
+direction east      "este", "e"
+direction west      "oeste", "o"
+direction northeast "noreste", "ne"
+direction northwest "noroeste", "no"
+direction southeast "sureste", "se"
+direction southwest "suroeste", "so"
+direction up        "arriba", "ar"
+direction down      "abajo", "ab"
+direction in        "dentro"
+direction out       "fuera"
+
+verb "coger", "coge", "tomar", "toma", "agarrar", "agarra"
+    take noun
+
+verb "dejar", "deja", "soltar", "suelta"
+    drop noun
+
+verb "examinar", "examina", "x", "inspeccionar", "inspecciona"
+    examine noun
+
+// Meta verbs. These report on or steer the session rather than act in the world,
+// so each sets meta_turn: the loop then skips the per-turn pulse and the turn
+// count (a cancelled quit must not cost a turn). quit and restart confirm first.
+// Override on quit for a custom send-off, reusing confirm_quit() and do_quit().
+verb "fin", "terminar", "termina"
+    quit
+
+verb "puntuacion", "puntuación", "puntos"
+    score
+
+verb "reiniciar", "recomenzar"
+    restart
+
+// Saving and restoring. do_save returns 1 when the save is written; a successful
+// restore does not return into the restore handler at all, it resumes at the
+// do_save point with result 2 (so the save handler redescribes the room after a
+// restore). The restore handler is reached only when the restore fails.
+verb "guardar", "graba", "grabar"
+    save
+
+verb "recuperar", "cargar", "carga", "restaurar"
+    restore
+
+// undo and again are intercepted by the turn loop (run_turn) before dispatch, so
+// they need no handler here; the declarations just register the verbs and their
+// actions. again replays the previous non-meta command.
+verb "deshacer"
+    undo
+
+verb "repetir", "repite", "g", "otra"
+    again
+
+verb "ups", "corregir"
+    oops
+
+// The magic word. Not a meta verb (it is a normal, if fruitless, action), so it
+// takes a turn like any other; an author can override it for a real effect.
+verb "xyzzy"
+    xyzzy
+
+verb "inventario", "i", "inv"
+    inventory
+
+verb "encender", "enciende"
+    switch_on noun
+
+verb "apagar", "apaga"
+    switch_off noun
+
+verb "ponerse", "ponte", "vestir", "viste"
+    wear noun
+
+verb "quitarse", "quitate", "quítate", "quitar", "quita"
+    take_off noun
+
+verb "poner", "pon", "colocar", "coloca", "meter", "mete"
+    put noun sobre noun
+    put noun en noun
+
+verb "introducir", "introduce", "insertar"
+    insert noun en noun
+
+verb "abrir", "abre", "destapar", "destapa"
+    open noun
+
+verb "cerrar", "cierra", "tapar", "tapa"
+    close noun
+
+verb "entrar", "entra", "subir", "sube"
+    enter noun
+
+verb "salir", "sal", "abandonar"
+    exit
+
+verb "dar", "da", "ofrecer", "ofrece", "entregar", "entrega"
+    give noun a noun
+
+verb "mostrar", "muestra", "ensenar", "enseñar", "ensena", "enseña"
+    show noun a noun
+
+verb "tocar", "toca", "palpar", "palpa"
+    touch noun
+
+verb "oler", "huele", "olfatear"
+    smell noun
+
+verb "probar", "prueba", "lamer", "lame", "saborear"
+    taste noun
+
+verb "escuchar", "escucha", "oir", "oír", "oye"
+    listen
+    listen noun
+
+verb "comer", "come"
+    eat noun
+
+verb "beber", "bebe", "tragar", "traga"
+    drink
+    drink noun
+
+verb "atacar", "ataca", "golpear", "golpea", "romper", "rompe", "matar", "mata", "pegar", "pega"
+    attack noun
+
+verb "besar", "besa", "abrazar", "abraza"
+    kiss noun
+
+verb "empujar", "empuja", "pulsar", "pulsa", "presionar", "presiona"
+    push noun
+
+verb "tirar", "tira", "jalar", "jala"
+    pull noun
+
+verb "girar", "gira", "rotar", "rota", "voltear", "voltea"
+    turn noun
+
+verb "escalar", "escala", "trepar", "trepa"
+    climb noun
+
+verb "leer", "lee"
+    examine noun
+
+verb "hablar", "habla", "saludar", "saluda"
+    talk noun
+
+verb "saltar", "salta", "brincar", "brinca"
+    jump
+
+verb "esperar", "espera", "z"
+    wait
+
+verb "cantar", "canta"
+    sing
+
+// ==========================================================================
+// 3. THE MESSAGES
+// Every line shown to the player, and the room and content listing.
+// ==========================================================================
+
+// Articles. The compiler lowers ${the noun} / ${a noun} to a call to one of these
+// with the object and a capitalize flag (1 for ${The} / ${A}), so the article
+// words live here in the language layer, not in the compiler. A translation
+// redefines these two blocks for its own articles. English: "the", and "a" or
+// "an" chosen by the object's `an` attribute (the compiler derives that from the
+// name); a `named` object (Linda, Excalibur) takes no article at all. The named
+// check folds away in a game with no named objects (any_named).
+block art_the(obj, cap)
+    if any_named() is 1
+        if obj is named
+            print_name(obj)
+            return
+    if obj is feminine
+        if cap is 1
+            show("La ")
+        else
+            show("la ")
+    else
+        if cap is 1
+            show("El ")
+        else
+            show("el ")
+    print_name(obj)
+
+block art_a(obj, cap)
+    if any_named() is 1
+        if obj is named
+            print_name(obj)
+            return
+    if obj is feminine
+        if cap is 1
+            show("Una ")
+        else
+            show("una ")
+    else
+        if cap is 1
+            show("Un ")
+        else
+            show("un ")
+    print_name(obj)
+
+// The input prompt. It requests a paragraph break (one blank line before it,
+// collapsed with any the turn already pending) rather than forcing its own, so
+// responses are separated from the next prompt by exactly one blank line.
+block prompt()
+    par()
+    show(">")
+
+// What of a holder's contents should be listed: not hidden or concealed, and
+// either the holder shows its contents (a supporter, or an open or clear
+// container) or the player already knows the item is there (it is `seen`). That
+// last case is the memory - a closed opaque box still lists what you have seen.
+block content_listable(holder, x)
+    if x is hidden
+        return 0
+    if x is concealed
+        return 0
+    // Anything the player can see into (a supporter, or an open, clear, or
+    // lidless container) lists all its contents; a closed opaque container lists
+    // only what the player already knows is inside (the knowledge model).
+    if see_into(holder)
+        return 1
+    if x is seen
+        return 1
+    return 0
+
+// Append " (contains a, b and c)" to a container or supporter just named, listing
+// the contents the player can see or remembers and marking each as seen. Prints
+// nothing when there is nothing to show. One level deep, by design.
+block list_contents(holder)
+    if holder is supporter
+        list_contents_run(holder)
+        return 0
+    if holder is container
+        list_contents_run(holder)
+    return 0
+
+block list_contents_run(holder)
+    let total = 0
+    for each x in holder
+        if content_listable(holder, x)
+            change total to total + 1
+    if total is 0
+        return 0
+    show(" (contiene ")
+    let shown = 0
+    for each x in holder
+        if content_listable(holder, x)
+            if shown is not 0
+                if shown is total - 1
+                    show(" y ")
+                else
+                    show(", ")
+            show("${a x}")
+            now x is seen
+            change shown to shown + 1
+    show(")")
+    return 0
+
+// After a container is opened, name what is revealed inside (marking it seen), so
+// opening a box shows its contents at once rather than only on the next look.
+block reveal_contents(holder)
+    let total = 0
+    for each x in holder
+        if content_listable(holder, x)
+            change total to total + 1
+    if total is 0
+        return 0
+    show("Dentro encuentras ")
+    let shown = 0
+    for each x in holder
+        if content_listable(holder, x)
+            if shown is not 0
+                if shown is total - 1
+                    show(" y ")
+                else
+                    show(", ")
+            show("${a x}")
+            now x is seen
+            change shown to shown + 1
+    say "."
+
+// One line of a room's contents listing, naming a container's or supporter's
+// contents in passing.
+block list_item(obj)
+    show("Ves ")
+    show("${a obj}")
+    list_contents(obj)
+    say " aquí."
+
+// Parser.
+block msg_cant_see()
+    say "No ves nada de eso por aquí."
+
+block msg_open_first()
+    say "Antes tendrás que abrir ${the shut_in}."
+
+block msg_no_it()
+    say "Tendrás que decir a qué te refieres."
+
+block msg_be_specific()
+    say "Tendrás que ser más concreto."
+
+block msg_nothing_again()
+    say "No hay nada que repetir."
+
+block msg_only_animate()
+    say "Si sigues hablándoles a los objetos, quizá toque otra sesión de terapia."
+
+// Conversation lines. The `you` and `reply` topic sugar auto-quotes and
+// attributes a line of dialogue; the compiler supplies the line's text and
+// calls these for the framing. The speaker label, the separator, and the
+// quotation marks all live here, so a story can restyle them and a language
+// pack can translate them (German low-high quotes, French guillemets, a
+// different speaker tag). line_reply receives the speaking person; ${The x}
+// prints a named person bare (Linda) and others with the article (The guard).
+block line_you()
+    show("Tú: \"")
+
+block line_reply(speaker)
+    show("${The speaker}: \"")
+
+block line_end()
+    say "\""
+
+// Room and light.
+block msg_dark_room()
+    say "Oscuridad total. Hasta tus manos han desaparecido."
+
+block msg_too_dark()
+    say "Está demasiado oscuro para distinguir nada."
+
+// Movement.
+block msg_cant_go()
+    say "No hay salida en esa dirección."
+
+block msg_no_direction()
+    say "¿Hacia dónde?"
+
+block msg_cant_enter()
+    say "No puedes meterte en ${the noun}."
+
+block msg_already_there()
+    say "Ya estás ahí."
+
+block msg_not_inside()
+    say "No estás dentro de nada de lo que salir."
+
+block msg_cant_climb()
+    say "${The noun} no es para escalar."
+
+// Sensory.
+block msg_nothing_special()
+    say "Nada en ${the noun} merece una mirada más de cerca."
+
+block msg_touch()
+    say "Tocas ${the noun}. No notas nada que tus ojos no vieran ya."
+
+block msg_smell()
+    say "${The noun} huele más o menos como esperabas."
+
+block msg_listen()
+    say "Escuchas. Nada responde."
+
+block msg_taste()
+    say "Mejor no."
+
+// Carrying and giving.
+block msg_taken()
+    say "Cogido."
+
+block msg_fixed()
+    say "${The noun} se queda justo donde está."
+
+block msg_animate_refuses()
+    say "${The noun} tiene otros planes."
+
+block msg_have_it()
+    say "Ya tienes ${the noun}."
+
+block msg_take_self()
+    say "Te tienes bien agarrado a ti mismo."
+
+block msg_dropped()
+    say "Al suelo."
+
+block msg_not_holding()
+    say "No llevas ${the noun}."
+
+block msg_done()
+    say "Hecho."
+
+block msg_put_where()
+    say "¿Sobre qué, o dentro de qué?"
+
+block msg_cant_put()
+    say "${The second} no puede contenerlo."
+
+block msg_closed()
+    say "${The second} está cerrado."
+
+block msg_to_whom()
+    say "¿A quién?"
+
+block msg_give()
+    say "${The second} no quiere ${the noun}. Qué desfachatez."
+
+block msg_show()
+    say "Parece que a ${the second} no le interesa demasiado."
+
+// Wearing.
+block msg_worn()
+    say "Puesto."
+
+block msg_already_worn()
+    say "Ya llevas puesto ${the noun}."
+
+block msg_cant_wear()
+    say "${The noun} no está hecho para ponérselo."
+
+block msg_removed()
+    say "Fuera."
+
+block msg_not_worn()
+    say "No llevas puesto ${the noun}."
+
+// Doors, containers, locks.
+block msg_opened()
+    say "Abierto."
+
+block msg_already_open()
+    say "${The noun} ya está abierto."
+
+block msg_cant_open()
+    say "${The noun} no se abre."
+
+block msg_open_locked()
+    say "${The noun} está cerrado con llave."
+
+block msg_door_locked(d)
+    say "${The d} está cerrado con llave."
+
+block msg_door_shut(d)
+    say "${The d} está cerrado. Ábrelo primero."
+
+block msg_closed_it()
+    say "Cerrado."
+
+block msg_already_shut()
+    say "${The noun} ya está cerrado."
+
+block msg_cant_close()
+    say "${The noun} no se cierra."
+
+block msg_locked()
+    say "Cierras con llave."
+
+block msg_cant_lock()
+    say "${The noun} no se puede cerrar con llave."
+
+block msg_close_first()
+    say "Antes tendrás que cerrar ${the noun}."
+
+block msg_wrong_key()
+    say "${The second} no encaja."
+
+block msg_unlocked()
+    say "Abres con llave."
+
+block msg_cant_unlock()
+    say "${The noun} no se puede abrir con llave."
+
+// Operating.
+block msg_no_switch()
+    say "${The noun} no es de los que se encienden."
+
+block msg_already_on()
+    say "${The noun} ya está encendido."
+
+block msg_already_off()
+    say "${The noun} ya está apagado."
+
+block msg_no_effect()
+    say "${The noun} no se inmuta."
+
+// Body, action, idle.
+block msg_attack()
+    say "Pegar a las cosas rara vez ayuda, y no va a empezar ahora."
+
+block msg_eat()
+    say "${The noun} no está en el menú."
+
+block msg_drink()
+    say "Aquí no hay nada que merezca un trago."
+
+block msg_jump()
+    say "Das un salto en el sitio. No pasa nada, pero sienta bien."
+
+block msg_wait()
+    say "El tiempo pasa."
+
+block msg_kiss()
+    say "No es precisamente el momento."
+
+block msg_sing()
+    say "Consigues unas cuantas notas. La sala no se inmuta."
+
+// Conversation.
+block msg_no_talk()
+    say "${The noun} no parece con ganas de conversar."
+
+// Inventory.
+block msg_carrying()
+    say "Llevas:"
+
+block msg_empty_handed()
+    say "No llevas absolutamente nada."
+
+// Scenery default.
+block msg_scenery()
+    say "Solo es parte del decorado. No te preocupes por ello."
+
+// Printed when the first word names no verb or direction.
+block msg_no_verb()
+    say "Esas palabras no tienen ningún sentido."
+
+// The verb was understood, but it cannot use the words that followed it ("jump
+// north", "look cloak"). The verb is fine; the rest is one word too many.
+block msg_extra_words()
+    say "Me he perdido a partir de ahí."
+
+// Read a yes/no answer; returns 1 for an answer that starts with y or Y. The
+// caller prints the question first, so this is shared by every confirmation. The
+// yes test (a leading 'y') is English, so it lives in the language layer.
+block yes_no()
+    let term = read_line()
+    let c = text_char(0)
+    if c is 115
+        return 1
+    if c is 83
+        return 1
+    return 0
+
+// Ask the player to confirm quitting; returns 1 for yes.
+block confirm_quit()
+    show("¿Seguro que quieres salir? ")
+    return yes_no()
+
+// The farewell, overridable for a custom send-off.
+block msg_farewell()
+    say "Lo dejamos aquí."
+
+// Meta verbs (the score, a restart confirmation, the xyzzy easter egg). save,
+// restore, and undo bring their own messages with the meta-verb opcodes.
+block msg_score()
+    say "Has conseguido ${score} de un total de ${max_score} puntos."
+
+block msg_confirm_restart()
+    show("¿Empezar de nuevo desde el principio? ")
+
+block msg_xyzzy()
+    say "No pasa nada, pero por un momento te sientes ingenioso."
+
+block msg_saved()
+    say "Guardado."
+
+block msg_save_failed()
+    say "Algo salió mal al guardar."
+
+block msg_restore_failed()
+    say "No se pudo recuperar esa partida."
+
+block msg_undone()
+    say "Deshecho."
+
+block msg_cant_undo()
+    say "No hay nada que deshacer."
+
+block msg_cant_oops()
+    say "No hay nada que corregir."
+
+// One line of an inventory listing; a worn item is tagged, a container or
+// supporter names what it holds.
+block list_held(obj)
+    show("  ")
+    show("${a obj}")
+    if obj is worn
+        show(" (puesto)")
+    list_contents(obj)
+    say ""

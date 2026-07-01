@@ -10,7 +10,9 @@ import pytest
 
 from arcturus import cosmos
 from arcturus.errors import ArcError
+from arcturus.codegen import generate
 from arcturus.parser import parse
+from arcturus.sema import analyze
 
 MIN = 'game\n    title "T"\n    start r\nroom r\n    name "R"\n    desc "x"\n'
 
@@ -36,8 +38,39 @@ def test_two_languages_is_an_error():
 
 
 def test_unknown_language_errors_at_combine():
-    # No spanish.prelude is bundled yet, so selecting it is a clean error, not a
-    # crash. English (the default) always combines.
+    # An unbundled language is a clean error, not a crash. English (the default)
+    # and Spanish (bundled) both combine.
     with pytest.raises(ArcError):
-        cosmos.combined_program(parse('summon.language "spanish"\n' + MIN))
+        cosmos.combined_program(parse('summon.language "klingon"\n' + MIN))
     assert cosmos.combined_program(parse(MIN))  # english default works
+    assert cosmos.combined_program(parse('summon.language "spanish"\n' + MIN))
+
+
+import shutil
+import subprocess
+
+
+def _frotz():
+    return shutil.which("dfrotz") or shutil.which("frotz")
+
+
+SPANISH_GAME = (
+    'summon.language "spanish"\n'
+    'game\n    title "J"\n    start cocina\n'
+    'room cocina\n    name "Cocina"\n    desc "Una cocina."\n'
+    'thing lampara in cocina\n    name "lampara de bronce"\n    words lampara\n'
+    'thing libro in cocina\n    name "libro rojo"\n    words libro\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_spanish_build_plays_on_frotz(tmp_path):
+    story = tmp_path / "j.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(SPANISH_GAME)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)], input="coger lampara\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "Cogido." in out  # the Spanish take message, and the verb "coger"
+    assert "una lampara" in out  # feminine gender derived from the head noun
+    assert "un libro" in out  # masculine
