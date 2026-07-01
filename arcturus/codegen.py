@@ -50,13 +50,28 @@ def _is_dir_pattern(h: wm.Handler) -> bool:
     )
 
 
-def _react_handlers(obj: wm.Obj, actions: dict):
-    """The object's own handlers, as (action, handler): verb actions, the
-    life-cycle events the loop fires here (enter, each_turn), and `on go
-    <direction>` overrides (guarded on the direction). Other operand patterns
-    (noun, string) are still deferred; free rules go through react_free."""
+def _resolved_handlers(world: wm.World, obj: wm.Obj):
+    """The object's handlers in resolution order: its own first (most specific),
+    then each kind up its inheritance chain, nearest first (docs/01 section 5).
+    An instance inherits every handler of its kind chain; put in one list here,
+    the react routine runs them in order and a non-consuming handler (one that
+    ends with `continue`) falls through to the next, exactly as documented."""
+    handlers = list(obj.handlers)
+    for kindname in obj.chain:
+        kind = world.kinds.get(kindname)
+        if kind is not None:
+            handlers.extend(kind.handlers)
+    return handlers
+
+
+def _react_handlers(world: wm.World, obj: wm.Obj, actions: dict):
+    """The object's dispatchable handlers, own and inherited, as (action,
+    handler): verb actions, the life-cycle events the loop fires here (enter,
+    each_turn), and `on go <direction>` overrides (guarded on the direction).
+    Other operand patterns (noun, string) are still deferred; free rules go
+    through react_free."""
     out = []
-    for h in obj.handlers:
+    for h in _resolved_handlers(world, obj):
         if h.pattern and not _is_dir_pattern(h):
             continue
         for ev in h.events:
@@ -65,18 +80,21 @@ def _react_handlers(obj: wm.Obj, actions: dict):
     return out
 
 
-def _other_handlers(obj: wm.Obj):
-    """The object's `on other` catch-all handlers: the least specific of its own
-    handlers, run when no specific handler consumed the action, before it climbs to
-    the kind, the room, or the Cosmos default (docs/01 section 12)."""
-    return [h for h in obj.handlers if "other" in h.events and not h.pattern]
+def _other_handlers(world: wm.World, obj: wm.Obj):
+    """The object's `on other` catch-all handlers, own and inherited: the least
+    specific handlers, run when no specific handler consumed the action, before it
+    climbs to the room or the Cosmos default (docs/01 section 12)."""
+    return [
+        h for h in _resolved_handlers(world, obj)
+        if "other" in h.events and not h.pattern
+    ]
 
 
 def _react_objects(world: wm.World, actions: dict) -> set:
     return {
         name
         for name, obj in world.objects.items()
-        if _react_handlers(obj, actions) or _other_handlers(obj)
+        if _react_handlers(world, obj, actions) or _other_handlers(world, obj)
     }
 
 
@@ -88,8 +106,8 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
     hname = {id(h): nm for h, nm in registry}
     out = []
     for objname, obj in world.objects.items():
-        pairs = _react_handlers(obj, actions)
-        others = [(hname[id(h)], h) for h in _other_handlers(obj)]
+        pairs = _react_handlers(world, obj, actions)
+        others = [(hname[id(h)], h) for h in _other_handlers(world, obj)]
         if not pairs and not others:
             continue
         groups: dict = {}
