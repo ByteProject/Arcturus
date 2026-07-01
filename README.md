@@ -42,8 +42,8 @@ The road from here, milestone by milestone:
   compression (a baked-in default plus an opt-in per-game pass), and dense code
   generation, all built into the compiler so every build is trimmed with nothing
   to configure, and optional features cost nothing when a game does not use them.
-  Both example games play end to end, and Cloak of Darkness compiles to under
-  12K, smaller than its PunyInform build (~27K).
+  Both example games play end to end, and Cloak of Darkness compiles to about
+  11.6K with the whole modern Cosmos library linked in and nothing stripped out.
 - **Next:** Spanish and German language packs, each a summonable granule that
   localizes the messages, the vocabulary, and the parser grammar.
 - **After that:** porting real games as the proving ground - Hibernated 2 (the
@@ -134,6 +134,7 @@ Useful options:
 
 ```
 python3 build/arcc game.storyarc -o game.z5    # compile to a z5 story file
+python3 build/arcc game.storyarc --zversion 8 -o game.z8   # target z8 (larger games)
 python3 build/arcc game.storyarc --dump-ast    # show the parsed syntax tree
 python3 build/arcc -L /abs/path/cosmos game.storyarc   # use a forked library
 python3 build/arcc --make-abbreviations game.storyarc  # tune text compression (below)

@@ -13,7 +13,7 @@ import subprocess
 
 import pytest
 
-from arcturus import ast, cosmos
+from arcturus import ast, cosmos, storyfile
 from arcturus.codegen import generate
 from arcturus.parser import parse
 from arcturus.sema import analyze
@@ -31,14 +31,16 @@ def _frotz():
     return shutil.which("dfrotz") or shutil.which("frotz")
 
 
-def _compile_example(name):
+def _compile_example(name, version=5):
     with open(os.path.join(EXAMPLES, name), "r", encoding="utf-8") as fh:
-        return generate(analyze(cosmos.combined_program(parse(fh.read(), name))))
+        return generate(
+            analyze(cosmos.combined_program(parse(fh.read(), name))), version=version
+        )
 
 
-def _play(name, commands, tmp_path):
+def _play(name, commands, tmp_path, version=5):
     story = tmp_path / "game.z5"
-    story.write_bytes(_compile_example(name))
+    story.write_bytes(_compile_example(name, version))
     return subprocess.run(
         [_frotz(), "-p", str(story)], input="".join(c + "\n" for c in commands),
         capture_output=True, text=True, timeout=20,
@@ -136,6 +138,15 @@ def test_examples_compile_to_v5():
     assert _compile_example("cloak-of-darkness.storyarc")[0x00] == 5
 
 
+def test_z8_target_header():
+    # --zversion 8: the header version byte is 8 and the stored file length is the
+    # real length divided by 8 (the z8 scale), the only image-level differences.
+    img = _compile_example("cloak-of-darkness.storyarc", version=8)
+    assert img[0x00] == 8
+    length = (img[storyfile.H_LENGTH] << 8) | img[storyfile.H_LENGTH + 1]
+    assert length * 8 == len(img)
+
+
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_brass_lantern_winnable_on_frotz(tmp_path):
     out = _play(
@@ -156,6 +167,19 @@ def test_cloak_of_darkness_winnable_on_frotz(tmp_path):
         # Hang the cloak so the bar is lit, then read the message.
         ["west", "hang cloak on hook", "east", "south", "read message"],
         tmp_path,
+    )
+    assert "*** You have won ***" in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_cloak_of_darkness_winnable_on_frotz_z8(tmp_path):
+    # The same game built for z8 plays identically; the interpreter reads the
+    # version from the header, so the packed-address scale must be right.
+    out = _play(
+        "cloak-of-darkness.storyarc",
+        ["west", "hang cloak on hook", "east", "south", "read message"],
+        tmp_path,
+        version=8,
     )
     assert "*** You have won ***" in out
 

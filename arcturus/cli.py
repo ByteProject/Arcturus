@@ -66,6 +66,16 @@ def _build_argparser() -> argparse.ArgumentParser:
         "-o", "--output", metavar="FILE", help="the story file to write"
     )
     ap.add_argument(
+        "--zversion",
+        type=int,
+        choices=(5, 8),
+        default=5,
+        metavar="{5,8}",
+        help="the Z-machine version to target: 5 (default) or 8. The generated "
+        "code is identical; z8 raises the story-file size limit (512KB vs 256KB) "
+        "for a large modern-only release. The story source does not change.",
+    )
+    ap.add_argument(
         "-L",
         "--lib",
         action="append",
@@ -296,7 +306,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.output:
         try:
-            story = generate(world)
+            story = generate(world, version=args.zversion)
         except ArcError as exc:
             print(exc.format(), file=sys.stderr)
             return 1

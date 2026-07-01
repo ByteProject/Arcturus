@@ -31,8 +31,9 @@ commit.
 
 ## Locked decisions
 
-- Target: conformant Z-machine version 5. A --v8 build flag is a later option
-  for large modern-only releases; same codegen, two header values differ.
+- Target: conformant Z-machine version 5. The `--zversion 8` build flag targets
+  version 8 for large modern-only releases; same codegen, only the version byte,
+  file-length scale, and packed-address unit (4 to 8) differ.
 - Smallest possible z-code is a primary objective, judged alongside
   correctness. Levers in order: whole-program dead-code elimination,
   abbreviation-based text compression, dense codegen (docs/00 section 5).
@@ -63,7 +64,7 @@ pyproject.toml
 ## Build, run, test
 
 - Compile: `arcc examples/brass-lantern.storyarc -o build/brass-lantern.z5`
-  (z5 by default; `--v8` for version 8).
+  (z5 by default; `--zversion 8` for version 8).
 - Test: `pytest`.
 - Verify a built story on a reference interpreter (Frotz or Bocfel); the same
   file must also run on Ceres for the 8-bit target.

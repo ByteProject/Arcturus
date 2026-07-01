@@ -125,9 +125,11 @@ Options:
 Exit status: 0 on success, 1 on a source error (parse or analysis, with a
 formatted diagnostic), 2 on a usage or I/O error.
 
-The `--v8` build flag (a version 8 target for large modern-only releases, the
-same code generation with two header values changed) is a later option, not yet
-implemented.
+The `--zversion` flag selects the Z-machine target, 5 (the default) or 8. Version
+8 is for a large modern-only release: it raises the story-file size limit to 512KB
+(from the z5 256KB). The generated code is identical; only the header version
+byte, the file-length scale, and the packed-address unit (4 for z5, 8 for z8)
+differ, and the story source never changes.
 
 ## 5. Cosmos, overriding, and the library search
 
