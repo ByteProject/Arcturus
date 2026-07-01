@@ -315,7 +315,7 @@ carries the attribute of every kind in its chain.
 | `words` | list | The vocabulary the parser matches: the object's nouns and adjectives, as equal entries. Typed but not printed. |
 | `intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). |
 | `capacity` | number | How many objects a container or supporter holds. |
-| `key` | object | The object that locks/unlocks this one (for `lockable` things). |
+| `unseal_with` | object | The object (a key) that locks and unlocks this one (for `lockable` things). |
 
 `score`, `max_score`, and `turns` are runtime globals, not object properties (02
 section 2).

@@ -373,7 +373,7 @@ close, and put in.
 scope on top. Default put on.
 
 `door of thing`: `openable` and `fixed` by default; declare `lockable`, `locked`,
-and a `key` to make it lock. A door joins two rooms with the `in A, B` sugar: it
+and `unseal_with <key>` to make it lock. A door joins two rooms with the `in A, B` sugar: it
 lives in one room in the object tree and spans the other (section 5), so it is
 referable and operable from both sides. When a room's exit names the door (`east
 oak_door`), crossing it is gated on the door being open and unlocked and lands
@@ -664,7 +664,7 @@ Standard boolean properties: `fixed`, `scenery`, `hidden`, `concealed`,
 `openable`, `open`, `lockable`, `locked`, `visited`, `moved`, `animate`. The full
 table with each one's usage is in 01 section 6.
 
-Standard value properties: `name`, `words`, `desc`, `capacity`, `key`,
+Standard value properties: `name`, `words`, `desc`, `capacity`, `unseal_with`,
 `score`, `max_score`, `turns`.
 
 Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,

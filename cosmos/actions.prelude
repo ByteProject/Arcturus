@@ -259,8 +259,8 @@ on lock
         msg_close_first()
         stop
     if second is nothing
-        change second to noun.key
-    if second is not noun.key
+        change second to noun.unseal_with
+    if second is not noun.unseal_with
         msg_wrong_key()
         stop
     now noun is locked
@@ -277,8 +277,8 @@ on unlock
         msg_unlocked()
         stop
     if second is nothing
-        change second to noun.key
-    if second is not noun.key
+        change second to noun.unseal_with
+    if second is not noun.unseal_with
         msg_wrong_key()
         stop
     now noun is not locked
