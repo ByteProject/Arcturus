@@ -417,6 +417,11 @@ class Analyzer:
             self._check_expr(s.expr, locals_)
         elif isinstance(s, ast.Schedule):
             self._check_expr(s.count, locals_)
+            if s.event not in self.world.blocks:
+                word = "every" if s.every else "after"
+                raise self._error(
+                    f"'{word} ... do {s.event}' names no block '{s.event}'", s.line
+                )
         elif isinstance(s, ast.If):
             for clause in s.clauses:
                 if clause.cond is not None:
