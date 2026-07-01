@@ -55,7 +55,7 @@ INTRINSICS = frozenset({
     # a compile-time flag (1 if any object spans, else 0) the scope code guards on,
     # so `if any_spans() is 1` folds away and DCE drops the spans blocks when no
     # object spans (a static-if, see _if).
-    "spans_addr", "spans_count", "any_spans",
+    "spans_addr", "spans_count", "any_spans", "any_doors",
     # The turn loop fires life-cycle events: run_free runs the free rules for an
     # action, and ev_* name the event action numbers (start, enter, each_turn).
     # tick_timers counts down the after/every schedule once per turn.
@@ -666,6 +666,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # static `if any_spans() is 1`, folded away in _if; lowered here as a plain
         # constant for any other use.
         _place(rt, Const(_any_spans(ctx)), dest)
+        return
+    elif name == "any_doors":
+        # any_doors(): the compile-time door flag (1 or 0), consumed by the go
+        # handler's static `if any_doors() is 1`; a plain constant otherwise.
+        _place(rt, Const(_any_doors(ctx)), dest)
     elif name == "topics_count":
         # topics_count(person): how many topics the person has (0 if none).
         eval_expr(rt, ctx, args[0], Variable(STACK))
@@ -726,6 +731,12 @@ def _any_spans(ctx) -> int:
     else 0. The scope code guards its spans checks on this so they fold away when
     unused (see _static_cond / _if)."""
     return 1 if (ctx.layout is not None and ctx.layout.has_spans) else 0
+
+
+def _any_doors(ctx) -> int:
+    """The compile-time door flag: 1 if any object is of the `door` kind, else 0.
+    The go handler guards its door detour on this so it folds away when unused."""
+    return 1 if (ctx.layout is not None and ctx.layout.has_doors) else 0
 
 
 def _word_index(rt, ctx, expr, scale, base):
@@ -1219,6 +1230,8 @@ def _static_value(ctx, expr):
         return 1 if expr.value else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_spans":
         return _any_spans(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_doors":
+        return _any_doors(ctx)
     return None
 
 

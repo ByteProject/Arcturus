@@ -3,12 +3,12 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for doors, locks, and keys (docs/01 sections 9 and 13). The `door`
-// kind is `openable` and `fixed` by default, so a door opens and cannot be
-// pocketed with no author code; add `lockable`, `locked`, and a `key` to make it
-// lock. The Cosmos LOCK, UNLOCK, OPEN, and CLOSE verbs understand all of these.
-// Wiring a door to actually gate movement between two rooms is one short `on go`
-// handler, shown here. Compile and run:
+// A showcase for doors, locks, and keys (docs/01 sections 5 and 9). The `door`
+// kind is `openable` and `fixed` by default; add `lockable`, `locked`, and a
+// `key` to make it lock. A door joins two rooms with the `in A, B` sugar, and a
+// room's exit points at the DOOR rather than a room, so crossing it is gated on
+// the door being open and unlocked and lands you on the far side, with no author
+// code at all. Compile and run:
 //
 //   arcc examples/features/doors-and-locks.storyarc -o doors.z5
 //   frotz doors.z5
@@ -17,12 +17,14 @@
 //   east                      barred: the door is locked, so you do not move
 //   open door                 refused: you cannot open a locked door
 //   unlock door with key      the key matches, so the lock turns
+//   east                      still barred: the door is shut, open it first
 //   open door                 now it opens
 //   east                      the way is clear; you step through to the vault
+//   west                      and back again, through the same door
 //
-// Cosmos does the lock logic (matching the key, refusing a shut-and-locked open).
-// The one thing a game must supply is the link between the door's state and the
-// exit, which is the `on go east` rule below.
+// The door is a single object shared by both rooms (`in hall, vault`), reachable
+// and operable from either side, and Cosmos handles the lock logic, the open
+// gate, and the step to the far side. There is no `on go` handler anywhere here.
 
 game
     title  "The Locked Vault"
@@ -33,23 +35,16 @@ game
 room hall
     name "The Entrance Hall"
     desc "A bare stone hall. A heavy oak door is set into the east wall."
-    east vault
+    east oak_door
 
-    // The link between door state and movement. Cosmos tracks whether the door
-    // is locked and open; this rule refuses the exit until it is both unlocked
-    // and open. A handler that ends normally consumes the action (docs/01
-    // section 5), so the final `continue` is what lets movement fall through to
-    // the `east` exit above once the door is open.
-    on go east
-        if oak_door is locked
-            say "The oak door is locked fast; it will not budge."
-            stop
-        if oak_door is not open
-            say "The oak door is shut. You should open it first."
-            stop
-        continue
+room vault
+    name "The Vault"
+    desc "A close, windowless vault. A door leads back west to the hall."
+    west oak_door
 
-thing oak_door of door in hall
+// One door object, present in both rooms. It is openable and fixed by virtue of
+// the door kind; the lock and its key are declared here.
+thing oak_door of door in hall, vault
     name "oak door"
     words oak, door
     lockable
@@ -59,8 +54,3 @@ thing oak_door of door in hall
 thing brass_key in player
     name "brass key"
     words brass, key
-
-room vault
-    name "The Vault"
-    desc "A close, windowless vault. Whatever it once guarded is long gone."
-    west hall
