@@ -765,8 +765,8 @@ block line_reply(speaker)
 block line_end()
     say "\""
 
-// Marco del menu de conversacion (granulo conversations). En la capa de idioma
-// para que se traduzca; se elimina si el juego no invoca el menu.
+// Conversation menu framing (the conversations granule). In the language layer so
+// a pack translates it; dropped when the game does not summon the menu.
 block line_talk_header(who)
     show("Habla con ${the who} de:")
 
@@ -779,8 +779,8 @@ block msg_no_topics()
 block msg_talk_over()
     say "Dejas ahí la conversación."
 
-// El lado del marcador (granulo statusline): puntos y turnos, alineados a la
-// derecha, con las palabras y anchuras del espanol.
+// The status line's score side (the statusline granule): the score and moves,
+// right-aligned, in Spanish words and widths.
 block line_status_score(w)
     if w < 54
         set_cursor(1, w - 9 - status_digits(score) - status_digits(turns))
