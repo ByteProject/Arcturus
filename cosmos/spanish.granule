@@ -1,28 +1,31 @@
-// spanish.prelude
+// spanish.granule
 // part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// THE SPANISH LANGUAGE LAYER (informal, tuteo). Selected with
-// `summon.language "spanish"`, it replaces english.prelude. A fork of the English
-// layer: the language-agnostic parser logic in section 1 is unchanged; the verbs,
-// the direction words, the articles, and every message are Spanish. First pass,
-// pending native review. It has three parts, in order:
+// THE SPANISH LANGUAGE LAYER (informal, tuteo). A language pack, selected with
+// `summon.language "spanish"`, which compiles it in place of english.prelude. A
+// fork of the English layer: the language-agnostic parser logic in section 1 is
+// unchanged; the verbs, the direction words, the articles, and every message are
+// Spanish. First pass, pending native review. It has three parts, in order:
 //
-//   1. THE PARSER - the blocks that teach the parser how to read English: which
-//      word is the verb, how a noun phrase is matched, how directions, particles
-//      ("switch OFF"), and two-noun prepositions ("put X ON Y") are recognized,
-//      and the oops correction. The language-agnostic skeleton that drives these
-//      lives in parser.prelude; these are the hooks it calls (the language seam).
+//   1. THE PARSER - the blocks that teach the parser how to read Spanish input:
+//      which word is the verb, how a noun phrase is matched, how directions and
+//      particles are recognized, and the oops correction. The language-agnostic
+//      skeleton that drives these lives in parser.prelude; these are its hooks.
 //   2. THE STANDARD VERBS - the vocabulary: every standard verb word and its
-//      grammar (its synonyms, whether it takes a noun or two, its prepositions).
-//      The behaviour behind each action is agnostic and lives in actions.prelude,
-//      keyed by action name; only the words are here.
+//      grammar. The behaviour behind each action is agnostic and lives in
+//      actions.prelude, keyed by action name; only the words are here.
 //   3. THE MESSAGES - every line the library prints to the player, each an
 //      overridable block, plus the room and content listing that frames them.
 //
-// A verb's WORDS are English and live here; a verb's LOGIC is not and lives in
-// actions.prelude. Redefine any message block in a story to reskin a line.
+// A verb's WORDS are Spanish and live here; a verb's LOGIC is not and lives in
+// actions.prelude.
+//
+// The self-identifying marker: this is the language pack for the code "spanish".
+// The compiler requires it to be chosen with summon.language, and rejects a plain
+// `summon spanish.granule` (which would leave English baked in).
+language "spanish"
 
 // ==========================================================================
 // 1. THE PARSER

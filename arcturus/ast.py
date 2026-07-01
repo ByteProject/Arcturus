@@ -471,6 +471,16 @@ class VerbDecl:
 
 
 @dataclass
+class LanguageDecl:
+    # A self-identifying marker at the top of a language pack: `language "spanish"`.
+    # The compiler uses it to require that a language granule is selected with
+    # `summon.language "spanish"` (which does the swap) and to reject the generic
+    # `summon spanish.granule` (which would not). Consumed by the loader, not sema.
+    code: str
+    line: int = 0
+
+
+@dataclass
 class DirectionDecl:
     # A language layer maps player-facing words to a fixed direction property:
     # `direction north "north", "n"`. The property (`prop`) is one of the standard

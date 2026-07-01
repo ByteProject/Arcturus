@@ -90,6 +90,16 @@ def _summons(program: ast.Program) -> list:
     return [d for d in program.decls if isinstance(d, ast.Summon)]
 
 
+def _language_marker(decls) -> str:
+    """The code from a `language "..."` marker in these declarations, or None. A
+    language pack self-identifies with it; the loader uses it to require selection
+    through summon.language and to reject a plain summon of a language granule."""
+    for d in decls:
+        if isinstance(d, ast.LanguageDecl):
+            return d.code
+    return None
+
+
 def _language_choice(game: ast.Program) -> str:
     """The language a game selects with `summon.language "spanish"`, or the default.
     Only the game may select it (not a granule), and only once."""
@@ -293,6 +303,18 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
             abbreviations = extract_abbreviations(src, srcname)
             continue
         prog = parse(src, srcname)
+        # A language pack must be selected with summon.language (which replaces
+        # english.prelude); a plain summon would leave English baked in, so reject
+        # it with a clear pointer rather than build a broken bilingual story.
+        if _language_marker(prog.decls) is not None:
+            # summon.language resolves by filename, so point at the file's stem, not
+            # the marker code (a fork may keep the original marker).
+            stem = srcname[:-len(".granule")] if srcname.endswith(".granule") else srcname
+            raise ArcError(
+                f"summon: '{srcname}' is a language pack; select it with "
+                f'summon.language "{stem}", not a plain summon',
+                s.line, filename="<summon>",
+            )
         gdecls: list = []
         for d in prog.decls:
             if isinstance(d, ast.BlockDecl):
@@ -331,7 +353,19 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
     # and compiled in place of english.prelude as the base language layer.
     if language != _DEFAULT_LANGUAGE:
         src, srcname = _resolve_language(language, lib_dirs, story_dir)
-        for d in parse(src, srcname).decls:
+        lang_decls = parse(src, srcname).decls
+        # A granule chosen with summon.language must be a language pack (carry the
+        # `language` marker), so a plain granule is not mistaken for one.
+        if _language_marker(lang_decls) is None:
+            raise ArcError(
+                f"summon.language: '{srcname}' is not a language pack (it has no "
+                f'`language "..."` marker)', filename="<summon>",
+            )
+        for d in lang_decls:
+            # The marker is a loader directive, not a runtime declaration; drop it
+            # so semantic analysis never sees it.
+            if isinstance(d, ast.LanguageDecl):
+                continue
             if isinstance(d, ast.BlockDecl):
                 d.origin = "library"
             decls.append(d)
