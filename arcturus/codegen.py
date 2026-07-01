@@ -65,11 +65,18 @@ def _react_handlers(obj: wm.Obj, actions: dict):
     return out
 
 
+def _other_handlers(obj: wm.Obj):
+    """The object's `on other` catch-all handlers: the least specific of its own
+    handlers, run when no specific handler consumed the action, before it climbs to
+    the kind, the room, or the Cosmos default (docs/01 section 12)."""
+    return [h for h in obj.handlers if "other" in h.events and not h.pattern]
+
+
 def _react_objects(world: wm.World, actions: dict) -> set:
     return {
         name
         for name, obj in world.objects.items()
-        if _react_handlers(obj, actions)
+        if _react_handlers(obj, actions) or _other_handlers(obj)
     }
 
 
@@ -82,12 +89,13 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
     out = []
     for objname, obj in world.objects.items():
         pairs = _react_handlers(obj, actions)
-        if not pairs:
+        others = [(hname[id(h)], h) for h in _other_handlers(obj)]
+        if not pairs and not others:
             continue
         groups: dict = {}
         for action, h in pairs:
             groups.setdefault(action, []).append((hname[id(h)], h))
-        out.append(_gen_react(objname, groups, actions, layout, gmap))
+        out.append(_gen_react(objname, groups, actions, layout, gmap, others))
     # react_free and grain_dispatch are always present (even empty) so the turn
     # loop and dispatcher can call them unconditionally.
     out.append(gen_react_free(world, actions, registry))
@@ -170,6 +178,12 @@ def _free_react_handlers(world: wm.World, actions: dict):
     return out
 
 
+def _free_other_handlers(world: wm.World):
+    """Free-standing `on other` rules: a global catch-all fired last, for any
+    action nothing more specific consumed."""
+    return [h for h in world.free_handlers if "other" in h.events and not h.pattern]
+
+
 def gen_react_free(world: wm.World, actions: dict, registry) -> Routine:
     """react_free(action): the free-rule equivalent of a react_<obj> routine.
     The turn loop calls it for life-cycle events (start, each_turn) and the
@@ -182,20 +196,24 @@ def gen_react_free(world: wm.World, actions: dict, registry) -> Routine:
         # registered; skip any free handler without a routine.
         if id(h) in hname:
             groups.setdefault(action, []).append((hname[id(h)], h))
-    return _gen_react("free", groups, actions)
+    others = [(hname[id(h)], h) for h in _free_other_handlers(world) if id(h) in hname]
+    return _gen_react("free", groups, actions, others=others)
 
 
-def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None) -> Routine:
+def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None, others=None) -> Routine:
     """react_<obj>(action): switch on the action number; for each action run the
     object's handler routine(s) in order, returning 1 as soon as one consumes the
-    action (returns 1), else 0. An `on go <direction>` handler is guarded so it
-    only runs when the chosen direction (the `way` global) matches."""
+    action (returns 1). When no specific handler matches or consumes, the `on
+    other` catch-all handlers run, and only if none of those consumes does the
+    routine return 0 (letting the action climb the chain). An `on go <direction>`
+    handler is guarded so it only runs when the chosen direction matches."""
+    others = others or []
     rt = Routine("react_" + objname, nlocals=1)  # local 1 = the action number
     run_label = {}
     for i, action in enumerate(groups):
         run_label[action] = f"run{i}"
         rt.op("je", Variable(1), Const(actions[action]), branch=(run_label[action], True))
-    rt.op("ret", Const(0))  # no handled action
+    rt.jump("__other__")  # no specific action matched: fall to the on-other catch-all
     skip_n = 0
     for action, handlers in groups.items():
         rt.label(run_label[action])
@@ -213,7 +231,19 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
             else:
                 rt.op("call_vs", RoutineRef(hn), store=Variable(STACK))
                 rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
-        rt.op("ret", Const(0))  # this action's chain did not consume it
+        rt.jump("__other__")  # this action's handlers deferred: try on other
+    rt.label("__other__")
+    if others:
+        # `on other` is a catch-all for the player's verbs, not for the life-cycle
+        # events the loop fires (start, enter, each_turn); skip it for those.
+        for ev in _EVENT_NAMES:
+            if ev in actions:
+                rt.op("je", Variable(1), Const(actions[ev]), branch=("__climb__", True))
+        for hn, h in others:
+            rt.op("call_vs", RoutineRef(hn), store=Variable(STACK))
+            rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
+    rt.label("__climb__")
+    rt.op("ret", Const(0))  # nothing consumed it: let it climb the chain
     rt.label("__handled__")
     rt.op("ret", _CONST_ONE)
     return rt
