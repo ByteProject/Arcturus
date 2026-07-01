@@ -120,8 +120,10 @@ block has_word(obj, target)
     return 0
 
 // Can the player see and reach what is inside this object? A supporter's
-// contents are always in view; a container's only when it is open or `clear`
-// (see-through). This is the scope rule the noun matcher follows.
+// contents are always in view. A container's are in view when it is open, when
+// it is `clear` (see-through), or when it is not `openable` at all: a bowl or a
+// basket has no lid to shut, so its contents are always reachable. This is the
+// scope rule the noun matcher follows.
 block see_into(obj)
     if obj is supporter
         return 1
@@ -129,6 +131,8 @@ block see_into(obj)
         if obj is open
             return 1
         if obj is clear
+            return 1
+        if not (obj is openable)
             return 1
     return 0
 
@@ -165,11 +169,14 @@ block scope_match(target)
         return here_shut
     return shut_search(player, target)
 
-// A closed opaque container: we cannot see into it.
+// A closed opaque container: we cannot see into it. The inverse of see_into for
+// a container: open, clear, or lidless (not openable) all mean it is not shut.
 block shut_holds(obj)
     if obj is open
         return 0
     if obj is clear
+        return 0
+    if not (obj is openable)
         return 0
     return 1
 
@@ -581,11 +588,10 @@ block content_listable(holder, x)
         return 0
     if x is concealed
         return 0
-    if holder is supporter
-        return 1
-    if holder is open
-        return 1
-    if holder is clear
+    // Anything the player can see into (a supporter, or an open, clear, or
+    // lidless container) lists all its contents; a closed opaque container lists
+    // only what the player already knows is inside (the knowledge model).
+    if see_into(holder)
         return 1
     if x is seen
         return 1

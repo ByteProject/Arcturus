@@ -39,11 +39,13 @@ block in_scope(obj)
     if p is player
         return 1
     if p is not nothing
-        // On a supporter, or inside an open container, that is itself in scope.
+        // On a supporter, or inside a container the player can see into (open,
+        // clear, or lidless), that is itself in scope. see_into is the single
+        // rule both this and the noun matcher share.
         if p is supporter
             return in_scope(p)
         if p is container
-            if p is open
+            if see_into(p)
                 return in_scope(p)
     return 0
 
