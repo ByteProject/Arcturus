@@ -539,9 +539,11 @@ Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,
 `show`, `talk`, `wait`, `again`.
 
 Summonable features: `extendedverbs`, `statusline`, `verbose_exits`,
-`conversations`, `debug`, `language`, `abbreviations`. (`extendedverbs` and
-`statusline` are detailed with the granule work; `abbreviations` is summoned but
-consumed by the compiler's text encoder, not loaded as runtime blocks.)
+`conversations`, `debug`, and `language`. Text compression is not a summonable
+feature: the standard abbreviation set is always applied, and a story tunes it
+with its own `abbreviations.granule` (`arcc --make-abbreviations`, then summoned by
+name), which the text encoder reads as data rather than loading as runtime blocks
+(docs/05 section 7).
 
 ## Appendix B: standard grammar lines
 

@@ -18,9 +18,11 @@ import platform
 import sys
 
 from . import __version__
+from . import abbrev as abbrev_lib
+from . import ast
 from . import cosmos as cosmos_lib
 from .astdump import dump
-from .codegen import generate
+from .codegen import generate, harvest_strings
 from .errors import ArcError
 from .irdump import dump as dump_ir
 from .parser import parse
@@ -114,6 +116,13 @@ def _build_argparser() -> argparse.ArgumentParser:
         "directory for forking, then exit. Edit it and summon it by name.",
     )
     ap.add_argument(
+        "--make-abbreviations",
+        action="store_true",
+        help="compute a tuned abbreviation set for the story (and the granules it "
+        "summons) and write abbreviations.granule beside it, then exit. Summon that "
+        "file to compress this story further than the built-in default.",
+    )
+    ap.add_argument(
         "--version", action="version", version=f"Arcturus {__version__}"
     )
     return ap
@@ -179,6 +188,49 @@ def _eject_language(target_dir: str) -> int:
     return rc
 
 
+def _is_abbrev_summon(d) -> bool:
+    """True for a summon of the per-game abbreviations file, in any form."""
+    return isinstance(d, ast.Summon) and (
+        os.path.basename(d.target) == cosmos_lib._ABBREV_GRANULE
+        or (d.form == "feature" and d.target == "abbreviations")
+    )
+
+
+def _make_abbreviations(args) -> int:
+    """Compute a tuned abbreviation set for the story (and the granules it summons)
+    and write abbreviations.granule beside it. The harvest deliberately drops any
+    abbreviations summon first, so a first run does not fail on the not-yet-existing
+    file and a regeneration ignores the stale set rather than compounding it."""
+    try:
+        with open(args.source, "r", encoding="utf-8") as fh:
+            src = fh.read()
+    except OSError as exc:
+        print(f"arcc: error: cannot read {args.source}: {exc}", file=sys.stderr)
+        return 2
+    try:
+        program = parse(src, args.source)
+        program.decls = [d for d in program.decls if not _is_abbrev_summon(d)]
+        story_dir = os.path.dirname(os.path.abspath(args.source))
+        combined = cosmos_lib.combined_program(
+            program, lib_dirs=args.lib or (), story_dir=story_dir
+        )
+        world = analyze(combined, filename=args.source)
+        strings = harvest_strings(world)
+    except ArcError as exc:
+        print(exc.format(), file=sys.stderr)
+        return 1
+    abbrevs = abbrev_lib.compute(strings)
+    out_path = os.path.join(story_dir, cosmos_lib._ABBREV_GRANULE)
+    cosmos_lib.write_abbreviations_granule(
+        out_path, abbrevs, os.path.basename(args.source)
+    )
+    print(
+        f"arcc: wrote {out_path} ({len(abbrevs)} abbreviations); "
+        f"summon it (summon {cosmos_lib._ABBREV_GRANULE}) to use it"
+    )
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     ap = _build_argparser()
@@ -202,6 +254,9 @@ def main(argv: list[str] | None = None) -> int:
         if not os.path.isabs(d):
             print(f"arcc: error: -L path must be absolute: {d}", file=sys.stderr)
             return 2
+
+    if args.make_abbreviations:
+        return _make_abbreviations(args)
 
     try:
         with open(args.source, "r", encoding="utf-8") as fh:

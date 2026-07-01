@@ -56,6 +56,9 @@ class Analyzer:
         self._resolve_kinds()
         self._build_properties()
         self._resolve_bodies()
+        # A summoned abbreviations.granule (B6) is compile-time data, not runtime
+        # blocks, so it rides on the program straight through to codegen.
+        self.world.abbreviations = getattr(self.program, "abbreviations", None)
         return self.world
 
     # -- pass 1: collect ---------------------------------------------------

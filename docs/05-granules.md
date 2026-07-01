@@ -43,8 +43,9 @@ summon "/path/to/fork.granule"  // exactly this file
 - **`summon.statusline`** (dotted) always uses the copy baked into `arcc`. It
   never looks at your directories. This is the form to use for the official
   feature, and the one the shipped examples use. The dotted form also covers the
-  non-granule features `summon.language "<name>"` and `summon.abbreviations`,
-  which are compiler features rather than runtime modules (section 6).
+  non-granule feature `summon.language "<name>"`, a compiler feature rather than a
+  runtime module (section 6). The tuned abbreviation set is not a dotted feature;
+  it is summoned by name (section 7).
 - **`summon statusline.granule`** (a bare filename) searches the story's own
   directory, then each `-L` directory, and only then falls back to the bundled
   copy - printing a note when it does, so you know your fork was not picked up.
@@ -192,17 +193,45 @@ A few patterns the shipped granules use:
 Keep a granule self-contained and summon-gated: anything it ships is left out of
 a story that does not summon it.
 
-## 6. Not granules: language packs and abbreviations
+## 6. Not a granule: the language pack
 
-Two `summon.<feature>` directives are compiler features rather than runtime
-granules:
+`summon.language "<name>"` is a compiler feature rather than a runtime granule: it
+selects a localization (milestone B7). A language pack is a translation of
+english.prelude, saved as a granule whose blocks override the English ones (a
+granule overriding the prelude, section 1). Start from `arcc --eject-language`,
+translate, and ship the result. The pack may replace the parser's grammar logic
+too, not only its wording, since an inflected language parses differently (02,
+section 8).
 
-- **`summon.language "<name>"`** selects a localization (milestone B7). A
-  language pack is a translation of english.prelude, saved as a granule whose
-  blocks override the English ones (a granule overriding the prelude, section 1).
-  Start from `arcc --eject-language`, translate, and ship the result. The pack
-  may replace the parser's grammar logic too, not only its wording, since an
-  inflected language parses differently (02, section 8).
-- **`summon.abbreviations`** selects a compiled abbreviation set for text
-  compression (milestone B6). It is baked into the encoder at build time, not
-  loaded as runtime blocks.
+## 7. The tuned abbreviation set
+
+Most of a story file is text, so the compiler compresses it against the
+Z-machine's abbreviation table (docs/00 section 5). This asks nothing of you:
+every build already applies a standard abbreviation set, computed once from the
+Cosmos library text and baked into `arcc`.
+
+A particular story can do better than the standard set by curating one over its
+own text. Run:
+
+```
+arcc --make-abbreviations mystory.storyarc
+```
+
+which pools the strings of the story and every granule it summons, computes an
+optimized set up to the Z-machine's ceiling of 96 entries, and writes an
+`abbreviations.granule` beside the story. Summon it by name to use it in place of
+the default:
+
+```
+summon abbreviations.granule
+```
+
+It is neither a dotted feature nor runtime code. The file is compile-time data the
+text encoder reads, so it holds only string literals (and therefore lexes and
+highlights like any Arcturus source). A story that never summons it simply keeps
+the standard set, and summoning it costs nothing at run time; it only changes how
+the text is packed. Regenerate it after large text edits. The optimizer is the
+same one that computes the built-in default (tools/arcabbr.py), so a
+`--make-abbreviations` run is slower than a plain build, but it runs only when you
+ask, which is why the two-pass split exists: the fast default on every build, the
+slow tuned set on request.

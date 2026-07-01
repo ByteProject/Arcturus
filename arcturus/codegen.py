@@ -795,6 +795,25 @@ def generate(world: wm.World) -> bytes:
         zstring.set_abbreviations([])
 
 
+def harvest_strings(world: wm.World) -> list:
+    """Every string the compiler would encode into `world`, gathered with
+    abbreviations off so the raw program text is captured, not the abbreviation
+    strings themselves. The --make-abbreviations pass and tools/arcabbr.py pool
+    this to compute a set. The banner line (story-specific) is dropped."""
+    saved_default = abbrev.DEFAULT_ABBREVS
+    saved_world = world.abbreviations
+    abbrev.DEFAULT_ABBREVS = []
+    world.abbreviations = None
+    zstring.begin_harvest()
+    try:
+        generate(world)
+    finally:
+        strings = zstring.end_harvest()
+        abbrev.DEFAULT_ABBREVS = saved_default
+        world.abbreviations = saved_world
+    return [s for s in strings if "Serial number" not in s]
+
+
 def _abbreviations_for(world: wm.World) -> list:
     """The abbreviation set for this compile: a summoned abbreviations.granule's
     tuned set when the program supplies one (the --make-abbreviations opt-in),

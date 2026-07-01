@@ -115,6 +115,11 @@ Options:
   exit (section 5).
 - `--eject-granule NAME`: write a single bundled granule (for example
   `statusline`) into the current directory for forking, then exit (section 5).
+- `--make-abbreviations`: compute a tuned abbreviation set for the story (and the
+  granules it summons) and write `abbreviations.granule` beside it, then exit. The
+  standard set is always applied without this; summon the written file by name
+  (`summon abbreviations.granule`) to use the tuned set instead (docs/04 section
+  10, docs/05 section 7).
 - `--version`: print the version and exit.
 
 Exit status: 0 on success, 1 on a source error (parse or analysis, with a
