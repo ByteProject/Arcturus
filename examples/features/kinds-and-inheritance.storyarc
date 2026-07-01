@@ -1,0 +1,67 @@
+// kinds-and-inheritance.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for kinds and inheritance (docs/01 section 5). A `kind` is a
+// template: it supplies default properties and shared handlers to every instance
+// declared `of` it. An instance inherits all of them, may override a default, and
+// its own handler runs before the kind's, with `continue` to pass control up the
+// chain. Compile and run:
+//
+//   arcc examples/features/kinds-and-inheritance.storyarc -o kinds.z5
+//   frotz kinds.z5
+//
+// Try, in order:
+//   switch on brass lantern    the shared kind handler lights it: "flares to life"
+//   switch off brass lantern   the shared kind handler puts it out
+//   switch on iron lantern     the instance handler adds a creak, then `continue`
+//                              hands off to the kind handler, which lights it
+//
+// The brass lantern has no handlers of its own; every response comes from the
+// kind. The iron lantern overrides only the lighting, adds a line, and inherits
+// the rest. One template, two objects, no copied code.
+
+game
+    title  "Two Lanterns"
+    headline "A kinds-and-inheritance showcase"
+    author "Stefan Vogt"
+    start  vault
+
+room vault
+    name "The Lamp Vault"
+    desc "A brick vault lined with dead lanterns. Two still look serviceable: one
+          of brass, one of black iron."
+
+// The template. It sets a shared default (`lit false`) and two shared handlers.
+// Every instance is switchable and lights and darkens the same way, unless it
+// says otherwise.
+kind lantern_kind of thing
+    switchable
+    lit false
+
+    on switch_on
+        now self is lit
+        say "It flares to life, throwing a steady yellow light."
+        stop
+
+    on switch_off
+        now self is not lit
+        say "You twist the valve and the flame gutters out."
+        stop
+
+// A pure instance: it adds nothing, so it behaves exactly as the kind dictates.
+thing brass_lantern of lantern_kind in vault
+    name "brass lantern"
+    words brass, lantern, lamp
+
+// An overriding instance. Its own `on switch_on` runs first, prints its flavor,
+// then `continue` defers to the kind handler, which does the actual lighting. The
+// creak is specific to this lantern; the light is inherited.
+thing iron_lantern of lantern_kind in vault
+    name "iron lantern"
+    words iron, black, lantern, lamp
+
+    on switch_on
+        say "The old iron hinges creak in protest."
+        continue

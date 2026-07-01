@@ -1,0 +1,42 @@
+// grains.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for grains (docs/01 section 14): cheap scenery. A grain is a word,
+// or a few words, that answers a handful of verbs without the weight of a full
+// object. It costs only dictionary words and a small table, never an object
+// entry, so a room can be dense with detail for almost nothing. Compile and run:
+//
+//   arcc examples/features/grains.storyarc -o grains.z5
+//   frotz grains.z5
+//
+// Try, in order:
+//   examine dunes      a grain answers, though there is no `dune` object
+//   examine sand       a second word on the same grain line, same answer
+//   touch sand         the same grain also answers TOUCH
+//   examine sky        a different grain
+//   smell air          a grain can answer verbs other than EXAMINE
+//   examine stars      an indented grain body, not just a one-line say
+//
+// None of these is an object. They are scenery the room mentions, made
+// answerable so the world feels solid, at the price of a few dictionary words.
+
+game
+    title  "The Long Dunes"
+    headline "A grains showcase"
+    author "Stefan Vogt"
+    start  desert
+
+room desert
+    name "The Long Dunes"
+    desc "Dunes run to the horizon under a bleached sky. The sand is fine as
+          flour, and the first stars are pricking out in the east."
+
+    grains
+        examine, touch "dunes" or "dune" or "sand" say "Fine, pale sand, still
+            holding the day's heat."
+        examine "sky" say "Bleached almost white, going to violet in the east."
+        smell "air" or "wind" say "Dry, and sharp with the cold coming down."
+        examine "stars" or "star"
+            say "The first stars, hard and clear. You could almost steer by them."

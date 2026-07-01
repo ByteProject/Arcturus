@@ -78,7 +78,8 @@ A fuller wiki will follow as the project matures. For a taste, the two worked
 games live under [examples/](examples/) - the Brass Lantern and the classic
 Cloak of Darkness. Small teaching showcases sit alongside them:
 [examples/features/](examples/features/) isolates core-language features (the
-container knowledge model, daemons and timers), and
+container knowledge model, computed properties, kinds and inheritance, doors
+and locks, grains, the object catch-all, daemons and timers), and
 [examples/granules/](examples/granules/) shows the summonable granules (the
 Infocom-style and menu-driven conversation systems, the status line, verbose
 exits, the extended verbs).
