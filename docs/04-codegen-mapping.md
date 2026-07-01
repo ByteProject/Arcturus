@@ -245,6 +245,18 @@ it repeatedly takes the substring whose references would save the most bytes and
 blanks its occurrences so the next round re-scores against what is left, until the
 table is full or nothing else pays.
 
+The baked default is tuned to the English library, so it applies only to an
+English game. A game that selects another language (`summon.language "spanish"`)
+gets no default set: English abbreviations barely match Spanish text, so applying
+them would just cost the abbreviation strings for almost no compression, a small
+net loss (`codegen._abbreviations_for` returns an empty set for a non-default
+language). Cosmos deliberately does not bake a standard set per language; a
+foreign-language game runs `--make-abbreviations`, which harvests through
+`combined_program` and so sees the selected language's translated text, producing
+a set tuned to that language (on the Spanish example, about 700 bytes below the
+no-abbreviation size). Small games gain little from abbreviations either way;
+large ones want their own tuned set regardless of language.
+
 ## 11. Dense code generation (B6)
 
 The third size lever (docs/00 section 5) tightens the emitted code, through one

@@ -984,13 +984,32 @@ def harvest_strings(world: wm.World) -> list:
     return [s for s in strings if "Serial number" not in s]
 
 
+def _non_default_language(world: wm.World) -> bool:
+    """True when the game selects a language other than English (summon.language
+    "spanish"). The baked default abbreviation set is tuned to the English library,
+    so it does not apply to another language."""
+    for s in getattr(world, "summons", []):
+        if getattr(s, "form", None) == "feature" and s.target == "language":
+            if s.arg and s.arg.lower() != "english":
+                return True
+    return False
+
+
 def _abbreviations_for(world: wm.World) -> list:
     """The abbreviation set for this compile: a summoned abbreviations.granule's
     tuned set when the program supplies one (the --make-abbreviations opt-in),
-    otherwise the baked-in default. The override path is wired in B6.2d."""
+    otherwise the baked-in default. The override path is wired in B6.2d.
+
+    The baked default is tuned to English, so a non-English game gets no default:
+    applying English abbreviations to, say, Spanish text costs the abbreviation
+    strings for almost no compression (a small net loss). A foreign-language game
+    runs `arcc --make-abbreviations` for a set tuned to its own text; Cosmos does
+    not bake a standard set per language."""
     override = getattr(world, "abbreviations", None)
     if override:
         return override
+    if _non_default_language(world):
+        return []
     return abbrev.DEFAULT_ABBREVS
 
 

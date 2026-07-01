@@ -77,3 +77,13 @@ def test_spanish_build_plays_on_frotz(tmp_path):
     # work: a feminine lampara is "Cogida", a masculine libro "Cogido".
     assert "Cogida." in out
     assert "Cogido." in out
+
+
+def test_non_english_game_skips_the_english_default_abbreviations():
+    # The baked default is English-tuned; a Spanish game gets no default set (an
+    # author runs --make-abbreviations for its own), while English keeps the default.
+    from arcturus import codegen, abbrev
+    es = analyze(cosmos.combined_program(parse('summon.language "spanish"\n' + MIN)))
+    en = analyze(cosmos.combined_program(parse(MIN)))
+    assert codegen._abbreviations_for(es) == []
+    assert codegen._abbreviations_for(en) == abbrev.DEFAULT_ABBREVS
