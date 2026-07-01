@@ -1,10 +1,10 @@
 # Arcturus progress
 
 A living log of where the project stands, maintained as work proceeds. The
-authoritative plan is `docs/00-roadmap.md` (milestones B0 to B8); this file
+authoritative plan is `docs/00-roadmap.md` (milestones B0 to B13); this file
 tracks status against it and records decisions made during implementation.
 
-Last updated: 2026-06-30.
+Last updated: 2026-07-01.
 
 ## Status at a glance
 
@@ -15,21 +15,33 @@ Last updated: 2026-06-30.
 | B2 | Semantic analysis and the world-model IR | done |
 | B3 | Z-machine backend MVP (smallest valid story file) | done |
 | B4 | Cosmos compiled: parser, turn loop, standard verbs | done |
-| B5 | Feature-complete library and a fair benchmark | done (library); B6 measures the benchmark |
-| B6 | Size pass (DCE, abbreviations, codegen) | done |
-| B7 | Language packs (Spanish, German) | pending |
-| B8 | The reference interpreter, Actaea | pending |
-| B9 | arc_image on modern systems (PNG) | pending |
-| B10 | arc_image on retro systems | pending |
-| B11 | Port Ghosts of Blackwood Manor (text) | pending |
-| B12 | Port The Curse of Rabenstein (from DAAD) | pending |
+| B5 | Feature-complete library and a fair benchmark | done |
+| B6 | Size pass (DCE, abbreviations, dense codegen) | done |
+| B7 | Language packs (Spanish, German) | next |
+| B8 | Port Hibernated 2 (first full game, maturity milestone) | pending |
+| B9 | Port Ghosts of Blackwood Manor (text) | pending |
+| B10 | The reference interpreter, Actaea | pending |
+| B11 | arc_image on modern systems (PNG) | pending |
+| B12 | arc_image on retro systems | pending |
+| B13 | Port The Curse of Rabenstein (from DAAD) | pending |
 
-Roadmap restructured 2026-06-28, renumbered 2026-06-29 (docs/00 section 7):
-feature-complete library (B5) comes BEFORE the size pass (B6) so the PunyInform
-benchmark is fair; then language packs (B7 Spanish + German), the Actaea
-interpreter (B8), arc_image (B9 modern, B10 retro), and porting two games (B11
-Ghosts, B12 Rabenstein). "Write Hibernated 3" is dropped as the project goal.
-See memory [[roadmap-milestones]].
+Roadmap restructured 2026-06-28, renumbered 2026-06-29, and again 2026-07-01
+(docs/00 section 7): the feature-complete library (B5) comes before the size
+pass (B6) so the PunyInform benchmark is fair; then language packs (B7). Real
+games are now ported before the interpreter and graphics, so the language stays
+malleable while bugs are cheap: Hibernated 2 (B8, the maturity milestone) and
+Ghosts of Blackwood Manor (B9), then the Actaea interpreter (B10), arc_image
+(B11 modern, B12 retro), and The Curse of Rabenstein (B13). Three game ports are
+the proving ground; "write Hibernated 3" is not a project goal. See memory
+[[roadmap-milestones]].
+
+Since B6, a round of language and library polish has landed (all committed, 252
+tests pass): kinds and inheritance with kind-level handler dispatch and universal
+kind defaults, the `character` kind (animate agents: people, animals, robots),
+computed properties, daemons and timers, the container knowledge model with
+lidless containers, doors that default openable and fixed, two-sided doors and
+multi-room `spans` scenery (both pay-for-use, elided when unused), and `constant`
+lowering. Next is B7, the language packs.
 
 >>> B6 HANDOVER CHECKPOINT (2026-06-30, written for compaction) <<<
 
