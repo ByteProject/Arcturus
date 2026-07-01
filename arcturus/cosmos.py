@@ -32,6 +32,13 @@ from .parser import parse
 # the loader intercepts as data, not runtime blocks (B6, _ABBREV_GRANULE below).
 _NON_GRANULE_FEATURES = {"language"}
 
+# The language layer is one prelude, `<code>.prelude`, and exactly one is compiled
+# into a build. English is the default; `summon.language "spanish"` swaps in
+# spanish.prelude in its place. The others are bundled but not loaded unless
+# selected, so a plain game is English and pays nothing for the alternates.
+_DEFAULT_LANGUAGE = "english"
+_LANGUAGE_CODES = {"english", "spanish", "german"}
+
 # The Cosmos library version. It is independent of the compiler version: the
 # bundled library can move ahead of (or behind) arcc, and since the embedded
 # library is not visible on disk, the banner reports it alongside arcc's version.
@@ -81,6 +88,26 @@ _ABBREV_GRANULE = "abbreviations.granule"
 
 def _summons(program: ast.Program) -> list:
     return [d for d in program.decls if isinstance(d, ast.Summon)]
+
+
+def _language_choice(game: ast.Program) -> str:
+    """The language a game selects with `summon.language "spanish"`, or the default.
+    Only the game may select it (not a granule), and only once."""
+    chosen = None
+    for s in _summons(game):
+        if s.form == "feature" and s.target == "language":
+            if s.arg is None:
+                raise ArcError(
+                    'summon.language needs a language, e.g. summon.language "spanish"',
+                    s.line, filename="<summon>",
+                )
+            code = s.arg.lower()
+            if chosen is not None and chosen != code:
+                raise ArcError(
+                    "a game may summon only one language", s.line, filename="<summon>"
+                )
+            chosen = code
+    return chosen or _DEFAULT_LANGUAGE
 
 
 def extract_abbreviations(src: str, srcname: str) -> list:
@@ -264,8 +291,21 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
     (tagged `library`), then granules (tagged `granule`), then the game, so a
     game block overrides a granule block overrides a library block of the same
     name (most-specific-wins). lib_dirs and story_dir locate file summons."""
+    language = _language_choice(game)
+    lang_file = language + ".prelude"
+    sources = prelude_sources()
+    if lang_file not in sources:
+        raise ArcError(
+            f"summon.language: no bundled language '{language}' "
+            f"(expected {lang_file})", filename="<summon>",
+        )
     decls: list = []
-    for name, src in prelude_sources().items():
+    for name, src in sources.items():
+        # Load the agnostic preludes plus the one selected language layer; skip the
+        # language preludes for other languages, so exactly one language is built.
+        base = name[: -len(".prelude")]
+        if base in _LANGUAGE_CODES and name != lang_file:
+            continue
         for d in parse(src, name).decls:
             if isinstance(d, ast.BlockDecl):
                 d.origin = "library"
