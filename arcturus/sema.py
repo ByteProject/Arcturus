@@ -78,12 +78,18 @@ class Analyzer:
         # Seed standard kinds so the chain resolves against Cosmos.
         for sk in self.env.kinds.values():
             kind = wm.Kind(sk.name, sk.parent, "standard")
-            # Rooms are lit by default; a dark room declares `lit false`.
-            # Characters are animate by default. Both override per instance.
+            # Universal kind defaults: only attributes true for essentially every
+            # instance of the kind (a bowl is a container that never opens, so
+            # `openable` is NOT a container default). All override per instance.
+            # Rooms are lit; characters are animate; a door opens and is fixed in
+            # place (its lock, if any, is per instance).
             if sk.name == "room":
                 kind.props["lit"] = ast.PropertyDecl(name="lit", form=ast.PROP_BOOL)
             elif sk.name == "character":
                 kind.props["animate"] = ast.PropertyDecl(name="animate", form=ast.PROP_BOOL)
+            elif sk.name == "door":
+                kind.props["openable"] = ast.PropertyDecl(name="openable", form=ast.PROP_BOOL)
+                kind.props["fixed"] = ast.PropertyDecl(name="fixed", form=ast.PROP_BOOL)
             w.kinds[sk.name] = kind
         # Seed standard objects (player).
         for name, kind in self.env.objects.items():
