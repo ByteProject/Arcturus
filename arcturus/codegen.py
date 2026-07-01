@@ -345,6 +345,11 @@ _BUILTIN_GLOBALS = [
     # __timers__ holds the base address of the scheduling table (after/every), set
     # at startup; 0 when the story schedules nothing.
     "__timers__",
+    # __strings__ is the first packed string address, set at startup. A computed
+    # (`<name> block`) text property stores its block routine's packed address,
+    # which is below this; a plain one stores a string address, at or above it, so a
+    # read of such a property compares against it to "print or run".
+    "__strings__",
 ]
 
 
@@ -438,6 +443,13 @@ def build_story(
         all_strings.update(layout.strings)
     if string_pool is not None:
         all_strings.update(string_pool.strings)
+    # The strings all sit above the routines, so the packed address where they
+    # begin is the threshold that tells a computed property's routine address (below
+    # it) from a plain string address (at or above it): the __timers__/__strings__
+    # "print or run" test in lower.py.
+    while sf.here() % 4 != 0:
+        sf.append(b"\x00")
+    strings_start_packed = sf.here() // 4
     string_packed: dict[str, int] = {}
     for sid, text in all_strings.items():
         while sf.here() % 4 != 0:
@@ -470,6 +482,8 @@ def build_story(
             sf.set_word(globals_addr + (gmap["player"] - 16) * 2, layout.obj_number["player"])
         # The scheduling table base, so after/every can reach it at run time.
         sf.set_word(globals_addr + (gmap["__timers__"] - 16) * 2, timers_addr)
+        # The string-area threshold, for the computed-property "print or run" test.
+        sf.set_word(globals_addr + (gmap["__strings__"] - 16) * 2, strings_start_packed)
 
     m = _meta(world)
     sf.set_word(storyfile.H_RELEASE, m.get("release", 1))
@@ -770,6 +784,36 @@ _TOPIC_HELPER_NAMES = (
 )
 
 
+def gen_computed_prop_routines(world: wm.World, layout, gmap: dict, pool) -> list:
+    """A prop_<obj>_<pname>() routine for every computed (`<name> block`) property,
+    running its block with `self` bound to the object. A text property's block says
+    its text (the routine returns nothing useful); a value property's returns a
+    value. The property table stores each routine's packed address (objects.py)."""
+    routines = []
+    for objname, pname, is_text, decl in layout.computed_props:
+        if not is_text:
+            # A read of a value property cannot tell a routine address from a plain
+            # value, so only text properties (which store a string address, always
+            # above the routine range) can be computed for now.
+            raise CodegenError(
+                f"computed property '{pname}' must be a text property; a computed "
+                f"value property is not supported yet",
+                getattr(decl, "line", None),
+            )
+        owner_num = layout.obj_number.get(objname, 0)
+        rt = Routine(objmod.prop_routine_name(objname, pname), nlocals=0)
+        ctx = Context(
+            world, gmap, layout=layout, self_value=Const(owner_num),
+            in_handler=True, string_pool=pool,
+        )
+        ctx.prescan(decl.body)
+        if not compile_block(rt, ctx, decl.body):
+            rt.op("rtrue")
+        rt.nlocals = ctx.nlocals()
+        routines.append(rt)
+    return routines
+
+
 def _walk_schedules(body, out: dict) -> None:
     """Collect the block named by every `after`/`every` statement in a body, and
     inside the control-flow that can hold one, in first-seen order."""
@@ -935,6 +979,8 @@ def _generate(world: wm.World) -> bytes:
     world.schedule_index = _collect_schedules(world)
     actions = _action_numbers(world)
     layout = objmod.build_layout(world, react_objects=_react_objects(world, actions))
+    # Text properties computed by a block: a read of one is "print or run" (below).
+    world.computed_text_props = {p for _o, p, is_text, _d in layout.computed_props if is_text}
     pool = StringPool()
 
     entry = Routine("__entry__", entry=True)
@@ -950,7 +996,10 @@ def _generate(world: wm.World) -> bytes:
     # The per-turn timer sweep for after/every (always emitted, empty when nothing
     # is scheduled; the turn loop calls it through the tick_timers intrinsic).
     schedule_tick = gen_schedule_tick(world, gmap)
-    all_routines = [main] + routines + react_routines + topic_routines + [schedule_tick]
+    # One routine per computed (`<name> block`) property; the property table stores
+    # each one's packed address.
+    computed_routines = gen_computed_prop_routines(world, layout, gmap, pool)
+    all_routines = [main] + routines + react_routines + topic_routines + [schedule_tick] + computed_routines
 
     # Emit the exit-enumeration backing routines only if something calls the
     # exit_prop / exit_name intrinsics (the verbose_exits granule). Unsummoned,

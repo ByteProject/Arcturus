@@ -177,6 +177,9 @@ class World:
     # event block name -> timer slot, for `after`/`every` scheduling (docs/02 s.13);
     # codegen assigns the slots and lower reads them to arm a timer.
     schedule_index: dict = field(default_factory=dict)
+    # Names of text properties computed on some object (`<name> block`), so a read
+    # of one lowers to "print or run" rather than a plain string print (docs/01 s6).
+    computed_text_props: set = field(default_factory=set)
     # Resolution of every `is` test, keyed by the node's identity.
     is_resolutions: dict[int, str] = field(default_factory=dict)
 

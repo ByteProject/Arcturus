@@ -71,6 +71,13 @@ def topic_when_name(objname: str, idx: int) -> str:
     return f"topicwhen_{objname}_{idx}"
 
 
+def prop_routine_name(objname: str, pname: str) -> str:
+    """The routine that computes property `pname` of `objname` (a `<name> block`
+    property). Named deterministically so the property table (here) and the routine
+    (codegen) agree, like react_<obj> and the topic routines."""
+    return f"prop_{objname}_{pname}"
+
+
 @dataclass
 class Layout:
     obj_number: dict[str, int] = field(default_factory=dict)
@@ -93,6 +100,10 @@ class Layout:
     word_fixups: list[tuple[int, str]] = field(default_factory=list)
     # Objects that have a react routine; their react property (63) is emitted.
     react_objects: set = field(default_factory=set)
+    # Computed (`<name> block`) properties, as (objname, pname, is_text, decl):
+    # codegen emits a prop_<obj>_<pname> routine for each, and the property stores
+    # its packed address (a routine_fixup), read by "print or run" at the use site.
+    computed_props: list = field(default_factory=list)
     # True if any object is `named` (a thing with a proper name). The article in
     # ${the noun} only needs its runtime named-check when this holds, so a game
     # with no named objects pays nothing for it.
@@ -357,6 +368,14 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
         if pname == "topics":
             if topic_sites is not None:
                 topic_sites[name] = data_at  # patched in _emit_topic_tables
+            continue
+        if decl is not None and decl.form == ast.PROP_BLOCK:
+            # A computed property: store the packed address of its block routine
+            # (codegen emits prop_<obj>_<pname>), and record it so codegen knows to
+            # compile the routine and treat reads of this property as "print or run".
+            layout.routine_fixups.append((data_at, prop_routine_name(name, pname)))
+            is_text = world.properties[pname].type == prelude.T_TEXT
+            layout.computed_props.append((name, pname, is_text, decl))
             continue
         _fill_property(world, layout, pname, decl, data_at)
     # A property list is terminated by a size byte of zero (standard 1.1, section
