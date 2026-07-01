@@ -47,7 +47,7 @@ rediscovered.
   milestone via the `arc_image` property: a capability-guarded additive layer
   using a custom EXT opcode that Arcturus-aware interpreters render and
   standard interpreters skip unread, so the story file stays conformant z5
-  throughout (see section 6 and milestone B8). This extends an existing owned
+  throughout (see section 6 and milestones B11 to B12). This extends an existing owned
   interpreter such as Eris; it is never a forked or new VM.
 - No PunyInform as the runtime, and no transpile-to-Inform-6 step. The
   compiler emits z5 directly, in the spirit of Dialog's dialogc.
@@ -93,7 +93,7 @@ rather than written in advance.
   (extendedverbs, statusline, verbose_exits, conversations, debug): how to summon
   each, what it adds, the blocks an author can override, and how to write your
   own granule.
-- 06-actaea-design.md: the Actaea reference interpreter (built in milestone B8).
+- 06-actaea-design.md: the Actaea reference interpreter (built in milestone B10).
 - 07-conformance.md (the final milestone): the test plan, with the two example
   games as golden tests and a size regression baseline.
 
@@ -213,20 +213,29 @@ done-test.
   inflected language needs them (the language seam, section 8 of docs/02). Each
   pack curates its own abbreviations via the B6 pipeline. A large milestone in its
   own right; the language seam is designed but unbuilt.
-- B8: the reference interpreter, Actaea. A Standard 1.1 conformant z5/z8
+- B8: port Hibernated 2 to Arcturus. Hibernated 2 is written in PunyInform and
+  releases commercially there first; the Arcturus port follows at its own pace as
+  the first large, real-world game in the language. This is the maturity
+  milestone: a full-length game exercises save and restore, size behavior, and
+  library breadth far past what any example can, and it surfaces the gaps and
+  missing polish only a real game finds (the same payoff the feature showcases
+  gave, at scale). It ships as the flagship demonstration of what Arcturus can do,
+  and porting real games before the interpreter and graphics keeps the language
+  malleable while the bugs are cheap to fix.
+- B9: port Ghosts of Blackwood Manor to Arcturus - text only, pushing z5
+  features hard. The advanced-feature benchmark.
+- B10: the reference interpreter, Actaea. A Standard 1.1 conformant z5/z8
   interpreter in Python with a tkinter GUI, built under `actaea/`, that plays any
   well-formed story file and is the testing ground for `arc_image`. Its design is
   docs/06-actaea-design.md (milestones M1 to M11; headless VM core through M6,
   GUI from M7).
-- B9: `arc_image` on modern systems (section 6). The capability guard and EXT
-  opcode contract, room and scene art rendered from PNGs in the reference
-  interpreter, with the same story file still running unchanged on Frotz.
-- B10: `arc_image` on retro systems. Per-platform image formats (a C64 differs
+- B11: `arc_image` on modern systems (section 6). The capability guard and EXT
+  opcode contract, room and scene art rendered from PNGs, the rendering capability
+  added to Actaea, with the same story file still running unchanged on Frotz.
+- B12: `arc_image` on retro systems. Per-platform image formats (a C64 differs
   from a CPC), the PNG-to-retro porting tools Arcturus drives, and the spec
   addenda for how the owned Standard 1.1 interpreters extend to render them.
-- B11: port Ghosts of Blackwood Manor to Arcturus - text only, pushing z5
-  features hard. The advanced-feature benchmark.
-- B12: port The Curse of Rabenstein from DAAD to Arcturus. Trivial as a port,
+- B13: port The Curse of Rabenstein from DAAD to Arcturus. Trivial as a port,
   it exercises the `arc_image` graphics path end to end (its art is ready for
   the retro targets) and ships as a worked example game.
 
