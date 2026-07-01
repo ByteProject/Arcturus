@@ -31,11 +31,12 @@ and to author games against once it is built.
 These are settled. The reasoning is recorded so it does not have to be
 rediscovered.
 
-- Target format: standard Z-machine version 5. z8 is a later build flag for
-  large, modern-only releases; the instruction set is identical, only the
-  version byte and packed-address multiplier differ. The z5 ceiling is 256K,
-  which is comfortable: Hibernated 2 is 137K before abbreviation
-  optimization.
+- Target format: standard Z-machine version 5. z8 is available via the
+  `--zversion 8` build flag for large, modern-only releases; the instruction set
+  is identical, only the version byte, the file-length scale, and the packed-
+  address multiplier (4 to 8) differ. The z5 ceiling is 256K, which is
+  comfortable: Hibernated 2 is 137K before abbreviation optimization. z8 raises
+  the ceiling to 512K.
 - Smallest possible z-code is a primary objective of the compiler, not an
   afterthought. The compiler is judged on output size as much as
   correctness. The size levers are whole-program dead-code elimination,

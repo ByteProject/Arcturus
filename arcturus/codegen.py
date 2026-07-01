@@ -385,13 +385,17 @@ def _globals_map(world: wm.World) -> dict:
 
 
 def build_story(
-    world: wm.World, entry: Routine, routines: list, layout=None, string_pool=None
+    world: wm.World, entry: Routine, routines: list, layout=None, string_pool=None,
+    version: int = 5,
 ) -> bytes:
-    """Assemble a complete z5 image from the entry stub and routines, laying out
-    the standard memory regions. Shared by generate() and the backend tests.
-    `layout` is the object table (objects.Layout); without it the object area is
-    just the empty property-defaults table."""
-    sf = storyfile.StoryFile(version=5)
+    """Assemble a complete z5 (or z8) image from the entry stub and routines,
+    laying out the standard memory regions. Shared by generate() and the backend
+    tests. `layout` is the object table (objects.Layout); without it the object
+    area is just the empty property-defaults table. `version` is 5 (default) or 8;
+    the two differ only in the header version byte, the file-length scale (both in
+    StoryFile), and the packed-address unit (4 for z5, 8 for z8)."""
+    sf = storyfile.StoryFile(version=version)
+    scale = 8 if version == 8 else 4
 
     # Dynamic memory: globals, the input buffers, and the object table.
     globals_addr = sf.append(bytes(_GLOBALS_BYTES))
@@ -450,12 +454,12 @@ def build_story(
 
     # High memory: the entry stub and routines, run from the initial PC.
     high_base = sf.here()
-    blob, initial_pc, strrefs, packed_routines = link(entry, routines, high_base)
+    blob, initial_pc, strrefs, packed_routines = link(entry, routines, high_base, scale)
     blob_start = sf.here()
     sf.append(blob)
 
     # Packed strings (object descriptions and strings allocated during lowering)
-    # live in high memory, 4-aligned so their packed addresses are exact.
+    # live in high memory, scale-aligned so their packed addresses are exact.
     all_strings: dict[str, str] = {}
     if layout is not None:
         all_strings.update(layout.strings)
@@ -465,14 +469,14 @@ def build_story(
     # begin is the threshold that tells a computed property's routine address (below
     # it) from a plain string address (at or above it): the __timers__/__strings__
     # "print or run" test in lower.py.
-    while sf.here() % 4 != 0:
+    while sf.here() % scale != 0:
         sf.append(b"\x00")
-    strings_start_packed = sf.here() // 4
+    strings_start_packed = sf.here() // scale
     string_packed: dict[str, int] = {}
     for sid, text in all_strings.items():
-        while sf.here() % 4 != 0:
+        while sf.here() % scale != 0:
             sf.append(b"\x00")
-        string_packed[sid] = sf.here() // 4
+        string_packed[sid] = sf.here() // scale
         sf.append(zstring.encode(text))
     # Backpatch the object table (desc properties and react routine addresses)
     # and the code (string refs).
@@ -943,8 +947,8 @@ def _prune_unreachable(entry: Routine, routines: list, layout) -> list:
     return [r for r in routines if r.name in reachable]
 
 
-def generate(world: wm.World) -> bytes:
-    """Lower the world model to a complete z5 story file image.
+def generate(world: wm.World, version: int = 5) -> bytes:
+    """Lower the world model to a complete z5 (or z8) story file image.
 
     The entry stub calls the main routine and quits; main prints the banner and
     runs `on start`. Every other handler and every block is compiled to its own
@@ -956,7 +960,7 @@ def generate(world: wm.World) -> bytes:
     # later driven test (which never installs a set) is not contaminated.
     zstring.set_abbreviations(_abbreviations_for(world))
     try:
-        return _generate(world)
+        return _generate(world, version)
     finally:
         zstring.set_abbreviations([])
 
@@ -990,7 +994,7 @@ def _abbreviations_for(world: wm.World) -> list:
     return abbrev.DEFAULT_ABBREVS
 
 
-def _generate(world: wm.World) -> bytes:
+def _generate(world: wm.World, version: int = 5) -> bytes:
     gmap = _globals_map(world)
     # Assign a timer slot to every scheduled block before anything is lowered, so
     # the `after`/`every` statements can arm their slot by index (docs/02 s.13).
@@ -1044,4 +1048,5 @@ def _generate(world: wm.World) -> bytes:
         all_routines,
         layout=layout,
         string_pool=pool,
+        version=version,
     )

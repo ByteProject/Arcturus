@@ -428,11 +428,15 @@ class Routine:
         self.labels = {}
 
 
-def link(entry: Routine, routines: list[Routine], base_addr: int):
+def link(entry: Routine, routines: list[Routine], base_addr: int, scale: int = 4):
     """Lay out the entry stub and routines in high memory starting at base_addr.
     Returns the high-memory blob, the initial program counter, and the list of
     (absolute-offset-in-blob, string-id) packed-string references still to be
-    resolved once the strings are laid out (by the caller, in build_story)."""
+    resolved once the strings are laid out (by the caller, in build_story).
+
+    `scale` is the packed-address unit: a routine's packed address is its byte
+    address / scale, so each routine is aligned to a scale-byte boundary. It is 4
+    for z5 and 8 for z8 (the only difference the larger version needs here)."""
     blob = bytearray()
     starts: dict[str, int] = {}
 
@@ -450,11 +454,11 @@ def link(entry: Routine, routines: list[Routine], base_addr: int):
     packed: dict[str, int] = {}
     code_starts: dict[str, int] = {entry.name: entry_code_start}
     for r in routines:
-        while (base_addr + len(blob)) % 4 != 0:
+        while (base_addr + len(blob)) % scale != 0:
             blob.append(0)
         addr = base_addr + len(blob)
         starts[r.name] = addr
-        packed[r.name] = addr // 4
+        packed[r.name] = addr // scale
         blob.append(r.nlocals & 0xFF)  # v5 header: local count, no init words
         code_starts[r.name] = len(blob)
         blob += r.code
