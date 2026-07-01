@@ -68,9 +68,12 @@ def test_spanish_build_plays_on_frotz(tmp_path):
     story = tmp_path / "j.z5"
     story.write_bytes(generate(analyze(cosmos.combined_program(parse(SPANISH_GAME)))))
     out = subprocess.run(
-        [_frotz(), "-p", str(story)], input="coger lampara\n",
+        [_frotz(), "-p", str(story)], input="coger lampara\ncoger libro\n",
         capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "Cogido." in out  # the Spanish take message, and the verb "coger"
     assert "una lampara" in out  # feminine gender derived from the head noun
     assert "un libro" in out  # masculine
+    # The take message agrees its participle with the object's gender, no author
+    # work: a feminine lampara is "Cogida", a masculine libro "Cogido".
+    assert "Cogida." in out
+    assert "Cogido." in out

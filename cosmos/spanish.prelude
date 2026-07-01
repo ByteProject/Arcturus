@@ -799,7 +799,10 @@ block msg_taste()
 
 // Carrying and giving.
 block msg_taken()
-    say "Cogido."
+    if noun is feminine
+        say "Cogida."
+    else
+        say "Cogido."
 
 block msg_fixed()
     say "${The noun} se queda justo donde está."
@@ -829,7 +832,10 @@ block msg_cant_put()
     say "${The second} no puede contenerlo."
 
 block msg_closed()
-    say "${The second} está cerrado."
+    if second is feminine
+        say "${The second} está cerrada."
+    else
+        say "${The second} está cerrado."
 
 block msg_to_whom()
     say "¿A quién?"
@@ -842,13 +848,16 @@ block msg_show()
 
 // Wearing.
 block msg_worn()
-    say "Puesto."
+    if noun is feminine
+        say "Puesta."
+    else
+        say "Puesto."
 
 block msg_already_worn()
     say "Ya llevas puesto ${the noun}."
 
 block msg_cant_wear()
-    say "${The noun} no está hecho para ponérselo."
+    say "No puedes ponerte ${the noun}."
 
 block msg_removed()
     say "Fuera."
@@ -858,28 +867,49 @@ block msg_not_worn()
 
 // Doors, containers, locks.
 block msg_opened()
-    say "Abierto."
+    if noun is feminine
+        say "Abierta."
+    else
+        say "Abierto."
 
 block msg_already_open()
-    say "${The noun} ya está abierto."
+    if noun is feminine
+        say "${The noun} ya está abierta."
+    else
+        say "${The noun} ya está abierto."
 
 block msg_cant_open()
     say "${The noun} no se abre."
 
 block msg_open_locked()
-    say "${The noun} está cerrado con llave."
+    if noun is feminine
+        say "${The noun} está cerrada con llave."
+    else
+        say "${The noun} está cerrado con llave."
 
 block msg_door_locked(d)
-    say "${The d} está cerrado con llave."
+    if d is feminine
+        say "${The d} está cerrada con llave."
+    else
+        say "${The d} está cerrado con llave."
 
 block msg_door_shut(d)
-    say "${The d} está cerrado. Ábrelo primero."
+    if d is feminine
+        say "${The d} está cerrada. Primero tienes que abrir ${the d}."
+    else
+        say "${The d} está cerrado. Primero tienes que abrir ${the d}."
 
 block msg_closed_it()
-    say "Cerrado."
+    if noun is feminine
+        say "Cerrada."
+    else
+        say "Cerrado."
 
 block msg_already_shut()
-    say "${The noun} ya está cerrado."
+    if noun is feminine
+        say "${The noun} ya está cerrada."
+    else
+        say "${The noun} ya está cerrado."
 
 block msg_cant_close()
     say "${The noun} no se cierra."
@@ -907,10 +937,16 @@ block msg_no_switch()
     say "${The noun} no es de los que se encienden."
 
 block msg_already_on()
-    say "${The noun} ya está encendido."
+    if noun is feminine
+        say "${The noun} ya está encendida."
+    else
+        say "${The noun} ya está encendido."
 
 block msg_already_off()
-    say "${The noun} ya está apagado."
+    if noun is feminine
+        say "${The noun} ya está apagada."
+    else
+        say "${The noun} ya está apagado."
 
 block msg_no_effect()
     say "${The noun} no se inmuta."
