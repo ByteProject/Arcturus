@@ -216,13 +216,15 @@ done-test.
   own right; the language seam is designed but unbuilt.
 - B8: port Hibernated 2 to Arcturus. Hibernated 2 is written in PunyInform and
   releases commercially there first; the Arcturus port follows at its own pace as
-  the first large, real-world game in the language. This is the maturity
-  milestone: a full-length game exercises save and restore, size behavior, and
-  library breadth far past what any example can, and it surfaces the gaps and
-  missing polish only a real game finds (the same payoff the feature showcases
-  gave, at scale). It ships as the flagship demonstration of what Arcturus can do,
-  and porting real games before the interpreter and graphics keeps the language
-  malleable while the bugs are cheap to fix.
+  the first large, real-world game in the language. It targets z5 (137K before
+  abbreviation optimization, well under the 256K ceiling), because it is meant to
+  play on retro systems, not z8. This is the maturity milestone: a full-length
+  game exercises save and restore, size behavior, and library breadth far past
+  what any example can, and it surfaces the gaps and missing polish only a real
+  game finds (the same payoff the feature showcases gave, at scale). It ships as
+  the flagship demonstration of what Arcturus can do, and porting real games
+  before the interpreter and graphics keeps the language malleable while the bugs
+  are cheap to fix.
 - B9: port Ghosts of Blackwood Manor to Arcturus - text only, pushing z5
   features hard. The advanced-feature benchmark.
 - B10: the reference interpreter, Actaea. A Standard 1.1 conformant z5/z8

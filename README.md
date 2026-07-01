@@ -104,9 +104,9 @@ Arcturus uses three source extensions, named after the star:
 
 ## Output
 
-Arcturus emits conformant Z-machine **version 5** story files, with **version
-8** planned for large, modern-only releases (the same code generation, a couple
-of header values apart).
+Arcturus emits conformant Z-machine **version 5** story files by default. Pass
+**`--zversion 8`** for a version 8 target for large, modern-only releases (the
+same code generation, a larger 512KB story-file ceiling).
 
 ## Getting started
 
