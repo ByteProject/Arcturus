@@ -143,11 +143,10 @@ def _name_first_letter(decl) -> str:
     return ""
 
 
-def _name_head_last_letter(decl) -> str:
-    """The last letter of the object name's HEAD noun, lowercased, or '' if
-    unreadable. Used to derive grammatical gender: in Spanish the head noun leads
-    ("lampara de bronce", "moneda de oro"), and a head ending in -a is feminine, so
-    the derivation reads the first word's final letter, not the whole name's."""
+def _name_head(decl) -> str:
+    """The head noun of the object name (its first word), lowercased, or '' if
+    unreadable. In Spanish the head noun leads ("lampara de bronce"), and gender is
+    read from it, not the whole name."""
     if decl is not None and decl.form == ast.PROP_VALUE and decl.values:
         v = decl.values[0]
         if isinstance(v, ast.StringLit):
@@ -155,9 +154,27 @@ def _name_head_last_letter(decl) -> str:
                 p.text for p in v.parts if isinstance(p, ast.StringText)
             ).strip()
             if text:
-                head = text.split()[0]
-                return head[-1].lower()
+                return text.split()[0].lower()
     return ""
+
+
+# Word endings that are reliably feminine in Spanish, regardless of the final
+# letter (la cancion, la ciudad, la virtud, la costumbre). Checked before the
+# plain -a / -o rule so a feminine noun that does not end in -a is still caught.
+_SPANISH_FEMININE_SUFFIXES = ("cion", "ción", "sion", "sión", "dad", "tad", "tud", "umbre")
+
+
+def _derive_feminine(decl) -> bool:
+    """Whether to set `feminine` on an object from its name, for a gendered
+    language to read. A head noun with a reliably feminine suffix, or ending in -a,
+    is feminine; everything else defaults masculine. The author overrides the few
+    the spelling cannot reveal (la llave, el mapa). English never reads the bit."""
+    head = _name_head(decl)
+    if not head:
+        return False
+    if head.endswith(_SPANISH_FEMININE_SUFFIXES):
+        return True
+    return head.endswith("a")
 
 
 def _bool_value(decl: ast.PropertyDecl) -> bool:
@@ -278,7 +295,7 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
         # la/una with no author work. English never reads the bit.
         fem_num = layout.attr_number.get("feminine")
         if fem_num is not None and "feminine" not in eff:
-            if _name_head_last_letter(eff.get("name")) == "a":
+            if _derive_feminine(eff.get("name")):
                 table[entry + fem_num // 8] |= 0x80 >> (fem_num % 8)
         # Kind-membership attributes: one for each kind in the object's chain.
         for kname in obj.chain:
