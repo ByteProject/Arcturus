@@ -44,7 +44,9 @@ def test_emits_valid_z5_header():
 
 
 def test_object_and_article_interpolation_compiles():
-    # Article and object-name printing work as of B4.3.
+    # Article and object-name printing. ${the x} lowers to a call to the language
+    # layer's art_the block, so a bare (no-Cosmos) build provides one; a real game
+    # gets it from english.prelude.
     src = (
         'thing gem\n'
         '    name "gem"\n'
@@ -52,6 +54,8 @@ def test_object_and_article_interpolation_compiles():
         '    say "You see ${the gem}."\n'
         'room void\n'
         '    name "v"\n'
+        'block art_the(o, c)\n'
+        '    print_name(o)\n'
     )
     data = compile_z5(src)
     assert data[0x00] == 5

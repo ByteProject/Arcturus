@@ -33,7 +33,12 @@ from .tokens import Token
 _UUID_RE = re.compile(
     r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
 )
-_NAME_RE = re.compile(r"[A-Za-z][A-Za-z0-9_]*")
+# A name starts with a letter and continues with letters, digits, or underscore.
+# Letters are Unicode (\w is Unicode by default for str patterns in Python 3), so
+# accented vocabulary a language pack needs (lampara with an acute, ano with a
+# tilde) lexes; the first-character class excludes digits and underscore. This
+# matches the dispatch in _scan_token, which enters a name on any c.isalpha().
+_NAME_RE = re.compile(r"[^\W\d_]\w*")
 _NUMBER_RE = re.compile(r"[0-9]+")
 
 # Escape character -> the literal character it produces.
