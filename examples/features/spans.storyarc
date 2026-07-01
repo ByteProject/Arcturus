@@ -1,0 +1,73 @@
+// spans.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for `spans` (docs/01 section 5): a fixed piece of scenery that is in
+// scope in more than one room. The object tree gives each object a single home,
+// so a distant thing you can see from several places, the moon, a mountain, a
+// lighthouse, is placed once and SPANS the other rooms. It is then referable from
+// every room it spans, at the cost of no real object per room. Compile and run:
+//
+//   arcc examples/features/spans.storyarc -o spans.z5
+//   frotz spans.z5
+//
+// Try, in order:
+//   examine moon        the moon answers here in the clearing
+//   examine lighthouse  but the lighthouse does not: the trees hide it
+//   northeast           climb to the open ridge
+//   examine moon        the same moon, referable here too
+//   examine lighthouse  and now the lighthouse, which spans the ridge and shore
+//   south               down to the shore
+//   examine moon        still the moon
+//   examine lighthouse  still the lighthouse
+//   take moon           scenery: there is nothing to pick up
+//
+// Neither the moon nor the lighthouse is a real object in any of these rooms.
+// Each is one scenery object that spans the rooms it can be seen from, so `look`
+// never lists it and it costs nothing per room.
+
+game
+    title  "A Walk by Moonlight"
+    headline "A spans showcase"
+    author "Stefan Vogt"
+    start  clearing
+
+room clearing
+    name "The Clearing"
+    desc "A grassy clearing ringed close by black pines. A path climbs northeast
+          to the ridge, and a track drops south to the shore."
+    northeast ridge
+    south shore
+
+room ridge
+    name "The Ridge"
+    desc "A bare granite ridge, open to the whole sky. The clearing lies back
+          southwest, and the shore is down to the south."
+    southwest clearing
+    south shore
+
+room shore
+    name "The Shore"
+    desc "A pebbled shore where slow waves turn over. The ridge rises to the
+          north, and the clearing is back up the track, also north."
+    north clearing
+
+// The moon is seen from everywhere: it spans all three rooms. With no `in`, it
+// lives in the first room it spans (the clearing) and is in scope in the others.
+thing moon
+    name "silver moon"
+    words moon, silver
+    scenery
+    desc "A full silver moon, so bright it throws hard shadows from the pines."
+    spans clearing, ridge, shore
+
+// The lighthouse is only visible from the open ground: it spans the ridge and the
+// shore, but not the tree-ringed clearing, so it cannot be referred to there.
+thing lighthouse
+    name "distant lighthouse"
+    words lighthouse, light, tower
+    scenery
+    desc "Far out on the point, a lighthouse sweeps its slow white beam across
+          the water."
+    spans ridge, shore
