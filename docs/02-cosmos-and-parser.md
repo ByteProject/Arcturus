@@ -412,19 +412,59 @@ object with `named` set takes no article. When Cosmos lists several objects
 it joins them with commas and a final "and", each with its indefinite
 article.
 
-Recurring behavior uses `on each_turn` guarded by `when` (01, section 12). A
-room's each_turn is active while the player is there; an object's while it is
-in scope. For behavior after a set number of turns, Cosmos provides two
-scheduling helpers that fire from the turn loop's step 7:
+Daemons and timers. Arcturus gives you background behavior, code that runs on its
+own as turns pass, without the timer objects, integer IDs, and start/stop calls
+that this needs in other systems. There are two pieces: a per-turn daemon
+(`on each_turn`) and scheduled events (`after` and `every`).
+
+A daemon is an `on each_turn` handler. It fires once per turn, at the end of the
+turn, and a `when` guard is its on/off switch:
 
 ```
-after 3 turns do collapse_tunnel
-every 5 turns do tide_shifts
+room bar
+    on each_turn when not lit
+        say "Something rustles in the dark."
 ```
 
-`after` schedules a one-shot, `every` a recurring event; each names an
-ordinary `on <event>` handler. This gives timers and daemons without new
-control structures.
+While the condition holds, the daemon runs; when it stops holding, the daemon
+falls silent, with no explicit start or stop. Scope decides reach: a room's
+each_turn is active while the player is in that room, an object's while the object
+is in scope, and a free-standing each_turn (written at the top level, not inside
+an object) runs every turn. Several each_turn handlers may be live at once; they
+fire the room's first, then the free-standing rules.
+
+Scheduled events fire a block after a set number of turns. `after` fires it once;
+`every` fires it again and again:
+
+```
+after 3 turns do collapse_tunnel     // once, three turns from now
+every 5 turns do tide_shifts         // every five turns, indefinitely
+```
+
+`do` names a `block` (01, section 11), which runs with no arguments when the timer
+comes due. The count is any expression, evaluated when the statement runs, so a
+timer can be armed for a computed number of turns. Scheduling is a statement, so
+you arm a timer wherever it belongs, commonly in `on start` or in the very handler
+that sets an event in motion:
+
+```
+on take idol
+    move idol to player
+    say "The pedestal sinks. Somewhere, stone grinds on stone."
+    after 4 turns do temple_collapses
+```
+
+The timers count down from the turn loop, right after the each_turn pulse, so a
+scheduled block sees the world as it stands at the end of the turn. Re-running an
+`after` or `every` for the same block re-arms it: the countdown restarts from now
+with the new period, which is how you extend, shorten, or restart a running timer.
+A count of 0 disarms it, so `after 0 turns do temple_collapses` cancels a pending
+collapse. A scheduled block may even schedule itself, arming its next fire with a
+fresh count, for a timer whose period changes over its life.
+
+Between them, `on each_turn` and `after`/`every` cover the whole range: a
+condition-gated daemon, a one-shot fuse, and a fixed-period timer, all written in
+ordinary Arcturus with no timer objects and no hand-kept turn counters.
 
 ## 14. Summonable features
 

@@ -546,11 +546,12 @@ on push, pull lever
     say "The lever does not budge."
 ```
 
-A `when` guard restricts a handler to a condition:
+A `when` guard restricts a handler to a condition: it applies only while the
+condition holds, and otherwise defers to the next handler up the chain.
 
 ```
-on each_turn when ruby is hidden
-    say "Water ticks against stone."
+on push slab when player holds crowbar
+    say "You lever the slab aside."
 ```
 
 Default versus override. A matching handler replaces the verb's default
@@ -583,8 +584,25 @@ name `other` always means "anything not otherwise matched": as a verb here, and
 as the fallback direction in `on go other` (02). Its place in the dispatch
 chain is defined in 02, section 9.
 
-Core events Cosmos fires, defined in 02: `on start`, `on enter`,
-`on each_turn`, and the action events named by verbs.
+Life-cycle events. Besides the action events named by verbs, Cosmos fires three
+events as the game runs, handled with the same `on` syntax:
+
+- `on start` runs once, before the first prompt: opening text, initial setup, and
+  any timers you want armed from the outset.
+- `on enter` runs when the player arrives in a room, as that room's handler, so a
+  room can react to being entered.
+- `on each_turn` runs once per turn, the per-turn daemon. A `when` guard decides
+  when it is awake, and its reach follows scope: a room's runs while the player is
+  there, an object's while it is in scope, a free-standing one every turn.
+
+```
+on each_turn when ruby is hidden
+    say "Water ticks against stone."
+```
+
+Recurring and delayed behavior beyond every turn uses the `after` and `every`
+scheduling statements (one-shot and repeating timers); daemons and timers together
+are covered in full in 02, section 13.
 
 ## 13. Summon
 
