@@ -601,15 +601,21 @@ summon "extensions/lockpicking.granule"  // an explicit file
 ```
 
 - The dotted form (`summon.statusline`) always uses the copy that ships inside
-  the compiler. It also carries the two non-granule features `summon.language
+  the compiler. It also carries the non-granule feature `summon.language
   "<name>"`, which selects a language pack (a granule that overrides not only the
   messages and vocabulary but the parser's grammar logic where a language needs
-  it, 02), and `summon.abbreviations`, a compiler text-compression option whose
-  argument is a data file rather than a granule.
+  it, 02).
 - The bare filename form (`summon statusline.granule`) prefers a copy in the
   story's directory or a `-L` directory, and otherwise falls back to the bundled
-  one with a notice. This is how you summon a forked granule by name.
+  one with a notice. This is how you summon a forked granule by name, and also how
+  you summon a tuned `abbreviations.granule` (below).
 - The quoted form is an explicit path, with no bundled fallback.
+
+Text compression is not a summonable feature. The compiler always applies a
+standard abbreviation set, so nothing is required to get it. A story can tune the
+set to its own text with `arcc --make-abbreviations`, which writes an
+`abbreviations.granule` beside it; summon that by name (`summon
+abbreviations.granule`) to use it in place of the default (02, and 05 section 7).
 
 The granules that ship with Cosmos - extended verbs, the status line, verbose
 exits, the conversation menu, and debug verbs - are catalogued in 05. Debug is

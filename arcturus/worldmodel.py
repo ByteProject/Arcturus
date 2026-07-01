@@ -171,6 +171,9 @@ class World:
     blocks: dict[str, Block] = field(default_factory=dict)
     free_handlers: list[Handler] = field(default_factory=list)
     summons: list[ast.Summon] = field(default_factory=list)
+    # A tuned abbreviation set from a summoned abbreviations.granule (B6), carried
+    # to codegen as the text encoder's set in place of the built-in default.
+    abbreviations: Optional[list] = None
     # Resolution of every `is` test, keyed by the node's identity.
     is_resolutions: dict[int, str] = field(default_factory=dict)
 

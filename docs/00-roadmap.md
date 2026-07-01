@@ -106,9 +106,10 @@ Built alongside the compiler, all in Python where a tool is involved:
 
 - arcabbr: an abbreviation optimizer in the spirit of zabbrv. It scans a
   program's text and computes a near-optimal abbreviation set for maximum
-  compression, writing it to an abbreviations file the compiler then uses.
-  The compiler ships a reasonable default abbreviation set; a project
-  overrides it by summoning its own file (01, summon).
+  compression. The compiler ships a standard abbreviation set, always applied;
+  the same optimizer regenerates that default (tools/arcabbr.py) and backs the
+  `arcc --make-abbreviations` pass, which writes a per-story abbreviations.granule
+  a project summons by name to override the default (05, section 7).
 - The Arcturus VS Code extension: syntax highlighting for .storyarc. This is
   an early goal, not a finishing touch, because readable highlighted source
   speeds every later step. A TextMate grammar plus a minimal language

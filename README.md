@@ -128,8 +128,15 @@ Useful options:
 python3 build/arcc game.storyarc -o game.z5    # compile to a z5 story file
 python3 build/arcc game.storyarc --dump-ast    # show the parsed syntax tree
 python3 build/arcc -L /abs/path/cosmos game.storyarc   # use a forked library
+python3 build/arcc --make-abbreviations game.storyarc  # tune text compression (below)
 python3 build/arcc --version
 ```
+
+Text compression is automatic: every build packs its text against a standard
+abbreviation set with nothing to configure. To squeeze a large story further,
+`--make-abbreviations` computes a set tuned to its own text and writes an
+`abbreviations.granule` beside it; add `summon abbreviations.granule` to the story
+to use it in place of the default.
 
 Cosmos travels inside `arcc`, so the compiler works wherever you put it, but it
 is never locked away. To hack the library:

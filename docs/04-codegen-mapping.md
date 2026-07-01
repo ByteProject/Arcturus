@@ -235,10 +235,15 @@ library's whole message set is harvested from any game, and that always-present
 text is what the default compresses; it tops out near fifty abbreviations, which is
 about as many profitable substrings as the library text contains. Filling more of
 the 96 slots only pays for a specific game's own prose, which is the job of the
-slow, opt-in `--make-abbreviations` pass (B6.2, to come). The optimizer itself is a
-greedy heuristic: it repeatedly takes the substring whose references would save the
-most bytes and blanks its occurrences so the next round re-scores against what is
-left, until the table is full or nothing else pays.
+slow, opt-in `--make-abbreviations` pass: it pools the story's and its summoned
+granules' strings, runs the same optimizer to the full 96, and writes an
+`abbreviations.granule` beside the story (Arcturus-lexable string data, not runtime
+code). A story summons that file by name, and `cosmos.combined_program` intercepts
+it, extracts its strings, and hands them to codegen as the encoder's set in place
+of the default (`world.abbreviations`). The optimizer itself is a greedy heuristic:
+it repeatedly takes the substring whose references would save the most bytes and
+blanks its occurrences so the next round re-scores against what is left, until the
+table is full or nothing else pays.
 
 ## 11. Dense code generation (B6)
 
@@ -281,5 +286,5 @@ Together these reclaim around 1.2K from each example game.
 ## 12. Not yet lowered
 
 Deferred to later milestones: the `a`/`an` choice by sound, kind-level grains and
-topics (they need per-instance scope), computed (`block`-valued) exits and
-`on go other`, and the opt-in `--make-abbreviations` per-game pass.
+topics (they need per-instance scope), and computed (`block`-valued) exits and
+`on go other`.

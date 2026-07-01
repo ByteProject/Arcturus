@@ -519,3 +519,6 @@ Decl = Union[
 @dataclass
 class Program:
     decls: list[Decl] = field(default_factory=list)
+    # A tuned abbreviation set from a summoned abbreviations.granule (B6): compile-
+    # time data for the text encoder, not runtime declarations. None when absent.
+    abbreviations: Optional[list] = None
