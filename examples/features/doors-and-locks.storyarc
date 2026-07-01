@@ -3,11 +3,12 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for doors, locks, and keys (docs/01 sections 9 and 13). The standard
-// attributes `lockable` and `locked`, and the `key` property, are understood by
-// the Cosmos LOCK, UNLOCK, OPEN, and CLOSE verbs with no author code. Wiring a
-// door to actually gate movement between two rooms is one short `on go` handler,
-// shown here. Compile and run:
+// A showcase for doors, locks, and keys (docs/01 sections 9 and 13). The `door`
+// kind is `openable` and `fixed` by default, so a door opens and cannot be
+// pocketed with no author code; add `lockable`, `locked`, and a `key` to make it
+// lock. The Cosmos LOCK, UNLOCK, OPEN, and CLOSE verbs understand all of these.
+// Wiring a door to actually gate movement between two rooms is one short `on go`
+// handler, shown here. Compile and run:
 //
 //   arcc examples/features/doors-and-locks.storyarc -o doors.z5
 //   frotz doors.z5
@@ -51,8 +52,6 @@ room hall
 thing oak_door of door in hall
     name "oak door"
     words oak, door
-    fixed
-    openable
     lockable
     locked
     key brass_key
