@@ -169,6 +169,8 @@ class Parser:
             return self.parse_handler()
         if t.kind == T.NAME and t.value == "direction":
             return self.parse_direction()
+        if t.kind == T.NAME and t.value == "language":
+            return self.parse_language_decl()
         if t.kind == T.NAME:
             return self.parse_grains_attach()
         raise self._error(
@@ -531,6 +533,15 @@ class Parser:
             grammar.append(self._parse_grammar_line())
         self.expect(T.DEDENT)
         return ast.VerbDecl(words, grammar, line)
+
+    def parse_language_decl(self) -> ast.LanguageDecl:
+        # `language "spanish"`: the self-identifying marker of a language pack.
+        # Dispatched as a leading name (not a reserved word).
+        line = self.cur.line
+        self.advance()  # the leading `language`
+        code = self._plain_text(self.expect(T.STRING, "a language code"))
+        self.expect_newline()
+        return ast.LanguageDecl(code, line)
 
     def parse_direction(self) -> ast.DirectionDecl:
         # `direction north "north", "n"`: map words to a standard direction

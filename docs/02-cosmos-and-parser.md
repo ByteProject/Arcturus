@@ -596,6 +596,14 @@ including the framing the summonable granules print (the status line, the
 conversation menu); the agnostic parser skeleton, scope, dispatch, and the action
 handlers are shared and untouched.
 
+`summon.language` is the only way to select a language, because only it does the
+swap (drops `english.prelude`). A language pack self-identifies with a marker at
+its top, `language "<name>"`; a pack must carry it, and a plain `summon
+spanish.granule` is a compile error that points to `summon.language` instead,
+rather than silently leaving English baked in beside the new language. A fork
+keeps its `<code>.granule` filename as the selection key: name it `mifork.granule`
+and select it with `summon.language "mifork"`.
+
 Two supports make a non-English pack possible. Accented text: the encoder writes
 each accented character with its Z-machine ZSCII code, so a e i o u with acute,
 u-diaeresis, n-tilde, and the inverted marks render on any conformant interpreter.

@@ -87,3 +87,17 @@ def test_non_english_game_skips_the_english_default_abbreviations():
     en = analyze(cosmos.combined_program(parse(MIN)))
     assert codegen._abbreviations_for(es) == []
     assert codegen._abbreviations_for(en) == abbrev.DEFAULT_ABBREVS
+
+
+def test_generic_summon_of_a_language_pack_is_rejected():
+    # A language pack self-identifies (`language "spanish"`); summoning it the plain
+    # way would leave English baked in, so it errors with a pointer to
+    # summon.language rather than build a broken bilingual story.
+    with pytest.raises(ArcError):
+        cosmos.combined_program(parse("summon spanish.granule\n" + MIN))
+
+
+def test_summon_language_requires_a_language_pack():
+    # summon.language on a granule that is not a language pack (no marker) errors.
+    with pytest.raises(ArcError):
+        cosmos.combined_program(parse('summon.language "statusline"\n' + MIN))
