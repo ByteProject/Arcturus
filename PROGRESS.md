@@ -4,7 +4,7 @@ A living log of where the project stands, maintained as work proceeds. The
 authoritative plan is `docs/00-roadmap.md` (milestones B0 to B13); this file
 tracks status against it and records decisions made during implementation.
 
-Last updated: 2026-07-01.
+Last updated: 2026-07-02.
 
 ## Status at a glance
 
@@ -17,7 +17,7 @@ Last updated: 2026-07-01.
 | B4 | Cosmos compiled: parser, turn loop, standard verbs | done |
 | B5 | Feature-complete library and a fair benchmark | done |
 | B6 | Size pass (DCE, abbreviations, dense codegen) | done |
-| B7 | Language packs (Spanish, German) | next |
+| B7 | Language packs (Spanish, German) | in progress |
 | B8 | Port Hibernated 2 (first full game, maturity milestone) | pending |
 | B9 | Port Ghosts of Blackwood Manor (text) | pending |
 | B10 | The reference interpreter, Actaea | pending |
@@ -41,7 +41,117 @@ kind defaults, the `character` kind (animate agents: people, animals, robots),
 computed properties, daemons and timers, the container knowledge model with
 lidless containers, doors that default openable and fixed, two-sided doors and
 multi-room `spans` scenery (both pay-for-use, elided when unused), and `constant`
-lowering. Next is B7, the language packs.
+lowering. B7 is now under way: the Spanish pack is complete (below); German next.
+
+>>> B7 HANDOVER CHECKPOINT (2026-07-02, written for compaction) <<<
+
+WHERE WE ARE. B7 is language packs. The Spanish pack is COMPLETE and verified on
+Frotz; German is the NEXT piece of B7 and has NOT been started. 268 tests pass
+(`python3 -m pytest`). Working tree clean except untracked `actaea/` (ignore it).
+The Spanish deliverable for native review is `build/posada.z5` (14836 bytes) +
+`examples/ejemplo-espanol.storyarc`; Pablo Martinez is the native gatekeeper and
+Stefan will hand it off. Versions NOT bumped this session (still arcc 0.6 / Cosmos
+0.9 in the banner); a bump is due but was deferred, do it when B7 closes with German.
+
+THE ARCHITECTURE (four seams, all built and reusable for German).
+1. ACCENTS (arcturus/zstring.py). Accented chars map to the ZSCII default set
+   (Standard 1.1 s.3.8.5, codes 155-223) via `_UNICODE_TO_ZSCII`, built from the
+   69-char `_DEFAULT_ZSCII` string; `_char_to_zchars` does
+   `z = _UNICODE_TO_ZSCII.get(c, ord(c))`. Anchor asserts pin ae=155, ss=161,
+   a-acute=169, n-tilde=206, inverted-! =222, inverted-? =223. German ss/ae/oe/ue
+   are ALREADY in this set (they anchor it) - no zstring change needed for German.
+2. ARTICLES + GENDER (arcturus/objects.py + cosmos article blocks). `${the noun}`
+   / `${a noun}` lower (arcturus/lower.py `_say_with_article`) to calls to the
+   pack's `art_the(obj,cap)` / `art_a(obj,cap)` blocks, so a pack OWNS its article
+   words and agreement. Spanish uses gender model A (AUTO): objects.py
+   `_derive_feminine` sets the `feminine` attribute from the HEAD noun (first word
+   of `name`) - ends in -a or a reliably-feminine suffix
+   (`_SPANISH_FEMININE_SUFFIXES`: cion/sion/dad/tad/tud/umbre) => feminine; author
+   declares `feminine` only for spelling-opaque exceptions (la llave). GERMAN NEEDS
+   A DIFFERENT MODEL: three-way der/die/das with NO spelling rule, so it needs an
+   explicit gender property (masculine/feminine/neuter) the author declares per
+   object, NOT auto-derivation. That is the FIRST German design decision (mirrors
+   how the Spanish tu/usted register was settled up front). See [[kind-model]] notes.
+3. DIRECTIONS (cosmos `direction` declarations + arcturus/parser.py
+   parse_direction). Direction PROPERTY names stay English in exits (`east puerta`);
+   the pack's `direction` decls map the English property to the player's typed words
+   (norte/sur/...). German: norden/sueden/osten/westen/... plus accentless siblings.
+4. LANGUAGE SWAP (arcturus/cosmos.py). `summon.language "spanish"` DROPS
+   english.prelude and loads `spanish.granule`. A pack self-identifies with a
+   top-level `language "spanish"` marker (ast.LanguageDecl, parsed by
+   parse_language_decl); combined_program validates the marker (else "not a language
+   pack") and STRIPS it before sema. A plain `summon spanish.granule` is a compile
+   error (guard in `_load_granules`: a granule carrying the marker tells you to use
+   summon.language "<stem>"). `_resolve_language` finds `<code>.granule` in
+   story_dir -> -L dirs -> bundled, so forks work.
+
+THE LOCALIZATION SPLIT (the rule that governs everything). CODE identifiers stay
+English; only PLAYER-FACING words/text localize. Author writes `east puerta` (exit
+property English), grain writes `examine "mar"` (action name English), attributes
+are `openable`/`feminine` (English). The player TYPES este/examinar; the game SHOWS
+Spanish. German follows this verbatim.
+
+THE 8-BIT TYPING RULE (never violate; memory [[never-strip-accents]]). Display is
+ALWAYS accented (8-bit/Amiga/ST Z-machine interpreters render accents fully). But
+every TYPEABLE word also carries a tilde-free sibling because 8-bit keyboards
+cannot type accents: verbs `oir, oir-without-accent`; object `words lampara,
+lampara-with-accent`. German: every verb/word with ss/ae/oe/ue needs an ASCII
+sibling (oeffnen/o-umlaut-ffnen, schliessen with ss). NEVER ship an accent-stripped
+game; that was a hard correction this session.
+
+OTHER LOCKED FACTS FOR GERMAN.
+- VERB -> ONE ACTION. A verb word maps to exactly one action (no overloading:
+  abrir could not be both open+unlock). Spanish used dedicated trancar/destrancar
+  for lock/unlock. German needs dedicated verbs for lock/unlock too.
+- STRINGS ARE NOT FIRST-CLASS. You cannot pass a string literal to a block, so
+  gender/number agreement is INLINED per message (`if noun is feminine ... else
+  ...`) inside the granule, not factored into a helper. German's 3-way agreement
+  will be more inlined branches; that is expected and fine.
+- ABBREVIATIONS (arcturus/codegen.py `_abbreviations_for` / `_non_default_language`).
+  The baked-in DEFAULT_ABBREVS is English-tuned; a non-English game gets NO default
+  set (returns []), because English abbreviations cost bytes on foreign text. Authors
+  run `--make-abbreviations` (language-aware, uses the translated combined_program).
+  No per-language standard set is baked in. Same policy for German.
+- PAY-FOR-USE. Article/gender/spans/door code is elided by the static-if fold
+  (arcturus/lower.py `_if` + `_static_cond`) when a game does not use the feature
+  (`any_named()`/`any_spans()`/`any_doors()` fold to layout flags). Keep German
+  feature code behind the same guards.
+
+WHAT TO BUILD FOR GERMAN (the mechanical checklist, mirrors spanish.granule).
+Create `cosmos/german.granule` with: the `language "german"` marker; translated
+verbs (each with an ASCII sibling for ss/ae/oe/ue); `direction` decls
+(norden/sueden/osten/westen/nordosten/... + siblings); `art_the`/`art_a` reading a
+three-way gender attribute (der/die/das, ein/eine/ein, plus case if we decide to -
+DECIDE SCOPE with Stefan: nominative-only vs full case is a real question);
+~90 translated messages with inline gender agreement; localized granule wording
+(statusline Punkte/Zuege, conversations header). Then a full-featured German
+example like `examples/beispiel-deutsch.storyarc` mirroring the Spanish one
+(statusline + conversations + daemon + grains + spans + container + two-sided door +
+character), rich natural accented German prose, at least one object showing the
+`words ascii, accented` 8-bit pattern. Build a throwaway .z5 to the scratchpad to
+verify on Frotz; hand the real artifact to Stefan for a native reviewer.
+
+OPEN DECISIONS TO SETTLE WITH STEFAN BEFORE CODING GERMAN.
+1. Register: formal Sie vs informal du (Spanish chose informal tu). ASK.
+2. Case handling: nominative-only articles, or decline for accusative/dative in
+   messages? IF messages ever say "you open THE box" in a case-marked slot this
+   matters. Recommend nominative-only to start, note the limitation.
+3. Gender declaration syntax: a single `gender` property with masculine/feminine/
+   neuter, or reuse attributes. Recommend an explicit per-object declaration since
+   there is no spelling rule.
+
+KEY FILES (all current). arcturus/zstring.py (accents), arcturus/objects.py
+(_derive_feminine, gender bit emit, _emit_spans), arcturus/lower.py
+(_say_with_article, any_named, static-if fold), arcturus/cosmos.py (language
+machinery: _language_choice/_resolve_language/_language_marker/combined_program/
+_load_granules), arcturus/parser.py (parse_language_decl, parse_direction),
+arcturus/ast.py (LanguageDecl, DirectionDecl, ObjectDecl.spans),
+arcturus/codegen.py (_abbreviations_for, _non_default_language). Library:
+cosmos/english.prelude (art_the/art_a, line_talk_*/msg_*/line_status_score, the 12
+direction decls), cosmos/spanish.granule (the full model to copy), examples/
+ejemplo-espanol.storyarc (the example to mirror). Docs: docs/02 section 14a
+"Writing in another language" is the central reference for foreign-language authors
+(read it before German - it states Spanish AND German are official/supported).
 
 >>> B6 HANDOVER CHECKPOINT (2026-06-30, written for compaction) <<<
 
