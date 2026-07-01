@@ -3,91 +3,134 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// Un ejemplo en espanol, para mostrar el paquete de idioma de Cosmos. Se elige
-// con `summon.language "spanish"`, que compila la capa espanola en lugar de la
-// inglesa: los verbos, las direcciones, los articulos y todos los mensajes salen
-// en espanol, con las tildes y la enye correctas. Compila y juega:
+// LA POSADA DEL FARO. Un ejemplo completo en espanol, pensado para mostrar el
+// paquete de idioma de Cosmos junto con varias caracteristicas de la biblioteca.
+// Se elige el idioma con `summon.language "spanish"`, que compila la capa
+// espanola (spanish.granule) en lugar de la inglesa: los verbos, las direcciones,
+// los articulos y todos los mensajes salen en espanol, con las tildes y la enye
+// correctas, y el genero se deduce solo. Compila y juega:
 //
-//   arcc examples/ejemplo-espanol.storyarc -o ejemplo.z5
-//   frotz ejemplo.z5
+//   arcc examples/ejemplo-espanol.storyarc -o posada.z5
+//   frotz posada.z5
+//
+// Que se muestra aqui:
+//   - la barra de estado (summon.statusline): "Puntos" y "Turnos" en espanol
+//   - el menu de conversacion (summon.conversations) con la posadera
+//   - un demonio (`every`): el reloj da la hora sola cada pocos turnos
+//   - `grains`: decorado barato en la playa (el mar, la arena, las gaviotas)
+//   - `spans`: la luna se ve desde el patio y desde la playa
+//   - un contenedor (el cofre), una puerta con llave, y el genero automatico
 //
 // Prueba, por orden:
-//   mirar                describe la cocina
-//   coger lampara        "Cogida." (la lampara es femenina, concuerda sola)
-//   examinar libro       el genero se deduce del nombre, sin declararlo
-//   abrir cofre          "Abierto." y aparece la llave
-//   coger llave          "Cogida."
-//   este                 la puerta esta cerrada con llave
+//   hablar con posadera            abre el menu de temas
+//   abrir cofre / coger llave      "Cogida." (concuerda con el genero)
+//   este                           la puerta esta cerrada con llave
 //   destrancar puerta con llave    "Abres con llave."
-//   abrir puerta         "Abierta." (la puerta es femenina, concuerda sola)
-//   este                 sales al jardin
-//   hablar con gato      el gato tiene su propia respuesta
+//   abrir puerta / este            sales al patio
+//   examinar luna                  se ve desde aqui (spans)
+//   sur                            bajas a la playa
+//   examinar mar / oler la brisa   decorado (grains)
 //
-// El genero es automatico: -a es femenino, -o masculino, y sufijos como -cion o
-// -dad tambien son femeninos. Solo hay que declararlo cuando la palabra no lo
-// revela: aqui `la llave` lleva un `feminine` (termina en -e). Es lo unico
-// escrito a mano en todo el juego.
+// GENERO: es automatico (-a femenino, -o masculino, y sufijos como -cion o -dad
+// tambien femeninos). Solo se declara cuando la palabra no lo revela: aqui `la
+// llave` lleva un `feminine` (termina en -e). Es la unica marca de genero de todo
+// el juego.
 
 summon.language "spanish"
+summon.statusline
+summon.conversations
 
 game
-    title  "La Llave de Bronce"
+    title  "La Posada del Faro"
     headline "Un ejemplo en espanol"
     author "Stefan Vogt"
-    start  cocina
+    start  posada
 
-room cocina
-    name "La Cocina"
-    desc "Una cocina pequena de piedra. Un cofre de madera descansa en el suelo.
-          Una puerta de roble da al este, al jardin."
+// Un demonio: el reloj de pared da la hora cada cuatro turnos. `every` repite;
+// `after` seria una sola vez. Se arma al empezar la partida.
+on start
+    every 4 turns do reloj_da_la_hora
+
+room posada
+    name "La Posada"
+    desc "El comedor de una vieja posada de piedra. Un cofre descansa junto al
+          hogar, y una puerta de roble da al este, al patio. Tras la barra, la
+          posadera te observa."
     east puerta
 
-room jardin
-    name "El Jardin"
-    desc "Un jardin en penumbra, con hierba alta y un gato tumbado al sol. La
-          casa queda al oeste."
+room patio
+    name "El Patio"
+    desc "Un patio abierto al cielo. La posada queda al oeste; un sendero baja al
+          sur, hacia la playa. La luna lo bana todo de plata."
     west puerta
+    south playa
+
+room playa
+    name "La Playa"
+    desc "Guijarros y algas bajo la luna. El mar rompe despacio. El patio queda
+          arriba, al norte."
+    north patio
+
+    // Decorado barato (grains): palabras con respuesta, sin gastar un objeto. El
+    // verbo se nombra por su accion (examine, touch, smell); las palabras del
+    // decorado ("mar", "olas") son el vocabulario en espanol.
+    grains
+        examine, touch "mar" or "olas" or "agua" say "El mar se mece, negro y
+            paciente."
+        examine "arena" or "guijarros" say "Guijarros pulidos, frios al tacto."
+        smell "brisa" or "aire" say "Huele a sal y a algas."
+        examine "gaviotas" or "gaviota" say "Duermen posadas en las rocas."
+
+// La luna se ve desde el patio y desde la playa: un solo objeto que abarca
+// (spans) las dos habitaciones. Es decorado, asi que no se lista ni se coge.
+thing luna
+    name "luna llena"
+    words luna, llena
+    scenery
+    desc "Una luna llena, tan brillante que arranca sombras de los guijarros."
+    spans patio, playa
 
 // El cofre: contenedor con tapa. La llave espera dentro.
-thing cofre of container in cocina
-    name "cofre de madera"
-    words cofre, madera, arca
+thing cofre of container in posada
+    name "cofre de roble"
+    words cofre, arca
     openable
     open false
 
-// La llave: termina en -e, asi que su genero no esta en la palabra. Es la unica
+// La llave termina en -e, asi que su genero no esta en la palabra: es la unica
 // declaracion de genero del juego.
 thing llave in cofre
     name "llave de bronce"
     words llave, bronce
     feminine
 
-// La lampara (femenina, se deduce de -a) y el libro (masculino, de -o): ninguno
-// necesita que se le diga el genero.
-thing lampara in cocina
-    name "lampara de aceite"
-    words lampara, aceite
-
-thing libro in cocina
-    name "libro rojo"
-    words libro, rojo
-    desc "Un viejo libro de tapas rojas. Nadie recuerda de que trata."
-
-// La puerta une las dos habitaciones (spans) y se abre con la llave. Por
-// defecto es `openable` y `fixed` por ser de tipo door.
-thing puerta of door in cocina, jardin
+// La puerta une las dos habitaciones (spans) y se abre con la llave. Por ser de
+// tipo door, ya es `openable` y `fixed`.
+thing puerta of door in posada, patio
     name "puerta de roble"
     words puerta, roble
     lockable
     locked
     unseal_with llave
 
-// Un personaje con una respuesta propia al hablar.
-thing gato of character in jardin
-    name "gato atigrado"
-    words gato, atigrado
+// La posadera: un personaje con temas de conversacion (menu). TALK abre el menu.
+thing posadera of character in posada
+    name "posadera"
+    words posadera, mujer, mesonera
 
-    on talk
-        say "El gato entreabre un ojo, decide que no vales la pena y sigue
-             durmiendo."
-        stop
+    topic saludo "saludar a la posadera"
+        you "Buenas noches."
+        reply "Buenas las tengas, forastero. Pocos suben ya hasta aqui."
+
+    topic faro "preguntar por el faro"
+        you "¿Y ese faro de ahi fuera?"
+        reply "Apagado desde el naufragio. La llave del cofre abre el patio, si es
+               lo que buscas."
+
+    topic llave_tema "preguntar por la llave"
+        you "¿Hay una llave?"
+        reply "En el cofre, junto al hogar. Cogela y sal cuando quieras."
+
+// El bloque que dispara el demonio del reloj.
+block reloj_da_la_hora()
+    say "El viejo reloj de pared da la hora con un tanido grave."
