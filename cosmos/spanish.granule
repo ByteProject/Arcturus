@@ -765,6 +765,36 @@ block line_reply(speaker)
 block line_end()
     say "\""
 
+// Marco del menu de conversacion (granulo conversations). En la capa de idioma
+// para que se traduzca; se elimina si el juego no invoca el menu.
+block line_talk_header(who)
+    show("Habla con ${the who} de:")
+
+block line_talk_prompt()
+    show("Pulsa un número para preguntar, o 0 para salir.")
+
+block msg_no_topics()
+    say "Ahora mismo no se te ocurre nada que merezca la pena."
+
+block msg_talk_over()
+    say "Dejas ahí la conversación."
+
+// El lado del marcador (granulo statusline): puntos y turnos, alineados a la
+// derecha, con las palabras y anchuras del espanol.
+block line_status_score(w)
+    if w < 54
+        set_cursor(1, w - 9 - status_digits(score) - status_digits(turns))
+        show("Puntos: ")
+        show(score)
+        show("/")
+        show(turns)
+    else
+        set_cursor(1, w - 19 - status_digits(score) - status_digits(turns))
+        show("Puntos: ")
+        show(score)
+        show("   Turnos: ")
+        show(turns)
+
 // Room and light.
 block msg_dark_room()
     say "Oscuridad total. Hasta tus manos han desaparecido."
