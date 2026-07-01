@@ -1,0 +1,81 @@
+// daemons-and-timers.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for daemons and timers (docs/02 section 13): background behavior that
+// unfolds as turns pass, written in plain Arcturus with no timer objects, no IDs,
+// and no hand-kept turn counters. Compile and run:
+//
+//   arcc examples/features/daemons-and-timers.storyarc -o dt.z5
+//   frotz dt.z5
+//
+// Three kinds of scheduled behavior, all here:
+//
+// - A TIMER (one-shot). `after 6 turns do candle_gutters` arms a fuse at the
+//   start; six turns in, the candle burns out. WAIT and watch it happen once.
+// - A RECURRING timer. `every 4 turns do clock_chimes` fires again and again, so
+//   the tall clock chimes the quarter every four turns for as long as you play.
+// - A DAEMON. The cat's `on each_turn when player holds fish` runs every turn, but
+//   only while its `when` guard holds: TAKE FISH and the cat pads after you each
+//   turn; DROP FISH and it settles back by the hearth. The guard is the on/off
+//   switch, with no explicit start or stop.
+
+game
+    title  "The Clockmaker's Parlour"
+    headline "A daemons-and-timers showcase"
+    author "Stefan Vogt"
+    start  parlour
+
+// Arm the two scheduled events once, at the start. `do` names a block, which runs
+// with no arguments when the timer comes due.
+on start
+    after 6 turns do candle_gutters
+    every 4 turns do clock_chimes
+
+// The one-shot's block. The guard keeps it a no-op if the candle is already out,
+// so re-arming or an odd order never double-fires the description.
+block candle_gutters()
+    if candle is lit
+        now candle is not lit
+        say "The candle gutters, throws one last long shadow, and goes out."
+
+// The recurring block. It simply speaks; `every` brings it back on schedule.
+block clock_chimes()
+    say "The tall clock chimes the quarter, and a dozen smaller clocks answer."
+
+room parlour
+    name "The Clockmaker's Parlour"
+    desc "A cluttered parlour, ticking with a hundred clocks. A tall case clock
+          stands in the corner, a candle burns low on the mantel, and a lean grey
+          cat watches you from the hearth. A dried fish lies on the workbench."
+    lit true
+
+thing candle in parlour
+    name "wax candle"
+    words candle, wax, flame
+    scenery
+    lit true
+    desc "A stub of wax candle, its flame steady for now."
+
+thing clock in parlour
+    name "tall case clock"
+    words clock, tall, pendulum
+    scenery
+    desc "A tall case clock, its pendulum swinging with a slow, heavy tick."
+
+thing fish in parlour
+    name "dried fish"
+    words fish, dried
+    desc "A stiff, salted fish. The cat has not once taken its eyes off it."
+
+// A person, so it is animate; scenery, so the room mentions it in prose rather
+// than listing it. Its each_turn is the daemon, gated by the `when`.
+thing cat of person in parlour
+    name "grey cat"
+    words cat, grey, gray, kitten
+    scenery
+    desc "A lean grey cat, all patience and appetite."
+
+    on each_turn when player holds fish
+        say "The cat pads after you, green eyes fixed on the fish."
