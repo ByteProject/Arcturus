@@ -145,7 +145,7 @@
             "patterns": [
                 {
                     "name": "support.type.property.storyarc",
-                    "match": "\\b(name|desc|intro|words|capacity|spans)\\b"
+                    "match": "\\b(name|desc|intro|words|capacity|spans|unseal_with)\\b"
                 },
                 {
                     "comment": "Topic header modifiers (docs/01 section 15).",

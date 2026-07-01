@@ -120,7 +120,10 @@ _STD_VALUE_PROPS = {
     "intro": T_TEXT,
     "words": T_LIST,
     "capacity": T_NUMBER,
-    "key": T_OBJECT,
+    # The object that locks and unlocks a lockable thing (a door or chest). Named
+    # `unseal_with` rather than `key` so the common vocabulary word "key" stays
+    # free for a key object's own `words`.
+    "unseal_with": T_OBJECT,
     # The extra rooms a fixed object is in scope in, beyond its tree location (the
     # `spans` sugar, docs/01 section 5). Emitted as an array of room object numbers
     # like `words`; scope reads it. Authors write `spans a, b` or `in a, b`.

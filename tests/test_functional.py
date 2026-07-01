@@ -21,7 +21,7 @@ GAME = (
     'game\n    title "Functional"\n    start vault\n'
     'room vault\n    name "The Vault"\n    desc "A small vault."\n'
     'thing chest of container in vault\n    name "iron chest"\n'
-    '    words iron, chest\n    openable\n    lockable\n    locked\n    open false\n    key brasskey\n'
+    '    words iron, chest\n    openable\n    lockable\n    locked\n    open false\n    unseal_with brasskey\n'
     'thing brasskey in vault\n    name "brass key"\n    words brass, key\n'
     'thing coin in vault\n    name "gold coin"\n    words gold, coin\n'
     'thing table of supporter in vault\n    name "stone table"\n    words stone, table\n'

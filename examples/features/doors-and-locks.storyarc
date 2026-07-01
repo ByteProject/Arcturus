@@ -4,12 +4,11 @@
 // https://github.com/ByteProject/Arcturus
 //
 // A showcase for doors, locks, and keys (docs/01 section 5, docs/02 section 10).
-// The `door`
-// kind is `openable` and `fixed` by default; add `lockable`, `locked`, and a
-// `key` to make it lock. A door joins two rooms with the `in A, B` sugar, and a
-// room's exit points at the DOOR rather than a room, so crossing it is gated on
-// the door being open and unlocked and lands you on the far side, with no author
-// code at all. Compile and run:
+// The `door` kind is `openable` and `fixed` by default; add `lockable`, `locked`,
+// and `unseal_with <key>` to make it lock. A door joins two rooms with the
+// `in A, B` sugar, and a room's exit points at the DOOR rather than a room, so
+// crossing it is gated on the door being open and unlocked and lands you on the
+// far side, with no author code at all. Compile and run:
 //
 //   arcc examples/features/doors-and-locks.storyarc -o doors.z5
 //   frotz doors.z5
@@ -50,7 +49,7 @@ thing oak_door of door in hall, vault
     words oak, door
     lockable
     locked
-    key brass_key
+    unseal_with brass_key
 
 thing brass_key in player
     name "brass key"
