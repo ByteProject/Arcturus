@@ -684,9 +684,14 @@ Grains are built-in cheap scenery: words that respond to a few verbs without
 the cost of a full object. They replace the cheap_scenery pattern and are
 part of the language, not an import.
 
-A `grains` block lists grain lines. Each line names the verbs it answers, the
+A `grains` block lists grain lines. Each line names the actions it answers, the
 scenery words it matches (one or more, joined by `or`), and a response, which
-is a one-line `say`, a `do` of a named block, or an indented body.
+is a one-line `say`, a `do` of a named block, or an indented body. The actions
+are named the way an `on` handler names them, by action (`examine`, `touch`,
+`smell`), not by the player's word: they are fixed identifiers, while the scenery
+words are the vocabulary the player types and a language pack localizes. In
+English the two coincide, so `examine` reads as both; a Spanish grain still writes
+`examine "mar"`, the action in the fixed name and `mar` in Spanish.
 
 ```
 room foyer
@@ -710,8 +715,8 @@ foyer.grains
     examine "molding" or "cornice" say "Ornate plasterwork."
 ```
 
-A grain matches when the player applies one of its verbs to one of its words
-and no real object in scope matches that word. The parser handling of grains
+A grain matches when the player's verb resolves to one of the grain's actions
+and names one of its words, and no real object in scope matches that word. The parser handling of grains
 is defined in 02. Grains cost only dictionary words and a small table, never
 an object entry.
 
