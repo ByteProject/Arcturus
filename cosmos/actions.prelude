@@ -27,6 +27,22 @@ on go
     if dest is nothing
         msg_cant_go()
         stop
+    // An exit may point at a door rather than a room: crossing it needs the door
+    // open (and unlocked), and lands you on its far side. The guard folds away in
+    // a game with no doors (docs/01 section 5). door_other_side gives the room
+    // across the door from here.
+    if any_doors() is 1
+        if dest is door
+            if dest is locked
+                msg_door_locked(dest)
+                stop
+            if not (dest is open)
+                msg_door_shut(dest)
+                stop
+            change dest to door_other_side(dest)
+            if dest is nothing
+                msg_cant_go()
+                stop
     move player to dest
     set_here(dest)
     fire_enter()

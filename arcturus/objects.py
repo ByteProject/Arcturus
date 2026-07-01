@@ -113,6 +113,10 @@ class Layout:
     # objects folds the checks away and dead-code elimination drops the spans
     # blocks, so it pays nothing for the feature.
     has_spans: bool = False
+    # True if any object is of the `door` kind. The go handler guards its door
+    # detour (open/lock check, step to the far side) with `any_doors()`, so a game
+    # with no doors folds it away and pays nothing.
+    has_doors: bool = False
 
 
 def _effective_props(world: wm.World, obj: wm.Obj) -> dict:
@@ -193,6 +197,13 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
             "scenery" in eff and _bool_value(eff["scenery"])
         ):
             layout.has_spans = True
+            break
+
+    # Is any object a door? Only then does the go handler keep its door detour
+    # (any_doors folds to this); a game with no doors pays nothing for it.
+    for obj in world.objects.values():
+        if "door" in obj.chain:
+            layout.has_doors = True
             break
 
     # Kinds get attributes too, so `obj is <kind>` lowers to a test_attr: an

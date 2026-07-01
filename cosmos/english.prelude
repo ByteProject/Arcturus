@@ -817,6 +817,12 @@ block msg_cant_open()
 block msg_open_locked()
     say "${The noun} is locked."
 
+block msg_door_locked(d)
+    say "${The d} is locked."
+
+block msg_door_shut(d)
+    say "${The d} is shut. You open it first."
+
 block msg_closed_it()
     say "Shut."
 

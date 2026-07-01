@@ -52,6 +52,18 @@ block spans_match(target)
         change i to i + 1
     return nothing
 
+// The room across a door from where the player stands. A door joins two rooms:
+// it lives in one (its tree parent) and spans the other, so the far side is the
+// one that is not `here`. Returns nothing for a door with no second room.
+block door_other_side(door)
+    let home = parent_of(door)
+    if here is home
+        let addr = spans_addr(door)
+        if addr is nothing
+            return nothing
+        return peek_word(addr, 0)
+    return home
+
 // Is obj in scope right now?
 block in_scope(obj)
     if obj is player
