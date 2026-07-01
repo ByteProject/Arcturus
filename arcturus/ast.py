@@ -429,6 +429,10 @@ class ObjectDecl:
     location: Optional[str] = None  # in <location>
     members: list[Member] = field(default_factory=list)
     line: int = 0
+    # Extra rooms this (fixed) object is in scope in, beyond its tree location:
+    # from `in A, B` / `in A and B` sugar or a `spans B, C` member. The object
+    # lives in `location` in the tree and is visible in these too (docs/01 s5).
+    spans: list[str] = field(default_factory=list)
 
 
 @dataclass

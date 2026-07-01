@@ -104,6 +104,9 @@ class Obj:
     kind: str  # the immediate kind: a declared kind, or "thing"/"room"
     chain: list[str] = field(default_factory=list)  # kind chain, nearest first
     location: Optional[str] = None  # initial tree parent (an object name)
+    # Extra rooms this fixed object is in scope in, beyond its tree location
+    # (the `spans` sugar; resolved room names, docs/01 section 5).
+    spans: list[str] = field(default_factory=list)
     # Property name -> the initial value expression set on this object.
     props: dict[str, ast.Expr] = field(default_factory=dict)
     handlers: list[Handler] = field(default_factory=list)

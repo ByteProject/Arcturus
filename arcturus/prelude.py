@@ -121,6 +121,10 @@ _STD_VALUE_PROPS = {
     "words": T_LIST,
     "capacity": T_NUMBER,
     "key": T_OBJECT,
+    # The extra rooms a fixed object is in scope in, beyond its tree location (the
+    # `spans` sugar, docs/01 section 5). Emitted as an array of room object numbers
+    # like `words`; scope reads it. Authors write `spans a, b` or `in a, b`.
+    "spans": T_LIST,
     # Conversation topics (docs/02 section 14). Authors never write this; the
     # compiler synthesizes it from a character's `topic` declarations as the address
     # of that character's runtime topic table (objects.py emits the table, the

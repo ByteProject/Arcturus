@@ -22,6 +22,36 @@ block is_lit()
             return 1
     return 0
 
+// Does this object span the current room? A fixed object declared to span
+// several rooms (docs/01 section 5) lives in one room in the object tree but is
+// in scope in each room it spans, so a door reaches both sides and a piece of
+// scenery is referable from every room that can see it.
+block spans_here(obj)
+    let addr = spans_addr(obj)
+    if addr is nothing
+        return 0
+    let count = spans_count(obj)
+    let i = 0
+    while i < count
+        if peek_word(addr, i) is here
+            return 1
+        change i to i + 1
+    return 0
+
+// A noun match among the objects that span the current room. They are in scope
+// here (spans_here) but do not live in this room's tree, so the room-and-carry
+// walk the matcher does first cannot reach them; this scan fills that gap. It
+// runs only when the ordinary match has already failed.
+block spans_match(target)
+    let i = 1
+    while i <= object_count()
+        if spans_here(i)
+            if not (i is hidden)
+                if has_word(i, target)
+                    return i
+        change i to i + 1
+    return nothing
+
 // Is obj in scope right now?
 block in_scope(obj)
     if obj is player
@@ -32,6 +62,8 @@ block in_scope(obj)
             return 1
         return 0
     if obj is here
+        return 1
+    if spans_here(obj)
         return 1
     let p = parent_of(obj)
     if p is here
