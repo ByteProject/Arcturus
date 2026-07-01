@@ -286,5 +286,12 @@ Together these reclaim around 1.2K from each example game.
 ## 12. Not yet lowered
 
 Deferred to later milestones: the `a`/`an` choice by sound, kind-level grains and
-topics (they need per-instance scope), and computed (`block`-valued) exits and
-`on go other`.
+topics (they need per-instance scope), and `on go other`.
+
+Computed (`block`-valued) properties are lowered for text: the property slot holds
+the block routine's packed address, and a read lowers to "print or run": compare
+the stored address against the first string's packed address (the `__strings__`
+global), print it as a string when at or above that line, else call it as the
+block routine, which says its own text. A computed value property (a number or object decided at run time,
+which an exit block would be) is a compile error, since that same read cannot
+distinguish a small value from a routine address.
