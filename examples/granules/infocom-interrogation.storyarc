@@ -53,7 +53,7 @@ room cell
     desc "One bulb, one steel table, two chairs, no window. The kind of room that
           makes innocent men sweat and guilty men go quiet."
 
-thing suspect of person in cell
+thing suspect of character in cell
     name "Victor Crale"
     named
     words crale, victor, suspect, man

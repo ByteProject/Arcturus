@@ -76,7 +76,7 @@ properties never reach the story file.
 
 Built-in references usable in any handler or block:
 
-- `player`: the player object, an instance of `person`.
+- `player`: the player object, an instance of `character`.
 - `here`: the room the player is in, maintained as the player moves.
 - `turns`: a number, the elapsed turn count, starting at 0.
 - `score`, `max_score`: numbers for games that keep score.
@@ -119,7 +119,7 @@ Containment is the Z-machine object tree: one parent per object, reached with
 
 The in-versus-on distinction is carried by the parent's kind: a child of a
 `container` is in it, a child of a `supporter` is on it, a child of a
-`person` or the player is carried, or worn if its `worn` property is set.
+`character` or the player is carried, or worn if its `worn` property is set.
 Cosmos uses the parent's kind to choose the preposition when listing or
 describing contents and to decide scope.
 
@@ -367,7 +367,7 @@ top. Default put on.
 `door of thing`: `open`, `openable`, `lockable`, `locked`, `key`, and the two
 rooms it joins. Appears in both rooms; blocks movement when closed.
 
-`person of thing`: animate, holds and wears objects, default refuses being
+`character of thing`: animate, holds and wears objects, default refuses being
 taken and routes the talk verb (section 11). `player` is the distinguished
 instance.
 
@@ -551,7 +551,7 @@ is no upper-window juggling; every line of wording is an overridable block
 ```
 summon.conversations
 
-thing barman of person in bar
+thing barman of character in bar
     name "barman"
 
     topic cloak "the cloak" words cloak when player holds cloak
@@ -644,7 +644,7 @@ Direction names: `north`, `south`, `east`, `west`, `northeast`, `northwest`,
 reserves `other` as the blocked-direction fallback operand (`on go other`,
 section 11a); it is not itself a direction.
 
-Standard kinds: `thing`, `room`, `container`, `supporter`, `door`, `person`.
+Standard kinds: `thing`, `room`, `container`, `supporter`, `door`, `character`.
 
 Standard boolean properties: `fixed`, `scenery`, `hidden`, `concealed`,
 `wearable`, `worn`, `lit`, `edible`, `named`, `an`, `clear`, `seen`, `switchable`,

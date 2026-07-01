@@ -71,7 +71,7 @@ thing fish in parlour
 
 // A person, so it is animate; scenery, so the room mentions it in prose rather
 // than listing it. Its each_turn is the daemon, gated by the `when`.
-thing cat of person in parlour
+thing cat of character in parlour
     name "grey cat"
     words cat, grey, gray, kitten
     scenery

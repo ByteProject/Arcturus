@@ -280,10 +280,10 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `locked` | Currently locked; blocks `open` until unlocked with the matching key. |
 | `visited` | The room has been entered before (Cosmos sets it on entry). Use it to vary a room's description on return. |
 | `moved` | Set the first time the player takes an object. While clear, the object shows its `intro` text in a room description instead of the plain listing. |
-| `animate` | A living thing (a person or creature). The conversation and give verbs apply only to the animate; the `person` kind sets it by default. |
+| `animate` | An animate agent (a person, animal, robot, or AI). The conversation and give verbs apply only to the animate; the `character` kind sets it by default, and animate objects refuse being taken. |
 
 The standard kinds are also attributes, set by `of <kind>` and tested with `is
-<kind>`: `thing`, `room`, `container`, `supporter`, `door`, `person`. An object
+<kind>`: `thing`, `room`, `container`, `supporter`, `door`, `character`. An object
 carries the attribute of every kind in its chain.
 
 ### Standard value properties
@@ -681,7 +681,7 @@ an object entry.
 
 ## 15. Topics and conversation
 
-A person (a thing that is `animate`, which the `person` kind sets) can hold
+A character (a thing that is `animate`, which the `character` kind sets) can hold
 conversation `topic`s. A topic is one subject the player can raise, together with
 the exchange that follows. Topics are inert on their own: a summoned feature
 presents them, either as the Infocom-style ask/tell verbs (`summon.extendedverbs`)
@@ -726,7 +726,7 @@ or translate the framing without touching the topics.
 A worked fragment:
 
 ```
-thing esme of person in tent
+thing esme of character in tent
     name "Madame Esme"
     named
 

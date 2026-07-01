@@ -25,7 +25,7 @@ GAME = (
     'thing brasskey in vault\n    name "brass key"\n    words brass, key\n'
     'thing coin in vault\n    name "gold coin"\n    words gold, coin\n'
     'thing table of supporter in vault\n    name "stone table"\n    words stone, table\n'
-    'thing guard of person in vault\n    name "burly guard"\n    words burly, guard\n'
+    'thing guard of character in vault\n    name "burly guard"\n    words burly, guard\n'
 )
 
 

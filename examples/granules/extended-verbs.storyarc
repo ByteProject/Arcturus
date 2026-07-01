@@ -40,7 +40,7 @@ thing pebble in clearing
     name "smooth pebble"
     words smooth, pebble
 
-thing hermit of person in clearing
+thing hermit of character in clearing
     name "old hermit"
     words old, hermit
 

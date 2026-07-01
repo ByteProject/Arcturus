@@ -31,7 +31,7 @@ summon.conversations
 room hall
     name "Hall"
     desc "A bare hall."
-thing pat of person in hall
+thing pat of character in hall
     name "Pat"
     named
     words pat
@@ -95,7 +95,7 @@ summon.conversations
 room hall
     name "Hall"
     desc "A bare hall."
-thing pat of person in hall
+thing pat of character in hall
     name "Pat"
     named
     words pat

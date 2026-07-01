@@ -29,7 +29,7 @@ def _frotz():
 GAME = (
     'game\n    title "T"\n    start hall\n'
     'room hall\n    name "Hall"\n'
-    'thing linda of person in hall\n    name "Linda"\n    words linda\n'
+    'thing linda of character in hall\n    name "Linda"\n    words linda\n'
     '    topic paris "Ask about Paris" words paris, france when true once\n'
     '        you "How do you like Paris?"\n'
     '        reply "I love it, especially the Louvre."\n'
@@ -102,7 +102,7 @@ DRIVE = '''game
 room hall
     name "Hall"
     desc "A bare hall."
-thing linda of person in hall
+thing linda of character in hall
     name "Linda"
     named
     words linda
@@ -177,7 +177,7 @@ summon.extendedverbs
 room hall
     name "Hall"
     desc "A bare hall."
-thing linda of person in hall
+thing linda of character in hall
     name "Linda"
     named
     words linda, woman
