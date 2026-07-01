@@ -1,0 +1,73 @@
+// containers.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for Arcturus's container knowledge model (docs/02 section 5a): what a
+// container spells out follows what the PLAYER has learned, not just whether its
+// lid is open. This is a distinctive Cosmos feature and needs no author code; it
+// falls out of the standard library. Compile and run:
+//
+//   arcc examples/features/containers.storyarc -o containers.z5
+//   frotz containers.z5
+//
+// Try, in order, and watch the room description change:
+//   look           the iron chest is described bare; you cannot see the ring
+//   examine ring   "you see nothing of the sort here": no x-raying a shut box
+//   open chest     the ring is revealed and described, and now remembered
+//   close chest
+//   look           the chest now lists "(contains a gold ring)": you remember it
+//   examine ring   "open the chest first": known now, but out of reach
+//
+// For contrast, the glass case always lists its coin (a `clear`, see-through
+// container), and the oak shelf always lists its candlestick (a `supporter`),
+// whether or not you have opened anything.
+
+game
+    title  "The Strongroom"
+    headline "A container knowledge showcase"
+    author "Stefan Vogt"
+    start  strongroom
+
+room strongroom
+    name "The Strongroom"
+    desc "A windowless strongroom, its air dry as paper. An iron chest sits
+          squarely on the floor. A glass display case stands against the far
+          wall, and an oak shelf runs along the near one."
+
+// The opaque container: its contents are unknown until you open it, and
+// remembered ever after. This is the knowledge model in action.
+thing chest of container in strongroom
+    name "iron chest"
+    words chest, iron, box
+    openable
+    open false
+
+thing ring in chest
+    name "gold ring"
+    words ring, gold, band
+    desc "A plain gold band, warm to the touch."
+
+// The see-through container: `clear` keeps its contents in view, and so listed,
+// even while it is shut.
+thing vitrine of container in strongroom
+    name "glass display case"
+    words glass, display, vitrine
+    clear
+    openable
+    open false
+
+thing coin in vitrine
+    name "silver coin"
+    words coin, silver
+    desc "A silver coin bearing a face no one remembers."
+
+// The supporter: what sits on it is always in view, so always listed.
+thing shelf of supporter in strongroom
+    name "oak shelf"
+    words shelf, oak, ledge
+
+thing candlestick in shelf
+    name "brass candlestick"
+    words candlestick, candle, brass
+    desc "A heavy brass candlestick, its candle long since burned away."

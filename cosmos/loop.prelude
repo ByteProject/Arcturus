@@ -129,19 +129,36 @@ block fire_enter()
         if r is not nothing
             call_handler(r, ev_enter())
 
-// The per-turn pulse: the room's `on each_turn`, then any free `on each_turn`
-// rules, then the after/every schedule. Their `when` guards are compiled into the
-// handlers themselves; the schedule counts down and fires anything now due.
+// The per-turn pulse, in reach order: the room's `on each_turn`, then every
+// in-scope object's (a daemon on a thing, active while the thing is here or
+// carried), then the free `on each_turn` rules, then the after/every schedule.
+// Each handler's `when` guard is compiled into the handler itself; the schedule
+// counts down and fires anything now due.
 block fire_turn()
     if here is not nothing
         let r = handler_of(here)
         if r is not nothing
             par()
             call_handler(r, ev_each_turn())
+    fire_object_turns(here)
+    fire_object_turns(player)
     par()
     run_free(ev_each_turn())
     par()
     tick_timers()
+
+// Fire the `on each_turn` of every object within `holder` that the player can see
+// into it, recursing into supporters and open or clear containers the same way
+// scope does, so an object's daemon runs exactly while the object is in scope.
+block fire_object_turns(holder)
+    for each obj in holder
+        if not (obj is hidden)
+            let r = handler_of(obj)
+            if r is not nothing
+                par()
+                call_handler(r, ev_each_turn())
+            if see_into(obj)
+                fire_object_turns(obj)
 
 // Describe the current room: its name, its description, and what it contains.
 block describe_room()
