@@ -582,17 +582,31 @@ retires after use, and `you`/`reply`/`say` form the exchange. The two are two
 views of one model and are mutually exclusive: when conversations is summoned the
 menu owns talking and the ask/tell topic dispatch steps aside.
 
-`summon.language "<name>"`. Localization. A language pack is a granule (for
-example `cosmos/lang/spanish.granule`) selected by this directive, English
-being the default. Cosmos messages are held as a resource table keyed by
-message id, and the pack supplies translated strings and localized standard
-vocabulary, including direction and verb words. A pack may also override the
-parser's grammar logic, not only its strings: inflected languages parse
-differently from English (verb conjugation, gender and number agreement, clitic
-pronouns, contractions, freer word order), so a pack replaces the language
-specific parser routines through ordinary resolution (section 8). An author's
-own strings are written in whatever language they choose. Spanish is the first
-planned pack; packs are maintained alongside the main Cosmos sources.
+`summon.language "<name>"`. Localization. The language layer is one prelude,
+`<name>.prelude`, a full fork of `english.prelude` (its three sections: the
+English-specific parser hooks, the verb and direction vocabulary, and every
+message). This directive compiles the named layer in place of English, and
+exactly one language is built into a story; English is the default, and a plain
+game pays nothing for the others. A pack supplies its own verb words, its
+`direction` declarations, its article blocks, and its translated messages; the
+agnostic parser skeleton, scope, dispatch, and the action handlers are shared and
+untouched.
+
+Two supports make a non-English pack possible. Accented text: the encoder writes
+each accented character with its Z-machine ZSCII code, so a e i o u with acute,
+u-diaeresis, n-tilde, and the inverted marks render on any conformant interpreter.
+Gender: the compiler derives a `feminine` attribute from the object's head noun
+(a name ending in -a, or a reliably feminine suffix such as -cion or -dad), which
+the pack's article blocks (`art_the`, `art_a`) and its messages read to agree
+articles and adjectives on their own, with no author work; the author declares
+`feminine` only for the residue the spelling cannot reveal (la llave). English
+never reads the bit. `${the noun}` / `${a noun}` are lowered to a call to these
+article blocks precisely so a pack owns the article words.
+
+Spanish ships now (`cosmos/spanish.prelude`, informal tuteo); the worked example
+is `examples/ejemplo-espanol.storyarc`. To fork a language, `arcc
+--eject-language` writes `english.prelude` out to translate. Packs are maintained
+alongside the main Cosmos sources.
 
 `summon.debug`. Developer verbs for testing, catalogued in 05: `tree` (the whole
 object tree), `scope` (what is reachable here), `fetch`/`purloin` (pull any object

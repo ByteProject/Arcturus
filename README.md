@@ -62,8 +62,14 @@ The road from here, milestone by milestone:
   to configure, and optional features cost nothing when a game does not use them.
   Both example games play end to end, and Cloak of Darkness compiles to about
   11.6K with the whole modern Cosmos library linked in and nothing stripped out.
-- **Next:** Spanish and German language packs, each a summonable granule that
-  localizes the messages, the vocabulary, and the parser grammar.
+- **In progress:** language packs. A Spanish pack has landed as a first pass
+  (`summon.language "spanish"`): the verbs, direction words, articles, and every
+  message in Spanish, with correct accents and automatic grammatical gender
+  (`una lámpara`, `el libro`, and adjective agreement like `la caja está
+  abierta`), all with no author work beyond the odd noun whose gender the
+  spelling cannot reveal. A worked example is
+  [examples/ejemplo-espanol.storyarc](examples/ejemplo-espanol.storyarc). German
+  is next; native review of the Spanish is pending.
 - **After that:** porting real games as the proving ground - Hibernated 2 (the
   first full-length game, and the maturity milestone) and Ghosts of Blackwood
   Manor; then a modern reference interpreter, the `arc_image` graphics path
