@@ -124,6 +124,14 @@ class Analyzer:
             elif isinstance(decl, ast.VerbDecl):
                 grammar = [wm.GrammarLine(g.action, g.items) for g in decl.grammar]
                 w.verbs.append(wm.Verb(decl.words, grammar, decl.line))
+            elif isinstance(decl, ast.DirectionDecl):
+                if not self.env.is_direction(decl.prop):
+                    raise self._error(
+                        f"'{decl.prop}' is not a standard direction property",
+                        decl.line,
+                    )
+                for word in decl.words:
+                    w.directions[word.lower()] = decl.prop
             elif isinstance(decl, ast.GlobalDecl):
                 self._seen(decl.name, decl.line)
                 w.globals[decl.name] = wm.Global(

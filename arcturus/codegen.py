@@ -440,7 +440,7 @@ def build_story(
             sf.set_word(abbrev_addr + k * 2, saddr // 2)
         for k in range(len(abbrevs), _ABBREV_BYTES // 2):
             sf.set_word(abbrev_addr + k * 2, empty_addr // 2)
-    dprops = dictionary.direction_props(layout) if layout is not None else None
+    dprops = dictionary.direction_props(layout, world) if layout is not None else None
     # Scenery grain words: word -> (grain id, owner object), shared with codegen's
     # grain routine indices.
     scenery = {}

@@ -48,20 +48,10 @@ _PREPOSITION_FLAG = 0x08
 # direction words); the examples only need on/off.
 _PARTICLE_WORDS = {"on": 1, "off": 2}
 
-# English direction words (with abbreviations) mapped to their canonical
-# direction property. This vocabulary is English; it moves into the language
-# pack (spanish.granule) when localized. The parser turns a direction word into
-# the go action plus the direction's property number (see english.prelude).
-_DIRECTION_WORDS = {
-    "north": "north", "n": "north", "south": "south", "s": "south",
-    "east": "east", "e": "east", "west": "west", "w": "west",
-    "northeast": "northeast", "ne": "northeast",
-    "northwest": "northwest", "nw": "northwest",
-    "southeast": "southeast", "se": "southeast",
-    "southwest": "southwest", "sw": "southwest",
-    "up": "up", "u": "up", "down": "down", "d": "down",
-    "in": "in", "out": "out",
-}
+# Direction words are no longer hardcoded here: they are declared in the language
+# layer with `direction north "north", "n"` (english.prelude) and collected into
+# world.directions, so a language pack localizes them. direction_props() below
+# turns them into dictionary entries (the go action plus the direction property).
 
 
 def collect_vocab(world: wm.World) -> set:
@@ -201,11 +191,13 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
     return bytes(out), word_offset
 
 
-def direction_props(layout) -> dict:
-    """word -> direction property number, for the words whose canonical
-    direction is a property in this program's object table."""
+def direction_props(layout, world) -> dict:
+    """word -> direction property number, for the words whose direction property is
+    in this program's object table. The words come from the language layer's
+    `direction` declarations (world.directions), so a language pack localizes
+    them; the property names are fixed."""
     out: dict = {}
-    for word, canonical in _DIRECTION_WORDS.items():
+    for word, canonical in world.directions.items():
         if canonical in layout.prop_number:
             out[word] = layout.prop_number[canonical]
     return out

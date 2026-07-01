@@ -426,6 +426,22 @@ verb "look", "l"
 verb "go", "walk", "run"
     go
 
+// The direction words: each maps its vocabulary to a fixed direction property.
+// This is the English set; a language pack redeclares these with its own words
+// (direction north "norte", "n"). The property names never change.
+direction north     "north", "n"
+direction south     "south", "s"
+direction east      "east", "e"
+direction west      "west", "w"
+direction northeast "northeast", "ne"
+direction northwest "northwest", "nw"
+direction southeast "southeast", "se"
+direction southwest "southwest", "sw"
+direction up        "up", "u"
+direction down      "down", "d"
+direction in        "in"
+direction out       "out"
+
 verb "take", "get", "carry"
     take noun
 
