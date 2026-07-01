@@ -35,14 +35,14 @@ It activates for the three Arcturus source extensions:
 
 ## Installing
 
-Install the packaged extension (`arcturus-0.2.0.vsix`) one of two ways:
+Install the packaged extension (`arcturus-0.3.0.vsix`) one of two ways:
 
 - In VS Code, open the Extensions view, click the `...` menu, choose
   **Install from VSIX...**, and select the `.vsix` file.
 - Or from a terminal:
 
   ```
-  code --install-extension arcturus-0.2.0.vsix
+  code --install-extension arcturus-0.3.0.vsix
   ```
 
 This works the same on macOS, Windows, and Linux. After installing, open any
