@@ -145,6 +145,71 @@ this). `hidden` removes an object from scope entirely until cleared.
 `scenery` keeps it referable for examining but omits it from contents
 listings and refuses taking.
 
+## 5a. The container knowledge model
+
+Cosmos tracks what the player has learned, not only what is in view this instant,
+and lists a container's contents by that knowledge. This is what makes room
+descriptions read the way memory actually works, and it is a feature few other
+systems have.
+
+The switch is the `seen` attribute, which Cosmos sets on an object the moment the
+player has been shown it: listed inside an open (or `clear`) container, resting on
+a supporter, taken, or examined. From then on the object is known to the player.
+
+Whether a container spells out its contents follows that knowledge, not just its
+lid:
+
+- An **open** container lists everything inside, and marks each content `seen`.
+- A **`clear`** container (a glass jar) lists everything, open or shut, since its
+  contents are always in view.
+- A **closed, opaque** container lists only the contents the player has already
+  `seen`. A content the player has never seen is not listed at all, and is not
+  referable: there is no x-raying a shut box.
+
+So a box the player has never looked into is described bare, and the ring inside
+stays unknown:
+
+```
+> look
+You can see an iron box here.
+
+> examine ring
+You see nothing of the sort here.
+```
+
+Open the box and Cosmos reveals what is inside, describing it and marking it seen:
+
+```
+> open box
+Open. Inside you find a gold ring.
+```
+
+Close the box again, and the ring is now remembered. Because the player knows it is
+there, the room keeps listing it, even with the lid shut:
+
+```
+> close box
+> look
+You can see an iron box (contains a gold ring) here.
+```
+
+Knowledge sharpens the parser's answers too. Once the player has seen the ring,
+naming it while the box is shut earns a reminder to open the box, not a flat
+denial, because the object is known but out of reach:
+
+```
+> examine ring
+You'll have to open the iron box first.
+```
+
+A content the player has never seen still gives the ordinary "you see nothing of
+the sort here", since the player has no reason to believe it exists. Cosmos manages
+`seen` throughout; an author touches it only to pre-seed knowledge (something the
+character already knows about) or to clear it and make the character forget. The
+related attributes are `open` (the lid), `clear` (see-through, always shown),
+`concealed` (present but left out of a listing), and `hidden` (out of scope
+entirely until revealed).
+
 ## 6. Light and darkness
 
 Cosmos computes light automatically. The location is lit when the room's own
