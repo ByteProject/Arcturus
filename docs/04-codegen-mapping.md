@@ -283,6 +283,17 @@ otherwise append to a body that already returns.
 
 Together these reclaim around 1.2K from each example game.
 
+A fourth, whole-feature lever is static-`if` folding. `_if` decides a clause whose
+condition is a compile-time constant at compile time: a statically-false clause
+emits nothing, a statically-true one is taken unconditionally and later clauses
+are dropped. Cosmos uses this to make optional features pay-for-use. A feature's
+code is guarded on a compile-time flag intrinsic, `any_spans()` (1 when any object
+declares `spans`) or `any_doors()` (1 when any object is a door), which folds to a
+constant; in a game that does not use the feature, the guard folds to false, the
+feature's calls vanish, and whole-program dead-code elimination reclaims the now-
+uncalled blocks. So the multi-room scope walk and the two-sided-door movement
+detour cost nothing in a game without spans or doors.
+
 ## 12. Not yet lowered
 
 Deferred to later milestones: the `a`/`an` choice by sound, kind-level grains and

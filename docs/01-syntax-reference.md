@@ -110,11 +110,23 @@ everything else. Both are kinds and can be extended.
 ```
 room  <id> [of <kind>]
 thing <id> [of <kind>] [in <location>]
+thing <id> [of <kind>] in <room>, <room> ...
 ```
 
 `of <kind>` sets the parent kind; `in <location>` sets the initial tree
 position. The body is property settings, `on` handlers, and an optional
 `grains` block (section 14).
+
+A fixed object can be in scope in more than one room. The object tree gives each
+object a single home, so a second (and third) room is a *span*: `in hall, vault`
+puts the object in `hall` and spans it into `vault`, and a `spans a, b, c` line
+in the body does the same for a scenery object with no single home (a moon seen
+from three clearings). The object lives in one room and is referable from every
+room it spans. Spanning is for non-movable objects (`fixed` or `scenery`); on a
+movable object it is ignored, since a carried object's scope follows it. Its
+headline uses are a two-sided door (one door object in both rooms it joins) and
+wide scenery. A room's exit may name such a door, gating movement on it (02
+section 10).
 
 ```
 room hallway
@@ -196,6 +208,14 @@ pass control to the next handler up the chain.
 Multiple-parent composition (a thing that is both a container and a
 supporter) is a deliberate non-goal for v1; model it as a kind chain, or say
 so if a real game needs true mixins.
+
+The standard kinds root the tree: `thing` and `room`, and of `thing` the kinds
+`container`, `supporter`, `door`, and `character`. Each is an attribute (`obj is
+container`), and each supplies the defaults universal to it: a `room` is `lit`, a
+`door` is `openable` and `fixed`, a `character` is `animate` and refuses being
+taken. `character` is the animate kind for anyone the player addresses, gives to,
+or talks to, people and animals and robots alike. What each standard kind
+provides is listed in 02 section 10.
 
 ## 6. Properties and the unified model
 

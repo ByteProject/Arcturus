@@ -349,27 +349,40 @@ and after without further machinery.
 handlers for examine, take, drop, push, pull, turn, and the like (section
 12).
 
-`room`: `name`, `desc`, `lit`, `visited`, and the direction properties
-(`north`, `south`, `east`, `west`, `northeast`, `northwest`, `southeast`,
-`southwest`, `up`, `down`, `in`, `out`), each an object defaulting `nothing`.
-Default `go <direction>` reads the matching property and moves the player, or,
-when there is no exit, prints "You can't go that way." A room overrides one
+`room`: `name`, `desc`, `lit` (true by default; a dark room declares `lit
+false`), `visited`, and the direction properties (`north`, `south`, `east`,
+`west`, `northeast`, `northwest`, `southeast`, `southwest`, `up`, `down`, `in`,
+`out`), each an object defaulting `nothing`. A direction may name a room or a
+door. Default `go <direction>` reads the matching property and moves the player,
+or, when there is no exit, prints "You can't go that way." A room overrides one
 direction with its own `on go <direction>`. The full movement model, including
 computed exits and the blocked-direction fallback, is section 11a.
 
-`container of thing`: `openable`, `open`, `clear`, `capacity`. Contents are
-children, in scope when the container is open or `clear` (see-through). Default
-open, close, and put in.
+Only attributes true for essentially every instance of a kind are kind defaults;
+the rest are declared per instance. So `openable` is deliberately not a container
+default (a bowl is a container that never opens), while a door is `openable` and
+`fixed` because every door is.
 
-`supporter of thing`: `capacity`. Contents are children, always in scope on
-top. Default put on.
+`container of thing`: an optional `capacity`. Contents are children, in scope
+when the player can see in: the container is `open`, is `clear` (see-through), or
+has no lid at all (not `openable`), like a bowl or a basket. Declare `openable`
+(and `open false`) to make a box with a lid that must be opened. Default open,
+close, and put in.
 
-`door of thing`: `open`, `openable`, `lockable`, `locked`, `key`, and the two
-rooms it joins. Appears in both rooms; blocks movement when closed.
+`supporter of thing`: an optional `capacity`. Contents are children, always in
+scope on top. Default put on.
 
-`character of thing`: animate, holds and wears objects, default refuses being
-taken and routes the talk verb (section 11). `player` is the distinguished
-instance.
+`door of thing`: `openable` and `fixed` by default; declare `lockable`, `locked`,
+and a `key` to make it lock. A door joins two rooms with the `in A, B` sugar: it
+lives in one room in the object tree and spans the other (section 5), so it is
+referable and operable from both sides. When a room's exit names the door (`east
+oak_door`), crossing it is gated on the door being open and unlocked and lands
+the player on its far side, with no author code. Default open, close, lock,
+unlock, and the movement gate.
+
+`character of thing`: `animate`; holds and wears objects; refuses being taken
+(an animate object answers TAKE with its own line, not the scenery `fixed` one)
+and routes the talk verb (section 11). `player` is the distinguished instance.
 
 ## 11. Standard verbs
 
