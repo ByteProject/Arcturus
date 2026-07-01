@@ -78,7 +78,7 @@ _STD_KINDS = [
     StdKind("container", "thing"),
     StdKind("supporter", "thing"),
     StdKind("door", "thing"),
-    StdKind("person", "thing"),
+    StdKind("character", "thing"),
 ]
 
 # Standard boolean properties become attribute candidates (docs/02 appendix A).
@@ -98,8 +98,9 @@ _STD_BOOL_PROPS = [
     # Set the first time the player takes an object; while clear, the object
     # shows its `intro` text in a room description instead of the plain listing.
     "moved",
-    # A living thing: people and creatures. The conversation and give verbs apply
-    # only to the animate; the person kind sets it by default.
+    # An animate agent: people, animals, robots, AIs. The conversation and give
+    # verbs apply only to the animate; the character kind sets it by default, and
+    # animate objects refuse being taken.
     "animate",
     # Set when the indefinite article should be "an" instead of "a". The compiler
     # derives it from the object's name (a vowel-initial name -> "an") unless the
@@ -121,8 +122,8 @@ _STD_VALUE_PROPS = {
     "capacity": T_NUMBER,
     "key": T_OBJECT,
     # Conversation topics (docs/02 section 14). Authors never write this; the
-    # compiler synthesizes it from a person's `topic` declarations as the address
-    # of that person's runtime topic table (objects.py emits the table, the
+    # compiler synthesizes it from a character's `topic` declarations as the address
+    # of that character's runtime topic table (objects.py emits the table, the
     # conversation granules walk it). T_LIST so it is a slot holding a pointer.
     "topics": T_LIST,
 }
@@ -171,8 +172,8 @@ _BUILTINS = {
     "shut_in": T_OBJECT,
 }
 
-# Objects Cosmos provides. `player` is the distinguished person instance.
-_STD_OBJECTS = {"player": "person"}
+# Objects Cosmos provides. `player` is the distinguished character instance.
+_STD_OBJECTS = {"player": "character"}
 
 
 def standard_environment() -> Environment:

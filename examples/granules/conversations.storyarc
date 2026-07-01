@@ -35,7 +35,7 @@ room tent
     desc "Candlelight pools on a round table draped in star-stitched velvet. The
           air is thick with incense, and shadows lean in from the canvas walls."
 
-thing esme of person in tent
+thing esme of character in tent
     name "Madame Esme"
     named
     words esme, madame, seer, woman

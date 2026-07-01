@@ -22,8 +22,8 @@ GAME = (
     'room vault\n    name "The Vault"\n    desc "A small vault."\n    east hall\n'
     'room hall\n    name "The Hall"\n    desc "A long hall."\n'
     'thing coin in vault\n    name "gold coin"\n    words gold, coin\n'
-    'thing guard of person in vault\n    name "burly guard"\n    words burly, guard\n'
-    'thing wizard of person in hall\n    name "old wizard"\n    words old, wizard\n'
+    'thing guard of character in vault\n    name "burly guard"\n    words burly, guard\n'
+    'thing wizard of character in hall\n    name "old wizard"\n    words old, wizard\n'
 )
 
 

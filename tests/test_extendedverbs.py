@@ -23,7 +23,7 @@ ROOMS = (
     'thing chest of container in cell\n    name "iron chest"\n    words iron, chest\n    open\n'
     'thing coin in chest\n    name "gold coin"\n    words gold, coin\n'
     'thing pebble in cell\n    name "grey pebble"\n    words grey, pebble\n'
-    'thing guard of person in cell\n    name "burly guard"\n    words burly, guard\n'
+    'thing guard of character in cell\n    name "burly guard"\n    words burly, guard\n'
 )
 # The guard's `on rub` override is only valid when extendedverbs defines `rub`.
 GUARD_OVERRIDE = '    on rub\n        say "The guard does not enjoy that."\n'

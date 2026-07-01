@@ -21,7 +21,7 @@ from arcturus.sema import analyze
 GAME = (
     'game\n    title "Flavor"\n    start cell\n'
     'room cell\n    name "The Cell"\n    desc "A bare cell."\n'
-    'thing guard of person in cell\n    name "burly guard"\n    words burly, guard\n'
+    'thing guard of character in cell\n    name "burly guard"\n    words burly, guard\n'
     'thing rock in cell\n    name "grey rock"\n    words grey, rock\n    fixed\n'
 )
 

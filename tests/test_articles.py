@@ -20,7 +20,7 @@ from arcturus.sema import analyze
 GAME = (
     'game\n    title "P"\n    start hall\n'
     'room hall\n    name "The Hall"\n    desc "A hall."\n'
-    'thing linda of person in hall\n    name "Linda"\n    words linda\n    named\n'
+    'thing linda of character in hall\n    name "Linda"\n    words linda\n    named\n'
     'thing sword in hall\n    name "iron sword"\n    words iron, sword\n'
     'thing coin in hall\n    name "gold coin"\n    words gold, coin\n'
 )
