@@ -480,6 +480,22 @@ Standard verbs, including talk-to, come from Cosmos; how input is tokenized
 and resolved is defined in 02. This section defines only how you declare a
 verb and how its grammar names the action your handlers receive.
 
+Direction words are declared the same spirit, mapping vocabulary to a fixed
+direction property:
+
+```
+direction north     "north", "n"
+direction northeast "northeast", "ne"
+```
+
+The property name (`north`, `northeast`, `up`, `in`, ...) is one of the standard
+directions and never changes; the quoted words are the player's vocabulary. Like
+verbs and messages, direction words are part of the language layer, so a language
+pack redeclares them (`direction north "norte", "n"`) and Cosmos ships the English
+set. A game rarely writes these; it summons a language, or uses the default
+English. Selecting a language is one summon: `summon.language "spanish"` compiles
+that language layer in place of English (02, section 8).
+
 ## 11. Blocks
 
 A block is a named routine. It takes arguments, may `return` a value, and is
