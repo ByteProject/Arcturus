@@ -8,7 +8,7 @@
 // Se elige el idioma con `summon.language "spanish"`, que compila la capa
 // española (spanish.granule) en lugar de la inglesa: los verbos, las direcciones,
 // los artículos y todos los mensajes salen en español, con las tildes y la eñe
-// correctas, y el género se deduce solo. Compila y juega:
+// correctas, y el género se deduce solo. Compílalo y juégalo:
 //
 //   arcc examples/ejemplo-espanol.storyarc -o posada.z5
 //   frotz posada.z5
@@ -21,20 +21,16 @@
 //   - `spans`: la luna se ve desde el patio y desde la playa
 //   - un contenedor (el cofre), una puerta con llave, y el género automático
 //
-// Prueba, por orden:
-//   hablar con posadera            abre el menú de temas
-//   abrir cofre / coger llave      "Cogida." (concuerda con el género)
-//   este                           la puerta está cerrada con llave
-//   destrancar puerta con llave    "Abres con llave."
-//   abrir puerta / este            sales al patio
-//   examinar luna                  se ve desde aquí (spans)
-//   sur                            bajas a la playa
-//   examinar mar / oler la brisa   decorado (grains)
+// SOBRE LAS TILDES. El texto que LEE el jugador va acentuado, como debe ser; los
+// intérpretes de Cosmos las muestran de sobra, hasta en los 8 bits. Pero en un
+// 8 bits no se pueden ESCRIBIR: por eso toda palabra que el jugador teclee (los
+// verbos del idioma, y aquí la lámpara) ofrece también su forma sin tilde. Así se
+// lee "lámpara" y se escribe "lampara".
 //
 // GÉNERO: es automático (-a femenino, -o masculino, y sufijos como -ción o -dad
 // también femeninos). Solo se declara cuando la palabra no lo revela: aquí `la
-// llave` lleva un `feminine` (termina en -e). Es la única marca de género de todo
-// el juego.
+// llave` lleva un `feminine` (termina en -e). Es la única marca de género escrita
+// a mano en todo el juego.
 
 summon.language "spanish"
 summon.statusline
@@ -53,9 +49,10 @@ on start
 
 room posada
     name "La Posada"
-    desc "El comedor de una vieja posada de piedra. Un cofre descansa junto al
-          hogar, y una puerta de roble da al este, al patio. Tras la barra, la
-          posadera te observa."
+    desc "El comedor de una posada antiquísima, de piedra ennegrecida por el humo
+          de mil inviernos. Junto al hogar, aún tibio, descansa un cofre de roble.
+          Más allá, una puerta cerrada da al este, al patio. Detrás de la barra, la
+          posadera te observa en silencio, como si supiera por qué has venido."
     // Las salidas se nombran por la PROPIEDAD de dirección (east, west, ...), un
     // identificador fijo en inglés, igual que `thing`, `room` u `openable`. El
     // jugador escribe la palabra en español ("este"); solo el vocabulario se
@@ -64,26 +61,31 @@ room posada
 
 room patio
     name "El Patio"
-    desc "Un patio abierto al cielo. La posada queda al oeste; un sendero baja al
-          sur, hacia la playa. La luna lo baña todo de plata."
+    desc "Un patio abierto a la noche, bañado por la luz de una luna enorme. La
+          posada queda al oeste; un sendero desciende hacia el sur, camino de la
+          playa. Huele a mar, y algún grillo canta todavía entre las macetas."
     west puerta
     south playa
 
 room playa
     name "La Playa"
-    desc "Guijarros y algas bajo la luna. El mar rompe despacio. El patio queda
-          arriba, al norte."
+    desc "Guijarros y algas bajo una luna inmensa. El mar rompe despacio, una y
+          otra vez, con un rumor antiquísimo. El patio queda arriba, al norte; más
+          lejos, sobre las rocas, se alza la silueta apagada del faro."
     north patio
 
     // Decorado barato (grains): palabras con respuesta, sin gastar un objeto. El
     // verbo se nombra por su acción (examine, touch, smell); las palabras del
-    // decorado ("mar", "olas") son el vocabulario en español.
+    // decorado ("mar", "olas") son el vocabulario en español, sin tildes para que
+    // se puedan teclear en cualquier máquina.
     grains
         examine, touch "mar" or "olas" or "agua" say "El mar se mece, negro y
-            paciente."
-        examine "arena" or "guijarros" say "Guijarros pulidos, fríos al tacto."
-        smell "brisa" or "aire" say "Huele a sal y a algas."
-        examine "gaviotas" or "gaviota" say "Duermen posadas en las rocas."
+            paciente, como si respirara despacio."
+        examine "arena" or "guijarros" say "Guijarros pulidos por mil mareas,
+            fríos al tacto."
+        smell "brisa" or "aire" say "Huele a sal, a algas y a lejanía."
+        examine "gaviotas" or "gaviota" say "Duermen posadas en las rocas; ni se
+            inmutan cuando pasas."
 
 // La luna se ve desde el patio y desde la playa: un solo objeto que abarca
 // (spans) las dos habitaciones. Es decorado, así que no se lista ni se coge.
@@ -91,8 +93,17 @@ thing luna
     name "luna llena"
     words luna, llena
     scenery
-    desc "Una luna llena, tan brillante que arranca sombras de los guijarros."
+    desc "Una luna llena y enorme, tan brillante que arranca sombras nítidas de
+          los guijarros."
     spans patio, playa
+
+// Una lámpara: su nombre lleva tilde y se muestra acentuado, pero sus `words`
+// incluyen la forma sin tilde ("lampara") para que se pueda escribir en un 8 bits.
+thing lampara in posada
+    name "lámpara de aceite"
+    words lampara, lámpara, aceite
+    desc "Una lámpara de aceite ennegrecida. Todavía queda mecha, y quizá algo de
+          combustible."
 
 // El cofre: contenedor con tapa. La llave espera dentro.
 thing cofre of container in posada
@@ -124,17 +135,20 @@ thing posadera of character in posada
 
     topic saludo "saludar a la posadera"
         you "Buenas noches."
-        reply "Buenas las tengas, forastero. Pocos suben ya hasta aquí."
+        reply "Buenas noches nos dé Dios, forastero. Pocos suben ya hasta aquí; el
+               camino está roto desde el naufragio."
 
     topic faro "preguntar por el faro"
-        you "¿Y ese faro de ahí fuera?"
-        reply "Apagado desde el naufragio. La llave del cofre abre el patio, si es
-               lo que buscas."
+        you "¿Y ese faro que se ve ahí fuera?"
+        reply "Apagado desde aquella noche. Nadie ha vuelto a subir. La llave del
+               cofre abre el patio, si es lo que andas buscando."
 
     topic llave_tema "preguntar por la llave"
-        you "¿Hay una llave?"
-        reply "En el cofre, junto al hogar. Cógela y sal cuando quieras."
+        you "¿Hay una llave por aquí?"
+        reply "En el cofre, junto al hogar. Cógela y sal cuando quieras; a mí ya me
+               da igual."
 
 // El bloque que dispara el demonio del reloj.
 block reloj_da_la_hora()
-    say "El viejo reloj de pared da la hora con un tañido grave."
+    say "El viejo reloj de pared da la hora con un tañido grave, y el eco se pierde
+         por los rincones."
