@@ -56,6 +56,7 @@ docs/verb-set.md.
 |---|---|---|
 | msg_taken | take, success | Got it. |
 | msg_fixed | take a fixed thing | ${The noun} stays exactly where it is. |
+| msg_animate_refuses | take an animate thing (a character) | ${The noun} has other ideas. |
 | msg_scenery | take a scenery object, or any verb a grain does not answer | Just some scenery. Don't worry about it. |
 | msg_have_it | take what you already hold | You already have ${the noun}. |
 | msg_take_self | take yourself | You keep a firm grip on yourself. |
@@ -87,6 +88,8 @@ docs/verb-set.md.
 | msg_already_open | open what's open | ${The noun} is already open. |
 | msg_cant_open | open the unopenable | ${The noun} doesn't open. |
 | msg_open_locked | open a locked thing | ${The noun} is locked. |
+| msg_door_locked | walk into a locked door | ${The d} is locked. |
+| msg_door_shut | walk into a shut door | ${The d} is shut. You open it first. |
 | msg_closed_it | close, success | Shut. |
 | msg_already_shut | close what's shut | ${The noun} is already shut. |
 | msg_cant_close | close the uncloseable | ${The noun} doesn't close. |
