@@ -265,6 +265,10 @@ def _is_leaf(ctx: Context, expr) -> bool:
     if isinstance(expr, ast.Name):
         if expr.ident == "self":
             return ctx.self_value is not None
+        # A constant stands for its value: it is a leaf exactly when that value is.
+        c = ctx.world.constants.get(expr.ident)
+        if c is not None:
+            return _is_leaf(ctx, c.value)
         return (
             expr.ident in ctx.named
             or expr.ident in ctx.globals
@@ -283,6 +287,10 @@ def _leaf_operand(ctx: Context, expr):
     if isinstance(expr, ast.Name):
         if expr.ident == "self" and ctx.self_value is not None:
             return ctx.self_value
+        # A constant inlines to its value (a compile-time literal or object).
+        c = ctx.world.constants.get(expr.ident)
+        if c is not None:
+            return _leaf_operand(ctx, c.value)
         if expr.ident in ctx.named or expr.ident in ctx.globals:
             return Variable(ctx.resolve_var(expr.ident, expr.line))
         if ctx.is_object_name(expr.ident):
@@ -306,6 +314,14 @@ def eval_expr(rt: Routine, ctx: Context, expr, dest=None) -> None:
     if _is_leaf(ctx, expr):
         _place(rt, _leaf_operand(ctx, expr), dest)
         return
+
+    # A constant whose value is not a leaf (a computed expression): evaluate the
+    # value in its place.
+    if isinstance(expr, ast.Name):
+        c = ctx.world.constants.get(expr.ident)
+        if c is not None:
+            eval_expr(rt, ctx, c.value, dest)
+            return
 
     if isinstance(expr, ast.Binary):
         if expr.op in _ARITH:
@@ -1232,6 +1248,12 @@ def _static_value(ctx, expr):
         return _any_spans(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_doors":
         return _any_doors(ctx)
+    # A constant folds to its value, so `if DEBUG is 1` (DEBUG a constant) decides
+    # at compile time and an unused branch is never emitted.
+    if isinstance(expr, ast.Name):
+        c = ctx.world.constants.get(expr.ident)
+        if c is not None:
+            return _static_value(ctx, c.value)
     return None
 
 
