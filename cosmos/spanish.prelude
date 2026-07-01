@@ -520,6 +520,16 @@ verb "abrir", "abre", "destapar", "destapa"
 verb "cerrar", "cierra", "tapar", "tapa"
     close noun
 
+// Cerrar y abrir CON LLAVE: verbos propios (una palabra = una accion), asi
+// "trancar la puerta con la llave" la cierra con llave y "destrancarla" la abre.
+verb "trancar", "tranca"
+    lock noun con noun
+    lock noun
+
+verb "destrancar", "destranca"
+    unlock noun con noun
+    unlock noun
+
 verb "entrar", "entra", "subir", "sube"
     enter noun
 
