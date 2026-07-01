@@ -181,9 +181,20 @@ def _eject_granule(name: str) -> int:
         print(f"arcc: error: no bundled granule '{name}' (have: {avail})",
               file=sys.stderr)
         return 2
+    src = granules[fname]
     with open(fname, "w", encoding="utf-8") as fh:
-        fh.write(granules[fname])
-    print(f"arcc: wrote {fname} (edit it, then summon it by name: summon {fname})")
+        fh.write(src)
+    # A language pack is selected with summon.language, not a plain summon, so its
+    # notice must say so.
+    code = cosmos_lib._language_marker(parse(src, fname).decls)
+    if code is not None:
+        stem = fname[: -len(".granule")]
+        print(
+            f'arcc: wrote {fname} (a language pack; edit it, then select it with '
+            f'summon.language "{stem}")'
+        )
+    else:
+        print(f"arcc: wrote {fname} (edit it, then summon it by name: summon {fname})")
     return 0
 
 
