@@ -582,49 +582,10 @@ retires after use, and `you`/`reply`/`say` form the exchange. The two are two
 views of one model and are mutually exclusive: when conversations is summoned the
 menu owns talking and the ask/tell topic dispatch steps aside.
 
-`summon.language "<name>"`. Localization. English is the default language layer
-and lives in `english.prelude`. Every other language is a granule,
-`<name>.granule`, a full fork of `english.prelude` (its three sections: the
-English-specific parser hooks, the verb and direction vocabulary, and every
-message). This directive compiles the named granule in place of `english.prelude`,
-and exactly one language is built into a story; a plain game is English and pays
-nothing for the others. The granule is resolved like any summoned module (the
-story directory, then each `-L` directory, then the bundled copy), so a fork is
-picked up over the built-in one. A pack supplies its own verb words, its
-`direction` declarations, its article blocks, and its translated messages,
-including the framing the summonable granules print (the status line, the
-conversation menu); the agnostic parser skeleton, scope, dispatch, and the action
-handlers are shared and untouched.
-
-`summon.language` is the only way to select a language, because only it does the
-swap (drops `english.prelude`). A language pack self-identifies with a marker at
-its top, `language "<name>"`; a pack must carry it, and a plain `summon
-spanish.granule` is a compile error that points to `summon.language` instead,
-rather than silently leaving English baked in beside the new language. A fork
-keeps its `<code>.granule` filename as the selection key: name it `mifork.granule`
-and select it with `summon.language "mifork"`.
-
-Two supports make a non-English pack possible. Accented text: the encoder writes
-each accented character with its Z-machine ZSCII code, so a e i o u with acute,
-u-diaeresis, n-tilde, and the inverted marks render on any conformant interpreter.
-Gender: the compiler derives a `feminine` attribute from the object's head noun
-(a name ending in -a, or a reliably feminine suffix such as -cion or -dad), which
-the pack's article blocks (`art_the`, `art_a`) and its messages read to agree
-articles and adjectives on their own, with no author work; the author declares
-`feminine` only for the residue the spelling cannot reveal (la llave). English
-never reads the bit. `${the noun}` / `${a noun}` are lowered to a call to these
-article blocks precisely so a pack owns the article words.
-
-Spanish ships now (`cosmos/spanish.granule`, informal tuteo); the worked example
-is `examples/ejemplo-espanol.storyarc`. To fork a language, `arcc
---eject-language` writes `english.prelude` out to translate. Packs are maintained
-alongside the main Cosmos sources.
-
-The baked-in abbreviation set is tuned to English, so a non-English game is built
-with no default abbreviations rather than English ones that would not fit (04
-section 10). Cosmos ships no per-language standard set; for a larger foreign
-game, run `arcc --make-abbreviations`, which sees the selected language's text and
-writes a set tuned to it.
+`summon.language "<name>"`. Localization: compile a language pack (`spanish`) in
+place of English so the game plays in another language. Selecting, writing,
+forking, accents, gender, and abbreviations for a non-English game are gathered in
+section 14a.
 
 `summon.debug`. Developer verbs for testing, catalogued in 05: `tree` (the whole
 object tree), `scope` (what is reachable here), `fetch`/`purloin` (pull any object
@@ -643,6 +604,77 @@ computed direction blocks (section 11a) are read to build it, which is why they
 must be side-effect free. The phrasing is an ordinary overridable Cosmos
 string, and a room's own `on go other` (section 11a) takes precedence over the
 listed message. This replaces hand-writing a blocked message in every room.
+
+## 14a. Writing in another language
+
+Arcturus is meant to be authored and played in languages other than English.
+Spanish and German are official, first-class Arcturus languages, maintained
+alongside Cosmos: Spanish ships now (`cosmos/spanish.granule`, informal tuteo, a
+first pass pending native review), and German follows. Others are the same shape
+of work. This section gathers what a foreign-language author needs; the mechanics
+each live in their own place, cross-referenced here.
+
+Selecting a language. `summon.language "spanish"` compiles the Spanish layer in
+place of English. English is the default, exactly one language is built into a
+story, and a plain English game pays nothing for the others. That directive is the
+only way to select a language, because only it does the swap (drops
+`english.prelude`).
+
+What is and is not translated. The language layer is one granule, a full fork of
+`english.prelude` in three parts: the parser hooks that read the language, the
+verb and `direction` vocabulary, and every message (including the framing the
+status-line and conversation-menu granules print). Everything else, the agnostic
+parser skeleton, scope, dispatch, and the action handlers, is shared and
+untouched. The line to hold onto: the identifiers a game's *code* uses stay
+English, only what the player *reads and types* is translated. So kinds (`thing`,
+`room`), attributes (`openable`), the direction properties in a room exit (`east
+puerta`), and the actions a `grains` line answers (`examine "mar"`) are fixed
+English names, while the player types `este` and `examinar`. A translator forks
+one file and touches nothing else.
+
+Accents, and typing on 8-bit systems. Display text is fully accented: the encoder
+writes each accented character with its Z-machine ZSCII code (section 1), so the
+acute vowels, u-diaeresis, n-tilde, and the inverted marks render on any
+conformant interpreter, the 8-bit and 16-bit ones included. But an 8-bit
+interpreter renders an accent it cannot type, so every word the player must *type*
+also carries a tilde-free form: the language's verbs list both (`oir`/`oír`,
+`ensena`/`enseña`), and an object with an accented name lists both spellings in
+its `words` (`words lampara, lámpara`). The rule: accent the display, and give
+every typeable word a plain-ASCII spelling too.
+
+Gender and articles, automatically. In a gendered language the article (un/una,
+el/la) and adjective agreement are automatic, with no per-object work. The
+compiler derives a `feminine` attribute from the object's head noun, the first
+word of its name: a head ending in -a, or in a reliably feminine suffix such as
+-ción, -sión, -dad, -tad, -tud, or -umbre, is feminine, everything else masculine.
+The pack's article blocks (`art_the`, `art_a`) and its messages read that
+attribute and agree on their own (`una lámpara`, `la caja está cerrada`). The
+author declares `feminine` only for the residue no spelling can reveal (la llave,
+el mapa), the same one-time act as the English `an` exception. `${the noun}` and
+`${a noun}` lower to a call to the article blocks precisely so a pack owns the
+article words (section 13).
+
+Abbreviations. The baked-in abbreviation set is tuned to the English library, so a
+non-English game is built with no default set rather than English abbreviations
+that would not fit and would only cost the table (docs/04 section 10). Cosmos
+deliberately ships no standard set per language. Abbreviations barely matter for a
+small game; for a larger foreign game the recommendation is to run `arcc
+--make-abbreviations`, which sees the selected language's translated text and
+writes a set tuned to it (on the Spanish example, several hundred bytes below the
+no-abbreviation size).
+
+Forking a language, or adding one. A language pack is a granule, `<code>.granule`,
+that self-identifies with a marker at its top, `language "<code>"`. To fork one,
+`arcc --eject-granule spanish` writes it out; translate or adjust it, keep (or
+rename) it as `mylang.granule`, and select it with `summon.language "mylang"`, the
+filename being the selection key. To start a language from scratch, `arcc
+--eject-language` writes `english.prelude` to translate into a new
+`<code>.granule` (add the marker). Because a language pack must be selected with
+`summon.language` (which does the swap), a plain `summon spanish.granule` is a
+compile error that points you to `summon.language`, and `summon.language` on a
+granule that is not a language pack is likewise an error; neither can silently
+leave English baked in beside the new language. The worked example is
+`examples/ejemplo-espanol.storyarc`.
 
 ## 15. Overriding Cosmos in practice
 
