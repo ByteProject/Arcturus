@@ -3,8 +3,8 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The language-layer swap: `summon.language "x"` compiles the x.prelude language
-layer in place of english.prelude (B7 seam 4). English is the default."""
+"""The language-layer swap: `summon.language "x"` compiles the x.granule language
+pack in place of english.prelude (B7 seam 4). English is the default."""
 
 import pytest
 

@@ -582,15 +582,19 @@ retires after use, and `you`/`reply`/`say` form the exchange. The two are two
 views of one model and are mutually exclusive: when conversations is summoned the
 menu owns talking and the ask/tell topic dispatch steps aside.
 
-`summon.language "<name>"`. Localization. The language layer is one prelude,
-`<name>.prelude`, a full fork of `english.prelude` (its three sections: the
+`summon.language "<name>"`. Localization. English is the default language layer
+and lives in `english.prelude`. Every other language is a granule,
+`<name>.granule`, a full fork of `english.prelude` (its three sections: the
 English-specific parser hooks, the verb and direction vocabulary, and every
-message). This directive compiles the named layer in place of English, and
-exactly one language is built into a story; English is the default, and a plain
-game pays nothing for the others. A pack supplies its own verb words, its
-`direction` declarations, its article blocks, and its translated messages; the
-agnostic parser skeleton, scope, dispatch, and the action handlers are shared and
-untouched.
+message). This directive compiles the named granule in place of `english.prelude`,
+and exactly one language is built into a story; a plain game is English and pays
+nothing for the others. The granule is resolved like any summoned module (the
+story directory, then each `-L` directory, then the bundled copy), so a fork is
+picked up over the built-in one. A pack supplies its own verb words, its
+`direction` declarations, its article blocks, and its translated messages,
+including the framing the summonable granules print (the status line, the
+conversation menu); the agnostic parser skeleton, scope, dispatch, and the action
+handlers are shared and untouched.
 
 Two supports make a non-English pack possible. Accented text: the encoder writes
 each accented character with its Z-machine ZSCII code, so a e i o u with acute,
@@ -603,7 +607,7 @@ articles and adjectives on their own, with no author work; the author declares
 never reads the bit. `${the noun}` / `${a noun}` are lowered to a call to these
 article blocks precisely so a pack owns the article words.
 
-Spanish ships now (`cosmos/spanish.prelude`, informal tuteo); the worked example
+Spanish ships now (`cosmos/spanish.granule`, informal tuteo); the worked example
 is `examples/ejemplo-espanol.storyarc`. To fork a language, `arcc
 --eject-language` writes `english.prelude` out to translate. Packs are maintained
 alongside the main Cosmos sources.

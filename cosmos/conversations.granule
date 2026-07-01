@@ -74,7 +74,7 @@ block draw_menu(person, count)
     if top is 1
         status_bar()
     set_cursor(top + 1, 1)
-    show("Talk to ${the person} about:")
+    line_talk_header(person)
     let i = 0
     let n = 0
     while i < topics_count(person)
@@ -87,7 +87,7 @@ block draw_menu(person, count)
                 topic_label(person, i)
         change i to i + 1
     set_cursor(h - 1, 1)
-    show("Press a number to ask, or 0 to leave.")
+    line_talk_prompt()
     set_cursor(h, 1)
     let d = 1
     while d < w
@@ -143,9 +143,5 @@ block run_pick(person, pick)
                 return 0
         change i to i + 1
 
-// Wording (fork the granule to change it).
-block msg_no_topics()
-    say "You can't think of anything worth raising right now."
-
-block msg_talk_over()
-    say "You let the conversation rest there."
+// The conversation wording (line_talk_header, line_talk_prompt, msg_no_topics,
+// msg_talk_over) lives in the language layer so a pack translates it.

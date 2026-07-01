@@ -69,29 +69,8 @@ block status_bar()
     print_name(here)
     // Right, right-aligned: measure the text (status_digits, since the digit
     // counts vary) and start that many columns in from the edge.
-    if w < 54
-        // Compact: "Score: s/t". "Score: " is 7 and "/" is 1, so 8 fixed chars.
-        set_cursor(1, w - 8 - status_digits(score) - status_digits(turns))
-        show("Score: ")
-        show(score)
-        show("/")
-        show(turns)
-    else
-        // Full: "Score: n   Moves: n". "Score: " 7 + "   Moves: " 10 = 17 fixed.
-        set_cursor(1, w - 17 - status_digits(score) - status_digits(turns))
-        show("Score: ")
-        show(score)
-        show("   Moves: ")
-        show(turns)
+    // Right, right-aligned: the score and moves, painted by the language layer
+    // (line_status_score) so a pack sets its own labels and their widths.
+    line_status_score(w)
     set_style(0)
 
-// How many digits a non-negative number prints as (scores and turn counts stay
-// well under five). Used to right-align the score block without a string length.
-block status_digits(n)
-    if n < 10
-        return 1
-    if n < 100
-        return 2
-    if n < 1000
-        return 3
-    return 4

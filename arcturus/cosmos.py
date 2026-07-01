@@ -32,12 +32,12 @@ from .parser import parse
 # the loader intercepts as data, not runtime blocks (B6, _ABBREV_GRANULE below).
 _NON_GRANULE_FEATURES = {"language"}
 
-# The language layer is one prelude, `<code>.prelude`, and exactly one is compiled
-# into a build. English is the default; `summon.language "spanish"` swaps in
-# spanish.prelude in its place. The others are bundled but not loaded unless
-# selected, so a plain game is English and pays nothing for the alternates.
+# The language layer: English is the default and lives in english.prelude (always
+# loaded). Every other language is a granule, `<code>.granule`, compiled in place
+# of english.prelude when `summon.language "<code>"` selects it. So a plain game is
+# English and pays nothing for the alternates, and a language pack is forked and
+# shared exactly like any other granule.
 _DEFAULT_LANGUAGE = "english"
-_LANGUAGE_CODES = {"english", "spanish", "german"}
 
 # The Cosmos library version. It is independent of the compiler version: the
 # bundled library can move ahead of (or behind) arcc, and since the embedded
@@ -108,6 +108,28 @@ def _language_choice(game: ast.Program) -> str:
                 )
             chosen = code
     return chosen or _DEFAULT_LANGUAGE
+
+
+def _resolve_language(language: str, lib_dirs, story_dir):
+    """Find a language pack's granule, `<language>.granule`, and return (source,
+    srcname). Resolved like a summoned granule: the story directory, then each -L
+    directory, then the bundled copy, so a fork is picked up over the built-in
+    one. Raises ArcError when no such language is available."""
+    fname = language + ".granule"
+    roots = ([story_dir] if story_dir else []) + list(lib_dirs)
+    for root in roots:
+        path = os.path.join(root, fname)
+        if os.path.isfile(path):
+            with open(path, "r", encoding="utf-8") as fh:
+                return fh.read(), os.path.abspath(path)
+    bundled = granule_sources()
+    if fname in bundled:
+        return bundled[fname], fname
+    raise ArcError(
+        f"summon.language: no language '{language}' (looked for {fname} in the "
+        f"story directory, the -L directories, and the bundled granules)",
+        filename="<summon>",
+    )
 
 
 def extract_abbreviations(src: str, srcname: str) -> list:
@@ -292,21 +314,24 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
     game block overrides a granule block overrides a library block of the same
     name (most-specific-wins). lib_dirs and story_dir locate file summons."""
     language = _language_choice(game)
-    lang_file = language + ".prelude"
-    sources = prelude_sources()
-    if lang_file not in sources:
-        raise ArcError(
-            f"summon.language: no bundled language '{language}' "
-            f"(expected {lang_file})", filename="<summon>",
-        )
+    default_prelude = _DEFAULT_LANGUAGE + ".prelude"
     decls: list = []
-    for name, src in sources.items():
-        # Load the agnostic preludes plus the one selected language layer; skip the
-        # language preludes for other languages, so exactly one language is built.
-        base = name[: -len(".prelude")]
-        if base in _LANGUAGE_CODES and name != lang_file:
+    for name, src in prelude_sources().items():
+        # The default language layer (english.prelude) is dropped when another
+        # language replaces it; the rest of the preludes are agnostic and always
+        # load.
+        if language != _DEFAULT_LANGUAGE and name == default_prelude:
             continue
         for d in parse(src, name).decls:
+            if isinstance(d, ast.BlockDecl):
+                d.origin = "library"
+            decls.append(d)
+    # A non-default language is a granule, <language>.granule, resolved like any
+    # granule (the story directory, then each -L directory, then the bundled copy)
+    # and compiled in place of english.prelude as the base language layer.
+    if language != _DEFAULT_LANGUAGE:
+        src, srcname = _resolve_language(language, lib_dirs, story_dir)
+        for d in parse(src, srcname).decls:
             if isinstance(d, ast.BlockDecl):
                 d.origin = "library"
             decls.append(d)

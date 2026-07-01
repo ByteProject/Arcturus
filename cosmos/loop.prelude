@@ -182,3 +182,14 @@ block describe_room()
                         par()
                     change listed to 1
                     list_item(obj)
+
+// How many digits a non-negative number prints as (scores and turn counts stay
+// well under five). Used to right-align the score block without a string length.
+block status_digits(n)
+    if n < 10
+        return 1
+    if n < 100
+        return 2
+    if n < 1000
+        return 3
+    return 4

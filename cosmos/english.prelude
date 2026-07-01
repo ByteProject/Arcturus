@@ -754,6 +754,38 @@ block line_reply(speaker)
 block line_end()
     say "\""
 
+// Conversation menu framing (the conversations granule, docs/05). Held in the
+// language layer so a pack translates it; every block here is dropped by dead-code
+// elimination in a game that does not summon the menu.
+block line_talk_header(who)
+    show("Talk to ${the who} about:")
+
+block line_talk_prompt()
+    show("Press a number to ask, or 0 to leave.")
+
+block msg_no_topics()
+    say "You can't think of anything worth raising right now."
+
+block msg_talk_over()
+    say "You let the conversation rest there."
+
+// The status line's score side (the statusline granule): the score and the move
+// count, right-aligned, in the language's own words and widths. status_digits is a
+// core helper, so this compiles whether or not the granule is summoned.
+block line_status_score(w)
+    if w < 54
+        set_cursor(1, w - 8 - status_digits(score) - status_digits(turns))
+        show("Score: ")
+        show(score)
+        show("/")
+        show(turns)
+    else
+        set_cursor(1, w - 17 - status_digits(score) - status_digits(turns))
+        show("Score: ")
+        show(score)
+        show("   Moves: ")
+        show(turns)
+
 // Room and light.
 block msg_dark_room()
     say "Pitch black. Even your hands have gone missing."
