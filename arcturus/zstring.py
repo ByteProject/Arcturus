@@ -37,6 +37,23 @@ from __future__ import annotations
 _A2_PUNCT = "0123456789.,!?_#'\"/\\-:()"
 assert len(_A2_PUNCT) == 24  # fills Z-chars 8..31
 
+# The Z-machine default accented-character set: ZSCII codes 155..223 map to these
+# Unicode characters (Standard 1.1 section 3.8.5). Every conformant interpreter
+# renders them without a custom Unicode-translation table, so an accented letter
+# is written with the A2 escape and its ZSCII code from here, not its raw Unicode
+# code point. This covers Spanish (a e i o u with acute, u-diaeresis, n-tilde, the
+# inverted marks), German (a o u umlaut, sharp s), French, and the rest.
+_DEFAULT_ZSCII = (
+    "äöüÄÖ" "Üß»«ë" "ïÿËÏá" "éíóúý" "ÁÉÍÓÚ" "Ýàèìò" "ùÀÈÌÒ" "Ùâêîô"
+    "ûÂÊÎÔ" "ÛåÅøØ" "ãñõÃÑ" "ÕæÆçÇ" "þðÞÐ£" "œŒ¡¿"
+)
+assert len(_DEFAULT_ZSCII) == 69  # ZSCII 155..223 inclusive
+_UNICODE_TO_ZSCII = {c: 155 + i for i, c in enumerate(_DEFAULT_ZSCII)}
+# Spot-check the anchors spread across the range, so a mistyped run is caught here.
+assert _UNICODE_TO_ZSCII["ä"] == 155 and _UNICODE_TO_ZSCII["ß"] == 161
+assert _UNICODE_TO_ZSCII["á"] == 169 and _UNICODE_TO_ZSCII["ñ"] == 206
+assert _UNICODE_TO_ZSCII["¡"] == 222 and _UNICODE_TO_ZSCII["¿"] == 223
+
 # The abbreviation set in force for the current compilation. _ACTIVE is the
 # author-facing order (index k is abbreviation k); _MATCHERS is the same set
 # sorted longest-first as (text, bank, offset) so encode() greedily prefers the
@@ -98,9 +115,11 @@ def _char_to_zchars(c: str) -> list[int]:
     idx = _A2_PUNCT.find(c)
     if idx >= 0:
         return [5, idx + 8]
-    # Anything else: the A2 escape and a 10-bit ZSCII code (its byte value for
-    # ZSCII 32..1023; non-representable characters fall back to '?').
-    z = ord(c)
+    # Anything else: the A2 escape and a 10-bit ZSCII code. An accented character
+    # in the default set uses its ZSCII code (155..223), not its Unicode code
+    # point, so interpreters render it. Otherwise the raw value, for ZSCII 32..1023;
+    # a non-representable character falls back to '?'.
+    z = _UNICODE_TO_ZSCII.get(c, ord(c))
     if z > 0x3FF:
         z = ord("?")
     return [5, 6, (z >> 5) & 0x1F, z & 0x1F]

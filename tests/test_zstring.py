@@ -47,3 +47,16 @@ def test_end_bit_set_on_last_word():
 def test_string_length_is_word_aligned():
     for s in ("", "a", "ab", "abc", "abcd"):
         assert len(zstring.encode(s)) % 2 == 0
+
+
+def test_accented_chars_use_default_zscii_codes():
+    # An accented character in the Z-machine default set is written with the A2
+    # escape (Z-chars 5, 6) and its ZSCII code, not its Unicode code point, so a
+    # conformant interpreter renders it. a-acute is ZSCII 169, not Unicode 225.
+    assert zstring._char_to_zchars("á") == [5, 6, 169 >> 5, 169 & 0x1F]
+    assert zstring._char_to_zchars("ñ") == [5, 6, 206 >> 5, 206 & 0x1F]
+    assert zstring._char_to_zchars("ü") == [5, 6, 157 >> 5, 157 & 0x1F]
+    assert zstring._char_to_zchars("¿") == [5, 6, 223 >> 5, 223 & 0x1F]
+    assert zstring._char_to_zchars("¡") == [5, 6, 222 >> 5, 222 & 0x1F]
+    # A whole Spanish string encodes without falling back to '?'.
+    assert zstring.encode("¿La lámpara está aquí?")
