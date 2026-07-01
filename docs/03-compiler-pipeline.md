@@ -100,6 +100,11 @@ Options:
 
 - `-o FILE`, `--output FILE`: write the story file to FILE. Without it the
   compiler parses and reports only.
+- `--zversion {5,8}`: the Z-machine version to target. The default is 5, the
+  standard: a plain compile with no version flag produces a z5 story file. Pass
+  `--zversion 8` for a version 8 target, which raises the story-file ceiling to
+  512KB (from the z5 256KB) for a large, modern-only release. The story source is
+  identical for both.
 - `-L DIR`, `--lib DIR`: add an absolute directory to the search path for granule
   (`.granule`) files a story summons by name; repeatable. Used to compile against
   a forked library (section 5, docs/05). A relative `-L` is rejected.
@@ -125,11 +130,10 @@ Options:
 Exit status: 0 on success, 1 on a source error (parse or analysis, with a
 formatted diagnostic), 2 on a usage or I/O error.
 
-The `--zversion` flag selects the Z-machine target, 5 (the default) or 8. Version
-8 is for a large modern-only release: it raises the story-file size limit to 512KB
-(from the z5 256KB). The generated code is identical; only the header version
+z5 and z8 share their instruction set and story image; only the header version
 byte, the file-length scale, and the packed-address unit (4 for z5, 8 for z8)
-differ, and the story source never changes.
+differ, so `--zversion` changes those three things and nothing about code
+generation.
 
 ## 5. Cosmos, overriding, and the library search
 
