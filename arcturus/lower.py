@@ -51,8 +51,11 @@ INTRINSICS = frozenset({
     "word_count", "word_dict", "word_len", "word_pos", "call_handler",
     "handler_of", "parent_of", "words_addr", "words_count",
     # spans_addr / spans_count expose an object's spans array (the extra rooms it
-    # is in scope in), the same shape as words, so scope can walk it.
-    "spans_addr", "spans_count",
+    # is in scope in), the same shape as words, so scope can walk it. any_spans is
+    # a compile-time flag (1 if any object spans, else 0) the scope code guards on,
+    # so `if any_spans() is 1` folds away and DCE drops the spans blocks when no
+    # object spans (a static-if, see _if).
+    "spans_addr", "spans_count", "any_spans",
     # The turn loop fires life-cycle events: run_free runs the free rules for an
     # action, and ev_* name the event action numbers (start, enter, each_turn).
     # tick_timers counts down the after/every schedule once per turn.
@@ -658,6 +661,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("get_prop_len", Variable(STACK), store=Variable(STACK))
         rt.op("div", Variable(STACK), Const(2), store=dest)
         _free(ctx, t)
+    elif name == "any_spans":
+        # any_spans(): the compile-time spans flag (1 or 0). Normally consumed by a
+        # static `if any_spans() is 1`, folded away in _if; lowered here as a plain
+        # constant for any other use.
+        _place(rt, Const(_any_spans(ctx)), dest)
     elif name == "topics_count":
         # topics_count(person): how many topics the person has (0 if none).
         eval_expr(rt, ctx, args[0], Variable(STACK))
@@ -711,6 +719,13 @@ def _spans_prop(ctx) -> int:
     if ctx.layout is None or "spans" not in ctx.layout.prop_number:
         raise LowerError("spans_addr/spans_count need the object table with a spans property")
     return ctx.layout.prop_number["spans"]
+
+
+def _any_spans(ctx) -> int:
+    """The compile-time spans flag: 1 if any non-movable object declares `spans`,
+    else 0. The scope code guards its spans checks on this so they fold away when
+    unused (see _static_cond / _if)."""
+    return 1 if (ctx.layout is not None and ctx.layout.has_spans) else 0
 
 
 def _word_index(rt, ctx, expr, scale, base):
@@ -1194,27 +1209,65 @@ def _print_indefinite(rt, ctx, op, cap):
     rt.label(done)
 
 
+def _static_value(ctx, expr):
+    """The compile-time integer value of expr, or None if it is not statically
+    known. Covers literals and the compile-time flag intrinsics (any_spans), so a
+    guard like `if any_spans() is 1` can be decided at compile time."""
+    if isinstance(expr, ast.Number):
+        return expr.value
+    if isinstance(expr, ast.Bool):
+        return 1 if expr.value else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_spans":
+        return _any_spans(ctx)
+    return None
+
+
+def _static_cond(ctx, expr):
+    """True/False if the condition is statically decidable, else None. Only an
+    equality of two statically-known values folds (a property or kind test has a
+    name on the right, which is not a static value, so it never folds here)."""
+    if isinstance(expr, ast.IsTest):
+        a = _static_value(ctx, expr.left)
+        b = _static_value(ctx, expr.right)
+        if a is not None and b is not None:
+            eq = a == b
+            return (not eq) if expr.negated else eq
+    return None
+
+
 def _if(rt, ctx, s: ast.If) -> bool:
     """Returns True if the whole if/else unconditionally terminates: there is an
     else and every clause body terminates, so no path falls through to `end`. A
     clause body that terminates also needs no jump to `end` (that jump would be
-    dead), so it is skipped."""
+    dead), so it is skipped.
+
+    A clause whose condition is statically decidable folds: a statically-false
+    clause emits nothing, and a statically-true clause is taken unconditionally
+    (later clauses are then dead). This is what lets `if any_spans() is 1` drop
+    away, so an unused feature's code is never emitted and DCE reclaims it."""
     end = ctx.new_label()
     has_else = False
     all_terminate = True
     for clause in s.clauses:
-        if clause.cond is None:
+        st = None if clause.cond is None else _static_cond(ctx, clause.cond)
+        if st is False:
+            continue  # statically dead: emit nothing
+        if clause.cond is None or st is True:
+            # An else, or a statically-true clause: taken unconditionally, and no
+            # later clause can run. Call compile_block first (do not fold it into
+            # the `and`, which would short-circuit the body away once a prior
+            # clause has already fallen through).
             has_else = True
             term = compile_block(rt, ctx, clause.body)
             all_terminate = all_terminate and term
-        else:
-            nxt = ctx.new_label()
-            cond_jump(rt, ctx, clause.cond, nxt, False)
-            term = compile_block(rt, ctx, clause.body)
-            if not term:
-                rt.jump(end)  # only needed when the body can fall through
-            all_terminate = all_terminate and term
-            rt.label(nxt)
+            break
+        nxt = ctx.new_label()
+        cond_jump(rt, ctx, clause.cond, nxt, False)
+        term = compile_block(rt, ctx, clause.body)
+        if not term:
+            rt.jump(end)  # only needed when the body can fall through
+        all_terminate = all_terminate and term
+        rt.label(nxt)
     rt.label(end)
     return has_else and all_terminate
 

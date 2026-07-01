@@ -63,8 +63,11 @@ block in_scope(obj)
         return 0
     if obj is here
         return 1
-    if spans_here(obj)
-        return 1
+    // Spanning objects are checked only in a game that has any; the guard folds
+    // away and the spans blocks drop out otherwise (docs/01 section 5).
+    if any_spans() is 1
+        if spans_here(obj)
+            return 1
     let p = parent_of(obj)
     if p is here
         return 1
