@@ -358,9 +358,22 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     topics_prop = layout.prop_number.get("topics")
     if topics_prop is not None and world.objects[name].topics:
         items.append((topics_prop, "topics", None))
+    # The spans property: the extra rooms a fixed object is in scope in. Emitted
+    # like `words` (an array of object numbers) but only for a non-movable object
+    # (fixed or scenery); on a movable object spans is ignored (docs/01 section 5).
+    spans_prop = layout.prop_number.get("spans")
+    obj_spans = world.objects[name].spans
+    nonmovable = ("fixed" in eff and _bool_value(eff["fixed"])) or (
+        "scenery" in eff and _bool_value(eff["scenery"])
+    )
+    if spans_prop is not None and obj_spans and nonmovable:
+        items.append((spans_prop, "spans", obj_spans))
     for pnum, pname, decl in sorted(items, reverse=True, key=lambda it: it[0]):
         if pname == "words":
             _emit_words(layout, pnum, decl)
+            continue
+        if pname == "spans":
+            _emit_spans(layout, pnum, decl)
             continue
         table.append(0x40 | pnum)  # bit 6 = two data bytes; low bits = number
         data_at = len(table)
@@ -416,6 +429,19 @@ def _emit_words(layout: Layout, pnum: int, words: list) -> None:
         data_at = len(layout.table)
         layout.table += b"\x00\x00"
         layout.word_fixups.append((data_at, w))
+
+
+def _emit_spans(layout: Layout, pnum: int, room_names: list) -> None:
+    """The spans property: an array of room object numbers (two bytes each), the
+    extra rooms this object is in scope in. Same two-byte size form as `words`,
+    but each entry is a room's object number, known now, so no fixup is needed."""
+    length = len(room_names) * 2
+    layout.table.append(0x80 | pnum)
+    layout.table.append(0x80 | (length & 0x3F))
+    for rname in room_names:
+        num = layout.obj_number.get(rname, 0)
+        layout.table.append((num >> 8) & 0xFF)
+        layout.table.append(num & 0xFF)
 
 
 def _fill_property(world, layout, pname, decl, data_at) -> None:

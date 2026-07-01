@@ -117,6 +117,7 @@ class Analyzer:
                     decl.category,
                     decl.parent or decl.category,
                     location=decl.location,
+                    spans=list(decl.spans),
                     decl=decl,
                     line=decl.line,
                 )
@@ -182,6 +183,18 @@ class Analyzer:
                     f"'{obj.name}' is of unknown kind '{obj.kind}'", obj.line
                 )
             obj.chain = self._chain(obj.kind, obj.line)
+            # A spanned name must be a declared room (docs/01 section 5): the
+            # object is visible from each of these rooms as well as its own.
+            for rname in obj.spans:
+                target = w.objects.get(rname)
+                if target is None:
+                    raise self._error(
+                        f"'{obj.name}' spans unknown room '{rname}'", obj.line
+                    )
+                if target.category != "room":
+                    raise self._error(
+                        f"'{obj.name}' spans '{rname}', which is not a room", obj.line
+                    )
 
     def _chain(self, start: str, line: int) -> list[str]:
         chain: list[str] = []

@@ -282,11 +282,34 @@ class Parser:
         location = None
         if self.accept_kw("of"):
             parent = self._kind_name("a kind name")
+        spans: list[str] = []
         if self.accept_kw("in"):
             location = self._object_ref_name("a location name")
+            # `in hall, livingroom` or `in hall and livingroom`: the extra rooms
+            # are spanned (the object lives in the first and is in scope in all).
+            while self.check_op(",") or self.check_kw("and"):
+                self.advance()
+                spans.append(self._object_ref_name("a room name"))
         self.expect_newline()
         members = self.parse_members()
-        return ast.ObjectDecl(category, name, parent, location, members, line)
+        # A `spans a, b, c` member folds into the same spans list (and is not a
+        # real property): pull it out of the members here.
+        kept: list[ast.Member] = []
+        for m in members:
+            if isinstance(m, ast.PropertyDecl) and m.name == "spans":
+                if m.form != ast.PROP_VALUE or not m.values:
+                    raise self._error("`spans` needs one or more room names", m.line)
+                for v in m.values:
+                    if not isinstance(v, ast.Name):
+                        raise self._error("`spans` takes room names", m.line)
+                    spans.append(v.ident)
+            else:
+                kept.append(m)
+        # A spanning object with no `in` lives in the first room it spans (its
+        # tree home); it is in scope in all of them either way.
+        if location is None and spans:
+            location = spans[0]
+        return ast.ObjectDecl(category, name, parent, location, kept, line, spans)
 
     def parse_kind(self) -> ast.KindDecl:
         line = self.cur.line

@@ -50,6 +50,9 @@ INTRINSICS = frozenset({
     "read_line", "peek_byte", "peek_word", "poke_byte", "poke_word",
     "word_count", "word_dict", "word_len", "word_pos", "call_handler",
     "handler_of", "parent_of", "words_addr", "words_count",
+    # spans_addr / spans_count expose an object's spans array (the extra rooms it
+    # is in scope in), the same shape as words, so scope can walk it.
+    "spans_addr", "spans_count",
     # The turn loop fires life-cycle events: run_free runs the free rules for an
     # action, and ev_* name the event action numbers (start, enter, each_turn).
     # tick_timers counts down the after/every schedule once per turn.
@@ -643,6 +646,18 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("get_prop_len", Variable(STACK), store=Variable(STACK))
         rt.op("div", Variable(STACK), Const(2), store=dest)
         _free(ctx, t)
+    elif name == "spans_addr":
+        # spans_addr(obj): the address of the object's spans array (0 if none).
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("get_prop_addr", op, Const(_spans_prop(ctx)), store=dest)
+        _free(ctx, t)
+    elif name == "spans_count":
+        # spans_count(obj): how many rooms the object spans (array length / 2).
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("get_prop_addr", op, Const(_spans_prop(ctx)), store=Variable(STACK))
+        rt.op("get_prop_len", Variable(STACK), store=Variable(STACK))
+        rt.op("div", Variable(STACK), Const(2), store=dest)
+        _free(ctx, t)
     elif name == "topics_count":
         # topics_count(person): how many topics the person has (0 if none).
         eval_expr(rt, ctx, args[0], Variable(STACK))
@@ -690,6 +705,12 @@ def _words_prop(ctx) -> int:
     if ctx.layout is None or "words" not in ctx.layout.prop_number:
         raise LowerError("words_addr/words_count need the object table with a words property")
     return ctx.layout.prop_number["words"]
+
+
+def _spans_prop(ctx) -> int:
+    if ctx.layout is None or "spans" not in ctx.layout.prop_number:
+        raise LowerError("spans_addr/spans_count need the object table with a spans property")
+    return ctx.layout.prop_number["spans"]
 
 
 def _word_index(rt, ctx, expr, scale, base):
