@@ -50,11 +50,27 @@ on take noun
     say "Taken."
 ```
 
-Cosmos ships as a set of library files, each with the `.prelude` extension (for
-example `cosmos/world.prelude`, `cosmos/verbs.prelude`, `cosmos/parser.prelude`,
-`cosmos/banner.prelude`). The build includes them unless the author supplies
-their own copies, which is how a wholesale fork works. Dead-code elimination ensures unused Cosmos verbs
-and properties never reach the story file.
+Cosmos ships as a set of library files, each with the `.prelude` extension. The
+split follows one line: what is specific to the English language, versus what is
+not.
+
+- `english.prelude` is **the language layer**: everything English lives in this
+  one file, in three documented parts (the parser hooks that read English, the
+  standard verb words and grammar, and every message shown to the player). A
+  translation is a fork of this file alone; `arcc --eject-language` writes it out
+  (section 8, docs/05).
+- `actions.prelude` holds the **standard action handlers**, the behaviour behind
+  each verb. It is language-agnostic: no words, no wording, only logic that works
+  on the normalized slots the parser fills (`noun`, `second`, `way`, the action),
+  so it is identical in every language and a translator never touches it.
+- `parser.prelude` is the **agnostic parser skeleton** that drives the language
+  hooks; `scope.prelude`, `dispatch.prelude`, `loop.prelude`, and `core.prelude`
+  are the scope rules, the action pipeline, the turn loop, and the base
+  environment, all agnostic.
+
+The build includes them unless the author supplies their own copies, which is how
+a wholesale fork works. Dead-code elimination ensures unused Cosmos verbs and
+properties never reach the story file.
 
 ## 2. Runtime globals and story metadata
 

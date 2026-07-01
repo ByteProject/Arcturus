@@ -37,4 +37,6 @@ block parse()
     resolve_objects()
     if parse_fault is not 0
         return 0
-    return act
+    // A language may remap the action now the nouns are known (English turns
+    // LOOK <noun> into an examine); the seam lives in the language layer.
+    return remap_action(act)
