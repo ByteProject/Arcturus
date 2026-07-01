@@ -225,18 +225,21 @@ You write the same `change ... to ...` and `is` either way; the bit-or-slot
 choice is invisible.
 
 Computed properties. A property whose value is a `block` is evaluated by
-running the block when the property is read. The block may `say` text
-directly or `return` a value; when Cosmos prints such a property (for example
-a room `desc`), it prints the returned text, or relies on the block's own
-`say` if the block returns nothing.
+running the block when the property is read. The block `say`s its own text;
+reading the property (for example when Cosmos prints a room `desc`) runs the
+block, and whatever it says is what the property prints. This is text only: a
+computed `desc` is the headline use, and a computed value property (a number
+or object decided at run time) is reported as a compile error, because a read
+cannot tell a small value apart from the block's address.
 
 ```
 room cellar
     name "Cellar"
     desc block
         if here is lit
-            return "A damp cellar of black stone."
-        return "Pitch black. You feel cold stone underfoot."
+            say "A damp cellar of black stone."
+        else
+            say "Pitch black. You feel cold stone underfoot."
 ```
 
 Boundaries the compiler enforces:
