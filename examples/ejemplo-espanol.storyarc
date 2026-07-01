@@ -1,0 +1,93 @@
+// ejemplo-espanol.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// Un ejemplo en espanol, para mostrar el paquete de idioma de Cosmos. Se elige
+// con `summon.language "spanish"`, que compila la capa espanola en lugar de la
+// inglesa: los verbos, las direcciones, los articulos y todos los mensajes salen
+// en espanol, con las tildes y la enye correctas. Compila y juega:
+//
+//   arcc examples/ejemplo-espanol.storyarc -o ejemplo.z5
+//   frotz ejemplo.z5
+//
+// Prueba, por orden:
+//   mirar                describe la cocina
+//   coger lampara        "Cogida." (la lampara es femenina, concuerda sola)
+//   examinar libro       el genero se deduce del nombre, sin declararlo
+//   abrir cofre          "Abierto." y aparece la llave
+//   coger llave          "Cogida."
+//   este                 la puerta esta cerrada con llave
+//   destrancar puerta con llave    "Abres con llave."
+//   abrir puerta         "Abierta." (la puerta es femenina, concuerda sola)
+//   este                 sales al jardin
+//   hablar con gato      el gato tiene su propia respuesta
+//
+// El genero es automatico: -a es femenino, -o masculino, y sufijos como -cion o
+// -dad tambien son femeninos. Solo hay que declararlo cuando la palabra no lo
+// revela: aqui `la llave` lleva un `feminine` (termina en -e). Es lo unico
+// escrito a mano en todo el juego.
+
+summon.language "spanish"
+
+game
+    title  "La Llave de Bronce"
+    headline "Un ejemplo en espanol"
+    author "Stefan Vogt"
+    start  cocina
+
+room cocina
+    name "La Cocina"
+    desc "Una cocina pequena de piedra. Un cofre de madera descansa en el suelo.
+          Una puerta de roble da al este, al jardin."
+    east puerta
+
+room jardin
+    name "El Jardin"
+    desc "Un jardin en penumbra, con hierba alta y un gato tumbado al sol. La
+          casa queda al oeste."
+    west puerta
+
+// El cofre: contenedor con tapa. La llave espera dentro.
+thing cofre of container in cocina
+    name "cofre de madera"
+    words cofre, madera, arca
+    openable
+    open false
+
+// La llave: termina en -e, asi que su genero no esta en la palabra. Es la unica
+// declaracion de genero del juego.
+thing llave in cofre
+    name "llave de bronce"
+    words llave, bronce
+    feminine
+
+// La lampara (femenina, se deduce de -a) y el libro (masculino, de -o): ninguno
+// necesita que se le diga el genero.
+thing lampara in cocina
+    name "lampara de aceite"
+    words lampara, aceite
+
+thing libro in cocina
+    name "libro rojo"
+    words libro, rojo
+    desc "Un viejo libro de tapas rojas. Nadie recuerda de que trata."
+
+// La puerta une las dos habitaciones (spans) y se abre con la llave. Por
+// defecto es `openable` y `fixed` por ser de tipo door.
+thing puerta of door in cocina, jardin
+    name "puerta de roble"
+    words puerta, roble
+    lockable
+    locked
+    unseal_with llave
+
+// Un personaje con una respuesta propia al hablar.
+thing gato of character in jardin
+    name "gato atigrado"
+    words gato, atigrado
+
+    on talk
+        say "El gato entreabre un ojo, decide que no vales la pena y sigue
+             durmiendo."
+        stop
