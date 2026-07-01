@@ -108,6 +108,11 @@ class Layout:
     # ${the noun} only needs its runtime named-check when this holds, so a game
     # with no named objects pays nothing for it.
     has_named: bool = False
+    # True if any (non-movable) object declares `spans`. The scope code guards its
+    # spans checks with `any_spans()`, which folds to this; a game with no spanning
+    # objects folds the checks away and dead-code elimination drops the spans
+    # blocks, so it pays nothing for the feature.
+    has_spans: bool = False
 
 
 def _effective_props(world: wm.World, obj: wm.Obj) -> dict:
@@ -177,6 +182,18 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
             if decl is not None and _bool_value(decl):
                 layout.has_named = True
                 break
+
+    # Does any non-movable object declare `spans`? Only then does the scope code
+    # keep its spans checks (any_spans folds to this); otherwise they cost nothing.
+    for name, obj in world.objects.items():
+        if not obj.spans:
+            continue
+        eff = _effective_props(world, obj)
+        if ("fixed" in eff and _bool_value(eff["fixed"])) or (
+            "scenery" in eff and _bool_value(eff["scenery"])
+        ):
+            layout.has_spans = True
+            break
 
     # Kinds get attributes too, so `obj is <kind>` lowers to a test_attr: an
     # object carries the attribute of every kind in its chain (B4.5c).

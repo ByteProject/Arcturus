@@ -162,10 +162,12 @@ block scope_match(target)
     if held is not nothing
         return held
     // An object that spans this room (a door reaching in from the far side, a
-    // piece of scenery visible from here) is in scope but not in the tree.
-    let spanned = spans_match(target)
-    if spanned is not nothing
-        return spanned
+    // piece of scenery visible from here) is in scope but not in the tree. The
+    // guard folds away in a game with no spanning objects (docs/01 section 5).
+    if any_spans() is 1
+        let spanned = spans_match(target)
+        if spanned is not nothing
+            return spanned
     // Nothing within reach. Is it something the player knows is shut inside a
     // closed container here or carried? Return it, and note what must be opened,
     // so the action can answer "open it first" rather than "you can't see that".
