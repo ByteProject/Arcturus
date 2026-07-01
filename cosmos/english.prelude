@@ -739,6 +739,9 @@ block msg_taken()
 block msg_fixed()
     say "${The noun} stays exactly where it is."
 
+block msg_animate_refuses()
+    say "${The noun} has other ideas."
+
 block msg_have_it()
     say "You already have ${the noun}."
 

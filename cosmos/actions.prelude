@@ -44,6 +44,9 @@ on take
     if noun is fixed
         msg_fixed()
         stop
+    if noun is animate
+        msg_animate_refuses()
+        stop
     if player holds noun
         msg_have_it()
         stop
