@@ -471,6 +471,16 @@ class VerbDecl:
 
 
 @dataclass
+class DirectionDecl:
+    # A language layer maps player-facing words to a fixed direction property:
+    # `direction north "north", "n"`. The property (`prop`) is one of the standard
+    # direction names; the words are the vocabulary. Localized by a language pack.
+    prop: str
+    words: list[str]
+    line: int = 0
+
+
+@dataclass
 class GlobalDecl:
     name: str
     value: Expr

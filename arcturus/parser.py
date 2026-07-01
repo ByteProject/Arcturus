@@ -167,6 +167,8 @@ class Parser:
             return self.parse_block_decl()
         if t.is_kw("on"):
             return self.parse_handler()
+        if t.kind == T.NAME and t.value == "direction":
+            return self.parse_direction()
         if t.kind == T.NAME:
             return self.parse_grains_attach()
         raise self._error(
@@ -529,6 +531,24 @@ class Parser:
             grammar.append(self._parse_grammar_line())
         self.expect(T.DEDENT)
         return ast.VerbDecl(words, grammar, line)
+
+    def parse_direction(self) -> ast.DirectionDecl:
+        # `direction north "north", "n"`: map words to a standard direction
+        # property. `direction` is not a reserved word (it is also a grammar slot),
+        # so it is dispatched here as a leading name.
+        line = self.cur.line
+        self.advance()  # the leading `direction`
+        # The property is a direction name; `in` is a keyword, so accept a keyword
+        # too and let sema check it is actually a direction.
+        if self.cur.kind not in (T.NAME, T.KW):
+            raise self._error("a direction property name after 'direction'")
+        prop = self.advance().value
+        words = [self._plain_text(self.expect(T.STRING, "a direction word"))]
+        while self.check_op(","):
+            self.advance()
+            words.append(self._plain_text(self.expect(T.STRING, "a direction word")))
+        self.expect_newline()
+        return ast.DirectionDecl(prop, words, line)
 
     def _parse_grammar_line(self) -> ast.GrammarLine:
         line = self.cur.line

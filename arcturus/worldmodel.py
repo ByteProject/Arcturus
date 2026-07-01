@@ -169,6 +169,9 @@ class World:
     properties: dict[str, Property] = field(default_factory=dict)
     verbs: list[Verb] = field(default_factory=list)
     actions: set[str] = field(default_factory=set)
+    # Player-facing direction word -> standard direction property name, from the
+    # language layer's `direction` declarations (docs/01). Localized by a pack.
+    directions: dict[str, str] = field(default_factory=dict)
     globals: dict[str, Global] = field(default_factory=dict)
     constants: dict[str, Constant] = field(default_factory=dict)
     blocks: dict[str, Block] = field(default_factory=dict)
