@@ -16,7 +16,7 @@ Last updated: 2026-06-30.
 | B3 | Z-machine backend MVP (smallest valid story file) | done |
 | B4 | Cosmos compiled: parser, turn loop, standard verbs | done |
 | B5 | Feature-complete library and a fair benchmark | done (library); B6 measures the benchmark |
-| B6 | Size pass (DCE, abbreviations, codegen) | core done (DCE, abbrevs, codegen); opt-in --make-abbreviations left |
+| B6 | Size pass (DCE, abbreviations, codegen) | done |
 | B7 | Language packs (Spanish, German) | pending |
 | B8 | The reference interpreter, Actaea | pending |
 | B9 | arc_image on modern systems (PNG) | pending |
@@ -156,9 +156,23 @@ stop/finish/continue, or if/else all-terminating); stops emitting after a
 terminator, _if drops the dead jump-to-end, codegen omits the default return after
 a terminating body. CUMULATIVE B6.3: cloak 12528->11324 (~11.3K), brass 11768->10620,
 interrogation 16480->15092 (~1.2K/game). All 247 tests pass; cloak reaches "*** You
-have won ***" on Frotz, topic/menu examples verified by hand. REMAINING B6 (optional,
-separate): the opt-in --make-abbreviations per-game pass (encoder + optimizer done;
-needs the CLI flag + granule writer + summon interception).
+have won ***" on Frotz, topic/menu examples verified by hand.
+
+B6 COMPLETE. The opt-in --make-abbreviations pass landed (committed 6780d8c): arcc
+--make-abbreviations game.storyarc harvests the story + its summoned granules
+(codegen.harvest_strings, abbreviations off so raw text), runs abbrev.compute to 96,
+writes abbreviations.granule beside the story. Summoned BY NAME (summon
+abbreviations.granule); cosmos.combined_program intercepts it, lexes out the string
+literals (extract_abbreviations, not runtime blocks), threads them via
+ast.Program.abbreviations -> sema -> wm.World.abbreviations -> codegen
+_abbreviations_for. Round-trips exactly (4 string escapes; a whitespace-run entry is
+dropped, not corrupted). MODEL CORRECTION (Stefan): text compression is NOT a dotted
+feature - the standard set is always applied; `summon.abbreviations` removed and now
+errors with a hint. docs/05 s.7 is the dedicated abbreviations entry; docs 00/01/02/
+03/04 + README aligned. 252 tests (tests/test_make_abbreviations.py). Tuned vs default
+example deltas are modest (~100-200 B) since the default already covers universal
+text; the tuned set pays off on large prose-heavy games. B6 benchmark met: cloak
+11324 (~11.3K) << Puny 27K, < NAIL 12.5K.
 
 BUILD/TEST + HARD RULES (carry these): rebuild amalgam `python3
 tools/amalgamate.py build/arcc`; rebuild example .z5 after any cosmos/ change;
