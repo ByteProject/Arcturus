@@ -52,7 +52,9 @@ INTRINSICS = frozenset({
     "handler_of", "parent_of", "words_addr", "words_count",
     # The turn loop fires life-cycle events: run_free runs the free rules for an
     # action, and ev_* name the event action numbers (start, enter, each_turn).
+    # tick_timers counts down the after/every schedule once per turn.
     "run_free", "ev_start", "ev_enter", "ev_each_turn", "action_id", "run_grain",
+    "tick_timers",
     # show prints without a trailing newline (say always adds one); print_name
     # prints an object's short name (so messages can name a passed-in object).
     "show", "print_name",
@@ -475,6 +477,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         eval_expr(rt, ctx, args[0], Variable(STACK))  # id (local 1)
         rt.op("call_vs", RoutineRef("grain_dispatch"),
               Variable(STACK), Variable(STACK), store=dest)
+    elif name == "tick_timers":
+        # tick_timers(): count down the after/every schedule once, firing what is
+        # due (schedule_tick, emitted by codegen; empty when nothing is scheduled).
+        rt.op("call_vn", RoutineRef("schedule_tick"))
+        _place(rt, Const(0), dest)
     elif name in ("ev_start", "ev_enter", "ev_each_turn"):
         # The event's action number, so the loop can fire it through react.
         evname = name[3:]
@@ -892,7 +899,7 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
     elif isinstance(s, ast.ForEach):
         _for_each(rt, ctx, s)
     elif isinstance(s, ast.Schedule):
-        raise LowerError("scheduling needs the turn loop (B4.5)", s.line)
+        _schedule(rt, ctx, s)
     else:
         raise LowerError("unsupported statement in B4.2", getattr(s, "line", 0))
     return False  # the statement falls through to whatever follows
@@ -1152,6 +1159,23 @@ def _if(rt, ctx, s: ast.If) -> bool:
             rt.label(nxt)
     rt.label(end)
     return has_else and all_terminate
+
+
+def _schedule(rt, ctx, s: ast.Schedule):
+    """Arm a timer (docs/02 section 13). `after N turns do B` sets B's slot to a
+    countdown of N and a reload of 0 (fires once); `every N turns do B` sets both to
+    N (fires every N turns). The slot is fixed at compile time; the table base is the
+    __timers__ global. Re-running the statement re-arms the same slot from now."""
+    slot = ctx.world.schedule_index[s.event]
+    tg = ctx.globals["__timers__"]
+    t = ctx.alloc_temp()
+    eval_expr(rt, ctx, s.count, Variable(t))
+    rt.op("storew", Variable(tg), Const(slot * 2), Variable(t))  # countdown = N
+    if s.every:
+        rt.op("storew", Variable(tg), Const(slot * 2 + 1), Variable(t))  # reload = N
+    else:
+        rt.op("storew", Variable(tg), Const(slot * 2 + 1), Const(0))  # reload = 0
+    ctx.free_temp(t)
 
 
 def _is_list_source(ctx, source) -> bool:

@@ -130,7 +130,8 @@ block fire_enter()
             call_handler(r, ev_enter())
 
 // The per-turn pulse: the room's `on each_turn`, then any free `on each_turn`
-// rules. Their `when` guards are compiled into the handlers themselves.
+// rules, then the after/every schedule. Their `when` guards are compiled into the
+// handlers themselves; the schedule counts down and fires anything now due.
 block fire_turn()
     if here is not nothing
         let r = handler_of(here)
@@ -139,6 +140,8 @@ block fire_turn()
             call_handler(r, ev_each_turn())
     par()
     run_free(ev_each_turn())
+    par()
+    tick_timers()
 
 // Describe the current room: its name, its description, and what it contains.
 block describe_room()

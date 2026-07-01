@@ -312,6 +312,9 @@ _BUILTIN_GLOBALS = [
     # shut_in holds the closed container a named object is known to be inside but
     # shut away in, so the loop can answer "open it first" instead of "can't see".
     "shut_in",
+    # __timers__ holds the base address of the scheduling table (after/every), set
+    # at startup; 0 when the story schedules nothing.
+    "__timers__",
 ]
 
 
@@ -353,6 +356,12 @@ def build_story(
             sf.set_word(objects_addr + ptr_pos, objects_addr + target)
     else:
         objects_addr = sf.append(bytes(_PROP_DEFAULTS_BYTES))
+
+    # The scheduling table for after/every: two words per slot (a countdown and a
+    # reload), zeroed so every timer starts disarmed. It lives in dynamic memory
+    # (the turn loop writes it); its base goes in the __timers__ global below.
+    n_timers = len(world.schedule_index)
+    timers_addr = sf.append(bytes(n_timers * 4)) if n_timers else 0
 
     # Static memory: abbreviations and the dictionary built from the program's
     # vocabulary. The 96-word abbreviation table comes first; when a set is
@@ -429,6 +438,8 @@ def build_story(
             sf.set_word(globals_addr + (gmap["here"] - 16) * 2, layout.obj_number[start])
         if "player" in layout.obj_number:
             sf.set_word(globals_addr + (gmap["player"] - 16) * 2, layout.obj_number["player"])
+        # The scheduling table base, so after/every can reach it at run time.
+        sf.set_word(globals_addr + (gmap["__timers__"] - 16) * 2, timers_addr)
 
     m = _meta(world)
     sf.set_word(storyfile.H_RELEASE, m.get("release", 1))
@@ -729,6 +740,69 @@ _TOPIC_HELPER_NAMES = (
 )
 
 
+def _walk_schedules(body, out: dict) -> None:
+    """Collect the block named by every `after`/`every` statement in a body, and
+    inside the control-flow that can hold one, in first-seen order."""
+    for s in body:
+        if isinstance(s, ast.Schedule):
+            if s.event not in out:
+                out[s.event] = len(out)
+        elif isinstance(s, ast.If):
+            for c in s.clauses:
+                _walk_schedules(c.body, out)
+        elif isinstance(s, ast.While):
+            _walk_schedules(s.body, out)
+        elif isinstance(s, ast.ForEach):
+            _walk_schedules(s.body, out)
+        elif isinstance(s, ast.Switch):
+            for c in s.cases:
+                _walk_schedules(c.body, out)
+
+
+def _collect_schedules(world: wm.World) -> dict:
+    """Every distinct block scheduled by an `after`/`every` statement anywhere in
+    the program, mapped to its timer slot (docs/02 section 13). Each slot is two
+    words in the timer table: a countdown and a reload (0 for a one-shot `after`,
+    the period for a recurring `every`)."""
+    out: dict = {}
+    for blk in world.blocks.values():
+        _walk_schedules(blk.body, out)
+    for h in world.all_handlers():
+        _walk_schedules(h.body, out)
+    for h in world.free_handlers:
+        _walk_schedules(h.body, out)
+    for obj in world.objects.values():
+        for topic in obj.topics:
+            _walk_schedules(topic.body, out)
+    return out
+
+
+def gen_schedule_tick(world: wm.World, gmap: dict) -> Routine:
+    """schedule_tick(): once per turn, count down each armed timer and fire the
+    ones that reach zero, reloading the recurring ones. The table base is in the
+    __timers__ global; slot i holds its countdown at word 2i and its reload at word
+    2i+1. Always emitted (empty when nothing is scheduled) so the turn loop can call
+    it unconditionally; the `after`/`every` statement arms a slot (lower.py)."""
+    tg = gmap["__timers__"]
+    rt = Routine("schedule_tick", nlocals=1)  # local 1 = a slot's countdown, then reload
+    for name, i in world.schedule_index.items():
+        skip, fire = f"skip{i}", f"fire{i}"
+        rt.op("loadw", Variable(tg), Const(2 * i), store=Variable(1))
+        rt.op("jz", Variable(1), branch=(skip, True))  # disarmed
+        rt.op("sub", Variable(1), _CONST_ONE, store=Variable(1))
+        rt.op("storew", Variable(tg), Const(2 * i), Variable(1))
+        rt.op("jz", Variable(1), branch=(fire, True))  # reached zero: fire it
+        rt.jump(skip)
+        rt.label(fire)
+        rt.op("call_vn", RoutineRef("blk_" + name))
+        rt.op("loadw", Variable(tg), Const(2 * i + 1), store=Variable(1))  # reload
+        rt.op("jz", Variable(1), branch=(skip, True))  # one-shot: stays disarmed
+        rt.op("storew", Variable(tg), Const(2 * i), Variable(1))  # recurring: re-arm
+        rt.label(skip)
+    rt.op("rtrue")
+    return rt
+
+
 def _references_routine(routines: list, name: str) -> bool:
     """True if any built routine calls the named routine (a call fixup targets
     it), used to emit a backing routine only when something actually needs it."""
@@ -826,6 +900,9 @@ def _abbreviations_for(world: wm.World) -> list:
 
 def _generate(world: wm.World) -> bytes:
     gmap = _globals_map(world)
+    # Assign a timer slot to every scheduled block before anything is lowered, so
+    # the `after`/`every` statements can arm their slot by index (docs/02 s.13).
+    world.schedule_index = _collect_schedules(world)
     actions = _action_numbers(world)
     layout = objmod.build_layout(world, react_objects=_react_objects(world, actions))
     pool = StringPool()
@@ -840,7 +917,10 @@ def _generate(world: wm.World) -> bytes:
     # because the topic table references them by name. The granule-facing
     # cosmos_topic_* helpers are gated below.
     topic_routines = gen_topic_routines(world, gmap, layout, pool)
-    all_routines = [main] + routines + react_routines + topic_routines
+    # The per-turn timer sweep for after/every (always emitted, empty when nothing
+    # is scheduled; the turn loop calls it through the tick_timers intrinsic).
+    schedule_tick = gen_schedule_tick(world, gmap)
+    all_routines = [main] + routines + react_routines + topic_routines + [schedule_tick]
 
     # Emit the exit-enumeration backing routines only if something calls the
     # exit_prop / exit_name intrinsics (the verbose_exits granule). Unsummoned,
