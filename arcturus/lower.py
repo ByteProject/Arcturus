@@ -984,8 +984,41 @@ def _flush_par(rt, ctx):
     rt.label(skip)
 
 
+def _emit_prop_print_or_run(rt, ctx, dot, add_newline):
+    """Print a text property that is computed on some object (`<name> block`). Its
+    stored value is a packed address: below the __strings__ threshold it is the
+    property's block routine (call it; the block prints its own text), at or above
+    it is a plain string (print it, adding a newline only when asked). This is the
+    "print or run" the computed-property read needs (docs/01 section 6)."""
+    op, t = _operand(rt, ctx, dot.obj)
+    v = ctx.alloc_temp()
+    rt.op("get_prop", op, Const(ctx.prop_number(dot.prop)), store=Variable(v))
+    if t is not None:
+        ctx.free_temp(t)
+    run = ctx.new_label()
+    done = ctx.new_label()
+    rt.op("jl", Variable(v), Variable(ctx.globals["__strings__"]), branch=(run, True))
+    rt.op("print_paddr", Variable(v))  # at or above the threshold: a plain string
+    if add_newline:
+        rt.op("new_line")
+    rt.jump(done)
+    rt.label(run)
+    rt.op("call_vn", Variable(v))  # below it: the block routine, which prints itself
+    rt.label(done)
+    ctx.free_temp(v)
+
+
+def _is_computed_text(ctx, expr) -> bool:
+    return isinstance(expr, ast.Dot) and expr.prop in ctx.world.computed_text_props
+
+
 def _say(rt, ctx, value, newline=True):
     _flush_par(rt, ctx)
+    # A bare `say obj.prop` where prop is a computed text property: print or run it,
+    # letting each branch own its newline (the block prints its own).
+    if _is_computed_text(ctx, value):
+        _emit_prop_print_or_run(rt, ctx, value, newline)
+        return
     _emit_say(rt, ctx, value)
     if newline:
         rt.op("new_line")
@@ -1069,6 +1102,10 @@ def _is_object_expr(ctx, expr) -> bool:
 def _say_value(rt, ctx, expr):
     if _is_object_expr(ctx, expr):
         _say_object(rt, ctx, expr)
+        return
+    if _is_computed_text(ctx, expr):
+        # A computed text property inside interpolation: print or run it, no newline.
+        _emit_prop_print_or_run(rt, ctx, expr, add_newline=False)
         return
     if isinstance(expr, ast.Dot) and ctx.world.properties.get(
         expr.prop
