@@ -496,6 +496,14 @@ set. A game rarely writes these; it summons a language, or uses the default
 English. Selecting a language is one summon: `summon.language "spanish"` compiles
 that language layer in place of English (02, section 8).
 
+A room's exit is written with this property name, not the word: `north cellar`,
+`east door` (section 5). So an exit stays in the fixed English name even in a
+translated game (`east puerta`), while the player types the localized word
+(`este`). The same split runs through the language: the fixed identifiers a game's
+code uses (`thing`, `room`, `openable`, the direction properties, the grain
+actions in section 14) are English; only what the player reads and types is
+localized.
+
 ## 11. Blocks
 
 A block is a named routine. It takes arguments, may `return` a value, and is

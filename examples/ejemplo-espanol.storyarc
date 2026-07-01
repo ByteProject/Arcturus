@@ -56,6 +56,10 @@ room posada
     desc "El comedor de una vieja posada de piedra. Un cofre descansa junto al
           hogar, y una puerta de roble da al este, al patio. Tras la barra, la
           posadera te observa."
+    // Las salidas se nombran por la PROPIEDAD de direccion (east, west, ...), un
+    // identificador fijo en ingles, igual que `thing`, `room` u `openable`. El
+    // jugador escribe la palabra en espanol ("este"); solo el vocabulario se
+    // traduce, no el nombre de la propiedad.
     east puerta
 
 room patio
