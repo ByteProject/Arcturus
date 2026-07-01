@@ -1,0 +1,69 @@
+// computed-properties.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for computed properties (docs/01 section 6). A property whose value
+// is a `block` is not a fixed string: the block runs every time the property is
+// read, so a description can answer to the current state of the world. The
+// headline use is a computed `desc`. Compile and run:
+//
+//   arcc examples/features/computed-properties.storyarc -o computed.z5
+//   frotz computed.z5
+//
+// Try, in order, and watch the same EXAMINE give a different answer:
+//   examine lamp     tarnished: the lamp has not been rubbed yet
+//   examine glass    clouded: the scrying glass shows nothing while the lamp is dull
+//   touch lamp       you polish it; the world's `polished` flag flips
+//   examine lamp     gleaming: the lamp's own computed desc reads the new state
+//   examine glass    it clears: a computed desc can reflect the WIDER world, not
+//                    just its own object
+//
+// Nothing here caches a string. Each EXAMINE re-runs the block, so the text is
+// always current. This is text only: a computed `desc` says its own words.
+
+game
+    title  "The Lamp and the Glass"
+    headline "A computed-properties showcase"
+    author "Stefan Vogt"
+    start  study
+
+global polished = 0
+
+room study
+    name "The Alchemist's Study"
+    desc "A cramped study smelling of tallow and old paper. A brass lamp sits on
+          the bench, and a scrying glass stands beside it."
+
+// The headline: a computed `desc`. The block runs on every EXAMINE and reads the
+// live `polished` flag, so one property describes two states with no duplication.
+thing lamp in study
+    name "brass lamp"
+    words lamp, brass, lantern
+    desc block
+        if polished is 1
+            say "The brass lamp gleams, rubbed to a warm shine."
+        else
+            say "A brass lamp, tarnished almost black with age."
+
+    // Rubbing (TOUCH/FEEL/PAT) flips the flag the computed desc reads.
+    on touch
+        if polished is 1
+            say "It already gleams; you leave well enough alone."
+        else
+            change polished to 1
+            say "You rub the lamp with your sleeve until it shines."
+        stop
+
+// A computed desc need not read only its own object. This glass reflects the
+// lamp: while the lamp is dull the vision is clouded, and it clears once the lamp
+// shines. The desc is recomputed from the wider world state on every read.
+thing glass in study
+    name "scrying glass"
+    words scrying, glass, mirror
+    fixed
+    desc block
+        if polished is 1
+            say "The glass clears, and a djinn's face swims up out of the depths."
+        else
+            say "The scrying glass is clouded; it shows nothing but your own frown."

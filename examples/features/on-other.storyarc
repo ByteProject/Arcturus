@@ -1,0 +1,61 @@
+// on-other.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the object catch-all, `on other` (docs/01 section 12). A handler
+// with no verb pattern runs for any action aimed at the object that no more
+// specific handler already caught. It is the "everything else" arm: one place to
+// give an object a single voice for the dozens of verbs you did not write by
+// hand. Compile and run:
+//
+//   arcc examples/features/on-other.storyarc -o on-other.z5
+//   frotz on-other.z5
+//
+// Try, in order:
+//   examine idol   the specific `on examine` wins: a real description
+//   attack idol    the specific `on attack` wins: its own line
+//   push idol      no specific handler, so `on other` catches it
+//   pull idol      likewise `on other`
+//   turn idol      likewise `on other`
+//   kiss idol      likewise `on other`
+//   wait           NOT caught: WAIT has no noun, so nothing is aimed at the idol
+//
+// The rules `on other` obeys, and this game shows: a specific handler always wins
+// over it; it only ever fires for an action directed AT the object; and the
+// life-cycle events (start, enter, each_turn) never reach it, so an idle object
+// with only an `on other` stays silent between turns.
+
+game
+    title  "The Obsidian Idol"
+    headline "An on-other showcase"
+    author "Stefan Vogt"
+    start  shrine
+
+room shrine
+    name "The Shrine"
+    desc "A low shrine cut into black rock. A squat obsidian idol crouches on the
+          altar, and it seems to be watching you."
+
+thing idol in shrine
+    name "obsidian idol"
+    words obsidian, idol, statue, figure
+    fixed
+
+    // Two specific handlers. Each wins over `on other` for its own verb.
+    on examine
+        say "The idol is a squat, eyeless thing of polished obsidian. Your own
+             reflection stares back, warped and small."
+        stop
+
+    on attack
+        say "Your fist rings off cold stone. The idol does not so much as chip."
+        stop
+
+    // The catch-all. It fires for PUSH, PULL, TURN, KISS, TOUCH, and every other
+    // verb aimed at the idol that the two handlers above did not claim, so one
+    // block gives the object a single voice without spelling every verb out.
+    on other
+        say "Whatever you try, the idol's obsidian eyes swallow it. Nothing you
+             do to the thing has the least effect."
+        stop
