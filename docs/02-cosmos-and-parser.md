@@ -612,6 +612,12 @@ is `examples/ejemplo-espanol.storyarc`. To fork a language, `arcc
 --eject-language` writes `english.prelude` out to translate. Packs are maintained
 alongside the main Cosmos sources.
 
+The baked-in abbreviation set is tuned to English, so a non-English game is built
+with no default abbreviations rather than English ones that would not fit (04
+section 10). Cosmos ships no per-language standard set; for a larger foreign
+game, run `arcc --make-abbreviations`, which sees the selected language's text and
+writes a set tuned to it.
+
 `summon.debug`. Developer verbs for testing, catalogued in 05: `tree` (the whole
 object tree), `scope` (what is reachable here), `fetch`/`purloin` (pull any object
 to you), `warp`/`gonear` (teleport to an object's room), and `inspect`/`showobj`
