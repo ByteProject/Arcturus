@@ -49,7 +49,7 @@ CEILINGS = {
     "granules/conversations.storyarc": 12180,
     "granules/extended-verbs.storyarc": 13568,
     "granules/infocom-interrogation.storyarc": 15428,
-    "granules/quotes.storyarc": 10800,
+    "granules/quotes.storyarc": 10796,
     "granules/statusline.storyarc": 10540,
     "granules/verbose-exits.storyarc": 10684,
 }

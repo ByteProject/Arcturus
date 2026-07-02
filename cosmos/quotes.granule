@@ -56,10 +56,10 @@ block quote_fill()
 // Open a quote box for `lines` lines of text, the longest `width` characters.
 // Clears the screen, splits the upper window, and draws the box's top row.
 block quote(lines, width)
-    // Flush any pending paragraph break into the OLD screen first: the print
-    // layer would otherwise flush it as a newline into the box's first row and
-    // drag the whole layout off by one.
-    show("")
+    // Drop any pending paragraph break: the screen is about to be erased, and
+    // an unconsumed break would otherwise flush as a newline into the box's
+    // first row and drag the whole layout off by one.
+    change par_pending to 0
     // The whole box draws unbuffered (quote_done restores buffering): with the
     // word-wrap buffer on, interpreters reorder the writes around set_cursor.
     buffer_mode(0)
@@ -89,3 +89,5 @@ block quote_done()
     read_key()
     erase_window(-1)
     buffer_mode(1)
+    // The screen is fresh; no break is owed to it.
+    change par_pending to 0
