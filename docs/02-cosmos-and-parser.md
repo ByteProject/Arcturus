@@ -609,9 +609,9 @@ listed message. This replaces hand-writing a blocked message in every room.
 
 Arcturus is meant to be authored and played in languages other than English.
 Spanish and German are official, first-class Arcturus languages, maintained
-alongside Cosmos: Spanish ships now (`cosmos/spanish.granule`, informal tuteo, a
-first pass pending native review), and German follows. Others are the same shape
-of work. This section gathers what a foreign-language author needs; the mechanics
+alongside Cosmos: Spanish (`cosmos/spanish.granule`, informal tuteo) and German
+(`cosmos/german.granule`, informal du) both ship, each a first pass pending
+native review. Others are the same shape of work. This section gathers what a foreign-language author needs; the mechanics
 each live in their own place, cross-referenced here.
 
 Selecting a language. `summon.language "spanish"` compiles the Spanish layer in
@@ -653,6 +653,21 @@ author declares `feminine` only for the residue no spelling can reveal (la llave
 el mapa), the same one-time act as the English `an` exception. `${the noun}` and
 `${a noun}` lower to a call to the article blocks precisely so a pack owns the
 article words (section 13).
+
+Gender where spelling cannot reveal it (German). German has three genders and no
+rule to guess them from, so the author states the gender the natural way, by
+declaring the object's article: `der`, `die`, or `das` on its own line in the
+object, like any attribute. The compiler maps that to the gender the pack reads
+(`die` sets `feminine`, `das` sets `neuter`, `der` is the masculine default), so
+the source reads as an author thinks (`das Buch`, `die Kiste`), not as an abstract
+flag. Because the gender is explicit, the Spanish -a spelling guess is turned off
+for German, so a masculine noun ending in -a is left masculine. The German article
+also inflects for case, and a message asks for the case it needs with the tag from
+docs/01 section 16, `${the:acc noun}` or `${the:dat noun}`; the pack's `art_the`
+turns gender and case into the right word (der/den/dem). German predicate
+adjectives do not inflect ("die Kiste ist offen", "der Schrank ist offen"), so the
+messages carry no per-gender variants: only the article changes, in the one place
+it is printed. The worked example is `examples/beispiel-deutsch.storyarc`.
 
 Abbreviations. The baked-in abbreviation set is tuned to the English library, so a
 non-English game is built with no default set rather than English abbreviations
