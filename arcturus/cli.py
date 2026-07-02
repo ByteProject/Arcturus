@@ -86,6 +86,14 @@ def _build_argparser() -> argparse.ArgumentParser:
         "forked or shared library rather than carry its own copy.",
     )
     ap.add_argument(
+        "-s",
+        "--stats",
+        action="store_true",
+        help="after compiling, print the compile statistics: what the story "
+        "uses of each Z-machine ceiling (attributes, properties, globals, "
+        "readable memory, story size). Works with or without -o.",
+    )
+    ap.add_argument(
         "--check",
         action="store_true",
         help="parse and report only, without generating code",
@@ -252,6 +260,33 @@ def _make_abbreviations(args) -> int:
     return 0
 
 
+def _stats_report(stats: dict, version: int) -> str:
+    """The compile-statistics ledger: what the story uses of each ceiling. Each
+    line groups what an author watches together; a value with a hard Z-machine
+    limit is shown as used/ceiling, an open-ended one as a plain count."""
+    free = stats["story_max"] - stats["story_bytes"]
+    return "\n".join([
+        "compile statistics:",
+        f"  world     {stats['objects']} objects in {stats['kinds']} kinds; "
+        f"{stats['grains']} grains, {stats['topics']} topics, "
+        f"{stats['timers']} timers",
+        f"  tables    attributes {stats['attributes']}/{stats['attributes_max']}, "
+        f"properties {stats['properties']}/{stats['properties_max']}, "
+        f"globals {stats['globals']}/{stats['globals_max']}",
+        f"  grammar   {stats['verbs']} verbs, {stats['grammar_lines']} grammar "
+        f"lines, {stats['actions']} actions; {stats['dict_words']} dictionary "
+        f"words",
+        f"  text      abbreviations {stats['abbrevs']}/{stats['abbrevs_max']}; "
+        f"{stats['string_bytes']} bytes of packed strings",
+        f"  code      {stats['routines']} routines, {stats['code_bytes']} bytes "
+        f"of z-code (inline text included)",
+        f"  memory    {stats['readable_bytes']}/{stats['readable_max']} bytes "
+        f"readable",
+        f"  story     {stats['story_bytes']}/{stats['story_max']} bytes "
+        f"(z{version}); {free} free",
+    ])
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     ap = _build_argparser()
@@ -315,19 +350,26 @@ def main(argv: list[str] | None = None) -> int:
         print(dump_ir(world))
         return 0
 
-    if args.output:
+    if args.output or args.stats:
+        stats = {} if args.stats else None
         try:
-            story = generate(world, version=args.zversion)
+            story = generate(world, version=args.zversion, stats=stats)
         except ArcError as exc:
             print(exc.format(), file=sys.stderr)
             return 1
-        try:
-            with open(args.output, "wb") as fh:
-                fh.write(story)
-        except OSError as exc:
-            print(f"arcc: error: cannot write {args.output}: {exc}", file=sys.stderr)
-            return 2
-        print(f"{args.source}: wrote {args.output} ({len(story)} bytes)")
+        if args.output:
+            try:
+                with open(args.output, "wb") as fh:
+                    fh.write(story)
+            except OSError as exc:
+                print(f"arcc: error: cannot write {args.output}: {exc}", file=sys.stderr)
+                return 2
+            print(f"{args.source}: wrote {args.output} ({len(story)} bytes)")
+        else:
+            # --stats without -o: compile for the numbers, write nothing.
+            print(f"{args.source}: compiled ({len(story)} bytes, not written)")
+        if args.stats:
+            print(_stats_report(stats, args.zversion))
         return 0
 
     objects = len(world.objects)

@@ -415,7 +415,7 @@ def _globals_map(world: wm.World) -> dict:
 
 def build_story(
     world: wm.World, entry: Routine, routines: list, layout=None, string_pool=None,
-    version: int = 5,
+    version: int = 5, stats=None,
 ) -> bytes:
     """Assemble a complete z5 (or z8) image from the entry stub and routines,
     laying out the standard memory regions. Shared by generate() and the backend
@@ -564,7 +564,24 @@ def build_story(
     serial = m.get("serial") or datetime.date.today().strftime("%y%m%d")
     sf.set_serial(serial)
 
-    return sf.finalize()
+    img = sf.finalize()
+    if stats is not None:
+        # The image-level numbers for the --stats report (the world-model numbers
+        # are filled by _generate). Ceilings travel with the values so the report
+        # never hardcodes a limit the compiler does not enforce.
+        strings_begin = blob_start + len(blob)
+        stats.update(
+            dict_words=len(set(word_offsets.values())),
+            abbrevs=len(abbrevs),
+            abbrevs_max=zstring.ABBREV_MAX,
+            readable_bytes=high_base,
+            readable_max=65536,
+            code_bytes=len(blob),
+            string_bytes=len(img) - strings_begin,
+            story_bytes=len(img),
+            story_max=65536 * scale,
+        )
+    return img
 
 
 def _self_operand(world: wm.World, handler: wm.Handler, layout):
@@ -992,20 +1009,22 @@ def _prune_unreachable(entry: Routine, routines: list, layout) -> list:
     return [r for r in routines if r.name in reachable]
 
 
-def generate(world: wm.World, version: int = 5) -> bytes:
+def generate(world: wm.World, version: int = 5, stats=None) -> bytes:
     """Lower the world model to a complete z5 (or z8) story file image.
 
     The entry stub calls the main routine and quits; main prints the banner and
     runs `on start`. Every other handler and every block is compiled to its own
     routine. The dispatcher and turn loop that drive the handlers arrive with
-    Cosmos (B4.5b onward)."""
+    Cosmos (B4.5b onward). Pass a dict as `stats` to have it filled with the
+    compile statistics the --stats report prints (each value beside its
+    ceiling)."""
     # Install the abbreviation set before any text is encoded: the assembler packs
     # inline print text as the routines are built, so the set has to be in force
     # for the whole codegen pass, not just the string layout. Reset afterward so a
     # later driven test (which never installs a set) is not contaminated.
     zstring.set_abbreviations(_abbreviations_for(world))
     try:
-        return _generate(world, version)
+        return _generate(world, version, stats)
     finally:
         zstring.set_abbreviations([])
 
@@ -1058,7 +1077,7 @@ def _abbreviations_for(world: wm.World) -> list:
     return abbrev.DEFAULT_ABBREVS
 
 
-def _generate(world: wm.World, version: int = 5) -> bytes:
+def _generate(world: wm.World, version: int = 5, stats=None) -> bytes:
     gmap = _globals_map(world)
     # Assign a timer slot to every scheduled block before anything is lowered, so
     # the `after`/`every` statements can arm their slot by index (docs/02 s.13).
@@ -1106,6 +1125,30 @@ def _generate(world: wm.World, version: int = 5) -> bytes:
     # rest before laying out high memory.
     all_routines = _prune_unreachable(entry, all_routines, layout)
 
+    if stats is not None:
+        # The world-model numbers for the --stats report, each beside its ceiling
+        # where the format has one (the image-level numbers are filled by
+        # build_story). Counted after dead-code elimination, so the routine count
+        # is what actually ships.
+        stats.update(
+            objects=len(layout.obj_number),
+            kinds=len(world.kinds),
+            grains=len(_all_grains(world)),
+            topics=sum(len(o.topics) for o in world.objects.values())
+            + sum(len(k.topics) for k in world.kinds.values()),
+            timers=len(world.schedule_index),
+            attributes=len(layout.attr_number) + len(layout.kind_attr),
+            attributes_max=objmod._MAX_ATTRIBUTES,
+            properties=len(layout.prop_number),
+            properties_max=objmod._MAX_PROPERTIES,
+            globals=len(gmap),
+            globals_max=_GLOBALS_BYTES // 2,
+            verbs=len(world.verbs),
+            grammar_lines=sum(len(v.grammar) for v in world.verbs),
+            actions=len(actions),
+            routines=len(all_routines) + 1,  # plus the entry stub
+        )
+
     return build_story(
         world,
         entry,
@@ -1113,4 +1156,5 @@ def _generate(world: wm.World, version: int = 5) -> bytes:
         layout=layout,
         string_pool=pool,
         version=version,
+        stats=stats,
     )
