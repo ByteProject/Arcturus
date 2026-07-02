@@ -93,8 +93,19 @@ entriegeln/verriegeln kept as one-verb synonyms. All of the user's forms verifie
 Frotz (test_language.test_german_separable_lock_verbs). LIMIT: particle-before-noun
 for a two-noun base ("schliess auf Tuer") misparses (the leading particle becomes
 the phrase separator); the user's forms all put the particle last, so this is not a
-requested form. "oeffne Tuer mit Schluessel" -> unlock is NOT wired (needs an
-agnostic open-action change; English has no open-with-key either).
+requested form.
+
+OPEN X WITH KEY (done, 2026-07-02, AGNOSTIC): "open the door with the key" now
+unlocks a locked thing with the named key and then opens it, in one command. The
+change is in the shared `on open` action (actions.prelude): if the noun is locked
+and a `second` (key) was given, it checks second against noun.unseal_with, unlocks
+(msg_unlocked), and falls through to open (msg_opened); a locked thing with no key
+named is still refused, and a wrong key gives msg_wrong_key. Each pack's open verb
+gained the two-noun grammar line so the key binds: English `open noun with noun`,
+German `open noun mit noun`, Spanish `open noun con noun`. Verified on Frotz in all
+three (EN Unlocked+Open, DE Aufgeschlossen+Geoeffnet, ES Abres+Abierta with gender
+agreement), plus the wrong-key path. test_twonoun.test_open_with_key_unlocks_then_
+opens. Common form (the user notes it is less common in English but valid there).
 
 KNOWN FIRST-PASS LIMITS FOR NATIVE REVIEW (both packs): give/show use `an` for the
 recipient (gib X an Y); typing the bare article "ein" in a two-noun command can

@@ -61,7 +61,7 @@ reference, docs/message-set.md, where every line is an overridable block.
 
 | Verb and synonyms | Action | Default behavior | Set |
 |---|---|---|---|
-| open, uncover, unwrap | open | open it, with already/locked variants | S |
+| open, uncover, unwrap (... with) | open | open it; `open X with KEY` on a locked thing unlocks it with the key, then opens it | S |
 | close, shut, cover | close | close it | S |
 | lock (... with) | lock | lock with a key, with the variants | S |
 | unlock (... with) | unlock | unlock with a key | S |

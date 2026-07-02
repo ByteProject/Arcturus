@@ -505,6 +505,7 @@ verb "steck", "stecke", "einstecken"
     insert noun in noun
 
 verb "oeffne", "öffne", "oeffnen", "öffnen"
+    open noun mit noun
     open noun
 
 // Schliessen, ab- und aufschliessen als trennbares Grundverb. "schliess(e)"

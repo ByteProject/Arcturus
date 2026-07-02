@@ -520,6 +520,7 @@ verb "insert"
     insert noun in noun
 
 verb "open", "uncover", "unwrap"
+    open noun with noun
     open noun
 
 verb "close", "shut", "cover"
