@@ -37,7 +37,11 @@ _ENTRY_LEN = 6 + _DATA_BYTES
 _VERB_FLAG = 0x80
 _DIR_FLAG = 0x40
 _PARTICLE_FLAG = 0x20
-_SCENERY_FLAG = 0x10  # a grain word: data byte 1 = grain id (index+1), byte 2 = owner object
+# A grain word: data bytes 1 and 2 hold the ADDRESS of the word's grain chain, a
+# static table of (grain id, owner object) word pairs terminated by a zero id.
+# One word can serve several grains in several rooms; the parser walks the chain
+# and answers with the grain whose owner is in scope (docs/01 section 14).
+_SCENERY_FLAG = 0x10
 # flags bit 3 marks a grammar preposition (the "to"/"with" joining two noun
 # slots), so the parser knows where the first noun phrase ends and the second
 # begins. Words already flagged otherwise (on/in are a particle/direction) are
@@ -152,8 +156,8 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
     """Return the dictionary bytes and a word -> offset (within the dictionary)
     map for the entry each word resolves to. Verb words carry their action,
     direction words carry the go action and the direction property, and scenery
-    (grain) words (from `scenery`: word -> (grain id, owner object)) carry their
-    grain, in their data bytes."""
+    (grain) words (from `scenery`: word -> chain address) carry the address of
+    their grain chain, in their data bytes."""
     words = set(collect_vocab(world))
     if direction_props:
         words |= set(direction_props)
@@ -173,8 +177,10 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
     for word, pid in particle_words.items():
         enc_data[encoded[word]] = bytes([_PARTICLE_FLAG, pid, 0])
     if scenery:
-        for word, (gid, owner) in scenery.items():
-            enc_data[encoded[word]] = bytes([_SCENERY_FLAG, gid & 0xFF, owner & 0xFF])
+        for word, chain_addr in scenery.items():
+            enc_data[encoded[word]] = bytes(
+                [_SCENERY_FLAG, (chain_addr >> 8) & 0xFF, chain_addr & 0xFF]
+            )
     # Prepositions last, and only where nothing else claimed the word: on/in are
     # already a particle/direction, and the parser treats those as boundaries too.
     for word in _preposition_words(world):

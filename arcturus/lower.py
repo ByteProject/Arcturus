@@ -55,7 +55,7 @@ INTRINSICS = frozenset({
     # a compile-time flag (1 if any object spans, else 0) the scope code guards on,
     # so `if any_spans() is 1` folds away and DCE drops the spans blocks when no
     # object spans (a static-if, see _if).
-    "spans_addr", "spans_count", "any_spans", "any_doors", "any_named",
+    "spans_addr", "spans_count", "any_spans", "any_doors", "any_named", "any_grains",
     # The turn loop fires life-cycle events: run_free runs the free rules for an
     # action, and ev_* name the event action numbers (start, enter, each_turn).
     # tick_timers counts down the after/every schedule once per turn.
@@ -692,6 +692,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_named(): the compile-time named flag (1 or 0), so the article blocks
         # fold their `named` check away in a game with no proper-named objects.
         _place(rt, Const(_any_named(ctx)), dest)
+    elif name == "any_grains":
+        # any_grains(): the compile-time grains flag (1 or 0), so find_scenery
+        # folds its chain walker away in a game with no grains.
+        _place(rt, Const(_any_grains(ctx)), dest)
     elif name == "topics_count":
         # topics_count(person): how many topics the person has (0 if none).
         eval_expr(rt, ctx, args[0], Variable(STACK))
@@ -765,6 +769,12 @@ def _any_named(ctx) -> int:
     else 0. The article blocks guard their named check on this so it folds away in
     a game with no named objects."""
     return 1 if (ctx.layout is not None and ctx.layout.has_named) else 0
+
+
+def _any_grains(ctx) -> int:
+    """The compile-time grains flag: 1 if anything declares `grains`, else 0.
+    find_scenery guards its chain walker on this so it folds away when unused."""
+    return 1 if (ctx.layout is not None and ctx.layout.has_grains) else 0
 
 
 def _word_index(rt, ctx, expr, scale, base):
@@ -1253,6 +1263,8 @@ def _static_value(ctx, expr):
         return _any_doors(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_named":
         return _any_named(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_grains":
+        return _any_grains(ctx)
     # A constant folds to its value, so `if DEBUG is 1` (DEBUG a constant) decides
     # at compile time and an unused branch is never emitted.
     if isinstance(expr, ast.Name):

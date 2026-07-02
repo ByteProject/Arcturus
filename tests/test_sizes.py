@@ -29,32 +29,33 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.7.0 / Cosmos 0.10.0 (2026-07-02).
 CEILINGS = {
-    # 2026-07-02: the four raised ceilings are the coherence QA pass (vertical
-    # exits and grains for described-but-silent scenery) plus the idiom pass and
-    # the wider up/down direction vocabulary in the two language packs.
-    "beispiel-deutsch.storyarc": 16652,
-    "brass-lantern.storyarc": 11324,
-    "cloak-of-darkness.storyarc": 11884,
-    "ejemplo-espanol.storyarc": 15376,
-    "features/computed-properties.storyarc": 10424,
-    "features/containers.storyarc": 10460,
-    "features/daemons-and-timers.storyarc": 10760,
-    "features/doors-and-locks.storyarc": 10384,
-    "features/grains.storyarc": 10288,
-    "features/introproperty.storyarc": 11452,
-    "features/kinds-and-inheritance.storyarc": 10284,
-    "features/on-other.storyarc": 10288,
-    "features/spans.storyarc": 10544,
-    "granules/conversations.storyarc": 12100,
-    "granules/extended-verbs.storyarc": 13556,
-    "granules/infocom-interrogation.storyarc": 15428,
-    "granules/statusline.storyarc": 10472,
-    "granules/verbose-exits.storyarc": 10672,
+    # 2026-07-02 (grain chains): the five grain-bearing games grew by their
+    # chain tables and the chain walker; every grainless game SHRANK, because
+    # find_scenery now folds away behind any_grains(). Ceilings lowered to lock
+    # those wins in.
+    "beispiel-deutsch.storyarc": 16816,
+    "brass-lantern.storyarc": 11464,
+    "cloak-of-darkness.storyarc": 11928,
+    "ejemplo-espanol.storyarc": 15532,
+    "features/computed-properties.storyarc": 10248,
+    "features/containers.storyarc": 10284,
+    "features/daemons-and-timers.storyarc": 10584,
+    "features/doors-and-locks.storyarc": 10196,
+    "features/grains.storyarc": 10356,
+    "features/introproperty.storyarc": 11276,
+    "features/kinds-and-inheritance.storyarc": 10108,
+    "features/on-other.storyarc": 10112,
+    "features/spans.storyarc": 10356,
+    "granules/conversations.storyarc": 11924,
+    "granules/extended-verbs.storyarc": 13380,
+    "granules/infocom-interrogation.storyarc": 15252,
+    "granules/statusline.storyarc": 10296,
+    "granules/verbose-exits.storyarc": 10496,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 12272
+CLOAK_Z8_CEILING = 12320
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
