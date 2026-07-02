@@ -649,7 +649,16 @@ def build_routines(world: wm.World, gmap: dict, layout, pool):
     # is no loop, so __main__ falls back to running `on start` inline, preserving
     # the older behavior those tests rely on.
     main = Routine("__main__", nlocals=0)
-    _emit_banner(main, world)
+    # The banner lives in its own routine so a game can defer it: `banner false`
+    # in the game block stops the automatic print, and the print_banner()
+    # intrinsic calls the routine whenever the author wants it (a quote box or
+    # pregame prelude first, the banner after). Never called at all, DCE drops
+    # it (H2's "return 2" pattern).
+    banner_rt = Routine("cosmos_banner", nlocals=0)
+    _emit_banner(banner_rt, world)
+    banner_rt.op("rfalse")
+    if _meta(world).get("banner") is not False:
+        main.op("call_vn", RoutineRef("cosmos_banner"))
     if "run_game" in world.blocks:
         main.op("call_vn", RoutineRef("blk_run_game"))
     else:
@@ -661,7 +670,7 @@ def build_routines(world: wm.World, gmap: dict, layout, pool):
             main.nlocals = ctx.nlocals()
     main.op("rfalse")
 
-    routines = []
+    routines = [banner_rt]
     for blk in world.blocks.values():
         routines.append(_compile_block(world, gmap, layout, pool, blk))
 

@@ -73,6 +73,10 @@ INTRINSICS = frozenset({
     # read_key reads a single keypress (no echo, no Enter) and returns its ZSCII
     # code, for the conversations menu's press-a-number selection.
     "read_key",
+    # print_banner prints the game banner (title, headline, author, release
+    # line), for a game that sets `banner false` and shows it after its own
+    # opening (a quote box, a pregame prelude).
+    "print_banner",
     # do_quit ends the session (the quit opcode); text_char reads a typed
     # character from the input buffer (for a yes/no confirmation). do_restart
     # restarts the story from the beginning (the restart opcode). do_save /
@@ -692,6 +696,8 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_named(): the compile-time named flag (1 or 0), so the article blocks
         # fold their `named` check away in a game with no proper-named objects.
         _place(rt, Const(_any_named(ctx)), dest)
+    elif name == "print_banner":
+        rt.op("call_vn", RoutineRef("cosmos_banner"))
     elif name == "any_grains":
         # any_grains(): the compile-time grains flag (1 or 0), so find_scenery
         # folds its chain walker away in a game with no grains.

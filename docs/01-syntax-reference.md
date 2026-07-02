@@ -89,7 +89,9 @@ game
 YYMMDD serial; if omitted the compiler uses the build date. `UUID` is written
 into the story file as an IFID array so IFDB and similar can identify the
 game; it is optional but recommended. `headline` is the subtitle line of the
-banner. The banner also names the compiler (Arcturus) and the library
+banner. `banner false` stops the automatic banner at start: the game prints it
+later with `print_banner()` (after a quote box, say), or never.
+The banner also names the compiler (Arcturus) and the library
 (Cosmos) with their versions; see 02.
 
 Globals and constants:

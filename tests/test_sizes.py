@@ -29,33 +29,34 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.7.0 / Cosmos 0.10.0 (2026-07-02).
 CEILINGS = {
-    # 2026-07-02 (localized banner): every game carries the language layer's
-    # line_by block (and banner_headline when no headline is set), a few dozen
-    # bytes, so the banner connector localizes (" by ", " de ", " von ").
-    "beispiel-deutsch.storyarc": 16956,
-    "brass-lantern.storyarc": 11504,
-    "cloak-of-darkness.storyarc": 11968,
-    "ejemplo-espanol.storyarc": 15680,
-    "features/computed-properties.storyarc": 10272,
-    "features/containers.storyarc": 10308,
-    "features/daemons-and-timers.storyarc": 10612,
-    "features/doors-and-locks.storyarc": 10224,
-    "features/grains.storyarc": 10380,
-    "features/introproperty.storyarc": 11300,
-    "features/kinds-and-inheritance.storyarc": 10132,
-    "features/on-other.storyarc": 10136,
-    "features/zcolor.storyarc": 10220,
-    "features/spans.storyarc": 10380,
-    "granules/conversations.storyarc": 11948,
-    "granules/extended-verbs.storyarc": 13408,
-    "granules/infocom-interrogation.storyarc": 15276,
-    "granules/statusline.storyarc": 10324,
-    "granules/verbose-exits.storyarc": 10524,
+    # 2026-07-02 (banner control): the banner sits in its own routine so
+    # `banner false` + print_banner() can defer or drop it; each game carries
+    # the routine call, a handful of bytes.
+    "beispiel-deutsch.storyarc": 16964,
+    "brass-lantern.storyarc": 11512,
+    "cloak-of-darkness.storyarc": 11976,
+    "ejemplo-espanol.storyarc": 15688,
+    "features/computed-properties.storyarc": 10280,
+    "features/containers.storyarc": 10316,
+    "features/daemons-and-timers.storyarc": 10620,
+    "features/doors-and-locks.storyarc": 10232,
+    "features/grains.storyarc": 10388,
+    "features/introproperty.storyarc": 11308,
+    "features/kinds-and-inheritance.storyarc": 10140,
+    "features/on-other.storyarc": 10144,
+    "features/zcolor.storyarc": 10228,
+    "features/spans.storyarc": 10388,
+    "granules/conversations.storyarc": 11956,
+    "granules/extended-verbs.storyarc": 13416,
+    "granules/infocom-interrogation.storyarc": 15284,
+    "granules/quotes.storyarc": 10572,
+    "granules/statusline.storyarc": 10332,
+    "granules/verbose-exits.storyarc": 10532,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 12368
+CLOAK_Z8_CEILING = 12376
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
