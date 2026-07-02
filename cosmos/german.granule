@@ -643,6 +643,14 @@ block art_the(obj, cap, kase)
         if obj is named
             print_name(obj)
             return
+    // A hand-set article wins over derivation (docs/01 section 16): las
+    // tijeras, el agua. Printed as stored, so keep it lowercase and let such
+    // objects sit mid-sentence.
+    if article_addr(obj) is not 0
+        show("${obj.article}")
+        show(" ")
+        print_name(obj)
+        return
     if cap is 1
         show("D")
     else
@@ -682,6 +690,12 @@ block art_a(obj, cap, kase)
         if obj is named
             print_name(obj)
             return
+    // A hand-set indefinite wins over derivation: unas tijeras, some water.
+    if indefinite_addr(obj) is not 0
+        show("${obj.indefinite}")
+        show(" ")
+        print_name(obj)
+        return
     if cap is 1
         show("E")
     else
@@ -804,6 +818,12 @@ block reveal_contents(holder)
 block list_item(obj)
     show("Du siehst hier ")
     show("${a:acc obj}")
+    // Ein verschließbares Ding, das zu ist, sagt es (Pablo Martínez' Vorschlag,
+    // der PunyInform-Qualifier): der eine Zustand, den das Listing sonst nicht
+    // verrät. Das Prädikativ beugt sich nicht, also reicht EIN Wort.
+    if obj is openable
+        if not (obj is open)
+            show(" (geschlossen)")
     list_contents(obj)
     say "."
 

@@ -133,3 +133,30 @@ def test_german_gender_and_case_on_frotz(tmp_path):
     assert "die Kiste/die Kiste/der Kiste" in out  # feminine: nom/acc same, dat der
     assert "das Buch/das Buch/dem Buch" in out  # neuter: nom/acc das, dat dem
     assert "der Gorilla/den Gorilla/einen Gorilla" in out  # masculine, not feminine
+
+
+OVERRIDES = (
+    'game\n    title "O"\n    start r\n'
+    'room r\n    name "R"\n    desc "A room."\n'
+    'thing water in r\n    name "water"\n    words water\n    fixed\n'
+    '    indefinite "some"\n'
+    'thing box of container in r\n    name "pine box"\n    words pine, box\n'
+    '    openable\n    open false\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_article_override_and_closed_qualifier_on_frotz(tmp_path):
+    # `indefinite "some"` overrides the derived a/an (Pablo Martinez's request:
+    # per-object articles), and a closed openable announces itself in the
+    # listing, the PunyInform qualifier.
+    story = tmp_path / "o.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(OVERRIDES)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="open box\nlook\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "You can see some water here." in out  # the override
+    assert "You can see a pine box (closed) here." in out  # before opening
+    assert "You can see a pine box here." in out  # after: qualifier gone

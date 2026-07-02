@@ -636,6 +636,15 @@ framing the status-line and conversation-menu granules print). Everything else,
 the agnostic parser skeleton, scope, dispatch, and the action handlers, is shared
 and untouched.
 
+Three refinements that came out of the Spanish native review (Pablo Martinez)
+and serve every language: a closed openable announces itself in listings
+("Ves un cofre de roble (que está cerrado).", "(closed)", "(geschlossen)"),
+declared per pack in `list_item` with whatever agreement the language needs;
+the `article`/`indefinite` properties override a derived article verbatim
+(01, section 16); and the Spanish pack retries an unknown first word that
+ends in -r with the -r stripped, so a regular infinitive finds its imperative
+("comer" reaches "come"), a trick a pack implements in its own `resolve_verb`.
+
 Verb particles, so separable verbs read naturally. A multi-word verb combines a
 base verb with a particle (English "switch on", "take off"; German "schalt ... an",
 "schliess ... auf"). The particle words are declared in the language layer, not the

@@ -627,6 +627,14 @@ block art_the(obj, cap)
         if obj is named
             print_name(obj)
             return
+    // A hand-set article wins over derivation (docs/01 section 16): las
+    // tijeras, el agua. Printed as stored, so keep it lowercase and let such
+    // objects sit mid-sentence.
+    if article_addr(obj) is not 0
+        show("${obj.article}")
+        show(" ")
+        print_name(obj)
+        return
     if cap is 1
         show("The ")
     else
@@ -638,6 +646,12 @@ block art_a(obj, cap)
         if obj is named
             print_name(obj)
             return
+    // A hand-set indefinite wins over derivation: unas tijeras, some water.
+    if indefinite_addr(obj) is not 0
+        show("${obj.indefinite}")
+        show(" ")
+        print_name(obj)
+        return
     if obj is an
         if cap is 1
             show("An ")
@@ -747,6 +761,11 @@ block reveal_contents(holder)
 block list_item(obj)
     show("You can see ")
     show("${a obj}")
+    // A closed openable says so (Pablo Martinez's suggestion, the PunyInform
+    // qualifier): the one state a player cannot read off the listing.
+    if obj is openable
+        if not (obj is open)
+            show(" (closed)")
     list_contents(obj)
     say " here."
 

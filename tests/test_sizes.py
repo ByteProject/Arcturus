@@ -29,35 +29,34 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.7.0 / Cosmos 0.10.0 (2026-07-02).
 CEILINGS = {
-    # 2026-07-03 (frotz truth): read_input (the input-colour seam), the
-    # buffer_mode dance and the pending-paragraph flush in the upper-window
-    # granules, and the zcolor statusline/input wiring. Real-frotz rendering
-    # is now verified end to end; the bytes are the cost of being correct.
-    "beispiel-deutsch.storyarc": 17168,
-    "brass-lantern.storyarc": 11548,
-    "cloak-of-darkness.storyarc": 12068,
-    "ejemplo-espanol.storyarc": 15796,
-    "features/computed-properties.storyarc": 10316,
-    "features/containers.storyarc": 10352,
-    "features/daemons-and-timers.storyarc": 10656,
-    "features/doors-and-locks.storyarc": 10268,
-    "features/grains.storyarc": 10424,
-    "features/introproperty.storyarc": 11400,
-    "features/kinds-and-inheritance.storyarc": 10176,
-    "features/on-other.storyarc": 10180,
-    "features/zcolor.storyarc": 10692,
-    "features/spans.storyarc": 10424,
-    "granules/conversations.storyarc": 12072,
-    "granules/extended-verbs.storyarc": 13452,
-    "granules/infocom-interrogation.storyarc": 15320,
-    "granules/quotes.storyarc": 10684,
-    "granules/statusline.storyarc": 10424,
-    "granules/verbose-exits.storyarc": 10568,
+    # 2026-07-03 (Pablo's round): the closed-openable qualifier in listings,
+    # the article/indefinite overrides in the art blocks, and the Spanish
+    # infinitive retry. Feature bytes for native-review polish.
+    "beispiel-deutsch.storyarc": 17292,
+    "brass-lantern.storyarc": 11664,
+    "cloak-of-darkness.storyarc": 12184,
+    "ejemplo-espanol.storyarc": 16064,
+    "features/computed-properties.storyarc": 10432,
+    "features/containers.storyarc": 10468,
+    "features/daemons-and-timers.storyarc": 10772,
+    "features/doors-and-locks.storyarc": 10384,
+    "features/grains.storyarc": 10540,
+    "features/introproperty.storyarc": 11516,
+    "features/kinds-and-inheritance.storyarc": 10292,
+    "features/on-other.storyarc": 10296,
+    "features/zcolor.storyarc": 10808,
+    "features/spans.storyarc": 10540,
+    "granules/conversations.storyarc": 12180,
+    "granules/extended-verbs.storyarc": 13568,
+    "granules/infocom-interrogation.storyarc": 15428,
+    "granules/quotes.storyarc": 10800,
+    "granules/statusline.storyarc": 10540,
+    "granules/verbose-exits.storyarc": 10684,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 12464
+CLOAK_Z8_CEILING = 12584
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

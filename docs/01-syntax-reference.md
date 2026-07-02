@@ -293,6 +293,8 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `edible` | Can be eaten; the `eat` verb consumes it rather than refusing. |
 | `named` | A proper-named thing (Linda, Excalibur). Takes no article: `${the noun}` and `${a noun}` print just the name. |
 | `an` | The indefinite article is "an", not "a". Derived from the name's first letter (a vowel -> `an`); set `an` or `an false` only for an exception (an hour, a unicorn). |
+| `article` | text | The definite article, verbatim, when derivation cannot reach it: `article "las"` (las tijeras), `article "el"` (el agua). |
+| `indefinite` | text | The indefinite article, verbatim: `indefinite "unas"`, or English mass nouns with `indefinite "some"` ("You can see some water here."). |
 | `switchable` | Marks a thing the `switch` verb targets, but the effect is the author's: unlike `openable` or `edible`, there is no built-in on/off behavior (the library has no way to know what turning a thing on should do), so give the object `on switch_on` and `on switch_off` handlers. Without them, switching it is refused (`msg_no_switch`). The attribute itself only advertises intent. |
 | `openable` | Can be opened and closed; the `open` / `close` verbs apply. |
 | `open` | Currently open (a container or door). Set by `open`, cleared by `close`. A closed container hides its contents from scope. |
@@ -833,6 +835,13 @@ Interpolation embeds an expression with `${ }`; printing an object prints its
 `name`. Article helpers: `${the ruby}`, `${a ruby}`, and the capitalized
 `${The ruby}`, `${A ruby}`; an object with `named` set takes no article.
 Their full behavior is in 02. Escapes: `\"`, `\\`, `\$`, and `\n`.
+
+An object may override its articles outright with the `article` (definite) and
+`indefinite` properties, for the cases derivation cannot reach: `article
+"las"` and `indefinite "unas"` for las tijeras, `article "el"` for el agua,
+`indefinite "some"` for an English mass noun. The stored text prints verbatim,
+so keep it lowercase and prefer messages that keep such objects mid-sentence:
+a hand-set article does not capitalize itself at a sentence start.
 
 An article may carry a grammatical-case tag after a colon, `${the:acc noun}` or
 `${a:dat noun}`, for a language whose article inflects for case (German

@@ -90,7 +90,10 @@ INTRINSICS = frozenset({
     "do_save", "do_restore", "do_save_undo", "do_restore_undo",
     # parse_addr / oops_addr give the live parse buffer and its oops backup, so
     # the language layer can snapshot a command and patch it for "oops".
-    "parse_addr", "oops_addr",
+    # text_addr gives the text buffer, and retokenize re-runs the tokenizer over
+    # it, so a pack can rewrite the typed text and re-analyze (the Spanish
+    # infinitive retry: "comer" -> "come").
+    "parse_addr", "oops_addr", "text_addr", "retokenize",
     # object_count gives the number of declared objects, so the debug granule can
     # scan every object by number (not just those in scope).
     "object_count",
@@ -106,7 +109,7 @@ INTRINSICS = frozenset({
     "erase_window", "screen_height", "buffer_mode",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
-    "desc_addr", "intro_addr",
+    "desc_addr", "intro_addr", "article_addr", "indefinite_addr",
     # Conversation topics, for the ask/tell and menu granules: how many a person
     # has, whether topic i is in view, printing its menu label, matching a subject
     # word against it, running its body, and retiring it (so the menu drops a
@@ -584,6 +587,15 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
     elif name == "parse_addr":
         # parse_addr(): the address of the live parse buffer.
         _place(rt, Const(storyfile.PARSE_BUFFER_ADDR), dest)
+    elif name == "text_addr":
+        # text_addr(): the typed-text buffer's address (its first character is
+        # at text_addr() + 2, and word_pos offsets are relative to the buffer).
+        _place(rt, Const(storyfile.TEXT_BUFFER_ADDR), dest)
+    elif name == "retokenize":
+        # retokenize(): re-run the interpreter's tokenizer over the (possibly
+        # patched) text buffer, refilling the parse buffer.
+        rt.op("tokenise", Const(storyfile.TEXT_BUFFER_ADDR), Const(storyfile.PARSE_BUFFER_ADDR))
+        _place(rt, Const(0), dest)
     elif name == "oops_addr":
         # oops_addr(): the address of the parse-buffer backup kept for oops.
         _place(rt, Const(storyfile.OOPS_PARSE_ADDR), dest)
@@ -663,11 +675,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         op, t = _operand(rt, ctx, args[0])
         rt.op("get_prop_addr", op, Const(_words_prop(ctx)), store=dest)
         _free(ctx, t)
-    elif name in ("desc_addr", "intro_addr"):
-        # desc_addr(obj)/intro_addr(obj): the address of the object's desc or
-        # intro property (0 if it has none), so the room describer can tell
-        # whether one is present before printing it.
-        prop = name[:-5]  # "desc" or "intro"
+    elif name in ("desc_addr", "intro_addr", "article_addr", "indefinite_addr"):
+        # <prop>_addr(obj): the address of the object's desc, intro, article,
+        # or indefinite property (0 if it has none), so the room describer and
+        # the article blocks can test for one before printing it.
+        prop = name[:-5]
         op, t = _operand(rt, ctx, args[0])
         pnum = ctx.prop_number(prop)
         if pnum is None:
