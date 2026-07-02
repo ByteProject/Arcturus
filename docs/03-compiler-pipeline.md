@@ -108,15 +108,16 @@ Options:
 - `-L DIR`, `--lib DIR`: add an absolute directory to the search path for granule
   (`.granule`) files a story summons by name; repeatable. Used to compile against
   a forked library (section 5, docs/05). A relative `-L` is rejected.
-- `-s`, `--stats`: after compiling, print the compile statistics: a short ledger
-  of what the story uses of each Z-machine ceiling. Values with a hard limit
-  print as used/ceiling (attributes of 48, properties of 62, globals of 240,
-  abbreviations of 96, readable memory of 65536 bytes, the story size of its
-  version's file ceiling); open-ended values print as plain counts (objects,
-  kinds, grains, topics, timers, verbs, grammar lines, actions, dictionary
-  words, routines, bytes of z-code and of packed strings). Works with or
-  without `-o`: without it, the story is compiled for the numbers and not
-  written. The ledger is the tool for watching headroom as a game grows:
+- `-q`, `--quiet`: script mode. By default every invocation prints the arcc
+  banner, and every successful compile prints the compile statistics: a short
+  ledger of what the story uses of each Z-machine ceiling. Values with a hard
+  limit print as used/ceiling (attributes of 48, properties of 62, globals of
+  240, abbreviations of 96, readable memory of 65536 bytes, the story size of
+  its version's file ceiling); open-ended values print as plain counts
+  (objects, kinds, grains, topics, timers, verbs, grammar lines, actions,
+  dictionary words, routines, bytes of z-code and of packed strings). `-q`
+  suppresses the banner and the ledger, leaving only the result line and any
+  errors. The ledger is the tool for watching headroom as a game grows:
 
   ```
   compile statistics:
