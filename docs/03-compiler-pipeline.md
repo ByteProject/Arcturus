@@ -108,6 +108,26 @@ Options:
 - `-L DIR`, `--lib DIR`: add an absolute directory to the search path for granule
   (`.granule`) files a story summons by name; repeatable. Used to compile against
   a forked library (section 5, docs/05). A relative `-L` is rejected.
+- `-s`, `--stats`: after compiling, print the compile statistics: a short ledger
+  of what the story uses of each Z-machine ceiling. Values with a hard limit
+  print as used/ceiling (attributes of 48, properties of 62, globals of 240,
+  abbreviations of 96, readable memory of 65536 bytes, the story size of its
+  version's file ceiling); open-ended values print as plain counts (objects,
+  kinds, grains, topics, timers, verbs, grammar lines, actions, dictionary
+  words, routines, bytes of z-code and of packed strings). Works with or
+  without `-o`: without it, the story is compiled for the numbers and not
+  written. The ledger is the tool for watching headroom as a game grows:
+
+  ```
+  compile statistics:
+    world     10 objects in 6 kinds; 11 grains, 3 topics, 2 timers
+    tables    attributes 28/48, properties 19/62, globals 22/240
+    grammar   47 verbs, 59 grammar lines, 49 actions; 286 dictionary words
+    text      abbreviations 0/96; 790 bytes of packed strings
+    code      214 routines, 12018 bytes of z-code (inline text included)
+    memory    4148/65536 bytes readable
+    story     16956/262144 bytes (z5); 245188 free
+  ```
 - `--check`: parse and analyze only, no code generation.
 - `--dump-ast`: print the parsed syntax tree and stop.
 - `--dump-ir`: print the analyzed world-model IR and stop.
