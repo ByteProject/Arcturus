@@ -1110,7 +1110,7 @@ def _emit_say(rt, ctx, value):
                     rt.op("print", text=part.text)
             else:  # StringInterp
                 if part.article is not None:
-                    _say_with_article(rt, ctx, part.article, part.expr)
+                    _say_with_article(rt, ctx, part.article, part.case, part.expr)
                 else:
                     _say_value(rt, ctx, part.expr)
     else:
@@ -1204,17 +1204,37 @@ def _say_object(rt, ctx, expr):
         ctx.free_temp(t)
 
 
-def _say_with_article(rt, ctx, article, expr):
+# Grammatical-case tags an author may write after the article (${the:acc noun}),
+# and the small integer each passes to the language layer. Nominative is the
+# default (no tag), so an uninflected language never has to think about case, and a
+# German art_the reads the number as its third argument. `akk` is accepted as an
+# alias for the accusative, matching the German term (Akkusativ).
+_CASE_NUMBERS = {"nom": 0, "acc": 1, "akk": 1, "dat": 2, "gen": 3}
+
+
+def _say_with_article(rt, ctx, article, case, expr):
     """Print an object with its article, by calling the language layer. `${the x}`
-    and `${a x}` lower to a call to art_the / art_a (obj, cap), whose English
-    definitions print "the"/"a"/"an" and the name, and which a language pack
+    and `${a x}` lower to a call to art_the / art_a (obj, cap [, case]), whose
+    English definitions print "the"/"a"/"an" and the name, and which a language pack
     overrides for its own articles (el/la, der/die/das). Keeping the word choice in
     Cosmos, not the compiler, is what makes articles translatable. cap is 1 for the
-    capitalized form (${The x})."""
+    capitalized form (${The x}). A ${the:acc x} tag passes a third argument, the
+    grammatical case, for a language that inflects the article by case; when no tag
+    is written we pass only two, so the third local of a case-aware art_the defaults
+    to 0 (nominative) and an uninflected art_the is called exactly as before."""
     op, t = _operand(rt, ctx, expr)
     cap = 1 if article[0].isupper() else 0
     block = "blk_art_a" if article.lower() in ("a", "an") else "blk_art_the"
-    rt.op("call_vn", RoutineRef(block), op, Const(cap))
+    if case is None:
+        rt.op("call_vn", RoutineRef(block), op, Const(cap))
+    else:
+        num = _CASE_NUMBERS.get(case.lower())
+        if num is None:
+            raise ArcError(
+                f"unknown grammatical case '{case}' in ${{...}}; "
+                f"use nom, acc, dat, or gen"
+            )
+        rt.op("call_vn", RoutineRef(block), op, Const(cap), Const(num))
     if t is not None:
         ctx.free_temp(t)
 

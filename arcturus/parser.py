@@ -17,6 +17,8 @@ dead-code elimination are semantic concerns handled in later milestones.
 
 from __future__ import annotations
 
+import re
+
 from . import ast
 from . import tokens as T
 from .errors import ArcError
@@ -24,6 +26,16 @@ from .lexer import RawInterp, tokenize
 
 # Articles recognized at the start of an interpolation (docs/01 section 16).
 _ARTICLES = frozenset({"a", "an", "the", "A", "An", "The"})
+
+# A leading article, an optional :case tag, and the expression that follows. The
+# article alternatives are ordered longest-first so "an" wins over "a". The tag
+# (:acc, :dat, and so on) is only read by a case-inflected language layer; English
+# and Spanish ignore it. A real expression must follow, so ${the} alone is left as
+# a plain variable read, matching the earlier behaviour.
+_ARTICLE_CASE_RE = re.compile(
+    r"^\s*(An|The|an|the|A|a)(?::([A-Za-z]+))?\s+(\S.*)$",
+    re.DOTALL,
+)
 
 _META_KEYS = frozenset(
     {"title", "headline", "author", "release", "serial", "UUID", "start"}
@@ -999,19 +1011,26 @@ class Parser:
             if isinstance(part, ast.StringText):
                 out.append(part)
             else:  # RawInterp
-                expr, article = self._parse_interp(part)
-                out.append(ast.StringInterp(expr, article))
+                expr, article, case = self._parse_interp(part)
+                out.append(ast.StringInterp(expr, article, case))
         return ast.StringLit(out, tok.line)
 
-    def _parse_interp(self, raw: RawInterp) -> tuple[ast.Expr, str | None]:
-        sub_tokens = tokenize(raw.source, self.filename)
-        sub = Parser(sub_tokens, self.filename)
+    def _parse_interp(self, raw: RawInterp) -> tuple[ast.Expr, str | None, str | None]:
+        # Peel an optional leading article, with an optional :case tag, off the raw
+        # interpolation source before tokenizing the expression. The article is only
+        # taken when a real expression follows it, so ${the} still prints a variable
+        # named `the`. The colon is not a lexer token, so this string-level split is
+        # how ${the:acc noun} reaches the language layer without touching the lexer.
+        source = raw.source
         article = None
-        if sub.cur.kind == T.NAME and sub.cur.value in _ARTICLES:
-            nxt = sub._at(1)
-            if nxt.kind not in (T.NEWLINE, T.EOF):
-                article = sub.cur.value
-                sub.advance()
+        case = None
+        m = _ARTICLE_CASE_RE.match(source)
+        if m:
+            article = m.group(1)
+            case = m.group(2)  # None when no :tag was written
+            source = m.group(3)
+        sub_tokens = tokenize(source, self.filename)
+        sub = Parser(sub_tokens, self.filename)
         if sub.cur.kind in (T.NEWLINE, T.EOF):
             raise ArcError(
                 "empty interpolation ${...} in string",
@@ -1030,7 +1049,7 @@ class Parser:
                 raw.column,
                 self.filename,
             )
-        return expr, article
+        return expr, article, case
 
     def _plain_text(self, tok: T.Token) -> str:
         out: list[str] = []

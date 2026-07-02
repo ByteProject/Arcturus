@@ -164,6 +164,24 @@ def _name_head(decl) -> str:
 _SPANISH_FEMININE_SUFFIXES = ("cion", "ción", "sion", "sión", "dad", "tad", "tud", "umbre")
 
 
+# Languages whose gender has NO spelling rule, so the compiler must not guess it
+# from a name. German is the case: it has three genders and the author declares the
+# article (der/die/das), and a masculine noun can end in -a, so the two-gender -a
+# heuristic would mis-gender it. Every other language (English ignores the bit,
+# Spanish and a hand-rolled gendered game read the -a rule) leaves derivation on.
+_NO_SPELLING_GENDER = frozenset({"german"})
+
+
+def _spelling_gender_language(world: wm.World) -> bool:
+    """Whether to fill `feminine` from a name's spelling. On by default, and off
+    only for a language that declares gender explicitly (German), so its masculine
+    -a nouns are not silently made feminine."""
+    for s in getattr(world, "summons", []):
+        if getattr(s, "form", None) == "feature" and getattr(s, "target", None) == "language":
+            return not (bool(s.arg) and s.arg.lower() in _NO_SPELLING_GENDER)
+    return True
+
+
 def _derive_feminine(decl) -> bool:
     """Whether to set `feminine` on an object from its name, for a gendered
     language to read. A head noun with a reliably feminine suffix, or ending in -a,
@@ -255,6 +273,9 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
 def _emit_table(world: wm.World, layout: Layout) -> None:
     table = layout.table
     n = len(world.obj_number) if False else len(layout.obj_number)
+    # Whether to fill `feminine` from a name's spelling (Spanish only). German gets
+    # its gender from the author's der/die/das, so spelling is never consulted.
+    derive_gender = _spelling_gender_language(world)
 
     # Property-defaults table: 63 words, all zero.
     table += bytes(_NUM_DEFAULTS * 2)
@@ -294,7 +315,7 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
         # the name (a name ending in -a is feminine), so a Spanish pack reads it for
         # la/una with no author work. English never reads the bit.
         fem_num = layout.attr_number.get("feminine")
-        if fem_num is not None and "feminine" not in eff:
+        if derive_gender and fem_num is not None and "feminine" not in eff:
             if _derive_feminine(eff.get("name")):
                 table[entry + fem_num // 8] |= 0x80 >> (fem_num % 8)
         # Kind-membership attributes: one for each kind in the object's chain.

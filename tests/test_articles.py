@@ -90,3 +90,46 @@ def test_gender_articles_override_on_frotz(tmp_path):
     ).stdout
     assert "la lampara, una lampara." in out  # -a name: feminine, from art_the/art_a
     assert "el libro, un libro." in out  # default masculine
+
+
+# A three-gender, case-inflected language (German) declares gender with the article
+# der/die/das on the object, and asks for a case with ${the:acc noun}. The gender
+# maps to feminine/neuter attributes; the case reaches art_the as a third argument.
+# ${the noun} with no tag calls art_the with two arguments, so its third local
+# defaults to 0 (nominative). A masculine noun ending in -a ("Gorilla") must stay
+# masculine: spelling derivation is off for German.
+GERMAN_GAME = (
+    'game\n    title "D"\n    start raum\n'
+    'summon.language "german"\n'
+    'room raum\n    name "Raum"\n    desc "Ein Raum."\n'
+    'thing kiste in raum\n    name "Kiste"\n    words kiste\n    die\n'
+    '    on examine\n        say "${the kiste}/${the:acc kiste}/${the:dat kiste}"\n        stop\n'
+    'thing buch in raum\n    name "Buch"\n    words buch\n    das\n'
+    '    on examine\n        say "${the buch}/${the:acc buch}/${the:dat buch}"\n        stop\n'
+    'thing gorilla in raum\n    name "Gorilla"\n    words gorilla\n    der\n'
+    '    on examine\n        say "${the gorilla}/${the:acc gorilla}/${a:acc gorilla}"\n        stop\n'
+)
+
+
+def _german_lib():
+    # The game selects summon.language "german", so a german.granule must be found.
+    # Point the resolver at the bundled cosmos/ directory.
+    import os
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), "cosmos")
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_german_gender_and_case_on_frotz(tmp_path):
+    story = tmp_path / "d.z5"
+    prog = cosmos.combined_program(
+        parse(GERMAN_GAME), lib_dirs=(_german_lib(),), story_dir=_german_lib()
+    )
+    story.write_bytes(generate(analyze(prog)))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="x kiste\nx buch\nx gorilla\n",  # x is the German examine verb too
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "die Kiste/die Kiste/der Kiste" in out  # feminine: nom/acc same, dat der
+    assert "das Buch/das Buch/dem Buch" in out  # neuter: nom/acc das, dat dem
+    assert "der Gorilla/den Gorilla/einen Gorilla" in out  # masculine, not feminine
