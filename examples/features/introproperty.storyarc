@@ -1,0 +1,126 @@
+// introproperty.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the `intro` property (docs/01 section 4): an object's initial
+// appearance in a room. While an object sits untouched (its `moved` attribute
+// clear), `look` prints its `intro` as its own paragraph instead of the plain
+// "You can see X here." The moment the player first takes it, Cosmos sets
+// `moved` and the object drops back to the plain listing. So `intro` is how you
+// write set dressing that reads as prose rather than a bare list.
+//
+// This example is shown WITH a status line (summon.statusline) so you can watch
+// the move count and score tick while you try it. Compile and run:
+//
+//   arcc examples/features/introproperty.storyarc -o introproperty.z5
+//   frotz introproperty.z5
+//
+// Try, in order, and watch each paragraph:
+//   look            three intros, each its own paragraph:
+//                     - the marble statue (fixed set dressing, prose not a list)
+//                     - the sealed letter (a takeable thing, prose while untouched)
+//                     - the open reliquary (a container whose intro names what is
+//                       inside, so no separate "(contains ...)" line is generated)
+//   take letter     you pick it up; the score ticks (a point for the letter)
+//   drop letter     put it back in the room
+//   look            the letter now reads plainly: "You can see a sealed letter
+//                   here." Its intro is spent, because `moved` is set. The statue
+//                   and the reliquary, never taken, still show their intros.
+//   north           step into the vault; the status line follows you
+//   look            the tarnished key shows its intro here
+//   take key        take it, and its intro is likewise spent from now on
+//
+// The rule to take away: an `intro` is the FIRST-look prose for an object, and a
+// fixed or static object (the statue, the reliquary) shows it for as long as it
+// is in view, because it is never taken. For a container, the intro replaces the
+// whole generated line INCLUDING the "(contains ...)" listing, on the principle
+// that an author who writes the prose owns the description: name the contents in
+// the intro yourself if they should show.
+
+game
+    title  "The Reliquary"
+    headline "An intro-property showcase"
+    author "Stefan Vogt"
+    start  chapel
+
+summon.statusline
+
+on start
+    say "Dust hangs in the coloured light. You came to catalogue what the
+         old order left behind."
+
+
+room chapel
+    name "The Side Chapel"
+    desc "A cramped side chapel, its one window a lattice of dim stained glass.
+          An arch opens north into the vault."
+    north vault
+
+// A FIXED object is never taken, so its intro persists as long as it is in view.
+// This is the classic use: set dressing that reads as a sentence, not a list.
+thing statue in chapel
+    name "marble statue"
+    words marble, statue, saint, figure
+    fixed
+    desc "A weathered saint, hands folded, the nose long since knocked away."
+    intro "A marble statue of a nameless saint keeps watch from its niche."
+
+// A TAKEABLE object shows its intro while untouched, then reverts to the plain
+// "You can see a sealed letter here." once you take it (Cosmos sets `moved`).
+// Drop it and look again to see the change: the prose intro does not come back.
+thing letter in chapel
+    name "sealed letter"
+    words sealed, letter, note, parchment
+    desc "A single sheet folded thrice, sealed with a blob of red wax."
+    intro "A sealed letter has been left on the altar rail, its wax still bright."
+
+    on take
+        move letter to player
+        if letter is not moved
+            now letter is moved
+            change score to score + 1
+            say "You take the letter. That is one item catalogued."
+        else
+            say "You take the letter again."
+
+// A CONTAINER's intro replaces the WHOLE generated line, including the
+// "(contains ...)" listing. Because this reliquary is fixed and open, its intro
+// shows for good, and it names the bone sliver itself, in prose, rather than
+// letting Cosmos append a separate contents list.
+thing reliquary of container in chapel
+    name "gilt reliquary"
+    words gilt, gilded, reliquary, casket, box
+    fixed
+    open
+    desc "A small gilded casket, its glass lid propped open."
+    intro "An open reliquary of tarnished gilt rests on a plinth, and within it,
+           on a bed of faded silk, lies a yellowed sliver of bone."
+
+thing bone in reliquary
+    name "sliver of bone"
+    words sliver, bone, relic
+    desc "A finger-bone, brown with age. Whose, the label no longer says."
+
+
+room vault
+    name "The Vault"
+    desc "A low barrel vault of cold brick. The chapel is back south."
+    south chapel
+
+// One more takeable intro, in the second room, so the effect is clear after you
+// have already watched the letter change: prose while untouched, plain once taken.
+thing key in vault
+    name "tarnished key"
+    words tarnished, iron, key
+    desc "A heavy iron key, its ward crusted with green."
+    intro "A tarnished key hangs from a nail driven into the mortar."
+
+    on take
+        move key to player
+        if key is not moved
+            now key is moved
+            change score to score + 1
+            say "You lift the key off its nail. Catalogued."
+        else
+            say "You take the key again."
