@@ -786,10 +786,10 @@ block msg_open_first()
     say "Dazu musst du erst ${the:acc shut_in} öffnen."
 
 block msg_no_it()
-    say "Du musst sagen, was du meinst."
+    say "Du musst schon genau sagen, was gemeint ist."
 
 block msg_be_specific()
-    say "Du musst dich genauer ausdrücken."
+    say "Du musst dich schon etwas genauer ausdrücken."
 
 block msg_nothing_again()
     say "Es gibt nichts zu wiederholen."
@@ -815,7 +815,7 @@ block line_talk_header(who)
     show("Sprich mit ${the:dat who} über:")
 
 block line_talk_prompt()
-    show("Drücke eine Zahl zum Fragen, oder 0 zum Beenden.")
+    show("Wähle ein Thema oder beende mit 0.")
 
 block msg_no_topics()
     say "Dir fällt gerade nichts Sinnvolles ein."
@@ -849,7 +849,7 @@ block msg_too_dark()
 
 // Movement.
 block msg_cant_go()
-    say "In diese Richtung geht es nicht."
+    say "Es gibt keinen Ausgang in diese Richtung."
 
 block msg_no_direction()
     say "In welche Richtung?"
@@ -858,13 +858,13 @@ block msg_cant_enter()
     say "In ${the:acc noun} kommst du nicht hinein."
 
 block msg_already_there()
-    say "Da bist du schon."
+    say "Du bist schon hier."
 
 block msg_not_inside()
-    say "Du steckst in nichts, aus dem du aussteigen könntest."
+    say "Du bist in nichts, aus dem du aussteigen könntest."
 
 block msg_cant_climb()
-    say "${The noun} ist nichts zum Klettern."
+    say "${The noun} ist nicht zum klettern geeignet."
 
 // Sensory.
 block msg_nothing_special()
@@ -877,7 +877,7 @@ block msg_smell()
     say "${The noun} riecht ungefähr so, wie du es erwartet hast."
 
 block msg_listen()
-    say "Du horchst. Nichts antwortet."
+    say "Du horchst und nichts antwortet."
 
 block msg_taste()
     say "Lieber nicht."
@@ -888,7 +888,7 @@ block msg_taken()
     say "Genommen."
 
 block msg_fixed()
-    say "${The noun} bleibt, wo es ist."
+    say "${The noun} bleibt ziemlich genau, wo es ist."
 
 block msg_animate_refuses()
     say "${The noun} hat andere Pläne."
@@ -897,7 +897,7 @@ block msg_have_it()
     say "Du hast ${the:acc noun} bereits."
 
 block msg_take_self()
-    say "Dich selbst hast du fest im Griff."
+    say "Dich selbst zumindest hast du fest im Griff."
 
 block msg_dropped()
     say "Fallen gelassen."
@@ -921,7 +921,7 @@ block msg_to_whom()
     say "Wem?"
 
 block msg_give()
-    say "${The second} will ${the:acc noun} nicht. So eine Frechheit."
+    say "${The second} will ${the:acc noun} nicht. Skandal."
 
 block msg_show()
     say "${The second} scheint sich nicht dafür zu interessieren."
@@ -966,7 +966,7 @@ block msg_closed_it()
     say "Geschlossen."
 
 block msg_already_shut()
-    say "${The noun} ist schon zu."
+    say "${The noun} ist schon geschlossen."
 
 block msg_cant_close()
     say "${The noun} lässt sich nicht schließen."
@@ -1010,10 +1010,10 @@ block msg_eat()
     say "${The noun} steht nicht auf dem Speiseplan."
 
 block msg_drink()
-    say "Hier gibt es nichts zu trinken."
+    say "Nichts hier ist es wert, getrunken zu werden."
 
 block msg_jump()
-    say "Du hüpfst auf der Stelle. Nichts passiert, aber es tut gut."
+    say "Du hüpfst auf der Stelle herum. Nichts passiert, aber es tat gut."
 
 block msg_wait()
     say "Die Zeit vergeht."
@@ -1030,7 +1030,7 @@ block msg_no_talk()
 
 // Inventory.
 block msg_carrying()
-    say "Du trägst:"
+    say "Du trägst mit dir:"
 
 block msg_empty_handed()
     say "Du hast rein gar nichts bei dir."
@@ -1045,7 +1045,7 @@ block msg_no_verb()
 
 // The verb was understood, but it cannot use the words that followed it.
 block msg_extra_words()
-    say "Ab da komme ich nicht mehr mit."
+    say "Nach dem Verb konnte ich nicht mehr folgen."
 
 // Read a yes/no answer; returns 1 for an answer that starts with j or J (ja). The
 // caller prints the question first, so this is shared by every confirmation.
@@ -1065,7 +1065,7 @@ block confirm_quit()
 
 // The farewell, overridable for a custom send-off.
 block msg_farewell()
-    say "Wir belassen es dabei."
+    say "Dann lassen wir es für heute gut sein."
 
 // Meta verbs.
 block msg_score()
