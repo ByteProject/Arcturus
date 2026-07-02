@@ -7,7 +7,8 @@
 // `summon.language "german"`, which compiles it in place of english.prelude. A
 // fork of the English layer: the language-agnostic parser logic in section 1 is
 // unchanged; the verbs, the direction words, the articles, and every message are
-// German. First pass, pending native review. It has three parts, in order:
+// German. The message set has had a native pass (Stefan Vogt, 2026-07). It has
+// three parts, in order:
 //
 //   1. THE PARSER - the blocks that teach the parser how to read German input:
 //      which word is the verb, how a noun phrase is matched, how directions and
@@ -31,9 +32,9 @@
 //     changes, and it changes in one place.
 //
 // TYPING ON 8-BIT HARDWARE: an accented word is shown in full (the interpreters
-// render umlauts and ss), but every word the player must TYPE also has a plain
-// ASCII form here, since an 8-bit keyboard cannot enter umlauts: oeffne/oeffnen
-// beside oeffne/oeffnen, sueden beside sueden, schliesse beside schliesse.
+// render umlauts and ß), but every word the player must TYPE also has a plain
+// ASCII form here, since an 8-bit keyboard cannot enter umlauts: "oeffne"
+// beside "öffne", "sueden" beside "süden", "schliesse" beside "schließe".
 //
 // The self-identifying marker: this is the language pack for the code "german".
 // The compiler requires it to be chosen with summon.language, and rejects a plain

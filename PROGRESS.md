@@ -22,6 +22,21 @@ README em dashes and the stale find_particle comment in german.granule. Next:
 an idiom-focused review of both translations (Stefan's request; German got his
 native pass already, Spanish still gated on Pablo), then B8.
 
+Second polish round (2026-07-02, Stefan's rulings): (1) GRAIN CHAINS: a grain
+word is no longer global; the dictionary entry points at a chain of (grain,
+owner) pairs and find_scenery answers with the owner in scope, so the same
+scenery word works in many rooms (Stefan: a modern language cannot accept the
+old limit). Pay-for-use via the new any_grains() fold; grainless games SHRANK.
+(2) LOCALIZED BANNER: line_by (" by "/" de "/" von ") and banner_headline (the
+default headline) live in the language layer; codegen calls them with a bare-
+build fallback. (3) TWO GATED DAEMONS in each localized game: the clock strikes
+every 3 turns but only in the inn, whispers call every 3 turns but only at the
+coast (both verified on Frotz: 3 strikes inside, none at the beach). (4)
+Comment polish in the translated files; the mangled 8-bit comment in
+german.granule fixed; German header now records Stefan's native pass. (5)
+Pablo Martinez credited in spanish.granule and the example (his edits),
+posada.z5/gasthaus.z5 rebuilt for his review. 294 tests pass.
+
 Post-playtest polish (2026-07-02, from Stefan's German playthrough + the idiom
 pass): (1) IDIOM. Sixteen Spanish fixes applied (the example carried the exact
 calques Stefan had caught in German, never back-ported: camino roto, la llave
