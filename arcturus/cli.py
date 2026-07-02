@@ -86,12 +86,13 @@ def _build_argparser() -> argparse.ArgumentParser:
         "forked or shared library rather than carry its own copy.",
     )
     ap.add_argument(
-        "-s",
-        "--stats",
+        "-q",
+        "--quiet",
         action="store_true",
-        help="after compiling, print the compile statistics: what the story "
-        "uses of each Z-machine ceiling (attributes, properties, globals, "
-        "readable memory, story size). Works with or without -o.",
+        help="script mode: suppress the banner and the compile statistics, "
+        "printing only the result line and any errors. Compiles are verbose by "
+        "default: the banner always shows, and a successful compile prints the "
+        "statistics ledger (what the story uses of each Z-machine ceiling).",
     )
     ap.add_argument(
         "--check",
@@ -287,10 +288,23 @@ def _stats_report(stats: dict, version: int) -> str:
     ])
 
 
+def _header() -> str:
+    """The banner printed on every invocation (the bare call adds the usage
+    lines): who is speaking, in which version, before any result."""
+    return (
+        f'Arcturus -- [ arcc {__version__} | Cosmos {cosmos_lib.COSMOS_VERSION} '
+        f'| python3 | stdlib | {_host_os()} ]\n'
+        'Copyright (c) 2026, Stefan Vogt.\n'
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     ap = _build_argparser()
     args = ap.parse_args(argv)
+
+    if not getattr(args, "quiet", False):
+        print(_header())
 
     # Library-extraction utilities run without a story file.
     if args.extract_library is not None:
@@ -350,25 +364,24 @@ def main(argv: list[str] | None = None) -> int:
         print(dump_ir(world))
         return 0
 
-    if args.output or args.stats:
-        stats = {} if args.stats else None
+    if args.output:
+        # Compiles are verbose by default: the statistics ledger prints after
+        # every successful build (Stefan's rule: the switch is for suppressing
+        # it, not requesting it). -q silences both the ledger and the banner.
+        stats = None if args.quiet else {}
         try:
             story = generate(world, version=args.zversion, stats=stats)
         except ArcError as exc:
             print(exc.format(), file=sys.stderr)
             return 1
-        if args.output:
-            try:
-                with open(args.output, "wb") as fh:
-                    fh.write(story)
-            except OSError as exc:
-                print(f"arcc: error: cannot write {args.output}: {exc}", file=sys.stderr)
-                return 2
-            print(f"{args.source}: wrote {args.output} ({len(story)} bytes)")
-        else:
-            # --stats without -o: compile for the numbers, write nothing.
-            print(f"{args.source}: compiled ({len(story)} bytes, not written)")
-        if args.stats:
+        try:
+            with open(args.output, "wb") as fh:
+                fh.write(story)
+        except OSError as exc:
+            print(f"arcc: error: cannot write {args.output}: {exc}", file=sys.stderr)
+            return 2
+        print(f"{args.source}: wrote {args.output} ({len(story)} bytes)")
+        if stats is not None:
             print(_stats_report(stats, args.zversion))
         return 0
 

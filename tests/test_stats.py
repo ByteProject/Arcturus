@@ -45,17 +45,18 @@ def test_z8_stats_scale():
     assert stats["story_max"] == 512 * 1024
 
 
-def test_cli_stats_flag(capsys, tmp_path):
-    # --stats without -o compiles for the numbers and writes nothing.
+def test_cli_verbose_by_default_quiet_on_request(capsys, tmp_path):
+    # A compile is verbose by default: the banner shows and the statistics
+    # ledger follows the result line. -q silences both for scripts.
     src = os.path.join(EXAMPLES, "brass-lantern.storyarc")
-    assert cli.main([src, "--stats"]) == 0
-    out = capsys.readouterr().out
-    assert "compile statistics:" in out
-    assert "attributes" in out and "/48" in out
-    assert "not written" in out
-    # With -o it writes the story AND prints the ledger.
     dest = str(tmp_path / "b.z5")
-    assert cli.main([src, "-o", dest, "-s"]) == 0
+    assert cli.main([src, "-o", dest]) == 0
     out = capsys.readouterr().out
+    assert "Arcturus -- [ arcc" in out  # the banner, on every invocation
     assert "wrote" in out and "compile statistics:" in out
+    assert "attributes" in out and "/48" in out
     assert os.path.exists(dest)
+    assert cli.main([src, "-o", dest, "-q"]) == 0
+    out = capsys.readouterr().out
+    assert "wrote" in out
+    assert "compile statistics:" not in out and "Arcturus -- [" not in out
