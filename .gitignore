@@ -16,6 +16,10 @@ dist/
 *.z8
 !tests/golden/**/*.z5
 
+# The Hibernated 2 source and walkthrough (the B8 port's working material) are
+# NOT released; this repository is public. Never commit this directory.
+hibernated2/
+
 # VS Code extension build artifacts
 editors/vscode/node_modules/
 # The packaged .vsix is committed as the easy-install artifact; rebuild it with
