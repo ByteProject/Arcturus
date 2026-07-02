@@ -1004,7 +1004,7 @@ block msg_no_effect()
 
 // Body, action, idle.
 block msg_attack()
-    say "Auf Dinge einzuschlagen hilft selten, und jetzt fängt es damit nicht an."
+    say "Auf Dinge einzuschlagen hilft selten, und daran wird sich auch jetzt nichts ändern."
 
 block msg_eat()
     say "${The noun} steht nicht auf dem Speiseplan."

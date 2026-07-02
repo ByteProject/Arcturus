@@ -51,11 +51,11 @@ on start
 
 room gasthaus
     name "Der Gastraum"
-    desc "Der Gastraum eines uralten Gasthauses, aus Stein, geschwärzt vom Rauch
-          tausend Winter. Neben dem Herd, noch lauwarm, steht eine Truhe aus Eiche.
-          Weiter hinten führt eine geschlossene Tür nach Osten, hinaus in den Hof.
-          Hinter dem Tresen mustert dich die Wirtin schweigend, als wüsste sie, warum
-          du gekommen bist."
+    desc "Der Gastraum eines uralten Gasthauses, die Steinwände geschwärzt vom Rauch
+          unzähliger Winter. Neben dem Herd, der noch lauwarm ist, steht eine eichene
+          Truhe. Nach Osten führt eine geschlossene Tür hinaus in den Hof. Hinter dem
+          Tresen mustert dich die Wirtin schweigend, als wüsste sie längst, warum du
+          gekommen bist."
     // Die Ausgänge werden nach der Richtungs-EIGENSCHAFT benannt (east, west, ...),
     // ein fester englischer Bezeichner, genau wie `thing`, `room` oder `openable`.
     // Der Spieler tippt das deutsche Wort ("osten"); nur der Wortschatz ist
@@ -64,19 +64,19 @@ room gasthaus
 
 room hof
     name "Der Hof"
-    desc "Ein Hof, offen zur Nacht, überflutet vom Licht eines riesigen Mondes. Das
-          Gasthaus liegt im Westen; ein Pfad fällt nach Süden ab, hinunter zum
-          Strand. Es riecht nach Meer, und irgendwo zirpt noch eine Grille zwischen
-          den Kübeln."
+    desc "Ein Hof, offen zur Nacht und überflutet vom Licht eines riesigen Mondes.
+          Das Gasthaus liegt im Westen; nach Süden fällt ein Pfad hinab zum Strand.
+          Es riecht nach Meer, und irgendwo zwischen den Steinen zirpt noch eine
+          Grille."
     west tuer
     south strand
 
 room strand
     name "Der Strand"
-    desc "Kiesel und Tang unter einem gewaltigen Mond. Das Meer bricht langsam,
-          wieder und wieder, mit einem uralten Rauschen. Der Hof liegt oben im
-          Norden; weiter draußen, über den Felsen, ragt die erloschene Silhouette
-          des Leuchtturms."
+    desc "Kiesel und Tang unter einem gewaltigen Mond. Die Wellen brechen langsam,
+          wieder und wieder, mit einem uralten Rauschen. Im Norden liegt der Hof;
+          weiter draußen, über den Felsen, ragt die dunkle Silhouette des
+          erloschenen Leuchtturms."
     north hof
 
     // Billige Kulisse (grains): Wörter mit Antwort, ohne einen Gegenstand zu
@@ -89,8 +89,8 @@ room strand
         examine "sand" or "kiesel" say "Kiesel, glatt geschliffen von tausend
             Gezeiten, kalt unter den Fingern."
         smell "brise" or "luft" say "Es riecht nach Salz, nach Tang und nach Weite."
-        examine "moewen" or "möwen" or "moewe" say "Sie schlafen auf den Felsen; nicht
-            einmal ein Federn regt sich, wenn du vorbeigehst."
+        examine "moewen" or "möwen" or "moewe" say "Sie schlafen auf den Felsen; keine
+            einzige Feder regt sich, wenn du vorbeigehst."
 
 // Der Mond ist vom Hof und vom Strand aus zu sehen: ein einziger Gegenstand, der
 // beide Räume umspannt (spans). Er ist Kulisse, wird also nicht gelistet und nicht
@@ -100,8 +100,8 @@ thing mond
     words mond, vollmond
     der
     scenery
-    desc "Ein voller, riesiger Mond, so hell, dass er den Kieseln scharfe Schatten
-          abringt."
+    desc "Ein voller, riesiger Mond, so hell, dass die Kiesel scharfe Schatten
+          werfen."
     spans hof, strand
 
 // Eine Öllampe: ihr Name trägt einen Umlaut und wird akzentuiert gezeigt, aber
@@ -113,8 +113,8 @@ thing lampe in gasthaus
     die
     switchable
     lit false
-    desc "Eine rußgeschwärzte Öllampe. Noch ist Docht da, und vielleicht ein Rest
-          Brennstoff."
+    desc "Eine rußgeschwärzte Öllampe. Der Docht ist noch da, und vielleicht ein
+          Rest Öl."
 
     // `switchable` markiert die Lampe nur; das Verhalten gehört dem Autor (ohne
     // Handler würde "anschalten" abgelehnt). Weil das Grundverb "schalt(e)" eine
@@ -162,13 +162,14 @@ thing wirtin of character in gasthaus
 
     topic gruss "die Wirtin begrüßen"
         you "Guten Abend."
-        reply "Guten Abend, Fremder. Kaum jemand steigt noch hier herauf; der Weg ist
-               gebrochen, seit das Schiff sank."
+        reply "Guten Abend, Fremder. Seit das Schiff gesunken ist, verirrt sich kaum
+               noch jemand hier herauf."
 
     topic leuchtturm "nach dem Leuchtturm fragen"
         you "Und der Leuchtturm da draußen?"
         reply "Erloschen seit jener Nacht. Niemand ist je wieder hinaufgestiegen. Der
-               Schlüssel in der Truhe öffnet den Hof, wenn du das suchst."
+               Schlüssel in der Truhe schließt die Tür zum Hof auf, falls du
+               hinauswillst."
 
     topic schluessel_thema "nach dem Schlüssel fragen"
         you "Gibt es hier einen Schlüssel?"
