@@ -105,7 +105,7 @@ docs/verb-set.md.
 
 | Block | When | Wording |
 |---|---|---|
-| msg_no_switch | switch on/off a non-switch | ${The noun} isn't the switching kind. |
+| msg_no_switch | switch a thing with no `on switch_on`/`switch_off` handler (`switchable` alone adds no behavior) | ${The noun} isn't the switching kind. |
 | msg_already_on | switch on what's on | ${The noun} is already on. |
 | msg_already_off | switch off what's off | ${The noun} is already off. |
 | msg_no_effect | push, pull, turn, default | ${The noun} holds firm. |

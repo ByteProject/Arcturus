@@ -291,7 +291,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `edible` | Can be eaten; the `eat` verb consumes it rather than refusing. |
 | `named` | A proper-named thing (Linda, Excalibur). Takes no article: `${the noun}` and `${a noun}` print just the name. |
 | `an` | The indefinite article is "an", not "a". Derived from the name's first letter (a vowel -> `an`); set `an` or `an false` only for an exception (an hour, a unicorn). |
-| `switchable` | Can be switched on and off; the `switch` verb applies. |
+| `switchable` | Marks a thing the `switch` verb targets, but the effect is the author's: unlike `openable` or `edible`, there is no built-in on/off behavior (the library has no way to know what turning a thing on should do), so give the object `on switch_on` and `on switch_off` handlers. Without them, switching it is refused (`msg_no_switch`). The attribute itself only advertises intent. |
 | `openable` | Can be opened and closed; the `open` / `close` verbs apply. |
 | `open` | Currently open (a container or door). Set by `open`, cleared by `close`. A closed container hides its contents from scope. |
 | `clear` | A see-through container (a glass jar): its contents are in scope and referable even when closed. An open or `clear` container exposes its contents; a closed opaque one shields them. |
