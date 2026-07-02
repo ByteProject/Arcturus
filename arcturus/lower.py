@@ -73,6 +73,10 @@ INTRINSICS = frozenset({
     # read_key reads a single keypress (no echo, no Enter) and returns its ZSCII
     # code, for the conversations menu's press-a-number selection.
     "read_key",
+    # set_colour(fg, bg) is the raw colour opcode, for library code (the status
+    # bar, the input reader); author code uses the zcolor/say.<colour> sugar.
+    # zc_font/zc_status/zc_input read the colours the sugar stored.
+    "set_colour", "zc_font", "zc_status", "zc_input",
     # print_banner prints the game banner (title, headline, author, release
     # line), for a game that sets `banner false` and shows it after its own
     # opening (a quote box, a pregame prelude).
@@ -99,7 +103,7 @@ INTRINSICS = frozenset({
     # text style, and the screen width from the header. Each lowers to an opcode,
     # so they cost nothing unless a granule calls them.
     "split_window", "set_window", "set_cursor", "set_style", "screen_width",
-    "erase_window", "screen_height",
+    "erase_window", "screen_height", "buffer_mode",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr",
@@ -632,6 +636,14 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("erase_window", op)
         _free(ctx, t)
         _place(rt, Const(0), dest)
+    elif name == "buffer_mode":
+        # buffer_mode(n): 0 suspends the lower window's word-wrap buffering,
+        # 1 resumes it. Upper-window drawing must run unbuffered (the status
+        # line, the quote box), or interpreters reorder the writes.
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("buffer_mode", op)
+        _free(ctx, t)
+        _place(rt, Const(0), dest)
     elif name == "screen_width":
         # screen_width(): the screen width in characters (header byte 0x21).
         rt.op("loadb", Const(0), Const(0x21), store=dest)
@@ -696,6 +708,17 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_named(): the compile-time named flag (1 or 0), so the article blocks
         # fold their `named` check away in a game with no proper-named objects.
         _place(rt, Const(_any_named(ctx)), dest)
+    elif name == "set_colour":
+        opa, opb, t = _two_operands(rt, ctx, args[0], args[1])
+        rt.op("set_colour", opa, opb)
+        _free(ctx, t)
+        _place(rt, Const(0), dest)
+    elif name == "zc_font":
+        _place(rt, Variable(ctx.globals["__zcfont__"]), dest)
+    elif name == "zc_status":
+        _place(rt, Variable(ctx.globals["__zcstatus__"]), dest)
+    elif name == "zc_input":
+        _place(rt, Variable(ctx.globals["__zcinput__"]), dest)
     elif name == "print_banner":
         rt.op("call_vn", RoutineRef("cosmos_banner"))
     elif name == "any_grains":
@@ -948,6 +971,7 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
         _change(rt, ctx, s)
     elif isinstance(s, ast.Say):
         if s.colour is not None:
+            ctx.world.uses_colours = True
             # say.<colour>: set the foreground, print, restore the base font
             # colour from the reserved __zcfont__ global. Both colour ops sit
             # behind the header colour-support check, so on an interpreter
@@ -963,6 +987,7 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
         else:
             _say(rt, ctx, s.value)
     elif isinstance(s, ast.ZColor):
+        ctx.world.uses_colours = True
         n = _ZCOLOURS[s.colour]
         if s.target == "font":
             # Remember the base font colour (say.<colour> restores to it), then
@@ -971,13 +996,22 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
             skip = _zc_guard(rt, ctx)
             rt.op("set_colour", Const(n), Const(0))
             rt.label(skip)
-        else:
+        elif s.target == "background":
             # Background: apply and repaint, so the new colour covers the whole
             # screen rather than only the cells printed from now on (the same
             # reason PunyInform clears after setting colours).
             skip = _zc_guard(rt, ctx)
             rt.op("set_colour", Const(0), Const(n))
             rt.op("erase_window", Const(-1))
+            rt.label(skip)
+        else:
+            # statusline / input: remember the colour for the status bar or the
+            # input reader to use. The store sits inside the colour-support
+            # guard, so on a colourless interpreter the global stays 0 and the
+            # library never touches set_colour at all.
+            slot = "__zcstatus__" if s.target == "statusline" else "__zcinput__"
+            skip = _zc_guard(rt, ctx)
+            rt.op("store", Const(ctx.globals[slot]), Const(n))
             rt.label(skip)
     elif isinstance(s, ast.Line):
         _line(rt, ctx, s)

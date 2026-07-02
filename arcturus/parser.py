@@ -780,10 +780,13 @@ class Parser:
         line = self.cur.line
         self.advance()  # the leading `zcolor`
         self.expect_op(".")
-        target = self.expect_name("'font' or 'background' after 'zcolor.'").value
-        if target not in ("font", "background"):
+        target = self.expect_name(
+            "'font', 'background', 'statusline', or 'input' after 'zcolor.'"
+        ).value
+        if target not in ("font", "background", "statusline", "input"):
             raise self._error(
-                f"'{target}' is not a zcolor target (use font or background)"
+                f"'{target}' is not a zcolor target (use font, background, "
+                f"statusline, or input)"
             )
         colour = self.expect_name("a colour name").value
         if colour not in _ZCOLOURS:

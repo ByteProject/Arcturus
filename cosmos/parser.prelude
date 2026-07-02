@@ -24,10 +24,22 @@ block copy_bytes(src, dst, n)
 // understood but the rest did not fit: parse_fault 1 named an object out of scope
 // (the loop reports "can't see"), parse_fault 2 piled extra words onto a verb
 // that has no slot for them (the loop reports "extra words").
+// Read one line of player input. When an input colour is set (zcolor.input),
+// the typed text prints in that colour and the base font colour returns the
+// moment the line is entered, the way PunyInform's clr_fginput works. With no
+// input colour this is a plain read.
+block read_input()
+    if zc_input() is not 0
+        set_colour(zc_input(), 0)
+    let term = read_line()
+    if zc_input() is not 0
+        set_colour(zc_font(), 0)
+    return term
+
 block parse()
     change parse_fault to 0
     change shut_in to nothing
-    let term = read_line()
+    let term = read_input()
     if word_count() is 0
         return 0
     let act = resolve_verb()

@@ -27,12 +27,18 @@ game
     author "Stefan Vogt"
     start  dome
 
+summon.statusline
+
 on start
     // The base colours: set once, before the first text. Setting the
     // background repaints the whole screen, so the display is coherent from
     // the first frame (the same reason PunyInform clears after its colours).
+    // The status bar and the text you type get their own colour, the classic
+    // Infocom-era look: white prose, cyan bar, cyan input.
     zcolor.font white
     zcolor.background black
+    zcolor.statusline cyan
+    zcolor.input cyan
     say "The dome is dark, and the slit stands open to the stars."
 
 room dome

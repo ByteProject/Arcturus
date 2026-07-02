@@ -844,9 +844,12 @@ the definite and indefinite article take a tag.
 Screen colours are set with the `zcolor` statement and used with a colour-tagged
 `say`. `zcolor.font <colour>` sets the base text colour; `zcolor.background
 <colour>` sets the background and repaints the screen, so the new colour covers
-the whole display rather than only the text printed from then on. The colours
-are `default` (the interpreter's own), `black`, `red`, `green`, `yellow`,
-`blue`, `magenta`, `cyan`, and `white`.
+the whole display rather than only the text printed from then on.
+`zcolor.statusline <colour>` colours the status bar, and `zcolor.input
+<colour>` the text the player types, each restored to the base font colour
+afterwards (the classic Infocom-era look: white prose, cyan bar, cyan input).
+The colours are `default` (the interpreter's own), `black`, `red`, `green`,
+`yellow`, `blue`, `magenta`, `cyan`, and `white`.
 
 `say.<colour> "..."` prints one text in that colour and then restores the base
 font colour by itself, so an emphasized passage is a single line with no state

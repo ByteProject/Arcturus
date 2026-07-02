@@ -56,6 +56,13 @@ block quote_fill()
 // Open a quote box for `lines` lines of text, the longest `width` characters.
 // Clears the screen, splits the upper window, and draws the box's top row.
 block quote(lines, width)
+    // Flush any pending paragraph break into the OLD screen first: the print
+    // layer would otherwise flush it as a newline into the box's first row and
+    // drag the whole layout off by one.
+    show("")
+    // The whole box draws unbuffered (quote_done restores buffering): with the
+    // word-wrap buffer on, interpreters reorder the writes around set_cursor.
+    buffer_mode(0)
     change qb_width to width + 2
     let sw = screen_width()
     change qb_left to (sw - qb_width) / 2 + 1
@@ -81,3 +88,4 @@ block quote_done()
     set_window(0)
     read_key()
     erase_window(-1)
+    buffer_mode(1)

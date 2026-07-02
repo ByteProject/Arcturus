@@ -1078,7 +1078,7 @@ block msg_extra_words()
 // Read a yes/no answer; returns 1 for an answer that starts with j or J (ja). The
 // caller prints the question first, so this is shared by every confirmation.
 block yes_no()
-    let term = read_line()
+    let term = read_input()
     let c = text_char(0)
     if c is 106
         return 1

@@ -1065,7 +1065,7 @@ block msg_extra_words()
 // caller prints the question first, so this is shared by every confirmation. The
 // yes test (a leading 'y') is English, so it lives in the language layer.
 block yes_no()
-    let term = read_line()
+    let term = read_input()
     let c = text_char(0)
     if c is 115
         return 1

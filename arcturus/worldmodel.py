@@ -178,6 +178,10 @@ class World:
     # (switch + on -> switch_on). Localized by a pack, so no particle word is
     # hardcoded in the compiler.
     particles: dict[str, str] = field(default_factory=dict)
+    # True once lowering meets a colour construct (zcolor, say.<colour>). The
+    # story header then announces colour use (Flags 2 bit 6), which interpreters
+    # like Frotz require before they enable their colour machinery.
+    uses_colours: bool = False
     globals: dict[str, Global] = field(default_factory=dict)
     constants: dict[str, Constant] = field(default_factory=dict)
     blocks: dict[str, Block] = field(default_factory=dict)

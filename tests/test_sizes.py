@@ -29,34 +29,35 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.7.0 / Cosmos 0.10.0 (2026-07-02).
 CEILINGS = {
-    # 2026-07-02 (banner control): the banner sits in its own routine so
-    # `banner false` + print_banner() can defer or drop it; each game carries
-    # the routine call, a handful of bytes.
-    "beispiel-deutsch.storyarc": 16964,
-    "brass-lantern.storyarc": 11512,
-    "cloak-of-darkness.storyarc": 11976,
-    "ejemplo-espanol.storyarc": 15688,
-    "features/computed-properties.storyarc": 10280,
-    "features/containers.storyarc": 10316,
-    "features/daemons-and-timers.storyarc": 10620,
-    "features/doors-and-locks.storyarc": 10232,
-    "features/grains.storyarc": 10388,
-    "features/introproperty.storyarc": 11308,
-    "features/kinds-and-inheritance.storyarc": 10140,
-    "features/on-other.storyarc": 10144,
-    "features/zcolor.storyarc": 10228,
-    "features/spans.storyarc": 10388,
-    "granules/conversations.storyarc": 11956,
-    "granules/extended-verbs.storyarc": 13416,
-    "granules/infocom-interrogation.storyarc": 15284,
-    "granules/quotes.storyarc": 10572,
-    "granules/statusline.storyarc": 10332,
-    "granules/verbose-exits.storyarc": 10532,
+    # 2026-07-03 (frotz truth): read_input (the input-colour seam), the
+    # buffer_mode dance and the pending-paragraph flush in the upper-window
+    # granules, and the zcolor statusline/input wiring. Real-frotz rendering
+    # is now verified end to end; the bytes are the cost of being correct.
+    "beispiel-deutsch.storyarc": 17080,
+    "brass-lantern.storyarc": 11548,
+    "cloak-of-darkness.storyarc": 12068,
+    "ejemplo-espanol.storyarc": 15804,
+    "features/computed-properties.storyarc": 10316,
+    "features/containers.storyarc": 10352,
+    "features/daemons-and-timers.storyarc": 10656,
+    "features/doors-and-locks.storyarc": 10268,
+    "features/grains.storyarc": 10424,
+    "features/introproperty.storyarc": 11400,
+    "features/kinds-and-inheritance.storyarc": 10176,
+    "features/on-other.storyarc": 10180,
+    "features/zcolor.storyarc": 10692,
+    "features/spans.storyarc": 10424,
+    "granules/conversations.storyarc": 12072,
+    "granules/extended-verbs.storyarc": 13452,
+    "granules/infocom-interrogation.storyarc": 15320,
+    "granules/quotes.storyarc": 10684,
+    "granules/statusline.storyarc": 10424,
+    "granules/verbose-exits.storyarc": 10568,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 12376
+CLOAK_Z8_CEILING = 12464
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
