@@ -823,6 +823,13 @@ Interpolation embeds an expression with `${ }`; printing an object prints its
 `${The ruby}`, `${A ruby}`; an object with `named` set takes no article.
 Their full behavior is in 02. Escapes: `\"`, `\\`, `\$`, and `\n`.
 
+An article may carry a grammatical-case tag after a colon, `${the:acc noun}` or
+`${a:dat noun}`, for a language whose article inflects for case (German
+der/den/dem). The cases are `nom`, `acc` (or `akk`), `dat`, and `gen`; with no
+tag the case is nominative. English and Spanish ignore the tag, so it costs
+nothing there; a language pack's article block reads it (02, section 14a). Only
+the definite and indefinite article take a tag.
+
 ## 17. Diagnostics
 
 Representative compile-time errors:

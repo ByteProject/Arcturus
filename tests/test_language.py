@@ -38,12 +38,13 @@ def test_two_languages_is_an_error():
 
 
 def test_unknown_language_errors_at_combine():
-    # An unbundled language is a clean error, not a crash. English (the default)
-    # and Spanish (bundled) both combine.
+    # An unbundled language is a clean error, not a crash. English (the default),
+    # Spanish, and German (both bundled) all combine.
     with pytest.raises(ArcError):
         cosmos.combined_program(parse('summon.language "klingon"\n' + MIN))
     assert cosmos.combined_program(parse(MIN))  # english default works
     assert cosmos.combined_program(parse('summon.language "spanish"\n' + MIN))
+    assert cosmos.combined_program(parse('summon.language "german"\n' + MIN))
 
 
 import shutil
@@ -77,6 +78,30 @@ def test_spanish_build_plays_on_frotz(tmp_path):
     # work: a feminine lampara is "Cogida", a masculine libro "Cogido".
     assert "Cogida." in out
     assert "Cogido." in out
+
+
+GERMAN_GAME = (
+    'summon.language "german"\n'
+    'game\n    title "J"\n    start kueche\n'
+    'room kueche\n    name "Kueche"\n    desc "Eine Kueche."\n'
+    'thing schluessel in kueche\n    name "Schluessel"\n    words schluessel\n    der\n'
+    'thing lampe in kueche\n    name "Lampe"\n    words lampe\n    die\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_german_build_plays_on_frotz(tmp_path):
+    # The bundled german.granule: gender declared with der/die/das, and the article
+    # inflecting for case through the ${the:...} tags in the messages.
+    story = tmp_path / "d.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GERMAN_GAME)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)], input="x schluessel\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "einen Schluessel" in out  # masculine accusative in the room listing
+    assert "eine Lampe" in out  # feminine
+    assert "An dem Schluessel" in out  # masculine dative, from ${the:dat noun}
 
 
 def test_non_english_game_skips_the_english_default_abbreviations():
