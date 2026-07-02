@@ -22,6 +22,26 @@ README em dashes and the stale find_particle comment in german.granule. Next:
 an idiom-focused review of both translations (Stefan's request; German got his
 native pass already, Spanish still gated on Pablo), then B8.
 
+B8 ENABLERS (2026-07-03): opening the real H2 source surfaced three Cosmos
+gaps, all closed the same day. (1) Z-MACHINE COLOURS as syntactic sugar,
+Stefan's design: `zcolor.font white` / `zcolor.background black` set the base
+colours (background repaints the screen), and `say.yellow "..."` prints one
+passage in a colour and restores the base BY ITSELF, replacing Puny's
+switch-print-switch-back sandwich. Every colour op checks the interpreter's
+colour bit at run time, so it all degrades to plain text with no author guard.
+set_colour opcode added (2OP:27); __zcfont__ reserved global; docs/01 s.16;
+The Observatory showcase; the amalgam module order fixed (prelude before
+parser). (2) BANNER CONTROL: the banner sits in its own routine; `banner
+false` stops the automatic print and print_banner() shows it when the author
+wants (H2's Initialise returns 2 to do this in Inform). The docs/02 "banner
+event" claim was false and is gone. (3) THE QUOTES GRANULE (summon.quotes):
+the centered reverse-video quote box, Trinity-style, H2's Sagan opening.
+quote(lines, width) / quote_line() + show(...) / quote_done() (keypress,
+clear); centered from the reported screen width for the 40-column targets; no
+output_stream needed (full reverse row first, overprint via set_cursor); no
+words of its own, so language-independent. Ad Astra showcase demos the classic
+quote-keypress-banner order. 304 tests pass.
+
 B8 OPENS (2026-07-02). The Hibernated 2 source and walkthrough live in
 hibernated2/ (gitignored and never committed: the game is unreleased and this
 repository is public; the real source is 4082 lines of Inform, 115 objects, 61
