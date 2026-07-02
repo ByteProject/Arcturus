@@ -43,10 +43,19 @@ _SCENERY_FLAG = 0x10  # a grain word: data byte 1 = grain id (index+1), byte 2 =
 # left as they are; the parser treats any flagged word as a phrase boundary.
 _PREPOSITION_FLAG = 0x08
 
-# Verb particles for multi-word verbs (switch on, take off). English; moves into
-# the language pack when localized. up/down/in/out are omitted (they are
-# direction words); the examples only need on/off.
-_PARTICLE_WORDS = {"on": 1, "off": 2}
+# Verb particles for multi-word verbs (switch on, take off). The WORDS are no
+# longer hardcoded: a language pack declares them (`particle on "on"` in English,
+# `particle on "an", "ein"` in German) and they arrive in world.particles as
+# word -> role. Only the two roles and their fixed ids live here, because the
+# parser's compound() block (in the language layer) reads these ids: on is 1,
+# off is 2.
+_PARTICLE_IDS = {"on": 1, "off": 2}
+
+
+def _particle_words(world: wm.World) -> dict:
+    """word -> particle id, from the language layer's `particle` declarations."""
+    return {w: _PARTICLE_IDS[role] for w, role in world.particles.items()
+            if role in _PARTICLE_IDS}
 
 # Direction words are no longer hardcoded here: they are declared in the language
 # layer with `direction north "north", "n"` (english.prelude) and collected into
@@ -149,7 +158,8 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
     words = set(collect_vocab(world))
     if direction_props:
         words |= set(direction_props)
-    words |= set(_PARTICLE_WORDS)
+    particle_words = _particle_words(world)
+    words |= set(particle_words)
     encoded = {w: zstring.encode_dict_word(w) for w in words}
     # Map each distinct encoded entry to its three data bytes.
     enc_data: dict[bytes, bytes] = {}
@@ -161,7 +171,7 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
         go = action_numbers["go"]
         for word, prop in direction_props.items():
             enc_data[encoded[word]] = bytes([_DIR_FLAG, go & 0xFF, prop & 0xFF])
-    for word, pid in _PARTICLE_WORDS.items():
+    for word, pid in particle_words.items():
         enc_data[encoded[word]] = bytes([_PARTICLE_FLAG, pid, 0])
     if scenery:
         for word, (gid, owner) in scenery.items():

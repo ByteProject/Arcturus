@@ -498,6 +498,14 @@ verb "switch"
     switch_on noun
     switch_off noun
 
+// Verb particles: the parser combines a base verb with a following particle word
+// (switch + on -> switch_on, take + off -> take_off), wherever it appears in the
+// command ("switch the lamp on" or "switch on the lamp"). The words are declared
+// here in the language layer, not in the compiler, so a pack localizes them; the
+// role is `on` or `off`. English has just the two.
+particle on  "on"
+particle off "off"
+
 verb "wear", "don"
     wear noun
 

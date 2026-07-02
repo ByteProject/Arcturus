@@ -172,6 +172,12 @@ class World:
     # Player-facing direction word -> standard direction property name, from the
     # language layer's `direction` declarations (docs/01). Localized by a pack.
     directions: dict[str, str] = field(default_factory=dict)
+    # Player-facing verb-particle word -> canonical particle name ("on"/"off"),
+    # from the language layer's `particle` declarations. English "on"/"off", German
+    # "an"/"ein"/"aus"/"ab"; the parser combines a base verb with the particle
+    # (switch + on -> switch_on). Localized by a pack, so no particle word is
+    # hardcoded in the compiler.
+    particles: dict[str, str] = field(default_factory=dict)
     globals: dict[str, Global] = field(default_factory=dict)
     constants: dict[str, Constant] = field(default_factory=dict)
     blocks: dict[str, Block] = field(default_factory=dict)

@@ -181,6 +181,8 @@ class Parser:
             return self.parse_handler()
         if t.kind == T.NAME and t.value == "direction":
             return self.parse_direction()
+        if t.kind == T.NAME and t.value == "particle":
+            return self.parse_particle()
         if t.kind == T.NAME and t.value == "language":
             return self.parse_language_decl()
         if t.kind == T.NAME:
@@ -572,6 +574,22 @@ class Parser:
             words.append(self._plain_text(self.expect(T.STRING, "a direction word")))
         self.expect_newline()
         return ast.DirectionDecl(prop, words, line)
+
+    def parse_particle(self) -> ast.ParticleDecl:
+        # `particle on "an", "ein"`: map words to a canonical verb particle. Like
+        # `direction`, `particle` is not a reserved word, so it is dispatched here
+        # as a leading name; the role (`on`/`off`) is checked in sema.
+        line = self.cur.line
+        self.advance()  # the leading `particle`
+        if self.cur.kind not in (T.NAME, T.KW):
+            raise self._error("a particle role (on or off) after 'particle'")
+        role = self.advance().value
+        words = [self._plain_text(self.expect(T.STRING, "a particle word"))]
+        while self.check_op(","):
+            self.advance()
+            words.append(self._plain_text(self.expect(T.STRING, "a particle word")))
+        self.expect_newline()
+        return ast.ParticleDecl(role, words, line)
 
     def _parse_grammar_line(self) -> ast.GrammarLine:
         line = self.cur.line

@@ -20,6 +20,7 @@
 //   - `grains`: billige Kulisse am Strand (das Meer, der Sand, die Möwen)
 //   - `spans`: der Mond ist vom Hof und vom Strand aus zu sehen
 //   - ein Behälter (die Truhe), eine abgeschlossene Tür, und das Geschlecht
+//   - trennbare Verben: "schalt die Lampe an" (oder ein, oder "anmachen")
 //
 // ZU DEN UMLAUTEN. Der Text, den der Spieler LIEST, ist voll akzentuiert, so wie
 // es sein soll; die Interpreter von Cosmos zeigen Umlaute und ß mühelos, bis
@@ -110,8 +111,22 @@ thing lampe in gasthaus
     name "Öllampe"
     words oellampe, öllampe, lampe, oel, öl
     die
+    switchable
+    lit false
     desc "Eine rußgeschwärzte Öllampe. Noch ist Docht da, und vielleicht ein Rest
           Brennstoff."
+
+    // `switchable` markiert die Lampe nur; das Verhalten gehört dem Autor (ohne
+    // Handler würde "anschalten" abgelehnt). Weil das Grundverb "schalt(e)" eine
+    // Partikel trägt, versteht der Parser "schalt die Lampe an", "... ein",
+    // "anmachen" und "einschalten" gleichermaßen.
+    on switch_on
+        now self is lit
+        say "Die Öllampe fängt mit einem leisen Zischen Feuer."
+
+    on switch_off
+        now self is not lit
+        say "Die Flamme erlischt, und das Dunkel rückt wieder näher."
 
 // Die Truhe: ein Behälter mit Deckel. Der Schlüssel wartet darin. `die` Truhe.
 thing truhe of container in gasthaus

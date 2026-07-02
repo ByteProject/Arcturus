@@ -132,6 +132,14 @@ class Analyzer:
                     )
                 for word in decl.words:
                     w.directions[word.lower()] = decl.prop
+            elif isinstance(decl, ast.ParticleDecl):
+                if decl.role not in ("on", "off"):
+                    raise self._error(
+                        f"'{decl.role}' is not a particle role (use on or off)",
+                        decl.line,
+                    )
+                for word in decl.words:
+                    w.particles[word.lower()] = decl.role
             elif isinstance(decl, ast.GlobalDecl):
                 self._seen(decl.name, decl.line)
                 w.globals[decl.name] = wm.Global(
