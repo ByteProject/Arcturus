@@ -532,7 +532,7 @@ verb "riech", "rieche", "riechen", "schnupper"
 verb "schmeck", "schmecke", "koste", "probier", "probiere"
     taste noun
 
-verb "hoer", "höre", "hoere", "höre", "lausche", "horch"
+verb "hoer", "hör", "hoere", "höre", "lausche", "horch"
     listen
     listen noun
 
@@ -546,10 +546,10 @@ verb "trink", "trinke", "trinken", "schluck"
 verb "schlag", "schlage", "angreifen", "hau", "tritt", "zerstoere", "zerstöre", "brich"
     attack noun
 
-verb "kuess", "küsse", "kuesse", "umarme"
+verb "kuess", "küss", "kuesse", "küsse", "umarme"
     kiss noun
 
-verb "drueck", "drücke", "druecke", "schieb", "schiebe", "press"
+verb "drueck", "drück", "druecke", "drücke", "schieb", "schiebe", "press"
     push noun
 
 verb "zieh", "ziehe", "ziehen", "zerr"
@@ -567,7 +567,7 @@ verb "lies", "lesen", "liest"
 verb "sprich", "rede", "reden", "sprechen"
     talk noun
 
-verb "spring", "springe", "huepf", "hüpfe"
+verb "spring", "springe", "huepf", "hüpf", "huepfe", "hüpfe"
     jump
 
 verb "warte", "warten", "z"
