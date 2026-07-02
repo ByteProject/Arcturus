@@ -1,6 +1,7 @@
 // spanish.granule
 // part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 // Copyright (c) 2026, Stefan Vogt.
+// Spanish translation by Pablo Martínez.
 // https://github.com/ByteProject/Arcturus
 //
 // THE SPANISH LANGUAGE LAYER (informal, tuteo). A language pack, selected with
@@ -301,16 +302,27 @@ block has_extra_words(act)
 // A scenery grain word (flagged bit 4) whose owner is in scope; returns the
 // grain id (so dispatch can route to its response or the scenery default).
 block find_scenery()
-    let n = word_count()
-    let i = 1
-    while i < n
-        let d = word_dict(i)
-        if d is not nothing
-            if peek_byte(d + 6) is 16
-                let owner = peek_byte(d + 8)
-                if in_scope(owner)
-                    return peek_byte(d + 7)
-        change i to i + 1
+    // The walker folds away entirely (any_grains is a compile-time flag) in a
+    // game that declares no grains, so unused scenery costs nothing.
+    if any_grains() is 1
+        let n = word_count()
+        let i = 1
+        while i < n
+            let d = word_dict(i)
+            if d is not nothing
+                if peek_byte(d + 6) is 16
+                    // The word's grain chain: (grain id, owner) pairs, zero-
+                    // ended. The same word can be scenery in several rooms;
+                    // answer with the grain whose owner is in scope here.
+                    let c = peek_word(d + 7, 0)
+                    let j = 0
+                    let g = peek_word(c, j)
+                    while g is not 0
+                        if in_scope(peek_word(c, j + 1))
+                            return g
+                        change j to j + 2
+                        change g to peek_word(c, j)
+            change i to i + 1
     return 0
 
 // Is this dictionary word a phrase boundary rather than a noun word? Any flagged

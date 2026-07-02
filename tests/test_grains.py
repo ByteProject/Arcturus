@@ -47,3 +47,38 @@ def test_grain_on_frotz(tmp_path):
     ).stdout
     assert "A faded portrait of a duke." in out  # the grain answers examine
     assert "Just some scenery. Don't worry about it." in out  # the scenery default
+
+
+SHARED_WORD = (
+    'game\n'
+    '    title "Echo Test"\n'
+    '    start nave\n'
+    'room nave\n'
+    '    name "The Nave"\n'
+    '    desc "A tall nave. The crypt is down."\n'
+    '    down crypt\n'
+    '    grains\n'
+    '        examine "echo" say "It rings high among the vaults."\n'
+    'room crypt\n'
+    '    name "The Crypt"\n'
+    '    desc "A low crypt. The nave is up."\n'
+    '    up nave\n'
+    '    grains\n'
+    '        examine "echo" say "It dies against the packed earth."\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_same_grain_word_in_two_rooms_on_frotz(tmp_path):
+    # One dictionary word, two grains in two rooms: the word's grain chain is
+    # walked and the grain whose owner is in scope answers, so each room keeps
+    # its own response (docs/01 section 14).
+    story = tmp_path / "e.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(SHARED_WORD)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="examine echo\ndown\nexamine echo\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "It rings high among the vaults." in out  # the nave's grain
+    assert "It dies against the packed earth." in out  # the crypt's own answer

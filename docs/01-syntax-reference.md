@@ -728,12 +728,14 @@ and names one of its words, and no real object in scope matches that word. The p
 is defined in 02. Grains cost only dictionary words and a small table, never
 an object entry.
 
-A grain word is global to the game: the dictionary maps each word to exactly
-one grain and its owner, so the same word cannot serve two grains in two rooms
-(the later declaration silently wins, and the earlier room stops answering).
-Give each room's set dressing its own words, or promote shared scenery to a
-real `scenery` thing with `spans` (section 5), which is exactly what spans are
-for.
+A grain word may be reused freely across rooms: "steps" can be set dressing in
+the hallway and again in the cellar, each with its own response. The word gets
+one dictionary entry, which points at a chain of (grain, owner) pairs, and the
+parser answers with the grain whose owner is in scope. When several grains of
+the same word are in scope at once (rare: a room and something the player
+carries), the first declared wins. For one piece of scenery genuinely visible
+from several rooms, a `scenery` thing with `spans` (section 5) is still the
+better tool: one object, one description, one identity.
 
 ## 15. Topics and conversation
 

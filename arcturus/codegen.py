@@ -441,14 +441,30 @@ def build_story(
         for k in range(len(abbrevs), _ABBREV_BYTES // 2):
             sf.set_word(abbrev_addr + k * 2, empty_addr // 2)
     dprops = dictionary.direction_props(layout, world) if layout is not None else None
-    # Scenery grain words: word -> (grain id, owner object), shared with codegen's
-    # grain routine indices.
+    # Scenery grain chains. One word can serve several grains in several rooms
+    # ("steps" in the hallway AND the cellar), so the dictionary entry cannot hold
+    # a single (grain, owner) pair. Instead each grain word points at a chain: a
+    # static run of (grain id, owner) word pairs, zero-id terminated, and the
+    # parser answers with the first grain whose owner is in scope. The chains sit
+    # right before the dictionary; their addresses go into the entries' data bytes.
     scenery = {}
     if layout is not None:
+        word_grains: dict = {}
         for idx, grain, owner in _all_grains(world):
             onum = layout.obj_number.get(owner, 0)
             for w in grain.words:
-                scenery[w.lower()] = (idx + 1, onum)
+                word_grains.setdefault(w.lower(), []).append((idx + 1, onum))
+        if word_grains:
+            chains = bytearray()
+            chains_base = sf.here()
+            for w in sorted(word_grains):
+                scenery[w] = chains_base + len(chains)
+                for gid, onum in word_grains[w]:
+                    chains += bytes(
+                        [(gid >> 8) & 0xFF, gid & 0xFF, (onum >> 8) & 0xFF, onum & 0xFF]
+                    )
+                chains += b"\x00\x00"  # terminator: grain id 0
+            sf.append(bytes(chains))
     dict_bytes, word_offsets = dictionary.build(world, _action_numbers(world), dprops, scenery)
     dict_addr = sf.append(dict_bytes)
 

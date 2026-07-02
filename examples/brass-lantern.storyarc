@@ -48,10 +48,12 @@ room cellar
     south hallway
     up hallway
 
-    // NOTE: no "steps" grain here, deliberately. A grain word is global to the
-    // game (the dictionary maps it to ONE grain and owner), so a second "steps"
-    // in the cellar would steal the word from the hallway's grain.
+    // The hallway defines a "steps" grain too: the same word can be scenery in
+    // several rooms, and each room answers with its own line (the parser walks
+    // the word's grain chain and picks the owner in scope).
     grains
+        examine "steps" or "stairs" say "They climb back up towards the grey
+            light of the hallway."
         examine, touch "stone" or "walls" or "wall" say "Black, damp, and older
             than the house above."
         listen "water" or "drip" say "Patient and unhurried, somewhere behind
