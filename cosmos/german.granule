@@ -503,11 +503,16 @@ verb "schliesse", "schließe", "schliessen", "schließen", "zumachen"
 
 // Ab- und aufschliessen: eigene Verben (ein Wort = eine Aktion), so schliesst
 // "sperr die Tuer mit dem Schluessel ab" ab und "sperr sie auf" schliesst auf.
-verb "absperren", "abschliessen", "abschließen"
+// Ver- und entriegeln. Die Prefixe ent-/ver- sind UNTRENNBAR, darum klingen die
+// Verben in Verbstellung natürlich: "entriegele die Tür mit dem Schlüssel". Die
+// trennbaren ab-/aufschliessen sind als Synonyme dabei (ein Spieler, der die
+// zusammengeschriebene Form tippt, wird verstanden), aber entriegeln/verriegeln
+// sind die saubere Wahl, weil ein Verb genau eine Aktion trägt.
+verb "verriegele", "verriegle", "verriegeln", "absperren", "abschliessen", "abschließen", "zusperren"
     lock noun mit noun
     lock noun
 
-verb "aufsperren", "aufschliessen", "aufschließen"
+verb "entriegele", "entriegle", "entriegeln", "aufsperren", "aufschliessen", "aufschließen"
     unlock noun mit noun
     unlock noun
 
