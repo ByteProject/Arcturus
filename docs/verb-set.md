@@ -70,7 +70,7 @@ reference, docs/message-set.md, where every line is an overridable block.
 
 | Verb and synonyms | Action | Default behavior | Set |
 |---|---|---|---|
-| switch, turn (+ on/off) | switch_on / switch_off | turn a switchable thing on or off | S |
+| switch, turn (+ on/off) | switch_on / switch_off | refused unless the object has an `on switch_on` / `on switch_off` handler (no built-in on/off effect) | S |
 | push, press, shove | push | push it, usually no effect | S |
 | pull, drag, yank | pull | pull it, usually no effect | S |
 | turn, rotate, twist, screw, unscrew | turn | turn it, usually no effect | S |
