@@ -475,7 +475,7 @@ When a change affects anything the public-facing documentation describes, the
 docs are updated in the same step. New conventions are recorded here as they
 are introduced.
 
-## In progress: B4 — Cosmos compiled by the compiler
+## In progress: B4: Cosmos compiled by the compiler
 
 The parser, turn loop, and standard verbs, written in Arcturus and compiled
 together with the game. Done-test: both example games playable start to finish
