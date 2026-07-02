@@ -80,6 +80,22 @@ joined einschalten/anmachen all route right (verified on Frotz, test_language). 
 is both a particle and the give/show preposition; the any-tag-is-a-boundary rule in
 is_separator handles the double duty.
 
+SEPARABLE LOCK/UNLOCK (done, 2026-07-02): the natural German is the separable
+"schliess die Tuer mit dem Schluessel auf/ab/zu", NOT verb-first entriegeln (which
+is stiff; nobody says "Hast du die Haustuer verriegelt?"). Added two particle roles,
+auf(3) and zu(4), to prelude._PARTICLE_ROLES (now {on:1,off:2,auf:3,zu:4}; shared by
+dictionary and sema). The German base `verb "schliess","schließe",...` has grammar
+close / lock noun mit noun / lock noun / unlock noun mit noun / unlock noun (first
+line close = base action; _verb_arity takes the max so arity is 2), and compound()
+maps close+auf -> unlock, close+zu/ab -> lock. "ab" is the switch-off particle AND
+the lock particle; compound() keys on the base verb so it is unambiguous. Dedicated
+entriegeln/verriegeln kept as one-verb synonyms. All of the user's forms verified on
+Frotz (test_language.test_german_separable_lock_verbs). LIMIT: particle-before-noun
+for a two-noun base ("schliess auf Tuer") misparses (the leading particle becomes
+the phrase separator); the user's forms all put the particle last, so this is not a
+requested form. "oeffne Tuer mit Schluessel" -> unlock is NOT wired (needs an
+agnostic open-action change; English has no open-with-key either).
+
 KNOWN FIRST-PASS LIMITS FOR NATIVE REVIEW (both packs): give/show use `an` for the
 recipient (gib X an Y); typing the bare article "ein" in a two-noun command can
 misparse since "ein" is a particle (rare; German IF players omit articles). Spanish

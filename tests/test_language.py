@@ -131,6 +131,36 @@ def test_german_switch_particles_on_frotz(tmp_path):
     assert out.count("[AUS]") == 2  # aus, ab
 
 
+GERMAN_LOCK = (
+    'summon.language "german"\n'
+    'game\n    title "L"\n    start raum\n'
+    'room raum\n    name "Raum"\n    desc "Ein Raum."\n    north flur\n'
+    'room flur\n    name "Flur"\n    desc "Ein Flur."\n    south raum\n'
+    'thing tuer of door in raum, flur\n    name "Tuer"\n    words tuer\n    die\n'
+    '    lockable\n    locked\n    unseal_with schluessel\n'
+    'thing schluessel in raum\n    name "Schluessel"\n    words schluessel\n    der\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_german_separable_lock_verbs_on_frotz(tmp_path):
+    # The natural German is the separable "schliess die Tuer mit dem Schluessel
+    # auf/ab/zu": a base "schliess(e)" verb combines with the auf/zu/ab particles
+    # into unlock (auf) and lock (zu, ab). "ab" is also the switch-off particle;
+    # compound() disambiguates by the base verb, so it means lock after schliess.
+    story = tmp_path / "l.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GERMAN_LOCK)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="nimm schluessel\nschliesse die tuer mit dem schluessel auf\n"
+        "schliesse die tuer mit dem schluessel ab\n"
+        "schliesse die tuer mit dem schluessel zu\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert out.count("Aufgeschlossen.") == 1  # auf -> unlock
+    assert out.count("Abgeschlossen.") == 2  # ab and zu -> lock
+
+
 def test_non_english_game_skips_the_english_default_abbreviations():
     # The baked default is English-tuned; a Spanish game gets no default set (an
     # author runs --make-abbreviations for its own), while English keeps the default.

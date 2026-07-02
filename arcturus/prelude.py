@@ -133,6 +133,15 @@ _GENDER_ARTICLES = {
     "das": "neuter",
 }
 
+# Canonical verb-particle roles and their ids. A language pack declares which
+# words fill each role (`particle on "an", "ein"`), and the parser's compound()
+# block reads the id to remap a base verb (switch + on -> switch_on, schliess +
+# auf -> unlock). on/off cover the switch family; auf/zu are the German separable
+# lock words ("schliess die Tuer auf" / "... zu"). The id is what compound() tests,
+# so this table is the shared contract between the dictionary and the language
+# layer; keep the ids stable.
+_PARTICLE_ROLES = {"on": 1, "off": 2, "auf": 3, "zu": 4}
+
 # Standard value properties and their types.
 _STD_VALUE_PROPS = {
     "name": T_TEXT,

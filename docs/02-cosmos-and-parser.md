@@ -628,16 +628,26 @@ the agnostic parser skeleton, scope, dispatch, and the action handlers, is share
 and untouched.
 
 Verb particles, so separable verbs read naturally. A multi-word verb combines a
-base verb with a particle (English "switch on", "take off"). The particle words
-are declared in the language layer, not the compiler, with `particle on "on"` and
-`particle off "off"` (the role is `on` or `off`; several words may share a role).
-The parser finds the particle wherever it falls, before or after the noun, so both
-orders work. This is what lets German handle its separable verbs: `particle on
-"an", "ein"` and `particle off "aus", "ab"` with a base `verb "schalt", "schalte"`
-accept "schalt die Lampe an", "... ein", and the loose "schalt an Lampe". A word
-may be both a particle and a preposition (English "on" in "put X on Y", German
-"an" in "gib X an Y"); the parser treats any tagged word as a phrase boundary, so
-that double duty just works. The line to hold onto: the identifiers a game's *code* uses stay
+base verb with a particle (English "switch on", "take off"; German "schalt ... an",
+"schliess ... auf"). The particle words are declared in the language layer, not the
+compiler, with `particle <role> "word", ...`. The roles are `on`, `off`, `auf`, and
+`zu` (prelude `_PARTICLE_ROLES`), and the parser's `compound()` block maps a base
+verb plus a role to the real action, so the same word can mean different things
+after different verbs. German uses all four:
+
+- `particle on "an", "ein"` / `particle off "aus", "ab"` with base `verb "schalt",
+  "schalte"` give "schalt die Lampe an", "... ein", "... aus", and the loose
+  "schalt an Lampe".
+- `particle auf "auf"` / `particle zu "zu"` with a base `verb "schliess", ...`
+  (whose first grammar line is `close`) give the everyday "schliess die Tuer mit
+  dem Schluessel auf" (unlock), "... ab" and "... zu" (lock), while bare "schliess
+  die Kiste" still closes. "ab" doubles as the switch-off particle; `compound()`
+  keys on the base verb, so "ab" means off after schalt and lock after schliess.
+
+The parser finds the particle wherever it falls (both orders work for a one-noun
+verb), and a word may be both a particle and a preposition (English "on" in "put X
+on Y", German "an" in "gib X an Y", "auf" in "leg X auf Y"): the parser treats any
+tagged word as a phrase boundary, so the double duty just works. The line to hold onto: the identifiers a game's *code* uses stay
 English, only what the player *reads and types* is translated. So kinds (`thing`,
 `room`), attributes (`openable`), the direction properties in a room exit (`east
 puerta`), and the actions a `grains` line answers (`examine "mar"`) are fixed
