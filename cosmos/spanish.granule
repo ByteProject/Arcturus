@@ -518,6 +518,7 @@ verb "introducir", "introduce", "insertar"
     insert noun en noun
 
 verb "abrir", "abre", "destapar", "destapa"
+    open noun con noun
     open noun
 
 verb "cerrar", "cierra", "tapar", "tapa"

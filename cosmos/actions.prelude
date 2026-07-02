@@ -223,8 +223,17 @@ on open
         msg_cant_open()
         stop
     if noun is locked
-        msg_open_locked()
-        stop
+        // "open X with KEY": if the player named a key (second), unlock the thing
+        // first, then fall through to open it. A locked thing with no key named is
+        // still refused. This is the common one-line "open the door with the key".
+        if second is nothing
+            msg_open_locked()
+            stop
+        if second is not noun.unseal_with
+            msg_wrong_key()
+            stop
+        now noun is not locked
+        msg_unlocked()
     if noun is open
         msg_already_open()
         stop
