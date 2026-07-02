@@ -68,14 +68,23 @@ per-gender message variants. Example: `examples/beispiel-deutsch.storyarc`
 ("Das Gasthaus am Leuchtturm"). Docs: docs/01 s.16 (case tag), docs/02 s.14a
 (der/die/das). 270 tests pass.
 
-KNOWN FIRST-PASS LIMITS FOR NATIVE REVIEW (both packs): separable verbs (German
-"schalt die Lampe an") need a particle-words LANGUAGE SEAM; the particle words
-on/off are still hardcoded English in `dictionary.py` (`_PARTICLE_WORDS`, with a
-comment that they move into the language layer). Until then German uses dedicated
-joined verbs (einschalten/ausschalten/anmachen/ausmachen). give/show use `an`
-for the recipient. Spanish `salir` collides (get-out vs quit); quit is fin/
-terminar. Versions still arcc 0.6 / Cosmos 0.9 in the banner; a bump is due when
-B7 closes.
+PARTICLE-WORDS SEAM (done, 2026-07-02): the particle words are no longer hardcoded
+in the compiler. A `particle on "..."` / `particle off "..."` declaration lives in
+the language layer (ast.ParticleDecl, parser.parse_particle, sema -> world.particles,
+dictionary._particle_words + fixed _PARTICLE_IDS {on:1,off:2}). english.prelude
+declares `particle on "on"` / `off "off"` (behaviour identical, just moved where the
+old code comment said it belonged); Spanish declares none (dedicated verbs); German
+declares `particle on "an", "ein"` / `off "aus", "ab"` with a base `verb "schalt",
+"schalte"`, so "schalt die Lampe an", "... ein", "schalt an Lampe" (loose), plus the
+joined einschalten/anmachen all route right (verified on Frotz, test_language). "an"
+is both a particle and the give/show preposition; the any-tag-is-a-boundary rule in
+is_separator handles the double duty.
+
+KNOWN FIRST-PASS LIMITS FOR NATIVE REVIEW (both packs): give/show use `an` for the
+recipient (gib X an Y); typing the bare article "ein" in a two-noun command can
+misparse since "ein" is a particle (rare; German IF players omit articles). Spanish
+`salir` collides (get-out vs quit); quit is fin/terminar. Versions still arcc 0.6 /
+Cosmos 0.9 in the banner; a bump is due when B7 closes.
 
 >>> B7 HANDOVER CHECKPOINT (2026-07-02, written for compaction) <<<
 

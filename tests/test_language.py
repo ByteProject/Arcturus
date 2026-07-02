@@ -104,6 +104,33 @@ def test_german_build_plays_on_frotz(tmp_path):
     assert "An dem Schluessel" in out  # masculine dative, from ${the:dat noun}
 
 
+GERMAN_SWITCH = (
+    'summon.language "german"\n'
+    'game\n    title "S"\n    start raum\n'
+    'room raum\n    name "Raum"\n    desc "Ein Raum."\n'
+    'thing lampe in raum\n    name "Lampe"\n    words lampe\n    die\n    switchable\n'
+    '    on switch_on\n        say "[AN]"\n'
+    '    on switch_off\n        say "[AUS]"\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_german_switch_particles_on_frotz(tmp_path):
+    # The particle words are declared in german.granule (`particle on "an", "ein"`),
+    # not hardcoded in the compiler. The base verb "schalt(e)" combines with a
+    # particle before or after the noun; "an"/"ein" switch on, "aus"/"ab" switch off.
+    story = tmp_path / "s.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GERMAN_SWITCH)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="schalte die lampe an\nschalte die lampe ein\nschalte an lampe\n"
+        "schalte die lampe aus\nschalte die lampe ab\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert out.count("[AN]") == 3  # an (after), ein (after), an (before the noun)
+    assert out.count("[AUS]") == 2  # aus, ab
+
+
 def test_non_english_game_skips_the_english_default_abbreviations():
     # The baked default is English-tuned; a Spanish game gets no default set (an
     # author runs --make-abbreviations for its own), while English keeps the default.

@@ -461,11 +461,26 @@ verb "xyzzy"
 verb "inventar", "i", "inv"
     inventory
 
-verb "einschalten", "anschalten", "anmachen", "einschalte", "anschalte"
+// Ein- und ausschalten. Das Grundverb "schalt(e)" trägt eine Partikel danach oder
+// davor: "schalt die Lampe an", "schalt die Lampe ein", und (grammatisch schief,
+// aber in Textadventures üblich) "schalt an Lampe", "schalt ein Lampe". Die
+// zusammengeschriebenen Formen decken "einschalten Lampe" mit ab.
+verb "schalt", "schalte"
+    switch_on noun
+    switch_off noun
+
+verb "einschalten", "anschalten", "anmachen"
     switch_on noun
 
-verb "ausschalten", "abschalten", "ausmachen", "ausschalte", "abschalte"
+verb "ausschalten", "abschalten", "ausmachen"
     switch_off noun
+
+// Die Schaltpartikeln. "an"/"ein" schalten ein, "aus"/"ab" schalten aus. "an"
+// dient auch als Präposition (gib X an Y); das stört nicht, denn der Parser
+// behandelt jedes markierte Wort als Phrasengrenze, und compound() wirkt nur auf
+// switch/turn/take.
+particle on  "an", "ein"
+particle off "aus", "ab"
 
 verb "anziehen", "anlegen", "trag", "trage"
     wear noun

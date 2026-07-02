@@ -622,10 +622,22 @@ only way to select a language, because only it does the swap (drops
 
 What is and is not translated. The language layer is one granule, a full fork of
 `english.prelude` in three parts: the parser hooks that read the language, the
-verb and `direction` vocabulary, and every message (including the framing the
-status-line and conversation-menu granules print). Everything else, the agnostic
-parser skeleton, scope, dispatch, and the action handlers, is shared and
-untouched. The line to hold onto: the identifiers a game's *code* uses stay
+verb, `direction`, and `particle` vocabulary, and every message (including the
+framing the status-line and conversation-menu granules print). Everything else,
+the agnostic parser skeleton, scope, dispatch, and the action handlers, is shared
+and untouched.
+
+Verb particles, so separable verbs read naturally. A multi-word verb combines a
+base verb with a particle (English "switch on", "take off"). The particle words
+are declared in the language layer, not the compiler, with `particle on "on"` and
+`particle off "off"` (the role is `on` or `off`; several words may share a role).
+The parser finds the particle wherever it falls, before or after the noun, so both
+orders work. This is what lets German handle its separable verbs: `particle on
+"an", "ein"` and `particle off "aus", "ab"` with a base `verb "schalt", "schalte"`
+accept "schalt die Lampe an", "... ein", and the loose "schalt an Lampe". A word
+may be both a particle and a preposition (English "on" in "put X on Y", German
+"an" in "gib X an Y"); the parser treats any tagged word as a phrase boundary, so
+that double duty just works. The line to hold onto: the identifiers a game's *code* uses stay
 English, only what the player *reads and types* is translated. So kinds (`thing`,
 `room`), attributes (`openable`), the direction properties in a room exit (`east
 puerta`), and the actions a `grains` line answers (`examine "mar"`) are fixed

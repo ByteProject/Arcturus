@@ -496,6 +496,18 @@ class DirectionDecl:
 
 
 @dataclass
+class ParticleDecl:
+    # A language layer maps player-facing words to a canonical verb particle:
+    # `particle on "on"` (English), `particle on "an", "ein"` (German). The role is
+    # `on` or `off`; the words are the vocabulary the parser combines with a base
+    # verb (switch + on -> switch_on). Localized by a language pack, so the compiler
+    # hardcodes no particle words.
+    role: str
+    words: list[str]
+    line: int = 0
+
+
+@dataclass
 class GlobalDecl:
     name: str
     value: Expr
