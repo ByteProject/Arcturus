@@ -655,6 +655,16 @@ block art_a(obj, cap)
             show("un ")
     print_name(obj)
 
+// Las palabras de la cabecera. El compilador arma la cabecera (título, lema,
+// autor, línea de versión), pero las palabras ENTRE las partes son del idioma:
+// line_by imprime el conector entre el lema y el autor, y banner_headline el
+// lema por defecto cuando el juego no declara ninguno.
+block line_by()
+    show(" de ")
+
+block banner_headline()
+    show("Una aventura conversacional")
+
 // The input prompt. It requests a paragraph break (one blank line before it,
 // collapsed with any the turn already pending) rather than forcing its own, so
 // responses are separated from the next prompt by exactly one blank line.

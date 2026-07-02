@@ -650,6 +650,17 @@ block art_a(obj, cap)
             show("a ")
     print_name(obj)
 
+// The banner words. The compiler assembles the banner (title, headline,
+// author, the release line), but the words BETWEEN the parts are language:
+// line_by prints the connector between headline and author, banner_headline
+// the default headline when a game sets none. A pack localizes both; a story
+// can override either for a custom banner voice.
+block line_by()
+    show(" by ")
+
+block banner_headline()
+    show("An Interactive Fiction")
+
 // The input prompt. It requests a paragraph break (one blank line before it,
 // collapsed with any the turn already pending) rather than forcing its own, so
 // responses are separated from the next prompt by exactly one blank line.

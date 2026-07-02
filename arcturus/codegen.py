@@ -308,27 +308,56 @@ def _compiler_version() -> str:
     return ".".join(__version__.split(".")[:2])
 
 
-def banner_text(world: wm.World) -> str:
-    """The startup banner (docs/02 section 3). B3 emits it from the compiler as
-    a provisional stand-in; Cosmos owns the banner from B4, where the library
-    contributes its own name and version."""
+def _banner_parts(world: wm.World):
+    """The banner's fixed pieces: (title line, explicit headline or None, author,
+    release line). The words BETWEEN them ("by", and the default headline when a
+    game sets none) belong to the language layer; see _emit_banner."""
     m = _meta(world)
     title = m.get("title", "Untitled")
-    headline = m.get("headline", "An Interactive Fiction")
+    headline = m.get("headline")  # None -> the language layer's default
     author = m.get("author", "Anonymous")
     release = m.get("release", 1)
     serial = m.get("serial") or datetime.date.today().strftime("%y%m%d")
     cosmos_v = ".".join(cosmos.COSMOS_VERSION.split(".")[:2])
-    line2 = f"{headline} by {author}"
     line3 = (
         f"Release {release} / Serial number {serial} / "
         f"Arcturus {_compiler_version()} / Cosmos {cosmos_v}"
     )
+    return title, headline, author, line3
+
+
+def banner_text(world: wm.World) -> str:
+    """The whole banner as one string: the fallback for a bare build (no Cosmos),
+    where no language layer supplies the connecting words. English throughout."""
+    title, headline, author, line3 = _banner_parts(world)
+    line2 = f"{headline or 'An Interactive Fiction'} by {author}"
     # End on a single newline; the blank line that separates the banner from the
     # first text is a paragraph break the turn loop requests (run_game), so the
     # spacing is owned by the one paragraph model instead of hardcoded here (which
     # otherwise doubled up with describe_room's par on the opening screen).
     return f"\n{title}\n{line2}\n{line3}\n"
+
+
+def _emit_banner(main: Routine, world: wm.World) -> None:
+    """Print the banner from __main__. The structure (title, headline, author,
+    release line) is the compiler's; the WORDS between the parts come from the
+    language layer, so a pack localizes them: line_by prints the connector
+    (" by ", " von ", " de ") and banner_headline the default headline when a
+    game sets none. A bare build (no Cosmos) falls back to the one-string
+    English banner."""
+    if "line_by" not in world.blocks:
+        main.op("print", text=banner_text(world))
+        return
+    title, headline, author, line3 = _banner_parts(world)
+    main.op("print", text=f"\n{title}\n")
+    if headline is not None:
+        main.op("print", text=headline)
+    elif "banner_headline" in world.blocks:
+        main.op("call_vn", RoutineRef("blk_banner_headline"))
+    else:
+        main.op("print", text="An Interactive Fiction")
+    main.op("call_vn", RoutineRef("blk_line_by"))
+    main.op("print", text=f"{author}\n{line3}\n")
 
 
 def _start_handler(world: wm.World):
@@ -597,7 +626,7 @@ def build_routines(world: wm.World, gmap: dict, layout, pool):
     # is no loop, so __main__ falls back to running `on start` inline, preserving
     # the older behavior those tests rely on.
     main = Routine("__main__", nlocals=0)
-    main.op("print", text=banner_text(world))
+    _emit_banner(main, world)
     if "run_game" in world.blocks:
         main.op("call_vn", RoutineRef("blk_run_game"))
     else:
