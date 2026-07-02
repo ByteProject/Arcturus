@@ -32,10 +32,10 @@ CEILINGS = {
     # 2026-07-02 (localized banner): every game carries the language layer's
     # line_by block (and banner_headline when no headline is set), a few dozen
     # bytes, so the banner connector localizes (" by ", " de ", " von ").
-    "beispiel-deutsch.storyarc": 16836,
+    "beispiel-deutsch.storyarc": 16956,
     "brass-lantern.storyarc": 11504,
     "cloak-of-darkness.storyarc": 11968,
-    "ejemplo-espanol.storyarc": 15560,
+    "ejemplo-espanol.storyarc": 15680,
     "features/computed-properties.storyarc": 10272,
     "features/containers.storyarc": 10308,
     "features/daemons-and-timers.storyarc": 10612,

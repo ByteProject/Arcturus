@@ -16,8 +16,10 @@
 // Was hier gezeigt wird:
 //   - die Statuszeile (summon.statusline): "Punkte" und "Züge" auf Deutsch
 //   - das Gesprächsmenü (summon.conversations) mit der Wirtin
-//   - ein Dämon (`every`): die Wanduhr schlägt von selbst alle paar Züge
-//   - `grains`: billige Kulisse am Strand (das Meer, der Sand, die Möwen)
+//   - zwei Dämonen (`every`), beide an ihren Ort gebunden: die Wanduhr schlägt
+//     im Gastraum, und am Strand wispern Stimmen im Wind
+//   - `grains`: Kulisse zum Nulltarif (das Meer, die Möwen, der Leuchtturm),
+//     und dasselbe Kulissenwort darf in mehreren Räumen vorkommen
 //   - `spans`: der Mond ist vom Hof und vom Strand aus zu sehen
 //   - ein Behälter (die Truhe), eine abgeschlossene Tür, und das Geschlecht
 //   - trennbare Verben: "schalt die Lampe an" (oder ein, oder "anmachen")
@@ -44,10 +46,13 @@ game
     author "Stefan Vogt"
     start  gasthaus
 
-// Ein Dämon: die Wanduhr schlägt alle vier Züge. `every` wiederholt sich; `after`
-// wäre einmalig. Er wird beim Start der Partie aufgezogen.
+// Zwei Dämonen, beide beim Start aufgezogen (`every` wiederholt sich; `after`
+// wäre einmalig). Jeder prüft selbst, wo der Spieler gerade steht: die Wanduhr
+// hört man nur im Gastraum, das Wispern nur am Strand. So tickt nichts durch
+// das ganze Spiel, das eigentlich an einen Ort gehört.
 on start
-    every 4 turns do uhr_schlaegt
+    every 3 turns do uhr_schlaegt
+    every 3 turns do stimmen_rufen
 
 room gasthaus
     name "Der Gastraum"
@@ -100,10 +105,10 @@ room strand
     north hof
     up hof
 
-    // Billige Kulisse (grains): Wörter mit Antwort, ohne einen Gegenstand zu
-    // verbrauchen. Das Verb wird nach seiner Aktion benannt (examine, touch,
-    // smell); die Kulissenwörter ("meer", "sand") sind der deutsche Wortschatz,
-    // ohne Umlaut, damit sie sich auf jeder Maschine tippen lassen.
+    // Kulisse zum Nulltarif (grains): Wörter, die antworten, ohne ein eigenes
+    // Objekt zu kosten. Das Verb wird nach seiner Aktion benannt (examine,
+    // touch, smell); die Kulissenwörter ("meer", "sand") sind der deutsche
+    // Wortschatz, ohne Umlaut, damit sie sich auf jeder Tastatur tippen lassen.
     grains
         examine, touch "meer" or "see" or "wasser" or "wellen" say "Das Meer wiegt
             sich, schwarz und geduldig, als atmete es langsam."
@@ -206,7 +211,16 @@ thing wirtin of character in gasthaus
         reply "In der Truhe, neben dem Herd. Nimm ihn und geh, wann du willst; mir ist
                längst alles gleich."
 
-// Der Block, den der Uhr-Dämon auslöst.
+// Die Blöcke, die die beiden Dämonen auslösen. Jeder prüft zuerst den Ort:
+// ein Dämon wird überall ausgelöst, also gehört die Frage, ob man ihn HÖRT,
+// in den Block selbst.
 block uhr_schlaegt()
+    if here is not gasthaus
+        return 0
     say "Die alte Wanduhr schlägt die Stunde mit einem tiefen Ton, und das Echo
          verliert sich in den Winkeln."
+
+block stimmen_rufen()
+    if here is not strand
+        return 0
+    say "Du hörst Stimmen im Wind wispern, leise, als riefen sie dich."

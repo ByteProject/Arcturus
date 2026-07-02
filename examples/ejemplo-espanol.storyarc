@@ -1,6 +1,7 @@
 // ejemplo-espanol.storyarc
 // part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 // Copyright (c) 2026, Stefan Vogt.
+// Spanish translation by Pablo Martínez.
 // https://github.com/ByteProject/Arcturus
 //
 // LA POSADA DEL FARO. Un ejemplo completo en español, pensado para mostrar el
@@ -16,8 +17,10 @@
 // Qué se muestra aquí:
 //   - la barra de estado (summon.statusline): "Puntos" y "Turnos" en español
 //   - el menú de conversación (summon.conversations) con la posadera
-//   - un demonio (`every`): el reloj da la hora por su cuenta cada pocos turnos
-//   - `grains`: decorado barato en la playa (el mar, la arena, las gaviotas)
+//   - dos demonios (`every`), cada uno atado a su lugar: el reloj da la hora en
+//     la posada, y en la playa unas voces susurran en el viento
+//   - `grains`: decorado sin coste (el mar, las gaviotas, el faro), y la misma
+//     palabra de decorado puede aparecer en varias habitaciones
 //   - `spans`: la luna se ve desde el patio y desde la playa
 //   - un contenedor (el cofre), una puerta con llave, y el género automático
 //
@@ -39,13 +42,16 @@ summon.conversations
 game
     title  "La Posada del Faro"
     headline "Un ejemplo en español"
-    author "Stefan Vogt"
+    author "Pablo Martínez & Stefan Vogt"
     start  posada
 
-// Un demonio: el reloj de pared da la hora cada cuatro turnos. `every` repite;
-// `after` sería una sola vez. Se arma al empezar la partida.
+// Dos demonios, armados al empezar la partida (`every` repite; `after` sería
+// una sola vez). Cada uno comprueba dónde está el jugador: el reloj solo se oye
+// en la posada, y las voces solo en la playa. Así nada tictaquea por todo el
+// juego cuando pertenece a un solo lugar.
 on start
-    every 4 turns do reloj_da_la_hora
+    every 3 turns do reloj_da_la_hora
+    every 3 turns do voces_llaman
 
 room posada
     name "La Posada"
@@ -92,10 +98,10 @@ room playa
     north patio
     up patio
 
-    // Decorado barato (grains): palabras con respuesta, sin gastar un objeto. El
-    // verbo se nombra por su acción (examine, touch, smell); las palabras del
-    // decorado ("mar", "olas") son el vocabulario en español, sin tildes para que
-    // se puedan teclear en cualquier máquina.
+    // Decorado sin coste (grains): palabras que responden sin gastar un objeto.
+    // El verbo se nombra por su acción (examine, touch, smell); las palabras del
+    // decorado ("mar", "olas") son el vocabulario en español, sin tildes para
+    // que se puedan teclear en cualquier teclado.
     grains
         examine, touch "mar" or "olas" or "agua" say "El mar se mece, negro y
             paciente, como si respirara despacio."
@@ -174,7 +180,16 @@ thing posadera of character in posada
         reply "En el cofre, junto al hogar. Cógela y sal cuando quieras; a mí ya me
                da igual."
 
-// El bloque que dispara el demonio del reloj.
+// Los bloques que disparan los dos demonios. Cada uno comprueba primero el
+// lugar: un demonio se dispara en todas partes, así que la pregunta de si se
+// OYE pertenece al propio bloque.
 block reloj_da_la_hora()
+    if here is not posada
+        return 0
     say "El viejo reloj de pared da la hora con un tañido grave, y el eco se pierde
          por los rincones."
+
+block voces_llaman()
+    if here is not playa
+        return 0
+    say "Oyes voces que susurran en el viento, muy bajo, como si te llamaran."
