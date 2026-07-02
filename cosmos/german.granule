@@ -80,20 +80,29 @@ block find_particle()
         change i to i + 1
     return nothing
 
-// Combine a base verb with a particle into a multi-word action. Kept for the
-// agnostic mechanism; with no particle words declared it never fires.
+// Combine a base verb with a particle into a multi-word action. The particle ids
+// are the shared contract with the compiler (prelude._PARTICLE_ROLES): 1 on
+// (an/ein), 2 off (aus/ab), 3 auf, 4 zu. The same word can mean different things
+// after different base verbs, and this block is where that is resolved.
 block compound(base, particle)
-    if base is action_id("switch_on")
+    if base is action_id("switch_on")   // schalt(e): + an/ein an, + aus/ab aus
         if particle is 1
             return action_id("switch_on")
         if particle is 2
             return action_id("switch_off")
+    if base is action_id("close")        // schliess(e): + auf auf, + zu/ab ab
+        if particle is 3
+            return action_id("unlock")
+        if particle is 4
+            return action_id("lock")
+        if particle is 2
+            return action_id("lock")
     if base is action_id("turn")
         if particle is 1
             return action_id("switch_on")
         if particle is 2
             return action_id("switch_off")
-    if base is action_id("take")
+    if base is action_id("take")         // nimm ... ab -> ausziehen (take_off)
         if particle is 2
             return action_id("take_off")
     return nothing
@@ -498,21 +507,33 @@ verb "steck", "stecke", "einstecken"
 verb "oeffne", "öffne", "oeffnen", "öffnen"
     open noun
 
-verb "schliesse", "schließe", "schliessen", "schließen", "zumachen"
+// Schliessen, ab- und aufschliessen als trennbares Grundverb. "schliess(e)"
+// allein macht zu (close). Mit einer Partikel wird daraus die natuerliche,
+// trennbare Form: "schliess die Tuer ab" oder "... zu" schliesst ab (lock, mit
+// oder ohne "mit dem Schluessel"), "... auf" schliesst auf (unlock). Die Partikel
+// darf davor oder danach stehen. Das ist genau, wie ein Deutscher es sagt:
+// "Hast du die Haustuer abgeschlossen?" -> "schliess die Haustuer ab".
+verb "schliesse", "schließe", "schliess", "schließ", "schliessen", "schließen", "zumachen"
     close noun
+    lock noun mit noun
+    lock noun
+    unlock noun mit noun
+    unlock noun
 
-// Ab- und aufschliessen: eigene Verben (ein Wort = eine Aktion), so schliesst
-// "sperr die Tuer mit dem Schluessel ab" ab und "sperr sie auf" schliesst auf.
-// Ver- und entriegeln. Die Prefixe ent-/ver- sind UNTRENNBAR, darum klingen die
-// Verben in Verbstellung natürlich: "entriegele die Tür mit dem Schlüssel". Die
-// trennbaren ab-/aufschliessen sind als Synonyme dabei (ein Spieler, der die
-// zusammengeschriebene Form tippt, wird verstanden), aber entriegeln/verriegeln
-// sind die saubere Wahl, weil ein Verb genau eine Aktion trägt.
-verb "verriegele", "verriegle", "verriegeln", "absperren", "abschliessen", "abschließen", "zusperren"
+// Die Schliesspartikeln. "auf" schliesst auf (unlock); "zu" und "ab" schliessen ab
+// (lock). "ab" ist zugleich die Ausschalt-Partikel; compound() unterscheidet nach
+// dem Grundverb (schalt vs. schliess), darum stoert die Doppelrolle nicht.
+particle auf "auf"
+particle zu  "zu"
+
+// Zusaetzlich ver- und entriegeln als eigene, UNTRENNBARE Verben ("entriegele die
+// Tuer mit dem Schluessel"), samt den zusammengeschriebenen ab-/aufsperren als
+// Synonyme, fuer Spieler, die lieber ein einzelnes Verb tippen.
+verb "verriegele", "verriegle", "verriegeln", "absperren", "zusperren"
     lock noun mit noun
     lock noun
 
-verb "entriegele", "entriegle", "entriegeln", "aufsperren", "aufschliessen", "aufschließen"
+verb "entriegele", "entriegle", "entriegeln", "aufsperren"
     unlock noun mit noun
     unlock noun
 

@@ -133,9 +133,10 @@ class Analyzer:
                 for word in decl.words:
                     w.directions[word.lower()] = decl.prop
             elif isinstance(decl, ast.ParticleDecl):
-                if decl.role not in ("on", "off"):
+                if decl.role not in prelude._PARTICLE_ROLES:
+                    roles = ", ".join(prelude._PARTICLE_ROLES)
                     raise self._error(
-                        f"'{decl.role}' is not a particle role (use on or off)",
+                        f"'{decl.role}' is not a particle role (use one of: {roles})",
                         decl.line,
                     )
                 for word in decl.words:

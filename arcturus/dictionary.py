@@ -21,6 +21,7 @@ object's vocabulary into dictionary addresses.
 from __future__ import annotations
 
 from . import ast
+from . import prelude
 from . import worldmodel as wm
 from . import zstring
 
@@ -43,19 +44,17 @@ _SCENERY_FLAG = 0x10  # a grain word: data byte 1 = grain id (index+1), byte 2 =
 # left as they are; the parser treats any flagged word as a phrase boundary.
 _PREPOSITION_FLAG = 0x08
 
-# Verb particles for multi-word verbs (switch on, take off). The WORDS are no
+# Verb particles for multi-word verbs (switch on, schliess auf). The WORDS are no
 # longer hardcoded: a language pack declares them (`particle on "on"` in English,
 # `particle on "an", "ein"` in German) and they arrive in world.particles as
-# word -> role. Only the two roles and their fixed ids live here, because the
-# parser's compound() block (in the language layer) reads these ids: on is 1,
-# off is 2.
-_PARTICLE_IDS = {"on": 1, "off": 2}
+# word -> role. The canonical role -> id table is prelude._PARTICLE_ROLES, shared
+# with the parser's compound() block, which reads the id.
 
 
 def _particle_words(world: wm.World) -> dict:
     """word -> particle id, from the language layer's `particle` declarations."""
-    return {w: _PARTICLE_IDS[role] for w, role in world.particles.items()
-            if role in _PARTICLE_IDS}
+    return {w: prelude._PARTICLE_ROLES[role] for w, role in world.particles.items()
+            if role in prelude._PARTICLE_ROLES}
 
 # Direction words are no longer hardcoded here: they are declared in the language
 # layer with `direction north "north", "n"` (english.prelude) and collected into
