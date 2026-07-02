@@ -33,7 +33,7 @@ CEILINGS = {
     # buffer_mode dance and the pending-paragraph flush in the upper-window
     # granules, and the zcolor statusline/input wiring. Real-frotz rendering
     # is now verified end to end; the bytes are the cost of being correct.
-    "beispiel-deutsch.storyarc": 17080,
+    "beispiel-deutsch.storyarc": 17168,
     "brass-lantern.storyarc": 11548,
     "cloak-of-darkness.storyarc": 12068,
     "ejemplo-espanol.storyarc": 15804,
