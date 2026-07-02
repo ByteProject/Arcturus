@@ -38,17 +38,21 @@ block prompt()
 // is status_bar (below), so the conversations menu can reuse it at the top of its
 // own taller window; this block owns only the window plumbing.
 block draw_status()
-    // Flush any pending paragraph break before leaving the lower window, so it
-    // cannot fire inside the bar; then draw unbuffered (with the word-wrap
-    // buffer on, interpreters like Frotz reorder the writes around set_cursor;
-    // Inform and PunyInform do exactly this dance too).
-    show("")
+    // HOLD the pending paragraph break across the bar: the transcript's break
+    // belongs to the next lower-window text, so the bar's own prints must
+    // neither consume it nor flush it early (an early flush doubles with the
+    // prompt's own break). Draw unbuffered (with the word-wrap buffer on,
+    // interpreters reorder the writes around set_cursor; Inform and PunyInform
+    // do exactly this dance too).
+    let held = par_pending
+    change par_pending to 0
     buffer_mode(0)
     split_window(1)
     set_window(1)
     status_bar()
     set_window(0)
     buffer_mode(1)
+    change par_pending to held
 
 // One row, so the conversations menu leaves room for the bar above its list.
 block status_lines()

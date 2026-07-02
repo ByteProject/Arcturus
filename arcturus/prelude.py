@@ -217,6 +217,10 @@ _BUILTINS = {
     "score": T_NUMBER,
     "max_score": T_NUMBER,
     "way": T_NUMBER,  # the chosen direction's property number, set by the parser
+    # The pending-paragraph flag the print layer flushes as one blank line before
+    # the next text. Library-internal: upper-window drawing holds it across a
+    # draw (a bar or menu print must not consume the transcript's break).
+    "par_pending": T_NUMBER,
     "grain": T_NUMBER,  # the matched scenery grain (id+1), set by the parser
     "parse_fault": T_NUMBER,  # set by the parser when a named object is out of scope
     "meta_turn": T_NUMBER,  # set by a meta verb so the loop skips the turn pulse
