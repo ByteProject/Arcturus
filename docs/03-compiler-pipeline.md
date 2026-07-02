@@ -88,9 +88,12 @@ Invocation:
 arcc [options] <file.storyarc>
 ```
 
-With no arguments, `arcc` prints its banner to standard error and exits with
-status 2. The banner reports the compiler version, the bundled Cosmos version,
-the runtime tags, and the host operating system, for example:
+Every invocation opens with the banner; a successful compile then prints the
+result line and the compile-statistics ledger (the `-q` option below silences
+both, for scripts). With no arguments at all, `arcc` prints the full banner
+with its usage lines to standard error and exits with status 2. The banner
+reports the compiler version, the bundled Cosmos version, the runtime tags,
+and the host operating system, for example:
 
 ```
 Arcturus -- [ arcc 0.7.0 | Cosmos 0.10.0 | python3 | stdlib | MacOS ARM ]

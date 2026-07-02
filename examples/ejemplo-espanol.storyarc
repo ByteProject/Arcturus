@@ -57,7 +57,7 @@ room posada
     name "La Posada"
     desc "El comedor de una posada antiquísima, de piedra ennegrecida por el humo
           de mil inviernos. Junto al hogar, aún tibio, descansa un cofre de roble.
-          Al este, una puerta cerrada da al patio. Detrás de la barra, la
+          Al este, una puerta da al patio. Detrás de la barra, la
           posadera te observa en silencio, como si supiera por qué has venido."
     // Las salidas se nombran por la PROPIEDAD de dirección (east, west, ...), un
     // identificador fijo en inglés, igual que `thing`, `room` u `openable`. El

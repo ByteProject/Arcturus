@@ -22,6 +22,25 @@ README em dashes and the stale find_particle comment in german.granule. Next:
 an idiom-focused review of both translations (Stefan's request; German got his
 native pass already, Spanish still gated on Pablo), then B8.
 
+SPANISH PASSES (2026-07-03): Pablo Martinez (the maker of PunyInformES)
+returned his native review in under two hours: "very impressive", and his pass
+on spanish.granule amounted to a single edit, dropping the trailing "aqui"
+from object listings ("Ves un cofre de roble."), now applied; the granule
+header records his pass. B7 IS NOW FULLY CLOSED: both language packs carry a
+native pass. He also caught a game bug (the posada description said "una
+puerta cerrada" forever; now neutral) and left a feature backlog worth its
+own consideration, recorded here for prioritization:
+- per-object article overrides (instead of the derived el/la un/una);
+- the PunyInformES infinitive trick: an unknown word ending in "r" retries
+  with the "r" stripped, so "comer" finds "come";
+- state qualifiers in listings, Puny-style: "Ves un cofre de roble (que esta
+  cerrado).";
+- Spanish clitic pronouns as the "it" equivalent: cogelo/cogela/cogelos/
+  cogelas (Pablo offers his PunyInformES code for this);
+- command chaining ("y"/comma) is silently ignored; a GENERAL parser gap,
+  affects English too ("take lamp and go north");
+- (done) the aqui listing edit and the example's door description.
+
 THE FROTZ TRUTH (2026-07-03): Stefan compiled the colour example on real
 frotz and saw no colour; the quote box drew distorted. Both correct. Driving
 curses frotz through a pty (pyte rendering the actual screen) found three real

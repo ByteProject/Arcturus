@@ -8,7 +8,8 @@
 // `summon.language "spanish"`, which compiles it in place of english.prelude. A
 // fork of the English layer: the language-agnostic parser logic in section 1 is
 // unchanged; the verbs, the direction words, the articles, and every message are
-// Spanish. First pass, pending native review. It has three parts, in order:
+// Spanish. The pack has had its native pass (Pablo Martínez, the maker of
+// PunyInformES, 2026-07). It has three parts, in order:
 //
 //   1. THE PARSER - the blocks that teach the parser how to read Spanish input:
 //      which word is the verb, how a noun phrase is matched, how directions and
@@ -752,7 +753,7 @@ block list_item(obj)
     show("Ves ")
     show("${a obj}")
     list_contents(obj)
-    say " aquí."
+    say "."
 
 // Parser.
 block msg_cant_see()
