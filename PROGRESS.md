@@ -22,6 +22,23 @@ README em dashes and the stale find_particle comment in german.granule. Next:
 an idiom-focused review of both translations (Stefan's request; German got his
 native pass already, Spanish still gated on Pablo), then B8.
 
+B8 OPENS (2026-07-02). The Hibernated 2 source and walkthrough live in
+hibernated2/ (gitignored and never committed: the game is unreleased and this
+repository is public; the real source is 4082 lines of Inform, 115 objects, 61
+game globals, and a 557-line walkthrough that will later drive automated
+verification of the port). STEP ZERO, the scale smoke test, is done and green:
+tools/scalegen.py deterministically generates a synthetic game at H2 scale
+(138 objects, 40/48 attributes, 177/240 globals, 100 verbs, 104 actions, 499
+dictionary words, 192 grains with the shared-word chains stressed across all
+64 rooms, 24 topics, 3 timers, 469 routines). Results: compile 0.31s; story
+90788 bytes with the default abbreviations, 47488 with a tuned set
+(--make-abbreviations takes 6.8s at this text volume; the synthetic prose
+flatters the ratio); scripted Frotz walk green end to end (movement across the
+grid, grains answering per room, container, locked door via open-with-key,
+custom verbs, the conversations menu, daemons, save/restore round trip); no
+Z-machine ceiling approached, per-turn response instantaneous. Conclusion: the
+toolchain is ready for the port; nothing needs hardening first.
+
 B7 closes (2026-07-02): GERMAN IS ACHIEVED. Stefan gives the German pack a full
 native pass; further feedback comes from the community. Spanish is complete on
 our side and with Pablo Martinez for the native gate; his changes will be
@@ -86,7 +103,7 @@ build. Ceilings re-pinned; 293 tests pass.
 | B5 | Feature-complete library and a fair benchmark | done |
 | B6 | Size pass (DCE, abbreviations, dense codegen) | done |
 | B7 | Language packs (Spanish, German) | done (German passed; Spanish with Pablo) |
-| B8 | Port Hibernated 2 (first full game, maturity milestone) | pending |
+| B8 | Port Hibernated 2 (first full game, maturity milestone) | in progress |
 | B9 | Port Ghosts of Blackwood Manor (text) | pending |
 | B10 | The reference interpreter, Actaea | pending |
 | B11 | arc_image on modern systems (PNG) | pending |
