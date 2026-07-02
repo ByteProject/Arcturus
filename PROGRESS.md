@@ -22,6 +22,31 @@ README em dashes and the stale find_particle comment in german.granule. Next:
 an idiom-focused review of both translations (Stefan's request; German got his
 native pass already, Spanish still gated on Pablo), then B8.
 
+Post-playtest polish (2026-07-02, from Stefan's German playthrough + the idiom
+pass): (1) IDIOM. Sixteen Spanish fixes applied (the example carried the exact
+calques Stefan had caught in German, never back-ported: camino roto, la llave
+abre el patio, la silueta apagada; plus a real agreement bug, msg_no_switch "de
+los que" with feminine nouns) and the German "zum Klettern" capitalization.
+(2) UP/DOWN VOCABULARY. German up/down now hoch/rauf/hinauf/aufwaerts/oben and
+runter/hinunter/hinab/abwaerts/unten; bare "auf" is deliberately absent (it is
+the unlock particle, one dictionary role per word; bare "ab" is not German).
+Spanish adds sube/subir, baja/bajar. "nach oben"/"hacia arriba" work via a
+resolve_verb fallback (no verb at word 0, but a direction anywhere -> go), and
+has_extra_words for go now only asks whether a direction is present, so "geh
+nach oben" tolerates the filler "nach". (3) COHERENCE QA on all four games:
+described-but-silent scenery got grains (steps in brass; walls in cloak;
+hogar/barra/macetas/grillo/faro/rocas in Spanish; Herd/Tresen/Waende/Grille/
+Steine/Leuchtturm/Felsen in German) and described verticality got exits (brass
+down/up; patio-playa and hof-strand down/up). The faro/Leuchtturm grains close
+Stefan's "how do I reach the lighthouse" confusion narratively: the sea took
+the path. (4) DISCOVERY: a grain WORD is global to the game (dictionary maps
+word -> one grain+owner; a second room's same-word grain silently steals it).
+Documented in docs/01 section 14; watch it in B8, real games repeat scenery
+words across rooms. (5) _STD_ACTIONS in prelude.py now carries the full
+standard verb-set action names (touch/smell/listen/... and the meta verbs), so
+bare --no-cosmos analysis accepts the same handler and grain names as a Cosmos
+build. Ceilings re-pinned; 293 tests pass.
+
 ## Status at a glance
 
 | Milestone | Description | Status |

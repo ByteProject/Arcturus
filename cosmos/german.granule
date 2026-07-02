@@ -51,19 +51,23 @@ language "german"
 // Returns the action number, or 0 if the first word is not a known verb.
 block resolve_verb()
     let d = word_dict(0)
-    if d is nothing
-        return 0
-    let flags = peek_byte(d + 6)
-    if flags is 128
-        let base = peek_byte(d + 7)
-        let p = find_particle()
-        if p is not nothing
-            let c = compound(base, p)
-            if c is not nothing
-                return c
-        return base
-    if flags is 64
-        return peek_byte(d + 7)
+    if d is not nothing
+        let flags = peek_byte(d + 6)
+        if flags is 128
+            let base = peek_byte(d + 7)
+            let p = find_particle()
+            if p is not nothing
+                let c = compound(base, p)
+                if c is not nothing
+                    return c
+            return base
+        if flags is 64
+            return peek_byte(d + 7)
+    // Kein Verb am Satzanfang? Steht irgendwo im Satz eine Richtung, ist es
+    // trotzdem ein Gehen-Befehl: so versteht der Parser "nach oben" und "nach
+    // unten", wo das erste Wort ("nach") gar nicht im Woerterbuch steht.
+    if find_direction() is not nothing
+        return action_id("go")
     return 0
 
 // The first verb-particle word in the command, as its id (an/ein 1, aus/ab 2,
@@ -285,20 +289,15 @@ block named_unseen()
     return 0
 
 // For an intransitive verb (no noun slot), is there a word after it the grammar
-// cannot use? A direction after `go` is the exception.
+// cannot use? A go command is the exception: dort zaehlt nur, ob irgendwo eine
+// Richtung steht, denn "geh nach oben" traegt das Fuellwort "nach", das gar
+// nicht im Woerterbuch steht.
 block has_extra_words(act)
-    let n = word_count()
-    let i = 1
-    while i < n
-        let keep = 0
-        if act is action_id("go")
-            let d = word_dict(i)
-            if d is not nothing
-                if peek_byte(d + 6) is 64
-                    change keep to 1
-        if keep is 0
-            return 1
-        change i to i + 1
+    if act is action_id("go")
+        if find_direction() is not nothing
+            return 0
+    if word_count() > 1
+        return 1
     return 0
 
 // A scenery grain word (flagged bit 4) whose owner is in scope; returns the
@@ -423,8 +422,13 @@ direction northeast "nordosten", "nordost", "no"
 direction northwest "nordwesten", "nordwest", "nw"
 direction southeast "suedosten", "südosten", "suedost", "so"
 direction southwest "suedwesten", "südwesten", "suedwest", "sw"
-direction up        "hoch", "rauf", "h"
-direction down      "runter", "hinunter", "r"
+// Hinauf und hinab brauchen im Deutschen viele Formen: hoch, rauf, hinauf,
+// aufwaerts, oben (fuer "nach oben"), und ebenso runter, hinunter, hinab,
+// abwaerts, unten. Das nackte "auf" fehlt mit Absicht: es ist die
+// Aufschliess-Partikel ("schliess die Tuer auf"), und ein Wort traegt im
+// Woerterbuch nur eine Rolle. Ein nacktes "ab" waere ohnehin kein Deutsch.
+direction up        "hoch", "rauf", "hinauf", "aufwaerts", "aufwärts", "oben", "h"
+direction down      "runter", "hinunter", "hinab", "abwaerts", "abwärts", "unten", "r"
 direction in        "rein", "hinein"
 direction out       "hinaus", "heraus"
 
@@ -866,7 +870,7 @@ block msg_not_inside()
     say "Du bist in nichts, aus dem du aussteigen könntest."
 
 block msg_cant_climb()
-    say "${The noun} ist nicht zum klettern geeignet."
+    say "${The noun} ist nicht zum Klettern geeignet."
 
 // Sensory.
 block msg_nothing_special()

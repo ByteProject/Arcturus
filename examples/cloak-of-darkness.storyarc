@@ -40,6 +40,10 @@ room cloakroom
           though now only one remains. The exit is a door to the east."
     east foyer
 
+    grains
+        examine "walls" or "wall" say "Bare plaster, pocked with the ghost-marks
+            of a hundred vanished hooks."
+
 
 thing hook of supporter in cloakroom
     name  "small brass hook"

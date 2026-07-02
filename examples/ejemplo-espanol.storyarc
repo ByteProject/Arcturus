@@ -51,7 +51,7 @@ room posada
     name "La Posada"
     desc "El comedor de una posada antiquísima, de piedra ennegrecida por el humo
           de mil inviernos. Junto al hogar, aún tibio, descansa un cofre de roble.
-          Más allá, una puerta cerrada da al este, al patio. Detrás de la barra, la
+          Al este, una puerta cerrada da al patio. Detrás de la barra, la
           posadera te observa en silencio, como si supiera por qué has venido."
     // Las salidas se nombran por la PROPIEDAD de dirección (east, west, ...), un
     // identificador fijo en inglés, igual que `thing`, `room` u `openable`. El
@@ -59,20 +59,38 @@ room posada
     // traduce, no el nombre de la propiedad.
     east puerta
 
+    // El hogar y la barra salen en la descripción, así que se pueden examinar:
+    // decorado (grains), igual que en la playa.
+    grains
+        examine, touch "hogar" or "fuego" or "brasas" say "Las brasas casi se han
+            apagado, pero aún calientan."
+        examine "barra" say "Madera oscura, gastada por mil jarras."
+
 room patio
     name "El Patio"
     desc "Un patio abierto a la noche, bañado por la luz de una luna enorme. La
           posada queda al oeste; un sendero desciende hacia el sur, camino de la
           playa. Huele a mar, y algún grillo canta todavía entre las macetas."
     west puerta
+    // El sendero DESCIENDE hacia la playa: la descripción promete las dos
+    // palabras, así que "sur" y "baja" funcionan las dos.
     south playa
+    down playa
+
+    grains
+        examine "macetas" or "maceta" say "Hierbas tercas en macetas
+            desportilladas."
+        examine, listen "grillo" say "Lo oyes, pero no lo ves: canta escondido
+            entre las macetas."
 
 room playa
     name "La Playa"
     desc "Guijarros y algas bajo una luna inmensa. El mar rompe despacio, una y
           otra vez, con un rumor antiquísimo. El patio queda arriba, al norte; más
-          lejos, sobre las rocas, se alza la silueta apagada del faro."
+          lejos, sobre las rocas, se alza la silueta oscura del faro apagado."
+    // El patio queda ARRIBA, al norte: las dos palabras funcionan.
     north patio
+    up patio
 
     // Decorado barato (grains): palabras con respuesta, sin gastar un objeto. El
     // verbo se nombra por su acción (examine, touch, smell); las palabras del
@@ -86,6 +104,14 @@ room playa
         smell "brisa" or "aire" say "Huele a sal, a algas y a lejanía."
         examine "gaviotas" or "gaviota" say "Duermen posadas en las rocas; ni se
             inmutan cuando pasas."
+        // El faro y las rocas salen en la descripción y en boca de la posadera,
+        // así que la playa tiene que saber responder por ellos, y de paso
+        // explicar por qué no se puede llegar hasta allí.
+        examine "faro" or "torre" say "Se alza lejos, sobre la punta rocosa; el
+            sendero que llevaba hasta él se lo llevó el mar. Ya nadie puede
+            subir."
+        examine "rocas" or "roca" say "Negras y pulidas por la espuma. Entre
+            ellas y el faro, el mar ha borrado el camino."
 
 // La luna se ve desde el patio y desde la playa: un solo objeto que abarca
 // (spans) las dos habitaciones. Es decorado, así que no se lista ni se coge.
@@ -93,8 +119,8 @@ thing luna
     name "luna llena"
     words luna, llena
     scenery
-    desc "Una luna llena y enorme, tan brillante que arranca sombras nítidas de
-          los guijarros."
+    desc "Una luna llena y enorme, tan brillante que los guijarros proyectan
+          sombras nítidas."
     spans patio, playa
 
 // Una lámpara: su nombre lleva tilde y se muestra acentuado, pero sus `words`
@@ -102,8 +128,8 @@ thing luna
 thing lampara in posada
     name "lámpara de aceite"
     words lampara, lámpara, aceite
-    desc "Una lámpara de aceite ennegrecida. Todavía queda mecha, y quizá algo de
-          combustible."
+    desc "Una lámpara de aceite ennegrecida. Todavía queda mecha, y quizá un
+          resto de aceite."
 
 // El cofre: contenedor con tapa. La llave espera dentro.
 thing cofre of container in posada
@@ -136,12 +162,12 @@ thing posadera of character in posada
     topic saludo "saludar a la posadera"
         you "Buenas noches."
         reply "Buenas noches nos dé Dios, forastero. Pocos suben ya hasta aquí; el
-               camino está roto desde el naufragio."
+               camino está cortado desde el naufragio."
 
     topic faro "preguntar por el faro"
         you "¿Y ese faro que se ve ahí fuera?"
         reply "Apagado desde aquella noche. Nadie ha vuelto a subir. La llave del
-               cofre abre el patio, si es lo que andas buscando."
+               cofre abre la puerta del patio, si es lo que andas buscando."
 
     topic llave_tema "preguntar por la llave"
         you "¿Hay una llave por aquí?"

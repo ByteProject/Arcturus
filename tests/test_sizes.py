@@ -29,10 +29,13 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.7.0 / Cosmos 0.10.0 (2026-07-02).
 CEILINGS = {
-    "beispiel-deutsch.storyarc": 15856,
-    "brass-lantern.storyarc": 11072,
-    "cloak-of-darkness.storyarc": 11792,
-    "ejemplo-espanol.storyarc": 14844,
+    # 2026-07-02: the four raised ceilings are the coherence QA pass (vertical
+    # exits and grains for described-but-silent scenery) plus the idiom pass and
+    # the wider up/down direction vocabulary in the two language packs.
+    "beispiel-deutsch.storyarc": 16652,
+    "brass-lantern.storyarc": 11324,
+    "cloak-of-darkness.storyarc": 11884,
+    "ejemplo-espanol.storyarc": 15376,
     "features/computed-properties.storyarc": 10424,
     "features/containers.storyarc": 10460,
     "features/daemons-and-timers.storyarc": 10760,
@@ -51,7 +54,7 @@ CEILINGS = {
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 12184
+CLOAK_Z8_CEILING = 12272
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
