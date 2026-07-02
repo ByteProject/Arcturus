@@ -139,6 +139,9 @@ _OPCODES = {
     # Upper-window drawing (the status line, the quote box) must run unbuffered,
     # or interpreters like Frotz reorder the writes around set_cursor.
     "buffer_mode": ("VAR", 0x12, False, False, False),
+    # tokenise text parse: re-tokenize the text buffer into the parse buffer,
+    # after library code has patched the text (the Spanish infinitive retry).
+    "tokenise": ("VAR", 0x1B, False, False, False),
     "set_cursor": ("VAR", 0x0F, False, False, False),
     "set_text_style": ("VAR", 0x11, False, False, False),
     # EXT (v5+). save/restore store a result (0 fail, 1 the original pass, 2 the

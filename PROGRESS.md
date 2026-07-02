@@ -22,6 +22,26 @@ README em dashes and the stale find_particle comment in german.granule. Next:
 an idiom-focused review of both translations (Stefan's request; German got his
 native pass already, Spanish still gated on Pablo), then B8.
 
+PABLO'S ROUND, ITEMS 3-5 (2026-07-03, Stefan's ruling: 3-5 now, pronouns
+next, clitics from github.com/Kozelek/PunyInformES, chaining discussed after):
+(3) THE INFINITIVE RETRY, Spanish only: an unknown first word ending in -r
+loses the -r in the typed text itself and the command re-tokenizes (new
+text_addr/retokenize intrinsics on the tokenise opcode, VAR:0x1B), so a
+regular infinitive finds its imperative: "comer pan" reaches "come". The
+recursion terminates because the word shrinks. (4) STATE QUALIFIERS: a closed
+openable announces itself in listings, per pack with its own agreement: "Ves
+un cofre de roble (que está cerrado)." / "... (que está cerrada)." (gender),
+"(closed)", "(geschlossen)" (predicative, invariant). Composes with the
+knowledge model: "a wooden box (closed) (contains a gold coin)". (5) ARTICLE
+OVERRIDES: `article` and `indefinite` text properties print verbatim over the
+derived article (las tijeras, el agua, English "some water"), with new
+article_addr/indefinite_addr intrinsics riding the desc_addr lowering. KNOWN
+LIMIT, backlogged: a stored article cannot capitalize itself at a sentence
+start ("el agua no tiene..."); the clean fix is runtime capitalization via
+output_stream 3 capture, a candidate to ride the pronoun work. NEXT: pronoun
+support part 1 (general "it", no pronouns exist in Arcturus at all yet), then
+part 2, the Spanish clitics (cogelo/cogela) from PunyInformES.
+
 SPANISH PASSES (2026-07-03): Pablo Martinez (the maker of PunyInformES)
 returned his native review in under two hours: "very impressive", and his pass
 on spanish.granule amounted to a single edit, dropping the trailing "aqui"

@@ -183,3 +183,27 @@ def test_summon_language_requires_a_language_pack():
     # summon.language on a granule that is not a language pack (no marker) errors.
     with pytest.raises(ArcError):
         cosmos.combined_program(parse('summon.language "statusline"\n' + MIN))
+
+
+SPANISH_INFINITIVE = (
+    'summon.language "spanish"\n'
+    'game\n    title "I"\n    start r\n'
+    'room r\n    name "R"\n    desc "Una sala."\n'
+    'verb "zumba"\n    act_zumba\n'
+    'on act_zumba\n    say "[ZUMBIDO]"\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_spanish_infinitive_retry_on_frotz(tmp_path):
+    # The PunyInformES trick: an unknown first word ending in -r loses the -r in
+    # the text buffer and the command re-tokenizes, so a regular infinitive finds
+    # its imperative: "zumbar" reaches the verb declared only as "zumba".
+    story = tmp_path / "i.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(SPANISH_INFINITIVE)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="zumbar\nzumba\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert out.count("[ZUMBIDO]") == 2  # the infinitive and the imperative both fire

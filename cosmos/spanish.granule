@@ -55,6 +55,18 @@ block resolve_verb()
     // abajo", donde la primera palabra ni siquiera está en el diccionario.
     if find_direction() is not nothing
         return action_id("go")
+    // El truco de PunyInformES: una palabra desconocida que termina en -r suele
+    // ser un infinitivo regular. Se recorta la -r en el propio texto tecleado,
+    // se vuelve a analizar, y "comer pan" encuentra "come". La recursión
+    // termina porque la palabra se acorta en cada intento.
+    if word_dict(0) is nothing
+        let len = word_len(0)
+        if len > 2
+            let last = text_addr() + word_pos(0) + len - 1
+            if peek_byte(last) is 114
+                poke_byte(last, 32)
+                retokenize()
+                return resolve_verb()
     return 0
 
 // A verb particle after the verb (the "off" in "switch off"), as its id.
@@ -627,6 +639,14 @@ block art_the(obj, cap)
         if obj is named
             print_name(obj)
             return
+    // A hand-set article wins over derivation (docs/01 section 16): las
+    // tijeras, el agua. Printed as stored, so keep it lowercase and let such
+    // objects sit mid-sentence.
+    if article_addr(obj) is not 0
+        show("${obj.article}")
+        show(" ")
+        print_name(obj)
+        return
     if obj is feminine
         if cap is 1
             show("La ")
@@ -644,6 +664,12 @@ block art_a(obj, cap)
         if obj is named
             print_name(obj)
             return
+    // A hand-set indefinite wins over derivation: unas tijeras, some water.
+    if indefinite_addr(obj) is not 0
+        show("${obj.indefinite}")
+        show(" ")
+        print_name(obj)
+        return
     if obj is feminine
         if cap is 1
             show("Una ")
@@ -752,6 +778,15 @@ block reveal_contents(holder)
 block list_item(obj)
     show("Ves ")
     show("${a obj}")
+    // Un objeto que se puede abrir y está cerrado lo dice (sugerencia de Pablo
+    // Martínez): el único estado que el listado no revela por sí solo. El
+    // participio concuerda con el género.
+    if obj is openable
+        if not (obj is open)
+            if obj is feminine
+                show(" (que está cerrada)")
+            else
+                show(" (que está cerrado)")
     list_contents(obj)
     say "."
 

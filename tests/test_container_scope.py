@@ -97,5 +97,7 @@ def test_closed_box_remembers_and_redirects(tmp_path):
     ).stdout
     assert "You see nothing of the sort here." in out  # never seen: unknown
     assert "Inside you find a gold coin." in out  # opening reveals it
-    assert "wooden box (contains a gold coin)" in out  # closed, but remembered
+    # Closed, but remembered: the knowledge model lists the contents the player
+    # has seen, and the closed-openable qualifier sits alongside it.
+    assert "wooden box (closed) (contains a gold coin)" in out
     assert "You'll have to open the wooden box first." in out  # known but shut away

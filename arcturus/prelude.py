@@ -158,6 +158,12 @@ _STD_VALUE_PROPS = {
     # object sits untouched in place (until it has `moved`), in place of the
     # plain "You can see X here." Useful for set dressing and static objects.
     "intro": T_TEXT,
+    # Article overrides, for the objects derivation cannot reach: `article` is
+    # what ${the x} prints ("las" for las tijeras, "el" for el agua), and
+    # `indefinite` what ${a x} prints ("unas"; English "some" for mass nouns).
+    # Unset, the language layer derives as usual.
+    "article": T_TEXT,
+    "indefinite": T_TEXT,
     "words": T_LIST,
     "capacity": T_NUMBER,
     # The object that locks and unlocks a lockable thing (a door or chest). Named
