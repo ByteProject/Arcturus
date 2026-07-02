@@ -28,9 +28,12 @@ curses frotz through a pty (pyte rendering the actual screen) found three real
 bugs invisible to dfrotz: (1) the story never announced colour use in Flags 2
 bit 6, which frotz requires before enabling colour at all (now set whenever a
 program uses colours, plus the undo bit the Standard asks for); (2) upper
-window drawing ran buffered, so frotz reordered writes around set_cursor: THE
-STATUS BAR HAD NEVER RENDERED ON CURSES FROTZ, only on dfrotz (new buffer_mode
-intrinsic; status line, menu, and box draw unbuffered, the Inform/Puny dance);
+window drawing ran buffered; a correction from Stefan: the status bar DID
+always render on his frotz (the earlier "never rendered" claim came from a
+faulty capture tool), but the missing buffer_mode dance is real and bites
+stricter interpreters: a user reported exactly this statusline breakage on
+Gargoyle (new buffer_mode intrinsic; status line, menu, and box draw
+unbuffered, the Inform/Puny dance);
 (3) the paragraph layer's pending newline flushed INTO the box's first row
 (the distortion), fixed by flushing it into the old screen before drawing.
 Also added, Puny parity per Stefan: zcolor.statusline and zcolor.input (cyan

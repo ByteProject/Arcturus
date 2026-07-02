@@ -99,11 +99,26 @@ summon.quotes
 ```
 
 A centered, reverse-video quote box in the upper window, in the tradition of
-Infocom's Trinity: the classic way to open a game with an epigraph. Centered
-from the interpreter-reported screen width, so it sits right on a 40-column
-8-bit machine and a wide terminal alike. State the box size, then alternate
-`quote_line()` and `show(...)` per line, and close with `quote_done()`, which
-waits for a keypress and clears the screen:
+Infocom's Trinity: the classic way to open a game with an epigraph. The box is
+centered from the interpreter-reported screen width, so it sits right on a
+40-column 8-bit machine and a wide terminal alike, and it sits in the upper
+third of the screen, where the eye expects it.
+
+Three blocks, called in order:
+
+- `quote(lines, width)` opens the box: `lines` is the number of text lines,
+  `width` the length of the LONGEST line, counted by hand the way one counts a
+  fixed-width layout. The box adds one space of padding on each side and a
+  blank reverse row above and below. Opening the box clears the screen.
+- `quote_line()` advances to the next line and leaves the cursor inside it;
+  the author's own `show("...")` then prints that line's text. One
+  `quote_line()` / `show(...)` pair per line, top to bottom. Lines print
+  left-aligned inside the box; pad with leading spaces by hand for a
+  right-aligned attribution, exactly as on paper. An empty line is
+  `quote_line()` followed by `show("")`.
+- `quote_done()` draws the bottom row, waits for a single keypress, and clears
+  the screen for whatever follows. The status line, if summoned, redraws at
+  the next prompt.
 
 ```
 on start
@@ -118,10 +133,17 @@ on start
 ```
 
 The text goes through `show(...)` directly because a string cannot travel
-through a block parameter; pad an attribution by hand to set it right. Pairs
-naturally with `banner false` and `print_banner()` (01, section 3), so the
-quote comes first and the banner after, the classic order. The box prints no
-words of its own, so it works identically in every language.
+through a block parameter (01, section 3); the box manages the geometry, the
+author supplies the words. Keep `width` under the narrowest screen you target
+minus four (36 is safe on a 40-column Commodore 64); on a screen too narrow to
+center, the box clamps to the left edge rather than wrapping.
+
+An opening quote usually comes BEFORE the banner. Pair the granule with
+`banner false` in the game block and a `print_banner()` call after
+`quote_done()` (01, section 4; 02, section 3), and the game opens in the
+classic order: quote, keypress, banner, story. The box prints no words of its
+own, so it works identically in every language, and it draws with the same
+colours the game set with `zcolor` (01, section 16a).
 
 ### verbose_exits
 

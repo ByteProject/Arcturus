@@ -28,8 +28,9 @@
 //     needs with a tag on the article, ${the:acc noun} / ${a:dat noun}; art_the
 //     and art_a below turn gender and case into the right word. Predicate
 //     adjectives do NOT inflect ("die Kiste ist offen", "der Schrank ist offen"),
-//     so unlike Spanish there are no per-gender message variants: only the article
-//     changes, and it changes in one place.
+//     so unlike Spanish there are almost no per-gender message variants: the
+//     article changes in one place. The exception is a PRONOUN that refers back
+//     to the noun (msg_fixed: wo sie/er/es ist), which branches on the gender.
 //
 // TYPING ON 8-BIT HARDWARE: an accented word is shown in full (the interpreters
 // render umlauts and ß), but every word the player must TYPE also has a plain
@@ -916,7 +917,15 @@ block msg_taken()
     say "Genommen."
 
 block msg_fixed()
-    say "${The noun} bleibt ziemlich genau, wo es ist."
+    // Das Pronomen richtet sich nach dem Geschlecht: die Tür bleibt, wo SIE
+    // ist; der Schrank, wo ER ist; das Buch, wo ES ist.
+    if noun is feminine
+        say "${The noun} bleibt ziemlich genau, wo sie ist."
+        return 0
+    if noun is neuter
+        say "${The noun} bleibt ziemlich genau, wo es ist."
+        return 0
+    say "${The noun} bleibt ziemlich genau, wo er ist."
 
 block msg_animate_refuses()
     say "${The noun} hat andere Pläne."

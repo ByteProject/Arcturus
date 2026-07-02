@@ -841,34 +841,70 @@ tag the case is nominative. English and Spanish ignore the tag, so it costs
 nothing there; a language pack's article block reads it (02, section 14a). Only
 the definite and indefinite article take a tag.
 
-Screen colours are set with the `zcolor` statement and used with a colour-tagged
-`say`. `zcolor.font <colour>` sets the base text colour; `zcolor.background
-<colour>` sets the background and repaints the screen, so the new colour covers
-the whole display rather than only the text printed from then on.
-`zcolor.statusline <colour>` colours the status bar, and `zcolor.input
-<colour>` the text the player types, each restored to the base font colour
-afterwards (the classic Infocom-era look: white prose, cyan bar, cyan input).
-The colours are `default` (the interpreter's own), `black`, `red`, `green`,
-`yellow`, `blue`, `magenta`, `cyan`, and `white`.
+Screen colours have their own section, 16a, below.
+
+## 16a. Screen colours (zcolor)
+
+The Z-machine draws in nine standard colours, and Arcturus exposes them by
+name. The palette, as the Standard defines it (section 8.3.1):
+
+| Name | Number | Colour |
+|------|--------|--------|
+| `default` | 1 | the interpreter's own default |
+| `black`   | 2 | black |
+| `red`     | 3 | red |
+| `green`   | 4 | green |
+| `yellow`  | 5 | yellow |
+| `blue`    | 6 | blue |
+| `magenta` | 7 | magenta (purple) |
+| `cyan`    | 8 | cyan (light blue) |
+| `white`   | 9 | white |
+
+(Later revisions of the Standard add interpreter-specific greys; Arcturus
+supports the portable nine, which every colour interpreter carries, down to
+the 8-bit machines.)
+
+The `zcolor` statement sets the base colours, one target per line, usually in
+`on start`:
+
+- `zcolor.font <colour>`: the base text colour. Remembered, so every one-shot
+  colour below restores to it.
+- `zcolor.background <colour>`: the background. Setting it also repaints the
+  screen, so the new colour covers the whole display rather than only the text
+  printed from then on.
+- `zcolor.statusline <colour>`: the status bar's text colour (with the
+  statusline granule). The bar draws in it and the base font colour returns
+  after every draw.
+- `zcolor.input <colour>`: the colour of the text the player types. The
+  command echoes in it, and the base font colour returns the moment the line
+  is entered.
 
 `say.<colour> "..."` prints one text in that colour and then restores the base
 font colour by itself, so an emphasized passage is a single line with no state
-to manage and no restore to forget:
+to manage and no restore to forget. It composes with interpolation
+(`say.yellow "${The noun} glows."`). Together, the classic Infocom-era look is
+four lines and stays out of the prose:
 
 ```
 on start
     zcolor.font white
     zcolor.background black
+    zcolor.statusline cyan
+    zcolor.input cyan
 
     say.yellow "For my part I know nothing with any certainty, but the
         sight of the stars makes me dream."
     say "-- Vincent van Gogh"
 ```
 
-Every colour operation checks, at run time, whether the interpreter reports
-colour support (Standard 1.1, Flags 1 bit 0); on an interpreter without it,
-`zcolor` does nothing and `say.<colour>` is exactly a plain `say`. A game that
-never uses colours pays nothing for the feature.
+Colour support is handled for you, at both ends. The compiler marks the story
+as colour-using in the header (Flags 2 bit 6, which interpreters require
+before they enable colour at all), and every colour operation checks at run
+time whether the interpreter reports colour support (Flags 1 bit 0): on an
+interpreter without it, `zcolor` does nothing and `say.<colour>` is exactly a
+plain `say`. No author-side guard is ever needed, and a game that never uses
+colours pays nothing for the feature. An unknown colour name is a compile
+error that lists the palette.
 
 ## 17. Diagnostics
 
