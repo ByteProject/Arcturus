@@ -6,6 +6,10 @@ tracks status against it and records decisions made during implementation.
 
 Last updated: 2026-07-02.
 
+Model handover: `HANDOVER.md` (repo root) is a holistic orientation written at
+the switch to Anthropic's Fable model, with an assessment task to run before B8.
+Read it alongside this log.
+
 ## Status at a glance
 
 | Milestone | Description | Status |
@@ -17,7 +21,7 @@ Last updated: 2026-07-02.
 | B4 | Cosmos compiled: parser, turn loop, standard verbs | done |
 | B5 | Feature-complete library and a fair benchmark | done |
 | B6 | Size pass (DCE, abbreviations, dense codegen) | done |
-| B7 | Language packs (Spanish, German) | in progress |
+| B7 | Language packs (Spanish, German) | done (native review pending) |
 | B8 | Port Hibernated 2 (first full game, maturity milestone) | pending |
 | B9 | Port Ghosts of Blackwood Manor (text) | pending |
 | B10 | The reference interpreter, Actaea | pending |
