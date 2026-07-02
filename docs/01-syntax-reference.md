@@ -728,6 +728,13 @@ and names one of its words, and no real object in scope matches that word. The p
 is defined in 02. Grains cost only dictionary words and a small table, never
 an object entry.
 
+A grain word is global to the game: the dictionary maps each word to exactly
+one grain and its owner, so the same word cannot serve two grains in two rooms
+(the later declaration silently wins, and the earlier room stops answering).
+Give each room's set dressing its own words, or promote shared scenery to a
+real `scenery` thing with `spans` (section 5), which is exactly what spans are
+for.
+
 ## 15. Topics and conversation
 
 A character (a thing that is `animate`, which the `character` kind sets) can hold

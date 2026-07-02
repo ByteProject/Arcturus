@@ -62,6 +62,16 @@ room gasthaus
     // übersetzt, nicht der Name der Eigenschaft.
     east tuer
 
+    // Herd, Tresen und Wände stehen in der Beschreibung, also müssen sie sich
+    // auch untersuchen lassen: Kulisse (grains), wie am Strand.
+    grains
+        examine, touch "herd" say "Die Glut ist fast erloschen, aber er wärmt
+            noch ein wenig."
+        examine "tresen" or "theke" say "Dunkles Holz, blankgescheuert von
+            tausend Krügen."
+        examine "waende" or "wände" or "wand" say "Schwarz vom Ruß; die
+            Jahrhunderte haben sich eingebrannt."
+
 room hof
     name "Der Hof"
     desc "Ein Hof, offen zur Nacht und überflutet vom Licht eines riesigen Mondes.
@@ -69,15 +79,26 @@ room hof
           Es riecht nach Meer, und irgendwo zwischen den Steinen zirpt noch eine
           Grille."
     west tuer
+    // Der Pfad FÄLLT nach Süden AB: die Beschreibung verspricht beide Wörter,
+    // also führen "sueden" und "runter" beide zum Strand.
     south strand
+    down strand
+
+    grains
+        examine, listen "grille" say "Du hörst sie, aber du siehst sie nicht:
+            sie zirpt irgendwo zwischen den Steinen."
+        examine "steine" or "stein" say "Vom Mondlicht gebleicht, noch warm vom
+            Tag."
 
 room strand
     name "Der Strand"
     desc "Kiesel und Tang unter einem gewaltigen Mond. Die Wellen brechen langsam,
-          wieder und wieder, mit einem uralten Rauschen. Im Norden liegt der Hof;
-          weiter draußen, über den Felsen, ragt die dunkle Silhouette des
-          erloschenen Leuchtturms."
+          wieder und wieder, mit einem uralten Rauschen. Im Norden, den Pfad
+          hinauf, liegt der Hof; weiter draußen, über den Felsen, ragt die dunkle
+          Silhouette des erloschenen Leuchtturms."
+    // Der Pfad zum Hof steigt an: "norden" und "hoch" führen beide zurück.
     north hof
+    up hof
 
     // Billige Kulisse (grains): Wörter mit Antwort, ohne einen Gegenstand zu
     // verbrauchen. Das Verb wird nach seiner Aktion benannt (examine, touch,
@@ -91,6 +112,15 @@ room strand
         smell "brise" or "luft" say "Es riecht nach Salz, nach Tang und nach Weite."
         examine "moewen" or "möwen" or "moewe" say "Sie schlafen auf den Felsen; keine
             einzige Feder regt sich, wenn du vorbeigehst."
+        // Der Leuchtturm und die Felsen stehen in der Beschreibung, und die
+        // Wirtin redet von ihm: der Strand muss für beide eine Antwort haben,
+        // und die Antwort erklärt zugleich, warum niemand hinaufkommt.
+        examine "leuchtturm" or "turm" say "Er ragt weit draußen auf der Landzunge
+            auf; den Weg dorthin hat sich das Meer geholt. Hinauf kommt niemand
+            mehr."
+        examine "felsen" or "fels" say "Schwarz und glatt, von der Gischt rund
+            geschliffen. Zwischen ihnen und dem Leuchtturm hat das Meer den Pfad
+            verschluckt."
 
 // Der Mond ist vom Hof und vom Strand aus zu sehen: ein einziger Gegenstand, der
 // beide Räume umspannt (spans). Er ist Kulisse, wird also nicht gelistet und nicht

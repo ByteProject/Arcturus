@@ -16,7 +16,14 @@ on start
 room hallway
     name "Hallway"
     desc "A bare stone hallway. Worn steps lead down into the dark, north."
+    // The steps lead down as well as north: both words must work, because the
+    // description promises both.
     north cellar
+    down cellar
+
+    grains
+        examine "steps" or "stairs" say "Worn smooth in the middle, they vanish
+            into the dark below."
 
 thing lantern in hallway
     name  "brass lantern"
@@ -39,6 +46,16 @@ room cellar
     desc "A damp cellar of black stone. A squat pedestal stands at its
           centre, a rusted lever set into the base."
     south hallway
+    up hallway
+
+    // NOTE: no "steps" grain here, deliberately. A grain word is global to the
+    // game (the dictionary maps it to ONE grain and owner), so a second "steps"
+    // in the cellar would steal the word from the hallway's grain.
+    grains
+        examine, touch "stone" or "walls" or "wall" say "Black, damp, and older
+            than the house above."
+        listen "water" or "drip" say "Patient and unhurried, somewhere behind
+            the stone."
 
     on enter
         if not (player holds lantern and lantern is lit)

@@ -36,19 +36,23 @@ language "spanish"
 // Returns the action number, or 0 if the first word is not a known verb.
 block resolve_verb()
     let d = word_dict(0)
-    if d is nothing
-        return 0
-    let flags = peek_byte(d + 6)
-    if flags is 128
-        let base = peek_byte(d + 7)
-        let p = find_particle()
-        if p is not nothing
-            let c = compound(base, p)
-            if c is not nothing
-                return c
-        return base
-    if flags is 64
-        return peek_byte(d + 7)
+    if d is not nothing
+        let flags = peek_byte(d + 6)
+        if flags is 128
+            let base = peek_byte(d + 7)
+            let p = find_particle()
+            if p is not nothing
+                let c = compound(base, p)
+                if c is not nothing
+                    return c
+            return base
+        if flags is 64
+            return peek_byte(d + 7)
+    // ¿Ningún verbo al principio? Si en la frase aparece una dirección, sigue
+    // siendo una orden de ir: así el parser entiende "hacia arriba" o "para
+    // abajo", donde la primera palabra ni siquiera está en el diccionario.
+    if find_direction() is not nothing
+        return action_id("go")
     return 0
 
 // A verb particle after the verb (the "off" in "switch off"), as its id.
@@ -283,22 +287,15 @@ block named_unseen()
     return 0
 
 // For an intransitive verb (no noun slot), is there a word after it the grammar
-// cannot use? Returns 1 the moment it finds one. A direction after `go` is the
-// exception: movement consumes it through `way`, so "go north" is whole, while
-// "jump north" or "look cloak" carries a word too many.
+// cannot use? Returns 1 the moment it finds one. A go command is the exception:
+// solo importa que haya una dirección en la frase, porque "ve hacia arriba"
+// lleva la palabra de relleno "hacia", que ni siquiera está en el diccionario.
 block has_extra_words(act)
-    let n = word_count()
-    let i = 1
-    while i < n
-        let keep = 0
-        if act is action_id("go")
-            let d = word_dict(i)
-            if d is not nothing
-                if peek_byte(d + 6) is 64
-                    change keep to 1
-        if keep is 0
-            return 1
-        change i to i + 1
+    if act is action_id("go")
+        if find_direction() is not nothing
+            return 0
+    if word_count() > 1
+        return 1
     return 0
 
 // A scenery grain word (flagged bit 4) whose owner is in scope; returns the
@@ -441,8 +438,9 @@ direction northeast "noreste", "ne"
 direction northwest "noroeste", "no"
 direction southeast "sureste", "se"
 direction southwest "suroeste", "so"
-direction up        "arriba", "ar"
-direction down      "abajo", "ab"
+// Subir y bajar admiten varias formas: arriba, sube, subir; abajo, baja, bajar.
+direction up        "arriba", "sube", "subir", "ar"
+direction down      "abajo", "baja", "bajar", "ab"
 direction in        "dentro"
 direction out       "fuera"
 
@@ -775,13 +773,13 @@ block line_talk_header(who)
     show("Habla con ${the who} de:")
 
 block line_talk_prompt()
-    show("Pulsa un número para preguntar, o 0 para salir.")
+    show("Elige un tema, o 0 para terminar.")
 
 block msg_no_topics()
     say "Ahora mismo no se te ocurre nada que merezca la pena."
 
 block msg_talk_over()
-    say "Dejas ahí la conversación."
+    say "Das la conversación por terminada."
 
 // The status line's score side (the statusline granule): the score and moves,
 // right-aligned, in Spanish words and widths.
@@ -817,17 +815,17 @@ block msg_cant_enter()
     say "No puedes meterte en ${the noun}."
 
 block msg_already_there()
-    say "Ya estás ahí."
+    say "Ya estás dentro."
 
 block msg_not_inside()
-    say "No estás dentro de nada de lo que salir."
+    say "No estás dentro de nada."
 
 block msg_cant_climb()
     say "${The noun} no es para escalar."
 
 // Sensory.
 block msg_nothing_special()
-    say "Nada en ${the noun} merece una mirada más de cerca."
+    say "${The noun} no tiene nada de particular."
 
 block msg_touch()
     say "Tocas ${the noun}. No notas nada que tus ojos no vieran ya."
@@ -858,7 +856,7 @@ block msg_have_it()
     say "Ya tienes ${the noun}."
 
 block msg_take_self()
-    say "Te tienes bien agarrado a ti mismo."
+    say "Ya te llevas contigo a todas partes."
 
 block msg_dropped()
     say "Al suelo."
@@ -978,7 +976,7 @@ block msg_cant_unlock()
 
 // Operating.
 block msg_no_switch()
-    say "${The noun} no es de los que se encienden."
+    say "${The noun} no se puede encender."
 
 block msg_already_on()
     if noun is feminine
@@ -997,13 +995,13 @@ block msg_no_effect()
 
 // Body, action, idle.
 block msg_attack()
-    say "Pegar a las cosas rara vez ayuda, y no va a empezar ahora."
+    say "Pegar a las cosas rara vez ayuda, y esta no va a ser la excepción."
 
 block msg_eat()
     say "${The noun} no está en el menú."
 
 block msg_drink()
-    say "Aquí no hay nada que merezca un trago."
+    say "Aquí no hay nada que apetezca beber."
 
 block msg_jump()
     say "Das un salto en el sitio. No pasa nada, pero sienta bien."
@@ -1015,7 +1013,7 @@ block msg_kiss()
     say "No es precisamente el momento."
 
 block msg_sing()
-    say "Consigues unas cuantas notas. La sala no se inmuta."
+    say "Entonas unas notas. La sala no se inmuta."
 
 // Conversation.
 block msg_no_talk()
