@@ -112,6 +112,13 @@ The compiler and library versions are build constants, not author-set. A game
 may replace the banner by handling the banner event, but the default carries
 the standard information.
 
+The words in line two are language, not structure, so they come from the
+language layer: `line_by` prints the connector (" by "; " de " in Spanish,
+" von " in German) and `banner_headline` the default headline when a game sets
+none ("An Interactive Fiction"; "Una aventura conversacional"; "Ein
+Textadventure"). A pack localizes both, and a story may override either block
+for a custom banner voice.
+
 ## 4. The object tree and the in/on relation
 
 Containment is the Z-machine object tree: one parent per object, reached with

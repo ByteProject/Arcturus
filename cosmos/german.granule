@@ -714,6 +714,16 @@ block art_a(obj, cap, kase)
                         show("ines ")
     print_name(obj)
 
+// Die Banner-Wörter. Der Compiler setzt das Banner zusammen (Titel, Untertitel,
+// Autor, Versionszeile), aber die Wörter ZWISCHEN den Teilen gehören der
+// Sprache: line_by druckt das Bindewort zwischen Untertitel und Autor, und
+// banner_headline den Untertitel, wenn das Spiel keinen eigenen setzt.
+block line_by()
+    show(" von ")
+
+block banner_headline()
+    show("Ein Textadventure")
+
 // The input prompt. It requests a paragraph break rather than forcing its own.
 block prompt()
     par()
