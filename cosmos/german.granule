@@ -66,9 +66,11 @@ block resolve_verb()
         return peek_byte(d + 7)
     return 0
 
-// A verb particle after the verb, as its id. German separable prefixes are not
-// wired as particles in this first pass (each on/off verb is its own word), so
-// this stays inert, exactly as in the Spanish pack.
+// The first verb-particle word in the command, as its id (an/ein 1, aus/ab 2,
+// auf 3, zu 4, declared with `particle` below). This is what makes the trennbare
+// Verben work: "schalt die Lampe an" and "schliess die Tuer auf" find their
+// particle here, wherever it falls, and compound() maps base verb + particle to
+// the real action.
 block find_particle()
     let n = word_count()
     let i = 1

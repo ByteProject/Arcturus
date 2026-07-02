@@ -88,21 +88,21 @@ Follow this section and `PROGRESS.md` for where things stand.
 The authoritative language definition is the syntax reference, which is enough
 to start writing Arcturus today:
 
-- [docs/01-syntax-reference.md](docs/01-syntax-reference.md) — the language:
-  grammar, every construct, and two complete worked example games.
-- [docs/02-cosmos-and-parser.md](docs/02-cosmos-and-parser.md) — the runtime:
-  the Cosmos library, the parser, the action pipeline, scope, light, and the
+- [docs/01-syntax-reference.md](docs/01-syntax-reference.md): the language.
+  Grammar, every construct, and two complete worked example games.
+- [docs/02-cosmos-and-parser.md](docs/02-cosmos-and-parser.md): the runtime.
+  The Cosmos library, the parser, the action pipeline, scope, light, and the
   turn loop.
-- [docs/05-granules.md](docs/05-granules.md) — the summonable granules: how to
+- [docs/05-granules.md](docs/05-granules.md): the summonable granules. How to
   summon them, how to fork one, and how to write your own.
 
 For the curious who want to see under the hood, two further documents cover how
 the compiler itself works:
 
-- [docs/03-compiler-pipeline.md](docs/03-compiler-pipeline.md) — the compiler:
-  the pass pipeline, the command-line interface, how Cosmos is bundled and
+- [docs/03-compiler-pipeline.md](docs/03-compiler-pipeline.md): the compiler.
+  The pass pipeline, the command-line interface, how Cosmos is bundled and
   overridden, the single-file distribution, and the version model.
-- [docs/04-codegen-mapping.md](docs/04-codegen-mapping.md) — the backend: how
+- [docs/04-codegen-mapping.md](docs/04-codegen-mapping.md): the backend. How
   Arcturus constructs map to Z-machine opcodes and the story-file image, plus the
   size levers (dead-code elimination and abbreviation text compression).
 
@@ -121,11 +121,11 @@ exits, the extended verbs).
 
 Arcturus uses three source extensions, named after the star:
 
-- **`.storyarc`** — a *story*: an author's game, the program you compile.
-- **`.prelude`** — a *core Cosmos library file*. The library is the prelude
+- **`.storyarc`** is a *story*: an author's game, the program you compile.
+- **`.prelude`** is a *core Cosmos library file*. The library is the prelude
   loaded before your story; the standard library is editable Arcturus source you
   can read and override.
-- **`.granule`** — a *summoned module*: anything brought in with `summon`,
+- **`.granule`** is a *summoned module*: anything brought in with `summon`,
   whether a third-party extension or an optional Cosmos feature or language pack
   (it loads only when summoned). Granules are the convection cells that tile the
   Sun's photosphere; since Arcturus is a star, a summoned module is a granule on
