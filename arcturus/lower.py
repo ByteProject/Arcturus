@@ -29,7 +29,7 @@ from . import worldmodel as wm
 from .assembler import Const, Routine, Variable, RoutineRef, StringRef, STACK
 from .errors import ArcError
 from .objects import REACT_PROP
-from .prelude import _DIRECTIONS
+from .prelude import _DIRECTIONS, _ZCOLOURS
 
 
 def exit_directions(layout):
@@ -777,6 +777,17 @@ def _any_grains(ctx) -> int:
     return 1 if (ctx.layout is not None and ctx.layout.has_grains) else 0
 
 
+def _zc_guard(rt, ctx) -> str:
+    """Emit the colour-support check (header Flags 1, bit 0) and return the label
+    to place after the guarded colour ops: the ops are skipped entirely on an
+    interpreter that reports no colour support."""
+    skip = ctx.new_label()
+    rt.op("loadb", Const(0), Const(1), store=Variable(STACK))
+    rt.op("and", Variable(STACK), Const(1), store=Variable(STACK))
+    rt.op("jz", Variable(STACK), branch=(skip, True))
+    return skip
+
+
 def _word_index(rt, ctx, expr, scale, base):
     """Leave base + scale*expr on the stack (the parse-buffer index for word i)."""
     op, t = _operand(rt, ctx, expr)
@@ -930,7 +941,38 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
     elif isinstance(s, ast.Change):
         _change(rt, ctx, s)
     elif isinstance(s, ast.Say):
-        _say(rt, ctx, s.value)
+        if s.colour is not None:
+            # say.<colour>: set the foreground, print, restore the base font
+            # colour from the reserved __zcfont__ global. Both colour ops sit
+            # behind the header colour-support check, so on an interpreter
+            # without colours this is exactly a plain say.
+            n = _ZCOLOURS[s.colour]
+            skip = _zc_guard(rt, ctx)
+            rt.op("set_colour", Const(n), Const(0))
+            rt.label(skip)
+            _say(rt, ctx, s.value)
+            skip = _zc_guard(rt, ctx)
+            rt.op("set_colour", Variable(ctx.globals["__zcfont__"]), Const(0))
+            rt.label(skip)
+        else:
+            _say(rt, ctx, s.value)
+    elif isinstance(s, ast.ZColor):
+        n = _ZCOLOURS[s.colour]
+        if s.target == "font":
+            # Remember the base font colour (say.<colour> restores to it), then
+            # apply it if the interpreter supports colours.
+            rt.op("store", Const(ctx.globals["__zcfont__"]), Const(n))
+            skip = _zc_guard(rt, ctx)
+            rt.op("set_colour", Const(n), Const(0))
+            rt.label(skip)
+        else:
+            # Background: apply and repaint, so the new colour covers the whole
+            # screen rather than only the cells printed from now on (the same
+            # reason PunyInform clears after setting colours).
+            skip = _zc_guard(rt, ctx)
+            rt.op("set_colour", Const(0), Const(n))
+            rt.op("erase_window", Const(-1))
+            rt.label(skip)
     elif isinstance(s, ast.Line):
         _line(rt, ctx, s)
     elif isinstance(s, ast.TopicToggle):

@@ -839,6 +839,32 @@ tag the case is nominative. English and Spanish ignore the tag, so it costs
 nothing there; a language pack's article block reads it (02, section 14a). Only
 the definite and indefinite article take a tag.
 
+Screen colours are set with the `zcolor` statement and used with a colour-tagged
+`say`. `zcolor.font <colour>` sets the base text colour; `zcolor.background
+<colour>` sets the background and repaints the screen, so the new colour covers
+the whole display rather than only the text printed from then on. The colours
+are `default` (the interpreter's own), `black`, `red`, `green`, `yellow`,
+`blue`, `magenta`, `cyan`, and `white`.
+
+`say.<colour> "..."` prints one text in that colour and then restores the base
+font colour by itself, so an emphasized passage is a single line with no state
+to manage and no restore to forget:
+
+```
+on start
+    zcolor.font white
+    zcolor.background black
+
+    say.yellow "For my part I know nothing with any certainty, but the
+        sight of the stars makes me dream."
+    say "-- Vincent van Gogh"
+```
+
+Every colour operation checks, at run time, whether the interpreter reports
+colour support (Standard 1.1, Flags 1 bit 0); on an interpreter without it,
+`zcolor` does nothing and `say.<colour>` is exactly a plain `say`. A game that
+never uses colours pays nothing for the feature.
+
 ## 17. Diagnostics
 
 Representative compile-time errors:

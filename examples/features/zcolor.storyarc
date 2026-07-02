@@ -1,0 +1,60 @@
+// zcolor.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for Z-machine colours (docs/01 section 16): the `zcolor` statement
+// sets the base colours, and `say.<colour>` prints one passage in a colour and
+// restores the base by itself. No switch-print-switch-back sandwich, no state to
+// manage, no restore to forget. Compile and run:
+//
+//   arcc examples/features/zcolor.storyarc -o zcolor.z5
+//   frotz zcolor.z5
+//
+// On a colour interpreter (Frotz in a terminal, or any of the 8-bit and Amiga
+// interpreters), the game opens white on black, and EXAMINE PLAQUE answers in
+// yellow. On an interpreter without colour support every colour operation is
+// skipped at run time, so the same file plays identically in plain text.
+//
+// Try:
+//   examine plaque      the inscription arrives in yellow, then white resumes
+//   read plaque         the same, via the read synonym
+//   look                the room text stays in the base colour throughout
+
+game
+    title  "The Observatory"
+    headline "A zcolor showcase"
+    author "Stefan Vogt"
+    start  dome
+
+on start
+    // The base colours: set once, before the first text. Setting the
+    // background repaints the whole screen, so the display is coherent from
+    // the first frame (the same reason PunyInform clears after its colours).
+    zcolor.font white
+    zcolor.background black
+    say "The dome is dark, and the slit stands open to the stars."
+
+room dome
+    name "The Dome"
+    desc "The observatory floor, ringed by the great dome. The telescope
+          waits in the dark, and a brass plaque is set into its mount."
+
+thing telescope in dome
+    name "telescope"
+    words telescope, scope
+    fixed
+    desc "A long refractor on a clockwork mount, aimed at nothing yet."
+
+thing plaque in dome
+    name "brass plaque"
+    words brass, plaque, inscription
+    fixed
+
+    on examine
+        say "The plaque carries a single engraved line:"
+        // One line, one colour, and the base colour resumes by itself.
+        say.yellow "For my part I know nothing with any certainty, but the
+            sight of the stars makes me dream."
+        say "-- Vincent van Gogh"
+        stop

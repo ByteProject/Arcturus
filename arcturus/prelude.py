@@ -142,6 +142,14 @@ _GENDER_ARTICLES = {
 # layer; keep the ids stable.
 _PARTICLE_ROLES = {"on": 1, "off": 2, "auf": 3, "zu": 4}
 
+# The Z-machine colour numbers (Standard 1.1 section 8.3.1), as the author-facing
+# names of the zcolor statement and the say.<colour> form. "default" asks the
+# interpreter for its own default colour.
+_ZCOLOURS = {
+    "default": 1, "black": 2, "red": 3, "green": 4, "yellow": 5,
+    "blue": 6, "magenta": 7, "cyan": 8, "white": 9,
+}
+
 # Standard value properties and their types.
 _STD_VALUE_PROPS = {
     "name": T_TEXT,

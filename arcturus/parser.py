@@ -23,6 +23,7 @@ from . import ast
 from . import tokens as T
 from .errors import ArcError
 from .lexer import RawInterp, tokenize
+from .prelude import _ZCOLOURS
 
 # Articles recognized at the start of an interpolation (docs/01 section 16).
 _ARTICLES = frozenset({"a", "an", "the", "A", "An", "The"})
@@ -657,6 +658,11 @@ class Parser:
             if handler is not None:
                 return handler(self)
         if t.kind == T.NAME:
+            # zcolor.font white / zcolor.background black: the base-colour
+            # statement (docs/01 section 9a). Dispatched here because zcolor is
+            # not a reserved word.
+            if t.value == "zcolor":
+                return self._parse_zcolor()
             return self._parse_expr_statement()
         raise self._error(f"expected a statement, got {self._describe(t)}")
 
@@ -739,9 +745,42 @@ class Parser:
     def _parse_say(self) -> ast.Say:
         line = self.cur.line
         self.expect_kw("say")
+        # say.yellow "...": a one-shot coloured say. The text prints in the named
+        # colour and the base font colour (zcolor.font) is restored afterwards,
+        # so there is no state to manage and nothing to forget.
+        colour = None
+        if self.check_op("."):
+            self.advance()
+            colour = self.expect_name("a colour name after 'say.'").value
+            if colour not in _ZCOLOURS:
+                raise self._error(
+                    f"unknown colour '{colour}' (use default, black, red, green, "
+                    f"yellow, blue, magenta, cyan, or white)"
+                )
         value = self.parse_expr()
         self.expect_newline()
-        return ast.Say(value, line)
+        return ast.Say(value, line, colour)
+
+    def _parse_zcolor(self) -> ast.ZColor:
+        # `zcolor.font white` / `zcolor.background black`: set a base screen
+        # colour. Bare value, no operator, matching the game-block property
+        # style. Setting the background also repaints the screen.
+        line = self.cur.line
+        self.advance()  # the leading `zcolor`
+        self.expect_op(".")
+        target = self.expect_name("'font' or 'background' after 'zcolor.'").value
+        if target not in ("font", "background"):
+            raise self._error(
+                f"'{target}' is not a zcolor target (use font or background)"
+            )
+        colour = self.expect_name("a colour name").value
+        if colour not in _ZCOLOURS:
+            raise self._error(
+                f"unknown colour '{colour}' (use default, black, red, green, "
+                f"yellow, blue, magenta, cyan, or white)"
+            )
+        self.expect_newline()
+        return ast.ZColor(target, colour, line)
 
     def _parse_stop(self) -> ast.Stop:
         line = self.cur.line

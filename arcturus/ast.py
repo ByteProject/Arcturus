@@ -207,6 +207,21 @@ class Remove(Stmt):
 class Say(Stmt):
     value: Expr
     line: int = 0
+    # say.yellow "...": print in that foreground colour, then restore the base
+    # font colour (zcolor.font). None is a plain say. Colour names are validated
+    # against prelude._ZCOLOURS at parse time.
+    colour: Optional[str] = None
+
+
+@dataclass
+class ZColor(Stmt):
+    # zcolor.font white / zcolor.background black: set a base screen colour.
+    # Setting the background also repaints the screen (the erase that makes the
+    # new colour cover the whole display, not just new text). Both are no-ops on
+    # an interpreter that reports no colour support.
+    target: str  # "font" or "background"
+    colour: str
+    line: int = 0
 
 
 @dataclass

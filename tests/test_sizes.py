@@ -44,6 +44,7 @@ CEILINGS = {
     "features/introproperty.storyarc": 11300,
     "features/kinds-and-inheritance.storyarc": 10132,
     "features/on-other.storyarc": 10136,
+    "features/zcolor.storyarc": 10220,
     "features/spans.storyarc": 10380,
     "granules/conversations.storyarc": 11948,
     "granules/extended-verbs.storyarc": 13408,

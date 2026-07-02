@@ -162,7 +162,7 @@
                 },
                 {
                     "name": "keyword.other.statement.storyarc",
-                    "match": "\\b(let|change|now|move|add|remove|say|to|from|start)\\b"
+                    "match": "\\b(let|change|now|move|add|remove|say|zcolor|to|from|start)\\b"
                 },
                 {
                     "comment": "Conversation sugar in a topic body: the player's line, the NPC reply, and the reveal/hide toggles (docs/02 section 14).",

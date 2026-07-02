@@ -453,7 +453,7 @@ class Analyzer:
             self._check_list_place(s.target, locals_)
         elif isinstance(s, ast.Say):
             self._check_expr(s.value, locals_)
-        elif isinstance(s, (ast.Stop, ast.Continue)):
+        elif isinstance(s, (ast.Stop, ast.Continue, ast.ZColor)):
             pass
         elif isinstance(s, ast.Finish):
             if s.message is not None:
