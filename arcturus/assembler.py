@@ -104,6 +104,9 @@ _OPCODES = {
     "get_prop": ("2OP", 0x11, True, False, False),
     "get_prop_addr": ("2OP", 0x12, True, False, False),  # data address of a property (0 if absent)
     "and": ("2OP", 0x09, True, False, False),
+    # set_colour fg bg (v5): 0 = no change, 1 = the interpreter default, 2-9 the
+    # standard colours. The zcolor statement and say.<colour> lower to this.
+    "set_colour": ("2OP", 0x1B, False, False, False),
     "or": ("2OP", 0x08, True, False, False),
     "add": ("2OP", 0x14, True, False, False),
     "sub": ("2OP", 0x15, True, False, False),

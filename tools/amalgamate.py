@@ -32,7 +32,8 @@ import sys
 # already-registered modules.
 _PACKAGE = "arcturus"
 _MODULE_ORDER = [
-    "errors", "tokens", "ast", "lexer", "parser", "prelude", "worldmodel",
+    # prelude before parser: the parser reads the colour-name table from it.
+    "errors", "tokens", "ast", "lexer", "prelude", "parser", "worldmodel",
     "sema", "zstring", "abbrev", "storyfile", "assembler", "objects",
     "dictionary", "lower", "cosmos", "codegen", "astdump", "irdump", "cli",
 ]

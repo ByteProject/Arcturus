@@ -397,6 +397,9 @@ _BUILTIN_GLOBALS = [
     # which is below this; a plain one stores a string address, at or above it, so a
     # read of such a property compares against it to "print or run".
     "__strings__",
+    # The base font colour (zcolor.font), which say.<colour> restores to.
+    # Seeded to 1 (the interpreter default) in build_story.
+    "__zcfont__",
 ]
 
 
@@ -551,6 +554,9 @@ def build_story(
         sf.set_word(globals_addr + (gmap["__timers__"] - 16) * 2, timers_addr)
         # The string-area threshold, for the computed-property "print or run" test.
         sf.set_word(globals_addr + (gmap["__strings__"] - 16) * 2, strings_start_packed)
+        # The base font colour starts as the interpreter default (1), so a
+        # say.<colour> before any zcolor.font still restores sanely.
+        sf.set_word(globals_addr + (gmap["__zcfont__"] - 16) * 2, 1)
 
     m = _meta(world)
     sf.set_word(storyfile.H_RELEASE, m.get("release", 1))
