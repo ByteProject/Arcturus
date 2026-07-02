@@ -1,0 +1,53 @@
+// quotes.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the quotes granule: the centered, reverse-video quote box in
+// the upper window, the classic way to open a game with an epigraph (docs/05).
+// The box is centered from the interpreter-reported screen width, so it sits
+// right on a 40-column 8-bit machine and a wide terminal alike. Compile and run:
+//
+//   arcc examples/granules/quotes.storyarc -o quotes.z5
+//   frotz quotes.z5
+//
+// The game opens on the quote alone; press any key and the story begins. The
+// pattern: quote(lines, width) with the number of lines and the length of the
+// longest one, then quote_line() and show(...) per line, then quote_done().
+// Pad an attribution line with spaces by hand to set it right, exactly as on
+// paper. The status line coexists: it redraws at the first prompt.
+
+game
+    title  "Ad Astra"
+    headline "A quote-box showcase"
+    author "Stefan Vogt"
+    start  pad
+    // The quote comes first, so the automatic banner is off; print_banner()
+    // shows it after the keypress, the classic order (quote, then banner).
+    banner false
+
+summon.quotes
+summon.statusline
+
+on start
+    quote(3, 24)
+    quote_line()
+    show("Per aspera ad astra.")
+    quote_line()
+    show("")
+    quote_line()
+    show("          -- Seneca")
+    quote_done()
+    print_banner()
+    say "The gantry lights die one by one as the countdown begins."
+
+room pad
+    name "The Launch Pad"
+    desc "Bare concrete under a paling sky. The ship stands fueled and quiet,
+          and the boarding ramp waits."
+
+thing ship in pad
+    name "ship"
+    words ship, rocket, vessel
+    fixed
+    desc "Every journey begins with a single ignition sequence."

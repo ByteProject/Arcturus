@@ -92,6 +92,37 @@ The right side adapts to the screen width the way PunyInform does - the full
 retro one. It coexists with the conversations menu: when both are summoned the
 bar sits pinned above the topic list.
 
+### quotes
+
+```
+summon.quotes
+```
+
+A centered, reverse-video quote box in the upper window, in the tradition of
+Infocom's Trinity: the classic way to open a game with an epigraph. Centered
+from the interpreter-reported screen width, so it sits right on a 40-column
+8-bit machine and a wide terminal alike. State the box size, then alternate
+`quote_line()` and `show(...)` per line, and close with `quote_done()`, which
+waits for a keypress and clears the screen:
+
+```
+on start
+    quote(3, 37)
+    quote_line()
+    show("In order to make an apple pie from")
+    quote_line()
+    show("scratch, you must first create the")
+    quote_line()
+    show("universe.        -- Carl Sagan")
+    quote_done()
+```
+
+The text goes through `show(...)` directly because a string cannot travel
+through a block parameter; pad an attribution by hand to set it right. Pairs
+naturally with `banner false` and `print_banner()` (01, section 3), so the
+quote comes first and the banner after, the classic order. The box prints no
+words of its own, so it works identically in every language.
+
 ### verbose_exits
 
 ```
