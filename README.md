@@ -61,9 +61,9 @@ The road from here, milestone by milestone:
   generation, all built into the compiler so every build is trimmed with nothing
   to configure, and optional features cost nothing when a game does not use them.
   Both example games play end to end, and Cloak of Darkness compiles to about
-  11.6K with the whole modern Cosmos library linked in and nothing stripped out.
-- **In progress:** language packs. Spanish and German have landed as first
-  passes: the verbs, direction words, articles, and every message translated,
+  12K with the whole modern Cosmos library linked in and nothing stripped out.
+- **Also done: language packs.** Spanish and German are full members of
+  Arcturus: the verbs, direction words, articles, and every message translated,
   with correct accents (and a plain-ASCII form for every word the player must
   type, since an 8-bit keyboard cannot enter them). Spanish
   (`summon.language "spanish"`) derives grammatical gender automatically
@@ -71,15 +71,20 @@ The road from here, milestone by milestone:
   (`summon.language "german"`) has three genders and no spelling rule, so the
   author declares the article (`der`, `die`, `das`) on the object, and the
   article then inflects for case in the messages (`du nimmst den Schlüssel`, `in
-  der Truhe`) with no further work. Worked examples:
+  der Truhe`) with no further work; separable verbs parse naturally (`schalt
+  die Lampe an`, `schliess die Tür auf`). Worked examples:
   [examples/ejemplo-espanol.storyarc](examples/ejemplo-espanol.storyarc) and
   [examples/beispiel-deutsch.storyarc](examples/beispiel-deutsch.storyarc).
-  Native review of both is pending.
-- **After that:** porting real games as the proving ground - Hibernated 2 (the
-  first full-length game, and the maturity milestone) and Ghosts of Blackwood
-  Manor; then a modern reference interpreter, the `arc_image` graphics path
-  (modern systems first, then the 8-bit and 16-bit retro machines), and porting
-  The Curse of Rabenstein. Reaching 1.0 is tied to those ports.
+- **In progress:** porting Hibernated 2, the first full-length game and the
+  maturity milestone. The port's first fruits are already in the toolchain:
+  Z-machine colours as first-class syntax (`zcolor`, `say.yellow "..."`), the
+  Trinity-style quote box (`summon.quotes`), banner control for pregame
+  preludes, and a compile-statistics ledger after every build, watching the
+  story's use of each Z-machine ceiling.
+- **After that:** Ghosts of Blackwood Manor; then a modern reference
+  interpreter, the `arc_image` graphics path (modern systems first, then the
+  8-bit and 16-bit retro machines), and porting The Curse of Rabenstein.
+  Reaching 1.0 is tied to those ports.
 
 Follow this section and `PROGRESS.md` for where things stand.
 
@@ -168,11 +173,16 @@ Useful options:
 ```
 python3 build/arcc game.storyarc -o game.z5    # compile to a z5 story file
 python3 build/arcc game.storyarc --zversion 8 -o game.z8   # target z8 (larger games)
+python3 build/arcc game.storyarc -o game.z5 -q # script mode: no banner, no statistics
 python3 build/arcc game.storyarc --dump-ast    # show the parsed syntax tree
 python3 build/arcc -L /abs/path/cosmos game.storyarc   # use a forked library
 python3 build/arcc --make-abbreviations game.storyarc  # tune text compression (below)
 python3 build/arcc --version
 ```
+
+Every compile prints a statistics ledger: what the story uses of each Z-machine
+ceiling (attributes, properties, globals, memory, story size), so you can watch
+the headroom as a game grows; `-q` silences it for scripts.
 
 Text compression is automatic: every build packs its text against a standard
 abbreviation set with nothing to configure. To squeeze a large story further,
@@ -214,8 +224,8 @@ A Visual Studio Code extension provides syntax highlighting for `.storyarc`,
 `.prelude`, and `.granule` files. Install the packaged extension:
 
 - In VS Code: Extensions view, `...` menu, **Install from VSIX...**, then choose
-  [editors/vscode/arcturus-0.3.0.vsix](editors/vscode/arcturus-0.3.0.vsix); or
-- from a terminal: `code --install-extension editors/vscode/arcturus-0.3.0.vsix`
+  [editors/vscode/arcturus-0.4.0.vsix](editors/vscode/arcturus-0.4.0.vsix); or
+- from a terminal: `code --install-extension editors/vscode/arcturus-0.4.0.vsix`
 
 This works on macOS, Windows, and Linux. The extension source is under
 [editors/vscode/](editors/vscode/); rebuild the `.vsix` with
@@ -236,3 +246,8 @@ script, so the shipped artifact stays identical to the source.
 ## License
 
 MIT. See the headers in each source file.
+
+## Credits
+
+Thanks to **Pablo Martínez** for the translation of the Spanish language
+granule.
