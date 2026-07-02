@@ -105,6 +105,9 @@ the compiler itself works:
 - [docs/04-codegen-mapping.md](docs/04-codegen-mapping.md): the backend. How
   Arcturus constructs map to Z-machine opcodes and the story-file image, plus the
   size levers (dead-code elimination and abbreviation text compression).
+- [docs/07-conformance.md](docs/07-conformance.md): conformance. What the
+  compiler guarantees, the interpreter-driven evidence behind it, and the size
+  record the test suite protects.
 
 A fuller wiki will follow as the project matures. For a taste, the two worked
 games live under [examples/](examples/) - the Brass Lantern and the classic

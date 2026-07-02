@@ -10,6 +10,18 @@ Model handover: `HANDOVER.md` (repo root) is a holistic orientation written at
 the switch to Anthropic's Fable model, with an assessment task to run before B8.
 Read it alongside this log.
 
+Pre-B8 assessment rulings (2026-07-02, Stefan): capacity hardening (attribute
+spill, a capacity report) waits until B8 itself surfaces the need; the ports
+exist to teach us where the system lacks. The synthetic scale smoke test is
+step zero of B8. Landed now instead: the size-regression gate
+(tests/test_sizes.py, a byte ceiling per example plus the PunyInform benchmark
+check; 293 tests) and docs/07-conformance.md (the conformance claim, the
+interpreter-driven evidence, the size record: the 11792-byte Cloak is to our
+knowledge the smallest runnable Cloak registered to date). Also cleared: the
+README em dashes and the stale find_particle comment in german.granule. Next:
+an idiom-focused review of both translations (Stefan's request; German got his
+native pass already, Spanish still gated on Pablo), then B8.
+
 ## Status at a glance
 
 | Milestone | Description | Status |
