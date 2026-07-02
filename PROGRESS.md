@@ -41,7 +41,41 @@ kind defaults, the `character` kind (animate agents: people, animals, robots),
 computed properties, daemons and timers, the container knowledge model with
 lidless containers, doors that default openable and fixed, two-sided doors and
 multi-room `spans` scenery (both pay-for-use, elided when unused), and `constant`
-lowering. B7 is now under way: the Spanish pack is complete (below); German next.
+lowering. B7 is well along: the Spanish and German packs have both landed as
+first passes (below), each pending native review.
+
+>>> B7 UPDATE (2026-07-02): German landed <<<
+
+The German pack (`cosmos/german.granule`, informal du) is complete as a first
+pass and verified on Frotz. It needed two compiler seams beyond the Spanish ones,
+both built and tested:
+  - GENDER FROM THE ARTICLE. The author declares der/die/das on the object; sema
+    (`prelude._GENDER_ARTICLES`, `_collect_members`) maps die->feminine,
+    das->neuter, der->masculine (default). New standard attribute `neuter` beside
+    `feminine`. Spanish's -a spelling guess is gated off for German
+    (`objects._spelling_gender_language`, denylist `_NO_SPELLING_GENDER`), so a
+    masculine -a noun stays masculine.
+  - CASE AT THE CALL SITE. `${the:acc noun}` / `${a:dat noun}` pass a case as a
+    third arg to art_the/art_a. Parsed by peeling article+`:case` off the interp
+    source with a regex (`parser._ARTICLE_CASE_RE`), since the colon is not a
+    lexer token; `ast.StringInterp.case`; `lower._CASE_NUMBERS` (nom0 acc1 dat2
+    gen3). No tag -> two args, so an uninflected art_the is called exactly as
+    before; English/Spanish untouched, zero size cost.
+German art_the/art_a print the capital once (every definite article starts d,
+every indefinite e) then the gender x case tail. Predicate adjectives do NOT
+inflect in German ("die Kiste ist offen"), so unlike Spanish there are no
+per-gender message variants. Example: `examples/beispiel-deutsch.storyarc`
+("Das Gasthaus am Leuchtturm"). Docs: docs/01 s.16 (case tag), docs/02 s.14a
+(der/die/das). 270 tests pass.
+
+KNOWN FIRST-PASS LIMITS FOR NATIVE REVIEW (both packs): separable verbs (German
+"schalt die Lampe an") need a particle-words LANGUAGE SEAM; the particle words
+on/off are still hardcoded English in `dictionary.py` (`_PARTICLE_WORDS`, with a
+comment that they move into the language layer). Until then German uses dedicated
+joined verbs (einschalten/ausschalten/anmachen/ausmachen). give/show use `an`
+for the recipient. Spanish `salir` collides (get-out vs quit); quit is fin/
+terminar. Versions still arcc 0.6 / Cosmos 0.9 in the banner; a bump is due when
+B7 closes.
 
 >>> B7 HANDOVER CHECKPOINT (2026-07-02, written for compaction) <<<
 
