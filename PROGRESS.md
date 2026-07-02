@@ -22,6 +22,25 @@ README em dashes and the stale find_particle comment in german.granule. Next:
 an idiom-focused review of both translations (Stefan's request; German got his
 native pass already, Spanish still gated on Pablo), then B8.
 
+THE FROTZ TRUTH (2026-07-03): Stefan compiled the colour example on real
+frotz and saw no colour; the quote box drew distorted. Both correct. Driving
+curses frotz through a pty (pyte rendering the actual screen) found three real
+bugs invisible to dfrotz: (1) the story never announced colour use in Flags 2
+bit 6, which frotz requires before enabling colour at all (now set whenever a
+program uses colours, plus the undo bit the Standard asks for); (2) upper
+window drawing ran buffered, so frotz reordered writes around set_cursor: THE
+STATUS BAR HAD NEVER RENDERED ON CURSES FROTZ, only on dfrotz (new buffer_mode
+intrinsic; status line, menu, and box draw unbuffered, the Inform/Puny dance);
+(3) the paragraph layer's pending newline flushed INTO the box's first row
+(the distortion), fixed by flushing it into the old screen before drawing.
+Also added, Puny parity per Stefan: zcolor.statusline and zcolor.input (cyan
+bar, cyan typed text, via a read_input() seam all input paths share). All
+verified end to end on real frotz via pty capture. And the CLI is verbose by
+default now (banner always, statistics after every compile, -q for scripts;
+the old -s is gone), Stefan's rule. LESSON, standing: dfrotz proves logic, not
+rendering; anything that touches the upper window or colours must be verified
+against curses frotz via the pty harness (scratchpad drive/render scripts).
+
 B8 ENABLERS (2026-07-03): opening the real H2 source surfaced three Cosmos
 gaps, all closed the same day. (1) Z-MACHINE COLOURS as syntactic sugar,
 Stefan's design: `zcolor.font white` / `zcolor.background black` set the base
