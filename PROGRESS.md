@@ -22,6 +22,18 @@ README em dashes and the stale find_particle comment in german.granule. Next:
 an idiom-focused review of both translations (Stefan's request; German got his
 native pass already, Spanish still gated on Pablo), then B8.
 
+B7 closes (2026-07-02): GERMAN IS ACHIEVED. Stefan gives the German pack a full
+native pass; further feedback comes from the community. Spanish is complete on
+our side and with Pablo Martinez for the native gate; his changes will be
+incorporated when they arrive. Last pre-B8 tool: `arcc -s/--stats` prints the
+compile-statistics ledger (used/ceiling for attributes, properties, globals,
+abbreviations, readable memory, story size; counts for the rest), Stefan's ask
+after seeing Inform's -s output for Hibernated 2. H2's real Inform numbers, the
+first pitch for B8: 126 objects, 31 attributes, 31 common props, 175 globals,
+102 verbs, 239 grammar lines, 904 dictionary entries, 64 abbreviations, 134.5K
+z5. Our bare-Cosmos baseline (28/48 attributes, 19/62 properties, 22/240
+globals) leaves room for all of it.
+
 Second polish round (2026-07-02, Stefan's rulings): (1) GRAIN CHAINS: a grain
 word is no longer global; the dictionary entry points at a chain of (grain,
 owner) pairs and find_scenery answers with the owner in scope, so the same
@@ -73,7 +85,7 @@ build. Ceilings re-pinned; 293 tests pass.
 | B4 | Cosmos compiled: parser, turn loop, standard verbs | done |
 | B5 | Feature-complete library and a fair benchmark | done |
 | B6 | Size pass (DCE, abbreviations, dense codegen) | done |
-| B7 | Language packs (Spanish, German) | done (native review pending) |
+| B7 | Language packs (Spanish, German) | done (German passed; Spanish with Pablo) |
 | B8 | Port Hibernated 2 (first full game, maturity milestone) | pending |
 | B9 | Port Ghosts of Blackwood Manor (text) | pending |
 | B10 | The reference interpreter, Actaea | pending |
