@@ -1,0 +1,83 @@
+// quotes.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// THE QUOTE BOX (summon.quotes). A centered, reverse-video quote box in the
+// upper window, in the tradition of Infocom's Trinity: the classic way to open
+// a game with an epigraph. Designed for the retro targets first: the box is
+// centered from the interpreter-reported screen width, so it sits right on a
+// 40-column Commodore 64 and on a modern 100-column terminal alike.
+//
+// Usage: state the box size, then alternate quote_line() and show(...), one
+// pair per line, and close with quote_done(), which waits for a keypress and
+// clears the screen for whatever follows:
+//
+//   summon.quotes
+//
+//   on start
+//       quote(3, 37)
+//       quote_line()
+//       show("In order to make an apple pie from")
+//       quote_line()
+//       show("scratch, you must first create the")
+//       quote_line()
+//       show("universe.        -- Carl Sagan")
+//       quote_done()
+//
+// quote(lines, width) takes the number of text lines and the length of the
+// LONGEST line; the box adds one space of padding on each side and a blank
+// reverse row above and below. Lines print left-aligned inside the box; pad
+// with spaces by hand for a right-aligned attribution, exactly as you would
+// on paper. Text goes through show(...) directly (a string cannot travel
+// through a block parameter), which is why the API is line-then-show.
+//
+// The box has no player-facing words of its own, so it needs nothing from the
+// language packs and works identically in every language.
+
+// The box geometry, kept between the calls: the current row, the left column,
+// and the full box width (text width plus the padding spaces).
+global qb_row = 0
+global qb_left = 0
+global qb_width = 0
+
+// Paint the full reverse-video row at qb_row and leave the cursor at the text
+// position inside it, style still reverse, so a following show(...) prints
+// into the row. Internal; quote_line and quote_done call it.
+block quote_fill()
+    set_cursor(qb_row, qb_left)
+    set_style(1)
+    let i = 0
+    while i < qb_width
+        show(" ")
+        change i to i + 1
+    set_cursor(qb_row, qb_left + 1)
+
+// Open a quote box for `lines` lines of text, the longest `width` characters.
+// Clears the screen, splits the upper window, and draws the box's top row.
+block quote(lines, width)
+    change qb_width to width + 2
+    let sw = screen_width()
+    change qb_left to (sw - qb_width) / 2 + 1
+    if qb_left < 1
+        change qb_left to 1
+    erase_window(-1)
+    split_window(lines + 4)
+    set_window(1)
+    change qb_row to 2
+    quote_fill()
+
+// Advance to the next line of the box. Follow with show("the line's text").
+block quote_line()
+    change qb_row to qb_row + 1
+    quote_fill()
+
+// Close the box: draw the bottom row, wait for a keypress, and clear the
+// screen. The status line, if summoned, redraws at the next prompt.
+block quote_done()
+    change qb_row to qb_row + 1
+    quote_fill()
+    set_style(0)
+    set_window(0)
+    read_key()
+    erase_window(-1)

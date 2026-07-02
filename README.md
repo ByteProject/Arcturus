@@ -119,7 +119,7 @@ grains, the object catch-all, daemons and timers, and Z-machine colours with
 the self-restoring coloured say), and
 [examples/granules/](examples/granules/) shows the summonable granules (the
 Infocom-style and menu-driven conversation systems, the status line, verbose
-exits, the extended verbs).
+exits, the extended verbs, and the quote box).
 
 ## File extensions
 
