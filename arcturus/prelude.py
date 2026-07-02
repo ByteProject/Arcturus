@@ -112,10 +112,26 @@ _STD_BOOL_PROPS = [
     # language pack reads for its articles). Masculine is the default; the compiler
     # derives `feminine` from a name ending in -a unless the author sets it, so
     # "la lampara" / "el libro" come out right, with an override for the exceptions
-    # (el mapa, la mano). English ignores it. German, with no rule, uses an explicit
-    # article instead (added when German lands).
+    # (el mapa, la mano). English ignores it.
     "feminine",
+    # The third gender, for a language with three (German der/die/das). German has
+    # no reliable spelling rule, so the author declares the article on the object
+    # (der / die / das) and the compiler maps it: die -> feminine, das -> neuter,
+    # der -> masculine (neither bit). Masculine is still the default, so a masculine
+    # noun needs nothing. English and Spanish ignore `neuter`.
+    "neuter",
 ]
+
+# The three German definite articles, written as bare object declarations to state
+# an object's gender the way an author naturally thinks of it ("das Buch"), instead
+# of an abstract attribute. The parser maps them to the gender attributes above.
+# Reserved project-wide so they always mean gender; a non-German game simply never
+# writes them.
+_GENDER_ARTICLES = {
+    "der": None,        # masculine: the default, so no bit is set
+    "die": "feminine",
+    "das": "neuter",
+}
 
 # Standard value properties and their types.
 _STD_VALUE_PROPS = {

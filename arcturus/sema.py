@@ -245,6 +245,18 @@ class Analyzer:
         w = self.world
         for m in members:
             if isinstance(m, ast.PropertyDecl):
+                # A German gender article (der / die / das) is not a property in its
+                # own right: it states the object's gender the way an author thinks
+                # of it, and maps to the gender attributes. der is masculine, the
+                # default, so it records nothing; die and das set feminine / neuter.
+                if m.name in prelude._GENDER_ARTICLES:
+                    attr = prelude._GENDER_ARTICLES[m.name]
+                    if attr is not None:
+                        self._unify_property(attr, prelude.T_BOOL, m.line)
+                        props_out[attr] = ast.PropertyDecl(
+                            name=attr, form=ast.PROP_BOOL, line=m.line
+                        )
+                    continue
                 ty = self._declared_type(m)
                 self._unify_property(m.name, ty, m.line)
                 props_out[m.name] = m

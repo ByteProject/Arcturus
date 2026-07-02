@@ -32,8 +32,13 @@ class StringText:
 class StringInterp:
     # The interpolated expression, already parsed. `article` is the optional
     # leading article helper (a, an, the, A, An, The); see docs/01 section 16.
+    # `case` is an optional grammatical-case tag written after a colon on the
+    # article (${the:acc noun}); it reaches the language layer's article block so
+    # a case-inflected language (German der/den/dem) can pick the right form. Only
+    # the definite/indefinite article carries it; None means nominative.
     expr: "Expr"
     article: Optional[str] = None
+    case: Optional[str] = None
 
 
 StringPart = Union[StringText, StringInterp]
