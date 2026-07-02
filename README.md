@@ -106,8 +106,8 @@ games live under [examples/](examples/) - the Brass Lantern and the classic
 Cloak of Darkness. Small teaching showcases sit alongside them:
 [examples/features/](examples/features/) isolates core-language features (the
 container knowledge model, computed properties, kinds and inheritance, doors
-and locks, multi-room scenery with `spans`, grains, the object catch-all, and
-daemons and timers), and
+and locks, multi-room scenery with `spans`, the `intro` first-look property,
+grains, the object catch-all, and daemons and timers), and
 [examples/granules/](examples/granules/) shows the summonable granules (the
 Infocom-style and menu-driven conversation systems, the status line, verbose
 exits, the extended verbs).
