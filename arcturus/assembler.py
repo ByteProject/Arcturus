@@ -135,6 +135,10 @@ _OPCODES = {
     "split_window": ("VAR", 0x0A, False, False, False),
     "set_window": ("VAR", 0x0B, False, False, False),
     "erase_window": ("VAR", 0x0D, False, False, False),
+    # buffer_mode 0/1: suspend or resume the lower window's word-wrap buffering.
+    # Upper-window drawing (the status line, the quote box) must run unbuffered,
+    # or interpreters like Frotz reorder the writes around set_cursor.
+    "buffer_mode": ("VAR", 0x12, False, False, False),
     "set_cursor": ("VAR", 0x0F, False, False, False),
     "set_text_style": ("VAR", 0x11, False, False, False),
     # EXT (v5+). save/restore store a result (0 fail, 1 the original pass, 2 the

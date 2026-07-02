@@ -400,6 +400,10 @@ _BUILTIN_GLOBALS = [
     # The base font colour (zcolor.font), which say.<colour> restores to.
     # Seeded to 1 (the interpreter default) in build_story.
     "__zcfont__",
+    # The status-line and input colours (zcolor.statusline / zcolor.input).
+    # 0 means unset: the status bar and the input reader skip their colour ops
+    # entirely, so a game without them pays two cheap tests and nothing more.
+    "__zcstatus__", "__zcinput__",
 ]
 
 
@@ -559,6 +563,14 @@ def build_story(
         sf.set_word(globals_addr + (gmap["__zcfont__"] - 16) * 2, 1)
 
     m = _meta(world)
+    # Flags 2: the story's own announcements (Standard 1.1 section 11.1). Bit 4:
+    # the game uses undo (Cosmos ships save_undo in the meta verbs). Bit 6: the
+    # game uses colours; interpreters like Frotz enable their colour machinery
+    # only when the story declares this, so without it set_colour is ignored.
+    flags2 = 1 << 4
+    if world.uses_colours:
+        flags2 |= 1 << 6
+    sf.set_word(storyfile.H_FLAGS2, flags2)
     sf.set_word(storyfile.H_RELEASE, m.get("release", 1))
     sf.set_word(storyfile.H_HIGH_BASE, high_base)
     sf.set_word(storyfile.H_INITIAL_PC, initial_pc)

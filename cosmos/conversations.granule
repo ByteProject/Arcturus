@@ -62,6 +62,12 @@ block run_talk(person)
 // first clears the old (possibly taller) window, the second the new one. Single
 // keypress selection caps the list at nine, so a tenth topic waits for a discard.
 block draw_menu(person, count)
+    // Flush any pending paragraph break into the lower window first, so it
+    // cannot fire inside the menu and shift the rows.
+    show("")
+    // Unbuffered while the menu paints (restored at set_window(0) below), or
+    // buffering interpreters reorder the writes around set_cursor.
+    buffer_mode(0)
     let w = screen_width()
     if w is 0
         change w to 40
@@ -94,6 +100,7 @@ block draw_menu(person, count)
         show("-")
         change d to d + 1
     set_window(0)
+    buffer_mode(1)
 
 // Read keypresses until a valid one: a digit 1..count returns it; 0, ENTER, or Q
 // ends the conversation (returns 0). Other keys are ignored and read again, so a
