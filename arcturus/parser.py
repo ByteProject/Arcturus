@@ -240,6 +240,18 @@ class Parser:
 
     def parse_meta_line(self) -> ast.MetaLine:
         tok = self.cur
+        # `banner false`: stop the automatic banner at start; the game prints it
+        # later (or never) with print_banner(). Not a reserved word, so it is
+        # accepted here as a plain name.
+        if tok.kind == T.NAME and tok.value == "banner":
+            self.advance()
+            if not (self.cur.kind == T.KW and self.cur.value == "false"):
+                raise self._error(
+                    "banner takes only false (the banner is on by default)"
+                )
+            self.advance()
+            self.expect_newline()
+            return ast.MetaLine("banner", False, tok.line)
         if tok.kind != T.KW or tok.value not in _META_KEYS:
             raise self._error(
                 f"expected a game metadata key (title, headline, author, "

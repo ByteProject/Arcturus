@@ -109,8 +109,10 @@ the serial, and then the compiler and library as a single final field,
 Inform-style: the compiler name and version (Arcturus) followed by the
 library name and version (Cosmos), separated by spaces rather than a slash.
 The compiler and library versions are build constants, not author-set. A game
-may replace the banner by handling the banner event, but the default carries
-the standard information.
+that wants its own opening first (a quote box, a pregame prelude) sets
+`banner false` in the game block, which stops the automatic banner, and calls
+`print_banner()` whenever the banner should appear; never calling it leaves
+the banner out entirely, and dead-code elimination drops it.
 
 The words in line two are language, not structure, so they come from the
 language layer: `line_by` prints the connector (" by "; " de " in Spanish,
