@@ -419,6 +419,8 @@ _BUILTIN_GLOBALS = [
     # The disambiguation ask (docs/02 section 8): the tied phrase's word range
     # and winning score, and the offset where an answer weaves back in.
     "ask_lo", "ask_hi", "ask_score", "ask_at",
+    # TAKE ALL (the takeall granule): the parser's hand-off flag to run_all.
+    "all_go",
 ]
 
 

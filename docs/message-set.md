@@ -166,6 +166,20 @@ is summoned.)
 | msg_cant_oops | oops with nothing to correct | There's nothing to put right. |
 | msg_xyzzy | xyzzy | Nothing happens, but you feel briefly clever. |
 
+## Take all (summon.takeall)
+
+Granule messages, changed by forking the granule (docs/05). The per-item
+lines are the standard take/drop responses after the item's name ("brass
+lamp: Got it.").
+
+| Block | When it fires | Wording |
+|---|---|---|
+| msg_all_none | take all, nothing worth taking here | There's nothing here worth taking. |
+| msg_all_none_in | take all from X, nothing inside worth taking | There's nothing in ${the source} worth taking. |
+| msg_all_verb | "all" with a verb that cannot sweep (eat all) | One thing at a time. |
+| (reused) | drop all with empty hands | msg_empty_handed |
+| (reused) | take all from a shut container | msg_closed |
+
 ## Extended verbs (summon.extendedverbs)
 
 These ship only when the granule is summoned, and (being a granule's own blocks)

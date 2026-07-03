@@ -1,0 +1,97 @@
+// take-all.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// THE COLLECTOR'S STUDY. A small showcase for the takeall granule
+// (summon.takeall, docs/05): TAKE ALL sweeps the room, DROP ALL empties your
+// hands but keeps what you wear, and TAKE ALL FROM THE CABINET raids one
+// container. Every swept item is a full turn: watch the move counter in the
+// status bar climb once per item, and the metronome tick between them; that
+// is the deliberate rule (doing three things costs three turns), where Inform
+// charges one. The welded astrolabe shows a custom refusal inside a sweep:
+// its own `on take` prints after the item's name, and the sweep carries on.
+//
+//   arcc examples/granules/take-all.storyarc -o study.z5
+//   frotz study.z5
+//
+// Try: TAKE ALL. DROP ALL. OPEN CABINET. TAKE ALL FROM CABINET. EAT ALL.
+// And TAKE ALL AND GO NORTH chains: the sweep runs, then the move.
+
+summon.takeall
+summon.statusline
+
+game
+    title  "The Collector's Study"
+    headline "A takeall granule showcase"
+    author "Stefan Vogt"
+    start study
+
+on start
+    every 4 turns do metronome
+
+room study
+    name "The Study"
+    desc "A collector's study, crowded with a lifetime of souvenirs. A brass
+          compass, a dented tin soldier, and a pair of kid gloves lie about;
+          against the wall stands a glass-fronted cabinet, and on the desk an
+          astrolabe has been bolted down by someone who knew you were coming.
+          A bare doorway leads north."
+    north landing
+
+    grains
+        examine "desk" say "Scarred oak, older than its owner."
+        examine "wall" or "walls" say "Shelved to the ceiling."
+
+room landing
+    name "The Landing"
+    desc "A draughty landing at the top of the stairs."
+    south study
+
+thing compass in study
+    name "brass compass"
+    words compass, brass
+    desc "It has pointed everywhere but home."
+
+thing soldier in study
+    name "tin soldier"
+    words soldier, tin
+    desc "One leg, as tradition demands."
+
+thing gloves in study
+    name "pair of kid gloves"
+    words gloves, glove, pair, kid
+    wearable
+    desc "Soft as a confession."
+
+// A custom refusal inside a sweep: the astrolabe is takeable on paper (not
+// fixed), but its own handler refuses and stops a chained line, printing
+// after the item's name: "astrolabe: It is bolted to the desk."
+thing astrolabe in study
+    name "astrolabe"
+    words astrolabe
+    desc "Bolted to the desk through all six of its feet."
+
+    on take
+        change refused to 1
+        say "It is bolted to the desk."
+
+thing cabinet of container in study
+    name "glass-fronted cabinet"
+    words cabinet, glass
+    fixed
+    openable
+    open false
+
+thing scarab in cabinet
+    name "faience scarab"
+    words scarab, faience
+
+thing coin in cabinet
+    name "roman coin"
+    words coin, roman
+
+block metronome()
+    if here is not study
+        return 0
+    say "The metronome on the shelf clicks, off its beat as always."

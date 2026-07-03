@@ -170,6 +170,43 @@ typed by subject. The two are mutually exclusive views of one model: when
 conversations is summoned, the menu wins, and the extendedverbs ask/tell topic
 dispatch steps aside and points the player at TALK TO.
 
+### takeall
+
+```
+summon.takeall
+```
+
+TAKE ALL, DROP ALL, and TAKE ALL FROM <container>. The core deliberately
+omits ALL (it flattens scenes into transactional loot runs), so it is a
+granule: a game that wants the convenience summons it, and a game that does
+not pays nothing (the parser's hand-off folds away without the summon).
+
+The sweep tries what a plain take would not refuse on sight: nothing fixed,
+scenery, animate, hidden, or already carried, including what sits on
+supporters and in open containers; DROP ALL keeps what is worn; a shut
+source refuses honestly ("The chest is shut."). Each attempt still runs the
+object's own handlers, so a custom `on take` refusal simply prints after the
+item's name:
+
+```
+>take all
+brass lamp: Got it.
+wooden box: Got it.
+idol: The idol is welded to its pedestal.
+```
+
+Every swept item is a FULL TURN: daemons fire and the clock moves per item,
+exactly as if the takes had been typed one by one. This is a deliberate
+departure from Inform, where ALL costs one turn; in Arcturus doing three
+things costs three turns, the same rule a chained line follows (02, section
+8b). UNDO takes back the whole sweep, because the sweep is one typed command
+and undo peels typed commands. An empty sweep, and ALL with any other verb
+("eat all"), refuse, so a chained line stops there honestly.
+
+The granule declares the words (`all "all", "everything"`) and its messages
+in English; a translation forks it and redeclares both (section 4), the same
+rule as every granule.
+
 ### debug
 
 ```

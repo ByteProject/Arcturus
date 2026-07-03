@@ -1,0 +1,183 @@
+// takeall.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// TAKE ALL, DROP ALL, and TAKE ALL FROM <container>: summon it with
+// `summon.takeall` (docs/05). The core deliberately omits ALL, so a game only
+// pays for it when it asks; without the summon, every hook below folds away
+// to nothing (the any_allwords guard).
+//
+// Every swept item is a FULL TURN of its own: it dispatches through the
+// ordinary pipeline (an object's own `on take` still overrides), then daemons
+// fire and the clock moves, exactly as if the takes had been typed one by
+// one. This is a deliberate departure from Inform's one-turn ALL: doing
+// three things costs three turns, the same rule a chained line follows.
+// UNDO takes back the whole sweep, because the sweep is one typed command
+// and undo peels typed commands.
+//
+// English-worded like every granule: a translation forks this file and
+// redeclares the all-words and the messages (docs/05 section 6).
+
+// The words that mean "everything within reach". The parser flags them in
+// the dictionary and hands any command carrying one to run_all below.
+all "all", "everything"
+
+// The expander the turn loop hands an all-command to (the run_all stub in
+// loop.prelude). take sweeps the room, or the named source ("take all from
+// the chest"); drop sweeps the hands, keeping what is worn. Any other verb
+// with "all", and an empty sweep, refuse, so a chained line stops honestly.
+block run_all(act)
+    if act is action_id("take")
+        if noun is not nothing
+            all_from(noun)
+            return 0
+        all_take()
+        return 0
+    if act is action_id("drop")
+        all_drop()
+        return 0
+    change refused to 1
+    msg_all_verb()
+    fire_turn()
+    tick()
+    return 0
+
+// One swept item: name it, run the real action through the full pipeline,
+// then the per-turn pulse. AGAIN after a sweep repeats the last item's
+// action, the same rule as the last command of a chained line.
+block all_one(obj, act)
+    // The sweep is one visual report: drop the pending break the previous
+    // item's turn pulse left behind, so the lines sit together. A daemon
+    // that printed text mid-sweep already made its own paragraph.
+    change par_pending to 0
+    print_name(obj)
+    show(": ")
+    change noun to obj
+    dispatch(act)
+    fire_turn()
+    tick()
+    change last_act to act
+    change last_noun to noun
+    change last_second to second
+    change last_way to way
+    change last_grain to grain
+    return 0
+
+// Does the object sit in this room's tree (not carried)? Walks the parents.
+block rooted_here(obj)
+    let p = parent_of(obj)
+    while p is not nothing
+        if p is here
+            return 1
+        if p is player
+            return 0
+        change p to parent_of(p)
+    return 0
+
+// Is this a thing TAKE ALL should try: reachable in the room, not already
+// carried, and nothing a plain take refuses on sight (fixed, scenery, a
+// person). The take itself still runs the object's own handlers, so a
+// custom refusal simply prints after the item's name.
+block all_takeable(obj)
+    if obj is player
+        return 0
+    if obj is hidden
+        return 0
+    if obj is concealed
+        return 0
+    if obj is scenery
+        return 0
+    if obj is fixed
+        return 0
+    if obj is animate
+        return 0
+    if rooted_here(obj) is 0
+        return 0
+    if in_scope(obj) is 0
+        return 0
+    return 1
+
+// What TAKE ALL FROM tries: the source's direct contents, minus the same
+// refusals. Reach was already settled by the source being open.
+block from_takeable(obj)
+    if obj is hidden
+        return 0
+    if obj is concealed
+        return 0
+    if obj is scenery
+        return 0
+    if obj is fixed
+        return 0
+    if obj is animate
+        return 0
+    return 1
+
+block all_take()
+    let n = object_count()
+    let count = 0
+    let obj = 1
+    while obj <= n
+        if all_takeable(obj) is 1
+            change count to count + 1
+            all_one(obj, action_id("take"))
+        change obj to obj + 1
+    if count is 0
+        change refused to 1
+        msg_all_none()
+        fire_turn()
+        tick()
+    return 0
+
+block all_from(source)
+    // A shut container keeps its contents: the honest refusal, not a raid.
+    if source is container
+        if shut_holds(source)
+            change second to source
+            change refused to 1
+            msg_closed()
+            fire_turn()
+            tick()
+            return 0
+    let n = object_count()
+    let count = 0
+    let obj = 1
+    while obj <= n
+        if parent_of(obj) is source
+            if from_takeable(obj) is 1
+                change count to count + 1
+                all_one(obj, action_id("take"))
+        change obj to obj + 1
+    if count is 0
+        change refused to 1
+        msg_all_none_in(source)
+        fire_turn()
+        tick()
+    return 0
+
+block all_drop()
+    let n = object_count()
+    let count = 0
+    let obj = 1
+    while obj <= n
+        if parent_of(obj) is player
+            if not (obj is worn)
+                change count to count + 1
+                all_one(obj, action_id("drop"))
+        change obj to obj + 1
+    if count is 0
+        change refused to 1
+        msg_empty_handed()
+        fire_turn()
+        tick()
+    return 0
+
+// The wording. Fork the granule to change any of these lines.
+block msg_all_none()
+    say "There's nothing here worth taking."
+
+block msg_all_none_in(source)
+    say "There's nothing in ${the source} worth taking."
+
+block msg_all_verb()
+    say "One thing at a time."

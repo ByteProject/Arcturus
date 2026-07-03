@@ -266,6 +266,9 @@ _BUILTINS = {
     "ask_hi": T_NUMBER,
     "ask_score": T_NUMBER,
     "ask_at": T_NUMBER,
+    # Set by the parser when a typed all-word hands the command to the takeall
+    # granule's expander (TAKE ALL); consumed by the turn loop.
+    "all_go": T_NUMBER,
 }
 
 # Objects Cosmos provides. `player` is the distinguished character instance.

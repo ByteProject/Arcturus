@@ -56,6 +56,7 @@ INTRINSICS = frozenset({
     # so `if any_spans() is 1` folds away and DCE drops the spans blocks when no
     # object spans (a static-if, see _if).
     "spans_addr", "spans_count", "any_spans", "any_doors", "any_named", "any_grains",
+    "any_allwords",
     # The turn loop fires life-cycle events: run_free runs the free rules for an
     # action, and ev_* name the event action numbers (start, enter, each_turn).
     # tick_timers counts down the after/every schedule once per turn.
@@ -533,7 +534,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _say(rt, ctx, args[0], newline=False)
         _place(rt, Const(0), dest)
     elif name == "print_name":
-        # print_name(obj): the object's short name, no newline.
+        # print_name(obj): the object's short name, no newline. Flushes a
+        # pending paragraph break first, like every other text output (the
+        # upper-window HOLD zeroes the flag, so bar drawing is unaffected).
+        _flush_par(rt, ctx)
         op, t = _operand(rt, ctx, args[0])
         rt.op("print_obj", op)
         _free(ctx, t)
@@ -741,6 +745,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_grains(): the compile-time grains flag (1 or 0), so find_scenery
         # folds its chain walker away in a game with no grains.
         _place(rt, Const(_any_grains(ctx)), dest)
+    elif name == "any_allwords":
+        # any_allwords(): 1 when the takeall granule declared all-words, else 0,
+        # so the parser's TAKE ALL hand-off folds away without the granule.
+        _place(rt, Const(1 if ctx.world.all_words else 0), dest)
     elif name == "topics_count":
         # topics_count(person): how many topics the person has (0 if none).
         eval_expr(rt, ctx, args[0], Variable(STACK))
@@ -1363,6 +1371,8 @@ def _static_value(ctx, expr):
         return _any_named(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_grains":
         return _any_grains(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_allwords":
+        return 1 if ctx.world.all_words else 0
     # A constant folds to its value, so `if DEBUG is 1` (DEBUG a constant) decides
     # at compile time and an unused branch is never emitted.
     if isinstance(expr, ast.Name):
