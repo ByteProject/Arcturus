@@ -427,10 +427,11 @@ class Parser:
     def parse_property(self) -> ast.PropertyDecl:
         tok = self.expect_name("a property name")
         name = tok.value
-        if name == "words":
+        if name in ("words", "plural"):
             # Vocabulary, not expressions: any word is admissible, including
             # the language's reserved ones (words self, you), since the player
-            # types them without knowing our keywords.
+            # types them without knowing our keywords. `plural` is the group
+            # vocabulary the plurals granule matches (docs/05).
             values = [self._vocab_word()]
             while self.check_op(","):
                 self.advance()

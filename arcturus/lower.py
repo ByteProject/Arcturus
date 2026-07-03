@@ -50,6 +50,7 @@ INTRINSICS = frozenset({
     "read_line", "peek_byte", "peek_word", "poke_byte", "poke_word",
     "word_count", "word_dict", "word_len", "word_pos", "call_handler",
     "handler_of", "parent_of", "words_addr", "words_count",
+    "plural_addr", "plural_count", "any_plurals",
     # spans_addr / spans_count expose an object's spans array (the extra rooms it
     # is in scope in), the same shape as words, so scope can walk it. any_spans is
     # a compile-time flag (1 if any object spans, else 0) the scope code guards on,
@@ -694,6 +695,22 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
             raise LowerError(f"{name} needs a {prop} property")
         rt.op("get_prop_addr", op, Const(pnum), store=dest)
         _free(ctx, t)
+    elif name in ("plural_addr", "plural_count"):
+        # The plurals granule's group-vocabulary array, shaped like words. A
+        # game with the granule but no `plural` declarations has no property
+        # to read, so these lower to a plain 0 and has_plural answers no.
+        pnum = ctx.prop_number("plural") if ctx.layout is not None else None
+        if pnum is None:
+            op, t = _operand(rt, ctx, args[0])
+            _free(ctx, t)
+            _place(rt, Const(0), dest)
+        else:
+            op, t = _operand(rt, ctx, args[0])
+            rt.op("get_prop_addr", op, Const(pnum), store=dest if name == "plural_addr" else Variable(STACK))
+            if name == "plural_count":
+                rt.op("get_prop_len", Variable(STACK), store=Variable(STACK))
+                rt.op("div", Variable(STACK), Const(2), store=dest)
+            _free(ctx, t)
     elif name == "words_count":
         # words_count(obj): how many words the object has (the array length / 2).
         op, t = _operand(rt, ctx, args[0])
@@ -749,6 +766,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_allwords(): 1 when the takeall granule declared all-words, else 0,
         # so the parser's TAKE ALL hand-off folds away without the granule.
         _place(rt, Const(1 if ctx.world.all_words else 0), dest)
+    elif name == "any_plurals":
+        # any_plurals(): 1 when the plurals granule is in (its `pronoun them`
+        # declaration is the marker), so the plural hooks fold away without it.
+        _place(rt, Const(1 if "them" in ctx.world.pronouns.values() else 0), dest)
     elif name == "topics_count":
         # topics_count(person): how many topics the person has (0 if none).
         eval_expr(rt, ctx, args[0], Variable(STACK))
@@ -1373,6 +1394,8 @@ def _static_value(ctx, expr):
         return _any_grains(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_allwords":
         return 1 if ctx.world.all_words else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_plurals":
+        return 1 if "them" in ctx.world.pronouns.values() else 0
     # A constant folds to its value, so `if DEBUG is 1` (DEBUG a constant) decides
     # at compile time and an unused branch is never emitted.
     if isinstance(expr, ast.Name):

@@ -1,0 +1,98 @@
+// plurals.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// THE PLURAL MODEL: summon it with `summon.plurals` (docs/05). Three things,
+// one coherent feature:
+//
+//   1. GROUP WORDS. An object declares the words that name it as part of a
+//      group (`plural coins` on each coin); "take coins" then runs the take
+//      on every coin in scope instead of asking which one.
+//   2. NOUN LISTS. "take lamp and box" runs the verb once per noun: a
+//      chained segment with no verb of its own borrows the previous one.
+//      The list words are the chain words, which the language layer already
+//      localizes, so this part works in any language for free.
+//   3. THEM. The pronoun for the last group: "take coins" then "drop them".
+//
+// Every swept or listed item is a FULL TURN, the same rule as a chained
+// line and TAKE ALL (a deliberate departure from Inform). The core
+// deliberately omits all of this; without the summon, every hook folds away.
+//
+// English-worded like every granule: a translation forks this file. Note
+// for Spanish: the plural clitics (-los/-las) already live in the core
+// Spanish pack, and bare "los"/"las" are the articles, so a Spanish fork
+// should keep part 3 out rather than declare them as words.
+
+// The THEM word. This declaration is ALSO the compile-time marker the
+// any_plurals() guard keys on: remove it and the whole granule folds away.
+pronoun them "them"
+
+// A tie made by a group word is a group, not an ambiguity. Claim it when a
+// typed word in the phrase is plural vocabulary on at least two in-scope
+// objects: the word rides plural_go to the turn loop, which sweeps it.
+block plural_tie(lo, hi)
+    let i = lo
+    while i < hi
+        let d = word_dict(i)
+        if d is not nothing
+            let count = 0
+            let obj = 1
+            while obj <= object_count()
+                if not (obj is hidden)
+                    if has_plural(obj, d) is 1
+                        if in_scope(obj)
+                            change count to count + 1
+                change obj to obj + 1
+            if count > 1
+                change plural_go to d
+                return 1
+        change i to i + 1
+    return 0
+
+// A typed THEM names the last group, if there was one; the sweep re-runs
+// over that group word, so it honestly covers whatever of the group is
+// still in scope. With no group remembered, the ordinary pronoun path
+// answers (an empty them-slot falls to "you see nothing of the sort").
+block plural_them()
+    if last_plural is 0
+        return 0
+    change plural_go to last_plural
+    return 1
+
+// A chained segment with no verb of its own borrows the previous command's
+// verb, so "take lamp and box" runs as take lamp, take box. Only a segment
+// that starts with something noun-like qualifies; anything else keeps the
+// honest "those words don't add up to anything".
+block verb_fallback()
+    if chain_prev is 0
+        return 0
+    let d = word_dict(0)
+    if d is nothing
+        return 0
+    if peek_byte(d + 6) is 0
+        return chain_prev
+    if peek_byte(d + 6) is 4
+        return chain_prev
+    return 0
+
+// The group sweep (the run_plural stub in loop.prelude): the action runs on
+// every in-scope object whose plural vocabulary carries the group word, one
+// full turn each, through the shared sweep_one. The word is remembered for
+// a later THEM.
+block run_plural(act, w)
+    change last_plural to w
+    let n = object_count()
+    let count = 0
+    let obj = 1
+    while obj <= n
+        if not (obj is hidden)
+            if has_plural(obj, w) is 1
+                if in_scope(obj)
+                    change count to count + 1
+                    sweep_one(obj, act)
+        change obj to obj + 1
+    if count is 0
+        change refused to 1
+        msg_cant_see()
+    return 0

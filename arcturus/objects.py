@@ -446,8 +446,8 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     # five bits hold the property number (section 12.4.2.1).
     items = []
     for pname, decl in eff.items():
-        if pname == "words":
-            continue  # emitted from the merged vocabulary below
+        if pname in ("words", "plural"):
+            continue  # both emitted as word arrays below
         pnum = layout.prop_number.get(pname)
         if pnum is not None:
             items.append((pnum, pname, decl))
@@ -458,6 +458,13 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     vocab = object_words(eff, world.objects[name].category == "room")
     if words_prop is not None and vocab:
         items.append((words_prop, "words", vocab))
+    # The plural property (the plurals granule's group vocabulary) is an array
+    # of dictionary addresses exactly like words.
+    plural_prop = layout.prop_number.get("plural")
+    if plural_prop is not None and "plural" in eff:
+        pvocab = [v.ident.lower() for v in eff["plural"].values if isinstance(v, ast.Name)]
+        if pvocab:
+            items.append((plural_prop, "plural", pvocab))
     # A person with `topic` declarations gets a `topics` property holding a
     # pointer to its topic table; the table itself is appended after all property
     # tables (the pointer is patched there, so only its site is reserved here).
@@ -475,7 +482,7 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     if spans_prop is not None and obj_spans and nonmovable:
         items.append((spans_prop, "spans", obj_spans))
     for pnum, pname, decl in sorted(items, reverse=True, key=lambda it: it[0]):
-        if pname == "words":
+        if pname in ("words", "plural"):
             _emit_words(layout, pnum, decl)
             continue
         if pname == "spans":
