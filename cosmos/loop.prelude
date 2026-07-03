@@ -63,8 +63,11 @@ block run_chain(act)
                 if parse_fault is 2
                     msg_extra_words()
                 else
-                    if word_count() is not 0
-                        msg_no_verb()
+                    if parse_fault is 3
+                        msg_be_specific()
+                    else
+                        if word_count() is not 0
+                            msg_no_verb()
             return 0
         run_turn(act)
         if refused is not 0
