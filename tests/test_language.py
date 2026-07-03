@@ -268,3 +268,38 @@ def test_german_grammatical_pronouns_on_frotz(tmp_path):
     assert "Eine kleine Lampe." in out
     assert "Ein kalter Schluessel." in out
     assert "Ein duennes Buch." in out
+
+
+SPANISH_CLITICS = (
+    'summon.language "spanish"\n'
+    'game\n    title "C"\n    start sala\n'
+    'room sala\n    name "Sala"\n    desc "Una sala."\n'
+    'thing lampara in sala\n    name "lampara"\n    words lampara\n'
+    '    desc "Una lampara pequena."\n'
+    'thing libro in sala\n    name "libro"\n    words libro\n'
+    '    desc "Un libro fino."\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_spanish_clitic_pronouns_on_frotz(tmp_path):
+    # Part 2 of the pronoun work: an unknown first word ending in -lo/-la
+    # splits its clitic off ("cogela" -> "coge" + the pending la), the verb
+    # re-resolves, and the pronoun's referent becomes the noun. Chains with the
+    # infinitive retry: "cogerlo" -> "coger" -> "coge". The bare article "la"
+    # in "mira la lampara" stays an article (clitics are never dictionary
+    # words), and the plural "cogelos" fails honestly until a plural model.
+    story = tmp_path / "c.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(SPANISH_CLITICS)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="mira la lampara\ncogela\nmira el libro\ncogelo\ncogerlo\ncogelos\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "Una lampara pequena." in out  # the article resolved the lamp
+    assert "Cogida." in out  # cogela: feminine clitic took the lamp
+    assert out.count("Cogido.") == 1  # cogelo: masculine clitic took the book
+    # cogerlo while already holding it: the chain (clitic split, then the -r
+    # retry) resolved to take + libro, and take answers "you already have it".
+    assert "Ya tienes el libro." in out
+    assert "No ves nada de eso" in out  # cogelos: empty plural slot, honest

@@ -35,7 +35,7 @@ CEILINGS = {
     "beispiel-deutsch.storyarc": 17448,
     "brass-lantern.storyarc": 11816,
     "cloak-of-darkness.storyarc": 12340,
-    "ejemplo-espanol.storyarc": 16188,
+    "ejemplo-espanol.storyarc": 16612,
     "features/computed-properties.storyarc": 10676,
     "features/containers.storyarc": 10716,
     "features/daemons-and-timers.storyarc": 11020,
