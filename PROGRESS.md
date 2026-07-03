@@ -4,11 +4,39 @@ A living log of where the project stands, maintained as work proceeds. The
 authoritative plan is `docs/00-roadmap.md` (milestones B0 to B13); this file
 tracks status against it and records decisions made during implementation.
 
-Last updated: 2026-07-02.
+Last updated: 2026-07-03.
 
 Model handover: `HANDOVER.md` (repo root) is a holistic orientation written at
 the switch to Anthropic's Fable model, with an assessment task to run before B8.
 Read it alongside this log.
+
+COMMAND CHAINING (2026-07-03): item (1) of the checkpoint queue below is DONE,
+to Stefan's rulings. "take the lamp and open the door then go north" runs as
+three full turns; the separators are the language layer's new `chain`
+declaration (",", "and", "then" / "y", "luego" / "und", "dann"; a run of them
+chains once, a trailing one is harmless). The split is buffer surgery in the
+agnostic skeleton (parser.prelude chain_split/chain_next): the typed length
+byte is cut at the chain word (dictionary flag 0x02), the tail stays in the
+text buffer, and after a successful turn the consumed part is blanked and the
+line re-tokenized; nothing is copied. THE CHAIN STOPS AT A FAILURE via the new
+author-visible `refused` global: every library refusal path (actions.prelude,
+extendedverbs, the generated grain scenery default, msg_open_first) sets it,
+and run_chain (loop.prelude) stops the line; a story handler refuses the same
+way (`change refused to 1`, docs/02 section 8b). ONE JUDGMENT CALL OF MINE FOR
+STEFAN TO VETO: an outcome that ALREADY HOLDS ("you already have it", "it's
+already open", "already worn") does NOT stop the chain, only genuine can't/
+won't refusals do; one-line reverts per site if he wants strict. AGAIN repeats
+only the LAST command of a chained line (Option B, his ruling; falls out of
+the per-turn last_* replay). Safety: undo, restore, and any mid-turn line read
+(quit/restart confirmations share the text buffer, killed in the read_input
+seam) drop the queued tail, so a rewound state never replays it. Known v1
+limit, ruled acceptable: "take lamp and box" misparses (noun lists are the
+plural-model granule, someday); "take lamp and take box" works and is pinned
+in the tests. Cost ~570-640 bytes per game, ceilings re-pinned. 321 tests
+(test_chaining.py: EN incl. grain-refusal stop and Option B, ES, DE); Frotz
+verified in all three languages, pronoun-in-chain included ("nimm die lampe
+und untersuche sie, dann geh nach osten"). Amalgam and posada/gasthaus.z5
+rebuilt. NEXT: checkpoint item (2), disambiguation.
 
 Pre-B8 assessment rulings (2026-07-02, Stefan): capacity hardening (attribute
 spill, a capacity report) waits until B8 itself surfaces the need; the ports

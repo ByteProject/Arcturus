@@ -249,6 +249,15 @@ _BUILTINS = {
     "oops_word": T_NUMBER,
     # The closed container a named-but-shut-away object sits in (open-first hint).
     "shut_in": T_OBJECT,
+    # Set to 1 by a refusal path when a command could not be carried out, so a
+    # chained line ("take lamp and go north") stops at the failed command. The
+    # library's default refusals set it; a story handler can too (docs/02 8b).
+    "refused": T_NUMBER,
+    # Command chaining (docs/02 section 8b), library-internal: the text-buffer
+    # offset where the queued rest of a chained line starts (0 when none), and
+    # the full typed length chain_next restores before re-tokenizing.
+    "chain_pos": T_NUMBER,
+    "chain_max": T_NUMBER,
 }
 
 # Objects Cosmos provides. `player` is the distinguished character instance.

@@ -15,16 +15,26 @@
 // A default handler is an ordinary free-standing rule: it runs last in the
 // dispatch chain (after the noun and the room), so an object or room handler can
 // override it by consuming the action first, and `continue` defers back to it.
+//
+// REFUSALS AND CHAINING (docs/02 section 8b). A path that cannot carry the
+// command out sets `refused` to 1 before its message, so a chained line ("take
+// lamp and go north") stops at the failure instead of running on. The rule: a
+// genuine refusal (can't, won't, wrong key) marks refused; an outcome that
+// already holds ("you already have it", "it's already open") does not, because
+// the command's goal is met and the rest of the line still makes sense. A story
+// handler that refuses something should set `refused` the same way.
 
 on look
     describe_room()
 
 on go
     if way is nothing
+        change refused to 1
         msg_no_direction()
         stop
     let dest = here.(way)
     if dest is nothing
+        change refused to 1
         msg_cant_go()
         stop
     // An exit may point at a door rather than a room: crossing it needs the door
@@ -34,13 +44,16 @@ on go
     if any_doors() is 1
         if dest is door
             if dest is locked
+                change refused to 1
                 msg_door_locked(dest)
                 stop
             if not (dest is open)
+                change refused to 1
                 msg_door_shut(dest)
                 stop
             change dest to door_other_side(dest)
             if dest is nothing
+                change refused to 1
                 msg_cant_go()
                 stop
     move player to dest
@@ -52,20 +65,25 @@ on go
 
 on take
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     // Taking yourself comes before every other refusal: the player is animate
     // and would otherwise get the "has other ideas" meant for characters.
     if noun is player
+        change refused to 1
         msg_take_self()
         stop
     if noun is scenery
+        change refused to 1
         msg_scenery()
         stop
     if noun is fixed
+        change refused to 1
         msg_fixed()
         stop
     if noun is animate
+        change refused to 1
         msg_animate_refuses()
         stop
     if player holds noun
@@ -78,6 +96,7 @@ on take
 
 on drop
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if not (player holds noun)
@@ -89,6 +108,7 @@ on drop
 
 on examine
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     now noun is seen
@@ -125,17 +145,23 @@ on save
     change meta_turn to 1
     let r = do_save()
     if r is 2
+        // Arriving here means a RESTORE just landed. The saved state may date
+        // from the middle of a chained line, its tail still queued; the queue
+        // dies with the rewind, exactly like undo.
+        change chain_pos to 0
         par()
         describe_room()
         stop
     if r is 1
         msg_saved()
         stop
+    change refused to 1
     msg_save_failed()
 
 on restore
     change meta_turn to 1
     let r = do_restore()
+    change refused to 1
     msg_restore_failed()
 
 on xyzzy
@@ -153,21 +179,27 @@ on inventory
 
 on switch_on
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_no_switch()
 
 on switch_off
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_no_switch()
 
 on wear
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if not (noun is wearable)
+        change refused to 1
         msg_cant_wear()
         stop
     if noun is worn
@@ -179,6 +211,7 @@ on wear
 
 on take_off
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if not (noun is worn)
@@ -189,9 +222,11 @@ on take_off
 
 on put
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if second is nothing
+        change refused to 1
         msg_put_where()
         stop
     if second is supporter
@@ -205,15 +240,19 @@ on put
             now noun is not worn
             msg_done()
             stop
+        change refused to 1
         msg_closed()
         stop
+    change refused to 1
     msg_cant_put()
 
 on insert
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if second is nothing
+        change refused to 1
         msg_put_where()
         stop
     if second is container
@@ -222,15 +261,19 @@ on insert
             now noun is not worn
             msg_done()
             stop
+        change refused to 1
         msg_closed()
         stop
+    change refused to 1
     msg_cant_put()
 
 on open
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if not (noun is openable)
+        change refused to 1
         msg_cant_open()
         stop
     if noun is locked
@@ -238,9 +281,11 @@ on open
         // first, then fall through to open it. A locked thing with no key named is
         // still refused. This is the common one-line "open the door with the key".
         if second is nothing
+            change refused to 1
             msg_open_locked()
             stop
         if second is not noun.unseal_with
+            change refused to 1
             msg_wrong_key()
             stop
         now noun is not locked
@@ -254,9 +299,11 @@ on open
 
 on close
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if not (noun is openable)
+        change refused to 1
         msg_cant_close()
         stop
     if not (noun is open)
@@ -267,20 +314,24 @@ on close
 
 on lock
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if not (noun is lockable)
+        change refused to 1
         msg_cant_lock()
         stop
     if noun is locked
         msg_locked()
         stop
     if noun is open
+        change refused to 1
         msg_close_first()
         stop
     if second is nothing
         change second to noun.unseal_with
     if second is not noun.unseal_with
+        change refused to 1
         msg_wrong_key()
         stop
     now noun is locked
@@ -288,9 +339,11 @@ on lock
 
 on unlock
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if not (noun is lockable)
+        change refused to 1
         msg_cant_unlock()
         stop
     if not (noun is locked)
@@ -299,6 +352,7 @@ on unlock
     if second is nothing
         change second to noun.unseal_with
     if second is not noun.unseal_with
+        change refused to 1
         msg_wrong_key()
         stop
     now noun is not locked
@@ -306,6 +360,7 @@ on unlock
 
 on enter
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if player in noun
@@ -317,11 +372,13 @@ on enter
         stop
     if noun is container
         if not (noun is open)
+            change refused to 1
             msg_cant_enter()
             stop
         move player to noun
         msg_done()
         stop
+    change refused to 1
     msg_cant_enter()
 
 on exit
@@ -333,44 +390,56 @@ on exit
 
 on give
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if second is nothing
+        change refused to 1
         msg_to_whom()
         stop
     if not (second is animate)
+        change refused to 1
         msg_only_animate()
         stop
+    change refused to 1
     msg_give()
 
 on show
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if second is nothing
+        change refused to 1
         msg_to_whom()
         stop
     if not (second is animate)
+        change refused to 1
         msg_only_animate()
         stop
+    change refused to 1
     msg_show()
 
 on touch
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     msg_touch()
 
 on smell
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     msg_smell()
 
 on taste
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_taste()
 
 on listen
@@ -378,62 +447,80 @@ on listen
 
 on eat
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_eat()
 
 on drink
+    change refused to 1
     msg_drink()
 
 on attack
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_attack()
 
 on kiss
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_kiss()
 
 on push
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_no_effect()
 
 on pull
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_no_effect()
 
 on turn
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_no_effect()
 
 on climb
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_cant_climb()
 
 on talk
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if noun is animate
         talk_to(noun)
         stop
+    change refused to 1
     msg_only_animate()
 
 // What happens when you talk to a living thing. The default is a flat brush-off;
 // the conversations granule overrides this block to open the topic menu instead.
 // (A person can still override `on talk` itself for a one-off custom exchange.)
 block talk_to(person)
+    change refused to 1
     msg_no_talk()
 
 on jump

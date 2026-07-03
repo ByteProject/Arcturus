@@ -172,7 +172,10 @@ def _compile_grain(world, gmap, layout, pool, grain, idx, owner, actions) -> Rou
     for v in grain.verbs:
         if v in actions:
             rt.op("je", Variable(1), Const(actions[v]), branch=("respond", True))
-    rt.op("call_vn", RoutineRef("blk_msg_scenery"))  # an unanswered verb: scenery
+    # An unanswered verb gets the scenery brush-off, and that is a refusal: a
+    # chained line must stop here rather than run its remaining commands.
+    rt.op("store", Const(ctx.globals["refused"]), _CONST_ONE)
+    rt.op("call_vn", RoutineRef("blk_msg_scenery"))
     rt.op("ret", _CONST_ONE)
     rt.label("respond")
     ctx.prescan(body)
@@ -407,6 +410,12 @@ _BUILTIN_GLOBALS = [
     # The pronoun referents (docs/02 section 8a), written by the language
     # layer's note_pronouns and read back when a pronoun word resolves.
     "pron_it", "pron_him", "pron_her", "pron_them",
+    # Command chaining (docs/02 section 8b): refused flags a command a refusal
+    # path could not carry out (stops the rest of a chained line); chain_pos is
+    # the text-buffer offset of the queued rest of the line (0 when none);
+    # chain_max is the full typed length chain_next restores before it
+    # re-tokenizes the tail.
+    "refused", "chain_pos", "chain_max",
 ]
 
 

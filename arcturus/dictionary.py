@@ -47,6 +47,10 @@ _SCENERY_FLAG = 0x10
 # the role's remembered referent. Deliberately NOT a phrase boundary: "put coin
 # in it" must bind "it" as the second noun, so is_separator exempts this flag.
 _PRONOUN_FLAG = 0x04
+# A chain word ("and", "then", the comma): it ends the current command and the
+# words after it run as the next command once this one succeeds (docs/02 8b).
+# The words come from the language layer's `chain` declarations.
+_CHAIN_FLAG = 0x02
 # flags bit 3 marks a grammar preposition (the "to"/"with" joining two noun
 # slots), so the parser knows where the first noun phrase ends and the second
 # begins. Words already flagged otherwise (on/in are a particle/direction) are
@@ -176,6 +180,8 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
     words |= set(particle_words)
     pronoun_words = _pronoun_words(world)
     words |= set(pronoun_words)
+    chain_words = set(world.chain_words)
+    words |= chain_words
     encoded = {w: zstring.encode_dict_word(w) for w in words}
     # Map each distinct encoded entry to its three data bytes.
     enc_data: dict[bytes, bytes] = {}
@@ -191,6 +197,8 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
         enc_data[encoded[word]] = bytes([_PARTICLE_FLAG, pid, 0])
     for word, rid in pronoun_words.items():
         enc_data[encoded[word]] = bytes([_PRONOUN_FLAG, rid, 0])
+    for word in chain_words:
+        enc_data[encoded[word]] = bytes([_CHAIN_FLAG, 0, 0])
     if scenery:
         for word, chain_addr in scenery.items():
             enc_data[encoded[word]] = bytes(

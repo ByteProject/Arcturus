@@ -40,7 +40,22 @@ block run_game()
     describe_room()
     while true
         prompt()
-        let act = parse()
+        run_chain(parse())
+        // Snapshot the line's unrecognized word (verb or noun, if any) so a
+        // following "oops" can correct it. Done here, after both the understood
+        // and the unknown-verb paths, so a mistyped verb is correctable too.
+        // After a chained line the buffer holds its last command, so oops
+        // corrects exactly the command the player last saw fail.
+        note_oops()
+
+// Carry out a parsed command, then any commands chained after it on the same
+// line ("take the lamp and open the door then go north", docs/02 section 8b).
+// The chain stops the moment a command fails: a parse failure, or a turn a
+// refusal path could not carry out (`refused`, set by the library's refusals
+// and settable by a story handler). What was already done stays done.
+block run_chain(act)
+    while true
+        change refused to 0
         if act is 0
             if parse_fault is 1
                 msg_cant_see()
@@ -50,12 +65,15 @@ block run_game()
                 else
                     if word_count() is not 0
                         msg_no_verb()
-        else
-            run_turn(act)
-        // Snapshot the line's unrecognized word (verb or noun, if any) so a
-        // following "oops" can correct it. Done here, after both the understood
-        // and the unknown-verb paths, so a mistyped verb is correctable too.
-        note_oops()
+            return 0
+        run_turn(act)
+        if refused is not 0
+            return 0
+        if chain_pos is 0
+            return 0
+        // Each chained command's response is its own paragraph.
+        par()
+        change act to chain_next()
 
 // Carry out one understood command. Undo is handled here, not through dispatch:
 // every other command first takes an undo checkpoint (save_undo), so that a later
@@ -67,6 +85,7 @@ block run_turn(act)
     // player to open it rather than carrying out the action on something sealed.
     if shut_in is not nothing
         change meta_turn to 1
+        change refused to 1
         msg_open_first()
         return 0
     if act is action_id("undo")
@@ -77,10 +96,12 @@ block run_turn(act)
         change act to fix_oops()
         if act is 0
             change meta_turn to 1
+            change refused to 1
             return 0
     if act is action_id("again")
         if last_act is 0
             change meta_turn to 1
+            change refused to 1
             msg_nothing_again()
             return 0
         // Replay the previous command by restoring its resolved operands, then
@@ -93,6 +114,9 @@ block run_turn(act)
     let r = do_save_undo()
     if r is 2
         change meta_turn to 1
+        // The rewound state may date from the middle of a chained line, with
+        // its tail still queued; taking a turn back must not replay it.
+        change chain_pos to 0
         msg_undone()
         par()
         describe_room()
@@ -114,6 +138,7 @@ block run_turn(act)
 // undo failed, and reaching here with no turns yet means there is nothing to take
 // back.
 block do_undo()
+    change refused to 1
     if turns is 0
         msg_cant_undo()
         return 0

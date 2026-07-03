@@ -81,9 +81,12 @@ Built-in references usable in any handler or block:
 - `turns`: a number, the elapsed turn count, starting at 0.
 - `score`, `max_score`: numbers for games that keep score.
 - `nothing`: the null object.
+- `refused`: set to 1 by a handler that refuses a command, so a chained line
+  stops at the failure (section 8b). The library's own refusals set it; it
+  resets before every command.
 
 Cosmos owns `here` and `turns`; assigning to them is a compile error. The
-author may change `score`.
+author may change `score` and set `refused`.
 
 Story metadata from the `game` block (01, section 4) is carried into the
 story file: `title`, `headline`, `author`, `release`, `serial`, and `UUID`.
@@ -250,7 +253,9 @@ Each turn Cosmos runs:
    13).
 8. Increment `turns`. If a `finish` ended the game, print the final message
    and stop.
-9. Loop.
+9. If the line chained further commands (section 8b) and this one succeeded,
+   continue with the next from step 4.
+10. Loop.
 
 The room is described once on entry. The status line (room name and score or
 turns) is maintained continuously by the interpreter.
@@ -362,6 +367,75 @@ model.
 
 The roles are the compiler contract (like the particle roles); the slot ids
 ride the pronoun words' dictionary entries where a pack declares words.
+
+## 8b. Command chaining
+
+Several commands fit on one line, joined by the language layer's chain words:
+
+```
+> take the lamp and open the door then go north
+> drop cloak, hang cloak on hook
+```
+
+A pack declares the words with a `chain` declaration; all chain words behave
+identically, and the comma tokenizes as its own word, so it chains with or
+without spaces around it:
+
+```
+chain ",", "and", "then"      // English
+chain ",", "y", "luego"       // Spanish
+chain ",", "und", "dann"      // German
+```
+
+Each chained command is a full turn of its own, exactly as if typed on its own
+line: it dispatches through the ordinary pipeline, fires the per-turn events,
+and counts a turn. The responses are separated by the usual paragraph break. A
+run of chain words ("take lamp, then go north") chains once, and a trailing
+chain word is harmless.
+
+THE CHAIN STOPS AT A FAILURE, and what was already done stays done. Two things
+count as failure: a command that does not parse (an unknown word, something
+out of scope), and a turn a refusal path could not carry out. The library's
+refusals distinguish honestly between the two ways a command can come to
+nothing:
+
+- A GENUINE REFUSAL (can't, won't, wrong key, no exit that way) stops the
+  line. "take statue and go north" with a fixed statue prints the refusal and
+  goes nowhere.
+- An outcome that ALREADY HOLDS ("you already have it", "it's already open")
+  does not stop the line: the command's goal is met, so the rest still makes
+  sense. "open door and go north" walks through a door that was already open.
+
+The signal is the `refused` global: every library refusal sets it to 1 before
+its message, and the turn loop reads it after each chained command. A story
+handler that refuses something should set it the same way, so a chain stops at
+its refusal too:
+
+```
+on take
+    if noun is idol
+        change refused to 1
+        say "The idol is welded to its pedestal."
+        stop
+```
+
+A handler that omits it simply never stops a chain, which is the right default
+for handlers that succeed. `again` after a chained line repeats only the LAST
+command of the line (the loop replays the resolved command it already
+remembers, so replaying the whole line would re-fire every side effect).
+Rewinding play cancels the queue: undo, and a mid-turn line read (the quit and
+restart confirmations claim the same typed-text buffer), and a restore, all
+drop whatever was still queued.
+
+The mechanics reuse the typed line itself as the queue: the parser truncates
+the buffer's length byte at the first chain word (the tail stays where it was
+typed), runs the command, then blanks the consumed part, restores the length,
+and re-tokenizes. Nothing is copied and no second buffer exists.
+
+One known v1 limit: a chain word between two NOUNS is still read as a command
+boundary, so "take lamp and box" parses as "take lamp" then "box" (which is no
+command). Noun lists are a plural-model feature, deliberately out of core;
+"take lamp and take box" says the same thing and works.
 
 ## 9. The action pipeline
 
@@ -693,6 +767,10 @@ The player's standard self-words are the language layer's too: each pack
 declares them with `player.words` (me/myself/self/yourself/you;
 mich/dich/selbst; yo/mismo) plus a printable `player.name` its own messages
 read well with, and a game's own `player.words` ADD on top (01, section 5a).
+
+So are the chain words (section 8b): `chain ",", "and", "then"` in English,
+`chain ",", "y", "luego"` in Spanish, `chain ",", "und", "dann"` in German.
+The splitting itself is the agnostic skeleton's; the pack only names the words.
 
 Verb particles, so separable verbs read naturally. A multi-word verb combines a
 base verb with a particle (English "switch on", "take off"; German "schalt ... an",

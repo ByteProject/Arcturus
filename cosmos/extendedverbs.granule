@@ -30,6 +30,7 @@ verb "search", "frisk"
 
 on search
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if noun is supporter
@@ -37,6 +38,7 @@ on search
         stop
     if noun is container
         if not (noun is open)
+            change refused to 1
             msg_search_closed()
             stop
         search_contents(noun)
@@ -67,8 +69,10 @@ verb "throw", "chuck", "toss", "hurl"
 
 on throw
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_throw()
 
 
@@ -77,6 +81,7 @@ verb "rub", "polish", "clean", "wipe", "scrub", "dust", "shine", "buff"
 
 on rub
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     msg_rub()
@@ -87,6 +92,7 @@ verb "squeeze", "crush"
 
 on squeeze
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     msg_squeeze()
@@ -97,8 +103,10 @@ verb "tie", "attach", "fasten", "secure"
 
 on tie
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_tie()
 
 
@@ -107,8 +115,10 @@ verb "cut", "chop", "slice", "prune", "carve"
 
 on cut
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_cut()
 
 
@@ -117,8 +127,10 @@ verb "fill"
 
 on fill
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_fill()
 
 
@@ -127,8 +139,10 @@ verb "burn", "ignite", "torch", "kindle"
 
 on burn
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_burn()
 
 
@@ -137,6 +151,7 @@ verb "blow"
 
 on blow
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     msg_blow()
@@ -147,8 +162,10 @@ verb "set", "adjust"
 
 on set
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_set()
 
 
@@ -158,6 +175,7 @@ verb "empty", "drain"
 
 on empty
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     msg_empty()
@@ -168,8 +186,10 @@ verb "buy", "purchase"
 
 on buy
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
+    change refused to 1
     msg_buy()
 
 
@@ -178,6 +198,7 @@ verb "consult", "reference"
 
 on consult
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     msg_consult()
@@ -205,6 +226,7 @@ verb "sit", "rest"
     sit
 
 on sit
+    change refused to 1
     msg_sit()
 
 
@@ -226,6 +248,7 @@ verb "swim", "dive", "paddle"
     swim
 
 on swim
+    change refused to 1
     msg_swim()
 
 
@@ -233,6 +256,7 @@ verb "swing"
     swing
 
 on swing
+    change refused to 1
     msg_swing()
 
 
@@ -272,12 +296,15 @@ verb "ask", "interrogate", "query"
 
 on ask
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if not (noun is animate)
+        change refused to 1
         msg_only_animate()
         stop
     if menu_owns_talk() is 1
+        change refused to 1
         msg_use_talk()
         stop
     if converse(noun) is 1
@@ -290,12 +317,15 @@ verb "tell", "inform"
 
 on tell
     if noun is nothing
+        change refused to 1
         msg_cant_see()
         stop
     if not (noun is animate)
+        change refused to 1
         msg_only_animate()
         stop
     if menu_owns_talk() is 1
+        change refused to 1
         msg_use_talk()
         stop
     if converse(noun) is 1

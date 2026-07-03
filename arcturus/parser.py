@@ -186,6 +186,8 @@ class Parser:
             return self.parse_particle()
         if t.kind == T.NAME and t.value == "pronoun":
             return self.parse_pronoun()
+        if t.kind == T.NAME and t.value == "chain":
+            return self.parse_chain()
         if t.value == "player" and t.kind in (T.NAME, T.KW):
             nxt = self._at(1)
             if nxt.kind == T.OP and nxt.value == ".":
@@ -647,6 +649,19 @@ class Parser:
             words.append(self._plain_text(self.expect(T.STRING, "a pronoun word")))
         self.expect_newline()
         return ast.PronounDecl(role, words, line)
+
+    def parse_chain(self) -> ast.ChainDecl:
+        # `chain ",", "and", "then"`: the words that chain commands on one line
+        # (docs/02 section 8b). Dispatched as a leading name, like direction and
+        # particle; all chain words act alike, so there is no role to check.
+        line = self.cur.line
+        self.advance()  # the leading `chain`
+        words = [self._plain_text(self.expect(T.STRING, "a chain word"))]
+        while self.check_op(","):
+            self.advance()
+            words.append(self._plain_text(self.expect(T.STRING, "a chain word")))
+        self.expect_newline()
+        return ast.ChainDecl(words, line)
 
     def _parse_grammar_line(self) -> ast.GrammarLine:
         line = self.cur.line

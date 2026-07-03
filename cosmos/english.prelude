@@ -530,6 +530,12 @@ verb "switch"
 particle on  "on"
 particle off "off"
 
+// The chain words (docs/02 section 8b): each ends one command and starts the
+// next on the same line ("take the lamp and open the door then go north",
+// "drop cloak, hang cloak on hook"). The comma tokenizes as its own word, so
+// it chains with or without spaces around it.
+chain ",", "and", "then"
+
 // The pronouns (docs/02 section 8a): "it" for the last thing, "him"/"her" for
 // the last character, by its gender. The words map to canonical roles; the
 // note_pronouns rule below decides which role a resolved noun fills.

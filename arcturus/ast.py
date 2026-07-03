@@ -544,6 +544,17 @@ class ParticleDecl:
 
 
 @dataclass
+class ChainDecl:
+    # A language layer declares the words that chain commands on one line:
+    # `chain ",", "and", "then"` (English), `chain ",", "y", "luego"` (Spanish).
+    # A chain word ends the current command; the parser runs what follows as the
+    # next command once the current one succeeds (docs/02 section 8b). All chain
+    # words behave identically, so this is a plain word list with no role.
+    words: list[str]
+    line: int = 0
+
+
+@dataclass
 class GlobalDecl:
     name: str
     value: Expr
