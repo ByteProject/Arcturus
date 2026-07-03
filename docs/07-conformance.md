@@ -65,16 +65,22 @@ TerpEtude as its own gates (docs/06).
 ## 4. The size record
 
 Smallest possible z-code is a charter objective, judged alongside correctness
-(docs/00 section 5). The current golden-game numbers:
+(docs/00 section 5). The current golden-game numbers (2026-07-03):
 
 | Story | Bytes | Benchmark |
 |-------|-------|-----------|
-| Cloak of Darkness, z5 | 11792 | PunyInform-equivalent build: ~27K |
-| Cloak of Darkness, z8 | 12184 | same game, version 8 |
-| The Brass Lantern, z5 | 11072 | no published equivalent |
+| Cloak of Darkness, z5 | 14232 | PunyInform-equivalent build: ~27K |
+| Cloak of Darkness, z8 | 14656 | same game, version 8 |
+| The Brass Lantern, z5 | 13716 | no published equivalent |
 
-The 11792-byte Cloak is, to our knowledge, the smallest runnable Cloak of
-Darkness for the Z-machine registered to date. These numbers, and a ceiling for
+The 11792-byte Cloak built at the close of the size pass (B6) is, to our
+knowledge, the smallest runnable Cloak of Darkness for the Z-machine
+registered to date. The current build is larger because the parser has since
+gained command chaining and full disambiguation (scored noun matching and the
+"Which do you mean" ask) as core features every game carries; it still comes
+in at roughly half the PunyInform benchmark. Features beyond the must-have
+core stay out of that fixed cost: they ship as summonable granules
+(docs/05), the pay-for-use rule. These numbers, and a ceiling for
 every shipped example, are enforced by `tests/test_sizes.py`: a build that grows
 past its ceiling fails the suite, and a ceiling may only be raised in the same
 commit as the change that grew it, with the growth explained. When an
