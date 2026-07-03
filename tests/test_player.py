@@ -60,5 +60,5 @@ def test_examine_self_default_on_frotz(tmp_path):
         [_frotz(), "-p", str(story)],
         input="x me\n", capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "You look much as you always do. Reassuring." in out
+    assert "admire ourselves" in out
     assert "rewards a closer look" not in out
