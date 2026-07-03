@@ -37,33 +37,33 @@ CEILINGS = {
     # commit is the lists feature itself plus the language layer's new
     # noise words (the articles, known-but-ignored), which the strict
     # borrow rule needs to tell "and the box" from "and frobnicate box".
-    "beispiel-deutsch.storyarc": 19656,
-    "brass-lantern.storyarc": 14000,
-    "cloak-of-darkness.storyarc": 14520,
-    "ejemplo-espanol.storyarc": 18904,
-    "features/computed-properties.storyarc": 12848,
-    "features/containers.storyarc": 12880,
-    "features/daemons-and-timers.storyarc": 13184,
-    "features/doors-and-locks.storyarc": 12748,
-    "features/grains.storyarc": 12876,
-    "features/introproperty.storyarc": 13936,
-    "features/kinds-and-inheritance.storyarc": 12704,
-    "features/on-other.storyarc": 12708,
-    "features/zcolor.storyarc": 13228,
-    "features/spans.storyarc": 12892,
-    "granules/conversations.storyarc": 14580,
-    "granules/extended-verbs.storyarc": 16052,
-    "granules/infocom-interrogation.storyarc": 17896,
-    "granules/quotes.storyarc": 13216,
-    "granules/take-all.storyarc": 14624,
-    "granules/plurals.storyarc": 13868,
-    "granules/statusline.storyarc": 12960,
-    "granules/verbose-exits.storyarc": 13096,
+    "beispiel-deutsch.storyarc": 19664,
+    "brass-lantern.storyarc": 14008,
+    "cloak-of-darkness.storyarc": 14528,
+    "ejemplo-espanol.storyarc": 18908,
+    "features/computed-properties.storyarc": 12856,
+    "features/containers.storyarc": 12884,
+    "features/daemons-and-timers.storyarc": 13188,
+    "features/doors-and-locks.storyarc": 12752,
+    "features/grains.storyarc": 12884,
+    "features/introproperty.storyarc": 13944,
+    "features/kinds-and-inheritance.storyarc": 12712,
+    "features/on-other.storyarc": 12716,
+    "features/zcolor.storyarc": 13236,
+    "features/spans.storyarc": 12900,
+    "granules/conversations.storyarc": 14588,
+    "granules/extended-verbs.storyarc": 16056,
+    "granules/infocom-interrogation.storyarc": 17904,
+    "granules/quotes.storyarc": 13220,
+    "granules/take-all.storyarc": 14632,
+    "granules/plurals.storyarc": 13872,
+    "granules/statusline.storyarc": 12964,
+    "granules/verbose-exits.storyarc": 13100,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 14944
+CLOAK_Z8_CEILING = 14952
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

@@ -348,6 +348,15 @@ def _emit_banner(main: Routine, world: wm.World) -> None:
     (" by ", " von ", " de ") and banner_headline the default headline when a
     game sets none. A bare build (no Cosmos) falls back to the one-string
     English banner."""
+    # Flush a pending paragraph break first: print_banner() may be called
+    # mid-handler right after prose (H2's launch sequence), and the banner's
+    # raw prints do not flush, so the first library block inside it (line_by)
+    # would otherwise burst the break into the middle of the headline line.
+    slot = _globals_map(world)["par_pending"]
+    main.op("jz", Variable(slot), branch=("bnr_nopar", True))
+    main.op("new_line")
+    main.op("store", Const(slot), Const(0))
+    main.label("bnr_nopar")
     if "line_by" not in world.blocks:
         main.op("print", text=banner_text(world))
         return
