@@ -112,6 +112,9 @@ class Obj:
     handlers: list[Handler] = field(default_factory=list)
     grains: list[Grain] = field(default_factory=list)
     topics: list["ast.TopicDecl"] = field(default_factory=list)
+    # The object's ambience blocks (summon.ambience, docs/05), kept as their
+    # AST declarations; codegen compiles the lines and guards directly.
+    ambiences: list["ast.AmbienceBlock"] = field(default_factory=list)
     decl: Optional[ast.ObjectDecl] = None
     line: int = 0
 

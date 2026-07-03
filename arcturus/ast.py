@@ -601,6 +601,32 @@ class BlockDecl:
 
 
 @dataclass
+class AmbienceLine:
+    # One line of an ambience block: a string to say, or `do <block>` for a
+    # computed line, each with an optional per-line `when` guard.
+    text: Optional["StringLit"]
+    do: Optional[str]
+    when: Optional[Expr] = None
+    line: int = 0
+
+
+@dataclass
+class AmbienceBlock:
+    # An `ambience` block on a room or thing (summon.ambience, docs/05): a
+    # list of lines the place or thing murmurs over time. mode is "about"
+    # (living odds), "every" (strict clock), or "order" (written order);
+    # rate is the declared cadence (None: the ambience_rate dial); once
+    # makes an ordered block fall silent after its last line; when guards
+    # the whole block.
+    mode: str
+    rate: Optional[int]
+    once: bool
+    when: Optional[Expr]
+    lines: list[AmbienceLine]
+    line: int = 0
+
+
+@dataclass
 class GrainsAttach:
     """Grains attached to an existing object from outside its body:
     <object>.grains (docs/01 section 14)."""

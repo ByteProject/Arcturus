@@ -10,6 +10,42 @@ Model handover: `HANDOVER.md` (repo root) is a holistic orientation written at
 the switch to Anthropic's Fable model, with an assessment task to run before B8.
 Read it alongside this log.
 
+THE AMBIENCE GRANULE (2026-07-03, Stefan approved the proposal whole and
+ordered v2 in v1, "I hate the idea of touching it again"): summon.ambience.
+An `ambience` block on a room plays while the player is there, on a thing
+while it is in scope (companions, radios). Header modifiers in topic style:
+`about N turns` (living odds: silence shortens them, a fired line resets,
+the Inform probability-ramp as one word), `every N turns` (strict clock),
+`in order` (recites, cycles), `in order once` (exhausts itself), `when`
+(live block guard). Lines are strings or `do <block>` (computed), each with
+an optional trailing per-line `when`. One line at most per turn. The dial:
+ambience_rate (default cadence; 0 mutes everything, runtime-changeable).
+MECHANICS: compiler emits per-block play/guard/line-guard routines (rooted
+via the topic-table fixup pattern) plus a live table in the object-table
+blob (__ambience__ global seeds the base); the driver is ~100 lines of
+Arcturus IN THE GRANULE (ambience_pulse/amb_try) walking the table with
+peek_word/call_handler. No-repeat relaxes after three draws so a block whose
+only eligible line was just told repeats rather than dying. TWO LATENT
+COMPILER BUGS FOUND: global INITIAL VALUES were never seeded (every global
+ever written started 0 by luck; ambience_rate = 8 was the first nonzero
+initializer; build_story now seeds numbers/bools/object refs), and ambience
+`when` guards needed the sema is-test resolution that topic guards never
+exercised. DOCS carry Stefan's boundary rule: one line firing until a
+condition flips is a plain daemon, no granule; ambience is for shuffled,
+breathing texture (NPC behavior, layered room mood). The H2 slice's
+hand-rolled vlad_ambience is GONE: the three rooms carry the FULL seven-line
+Inform vlad_msg lists as ambience blocks now. Showcase: The Last Ferry
+(examples/granules/ambience.storyarc: jetty on living odds, waiting room in
+order once with a do-line, a thing-mounted purring cat gated on mood, WAKE
+CAT turns the dial). Zero ceiling drift: unsummoned games are
+byte-identical. 362 tests. Also this session, from Stefan's slice review:
+booleans confirmed first-class (the slice's flags rewritten true/false; the
+1/0 style was the porter's, not the language's), clear_screen() and
+random(n) intrinsics, the topic once-vs-when-vs-reveal doc passage, and the
+H2 prelude now clears on a keypress like the original. STILL AWAITING
+RULINGS: the scope room (his design, proposal costed), scored property,
+G6 recipient dispatch, the listing tag ("(full)").
+
 THE H2 VERTICAL SLICE (2026-07-03, checkpoint item 3, DONE): all of Act I,
 ported verbatim from the Inform source into hibernated2/hibernated2.storyarc
 (GITIGNORED with the game; only core fixes and this log are committed). The

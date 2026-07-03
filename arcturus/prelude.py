@@ -263,6 +263,8 @@ _BUILTINS = {
     # the full typed length chain_next restores before re-tokenizing.
     "chain_pos": T_NUMBER,
     "chain_max": T_NUMBER,
+    # The ambience table base (summon.ambience), library-internal.
+    "__ambience__": T_NUMBER,
     # The disambiguation ask (docs/02 section 8), library-internal: the tied
     # phrase's word range and winning score (so the question can list the
     # candidates), and the text offset where an answer's narrowing words are

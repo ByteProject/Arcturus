@@ -377,6 +377,8 @@ class Parser:
             return self.parse_grains_block()
         if self.check_kw("topic"):
             return self.parse_topic()
+        if self.check(T.NAME) and self.cur.value == "ambience":
+            return self.parse_ambience()
         if self.check(T.NAME):
             return self.parse_property()
         raise self._error(
@@ -522,6 +524,82 @@ class Parser:
         )
 
     # -- grains ------------------------------------------------------------
+
+    def parse_ambience(self) -> ast.AmbienceBlock:
+        # `ambience [about N turns | every N turns] [in order] [once]
+        #  [when <cond>]` then an indented list of lines: a string, or
+        #  `do <block>`, each optionally guarded with a trailing `when`.
+        #  The when-modifier reads to the end of the header line, so it
+        #  comes last (like a topic's).
+        line = self.cur.line
+        self.advance()  # the leading `ambience`
+        mode = "about"
+        rate = None
+        once = False
+        when = None
+        while not self.check(T.NEWLINE):
+            if self.check(T.NAME) and self.cur.value == "about":
+                self.advance()
+                rate = self.expect(T.NUMBER, "a turn count after 'about'").value
+                self._expect_turns()
+            elif self.check_kw("every"):
+                self.advance()
+                mode = "every"
+                rate = self.expect(T.NUMBER, "a turn count after 'every'").value
+                self._expect_turns()
+            elif self.check_kw("in") or (self.check(T.NAME) and self.cur.value == "in"):
+                self.advance()
+                if not (self.check(T.NAME) and self.cur.value == "order"):
+                    raise self._error("'order' after 'in' in an ambience header")
+                self.advance()
+                mode = "order"
+            elif self.check(T.NAME) and self.cur.value == "once":
+                self.advance()
+                once = True
+            elif self.check_kw("when"):
+                self.advance()
+                when = self.parse_expr()
+            else:
+                raise self._error(
+                    "expected 'about N turns', 'every N turns', 'in order', "
+                    f"'once', or 'when' in the ambience header, got {self._describe(self.cur)}"
+                )
+        self.expect_newline()
+        self.expect(T.INDENT, "an indented list of ambience lines")
+        lines: list = []
+        while not self.check(T.DEDENT):
+            if self.check(T.NEWLINE):
+                self.advance()
+                continue
+            lline = self.cur.line
+            if self.check_kw("do") or (self.check(T.NAME) and self.cur.value == "do"):
+                self.advance()
+                name = self.expect_name("a block name after 'do'").value
+                lwhen = None
+                if self.check_kw("when"):
+                    self.advance()
+                    lwhen = self.parse_expr()
+                self.expect_newline()
+                lines.append(ast.AmbienceLine(None, name, lwhen, lline))
+            else:
+                text = self.expect(T.STRING, "an ambience line")
+                lwhen = None
+                if self.check_kw("when"):
+                    self.advance()
+                    lwhen = self.parse_expr()
+                self.expect_newline()
+                lines.append(ast.AmbienceLine(self._build_string(text), None, lwhen, lline))
+        self.expect(T.DEDENT, "the end of the ambience block")
+        if not lines:
+            raise self._error("an ambience block needs at least one line")
+        return ast.AmbienceBlock(mode, rate, once, when, lines, line)
+
+    def _expect_turns(self) -> None:
+        # The `turns` word of `about 8 turns`, matching the daemon syntax.
+        if self.check_kw("turns") or (self.check(T.NAME) and self.cur.value == "turns"):
+            self.advance()
+            return
+        raise self._error("'turns' after the ambience cadence number")
 
     def parse_grains_block(self) -> ast.GrainsBlock:
         line = self.cur.line

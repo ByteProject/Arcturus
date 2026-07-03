@@ -319,6 +319,20 @@ class Analyzer:
             elif isinstance(m, ast.GrainsBlock):
                 for g in m.grains:
                     self._add_grain(g, owner, on_kind)
+            elif isinstance(m, ast.AmbienceBlock):
+                # Ambience blocks (docs/05) live on objects, not kinds, and
+                # need their granule (the driver) summoned.
+                if on_kind:
+                    raise self._error("ambience belongs on a room or thing, not a kind", m.line)
+                if not any(
+                    s.form == "feature" and s.target == "ambience"
+                    for s in w.summons
+                ):
+                    raise self._error(
+                        "an ambience block needs the granule: add summon.ambience",
+                        m.line,
+                    )
+                w.objects[owner].ambiences.append(m)
             elif isinstance(m, ast.TopicDecl):
                 if on_kind:
                     w.kinds[owner].topics.append(m)
@@ -427,6 +441,20 @@ class Analyzer:
             elif isinstance(m, ast.GrainsBlock):
                 for g in m.grains:
                     self._check_grain(g)
+            elif isinstance(m, ast.AmbienceBlock):
+                # Resolve the guards and the lines like any other body, so an
+                # `is` test disambiguates and a do-block must exist.
+                if m.when is not None:
+                    self._check_condition(m.when, set(), m.line)
+                probe = []
+                for l in m.lines:
+                    if l.when is not None:
+                        self._check_condition(l.when, set(), l.line)
+                    if l.text is not None:
+                        probe.append(ast.Say(l.text))
+                    else:
+                        probe.append(ast.ExprStmt(ast.Call(l.do, [], l.line)))
+                self._check_body(probe, set())
 
     def _check_handler(self, h) -> None:
         events = h.events if isinstance(h, wm.Handler) else h.events

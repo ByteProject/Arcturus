@@ -123,8 +123,9 @@ thing <id> [of <kind>] in <room>, <room> ...
 ```
 
 `of <kind>` sets the parent kind; `in <location>` sets the initial tree
-position. The body is property settings, `on` handlers, and an optional
-`grains` block (section 14).
+position. The body is property settings, `on` handlers, an optional `grains`
+block (section 14), `topic` blocks on a character (section 15), and, with
+`summon.ambience`, `ambience` blocks (02, section 14; docs/05).
 
 A fixed object can be in scope in more than one room. The object tree gives each
 object a single home, so a second (and third) room is a *span*: `in hall, vault`

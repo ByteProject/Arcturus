@@ -51,6 +51,7 @@ CEILINGS = {
     "features/on-other.storyarc": 12716,
     "features/zcolor.storyarc": 13236,
     "features/spans.storyarc": 12900,
+    "granules/ambience.storyarc": 14344,
     "granules/conversations.storyarc": 14588,
     "granules/extended-verbs.storyarc": 16056,
     "granules/infocom-interrogation.storyarc": 17904,

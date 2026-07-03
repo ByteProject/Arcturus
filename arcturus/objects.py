@@ -65,6 +65,18 @@ def topic_routine_name(objname: str, idx: int) -> str:
     return f"topic_{objname}_{idx}"
 
 
+def amb_play_name(objname: str, idx: int) -> str:
+    return f"amb_play_{objname}_{idx}"
+
+
+def amb_guard_name(objname: str, idx: int) -> str:
+    return f"amb_guard_{objname}_{idx}"
+
+
+def amb_lg_name(objname: str, idx: int) -> str:
+    return f"amb_lg_{objname}_{idx}"
+
+
 def topic_when_name(objname: str, idx: int) -> str:
     """The visibility-guard routine for topic `idx` (its `when` condition),
     emitted only when the topic has a `when`."""
@@ -98,6 +110,9 @@ class Layout:
     # (offset within `table`, word) to patch with the word's dictionary address,
     # for each entry of an object's words property (B4.5d).
     word_fixups: list[tuple[int, str]] = field(default_factory=list)
+    # Offset of the ambience table inside `table` (-1 when no block exists);
+    # build_story seeds the __ambience__ global with its absolute address.
+    ambience_off: int = -1
     # Objects that have a react routine; their react property (63) is emitted.
     react_objects: set = field(default_factory=set)
     # Computed (`<name> block`) properties, as (objname, pname, is_text, decl):
@@ -355,6 +370,48 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
     # property can point at one. Done last because the records reference packed
     # routine and string addresses resolved only at link time.
     _emit_topic_tables(world, layout, topic_sites)
+    _emit_ambience_tables(world, layout)
+
+
+def _emit_ambience_tables(world, layout) -> None:
+    """Emit the ambience table (summon.ambience, docs/05): a count word, then a
+    ten-word record per block. The record is live data in dynamic memory; the
+    last two words are the driver's state (cadence odds and the last line).
+
+      +0 owner object   +2 is_room        +4 mode (0 about, 1 every,
+      +6 rate (0: dial) +8 line count        2 in order, 3 in order once)
+      +10 block guard   +12 play routine  +14 line guards (each packed, 0 none)
+      +16 odds state    +18 last state
+
+    The routine addresses arrive by the same fixups the topic tables use."""
+    blocks = [
+        (name, idx, amb)
+        for name, obj in world.objects.items()
+        for idx, amb in enumerate(obj.ambiences)
+    ]
+    if not blocks:
+        return
+    table = layout.table
+    layout.ambience_off = len(table)
+    table += bytes(2)
+    _put_word(table, layout.ambience_off, len(blocks))
+    mode_num = {"about": 0, "every": 1, "order": 2}
+    for name, idx, amb in blocks:
+        rec = len(table)
+        table += bytes(20)
+        _put_word(table, rec + 0, layout.obj_number.get(name, 0))
+        _put_word(table, rec + 2, 1 if world.objects[name].category == "room" else 0)
+        mode = mode_num[amb.mode]
+        if amb.mode == "order" and amb.once:
+            mode = 3
+        _put_word(table, rec + 4, mode)
+        _put_word(table, rec + 6, amb.rate or 0)
+        _put_word(table, rec + 8, len(amb.lines))
+        if amb.when is not None:
+            layout.routine_fixups.append((rec + 10, amb_guard_name(name, idx)))
+        layout.routine_fixups.append((rec + 12, amb_play_name(name, idx)))
+        if any(l.when is not None for l in amb.lines):
+            layout.routine_fixups.append((rec + 14, amb_lg_name(name, idx)))
 
 
 def _emit_topic_tables(world, layout, topic_sites: dict) -> None:
