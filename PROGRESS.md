@@ -22,6 +22,21 @@ README em dashes and the stale find_particle comment in german.granule. Next:
 an idiom-focused review of both translations (Stefan's request; German got his
 native pass already, Spanish still gated on Pablo), then B8.
 
+PRONOUNS, PART 2, THE SPANISH CLITICS (2026-07-03): "cogela" works. An
+unknown first word ending in -lo/-la/-los/-las splits its clitic off in the
+typed text (the same buffer surgery as the infinitive retry), the verb
+re-resolves, and the pending clitic (a granule global, `clitico`) becomes the
+command's noun in the Spanish resolve_objects, read from the part-1 referent
+slots (lo -> him, la -> her, los/las -> them). Chains with the -r retry:
+"cogerlo" -> "coger" (la pending... el pending) -> "coge". THE KEY DESIGN
+POINT: the clitics are NOT dictionary pronoun words, because bare la/los/las
+are the ARTICLES; "coge la lampara" must keep resolving the lampara, and does
+(pinned in the test). Out-of-scope referents and the empty plural slot fall
+into the honest "No ves nada de eso por aqui." docs/02 8a updated; +424 bytes
+on Spanish games only (pay-for-use holds). A PunyInformES reconciliation pass
+(github.com/Kozelek/PunyInformES, via subagent) follows to compare suffix
+coverage (le/les?) and any guards Pablo uses that we lack.
+
 PRONOUNS, PART 1 (2026-07-03): Arcturus has pronouns. Four canonical referent
 slots (it/him/her/them, prelude._PRONOUN_ROLES, the particle-roles pattern);
 a pack declares its words (`pronoun her "sie"`) and a note_pronouns(obj) rule

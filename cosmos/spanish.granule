@@ -55,14 +55,55 @@ block resolve_verb()
     // abajo", donde la primera palabra ni siquiera está en el diccionario.
     if find_direction() is not nothing
         return action_id("go")
+    // Los clíticos de PunyInformES: una palabra desconocida que termina en
+    // -lo/-la/-los/-las suele ser un imperativo con su pronombre pegado
+    // ("cogela", "sueltalo"). Se borra el sufijo del texto tecleado, se vuelve
+    // a analizar el verbo, y el pronombre queda pendiente en `clitico` para
+    // que resolve_objects lo convierta en el sustantivo. Encadena con el
+    // recorte de la -r: "cogerla" -> "coger" (la pendiente) -> "coge".
+    if word_dict(0) is nothing
+        let len = word_len(0)
+        let base = text_addr() + word_pos(0)
+        if len > 4
+            if peek_byte(base + len - 3) is 108
+                if peek_byte(base + len - 1) is 115
+                    let v = peek_byte(base + len - 2)
+                    if (v is 111) or (v is 97)
+                        poke_byte(base + len - 3, 32)
+                        poke_byte(base + len - 2, 32)
+                        poke_byte(base + len - 1, 32)
+                        retokenize()
+                        let act3 = resolve_verb()
+                        if act3 is not 0
+                            change clitico to 4
+                        return act3
+        if len > 3
+            if peek_byte(base + len - 2) is 108
+                let u = peek_byte(base + len - 1)
+                if u is 111
+                    poke_byte(base + len - 2, 32)
+                    poke_byte(base + len - 1, 32)
+                    retokenize()
+                    let act1 = resolve_verb()
+                    if act1 is not 0
+                        change clitico to 2
+                    return act1
+                if u is 97
+                    poke_byte(base + len - 2, 32)
+                    poke_byte(base + len - 1, 32)
+                    retokenize()
+                    let act2 = resolve_verb()
+                    if act2 is not 0
+                        change clitico to 3
+                    return act2
     // El truco de PunyInformES: una palabra desconocida que termina en -r suele
     // ser un infinitivo regular. Se recorta la -r en el propio texto tecleado,
     // se vuelve a analizar, y "comer pan" encuentra "come". La recursión
     // termina porque la palabra se acorta en cada intento.
     if word_dict(0) is nothing
-        let len = word_len(0)
-        if len > 2
-            let last = text_addr() + word_pos(0) + len - 1
+        let len2 = word_len(0)
+        if len2 > 2
+            let last = text_addr() + word_pos(0) + len2 - 1
             if peek_byte(last) is 114
                 poke_byte(last, 32)
                 retokenize()
@@ -80,6 +121,14 @@ block find_particle()
                 return peek_byte(d + 7)
         change i to i + 1
     return nothing
+
+// El clítico pendiente de la última orden: 0 ninguno, o la casilla del
+// pronombre (2 lo, 3 la, 4 los/las). Lo deja resolve_verb al separar un
+// clítico ("cogela" -> "coge" + la), y lo consume resolve_objects como el
+// sustantivo de la orden. Los clíticos NO son palabras del diccionario: "la"
+// y "los" son también los artículos, y marcarlos confundiría "coge la
+// lámpara".
+global clitico = 0
 
 // A qué pronombre se convierte un sustantivo resuelto: por su género. Sin
 // palabras `pronoun` propias todavía (los clíticos cogelo/cogela llegan en la
@@ -289,6 +338,16 @@ block resolve_objects()
                         change parse_fault to 2
                 return 1
     change noun to match_noun()
+    // Un clítico pendiente ("cogela") es el sustantivo de la orden: el
+    // referente de su casilla, si sigue a la vista. Si el referente se fue,
+    // cae en el fallo honesto de siempre ("No ves nada de eso por aquí").
+    if noun is nothing
+        if clitico is not 0
+            let ref = pronoun_slot(clitico)
+            if ref is not nothing
+                if in_scope(ref)
+                    change noun to ref
+    change clitico to 0
     if noun is nothing
         change noun to reach_unscoped()
     if noun is nothing
