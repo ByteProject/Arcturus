@@ -84,6 +84,98 @@ block parse_line()
     // LOOK <noun> into an examine); the seam lives in the language layer.
     return remap_action(act)
 
+// ==========================================================================
+// The noun matcher (docs/02 section 8). Language-agnostic: the packs' thin
+// match_noun/resolve_two_nouns hand their word ranges to match_phrase here.
+// ==========================================================================
+
+// How many of the typed words in [lo, hi) this object's vocabulary contains.
+// Only object words count: a flagged word (verb, direction, particle,
+// preposition, pronoun, grain, or chain word) is not object vocabulary.
+block phrase_score(obj, lo, hi)
+    let s = 0
+    let i = lo
+    while i < hi
+        let d = word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 0
+                if has_word(obj, d)
+                    change s to s + 1
+        change i to i + 1
+    return s
+
+// Does the range name any object word at all (one the matcher could try)?
+// Distinguishes "took a shot at something and missed" (a can't-see fault)
+// from a command that named nothing resolvable in the first place.
+block phrase_named(lo, hi)
+    let i = lo
+    while i < hi
+        let d = word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 0
+                return 1
+        change i to i + 1
+    return 0
+
+// Match one noun phrase (the typed words from lo up to hi) against scope.
+// Every in-scope object is scored by how many of the typed words its
+// vocabulary contains, and the single best match wins: with a brass hook and
+// an iron hook in scope, "hook" alone is ambiguous but "brass hook" resolves,
+// and typing more adjectives narrows further. A TIE at the best score is a
+// genuine ambiguity: parse_fault 3, and the turn asks the player rather than
+// silently taking whichever object happens to come first (docs/02 section 8).
+// A typed pronoun short-circuits to its remembered referent. When nothing in
+// scope matches at all, the closed-container knowledge gets its chance
+// (shut_search), so naming the coin you know is in the shut chest still
+// answers "you'll have to open it first" rather than "you can't see it".
+block match_phrase(lo, hi)
+    let d = nothing
+    let i = lo
+    while i < hi
+        change d to word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 4
+                let ref = pronoun_slot(peek_byte(d + 7))
+                if ref is not nothing
+                    if in_scope(ref)
+                        return ref
+                return nothing
+        change i to i + 1
+    let best = nothing
+    let best_score = 0
+    let tied = 0
+    let obj = 1
+    while obj <= object_count()
+        if not (obj is hidden)
+            let s = phrase_score(obj, lo, hi)
+            if s > 0
+                if in_scope(obj)
+                    if s > best_score
+                        change best to obj
+                        change best_score to s
+                        change tied to 0
+                    else
+                        if s is best_score
+                            change tied to 1
+        change obj to obj + 1
+    if best_score is 0
+        change i to lo
+        while i < hi
+            change d to word_dict(i)
+            if d is not nothing
+                if peek_byte(d + 6) is 0
+                    let known = shut_search(here, d)
+                    if known is nothing
+                        change known to shut_search(player, d)
+                    if known is not nothing
+                        return known
+            change i to i + 1
+        return nothing
+    if tied is 1
+        change parse_fault to 3
+        return nothing
+    return best
+
 // Command chaining (docs/02 section 8b). A chain word (the language layer's
 // `chain` declarations: "and", "then", the comma) ends the current command;
 // what follows runs as the next command once this one succeeds. The split is

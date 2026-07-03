@@ -136,55 +136,6 @@ block see_into(obj)
             return 1
     return 0
 
-// Match one word against an object in scope, searching a container's contents
-// and recursing into whatever the player can see into (an open or clear
-// container, a supporter), the same way in_scope reaches nested objects. A
-// hidden object cannot be referred to; a closed opaque container shields its
-// contents from the matcher (they are out of scope until it is opened).
-block scope_match_in(container, target)
-    for each obj in container
-        if not (obj is hidden)
-            if has_word(obj, target)
-                return obj
-            if see_into(obj)
-                let inner = scope_match_in(obj, target)
-                if inner is not nothing
-                    return inner
-    return nothing
-
-// Match a word against an object in scope: the room first, then what the player
-// carries (and onward into containers and supporters within reach).
-block scope_match(target)
-    // A typed pronoun resolves to its remembered referent, if that referent is
-    // still in scope; a referent that has gone (taken away, another room) stays
-    // unresolved, and the turn answers "you can't see that", the honest failure.
-    if peek_byte(target + 6) is 4
-        let ref = pronoun_slot(peek_byte(target + 7))
-        if ref is not nothing
-            if in_scope(ref)
-                return ref
-        return nothing
-    let in_room = scope_match_in(here, target)
-    if in_room is not nothing
-        return in_room
-    let held = scope_match_in(player, target)
-    if held is not nothing
-        return held
-    // An object that spans this room (a door reaching in from the far side, a
-    // piece of scenery visible from here) is in scope but not in the tree. The
-    // guard folds away in a game with no spanning objects (docs/01 section 5).
-    if any_spans() is 1
-        let spanned = spans_match(target)
-        if spanned is not nothing
-            return spanned
-    // Nothing within reach. Is it something the player knows is shut inside a
-    // closed container here or carried? Return it, and note what must be opened,
-    // so the action can answer "open it first" rather than "you can't see that".
-    let here_shut = shut_search(here, target)
-    if here_shut is not nothing
-        return here_shut
-    return shut_search(player, target)
-
 // A closed opaque container: we cannot see into it. The inverse of see_into for
 // a container: open, clear, or lidless (not openable) all mean it is not shut.
 block shut_holds(obj)
@@ -217,19 +168,11 @@ block shut_match(holder, target)
                     return x
     return nothing
 
-// Match a noun: the first typed word after the verb that names an object in
-// scope. Adjective scoring and full disambiguation are refined later.
+// Match a noun: the typed words after the verb, as one phrase, through the
+// scoring matcher (parser.prelude match_phrase): the in-scope object matching
+// the most typed words wins, a tie is a genuine ambiguity (parse_fault 3).
 block match_noun()
-    let n = word_count()
-    let i = 1
-    while i < n
-        let target = word_dict(i)
-        if target is not nothing
-            let o = scope_match(target)
-            if o is not nothing
-                return o
-        change i to i + 1
-    return nothing
+    return match_phrase(1, word_count())
 
 // Resolve the command's objects into the noun (and, for a two-noun verb like
 // "put noun on noun", the second). The verb's dictionary entry carries its noun
@@ -257,6 +200,10 @@ block resolve_objects()
                         change parse_fault to 2
                 return 1
     change noun to match_noun()
+    // An ambiguity fault (3) stands: falling through to the grain and
+    // unseen checks would overwrite the honest "which do you mean".
+    if parse_fault is not 0
+        return 1
     if noun is nothing
         change noun to reach_unscoped()
     if noun is nothing
@@ -277,15 +224,7 @@ block reach_unscoped()
 // prepositions, and grain words all carry a flag byte), so an unflagged word that
 // the noun match did not consume names a thing that simply is not here.
 block named_unseen()
-    let n = word_count()
-    let i = 1
-    while i < n
-        let target = word_dict(i)
-        if target is not nothing
-            if peek_byte(target + 6) is 0
-                return 1
-        change i to i + 1
-    return 0
+    return phrase_named(1, word_count())
 
 // For an intransitive verb (no noun slot), is there a word after it the grammar
 // cannot use? Returns 1 the moment it finds one. A direction after `go` is the
@@ -345,44 +284,41 @@ block is_separator(target)
     return 0
 
 // Bind the two noun slots by position, the way the grammar reads them: the words
-// before the preposition name the first noun, the words after it name the second.
-// The boundary is the first separator word (the "to" of "give X to Y", the "on"
-// of "put X on Y"). Binding by position, not by first-in-scope-wins, is what lets
-// an out-of-scope first noun stay unresolved (so the verb reports "you can't see
-// that") instead of letting the recipient slide into its slot.
+// before the preposition are the first noun phrase, the words after it the
+// second. The boundary is the first separator word (the "to" of "give X to Y",
+// the "on" of "put X on Y"); each phrase resolves through the scoring matcher,
+// so adjectives narrow within a slot and a tie is a genuine ambiguity. Binding
+// by position, not by first-in-scope-wins, is what lets an out-of-scope first
+// noun stay unresolved (so the verb reports "you can't see that") instead of
+// letting the recipient slide into its slot.
 block resolve_two_nouns()
     let n = word_count()
+    let b = 0
     let i = 1
-    let past_prep = 0
-    let unseen_first = 0
-    let unseen_second = 0
     while i < n
-        let target = word_dict(i)
-        if target is not nothing
-            if is_separator(target)
-                change past_prep to 1
-            else
-                let o = scope_match(target)
-                if past_prep is 0
-                    if o is nothing
-                        change unseen_first to 1
-                    else
-                        if noun is nothing
-                            change noun to o
-                else
-                    if o is nothing
-                        change unseen_second to 1
-                    else
-                        if second is nothing
-                            change second to o
+        if b is 0
+            let d = word_dict(i)
+            if d is not nothing
+                if is_separator(d)
+                    change b to i
         change i to i + 1
+    if b is 0
+        change b to n
+    change noun to match_phrase(1, b)
+    if parse_fault is not 0
+        return 1
     // A slot that named object words but bound nothing is a thing out of scope.
     if noun is nothing
-        if unseen_first is 1
+        if phrase_named(1, b) is 1
             change parse_fault to 1
-    if second is nothing
-        if unseen_second is 1
-            change parse_fault to 1
+            return 1
+    if b < n
+        change second to match_phrase(b + 1, n)
+        if parse_fault is not 0
+            return 1
+        if second is nothing
+            if phrase_named(b + 1, n) is 1
+                change parse_fault to 1
     return 1
 
 // Remember the command just parsed so a following "oops" can correct it: find the
@@ -427,6 +363,9 @@ block fix_oops()
     resolve_objects()
     if parse_fault is 1
         msg_cant_see()
+        return 0
+    if parse_fault is 3
+        msg_be_specific()
         return 0
     return act
 
