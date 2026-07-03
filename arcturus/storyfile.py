@@ -47,6 +47,11 @@ PARSE_BUFFER_BYTES = 2 + PARSE_BUFFER_MAX * 4
 # offending word and re-resolve it without re-reading the line.
 OOPS_PARSE_ADDR = PARSE_BUFFER_ADDR + PARSE_BUFFER_BYTES  # 656
 OOPS_PARSE_BYTES = PARSE_BUFFER_BYTES
+# A backup of the text buffer, kept so the disambiguation ask ("Which do you
+# mean, ...?") can read the player's answer through the one shared text buffer
+# and then weave it back into the saved command (docs/02 section 8).
+ASK_TEXT_ADDR = OOPS_PARSE_ADDR + OOPS_PARSE_BYTES  # 706
+ASK_TEXT_BYTES = TEXT_BUFFER_BYTES
 
 # File-length scale by version: the stored length is the real length divided by
 # this (section 11.1.6).

@@ -205,7 +205,7 @@ block shut_match(holder, target)
 // scoring matcher (parser.prelude match_phrase): the in-scope object matching
 // the most typed words wins, a tie is a genuine ambiguity (parse_fault 3).
 block match_noun()
-    return match_phrase(1, word_count())
+    return match_first_phrase()
 
 // Resolve the command's objects into the noun (and, for a two-noun verb, the
 // second). The verb's dictionary entry carries its noun arity in data byte 2.
@@ -831,6 +831,21 @@ block msg_no_it()
 
 block msg_be_specific()
     say "Du musst dich schon etwas genauer ausdrücken."
+
+// Die Rueckfrage bei Mehrdeutigkeit (docs/02 Abschnitt 8): der Rahmen um die
+// Kandidatenliste des Parsers ("Was meinst du: die goldene Münze oder den
+// Schlüssel?"). Nach "meinen" steht der Akkusativ, darum ${the:acc obj}.
+block line_which_open()
+    show("Was meinst du: ")
+
+block line_which_or()
+    show(" oder ")
+
+block line_which_item(obj)
+    show("${the:acc obj}")
+
+block line_which_end()
+    say "?"
 
 block msg_nothing_again()
     say "Es gibt nichts zu wiederholen."

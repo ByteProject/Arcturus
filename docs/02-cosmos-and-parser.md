@@ -279,35 +279,43 @@ producing an action and slot fillers.
 
 Noun resolution and adjectives. Arcturus has no separate adjective type;
 adjectives are ordinary entries in an object's `words`, ranked the same as
-nouns. A typed noun phrase matches an in-scope object when every content word
-typed appears in that object's `words`. The parser scores each candidate by
-how many typed words it matches and takes the single best:
+nouns. A noun phrase runs from the verb (or a grammar preposition) to the
+next grammar preposition, and the scoring matcher (`match_phrase`, in the
+agnostic skeleton) scores every in-scope object by how many of the phrase's
+typed words its `words` contain, then takes the single best:
 
-- No object matches: "You can't see any such thing.", or the darkness
-  message.
-- One object matches best: it fills the slot.
-- Several tie: disambiguation asks "Which do you mean, the X or the Y?",
-  printing the full `name` of each, and reads a reply that adds a
-  distinguishing word.
+- No object matches: the grain check, then "You see nothing of the sort
+  here." if an object word was typed.
+- One object scores best: it fills the slot.
+- Several tie at the best score: a genuine ambiguity. The parser asks
+  "Which do you mean, the gold coin or the silver coin?", printing each
+  candidate with its article (in German, declined to the accusative), and
+  reads the answer. An answer that starts with a verb or a direction is a
+  change of mind and replaces the command outright; anything else is taken
+  as narrowing words, woven into the command right after the ambiguous
+  phrase, and the whole line re-parses, so answering "gold" resolves
+  exactly like typing "take gold coin" whole. An empty answer, or one that
+  cannot narrow, falls back to "You'll have to be more specific."
 
-So typing more adjectives narrows the result: with a brass hook and an iron
-hook in scope, "hook" is ambiguous and prompts, "brass hook" resolves
-directly, and after a prompt a bare "brass" selects. `held` matches the same
-way but also requires the player to hold the object. The most recent match
-feeds pronouns ("it", "them").
+So typing more adjectives narrows the result: with a gold coin and a silver
+coin in scope, "coin" is ambiguous and asks, "gold coin" resolves directly,
+and after the question a bare "gold" selects. Membership in the object's own
+`words` is the whole scoring test, so a word that also serves as a verb
+elsewhere still matches (a person named Pat survives "pat" the verb). The
+most recent match feeds the pronouns (section 8a). The word that scored is
+never printed: the `name`-versus-`words` split is the only lever needed. A
+word in `name` is printed but not matched, a word in `words` is matched but
+not printed, and a word you want both printed and typed appears in each.
+There is no "the brass one" anaphora in v1; that is deferred.
 
-The `name`-versus-`words` split is the only lever needed: a word in `name` is
-printed but not matched, a word in `words` is matched but not printed, and a
-word you want both printed and typed simply appears in each. There is no "the
-brass one" anaphora in v1; that advanced parser feature is deferred.
+Multi and all. NOT YET BUILT, by ruling: a plural model ("take all", "them",
+noun lists) is a future English-only granule (docs/00), because most games do
+not need it and TAKE ALL flattens scenes into loot runs. "all" and noun lists
+are currently ordinary unknown words.
 
-Multi and all. A `multi` slot matches several objects; "all" expands to the
-reasonable set for the verb, minus any named after "except". The action runs
-once per object.
-
-Unknown words. A token in no dictionary entry gives "I don't know the word
-'<token>'." A known word used where no grammar line accepts it gives "You
-can't do that." These are Cosmos strings and are overridable.
+Unknown words. A word in no dictionary entry is ignored where it cannot
+matter and answers "You see nothing of the sort here." where it named the
+only candidate noun. The messages are Cosmos blocks and overridable.
 
 Grains. When a `noun` slot finds no real object but the typed word is a grain
 word on `here` or an in-scope object, and the action's verb is one the grain
@@ -424,8 +432,8 @@ for handlers that succeed. `again` after a chained line repeats only the LAST
 command of the line (the loop replays the resolved command it already
 remembers, so replaying the whole line would re-fire every side effect).
 Rewinding play cancels the queue: undo, and a mid-turn line read (the quit and
-restart confirmations claim the same typed-text buffer), and a restore, all
-drop whatever was still queued.
+restart confirmations, and the disambiguation ask, claim the same typed-text
+buffer), and a restore, all drop whatever was still queued.
 
 The mechanics reuse the typed line itself as the queue: the parser truncates
 the buffer's length byte at the first chain word (the tail stays where it was
