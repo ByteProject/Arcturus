@@ -22,6 +22,22 @@ README em dashes and the stale find_particle comment in german.granule. Next:
 an idiom-focused review of both translations (Stefan's request; German got his
 native pass already, Spanish still gated on Pablo), then B8.
 
+THE PLAYER OBJECT (2026-07-03, Stefan's design): every game answers to the
+standard self-words with no author code: me/myself/self/yourself/you (EN),
+mich/dich/selbst (DE), yo/mismo plus the -te clitic (ES), declared by each
+language pack with the new top-level `player.` syntax. A game augments the
+seeded player the same way: `player.words olivia, lund` ADDS to the standard
+words (they accumulate, never overwrite, per Stefan's spec), `player.desc`
+sets the description plain or as a computed block (`player.desc block`), and
+any player property can be set (name, custom flags; last wins). Packs also
+give the player a printable name (yourself / dich selbst / ti mismo) plus
+`named`, which closes the "El  no tiene nada" artifact from the clitic round.
+Two collaterals fixed on the way: `words` lists now accept RESERVED words as
+vocabulary (words self, you: the player types them without knowing our
+keywords), and take-self answers its own message before the animate refusal
+("take me" said "yourself has other ideas"). docs/01 section 5a, docs/02 14a;
+test_player.py; 310 tests pass.
+
 PUNYINFORMES RECONCILIATION (2026-07-03, subagent over
 github.com/Kozelek/PunyInformES): Pablo's translation.h/parser.h confirmed our
 architecture point for point (clitics before the -r retry, unknown-words-only

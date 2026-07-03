@@ -689,6 +689,11 @@ the `article`/`indefinite` properties override a derived article verbatim
 ends in -r with the -r stripped, so a regular infinitive finds its imperative
 ("comer" reaches "come"), a trick a pack implements in its own `resolve_verb`.
 
+The player's standard self-words are the language layer's too: each pack
+declares them with `player.words` (me/myself/self/yourself/you;
+mich/dich/selbst; yo/mismo) plus a printable `player.name` its own messages
+read well with, and a game's own `player.words` ADD on top (01, section 5a).
+
 Verb particles, so separable verbs read naturally. A multi-word verb combines a
 base verb with a particle (English "switch on", "take off"; German "schalt ... an",
 "schliess ... auf"). The particle words are declared in the language layer, not the

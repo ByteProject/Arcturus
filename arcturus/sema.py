@@ -45,6 +45,9 @@ class Analyzer:
         self.env = env if env is not None else prelude.standard_environment()
         self.filename = filename
         self.world = wm.World()
+        # player.<prop> augmentations, applied to the seeded player object in
+        # the properties pass.
+        self._player_decls: list = []
 
     def _error(self, message: str, line: int) -> ArcError:
         return ArcError(message, line, None, self.filename)
@@ -132,6 +135,10 @@ class Analyzer:
                     )
                 for word in decl.words:
                     w.directions[word.lower()] = decl.prop
+            elif isinstance(decl, ast.PlayerDecl):
+                # Collected now, applied in the properties pass (below), where
+                # types unify and the words lists merge.
+                self._player_decls.append(decl.prop)
             elif isinstance(decl, ast.PronounDecl):
                 if decl.role not in prelude._PRONOUN_ROLES:
                     roles = ", ".join(prelude._PRONOUN_ROLES)
@@ -250,6 +257,19 @@ class Analyzer:
                 "standard",
                 wm.STORE_ATTRIBUTE if sp.type == prelude.T_BOOL else wm.STORE_SLOT,
             )
+
+        # player.<prop> augmentations: words ADD to whatever earlier layers
+        # declared (the language pack's standard self-words come first, the
+        # game's own words append); any other property is set, later wins.
+        player = w.objects.get("player")
+        if player is not None:
+            for m in self._player_decls:
+                self._unify_property(m.name, self._declared_type(m), m.line)
+                prior = player.props.get(m.name)
+                if m.name == "words" and prior is not None and m.form == ast.PROP_VALUE:
+                    prior.values = list(prior.values) + list(m.values)
+                else:
+                    player.props[m.name] = m
 
         # Game property declarations on kinds and objects.
         for kind in w.kinds.values():
