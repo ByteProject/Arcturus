@@ -22,6 +22,24 @@ README em dashes and the stale find_particle comment in german.granule. Next:
 an idiom-focused review of both translations (Stefan's request; German got his
 native pass already, Spanish still gated on Pablo), then B8.
 
+PRONOUNS, PART 1 (2026-07-03): Arcturus has pronouns. Four canonical referent
+slots (it/him/her/them, prelude._PRONOUN_ROLES, the particle-roles pattern);
+a pack declares its words (`pronoun her "sie"`) and a note_pronouns(obj) rule
+deciding which slot a resolved noun fills: English by animacy (character ->
+him/her by gender, else it), German by GRAMMATICAL gender (die Lampe -> sie,
+der Schluessel -> ihn, das Buch -> es; accusative forms, the object of a
+command), Spanish fills the slots silently for the clitics (part 2, from
+github.com/Kozelek/PunyInformES). Mechanics: dictionary flag 0x04 carries the
+role id; scope_match resolves a flagged word to its slot's referent IF still
+in scope (else the honest "you see nothing of the sort"); is_separator exempts
+the flag, so a pronoun binds in either noun slot ("put coin in it"); the
+skeleton's parse() notes the noun after each command (never the player); the
+referents are the pron_* builtins, library-visible. docs/02 section 8a.
+Verified on Frotz in both languages, two-noun binding and out-of-scope
+honesty included; 308 tests pass. NEXT: part 2, the Spanish clitics
+(cogelo/cogela/cogelos/cogelas by suffix-stripping, studying PunyInformES
+first), then the command-chaining discussion.
+
 PABLO'S ROUND, ITEMS 3-5 (2026-07-03, Stefan's ruling: 3-5 now, pronouns
 next, clitics from github.com/Kozelek/PunyInformES, chaining discussed after):
 (3) THE INFINITIVE RETRY, Spanish only: an unknown first word ending in -r

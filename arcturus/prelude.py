@@ -145,6 +145,13 @@ _PARTICLE_ROLES = {"on": 1, "off": 2, "auf": 3, "zu": 4}
 # The Z-machine colour numbers (Standard 1.1 section 8.3.1), as the author-facing
 # names of the zcolor statement and the say.<colour> form. "default" asks the
 # interpreter for its own default colour.
+# Canonical pronoun roles and their ids: the compiler contract the dictionary
+# writes and the language layer's blocks read (the same shape as the particle
+# roles). A pack maps its own words onto the slots (`pronoun her "sie"` in
+# German, where grammatical gender rules) and its note_pronouns block decides
+# which slot a resolved noun lands in.
+_PRONOUN_ROLES = {"it": 1, "him": 2, "her": 3, "them": 4}
+
 _ZCOLOURS = {
     "default": 1, "black": 2, "red": 3, "green": 4, "yellow": 5,
     "blue": 6, "magenta": 7, "cyan": 8, "white": 9,
@@ -221,6 +228,13 @@ _BUILTINS = {
     # the next text. Library-internal: upper-window drawing holds it across a
     # draw (a bar or menu print must not consume the transcript's break).
     "par_pending": T_NUMBER,
+    # The pronoun referents, one per canonical role (docs/02 section 8a): what
+    # "it", "him", "her", and "them" currently mean. The language layer's
+    # note_pronouns fills them as nouns resolve; scope_match reads them back.
+    "pron_it": T_OBJECT,
+    "pron_him": T_OBJECT,
+    "pron_her": T_OBJECT,
+    "pron_them": T_OBJECT,
     "grain": T_NUMBER,  # the matched scenery grain (id+1), set by the parser
     "parse_fault": T_NUMBER,  # set by the parser when a named object is out of scope
     "meta_turn": T_NUMBER,  # set by a meta verb so the loop skips the turn pulse

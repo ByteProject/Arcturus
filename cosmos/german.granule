@@ -186,6 +186,15 @@ block scope_match_in(container, target)
 // Match a word against an object in scope: the room first, then what the player
 // carries (and onward into containers and supporters within reach).
 block scope_match(target)
+    // A typed pronoun resolves to its remembered referent, if that referent is
+    // still in scope; a referent that has gone (taken away, another room) stays
+    // unresolved, and the turn answers "you can't see that", the honest failure.
+    if peek_byte(target + 6) is 4
+        let ref = pronoun_slot(peek_byte(target + 7))
+        if ref is not nothing
+            if in_scope(ref)
+                return ref
+        return nothing
     let in_room = scope_match_in(here, target)
     if in_room is not nothing
         return in_room
@@ -330,6 +339,10 @@ block find_scenery()
 
 // Is this dictionary word a phrase boundary rather than a noun word?
 block is_separator(target)
+    // A pronoun is a noun word, never a boundary: "put coin in it" binds "it"
+    // as the second noun.
+    if peek_byte(target + 6) is 4
+        return 0
     if peek_byte(target + 6) is not 0
         return 1
     return 0
@@ -543,6 +556,24 @@ verb "schliesse", "schließe", "schliess", "schließ", "schliessen", "schließen
 // Die Schliesspartikeln. "auf" schliesst auf (unlock); "zu" und "ab" schliessen ab
 // (lock). "ab" ist zugleich die Ausschalt-Partikel; compound() unterscheidet nach
 // dem Grundverb (schalt vs. schliess), darum stoert die Doppelrolle nicht.
+// Die Pronomen: das grammatische Geschlecht entscheidet, nicht die Belebtheit.
+// Die Lampe ist "sie", der Schlüssel "ihn" (Akkusativ, das Objekt eines
+// Befehls), das Buch "es". "nimm die lampe" und dann "untersuche sie".
+pronoun it  "es"
+pronoun him "ihn"
+pronoun her "sie"
+
+// Welches Pronomen ein aufgelöstes Substantiv wird: nach dem Genus, das der
+// Autor mit der/die/das erklärt hat. Das Skelett ruft dies nach jedem Befehl.
+block note_pronouns(obj)
+    if obj is feminine
+        change pron_her to obj
+        return 0
+    if obj is neuter
+        change pron_it to obj
+        return 0
+    change pron_him to obj
+
 particle auf "auf"
 particle zu  "zu"
 

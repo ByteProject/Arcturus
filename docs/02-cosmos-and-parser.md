@@ -319,6 +319,32 @@ the language-specific routines through ordinary resolution to handle a
 language's morphology and grammar, without forking the skeleton. The skeleton
 makes no English-specific assumption about word order, articles, or inflection.
 
+## 8a. Pronouns
+
+The parser remembers what the pronouns mean. Four canonical referent slots,
+`it`, `him`, `her`, and `them`, hold the objects the player last dealt with;
+typing a pronoun as a noun resolves to its slot's referent, and a referent
+that has left scope answers with the ordinary "you see nothing of the sort",
+the honest failure. A pronoun binds in either noun position, so "put coin in
+it" works. The referents survive between turns and reset only on restart.
+
+The words and the rules are language, so both live in the language layer. A
+pack declares its words with `pronoun <role> "word", ...`:
+
+```
+pronoun it  "it"        // English
+pronoun him "ihn"       // German: the accusative, the object of a command
+pronoun her "sie"
+```
+
+and defines a `note_pronouns(obj)` block deciding which slot a just-resolved
+noun fills. English splits by animacy (a character becomes him or her by its
+gender, everything else it); German follows grammatical gender, so die Lampe
+becomes "sie" and das Buch "es"; Spanish fills the slots by gender for the
+clitic forms to come (cogelo, cogela), which are stage two of this work. The
+roles are the compiler contract (like the particle roles); the slot ids ride
+the pronoun words' dictionary entries, and `them` waits for a plural model.
+
 ## 9. The action pipeline
 
 An action carries its verb, `noun`, and optional `second`. Cosmos dispatches

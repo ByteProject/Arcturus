@@ -511,6 +511,17 @@ class DirectionDecl:
 
 
 @dataclass
+class PronounDecl:
+    # A language layer maps player-typed words to a canonical pronoun role:
+    # `pronoun it "it"` (English), `pronoun her "sie"` (German, grammatical
+    # gender). The role is one of prelude._PRONOUN_ROLES; the words resolve to
+    # that role's remembered referent when typed as a noun.
+    role: str
+    words: list[str]
+    line: int = 0
+
+
+@dataclass
 class ParticleDecl:
     # A language layer maps player-facing words to a canonical verb particle:
     # `particle on "on"` (English), `particle on "an", "ein"` (German). The role is

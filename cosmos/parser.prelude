@@ -36,6 +36,20 @@ block read_input()
         set_colour(zc_font(), 0)
     return term
 
+// The remembered referent for a canonical pronoun role (docs/02 section 8a):
+// 1 it, 2 him, 3 her, 4 them. The language layer's note_pronouns fills the
+// slots as nouns resolve; scope_match reads them back when a pronoun is typed.
+block pronoun_slot(role)
+    if role is 1
+        return pron_it
+    if role is 2
+        return pron_him
+    if role is 3
+        return pron_her
+    if role is 4
+        return pron_them
+    return nothing
+
 block parse()
     change parse_fault to 0
     change shut_in to nothing
@@ -49,6 +63,11 @@ block parse()
     resolve_objects()
     if parse_fault is not 0
         return 0
+    // Remember what the pronouns now mean: the language layer decides which
+    // slot this noun fills (English by animacy, German by grammatical gender).
+    if noun is not nothing
+        if noun is not player
+            note_pronouns(noun)
     // A language may remap the action now the nouns are known (English turns
     // LOOK <noun> into an examine); the seam lives in the language layer.
     return remap_action(act)

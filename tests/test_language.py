@@ -207,3 +207,64 @@ def test_spanish_infinitive_retry_on_frotz(tmp_path):
         capture_output=True, text=True, timeout=15,
     ).stdout
     assert out.count("[ZUMBIDO]") == 2  # the infinitive and the imperative both fire
+
+
+PRONOUN_GAME = (
+    'game\n    title "P"\n    start hall\n'
+    'room hall\n    name "Hall"\n    desc "A hall."\n'
+    'thing lamp in hall\n    name "brass lamp"\n    words brass, lamp\n'
+    '    desc "A small brass lamp."\n'
+    'thing box of container in hall\n    name "pine box"\n    words pine, box\n'
+    '    openable\n    open\n'
+    'thing coin in hall\n    name "gold coin"\n    words gold, coin\n'
+    'thing marta of character in hall\n    name "Marta"\n    words marta\n'
+    '    named\n    feminine\n    desc "She watches you evenly."\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_english_pronouns_on_frotz(tmp_path):
+    # Part 1 of the pronoun work (docs/02 section 8a): "it" remembers the last
+    # thing, "her"/"him" the last character by gender, a pronoun binds as a
+    # second noun ("put coin in it"), and a referent that left scope answers
+    # with the honest "you see nothing of the sort".
+    story = tmp_path / "p.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(PRONOUN_GAME)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="take lamp\nx it\nx marta\nx her\nx box\nput coin in it\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert out.count("A small brass lamp.") == 1  # x it after take lamp
+    assert out.count("She watches you evenly.") == 2  # x marta, then x her
+    assert "Done." in out  # put coin in it: the pronoun bound as second noun
+
+
+GERMAN_PRONOUNS = (
+    'summon.language "german"\n'
+    'game\n    title "P"\n    start raum\n'
+    'room raum\n    name "Raum"\n    desc "Ein Raum."\n'
+    'thing lampe in raum\n    name "Lampe"\n    words lampe\n    die\n'
+    '    desc "Eine kleine Lampe."\n'
+    'thing schluessel in raum\n    name "Schluessel"\n    words schluessel\n    der\n'
+    '    desc "Ein kalter Schluessel."\n'
+    'thing buch in raum\n    name "Buch"\n    words buch\n    das\n'
+    '    desc "Ein duennes Buch."\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_german_grammatical_pronouns_on_frotz(tmp_path):
+    # German pronouns follow grammatical gender: die Lampe is "sie", der
+    # Schluessel "ihn", das Buch "es" (accusative, the object of a command).
+    story = tmp_path / "g.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GERMAN_PRONOUNS)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="nimm die lampe\nuntersuche sie\nnimm den schluessel\n"
+        "untersuche ihn\nnimm das buch\nuntersuche es\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "Eine kleine Lampe." in out
+    assert "Ein kalter Schluessel." in out
+    assert "Ein duennes Buch." in out

@@ -132,6 +132,15 @@ class Analyzer:
                     )
                 for word in decl.words:
                     w.directions[word.lower()] = decl.prop
+            elif isinstance(decl, ast.PronounDecl):
+                if decl.role not in prelude._PRONOUN_ROLES:
+                    roles = ", ".join(prelude._PRONOUN_ROLES)
+                    raise self._error(
+                        f"'{decl.role}' is not a pronoun role (use one of: {roles})",
+                        decl.line,
+                    )
+                for word in decl.words:
+                    w.pronouns[word.lower()] = decl.role
             elif isinstance(decl, ast.ParticleDecl):
                 if decl.role not in prelude._PARTICLE_ROLES:
                     roles = ", ".join(prelude._PARTICLE_ROLES)
