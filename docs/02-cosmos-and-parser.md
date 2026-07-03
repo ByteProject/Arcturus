@@ -265,7 +265,10 @@ turns) is maintained continuously by the interpreter.
 The parser turns input into an action with bound objects.
 
 Tokenizing. Input is lowercased and split on spaces and punctuation. Noise
-words ("the", "a", "an", "my") are dropped. Remaining tokens are matched
+words ("the", "a", "an", "my"; each pack declares its own with `noise`) are
+known to the dictionary and ignored: being known is what lets a noun-list
+segment carry them while a truly unknown word refuses the borrowed verb
+(section 8b). Remaining tokens are matched
 against the dictionary, which holds every verb word, every object's `words`,
 and all grain words (section 14). An object's printed `name` is not matched;
 matchable vocabulary comes only from `words`, which keeps the dictionary
@@ -312,11 +315,9 @@ Multi and all. Deliberately NOT core: both ship as granules, so a game that
 wants them summons them and one that does not pays nothing. `summon.takeall`
 gives TAKE ALL, DROP ALL, and TAKE ALL FROM (section 14; docs/05).
 `summon.plurals` gives group words (`plural coins` on each coin, so "take
-coins" sweeps them), noun lists ("take lamp and box" runs the verb per noun,
-borrowing it into the verb-less segment), and THEM for the last group. Every
-swept or listed item is a full turn, the chaining rule. Unsummoned, "all" and
-group words are ordinary unknown words and a noun list stays the documented
-chain misparse.
+coins" sweeps them) and THEM for the last group; noun lists ("take lamp and
+box") are core (section 8b). Every swept item is a full turn, the chaining
+rule. Unsummoned, "all" and group words are ordinary unknown words.
 
 Unknown words. A word in no dictionary entry is ignored where it cannot
 matter and answers "You see nothing of the sort here." where it named the
@@ -445,10 +446,15 @@ the buffer's length byte at the first chain word (the tail stays where it was
 typed), runs the command, then blanks the consumed part, restores the length,
 and re-tokenizes. Nothing is copied and no second buffer exists.
 
-One known v1 limit: a chain word between two NOUNS is still read as a command
-boundary, so "take lamp and box" parses as "take lamp" then "box" (which is no
-command). Noun lists are a plural-model feature, deliberately out of core;
-"take lamp and take box" says the same thing and works.
+NOUN LISTS ride the same machinery: a chained segment with no verb of its
+own borrows the previous command's verb, so "take lamp and box" runs as take
+lamp, take box, one full turn each, and "drop the sword and the shield" works
+the way a player expects. Only a segment that starts with something noun-like
+borrows; anything else keeps the honest "those words don't add up to
+anything", and a bare noun typed on its own line is still no command. Since
+the list words are the chain words, a language pack localizes noun lists
+automatically. Lists distribute over ONE-noun verbs; "give x and y to z"
+stays out (v1).
 
 ## 9. The action pipeline
 
@@ -742,15 +748,14 @@ Inform's one-turn ALL), undo takes the whole sweep back, and an empty sweep
 refuses so a chain stops. The core deliberately omits ALL; the granule's
 `all` declaration names the words and its hand-off folds away unsummoned.
 
-`summon.plurals`. The plural model, catalogued in 05: group words (each coin
+`summon.plurals`. The group model, catalogued in 05: group words (each coin
 declares `plural coins`, and "take coins" runs the take on every coin in
-scope), noun lists ("take lamp and box": a verb-less chained segment borrows
-the previous verb, so the list words are the already-localized chain words),
-and THEM for the last group. A group word matching a single object binds it
-singularly; a tie between group members sweeps instead of asking. Every item
-is a full turn. English-worded; a translation forks the granule (a Spanish
-fork should keep THEM out: the clitic plurals in the core pack already cover
-it, and bare los/las are the articles).
+scope) and THEM for the last group. A group word matching a single object
+binds it singularly; a tie between group members sweeps instead of asking.
+Every item is a full turn. Noun lists ("take lamp and box") are NOT part of
+this granule: they are core (section 8b). English-worded; a translation forks
+the granule (a Spanish fork should keep THEM out: the clitic plurals in the
+core pack already cover it, and bare los/las are the articles).
 
 `summon.verbose_exits`. Helpful blocked-direction messages, game-wide. When a
 player tries a direction with no exit, instead of the default "You can't go
@@ -800,7 +805,10 @@ read well with, and a game's own `player.words` ADD on top (01, section 5a).
 
 So are the chain words (section 8b): `chain ",", "and", "then"` in English,
 `chain ",", "y", "luego"` in Spanish, `chain ",", "und", "dann"` in German.
-The splitting itself is the agnostic skeleton's; the pack only names the words.
+The splitting itself is the agnostic skeleton's; the pack only names the
+words. And so are the noise words (`noise "the", "a", ...`; el/la/los...;
+der/die/den...), the articles the parser knows but ignores, which noun lists
+depend on (section 8).
 
 Verb particles, so separable verbs read naturally. A multi-word verb combines a
 base verb with a particle (English "switch on", "take off"; German "schalt ... an",

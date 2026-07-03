@@ -29,39 +29,41 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.8.0 / Cosmos 0.11.0 (2026-07-03).
 CEILINGS = {
-    # 2026-07-03 (takeall + plurals granules): both pay-for-use. takeall's
-    # visible cost in non-summoning games was the print_name flush fix
-    # (~52-60, a latent paragraph-layer bug); plurals adds ~72-76 (the
-    # phrase-start probe and the extra matcher argument, the only unfolded
-    # residue). Before them, chaining (~570-640) and disambiguation
-    # (~150-225 + ~900 for the ask), the core parser features of the day.
-    "beispiel-deutsch.storyarc": 19456,
-    "brass-lantern.storyarc": 13844,
-    "cloak-of-darkness.storyarc": 14368,
-    "ejemplo-espanol.storyarc": 18708,
-    "features/computed-properties.storyarc": 12692,
-    "features/containers.storyarc": 12728,
-    "features/daemons-and-timers.storyarc": 13032,
-    "features/doors-and-locks.storyarc": 12592,
-    "features/grains.storyarc": 12720,
-    "features/introproperty.storyarc": 13780,
-    "features/kinds-and-inheritance.storyarc": 12552,
-    "features/on-other.storyarc": 12552,
-    "features/zcolor.storyarc": 13076,
-    "features/spans.storyarc": 12740,
-    "granules/conversations.storyarc": 14428,
-    "granules/extended-verbs.storyarc": 15900,
-    "granules/infocom-interrogation.storyarc": 17744,
-    "granules/quotes.storyarc": 13064,
-    "granules/take-all.storyarc": 14472,
-    "granules/plurals.storyarc": 13772,
-    "granules/statusline.storyarc": 12808,
-    "granules/verbose-exits.storyarc": 12944,
+    # 2026-07-03 (noun lists to CORE, Stefan's ruling: a player expectation
+    # in every language, worth the fixed cost): the borrowed-verb machinery
+    # moved out of the plurals granule, and the sweep hand-off gating was
+    # finished at the same time, so the granules now cost an unsummoning
+    # game only the matcher's plural_ok argument. Net core growth this
+    # commit is the lists feature itself plus the language layer's new
+    # noise words (the articles, known-but-ignored), which the strict
+    # borrow rule needs to tell "and the box" from "and frobnicate box".
+    "beispiel-deutsch.storyarc": 19656,
+    "brass-lantern.storyarc": 14000,
+    "cloak-of-darkness.storyarc": 14520,
+    "ejemplo-espanol.storyarc": 18904,
+    "features/computed-properties.storyarc": 12848,
+    "features/containers.storyarc": 12880,
+    "features/daemons-and-timers.storyarc": 13184,
+    "features/doors-and-locks.storyarc": 12748,
+    "features/grains.storyarc": 12876,
+    "features/introproperty.storyarc": 13936,
+    "features/kinds-and-inheritance.storyarc": 12704,
+    "features/on-other.storyarc": 12708,
+    "features/zcolor.storyarc": 13228,
+    "features/spans.storyarc": 12892,
+    "granules/conversations.storyarc": 14580,
+    "granules/extended-verbs.storyarc": 16052,
+    "granules/infocom-interrogation.storyarc": 17896,
+    "granules/quotes.storyarc": 13216,
+    "granules/take-all.storyarc": 14624,
+    "granules/plurals.storyarc": 13868,
+    "granules/statusline.storyarc": 12960,
+    "granules/verbose-exits.storyarc": 13096,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 14792
+CLOAK_Z8_CEILING = 14944
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

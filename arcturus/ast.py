@@ -555,6 +555,16 @@ class ChainDecl:
 
 
 @dataclass
+class NoiseDecl:
+    # A language layer's noise words: the articles and fillers the parser
+    # knows but ignores (`noise "the", "a", "an"`). Being KNOWN is the point:
+    # a noun-list segment ("take lamp and the box") may contain them, while a
+    # genuinely unknown word (a mistyped verb) honestly refuses the borrow.
+    words: list[str]
+    line: int = 0
+
+
+@dataclass
 class AllDecl:
     # The takeall granule's all-words: `all "all", "everything"` names the words
     # that mean "everything within reach" (TAKE ALL, DROP ALL, TAKE ALL FROM X).

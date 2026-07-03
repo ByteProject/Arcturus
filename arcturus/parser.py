@@ -190,6 +190,8 @@ class Parser:
             return self.parse_chain()
         if t.kind == T.NAME and t.value == "all" and self._at(1).kind == T.STRING:
             return self.parse_all()
+        if t.kind == T.NAME and t.value == "noise" and self._at(1).kind == T.STRING:
+            return self.parse_noise()
         if t.value == "player" and t.kind in (T.NAME, T.KW):
             nxt = self._at(1)
             if nxt.kind == T.OP and nxt.value == ".":
@@ -677,6 +679,18 @@ class Parser:
             words.append(self._plain_text(self.expect(T.STRING, "an all-word")))
         self.expect_newline()
         return ast.AllDecl(words, line)
+
+    def parse_noise(self) -> ast.NoiseDecl:
+        # `noise "the", "a", "an"`: the language layer's known-but-ignored
+        # words (articles, fillers). Dispatched like `all` and `chain`.
+        line = self.cur.line
+        self.advance()  # the leading `noise`
+        words = [self._plain_text(self.expect(T.STRING, "a noise word"))]
+        while self.check_op(","):
+            self.advance()
+            words.append(self._plain_text(self.expect(T.STRING, "a noise word")))
+        self.expect_newline()
+        return ast.NoiseDecl(words, line)
 
     def _parse_grammar_line(self) -> ast.GrammarLine:
         line = self.cur.line

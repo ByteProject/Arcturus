@@ -179,6 +179,12 @@ global clitico = 0
 // luego ve al norte"). La coma cuenta como palabra propia, con o sin espacios.
 chain ",", "y", "luego"
 
+// Las palabras de relleno: los artículos que el parser conoce pero ignora.
+// Conocerlas importa: una lista de sustantivos puede llevarlas ("coge la
+// lámpara y la llave"), mientras que una palabra desconocida de verdad
+// rechaza el préstamo del verbo (docs/02 8b).
+noise "el", "la", "los", "las", "un", "una", "unos", "unas", "al", "del"
+
 player.words yo, mismo
 player.name "ti mismo"
 player.named
@@ -420,8 +426,11 @@ block find_scenery()
 // direction word (on/in), which separate the two noun phrases just as well.
 block is_separator(target)
     // A pronoun is a noun word, never a boundary: "put coin in it" binds "it"
-    // as the second noun.
+    // as the second noun. A noise word (an article, flag 3) is no boundary
+    // either: "give the coin to the guard" splits at "to" alone.
     if peek_byte(target + 6) is 4
+        return 0
+    if peek_byte(target + 6) is 3
         return 0
     if peek_byte(target + 6) is not 0
         return 1

@@ -293,8 +293,11 @@ block find_scenery()
 // Is this dictionary word a phrase boundary rather than a noun word?
 block is_separator(target)
     // A pronoun is a noun word, never a boundary: "put coin in it" binds "it"
-    // as the second noun.
+    // as the second noun. A noise word (an article, flag 3) is no boundary
+    // either: "give the coin to the guard" splits at "to" alone.
     if peek_byte(target + 6) is 4
+        return 0
+    if peek_byte(target + 6) is 3
         return 0
     if peek_byte(target + 6) is not 0
         return 1
@@ -523,6 +526,12 @@ player.named
 // tür, dann geh nach norden"). Das Komma zählt als eigenes Wort, mit oder
 // ohne Leerzeichen.
 chain ",", "und", "dann"
+
+// Die Füllwörter: die Artikel, die der Parser kennt, aber überliest. Das
+// Kennen zählt: eine Substantivliste darf sie tragen ("nimm die lampe und
+// den schlüssel"), während ein wirklich unbekanntes Wort das Ausleihen des
+// Verbs ehrlich verweigert (docs/02 8b).
+noise "der", "die", "das", "den", "dem", "des", "ein", "eine", "einen", "einem", "einer"
 
 pronoun it  "es"
 pronoun him "ihn"

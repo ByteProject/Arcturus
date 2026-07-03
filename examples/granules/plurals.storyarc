@@ -6,9 +6,9 @@
 // THE NUMISMATIST. A small showcase for the plurals granule (summon.plurals,
 // docs/05). Each coin declares the group word (`plural coins`), so TAKE COINS
 // sweeps every coin in scope, one full turn each, and DROP THEM lets go of
-// the same group. TAKE LOUPE AND TRAY runs the verb once per noun: the
-// verb-less second leg borrows the take. And the singular still asks: TAKE
-// COIN, with several in view, gets the honest "Which do you mean...?".
+// the same group. And the singular still asks: TAKE COIN, with several in
+// view, gets the honest "Which do you mean...?". (TAKE LOUPE AND TRAY works
+// too, but that is core noun-list chaining, not this granule; docs/02 8b.)
 //
 //   arcc examples/granules/plurals.storyarc -o coins.z5
 //   frotz coins.z5

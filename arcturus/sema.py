@@ -165,6 +165,10 @@ class Analyzer:
                 for word in decl.words:
                     if word.lower() not in w.all_words:
                         w.all_words.append(word.lower())
+            elif isinstance(decl, ast.NoiseDecl):
+                for word in decl.words:
+                    if word.lower() not in w.noise_words:
+                        w.noise_words.append(word.lower())
             elif isinstance(decl, ast.GlobalDecl):
                 self._seen(decl.name, decl.line)
                 w.globals[decl.name] = wm.Global(

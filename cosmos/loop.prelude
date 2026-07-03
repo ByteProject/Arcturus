@@ -107,10 +107,9 @@ block run_chain(act)
             return 0
         if chain_pos is 0
             return 0
-        // Remember this command's action: a verb-less next segment may borrow
-        // it (the plurals granule's noun lists). Folds away without it.
-        if any_plurals() is 1
-            change chain_prev to act
+        // Remember this command's action: a verb-less next segment borrows
+        // it ("take lamp and box", the noun lists of docs/02 section 8b).
+        change chain_prev to act
         // Each chained command's response is its own paragraph.
         par()
         change act to chain_next()
@@ -151,36 +150,34 @@ block run_turn(act)
         change second to last_second
         change way to last_way
         change grain to last_grain
-    // TAKE ALL: consume the parser's hand-off flag BEFORE the undo
-    // checkpoint (a snapshot must never carry it into a later rewind). The
-    // sweep is one typed command, so it gets the one checkpoint: undo takes
-    // the whole sweep back. Each swept item is still a full turn (the
-    // granule runs the per-turn pulse per item).
-    let sweep = 0
-    if any_allwords() is 1
-        change sweep to all_go
-        change all_go to 0
-    let psweep = 0
-    if any_plurals() is 1
-        change psweep to plural_go
-        change plural_go to 0
     let r = do_save_undo()
     if r is 2
         change meta_turn to 1
-        // The rewound state may date from the middle of a chained line, with
-        // its tail still queued; taking a turn back must not replay it.
+        // The rewound state may date from the middle of a chained line or
+        // carry a pending sweep hand-off; taking a turn back must not
+        // replay either. Each guard folds away without its granule.
         change chain_pos to 0
+        if any_allwords() is 1
+            change all_go to 0
+        if any_plurals() is 1
+            change plural_go to 0
         msg_undone()
         par()
         describe_room()
         return 0
+    // A pending sweep (TAKE ALL, "take coins") replaces the ordinary
+    // dispatch: one undo checkpoint for the whole sweep (it is one typed
+    // command), each swept item still a full turn inside the granule.
     if any_allwords() is 1
-        if sweep is 1
+        if all_go is 1
+            change all_go to 0
             run_all(act)
             return 0
     if any_plurals() is 1
-        if psweep is not 0
-            run_plural(act, psweep)
+        if plural_go is not 0
+            let w = plural_go
+            change plural_go to 0
+            run_plural(act, w)
             return 0
     dispatch(act)
     if meta_turn is 0
