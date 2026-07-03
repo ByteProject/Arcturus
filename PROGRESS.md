@@ -10,6 +10,40 @@ Model handover: `HANDOVER.md` (repo root) is a holistic orientation written at
 the switch to Anthropic's Fable model, with an assessment task to run before B8.
 Read it alongside this log.
 
+THE H2 VERTICAL SLICE (2026-07-03, checkpoint item 3, DONE): all of Act I,
+ported verbatim from the Inform source into hibernated2/hibernated2.storyarc
+(GITIGNORED with the game; only core fixes and this log are committed). The
+slice: the Sagan quote box, the full pregame prose, white/cyan zcolors,
+banner false with print_banner() fired mid-launch, Olivia's player.desc and
+player.words, Vlad as a spanning scenery character whose TALK menu topics
+are when-guarded on story flags (the Inform talk-array statuses map 1:1 to
+`when` guards; topic bodies carry change/score statements and it all just
+compiled), three rooms with computed desc/intro blocks (a `briefed` custom
+attribute delivers the first-visit Vlad line after the room desc), the
+cheap-scenery lists as grains, the fill/oil custom verbs, the whole cradle
+puzzle chain, and the crash into a stub Alien Wilderness. THE WALKTHROUGH
+RUNS END TO END on dfrotz with the exact Act I commands (plus one leading
+blank line: the quote box keypress eats a piped line; a human is fine).
+Score 55, ledger at the slice: 29/48 attributes, 22/62 properties, 55/240
+globals, 33.4K raw (abbreviations untuned). TWO CORE BUGS FOUND AND FIXED:
+print_banner() mid-handler burst the pending paragraph break into the
+headline line (cosmos_banner now flushes first, the print_name lesson
+again), and one design gap worked around in the port. THE GAP LIST for
+Stefan, from a real game: (G6, the big one) DISPATCH NEVER CONSULTS THE
+SECOND: "give chip to vlad" cannot be answered by Vlad's own handler, only
+by the chip's (Inform asks the recipient's life). Design question: should
+give/show (all two-noun verbs?) consult second's handlers after noun's?
+(G1) no clear_screen() intrinsic (H2 clears after the prelude and elsewhere;
+erase_window is already used inside quotes). (G3) no random() intrinsic
+(Vlad's ambience is probabilistic with a no-repeat buffer, save-quips
+random; slice rotates deterministically). (G2) no computed short names (the
+canister's "(full)/(empty)", Inform short_name; print_obj is static; would
+need name-via-routine printing). (G4) an unreachable-but-visible object
+(chip in the droid) has no scope story: Arcturus tree scope hides it wholly.
+(G5) emphasis colour guessed as yellow pending Stefan's eye. NEXT: Stefan
+plays the slice; rulings on G6/G1/G3 (G2/G4/G5 can wait); then Act II
+onward, region by region, walkthrough-driven.
+
 NOUN LISTS TO CORE + THE GATING FINISHED (2026-07-03, Stefan's rulings after
 his cost review). THE PROCESS RULING FIRST, standing and recorded in memory:
 core-touching decisions in modular work are HIS to make; talk any parser
