@@ -28,7 +28,7 @@ game
     author "Stefan Vogt"
     start  study
 
-global polished = 0
+flag polished
 
 room study
     name "The Alchemist's Study"
@@ -41,17 +41,17 @@ thing lamp in study
     name "brass lamp"
     words lamp, brass, lantern
     desc block
-        if polished is 1
+        if polished
             say "The brass lamp gleams, rubbed to a warm shine."
         else
             say "A brass lamp, tarnished almost black with age."
 
     // Rubbing (TOUCH/FEEL/PAT) flips the flag the computed desc reads.
     on touch
-        if polished is 1
+        if polished
             say "It already gleams; you leave well enough alone."
         else
-            change polished to 1
+            change polished to true
             say "You rub the lamp with your sleeve until it shines."
         stop
 
@@ -63,7 +63,7 @@ thing glass in study
     words scrying, glass, mirror
     fixed
     desc block
-        if polished is 1
+        if polished
             say "The glass clears, and a djinn's face swims up out of the depths."
         else
             say "The scrying glass is clouded; it shows nothing but your own frown."

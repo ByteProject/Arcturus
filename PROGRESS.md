@@ -74,6 +74,18 @@ anonymous-points line; ambience per-line dwell.
 
 >>> END DAY-TWO CHECKPOINT <<<
 
+EXAMPLES SPEAK THE TRIO (2026-07-03, Stefan's call before Act II): the sweep
+after the declaration trio landed. Every shipped example that still said
+`global` for a flag or a counter now declares its role: Cloak's `disturbed`
+is a `counter` with `disturbed++` in the bar's each_turn (docs/01 section 19
+listing and the docs/02 note synced in the same commit), and `polished`
+(computed-properties), `door_open` (scoring), and `content` (ambience) are
+`flag`s with true/false and bare truthy tests. No other example declared a
+global; brass-lantern, posada, and gasthaus were already clean. The VSCode
+grammar needed nothing: `flag`/`counter` heads and the `++`/`--` operators
+went in with the trio commit and the 0.9.0 vsix already carries them. All
+four examples recompiled, 384 tests green.
+
 THE DECLARATION TRIO (2026-07-03, from Stefan misreading a counter beside
 booleans in the slice, then the design talk): story state now declares its
 ROLE. `flag x` (boolean, starts false, no initializer written; `= true` for

@@ -33,7 +33,7 @@ game
     scoring
     start cell
 
-global door_open = false
+flag door_open
 
 ranks
     "Novice of the Order"
