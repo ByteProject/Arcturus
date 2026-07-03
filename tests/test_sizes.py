@@ -27,7 +27,7 @@ from arcturus.sema import analyze
 
 EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
-# Byte ceilings per example, as of arcc 0.7.0 / Cosmos 0.10.0 (2026-07-02).
+# Byte ceilings per example, as of arcc 0.8.0 / Cosmos 0.11.0 (2026-07-03).
 CEILINGS = {
     # 2026-07-03 (takeall + plurals granules): both pay-for-use. takeall's
     # visible cost in non-summoning games was the print_name flush fix

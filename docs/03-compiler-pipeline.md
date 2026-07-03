@@ -96,7 +96,7 @@ reports the compiler version, the bundled Cosmos version, the runtime tags,
 and the host operating system, for example:
 
 ```
-Arcturus -- [ arcc 0.7.0 | Cosmos 0.10.0 | python3 | stdlib | MacOS ARM ]
+Arcturus -- [ arcc 0.8.0 | Cosmos 0.11.0 | python3 | stdlib | MacOS ARM ]
 ```
 
 Options:

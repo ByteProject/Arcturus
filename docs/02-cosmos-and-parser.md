@@ -103,7 +103,7 @@ everything Inform's banner does, and names both the compiler and the library:
 ```
 The Brass Lantern
 An Interactive Fiction by Stefan
-Release 1 / Serial number 260626 / Arcturus 0.7 / Cosmos 0.10
+Release 1 / Serial number 260626 / Arcturus 0.8 / Cosmos 0.11
 ```
 
 Line one is `title`. Line two is `headline` plus "by" and `author`, with
