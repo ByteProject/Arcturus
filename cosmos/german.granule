@@ -1152,6 +1152,12 @@ block msg_farewell()
 
 // Meta verbs.
 block msg_score()
+    if any_ranks() is 1
+        show("Du hast ${score} von ${max_score} Punkten erreicht. Das bringt
+              dir den Rang: ")
+        print_rank()
+        say "."
+        return 0
     say "Du hast ${score} von ${max_score} Punkten erreicht."
 
 block msg_confirm_restart()

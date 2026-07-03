@@ -352,7 +352,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `seen` | Set once the player has been shown an object (a content of an open container, something taken or examined). A closed opaque container still lists the contents the player has `seen`, so they are not forgotten when put away; contents never seen stay hidden until the box is opened. Cosmos manages this; you rarely set it. The full container knowledge model is in 02, section 5a. |
 | `lockable` | Can be locked and unlocked with a key (`lock` / `unlock`). |
 | `locked` | Currently locked; blocks `open` until unlocked with the matching key. |
-| `scored` | Awards points once, automatically: a scored room pays `room_score` on the first visit, a scored thing pays `object_score` on the first take (both default 5; retune them in `on start`). The hooks fold away in a game that scores nothing. |
+| `scored` | Managed by `scoring` (section 6a): the compiler sets it on every room and takeable thing; write `scored false` to exempt one. Set it by hand only in a game without `scoring` that wants a single classic auto-payer. |
 | `visited` | The room has been entered before (Cosmos sets it on entry). Use it to vary a room's description on return. |
 | `moved` | Set the first time the player takes an object. While clear, the object shows its `intro` text in a room description instead of the plain listing. |
 | `animate` | An animate agent (a person, animal, robot, or AI). The conversation and give verbs apply only to the animate; the `character` kind sets it by default, and animate objects refuse being taken. |
@@ -378,6 +378,89 @@ carries the attribute of every kind in its chain.
 
 `score`, `max_score`, and `turns` are runtime globals, not object properties (02
 section 2).
+
+## 6a. Scoring
+
+Score just works. One line in the game block turns it on:
+
+```
+game
+    title "Hibernated 2"
+    scoring
+```
+
+With `scoring` on, every room pays five points on the first visit and every
+takeable thing five points on the first take, automatically: no attributes,
+no bookkeeping, no table. The start room and whatever the player starts
+holding never pay (nothing is earned by beginning). A room or thing that
+should not score opts out with one line:
+
+```
+room broom_closet
+    scored false
+```
+
+Things a plain take refuses anyway (scenery, fixed, animate, doors) never
+pay and never count.
+
+For everything the compiler cannot know, the events, there is `award`, a
+statement legal anywhere a statement is (handlers, topic bodies, grains):
+
+```
+on push
+    award 15
+    say "The mechanism yields."
+```
+
+Every award site pays EXACTLY ONCE, by construction; a second push is a
+silent no-op, and no `moved`/`visited`/flag guard is ever written. When one
+problem has alternative solutions worth different points, name the pool:
+
+```
+if hacked_it
+    award 10 for door_solved "outsmarting the blast door"
+else
+    award 5 for door_solved "outsmarting the blast door"
+```
+
+A pool pays once, whichever branch fires first.
+
+MAX_SCORE COMPUTES ITSELF: the sum of every automatic room and thing, every
+anonymous award site, and every pool counted once at its maximum. It is
+never typed, so it can never drift from the game (no more 355/350). The
+compile ledger prints the plan (`scoring 6 award sites, 1 pool, 12
+auto-scored; max_score 95`), which is your scoring table: generated, not
+written. The one honest limit: an award that is UNREACHABLE still counts,
+because reachability is yours, not the compiler's; the ledger makes such a
+site easy to spot.
+
+RANKS, the Infocom ladder, need no numbers either:
+
+```
+ranks
+    "Cosmic Explorer"
+    "Interstellar Apprentice"
+    "Space Archaeologist"
+    "Savior of the Universe"
+```
+
+The titles spread evenly across the summed max (the last always means full
+score) and the score verb announces them: "You have scored 55 of a possible
+95, which earns you the rank of Interstellar Apprentice." An entry may pin
+itself as a percent of max (`"Slayer of the Prime Unit" at 90`), and the
+ladder still cannot drift as the game grows.
+
+With the extendedverbs granule, FULL SCORE prints the Infocom-style
+breakdown from the pool labels, reporting what this playthrough earned:
+
+```
+  5 points, for outsmarting the blast door
+You have scored 55 of a possible 95, in 21 turns.
+```
+
+The escape hatch: `change score` stays legal (penalties, score-as-resource),
+but it is off the paved road: hand-changed points play no part in the
+computed max. `award` is the road.
 
 ## 7. Statements
 

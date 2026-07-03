@@ -10,6 +10,35 @@ Model handover: `HANDOVER.md` (repo root) is a holistic orientation written at
 the switch to Anthropic's Fable model, with an assessment task to run before B8.
 Read it alongside this log.
 
+SCORING: SCORE JUST WORKS (2026-07-03, Stefan's vision after rejecting my
+Inform-shaped scored attribute and then my hand-typed plan table; his words:
+in Inform score is the single biggest burden, he never once shipped a game
+with max_score right, "355/350" was a YouTube title). THE DESIGN, ruled
+through three rounds: `scoring` in the game block turns it on; EVERY room
+pays 5 on first visit and EVERY takeable thing 5 on first take,
+automatically, EXCEPT the start room and start inventory (nothing is earned
+by beginning) and anything a plain take refuses (fixed/scenery/animate/
+doors); `scored false` opts one out; `award N` (a statement, legal anywhere)
+covers events and PAYS ONCE PER SITE by construction; `award N for pool
+"label"` makes alternative branches one pool, paid once, counted once at its
+MAXIMUM. MAX_SCORE COMPUTES ITSELF from all of it and is never typed. RANKS:
+a bare list of titles spreads evenly across the summed max (pins as percent:
+"Slayer of the Prime Unit" at 90); msg_score announces the rank in all three
+languages (ES/DE wordings pending native pass). FULL SCORE (extendedverbs)
+prints the Infocom breakdown from pool labels, reporting what the
+PLAYTHROUGH earned (the earned byte stores the awarded points, not a flag).
+The compile ledger prints the whole plan: "scoring 6 award sites, 0 pools,
+6 auto-scored; max_score 60, 7 ranks". MECHANICS: sema pre-scans every body
+for award sites (pools/anon registries), the auto-scored bits are set after
+member collection (an early-pass bug let `fixed` slip; caught by tests),
+earned bytes live in a dynamic table (__awards__), the rank ladder and
+labelled pools are layout tables with string fixups, thresholds patched in
+build_story once max is known. `change score` stays as the documented
+off-road escape. The H2 slice: `scoring` + 6 awards + the original's 7-rank
+ladder pinned at its Inform thresholds; auto-max 60 for Act I; the hand-set
+355 is GONE, which is the entire point. docs/01 has the new Scoring section
+(6a). 377 tests (test_scoring.py 7).
+
 THE SLICE-REVIEW BATCH (2026-07-03, Stefan: "All of them. When we encounter
 something, we fix it. That was the deal."). Five rulings, five features, one
 commit. (1) THE SCOPE ROOM, his design: `thing vlad of character in scope`

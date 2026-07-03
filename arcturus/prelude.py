@@ -276,6 +276,11 @@ _BUILTINS = {
     # Set for the opening room description when a status bar already names
     # the room: describe_room skips its title line once (library-internal).
     "hide_title": T_NUMBER,
+    # Scoring (docs/01): the earned-bytes table for award sites and pools,
+    # and the rank ladder table; both seeded by the compiler.
+    "__awards__": T_NUMBER,
+    "__ranks__": T_NUMBER,
+    "__pooltab__": T_NUMBER,
     # The disambiguation ask (docs/02 section 8), library-internal: the tied
     # phrase's word range and winning score (so the question can list the
     # candidates), and the text offset where an answer's narrowing words are

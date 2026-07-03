@@ -60,12 +60,13 @@ on go
     set_here(dest)
     fire_enter()
     set_here(parent_of(player))
-    // A scored room pays out on the first visit (the hook folds away in a
-    // game with nothing scored).
+    // With `scoring` on, a room pays out on the first visit; the compiler
+    // set the scored bits and summed max_score (docs/01, Scoring). Folds
+    // away in a game that scores nothing.
     if any_scored() is 1
         if here is scored
             if not (here is visited)
-                change score to score + room_score
+                change score to score + 5
     now here is visited
     describe_room()
 
@@ -95,11 +96,12 @@ on take
     if player holds noun
         msg_have_it()
         stop
-    // A scored thing pays out on the first take (folds away unused).
+    // With `scoring` on, a thing pays out on the first take (docs/01,
+    // Scoring). Folds away in a game that scores nothing.
     if any_scored() is 1
         if noun is scored
             if not (noun is moved)
-                change score to score + object_score
+                change score to score + 5
     move noun to player
     now noun is moved
     now noun is seen

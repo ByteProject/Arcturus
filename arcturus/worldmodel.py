@@ -196,6 +196,13 @@ class World:
     # The language layer's noise words (articles, fillers): in the dictionary
     # so the parser KNOWS them, flagged so it ignores them.
     noise_words: list[str] = field(default_factory=list)
+    # The scoring plan, gathered at lowering time (docs/01, Scoring): each
+    # anonymous `award` site's points, and each named pool's running
+    # (byte index, max points, label). max_score sums itself from these plus
+    # the scored rooms and things; build_story seeds the global.
+    award_anon: list = field(default_factory=list)
+    award_pools: dict = field(default_factory=dict)
+    ranks: list = field(default_factory=list)
     # True once lowering meets a colour construct (zcolor, say.<colour>). The
     # story header then announces colour use (Flags 2 bit 6), which interpreters
     # like Frotz require before they enable their colour machinery.

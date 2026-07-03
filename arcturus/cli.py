@@ -277,6 +277,10 @@ def _stats_report(stats: dict, version: int) -> str:
         f"  grammar   {stats['verbs']} verbs, {stats['grammar_lines']} grammar "
         f"lines, {stats['actions']} actions; {stats['dict_words']} dictionary "
         f"words",
+        f"  scoring   {stats.get('award_sites', 0)} award sites, "
+        f"{stats.get('award_pools', 0)} pools, {stats.get('scored_auto', 0)} "
+        f"auto-scored; max_score {stats.get('max_score', 0)}"
+        + (f", {stats.get('ranks', 0)} ranks" if stats.get('ranks') else ""),
         f"  text      abbreviations {stats['abbrevs']}/{stats['abbrevs_max']}; "
         f"{stats['string_bytes']} bytes of packed strings",
         f"  code      {stats['routines']} routines, {stats['code_bytes']} bytes "

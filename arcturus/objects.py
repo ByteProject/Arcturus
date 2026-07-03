@@ -113,6 +113,13 @@ class Layout:
     # Offset of the ambience table inside `table` (-1 when no block exists);
     # build_story seeds the __ambience__ global with its absolute address.
     ambience_off: int = -1
+    # Scoring (docs/01): offsets of the rank ladder and the labelled-pool
+    # tables (-1 when absent), and the rank threshold patch sites
+    # (position, percent-or-None, index, count); thresholds are written in
+    # build_story once the compiler-summed max_score is known.
+    ranks_off: int = -1
+    pools_off: int = -1
+    rank_sites: list = field(default_factory=list)
     # Objects that have a react routine; their react property (63) is emitted.
     react_objects: set = field(default_factory=set)
     # Computed (`<name> block`) properties, as (objname, pname, is_text, decl):
@@ -371,6 +378,46 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
     # routine and string addresses resolved only at link time.
     _emit_topic_tables(world, layout, topic_sites)
     _emit_ambience_tables(world, layout)
+    _emit_scoring_tables(world, layout)
+
+
+def _emit_scoring_tables(world, layout) -> None:
+    """The rank ladder and the labelled award pools (docs/01, Scoring).
+    Ranks: a count word, then (threshold, title) word pairs; the titles are
+    string fixups and the thresholds are patched in build_story, where the
+    compiler-summed max_score is known (even spread, or the entry's pinned
+    percent). Pools: a count word, then (points, earned-byte index, label)
+    triples for every pool that carries a label, so fullscore can print the
+    Infocom-style breakdown."""
+    table = layout.table
+    if world.ranks:
+        layout.ranks_off = len(table)
+        table += bytes(2)
+        _put_word(table, layout.ranks_off, len(world.ranks))
+        for i, (title, pct) in enumerate(world.ranks):
+            pos = len(table)
+            table += bytes(4)
+            layout.rank_sites.append((pos, pct, i, len(world.ranks)))
+            sid = f"rank@{pos}"
+            layout.strings[sid] = title
+            layout.string_fixups.append((pos + 2, sid))
+    pools = [
+        (idx, best, label)
+        for (idx, best, label) in world.award_pools.values()
+        if label is not None
+    ]
+    if pools:
+        layout.pools_off = len(table)
+        table += bytes(2)
+        _put_word(table, layout.pools_off, len(pools))
+        for idx, best, label in pools:
+            rec = len(table)
+            table += bytes(6)
+            _put_word(table, rec, best)
+            _put_word(table, rec + 2, idx)
+            sid = f"pool@{rec}"
+            layout.strings[sid] = _plain(label)
+            layout.string_fixups.append((rec + 4, sid))
 
 
 def _emit_ambience_tables(world, layout) -> None:

@@ -156,7 +156,7 @@ is summoned.)
 |---|---|---|
 | confirm_quit | quit confirmation | Are you sure you want to quit? |
 | msg_farewell | quit confirmed | We'll leave it there. |
-| msg_score | score | You have scored ${score} of a possible ${max_score}. |
+| msg_score | score | You have scored ${score} of a possible ${max_score}. With a `ranks` ladder: "..., which earns you the rank of <rank>." |
 | msg_saved | save ok | Saved. |
 | msg_save_failed | save failed | Something went wrong with that save. |
 | msg_restore_failed | restore failed | That save couldn't be restored. |

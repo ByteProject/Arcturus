@@ -90,12 +90,13 @@ def test_recipient_dispatch(tmp_path):
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_scored_rooms_and_objects(tmp_path):
-    # Start room 5, canister 5, yard 5; revisits and retakes pay nothing.
+    # Canister 5, yard 5; the START room never pays (you did not earn
+    # arriving where you begin), revisits and retakes pay nothing.
     out = _play(
         tmp_path, GAME,
         "take canister\nn\ns\nn\ndrop canister\ntake canister\nscore\n",
     )
-    assert "scored 15 " in out
+    assert "scored 10 " in out
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")

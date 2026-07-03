@@ -424,6 +424,9 @@ _BUILTIN_GLOBALS = [
     "__ambience__",
     # The opening-description title skip (a status bar already names the room).
     "hide_title",
+    # Scoring: the award earned-bytes table, the rank ladder, the labelled
+    # pools for the fullscore breakdown.
+    "__awards__", "__ranks__", "__pooltab__",
     # Command chaining (docs/02 section 8b): refused flags a command a refusal
     # path could not carry out (stops the rest of a chained line); chain_pos is
     # the text-buffer offset of the queued rest of the line (0 when none);
@@ -490,6 +493,22 @@ def build_story(
     # (the turn loop writes it); its base goes in the __timers__ global below.
     n_timers = len(world.schedule_index)
     timers_addr = sf.append(bytes(n_timers * 4)) if n_timers else 0
+
+    # Scoring (docs/01): one earned byte per award site and pool, zeroed, in
+    # dynamic memory; the base goes in __awards__ below. max_score sums
+    # itself: every anonymous site, each pool once at its maximum, and five
+    # points per auto-scored room and thing. Never typed by hand.
+    n_awards = len(world.award_anon) + len(world.award_pools)
+    awards_addr = sf.append(bytes(n_awards)) if n_awards else 0
+    from .lower import _prop_truthy as _scored_set
+    n_scored = sum(
+        1 for o in world.objects.values() if _scored_set(o.props.get("scored"))
+    )
+    auto_max = (
+        sum(world.award_anon)
+        + sum(best for (_i, best, _l) in world.award_pools.values())
+        + 5 * n_scored
+    )
 
     # Static memory: abbreviations and the dictionary built from the program's
     # vocabulary. The 96-word abbreviation table comes first; when a set is
@@ -618,6 +637,30 @@ def build_story(
             globals_addr + (gmap["__ambience__"] - 16) * 2,
             objects_addr + layout.ambience_off,
         )
+    if awards_addr:
+        sf.set_word(globals_addr + (gmap["__awards__"] - 16) * 2, awards_addr)
+    if auto_max:
+        sf.set_word(globals_addr + (gmap["max_score"] - 16) * 2, auto_max)
+    if layout is not None and layout.ranks_off >= 0:
+        sf.set_word(
+            globals_addr + (gmap["__ranks__"] - 16) * 2,
+            objects_addr + layout.ranks_off,
+        )
+        # The thresholds: pinned entries at their percent of max, the rest
+        # spread evenly; the last rank always means full score.
+        for pos, pct, i, count in layout.rank_sites:
+            if pct is not None:
+                pts = auto_max * pct // 100
+            elif count > 1:
+                pts = auto_max * i // (count - 1)
+            else:
+                pts = 0
+            sf.set_word(objects_addr + pos, pts)
+    if layout is not None and layout.pools_off >= 0:
+        sf.set_word(
+            globals_addr + (gmap["__pooltab__"] - 16) * 2,
+            objects_addr + layout.pools_off,
+        )
 
     m = _meta(world)
     # Flags 2: the story's own announcements (Standard 1.1 section 11.1). Bit 4:
@@ -646,6 +689,11 @@ def build_story(
         # never hardcodes a limit the compiler does not enforce.
         strings_begin = blob_start + len(blob)
         stats.update(
+            award_sites=len(world.award_anon),
+            award_pools=len(world.award_pools),
+            scored_auto=n_scored,
+            max_score=auto_max,
+            ranks=len(world.ranks),
             dict_words=len(set(word_offsets.values())),
             abbrevs=len(abbrevs),
             abbrevs_max=zstring.ABBREV_MAX,
