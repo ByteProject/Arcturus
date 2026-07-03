@@ -258,7 +258,10 @@ Each turn Cosmos runs:
 10. Loop.
 
 The room is described once on entry. The status line (room name and score or
-turns) is maintained continuously by the interpreter.
+turns) is maintained continuously by the interpreter. At game start, with the
+statusline summoned, the opening description skips its title line: the bar
+already names the room (the PunyInform start-screen convention); every later
+look prints the title as usual.
 
 ## 8. The parser
 
@@ -461,6 +464,10 @@ stays out (v1).
 An action carries its verb, `noun`, and optional `second`. Cosmos dispatches
 it as one chain of handlers, most specific first:
 
+0. (between 1 and 2) for a two-noun action, the `second` object's handlers:
+   the RECIPIENT of a give or show, the container of a put, answers for
+   itself ("give chip to vlad" runs Vlad's own `on give`), the way Inform
+   consults the second's life-routine.
 1. the `noun` object's own `on <verb>` handler,
 2. the `noun` object's own `on other` handler,
 3. its kind chain, nearest kind first, each kind's `on <verb>` before its

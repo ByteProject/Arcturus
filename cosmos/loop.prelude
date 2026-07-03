@@ -22,6 +22,25 @@ block status_bar()
 block status_lines()
     return 0
 
+// Is the room name already on screen in a status bar? 0 by default; the
+// statusline granule overrides it to 1, and the opening room description
+// then skips its title line (the bar says where you are), the PunyInform
+// start-screen convention. Later looks print the title as usual.
+block title_in_bar()
+    return 0
+
+// The author's state qualifier, appended to a listed object: "a fluid
+// canister (full)". `tag` is a text property, usually computed (tag block);
+// the packs' listing lines call this, and it folds away with any_tagged in
+// a game that tags nothing.
+block show_tag(obj)
+    if any_tagged() is 1
+        if tag_addr(obj) is not 0
+            show(" (")
+            show("${obj.tag}")
+            show(")")
+    return 0
+
 // Does the conversations menu own talking? 0 by default; summon.conversations
 // overrides it to 1. When the menu is present it is the single conversation
 // surface, so the extendedverbs ask/tell topic dispatch defers to it and points
@@ -64,12 +83,20 @@ block sweep_one(obj, act)
 
 block run_game()
     move player to here
+    if any_scored() is 1
+        if here is scored
+            change score to score + room_score
+    // The start room is visited by definition; without this, returning to
+    // it later would count as a first visit (and pay a scored room twice).
+    now here is visited
     // Request the paragraph break that separates the banner from the opening
     // text. The banner ends on a single newline; this par() (collapsed with the
     // one describe_room requests) yields exactly one blank line, whether or not
     // an `on start` prints first.
     par()
     run_free(ev_start())
+    if title_in_bar() is 1
+        change hide_title to 1
     describe_room()
     while true
         prompt()
@@ -249,7 +276,10 @@ block describe_room()
     if is_lit() is 0
         msg_dark_room()
         return
-    say here
+    if hide_title is 1
+        change hide_title to 0
+    else
+        say here
     if desc_addr(here) is not nothing
         say here.desc
     let listed = 0

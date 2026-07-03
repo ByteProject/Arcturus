@@ -10,6 +10,12 @@
 // compiler still seeds the standard kinds and properties from its provisional
 // table (prelude.py); those move into Cosmos source as the runtime grows.
 
+// The automatic-score amounts (docs/01 section 6): what a `scored` room
+// pays on first visit and a `scored` thing on first take. Retune them in
+// `on start` (change room_score to 10) or leave them at the classic 5.
+global room_score = 5
+global object_score = 5
+
 // A marker block, proving Cosmos compiles together with the game. It will be
 // replaced by real library code as Cosmos is built out.
 block cosmos_ready()

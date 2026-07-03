@@ -10,6 +10,34 @@ Model handover: `HANDOVER.md` (repo root) is a holistic orientation written at
 the switch to Anthropic's Fable model, with an assessment task to run before B8.
 Read it alongside this log.
 
+THE SLICE-REVIEW BATCH (2026-07-03, Stefan: "All of them. When we encounter
+something, we fix it. That was the deal."). Five rulings, five features, one
+commit. (1) THE SCOPE ROOM, his design: `thing vlad of character in scope`
+places an object BACKSTAGE, an invisible seeded room whose contents are in
+scope everywhere (in_scope hook + scope_room()/any_scoperoom() fold, zero
+unused); `move x to scope` stages at run time. Replaces the spans hack for
+Vlad and his parts, and closes gap G4: examining the droid reveals the chip
+backstage, so TAKE CHIP gets Inform's honest "no chance to reach it". Never
+listed; backstage objects defend themselves in handlers. (2) G6 RESOLVED,
+RECIPIENT DISPATCH: dispatch consults the SECOND noun's handlers between the
+noun's and the room's, so "give chip to vlad" runs Vlad's own on give (the
+H2 handler moved back where it belongs) and "put chip in reservoir" gets the
+reservoir's refusal. ~40 bytes core. (3) SCORED: the attribute + room_score/
+object_score knobs (default 5, core.prelude, retunable); a scored room pays
+on first visit (incl. the start room; run_game now marks the start room
+visited, a latent double-pay bug), a scored thing on first take; folds to
+zero unscored. The slice's manual awards became attributes. (4) THE TAG:
+a `tag` text property (usually `tag block`, print with show) appended in
+listings and inventory via the shared show_tag hook in all three packs:
+"a fluid canister (full)", closing gap G2 without touching print_obj.
+(5) START TITLE: with the statusline summoned the opening description skips
+its title line (title_in_bar seam, hide_title), the Puny start-screen
+convention Stefan screenshot-diffed. Batch cost ~84-88 bytes per game
+(recipient dispatch + title seam + tag hook; scored and scope room fold).
+369 tests (test_worldfeatures.py, 7). The slice uses all five; its gap list
+is now: G6 resolved, G4 resolved, G2 resolved, G1/G3 resolved earlier; only
+G5 (emphasis colour yellow, Stefan's eye) and the quality-sweep list remain.
+
 THE AMBIENCE GRANULE (2026-07-03, Stefan approved the proposal whole and
 ordered v2 in v1, "I hate the idea of touching it again"): summon.ambience.
 An `ambience` block on a room plays while the player is there, on a thing

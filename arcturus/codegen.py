@@ -422,6 +422,8 @@ _BUILTIN_GLOBALS = [
     # The ambience table's base address (summon.ambience), 0 when no block
     # exists; the granule's driver walks it each turn.
     "__ambience__",
+    # The opening-description title skip (a status bar already names the room).
+    "hide_title",
     # Command chaining (docs/02 section 8b): refused flags a command a refusal
     # path could not carry out (stops the rest of a chained line); chain_pos is
     # the text-buffer offset of the queued rest of the line (0 when none);

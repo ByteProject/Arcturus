@@ -763,6 +763,7 @@ block list_item(obj)
     if obj is openable
         if not (obj is open)
             show(" (closed)")
+    show_tag(obj)
     list_contents(obj)
     say " here."
 
@@ -1118,5 +1119,6 @@ block list_held(obj)
     show("${a obj}")
     if obj is worn
         show(" (worn)")
+    show_tag(obj)
     list_contents(obj)
     say ""

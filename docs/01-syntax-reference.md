@@ -127,6 +127,17 @@ position. The body is property settings, `on` handlers, an optional `grains`
 block (section 14), `topic` blocks on a character (section 15), and, with
 `summon.ambience`, `ambience` blocks (02, section 14; docs/05).
 
+An object can also live BACKSTAGE: `thing vlad of character in scope` places
+it in an invisible room whose contents the parser always has in scope, in
+every room, light or dark. That is the home of a companion who follows the
+player everywhere, of their examinable parts, of anything the game should
+always answer for; `move x to scope` and back stages things at run time (the
+seen-but-unreachable chip in a droid's chest). A backstage object is never
+listed (its room is never entered), so it defends itself in its own handlers:
+make it `scenery`, or answer `on take` yourself. The whole mechanism folds
+away in a game that stages nothing. The name `scope` is reserved as a
+location only in games that use it.
+
 A fixed object can be in scope in more than one room. The object tree gives each
 object a single home, so a second (and third) room is a *span*: `in hall, vault`
 puts the object in `hall` and spans it into `vault`, and a `spans a, b, c` line
@@ -341,6 +352,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `seen` | Set once the player has been shown an object (a content of an open container, something taken or examined). A closed opaque container still lists the contents the player has `seen`, so they are not forgotten when put away; contents never seen stay hidden until the box is opened. Cosmos manages this; you rarely set it. The full container knowledge model is in 02, section 5a. |
 | `lockable` | Can be locked and unlocked with a key (`lock` / `unlock`). |
 | `locked` | Currently locked; blocks `open` until unlocked with the matching key. |
+| `scored` | Awards points once, automatically: a scored room pays `room_score` on the first visit, a scored thing pays `object_score` on the first take (both default 5; retune them in `on start`). The hooks fold away in a game that scores nothing. |
 | `visited` | The room has been entered before (Cosmos sets it on entry). Use it to vary a room's description on return. |
 | `moved` | Set the first time the player takes an object. While clear, the object shows its `intro` text in a room description instead of the plain listing. |
 | `animate` | An animate agent (a person, animal, robot, or AI). The conversation and give verbs apply only to the animate; the `character` kind sets it by default, and animate objects refuse being taken. |
@@ -356,6 +368,7 @@ carries the attribute of every kind in its chain.
 | `name` | text | The printed short name ("brass lantern"). Distinct from the object's id and from `words`. |
 | `desc` | text | The description shown by `examine` (and on first look at a room). |
 | `words` | list | The vocabulary the parser matches: the object's nouns and adjectives, as equal entries. Typed but not printed. |
+| `tag` | text | A short state qualifier appended to the object in listings and the inventory: "a fluid canister (full)". Usually computed (`tag block`); print with `show`, not `say`, so it stays inline. The parentheses come from the listing. |
 | `plural` | list | The words that name this object AS PART OF A GROUP (`plural coins` on each coin): "take coins" acts on every match in scope. Only with `summon.plurals` (02 section 8; docs/05); ignored otherwise. |
 | `intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). |
 | `capacity` | number | How many objects a container or supporter holds. |

@@ -68,6 +68,15 @@ block door_other_side(door)
 block in_scope(obj)
     if obj is player
         return 1
+    // Backstage (docs/01 section 5): an object placed `in scope` lives in an
+    // invisible room whose contents are in scope EVERYWHERE, light or dark:
+    // the home of a companion who follows, of parts of them, of anything the
+    // parser should always answer for. It is never listed (its room is never
+    // entered), so a backstage object defends itself in its own handlers.
+    // The check folds away in a game that places nothing there.
+    if any_scoperoom() is 1
+        if parent_of(obj) is scope_room()
+            return 1
     if is_lit() is 0
         // Dark: only what the player carries is in scope.
         if obj in player
