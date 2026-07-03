@@ -109,7 +109,8 @@ INTRINSICS = frozenset({
     # so they cost nothing unless a granule calls them.
     "split_window", "set_window", "set_cursor", "set_style", "screen_width",
     "erase_window", "screen_height", "buffer_mode", "clear_screen", "random",
-    "ambience_table",
+    "ambience_table", "ranks_table", "any_ranks", "print_packed",
+    "pools_table", "award_earned", "any_awards",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr", "article_addr", "indefinite_addr", "tag_addr",
@@ -651,6 +652,34 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("set_text_style", op)
         _free(ctx, t)
         _place(rt, Const(0), dest)
+    elif name == "pools_table":
+        # pools_table(): the labelled-pool table for the fullscore breakdown
+        # (0 when no labelled pool exists).
+        _place(rt, Variable(ctx.globals["__pooltab__"]), dest)
+    elif name == "award_earned":
+        # award_earned(i): the earned byte for award site or pool i.
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("loadb", Variable(ctx.globals["__awards__"]), op, store=dest)
+        _free(ctx, t)
+    elif name == "any_awards":
+        # any_awards(): 1 when the game scores at all (any award site, pool,
+        # or auto-scored object), so score plumbing folds away otherwise.
+        w = ctx.world
+        scored = any(_prop_truthy(o.props.get("scored")) for o in w.objects.values())
+        _place(rt, Const(1 if (w.award_anon or w.award_pools or scored) else 0), dest)
+    elif name == "ranks_table":
+        # ranks_table(): the rank ladder's base address (0 without a ladder).
+        _place(rt, Variable(ctx.globals["__ranks__"]), dest)
+    elif name == "any_ranks":
+        # any_ranks(): 1 when the game declares a rank ladder, so msg_score's
+        # rank clause folds away otherwise.
+        _place(rt, Const(1 if ctx.world.ranks else 0), dest)
+    elif name == "print_packed":
+        # print_packed(a): print the packed string at a (the rank titles).
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("print_paddr", op)
+        _free(ctx, t)
+        _place(rt, Const(0), dest)
     elif name == "ambience_table":
         # ambience_table(): the ambience table's base address (0 when no
         # block exists), from the __ambience__ global build_story seeds.
@@ -799,7 +828,7 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
     elif name == "any_scored":
         # any_scored(): 1 when anything declares `scored`, so the award hooks
         # in take and go fold away in a scoreless game.
-        _place(rt, Const(1 if any("scored" in o.props for o in ctx.world.objects.values()) else 0), dest)
+        _place(rt, Const(1 if any(_prop_truthy(o.props.get("scored")) for o in ctx.world.objects.values()) else 0), dest)
     elif name == "any_scoperoom":
         # any_scoperoom(): 1 when the backstage scope room was seeded (some
         # object is placed `in scope`), so the scope hook folds away otherwise.
@@ -1044,12 +1073,43 @@ def compile_block(rt: Routine, ctx: Context, body) -> bool:
     return False
 
 
+def _award(rt: Routine, ctx: Context, s) -> None:
+    """`award N [for pool ["label"]]`: pay once. Every anonymous site and
+    every named pool gets one byte in the earned table (base in the
+    __awards__ global); the site checks its byte, sets it, and adds the
+    points. Registration here is what the compiler sums into max_score: an
+    anonymous site adds its points, a pool adds its MAXIMUM across sites
+    (alternative branches share the pool name, so max counts them once)."""
+    w = ctx.world
+    if s.pool is not None:
+        if s.pool not in w.award_pools:
+            raise LowerError(f"award pool '{s.pool}' missed by the sema scan")
+        idx = w.award_pools[s.pool][0]
+    else:
+        idx = getattr(s, "site", None)
+        if idx is None:
+            raise LowerError("award site missed by the sema scan")
+    base = Variable(ctx.globals["__awards__"])
+    done = ctx.new_label()
+    rt.op("loadb", base, Const(idx), store=Variable(STACK))
+    rt.op("jz", Variable(STACK), branch=(done, False))
+    # The earned byte stores the points actually awarded (a pool's branches
+    # can differ), so the fullscore breakdown reports the playthrough, not
+    # the plan. Nonzero doubles as the earned flag.
+    rt.op("storeb", base, Const(idx), Const(s.points))
+    score = Variable(ctx.globals["score"])
+    rt.op("add", score, Const(s.points), store=score)
+    rt.label(done)
+
+
 def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
     """Lower one statement. Returns True if it unconditionally transfers control
     away (return, stop, finish, continue, or an if/else all of whose paths do), so
     the block knows the following statements cannot be reached."""
     if isinstance(s, ast.Let):
         eval_expr(rt, ctx, s.value, Variable(ctx.resolve_var(s.name, s.line)))
+    elif isinstance(s, ast.Award):
+        _award(rt, ctx, s)
     elif isinstance(s, ast.Change):
         _change(rt, ctx, s)
     elif isinstance(s, ast.Say):
@@ -1414,6 +1474,19 @@ def _say_with_article(rt, ctx, article, case, expr):
         ctx.free_temp(t)
 
 
+def _prop_truthy(decl) -> bool:
+    """Is a boolean property declaration set (a bare `scored`), rather than
+    an explicit opt-out (`scored false`)?"""
+    if decl is None:
+        return False
+    if getattr(decl, "form", None) == ast.PROP_BOOL:
+        return True
+    vals = getattr(decl, "values", None)
+    if vals and isinstance(vals[0], ast.Bool):
+        return vals[0].value
+    return True
+
+
 def _static_value(ctx, expr):
     """The compile-time integer value of expr, or None if it is not statically
     known. Covers literals and the compile-time flag intrinsics (any_spans), so a
@@ -1437,9 +1510,15 @@ def _static_value(ctx, expr):
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tagged":
         return 1 if any("tag" in o.props for o in ctx.world.objects.values()) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scored":
-        return 1 if any("scored" in o.props for o in ctx.world.objects.values()) else 0
+        return 1 if any(_prop_truthy(o.props.get("scored")) for o in ctx.world.objects.values()) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scoperoom":
         return 1 if "scope" in ctx.world.objects else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_ranks":
+        return 1 if ctx.world.ranks else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_awards":
+        w = ctx.world
+        scored = any(_prop_truthy(o.props.get("scored")) for o in w.objects.values())
+        return 1 if (w.award_anon or w.award_pools or scored) else 0
     # A constant folds to its value, so `if DEBUG is 1` (DEBUG a constant) decides
     # at compile time and an unused branch is never emitted.
     if isinstance(expr, ast.Name):

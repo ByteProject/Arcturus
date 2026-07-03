@@ -192,6 +192,8 @@ class Parser:
             return self.parse_all()
         if t.kind == T.NAME and t.value == "noise" and self._at(1).kind == T.STRING:
             return self.parse_noise()
+        if t.kind == T.NAME and t.value == "ranks":
+            return self.parse_ranks()
         if t.value == "player" and t.kind in (T.NAME, T.KW):
             nxt = self._at(1)
             if nxt.kind == T.OP and nxt.value == ".":
@@ -260,6 +262,14 @@ class Parser:
         # `banner false`: stop the automatic banner at start; the game prints it
         # later (or never) with print_banner(). Not a reserved word, so it is
         # accepted here as a plain name.
+        if tok.kind == T.NAME and tok.value == "scoring":
+            # `scoring`: score just works. Every room pays on first visit and
+            # every takeable thing on first take (except where you start and
+            # what you start holding); `scored false` exempts one; `award`
+            # covers events; the compiler sums max_score (docs/01, Scoring).
+            self.advance()
+            self.expect_newline()
+            return ast.MetaLine("scoring", True, tok.line)
         if tok.kind == T.NAME and tok.value == "banner":
             self.advance()
             if not (self.cur.kind == T.KW and self.cur.value == "false"):
@@ -758,6 +768,30 @@ class Parser:
         self.expect_newline()
         return ast.AllDecl(words, line)
 
+    def parse_ranks(self) -> ast.RanksDecl:
+        # `ranks` then an indented list of titles, oldest rank first; an
+        # entry may pin itself with `at N` (percent of the summed max).
+        line = self.cur.line
+        self.advance()  # the leading `ranks`
+        self.expect_newline()
+        self.expect(T.INDENT, "an indented list of rank titles")
+        entries = []
+        while not self.check(T.DEDENT):
+            if self.check(T.NEWLINE):
+                self.advance()
+                continue
+            title = self._plain_text(self.expect(T.STRING, "a rank title"))
+            pct = None
+            if self.check(T.NAME) and self.cur.value == "at":
+                self.advance()
+                pct = self.expect(T.NUMBER, "a percent after 'at'").value
+            self.expect_newline()
+            entries.append((title, pct))
+        self.expect(T.DEDENT)
+        if len(entries) < 2:
+            raise self._error("a ranks ladder needs at least two titles")
+        return ast.RanksDecl(entries, line)
+
     def parse_noise(self) -> ast.NoiseDecl:
         # `noise "the", "a", "an"`: the language layer's known-but-ignored
         # words (articles, fillers). Dispatched like `all` and `chain`.
@@ -841,8 +875,27 @@ class Parser:
             # not a reserved word.
             if t.value == "zcolor":
                 return self._parse_zcolor()
+            if t.value == "award" and self._at(1).kind == T.NUMBER:
+                return self._parse_award()
             return self._parse_expr_statement()
         raise self._error(f"expected a statement, got {self._describe(t)}")
+
+    def _parse_award(self) -> ast.Award:
+        # `award 5` / `award 10 for door_solved "outsmarting the door"`:
+        # score enters the game only through this statement, so the compiler
+        # can sum max_score itself (docs/01, Scoring).
+        line = self.cur.line
+        self.advance()  # the leading `award`
+        points = self.expect(T.NUMBER, "the points to award").value
+        pool = None
+        label = None
+        if self.check_kw("for"):
+            self.advance()
+            pool = self.expect_name("a pool name after 'for'").value
+            if self.check(T.STRING):
+                label = self._build_string(self.advance())
+        self.expect_newline()
+        return ast.Award(points, pool, label, line)
 
     def _parse_let(self) -> ast.Let:
         line = self.cur.line

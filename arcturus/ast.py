@@ -555,6 +555,28 @@ class ChainDecl:
 
 
 @dataclass
+class Award:
+    # `award 5` / `award 10 for door_solved "outsmarting the door"`: grant
+    # points, once per site (or once per named POOL: alternative branches
+    # sharing a name pay whichever fires first, and max_score counts the
+    # pool once at its maximum). The compiler sums every site and pool into
+    # max_score, so it is never typed by hand (docs/01, Scoring).
+    points: int
+    pool: Optional[str] = None
+    label: Optional["StringLit"] = None
+    line: int = 0
+
+
+@dataclass
+class RanksDecl:
+    # The Infocom-style rank ladder: a bare list of titles spread evenly
+    # across the compiler-summed max_score; an entry may pin itself with
+    # `at N` (percent of max). entries: (title, percent or None).
+    entries: list
+    line: int = 0
+
+
+@dataclass
 class NoiseDecl:
     # A language layer's noise words: the articles and fillers the parser
     # knows but ignores (`noise "the", "a", "an"`). Being KNOWN is the point:

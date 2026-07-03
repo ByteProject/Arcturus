@@ -1229,6 +1229,12 @@ block msg_farewell()
 // Meta verbs (the score, a restart confirmation, the xyzzy easter egg). save,
 // restore, and undo bring their own messages with the meta-verb opcodes.
 block msg_score()
+    if any_ranks() is 1
+        show("Has conseguido ${score} de un total de ${max_score} puntos, lo
+              que te otorga el rango de ")
+        print_rank()
+        say "."
+        return 0
     say "Has conseguido ${score} de un total de ${max_score} puntos."
 
 block msg_confirm_restart()

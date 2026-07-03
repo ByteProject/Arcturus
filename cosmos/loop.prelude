@@ -29,6 +29,24 @@ block status_lines()
 block title_in_bar()
     return 0
 
+// The current rank (docs/01, Scoring): the highest ladder entry at or
+// under the score, thresholds computed by the compiler from the summed
+// max_score. The packs' msg_score calls this; folds away with any_ranks.
+block print_rank()
+    let t = ranks_table()
+    if t is 0
+        return 0
+    let n = peek_word(t, 0)
+    let best = 0
+    let i = 0
+    while i < n
+        if score >= peek_word(t, 1 + i * 2)
+            change best to peek_word(t, 2 + i * 2)
+        change i to i + 1
+    if best is not 0
+        print_packed(best)
+    return 0
+
 // The author's state qualifier, appended to a listed object: "a fluid
 // canister (full)". `tag` is a text property, usually computed (tag block);
 // the packs' listing lines call this, and it folds away with any_tagged in
@@ -83,11 +101,8 @@ block sweep_one(obj, act)
 
 block run_game()
     move player to here
-    if any_scored() is 1
-        if here is scored
-            change score to score + room_score
-    // The start room is visited by definition; without this, returning to
-    // it later would count as a first visit (and pay a scored room twice).
+    // The start room is visited by definition (and never scores: you did
+    // not earn arriving where you begin).
     now here is visited
     // Request the paragraph break that separates the banner from the opening
     // text. The banner ends on a single newline; this par() (collapsed with the

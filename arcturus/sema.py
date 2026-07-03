@@ -58,7 +58,12 @@ class Analyzer:
         self._collect()
         self._resolve_kinds()
         self._build_properties()
+        # After the members are collected: the automatic scored bits need
+        # the real attributes (fixed blocks a thing, `scored false` opts
+        # out), and the award scan feeds the compiler-summed max_score.
+        self._auto_score()
         self._resolve_bodies()
+        self._scan_awards()
         # A summoned abbreviations.granule (B6) is compile-time data, not runtime
         # blocks, so it rides on the program straight through to codegen.
         self.world.abbreviations = getattr(self.program, "abbreviations", None)
@@ -174,6 +179,16 @@ class Analyzer:
                 for word in decl.words:
                     if word.lower() not in w.all_words:
                         w.all_words.append(word.lower())
+            elif isinstance(decl, ast.RanksDecl):
+                if w.ranks:
+                    raise self._error("more than one ranks ladder", decl.line)
+                for title, pct in decl.entries:
+                    if pct is not None and not (0 <= pct <= 100):
+                        raise self._error(
+                            f"a rank pin is a percent of the maximum score, got {pct}",
+                            decl.line,
+                        )
+                w.ranks = list(decl.entries)
             elif isinstance(decl, ast.NoiseDecl):
                 for word in decl.words:
                     if word.lower() not in w.noise_words:
@@ -267,6 +282,94 @@ class Analyzer:
         return chain
 
     # -- pass 3: property model --------------------------------------------
+
+    def _scan_awards(self) -> None:
+        """Walk every body that will be compiled and register each `award`
+        site: anonymous sites append their points, named pools keep one byte
+        and their maximum (docs/01, Scoring). Done here, before layout, so
+        the earned table and the pool table can be laid out with the fixup
+        machinery; lowering asserts against these assignments."""
+        w = self.world
+
+        def scan(stmts):
+            for st in stmts:
+                if isinstance(st, ast.Award):
+                    if st.pool is not None:
+                        prior = w.award_pools.get(st.pool)
+                        if prior is None:
+                            idx = len(w.award_anon) + len(w.award_pools)
+                            w.award_pools[st.pool] = (idx, st.points, st.label)
+                        else:
+                            idx, best, label = prior
+                            w.award_pools[st.pool] = (idx, max(best, st.points), label or st.label)
+                    else:
+                        st.site = len(w.award_anon) + len(w.award_pools)
+                        w.award_anon.append(st.points)
+                if isinstance(st, ast.If):
+                    for cl in st.clauses:
+                        scan(cl.body)
+                elif isinstance(st, (ast.While, ast.ForEach)):
+                    scan(st.body)
+                elif isinstance(st, ast.Switch):
+                    for c in st.cases:
+                        scan(c.body)
+
+        for blk in w.blocks.values():
+            scan(blk.body)
+        for h in w.free_handlers:
+            scan(h.body)
+        for obj in w.objects.values():
+            for h in obj.handlers:
+                scan(h.body)
+            for t in obj.topics:
+                scan(t.body)
+            for g in obj.grains:
+                if g.body:
+                    scan(g.body)
+            for a in obj.ambiences:
+                pass  # do-lines call blocks, scanned above
+            for pname, decl in obj.props.items():
+                if getattr(decl, "form", None) == ast.PROP_BLOCK and decl.body:
+                    scan(decl.body)
+        for kind in w.kinds.values():
+            for h in kind.handlers:
+                scan(h.body)
+
+    def _auto_score(self) -> None:
+        """With `scoring` in the game block, score just works: every room and
+        every takeable thing gets the scored bit set automatically, except
+        the start room, whatever the player starts holding, and anything
+        backstage; `scored false` on an object opts it out; kinds with
+        blocking attributes (scenery, fixed, animate) never pay. The compiler
+        sums all of it into max_score (docs/01, Scoring)."""
+        w = self.world
+        game = w.game
+        if game is None or not any(
+            m.key == "scoring" and m.value is True for m in game.meta
+        ):
+            return
+        for name, obj in w.objects.items():
+            if name in ("player", "scope") or "scored" in obj.props:
+                continue
+            if obj.category == "room":
+                if name != w.start_room:
+                    obj.props["scored"] = ast.PropertyDecl(name="scored", form=ast.PROP_BOOL)
+                continue
+            if obj.location in ("player", "scope"):
+                continue
+            # A thing a plain take would refuse never pays, so it never
+            # counts: its own attributes and its kind chain's decide (a door
+            # is fixed by kind, a character animate).
+            blocked = False
+            for attr in ("scenery", "fixed", "animate"):
+                if attr in obj.props:
+                    blocked = True
+                for k in obj.chain:
+                    kind = w.kinds.get(k)
+                    if kind is not None and attr in kind.props:
+                        blocked = True
+            if not blocked:
+                obj.props["scored"] = ast.PropertyDecl(name="scored", form=ast.PROP_BOOL)
 
     def _build_properties(self) -> None:
         w = self.world
@@ -529,6 +632,9 @@ class Analyzer:
         elif isinstance(s, (ast.Add, ast.Remove)):
             self._check_expr(s.value, locals_)
             self._check_list_place(s.target, locals_)
+        elif isinstance(s, ast.Award):
+            if not (0 < s.points <= 250):
+                raise self._error("award takes 1 to 250 points", s.line)
         elif isinstance(s, ast.Say):
             self._check_expr(s.value, locals_)
         elif isinstance(s, (ast.Stop, ast.Continue, ast.ZColor)):

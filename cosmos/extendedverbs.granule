@@ -374,6 +374,23 @@ verb "fullscore", "full"
 
 on fullscore
     change meta_turn to 1
+    // The Infocom-style breakdown, from the labelled award pools (docs/01,
+    // Scoring): each earned one prints its points and its label; the
+    // summary line follows. Unlabelled points stay in the total.
+    let t = pools_table()
+    if t is not 0
+        let n = peek_word(t, 0)
+        let i = 0
+        while i < n
+            let rec = t + 2 + i * 6
+            let e = award_earned(peek_word(rec, 1))
+            if e > 0
+                show("  ")
+                show(e)
+                show(" points, for ")
+                print_packed(peek_word(rec, 2))
+                say ""
+            change i to i + 1
     msg_fullscore()
 
 // ---------------------------------------------------------------------------
