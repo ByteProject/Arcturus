@@ -54,15 +54,25 @@ before any commit (one slip happened, amended). Artifacts current: build/arcc
 The pty harness lives in the scratchpad (drive*.py, render.py + pyte venv);
 REBUILD IT after compaction if upper-window/colour work recurs.
 
-NEXT, IN ORDER: (1) the COMMAND-CHAINING DISCUSSION with Stefan ("take lamp
-and go north", "coge la lampara y ve al norte"; a general parser feature, all
-languages; then-implementation only after his design ruling); (2) then the
-actual port: vertical slice first (H2's opening through the first walkthrough
-checkpoint), watching the arcc -s ledger (globals are the tightest ceiling,
-H2 needs ~175+22 of 240). BACKLOG, unscheduled: plural model (them/-los/-las),
-article capitalization at sentence start, a default player name for dative
-slots (German name "dich selbst" is accusative), docs/07 updates as evidence
-grows, Pablo's remaining idea of defining custom alone-words? (none pending).
+NEXT, IN ORDER (all RULED by Stefan 2026-07-03, implement one by one after
+compaction): (1) COMMAND CHAINING: separators and/then/comma (Spanish y/luego,
+German und/dann), STOP the chain on a failed segment, AGAIN repeats only the
+LAST segment (Option B, his ruling: our again machinery already stores the
+resolved command, and whole-line replay re-fires side effects); v1 accepts
+that noun lists misparse ("take lamp and box"), because "take lamp and take
+box" works. (2) DISAMBIGUATION, a real hole found 2026-07-03: two objects
+sharing a word ("gold coin"/"silver coin", both `words coin`): "take coin"
+SILENTLY takes the first in scope order; msg_be_specific exists but nothing
+fires it. Design an ask ("Which do you mean, the gold coin or the silver
+coin?") or at least a "be more specific" refusal on ambiguous matches.
+(3) then the H2 vertical slice (opening through the first walkthrough
+checkpoint), watching arcc -s (globals tightest, ~197 of 240 expected).
+GRANULES SOMEDAY, ruled: the plural model (English-only granule, authors of
+other languages fork it; most games do not need it: Stefan's Ghosts slabs
+trick, one object dividing on take, covers the common case) and TAKE ALL
+(separate granule; the core deliberately omits it: it flattens scenes into
+transactional loot runs). BACKLOG unchanged: article capitalization at
+sentence start, dative-safe player name, docs/07 as evidence grows.
 
 MSG_EXAMINE_SELF ROUND (2026-07-03): "x me" with no player.desc used to fall
 to the object message (EN wrong voice, DE doubly broken: dative "an DIR
