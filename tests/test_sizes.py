@@ -29,35 +29,35 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.7.0 / Cosmos 0.10.0 (2026-07-02).
 CEILINGS = {
-    # 2026-07-03 (command chaining, docs/02 8b): the chain_split/chain_next
-    # buffer surgery, the run_chain loop, the refused marks on every refusal
-    # path, and the chain words in the dictionary. Roughly 570-640 bytes per
-    # game, the cost of a core parser feature every game carries.
-    "beispiel-deutsch.storyarc": 18260,
-    "brass-lantern.storyarc": 12596,
-    "cloak-of-darkness.storyarc": 13108,
-    "ejemplo-espanol.storyarc": 17516,
-    "features/computed-properties.storyarc": 11444,
-    "features/containers.storyarc": 11480,
-    "features/daemons-and-timers.storyarc": 11780,
-    "features/doors-and-locks.storyarc": 11420,
-    "features/grains.storyarc": 11472,
-    "features/introproperty.storyarc": 12524,
-    "features/kinds-and-inheritance.storyarc": 11300,
-    "features/on-other.storyarc": 11304,
-    "features/zcolor.storyarc": 11816,
-    "features/spans.storyarc": 11564,
-    "granules/conversations.storyarc": 13168,
-    "granules/extended-verbs.storyarc": 14648,
-    "granules/infocom-interrogation.storyarc": 16496,
-    "granules/quotes.storyarc": 11804,
-    "granules/statusline.storyarc": 11548,
-    "granules/verbose-exits.storyarc": 11692,
+    # 2026-07-03 (disambiguation stage 1, docs/02 section 8): the scoring
+    # matcher (match_phrase/phrase_score), net of the old scope walkers DCE
+    # reclaims: ~150-225 bytes per game. Chaining (same day) accounted for
+    # ~570-640 before it; both are core parser features every game carries.
+    "beispiel-deutsch.storyarc": 18424,
+    "brass-lantern.storyarc": 12820,
+    "cloak-of-darkness.storyarc": 13332,
+    "ejemplo-espanol.storyarc": 17672,
+    "features/computed-properties.storyarc": 11668,
+    "features/containers.storyarc": 11704,
+    "features/daemons-and-timers.storyarc": 12004,
+    "features/doors-and-locks.storyarc": 11568,
+    "features/grains.storyarc": 11696,
+    "features/introproperty.storyarc": 12748,
+    "features/kinds-and-inheritance.storyarc": 11524,
+    "features/on-other.storyarc": 11528,
+    "features/zcolor.storyarc": 12040,
+    "features/spans.storyarc": 11712,
+    "granules/conversations.storyarc": 13392,
+    "granules/extended-verbs.storyarc": 14872,
+    "granules/infocom-interrogation.storyarc": 16720,
+    "granules/quotes.storyarc": 12028,
+    "granules/statusline.storyarc": 11772,
+    "granules/verbose-exits.storyarc": 11916,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 13504
+CLOAK_Z8_CEILING = 13736
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
