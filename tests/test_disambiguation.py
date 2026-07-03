@@ -87,6 +87,75 @@ def test_two_noun_slot_ambiguity(tmp_path):
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_ask_and_narrowing_answer(tmp_path):
+    # The tie asks; a bare adjective as the answer weaves into the command
+    # ("take coin" + "gold" resolves like "take gold coin" typed whole).
+    out = _play(tmp_path, GAME, "take coin\ngold\ni\n")
+    assert "Which do you mean, the gold coin or the silver coin?" in out
+    assert "Got it." in out
+    assert "gold coin" in out.rsplit("You're carrying:", 1)[1]
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_ask_answered_with_fresh_command(tmp_path):
+    # An answer that starts with a verb is a change of mind: it replaces the
+    # ambiguous command outright.
+    out = _play(tmp_path, GAME, "take coin\ntake chest\ni\n")
+    assert "Which do you mean," in out
+    assert "stays exactly where it is" not in out  # chest is takeable? no:
+    # the chest is an ordinary container, so it is simply taken.
+    assert "oak chest" in out.rsplit("You're carrying:", 1)[1]
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_ask_empty_answer_gives_up(tmp_path):
+    out = _play(tmp_path, GAME, "take coin\n\nlook\n")
+    assert "You'll have to be more specific." in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_ask_repeats_until_narrowed(tmp_path):
+    # An answer that does not narrow re-asks with the grown line; a second,
+    # useful answer still lands.
+    out = _play(tmp_path, GAME, "take coin\ncoin\nsilver\ni\n")
+    assert out.count("Which do you mean,") >= 2
+    assert "silver coin" in out.rsplit("You're carrying:", 1)[1]
+
+
+SPANISH = (
+    'summon.language "spanish"\n'
+    'game\n    title "Cual"\n    start sala\n'
+    'room sala\n    name "La Sala"\n    desc "Una sala."\n'
+    'thing oro in sala\n    name "moneda de oro"\n    words moneda, oro\n'
+    'thing plata in sala\n    name "moneda de plata"\n    words moneda, plata\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_spanish_ask(tmp_path):
+    out = _play(tmp_path, SPANISH, "coge la moneda\noro\ni\n")
+    assert "¿A cuál te refieres, la moneda de oro o la moneda de plata?" in out
+    assert "Cogida." in out
+
+
+GERMAN = (
+    'summon.language "german"\n'
+    'game\n    title "Welche"\n    start halle\n'
+    'room halle\n    name "Die Halle"\n    desc "Eine Halle."\n'
+    'thing hammer in halle\n    name "Hammer"\n    der\n    words hammer, werkzeug\n'
+    'thing meissel in halle\n    name "Meißel"\n    der\n    words meissel, werkzeug\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_german_ask_declines_accusative(tmp_path):
+    # "Was meinst du" takes the accusative: den Hammer, not der Hammer.
+    out = _play(tmp_path, GERMAN, "nimm das werkzeug\nhammer\ni\n")
+    assert "Was meinst du: den Hammer oder den Meißel?" in out
+    assert "Genommen." in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_shut_away_knowledge_survives(tmp_path):
     # The scoring matcher keeps the container knowledge model: naming a thing
     # you know is shut inside a closed chest (taking marked it seen) answers

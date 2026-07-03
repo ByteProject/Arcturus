@@ -18,7 +18,11 @@ docs/verb-set.md.
 | msg_extra_words | a verb that takes no noun is given extra words (jump north, look cloak) | You lost me after that. |
 | msg_cant_see | a noun was named but nothing matches in scope | You see nothing of the sort here. |
 | msg_no_it | "it"/"them" with nothing to refer to | You'll have to say what you mean. |
-| msg_be_specific | the noun is ambiguous | You'll have to be more specific. |
+| msg_be_specific | an ambiguous noun, after the ask got no usable answer | You'll have to be more specific. |
+| line_which_open | the disambiguation question's opening | Which do you mean, |
+| line_which_or | the connector before the last candidate | or |
+| line_which_item | one candidate (German declines it: den Hammer) | ${the obj} |
+| line_which_end | the question's close | ? |
 | msg_nothing_again | "again" with no previous command | There's nothing to repeat. |
 | msg_only_animate | give/show/talk aimed at a thing, not a person | If you continue talking to objects, it might be time for another therapy session. |
 

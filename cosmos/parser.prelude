@@ -73,6 +73,10 @@ block parse_line()
         return 0
     change way to find_direction()
     resolve_objects()
+    // An ambiguous noun phrase asks rather than refuses: "Which do you
+    // mean, the gold coin or the silver coin?" (docs/02 section 8).
+    if parse_fault is 3
+        return ask_which()
     if parse_fault is not 0
         return 0
     // Remember what the pronouns now mean: the language layer decides which
@@ -90,17 +94,17 @@ block parse_line()
 // ==========================================================================
 
 // How many of the typed words in [lo, hi) this object's vocabulary contains.
-// Only object words count: a flagged word (verb, direction, particle,
-// preposition, pronoun, grain, or chain word) is not object vocabulary.
+// Membership in the object's own `words` is the whole test: a word that also
+// serves as a verb or particle elsewhere still counts (a person named Pat,
+// "pat" the verb), because has_word compares dictionary entries, not flags.
 block phrase_score(obj, lo, hi)
     let s = 0
     let i = lo
     while i < hi
         let d = word_dict(i)
         if d is not nothing
-            if peek_byte(d + 6) is 0
-                if has_word(obj, d)
-                    change s to s + 1
+            if has_word(obj, d)
+                change s to s + 1
         change i to i + 1
     return s
 
@@ -172,9 +176,127 @@ block match_phrase(lo, hi)
             change i to i + 1
         return nothing
     if tied is 1
+        // A genuine ambiguity: remember the phrase (so the ask can list the
+        // tied candidates) and where an answer's narrowing words weave back
+        // in (just past the phrase's last word). parse_line runs the ask.
         change parse_fault to 3
+        change ask_lo to lo
+        change ask_hi to hi
+        change ask_score to best_score
+        change ask_at to word_pos(hi - 1) + word_len(hi - 1)
         return nothing
     return best
+
+// The first noun phrase after the verb, through the scoring matcher: from the
+// first non-preposition word up to the next grammar preposition (flag bit 3).
+// Only a true preposition ends the phrase: it is what separates a noun from
+// the subject of "ask the guard ABOUT the coin", and what "look AT coin"
+// reaches past. Any other word is phrase content; the scoring simply ignores
+// what no object's vocabulary carries, so a particle or direction word inside
+// the phrase costs nothing, and a person named Pat survives "pat" the verb.
+block match_first_phrase()
+    let n = word_count()
+    let lo = 1
+    let going = 1
+    while going is 1
+        change going to 0
+        if lo < n
+            let d = word_dict(lo)
+            if d is not nothing
+                if peek_byte(d + 6) is 8
+                    change lo to lo + 1
+                    change going to 1
+    if lo >= n
+        return nothing
+    let hi = lo + 1
+    change going to 1
+    while going is 1
+        change going to 0
+        if hi < n
+            let e = word_dict(hi)
+            if e is nothing
+                change hi to hi + 1
+                change going to 1
+            else
+                if not (peek_byte(e + 6) is 8)
+                    change hi to hi + 1
+                    change going to 1
+    return match_phrase(lo, hi)
+
+// Print the question naming the tied candidates: "Which do you mean, the
+// gold coin or the silver coin?" The framing and the connectors come from
+// the language layer (line_which_*); the list itself is mechanical.
+block list_which()
+    let total = 0
+    let obj = 1
+    while obj <= object_count()
+        if not (obj is hidden)
+            if phrase_score(obj, ask_lo, ask_hi) is ask_score
+                if in_scope(obj)
+                    change total to total + 1
+        change obj to obj + 1
+    line_which_open()
+    let shown = 0
+    change obj to 1
+    while obj <= object_count()
+        if not (obj is hidden)
+            if phrase_score(obj, ask_lo, ask_hi) is ask_score
+                if in_scope(obj)
+                    if shown is not 0
+                        if shown is total - 1
+                            line_which_or()
+                        else
+                            show(", ")
+                    line_which_item(obj)
+                    change shown to shown + 1
+        change obj to obj + 1
+    line_which_end()
+
+// The disambiguation ask (docs/02 section 8): the phrase in [ask_lo, ask_hi)
+// tied between several objects at score ask_score. Ask which one, then read
+// the answer through the shared text buffer. An answer that starts with a
+// verb or a direction is a change of mind: it replaces the command outright.
+// Anything else is narrowing words: they are woven into the saved command
+// right after the ambiguous phrase (ask_at) and the whole line re-parses,
+// so the scoring does the rest ("hook" plus an answer of "brass" resolves
+// exactly like "brass hook" typed whole). An empty answer, or one the line
+// has no room for, gives up with the be-specific refusal.
+block ask_which()
+    par()
+    list_which()
+    // Save the command; the answer claims the live buffer.
+    copy_bytes(text_addr(), ask_addr(), peek_byte(text_addr() + 1) + 2)
+    let term = read_input()
+    if word_count() is 0
+        change parse_fault to 3
+        return 0
+    change chain_max to peek_byte(text_addr() + 1)
+    let d = word_dict(0)
+    if d is not nothing
+        let f = peek_byte(d + 6)
+        if f is 128
+            return parse_line()
+        if f is 64
+            return parse_line()
+    let alen = peek_byte(ask_addr() + 1)
+    let blen = peek_byte(text_addr() + 1)
+    if alen + blen + 1 > peek_byte(text_addr())
+        change parse_fault to 3
+        return 0
+    // Weave: head, a space, the answer, then the rest of the original line.
+    // The answer moves right to make room; the regions can overlap, so it
+    // copies backward. The head and tail come from the untouched backup.
+    let i = blen
+    while i > 0
+        change i to i - 1
+        poke_byte(text_addr() + ask_at + 1 + i, peek_byte(text_addr() + 2 + i))
+    copy_bytes(ask_addr() + 2, text_addr() + 2, ask_at - 2)
+    poke_byte(text_addr() + ask_at, 32)
+    copy_bytes(ask_addr() + ask_at, text_addr() + ask_at + 1 + blen, alen - ask_at + 2)
+    poke_byte(text_addr() + 1, alen + blen + 1)
+    change chain_max to alen + blen + 1
+    retokenize()
+    return parse_line()
 
 // Command chaining (docs/02 section 8b). A chain word (the language layer's
 // `chain` declarations: "and", "then", the comma) ends the current command;

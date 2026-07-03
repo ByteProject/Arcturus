@@ -93,7 +93,7 @@ INTRINSICS = frozenset({
     # text_addr gives the text buffer, and retokenize re-runs the tokenizer over
     # it, so a pack can rewrite the typed text and re-analyze (the Spanish
     # infinitive retry: "comer" -> "come").
-    "parse_addr", "oops_addr", "text_addr", "retokenize",
+    "parse_addr", "oops_addr", "ask_addr", "text_addr", "retokenize",
     # object_count gives the number of declared objects, so the debug granule can
     # scan every object by number (not just those in scope).
     "object_count",
@@ -599,6 +599,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
     elif name == "oops_addr":
         # oops_addr(): the address of the parse-buffer backup kept for oops.
         _place(rt, Const(storyfile.OOPS_PARSE_ADDR), dest)
+    elif name == "ask_addr":
+        # ask_addr(): the address of the text-buffer backup the disambiguation
+        # ask uses to keep the command while the answer claims the live buffer.
+        _place(rt, Const(storyfile.ASK_TEXT_ADDR), dest)
     elif name == "object_count":
         # object_count(): how many objects the program declares (1..N), so the
         # debug granule can scan them all by number (the parser reaches only those

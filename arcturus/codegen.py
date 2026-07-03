@@ -416,6 +416,9 @@ _BUILTIN_GLOBALS = [
     # chain_max is the full typed length chain_next restores before it
     # re-tokenizes the tail.
     "refused", "chain_pos", "chain_max",
+    # The disambiguation ask (docs/02 section 8): the tied phrase's word range
+    # and winning score, and the offset where an answer weaves back in.
+    "ask_lo", "ask_hi", "ask_score", "ask_at",
 ]
 
 
@@ -454,6 +457,7 @@ def build_story(
     parse_buf[0] = PARSE_BUFFER_MAX
     sf.append(bytes(parse_buf))  # lands at PARSE_BUFFER_ADDR
     sf.append(bytes(storyfile.OOPS_PARSE_BYTES))  # lands at OOPS_PARSE_ADDR
+    sf.append(bytes(storyfile.ASK_TEXT_BYTES))  # lands at ASK_TEXT_ADDR
     if layout is not None:
         objects_addr = sf.append(bytes(layout.table))
         # Make the property-table pointers absolute now the base is known.

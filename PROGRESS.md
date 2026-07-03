@@ -10,6 +10,40 @@ Model handover: `HANDOVER.md` (repo root) is a holistic orientation written at
 the switch to Anthropic's Fable model, with an assessment task to run before B8.
 Read it alongside this log.
 
+DISAMBIGUATION (2026-07-03): item (2) of the checkpoint queue is DONE, both
+stages, Stefan's ruling ("I want both now", B first then A). STAGE 1, THE
+SCORING MATCHER: match_phrase (parser.prelude, agnostic, single copy; the
+packs' match_noun/resolve_two_nouns/named_unseen are thin calls) scores every
+in-scope object by how many typed words of the noun phrase its `words`
+contain and binds the unique best; "gold coin" beats "coin", adjectives
+narrow per slot in two-noun commands (the phrase boundary is the first
+separator), and a TIE is parse_fault 3 instead of silently taking the first
+object in scope order (the coin hole is closed). The container knowledge
+("open the chest first"), pronouns, spans, and the grain fallback ride along.
+TWO REGRESSIONS the suite caught, both fixed: the noun phrase must slice at
+grammar PREPOSITIONS only (flag 8), not any flagged word ("ask guard about
+pebble" was tying guard with pebble), and scoring must test vocabulary
+membership regardless of flags (a person named Pat survives "pat" the verb;
+"talk to pat" broke first). STAGE 2, THE ASK: an ambiguity now asks "Which do
+you mean, the gold coin or the silver coin?" (list_which, framing per pack:
+line_which_open/or/item/end; German declines the accusative, "den Hammer oder
+den Meissel", via the ${the:acc} tag; Spanish "?A cual te refieres...?",
+WORDING PENDING NATIVE BLESSING both). The answer is read through the shared
+text buffer after saving the command to a new 62-byte backup region
+(ASK_TEXT_ADDR, ask_addr() intrinsic): a verb- or direction-initial answer
+REPLACES the command (change of mind); anything else is woven into the saved
+line right after the ambiguous phrase (ask_at) and the whole line re-parses,
+so "gold" resolves exactly like "take gold coin" typed whole; still-tied
+re-asks with the grown line; empty or unweavable answers fall back to
+msg_be_specific. The ask is a mid-turn read, so a queued chain tail dies with
+it (safe, documented). COST, flagged for Stefan: chaining plus both stages is
+about 1.7K per game total (Cloak 12532 -> 14232, still well under Puny 27K);
+the ask alone is ~900. Docs/02 section 8 now describes the real matcher (and
+marks multi/all as NOT BUILT, ruled a someday-granule); message-set gained the
+line_which rows. 334 tests (test_disambiguation.py: 12, including the German
+accusative ask and answer-weave round trips). NEXT: checkpoint item (3), the
+H2 vertical slice.
+
 COMMAND CHAINING (2026-07-03): item (1) of the checkpoint queue below is DONE,
 to Stefan's rulings. "take the lamp and open the door then go north" runs as
 three full turns; the separators are the language layer's new `chain`

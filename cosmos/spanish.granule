@@ -306,7 +306,7 @@ block shut_match(holder, target)
 // scoring matcher (parser.prelude match_phrase): the in-scope object matching
 // the most typed words wins, a tie is a genuine ambiguity (parse_fault 3).
 block match_noun()
-    return match_phrase(1, word_count())
+    return match_first_phrase()
 
 // Resolve the command's objects into the noun (and, for a two-noun verb like
 // "put noun on noun", the second). The verb's dictionary entry carries its noun
@@ -877,6 +877,21 @@ block msg_no_it()
 
 block msg_be_specific()
     say "Tendrás que ser más concreto."
+
+// La pregunta de desambiguación (docs/02 sección 8): el marco alrededor de
+// la lista de candidatos que imprime el parser ("¿A cuál te refieres, la
+// moneda de oro o la moneda de plata?").
+block line_which_open()
+    show("¿A cuál te refieres, ")
+
+block line_which_or()
+    show(" o ")
+
+block line_which_item(obj)
+    show("${the obj}")
+
+block line_which_end()
+    say "?"
 
 block msg_nothing_again()
     say "No hay nada que repetir."
