@@ -74,6 +74,44 @@ anonymous-points line; ambience per-line dwell.
 
 >>> END DAY-TWO CHECKPOINT <<<
 
+H2 ACT II PORTED WHOLE (2026-07-03, Stefan's go): the Alien Wilderness
+through the Hidden Station, ending at the pod's arrival in the Plaza of
+Reflections (the Act III boundary stub). Verbatim prose from the .inf; the
+full walkthrough for Acts I+II runs end to end on dfrotz and finishes at
+130 OF A POSSIBLE 130, Savior of the Universe, with the max self-summed
+(12 award sites + 14 auto-scored; the ledger agrees). ZERO compiler or
+Cosmos changes were needed: the whole act is story-level Arcturus. What
+the act exercises: summon.extendedverbs joins the port (the original is
+OPTIONAL_EXTENDED_VERBSET + FULL_SCORE; CUT/BURN/SEARCH/SWIM answer, FULL
+prints "in N turns"); the hull plate and power cell (off-stage things via
+plain parentless declarations, custom take refusal while shut in); the
+razor vines and the pod as Vlad topic unlocks (examine-hint and try-enter
+set the gate flags, exactly the Inform status-30 flips); the statue slab
+handing the shard straight to the player; the riverbank pedestal as a
+RECIPIENT-dispatch put; the phase-threshold planet puzzle, eight planets
+carrying a LIVE `orbit` number property (change p.orbit swaps neighbours,
+planet_at() walks the hologram's children, print_order() recites the
+system, is_aligned() opens the door): a mutable-array puzzle with no
+arrays, properties did it; the Keeper's ten-beat conversation chain as
+`when`-gated topics reproducing the talk array's relative activations
+(branches show as 2- and 4-option menus, walkthrough stays all-1s); the
+sanctum's sealed exits; the pod's one-way ride with the spray-oil
+softlock guard. SCORING HONESTY: story code that bypasses GO/TAKE (crash,
+plate, slab, pod) pays through story-local go_to()/gain() blocks that
+mirror the Cosmos payouts; this also fixed the SLICE's crash landing,
+which had seeded `visited` without paying the wilderness (an unreachable
+5, the exact 355/350 failure class), and the holographic star needed
+`fixed` or it auto-scored as takeable while refusing TAKE. Three .inf
+typos fixed in the port and noted in its header ("TThe pod's", the
+"tortureous screech", the missing period after "gardener in the sector").
+Harness lore: the intro now overflows dfrotz's default height, so pipe
+with -h 5000 AND two leading blank lines (quote box + press-any-key each
+eat one). Ledger at Act II: 54 objects, 61 grains, 15 topics, globals
+78/240, story 65904 bytes. NEXT: Act III, the City of Glass, chapter by
+chapter (Science District first: stellar map, temporal lab, nexus slab,
+Genesis; needs a USE verb for "use X on Y" per the walkthrough's synonym
+note). The quality-sweep list in the slice header still stands.
+
 EXAMPLES SPEAK THE TRIO (2026-07-03, Stefan's call before Act II): the sweep
 after the declaration trio landed. Every shipped example that still said
 `global` for a flag or a counter now declares its role: Cloak's `disturbed`
