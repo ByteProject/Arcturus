@@ -70,7 +70,12 @@ Conditions must be boolean; `if n` for a number is a compile error, write
 
 Top-level constructs, in any order: the `game` metadata block, `summon`
 directives, `kind`, `room`, `thing`, `verb`, `global`, `constant`, `block`,
-and free-standing `on` rules.
+and free-standing `on` rules. A language pack additionally uses the
+language-layer declarations `language` (its self-identifying marker),
+`direction`, `particle`, and `pronoun`, which map player-typed words to the
+compiler's fixed properties and roles (02, sections 8a and 14a); and a German
+object declares its gender with a bare `der`, `die`, or `das` line, which the
+compiler maps to the gender attributes (02, section 14a).
 
 The metadata block sets everything the banner and story header carry:
 
@@ -293,8 +298,8 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `edible` | Can be eaten; the `eat` verb consumes it rather than refusing. |
 | `named` | A proper-named thing (Linda, Excalibur). Takes no article: `${the noun}` and `${a noun}` print just the name. |
 | `an` | The indefinite article is "an", not "a". Derived from the name's first letter (a vowel -> `an`); set `an` or `an false` only for an exception (an hour, a unicorn). |
-| `article` | text | The definite article, verbatim, when derivation cannot reach it: `article "las"` (las tijeras), `article "el"` (el agua). |
-| `indefinite` | text | The indefinite article, verbatim: `indefinite "unas"`, or English mass nouns with `indefinite "some"` ("You can see some water here."). |
+| `feminine` | Grammatical gender. Drives the Spanish articles and agreement (la lampara, Cogida), the German article (declared there with `die`, which sets this), and the English "her" pronoun on a character. Spanish derives it from a head noun ending in -a or a reliably feminine suffix; declare it where spelling cannot reveal it (la llave; an English Ruth). Masculine is the unmarked default. |
+| `neuter` | The third German gender, declared there with `das` (das Buch, "es"). English and Spanish never read it. |
 | `switchable` | Marks a thing the `switch` verb targets, but the effect is the author's: unlike `openable` or `edible`, there is no built-in on/off behavior (the library has no way to know what turning a thing on should do), so give the object `on switch_on` and `on switch_off` handlers. Without them, switching it is refused (`msg_no_switch`). The attribute itself only advertises intent. |
 | `openable` | Can be opened and closed; the `open` / `close` verbs apply. |
 | `open` | Currently open (a container or door). Set by `open`, cleared by `close`. A closed container hides its contents from scope. |
@@ -319,6 +324,8 @@ carries the attribute of every kind in its chain.
 | `words` | list | The vocabulary the parser matches: the object's nouns and adjectives, as equal entries. Typed but not printed. |
 | `intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). |
 | `capacity` | number | How many objects a container or supporter holds. |
+| `article` | text | The definite article, verbatim, when derivation cannot reach it: `article "las"` (las tijeras), `article "el"` (el agua). |
+| `indefinite` | text | The indefinite article, verbatim: `indefinite "unas"`, or an English mass noun with `indefinite "some"` ("You can see some water here."). |
 | `unseal_with` | object | The object (a key) that locks and unlocks this one (for `lockable` things). |
 
 `score`, `max_score`, and `turns` are runtime globals, not object properties (02
