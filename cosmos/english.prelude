@@ -155,6 +155,15 @@ block scope_match_in(container, target)
 // Match a word against an object in scope: the room first, then what the player
 // carries (and onward into containers and supporters within reach).
 block scope_match(target)
+    // A typed pronoun resolves to its remembered referent, if that referent is
+    // still in scope; a referent that has gone (taken away, another room) stays
+    // unresolved, and the turn answers "you can't see that", the honest failure.
+    if peek_byte(target + 6) is 4
+        let ref = pronoun_slot(peek_byte(target + 7))
+        if ref is not nothing
+            if in_scope(ref)
+                return ref
+        return nothing
     let in_room = scope_match_in(here, target)
     if in_room is not nothing
         return in_room
@@ -327,6 +336,10 @@ block find_scenery()
 // word qualifies: the grammar preposition (bit 3), but also a particle or a
 // direction word (on/in), which separate the two noun phrases just as well.
 block is_separator(target)
+    // A pronoun is a noun word, never a boundary: "put coin in it" binds "it"
+    // as the second noun.
+    if peek_byte(target + 6) is 4
+        return 0
     if peek_byte(target + 6) is not 0
         return 1
     return 0
@@ -516,6 +529,25 @@ verb "switch"
 // role is `on` or `off`. English has just the two.
 particle on  "on"
 particle off "off"
+
+// The pronouns (docs/02 section 8a): "it" for the last thing, "him"/"her" for
+// the last character, by its gender. The words map to canonical roles; the
+// note_pronouns rule below decides which role a resolved noun fills.
+pronoun it  "it"
+pronoun him "him"
+pronoun her "her"
+
+// Which pronoun a just-resolved noun becomes: English splits by animacy (a
+// character is him or her, everything else is it), and by the feminine
+// attribute within characters. The skeleton calls this after each command.
+block note_pronouns(obj)
+    if obj is animate
+        if obj is feminine
+            change pron_her to obj
+        else
+            change pron_him to obj
+        return 0
+    change pron_it to obj
 
 verb "wear", "don"
     wear noun

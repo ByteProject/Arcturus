@@ -184,6 +184,8 @@ class Parser:
             return self.parse_direction()
         if t.kind == T.NAME and t.value == "particle":
             return self.parse_particle()
+        if t.kind == T.NAME and t.value == "pronoun":
+            return self.parse_pronoun()
         if t.kind == T.NAME and t.value == "language":
             return self.parse_language_decl()
         if t.kind == T.NAME:
@@ -603,6 +605,22 @@ class Parser:
             words.append(self._plain_text(self.expect(T.STRING, "a particle word")))
         self.expect_newline()
         return ast.ParticleDecl(role, words, line)
+
+    def parse_pronoun(self) -> ast.PronounDecl:
+        # `pronoun it "it"` / `pronoun her "sie"`: map typed words to a canonical
+        # pronoun role. Dispatched as a leading name, like direction and particle;
+        # the role is checked in sema against prelude._PRONOUN_ROLES.
+        line = self.cur.line
+        self.advance()  # the leading `pronoun`
+        if self.cur.kind not in (T.NAME, T.KW):
+            raise self._error("a pronoun role (it, him, her, them) after 'pronoun'")
+        role = self.advance().value
+        words = [self._plain_text(self.expect(T.STRING, "a pronoun word"))]
+        while self.check_op(","):
+            self.advance()
+            words.append(self._plain_text(self.expect(T.STRING, "a pronoun word")))
+        self.expect_newline()
+        return ast.PronounDecl(role, words, line)
 
     def _parse_grammar_line(self) -> ast.GrammarLine:
         line = self.cur.line

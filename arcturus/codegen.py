@@ -404,6 +404,9 @@ _BUILTIN_GLOBALS = [
     # 0 means unset: the status bar and the input reader skip their colour ops
     # entirely, so a game without them pays two cheap tests and nothing more.
     "__zcstatus__", "__zcinput__",
+    # The pronoun referents (docs/02 section 8a), written by the language
+    # layer's note_pronouns and read back when a pronoun word resolves.
+    "pron_it", "pron_him", "pron_her", "pron_them",
 ]
 
 

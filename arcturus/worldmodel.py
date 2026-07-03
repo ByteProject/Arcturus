@@ -178,6 +178,10 @@ class World:
     # (switch + on -> switch_on). Localized by a pack, so no particle word is
     # hardcoded in the compiler.
     particles: dict[str, str] = field(default_factory=dict)
+    # Player-typed pronoun word -> canonical role name (it/him/her/them), from
+    # the language layer's `pronoun` declarations. The dictionary flags these
+    # words and the noun matcher resolves them to the remembered referents.
+    pronouns: dict[str, str] = field(default_factory=dict)
     # True once lowering meets a colour construct (zcolor, say.<colour>). The
     # story header then announces colour use (Flags 2 bit 6), which interpreters
     # like Frotz require before they enable their colour machinery.

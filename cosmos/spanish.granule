@@ -81,6 +81,16 @@ block find_particle()
         change i to i + 1
     return nothing
 
+// A qué pronombre se convierte un sustantivo resuelto: por su género. Sin
+// palabras `pronoun` propias todavía (los clíticos cogelo/cogela llegan en la
+// parte 2), pero las casillas se rellenan desde ya. El esqueleto llama a este
+// bloque tras cada orden.
+block note_pronouns(obj)
+    if obj is feminine
+        change pron_her to obj
+        return 0
+    change pron_him to obj
+
 // Combine a base verb with a particle into a multi-word action, only for the
 // verbs that take one: switch and turn with on/off become switch_on/switch_off,
 // and take with off becomes take_off. Any other base ignores the particle (so
@@ -177,6 +187,15 @@ block scope_match_in(container, target)
 // Match a word against an object in scope: the room first, then what the player
 // carries (and onward into containers and supporters within reach).
 block scope_match(target)
+    // A typed pronoun resolves to its remembered referent, if that referent is
+    // still in scope; a referent that has gone (taken away, another room) stays
+    // unresolved, and the turn answers "you can't see that", the honest failure.
+    if peek_byte(target + 6) is 4
+        let ref = pronoun_slot(peek_byte(target + 7))
+        if ref is not nothing
+            if in_scope(ref)
+                return ref
+        return nothing
     let in_room = scope_match_in(here, target)
     if in_room is not nothing
         return in_room
@@ -342,6 +361,10 @@ block find_scenery()
 // word qualifies: the grammar preposition (bit 3), but also a particle or a
 // direction word (on/in), which separate the two noun phrases just as well.
 block is_separator(target)
+    // A pronoun is a noun word, never a boundary: "put coin in it" binds "it"
+    // as the second noun.
+    if peek_byte(target + 6) is 4
+        return 0
     if peek_byte(target + 6) is not 0
         return 1
     return 0
