@@ -3,7 +3,7 @@
 What "conformant" means for this project, the evidence that the compiler meets
 it, and the size record that evidence protects. The charter is docs/00 (sections
 2 and 5); the backend mapping the claims below rest on is docs/04. This document
-records the state as of arcc 0.7.0 / Cosmos 0.10.0 (2026-07-02) and is updated
+records the state as of arcc 0.8.0 / Cosmos 0.11.0 (2026-07-03) and is updated
 whenever the conformance evidence changes.
 
 ## 1. The conformance claim
@@ -35,7 +35,7 @@ by the test suite on every run, not checked by hand.
 
 ## 3. The evidence
 
-The suite (293 tests at this writing; `python3 -m pytest`) drives generated
+The suite (352 tests at this writing; `python3 -m pytest`) drives generated
 stories end to end on Frotz (dfrotz). What runs on a real interpreter, per run:
 
 - Full winning walkthroughs of both golden games, z5; Cloak of Darkness also as
@@ -69,9 +69,9 @@ Smallest possible z-code is a charter objective, judged alongside correctness
 
 | Story | Bytes | Benchmark |
 |-------|-------|-----------|
-| Cloak of Darkness, z5 | 14232 | PunyInform-equivalent build: ~27K |
-| Cloak of Darkness, z8 | 14656 | same game, version 8 |
-| The Brass Lantern, z5 | 13716 | no published equivalent |
+| Cloak of Darkness, z5 | 14368 | PunyInform-equivalent build: ~27K |
+| Cloak of Darkness, z8 | 14792 | same game, version 8 |
+| The Brass Lantern, z5 | 13844 | no published equivalent |
 
 The 11792-byte Cloak built at the close of the size pass (B6) is, to our
 knowledge, the smallest runnable Cloak of Darkness for the Z-machine
