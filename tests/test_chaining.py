@@ -113,6 +113,42 @@ def test_and_then_run_chains_once(tmp_path):
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_noun_list_borrows_the_verb(tmp_path):
+    # NOUN LISTS are core (docs/02 section 8b): a verb-less segment borrows
+    # the previous command's verb, so "take lamp and box" takes both, one
+    # full turn each. No granule involved.
+    out = _play(tmp_path, GAME, "take lamp and box\ni\n")
+    assert out.count("Got it.") == 2
+    inv = out.rsplit("You're carrying:", 1)[1]
+    assert "brass lamp" in inv and "wooden box" in inv
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_noun_list_with_article(tmp_path):
+    # An article is an unknown word, and the borrowed-verb leg tolerates it:
+    # "take the lamp and the box" lists exactly like the bare form.
+    out = _play(tmp_path, GAME, "take the lamp and the box\ni\n")
+    assert out.count("Got it.") == 2
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_noun_list_respects_refusals(tmp_path):
+    # The statue leg refuses (fixed), so the rest of the line dies, the
+    # ordinary chain rule.
+    out = _play(tmp_path, GAME, "take lamp and statue and box\ni\n")
+    assert "stays exactly where it is" in out
+    assert "wooden box" not in out.rsplit("You're carrying:", 1)[1]
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_bare_noun_alone_is_still_no_command(tmp_path):
+    # The borrowed verb exists only INSIDE a chained line: a bare noun typed
+    # on its own line stays the honest refusal.
+    out = _play(tmp_path, GAME, "take lamp\nbox\n")
+    assert "don't add up" in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_trailing_chain_word_is_harmless(tmp_path):
     # "take lamp and" has no second command: the take still runs cleanly, and
     # the dangling word never reaches the verb grammar as an extra word.

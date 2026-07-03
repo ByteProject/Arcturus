@@ -3,9 +3,9 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The plurals granule (summon.plurals): group words (`plural coins`), noun
-lists ("take lamp and box"), and THEM. Every swept or listed item is a full
-turn, the same rule as chaining and TAKE ALL."""
+"""The plurals granule (summon.plurals): group words (`plural coins`)
+and THEM. (Noun lists are core, tested in test_chaining.py.) Every swept
+item is a full turn, the same rule as chaining and TAKE ALL."""
 
 import shutil
 import subprocess
@@ -69,15 +69,6 @@ def test_them_replays_the_group(tmp_path):
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
-def test_noun_list_borrows_the_verb(tmp_path):
-    # "take lamp and box" runs the take twice; both end up carried.
-    out = _play(tmp_path, GAME, "take lamp and box\ni\n")
-    assert out.count("Got it.") == 2
-    inv = out.rsplit("You're carrying:", 1)[1]
-    assert "brass lamp" in inv and "wooden box" in inv
-
-
-@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_list_and_chain_coexist(tmp_path):
     # A verb after the chain word still chains; a noun borrows. Both on one
     # line: the sweep runs, then the move.
@@ -118,9 +109,8 @@ NO_GRANULE = (
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
-def test_without_granule_lists_stay_chains(tmp_path):
-    # Unsummoned, the documented v1 chain behavior stands: "take lamp and
-    # box" takes the lamp, and "box" alone is no command.
-    out = _play(tmp_path, NO_GRANULE, "take lamp and box\ni\n")
-    assert out.count("Got it.") == 1
-    assert "wooden box" not in out.rsplit("You're carrying:", 1)[1]
+def test_without_granule_group_words_are_unknown(tmp_path):
+    # Unsummoned, a group word is not vocabulary: the honest can't-see. (Noun
+    # lists are core and tested with chaining, not here.)
+    out = _play(tmp_path, NO_GRANULE, "take coins\n")
+    assert "You see nothing of the sort here." in out

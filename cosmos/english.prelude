@@ -280,8 +280,11 @@ block find_scenery()
 // direction word (on/in), which separate the two noun phrases just as well.
 block is_separator(target)
     // A pronoun is a noun word, never a boundary: "put coin in it" binds "it"
-    // as the second noun.
+    // as the second noun. A noise word (an article, flag 3) is no boundary
+    // either: "give the coin to the guard" splits at "to" alone.
     if peek_byte(target + 6) is 4
+        return 0
+    if peek_byte(target + 6) is 3
         return 0
     if peek_byte(target + 6) is not 0
         return 1
@@ -478,6 +481,11 @@ particle off "off"
 // "drop cloak, hang cloak on hook"). The comma tokenizes as its own word, so
 // it chains with or without spaces around it.
 chain ",", "and", "then"
+
+// The noise words: the articles and fillers the parser knows but ignores.
+// Known is the point: a noun-list segment may contain them ("take lamp and
+// the box"), while a genuinely unknown word refuses the borrow (8b).
+noise "the", "a", "an", "some", "my"
 
 // The pronouns (docs/02 section 8a): "it" for the last thing, "him"/"her" for
 // the last character, by its gender. The words map to canonical roles; the

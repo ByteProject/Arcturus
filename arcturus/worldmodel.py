@@ -190,6 +190,9 @@ class World:
     # dictionary so the parser hands the command to the granule's expander.
     # Empty unless the granule is summoned, and everything gated on it folds.
     all_words: list[str] = field(default_factory=list)
+    # The language layer's noise words (articles, fillers): in the dictionary
+    # so the parser KNOWS them, flagged so it ignores them.
+    noise_words: list[str] = field(default_factory=list)
     # True once lowering meets a colour construct (zcolor, say.<colour>). The
     # story header then announces colour use (Flags 2 bit 6), which interpreters
     # like Frotz require before they enable their colour machinery.

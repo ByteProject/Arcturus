@@ -55,6 +55,12 @@ _CHAIN_FLAG = 0x02
 # declaration): the parser hands the command to the granule's expander, which
 # runs the action once per object within reach (TAKE ALL, DROP ALL).
 _ALL_FLAG = 0x01
+# A noise word (an article or filler, from the language layer's `noise`
+# declaration): known to the dictionary, ignored by the parser. The flag is
+# the CHAIN and ALL bits together, a combination no real word carries; every
+# library check compares flag bytes for exact equality, so 0x03 collides with
+# nothing. is_separator exempts it, like the pronoun flag.
+_NOISE_FLAG = 0x03
 # flags bit 3 marks a grammar preposition (the "to"/"with" joining two noun
 # slots), so the parser knows where the first noun phrase ends and the second
 # begins. Words already flagged otherwise (on/in are a particle/direction) are
@@ -196,6 +202,8 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
     words |= chain_words
     all_words = set(world.all_words)
     words |= all_words
+    noise_words = set(world.noise_words)
+    words |= noise_words
     encoded = {w: zstring.encode_dict_word(w) for w in words}
     # Map each distinct encoded entry to its three data bytes.
     enc_data: dict[bytes, bytes] = {}
@@ -215,6 +223,8 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
         enc_data[encoded[word]] = bytes([_CHAIN_FLAG, 0, 0])
     for word in all_words:
         enc_data[encoded[word]] = bytes([_ALL_FLAG, 0, 0])
+    for word in noise_words:
+        enc_data[encoded[word]] = bytes([_NOISE_FLAG, 0, 0])
     if scenery:
         for word, chain_addr in scenery.items():
             enc_data[encoded[word]] = bytes(

@@ -72,9 +72,10 @@ Top-level constructs, in any order: the `game` metadata block, `summon`
 directives, `kind`, `room`, `thing`, `verb`, `global`, `constant`, `block`,
 and free-standing `on` rules. A language pack additionally uses the
 language-layer declarations `language` (its self-identifying marker),
-`direction`, `particle`, `pronoun`, and `chain` (the words that join several
-commands on one line), which map player-typed words to the compiler's fixed
-properties and roles (02, sections 8a, 8b, and 14a); and a German
+`direction`, `particle`, `pronoun`, `chain` (the words that join several
+commands on one line), and `noise` (the articles the parser knows but
+ignores), which map player-typed words to the compiler's fixed properties
+and roles (02, sections 8, 8a, 8b, and 14a); and a German
 object declares its gender with a bare `der`, `die`, or `das` line, which the
 compiler maps to the gender attributes (02, section 14a).
 

@@ -55,9 +55,8 @@ block pronoun_slot(role)
 
 block parse()
     let term = read_input()
-    // A fresh line borrows no verb from the last one (plurals granule).
-    if any_plurals() is 1
-        change chain_prev to 0
+    // A fresh line borrows no verb from the last one (noun lists, 8b).
+    change chain_prev to 0
     // Remember the full typed length: chain_next restores it when it wakes the
     // queued rest of a chained line (docs/02 section 8b).
     change chain_max to peek_byte(text_addr() + 1)
@@ -73,10 +72,9 @@ block parse_line()
     chain_split()
     let act = resolve_verb()
     if act is 0
-        // A verb-less chained segment may borrow the previous command's verb
-        // (the plurals granule: "take lamp and box"). Folds away without it.
-        if any_plurals() is 1
-            change act to verb_fallback()
+        // A verb-less chained segment borrows the previous command's verb:
+        // "take lamp and box" runs the take twice (docs/02 section 8b).
+        change act to verb_fallback()
         if act is 0
             return 0
     change way to find_direction()
@@ -143,16 +141,42 @@ block has_plural(obj, target)
 
 // The plurals granule's hooks (summon.plurals overrides them; the stubs fold
 // away with their any_plurals guards). plural_tie claims a tie made by a
-// group word ("take coins"); plural_them claims a typed THEM; verb_fallback
-// lends a verb-less chained segment the previous command's verb ("take lamp
-// and box" runs the take twice).
+// group word ("take coins"); plural_them claims a typed THEM.
 block plural_tie(lo, hi)
     return 0
 
 block plural_them()
     return 0
 
+// NOUN LISTS, a core parser feature (docs/02 section 8b): a chained segment
+// with no verb of its own borrows the previous command's verb, so "take lamp
+// and box" runs as take lamp, take box, one full turn each. The list words
+// are the chain words, which the language layer already localizes, so this
+// works in every language. Only a segment that starts with something
+// noun-like (an object word, a pronoun) qualifies; anything else keeps the
+// honest "those words don't add up to anything".
 block verb_fallback()
+    if chain_prev is 0
+        return 0
+    // Every word must be KNOWN and at least one noun-like. Articles qualify
+    // because the language layer declares them as noise words ("take lamp
+    // and THE box", "coge la lampara y LA llave"); a genuinely unknown word
+    // is most likely a verb we do not know ("and frobnicate box"), and
+    // borrowing over it would silently run the wrong action.
+    let n = word_count()
+    let i = 0
+    let named = 0
+    while i < n
+        let d = word_dict(i)
+        if d is nothing
+            return 0
+        if peek_byte(d + 6) is 0
+            change named to 1
+        if peek_byte(d + 6) is 4
+            change named to 1
+        change i to i + 1
+    if named is 1
+        return chain_prev
     return 0
 
 // Does the range name any object word at all (one the matcher could try)?
@@ -257,9 +281,9 @@ block match_phrase(lo, hi, plural_ok)
 block match_first_phrase()
     let n = word_count()
     let lo = 1
-    // A borrowed-verb segment (the "box" leg of "take lamp and box", the
-    // plurals granule) has no verb word: word 0 is already the noun, so the
-    // phrase starts there. A normal command's word 0 is a verb or direction.
+    // A borrowed-verb segment (the "box" leg of "take lamp and box") has no
+    // verb word: word 0 is already the noun, so the phrase starts there. A
+    // normal command's word 0 is a verb or a direction.
     let d0 = word_dict(0)
     if d0 is nothing
         change lo to 0

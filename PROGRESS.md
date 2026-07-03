@@ -10,6 +10,33 @@ Model handover: `HANDOVER.md` (repo root) is a holistic orientation written at
 the switch to Anthropic's Fable model, with an assessment task to run before B8.
 Read it alongside this log.
 
+NOUN LISTS TO CORE + THE GATING FINISHED (2026-07-03, Stefan's rulings after
+his cost review). THE PROCESS RULING FIRST, standing and recorded in memory:
+core-touching decisions in modular work are HIS to make; talk any parser
+baggage through with him before building (he backs vetoes both ways; what he
+cannot accept is deciding without the talk). Then the two orders, both done:
+(1) THE GATING: the sweep hand-off consumption in run_turn no longer uses
+unguarded locals; the flags are cleared in the undo-rewind branch instead
+(guarded, folding), so a game summoning neither granule now carries only the
+matcher's plural_ok argument (~25-30). (2) NOUN LISTS ARE CORE, his ruling: a
+player expectation in every language, wrongly squeezed into plurals (nobody
+expects lists from a granule named plurals). verb_fallback and the chain_prev
+bookkeeping moved into the skeleton unguarded; "take lamp and box" now works
+in EVERY game, every language (the list words are the localized chain words),
+refusal and turn rules identical to chains; a bare noun on its own line is
+still no command. The plurals granule is now group words + THEM only. Lists needed one more
+core piece, found by the Spanish check ("coge la lampara y la llave" refused
+on the ARTICLE): the packs now declare NOISE WORDS (`noise "the", "a", ...`;
+el/la/los...; der/die/den...; dictionary flag 0x03, exempt in is_separator),
+and the borrow rule is strict: every word in a list leg must be KNOWN and one
+noun-like, so "take lamp and the box" lists while "take lamp and frobnicate
+box" honestly refuses (the typo-swallow the pinned test caught). Net core
+growth for lists + noise, ~68-116 bytes per game (packs with more articles
+pay more), the reclaimed gating netted against it; ceilings re-pinned. 355
+tests; docs 01/02 (8b documents lists as core, the old v1-misparse note gone,
+the Tokenizing noise-word line is now true), 05, and the showcase header
+synced. Versions bumped the same day: arcc 0.8.0 / Cosmos 0.11.0.
+
 THE TWO GRANULES (2026-07-03, Stefan's reframe: the library is the product,
 H2 the proof, so library feature-completeness comes first and the granules
 land BEFORE the H2 slice). Both are pay-for-use and English-worded with the
