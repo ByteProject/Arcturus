@@ -207,6 +207,35 @@ The granule declares the words (`all "all", "everything"`) and its messages
 in English; a translation forks it and redeclares both (section 4), the same
 rule as every granule.
 
+### plurals
+
+```
+summon.plurals
+```
+
+The plural model, three parts that arrive together:
+
+- GROUP WORDS. Each member of a group declares the words that name it as a
+  group: `plural coins` on the gold coin and the silver coin. "take coins"
+  then runs the take on every coin in scope, one line and one full turn per
+  coin, exactly like TAKE ALL's sweep; with only one coin left, the same word
+  binds it singularly with no ceremony. The ordinary singular vocabulary
+  still disambiguates: "take coin" (a `words` entry on both) asks which.
+- NOUN LISTS. "take lamp and box" runs the verb once per noun: a chained
+  segment with no verb of its own borrows the previous command's verb. The
+  list words are the chain words (02, section 8b), which the language layer
+  already localizes, so this part works in any language fork for free.
+  One-noun verbs only in v1; "give x and y to z" stays out.
+- THEM. The pronoun for the last group: "take coins" then "drop them". THEM
+  re-runs the group word, so it honestly covers whatever of the group is
+  still in scope.
+
+English-worded like every granule; a translation forks it. A Spanish fork
+should keep the THEM declaration out: the clitic plurals (-los, -las) in the
+core Spanish pack already fill that role, and bare "los"/"las" are the
+articles. The granule's `pronoun them "them"` declaration doubles as its
+compile-time marker: every hook in the core parser folds away without it.
+
 ### debug
 
 ```

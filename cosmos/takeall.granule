@@ -43,27 +43,6 @@ block run_all(act)
     tick()
     return 0
 
-// One swept item: name it, run the real action through the full pipeline,
-// then the per-turn pulse. AGAIN after a sweep repeats the last item's
-// action, the same rule as the last command of a chained line.
-block all_one(obj, act)
-    // The sweep is one visual report: drop the pending break the previous
-    // item's turn pulse left behind, so the lines sit together. A daemon
-    // that printed text mid-sweep already made its own paragraph.
-    change par_pending to 0
-    print_name(obj)
-    show(": ")
-    change noun to obj
-    dispatch(act)
-    fire_turn()
-    tick()
-    change last_act to act
-    change last_noun to noun
-    change last_second to second
-    change last_way to way
-    change last_grain to grain
-    return 0
-
 // Does the object sit in this room's tree (not carried)? Walks the parents.
 block rooted_here(obj)
     let p = parent_of(obj)
@@ -120,7 +99,7 @@ block all_take()
     while obj <= n
         if all_takeable(obj) is 1
             change count to count + 1
-            all_one(obj, action_id("take"))
+            sweep_one(obj, action_id("take"))
         change obj to obj + 1
     if count is 0
         change refused to 1
@@ -146,7 +125,7 @@ block all_from(source)
         if parent_of(obj) is source
             if from_takeable(obj) is 1
                 change count to count + 1
-                all_one(obj, action_id("take"))
+                sweep_one(obj, action_id("take"))
         change obj to obj + 1
     if count is 0
         change refused to 1
@@ -163,7 +142,7 @@ block all_drop()
         if parent_of(obj) is player
             if not (obj is worn)
                 change count to count + 1
-                all_one(obj, action_id("drop"))
+                sweep_one(obj, action_id("drop"))
         change obj to obj + 1
     if count is 0
         change refused to 1

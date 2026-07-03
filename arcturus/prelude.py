@@ -172,6 +172,11 @@ _STD_VALUE_PROPS = {
     "article": T_TEXT,
     "indefinite": T_TEXT,
     "words": T_LIST,
+    # The plurals granule's group vocabulary: the words that name this object
+    # AS PART OF A GROUP ("coins" on each coin). A plural word matching several
+    # in-scope objects runs the action on each instead of asking which one
+    # (docs/05, summon.plurals). Ignored without the granule.
+    "plural": T_LIST,
     "capacity": T_NUMBER,
     # The object that locks and unlocks a lockable thing (a door or chest). Named
     # `unseal_with` rather than `key` so the common vocabulary word "key" stays
@@ -269,6 +274,13 @@ _BUILTINS = {
     # Set by the parser when a typed all-word hands the command to the takeall
     # granule's expander (TAKE ALL); consumed by the turn loop.
     "all_go": T_NUMBER,
+    # The plurals granule (docs/05): plural_go carries the matched group word
+    # to the sweep, last_plural remembers it for THEM, and chain_prev holds the
+    # previous chained command's action so a verb-less segment can borrow it
+    # ("take lamp and box").
+    "plural_go": T_NUMBER,
+    "last_plural": T_NUMBER,
+    "chain_prev": T_NUMBER,
 }
 
 # Objects Cosmos provides. `player` is the distinguished character instance.

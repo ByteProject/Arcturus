@@ -55,6 +55,9 @@ block pronoun_slot(role)
 
 block parse()
     let term = read_input()
+    // A fresh line borrows no verb from the last one (plurals granule).
+    if any_plurals() is 1
+        change chain_prev to 0
     // Remember the full typed length: chain_next restores it when it wakes the
     // queued rest of a chained line (docs/02 section 8b).
     change chain_max to peek_byte(text_addr() + 1)
@@ -70,7 +73,12 @@ block parse_line()
     chain_split()
     let act = resolve_verb()
     if act is 0
-        return 0
+        // A verb-less chained segment may borrow the previous command's verb
+        // (the plurals granule: "take lamp and box"). Folds away without it.
+        if any_plurals() is 1
+            change act to verb_fallback()
+        if act is 0
+            return 0
     change way to find_direction()
     resolve_objects()
     // An ambiguous noun phrase asks rather than refuses: "Which do you
@@ -111,8 +119,41 @@ block phrase_score(obj, lo, hi)
         if d is not nothing
             if has_word(obj, d)
                 change s to s + 1
+            else
+                if any_plurals() is 1
+                    if has_plural(obj, d) is 1
+                        change s to s + 1
         change i to i + 1
     return s
+
+// Is this word in the object's plural (group) vocabulary? The plurals
+// granule's counterpart of has_word (docs/05); a game without `plural`
+// declarations has no property and the intrinsic answers 0.
+block has_plural(obj, target)
+    let addr = plural_addr(obj)
+    if addr is nothing
+        return 0
+    let count = plural_count(obj)
+    let i = 0
+    while i < count
+        if peek_word(addr, i) is target
+            return 1
+        change i to i + 1
+    return 0
+
+// The plurals granule's hooks (summon.plurals overrides them; the stubs fold
+// away with their any_plurals guards). plural_tie claims a tie made by a
+// group word ("take coins"); plural_them claims a typed THEM; verb_fallback
+// lends a verb-less chained segment the previous command's verb ("take lamp
+// and box" runs the take twice).
+block plural_tie(lo, hi)
+    return 0
+
+block plural_them()
+    return 0
+
+block verb_fallback()
+    return 0
 
 // Does the range name any object word at all (one the matcher could try)?
 // Distinguishes "took a shot at something and missed" (a can't-see fault)
@@ -138,13 +179,20 @@ block phrase_named(lo, hi)
 // scope matches at all, the closed-container knowledge gets its chance
 // (shut_search), so naming the coin you know is in the shut chest still
 // answers "you'll have to open it first" rather than "you can't see it".
-block match_phrase(lo, hi)
+block match_phrase(lo, hi, plural_ok)
     let d = nothing
     let i = lo
     while i < hi
         change d to word_dict(i)
         if d is not nothing
             if peek_byte(d + 6) is 4
+                // THEM names the last group (the plurals granule): the sweep
+                // takes over, in the noun slot only.
+                if any_plurals() is 1
+                    if plural_ok is 1
+                        if peek_byte(d + 7) is 4
+                            if plural_them() is 1
+                                return nothing
                 let ref = pronoun_slot(peek_byte(d + 7))
                 if ref is not nothing
                     if in_scope(ref)
@@ -182,6 +230,12 @@ block match_phrase(lo, hi)
             change i to i + 1
         return nothing
     if tied is 1
+        // A tie made by a group word is not an ambiguity: "take coins" means
+        // every coin, and the plurals granule sweeps them (noun slot only).
+        if any_plurals() is 1
+            if plural_ok is 1
+                if plural_tie(lo, hi) is 1
+                    return nothing
         // A genuine ambiguity: remember the phrase (so the ask can list the
         // tied candidates) and where an answer's narrowing words weave back
         // in (just past the phrase's last word). parse_line runs the ask.
@@ -203,6 +257,16 @@ block match_phrase(lo, hi)
 block match_first_phrase()
     let n = word_count()
     let lo = 1
+    // A borrowed-verb segment (the "box" leg of "take lamp and box", the
+    // plurals granule) has no verb word: word 0 is already the noun, so the
+    // phrase starts there. A normal command's word 0 is a verb or direction.
+    let d0 = word_dict(0)
+    if d0 is nothing
+        change lo to 0
+    else
+        if not (peek_byte(d0 + 6) is 128)
+            if not (peek_byte(d0 + 6) is 64)
+                change lo to 0
     let going = 1
     while going is 1
         change going to 0
@@ -227,7 +291,7 @@ block match_first_phrase()
                 if not (peek_byte(e + 6) is 8)
                     change hi to hi + 1
                     change going to 1
-    return match_phrase(lo, hi)
+    return match_phrase(lo, hi, 1)
 
 // Did the line name an all-word (dictionary flag 1)? Only consulted when
 // the takeall granule is summoned; without it the any_allwords guard folds

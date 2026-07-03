@@ -107,6 +107,14 @@ def collect_vocab(world: wm.World) -> set:
         for grain in obj.grains:
             for gw in grain.words:
                 words.add(gw.lower())
+        # Plural (group) vocabulary, so the plurals granule's sweep words
+        # have dictionary entries to backpatch.
+        if obj.decl is not None:
+            eff = objects._effective_props(world, obj)
+            if "plural" in eff:
+                for v in eff["plural"].values:
+                    if isinstance(v, ast.Name):
+                        words.add(v.ident.lower())
         # A person's topic match-words (the ask/tell words) must be in the
         # dictionary so the topic table's word entries can be backpatched.
         for topic in obj.topics:

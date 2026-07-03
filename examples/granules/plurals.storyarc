@@ -1,0 +1,61 @@
+// plurals.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// THE NUMISMATIST. A small showcase for the plurals granule (summon.plurals,
+// docs/05). Each coin declares the group word (`plural coins`), so TAKE COINS
+// sweeps every coin in scope, one full turn each, and DROP THEM lets go of
+// the same group. TAKE LOUPE AND TRAY runs the verb once per noun: the
+// verb-less second leg borrows the take. And the singular still asks: TAKE
+// COIN, with several in view, gets the honest "Which do you mean...?".
+//
+//   arcc examples/granules/plurals.storyarc -o coins.z5
+//   frotz coins.z5
+//
+// Try: TAKE COINS. DROP THEM. TAKE COIN. TAKE LOUPE AND TRAY.
+
+summon.plurals
+summon.statusline
+
+game
+    title  "The Numismatist"
+    headline "A plurals granule showcase"
+    author "Stefan Vogt"
+    start shop
+
+room shop
+    name "The Coin Shop"
+    desc "A narrow shop armoured in velvet trays. Three coins lie out for
+          grading beside a jeweller's loupe; the empty tray waits for them."
+
+    grains
+        examine "velvet" or "trays" say "Deep blue, and older than the stock."
+
+thing gold in shop
+    name "gold solidus"
+    words gold, solidus, coin
+    plural coins
+    desc "Constantinople, badly clipped."
+
+thing silver in shop
+    name "silver denarius"
+    words silver, denarius, coin
+    plural coins
+    desc "A thoughtful emperor, worn smooth."
+
+thing copper in shop
+    name "copper as"
+    words copper, coin
+    plural coins
+    desc "Worth an afternoon's bread, once."
+
+thing loupe in shop
+    name "jeweller's loupe"
+    words loupe, jewellers
+    desc "A tenfold magnifier on a brass ring."
+
+thing tray in shop
+    name "velvet tray"
+    words tray
+    desc "A grading tray, empty and expectant."

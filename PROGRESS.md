@@ -10,6 +10,42 @@ Model handover: `HANDOVER.md` (repo root) is a holistic orientation written at
 the switch to Anthropic's Fable model, with an assessment task to run before B8.
 Read it alongside this log.
 
+THE TWO GRANULES (2026-07-03, Stefan's reframe: the library is the product,
+H2 the proof, so library feature-completeness comes first and the granules
+land BEFORE the H2 slice). Both are pay-for-use and English-worded with the
+fork as the translation route (his ruling, reinforced: granules are a
+sophisticated starting point, not a maintenance program; extendedverbs and
+verboseexits set the precedent). (1) SUMMON.TAKEALL: TAKE ALL / DROP ALL /
+TAKE ALL FROM <container>. New `all "all", "everything"` declaration (last
+free dictionary flag bit, 0x01); the parser hands a command carrying an
+all-word to the granule's run_all with a bound noun as the source, so the
+FROM form needed no grammar. Every swept item is a FULL TURN (daemons and
+clock per item; HIS anti-Inform ruling: doing three things costs three
+turns); a custom `on take` refusal prints after the item's name and the
+sweep continues; UNDO takes the whole sweep back (one typed command); empty
+sweeps and "eat all" refuse (chain stops). The sweep prints compactly (the
+pending per-item break is dropped). Also fixed: print_name was the one text
+output bypassing the paragraph flush (a latent bug; the only cost,
+~52-60 bytes, non-summoning games otherwise fold to zero). (2)
+SUMMON.PLURALS, all three ruled parts: GROUP WORDS (new `plural` list
+property, emitted like words; a group word matching several in-scope objects
+sweeps them via the shared sweep_one, matching one binds singular, the
+singular vocabulary still asks); NOUN LISTS ("take lamp and box": a
+verb-less chained segment borrows the previous verb, verb_fallback; the list
+words ARE the localized chain words so forks get lists free; the noun phrase
+starts at word 0 when word 0 is no verb); THEM (pronoun them "them", which
+DOUBLES as the compile-time marker any_plurals() folds on; THEM re-runs the
+last group word, so it covers what remains in scope; a Spanish fork should
+OMIT it, clitic plurals already serve). Two-noun slots pass plural_ok 0 (no
+sweeping into "put coins in box" second slots, v1). Unfolded residue in
+plain games ~72-76 bytes. Showcases: examples/granules/take-all.storyarc
+(The Collector's Study) and plurals.storyarc (The Numismatist); docs 01/02/05
+and message-set updated; 352 tests (test_takeall.py 8, test_plurals.py 8).
+Stefan considers the library FEATURE-COMPLETE with disambiguation done;
+further parser features need a byte-cost pitch first (see memory). NEXT: the
+H2 vertical slice (checkpoint item 3). A VERSION BUMP is proposed: the B8
+preludes are effectively closed.
+
 DISAMBIGUATION (2026-07-03): item (2) of the checkpoint queue is DONE, both
 stages, Stefan's ruling ("I want both now", B first then A). STAGE 1, THE
 SCORING MATCHER: match_phrase (parser.prelude, agnostic, single copy; the

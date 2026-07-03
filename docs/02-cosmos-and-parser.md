@@ -308,10 +308,15 @@ word in `name` is printed but not matched, a word in `words` is matched but
 not printed, and a word you want both printed and typed appears in each.
 There is no "the brass one" anaphora in v1; that is deferred.
 
-Multi and all. NOT YET BUILT, by ruling: a plural model ("take all", "them",
-noun lists) is a future English-only granule (docs/00), because most games do
-not need it and TAKE ALL flattens scenes into loot runs. "all" and noun lists
-are currently ordinary unknown words.
+Multi and all. Deliberately NOT core: both ship as granules, so a game that
+wants them summons them and one that does not pays nothing. `summon.takeall`
+gives TAKE ALL, DROP ALL, and TAKE ALL FROM (section 14; docs/05).
+`summon.plurals` gives group words (`plural coins` on each coin, so "take
+coins" sweeps them), noun lists ("take lamp and box" runs the verb per noun,
+borrowing it into the verb-less segment), and THEM for the last group. Every
+swept or listed item is a full turn, the chaining rule. Unsummoned, "all" and
+group words are ordinary unknown words and a noun list stays the documented
+chain misparse.
 
 Unknown words. A word in no dictionary entry is ignored where it cannot
 matter and answers "You see nothing of the sort here." where it named the
@@ -737,6 +742,16 @@ Inform's one-turn ALL), undo takes the whole sweep back, and an empty sweep
 refuses so a chain stops. The core deliberately omits ALL; the granule's
 `all` declaration names the words and its hand-off folds away unsummoned.
 
+`summon.plurals`. The plural model, catalogued in 05: group words (each coin
+declares `plural coins`, and "take coins" runs the take on every coin in
+scope), noun lists ("take lamp and box": a verb-less chained segment borrows
+the previous verb, so the list words are the already-localized chain words),
+and THEM for the last group. A group word matching a single object binds it
+singularly; a tie between group members sweeps instead of asking. Every item
+is a full turn. English-worded; a translation forks the granule (a Spanish
+fork should keep THEM out: the clitic plurals in the core pack already cover
+it, and bare los/las are the articles).
+
 `summon.verbose_exits`. Helpful blocked-direction messages, game-wide. When a
 player tries a direction with no exit, instead of the default "You can't go
 that way." Cosmos lists the room's available exits, for example "You can only
@@ -934,7 +949,7 @@ Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,
 `show`, `talk`, `wait`, `again`.
 
 Summonable features: `extendedverbs`, `statusline`, `verbose_exits`,
-`conversations`, `takeall`, `debug`, and `language`. Text compression is not a summonable
+`conversations`, `takeall`, `plurals`, `debug`, and `language`. Text compression is not a summonable
 feature: the standard abbreviation set is always applied, and a story tunes it
 with its own `abbreviations.granule` (`arcc --make-abbreviations`, then summoned by
 name), which the text encoder reads as data rather than loading as runtime blocks

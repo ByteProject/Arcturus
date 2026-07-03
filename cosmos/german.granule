@@ -232,6 +232,10 @@ block resolve_objects()
     // unseen checks would overwrite the honest "which do you mean".
     if parse_fault is not 0
         return 1
+    // A pending plural sweep ("take coins", THEM) binds per object later.
+    if any_plurals() is 1
+        if plural_go is not 0
+            return 1
     if noun is nothing
         change noun to reach_unscoped()
     if noun is nothing
@@ -311,7 +315,7 @@ block resolve_two_nouns()
         change i to i + 1
     if b is 0
         change b to n
-    change noun to match_phrase(1, b)
+    change noun to match_phrase(1, b, 0)
     if parse_fault is not 0
         return 1
     // A slot that named object words but bound nothing is a thing out of scope.
@@ -320,7 +324,7 @@ block resolve_two_nouns()
             change parse_fault to 1
             return 1
     if b < n
-        change second to match_phrase(b + 1, n)
+        change second to match_phrase(b + 1, n, 0)
         if parse_fault is not 0
             return 1
         if second is nothing

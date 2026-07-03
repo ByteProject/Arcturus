@@ -35,6 +35,33 @@ block menu_owns_talk()
 block run_all(act)
     return 0
 
+// The plural sweep: the plurals granule overrides this to run the action on
+// every in-scope object whose `plural` vocabulary carries the group word w
+// ("take coins"). Stub for the same reason as run_all.
+block run_plural(act, w)
+    return 0
+
+// One swept item, shared by the takeall and plurals granules: name it, run
+// the real action through the full pipeline (an object's own handlers still
+// override), then the per-turn pulse: EACH SWEPT ITEM IS A FULL TURN, the
+// same rule a chained line follows. The pending break is dropped so the
+// sweep prints as one compact report; a daemon that printed text mid-sweep
+// already made its own paragraph. Dead code without either granule.
+block sweep_one(obj, act)
+    change par_pending to 0
+    print_name(obj)
+    show(": ")
+    change noun to obj
+    dispatch(act)
+    fire_turn()
+    tick()
+    change last_act to act
+    change last_noun to noun
+    change last_second to second
+    change last_way to way
+    change last_grain to grain
+    return 0
+
 block run_game()
     move player to here
     // Request the paragraph break that separates the banner from the opening
@@ -80,6 +107,10 @@ block run_chain(act)
             return 0
         if chain_pos is 0
             return 0
+        // Remember this command's action: a verb-less next segment may borrow
+        // it (the plurals granule's noun lists). Folds away without it.
+        if any_plurals() is 1
+            change chain_prev to act
         // Each chained command's response is its own paragraph.
         par()
         change act to chain_next()
@@ -129,6 +160,10 @@ block run_turn(act)
     if any_allwords() is 1
         change sweep to all_go
         change all_go to 0
+    let psweep = 0
+    if any_plurals() is 1
+        change psweep to plural_go
+        change plural_go to 0
     let r = do_save_undo()
     if r is 2
         change meta_turn to 1
@@ -142,6 +177,10 @@ block run_turn(act)
     if any_allwords() is 1
         if sweep is 1
             run_all(act)
+            return 0
+    if any_plurals() is 1
+        if psweep is not 0
+            run_plural(act, psweep)
             return 0
     dispatch(act)
     if meta_turn is 0

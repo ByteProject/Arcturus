@@ -421,6 +421,9 @@ _BUILTIN_GLOBALS = [
     "ask_lo", "ask_hi", "ask_score", "ask_at",
     # TAKE ALL (the takeall granule): the parser's hand-off flag to run_all.
     "all_go",
+    # The plurals granule: the matched group word for the sweep, the remembered
+    # one for THEM, and the previous chained action for verb-less segments.
+    "plural_go", "last_plural", "chain_prev",
 ]
 
 

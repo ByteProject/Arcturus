@@ -354,6 +354,7 @@ carries the attribute of every kind in its chain.
 | `name` | text | The printed short name ("brass lantern"). Distinct from the object's id and from `words`. |
 | `desc` | text | The description shown by `examine` (and on first look at a room). |
 | `words` | list | The vocabulary the parser matches: the object's nouns and adjectives, as equal entries. Typed but not printed. |
+| `plural` | list | The words that name this object AS PART OF A GROUP (`plural coins` on each coin): "take coins" acts on every match in scope. Only with `summon.plurals` (02 section 8; docs/05); ignored otherwise. |
 | `intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). |
 | `capacity` | number | How many objects a container or supporter holds. |
 | `article` | text | The definite article, verbatim, when derivation cannot reach it: `article "las"` (las tijeras), `article "el"` (el agua). |
