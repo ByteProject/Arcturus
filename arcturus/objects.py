@@ -394,10 +394,10 @@ def _emit_scoring_tables(world, layout) -> None:
         layout.ranks_off = len(table)
         table += bytes(2)
         _put_word(table, layout.ranks_off, len(world.ranks))
-        for i, (title, pct) in enumerate(world.ranks):
+        for i, (title, pin) in enumerate(world.ranks):
             pos = len(table)
             table += bytes(4)
-            layout.rank_sites.append((pos, pct, i, len(world.ranks)))
+            layout.rank_sites.append((pos, pin, i, len(world.ranks)))
             sid = f"rank@{pos}"
             layout.strings[sid] = title
             layout.string_fixups.append((pos + 2, sid))

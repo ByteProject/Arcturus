@@ -103,6 +103,21 @@ def test_pool_pays_first_branch_only(tmp_path):
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_rank_pins_points_and_percent(tmp_path):
+    # A definite pin sits verbatim; a percent pin scales with the max (23):
+    # 50 percent of 23 = 11.
+    src = GAME.replace(
+        'ranks\n    "Novice"\n    "Adept"\n    "Master"\n',
+        'ranks\n    "Novice"\n    "Adept" at 8 points\n    "Master" at 50 percent\n',
+    )
+    out = _play(tmp_path, src, "take coin\nmeditate\nscore\nn\nscore\n")
+    # 8 points (coin + award 3) = Adept exactly at its definite pin;
+    # 13 points passes 11 (50 percent) = Master.
+    assert "rank of Adept" in out
+    assert "rank of Master" in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_ranks_announced_and_spread(tmp_path):
     # Three ranks over max 23: thresholds 0, 11, 23. Score 0 = Novice;
     # 13 points = Adept.
