@@ -348,14 +348,17 @@ empty slot answers the ordinary "you see nothing of the sort". German follows
 grammatical gender, so die Lampe becomes "sie" and das Buch "es".
 
 Spanish takes its pronouns as CLITICS, the natural form: "cogela" is coge with
-la attached, so an unknown first word ending in -lo, -la, -los, or -las splits
-its clitic off in the typed text, the verb re-resolves, and the pronoun's
-referent becomes the command's noun. This chains with the infinitive retry:
-"cogerlo" sheds the clitic, then the -r, and lands on coge. The clitics are
-deliberately NOT dictionary words: bare la and los are the articles, and
-"coge la lámpara" must keep resolving the lámpara. A referent that has left
-scope falls into the ordinary honest failure, and the plurals (-los, -las)
-wait, like `them`, for a plural model.
+la attached, so an unknown first word ending in -lo, -la, -le (the leísmo
+form, taken as masculine), -los, -las, or -les splits its clitic off in the
+typed text, the verb re-resolves, and the pronoun's referent becomes the
+command's noun; -te is the reflexive and points at the player ("examinate").
+Accents fold first, PunyInformES-style, so "cógela" typed with its tilde works
+too. This chains with the infinitive retry: "cogerlo" sheds the clitic, then
+the -r, and lands on coge. The clitics are deliberately NOT dictionary words:
+bare la and los are the articles, and "coge la lámpara" must keep resolving
+the lámpara. A referent that has left scope falls into the ordinary honest
+failure, and the plurals (-los, -las, -les) wait, like `them`, for a plural
+model.
 
 The roles are the compiler contract (like the particle roles); the slot ids
 ride the pronoun words' dictionary entries where a pack declares words.

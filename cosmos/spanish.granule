@@ -36,7 +36,45 @@ language "spanish"
 
 // Resolve the verb: the first word, if its dictionary entry is flagged a verb.
 // Returns the action number, or 0 if the first word is not a known verb.
+// Pliega los acentos del texto tecleado (el ProcessChars de PunyInformES):
+// á->a, é->e, í->i, ó->o, ú/ü->u, ñ->n, y se vuelve a analizar si cambió
+// algo. Así "cógela" funciona tecleado con su tilde, y el diccionario solo
+// necesita las formas sin acento para lo que el jugador escribe. Los códigos
+// son los del juego de caracteres ZSCII por defecto (Standard 1.1, 3.8.5).
+block fold_accents()
+    let n = peek_byte(text_addr() + 1)
+    let i = 0
+    let changed = 0
+    while i < n
+        let a = text_addr() + 2 + i
+        let c = peek_byte(a)
+        if c is 169
+            poke_byte(a, 97)
+            change changed to 1
+        if c is 170
+            poke_byte(a, 101)
+            change changed to 1
+        if c is 171
+            poke_byte(a, 105)
+            change changed to 1
+        if c is 172
+            poke_byte(a, 111)
+            change changed to 1
+        if c is 173
+            poke_byte(a, 117)
+            change changed to 1
+        if c is 157
+            poke_byte(a, 117)
+            change changed to 1
+        if c is 206
+            poke_byte(a, 110)
+            change changed to 1
+        change i to i + 1
+    if changed is 1
+        retokenize()
+
 block resolve_verb()
+    fold_accents()
     let d = word_dict(0)
     if d is not nothing
         let flags = peek_byte(d + 6)
@@ -56,56 +94,58 @@ block resolve_verb()
     if find_direction() is not nothing
         return action_id("go")
     // Los clíticos de PunyInformES: una palabra desconocida que termina en
-    // -lo/-la/-los/-las suele ser un imperativo con su pronombre pegado
-    // ("cogela", "sueltalo"). Se borra el sufijo del texto tecleado, se vuelve
-    // a analizar el verbo, y el pronombre queda pendiente en `clitico` para
-    // que resolve_objects lo convierta en el sustantivo. Encadena con el
-    // recorte de la -r: "cogerla" -> "coger" (la pendiente) -> "coge".
+    // -lo/-la/-le/-los/-las/-les suele ser un imperativo con su pronombre
+    // pegado ("cogela", "cógele"), y -te el reflexivo ("examinate"). Se borra
+    // el sufijo del texto tecleado, se vuelve a analizar el verbo, y el
+    // pronombre queda pendiente en `clitico` (2 lo/le, 3 la, 4 plurales, 5 el
+    // propio jugador) para que resolve_objects lo convierta en el sustantivo.
+    // Encadena con el recorte de la -r: "cogerla" -> "coger" -> "coge". Y de
+    // ahí también el truco del infinitivo: una desconocida que termina en -r
+    // pierde la -r y se reanaliza, con lo que "comer pan" encuentra "come".
     if word_dict(0) is nothing
         let len = word_len(0)
         let base = text_addr() + word_pos(0)
+        let cut = 0
+        let slot = 0
         if len > 4
             if peek_byte(base + len - 3) is 108
                 if peek_byte(base + len - 1) is 115
                     let v = peek_byte(base + len - 2)
-                    if (v is 111) or (v is 97)
-                        poke_byte(base + len - 3, 32)
-                        poke_byte(base + len - 2, 32)
-                        poke_byte(base + len - 1, 32)
-                        retokenize()
-                        let act3 = resolve_verb()
-                        if act3 is not 0
-                            change clitico to 4
-                        return act3
-        if len > 3
-            if peek_byte(base + len - 2) is 108
+                    if ((v is 111) or (v is 97)) or (v is 101)
+                        change cut to 3
+                        change slot to 4
+        if cut is 0
+            if len > 3
+                let m = peek_byte(base + len - 2)
                 let u = peek_byte(base + len - 1)
-                if u is 111
-                    poke_byte(base + len - 2, 32)
-                    poke_byte(base + len - 1, 32)
-                    retokenize()
-                    let act1 = resolve_verb()
-                    if act1 is not 0
-                        change clitico to 2
-                    return act1
-                if u is 97
-                    poke_byte(base + len - 2, 32)
-                    poke_byte(base + len - 1, 32)
-                    retokenize()
-                    let act2 = resolve_verb()
-                    if act2 is not 0
-                        change clitico to 3
-                    return act2
-    // El truco de PunyInformES: una palabra desconocida que termina en -r suele
-    // ser un infinitivo regular. Se recorta la -r en el propio texto tecleado,
-    // se vuelve a analizar, y "comer pan" encuentra "come". La recursión
-    // termina porque la palabra se acorta en cada intento.
-    if word_dict(0) is nothing
-        let len2 = word_len(0)
-        if len2 > 2
-            let last = text_addr() + word_pos(0) + len2 - 1
-            if peek_byte(last) is 114
-                poke_byte(last, 32)
+                if m is 108
+                    if u is 111
+                        change cut to 2
+                        change slot to 2
+                    if u is 97
+                        change cut to 2
+                        change slot to 3
+                    // El leísmo: "cógele" para personas apunta al masculino.
+                    if u is 101
+                        change cut to 2
+                        change slot to 2
+                if m is 116
+                    if u is 101
+                        change cut to 2
+                        change slot to 5
+        if cut is not 0
+            let i = 0
+            while i < cut
+                poke_byte(base + len - 1 - i, 32)
+                change i to i + 1
+            retokenize()
+            let act = resolve_verb()
+            if act is not 0
+                change clitico to slot
+            return act
+        if len > 2
+            if peek_byte(base + len - 1) is 114
+                poke_byte(base + len - 1, 32)
                 retokenize()
                 return resolve_verb()
     return 0
@@ -342,11 +382,14 @@ block resolve_objects()
     // referente de su casilla, si sigue a la vista. Si el referente se fue,
     // cae en el fallo honesto de siempre ("No ves nada de eso por aquí").
     if noun is nothing
-        if clitico is not 0
-            let ref = pronoun_slot(clitico)
-            if ref is not nothing
-                if in_scope(ref)
-                    change noun to ref
+        if clitico is 5
+            change noun to player
+        else
+            if clitico is not 0
+                let ref = pronoun_slot(clitico)
+                if ref is not nothing
+                    if in_scope(ref)
+                        change noun to ref
     change clitico to 0
     if noun is nothing
         change noun to reach_unscoped()
