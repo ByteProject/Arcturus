@@ -150,6 +150,14 @@ referable while a coin in a closed opaque box is not: the closed lid shields its
 contents from scope until the box is opened. A `clear` container (a glass jar) is
 the exception, exposing its contents while still shut.
 
+One place stands outside the room-and-carry rule: the BACKSTAGE scope room
+(01, section 5). An object placed `in scope` (or moved there at run time,
+`move x to scope`) is in scope in every room, light or dark: the home of a
+companion who follows the player, of their examinable parts, of anything the
+parser should always answer for. Backstage contents are never listed, since
+their room is never entered, so they defend themselves in their own
+handlers. The whole mechanism folds away in a game that stages nothing.
+
 Two predicates Cosmos provides for conditions: `<obj> is visible` (in scope
 and the location lit; examining needs this) and `<obj> is reachable` (visible
 and not behind a closed container; taking and most physical actions need
