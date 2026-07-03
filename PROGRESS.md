@@ -22,6 +22,26 @@ README em dashes and the stale find_particle comment in german.granule. Next:
 an idiom-focused review of both translations (Stefan's request; German got his
 native pass already, Spanish still gated on Pablo), then B8.
 
+PUNYINFORMES RECONCILIATION (2026-07-03, subagent over
+github.com/Kozelek/PunyInformES): Pablo's translation.h/parser.h confirmed our
+architecture point for point (clitics before the -r retry, unknown-words-only
+guard, space-over-r, articles protected). Adopted from his code: -le (leismo,
+taken as masculine), -les (plural), -te (reflexive, the player: "examinate"),
+and his ProcessChars ACCENT FOLD: the Spanish pack now de-accents the typed
+buffer (a/e/i/o/u/u-diaeresis/n-tilde, ZSCII 169-173/157/206) and re-tokenizes
+before any lookup, so "cógela" typed with its tilde works (verified with
+UTF-8 input on dfrotz). NOT adopted: his hyphen-word trick (we use the pending
+slot instead, no dictionary pollution, no "-lo" leaking into error messages
+as it does in Puny's MSG_PARSER_NO_IT). FIXED relative to his code: his
+'-les' maps to the feminine SINGULAR referent (la_obj), almost certainly a
+bug; ours maps -les to the plural slot. STEFAN: worth relaying to Pablo, plus
+his own "! TODO terminaciones" comment suggests he knows the area is
+unfinished. Also surfaced: the default player object has no name, so
+"examinate" prints "El  no tiene nada de particular."; players deserve a
+default name and desc, backlogged. The retry chain was also rewritten as one
+shared split path after the branch-per-suffix shape hit the 15-local ceiling
+in resolve_verb (the compile sat exactly at the cliff).
+
 PRONOUNS, PART 2, THE SPANISH CLITICS (2026-07-03): "cogela" works. An
 unknown first word ending in -lo/-la/-los/-las splits its clitic off in the
 typed text (the same buffer surgery as the infinitive retry), the verb

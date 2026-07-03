@@ -293,12 +293,15 @@ def test_spanish_clitic_pronouns_on_frotz(tmp_path):
     story.write_bytes(generate(analyze(cosmos.combined_program(parse(SPANISH_CLITICS)))))
     out = subprocess.run(
         [_frotz(), "-p", str(story)],
-        input="mira la lampara\ncogela\nmira el libro\ncogelo\ncogerlo\ncogelos\n",
+        input="mira la lampara\ncógela\nmira el libro\ncogele\ncogerlo\ncogelos\n",
         capture_output=True, text=True, timeout=15,
     ).stdout
     assert "Una lampara pequena." in out  # the article resolved the lamp
-    assert "Cogida." in out  # cogela: feminine clitic took the lamp
-    assert out.count("Cogido.") == 1  # cogelo: masculine clitic took the book
+    # cógela, typed WITH its accent: the fold (PunyInformES's ProcessChars)
+    # de-accents the buffer, then the clitic split takes the lamp. And cogele,
+    # the leismo form, takes the masculine referent like cogelo.
+    assert "Cogida." in out
+    assert out.count("Cogido.") == 1  # cogele: the leismo clitic took the book
     # cogerlo while already holding it: the chain (clitic split, then the -r
     # retry) resolved to take + libro, and take answers "you already have it".
     assert "Ya tienes el libro." in out
