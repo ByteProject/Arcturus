@@ -100,6 +100,19 @@ def test_again_repeats_last_command_only(tmp_path):
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_and_then_run_chains_once(tmp_path):
+    # "AND THEN" is a run of two chain words: the splitter skips the run, so
+    # no empty command appears between them (Stefan's question, 2026-07-03).
+    out = _play(
+        tmp_path, GAME,
+        "take the lamp and take the box and then go north\ni\n",
+    )
+    assert out.count("Got it.") == 2
+    assert "Yard" in out
+    assert "don't add up" not in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_trailing_chain_word_is_harmless(tmp_path):
     # "take lamp and" has no second command: the take still runs cleanly, and
     # the dangling word never reaches the verb grammar as an extra word.
