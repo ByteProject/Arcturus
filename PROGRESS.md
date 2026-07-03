@@ -10,6 +10,70 @@ Model handover: `HANDOVER.md` (repo root) is a holistic orientation written at
 the switch to Anthropic's Fable model, with an assessment task to run before B8.
 Read it alongside this log.
 
+>>> B8 DAY-TWO HANDOVER CHECKPOINT (2026-07-03, written for compaction) <<<
+
+WHERE WE ARE. Versions arcc 0.9.0 / Cosmos 0.12.0; 384 tests green; the size
+gate must be GREEN before every commit; the amalgam (build/arcc) and the
+vsix (editors/vscode/arcturus-0.9.0.vsix) are current; posada.z5/gasthaus.z5
+rebuilt. The H2 SLICE (hibernated2/hibernated2.storyarc, GITIGNORED with the
+game, NEVER COMMIT) covers all of Act I, walkthrough-verified end to end on
+dfrotz (the quote-box keypress eats one piped line: feed a leading blank),
+and now exercises EVERYTHING built today. Everything below landed TODAY, in
+order, each with tests, docs, ceilings, and its own commit:
+
+(1) COMMAND CHAINING (core): and/then/comma (y/luego, und/dann), stop on
+`refused`, AGAIN = last segment, undo/ask/confirm kill the queued tail.
+(2) DISAMBIGUATION (core): the scoring matcher (match_phrase, packs are thin
+wrappers) + the interactive ask ("Which do you mean, ...?": answers weave in
+at ask_at via the ASK_TEXT backup; verb-initial answers replace the command;
+German ask declines accusative). (3) TAKEALL GRANULE (all-words, dict flag
+0x01; per-item FULL TURNS, whole-sweep undo, sweep prints compact).
+(4) PLURALS GRANULE (group words via the `plural` list property; THEM;
+pronoun-them decl doubles as the any_plurals marker; two-noun slots never
+sweep). (5) NOUN LISTS moved to CORE per Stefan (verb_fallback borrows the
+previous chained verb; NOISE WORDS declaration, flag 0x03, articles known-
+but-ignored; strict borrow: any unknown word refuses). (6) AMBIENCE GRANULE
+(v1+v2 whole: about/every/in order/once headers, block and per-line when,
+do-lines, ambience_rate dial, one line per turn; per-block routines + a live
+table, __ambience__; driver in Arcturus in the granule). (7) SCOPE ROOM
+(Stefan's design: `in scope` = backstage, seeded on demand, in_scope hook
+folds; solves companion + unreachable-chip). (8) RECIPIENT DISPATCH (second's
+handlers between noun's and room's). (9) TAG qualifier ("(full)" in listings;
+show, not say, in tag blocks). (10) START TITLE skipped under a statusline.
+(11) SCORING (Stefan's flagship: `scoring` meta = auto-pay rooms/takeables 5
+on first visit/take, never start room/start inventory, `scored false` opts
+out; `award N [for pool "label"]` pays once per site/pool, max of pool
+counted once; MAX_SCORE SELF-SUMS, never typed; `ranks` ladder spreads over
+max, pins `at N percent` / `at N points`; msg_score announces rank in three
+languages; extendedverbs FULL prints the earned breakdown; ledger line shows
+the whole plan). (12) THE DECLARATION TRIO: flag (false-start, true/false
+enforced) / counter (0-start, x++ x-- via inc/dec) / global (values, object
+refs, STRINGS: string globals were silently broken, now seeded + print as
+text). Plus intrinsics clear_screen()/random(n)/print_packed etc., global
+initializers seeded (latent bug: NOTHING was ever seeded before), print_name
+and cosmos_banner flush the pending break (two paragraph-layer latents), the
+two-noun boundary is joining-words only ("pick LOCK with nail" fixed), topic
+once-vs-when-vs-reveal documented, conversations + extendedverbs docs/05
+sections rewritten properly, VSCode grammar caught up (0.4-era to 0.9).
+
+STANDING RULES REINFORCED TODAY (memory updated): core-touching decisions in
+modular work are STEFAN'S; pitch byte costs and alternatives BEFORE building
+("it's 75 here, 110 there"). Granule = zero cost unsummoned, fully folded.
+Design forks: talk first, he backs vetoes both ways. Assert every scripted
+edit (a silent no-op replace bit twice today).
+
+NEXT, IN ORDER: (1) Stefan plays the slice; pending his native pass: the two
+ask wordings (EN done, "?A cual te refieres...?" / "Was meinst du: den...?"),
+the msg_score rank lines (ES/DE), G5 emphasis colour (say.yellow guess).
+(2) H2 ACT II onward, region by region, walkthrough-driven (wilderness/
+jungle/riverbank next; hull plate, razor vines + Vlad topic, statue slab;
+watch arcc -s, globals 55/240 at the slice). (3) The QUALITY SWEEP list in
+the slice header (oil-canister wording etc.) after functional porting.
+(4) Someday: bit-packed flags if a game nears 240 globals; fullscore
+anonymous-points line; ambience per-line dwell.
+
+>>> END DAY-TWO CHECKPOINT <<<
+
 THE DECLARATION TRIO (2026-07-03, from Stefan misreading a counter beside
 booleans in the slice, then the design talk): story state now declares its
 ROLE. `flag x` (boolean, starts false, no initializer written; `= true` for
