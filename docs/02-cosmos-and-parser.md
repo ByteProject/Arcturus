@@ -730,6 +730,13 @@ parser normally refuses, through the `reach_unscoped` parser seam the granule
 overrides. There is no separate release build to strip them: not summoning the
 granule leaves them out entirely, which is the exclusion.
 
+`summon.takeall`. TAKE ALL, DROP ALL, and TAKE ALL FROM <container>,
+catalogued in 05. Every swept item is a full turn (daemons and the clock move
+per item, the same rule as a chained line; a deliberate departure from
+Inform's one-turn ALL), undo takes the whole sweep back, and an empty sweep
+refuses so a chain stops. The core deliberately omits ALL; the granule's
+`all` declaration names the words and its hand-off folds away unsummoned.
+
 `summon.verbose_exits`. Helpful blocked-direction messages, game-wide. When a
 player tries a direction with no exit, instead of the default "You can't go
 that way." Cosmos lists the room's available exits, for example "You can only
@@ -927,7 +934,7 @@ Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,
 `show`, `talk`, `wait`, `again`.
 
 Summonable features: `extendedverbs`, `statusline`, `verbose_exits`,
-`conversations`, `debug`, and `language`. Text compression is not a summonable
+`conversations`, `takeall`, `debug`, and `language`. Text compression is not a summonable
 feature: the standard abbreviation set is always applied, and a story tunes it
 with its own `abbreviations.granule` (`arcc --make-abbreviations`, then summoned by
 name), which the text encoder reads as data rather than loading as runtime blocks

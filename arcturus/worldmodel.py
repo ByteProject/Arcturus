@@ -186,6 +186,10 @@ class World:
     # the language layer's `chain` declarations. The dictionary flags them; the
     # parser splits the line at the first one and queues the rest (docs/02 8b).
     chain_words: list[str] = field(default_factory=list)
+    # The takeall granule's all-words ("all", "everything"): flagged in the
+    # dictionary so the parser hands the command to the granule's expander.
+    # Empty unless the granule is summoned, and everything gated on it folds.
+    all_words: list[str] = field(default_factory=list)
     # True once lowering meets a colour construct (zcolor, say.<colour>). The
     # story header then announces colour use (Flags 2 bit 6), which interpreters
     # like Frotz require before they enable their colour machinery.

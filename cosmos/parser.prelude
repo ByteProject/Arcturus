@@ -84,6 +84,12 @@ block parse_line()
     if noun is not nothing
         if noun is not player
             note_pronouns(noun)
+    // TAKE ALL (summon.takeall): a typed all-word hands the command to the
+    // granule's expander; a bound noun rides along as the source ("take all
+    // from the chest"). The guard folds away without the granule.
+    if any_allwords() is 1
+        if all_typed() is 1
+            change all_go to 1
     // A language may remap the action now the nouns are known (English turns
     // LOOK <noun> into an examine); the seam lives in the language layer.
     return remap_action(act)
@@ -222,6 +228,20 @@ block match_first_phrase()
                     change hi to hi + 1
                     change going to 1
     return match_phrase(lo, hi)
+
+// Did the line name an all-word (dictionary flag 1)? Only consulted when
+// the takeall granule is summoned; without it the any_allwords guard folds
+// and dead-code elimination drops this block.
+block all_typed()
+    let n = word_count()
+    let i = 1
+    while i < n
+        let d = word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 1
+                return 1
+        change i to i + 1
+    return 0
 
 // Print the question naming the tied candidates: "Which do you mean, the
 // gold coin or the silver coin?" The framing and the connectors come from

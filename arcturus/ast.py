@@ -555,6 +555,16 @@ class ChainDecl:
 
 
 @dataclass
+class AllDecl:
+    # The takeall granule's all-words: `all "all", "everything"` names the words
+    # that mean "everything within reach" (TAKE ALL, DROP ALL, TAKE ALL FROM X).
+    # Declared in the granule, so a game pays nothing unless it summons it; a
+    # translation forks the granule and redeclares them (docs/05).
+    words: list[str]
+    line: int = 0
+
+
+@dataclass
 class GlobalDecl:
     name: str
     value: Expr

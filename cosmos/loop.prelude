@@ -29,6 +29,12 @@ block status_lines()
 block menu_owns_talk()
     return 0
 
+// TAKE ALL's expander: the takeall granule overrides this with the real
+// sweep (docs/05); the stub exists so the hand-off call resolves, and it
+// folds away with its caller in a game that never summons the granule.
+block run_all(act)
+    return 0
+
 block run_game()
     move player to here
     // Request the paragraph break that separates the banner from the opening
@@ -114,6 +120,15 @@ block run_turn(act)
         change second to last_second
         change way to last_way
         change grain to last_grain
+    // TAKE ALL: consume the parser's hand-off flag BEFORE the undo
+    // checkpoint (a snapshot must never carry it into a later rewind). The
+    // sweep is one typed command, so it gets the one checkpoint: undo takes
+    // the whole sweep back. Each swept item is still a full turn (the
+    // granule runs the per-turn pulse per item).
+    let sweep = 0
+    if any_allwords() is 1
+        change sweep to all_go
+        change all_go to 0
     let r = do_save_undo()
     if r is 2
         change meta_turn to 1
@@ -124,6 +139,10 @@ block run_turn(act)
         par()
         describe_room()
         return 0
+    if any_allwords() is 1
+        if sweep is 1
+            run_all(act)
+            return 0
     dispatch(act)
     if meta_turn is 0
         fire_turn()

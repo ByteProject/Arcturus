@@ -51,6 +51,10 @@ _PRONOUN_FLAG = 0x04
 # words after it run as the next command once this one succeeds (docs/02 8b).
 # The words come from the language layer's `chain` declarations.
 _CHAIN_FLAG = 0x02
+# An all-word ("all", "everything", from the takeall granule's `all`
+# declaration): the parser hands the command to the granule's expander, which
+# runs the action once per object within reach (TAKE ALL, DROP ALL).
+_ALL_FLAG = 0x01
 # flags bit 3 marks a grammar preposition (the "to"/"with" joining two noun
 # slots), so the parser knows where the first noun phrase ends and the second
 # begins. Words already flagged otherwise (on/in are a particle/direction) are
@@ -182,6 +186,8 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
     words |= set(pronoun_words)
     chain_words = set(world.chain_words)
     words |= chain_words
+    all_words = set(world.all_words)
+    words |= all_words
     encoded = {w: zstring.encode_dict_word(w) for w in words}
     # Map each distinct encoded entry to its three data bytes.
     enc_data: dict[bytes, bytes] = {}
@@ -199,6 +205,8 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
         enc_data[encoded[word]] = bytes([_PRONOUN_FLAG, rid, 0])
     for word in chain_words:
         enc_data[encoded[word]] = bytes([_CHAIN_FLAG, 0, 0])
+    for word in all_words:
+        enc_data[encoded[word]] = bytes([_ALL_FLAG, 0, 0])
     if scenery:
         for word, chain_addr in scenery.items():
             enc_data[encoded[word]] = bytes(
