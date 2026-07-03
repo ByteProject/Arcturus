@@ -781,12 +781,23 @@ class Parser:
                 self.advance()
                 continue
             title = self._plain_text(self.expect(T.STRING, "a rank title"))
-            pct = None
+            pin = None
             if self.check(T.NAME) and self.cur.value == "at":
                 self.advance()
-                pct = self.expect(T.NUMBER, "a percent after 'at'").value
+                n = self.expect(T.NUMBER, "a number after 'at'").value
+                if self.check(T.NAME) and self.cur.value == "percent":
+                    self.advance()
+                    pin = ("percent", n)
+                elif self.check(T.NAME) and self.cur.value == "points":
+                    self.advance()
+                    pin = ("points", n)
+                else:
+                    raise self._error(
+                        "a rank pin needs its unit: 'at 90 percent' or "
+                        "'at 320 points'"
+                    )
             self.expect_newline()
-            entries.append((title, pct))
+            entries.append((title, pin))
         self.expect(T.DEDENT)
         if len(entries) < 2:
             raise self._error("a ranks ladder needs at least two titles")

@@ -182,10 +182,10 @@ class Analyzer:
             elif isinstance(decl, ast.RanksDecl):
                 if w.ranks:
                     raise self._error("more than one ranks ladder", decl.line)
-                for title, pct in decl.entries:
-                    if pct is not None and not (0 <= pct <= 100):
+                for title, pin in decl.entries:
+                    if pin is not None and pin[0] == "percent" and not (0 <= pin[1] <= 100):
                         raise self._error(
-                            f"a rank pin is a percent of the maximum score, got {pct}",
+                            f"a percent rank pin runs 0 to 100, got {pin[1]}",
                             decl.line,
                         )
                 w.ranks = list(decl.entries)

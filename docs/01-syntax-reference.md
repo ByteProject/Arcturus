@@ -447,8 +447,20 @@ ranks
 The titles spread evenly across the summed max (the last always means full
 score) and the score verb announces them: "You have scored 55 of a possible
 95, which earns you the rank of Interstellar Apprentice." An entry may pin
-itself as a percent of max (`"Slayer of the Prime Unit" at 90`), and the
-ladder still cannot drift as the game grows.
+its own threshold, overriding the spread, in either unit:
+
+```
+ranks
+    "Cosmic Explorer"
+    "Interstellar Apprentice" at 17 percent
+    "Slayer of the Prime Unit" at 320 points
+    "Savior of the Universe" at 100 percent
+```
+
+A PERCENT pin scales with the summed max, so the ladder keeps its shape as
+the game grows during development; a POINTS pin is the definite value,
+verbatim, for when a rank must sit exactly at a known threshold. Mix them
+freely; unpinned titles keep the even spread.
 
 With the extendedverbs granule, FULL SCORE prints the Infocom-style
 breakdown from the pool labels, reporting what this playthrough earned:

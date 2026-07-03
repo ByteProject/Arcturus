@@ -648,9 +648,12 @@ def build_story(
         )
         # The thresholds: pinned entries at their percent of max, the rest
         # spread evenly; the last rank always means full score.
-        for pos, pct, i, count in layout.rank_sites:
-            if pct is not None:
-                pts = auto_max * pct // 100
+        for pos, pin, i, count in layout.rank_sites:
+            if pin is not None and pin[0] == "points":
+                # A definite pin: the author's exact threshold, verbatim.
+                pts = pin[1]
+            elif pin is not None:
+                pts = auto_max * pin[1] // 100
             elif count > 1:
                 pts = auto_max * i // (count - 1)
             else:
