@@ -1110,6 +1110,12 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
         eval_expr(rt, ctx, s.value, Variable(ctx.resolve_var(s.name, s.line)))
     elif isinstance(s, ast.Award):
         _award(rt, ctx, s)
+    elif isinstance(s, ast.Bump):
+        # counter++ / counter--: the Z-machine's own inc/dec, two bytes.
+        slot = ctx.globals.get(s.name)
+        if slot is None:
+            raise LowerError(f"unknown counter '{s.name}'")
+        rt.op("inc" if s.delta > 0 else "dec", Const(slot))
     elif isinstance(s, ast.Change):
         _change(rt, ctx, s)
     elif isinstance(s, ast.Say):
@@ -1426,6 +1432,12 @@ def _say_value(rt, ctx, expr):
         if t is not None:
             ctx.free_temp(t)
         return
+    if isinstance(expr, ast.Name):
+        g = ctx.world.globals.get(expr.ident)
+        if g is not None and g.type == "text":
+            # A text global holds a packed string address.
+            rt.op("print_paddr", Variable(ctx.globals[expr.ident]))
+            return
     op, t = _operand(rt, ctx, expr)
     rt.op("print_num", op)
     if t is not None:

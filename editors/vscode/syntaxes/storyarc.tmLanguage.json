@@ -87,7 +87,7 @@
                     }
                 },
                 {
-                    "match": "^\\s*(global|constant)\\s+([A-Za-z][A-Za-z0-9_]*)",
+                    "match": "^\\s*(global|constant|flag|counter)\\s+([A-Za-z][A-Za-z0-9_]*)",
                     "captures": {
                         "1": {
                             "name": "keyword.declaration.storyarc"
@@ -327,7 +327,7 @@
                 },
                 {
                     "name": "keyword.operator.storyarc",
-                    "match": "(<=|>=|<|>|\\+|-|\\*|/|=|\\.)"
+                    "match": "(\\+\\+|--|<=|>=|<|>|\\+|-|\\*|/|=|\\.)"
                 }
             ]
         }

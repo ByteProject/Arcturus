@@ -134,10 +134,12 @@ class Verb:
 
 @dataclass
 class Global:
+    # See ast.GlobalDecl: "global", "flag", or "counter".
     name: str
     type: str
     value: ast.Expr
     line: int = 0
+    role: str = "global"
 
 
 @dataclass

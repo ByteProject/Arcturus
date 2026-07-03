@@ -120,6 +120,9 @@ class Layout:
     ranks_off: int = -1
     pools_off: int = -1
     rank_sites: list = field(default_factory=list)
+    # Text globals: (global name, string id) pairs; build_story seeds each
+    # global's slot with its initializer's packed string address.
+    global_strings: list = field(default_factory=list)
     # Objects that have a react routine; their react property (63) is emitted.
     react_objects: set = field(default_factory=set)
     # Computed (`<name> block`) properties, as (objname, pname, is_text, decl):
@@ -379,6 +382,13 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
     _emit_topic_tables(world, layout, topic_sites)
     _emit_ambience_tables(world, layout)
     _emit_scoring_tables(world, layout)
+    # A global initialized with a string holds its packed address; register
+    # the text so build_story can seed the slot once addresses are known.
+    for gname, g in world.globals.items():
+        if isinstance(g.value, ast.StringLit):
+            sid = f"glob@{gname}"
+            layout.strings[sid] = _plain(g.value)
+            layout.global_strings.append((gname, sid))
 
 
 def _emit_scoring_tables(world, layout) -> None:

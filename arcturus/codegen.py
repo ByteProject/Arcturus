@@ -594,6 +594,12 @@ def build_story(
         # Each words-property entry gets its word's absolute dictionary address.
         for offset, word in layout.word_fixups:
             sf.set_word(objects_addr + offset, dict_addr + word_offsets[word])
+        # Text globals: the initializer's packed string address into the slot.
+        for gname, sid in layout.global_strings:
+            sf.set_word(
+                globals_addr + (_globals_map(world)[gname] - 16) * 2,
+                string_packed[sid],
+            )
     for pos, sid in strrefs:
         sf.set_word(blob_start + pos, string_packed[sid])
 

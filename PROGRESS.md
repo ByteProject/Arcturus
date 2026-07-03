@@ -10,6 +10,27 @@ Model handover: `HANDOVER.md` (repo root) is a holistic orientation written at
 the switch to Anthropic's Fable model, with an assessment task to run before B8.
 Read it alongside this log.
 
+THE DECLARATION TRIO (2026-07-03, from Stefan misreading a counter beside
+booleans in the slice, then the design talk): story state now declares its
+ROLE. `flag x` (boolean, starts false, no initializer written; `= true` for
+the rare pre-set one; only ever true/false, enforced at compile time),
+`counter x` (a number that counts, starts 0; the mechanics `x++` / `x--`
+belong to counters alone, lowered to the Z-machine's own inc/dec, two
+bytes), and `global` stays the general drawer (values, object references,
+strings). `=` appears ONLY at the declaration; play-time assignment remains
+the one way, `change x to v` (his own design principle, re-confirmed when he
+floated `x = 14` as a statement). All three are Z-machine globals underneath;
+the head is for the reader and the compiler, which can bit-pack flags later
+WITHOUT source changes (Puny's ext_flags idea absorbed as a future
+transparent optimization; packing saves no file size, the globals region is
+fixed 480 bytes, it only relieves the 240 count, so: later, if ever). FOUND
+AND FIXED ON THE WAY: string globals were accepted but silently broken
+(never seeded, printed as a number); a text global now holds its packed
+string address (seeded via the layout string pool) and ${motto} prints as
+text. The H2 slice's state block reads `flag`/`counter` now, with
+grill_pushes++ in the grill handler. docs/01 section 4 rewritten around the
+trio; extension grammar and vsix updated. 384 tests (test_globals.py 5).
+
 VERSION 0.9 / COSMOS 0.12 + THE VSCODE EXTENSION CAUGHT UP (2026-07-03,
 Stefan's call after the scoring round). The extension grammar (0.4-era,
 predating B7) now knows everything since: the language-pack declarations

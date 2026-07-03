@@ -194,6 +194,8 @@ class Parser:
             return self.parse_noise()
         if t.kind == T.NAME and t.value == "ranks":
             return self.parse_ranks()
+        if t.kind == T.NAME and t.value in ("flag", "counter"):
+            return self.parse_flag_counter()
         if t.value == "player" and t.kind in (T.NAME, T.KW):
             nxt = self._at(1)
             if nxt.kind == T.OP and nxt.value == ".":
@@ -768,6 +770,22 @@ class Parser:
         self.expect_newline()
         return ast.AllDecl(words, line)
 
+    def parse_flag_counter(self) -> ast.GlobalDecl:
+        # `flag grill_open` (starts false) / `counter grill_pushes` (starts
+        # 0); `= <literal>` only here, at the declaration. The head says the
+        # role; sema holds a flag to true/false and gives counters ++/--.
+        role = self.cur.value
+        line = self.cur.line
+        self.advance()
+        name = self.expect_name(f"a {role} name").value
+        if self.check_op("="):
+            self.advance()
+            value = self.parse_expr()
+        else:
+            value = ast.Bool(False, line) if role == "flag" else ast.Number(0, line)
+        self.expect_newline()
+        return ast.GlobalDecl(name, value, role, line)
+
     def parse_ranks(self) -> ast.RanksDecl:
         # `ranks` then an indented list of titles, oldest rank first; an
         # entry may pin itself with `at N` (percent of the summed max).
@@ -845,7 +863,7 @@ class Parser:
         self.expect_op("=")
         value = self.parse_expr()
         self.expect_newline()
-        return ast.GlobalDecl(name, value, line)
+        return ast.GlobalDecl(name, value, "global", line)
 
     def parse_constant(self) -> ast.ConstantDecl:
         line = self.cur.line
@@ -888,6 +906,13 @@ class Parser:
                 return self._parse_zcolor()
             if t.value == "award" and self._at(1).kind == T.NUMBER:
                 return self._parse_award()
+            nxt = self._at(1)
+            if nxt.kind == T.OP and nxt.value in ("++", "--"):
+                line = t.line
+                name = self.advance().value
+                delta = 1 if self.advance().value == "++" else -1
+                self.expect_newline()
+                return ast.Bump(name, delta, line)
             return self._parse_expr_statement()
         raise self._error(f"expected a statement, got {self._describe(t)}")
 
