@@ -338,12 +338,18 @@ pronoun her "sie"
 ```
 
 and defines a `note_pronouns(obj)` block deciding which slot a just-resolved
-noun fills. English splits by animacy (a character becomes him or her by its
-gender, everything else it); German follows grammatical gender, so die Lampe
-becomes "sie" and das Buch "es"; Spanish fills the slots by gender for the
-clitic forms to come (cogelo, cogela), which are stage two of this work. The
-roles are the compiler contract (like the particle roles); the slot ids ride
-the pronoun words' dictionary entries, and `them` waits for a plural model.
+noun fills. English splits by animacy (a character becomes him or her,
+everything else it) and, within characters, by the `feminine` attribute:
+declare `feminine` on a female character so "her" finds her (the -a name
+heuristic that serves Spanish also runs, so a Marta derives it, but a Ruth
+does not); a male character needs nothing, masculine being the default. The
+slots are separate: "him" never returns a character noted as "her", and an
+empty slot answers the ordinary "you see nothing of the sort". German follows
+grammatical gender, so die Lampe becomes "sie" and das Buch "es"; Spanish
+fills the slots by gender for the clitic forms to come (cogelo, cogela),
+which are stage two of this work. The roles are the compiler contract (like
+the particle roles); the slot ids ride the pronoun words' dictionary entries,
+and `them` waits for a plural model.
 
 ## 9. The action pipeline
 
