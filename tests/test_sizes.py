@@ -27,7 +27,7 @@ from arcturus.sema import analyze
 
 EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
-# Byte ceilings per example, as of arcc 0.8.0 / Cosmos 0.11.0 (2026-07-03).
+# Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.12.0 (2026-07-03).
 CEILINGS = {
     # 2026-07-03 (the slice-review batch, all Stefan-ruled): recipient
     # dispatch for the second noun (~40), the start-screen title skip with

@@ -3,7 +3,7 @@
 What "conformant" means for this project, the evidence that the compiler meets
 it, and the size record that evidence protects. The charter is docs/00 (sections
 2 and 5); the backend mapping the claims below rest on is docs/04. This document
-records the state as of arcc 0.8.0 / Cosmos 0.11.0 (2026-07-03) and is updated
+records the state as of arcc 0.9.0 / Cosmos 0.12.0 (2026-07-03) and is updated
 whenever the conformance evidence changes.
 
 ## 1. The conformance claim
