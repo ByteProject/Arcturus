@@ -3,18 +3,42 @@
     "name": "Arcturus",
     "scopeName": "source.storyarc",
     "patterns": [
-        { "include": "#comments" },
-        { "include": "#declarations" },
-        { "include": "#strings" },
-        { "include": "#uuid" },
-        { "include": "#numbers" },
-        { "include": "#constants" },
-        { "include": "#builtins" },
-        { "include": "#kinds" },
-        { "include": "#attributes" },
-        { "include": "#properties" },
-        { "include": "#keywords" },
-        { "include": "#operators" }
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#declarations"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#uuid"
+        },
+        {
+            "include": "#numbers"
+        },
+        {
+            "include": "#constants"
+        },
+        {
+            "include": "#builtins"
+        },
+        {
+            "include": "#kinds"
+        },
+        {
+            "include": "#attributes"
+        },
+        {
+            "include": "#properties"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#operators"
+        }
     ],
     "repository": {
         "comments": {
@@ -31,45 +55,99 @@
                     "comment": "Declaration heads that introduce a named entity.",
                     "match": "^\\s*(kind|room|thing)\\s+([A-Za-z][A-Za-z0-9_]*)",
                     "captures": {
-                        "1": { "name": "keyword.declaration.storyarc" },
-                        "2": { "name": "entity.name.type.storyarc" }
+                        "1": {
+                            "name": "keyword.declaration.storyarc"
+                        },
+                        "2": {
+                            "name": "entity.name.type.storyarc"
+                        }
                     }
                 },
                 {
                     "match": "^\\s*(block)\\s+([A-Za-z][A-Za-z0-9_]*)",
                     "captures": {
-                        "1": { "name": "keyword.declaration.storyarc" },
-                        "2": { "name": "entity.name.function.storyarc" }
+                        "1": {
+                            "name": "keyword.declaration.storyarc"
+                        },
+                        "2": {
+                            "name": "entity.name.function.storyarc"
+                        }
                     }
                 },
                 {
                     "comment": "A topic declaration on a person: topic <id> \"label\" ...",
                     "match": "^\\s*(topic)\\s+([A-Za-z][A-Za-z0-9_]*)",
                     "captures": {
-                        "1": { "name": "keyword.declaration.storyarc" },
-                        "2": { "name": "entity.name.function.storyarc" }
+                        "1": {
+                            "name": "keyword.declaration.storyarc"
+                        },
+                        "2": {
+                            "name": "entity.name.function.storyarc"
+                        }
                     }
                 },
                 {
                     "match": "^\\s*(global|constant)\\s+([A-Za-z][A-Za-z0-9_]*)",
                     "captures": {
-                        "1": { "name": "keyword.declaration.storyarc" },
-                        "2": { "name": "variable.other.storyarc" }
+                        "1": {
+                            "name": "keyword.declaration.storyarc"
+                        },
+                        "2": {
+                            "name": "variable.other.storyarc"
+                        }
                     }
                 },
                 {
-                    "match": "^\\s*(game|verb|grains)\\b",
+                    "match": "^\\s*(game|verb|grains|ranks|ambience)\\b",
                     "captures": {
-                        "1": { "name": "keyword.declaration.storyarc" }
+                        "1": {
+                            "name": "keyword.declaration.storyarc"
+                        }
+                    }
+                },
+                {
+                    "comment": "Language-layer declarations: words the parser reads (docs/02 8, 8a, 8b, 14a).",
+                    "match": "^\\s*(direction|particle|pronoun|chain|noise|all|language)\\b",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.declaration.storyarc"
+                        }
+                    }
+                },
+                {
+                    "comment": "player.words / player.desc: augmenting the seeded player (docs/01 5a).",
+                    "match": "^\\s*(player)(\\.)(words|desc|name|named)\\b",
+                    "captures": {
+                        "1": {
+                            "name": "variable.language.storyarc"
+                        },
+                        "3": {
+                            "name": "support.type.property.storyarc"
+                        }
+                    }
+                },
+                {
+                    "comment": "A German gender line: a bare der/die/das in an object body (docs/02 14a).",
+                    "match": "^\\s*(der|die|das)\\s*$",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.other.gender.storyarc"
+                        }
                     }
                 },
                 {
                     "comment": "The three summon forms: summon.feature (bundled), summon name.granule (searched), summon \"path\" (a file, highlighted as a string).",
                     "match": "^\\s*(summon)(?:(\\.[A-Za-z][A-Za-z0-9_]*)|\\s+([A-Za-z][A-Za-z0-9_]*\\.granule))?",
                     "captures": {
-                        "1": { "name": "keyword.control.import.storyarc" },
-                        "2": { "name": "support.function.summon.storyarc" },
-                        "3": { "name": "support.function.summon.storyarc" }
+                        "1": {
+                            "name": "keyword.control.import.storyarc"
+                        },
+                        "2": {
+                            "name": "support.function.summon.storyarc"
+                        },
+                        "3": {
+                            "name": "support.function.summon.storyarc"
+                        }
                     }
                 }
             ]
@@ -88,16 +166,28 @@
                     "begin": "\\$\\{",
                     "end": "\\}",
                     "beginCaptures": {
-                        "0": { "name": "punctuation.section.interpolation.begin.storyarc" }
+                        "0": {
+                            "name": "punctuation.section.interpolation.begin.storyarc"
+                        }
                     },
                     "endCaptures": {
-                        "0": { "name": "punctuation.section.interpolation.end.storyarc" }
+                        "0": {
+                            "name": "punctuation.section.interpolation.end.storyarc"
+                        }
                     },
                     "patterns": [
-                        { "include": "#numbers" },
-                        { "include": "#constants" },
-                        { "include": "#builtins" },
-                        { "include": "#operators" },
+                        {
+                            "include": "#numbers"
+                        },
+                        {
+                            "include": "#constants"
+                        },
+                        {
+                            "include": "#builtins"
+                        },
+                        {
+                            "include": "#operators"
+                        },
                         {
                             "comment": "The leading article of an interpolation: the/The/a/an.",
                             "match": "\\b(the|The|a|an)\\b",
@@ -125,32 +215,52 @@
         },
         "builtins": {
             "name": "variable.language.storyarc",
-            "match": "\\b(self|player|here|noun|second|turns|score|max_score)\\b"
+            "match": "\\b(self|player|here|noun|second|turns|score|max_score|way|grain|refused|ambience_rate)\\b"
         },
         "kinds": {
-            "comment": "Standard Cosmos kinds, highlighted only in kind position (after `of`), so a kind name like `door` used as a plain word is left alone.",
-            "match": "\\b(of)\\s+(thing|room|container|supporter|door|character)\\b",
-            "captures": {
-                "1": { "name": "keyword.operator.word.storyarc" },
-                "2": { "name": "support.class.kind.storyarc" }
-            }
+            "patterns": [
+                {
+                    "comment": "Standard Cosmos kinds, highlighted only in kind position (after `of`).",
+                    "match": "\\b(of)\\s+(thing|room|container|supporter|door|character)\\b",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.operator.word.storyarc"
+                        },
+                        "2": {
+                            "name": "support.class.kind.storyarc"
+                        }
+                    }
+                },
+                {
+                    "comment": "The backstage scope room: `in scope` places an object always in scope (docs/01 section 5).",
+                    "match": "\\b(in|to)\\s+(scope)\\b",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.operator.word.storyarc"
+                        },
+                        "2": {
+                            "name": "support.class.kind.storyarc"
+                        }
+                    }
+                }
+            ]
         },
         "attributes": {
             "comment": "Standard Cosmos boolean attributes (docs/02).",
             "name": "support.type.attribute.storyarc",
-            "match": "\\b(fixed|scenery|concealed|wearable|worn|lit|edible|named|switchable|openable|open|lockable|locked|visited|clear|seen|moved|animate)\\b"
+            "match": "\\b(fixed|scenery|concealed|wearable|worn|lit|edible|named|switchable|openable|open|lockable|locked|visited|clear|seen|moved|animate|an|feminine|neutral|scored)\\b"
         },
         "properties": {
             "comment": "Standard Cosmos value properties and the topic modifiers.",
             "patterns": [
                 {
                     "name": "support.type.property.storyarc",
-                    "match": "\\b(name|desc|intro|words|capacity|spans|unseal_with)\\b"
+                    "match": "\\b(name|desc|intro|words|capacity|spans|unseal_with|article|indefinite|tag|plural)\\b"
                 },
                 {
-                    "comment": "Topic header modifiers (docs/01 section 15).",
+                    "comment": "Topic, ambience, and rank header modifiers (docs/01 sections 6a and 15; docs/05 ambience).",
                     "name": "keyword.other.modifier.storyarc",
-                    "match": "\\b(once|hidden)\\b"
+                    "match": "\\b(once|hidden|about|order|at|percent|points|turns)\\b"
                 }
             ]
         },
@@ -165,6 +275,36 @@
                     "match": "\\b(let|change|now|move|add|remove|say|zcolor|to|from|start)\\b"
                 },
                 {
+                    "comment": "The award statement: score enters the game only through it (docs/01 6a).",
+                    "match": "\\b(award)\\s+([0-9]+)(?:\\s+(for)\\s+([A-Za-z][A-Za-z0-9_]*))?",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.other.statement.storyarc"
+                        },
+                        "2": {
+                            "name": "constant.numeric.storyarc"
+                        },
+                        "3": {
+                            "name": "keyword.operator.word.storyarc"
+                        },
+                        "4": {
+                            "name": "entity.name.tag.pool.storyarc"
+                        }
+                    }
+                },
+                {
+                    "comment": "Screen colours (docs/01 16a): zcolor targets and the say.<colour> form.",
+                    "match": "\\b(zcolor|say)(\\.)(font|background|statusline|input|default|black|red|green|yellow|blue|magenta|cyan|white)\\b",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.other.statement.storyarc"
+                        },
+                        "3": {
+                            "name": "support.constant.colour.storyarc"
+                        }
+                    }
+                },
+                {
                     "comment": "Conversation sugar in a topic body: the player's line, the NPC reply, and the reveal/hide toggles (docs/02 section 14).",
                     "name": "keyword.other.conversation.storyarc",
                     "match": "\\b(you|reply|reveal|hide)\\b"
@@ -175,7 +315,7 @@
                 },
                 {
                     "name": "support.type.metadata.storyarc",
-                    "match": "\\b(title|headline|author|release|serial|UUID)\\b"
+                    "match": "\\b(title|headline|author|release|serial|UUID|scoring|banner)\\b"
                 }
             ]
         },

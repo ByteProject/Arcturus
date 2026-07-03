@@ -10,6 +10,26 @@ Model handover: `HANDOVER.md` (repo root) is a holistic orientation written at
 the switch to Anthropic's Fable model, with an assessment task to run before B8.
 Read it alongside this log.
 
+VERSION 0.9 / COSMOS 0.12 + THE VSCODE EXTENSION CAUGHT UP (2026-07-03,
+Stefan's call after the scoring round). The extension grammar (0.4-era,
+predating B7) now knows everything since: the language-pack declarations
+(direction/particle/pronoun/chain/noise/all/language), player.-forms, the
+bare der/die/das gender lines, `in scope`, ranks and ambience heads with
+their modifiers (about/order/at/percent/points/turns), the award statement
+with its pool, zcolor targets and say.<colour>, the scoring and banner
+metas, the new attributes (an/feminine/neutral/scored) and properties
+(article/indefinite/tag/plural), and the author-facing builtins (way, grain,
+refused, ambience_rate). arcturus-0.9.0.vsix rebuilt; the old 0.4 vsix
+removed. Also this round: the scoring showcase (The Apprentice's Trial,
+examples/features/scoring.storyarc: auto-pay with every exclusion visible,
+a grain-body award, the two-way vault-door pool, mixed rank pins; max 38,
+never typed) and A REAL MATCHER FIX it uncovered: the two-noun phrase
+boundary split at ANY flagged word, so "pick LOCK with nail" emptied its
+own phrase ("lock" is also a verb); the boundary is now only the joining
+words (prepositions and the in/on/an/auf class), regression-pinned with
+"unlock lock with key". Rank pins gained explicit units the same day
+("at 17 percent" / "at 320 points"; the bare form read wrong). 379 tests.
+
 SCORING: SCORE JUST WORKS (2026-07-03, Stefan's vision after rejecting my
 Inform-shaped scored attribute and then my hand-typed plan table; his words:
 in Inform score is the single biggest burden, he never once shipped a game
