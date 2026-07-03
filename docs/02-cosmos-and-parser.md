@@ -730,7 +730,7 @@ Gender where spelling cannot reveal it (German). German has three genders and no
 rule to guess them from, so the author states the gender the natural way, by
 declaring the object's article: `der`, `die`, or `das` on its own line in the
 object, like any attribute. The compiler maps that to the gender the pack reads
-(`die` sets `feminine`, `das` sets `neuter`, `der` is the masculine default), so
+(`die` sets `feminine`, `das` sets `neutral`, `der` is the masculine default), so
 the source reads as an author thinks (`das Buch`, `die Kiste`), not as an abstract
 flag. Because the gender is explicit, the Spanish -a spelling guess is turned off
 for German, so a masculine noun ending in -a is left masculine. The German article

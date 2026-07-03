@@ -94,7 +94,7 @@ def test_gender_articles_override_on_frotz(tmp_path):
 
 # A three-gender, case-inflected language (German) declares gender with the article
 # der/die/das on the object, and asks for a case with ${the:acc noun}. The gender
-# maps to feminine/neuter attributes; the case reaches art_the as a third argument.
+# maps to feminine/neutral attributes; the case reaches art_the as a third argument.
 # ${the noun} with no tag calls art_the with two arguments, so its third local
 # defaults to 0 (nominative). A masculine noun ending in -a ("Gorilla") must stay
 # masculine: spelling derivation is off for German.
@@ -131,7 +131,7 @@ def test_german_gender_and_case_on_frotz(tmp_path):
         capture_output=True, text=True, timeout=15,
     ).stdout
     assert "die Kiste/die Kiste/der Kiste" in out  # feminine: nom/acc same, dat der
-    assert "das Buch/das Buch/dem Buch" in out  # neuter: nom/acc das, dat dem
+    assert "das Buch/das Buch/dem Buch" in out  # neutral: nom/acc das, dat dem
     assert "der Gorilla/den Gorilla/einen Gorilla" in out  # masculine, not feminine
 
 
