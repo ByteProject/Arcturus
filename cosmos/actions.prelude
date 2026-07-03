@@ -93,6 +93,12 @@ on examine
         stop
     now noun is seen
     if desc_addr(noun) is nothing
+        // Examining yourself gets its own line: the generic "nothing special"
+        // is an object's message, the wrong voice for the player. A game that
+        // sets player.desc never reaches this.
+        if noun is player
+            msg_examine_self()
+            stop
         msg_nothing_special()
         stop
     say noun.desc

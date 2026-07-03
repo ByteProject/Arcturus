@@ -1015,6 +1015,10 @@ block msg_cant_climb()
     say "${The noun} no es para escalar."
 
 // Sensory.
+// Examinarse sin player.desc definido.
+block msg_examine_self()
+    say "Tienes el mismo aspecto de siempre. Tranquiliza."
+
 block msg_nothing_special()
     say "${The noun} no tiene nada de particular."
 

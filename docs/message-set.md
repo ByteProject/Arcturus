@@ -44,6 +44,7 @@ docs/verb-set.md.
 
 | Block | When | Wording |
 |---|---|---|
+| msg_examine_self | examine yourself with no player.desc set | You look much as you always do. Reassuring. |
 | msg_nothing_special | examine, no description | Nothing about ${the noun} rewards a closer look. |
 | msg_touch | touch, default | You touch ${the noun}. You feel nothing that your eyes didn't already see. |
 | msg_smell | smell, default | ${The noun} smells about as you'd expect. |

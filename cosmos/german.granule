@@ -954,6 +954,10 @@ block msg_cant_climb()
     say "${The noun} ist nicht zum Klettern geeignet."
 
 // Sensory.
+// Sich selbst betrachten, ohne dass player.desc gesetzt ist.
+block msg_examine_self()
+    say "Du siehst aus wie immer. Beruhigend."
+
 block msg_nothing_special()
     say "An ${the:dat noun} ist nichts Besonderes zu sehen."
 

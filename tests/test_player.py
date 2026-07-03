@@ -45,3 +45,20 @@ def test_player_words_and_computed_desc_on_frotz(tmp_path):
     ).stdout
     assert out.count("Olivia Lund, exobiologist.") == 5
     assert "You keep a firm grip on yourself." in out
+
+
+NO_DESC = 'game\n    title "N"\n    start r\nroom r\n    name "R"\n    desc "A room."\n'
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_examine_self_default_on_frotz(tmp_path):
+    # With no player.desc, examining yourself gets the dedicated default, not
+    # the object fallback ("Nothing about yourself rewards a closer look.").
+    story = tmp_path / "n.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(NO_DESC)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="x me\n", capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "You look much as you always do. Reassuring." in out
+    assert "rewards a closer look" not in out
