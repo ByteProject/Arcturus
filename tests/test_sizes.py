@@ -32,31 +32,31 @@ CEILINGS = {
     # 2026-07-03 (pronouns, part 1): the referent slots, note_pronouns, the
     # scope_match pronoun hook, and the it/him/her words. Every game carries
     # the mechanism; the clitic stage (Spanish) rides on it next.
-    "beispiel-deutsch.storyarc": 17612,
-    "brass-lantern.storyarc": 11988,
-    "cloak-of-darkness.storyarc": 12512,
-    "ejemplo-espanol.storyarc": 16888,
-    "features/computed-properties.storyarc": 10848,
-    "features/containers.storyarc": 10888,
-    "features/daemons-and-timers.storyarc": 11188,
-    "features/doors-and-locks.storyarc": 10816,
-    "features/grains.storyarc": 10864,
-    "features/introproperty.storyarc": 11932,
-    "features/kinds-and-inheritance.storyarc": 10708,
-    "features/on-other.storyarc": 10712,
-    "features/zcolor.storyarc": 11224,
-    "features/spans.storyarc": 10976,
-    "granules/conversations.storyarc": 12584,
-    "granules/extended-verbs.storyarc": 13984,
-    "granules/infocom-interrogation.storyarc": 15832,
-    "granules/quotes.storyarc": 11212,
-    "granules/statusline.storyarc": 10960,
-    "granules/verbose-exits.storyarc": 11104,
+    "beispiel-deutsch.storyarc": 17636,
+    "brass-lantern.storyarc": 12008,
+    "cloak-of-darkness.storyarc": 12532,
+    "ejemplo-espanol.storyarc": 16896,
+    "features/computed-properties.storyarc": 10868,
+    "features/containers.storyarc": 10908,
+    "features/daemons-and-timers.storyarc": 11208,
+    "features/doors-and-locks.storyarc": 10836,
+    "features/grains.storyarc": 10884,
+    "features/introproperty.storyarc": 11952,
+    "features/kinds-and-inheritance.storyarc": 10728,
+    "features/on-other.storyarc": 10732,
+    "features/zcolor.storyarc": 11244,
+    "features/spans.storyarc": 10996,
+    "granules/conversations.storyarc": 12604,
+    "granules/extended-verbs.storyarc": 14004,
+    "granules/infocom-interrogation.storyarc": 15852,
+    "granules/quotes.storyarc": 11232,
+    "granules/statusline.storyarc": 10980,
+    "granules/verbose-exits.storyarc": 11124,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 12912
+CLOAK_Z8_CEILING = 12936
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

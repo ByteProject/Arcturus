@@ -906,7 +906,8 @@ block msg_cant_climb()
 // Examining yourself with no player.desc set: the player deserves better
 // than the object fallback.
 block msg_examine_self()
-    say "You look much as you always do. Reassuring."
+    say "Are we going to admire ourselves for a while or do we play an
+         adventure game?"
 
 block msg_nothing_special()
     say "Nothing about ${the noun} rewards a closer look."

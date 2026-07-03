@@ -160,8 +160,9 @@ The player is a seeded object every game already has. The language layer gives
 it the standard self-words, so `x me`, `x myself`, `x yourself` (and each
 language's own: `untersuche dich`, `examinate`) work in every game with no
 author code; taking yourself answers its own line, and examining yourself
-without a `player.desc` gets a proper default ("You look much as you always
-do. Reassuring.") rather than an object's message.
+without a `player.desc` gets a proper default ("Are we going to admire
+ourselves for a while or do we play an adventure game?") rather than an
+object's message.
 
 A game augments the player with top-level `player.` declarations:
 

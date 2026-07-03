@@ -956,7 +956,8 @@ block msg_cant_climb()
 // Sensory.
 // Sich selbst betrachten, ohne dass player.desc gesetzt ist.
 block msg_examine_self()
-    say "Du siehst aus wie immer. Beruhigend."
+    say "Bewundern wir uns noch eine Weile, oder spielen wir jetzt ein
+         Adventure?"
 
 block msg_nothing_special()
     say "An ${the:dat noun} ist nichts Besonderes zu sehen."

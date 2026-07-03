@@ -1017,7 +1017,7 @@ block msg_cant_climb()
 // Sensory.
 // Examinarse sin player.desc definido.
 block msg_examine_self()
-    say "Tienes el mismo aspecto de siempre. Tranquiliza."
+    say "¿Vamos a admirarnos un rato más o jugamos a la aventura?"
 
 block msg_nothing_special()
     say "${The noun} no tiene nada de particular."
