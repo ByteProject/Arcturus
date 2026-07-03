@@ -101,15 +101,38 @@ later with `print_banner()` (after a quote box, say), or never.
 The banner also names the compiler (Arcturus) and the library
 (Cosmos) with their versions; see 02.
 
-Globals and constants:
+Story state comes in three declarations, and the head tells the reader what
+they are holding:
 
 ```
-global score = 0
-constant max_score = 100
+flag grill_open                 // boolean state; starts false
+flag emergency_power = true     // the rare pre-set one
+counter grill_pushes            // a number that counts; starts 0
+counter lives = 3
+global motto = "Per aspera ad astra."   // the general drawer
+global favorite = lantern
+constant max_carry = 7
 ```
 
-The Z-machine offers 240 globals; the compiler allocates them and errors only
-if a program exceeds that.
+A FLAG holds only `true` or `false`, forever: `change grill_open to 3` is a
+compile error, and no `= false` is ever written, since a flag starts false
+by itself. A COUNTER is a number with the counting mechanics attached:
+
+```
+grill_pushes++
+lives--
+```
+
+`++` and `--` belong to counters alone; everything else, and any other
+assignment, keeps the one way to write state, `change x to <value>` (the
+`=` appears only at the declaration). A GLOBAL is everything else: numbers
+that are values rather than counts, object references, and strings (a text
+global holds its string and prints as text in `${...}` interpolation).
+
+All three are Z-machine globals underneath; the split is for the reader and
+the compiler, which checks the promise each head makes, and is free to pack
+flags into bits later without any source change. The Z-machine offers 240;
+the compiler allocates them and errors only if a program exceeds that.
 
 ## 5. The world model
 

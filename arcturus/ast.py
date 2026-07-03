@@ -597,9 +597,24 @@ class AllDecl:
 
 
 @dataclass
+class Bump:
+    # `grill_pushes++` / `grill_pushes--`: the counter mechanics (docs/01
+    # section 4). Only a `counter` global takes them; everything else keeps
+    # `change ... to`.
+    name: str
+    delta: int
+    line: int = 0
+
+
+@dataclass
 class GlobalDecl:
+    # role: "global" (the general drawer: numbers, object references,
+    # strings), "flag" (boolean state, starts false, only ever true/false),
+    # or "counter" (a number with ++/--, starts 0). The declaration head
+    # says what you are holding (docs/01 section 4).
     name: str
     value: Expr
+    role: str = "global"
     line: int = 0
 
 

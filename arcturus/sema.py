@@ -195,8 +195,22 @@ class Analyzer:
                         w.noise_words.append(word.lower())
             elif isinstance(decl, ast.GlobalDecl):
                 self._seen(decl.name, decl.line)
+                role = getattr(decl, "role", "global")
+                vt = self._value_type(decl.value)
+                if role == "flag" and vt != prelude.T_BOOL:
+                    raise self._error(
+                        f"a flag starts true or false; '{decl.name}' was given "
+                        "something else (use `counter` or `global`)",
+                        decl.line,
+                    )
+                if role == "counter" and vt != prelude.T_NUMBER:
+                    raise self._error(
+                        f"a counter starts at a number; '{decl.name}' was given "
+                        "something else (use `flag` or `global`)",
+                        decl.line,
+                    )
                 w.globals[decl.name] = wm.Global(
-                    decl.name, self._value_type(decl.value), decl.value, decl.line
+                    decl.name, vt, decl.value, decl.line, role
                 )
             elif isinstance(decl, ast.ConstantDecl):
                 self._seen(decl.name, decl.line)
@@ -632,6 +646,14 @@ class Analyzer:
         elif isinstance(s, (ast.Add, ast.Remove)):
             self._check_expr(s.value, locals_)
             self._check_list_place(s.target, locals_)
+        elif isinstance(s, ast.Bump):
+            g = self.world.globals.get(s.name)
+            if g is None or g.role != "counter":
+                raise self._error(
+                    f"'{s.name}++' needs a counter; declare it with "
+                    f"`counter {s.name}`",
+                    s.line,
+                )
         elif isinstance(s, ast.Award):
             if not (0 < s.points <= 250):
                 raise self._error("award takes 1 to 250 points", s.line)
@@ -676,6 +698,20 @@ class Analyzer:
 
     def _check_change(self, s: ast.Change, locals_: set) -> None:
         self._check_expr(s.value, locals_)
+        # The declaration head is a promise: a flag holds true or false, a
+        # counter holds numbers. Literal mismatches are compile errors.
+        if isinstance(s.target, ast.Name):
+            g = self.world.globals.get(s.target.ident)
+            if g is not None and g.role == "flag" and isinstance(s.value, ast.Number):
+                raise self._error(
+                    f"'{s.target.ident}' is a flag: it takes true or false",
+                    s.line,
+                )
+            if g is not None and g.role == "counter" and isinstance(s.value, ast.Bool):
+                raise self._error(
+                    f"'{s.target.ident}' is a counter: it takes numbers",
+                    s.line,
+                )
         target = s.target
         if isinstance(target, ast.Name):
             name = target.ident

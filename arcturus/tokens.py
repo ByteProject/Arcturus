@@ -55,7 +55,7 @@ KEYWORDS = frozenset(
 )
 
 # Multi-character operators, tried before single characters.
-TWO_CHAR_OPS = ("<=", ">=")
+TWO_CHAR_OPS = ("++", "--", "<=", ">=")
 ONE_CHAR_OPS = frozenset("()+-*/=<>.,")
 
 
