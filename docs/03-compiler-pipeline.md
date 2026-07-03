@@ -203,7 +203,8 @@ helpers (`handler_of`, `call_handler`, `run_free`, `run_grain`), the life-cycle
 event numbers, the output and turn-loop helpers (`show`, `print_name`, `par`,
 `tick`, `set_here`, `do_quit`), the v5 screen model the statusline and
 conversations granules draw with (`split_window`, `set_window`, `set_cursor`,
-`erase_window`, `screen_width`, `read_key`), and the topic-table accessors the
+`erase_window`, `screen_width`, `read_key`, `clear_screen` for a full wipe,
+`random(n)` for the interpreter's own dice), and the topic-table accessors the
 conversation granules walk (`topics_count`, `topic_visible`, `topic_label`,
 `topic_run`). Everything else in Cosmos is normal Arcturus.
 
