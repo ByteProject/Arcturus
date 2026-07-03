@@ -23,7 +23,7 @@
 // Two things set German apart from the Spanish pack, and shape this file:
 //   - GENDER is three-way (der/die/das) with no spelling rule, so the author
 //     declares the article on the object (der/die/das); the compiler maps that to
-//     the feminine/neuter attributes this file reads. Masculine is the default.
+//     the feminine/neutral attributes this file reads. Masculine is the default.
 //   - The article INFLECTS FOR CASE (der/den/dem). A message asks for the case it
 //     needs with a tag on the article, ${the:acc noun} / ${a:dat noun}; art_the
 //     and art_a below turn gender and case into the right word. Predicate
@@ -569,7 +569,7 @@ block note_pronouns(obj)
     if obj is feminine
         change pron_her to obj
         return 0
-    if obj is neuter
+    if obj is neutral
         change pron_it to obj
         return 0
     change pron_him to obj
@@ -663,7 +663,7 @@ verb "sing", "singe", "singen"
 // tags one, a grammatical case (${the:acc noun}). With no tag, the case argument
 // is not passed at all, so `kase` keeps its default of 0 (nominative).
 //
-// Gender comes from the object: `neuter` (das), `feminine` (die), or neither
+// Gender comes from the object: `neutral` (das), `feminine` (die), or neither
 // (der, masculine). Case is `kase`: 0 nominative, 1 accusative, 2 dative, 3
 // genitive. Every definite article starts with d, every indefinite with e, so the
 // capital is printed once and the case/gender tail follows: der/die/das, den, dem,
@@ -686,7 +686,7 @@ block art_the(obj, cap, kase)
         show("D")
     else
         show("d")
-    if obj is neuter
+    if obj is neutral
         if kase is 2
             show("em ")
         else
@@ -731,7 +731,7 @@ block art_a(obj, cap, kase)
         show("E")
     else
         show("e")
-    if obj is neuter
+    if obj is neutral
         if kase is 2
             show("inem ")
         else
@@ -973,7 +973,7 @@ block msg_fixed()
     if noun is feminine
         say "${The noun} bleibt ziemlich genau, wo sie ist."
         return 0
-    if noun is neuter
+    if noun is neutral
         say "${The noun} bleibt ziemlich genau, wo es ist."
         return 0
     say "${The noun} bleibt ziemlich genau, wo er ist."

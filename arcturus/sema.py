@@ -266,7 +266,7 @@ class Analyzer:
                 # A German gender article (der / die / das) is not a property in its
                 # own right: it states the object's gender the way an author thinks
                 # of it, and maps to the gender attributes. der is masculine, the
-                # default, so it records nothing; die and das set feminine / neuter.
+                # default, so it records nothing; die and das set feminine / neutral.
                 if m.name in prelude._GENDER_ARTICLES:
                     attr = prelude._GENDER_ARTICLES[m.name]
                     if attr is not None:

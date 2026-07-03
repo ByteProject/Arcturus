@@ -116,10 +116,10 @@ _STD_BOOL_PROPS = [
     "feminine",
     # The third gender, for a language with three (German der/die/das). German has
     # no reliable spelling rule, so the author declares the article on the object
-    # (der / die / das) and the compiler maps it: die -> feminine, das -> neuter,
+    # (der / die / das) and the compiler maps it: die -> feminine, das -> neutral,
     # der -> masculine (neither bit). Masculine is still the default, so a masculine
-    # noun needs nothing. English and Spanish ignore `neuter`.
-    "neuter",
+    # noun needs nothing. English and Spanish ignore `neutral`.
+    "neutral",
 ]
 
 # The three German definite articles, written as bare object declarations to state
@@ -130,7 +130,7 @@ _STD_BOOL_PROPS = [
 _GENDER_ARTICLES = {
     "der": None,        # masculine: the default, so no bit is set
     "die": "feminine",
-    "das": "neuter",
+    "das": "neutral",
 }
 
 # Canonical verb-particle roles and their ids. A language pack declares which
