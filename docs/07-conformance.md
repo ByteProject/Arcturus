@@ -35,7 +35,7 @@ by the test suite on every run, not checked by hand.
 
 ## 3. The evidence
 
-The suite (352 tests at this writing; `python3 -m pytest`) drives generated
+The suite (355 tests at this writing; `python3 -m pytest`) drives generated
 stories end to end on Frotz (dfrotz). What runs on a real interpreter, per run:
 
 - Full winning walkthroughs of both golden games, z5; Cloak of Darkness also as
@@ -69,15 +69,16 @@ Smallest possible z-code is a charter objective, judged alongside correctness
 
 | Story | Bytes | Benchmark |
 |-------|-------|-----------|
-| Cloak of Darkness, z5 | 14368 | PunyInform-equivalent build: ~27K |
-| Cloak of Darkness, z8 | 14792 | same game, version 8 |
-| The Brass Lantern, z5 | 13844 | no published equivalent |
+| Cloak of Darkness, z5 | 14520 | PunyInform-equivalent build: ~27K |
+| Cloak of Darkness, z8 | 14944 | same game, version 8 |
+| The Brass Lantern, z5 | 14000 | no published equivalent |
 
 The 11792-byte Cloak built at the close of the size pass (B6) is, to our
 knowledge, the smallest runnable Cloak of Darkness for the Z-machine
 registered to date. The current build is larger because the parser has since
-gained command chaining and full disambiguation (scored noun matching and the
-"Which do you mean" ask) as core features every game carries; it still comes
+gained command chaining, full disambiguation (scored noun matching and the
+"Which do you mean" ask), and noun lists with the noise words they need, as
+core features every game carries; it still comes
 in at roughly half the PunyInform benchmark. Features beyond the must-have
 core stay out of that fixed cost: they ship as summonable granules
 (docs/05), the pay-for-use rule. These numbers, and a ceiling for
