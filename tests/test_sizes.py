@@ -48,6 +48,7 @@ CEILINGS = {
     "features/kinds-and-inheritance.storyarc": 12800,
     "features/on-other.storyarc": 12804,
     "features/zcolor.storyarc": 13324,
+    "features/scoring.storyarc": 18604,
     "features/spans.storyarc": 12988,
     "granules/ambience.storyarc": 14432,
     "granules/conversations.storyarc": 14676,
