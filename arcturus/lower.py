@@ -108,7 +108,7 @@ INTRINSICS = frozenset({
     # text style, and the screen width from the header. Each lowers to an opcode,
     # so they cost nothing unless a granule calls them.
     "split_window", "set_window", "set_cursor", "set_style", "screen_width",
-    "erase_window", "screen_height", "buffer_mode",
+    "erase_window", "screen_height", "buffer_mode", "clear_screen", "random",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr", "article_addr", "indefinite_addr",
@@ -649,6 +649,22 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         op, t = _operand(rt, ctx, args[0])
         rt.op("set_text_style", op)
         _free(ctx, t)
+        _place(rt, Const(0), dest)
+    elif name == "random":
+        # random(n): a uniform number from 1 to n (the interpreter's own
+        # generator, @random). Vlad's ambience, save-quips, any dice.
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("random", op, store=dest)
+        _free(ctx, t)
+    elif name == "clear_screen":
+        # clear_screen(): wipe the whole screen (erase_window -1, which also
+        # unsplits) and drop any pending paragraph break with it; the status
+        # bar, if summoned, repaints at the next prompt. H2 clears after its
+        # prelude and between acts.
+        rt.op("erase_window", Const(-1))
+        slot = ctx.globals.get("par_pending")
+        if slot is not None:
+            rt.op("store", Const(slot), Const(0))
         _place(rt, Const(0), dest)
     elif name == "erase_window":
         # erase_window(n): clear window n (1 = upper) so the menu repaints clean;

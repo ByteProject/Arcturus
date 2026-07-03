@@ -809,8 +809,31 @@ The header parts, with the modifiers in any order:
   picks it by number.
 - `when <cond>` guards visibility; the topic is offered only while the condition
   holds, evaluated with `self` bound to the person.
-- `once` retires the topic after it runs.
+- `once` retires the topic after it runs, permanently.
 - `hidden` starts the topic out of view, until a `reveal` brings it in.
+
+Three ways in and out of view, and when to use which. They differ in who is
+in control and whether the topic can come back:
+
+- A `when` guard is LIVE STATE: the topic appears and disappears as the
+  condition moves, with no bookkeeping. A topic whose own body changes the
+  state it is guarded on ("ask Vlad to cut the grill" sets the grill open,
+  and the guard was `... and not grill_open`) therefore vanishes the moment
+  it has run, with no `once` needed, and would return by itself if the state
+  ever reverted. When the story state already encodes what the topic is
+  about, the guard alone is usually the whole answer.
+- `hidden` / `reveal` / `hide` is a MANUAL SWITCH: the author decides the
+  exact moment a topic enters or leaves, from another topic's body or any
+  handler. Revealing is repeatable; use it when no world state naturally
+  expresses "this is now worth raising".
+- `once` is a ONE-WAY LATCH: after one telling the topic is gone for good,
+  regardless of guards, and no `reveal` brings it back. Use it for lines
+  that must never repeat (a confession, a joke that dies on the second
+  telling); do not use it for topics a `when` guard already retires, or the
+  guard becomes irrelevant.
+
+They combine: `hidden once` is a revealable one-shot, and a `when` guard on
+a `once` topic gates the single telling.
 
 The body is an ordinary statement block, so any statement is allowed. It adds
 four conversation forms:
