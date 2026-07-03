@@ -155,6 +155,26 @@ def test_german_ask_declines_accusative(tmp_path):
     assert "Genommen." in out
 
 
+LOCK_GAME = (
+    'game\n    title "L"\n    start hall\n'
+    'room hall\n    name "Hall"\n    desc "A hall."\n'
+    'thing gate in hall\n    name "iron gate"\n    words gate, lock\n'
+    "    fixed\n    openable\n    open false\n    lockable\n    locked\n"
+    "    unseal_with key\n"
+    'thing key in hall\n    name "small key"\n    words key\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_noun_that_doubles_as_verb_in_two_noun_slot(tmp_path):
+    # "lock" is a verb AND the gate's noun: the two-noun boundary must split
+    # at the preposition ("with"), never at a verb-flagged noun word, or the
+    # first phrase comes up empty (the pick-the-lock bug, 2026-07-03).
+    out = _play(tmp_path, LOCK_GAME, "take key\nunlock lock with key\nopen gate\n")
+    assert "Unlocked." in out
+    assert "Open." in out
+
+
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_shut_away_knowledge_survives(tmp_path):
     # The scoring matcher keeps the container knowledge model: naming a thing

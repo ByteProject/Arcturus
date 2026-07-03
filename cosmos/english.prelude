@@ -279,14 +279,17 @@ block find_scenery()
 // word qualifies: the grammar preposition (bit 3), but also a particle or a
 // direction word (on/in), which separate the two noun phrases just as well.
 block is_separator(target)
-    // A pronoun is a noun word, never a boundary: "put coin in it" binds "it"
-    // as the second noun. A noise word (an article, flag 3) is no boundary
-    // either: "give the coin to the guard" splits at "to" alone.
-    if peek_byte(target + 6) is 4
-        return 0
-    if peek_byte(target + 6) is 3
-        return 0
-    if peek_byte(target + 6) is not 0
+    // Only the words that JOIN two nouns split the phrases: a grammar
+    // preposition (flag 8), and the direction and particle words that
+    // double as one ("put coin IN box", "gib X AN Y", flags 64 and 32).
+    // Anything else is content: a pronoun binds as a noun, an article is
+    // skipped, and a noun that moonlights as a verb elsewhere ("pick the
+    // LOCK", "PAT the person") must not end the phrase it stars in.
+    if peek_byte(target + 6) is 8
+        return 1
+    if peek_byte(target + 6) is 64
+        return 1
+    if peek_byte(target + 6) is 32
         return 1
     return 0
 

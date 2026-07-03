@@ -1,0 +1,160 @@
+// scoring.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// THE APPRENTICE'S TRIAL. A showcase for scoring (docs/01 section 6a),
+// where score just works: one `scoring` line in the game block, and every
+// room pays five on the first visit, every takeable thing five on the first
+// take. Nothing pays for the cell you start in or the satchel you start
+// holding, the rusty nail and the alcove are opted out with `scored false`,
+// and everything the compiler cannot know arrives through `award`: an
+// anonymous site for reading the inscription, and a named POOL for the two
+// ways through the vault door, paid once, counted once at its maximum in
+// the self-summed max_score. Nobody typed the maximum; check the compile
+// ledger and the status bar. The rank ladder needs no numbers either: the
+// titles spread across the max, with one percent pin and one definite
+// points pin shown.
+//
+//   arcc examples/features/scoring.storyarc -o trial.z5
+//   frotz trial.z5
+//
+// Try: SCORE. Then explore, READ INSCRIPTION, and open the door your way:
+// PICK LOCK WITH NAIL (worth 10) or ATTACK DOOR (worth 5). FULL prints the
+// Infocom-style breakdown of what your playthrough earned.
+
+summon.statusline
+summon.extendedverbs
+
+game
+    title  "The Apprentice's Trial"
+    headline "A scoring showcase"
+    author "Stefan Vogt"
+    scoring
+    start cell
+
+global door_open = false
+
+ranks
+    "Novice of the Order"
+    "Lamplighter" at 25 percent
+    "Keeper of Small Secrets"
+    "Vault Whisperer" at 28 points
+    "Master of the Trial" at 100 percent
+
+room cell
+    name "The Novice's Cell"
+    desc "Bare stone, a straw mat, and a door standing open to the corridor
+          east: the Order does not lock its novices in, it waits for them to
+          leave. You were given a satchel; the trial provides the rest."
+    east corridor
+
+room corridor
+    name "The Long Corridor"
+    desc "Lamplight would help here: the corridor runs east into shadow,
+          past an alcove to the north, toward the old vault. An inscription
+          is chiselled at eye height."
+    west cell
+    north alcove
+    east vault_door_room
+
+    grains
+        examine "inscription"
+            award 3
+            say "WHAT YOU TAKE, YOU CARRY. WHAT YOU EARN, YOU KEEP. You feel
+                 wiser for reading it."
+        examine "shadow" or "shadows" say "They pool where the lamplight
+            gives up."
+
+thing lamp in corridor
+    name "brass lamp"
+    words lamp, brass
+    desc "Sturdy, dented, and yours for the carrying."
+
+thing nail in corridor
+    name "rusty nail"
+    words nail, rusty
+    scored false
+    desc "Long, bent, and intimate with keyholes, by the look of it."
+
+room alcove
+    name "The Alcove"
+    scored false
+    desc "A cramped side niche the trial does not grade: novices nap here,
+          and the Order pretends not to know."
+    south corridor
+
+room vault_door_room
+    name "Before the Vault"
+    desc "The corridor ends at the vault door: old iron, older lock. It
+          could be picked by someone with a slender tool, or forced by
+          someone with more shoulder than patience. The vault lies east,
+          when the door allows it."
+    west corridor
+    east vault
+
+    on go east
+        if not door_open
+            say "The vault door is shut fast."
+            stop
+        continue
+
+thing vault_door in vault_door_room
+    name "vault door"
+    words door, vault, iron, lock
+    fixed
+    desc block
+        if door_open
+            say "Open, by your own hand. The Order will hear of the how."
+        else
+            say "Old iron, older lock. Pick it or force it: the trial
+                 grades style."
+
+    on open, push, attack
+        if door_open
+            say "It stands open already."
+            stop
+        change door_open to true
+        award 5 for the_door "opening the vault door"
+        say "You put your shoulder into it. The lock surrenders with a
+             shriek of old iron. Effective, if inelegant."
+
+thing amulet in vault
+    name "bronze amulet"
+    words amulet, bronze
+    desc "The trial's little treasure: proof you reached the vault."
+
+room vault
+    name "The Vault"
+    desc "Small, dry, and mostly ceremonial. Whatever the Order once kept
+          here, the trial keeps only the amulet now."
+    west vault_door_room
+
+thing satchel in player
+    name "leather satchel"
+    words satchel, leather
+    desc "Standard novice issue. Starting equipment earns nothing; the
+          inscription was clear on that point."
+
+verb "pick"
+    pick noun with noun
+    pick noun
+
+on pick
+    if noun is not vault_door
+        say "Nothing here needs picking."
+        stop
+    if door_open
+        say "The door stands open already."
+        stop
+    if second is nothing
+        say "Pick the lock with what?"
+        stop
+    if second is nail
+        change door_open to true
+        award 10 for the_door "opening the vault door"
+        say "The nail whispers to the old lock, tumbler by tumbler, until
+             the door swings open without a sound. The Order appreciates
+             style."
+        stop
+    say "That won't fit the lock."
