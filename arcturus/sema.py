@@ -157,6 +157,10 @@ class Analyzer:
                     )
                 for word in decl.words:
                     w.particles[word.lower()] = decl.role
+            elif isinstance(decl, ast.ChainDecl):
+                for word in decl.words:
+                    if word.lower() not in w.chain_words:
+                        w.chain_words.append(word.lower())
             elif isinstance(decl, ast.GlobalDecl):
                 self._seen(decl.name, decl.line)
                 w.globals[decl.name] = wm.Global(

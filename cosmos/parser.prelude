@@ -29,6 +29,9 @@ block copy_bytes(src, dst, n)
 // moment the line is entered, the way PunyInform's clr_fginput works. With no
 // input colour this is a plain read.
 block read_input()
+    // Every fresh line claims the one text buffer, so a chained tail still
+    // queued there dies with it (a confirmation asked mid-turn: quit, restart).
+    change chain_pos to 0
     if zc_input() is not 0
         set_colour(zc_input(), 0)
     let term = read_line()
@@ -51,11 +54,20 @@ block pronoun_slot(role)
     return nothing
 
 block parse()
+    let term = read_input()
+    // Remember the full typed length: chain_next restores it when it wakes the
+    // queued rest of a chained line (docs/02 section 8b).
+    change chain_max to peek_byte(text_addr() + 1)
+    return parse_line()
+
+// Parse the command now in the buffers: the whole typed line on the first
+// call, or the re-tokenized tail of a chained line when chain_next re-enters.
+block parse_line()
     change parse_fault to 0
     change shut_in to nothing
-    let term = read_input()
     if word_count() is 0
         return 0
+    chain_split()
     let act = resolve_verb()
     if act is 0
         return 0
@@ -71,3 +83,51 @@ block parse()
     // A language may remap the action now the nouns are known (English turns
     // LOOK <noun> into an examine); the seam lives in the language layer.
     return remap_action(act)
+
+// Command chaining (docs/02 section 8b). A chain word (the language layer's
+// `chain` declarations: "and", "then", the comma) ends the current command;
+// what follows runs as the next command once this one succeeds. The split is
+// buffer surgery, not copying: the typed length byte is cut down so the
+// tokenizer sees only the current command, while the tail stays where it was
+// typed; chain_pos remembers where it starts (0 when the line has no tail).
+block chain_split()
+    change chain_pos to 0
+    let n = word_count()
+    let i = 1
+    while i < n
+        let d = word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 2
+                // Queue the tail past the chain word, skipping a run of them
+                // ("take lamp, then go north" chains once, not twice).
+                let j = i + 1
+                let skipping = 1
+                while skipping is 1
+                    change skipping to 0
+                    if j < n
+                        let t = word_dict(j)
+                        if t is not nothing
+                            if peek_byte(t + 6) is 2
+                                change j to j + 1
+                                change skipping to 1
+                if j < n
+                    change chain_pos to word_pos(j)
+                // Cut the line down to the current command and re-tokenize.
+                poke_byte(text_addr() + 1, word_pos(i) - 2)
+                retokenize()
+                return 0
+        change i to i + 1
+    return 0
+
+// Wake the queued rest of a chained line: blank everything already carried
+// out, restore the full typed length, re-tokenize, and parse what remains as
+// a fresh command (chain_split then splits off any further chain word).
+block chain_next()
+    poke_byte(text_addr() + 1, chain_max)
+    let i = 2
+    while i < chain_pos
+        poke_byte(text_addr() + i, 32)
+        change i to i + 1
+    change chain_pos to 0
+    retokenize()
+    return parse_line()

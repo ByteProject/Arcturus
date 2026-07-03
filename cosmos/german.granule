@@ -566,6 +566,12 @@ player.words mich, dich, selbst
 player.name "dich selbst"
 player.named
 
+// Die Kettenwörter (docs/02 Abschnitt 8b): jedes beendet einen Befehl und
+// beginnt den nächsten auf derselben Zeile ("nimm die lampe und öffne die
+// tür, dann geh nach norden"). Das Komma zählt als eigenes Wort, mit oder
+// ohne Leerzeichen.
+chain ",", "und", "dann"
+
 pronoun it  "es"
 pronoun him "ihn"
 pronoun her "sie"

@@ -182,6 +182,10 @@ class World:
     # the language layer's `pronoun` declarations. The dictionary flags these
     # words and the noun matcher resolves them to the remembered referents.
     pronouns: dict[str, str] = field(default_factory=dict)
+    # The words that chain commands on one line ("and", "then", the comma), from
+    # the language layer's `chain` declarations. The dictionary flags them; the
+    # parser splits the line at the first one and queues the rest (docs/02 8b).
+    chain_words: list[str] = field(default_factory=list)
     # True once lowering meets a colour construct (zcolor, say.<colour>). The
     # story header then announces colour use (Flags 2 bit 6), which interpreters
     # like Frotz require before they enable their colour machinery.

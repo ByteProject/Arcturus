@@ -174,6 +174,11 @@ global clitico = 0
 // responde ("examina a yo" no, pero "examinate" sí, y también estas), un
 // nombre imprimible y la marca de nombre propio contra el artículo. Un juego
 // añade las suyas con player.words.
+// Las palabras de encadenar (docs/02 sección 8b): cada una cierra una orden y
+// abre la siguiente en la misma línea ("coge la lámpara y abre la puerta,
+// luego ve al norte"). La coma cuenta como palabra propia, con o sin espacios.
+chain ",", "y", "luego"
+
 player.words yo, mismo
 player.name "ti mismo"
 player.named
