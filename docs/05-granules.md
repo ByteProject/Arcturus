@@ -66,18 +66,35 @@ is deliberate and unambiguous.
 summon.extendedverbs
 ```
 
-The verbs beyond the always-in standard set: search, throw, rub, squeeze, tie,
-cut, fill, burn, blow, set, empty, buy, consult, dig, wave, sit, stand, sleep,
-swim, swing, think, pray, shout, ask, tell, answer, and fullscore, each with
-their synonyms. Most speak a sensible default that an object overrides through
-ordinary handler resolution (an object's `on rub` wins over the granule's
-default), exactly like the standard sensory verbs; `search` lists what a
-container or supporter holds.
+The verbs beyond the always-in standard set. The full verb-to-action table
+with every synonym is docs/verb-set.md (the E column) and each default line
+is in docs/message-set.md; the roster:
 
-It also carries the Infocom-style conversation dispatch: `ask`/`tell <person>
-about <subject>` runs the person's matching `topic` (01, section 15) if one is in
-view, else the verb's flat default. When the conversations granule is also
-summoned, the menu owns talking and ask/tell defer to it (see below).
+- RUMMAGING: `search`/`frisk` (lists what a container or supporter holds;
+  a closed container keeps its secrets).
+- ACTING ON THINGS, futile by default until an object overrides:
+  `throw ... at`, `rub` (polish, clean, wipe...), `squeeze`, `tie ... to`,
+  `cut`, `fill`, `burn`, `blow`, `set ... to`, `empty`, `buy`, `consult
+  ... about`.
+- BODY AND IDLE: `dig`, `wave`, `sit`, `stand`, `sleep`, `swim`, `swing`,
+  `think`, `pray`, `shout`.
+- CONVERSATION: `ask <person> about <subject>`, `tell ... about`, `answer`.
+- META: `fullscore` (the score breakdown, no turn taken).
+
+Every default is an ordinary free handler, so the override story is the
+usual one: an object's own `on rub` wins ("on rub / say ..."), a top-level
+`on rub` rule reskins the verb game-wide, and `continue` defers back to the
+granule's default. The granule's own message blocks (msg_throw, msg_dig,
+...) are granule-owned wording: to rewrite them, fork the granule (section
+4) rather than overriding from the story.
+
+THE ASK/TELL TOPIC DISPATCH is the Infocom-style conversation surface: `ask
+innkeeper about lighthouse` scans the person's inline `topic` declarations
+(01 section 15; they live in the person's body) for one whose `words` match
+a typed subject word and is in view, runs it, and falls back to the flat
+"stays mum" default when nothing matches. `tell` shares the same path. When
+the conversations granule is also summoned, the menu owns talking: ask and
+tell step aside and point the player at TALK TO (see conversations, below).
 
 ### statusline
 
@@ -161,14 +178,61 @@ compiler's own direction data, so it always matches the map.
 summon.conversations
 ```
 
-The menu presentation of the `topic` model. `talk to <person>` paints their
-topics in view as a numbered menu, held static in the upper window while the
-conversation scrolls beneath it; press the number to ask one, and the menu
-repaints as topics reveal, retire, or unlock. It is built on the same `topic`
-construct the ask/tell path uses (01, section 15), shown as a list instead of
-typed by subject. The two are mutually exclusive views of one model: when
-conversations is summoned, the menu wins, and the extendedverbs ask/tell topic
-dispatch steps aside and points the player at TALK TO.
+The menu presentation of the `topic` model: TALK TO <person> opens a numbered
+list of what there is to talk about, pinned in the upper window while the
+conversation scrolls beneath it.
+
+WHERE TOPICS LIVE. Topics are not declared in the granule or in any separate
+registry: they live INLINE in the person's body, like properties and
+handlers, and the same declarations serve both conversation systems (this
+menu, and extendedverbs' ask/tell). The full header grammar is 01 section
+15; the shape:
+
+```
+thing wirtin of character in inn
+    name "innkeeper"
+    named
+
+    topic lighthouse "the lighthouse" words lighthouse, tower
+        you "What about that lighthouse out there?"
+        reply "Dark since that night. Nobody has gone back up."
+        reveal key_talk
+
+    topic key_talk "the key" hidden
+        you "Is there a key somewhere?"
+        reply "In the chest, by the hearth."
+
+    topic debt "the old debt" when player holds ledger once
+        reply "So you found it. Then you know what I owe."
+```
+
+- The MENU LABEL is the quoted string after the subject id ("the
+  lighthouse"): that is the line the player sees, numbered, in the list.
+- `words` are only for ask/tell (`ask innkeeper about tower`); the menu does
+  not need them, players pick by number.
+- VISIBILITY is live, three ways (01 section 15 explains when to use which):
+  a `when` guard follows the story state by itself; `hidden` topics enter
+  view when another topic's body (or any handler) runs `reveal <subject>`;
+  `once` retires a topic permanently after one telling.
+- The BODY is an ordinary statement block: `you`/`reply` print attributed,
+  auto-quoted dialogue (framing overridable via line_you/line_reply/
+  line_end), `say` is narration, and any statement works: set flags, move
+  objects, change the score. The person is `self`.
+
+THE MENU FLOW. TALK TO paints the list (the statusline, if summoned, stays
+pinned above it); a digit runs that topic's exchange in the lower window and
+the list repaints, reflecting anything the topic revealed, hid, or retired;
+0, or running out of topics, closes it ("You let the conversation rest
+there."). A person with nothing to raise answers msg_no_topics ("You can't
+think of anything worth raising right now."). Every framing line is in the
+language layer, so packs translate it (docs/message-set.md).
+
+MUTUAL EXCLUSION. The menu and the Infocom-style ask/tell are two views of
+the same topic declarations, and they are never both live: when
+conversations is summoned, the menu owns talking, and extendedverbs' ask and
+tell redirect the player to TALK TO (msg_use_talk). Drop the summon and the
+same topics answer to ask/tell by their `words` instead. A person can still
+override `on talk` for a one-off custom exchange that bypasses the menu.
 
 ### ambience
 
