@@ -234,10 +234,10 @@ This works on macOS, Windows, and Linux. The extension source is under
 
 ## How Arcturus is built
 
-The language design, syntax, and the Cosmos library are the work of Stefan
-Vogt. This is a human-driven project: the design decisions are his, and Claude
-(Anthropic) is used as an AI coding assistant under his direction to implement
-the toolchain.
+The language design, the syntax, and the Cosmos library are my work; I am
+Stefan Vogt, and Arcturus is a human-driven project. Every design decision is
+mine. I use Claude (Anthropic) as an AI coding assistant, and it implements
+the toolchain under my direction.
 
 The compiler is developed as a clean, modular Python package under
 [arcturus/](arcturus/) (lexer, parser, AST, and the later semantic and code
