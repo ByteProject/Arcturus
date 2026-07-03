@@ -22,6 +22,54 @@ README em dashes and the stale find_particle comment in german.granule. Next:
 an idiom-focused review of both translations (Stefan's request; German got his
 native pass already, Spanish still gated on Pablo), then B8.
 
+>>> B8-PRELUDES HANDOVER CHECKPOINT (2026-07-03, written for compaction) <<<
+
+WHERE WE ARE. B8 (the Hibernated 2 port) is open; its source and walkthrough
+sit in hibernated2/ (GITIGNORED, unreleased, never commit; 4082 lines of
+Inform, 115 objects, 61 game globals, 557-line walkthrough = the future
+automated port verifier). The toolchain enablers the port needed are ALL DONE
+and verified: scale smoke (tools/scalegen.py, green), zcolor + say.<colour> +
+zcolor.statusline/input (Flags 2 bit 6 announced; guard degrades colourless),
+the quotes granule (Trinity box), banner false + print_banner(), arcc verbose
+CLI (banner + stats ledger default, -q for scripts), buffer_mode + the
+pending-break HOLD discipline in all upper-window granules (real-frotz
+verified via the pty harness; dfrotz proves logic, NOT rendering), grain
+chains (same word, many rooms; any_grains fold), open-with-key, per-object
+articles (article/indefinite; capitalization-at-sentence-start LIMIT
+backlogged, stream-3 capture is the fix), state qualifiers ("(closed)", with
+Spanish gender agreement), the Spanish infinitive retry (-r) and CLITICS
+(-lo/-la/-le/-les/-te + accent fold; NOT dictionary words, pending-slot
+design; PunyInformES reconciled, its -les bug reported to Pablo and CONFIRMED,
+he is fixing), pronouns part 1 (it/him/her slots; English animacy, German
+grammatical gender es/ihn/sie; them AWAITS A PLURAL MODEL), and the player
+object (standard self-words per pack, player.words ADDS, player.desc plain or
+block, msg_examine_self in Stefan's wording, take-self ordering fixed, words
+lists accept reserved words). Both language packs carry native passes (German
+Stefan, Spanish Pablo Martinez, credited in README/granule headers).
+
+VERSIONS arcc 0.7.0 / Cosmos 0.10.0 (a bump is due when B8 preludes close).
+311 tests pass; the size gate (tests/test_sizes.py ceilings) must be GREEN
+before any commit (one slip happened, amended). Artifacts current: build/arcc
+(amalgam; regenerate at every milestone), build/posada.z5 + build/gasthaus.z5.
+The pty harness lives in the scratchpad (drive*.py, render.py + pyte venv);
+REBUILD IT after compaction if upper-window/colour work recurs.
+
+NEXT, IN ORDER: (1) the COMMAND-CHAINING DISCUSSION with Stefan ("take lamp
+and go north", "coge la lampara y ve al norte"; a general parser feature, all
+languages; then-implementation only after his design ruling); (2) then the
+actual port: vertical slice first (H2's opening through the first walkthrough
+checkpoint), watching the arcc -s ledger (globals are the tightest ceiling,
+H2 needs ~175+22 of 240). BACKLOG, unscheduled: plural model (them/-los/-las),
+article capitalization at sentence start, a default player name for dative
+slots (German name "dich selbst" is accusative), docs/07 updates as evidence
+grows, Pablo's remaining idea of defining custom alone-words? (none pending).
+
+MSG_EXAMINE_SELF ROUND (2026-07-03): "x me" with no player.desc used to fall
+to the object message (EN wrong voice, DE doubly broken: dative "an DIR
+selbst", ES lowercase-broken); now a dedicated msg_examine_self in Stefan's
+wording ("Are we going to admire ourselves for a while or do we play an
+adventure game?"), DE/ES siblings pending native blessing.
+
 THE PLAYER OBJECT (2026-07-03, Stefan's design): every game answers to the
 standard self-words with no author code: me/myself/self/yourself/you (EN),
 mich/dich/selbst (DE), yo/mismo plus the -te clitic (ES), declared by each
