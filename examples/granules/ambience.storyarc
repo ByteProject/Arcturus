@@ -1,0 +1,87 @@
+// ambience.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// THE LAST FERRY. A small showcase for the ambience granule
+// (summon.ambience, docs/05). The jetty breathes on living odds (each quiet
+// turn shortens them); the waiting room recites its lines IN ORDER ONCE and
+// then falls silent; the harbour cat is a thing-mounted block that follows
+// her wherever she is in scope, gated live on her mood. WAKE CAT turns the
+// dial: `change ambience_rate to 3` makes the whole stage chattier.
+//
+//   arcc examples/granules/ambience.storyarc -o ferry.z5
+//   frotz ferry.z5
+//
+// Try: WAIT a while on the jetty. GO NORTH and wait: three lines, in order,
+// once. PET CAT, then wait, and the purring begins.
+
+summon.ambience
+summon.statusline
+
+game
+    title  "The Last Ferry"
+    headline "An ambience granule showcase"
+    author "Stefan Vogt"
+    start jetty
+
+global content = false
+
+room jetty
+    name "The Jetty"
+    desc "Salt-bleached boards over black water. The ferry is late; the
+          ferry is always late. A waiting room stands north, its door ajar,
+          and the harbour cat has claimed the mooring post."
+    north waiting_room
+
+    ambience about 6 turns
+        "A wave slaps the pilings, twice, then thinks better of it."
+        "Somewhere out in the fog, a bell buoy tolls to no one."
+        "The boards creak under you, settling half an inch nearer the sea."
+        "A gull lands, finds nothing worth stealing, and leaves offended."
+
+room waiting_room
+    name "The Waiting Room"
+    desc "A single bench, a cold stove, and a timetable from another
+          decade. The door south lets in the fog in slices."
+    south jetty
+
+    // Scene-setting that exhausts itself: three lines, in order, then
+    // silence. The third is computed (`do`), so it can do more than speak.
+    ambience about 4 turns in order once
+        "The stove ticks, remembering heat."
+        "Fog reaches the timetable and softens every departure on it."
+        do last_light
+
+thing cat in jetty
+    name "harbour cat"
+    words cat, harbour, tabby
+    desc "A tabby of great professional idleness. She audits the jetty."
+
+    // A companion block: it travels with the cat (in scope, not in a room),
+    // and the guard flips live when she is petted into contentment.
+    ambience about 5 turns when content
+        "The cat purrs, a small engine no ferry ever had."
+        "The cat kneads the boards, claims them, forgives them."
+
+    on touch, kiss
+        if content
+            say "She accepts the tribute as arrears."
+            stop
+        change content to true
+        say "She leans into your hand and switches on the purr."
+
+verb "wake"
+    wake noun
+
+on wake
+    if noun is cat
+        change ambience_rate to 3
+        say "She opens one eye. The whole harbour seems to take it as a
+             signal to talk faster."
+        stop
+    say "It's as awake as it is going to get."
+
+block last_light()
+    say "The lamp above the bench browns out, steadies, and holds. It has
+         decided to see this night through with you."

@@ -757,6 +757,14 @@ this granule: they are core (section 8b). English-worded; a translation forks
 the granule (a Spanish fork should keep THEM out: the clitic plurals in the
 core pack already cover it, and bare los/las are the articles).
 
+`summon.ambience`. Rooms and things murmur over time, catalogued in 05: an
+`ambience` block of lines with a cadence (`about` breathes, `every` ticks,
+`in order` recites), topic-style `when` guards on the block and on single
+lines, `do <block>` computed lines, and the `ambience_rate` dial (0 mutes).
+One line at most per turn. A single recurring line is better served by a
+plain daemon; the granule is for shuffled texture (NPC behavior, layered
+room mood).
+
 `summon.verbose_exits`. Helpful blocked-direction messages, game-wide. When a
 player tries a direction with no exit, instead of the default "You can't go
 that way." Cosmos lists the room's available exits, for example "You can only
@@ -957,7 +965,7 @@ Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,
 `show`, `talk`, `wait`, `again`.
 
 Summonable features: `extendedverbs`, `statusline`, `verbose_exits`,
-`conversations`, `takeall`, `plurals`, `debug`, and `language`. Text compression is not a summonable
+`conversations`, `takeall`, `plurals`, `ambience`, `debug`, and `language`. Text compression is not a summonable
 feature: the standard abbreviation set is always applied, and a story tunes it
 with its own `abbreviations.granule` (`arcc --make-abbreviations`, then summoned by
 name), which the text encoder reads as data rather than loading as runtime blocks

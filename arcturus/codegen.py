@@ -419,6 +419,9 @@ _BUILTIN_GLOBALS = [
     # The pronoun referents (docs/02 section 8a), written by the language
     # layer's note_pronouns and read back when a pronoun word resolves.
     "pron_it", "pron_him", "pron_her", "pron_them",
+    # The ambience table's base address (summon.ambience), 0 when no block
+    # exists; the granule's driver walks it each turn.
+    "__ambience__",
     # Command chaining (docs/02 section 8b): refused flags a command a refusal
     # path could not carry out (stops the rest of a chained line); chain_pos is
     # the text-buffer offset of the queued rest of the line (0 when none);
@@ -591,6 +594,28 @@ def build_story(
         # The base font colour starts as the interpreter default (1), so a
         # say.<colour> before any zcolor.font still restores sanely.
         sf.set_word(globals_addr + (gmap["__zcfont__"] - 16) * 2, 1)
+    # Seed every game global's declared initial value (they were silently
+    # zero before ambience_rate = 8 became the first nonzero initializer):
+    # numbers and booleans directly, an object reference by its number.
+    for gname, g in world.globals.items():
+        val = None
+        v = g.value
+        if isinstance(v, ast.Number):
+            val = v.value & 0xFFFF
+        elif isinstance(v, ast.Bool):
+            val = 1 if v.value else 0
+        elif isinstance(v, ast.Name):
+            if v.ident == "nothing":
+                val = 0
+            elif layout is not None and v.ident in layout.obj_number:
+                val = layout.obj_number[v.ident]
+        if val:
+            sf.set_word(globals_addr + (gmap[gname] - 16) * 2, val)
+    if layout is not None and layout.ambience_off >= 0:
+        sf.set_word(
+            globals_addr + (gmap["__ambience__"] - 16) * 2,
+            objects_addr + layout.ambience_off,
+        )
 
     m = _meta(world)
     # Flags 2: the story's own announcements (Standard 1.1 section 11.1). Bit 4:
@@ -767,6 +792,86 @@ def _topic_objects(world: wm.World):
     are deferred for the same reason kind grains are (they need per-instance
     scope), so only instances are placed."""
     return [(n, o) for n, o in world.objects.items() if o.topics]
+
+
+def gen_ambience_routines(world: wm.World, gmap: dict, layout, pool) -> list:
+    """For every ambience block (summon.ambience): a play routine (je-dispatch
+    over the lines: say the string, or call the do-block), a block guard when
+    the header has a `when`, and a line-guard routine when any line does. The
+    ambience table (objects.py) names them by fixup, which also roots them for
+    dead-code elimination, exactly like the topic routines."""
+    routines = []
+    for name, obj in world.objects.items():
+        owner_num = layout.obj_number.get(name, 0)
+        for idx, amb in enumerate(obj.ambiences):
+            # The play routine: local 1 is the line index.
+            rt = Routine(objmod.amb_play_name(name, idx), nlocals=1)
+            ctx = Context(
+                world, gmap, params=["__k__"], layout=layout,
+                in_handler=True, string_pool=pool, self_value=Const(owner_num),
+            )
+            labels = [f"l{k}" for k in range(len(amb.lines))]
+            for k, lbl in enumerate(labels):
+                rt.op("je", Variable(1), Const(k), branch=(lbl, True))
+            rt.op("ret", Const(0))
+            for k, (line, lbl) in enumerate(zip(amb.lines, labels)):
+                rt.label(lbl)
+                body = [ast.Say(line.text)] if line.text is not None else [
+                    ast.ExprStmt(ast.Call(line.do, []))
+                ]
+                ctx.prescan(body)
+                compile_block(rt, ctx, body)
+                rt.op("ret", _CONST_ONE)
+            rt.nlocals = ctx.nlocals()
+            routines.append(rt)
+            # The block guard: returns 1 while the header condition holds.
+            if amb.when is not None:
+                routines.append(_compile_amb_cond(
+                    world, gmap, layout, pool, owner_num,
+                    objmod.amb_guard_name(name, idx), amb.when))
+            # The line guards: local 1 is the line index; unguarded lines pass.
+            if any(l.when is not None for l in amb.lines):
+                lg = Routine(objmod.amb_lg_name(name, idx), nlocals=1)
+                lctx = Context(
+                    world, gmap, params=["__k__"], layout=layout,
+                    in_handler=False, string_pool=pool, self_value=Const(owner_num),
+                )
+                lctx.prescan([])
+                for k, line in enumerate(amb.lines):
+                    if line.when is None:
+                        continue
+                    yes = lctx.new_label()
+                    skip = lctx.new_label()
+                    lg.op("je", Variable(1), Const(k), branch=(yes, True))
+                    lg.jump(skip)
+                    lg.label(yes)
+                    ok = lctx.new_label()
+                    cond_jump(lg, lctx, line.when, ok, True)
+                    lg.op("ret", Const(0))
+                    lg.label(ok)
+                    lg.op("ret", _CONST_ONE)
+                    lg.label(skip)
+                lg.op("ret", _CONST_ONE)
+                lg.nlocals = lctx.nlocals()
+                routines.append(lg)
+    return routines
+
+
+def _compile_amb_cond(world, gmap, layout, pool, owner_num, rname, when) -> Routine:
+    """A 1/0 condition routine, the topicwhen shape, under the given name."""
+    rt = Routine(rname, nlocals=0)
+    ctx = Context(
+        world, gmap, layout=layout, self_value=Const(owner_num),
+        in_handler=False, string_pool=pool,
+    )
+    ctx.prescan([])
+    yes = ctx.new_label()
+    cond_jump(rt, ctx, when, yes, True)
+    rt.op("ret", Const(0))
+    rt.label(yes)
+    rt.op("ret", _CONST_ONE)
+    rt.nlocals = ctx.nlocals()
+    return rt
 
 
 def gen_topic_routines(world: wm.World, gmap: dict, layout, pool) -> list:
@@ -1155,6 +1260,9 @@ def _generate(world: wm.World, version: int = 5, stats=None) -> bytes:
     # because the topic table references them by name. The granule-facing
     # cosmos_topic_* helpers are gated below.
     topic_routines = gen_topic_routines(world, gmap, layout, pool)
+    # Ambience play/guard routines (summon.ambience): emitted whenever a block
+    # exists; the ambience table roots them by fixup.
+    topic_routines += gen_ambience_routines(world, gmap, layout, pool)
     # The per-turn timer sweep for after/every (always emitted, empty when nothing
     # is scheduled; the turn loop calls it through the tick_timers intrinsic).
     schedule_tick = gen_schedule_tick(world, gmap)

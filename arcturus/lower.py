@@ -109,6 +109,7 @@ INTRINSICS = frozenset({
     # so they cost nothing unless a granule calls them.
     "split_window", "set_window", "set_cursor", "set_style", "screen_width",
     "erase_window", "screen_height", "buffer_mode", "clear_screen", "random",
+    "ambience_table",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr", "article_addr", "indefinite_addr",
@@ -650,6 +651,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("set_text_style", op)
         _free(ctx, t)
         _place(rt, Const(0), dest)
+    elif name == "ambience_table":
+        # ambience_table(): the ambience table's base address (0 when no
+        # block exists), from the __ambience__ global build_story seeds.
+        _place(rt, Variable(ctx.globals["__ambience__"]), dest)
     elif name == "random":
         # random(n): a uniform number from 1 to n (the interpreter's own
         # generator, @random). Vlad's ambience, save-quips, any dice.

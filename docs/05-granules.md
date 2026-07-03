@@ -170,6 +170,51 @@ typed by subject. The two are mutually exclusive views of one model: when
 conversations is summoned, the menu wins, and the extendedverbs ask/tell topic
 dispatch steps aside and points the player at TALK TO.
 
+### ambience
+
+```
+summon.ambience
+```
+
+Rooms and things murmur over time. An `ambience` block is a list of lines; on
+a room it plays while the player is there, on a thing while the thing is in
+scope, which is what makes a companion or a muttering radio work. At most one
+ambient line plays per turn, so a busy room never floods the transcript.
+
+```
+room monorail
+    ambience
+        "Vlad steps over the skeletal remains without adjusting his gait."
+        "Vlad runs a rapid scan of the chamber, then dismisses it as redundant."
+        "Somewhere far down the tunnel, metal settles."
+
+    ambience about 12 turns when door_open
+        "A draught moves through the open blast door."
+```
+
+The header, modifiers in any order (`when` reads to the end of the line, so
+it comes last):
+
+- bare `ambience`: ABOUT the `ambience_rate` dial (default 8), random order,
+  never the same line twice running.
+- `about N turns`: living odds. Each silent turn shortens them, a fired line
+  resets them, so the room breathes instead of ticking.
+- `every N turns`: the strict metronome.
+- `in order`: the lines play as written, then cycle; `in order once` falls
+  silent after the last, for scene-setting that quietly exhausts itself.
+- `when <cond>`: gates the whole block live, like a topic guard.
+
+A line is a string, or `do <block>` for a computed one, and each line may
+carry its own trailing `when`. The dial: `ambience_rate` is the default
+cadence, and `change ambience_rate to 0` mutes every block (bring it back
+after the tense scene); blocks with their own cadence keep it otherwise.
+
+KNOW WHEN NOT TO USE IT. One line that fires until a condition flips is a
+plain daemon, two lines of code and no granule (`every 3 turns do drip`);
+the ruby-gem style room pulse in the daemons example is exactly that.
+Ambience earns its summon for shuffled, breathing texture: NPC behavior and
+layered room mood.
+
 ### takeall
 
 ```

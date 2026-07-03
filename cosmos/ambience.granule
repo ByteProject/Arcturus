@@ -1,0 +1,138 @@
+// ambience.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// AMBIENCE (summon.ambience, docs/05): rooms and things murmur over time.
+// An `ambience` block on a room plays while the player is there; on a thing,
+// while the thing is in scope (a companion, a muttering radio). The header
+// sets the shape: `about N turns` breathes (each silent turn shortens the
+// odds, a fired line resets them), `every N turns` is a strict clock,
+// `in order` plays the lines as written and cycles, `in order once` falls
+// silent after the last line, and a `when` guards the whole block live. A
+// line is a string, or `do <block>` for a computed one, each with its own
+// optional trailing `when`.
+//
+// THE DIAL: ambience_rate is the default cadence for blocks that declare
+// none, and 0 mutes everything, so a handler can hush the stage for a tense
+// scene (`change ambience_rate to 0`) and bring it back after.
+//
+// KNOW WHEN NOT TO USE IT: one line that fires until a condition flips is a
+// plain daemon (`every 3 turns do drip` and a two-line block), no granule
+// needed. Ambience is for shuffled, breathing texture: NPC behavior and
+// layered room mood.
+//
+// At most one ambient line plays per turn, whichever eligible block rolls
+// first, so a busy room never floods the transcript.
+
+global ambience_rate = 8
+
+on each_turn
+    ambience_pulse()
+
+// The per-turn sweep over the compiler's ambience table (one record per
+// block: owner, room flag, mode, rate, line count, the guard / play / line
+// guard routines, and two words of live state). First block to fire wins
+// the turn.
+block ambience_pulse()
+    let base = ambience_table()
+    if base is 0
+        return 0
+    if ambience_rate is 0
+        return 0
+    let n = peek_word(base, 0)
+    let b = 0
+    while b < n
+        if amb_try(base + 2 + b * 20) is 1
+            return 0
+        change b to b + 1
+    return 0
+
+block amb_try(rec)
+    // In play? A room block needs the player there; a thing block needs the
+    // thing in scope.
+    if peek_word(rec, 1) is 1
+        if here is not peek_word(rec, 0)
+            return 0
+    else
+        if in_scope(peek_word(rec, 0)) is 0
+            return 0
+    // The header guard, if any.
+    let g = peek_word(rec, 5)
+    if g is not 0
+        if call_handler(g, 0) is 0
+            return 0
+    // The cadence. Mode 1 is the strict clock; everything else breathes:
+    // the odds start at the rate and shorten by one for every silent turn,
+    // so a quiet room grows restless, and a fired line resets the calm.
+    let mode = peek_word(rec, 2)
+    let rate = peek_word(rec, 3)
+    if rate is 0
+        change rate to ambience_rate
+    let odds = peek_word(rec, 8)
+    if odds is 0
+        change odds to rate
+    if mode is 1
+        change odds to odds - 1
+        if odds > 0
+            poke_word(rec, 8, odds)
+            return 0
+        poke_word(rec, 8, rate)
+    else
+        if random(odds) > 1
+            if odds > 1
+                change odds to odds - 1
+            poke_word(rec, 8, odds)
+            return 0
+        poke_word(rec, 8, rate)
+    // Pick the line. In order (modes 2 and 3): the next written line whose
+    // guard holds; mode 3 falls silent past the last. Otherwise: a random
+    // line, never the same one twice running, guards respected; a turn that
+    // finds nothing eligible stays quiet.
+    let count = peek_word(rec, 4)
+    let lg = peek_word(rec, 7)
+    let last = peek_word(rec, 9)
+    let k = 0
+    let tries = 0
+    if mode > 1
+        change k to last
+        while tries < count
+            if k >= count
+                if mode is 3
+                    return 0
+                change k to 0
+            if lg is 0
+                change tries to 99
+            else
+                if call_handler(lg, k) is 1
+                    change tries to 99
+                else
+                    change k to k + 1
+                    change tries to tries + 1
+        if tries is not 99
+            return 0
+    else
+        change k to random(count) - 1
+        while tries < 6
+            let bad = 0
+            // Prefer a fresh line, but after a few draws accept a repeat:
+            // when guards leave only the last-told line eligible, a repeat
+            // beats falling silent for good.
+            if count > 1
+                if tries < 3
+                    if k + 1 is last
+                        change bad to 1
+            if bad is 0
+                if lg is not 0
+                    if call_handler(lg, k) is 0
+                        change bad to 1
+            if bad is 0
+                change tries to 99
+            else
+                change k to random(count) - 1
+                change tries to tries + 1
+        if tries is not 99
+            return 0
+    call_handler(peek_word(rec, 6), k)
+    poke_word(rec, 9, k + 1)
+    return 1
