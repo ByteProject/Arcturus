@@ -559,6 +559,13 @@ verb "schliesse", "schließe", "schliess", "schließ", "schliessen", "schließen
 // Die Pronomen: das grammatische Geschlecht entscheidet, nicht die Belebtheit.
 // Die Lampe ist "sie", der Schlüssel "ihn" (Akkusativ, das Objekt eines
 // Befehls), das Buch "es". "nimm die lampe" und dann "untersuche sie".
+// Das Spieler-Objekt: die Selbstwörter, auf die jedes Spiel hört
+// ("untersuche dich"), ein druckbarer Name, und das named-Flag gegen den
+// Artikel. Ein Spiel ergänzt eigene Wörter mit player.words.
+player.words mich, dich, selbst
+player.name "dich selbst"
+player.named
+
 pronoun it  "es"
 pronoun him "ihn"
 pronoun her "sie"

@@ -154,6 +154,34 @@ again: the vocabulary the parser matches, holding the object's nouns and
 adjectives as equal entries. `name` is printed but not typed; `words` is
 typed but not printed. Adjectives are simply words in `words` (02, section 8).
 
+## 5a. The player
+
+The player is a seeded object every game already has. The language layer gives
+it the standard self-words, so `x me`, `x myself`, `x yourself` (and each
+language's own: `untersuche dich`, `examinate`) work in every game with no
+author code, and taking yourself answers its own line.
+
+A game augments the player with top-level `player.` declarations:
+
+```
+player.words olivia, lund
+player.desc "You are Olivia Lund, exobiologist."
+```
+
+`player.words` ADDS to the words already declared (the standard self-words
+stay), so the heroine answers to her name and to "me" alike. `player.desc`
+sets the description `x me` prints, and it takes the computed form like any
+text property:
+
+```
+player.desc block
+    say "You catch a glimpse of yourself: Olivia Lund. Once just an
+         exobiologist, now a ghost haunting the graveyards of the stars."
+```
+
+Any player property can be set this way (`player.name`, or a custom flag);
+`words` accumulates, everything else is set with the last declaration winning.
+
 The `intro` property is an object's initial appearance in a room description.
 While the object sits untouched in place, the room lists it with its `intro`
 text, as its own paragraph, instead of the plain "You can see X here." The

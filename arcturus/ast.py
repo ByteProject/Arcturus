@@ -511,6 +511,16 @@ class DirectionDecl:
 
 
 @dataclass
+class PlayerDecl:
+    # A top-level augmentation of the seeded player object: `player.words
+    # Olivia, Lund` (ADDS to the words already declared, the language layer's
+    # standard self-words), `player.desc "You are..."`, or a computed
+    # `player.desc block`. The wrapped decl is an ordinary PropertyDecl.
+    prop: "PropertyDecl"
+    line: int = 0
+
+
+@dataclass
 class PronounDecl:
     # A language layer maps player-typed words to a canonical pronoun role:
     # `pronoun it "it"` (English), `pronoun her "sie"` (German, grammatical

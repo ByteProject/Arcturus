@@ -170,6 +170,14 @@ block find_particle()
 // lámpara".
 global clitico = 0
 
+// El objeto del jugador: las palabras de sí mismo a las que todo juego
+// responde ("examina a yo" no, pero "examinate" sí, y también estas), un
+// nombre imprimible y la marca de nombre propio contra el artículo. Un juego
+// añade las suyas con player.words.
+player.words yo, mismo
+player.name "ti mismo"
+player.named
+
 // A qué pronombre se convierte un sustantivo resuelto: por su género. Sin
 // palabras `pronoun` propias todavía (los clíticos cogelo/cogela llegan en la
 // parte 2), pero las casillas se rellenan desde ya. El esqueleto llama a este

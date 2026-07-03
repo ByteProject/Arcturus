@@ -186,6 +186,15 @@ class Parser:
             return self.parse_particle()
         if t.kind == T.NAME and t.value == "pronoun":
             return self.parse_pronoun()
+        if t.value == "player" and t.kind in (T.NAME, T.KW):
+            nxt = self._at(1)
+            if nxt.kind == T.OP and nxt.value == ".":
+                # player.words Olivia, Lund / player.desc "..." / player.desc
+                # block: augment the seeded player object (docs/01 section 5a).
+                line = t.line
+                self.advance()
+                self.advance()
+                return ast.PlayerDecl(self.parse_property(), line)
         if t.kind == T.NAME and t.value == "language":
             return self.parse_language_decl()
         if t.kind == T.NAME:
@@ -369,6 +378,13 @@ class Parser:
             f"'topic', got {self._describe(self.cur)}"
         )
 
+    def _vocab_word(self) -> ast.Name:
+        t = self.cur
+        if t.kind in (T.NAME, T.KW):
+            self.advance()
+            return ast.Name(t.value, t.line)
+        raise self._error(f"a vocabulary word, got {self._describe(t)}")
+
     def parse_topic(self) -> ast.TopicDecl:
         line = self.cur.line
         self.expect_kw("topic")
@@ -407,6 +423,16 @@ class Parser:
     def parse_property(self) -> ast.PropertyDecl:
         tok = self.expect_name("a property name")
         name = tok.value
+        if name == "words":
+            # Vocabulary, not expressions: any word is admissible, including
+            # the language's reserved ones (words self, you), since the player
+            # types them without knowing our keywords.
+            values = [self._vocab_word()]
+            while self.check_op(","):
+                self.advance()
+                values.append(self._vocab_word())
+            self.expect_newline()
+            return ast.PropertyDecl(name, ast.PROP_VALUE, values=values, line=tok.line)
         if self.check(T.NEWLINE):
             self.advance()
             return ast.PropertyDecl(name, ast.PROP_BOOL, line=tok.line)

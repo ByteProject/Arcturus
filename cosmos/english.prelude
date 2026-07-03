@@ -533,6 +533,14 @@ particle off "off"
 // The pronouns (docs/02 section 8a): "it" for the last thing, "him"/"her" for
 // the last character, by its gender. The words map to canonical roles; the
 // note_pronouns rule below decides which role a resolved noun fills.
+// The player's own object: the standard self-words every game answers to
+// ("x me"), a printable name, and the proper-name flag so no article sticks
+// to it. A game ADDS its own with player.words (they accumulate) and sets its
+// own desc, plain or computed (docs/01 section 5a).
+player.words me, myself, self, yourself, you
+player.name "yourself"
+player.named
+
 pronoun it  "it"
 pronoun him "him"
 pronoun her "her"

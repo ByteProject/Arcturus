@@ -54,6 +54,11 @@ on take
     if noun is nothing
         msg_cant_see()
         stop
+    // Taking yourself comes before every other refusal: the player is animate
+    // and would otherwise get the "has other ideas" meant for characters.
+    if noun is player
+        msg_take_self()
+        stop
     if noun is scenery
         msg_scenery()
         stop
