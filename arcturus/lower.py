@@ -57,7 +57,7 @@ INTRINSICS = frozenset({
     # so `if any_spans() is 1` folds away and DCE drops the spans blocks when no
     # object spans (a static-if, see _if).
     "spans_addr", "spans_count", "any_spans", "any_doors", "any_named", "any_grains",
-    "any_allwords",
+    "any_allwords", "any_tagged", "any_scored", "any_scoperoom", "scope_room",
     # The turn loop fires life-cycle events: run_free runs the free rules for an
     # action, and ev_* name the event action numbers (start, enter, each_turn).
     # tick_timers counts down the after/every schedule once per turn.
@@ -112,7 +112,7 @@ INTRINSICS = frozenset({
     "ambience_table",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
-    "desc_addr", "intro_addr", "article_addr", "indefinite_addr",
+    "desc_addr", "intro_addr", "article_addr", "indefinite_addr", "tag_addr",
     # Conversation topics, for the ask/tell and menu granules: how many a person
     # has, whether topic i is in view, printing its menu label, matching a subject
     # word against it, running its body, and retiring it (so the menu drops a
@@ -705,7 +705,8 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         op, t = _operand(rt, ctx, args[0])
         rt.op("get_prop_addr", op, Const(_words_prop(ctx)), store=dest)
         _free(ctx, t)
-    elif name in ("desc_addr", "intro_addr", "article_addr", "indefinite_addr"):
+    elif name in ("desc_addr", "intro_addr", "article_addr", "indefinite_addr",
+                  "tag_addr"):
         # <prop>_addr(obj): the address of the object's desc, intro, article,
         # or indefinite property (0 if it has none), so the room describer and
         # the article blocks can test for one before printing it.
@@ -791,6 +792,22 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_plurals(): 1 when the plurals granule is in (its `pronoun them`
         # declaration is the marker), so the plural hooks fold away without it.
         _place(rt, Const(1 if "them" in ctx.world.pronouns.values() else 0), dest)
+    elif name == "any_tagged":
+        # any_tagged(): 1 when any object declares a `tag` qualifier, so the
+        # listing hook folds away otherwise.
+        _place(rt, Const(1 if any("tag" in o.props for o in ctx.world.objects.values()) else 0), dest)
+    elif name == "any_scored":
+        # any_scored(): 1 when anything declares `scored`, so the award hooks
+        # in take and go fold away in a scoreless game.
+        _place(rt, Const(1 if any("scored" in o.props for o in ctx.world.objects.values()) else 0), dest)
+    elif name == "any_scoperoom":
+        # any_scoperoom(): 1 when the backstage scope room was seeded (some
+        # object is placed `in scope`), so the scope hook folds away otherwise.
+        _place(rt, Const(1 if "scope" in ctx.world.objects else 0), dest)
+    elif name == "scope_room":
+        # scope_room(): the backstage room's object number (0 unseeded).
+        num = ctx.layout.obj_number.get("scope", 0) if ctx.layout is not None else 0
+        _place(rt, Const(num), dest)
     elif name == "topics_count":
         # topics_count(person): how many topics the person has (0 if none).
         eval_expr(rt, ctx, args[0], Variable(STACK))
@@ -1417,6 +1434,12 @@ def _static_value(ctx, expr):
         return 1 if ctx.world.all_words else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_plurals":
         return 1 if "them" in ctx.world.pronouns.values() else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tagged":
+        return 1 if any("tag" in o.props for o in ctx.world.objects.values()) else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scored":
+        return 1 if any("scored" in o.props for o in ctx.world.objects.values()) else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scoperoom":
+        return 1 if "scope" in ctx.world.objects else 0
     # A constant folds to its value, so `if DEBUG is 1` (DEBUG a constant) decides
     # at compile time and an unused branch is never emitted.
     if isinstance(expr, ast.Name):

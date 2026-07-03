@@ -875,6 +875,7 @@ block list_item(obj)
                 show(" (que está cerrada)")
             else
                 show(" (que está cerrado)")
+    show_tag(obj)
     list_contents(obj)
     say "."
 
@@ -1261,5 +1262,6 @@ block list_held(obj)
     show("${a obj}")
     if obj is worn
         show(" (puesto)")
+    show_tag(obj)
     list_contents(obj)
     say ""

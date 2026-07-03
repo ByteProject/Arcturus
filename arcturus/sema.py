@@ -97,6 +97,15 @@ class Analyzer:
         # Seed standard objects (player).
         for name, kind in self.env.objects.items():
             w.objects[name] = wm.Obj(name, "thing", kind, line=0)
+        # Seed the scope room on demand (docs/01 section 5, Stefan's design):
+        # `in scope` places an object BACKSTAGE, an invisible room whose
+        # contents the parser always has in scope. Nothing is seeded, and
+        # nothing costs a byte, unless some object asks for it.
+        if any(
+            isinstance(d, ast.ObjectDecl) and d.location == "scope"
+            for d in self.program.decls
+        ) and "scope" not in w.objects:
+            w.objects["scope"] = wm.Obj("scope", "room", "room", line=0)
 
         for decl in self.program.decls:
             if isinstance(decl, ast.GameBlock):

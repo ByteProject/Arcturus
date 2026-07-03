@@ -58,6 +58,11 @@ block draw_status()
 block status_lines()
     return 1
 
+// The bar names the room, so the opening description skips its title line
+// (loop.prelude, the PunyInform start-screen convention).
+block title_in_bar()
+    return 1
+
 // Paint the bar into row 1 of whatever upper window is current: reverse video
 // across the width, the room name at the left, the score and moves at the right.
 // The right side adapts to the screen width the way PunyInform does: a wide screen

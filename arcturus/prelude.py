@@ -86,6 +86,10 @@ _STD_BOOL_PROPS = [
     "fixed", "scenery", "hidden", "concealed", "wearable", "worn", "lit",
     "edible", "named", "switchable", "openable", "open", "lockable", "locked",
     "visited",
+    # Awards points once, automatically: a scored room on first visit, a
+    # scored thing on first take (room_score / object_score, default 5 each,
+    # core.prelude). The hooks fold away in a game that scores nothing.
+    "scored",
     # A see-through container: you can see and reach its contents even when it is
     # closed (a glass jar). Our equivalent of Inform's `transparent`. An open or
     # `clear` container puts its contents in scope; a closed opaque one does not.
@@ -171,6 +175,10 @@ _STD_VALUE_PROPS = {
     # Unset, the language layer derives as usual.
     "article": T_TEXT,
     "indefinite": T_TEXT,
+    # A short state qualifier appended to the object in listings and the
+    # inventory: "a fluid canister (full)". Usually computed (`tag block`);
+    # printed bare, the parentheses come from the listing.
+    "tag": T_TEXT,
     "words": T_LIST,
     # The plurals granule's group vocabulary: the words that name this object
     # AS PART OF A GROUP ("coins" on each coin). A plural word matching several
@@ -265,6 +273,9 @@ _BUILTINS = {
     "chain_max": T_NUMBER,
     # The ambience table base (summon.ambience), library-internal.
     "__ambience__": T_NUMBER,
+    # Set for the opening room description when a status bar already names
+    # the room: describe_room skips its title line once (library-internal).
+    "hide_title": T_NUMBER,
     # The disambiguation ask (docs/02 section 8), library-internal: the tied
     # phrase's word range and winning score (so the question can list the
     # candidates), and the text offset where an answer's narrowing words are
