@@ -7,7 +7,7 @@ game
 // The classic Cloak of Darkness shows a status line, so this port summons one.
 summon.statusline
 
-global disturbed = 0
+counter disturbed
 
 on start
     say "Hurrying through the rain-swept November night, you are glad to
@@ -88,7 +88,7 @@ room bar
             now bar is lit
 
     on each_turn when bar is not lit
-        change disturbed to disturbed + 1
+        disturbed++
         say "Blundering around in the dark isn't a good idea!"
 
 

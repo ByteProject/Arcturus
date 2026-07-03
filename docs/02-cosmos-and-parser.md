@@ -954,7 +954,7 @@ Cloak of Darkness:
   `hook holds cloak` is the test the hook's examine uses.
 - The bar overrides automatic light at the room: its `on enter` sets the room
   dark while the player holds the cloak and lit otherwise.
-- The `disturbed` global, the each_turn counter, and the two `finish` endings
+- The `disturbed` counter, its each_turn `++`, and the two `finish` endings
   are all language-level and need nothing from Cosmos beyond the turn loop.
 
 ## Appendix A: Cosmos-reserved names

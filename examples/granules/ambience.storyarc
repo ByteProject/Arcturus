@@ -25,7 +25,7 @@ game
     author "Stefan Vogt"
     start jetty
 
-global content = false
+flag content
 
 room jetty
     name "The Jetty"
