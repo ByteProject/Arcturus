@@ -74,6 +74,33 @@ anonymous-points line; ambience per-line dwell.
 
 >>> END DAY-TWO CHECKPOINT <<<
 
+THE POST-MORTEM, AND GHOSTS LEAVES THE ROADMAP (2026-07-04, Stefan's
+blessing after playing H2 through; arcc 0.10.1 / Cosmos 0.14.1): a
+`finish` banner is now followed by the FINAL SCORE (msg_score, rank and
+all) and the classic prompt, "Would you like to RESTART, RESTORE a saved
+game, or QUIT?" (msg_game_over, three languages), looping until answered.
+The answers are matched BY ACTION against the pack's own
+restart/restore/quit verb words, so every language pack works with zero
+extra wiring; a failed restore reports msg_restore_failed and re-asks;
+a successful restore resumes at the save point by the existing r==2
+machinery. Wired in the finish lowering (call blk_game_over before quit;
+a bare no-Cosmos build still just quits; games without a finish pay
+nothing, DCE). H2's ending now reads: *** THE END *** / "You have scored
+360 of a possible 360, in 119 turns, which earns you the rank of Savior
+of the Universe." / the prompt. STEFAN'S PLAY-PASS VERDICT on the full
+port: everything fine, and the build is SIX KILOBYTES SMALLER than the
+PunyInform variant of the same game - the size charter proven on the
+flagship. B9 (GHOSTS OF BLACKWOOD MANOR) IS DROPPED from the roadmap on
+Stefan's call: it was the easier port, and with H2 complete its
+sufficiency proof is redundant; the milestone number stays reserved so
+B10-B13 keep their names (docs/00, README, CLAUDE.md, memory synced).
+Flagged for later: an after-handler ordering oddity seen in a test
+fixture (on take / continue + on after take looked like the after body
+ran without the default completing); to investigate, not chased today.
+NEXT: Stefan's word on next steps (quality sweep vs B10 Actaea).
+400 tests; ceilings re-pinned (finish games pay ~250 for the post-mortem).
+
+
 HIBERNATED 2: ALL FOUR ACTS PORTED, THE END REACHED (2026-07-04, Stefan's
 "continue with the rest"): hibernated2/hibernated2.storyarc (gitignored,
 NEVER COMMIT) now carries the COMPLETE game: Act III's City of Glass (the

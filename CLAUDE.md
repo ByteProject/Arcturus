@@ -5,10 +5,11 @@ written in Python, that emits standard Z-machine version 5 story files. The
 standard library is named Cosmos. The end goal is a complete, hackable IF
 toolchain - compiler, editable library, a modern reference interpreter, and an
 optional `arc_image` graphics path down to 8-bit machines - validated by porting
-three existing games to Arcturus: Hibernated 2 (text, the first large real-world
-game and the maturity milestone), Ghosts of Blackwood Manor (text), and The Curse
-of Rabenstein (from DAAD, the graphics testbed). Hibernated 2 releases first in
-its PunyInform build; the Arcturus port follows. Writing Hibernated 3 stays
+existing games to Arcturus: Hibernated 2 (text, the first large real-world game
+and the maturity milestone; port complete) and The Curse of Rabenstein (from
+DAAD, the graphics testbed). Ghosts of Blackwood Manor was dropped from the
+plan once Hibernated 2 proved sufficiency (2026-07-04). Hibernated 2 releases
+first in its PunyInform build; the Arcturus port follows. Writing Hibernated 3 stays
 Stefan's own goal, pursued separately; this project stays focused on Arcturus
 itself.
 

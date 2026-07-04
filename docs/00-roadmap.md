@@ -20,9 +20,9 @@ infrastructure. The compiler is written in Python.
 Ultimate goal: a complete, hackable IF toolchain - a compiler, an editable
 standard library (Cosmos), a modern reference interpreter, and an optional
 graphics path (`arc_image`) reaching from modern systems down to the 8-bit
-machines. Arcturus proves itself by porting two existing games: Ghosts of
-Blackwood Manor (text, exercising z5 to the limit) and The Curse of Rabenstein
-(from DAAD, the graphics testbed, which also ships as a worked example). The
+machines. Arcturus proves itself by porting existing games: Hibernated 2
+(text, the maturity proof, complete) and The Curse of Rabenstein (from DAAD,
+the graphics testbed, which also ships as a worked example). The
 reference material here must be detailed enough to implement the toolchain from,
 and to author games against once it is built.
 
@@ -226,8 +226,11 @@ done-test.
   the flagship demonstration of what Arcturus can do, and porting real games
   before the interpreter and graphics keeps the language malleable while the bugs
   are cheap to fix.
-- B9: port Ghosts of Blackwood Manor to Arcturus - text only, pushing z5
-  features hard. The advanced-feature benchmark.
+- B9: DROPPED (2026-07-04, Stefan's call). Ghosts of Blackwood Manor was
+  the easier port; with Hibernated 2 complete, all four acts at a
+  self-summed perfect score, the sufficiency proof it would have added is
+  already delivered. The number stays reserved so later milestones keep
+  their names.
 - B10: the reference interpreter, Actaea. A Standard 1.1 conformant z5/z8
   interpreter in Python with a tkinter GUI, built under `actaea/`, that plays any
   well-formed story file and is the testing ground for `arc_image`. Its design is

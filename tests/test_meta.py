@@ -36,6 +36,32 @@ def _frotz():
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_finish_post_mortem(tmp_path):
+    # A finish banner is followed by the final score and the classic
+    # RESTART / RESTORE / QUIT prompt (Stefan's ruling, 2026-07-04); an
+    # unrecognized answer re-prompts, QUIT ends the session.
+    src = (
+        'game\n    title "PM"\n    start hall\n    scoring\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing gem in hall\n    name "gem"\n    words gem\n'
+        "    scored false\n"
+        "    on take\n"
+        "        award 5\n"
+        '        finish "*** You have won ***"\n'
+    )
+    story = tmp_path / "pm.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(src)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="take gem\nxyzzy\nquit\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "*** You have won ***" in out
+    assert "scored 5 of a possible 5" in out
+    assert "Would you like to RESTART, RESTORE a saved game, or QUIT?" in out
+    assert "That wasn't one of the choices." in out
+
+
 def test_meta_verbs_on_frotz(tmp_path):
     story = tmp_path / "m.z5"
     story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))

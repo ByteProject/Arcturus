@@ -1122,6 +1122,13 @@ block confirm_quit()
 block msg_farewell()
     say "We'll leave it there."
 
+// The post-mortem prompt after a finish banner (loop.prelude game_over).
+block msg_game_over()
+    say "Would you like to RESTART, RESTORE a saved game, or QUIT?"
+
+block msg_game_over_unknown()
+    say "That wasn't one of the choices."
+
 // Meta verbs (the score, a restart confirmation, the xyzzy easter egg). save,
 // restore, and undo bring their own messages with the meta-verb opcodes.
 // SCORE is the one score verb, Infocom-shaped: score, maximum, turn count,

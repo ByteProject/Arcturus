@@ -1225,6 +1225,12 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
     elif isinstance(s, ast.Finish):
         if s.message is not None:
             _say(rt, ctx, s.message)
+        # After the *** banner the Cosmos post-mortem takes over: the final
+        # score and the RESTART / RESTORE / QUIT prompt (loop.prelude
+        # game_over). A bare build without Cosmos falls back to ending the
+        # session outright.
+        if "game_over" in ctx.world.blocks:
+            rt.op("call_vn", RoutineRef("blk_game_over"))
         rt.op("quit")
         return True
     elif isinstance(s, ast.Stop):

@@ -39,8 +39,8 @@ CEILINGS = {
     # (~25), show_tag (~20); chaining, disambiguation, noun lists with
     # noise words, all core parser features every game carries.
     "beispiel-deutsch.storyarc": 20008,
-    "brass-lantern.storyarc": 14392,
-    "cloak-of-darkness.storyarc": 14852,
+    "brass-lantern.storyarc": 14640,
+    "cloak-of-darkness.storyarc": 15104,
     "ejemplo-espanol.storyarc": 19236,
     "features/computed-properties.storyarc": 13236,
     "features/containers.storyarc": 13268,
@@ -66,7 +66,7 @@ CEILINGS = {
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 15312
+CLOAK_Z8_CEILING = 15568
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
