@@ -2748,3 +2748,33 @@ Moves: 119. One fix on the way: a blank scripted keypress means Enter
 M8's VISIBLE done-test is Stefan's turn: H2 in the window (the status
 line correct and stable, quote boxes rendering cleanly over real play).
 Then M9: styles and colours rendered, set_font, true colour.
+
+## 2026-07-05: Actaea M9, styles and colours
+
+The screen model is now the ONE truth for the current look in both
+windows: set_text_style accumulates bits (0 returns to roman, S 8.7.1),
+set_colour speaks the standard numbers (0 keeps, 1 default), and Standard
+1.1 set_true_colour stores 15-bit words as precomputed #rrggbb (-1 keeps,
+-2 default), with the Standard's recommended true colours (S 8.3.7) as
+the palette for the standard set. Cells already carried the look; now
+the lower window does too: the GUI reads the model at print time and
+tags the inserted text (bold/italic/bold-italic font variants, reverse
+swapping fg/bg, colours resolved through one helper), and the grid
+renderer draws cell colours and styled fonts. Roman-default text carries
+no tag at all, so plain prose costs nothing. The io hint methods are
+GONE: state lives in the model, io carries events (text, keys, clears);
+one truth, no second path. set_font landed too (1 and 4 are the same
+face in a monospace terp, both available, previous font stored; 2 and 3
+refused with 0), and flags1 now claims colour alongside the styles.
+
+Proofs: model colour/style semantics unit-tested, the opcodes driven
+through zasm (set_colour, true colour with keep/default, set_font
+prev/refuse/query = "104"), an Arcturus say.yellow game plays with the
+colour path live, and H2's full walkthrough still reaches THE END at
+360/360 with the model's colours flowing (final state: white on default,
+roman). 503 tests. actaea 0.9.0.
+
+M9's visible half is Stefan's: H2 in the window shows the coloured
+banner, say.yellow callouts, and the quote box in proper dress. Then
+M10: Quetzal save/restore interoperating with a reference interpreter
+both ways, plus restart.

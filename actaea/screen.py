@@ -40,6 +40,37 @@ DEFAULT_COLS = 80
 # Style bits, as set_text_style speaks them (S 8.7.1).
 ROMAN, REVERSE, BOLD, ITALIC, FIXED = 0, 1, 2, 4, 8
 
+# The standard colour numbers (S 8.3.1): 1 is "the default", the numbers
+# from 2 map to real colours. 0 means "keep the current one" in set_colour.
+DEFAULT_COLOUR = 1
+
+# The Standard's recommended true colours for the standard set (S 8.3.7),
+# as 15-bit words (5 bits per component, red in the low bits).
+TRUE_COLOURS = {
+    2: 0x0000,  # black
+    3: 0x001D,  # red
+    4: 0x0340,  # green
+    5: 0x03BD,  # yellow
+    6: 0x59A0,  # blue
+    7: 0x7C1F,  # magenta
+    8: 0x77A0,  # cyan
+    9: 0x7FFF,  # white
+    10: 0x5AD6,  # light grey
+    11: 0x4631,  # medium grey
+    12: 0x2D6B,  # dark grey
+}
+
+
+def true_colour_hex(word: int) -> str:
+    """A 15-bit true-colour word as tk's #rrggbb (S 8.3.7: red in bits 0-4,
+    green 5-9, blue 10-14; components scale 0..31 up to 0..255)."""
+    def scale(c5: int) -> int:
+        return (c5 * 255 + 15) // 31
+    r = scale(word & 0x1F)
+    g = scale((word >> 5) & 0x1F)
+    b = scale((word >> 10) & 0x1F)
+    return f"#{r:02x}{g:02x}{b:02x}"
+
 
 @dataclass
 class Cell:
@@ -79,6 +110,38 @@ class ScreenModel:
     def _changed(self) -> None:
         if self.on_change is not None:
             self.on_change()
+
+    # -- the current look (M9): one truth for BOTH windows -------------------------
+    # fg/bg hold either a standard colour number (int) or a precomputed
+    # #rrggbb string from set_true_colour; renderers resolve both.
+
+    def set_style(self, style: int) -> None:
+        """set_text_style semantics (S 8.7.1): 0 returns to roman, anything
+        else adds to the styles in force."""
+        if style == 0:
+            self.style = ROMAN
+        else:
+            self.style |= style
+
+    def set_colour(self, fg: int, bg: int) -> None:
+        """The standard colour numbers: 0 keeps the current colour, 1 is
+        the default, 2.. name real colours (S 8.3.1)."""
+        if fg:
+            self.fg = fg
+        if bg:
+            self.bg = bg
+
+    def set_true_colour(self, fg: int, bg: int) -> None:
+        """Standard 1.1 true colour: 15-bit RGB words, -1 keeps the current
+        colour, -2 returns to the default (S 8.3.7)."""
+        if fg >= 0:
+            self.fg = true_colour_hex(fg)
+        elif fg == -2:
+            self.fg = DEFAULT_COLOUR
+        if bg >= 0:
+            self.bg = true_colour_hex(bg)
+        elif bg == -2:
+            self.bg = DEFAULT_COLOUR
 
     # -- the split and the windows ----------------------------------------------
 
