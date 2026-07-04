@@ -74,6 +74,39 @@ anonymous-points line; ambience per-line dwell.
 
 >>> END DAY-TWO CHECKPOINT <<<
 
+HIBERNATED 2: ALL FOUR ACTS PORTED, THE END REACHED (2026-07-04, Stefan's
+"continue with the rest"): hibernated2/hibernated2.storyarc (gitignored,
+NEVER COMMIT) now carries the COMPLETE game: Act III's City of Glass (the
+chapter-gated Plaza; Science with the ring/axis/focus stellar-map puzzle
+on two counters and Vlad's par.say.par callouts; the Temporal Lab's
+frozen stabilizer freed by the resonance crystal; the Nexus shield and
+hand-print slab; Genesis and the keycard; Residential with the chimes,
+the toy's 1-0-4-4, and the Memory Core lore dump; Industrial with the
+conduits and the three-ingredient fabricator manifest; the Council's
+deadlocked vote with Vlad's ARCHIVE interception) and Act IV (the Apex
+sync with the one-way teleport and the Keeper's -10 mercy rescue; the
+five lunar rooms; keycard, frozen guards, shattered crystal, the
+tried-and-whipped killswitch, the give-to-Vlad gate, and the final
+attack into the six-beat epilogue and finish "*** THE END ***"). USE and
+THROW are story verbs (the original's synonym routing) with the tools
+answering by second noun; recipient dispatch carries the dais, the
+fabricator manifest, and the reader. The walkthrough runs all four acts
+to *** THE END *** at 360 of 360 SELF-SUMMED (30 anonymous award sites,
+1 pool, 41 auto-scored: 27 rooms + 14 takeables, every point verified
+reachable). THE POOL LESSON PAID FOR ITSELF: the stabilizer breaks the
+nexus shield on two alternate paths, and the first build summed both
+sites (max 365, reachable 360, the exact 355/350 failure class caught by
+the ledger arithmetic in one read); `award 5 for nexus_field` on both
+sites counts the event once. Rebased the .inf's axis counter (-3..0 ->
+0..3, counters start at zero; same three pushes). NOT PORTED, deliberate:
+the .inf's gravity topic (dead content, never activated), CREDITS/ABOUT/
+HELP and the Puny-hack flavor overrides (quality sweep). GAP FLAGGED for
+Stefan: our `finish` ends at the banner; Inform prints the final score
+and a RESTART/RESTORE/QUIT prompt after "*** THE END ***". Artifact is
+now hibernated2/h2-full.z5 (131104 bytes, 4400+ source lines); the slice
+artifact retired. 399 tests untouched and green.
+
+
 GAIN JOINS TELEPORT, AND THE OVERHAUL BUMP (2026-07-04, Stefan's
 blessing; arcc 0.10.0 / Cosmos 0.14.0 / vsix 0.10.0, the minor bump
 marking the day's fundamentals overhaul): gain(obj) is a standard Cosmos
