@@ -24,6 +24,7 @@ import random as _random
 from .decode import LARGE, SMALL, VARIABLE, decode
 from .errors import ActaeaError
 from .memory import from_signed, to_signed
+from .objects import ObjectTable
 
 
 class VMError(ActaeaError):
@@ -40,12 +41,8 @@ class UnimplementedOpcode(ActaeaError):
 # Opcodes that exist but belong to later milestones; the error names where
 # each will arrive so a premature integration test explains itself.
 _LATER = {
-    "jin": "M4", "test_attr": "M4", "set_attr": "M4", "clear_attr": "M4",
-    "insert_obj": "M4", "remove_obj": "M4", "get_prop": "M4",
-    "get_prop_addr": "M4", "get_next_prop": "M4", "get_prop_len": "M4",
-    "get_sibling": "M4", "get_child": "M4", "get_parent": "M4",
-    "put_prop": "M4", "print_obj": "M4",
     "print": "M5", "print_ret": "M5", "print_addr": "M5", "print_paddr": "M5",
+    "print_obj": "M5",  # an object opcode, but it PRINTS: it needs the text engine
     "tokenise": "M5", "encode_text": "M5", "print_unicode": "M5",
     "check_unicode": "M5", "print_table": "M5",
     "read": "M6", "read_char": "M6",
@@ -85,6 +82,7 @@ class VM:
         self.io = io
         self.pc = story.header.initial_pc
         self.globals_addr = story.header.globals_
+        self.objects = ObjectTable(self.mem, story.header.objects)
         # The entry point is a bare instruction stream, not a routine, so it
         # runs in a base pseudo-frame that nothing ever returns from.
         self.frames = [Frame(return_pc=0, store=None, locals_=[], argc=0)]
@@ -419,6 +417,69 @@ class VM:
         (n,) = self._values(ins)
         self._branch(ins, self.frames[-1].argc >= n)
 
+    # -- the object tree (M4; the table logic lives in objects.py) --
+
+    def _op_jin(self, ins):
+        a, b = self._values(ins)
+        self._branch(ins, self.objects.parent(a) == b)
+
+    def _op_test_attr(self, ins):
+        obj, attr = self._values(ins)
+        self._branch(ins, self.objects.test_attr(obj, attr))
+
+    def _op_set_attr(self, ins):
+        obj, attr = self._values(ins)
+        self.objects.set_attr(obj, attr)
+
+    def _op_clear_attr(self, ins):
+        obj, attr = self._values(ins)
+        self.objects.clear_attr(obj, attr)
+
+    def _op_insert_obj(self, ins):
+        obj, dest = self._values(ins)
+        self.objects.insert(obj, dest)
+
+    def _op_remove_obj(self, ins):
+        (obj,) = self._values(ins)
+        self.objects.remove(obj)
+
+    def _op_get_parent(self, ins):
+        (obj,) = self._values(ins)
+        self._write_var(ins.store, self.objects.parent(obj))
+
+    def _op_get_sibling(self, ins):
+        # Stores AND branches: the branch is on the result being nonzero.
+        (obj,) = self._values(ins)
+        s = self.objects.sibling(obj)
+        self._write_var(ins.store, s)
+        self._branch(ins, s != 0)
+
+    def _op_get_child(self, ins):
+        (obj,) = self._values(ins)
+        c = self.objects.child(obj)
+        self._write_var(ins.store, c)
+        self._branch(ins, c != 0)
+
+    def _op_get_prop(self, ins):
+        obj, prop = self._values(ins)
+        self._write_var(ins.store, self.objects.get_prop(obj, prop))
+
+    def _op_put_prop(self, ins):
+        obj, prop, value = self._values(ins)
+        self.objects.put_prop(obj, prop, value)
+
+    def _op_get_prop_addr(self, ins):
+        obj, prop = self._values(ins)
+        self._write_var(ins.store, self.objects.get_prop_addr(obj, prop))
+
+    def _op_get_prop_len(self, ins):
+        (addr,) = self._values(ins)
+        self._write_var(ins.store, self.objects.get_prop_len(addr))
+
+    def _op_get_next_prop(self, ins):
+        obj, prop = self._values(ins)
+        self._write_var(ins.store, self.objects.get_next_prop(obj, prop))
+
     # -- the rest of the computational set --
 
     def _op_random(self, ins):
@@ -489,6 +550,13 @@ class VM:
         "ret_popped": _op_ret_popped,
         "catch": _op_catch, "throw": _op_throw,
         "check_arg_count": _op_check_arg_count,
+        "jin": _op_jin, "test_attr": _op_test_attr, "set_attr": _op_set_attr,
+        "clear_attr": _op_clear_attr, "insert_obj": _op_insert_obj,
+        "remove_obj": _op_remove_obj, "get_parent": _op_get_parent,
+        "get_sibling": _op_get_sibling, "get_child": _op_get_child,
+        "get_prop": _op_get_prop, "put_prop": _op_put_prop,
+        "get_prop_addr": _op_get_prop_addr, "get_prop_len": _op_get_prop_len,
+        "get_next_prop": _op_get_next_prop,
         "random": _op_random, "verify": _op_verify, "piracy": _op_piracy,
         "nop": _op_nop, "quit": _op_quit,
         "print_num": _op_print_num, "print_char": _op_print_char,

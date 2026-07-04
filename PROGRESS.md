@@ -2513,3 +2513,34 @@ actaea tests; 455 total. actaea 0.3.0.
 NEXT: M4, the object tree (48 attributes, properties with one/two-byte
 size forms, the 63-entry defaults table, parent/sibling/child and all
 their opcodes). After that M5 text and the machine starts talking.
+
+## 2026-07-04 (night, cont.): Actaea M4 green, the object tree
+
+objects.py owns the v4+ table (S 12.1-12.4): the 63-word defaults table,
+14-byte entries (48 attribute bits, parent/sibling/child words, the
+property-table pointer), and property tables with both size forms (one
+byte, bit 6 = length; two bytes, bit 7 set in BOTH, second's low six bits
+the length, 0 meaning 64). insert makes first-child and stitches the old
+chain; remove keeps children and is a quiet no-op on a parentless object;
+object 0 ("nothing") faults by name rather than reading bytes belonging to
+no object. get_prop reads bytes/words and falls back to the defaults;
+longer reads fault (S 15); put_prop writes 1/2 bytes and faults on absent;
+get_prop_len(0)=0; get_next_prop(_, 0) gives the first and faults when
+asked after a property the object lacks. All writes ride Memory's dynamic
+barrier. VM wiring: jin, test/set/clear_attr, insert/remove_obj,
+get_parent (store), get_sibling/get_child (store AND branch on nonzero),
+get_prop/put_prop/get_prop_addr/get_prop_len/get_next_prop. print_obj
+stays in M5 with the text engine.
+
+The test-side encoder moved to tests/actaea/unit/zasm.py (shared by
+test_vm and test_objects); its builder grew an object-table area at 0x220
+with a declarative objtable() helper. One real fix out of the tests: the
+two-byte size form needs bit 7 set in the SECOND byte too, which is
+exactly the bit get_prop_len reads back. 10 new tests; 58 actaea, 465
+total. actaea 0.4.0.
+
+NEXT: M5, the text engine and dictionary: ZSCII, the three alphabets and
+the custom alphabet table, abbreviations, encode and decode, the Unicode
+translation table, dictionary lookup, and the print family (print,
+print_ret, print_addr, print_paddr, print_obj, print_table, tokenise,
+encode_text). After M5 the machine talks and CZECH comes within reach.
