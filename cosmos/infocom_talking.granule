@@ -12,9 +12,11 @@
 //
 // This granule holds ONLY logic: the ask/tell verb words, their grammar, and
 // every message live in the language layer, so an infocom_talking game is as
-// translatable as any other (the packs carry the words and the lines). It
-// overrides the standard ask_to/tell_to seams; the guards (can't see, only
-// animate) already ran in the standard handlers.
+// translatable as any other (the packs carry the words and the lines; the
+// flat defaults msg_ask/msg_tell/msg_answer are called only from here, so
+// they cost every other game nothing). It overrides the standard
+// ask_to/tell_to/answer_to seams; the guards (can't see, only animate)
+// already ran in the standard handlers.
 //
 // The conversations menu is the OTHER presentation of the same topics, and a
 // game picks exactly one: summoning both is a compile error. An author
@@ -30,6 +32,9 @@ block tell_to(person)
     if converse(person) is 1
         return 0
     msg_tell()
+
+block answer_to(person)
+    msg_answer()
 
 // Find and run a topic the player named. Scanning the typed words for one a
 // visible topic answers to (in declaration order) lets ask and tell share one

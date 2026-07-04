@@ -132,9 +132,9 @@ docs/verb-set.md.
 | Block | When | Wording |
 |---|---|---|
 | msg_no_talk | talk to a person, default | ${The noun} doesn't seem up for a conversation. |
-| msg_ask | ask, flat default (infocom_talking falls back here on no topic match) | ${The noun} stays mum on the subject. |
-| msg_tell | tell, flat default | ${The noun} receives the news with magnificent indifference. |
-| msg_answer | answer, respond | Your words go unanswered. |
+| msg_ask | infocom_talking only: ask with no topic match (other games use the talk brush-off) | ${The noun} stays mum on the subject. |
+| msg_tell | infocom_talking only: tell with no topic match | ${The noun} receives the news with magnificent indifference. |
+| msg_answer | infocom_talking only: answer | Your words go unanswered. |
 | msg_use_talk | TELL in a menu game (the hint; ASK opens the menu itself) | To get anywhere with ${the noun}, just TALK TO ${the noun}. |
 | line_you | the framing of a `you "..."` topic line | You: "..." |
 | line_reply | the framing of a `reply "..."` topic line | ${The speaker}: "..." |

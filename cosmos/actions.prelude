@@ -543,11 +543,14 @@ on talk
     change refused to 1
     msg_only_animate()
 
-// ASK, TELL, and ANSWER are standard, as in PunyInform: with no conversation
-// feature they speak a flat default. What asking and telling DO is a seam:
-// summon.conversations opens the menu (asking IS talking) and hints TELL at
-// TALK TO; summon.infocom_talking dispatches the person's topics. The two
-// presentations are mutually exclusive (docs/05).
+// ASK, TELL, and ANSWER are standard, as in PunyInform. Elevated
+// conversation belongs to the granules alone: with neither summoned, the
+// base seams simply hand over to talk_to, so asking IS talking and every
+// conversation verb shares the one brush-off. summon.conversations makes
+// ASK open the menu and TELL hint at TALK TO; summon.infocom_talking
+// dispatches the person's topics (and only there do the richer flat
+// defaults msg_ask/msg_tell/msg_answer exist, so they cost every other
+// game nothing). The two presentations are mutually exclusive (docs/05).
 on ask
     if convo_guard() is 1
         ask_to(noun)
@@ -569,13 +572,17 @@ block convo_guard()
     return 1
 
 on answer
-    msg_answer()
+    if convo_guard() is 1
+        answer_to(noun)
 
 block ask_to(person)
-    msg_ask()
+    talk_to(person)
 
 block tell_to(person)
-    msg_tell()
+    talk_to(person)
+
+block answer_to(person)
+    talk_to(person)
 
 // What happens when you talk to a living thing. The default is a flat brush-off;
 // the conversations granule overrides this block to open the topic menu instead.

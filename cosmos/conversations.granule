@@ -22,15 +22,13 @@
 block talk_to(person)
     run_talk(person)
 
-// ASK is a doorway into the same menu (asking IS talking): the standard ask
-// handler's seam lands here, so ASK VLAD opens Vlad's menu, and the subject
-// words of "ask vlad about the vines" ride along harmlessly. TELL is not
-// asking: it answers with the gentle use-TALK hint (msg_use_talk, in the
-// language layer). The words and grammar are the standard ask/tell from the
-// language pack; this granule holds no words and no strings.
-block ask_to(person)
-    talk_to(person)
-
+// ASK (and a stray ANSWER) land in the menu through the base seams, which
+// hand over to talk_to; overriding talk_to above was enough, so ASK VLAD
+// opens Vlad's menu and the subject words of "ask vlad about the vines"
+// ride along harmlessly. TELL is not asking: it answers with the gentle
+// use-TALK hint (msg_use_talk, in the language layer). The words and
+// grammar are the standard ask/tell from the language pack; this granule
+// holds no words and no strings.
 block tell_to(person)
     change refused to 1
     msg_use_talk()

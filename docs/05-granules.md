@@ -101,7 +101,9 @@ The Infocom-style conversation surface, the menu-less presentation of the
 `topic` model: `ask innkeeper about lighthouse` scans the person's inline
 `topic` declarations (01 section 15; they live in the person's body) for one
 whose `words` match a typed subject word and is in view, runs it, and falls
-back to the standard flat "stays mum" default when nothing matches. `tell`
+back to its own flat "stays mum" default when nothing matches (those richer
+defaults live here alone; every other game answers ask/tell with the one
+talk brush-off). `tell`
 shares the same path. There is no topic list anywhere: discovery is play,
 the Infocom way, and TALK TO stays the flat brush-off a person can override
 to nudge the player toward the two verbs that matter.

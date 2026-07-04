@@ -579,8 +579,9 @@ The talk action. `talk to <person>` dispatches the `talk` action on the
 person. Without the conversations feature, the Cosmos default routes to the
 person's own `on talk` handler, or prints "There is no reply." With
 `summon.conversations` (section 14), `talk to <person>` opens that person's
-topic menu instead. ask, tell, and answer are likewise standard: flat
-defaults alone, redefined by whichever conversation granule is summoned.
+topic menu instead. ask, tell, and answer are likewise standard;
+with no conversation granule they hand over to the same talk brush-off, so
+asking IS talking until a granule redefines it.
 
 Meta verbs: save, restore, undo, quit, score (the one score verb, Infocom-
 shaped: score, maximum, turn count, and the rank when a ladder is declared),
@@ -752,10 +753,13 @@ retires after use, and `you`/`reply`/`say` form the exchange. The two granules
 are two presentations of one model and are mutually exclusive BY THE COMPILER:
 summoning both is an error, an author settles on one. ASK, TELL, and ANSWER
 are standard verbs either way (as in PunyInform): with no conversation granule
-they speak flat defaults; conversations makes ASK open the person's menu
-(asking IS talking) and TELL answer with the use-TALK hint; infocom_talking
-makes both dispatch the person's topics. The seam is a pair of overridable
-blocks (ask_to, tell_to), so the words and wording stay in the language layer.
+they hand over to the talk brush-off (elevated conversation belongs to the
+granules alone); conversations makes ASK open the person's menu (asking IS
+talking) and TELL answer with the use-TALK hint; infocom_talking makes both
+dispatch the person's topics, with its own flat defaults as the no-match
+fallback (they cost other games nothing). The seams are overridable blocks
+(ask_to, tell_to, answer_to), so the words and wording stay in the language
+layer.
 
 `summon.language "<name>"`. Localization: compile a language pack (`spanish`) in
 place of English so the game plays in another language. Selecting, writing,

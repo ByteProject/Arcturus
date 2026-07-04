@@ -57,7 +57,9 @@ def test_extended_verbs_on_frotz(tmp_path):
     assert "The ground keeps its secrets." in out  # an intransitive flavor verb (dig)
     assert "A fine idea. Nothing comes of it." in out  # think
     assert "You give the grey pebble a thorough buffing." in out  # rub default on an object
-    assert "stays mum" in out  # ask a living thing (flavor)
+    # With no conversation granule, asking IS talking: the shared brush-off
+    # (the richer flat defaults exist only in infocom_talking games).
+    assert "doesn't seem up for a conversation" in out
     assert "The guard does not enjoy that." in out  # the guard's own on rub overrides
 
 
