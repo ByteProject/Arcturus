@@ -2343,3 +2343,58 @@ asserts (they stay; they ruled paths out). arcc 0.10.2 / Cosmos 0.14.2,
 amalgam and example artifacts rebuilt, 401 tests green. Still parked:
 Stefan's CREDITS wording veto, the after-handler ordering oddity, the
 next-steps discussion (B10 Actaea vs quality sweep).
+
+## 2026-07-04 (late): the after phase existed only on paper; now it exists
+
+Stefan's go-ahead: fix the broken-and-unimplemented before Actaea. The flagged
+"after-handler ordering oddity" turned out to be the whole feature missing:
+Handler.after was parsed, threaded through sema, printed by irdump, and never
+consumed by codegen. `on after X` compiled as a plain `on X`: it ran in the
+MAIN chain and, on ending, consumed the action, so the default never ran.
+Cloak's hang-cloak-on-hook never actually moved the cloak (inventory kept it;
+the walkthrough won anyway because only bar.lit mattered). docs/02 s.9 step 6
+always specified the real thing; the document wins.
+
+The implementation (arcc 0.10.3 / Cosmos 0.14.3):
+- worldmodel: every action with an `on after` handler anywhere (object, kind,
+  free) gets a synthetic after action, "after:<name>", numbered in a band
+  between the world actions and the metas; after_floor() marks the band. The
+  colon keeps the name out of the author namespace.
+- codegen react: after handlers key their groups on the synthetic number, so
+  they never answer the main pass. The `on other` catch-all skips the after
+  band (one jl against after_floor, emitted only when the program has after
+  handlers). after_map(action) -> after number (or 0) is emitted beside
+  react_free, only when needed.
+- lower: any_after (static fold + eval), after_of (calls after_map).
+- Cosmos: dispatch itself is UNCHANGED (its early returns stay); the after
+  phase sits inline at the two dispatch call sites in loop.prelude (run_turn
+  and sweep_one), gated `if any_after is 1 / if grain is 0 / if refused is 0
+  / let aft = after_of(act) / if aft is not 0 / dispatch(aft)`. Inline
+  because a wrapper block costs its call layer even unused: the first cut
+  (+12 bytes on EVERY after-free game) violated pay-for-use; this shape is
+  BYTE-IDENTICAL for after-free games (audited across all 24 pinned
+  examples; H2 unchanged at 124,244). Cloak pays 68 bytes for what it uses.
+- Semantics pinned in docs/02: completed = refused still 0 (every library
+  refusal sets it; story refusals should too); an instead handler still
+  completes; grain turns take no after pass; after handlers may continue;
+  on-other never answers the after pass.
+- tests/test_after.py: order (default before after), refusal gates it,
+  instead still fires it, free after rules, when guards, and the catch-all
+  staying out of the after pass. 407 tests green. Cloak re-pinned 15220
+  (z8 15688); the walkthrough now shows the cloak REALLY leaving the
+  player's hands ("You're carrying precisely nothing" after the hang).
+
+ALSO this session, before the fix: H2 compiled with custom abbreviations
+(--make-abbreviations, summon abbreviations.granule): 132,768 -> 124,244,
+8,524 bytes saved (6.4%), ~10K under the Inform build; full walkthrough to
+THE END at 360/360 on fizmo-console. And the sign-bias crash fix landed as
+5d4ca1b (see above). fizmo-console is now the debugging interpreter of
+record (fizmo/ncursesw for colours); memory updated.
+
+NEXT: Actaea (B10). Plan confirmed by Stefan (module map per docs/06 s.4,
+io.py boundary, conformance harness under tests/actaea/). Story files for
+conformance live in actaea/conformance/ (CZECH, TerpEtude, H2, Ghosts,
+deseos for accents, Calypso, Anchorhead, Jigsaw for z8). Update docs/06 +
+the handoff prompt to B10/B11/B12 numbering in the scaffold commit (Stefan
+approved). Parked: CREDITS wording veto, inline emphasis colour, H2 quality
+sweep list.

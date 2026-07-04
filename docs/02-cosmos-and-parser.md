@@ -534,6 +534,16 @@ After phase. If the action completed, Cosmos runs `on after <verb>` handlers
 in the same specificity order. A `when` guard that does not hold makes a
 handler skipped, and the chain continues as if it were absent.
 
+"Completed" means the turn ended with `refused` still 0: every library
+refusal (can't see it, it's fixed, the door is locked) sets `refused`, and a
+story handler that refuses something should set it the same way. An action a
+handler consumed as its own effect (the instead case) still completed; a
+scenery grain's quip is flavor, not a world action, so a grain turn takes no
+after pass. An after handler may `continue` like any other, passing to the
+next in specificity order; an object's `on other` never answers the after
+pass. In a game with no `on after` anywhere the entire phase folds away at
+compile time and costs nothing.
+
 This is leaner than Inform's rulebooks: one ordered chain, an explicit
 `continue`, and an `after` pass, expressing instead, before-with-continue,
 and after without further machinery.

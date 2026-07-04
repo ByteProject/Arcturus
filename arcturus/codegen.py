@@ -68,15 +68,17 @@ def _react_handlers(world: wm.World, obj: wm.Obj, actions: dict):
     """The object's dispatchable handlers, own and inherited, as (action,
     handler): verb actions, the life-cycle events the loop fires here (enter,
     each_turn), and `on go <direction>` overrides (guarded on the direction).
-    Other operand patterns (noun, string) are still deferred; free rules go
-    through react_free."""
+    An `on after` handler answers to its action's synthetic after number, so
+    it never runs in the main phase; the dispatcher fires it in the after pass
+    (docs/02 section 9). Other operand patterns (noun, string) are still
+    deferred; free rules go through react_free."""
     out = []
     for h in _resolved_handlers(world, obj):
         if h.pattern and not _is_dir_pattern(h):
             continue
         for ev in h.events:
             if ev in actions and ev != "other":
-                out.append((ev, h))
+                out.append((wm.after_key(ev) if h.after else ev, h))
     return out
 
 
@@ -104,6 +106,7 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
     to guard `on go <direction>` overrides on the chosen direction. Also emits
     react_free and the grain routines so the dispatcher can call them all."""
     hname = {id(h): nm for h, nm in registry}
+    afloor = wm.after_floor(world) if wm.actions_with_after(world) else None
     out = []
     for objname, obj in world.objects.items():
         pairs = _react_handlers(world, obj, actions)
@@ -113,11 +116,27 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
         groups: dict = {}
         for action, h in pairs:
             groups.setdefault(action, []).append((hname[id(h)], h))
-        out.append(_gen_react(objname, groups, actions, layout, gmap, others))
+        out.append(_gen_react(objname, groups, actions, layout, gmap, others, afloor))
     # react_free and grain_dispatch are always present (even empty) so the turn
     # loop and dispatcher can call them unconditionally.
     out.append(gen_react_free(world, actions, registry))
     out.extend(gen_grain_routines(world, actions, gmap, layout, pool))
+    # after_map(action) backs the after_of intrinsic: the dispatcher's after
+    # phase (docs/02 section 9 step 6) asks it which synthetic after action to
+    # fire once the real one completed unrefused. Emitted only when an after
+    # handler exists; without one, any_after folds the phase (and the only
+    # call site) away, so games without `on after` pay nothing.
+    withafter = wm.actions_with_after(world)
+    if withafter:
+        amap = Routine("after_map", nlocals=1)
+        for name in withafter:
+            lbl = "yes_" + name
+            amap.op("je", Variable(1), Const(actions[name]), branch=(lbl, True))
+        amap.op("ret", Const(0))
+        for name in withafter:
+            amap.label("yes_" + name)
+            amap.op("ret", Const(actions[wm.after_key(name)]))
+        out.append(amap)
     return out
 
 
@@ -206,7 +225,7 @@ def _free_react_handlers(world: wm.World, actions: dict):
             continue
         for ev in h.events:
             if ev in actions and ev != "other":
-                out.append((ev, h))
+                out.append((wm.after_key(ev) if h.after else ev, h))
     return out
 
 
@@ -233,10 +252,11 @@ def gen_react_free(world: wm.World, actions: dict, registry) -> Routine:
         if id(h) in hname:
             groups.setdefault(action, []).append((hname[id(h)], h))
     others = [(hname[id(h)], h) for h in _free_other_handlers(world) if id(h) in hname]
-    return _gen_react("free", groups, actions, others=others)
+    afloor = wm.after_floor(world) if wm.actions_with_after(world) else None
+    return _gen_react("free", groups, actions, others=others, afloor=afloor)
 
 
-def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None, others=None) -> Routine:
+def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None, others=None, afloor=None) -> Routine:
     """react_<obj>(action): switch on the action number; for each action run the
     object's handler routine(s) in order, returning 1 as soon as one consumes the
     action (returns 1). The `on other` catch-all runs only for actions the
@@ -244,7 +264,11 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
     or when the only matches were direction-guarded (`on go north`) and the
     guard failed. A specific handler that ran and continued climbs to the kind,
     the room, and the defaults; it never falls into the object's own catch-all
-    (docs/01 section 12). Local 2 tracks whether a guarded handler ran."""
+    (docs/01 section 12). Local 2 tracks whether a guarded handler ran.
+    `afloor` is the first synthetic after action number: the catch-all also
+    skips those, since the after pass is bookkeeping, not a player action
+    (passed only when the program has after handlers, so games without them
+    pay nothing)."""
     others = others or []
     rt = Routine("react_" + objname, nlocals=2)  # 1 = action, 2 = a guard ran
     run_label = {}
@@ -286,6 +310,10 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
         for ev in _EVENT_NAMES:
             if ev in actions:
                 rt.op("je", Variable(1), Const(actions[ev]), branch=("__climb__", True))
+        # Nor for the dispatcher's after pass: a synthetic after action the
+        # object has no `on after` for climbs silently past the catch-all.
+        if afloor is not None:
+            rt.op("jl", Variable(1), Const(afloor), branch=("__climb__", False))
         for hn, h in others:
             rt.op("call_vs", RoutineRef(hn), store=Variable(STACK))
             rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
