@@ -2804,3 +2804,74 @@ preposition, handler never fired) is now a NAMED error pointing at
 'or'. H2's line fixed accordingly; the game recompiles (124,380) and
 walks to THE END at 360/360 with the model ending white-on-black as
 its zcolor declares. 505 tests.
+
+## CHECKPOINT 2026-07-05: compaction point; M10 is next
+
+State: CLEAN TREE, everything committed through 4ffd34e. arcc 0.10.5 /
+Cosmos 0.14.3 / actaea 0.9.0 / 505 tests green. Actaea M1-M9 are DONE and
+Stefan-verified in the window (H2 screenshot: cyan bar, dark screen, the
+whole toolchain in one picture).
+
+### The M9 verification round (all committed)
+- Stefan's ruling, now doctrine: Actaea is a LIGHT interpreter (black on
+  white paper, declared in header 0x2C/0x2D); a game that wants a dark
+  screen SETS its colours. H2 lacking zcolor.background was a GAME bug;
+  Stefan fixed it in the (gitignored) H2 source. The window background is
+  DYNAMIC: erase repaints in the game's current background (that is how
+  zcolor.background = set_colour + erase_window -1 takes the screen).
+- The typed line wears the game's input colour (Cosmos sets zcolor.input
+  right before every read; the input region takes a look-tag at read
+  start, swept per keystroke, caret matches). H2's input is cyan.
+- No scrollbar (native = unstyleable white strip; wheel/trackpad + the
+  unread-return cover it). Window exactly 80 cells wide, ~30 lines.
+- Compiler 0.10.5 out of the same round: direction OR-LISTS in patterns
+  (`on go south or up` guards way; single dirs byte-identical), mixed
+  direction/object operands and non-go direction patterns are named
+  errors, and `on go south, up` (comma = bogus preposition, silently
+  dead until now, H2 had one at line 739) is a named error pointing at
+  'or'. H2's line fixed; H2 = 124,380 bytes, walks to THE END 360/360.
+
+### M10 NEXT: Quetzal save/restore + restart (docs/06 s.9, s.13)
+Done-test: a save made in Actaea loads in Frotz and the reverse; undo
+and restart behave. What exists already: in-memory undo (snapshot stack
+in vm.undo; save_undo/restore_undo work, Praxix-drilled); Frame objects
+deliberately Quetzal-shaped (per-frame stacks); memory.initial (pristine
+image) for restart and CMem XOR. To build:
+- actaea/quetzal.py: IFF reader/writer; IFhd (release/serial/checksum/PC),
+  CMem (XOR-vs-initial run-length, or UMem), Stks (frames: return PC,
+  flags/locals count, store var, argc mask, eval-stack words). Mind the
+  details: PC in IFhd is the byte address of the INTERRUPT/branch point
+  (for save: the save instruction's store-byte address per spec usage),
+  Stks frame flags bit 4 = no-store, argc as a bit mask, dummy first
+  frame for the entry stream.
+- vm: _op_save/_op_restore (EXT:0/1, store 1/0 on save, 2-via-restore
+  like undo; restore re-stamps interpreter header fields per S 6.1.6.2),
+  _op_restart (reset memory from initial EXCEPT flags2 transcription
+  bits S 6.1.6.1, reset frames/pc/streams/screen model).
+- io: save/restore need FILE CHANNELS through the boundary: ConsoleIO
+  prompts for a filename (dfrotz-style, so scripted walkthroughs can
+  feed it), GuiIO opens tk file dialogs, CaptureIO uses a temp dir.
+- Interop test: dfrotz IS on PATH; drive dfrotz save -> Actaea restore
+  and Actaea save -> dfrotz restore inside pytest (tmp_path, scripted).
+- Cosmos already funnels save/restore through do_save with the result-2
+  resume path (test_save_restore_roundtrip_on_frotz shows the flow).
+After M10: M11, the last sweep (TerpEtude text portions, transcript
+stream 2 to a file?, timed-input degrade, v8 checks with Jigsaw/anchor,
+real games end to end) and then B10 IS COMPLETE.
+
+### Standing context worth carrying
+- Conformance dir (LOCAL ONLY, gitignored): czech.z5 + reference,
+  praxix.z5, etude.z5, ghosts.z5, deseos.z5, calypso.z5, anchor.z8,
+  Jigsaw.z8; H2 at hibernated2/h2-full.z5; walkthrough wtfull.txt in the
+  session scratchpad (161 lines, blank lines = keypresses).
+- One Tk root per process (Tk 9.0 SIGTRAP); the GUI smoke test is the
+  only Tk test and flashes a real window during the suite.
+- python-tk@3.14 installed via brew (Tk 9.0).
+- fizmo-console = debugging terp of record; pytest harness = dfrotz.
+- H2 source NEVER committed (gitignored); compiler work commits fine.
+- Parked: H2 quality-sweep list (top of hibernated2.storyarc), the
+  abbreviation-quality TODO (zabbrv comparison), inline emphasis colour
+  (show.<colour>), B10 docs debt: docs/06 M-numbering says "milestone
+  B7" fixed but double-check section 13 wording when B10 closes; write
+  docs/08-actaea notes? (docs/06 is authoritative; PROGRESS carries the
+  build record.)
