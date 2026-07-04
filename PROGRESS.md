@@ -2398,3 +2398,35 @@ deseos for accents, Calypso, Anchorhead, Jigsaw for z8). Update docs/06 +
 the handoff prompt to B10/B11/B12 numbering in the scaffold commit (Stefan
 approved). Parked: CREDITS wording veto, inline emphasis colour, H2 quality
 sweep list.
+
+## 2026-07-04 (night): Actaea begins; M1 green
+
+B10 opened per the handoff prompt (plan restated and confirmed by Stefan).
+The package skeleton under actaea/ holds the M1 modules: errors.py (the
+ActaeaError family; MemoryFault's docstring carries the fizmo lesson),
+memory.py (the flat map with the dynamic write barrier, bounds-checked
+byte/word access, packed-address unpack x4/x8, the pristine image for
+restart, and to_signed/from_signed as THE one signedness conversion the
+whole interpreter must route through), loader.py (the Standard 1.1 header
+map in exactly one file; validates version 5/8, length claims, static base;
+checksum verify), and __main__.py (`python3 -m actaea <story> --header`,
+the console entry that grows into the M3+ runner and M6 harness).
+
+M1 done-test PASSED: brass, cloak, CZECH (terminating chars + header
+extension present and parsed), Jigsaw.z8 (packed x8, 304,184 bytes,
+checksum verified), and H2 all load and report correctly; a non-story is
+rejected cleanly with exit 2 ("version 60 story; Actaea plays versions 5
+and 8"). tests/actaea/unit/test_loader.py (11 tests) builds its probe
+stories with the Arcturus compiler in-process, so no binaries are checked
+in; conformance-file tests skip when the directory is absent.
+
+Conformance assets (actaea/conformance/, LOCAL ONLY, *.z5/*.z8 gitignored;
+third-party copyrighted works stay out of the public repo): czech.z5 +
+czech-reference.txt (the v5 reference transcript), praxix.z5 (fetched from
+the IF Archive; no reference transcript exists, it self-reports), etude.z5,
+ghosts.z5, deseos.z5 (accents), calypso.z5, anchor.z8, Jigsaw.z8, and H2
+via hibernated2/. Praxix source praxix.inf available if wanted.
+
+NEXT: M2, the instruction decoder and disassembler (all four forms,
+extended opcodes, store/branch/inline-text flags), done when it
+disassembles a real story without error and the decode unit tests pass.
