@@ -621,6 +621,21 @@ verb "lies", "lesen", "liest"
 verb "sprich", "rede", "reden", "sprechen"
     talk noun
 
+verb "frag", "frage", "befrage"
+    ask noun
+    ask noun nach
+    ask noun über
+    ask noun ueber
+
+verb "erzähl", "erzaehl", "erzähle", "erzaehle", "sag", "sage"
+    tell noun
+    tell noun von
+    tell noun über
+    tell noun ueber
+
+verb "antworte", "antworten"
+    answer noun
+
 verb "spring", "springe", "huepf", "hüpf", "huepfe", "hüpfe"
     jump
 
@@ -1117,6 +1132,16 @@ block msg_no_talk()
 block msg_use_talk()
     say "Um mit ${the:dat noun} weiterzukommen, benutze SPRICH MIT
          ${the:dat noun}."
+
+block msg_ask()
+    say "${The noun} lässt sich zu dem Thema nichts entlocken."
+
+block msg_tell()
+    say "${The noun} nimmt die Neuigkeit mit großartiger Gleichgültigkeit
+         zur Kenntnis."
+
+block msg_answer()
+    say "Deine Worte bleiben unbeantwortet."
 
 // Inventory.
 block msg_carrying()

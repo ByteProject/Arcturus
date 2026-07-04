@@ -543,6 +543,40 @@ on talk
     change refused to 1
     msg_only_animate()
 
+// ASK, TELL, and ANSWER are standard, as in PunyInform: with no conversation
+// feature they speak a flat default. What asking and telling DO is a seam:
+// summon.conversations opens the menu (asking IS talking) and hints TELL at
+// TALK TO; summon.infocom_talking dispatches the person's topics. The two
+// presentations are mutually exclusive (docs/05).
+on ask
+    if convo_guard() is 1
+        ask_to(noun)
+
+on tell
+    if convo_guard() is 1
+        tell_to(noun)
+
+// The shared guard: conversation needs a visible, living someone.
+block convo_guard()
+    if noun is nothing
+        change refused to 1
+        msg_cant_see()
+        return 0
+    if not (noun is animate)
+        change refused to 1
+        msg_only_animate()
+        return 0
+    return 1
+
+on answer
+    msg_answer()
+
+block ask_to(person)
+    msg_ask()
+
+block tell_to(person)
+    msg_tell()
+
 // What happens when you talk to a living thing. The default is a flat brush-off;
 // the conversations granule overrides this block to open the topic menu instead.
 // (A person can still override `on talk` itself for a one-off custom exchange.)

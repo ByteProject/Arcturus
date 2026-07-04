@@ -74,6 +74,41 @@ anonymous-points line; ambience per-line dwell.
 
 >>> END DAY-TWO CHECKPOINT <<<
 
+THE CONVERSATION ABSTRACTION, PUT RIGHT (2026-07-04, Stefan's redesign
+after catching English verb words in the conversations granule; Cosmos
+0.13.0): the granule had been built string-free and word-free, everything
+player-facing in the packs, and the ask/tell convergence pass violated
+that by declaring `verb "ask"`/`verb "tell"` inside it. Stefan's ruling
+went deeper than the fix: the Infocom ask/tell never belonged to
+extendedverbs at all. THE NEW SHAPE: (1) ASK, TELL, ANSWER are STANDARD
+verbs, as in PunyInform (verified in ../PunyInform/lib/grammar.h: both
+outside the extended ifdefs), words and grammar in the packs (EN
+ask/interrogate/query + about/for; ES pregunta/dile + sobre/por/de; DE
+frag/erzähl/sag + nach/von/über; Stefan approved the words, no native
+pass needed), flat "stays mum"-class defaults in the packs, guards in
+actions.prelude ending in two seam blocks ask_to/tell_to. (2)
+infocom_talking.granule is NEW and holds ONLY logic: converse() and
+subject_typed() moved out of extendedverbs; it overrides the seams with
+the topic dispatch; fully translatable by construction. (3) conversations
+is word-free again: it overrides ask_to -> talk_to (asking IS talking)
+and tell_to -> the use-TALK hint; tell_hint died. (4) extendedverbs shed
+its whole conversation section and is the pure flavor/idle verbset. (5)
+conversations + infocom_talking is a COMPILE ERROR (matched by granule
+filename so forks count): structural exclusivity replaced the behavioral
+priority dance, and menu_owns_talk plus the whole convergence machinery
+from the morning was DELETED, the design is simpler than before the day
+started. COSTS, honest: standard ask/tell/answer put ~340 bytes into
+every game (Cloak 14684 -> 15028, still ~55% of Puny's 27K which carries
+the same verbs, so the benchmark stays apples-to-apples); the
+infocom-interrogation example SHRANK 2.7K (17964 -> 15308, dispatch
+without the flavor verbset) and extended-verbs shrank 400. Verified: DE
+"frag wirtin" opens the menu, "sag wirtin" hints "SPRICH MIT der Wirtin"
+(dative), ES "pregunta posadera"/"dile posadera" likewise; H2 unchanged
+at 130/130 "in 51 turns". OOPS aside for the record: DE answers to
+ups/hoppla/korrigiere, ES ups/corregir; adding literal "oops" to both
+packs offered to Stefan, pending his word. 388 tests; amalgam and all
+artifacts rebuilt; docs 01/02/05, verb-set, message-set synced.
+
 ASK/TELL CONVERGE IN ANY SUMMON ORDER (2026-07-04, Stefan's fix order on
 reviewing the ask mapping; Cosmos 0.12.3): the first ASK-is-talk pass left
 a silent summon-order dependence: with both conversation granules loaded,

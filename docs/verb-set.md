@@ -89,9 +89,9 @@ reference, docs/message-set.md, where every line is an overridable block.
 | Verb and synonyms | Action | Default behavior | Set |
 |---|---|---|---|
 | talk, talk to, greet | talk | "doesn't seem up for a conversation" | S |
-| ask, interrogate, query (... about / for) | ask | runs the person's matching `topic`, else "stays mum on the subject" | E |
-| tell, inform (... about) | tell | runs the person's matching `topic`, else "receives the news with indifference" | E |
-| answer, respond | answer | "your words go unanswered" | E |
+| ask, interrogate, query (... about / for) | ask | "stays mum on the subject"; a conversation granule redefines what asking does | S |
+| tell, inform (... about) | tell | "receives the news with indifference"; a conversation granule redefines it | S |
+| answer, respond | answer | "your words go unanswered" | S |
 | shout, yell, scream, holler | shout | "no one answers" (flavor) | E |
 
 ask and tell carry the Infocom-style topic dispatch: `ask <person> about

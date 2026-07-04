@@ -42,7 +42,7 @@ _DEFAULT_LANGUAGE = "english"
 # The Cosmos library version. It is independent of the compiler version: the
 # bundled library can move ahead of (or behind) arcc, and since the embedded
 # library is not visible on disk, the banner reports it alongside arcc's version.
-COSMOS_VERSION = "0.12.3"
+COSMOS_VERSION = "0.13.0"
 
 # Set by the amalgamated build to a dict of {filename: source}.
 _EMBEDDED = None
@@ -323,6 +323,16 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
         loaded[key] = gdecls
         order.append(key)
         worklist.extend(_summons(prog))  # a granule may summon further granules
+    # The two conversation presentations are views of the same topic model
+    # and are mutually exclusive by design: an author settles on one. Match
+    # by filename so a local fork of either still counts as that presentation.
+    stems = {os.path.basename(k.split(":", 1)[-1]) for k in loaded}
+    if "conversations.granule" in stems and "infocom_talking.granule" in stems:
+        raise ArcError(
+            "summon: conversations and infocom_talking are two presentations "
+            "of the same topic model; a game picks exactly one",
+            0, filename="<summon>",
+        )
     out: list = []
     for key in order:
         out.extend(loaded[key])

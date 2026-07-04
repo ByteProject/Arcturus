@@ -59,13 +59,6 @@ block show_tag(obj)
             show(")")
     return 0
 
-// Does the conversations menu own talking? 0 by default; summon.conversations
-// overrides it to 1. When the menu is present it is the single conversation
-// surface, so the extendedverbs ask/tell topic dispatch defers to it and points
-// the player at TALK TO instead - the two are never both live (docs/02 s.14).
-block menu_owns_talk()
-    return 0
-
 // TAKE ALL's expander: the takeall granule overrides this with the real
 // sweep (docs/05); the stub exists so the hand-off call resolves, and it
 // folds away with its caller in a game that never summons the granule.

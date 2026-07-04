@@ -78,10 +78,11 @@ is in docs/message-set.md; the roster:
   ... about`.
 - BODY AND IDLE: `dig`, `wave`, `sit`, `stand`, `sleep`, `swim`, `swing`,
   `think`, `pray`, `shout`.
-- CONVERSATION: `ask <person> about <subject>`, `tell ... about`, `answer`.
 
-(There is no fullscore verb anywhere: SCORE is the one score verb and
-reports score, turns, and rank itself.)
+(Conversation is not this granule's business: ask/tell/answer are STANDARD
+verbs, and the two topic presentations are their own granules, conversations
+and infocom_talking, below. There is no fullscore verb anywhere: SCORE is
+the one score verb and reports score, turns, and rank itself.)
 
 Every default is an ordinary free handler, so the override story is the
 usual one: an object's own `on rub` wins ("on rub / say ..."), a top-level
@@ -90,14 +91,28 @@ granule's default. The granule's own message blocks (msg_throw, msg_dig,
 ...) are granule-owned wording: to rewrite them, fork the granule (section
 4) rather than overriding from the story.
 
-THE ASK/TELL TOPIC DISPATCH is the Infocom-style conversation surface: `ask
-innkeeper about lighthouse` scans the person's inline `topic` declarations
-(01 section 15; they live in the person's body) for one whose `words` match
-a typed subject word and is in view, runs it, and falls back to the flat
-"stays mum" default when nothing matches. `tell` shares the same path. When
-the conversations granule is also summoned, the menu owns talking: ASK opens
-the person's menu directly and TELL answers with the use-TALK hint (see
-conversations, below).
+### infocom_talking
+
+```
+summon.infocom_talking
+```
+
+The Infocom-style conversation surface, the menu-less presentation of the
+`topic` model: `ask innkeeper about lighthouse` scans the person's inline
+`topic` declarations (01 section 15; they live in the person's body) for one
+whose `words` match a typed subject word and is in view, runs it, and falls
+back to the standard flat "stays mum" default when nothing matches. `tell`
+shares the same path. There is no topic list anywhere: discovery is play,
+the Infocom way, and TALK TO stays the flat brush-off a person can override
+to nudge the player toward the two verbs that matter.
+
+The granule holds ONLY logic, and is as translatable as the menu: the
+ask/tell/answer verb words, their grammar, and every message live in the
+language layer (the packs carry them), and the granule overrides the
+standard `ask_to`/`tell_to` seams with the dispatch. It is mutually
+exclusive with the conversations menu BY THE COMPILER: summoning both is an
+error, an author settles on one presentation. The topics themselves are
+identical either way, so switching later is a one-line change.
 
 ### statusline
 
@@ -230,18 +245,16 @@ there."). A person with nothing to raise answers msg_no_topics ("You can't
 think of anything worth raising right now."). Every framing line is in the
 language layer, so packs translate it (docs/message-set.md).
 
-MUTUAL EXCLUSION. The menu and the Infocom-style ask/tell are two views of
-the same topic declarations, and they are never both live: when
-conversations is summoned, the menu owns talking. ASK opens the person's
-menu directly (asking IS talking; "ask vlad about the vines" lands in
-Vlad's menu, the subject words riding along), and TELL answers with the
-use-TALK hint (msg_use_talk, a language-layer line). The granule supplies
-both verbs itself, so a menu-only game has them too, and when extendedverbs
-is also summoned the behavior is identical IN ANY SUMMON ORDER: whichever
-granule owns the typed word, the verbs converge on the same place. Drop the
-conversations summon and the same topics answer to extendedverbs' ask/tell
-by their `words` instead. A person can still override `on talk` for a
-one-off custom exchange that bypasses the menu.
+ASK AND TELL. The standard ask lands in the menu (asking IS talking:
+`ask vlad`, and even `ask vlad about the vines`, opens Vlad's menu, the
+subject words riding along), and the standard tell answers with the
+use-TALK hint (msg_use_talk, a language-layer line): the granule overrides
+the `ask_to`/`tell_to` seams and holds no words and no strings itself.
+The infocom_talking granule is the other presentation of the same topic
+declarations, and the two are mutually exclusive BY THE COMPILER: summoning
+both is an error. The topics are identical either way, so switching
+presentations is a one-line change. A person can still override `on talk`
+for a one-off custom exchange that bypasses the menu.
 
 ### ambience
 

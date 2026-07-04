@@ -579,7 +579,8 @@ The talk action. `talk to <person>` dispatches the `talk` action on the
 person. Without the conversations feature, the Cosmos default routes to the
 person's own `on talk` handler, or prints "There is no reply." With
 `summon.conversations` (section 14), `talk to <person>` opens that person's
-topic menu instead.
+topic menu instead. ask, tell, and answer are likewise standard: flat
+defaults alone, redefined by whichever conversation granule is summoned.
 
 Meta verbs: save, restore, undo, quit, score (the one score verb, Infocom-
 shaped: score, maximum, turn count, and the rank when a ladder is declared),
@@ -744,15 +745,17 @@ thing barman of character in bar
         reply "Folk scrawl all sorts in the dark. I pay it no mind."
 ```
 
-This is the same `topic` construct the Infocom-style ask/tell path uses (docs/01
-section 14, the extendedverbs verbs): `words` are the ask/tell subject words,
+This is the same `topic` construct the Infocom-style ask/tell path uses
+(summon.infocom_talking, docs/05): `words` are the ask/tell subject words,
 `when` gates visibility, `hidden` plus `reveal`/`hide` unlock by name, `once`
-retires after use, and `you`/`reply`/`say` form the exchange. The two are two
-views of one model and are mutually exclusive: when conversations is summoned
-the menu owns talking, ASK simply opens the person's menu (asking IS talking),
-and TELL answers with the use-TALK hint. The convergence holds in any summon
-order, and a menu-only game gets ASK and TELL from the conversations granule
-itself.
+retires after use, and `you`/`reply`/`say` form the exchange. The two granules
+are two presentations of one model and are mutually exclusive BY THE COMPILER:
+summoning both is an error, an author settles on one. ASK, TELL, and ANSWER
+are standard verbs either way (as in PunyInform): with no conversation granule
+they speak flat defaults; conversations makes ASK open the person's menu
+(asking IS talking) and TELL answer with the use-TALK hint; infocom_talking
+makes both dispatch the person's topics. The seam is a pair of overridable
+blocks (ask_to, tell_to), so the words and wording stay in the language layer.
 
 `summon.language "<name>"`. Localization: compile a language pack (`spanish`) in
 place of English so the game plays in another language. Selecting, writing,

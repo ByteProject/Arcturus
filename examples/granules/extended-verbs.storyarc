@@ -3,17 +3,19 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for the extendedverbs granule: the verbs beyond the standard set.
-// Summon it and the parser understands search, throw, dig, rub, sit, think,
-// pray, ask, tell, fullscore and the rest, each with a sensible default an
-// object can override. Compile and run:
+// A showcase for the extendedverbs granule: the flavor and idle verbs
+// beyond the standard set. Summon it and the parser understands search,
+// throw, dig, rub, sit, think, pray and the rest, each with a sensible
+// default an object can override. Compile and run:
 //
 //   arcc examples/granules/extended-verbs.storyarc -o extended-verbs.z5
 //   frotz extended-verbs.z5
 //
 // Things to try: SEARCH CHEST (it lists what's inside), DIG, THINK, PRAY,
-// RUB LAMP, ASK HERMIT ABOUT LAMP, FULLSCORE. The hermit's own `on rub`
-// overrides the default to show how an object customizes an extended verb.
+// RUB LAMP. The hermit's own `on rub` overrides the default to show how an
+// object customizes an extended verb. (Conversation is not this granule's
+// business: ask/tell are standard, and the topic presentations are the
+// conversations and infocom_talking granules.)
 
 game
     title "Extended Verbs Demo"
