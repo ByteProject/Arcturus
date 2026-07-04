@@ -50,6 +50,51 @@ def _is_dir_pattern(h: wm.Handler) -> bool:
     )
 
 
+def _guard_plan(h: wm.Handler, layout, gmap):
+    """A patterned handler's run-time guards, as [(global name, [values])]:
+    every listed global must equal one of its values or the handler does not
+    apply this turn (docs/01 section 12). `on go west` guards `way` against
+    the direction's property number; an operand pattern guards `noun` (and,
+    past a preposition, `second`) against object numbers, with `or`
+    alternatives side by side. The keyword `noun` as a pattern name leaves
+    its slot unconstrained (`on take noun`: any noun). None for a handler
+    with no pattern.
+
+    Patterns compile to react-side tests BEFORE the handler routine is
+    called, so a failed guard counts as "this object never addressed the
+    action": an all-guarded group with every guard failed still reaches the
+    object's `on other` catch-all, exactly as the direction guards always
+    behaved."""
+    if not h.pattern:
+        return None
+    if _is_dir_pattern(h):
+        return [("way", [layout.prop_number[h.pattern[0].names[0]]])]
+    plan = []
+    slot = "noun"
+    for item in h.pattern:
+        if isinstance(item, ast.Prep):
+            slot = "second"
+            continue
+        values = []
+        wildcard = False
+        for name in item.names:
+            if name == slot or name == "noun":
+                wildcard = True  # `on take noun`: anything in this slot
+                continue
+            if layout is not None and name in layout.obj_number:
+                values.append(layout.obj_number[name])
+                continue
+            raise CodegenError(
+                f"handler pattern names '{name}', which is not an object "
+                "(kinds in patterns are not supported yet; test the kind "
+                "inside the handler body instead)"
+            )
+        if not wildcard and values:
+            plan.append((slot, values))
+        slot = "second"
+    return plan or None
+
+
 def _resolved_handlers(world: wm.World, obj: wm.Obj):
     """The object's handlers in resolution order: its own first (most specific),
     then each kind up its inheritance chain, nearest first (docs/01 section 5).
@@ -70,12 +115,11 @@ def _react_handlers(world: wm.World, obj: wm.Obj, actions: dict):
     each_turn), and `on go <direction>` overrides (guarded on the direction).
     An `on after` handler answers to its action's synthetic after number, so
     it never runs in the main phase; the dispatcher fires it in the after pass
-    (docs/02 section 9). Other operand patterns (noun, string) are still
-    deferred; free rules go through react_free."""
+    (docs/02 section 9). Patterned handlers ride along; their operand guards
+    are emitted into the react routine (see _guard_plan). Free rules go
+    through react_free."""
     out = []
     for h in _resolved_handlers(world, obj):
-        if h.pattern and not _is_dir_pattern(h):
-            continue
         for ev in h.events:
             if ev in actions and ev != "other":
                 out.append((wm.after_key(ev) if h.after else ev, h))
@@ -119,7 +163,7 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
         out.append(_gen_react(objname, groups, actions, layout, gmap, others, afloor))
     # react_free and grain_dispatch are always present (even empty) so the turn
     # loop and dispatcher can call them unconditionally.
-    out.append(gen_react_free(world, actions, registry))
+    out.append(gen_react_free(world, actions, registry, layout, gmap))
     out.extend(gen_grain_routines(world, actions, gmap, layout, pool))
     # after_map(action) backs the after_of intrinsic: the dispatcher's after
     # phase (docs/02 section 9 step 6) asks it which synthetic after action to
@@ -221,8 +265,6 @@ def _free_react_handlers(world: wm.World, actions: dict):
         key=lambda h: _ORIGIN_RANK.get(getattr(h, "origin", None), 0),
     )
     for h in ranked:
-        if h.pattern:
-            continue
         for ev in h.events:
             if ev in actions and ev != "other":
                 out.append((wm.after_key(ev) if h.after else ev, h))
@@ -239,11 +281,13 @@ def _free_other_handlers(world: wm.World):
     return [h for h in ranked if "other" in h.events and not h.pattern]
 
 
-def gen_react_free(world: wm.World, actions: dict, registry) -> Routine:
+def gen_react_free(world: wm.World, actions: dict, registry, layout=None, gmap=None) -> Routine:
     """react_free(action): the free-rule equivalent of a react_<obj> routine.
     The turn loop calls it for life-cycle events (start, each_turn) and the
     dispatcher calls it last in the action chain. Always emitted (empty when
-    there are no free rules) so callers can reference it unconditionally."""
+    there are no free rules) so callers can reference it unconditionally.
+    layout/gmap serve the operand and direction guards of patterned free
+    rules, exactly as in the per-object routines."""
     hname = {id(h): nm for h, nm in registry}
     groups: dict = {}
     for action, h in _free_react_handlers(world, actions):
@@ -253,7 +297,7 @@ def gen_react_free(world: wm.World, actions: dict, registry) -> Routine:
             groups.setdefault(action, []).append((hname[id(h)], h))
     others = [(hname[id(h)], h) for h in _free_other_handlers(world) if id(h) in hname]
     afloor = wm.after_floor(world) if wm.actions_with_after(world) else None
-    return _gen_react("free", groups, actions, others=others, afloor=afloor)
+    return _gen_react("free", groups, actions, layout, gmap, others, afloor)
 
 
 def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None, others=None, afloor=None) -> Routine:
@@ -279,17 +323,32 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
     skip_n = 0
     for action, handlers in groups.items():
         rt.label(run_label[action])
-        all_guarded = all(_is_dir_pattern(h) for _, h in handlers)
+        plans = [_guard_plan(h, layout, gmap) for _, h in handlers]
+        all_guarded = all(p is not None for p in plans)
         if all_guarded:
             rt.op("store", Const(2), Const(0))
-        for hn, h in handlers:
-            if _is_dir_pattern(h):
-                # Run this handler only when `way` equals the named direction's
-                # property number; otherwise fall through to the next handler.
-                prop = layout.prop_number[h.pattern[0].names[0]]
-                skip = f"skipdir{skip_n}"
+        for (hn, h), plan in zip(handlers, plans):
+            if plan is not None:
+                # Run this handler only when every guarded global (way for a
+                # direction, noun/second for an operand pattern) matches one
+                # of its values; otherwise fall through to the next handler.
+                skip = f"skipg{skip_n}"
                 skip_n += 1
-                rt.op("je", Variable(gmap["way"]), Const(prop), branch=(skip, False))
+                for gvar, values in plan:
+                    # je branches when the first operand equals ANY other (up
+                    # to three per instruction); `or` lists chain je's.
+                    chunks = [values[i:i + 3] for i in range(0, len(values), 3)]
+                    if len(chunks) == 1:
+                        rt.op("je", Variable(gmap[gvar]),
+                              *[Const(v) for v in chunks[0]],
+                              branch=(skip, False))
+                    else:
+                        ok = f"gok{skip_n}_{gvar}"
+                        for c in chunks:
+                            rt.op("je", Variable(gmap[gvar]),
+                                  *[Const(v) for v in c], branch=(ok, True))
+                        rt.jump(skip)
+                        rt.label(ok)
                 if all_guarded:
                     rt.op("store", Const(2), _CONST_ONE)
                 rt.op("call_vs", RoutineRef(hn), store=Variable(STACK))
@@ -299,7 +358,7 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
                 rt.op("call_vs", RoutineRef(hn), store=Variable(STACK))
                 rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
         if all_guarded:
-            # Every match was direction-guarded: if none ran, the object never
+            # Every match was guarded: if none ran, the object never
             # addressed this action, so the catch-all still gets its turn.
             rt.op("jz", Variable(2), branch=("__other__", True))
         rt.jump("__climb__")  # addressed but deferred: climb, skip the catch-all

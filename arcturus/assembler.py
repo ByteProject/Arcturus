@@ -246,6 +246,12 @@ class Routine:
         raise ValueError(form)
 
     def _encode_2op(self, code: int, operands: list[Operand]) -> bytes:
+        # je (and only je) may take three or four operands, branching when the
+        # first equals any of the rest (standard 1.1, section 15): the react
+        # guards for `or` patterns lean on it. More than two operands always
+        # need the variable form of the 2OP opcode.
+        if len(operands) != 2:
+            return self._encode_var(0xC0 | code, operands)
         a, b = operands
         # Long form (0xxxxxxx) is the compact two-operand encoding but can only
         # carry small constants and variables: bit 6 is operand 1's type and bit
