@@ -32,8 +32,12 @@ class IOSystem:
         raise NotImplementedError("this front-end does not print")
 
     def read_line(self, max_len: int) -> str:
-        """A line of player input (read/aread, M7). Returns the typed text
-        without its terminator."""
+        """A line of player input (read/aread). Returns the typed text
+        without its terminator. ECHO IS THE FRONT-END'S JOB: the player's
+        line is part of the screen text (S 7.1.1.1), but only the front-end
+        knows whether it is already visible (a widget shows the typing, a
+        terminal echoes it, a pipe shows nothing), so each implementation
+        echoes exactly when needed and the VM never does."""
         raise NotImplementedError("this front-end does not read lines")
 
     def read_char(self) -> int:
@@ -58,12 +62,21 @@ class ConsoleIO(IOSystem):
     """The plain console: what the headless harness (CZECH, Praxix, and
     `python3 -m actaea` before the GUI exists) runs against."""
 
+    def __init__(self):
+        # A terminal shows keystrokes as they are typed; a pipe shows
+        # nothing, so scripted play (walkthrough files) needs the echo for
+        # a readable transcript.
+        self._echo = not sys.stdin.isatty()
+
     def print_text(self, text: str) -> None:
         sys.stdout.write(text)
 
     def read_line(self, max_len: int) -> str:
         sys.stdout.flush()
-        return input()[:max_len]
+        line = input()[:max_len]
+        if self._echo:
+            sys.stdout.write(line + "\n")
+        return line
 
     def read_char(self) -> int:
         sys.stdout.flush()
@@ -85,7 +98,9 @@ class CaptureIO(IOSystem):
         self.output.append(text)
 
     def read_line(self, max_len: int) -> str:
-        return self.script.pop(0)[:max_len]
+        line = self.script.pop(0)[:max_len]
+        self.output.append(line + "\n")  # the transcript shows the command
+        return line
 
     def read_char(self) -> int:
         # A scripted keypress: one entry per key, as a 1-character string

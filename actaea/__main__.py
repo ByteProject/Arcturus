@@ -70,6 +70,12 @@ def main(argv=None) -> int:
         action="store_true",
         help="disassemble every routine reachable from the entry point",
     )
+    ap.add_argument(
+        "--console",
+        action="store_true",
+        help="play on the console instead of the window "
+        "(automatic when input is piped)",
+    )
     ap.add_argument("--version", action="version", version=f"actaea {__version__}")
     args = ap.parse_args(argv)
 
@@ -97,7 +103,19 @@ def main(argv=None) -> int:
             print(_report(story))
             return 0
 
-        # The default: play the story on the console.
+        # The default: the window, when this is an interactive session and
+        # tkinter is present; the console when input is piped (walkthrough
+        # play), when --console asks for it, or when tkinter is absent.
+        if not args.console and sys.stdin.isatty():
+            try:
+                from .gui.app import play
+            except ImportError:
+                pass  # no tkinter on this Python: the console still works
+            else:
+                import os
+                play(story, os.path.basename(args.story))
+                return 0
+
         from .io import ConsoleIO
         from .vm import VM
 
