@@ -147,6 +147,26 @@ on score
     change meta_turn to 1
     msg_score()
 
+on fullscore
+    change meta_turn to 1
+    // The Infocom-style breakdown, from the labelled award pools (docs/01,
+    // Scoring): each earned one prints its points and its label through the
+    // language layer's line_fullscore_pool, then msg_fullscore sums up.
+    // Unlabelled points stay in the total; the whole walk folds away in a
+    // game with no award statement (docs/00, pay for use).
+    if any_awards() is 1
+        let t = pools_table()
+        if t is not 0
+            let n = peek_word(t, 0)
+            let i = 0
+            while i < n
+                let rec = t + 2 + i * 6
+                let e = award_earned(peek_word(rec, 1))
+                if e > 0
+                    line_fullscore_pool(e, peek_word(rec, 2))
+                change i to i + 1
+    msg_fullscore()
+
 on restart
     change meta_turn to 1
     msg_confirm_restart()

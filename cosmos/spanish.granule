@@ -579,6 +579,10 @@ verb "fin", "terminar", "termina"
 verb "puntuacion", "puntuación", "puntos"
     score
 
+// The FULL breakdown (native pass pending: pick the idiomatic word).
+verb "desglose", "logros"
+    fullscore
+
 verb "reiniciar", "recomenzar"
     restart
 
@@ -1239,6 +1243,21 @@ block msg_score()
         say "."
         return 0
     say "Has conseguido ${score} de un total de ${max_score} puntos."
+
+block msg_fullscore()
+    if turns is 1
+        say "Has conseguido ${score} de un total de ${max_score} puntos
+             en 1 turno."
+        return 0
+    say "Has conseguido ${score} de un total de ${max_score} puntos en
+         ${turns} turnos."
+
+block line_fullscore_pool(points, label)
+    show("  ")
+    show(points)
+    show(" puntos, por ")
+    print_packed(label)
+    say ""
 
 block msg_confirm_restart()
     show("¿Empezar de nuevo desde el principio? ")

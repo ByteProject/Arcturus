@@ -24,7 +24,6 @@
 // Infocom-style breakdown of what your playthrough earned.
 
 summon.statusline
-summon.extendedverbs
 
 game
     title  "The Apprentice's Trial"
