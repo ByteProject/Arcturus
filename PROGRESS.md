@@ -2214,3 +2214,102 @@ monologue naming the next thread to pull (alibi -> "push him on the ticket" ->
 topic_label listing in this example (that introspection belongs to sub-step 4's
 menu). Verified on Frotz. Like the other examples/granules/*.storyarc it is an
 untested showcase artifact (behavior covered by test_ask_tell_dispatch_on_frotz).
+
+## CHECKPOINT 2026-07-04 (evening): the size-triggered crash, mid-hunt
+
+Compaction checkpoint requested by Stefan mid-debugging. THE TREE IS DIRTY ON
+PURPOSE: everything below the crash section is finished work waiting on the bug,
+because committing it means re-pinning ceilings and rebuilding artifacts and we
+do not ship a compiler state that miscompiles a 132K game. Stefan is installing
+fizmo so we have a second, stricter interpreter to interrogate the crash with.
+
+### Uncommitted, finished, blocked only by the crash
+
+- H2 meta trio (in hibernated2/hibernated2.storyarc, gitignored as always):
+  ABOUT (turnless via meta_turn = 1), HELP/HINT/HINTS, CREDITS (van Gogh
+  say.yellow lines; the tool credit ADAPTED for Arcturus, the Dialog line
+  dropped: STEFAN MUST VETO THE WORDING before this counts as done), plus a
+  custom free `on xyzzy` rule.
+- Free-handler origin ranking (arcturus/ast.py, worldmodel.py, sema.py,
+  cosmos.py, codegen.py): Handler.origin None=game < "granule" < "library",
+  sorted in _free_react_handlers/_free_other_handlers. Fixes a LATENT bug:
+  a story's free `on xyzzy` never overrode the Cosmos default.
+- Dual-role dictionary flag 136 (dictionary.py: a word both verb and
+  preposition keeps both bits; english/spanish/german packs: resolve_verb,
+  arity check, is_separator accept 128 or 136; parser.prelude: the two-noun
+  slicing and phrase-end scan test 8 or 136 via `let ef`). Fixes H2's ABOUT
+  destroying the ask-about grammar.
+- Assembler range asserts on BOTH branch encoders (relax/shrink pass and
+  link() fixup): short 0..63, long signed 14-bit. Added while hunting the
+  crash; they never fire, which is evidence (see below), and they stay.
+- tests: 400 pass; the ~25 size ceilings in test_sizes.py are NOT re-pinned
+  yet (the 136 flag + origin sort grew files slightly). Deliberate: re-pin is
+  part of the post-fix commit, not before.
+
+### THE CRASH (open, blocking)
+
+Symptom: the full H2 build with the meta trio executes a clean @quit on FIRST
+ARRIVAL at a late room. No error, exit 0, silent even under `dfrotz -Z 3`.
+The room description prints in full, then the session ends where the next
+output (an object intro listing) should begin.
+
+Bisection (all artifacts in the session scratchpad, h2*.storyarc + .z5;
+scratchpad dir: /private/tmp/claude-501/-Users-stefan-Fiction-Arcturus/
+99e02c7e-2a33-4251-b17d-482d99262bb8/scratchpad, walkthrough wtfull.txt,
+crash repro = head -128 of it):
+
+| build   | contents              | bytes   | result |
+|---------|-----------------------|---------|--------|
+| h2strip | no trio               | 131,400 | OK     |
+| h2about | about only            | 131,916 | OK     |
+| h2help  | help only             | 131,896 | OK     |
+| h2cred  | credits only          | 132,072 | OK     |
+| h2ah    | about+help            | 132,244 | OK     |
+| h2hc    | help+credits          | 132,400 | CRASH  |
+| h2ac    | about+credits         | 132,420 | CRASH  |
+| h2trio  | all three             | 132,572 | CRASH (Fabrication Hall) |
+| h2pad   | h2strip + INERT padding | 133,112 | CRASH (Silent Dwellings) |
+
+h2pad is the smoking gun: the working build plus meaningless padding code
+crashes too, and at a DIFFERENT room. Pure code-size threshold between
+132,244 and 132,400 total file bytes; code ends ~123.4K (code_bytes ~107.5K,
+strings run from there to EOF). The crash room varies with layout, not with
+turn count (WAITing instead of walking west does not crash; walking west
+does, so it is the room-arrival code path of whatever routine lands past the
+boundary).
+
+RULED OUT so far:
+- Branch offset overflow: asserts on both encoders, never fire.
+- 16-bit set_word overflow: monkeypatch spy over a crash build, clean.
+- Word/action renames, specific verbs: contents do not matter, size does.
+- Interpreter strictness: dfrotz -Z 3 reports nothing (frotz/dfrotz/sfrotz
+  are all we have; hence fizmo).
+
+LIVE LEADS, in order:
+1. link() jump fixups: `offset = (target - fx.offset) & 0xFFFF` is masked
+   with NO range assert (the one encoder still uninstrumented). Add the
+   assert (jump target = PC + offset - 2, signed 16-bit), recompile h2trio.
+2. Routine address map diff: dump name -> byte address for h2ah (ok) vs h2ac
+   (crash); look at what crosses which boundary near 123.4K / 128K. Note
+   0x20000/4 = 0x8000: a PACKED address crosses the signed-16-bit line at
+   file offset 131,072, which sits EXACTLY inside the ok/crash gap. Anything
+   that stores a packed routine address into a signed context (jl/jg
+   compares, a signed table lookup) breaks precisely there. PRIME SUSPECT.
+3. fizmo (Stefan installing) and/or bocfel: strict terps that report wild
+   jumps/calls instead of silently quitting.
+4. The relax/shrink pass newpos bookkeeping; initial-PC and other 16-bit
+   header fields; print_paddr of computed values.
+
+### After the fix, in ONE commit series
+re-pin the ~25 ceilings, full suite green, full wtfull.txt walkthrough
+(expects 360/360, *** THE END ***, post-mortem prompt), rebuild build/arcc +
+example artifacts, then commit compiler+cosmos work (origin ranking, flag
+136, asserts, the fix). H2 source itself stays gitignored, as ever.
+
+### Parked (do not lose)
+- Stefan's CREDITS wording veto (see above).
+- after-handler ordering oddity noticed in the post-mortem fixture (an
+  `after take` seemed to run when the default was cut short; not chased).
+- inline emphasis colour (show.<colour>) idea; quality-sweep leftovers (save
+  quips, custom smell/listen flavor, Vlad inventory line); "next steps"
+  discussion (B10 Actaea vs quality sweep) once the crash is dead.
