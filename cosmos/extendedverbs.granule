@@ -305,8 +305,11 @@ on ask
         msg_only_animate()
         stop
     if menu_owns_talk() is 1
-        change refused to 1
-        msg_use_talk()
+        // The menu is the one conversation surface: asking IS talking, so
+        // open the person's menu instead of lecturing. Whichever granule
+        // owns the typed word "ask", the player lands here (docs/02 s.14;
+        // no summon-order dependence).
+        talk_to(noun)
         stop
     if converse(noun) is 1
         stop
@@ -441,10 +444,6 @@ block msg_pray()
 
 block msg_shout()
     say "You test the location's acoustics with a loud yell. The results are entirely underwhelming."
-
-// Shown when the conversations menu is also summoned: ask/tell defer to it.
-block msg_use_talk()
-    say "To get anywhere with ${the noun}, just TALK TO ${the noun}."
 
 block msg_ask()
     say "${The noun} stays mum on the subject."

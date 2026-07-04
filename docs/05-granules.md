@@ -95,8 +95,9 @@ innkeeper about lighthouse` scans the person's inline `topic` declarations
 (01 section 15; they live in the person's body) for one whose `words` match
 a typed subject word and is in view, runs it, and falls back to the flat
 "stays mum" default when nothing matches. `tell` shares the same path. When
-the conversations granule is also summoned, the menu owns talking: ask and
-tell step aside and point the player at TALK TO (see conversations, below).
+the conversations granule is also summoned, the menu owns talking: ASK opens
+the person's menu directly and TELL answers with the use-TALK hint (see
+conversations, below).
 
 ### statusline
 
@@ -231,10 +232,16 @@ language layer, so packs translate it (docs/message-set.md).
 
 MUTUAL EXCLUSION. The menu and the Infocom-style ask/tell are two views of
 the same topic declarations, and they are never both live: when
-conversations is summoned, the menu owns talking, and extendedverbs' ask and
-tell redirect the player to TALK TO (msg_use_talk). Drop the summon and the
-same topics answer to ask/tell by their `words` instead. A person can still
-override `on talk` for a one-off custom exchange that bypasses the menu.
+conversations is summoned, the menu owns talking. ASK opens the person's
+menu directly (asking IS talking; "ask vlad about the vines" lands in
+Vlad's menu, the subject words riding along), and TELL answers with the
+use-TALK hint (msg_use_talk, a language-layer line). The granule supplies
+both verbs itself, so a menu-only game has them too, and when extendedverbs
+is also summoned the behavior is identical IN ANY SUMMON ORDER: whichever
+granule owns the typed word, the verbs converge on the same place. Drop the
+conversations summon and the same topics answer to extendedverbs' ask/tell
+by their `words` instead. A person can still override `on talk` for a
+one-off custom exchange that bypasses the menu.
 
 ### ambience
 

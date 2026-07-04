@@ -214,4 +214,4 @@ are changed by forking the granule rather than redefining in a story.
 | msg_ask | ask a person about a topic, no match | ${The noun} stays mum on the subject. |
 | msg_tell | tell a person about a topic, no match | ${The noun} receives the news with magnificent indifference. |
 | msg_answer | answer, respond, default | Your words go unanswered. |
-| msg_use_talk | ask/tell when the conversations menu is summoned | To get anywhere with ${the noun}, just TALK TO ${the noun}. |
+| msg_use_talk | TELL in a menu game (the hint; ASK opens the menu itself) | To get anywhere with ${the noun}, just TALK TO ${the noun}. |

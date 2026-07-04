@@ -85,8 +85,10 @@ def test_conversation_menu_on_frotz(tmp_path):
     assert "You let the conversation rest there." in out
 
 
-# When both presentations are summoned, the menu wins: ask/tell stop dispatching
-# topics and redirect the player to TALK TO (the mutual exclusion).
+# When both presentations are summoned, the menu wins the mutual exclusion:
+# ASK opens the menu (asking IS talking) and TELL answers with the use-TALK
+# hint, IN EITHER SUMMON ORDER: whichever granule owns the typed word, the
+# verbs converge on the same behavior (Stefan's ruling, 2026-07-04).
 BOTH = '''game
     title "Both"
     start hall
@@ -109,20 +111,42 @@ def test_both_summoned_compiles():
     assert generate(analyze(cosmos.combined_program(parse(BOTH))))[0x00] == 5
 
 
-@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
-def test_menu_wins_over_ask_tell_on_frotz(tmp_path):
-    # ASK is a doorway into the menu (Stefan's ruling, 2026-07-04): with the
-    # conversations granule summoned last, ASK PAT opens Pat's topic menu
-    # directly instead of lecturing the player to type TALK TO.
-    img = generate(analyze(cosmos.combined_program(parse(BOTH))))
-    story = tmp_path / "both.z5"
-    story.write_bytes(img)
+def _menu_owns_ask_tell(tmp_path, src, name):
+    story = tmp_path / name
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(src)))))
     out = subprocess.run(
         [_frotz(), "-p", str(story)],
-        input="ask pat about weather\n1\n0\nquit\ny\n",
+        input="tell pat about weather\nask pat about weather\n1\n0\nquit\ny\n",
         capture_output=True, text=True, timeout=20,
     ).stdout
-
+    # tell answers with the hint and never opens the menu or runs the topic.
+    tell_part = out.split("Talk to Pat about:")[0]
+    assert "just TALK TO Pat" in tell_part
+    assert "Could be worse." not in tell_part
     # ask opens the menu and the picked topic runs.
     assert "Talk to Pat about:" in out
     assert "Could be worse." in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_menu_wins_over_ask_tell_on_frotz(tmp_path):
+    _menu_owns_ask_tell(tmp_path, BOTH, "both.z5")
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_menu_wins_in_the_other_summon_order(tmp_path):
+    # The convergence must not depend on which granule owns the dictionary
+    # word: reverse the summons and ask/tell behave identically.
+    src = BOTH.replace(
+        "summon.extendedverbs\nsummon.conversations",
+        "summon.conversations\nsummon.extendedverbs",
+    )
+    _menu_owns_ask_tell(tmp_path, src, "reversed.z5")
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_ask_tell_in_a_menu_only_game(tmp_path):
+    # Without extendedverbs the conversations granule supplies ASK and TELL
+    # itself: ask opens the menu, tell hints at TALK TO.
+    src = BOTH.replace("summon.extendedverbs\n", "")
+    _menu_owns_ask_tell(tmp_path, src, "menuonly.z5")

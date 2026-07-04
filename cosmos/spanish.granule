@@ -1188,6 +1188,9 @@ block msg_sing()
 block msg_no_talk()
     say "${The noun} no parece con ganas de conversar."
 
+block msg_use_talk()
+    say "Para conseguir algo de ${the noun}, usa HABLA CON ${the noun}."
+
 // Inventory.
 block msg_carrying()
     say "Llevas:"

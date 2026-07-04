@@ -748,8 +748,11 @@ This is the same `topic` construct the Infocom-style ask/tell path uses (docs/01
 section 14, the extendedverbs verbs): `words` are the ask/tell subject words,
 `when` gates visibility, `hidden` plus `reveal`/`hide` unlock by name, `once`
 retires after use, and `you`/`reply`/`say` form the exchange. The two are two
-views of one model and are mutually exclusive: when conversations is summoned the
-menu owns talking and the ask/tell topic dispatch steps aside.
+views of one model and are mutually exclusive: when conversations is summoned
+the menu owns talking, ASK simply opens the person's menu (asking IS talking),
+and TELL answers with the use-TALK hint. The convergence holds in any summon
+order, and a menu-only game gets ASK and TELL from the conversations granule
+itself.
 
 `summon.language "<name>"`. Localization: compile a language pack (`spanish`) in
 place of English so the game plays in another language. Selecting, writing,
