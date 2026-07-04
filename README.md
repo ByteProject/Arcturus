@@ -77,15 +77,28 @@ The road from here, milestone by milestone:
   die Lampe an`, `schliess die Tür auf`). Worked examples:
   [examples/ejemplo-espanol.storyarc](examples/ejemplo-espanol.storyarc) and
   [examples/beispiel-deutsch.storyarc](examples/beispiel-deutsch.storyarc).
-- **In progress:** porting Hibernated 2, the first full-length game and the
-  maturity milestone. The port's first fruits are already in the toolchain:
-  Z-machine colours as first-class syntax (`zcolor`, `say.yellow "..."`), the
-  Trinity-style quote box (`summon.quotes`), banner control for pregame
-  preludes, and a compile-statistics ledger after every build, watching the
-  story's use of each Z-machine ceiling.
-- **After that:** a modern reference interpreter, the `arc_image` graphics
-  path (modern systems first, then the 8-bit and 16-bit retro machines), and
-  porting The Curse of Rabenstein.
+- **Done: the Hibernated 2 port, the maturity milestone.** The first
+  full-length commercial game runs on Arcturus: all four acts play start to
+  finish at full score, exercising save and restore, scoring with ranks, the
+  conversation systems, and the whole library at real-game scale. The port
+  fed the toolchain along the way: Z-machine colours as first-class syntax
+  (`zcolor`, `say.yellow "..."`), the Trinity-style quote box
+  (`summon.quotes`), banner control for pregame preludes, a
+  compile-statistics ledger after every build watching the story's use of
+  each Z-machine ceiling, and the finish post-mortem (final score and the
+  classic RESTART / RESTORE / QUIT prompt). The Arcturus build follows the
+  game's PunyInform release at its own pace.
+- **In progress: Actaea, the reference interpreter.** A Standard 1.1
+  conformant Z-machine interpreter for versions 5 and 8, written in Python
+  with a tkinter front-end, built in this repository so the project owns
+  both ends of the pipeline. The headless core already loads, disassembles,
+  and runs story files: an Arcturus game boots to its prompt on it, and its
+  text engine decodes exactly what the compiler encodes, two independent
+  implementations checking each other. The conformance gate (CZECH and
+  Praxix against their reference transcripts) is next, then the windowed
+  front-end with a true cell-grid upper window.
+- **After that:** the `arc_image` graphics path (modern systems first, then
+  the 8-bit and 16-bit retro machines) and porting The Curse of Rabenstein.
   Reaching 1.0 is tied to those ports.
 
 Follow this section and `PROGRESS.md` for where things stand.
@@ -227,8 +240,8 @@ A Visual Studio Code extension provides syntax highlighting for `.storyarc`,
 `.prelude`, and `.granule` files. Install the packaged extension:
 
 - In VS Code: Extensions view, `...` menu, **Install from VSIX...**, then choose
-  [editors/vscode/arcturus-0.4.0.vsix](editors/vscode/arcturus-0.4.0.vsix); or
-- from a terminal: `code --install-extension editors/vscode/arcturus-0.4.0.vsix`
+  [editors/vscode/arcturus-0.10.0.vsix](editors/vscode/arcturus-0.10.0.vsix); or
+- from a terminal: `code --install-extension editors/vscode/arcturus-0.10.0.vsix`
 
 This works on macOS, Windows, and Linux. The extension source is under
 [editors/vscode/](editors/vscode/); rebuild the `.vsix` with
