@@ -1045,6 +1045,11 @@ block msg_sing()
 block msg_no_talk()
     say "${The noun} doesn't seem up for a conversation."
 
+// The gentle nudge when TELL (or a stray ask path) should hand over to the
+// conversations menu; lives in the language layer so a pack translates it.
+block msg_use_talk()
+    say "To get anywhere with ${the noun}, just TALK TO ${the noun}."
+
 // Inventory.
 block msg_carrying()
     say "You're carrying:"

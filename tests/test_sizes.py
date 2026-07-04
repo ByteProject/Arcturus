@@ -38,10 +38,10 @@ CEILINGS = {
     # 2026-07-03 batch: recipient dispatch (~40), the start-title skip
     # (~25), show_tag (~20); chaining, disambiguation, noun lists with
     # noise words, all core parser features every game carries.
-    "beispiel-deutsch.storyarc": 19848,
+    "beispiel-deutsch.storyarc": 19976,
     "brass-lantern.storyarc": 14168,
     "cloak-of-darkness.storyarc": 14684,
-    "ejemplo-espanol.storyarc": 19088,
+    "ejemplo-espanol.storyarc": 19212,
     "features/computed-properties.storyarc": 13016,
     "features/containers.storyarc": 13044,
     "features/daemons-and-timers.storyarc": 13348,
@@ -54,7 +54,7 @@ CEILINGS = {
     "features/scoring.storyarc": 15104,
     "features/spans.storyarc": 13060,
     "granules/ambience.storyarc": 14504,
-    "granules/conversations.storyarc": 14768,
+    "granules/conversations.storyarc": 14884,
     "granules/extended-verbs.storyarc": 16116,
     "granules/infocom-interrogation.storyarc": 17964,
     "granules/quotes.storyarc": 13380,

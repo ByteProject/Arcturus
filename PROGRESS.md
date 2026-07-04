@@ -74,6 +74,29 @@ anonymous-points line; ambience per-line dwell.
 
 >>> END DAY-TWO CHECKPOINT <<<
 
+ASK/TELL CONVERGE IN ANY SUMMON ORDER (2026-07-04, Stefan's fix order on
+reviewing the ask mapping; Cosmos 0.12.3): the first ASK-is-talk pass left
+a silent summon-order dependence: with both conversation granules loaded,
+whichever declared `verb "ask"` LAST owned the dictionary word, so one
+order opened the menu and the other still lectured. Authors must never
+need to know the right granule order (Stefan). The fix is convergence,
+not priority: extendedverbs' ask handler now calls talk_to(noun) when the
+menu owns talking (instead of lecturing), so BOTH owners of the word end
+at the same menu; and TELL gets the same treatment via the granule's own
+action name (conversations declares verb "tell" -> tell_hint, answering
+msg_use_talk), so telling hints at TALK TO in a menu-only game, with both
+granules, in either order. msg_use_talk moved from extendedverbs into the
+LANGUAGE LAYER (EN/ES/DE; the DE line uses the dative and names SPRICH
+MIT, ES names HABLA CON; native pass pending), since menu-only games need
+it and packs must translate it. Three-way test coverage (both orders +
+menu-only) via a shared helper; 387 tests; ceilings re-pinned
+(conversations games pay ~100 for the tell verb + hint; extendedverbs
+games unchanged). H2 rebuilt (62736): TELL VLAD hints, ASK VLAD opens the
+menu, the walkthrough closes at 130/130 "in 51 turns". Native pass: the
+ES/DE msg_use_talk lines, and whether the packs should declare their own
+ask/tell words (pregunta/frag) for menu games; the granule's verbs are
+English words, flagged as a language leak to resolve with Pablo/Stefan.
+
 SCORE IS THE ONE SCORE VERB + TELEPORT + ASK IS TALK (2026-07-04, Stefan's
 blessing after stopping the "full score" phrase work; Cosmos 0.12.2): FULL
 died the same day it went standard. The Infocom way, not the Inform way:

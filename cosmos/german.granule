@@ -1114,6 +1114,10 @@ block msg_sing()
 block msg_no_talk()
     say "${The noun} scheint nicht zum Reden aufgelegt."
 
+block msg_use_talk()
+    say "Um mit ${the:dat noun} weiterzukommen, benutze SPRICH MIT
+         ${the:dat noun}."
+
 // Inventory.
 block msg_carrying()
     say "Du trägst mit dir:"

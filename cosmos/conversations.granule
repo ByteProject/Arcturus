@@ -21,11 +21,32 @@
 // ASK is a doorway into the same menu (Stefan's ruling, 2026-07-04): in a
 // menu game, ASK VLAD simply IS talk to Vlad, so the player who reaches for
 // the classic verb lands in the conversation instead of being lectured to
-// type TALK. Extra words ride along harmlessly ("ask vlad about vines"
-// opens Vlad's menu). TELL has no place in the menu model and stays out.
+// type TALK. The about-line keeps "about" a phrase boundary, so extra words
+// ride along harmlessly ("ask vlad about vines" opens Vlad's menu).
 verb "ask"
     talk noun
     talk noun about
+
+// TELL is not asking, so it does not open the menu; it answers with the
+// gentle use-TALK hint (msg_use_talk, in the language layer). The action
+// name is the granule's own, so a game that also summons extendedverbs
+// converges: whichever granule owns the typed word, TELL ends at the same
+// hint, in any summon order.
+verb "tell"
+    tell_hint noun
+    tell_hint noun about
+
+on tell_hint
+    if noun is nothing
+        change refused to 1
+        msg_cant_see()
+        stop
+    if not (noun is animate)
+        change refused to 1
+        msg_only_animate()
+        stop
+    change refused to 1
+    msg_use_talk()
 
 // Override the base talk_to seam: talking to a person opens the topic menu.
 block talk_to(person)
