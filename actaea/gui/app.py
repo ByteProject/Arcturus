@@ -74,9 +74,11 @@ class ActaeaApp:
 
         # The window opens WIDE ENOUGH for the story's screen: the model is
         # 80 columns, so the status bar and centred quote boxes must fit
-        # without the player reaching for the window corner. 80 cells plus
-        # the text padding and the scrollbar, about 30 lines tall.
-        width = 80 * self.cell_w + 16 + 18
+        # without the player reaching for the window corner. Exactly 80
+        # cells plus the scrollbar (the grid spans the full width; the
+        # lower window word-wraps a touch earlier, which reads fine), about
+        # 30 lines tall.
+        width = 80 * self.cell_w + 20
         height = 30 * self.cell_h
         self.root.geometry(f"{width}x{height}")
         self.canvas = tk.Canvas(
