@@ -853,6 +853,35 @@ on after go west
 
 The full ordering is in 02.
 
+The after handler, fully. `on after <verb>` takes everything an ordinary
+handler header takes: comma-separated verb lists, operand patterns, `or`
+alternatives, and `when` guards, and it lives anywhere a handler lives (an
+object, a kind, a room, or free-standing at file level):
+
+```
+on after take when here is vault
+    say "An alarm begins to wail somewhere above."
+
+on after drop, put
+    if here is cloakroom
+        now bar is lit
+```
+
+Two rules govern when it fires. First, the action must have COMPLETED: it
+ran, and nothing refused it. Every library refusal (can't see it, it's
+fixed, the door is locked) marks the turn refused, and a story handler that
+refuses something should do the same by setting the `refused` global before
+it stops. Second, replacing counts as completing: an `on take` that ends
+after printing its own version of the take still completed the action, so
+its after handlers run. Only a REFUSED turn silences them.
+
+Within the after pass, handlers resolve exactly like the main ones: most
+specific first, and `continue` passes to the next (the kind's after, the
+room's, a free-standing one). An `on other` catch-all never answers the
+after pass; it is for the player's verbs, not for bookkeeping. In a game
+with no `on after` anywhere the whole machinery folds away at compile time
+and costs nothing.
+
 `on other` is the catch-all handler: it fires for any action on the object
 that no specific `on <verb>` handler caught. It is the object's own default,
 the least specific of its handlers, running before the action climbs to the

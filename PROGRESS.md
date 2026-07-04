@@ -2581,3 +2581,43 @@ NEXT: M6, the conformance gate: aread/read_char through io.py, then
 CZECH and Praxix headless with output matched against the references
 (actaea/conformance/ holds czech.z5 + czech-reference.txt + praxix.z5).
 This is the correctness milestone the whole build hangs on.
+
+## 2026-07-04 (late night): operand patterns were documented fiction; now they dispatch
+
+An early adopter's stop/continue question led into docs/01 section 12, and
+the probe found that `on put ruby in chest` NEVER FIRED: codegen's react
+collector silently skipped every handler with a non-direction pattern (the
+"still deferred" comment), for objects, kinds, AND free rules, main and
+after phase alike. The worked examples in the syntax reference were
+documented fiction; nothing shipped used patterns (H2 included), so no
+test ever caught it. The document wins: the code got fixed (arcc 0.10.4).
+
+Implementation: _guard_plan generalizes the direction-guard machinery.
+A pattern compiles to react-side tests BEFORE the handler call: `way`
+against the direction's property number (exactly the old emission, byte-
+identical), `noun` (and, past a preposition, `second`) against object
+numbers, `or` alternatives side by side in multi-operand je's (the
+assembler's 2OP encoder now takes je's 3- and 4-operand variable form,
+which `or` lists lean on; >3 alternatives chain je's). The keyword `noun`
+in a pattern leaves its slot unconstrained. A failed guard means the
+object never addressed the action, so an all-guarded group still reaches
+`on other` (the direction-guard rule, now uniform). Kinds in patterns are
+an explicit CodegenError pointing at a body test, not a silent drop.
+Free patterned rules dispatch too (react_free now takes layout/gmap).
+Patterns compose with when guards, comma verb lists, and the after phase.
+
+tests/test_patterns.py pins it: exact pairing replaces the default,
+mismatch falls through to the default, or-alternatives, the catch-all
+interaction, after+pattern, free patterned rules. 488 tests; the pinned
+example sizes are UNCHANGED (guards cost only games that use patterns).
+
+Also this stretch: the arcc bare call printed its version block twice
+(header + banner-that-contains-the-header); fixed, one banner. docs/01
+handler endings rewritten in Arcturus's own terms (end = your lines are
+all that happens; continue = your lines then the normal action; on after
+= your lines once it really happened; stop = the early exit, redundant on
+the last line) after Stefan vetoed the Inform-analogy framing, and `on
+after` got its own full docs section (header features, the two firing
+rules, the after-pass resolution order). Adopter questions answered:
+unreachable scenery = on other + on examine continue; proper names =
+the `named` attribute; stop-vs-nothing = identical on the last line.
