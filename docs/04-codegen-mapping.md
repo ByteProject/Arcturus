@@ -195,8 +195,8 @@ intrinsics, which lower to ordinary `RoutineRef` calls).
 What stays unmarked is compiled in but never run, and in a typical game that is
 most of Cosmos: the message and verb-default blocks the story never triggers, the
 `you`/`reply`/`line_end` conversation framing when no topic runs, and the
-statusline and menu seams (`status_bar`, `status_lines`, `menu_owns_talk`) when
-neither granule is summoned. Dropping it is sound because a kept routine's call
+statusline and conversation seams (`status_bar`, `status_lines`, `ask_to`,
+`tell_to`) when neither granule is summoned. Dropping it is sound because a kept routine's call
 targets are themselves kept (they were followed) and its data references are roots
 (always kept), so the linker never dangles. The standard verb set is deliberately
 NOT reclaimed: each standard verb default is a free rule reached through

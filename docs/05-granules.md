@@ -205,7 +205,7 @@ conversation scrolls beneath it.
 WHERE TOPICS LIVE. Topics are not declared in the granule or in any separate
 registry: they live INLINE in the person's body, like properties and
 handlers, and the same declarations serve both conversation systems (this
-menu, and extendedverbs' ask/tell). The full header grammar is 01 section
+menu, and infocom_talking's ask/tell). The full header grammar is 01 section
 15; the shape:
 
 ```

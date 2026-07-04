@@ -54,8 +54,10 @@ The road from here, milestone by milestone:
   undo, again, oops), an original standard message set, kinds and inheritance,
   the container knowledge model, computed properties, daemons and timers, doors
   (including two-sided doors) and multi-room scenery, the `topic` conversation
-  model, and the summonable granules: extended verbs, an opt-in status line,
-  verbose exits, a menu-driven conversation system, and debug verbs. The size
+  model, and the summonable granules: extended flavor verbs, an opt-in status
+  line, verbose exits, two conversation presentations (a menu-driven talk
+  system and the Infocom-style ask/tell; a game picks one), take-all sweeps,
+  plurals, ambience, and debug verbs. The size
   pass is complete: whole-program dead-code elimination, abbreviation-based text
   compression (a baked-in default plus an opt-in per-game pass), and dense code
   generation, all built into the compiler so every build is trimmed with nothing
