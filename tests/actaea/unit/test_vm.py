@@ -321,11 +321,11 @@ def test_print_char_and_unimplemented_are_loud():
         + QUIT
     )
     assert out == "Hi\n"
-    # print (inline text) is real but belongs to M5: loud, with the milestone.
-    vm, io, _ = build(bytes([0xB2, 0x91, 0x11]) + QUIT)
+    # read is real but belongs to M6: loud, with the milestone named.
+    vm, io, _ = build(vop(0x04, L(0x100), store=SP) + QUIT)
     with pytest.raises(UnimplementedOpcode) as e:
         vm.run(max_steps=10)
-    assert "M5" in str(e.value)
+    assert "M6" in str(e.value)
 
 
 def test_quit_halts():
