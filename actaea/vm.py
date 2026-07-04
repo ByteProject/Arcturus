@@ -642,10 +642,10 @@ class VM:
         vals = self._values(ins)
         text_addr, parse_addr = vals[0], vals[1] if len(vals) > 1 else 0
         max_len = self.mem.byte(text_addr)
+        # The front-end echoes the line itself, if its display needs it
+        # (the io.read_line contract); the machine lower-cases what it
+        # stores, not what the player saw.
         line = self.io.read_line(max_len).lower()
-        # The player's line is part of the screen text: echo it, with the
-        # newline that ended it (S 7.1.1.1).
-        self.io.print_text(line + "\n")
         for i, ch in enumerate(line):
             self.mem.set_byte(text_addr + 2 + i, self.text.unicode_to_zscii(ch))
         self.mem.set_byte(text_addr + 1, len(line))

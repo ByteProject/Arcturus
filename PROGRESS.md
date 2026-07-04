@@ -2673,3 +2673,39 @@ stopping at read. 490 tests green.
 NEXT: M7, the tkinter shell: the lower window with scrolling, word wrap,
 line/char input, stream 1; done when both example games play start to
 finish in the window. Then M8, the cell grid, its own visible done-test.
+
+## 2026-07-05 (small hours, cont.): Actaea M7, the window
+
+The tkinter shell (actaea/gui/app.py, actaea 0.7.0): one window, the
+scrolling lower text area with word wrap, and INLINE input, the way
+interpreters have looked since the eighties: the player types at the
+story's prompt in the story's own text flow. The Text widget is read-only
+outside the live input region (an input mark separates story text from
+the player's line; backspace cannot eat the prompt), Return completes a
+read, any key completes a read_char. Input blocks WITHOUT threads: the VM
+runs on the tkinter thread and read_line/read_char spin the event loop
+with wait_variable until a key event flips the flag; single-threaded, no
+locks, the window painting and scrolling the whole way. A closed window
+unblocks any pending wait and unwinds the run loop via EOFError. Story
+end prints [The story has ended.] and leaves the transcript up.
+
+The echo contract moved to where it belongs: the io.read_line
+implementations own input echo (the widget shows typing live; a piped
+console echoes for readable transcripts, a tty console does not since
+the terminal already shows keystrokes; CaptureIO echoes into the
+transcript), and the VM never echoes.
+
+CLI: python3 -m actaea <story> opens the WINDOW when the session is
+interactive and tkinter exists; the console when input is piped, when
+--console asks, or when tkinter is absent. TOOLING: brew python-tk@3.14
+installed (Tk 9.0) since Homebrew Python ships without _tkinter.
+
+Hard-won platform fact, pinned in the test docstring: Tk 9.0 on macOS
+dies with SIGTRAP when a SECOND Tk root is created in a process that
+then spins wait_variable. One root per process; the app itself is the
+display probe (TclError = skip). The smoke test drives the widget like a
+player (scripted lines typed into the Text at its prompts, pumped via
+after-callbacks) through boot, look, and a confirmed quit. 491 tests.
+
+M7 DONE-TEST = Stefan's turn: both example games playable start to
+finish in the window, plain text. Hand-off made. Then M8, the cell grid.
