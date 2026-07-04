@@ -63,7 +63,6 @@ class ActaeaApp:
     def __init__(self, story, title: str):
         self.root = tk.Tk()
         self.root.title(f"{title} - Actaea")
-        self.root.geometry("780x560")
 
         self.font = tkfont.nametofont("TkFixedFont").copy()
         self.font.configure(size=13)
@@ -72,6 +71,14 @@ class ActaeaApp:
         # character cells, shown only while the story keeps a split open.
         self.cell_w = self.font.measure("0")
         self.cell_h = self.font.metrics("linespace")
+
+        # The window opens WIDE ENOUGH for the story's screen: the model is
+        # 80 columns, so the status bar and centred quote boxes must fit
+        # without the player reaching for the window corner. 80 cells plus
+        # the text padding and the scrollbar, about 30 lines tall.
+        width = 80 * self.cell_w + 16 + 18
+        height = 30 * self.cell_h
+        self.root.geometry(f"{width}x{height}")
         self.canvas = tk.Canvas(
             self.root, height=0, borderwidth=0, highlightthickness=0,
             background="white",
@@ -94,6 +101,12 @@ class ActaeaApp:
         # The input mark: everything before it is story text and immutable.
         self.text.mark_set("input_start", "end-1c")
         self.text.mark_gravity("input_start", "left")
+        # The unread mark: where the player last stopped reading (set at
+        # each completed input). When a burst of story text runs past a
+        # screenful, the view returns HERE at the next input instead of
+        # racing to the bottom, so long passages read from the top.
+        self.text.mark_set("unread", "1.0")
+        self.text.mark_gravity("unread", "left")
 
         self._line_ready = tk.BooleanVar(value=False)
         self._key: tk.StringVar = tk.StringVar(value="")
@@ -161,6 +174,7 @@ class ActaeaApp:
     def clear_story(self) -> None:
         self.text.delete("1.0", "end")
         self.text.mark_set("input_start", "end-1c")
+        self.text.mark_set("unread", "1.0")  # a wiped screen is all unread
 
     # -- output --------------------------------------------------------------
 
@@ -172,6 +186,16 @@ class ActaeaApp:
 
     # -- input: lines ----------------------------------------------------------
 
+    def _show_unread(self) -> None:
+        """At an input point: if the text since the player's last input has
+        scrolled past a screenful, bring its BEGINNING into view instead of
+        the tail, so a long passage is read from the top down."""
+        if self.text.bbox("unread") is None:
+            self.text.yview("unread")
+
+    def _mark_read(self) -> None:
+        self.text.mark_set("unread", "end-1c")
+
     def wait_for_line(self, max_len: int) -> str:
         if self._closed:
             raise EOFError
@@ -179,7 +203,7 @@ class ActaeaApp:
         self._reading_line = True
         self._line_ready.set(False)
         self.text.mark_set("insert", "end-1c")
-        self.text.see("end")
+        self._show_unread()
         self.root.wait_variable(self._line_ready)
         self._reading_line = False
         if self._closed:
@@ -187,14 +211,24 @@ class ActaeaApp:
         line = self.text.get("input_start", "end-1c")
         # The typed line becomes story text, newline included.
         self.append_story("\n")
+        self._mark_read()
         return line
 
     def _on_return(self, event):
+        # Return answers a key-wait too: "press any key" must mean ANY key
+        # (the dedicated binding fires before _on_key, so feed the wait
+        # here; Stefan's play-through caught space working and Return not).
+        if self._reading_key:
+            self._key.set("\n")
+            return "break"
         if self._reading_line:
             self._line_ready.set(True)
         return "break"
 
     def _on_backspace(self, event):
+        if self._reading_key:
+            self._key.set("\x08")  # ZSCII 8, delete
+            return "break"
         # Never eat into the story text before the input mark.
         if not self._reading_line:
             return "break"
@@ -210,6 +244,10 @@ class ActaeaApp:
             return "break"  # story is thinking: swallow stray typing
         if self.text.compare("insert", "<", "input_start"):
             self.text.mark_set("insert", "end-1c")
+        if event.char:
+            # Typing pulls the view back to the prompt (the player may have
+            # scrolled up to read; their keystrokes belong at the bottom).
+            self.text.see("end")
         if event.char and len(self.text.get("input_start", "end-1c")) >= self._max_len:
             return "break"  # the buffer is full: the machine set the limit
         return None
@@ -225,10 +263,12 @@ class ActaeaApp:
             raise EOFError
         self._reading_key = True
         self._key.set("")
+        self._show_unread()
         self.root.wait_variable(self._key)
         self._reading_key = False
         if self._closed:
             raise EOFError
+        self._mark_read()
         return self._key.get()
 
     # -- lifecycle --------------------------------------------------------------------
