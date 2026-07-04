@@ -131,8 +131,10 @@ class ActaeaApp:
         self._reading_key = False
         self._closed = False
         self._max_len = 0
+        self._input_tag = ""
 
         self.text.bind("<Key>", self._on_key)
+        self.text.bind("<KeyRelease>", self._on_key_release)
         self.text.bind("<Return>", self._on_return)
         self.text.bind("<BackSpace>", self._on_backspace)
         # Keep the caret out of the story text: any click refocuses the end.
@@ -276,6 +278,13 @@ class ActaeaApp:
         if self._closed:
             raise EOFError
         self._max_len = max_len
+        # The input wears the CURRENT look: Cosmos sets the input colour
+        # (zcolor.input) right before every read, so the tag resolved here
+        # is the game's choice; the caret matches it.
+        self._input_tag = self._look_tag()
+        self.text.configure(
+            insertbackground=self._colour(self.vm.screen.fg, "black")
+        )
         self._reading_line = True
         self._line_ready.set(False)
         self.text.mark_set("insert", "end-1c")
@@ -284,11 +293,22 @@ class ActaeaApp:
         self._reading_line = False
         if self._closed:
             raise EOFError
+        self._dress_input()
         line = self.text.get("input_start", "end-1c")
         # The typed line becomes story text, newline included.
         self.append_story("\n")
         self._mark_read()
         return line
+
+    def _dress_input(self) -> None:
+        if self._input_tag:
+            self.text.tag_add(self._input_tag, "input_start", "end-1c")
+
+    def _on_key_release(self, event):
+        # Freshly typed characters carry no tag; sweep the input region so
+        # the line shows its colour as it is typed, not only on commit.
+        if self._reading_line:
+            self._dress_input()
 
     def _on_return(self, event):
         # Return answers a key-wait too: "press any key" must mean ANY key
