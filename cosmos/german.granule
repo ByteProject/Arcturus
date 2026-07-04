@@ -915,6 +915,11 @@ block msg_talk_over()
 // right-aligned, in German words and widths. "Punkte: " is eight cells like the
 // English "Score: " string it replaces; the wide form adds "   Zuege: ".
 block line_status_score(w)
+    if any_awards() is 0
+        set_cursor(1, w - 7 - status_digits(turns))
+        show("Züge: ")
+        show(turns)
+        return 0
     if w < 54
         set_cursor(1, w - 9 - status_digits(score) - status_digits(turns))
         show("Punkte: ")
@@ -1184,6 +1189,9 @@ block msg_farewell()
 
 // Meta verbs.
 block msg_score()
+    if any_awards() is 0
+        say "Dieses Spiel zählt keine Punkte."
+        return 0
     show("Du hast ${score} von ${max_score} Punkten in ")
     show(turns)
     if turns is 1

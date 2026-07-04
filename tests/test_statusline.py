@@ -23,6 +23,8 @@ ROOMS = (
     'room garden\n    name "The Garden"\n    desc "Grass."\n    west hall\n'
 )
 WITH = 'game\n    title "SL"\n    start hall\nsummon.statusline\n' + ROOMS
+# The scored variant: `scoring` puts the score side back on the bar.
+SCORED = 'game\n    title "SL"\n    start hall\n    scoring\nsummon.statusline\n' + ROOMS
 WITHOUT = 'game\n    title "SL"\n    start hall\n' + ROOMS
 
 
@@ -47,9 +49,21 @@ def _run(story, width):
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
-def test_statusline_full_on_a_wide_screen(tmp_path):
+def test_statusline_scoreless_shows_only_moves(tmp_path):
+    # A game that scores nothing gets no permanent "Score: 0": the bar
+    # shows the move count alone (Stefan's ruling, 2026-07-04).
     story = tmp_path / "s.z5"
     story.write_bytes(_build(WITH))
+    out = _run(story, 80)
+    assert "Score:" not in out
+    assert "The Hall" in out and "The Garden" in out  # the room shows in the bar
+    assert "Moves: 1" in out  # the move count advances
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_statusline_full_on_a_wide_screen(tmp_path):
+    story = tmp_path / "s.z5"
+    story.write_bytes(_build(SCORED))
     out = _run(story, 80)  # >= 54 columns: the full Score:/Moves: form
     assert "Score:" in out and "Moves:" in out
     assert "The Hall" in out and "The Garden" in out  # the room shows in the bar
@@ -59,10 +73,10 @@ def test_statusline_full_on_a_wide_screen(tmp_path):
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_statusline_compact_on_a_narrow_screen(tmp_path):
     story = tmp_path / "s.z5"
-    story.write_bytes(_build(WITH))
+    story.write_bytes(_build(SCORED))
     out = _run(story, 40)  # a 40-column C64: the compact "Score: score/turns"
     assert "Score:" in out
-    assert "0/1" in out  # score 0, one turn taken
+    assert "5/1" in out  # the auto-scored garden paid on entry; one turn taken
     assert "Moves:" not in out  # the wide form is not used here
 
 

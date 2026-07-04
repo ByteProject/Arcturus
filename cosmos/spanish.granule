@@ -962,6 +962,11 @@ block msg_talk_over()
 // The status line's score side (the statusline granule): the score and moves,
 // right-aligned, in Spanish words and widths.
 block line_status_score(w)
+    if any_awards() is 0
+        set_cursor(1, w - 9 - status_digits(turns))
+        show("Turnos: ")
+        show(turns)
+        return 0
     if w < 54
         set_cursor(1, w - 9 - status_digits(score) - status_digits(turns))
         show("Puntos: ")
@@ -1257,6 +1262,9 @@ block msg_farewell()
 // Meta verbs (the score, a restart confirmation, the xyzzy easter egg). save,
 // restore, and undo bring their own messages with the meta-verb opcodes.
 block msg_score()
+    if any_awards() is 0
+        say "Este juego no lleva puntuación."
+        return 0
     show("Has conseguido ${score} de un total de ${max_score} puntos en ")
     show(turns)
     if turns is 1

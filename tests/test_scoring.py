@@ -130,6 +130,18 @@ def test_ranks_announced_and_spread(tmp_path):
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_scoreless_game_says_so(tmp_path):
+    # No scoring meta, no awards: SCORE answers honestly instead of
+    # "0 of a possible 0" (Stefan's ruling, 2026-07-04).
+    src = (
+        'game\n    title "NS"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+    )
+    out = _play(tmp_path, src, "score\n")
+    assert "does not keep score" in out
+    assert "0 of a possible" not in out
+
+
 def test_score_reports_turns(tmp_path):
     # SCORE is the one score verb, Infocom-shaped: score, maximum, and the
     # turn count in one line (Stefan's ruling, 2026-07-04; there is no FULL).

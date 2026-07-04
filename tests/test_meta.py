@@ -52,7 +52,9 @@ def test_meta_verbs_on_frotz(tmp_path):
         [_frotz(), "-p", str(story)],
         input=script, capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "You have scored" in out
+    # This fixture keeps no score, so SCORE says so (the honest line
+    # replaced "0 of a possible 0", 2026-07-04).
+    assert "does not keep score" in out
     assert "briefly clever" in out
     assert "Start over from the very beginning?" in out
     assert "Got it." in out  # the game kept running after the declines

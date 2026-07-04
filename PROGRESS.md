@@ -74,6 +74,23 @@ anonymous-points line; ambience per-line dwell.
 
 >>> END DAY-TWO CHECKPOINT <<<
 
+A SCORELESS GAME SAYS SO (2026-07-04, Stefan's observation playing the
+German game; Cosmos 0.13.2): "Du hast 0 von 0 Punkten erreicht" was
+awkward, and the status bar's permanent "Punkte: 0" doubly so. Both now
+key on the any_awards fold, so the choice is made at compile time and
+neither kind of game pays for the other's behavior: (1) SCORE in a game
+that scores nothing answers "This game does not keep score." / "Este
+juego no lleva puntuación." / "Dieses Spiel zählt keine Punkte."
+(2) THE STATUS BAR of a scoreless game shows the move count alone
+("Moves: n" / "Turnos: n" / "Züge: n"), both screen widths; a scored
+game keeps the full Score/Moves side. Beyond-Inform convenience per
+Stefan: the author declares nothing, the game simply knows whether it
+keeps score. Scoreless builds SHRANK (Cloak 14952 -> 14732: the score
+interpolation machinery folds out with the branch). Verified live in
+all three languages (gasthaus bar reads "Züge: 1"); H2's scored bar and
+130/130 unchanged. Statusline tests split scoreless/scored fixtures;
+390 tests; ceilings re-pinned; docs 02/05/message-set synced.
+
 ASKING IS TALKING UNTIL A GRANULE SAYS OTHERWISE (2026-07-04, Stefan's
 byte challenge on the 340; Cosmos 0.13.1): the standard ask/tell/answer
 cost too much because the base seams REFERENCED the three flavor
