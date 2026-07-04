@@ -43,16 +43,20 @@ class UnimplementedOpcode(ActaeaError):
 # Opcodes that exist but belong to later milestones; the error names where
 # each will arrive so a premature integration test explains itself.
 _LATER = {
-    "read": "M6", "read_char": "M6",
-    "split_window": "M8", "set_window": "M8", "erase_window": "M8",
-    "erase_line": "M8", "set_cursor": "M8", "get_cursor": "M8",
-    "buffer_mode": "M8", "set_text_style": "M9", "set_colour": "M9",
-    "set_true_colour": "M9", "set_font": "M9",
-    "save": "M10", "restore": "M10", "save_undo": "M10",
-    "restore_undo": "M10", "restart": "M10",
+    "set_font": "M9",
+    "save": "M10", "restore": "M10", "restart": "M10",
     "output_stream": "M11", "input_stream": "M11", "copy_table": "M11",
     "scan_table": "M11",
 }
+
+
+def _copy_frames(frames):
+    out = []
+    for f in frames:
+        c = Frame(f.return_pc, f.store, list(f.locals), f.argc)
+        c.stack = list(f.stack)
+        out.append(c)
+    return out
 
 
 class Frame:
@@ -88,6 +92,59 @@ class VM:
         self.frames = [Frame(return_pc=0, store=None, locals_=[], argc=0)]
         self.halted = False
         self.rng = _random.Random()
+        # In-memory undo: a stack of (dynamic memory, frames, pc, store var)
+        # snapshots. save_undo pushes one and yields 1; restore_undo pops,
+        # rewinds, and makes that save_undo yield 2 instead (S 15). The
+        # file-based Quetzal save arrives with M10; undo needs no files.
+        self.undo: list = []
+        # Output streams (S 7): 1 is the screen, 2 the transcript (a flag
+        # here; the harness keeps no file), 3 redirects into a memory table
+        # and NESTS (a stack of up to 16 levels; while any level is open,
+        # no other stream receives output), 4 is a commands file (ignored).
+        self.screen_on = True
+        self.transcript_on = False
+        self.stream3: list = []
+        # The headless window model: window 0 is the console; window 1 (the
+        # status area) exists only as a number here, its output discarded,
+        # its cursor ops accepted. This is what a dumb terminal honestly
+        # does; the M8 cell grid in screen.py is the real model and will
+        # take these opcodes over.
+        self.window = 0
+        self._init_header()
+
+    # -- the output funnel: every print opcode lands here ------------------------
+
+    def _print(self, text: str) -> None:
+        if self.stream3:
+            table = self.stream3[-1][1]
+            for ch in text:
+                table.append(13 if ch == "\n" else self.text.unicode_to_zscii(ch))
+            return
+        if self.screen_on and self.window == 0:
+            self.io.print_text(text)
+
+    def _init_header(self) -> None:
+        """The interpreter-set header fields (S 11): what this machine can
+        do, stamped at boot (and again after restart/restore, S 6.1.6.2).
+        The headless harness claims the text styles (the console prints
+        anything) and no colour, pictures, sound, or timed input; the GUI
+        front-end will raise its own flags when it exists."""
+        m = self.mem
+        flags1 = m.byte(0x01)
+        flags1 |= 0x1C           # bits 2..4: boldface, italic, fixed-space
+        flags1 &= ~0x01 & 0xFF   # bit 0: no colours (yet)
+        m.set_byte(0x01, flags1)
+        m.set_byte(0x1E, 0)      # interpreter number: unspecified
+        m.set_byte(0x1F, ord("A"))  # interpreter version: A for Actaea
+        m.set_byte(0x20, 255)    # screen height in lines: 255 = "infinite"
+        m.set_byte(0x21, 80)     # screen width in characters
+        m.set_word(0x22, 80)     # screen width in units
+        m.set_word(0x24, 255)    # screen height in units
+        m.set_byte(0x26, 1)      # font width in units (v5 order)
+        m.set_byte(0x27, 1)      # font height in units
+        m.set_byte(0x2C, 1)      # default background: the default colour
+        m.set_byte(0x2D, 1)      # default foreground: the default colour
+        m.set_word(0x32, 0x0101)  # Standard revision 1.1
 
     # -- variables ----------------------------------------------------------
 
@@ -512,38 +569,38 @@ class VM:
 
     def _op_print_num(self, ins):
         (v,) = self._values(ins)
-        self.io.print_text(str(to_signed(v)))
+        self._print(str(to_signed(v)))
 
     def _op_print_char(self, ins):
         (c,) = self._values(ins)
-        self.io.print_text(self.text.zscii_to_unicode(c))
+        self._print(self.text.zscii_to_unicode(c))
 
     def _op_new_line(self, ins):
-        self.io.print_text("\n")
+        self._print("\n")
 
     def _op_print(self, ins):
         # The inline string sits at the end of the instruction; the decoder
         # kept its span, so its address is the instruction end minus it.
         text, _ = self.text.decode(ins.next - len(ins.text))
-        self.io.print_text(text)
+        self._print(text)
 
     def _op_print_ret(self, ins):
         self._op_print(ins)
-        self.io.print_text("\n")
+        self._print("\n")
         self._ret(1)
 
     def _op_print_addr(self, ins):
         (addr,) = self._values(ins)
-        self.io.print_text(self.text.decode(addr)[0])
+        self._print(self.text.decode(addr)[0])
 
     def _op_print_paddr(self, ins):
         (packed,) = self._values(ins)
-        self.io.print_text(self.text.decode(self.mem.unpack(packed))[0])
+        self._print(self.text.decode(self.mem.unpack(packed))[0])
 
     def _op_print_obj(self, ins):
         (obj,) = self._values(ins)
         addr, _ = self.objects.name_addr(obj)
-        self.io.print_text(self.text.decode(addr)[0])
+        self._print(self.text.decode(addr)[0])
 
     def _op_print_table(self, ins):
         vals = self._values(ins)
@@ -555,22 +612,183 @@ class VM:
         # position, so a newline stands in for the cursor drop.
         for row in range(height):
             if row:
-                self.io.print_text("\n")
+                self._print("\n")
             base = addr + row * (width + skip)
-            self.io.print_text(
+            self._print(
                 "".join(self.text.zscii_to_unicode(self.mem.byte(base + i))
                         for i in range(width))
             )
 
     def _op_print_unicode(self, ins):
         (code,) = self._values(ins)
-        self.io.print_text(chr(code))
+        self._print(chr(code))
 
     def _op_check_unicode(self, ins):
         # Python strings print anything and (from M7) input returns anything,
         # so both the can-print and can-read bits stand.
         (_,) = self._values(ins)
         self._write_var(ins.store, 3)
+
+    # -- input (M6: the console harness's read; timed input is a front-end
+    # capability and arrives with the GUI work) --
+
+    def _op_read(self, ins):
+        # aread text parse [time routine] -> terminator. The text buffer is
+        # byte 0 max letters, byte 1 the typed length, characters from byte 2,
+        # lower-cased by the machine (S 15 read). A time/routine pair is
+        # accepted and ignored here: the headless harness cannot interrupt a
+        # blocking read, and CZECH/Praxix do not rely on it; real timed input
+        # comes with the front-end event loop.
+        vals = self._values(ins)
+        text_addr, parse_addr = vals[0], vals[1] if len(vals) > 1 else 0
+        max_len = self.mem.byte(text_addr)
+        line = self.io.read_line(max_len).lower()
+        # The player's line is part of the screen text: echo it, with the
+        # newline that ended it (S 7.1.1.1).
+        self.io.print_text(line + "\n")
+        for i, ch in enumerate(line):
+            self.mem.set_byte(text_addr + 2 + i, self.text.unicode_to_zscii(ch))
+        self.mem.set_byte(text_addr + 1, len(line))
+        if parse_addr:
+            tokenise(self.mem, text_addr, parse_addr, self.dictionary)
+        self._write_var(ins.store, 13)  # terminated by newline
+
+    def _op_read_char(self, ins):
+        # read_char 1 [time routine] -> zscii. The first operand is always 1
+        # (the keyboard); the time pair is ignored as in read.
+        self._values(ins)
+        self._write_var(ins.store, self.io.read_char())
+
+    def _op_save_undo(self, ins):
+        self.undo.append(
+            (bytes(self.mem.mem[:self.mem.static_base]),
+             _copy_frames(self.frames), self.pc, ins.store)
+        )
+        self._write_var(ins.store, 1)
+
+    def _op_restore_undo(self, ins):
+        if not self.undo:
+            self._write_var(ins.store, 0)  # nothing to rewind: report failure
+            return
+        dyn, frames, pc, store = self.undo.pop()
+        self.mem.mem[:self.mem.static_base] = dyn
+        self.frames = _copy_frames(frames)
+        self.pc = pc
+        # Resume as if that save_undo had just returned 2 (S 15 save_undo).
+        # The interpreter-set header fields survive the rewind (S 6.1.6.2).
+        self._write_var(store, 2)
+        self._init_header()
+
+    def _op_output_stream(self, ins):
+        vals = self._values(ins)
+        n = to_signed(vals[0])
+        if n == 0:
+            return
+        if n == 3:
+            if len(self.stream3) >= 16:
+                raise VMError(f"output_stream 3 nested past 16 at {ins.addr:#07x}")
+            self.stream3.append((vals[1], []))
+        elif n == -3:
+            if not self.stream3:
+                raise VMError(f"output_stream -3 with none open at {ins.addr:#07x}")
+            table, codes = self.stream3.pop()
+            # The table gets its character count in the first word, the
+            # ZSCII codes after it (S 7.1.2.1).
+            self.mem.set_word(table, len(codes))
+            for i, c in enumerate(codes):
+                self.mem.set_byte(table + 2 + i, c)
+        elif n in (1, -1):
+            self.screen_on = n > 0
+        elif n in (2, -2):
+            self.transcript_on = n > 0  # kept as a flag; no transcript file here
+        elif n in (4, -4):
+            pass  # the commands file: nothing to record headless
+        else:
+            raise VMError(f"output_stream {n} at {ins.addr:#07x}")
+
+    def _op_input_stream(self, ins):
+        self._values(ins)  # stream 1 (a command file) never exists headless
+
+    def _op_scan_table(self, ins):
+        vals = self._values(ins)
+        x, table, length = vals[0], vals[1], vals[2]
+        form = vals[3] if len(vals) > 3 else 0x82
+        words = bool(form & 0x80)
+        step = form & 0x7F
+        if step == 0:
+            raise VMError(f"scan_table with zero entry length at {ins.addr:#07x}")
+        found = 0
+        for i in range(length):
+            addr = table + i * step
+            v = self.mem.word(addr) if words else self.mem.byte(addr)
+            if v == x:
+                found = addr
+                break
+        self._write_var(ins.store, found)
+        self._branch(ins, found != 0)
+
+    def _op_copy_table(self, ins):
+        first, second, size = self._values(ins)
+        n = to_signed(size)
+        if second == 0:
+            # Zero the first table (S 15 copy_table).
+            for i in range(abs(n)):
+                self.mem.set_byte(first + i, 0)
+            return
+        data = bytes(self.mem.mem[first:first + abs(n)])
+        if n < 0:
+            # Negative size: copy forwards regardless of overlap, exactly as
+            # the standard demands (the game wants the smearing behavior).
+            for i in range(abs(n)):
+                self.mem.set_byte(second + i, self.mem.byte(first + i))
+        else:
+            # Positive: corruption-safe (copy from a snapshot).
+            for i in range(n):
+                self.mem.set_byte(second + i, data[i])
+
+    def _op_set_text_style(self, ins):
+        # A hint to the front-end; the console harness has no styles and
+        # ignores it (the flags already told the game what is available).
+        (style,) = self._values(ins)
+        self.io.set_style(style)
+
+    def _op_split_window(self, ins):
+        self._values(ins)  # the size matters when there is a grid to size
+
+    def _op_set_window(self, ins):
+        (w,) = self._values(ins)
+        self.window = w
+
+    def _op_erase_window(self, ins):
+        self._values(ins)  # nothing to erase on a scrolling console
+
+    def _op_erase_line(self, ins):
+        self._values(ins)
+
+    def _op_set_cursor(self, ins):
+        self._values(ins)  # only meaningful over the grid (M8)
+
+    def _op_get_cursor(self, ins):
+        (table,) = self._values(ins)
+        # Report row 1, column 1: the console has no cursor address space.
+        self.mem.set_word(table, 1)
+        self.mem.set_word(table + 2, 1)
+
+    def _op_buffer_mode(self, ins):
+        # Whether the lower window buffers for word wrap (S 8.7.3.1): purely
+        # a rendering policy. The console neither wraps nor unwraps; the cell
+        # model takes this seriously at M8.
+        self._values(ins)
+
+    def _op_set_colour(self, ins):
+        # Colour hints, like styles: the console ignores them (and its
+        # flags-1 colour bit says so); the GUI renders them at M9.
+        vals = self._values(ins)
+        self.io.set_colour(vals[0], vals[1] if len(vals) > 1 else 0)
+
+    def _op_set_true_colour(self, ins):
+        vals = self._values(ins)
+        self.io.set_true_colour(vals[0], vals[1] if len(vals) > 1 else 0xFFFE)
 
     def _op_tokenise(self, ins):
         vals = self._values(ins)
@@ -626,4 +844,13 @@ class VM:
         "print_obj": _op_print_obj, "print_table": _op_print_table,
         "print_unicode": _op_print_unicode, "check_unicode": _op_check_unicode,
         "tokenise": _op_tokenise, "encode_text": _op_encode_text,
+        "read": _op_read, "read_char": _op_read_char,
+        "set_text_style": _op_set_text_style,
+        "save_undo": _op_save_undo, "restore_undo": _op_restore_undo,
+        "split_window": _op_split_window, "set_window": _op_set_window,
+        "erase_window": _op_erase_window, "erase_line": _op_erase_line,
+        "set_cursor": _op_set_cursor, "get_cursor": _op_get_cursor,
+        "buffer_mode": _op_buffer_mode, "set_colour": _op_set_colour, "set_true_colour": _op_set_true_colour,
+        "output_stream": _op_output_stream, "input_stream": _op_input_stream,
+        "scan_table": _op_scan_table, "copy_table": _op_copy_table,
     }

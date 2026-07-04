@@ -56,13 +56,17 @@ class Story:
 
     def checksum_ok(self) -> bool:
         """Verify the header checksum: the bytes from 0x40 up to the stated
-        file length, summed modulo 0x10000 (Standard 1.1 verify opcode). A
-        zero stated checksum is accepted as 'not provided' (some ancient
-        tools); anything else must match."""
+        file length, summed modulo 0x10000 (Standard 1.1 verify opcode).
+        Summed over the story file AS STORED (the pristine image), never the
+        live memory: the game has usually written all over dynamic memory by
+        the time it calls verify, and the opcode asks about the FILE (CZECH
+        test 404 exists to catch exactly this). A zero stated checksum is
+        accepted as 'not provided' (some ancient tools); anything else must
+        match."""
         h = self.header
         if h.checksum == 0:
             return True
-        data = self.memory.mem
+        data = self.memory.initial
         end = min(h.file_length, len(data))
         return sum(data[HEADER_SIZE:end]) & 0xFFFF == h.checksum
 

@@ -2621,3 +2621,55 @@ after` got its own full docs section (header features, the two firing
 rules, the after-pass resolution order). Adopter questions answered:
 unreachable scenery = on other + on examine continue; proper names =
 the `named` attribute; stop-vs-nothing = identical on the last line.
+
+## 2026-07-05 (small hours): Actaea M6 GREEN, the conformance gate
+
+THE GATE: CZECH passes 406/406 with the output matching the reference
+transcript byte for byte outside the untested header-identity block (where
+Actaea now reports MORE than the reference terp did: Standard 1.1 declared,
+a real screen size). Praxix runs "all" to "All tests passed.", every group.
+And the flagship proof beyond the gate: HIBERNATED 2 PLAYS START TO THE END
+ON ACTAEA, 360/360 in 128 turns to the post-mortem, statusline, menus,
+quote boxes, undo checkpoints and all; Cloak of Darkness wins likewise.
+The compiler, the library, and the interpreter are now one toolchain,
+end to end, all three ours.
+
+What the gate demanded beyond M5 (actaea 0.6.0):
+- read (v5 aread: lower-cased into the text buffer, tokenise into the
+  parse buffer, echo with newline, terminator 13 stored; a time/routine
+  pair accepted and ignored headless) and read_char, both through io.py.
+- verify FIXED to checksum the story file AS STORED (memory.initial),
+  never live memory; CZECH 404 exists to catch exactly the mutated-memory
+  mistake and did.
+- Interpreter-set header fields stamped at boot and re-stamped after
+  restore_undo (S 11 / 6.1.6.2): flags1 styles-available bits, screen
+  dimensions, default colours, interpreter id 0/'A', Standard 0x0101.
+- In-memory undo (save_undo/restore_undo): a snapshot stack of dynamic
+  memory + frames + pc + store var; restore resumes as if save_undo had
+  returned 2. Multi-level, exactly as Praxix drills it. File-based
+  Quetzal stays M10.
+- Output streams (S 7): screen toggle, transcript flag, stream 3 memory
+  redirect NESTING to 16 levels through a single _print funnel every
+  print opcode now uses (count word + ZSCII bytes on close; while open,
+  nothing else receives output), stream 4 accepted.
+- scan_table (form byte, word/byte, custom step), copy_table (zero-fill,
+  corruption-safe forward, deliberate smearing on negative length).
+- set_text_style/set_colour/set_true_colour/buffer_mode as io HINTS: a
+  style-less colourless console is a legitimate interpreter (its flags
+  say so); the GUI renders them at M9. The headless WINDOW model:
+  window 1 output discarded, cursor ops accepted, get_cursor says 1,1;
+  what a dumb terminal honestly does, replaced by the real cell grid at
+  M8 (screen.py).
+- The CLI plays stories now: python3 -m actaea <story> runs on ConsoleIO
+  (EOF on the input pipe = normal end for walkthrough play); --header
+  and --disasm remain.
+
+tests/actaea/conformance/test_conformance.py holds the gate: CZECH vs the
+reference (header block normalized on both sides), Praxix all-pass with a
+group-count floor. The M5 boot showpiece upgraded: the probe game now
+PLAYS (examine, a refused take, quit with confirmation) instead of
+stopping at read. 490 tests green.
+
+NEXT: M7, the tkinter shell: the lower window with scrolling, word wrap,
+line/char input, stream 1; done when both example games play start to
+finish in the window. Then M8, the cell grid, its own visible done-test.

@@ -188,7 +188,7 @@ GAME = (
 )
 
 
-def test_an_arcturus_game_boots_and_talks():
+def test_an_arcturus_game_boots_and_plays():
     from actaea.io import CaptureIO
     from actaea.loader import load
     from actaea.vm import VM
@@ -199,17 +199,18 @@ def test_an_arcturus_game_boots_and_talks():
     from arcturus.sema import analyze
 
     story = load(generate(analyze(cosmos.combined_program(parse(GAME)))))
-    io = CaptureIO()
+    io = CaptureIO(script=["examine telescope", "take telescope", "quit", "y"])
     vm = VM(story, io)
-    # The whole boot sequence runs on the real Cosmos runtime: the banner,
-    # the room description, the object intro, the prompt; the machine stops
-    # at the first player input, which is M6's doorstep.
-    with pytest.raises(UnimplementedOpcode) as e:
-        vm.run(max_steps=200000)
-    assert "M6" in str(e.value)
+    # Since M6 the machine reads input too: a whole Arcturus game plays on
+    # the real Cosmos runtime, from the banner through commands to a clean
+    # quit. The compiler, the library, and the interpreter, end to end.
+    vm.run(max_steps=2_000_000)
+    assert vm.halted
     out = io.text
     assert "Starlit Probe" in out
     assert "Observation Deck" in out
     assert "Stars wheel past the crystal dome" in out
-    assert "Cosmos" in out            # the library banner line
-    assert out.rstrip().endswith(">")  # the prompt, waiting for M6
+    assert "Cosmos" in out                       # the library banner line
+    assert "Nothing about the brass telescope" in out  # examine's default
+    assert "stays exactly where it is" in out    # the take refused (fixed)
+    assert "We'll leave it there." in out        # the quit confirmation
