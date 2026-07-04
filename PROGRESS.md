@@ -74,6 +74,39 @@ anonymous-points line; ambience per-line dwell.
 
 >>> END DAY-TWO CHECKPOINT <<<
 
+CLOAK IS A 1:1 PORT, AND THREE SEMANTICS IT FORCED (2026-07-04, Stefan:
+the benchmark game had grown extras from its first-example days and the
+27K comparison deserved identical content; arcc 0.9.1 / Cosmos 0.13.3):
+examples/cloak-of-darkness.storyarc is now a faithful port of Firth's
+reference implementation, ../PunyInform/cloak.inf, THE size benchmark
+build itself: the "cheap demo game" intro restored, grains and extra
+vocabulary gone, "Foyer bar" lowercase, every wording matched, release 3
+serial 221116, and the parts we had silently dropped or simplified put
+back: MAX_SCORE 2 (award 1 on the first hang, paid once by award's own
+semantics where Firth needed a flag; award 1 on the winning read),
+event-driven bar light (after take darkens, after drop/put in the
+cloakroom relights), and the TWO-TIER dark rules (wrong-way go = +2
+"Blundering", any other action = +1 "In the dark?", look/inv free, metas
+immune). One knowing divergence, documented in the file: an action aimed
+at something unseen in the dark disturbs here (truer to Firth's spec
+than to his code, where the parser rejected it first). THE PORT FORCED
+THREE CORE SEMANTICS, each tiny: (1) OUT-OF-WORLD DISPATCH: score, save,
+restore, restart, quit never reach object/recipient/room handlers (Puny
+marks the same verbs meta); the compiler numbers meta actions last and
+dispatch routes them to the free rules on one meta_floor() compare
+(~10 bytes/game). (2) ON OTHER FIRES ONLY FOR UNADDRESSED ACTIONS: a
+specific handler that ran and continued climbs the chain, it never falls
+into the same object's catch-all ("on look / continue" = pass through);
+an all-direction-guarded group that never ran still reaches the
+catch-all. (3) DIRECTION NAMES ARE VALUES: `if way is not north`
+compares the chosen direction, resolved last so story names win, zero
+bytes. Cloak 1:1 = 14840 bytes, genuinely apples-to-apples at ~55% of
+Puny's 27K, and it now demos award/self-summed max/status-bar score in
+nine lines. docs/01 s19 listing replaced whole, the on-other and
+pipeline docs updated, docs/02 s16 reconciliation rewritten; Cloak tests
+now pin the original's scoring, both endings, the two-tier dark rules,
+and meta immunity. 392 tests; H2 130/130 unchanged.
+
 A SCORELESS GAME SAYS SO (2026-07-04, Stefan's observation playing the
 German game; Cosmos 0.13.2): "Du hast 0 von 0 Punkten erreicht" was
 awkward, and the status bar's permanent "Punkte: 0" doubly so. Both now

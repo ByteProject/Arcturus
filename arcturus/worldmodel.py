@@ -34,13 +34,32 @@ STORE_SLOT = "slot"  # a number, text, object, list, or block: a property slot
 EVENT_NAMES = frozenset({"start", "enter", "each_turn"})
 
 
+# The out-of-world actions (Inform's meta verbs, Puny's `Verb meta`): they
+# report on or manage the session rather than act in the world, so no object
+# or room handler ever sees them. Numbered LAST so the dispatcher's guard is
+# a single compare against meta_floor() (see dispatch.prelude).
+META_ACTIONS = ("score", "save", "restore", "restart", "quit")
+
+
 def action_numbers(world: "World") -> dict:
     """The deterministic action -> number map (0 means no action), shared by
     codegen (react routines, dictionary verb data) and lower (event firing).
     Verbs and the life-cycle events live in one numbering so a react routine can
-    switch on either."""
+    switch on either. The meta actions sort past every in-world one, so a
+    single compare identifies them at run time."""
     names = sorted(set(world.actions) | {"other"} | EVENT_NAMES)
-    return {name: i + 1 for i, name in enumerate(names)}
+    world_names = [n for n in names if n not in META_ACTIONS]
+    meta_names = [n for n in names if n in META_ACTIONS]
+    return {name: i + 1 for i, name in enumerate(world_names + meta_names)}
+
+
+def meta_floor(world: "World") -> int:
+    """The first meta action number: actions at or past it are out-of-world.
+    With no meta action in the program (never in practice; the standard verbs
+    carry them), the floor sits past every action and the guard never fires."""
+    nums = action_numbers(world)
+    metas = [nums[n] for n in META_ACTIONS if n in nums]
+    return min(metas) if metas else len(nums) + 1
 
 
 @dataclass

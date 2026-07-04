@@ -38,35 +38,35 @@ CEILINGS = {
     # 2026-07-03 batch: recipient dispatch (~40), the start-title skip
     # (~25), show_tag (~20); chaining, disambiguation, noun lists with
     # noise words, all core parser features every game carries.
-    "beispiel-deutsch.storyarc": 19980,
-    "brass-lantern.storyarc": 14364,
-    "cloak-of-darkness.storyarc": 14732,
-    "ejemplo-espanol.storyarc": 19208,
-    "features/computed-properties.storyarc": 13208,
-    "features/containers.storyarc": 13240,
-    "features/daemons-and-timers.storyarc": 13544,
-    "features/doors-and-locks.storyarc": 13104,
-    "features/grains.storyarc": 13236,
-    "features/introproperty.storyarc": 14152,
-    "features/kinds-and-inheritance.storyarc": 13064,
-    "features/on-other.storyarc": 13068,
-    "features/zcolor.storyarc": 13444,
-    "features/scoring.storyarc": 15372,
-    "features/spans.storyarc": 13252,
-    "granules/ambience.storyarc": 14552,
-    "granules/conversations.storyarc": 14848,
-    "granules/extended-verbs.storyarc": 15568,
-    "granules/infocom-interrogation.storyarc": 15260,
-    "granules/quotes.storyarc": 13428,
-    "granules/take-all.storyarc": 14844,
-    "granules/plurals.storyarc": 14076,
-    "granules/statusline.storyarc": 13168,
-    "granules/verbose-exits.storyarc": 13452,
+    "beispiel-deutsch.storyarc": 19996,
+    "brass-lantern.storyarc": 14380,
+    "cloak-of-darkness.storyarc": 14840,
+    "ejemplo-espanol.storyarc": 19224,
+    "features/computed-properties.storyarc": 13224,
+    "features/containers.storyarc": 13256,
+    "features/daemons-and-timers.storyarc": 13560,
+    "features/doors-and-locks.storyarc": 13120,
+    "features/grains.storyarc": 13252,
+    "features/introproperty.storyarc": 14168,
+    "features/kinds-and-inheritance.storyarc": 13080,
+    "features/on-other.storyarc": 13084,
+    "features/zcolor.storyarc": 13460,
+    "features/scoring.storyarc": 15400,
+    "features/spans.storyarc": 13268,
+    "granules/ambience.storyarc": 14568,
+    "granules/conversations.storyarc": 14864,
+    "granules/extended-verbs.storyarc": 15584,
+    "granules/infocom-interrogation.storyarc": 15276,
+    "granules/quotes.storyarc": 13444,
+    "granules/take-all.storyarc": 14860,
+    "granules/plurals.storyarc": 14092,
+    "granules/statusline.storyarc": 13184,
+    "granules/verbose-exits.storyarc": 13468,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 15168
+CLOAK_Z8_CEILING = 15296
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

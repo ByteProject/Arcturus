@@ -110,7 +110,7 @@ INTRINSICS = frozenset({
     "split_window", "set_window", "set_cursor", "set_style", "screen_width",
     "erase_window", "screen_height", "buffer_mode", "clear_screen", "random",
     "ambience_table", "ranks_table", "any_ranks", "print_packed",
-    "pools_table", "award_earned", "any_awards",
+    "pools_table", "award_earned", "any_awards", "meta_floor",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr", "article_addr", "indefinite_addr", "tag_addr",
@@ -288,6 +288,8 @@ def _is_leaf(ctx: Context, expr) -> bool:
             expr.ident in ctx.named
             or expr.ident in ctx.globals
             or ctx.is_object_name(expr.ident)
+            or (expr.ident in _DIRECTIONS
+                and ctx.prop_number(expr.ident) is not None)
         )
     return False
 
@@ -310,6 +312,13 @@ def _leaf_operand(ctx: Context, expr):
             return Variable(ctx.resolve_var(expr.ident, expr.line))
         if ctx.is_object_name(expr.ident):
             return Const(ctx.obj_number(expr.ident))  # an object number constant
+        # A bare direction name is its property number, so a handler can ask
+        # `if way is north` (the parser stores the chosen direction's property
+        # number in `way`). Resolved last, so story names always win.
+        if expr.ident in _DIRECTIONS:
+            p = ctx.prop_number(expr.ident)
+            if p is not None:
+                return Const(p)
         raise LowerError(f"unresolved name '{expr.ident}'", expr.line)
     raise LowerError("not a leaf expression", getattr(expr, "line", 0))
 
@@ -662,6 +671,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         op, t = _operand(rt, ctx, args[0])
         rt.op("loadb", Variable(ctx.globals["__awards__"]), op, store=dest)
         _free(ctx, t)
+    elif name == "meta_floor":
+        # meta_floor(): the first out-of-world action number (a compile-time
+        # constant); dispatch skips the object and room stages at or past it.
+        _place(rt, Const(wm.meta_floor(ctx.world)), dest)
     elif name == "any_awards":
         # any_awards(): 1 when the game scores at all (any award site, pool,
         # or auto-scored object), so score plumbing folds away otherwise.

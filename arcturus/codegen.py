@@ -224,12 +224,14 @@ def gen_react_free(world: wm.World, actions: dict, registry) -> Routine:
 def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None, others=None) -> Routine:
     """react_<obj>(action): switch on the action number; for each action run the
     object's handler routine(s) in order, returning 1 as soon as one consumes the
-    action (returns 1). When no specific handler matches or consumes, the `on
-    other` catch-all handlers run, and only if none of those consumes does the
-    routine return 0 (letting the action climb the chain). An `on go <direction>`
-    handler is guarded so it only runs when the chosen direction matches."""
+    action (returns 1). The `on other` catch-all runs only for actions the
+    object does not otherwise ADDRESS: when no specific handler matched at all,
+    or when the only matches were direction-guarded (`on go north`) and the
+    guard failed. A specific handler that ran and continued climbs to the kind,
+    the room, and the defaults; it never falls into the object's own catch-all
+    (docs/01 section 12). Local 2 tracks whether a guarded handler ran."""
     others = others or []
-    rt = Routine("react_" + objname, nlocals=1)  # local 1 = the action number
+    rt = Routine("react_" + objname, nlocals=2)  # 1 = action, 2 = a guard ran
     run_label = {}
     for i, action in enumerate(groups):
         run_label[action] = f"run{i}"
@@ -238,6 +240,9 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
     skip_n = 0
     for action, handlers in groups.items():
         rt.label(run_label[action])
+        all_guarded = all(_is_dir_pattern(h) for _, h in handlers)
+        if all_guarded:
+            rt.op("store", Const(2), Const(0))
         for hn, h in handlers:
             if _is_dir_pattern(h):
                 # Run this handler only when `way` equals the named direction's
@@ -246,13 +251,19 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
                 skip = f"skipdir{skip_n}"
                 skip_n += 1
                 rt.op("je", Variable(gmap["way"]), Const(prop), branch=(skip, False))
+                if all_guarded:
+                    rt.op("store", Const(2), _CONST_ONE)
                 rt.op("call_vs", RoutineRef(hn), store=Variable(STACK))
                 rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
                 rt.label(skip)
             else:
                 rt.op("call_vs", RoutineRef(hn), store=Variable(STACK))
                 rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
-        rt.jump("__other__")  # this action's handlers deferred: try on other
+        if all_guarded:
+            # Every match was direction-guarded: if none ran, the object never
+            # addressed this action, so the catch-all still gets its turn.
+            rt.op("jz", Variable(2), branch=("__other__", True))
+        rt.jump("__climb__")  # addressed but deferred: climb, skip the catch-all
     rt.label("__other__")
     if others:
         # `on other` is a catch-all for the player's verbs, not for the life-cycle

@@ -71,14 +71,16 @@ def test_cloak_of_darkness_ir():
     assert "disturbed" in w.globals and w.globals["disturbed"].type == "number"
     assert "disturbed" not in w.properties
 
-    # The foyer overrides go and carries a grain.
+    # The foyer overrides go north; the 1:1 port carries no grains (the
+    # original Cloak answers for nothing beyond its three objects).
     foyer = w.objects["foyer"]
     assert any("go" in h.events for h in foyer.handlers)
-    assert foyer.grains and "examine" in foyer.grains[0].verbs
+    assert not foyer.grains
 
     # read -> examine and hang -> put are bound as verb actions.
     actions = {g.action for v in w.verbs for g in v.grammar}
     assert {"examine", "put"} <= actions
 
-    # Both bar light tests resolve as boolean property tests.
-    assert set(w.is_resolutions.values()) == {wm.IS_PROPERTY}
+    # The bar light tests resolve as boolean property tests; the dark-go
+    # handler's `way is not north` is a plain equality.
+    assert set(w.is_resolutions.values()) == {wm.IS_PROPERTY, wm.IS_EQUALITY}
