@@ -74,6 +74,23 @@ anonymous-points line; ambience per-line dwell.
 
 >>> END DAY-TWO CHECKPOINT <<<
 
+ASKING IS TALKING UNTIL A GRANULE SAYS OTHERWISE (2026-07-04, Stefan's
+byte challenge on the 340; Cosmos 0.13.1): the standard ask/tell/answer
+cost too much because the base seams REFERENCED the three flavor
+defaults, which pinned the strings in every game past DCE. His ruling:
+elevated conversation belongs to the granules alone; with neither
+summoned, every conversation verb defaults to the one talk brush-off. So
+the base ask_to/tell_to/answer_to now simply hand over to talk_to (which
+also made conversations' ask_to override redundant: overriding talk_to
+was already enough), and msg_ask/msg_tell/msg_answer are called ONLY
+from infocom_talking, so DCE keeps them for infocom games alone. answer
+gained its seam and guard on the way. Standard cost drops 340 -> 268
+per game (Cloak 15028 -> 14952; the floor is dictionary words, grammar,
+and the guard, which is what "the verbs parse at all" costs); menu games
+shed the strings too. Extendedverbs-only games now answer "ask guard
+about pebble" with "doesn't seem up for a conversation", by design.
+388 tests; ceilings re-pinned; docs synced; H2 130/130 unchanged.
+
 THE CONVERSATION ABSTRACTION, PUT RIGHT (2026-07-04, Stefan's redesign
 after catching English verb words in the conversations granule; Cosmos
 0.13.0): the granule had been built string-free and word-free, everything
