@@ -433,6 +433,10 @@ verb "beende", "beenden", "ende"
 verb "punkte", "punktestand", "stand"
     score
 
+// The FULL breakdown (native pass pending: pick the idiomatic word).
+verb "bilanz"
+    fullscore
+
 verb "neustart", "neustarten", "restart"
     restart
 
@@ -1162,6 +1166,21 @@ block msg_score()
         say "."
         return 0
     say "Du hast ${score} von ${max_score} Punkten erreicht."
+
+block msg_fullscore()
+    if turns is 1
+        say "Du hast ${score} von ${max_score} Punkten in 1 Zug
+             erreicht."
+        return 0
+    say "Du hast ${score} von ${max_score} Punkten in ${turns} Zügen
+         erreicht."
+
+block line_fullscore_pool(points, label)
+    show("  ")
+    show(points)
+    show(" Punkte: ")
+    print_packed(label)
+    say ""
 
 block msg_confirm_restart()
     show("Von vorne beginnen? ")

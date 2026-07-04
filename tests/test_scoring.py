@@ -131,9 +131,11 @@ def test_ranks_announced_and_spread(tmp_path):
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_full_score_breakdown(tmp_path):
-    src = GAME.replace('game\n    title "S"', "summon.extendedverbs\ngame\n    title \"S\"")
-    out = _play(tmp_path, src, "push panel\nfull\n")
+    # FULL is a standard meta verb: no summon needed, the breakdown ships
+    # with the score mechanic (Stefan's ruling, 2026-07-04).
+    out = _play(tmp_path, GAME, "push panel\nfull\n")
     assert "5 points, for outsmarting the door" in out
+    assert "in 1 turn." in out  # the singular branch
 
 
 def test_stats_carry_the_plan(tmp_path):

@@ -7,8 +7,9 @@
 // verbs beyond the always-in standard set (docs/verb-set.md, the E column) -
 // search, throw, dig, the idle and flavor actions, and the Infocom-style
 // conversation verbs ask/tell/answer. Most just speak a default an object can
-// override (most-specific-wins), exactly like the standard sensory verbs; search
-// lists what a container or supporter holds, and fullscore reports the score.
+// override (most-specific-wins), exactly like the standard sensory verbs;
+// search lists what a container or supporter holds. (FULLSCORE is a standard
+// meta verb, not part of this granule: score reporting ships with scoring.)
 //
 // The wording lives here, in the granule, so it ships only when summoned. To
 // reskin its lines, fork the granule: extract it, edit your copy, and summon that
@@ -367,33 +368,6 @@ on answer
     msg_answer()
 
 // ---------------------------------------------------------------------------
-// Meta: the full score breakdown (does not take a turn).
-
-verb "fullscore", "full"
-    fullscore
-
-on fullscore
-    change meta_turn to 1
-    // The Infocom-style breakdown, from the labelled award pools (docs/01,
-    // Scoring): each earned one prints its points and its label; the
-    // summary line follows. Unlabelled points stay in the total.
-    let t = pools_table()
-    if t is not 0
-        let n = peek_word(t, 0)
-        let i = 0
-        while i < n
-            let rec = t + 2 + i * 6
-            let e = award_earned(peek_word(rec, 1))
-            if e > 0
-                show("  ")
-                show(e)
-                show(" points, for ")
-                print_packed(peek_word(rec, 2))
-                say ""
-            change i to i + 1
-    msg_fullscore()
-
-// ---------------------------------------------------------------------------
 // The wording. Fork the granule to change any of these lines.
 
 block msg_search_nothing()
@@ -480,6 +454,3 @@ block msg_tell()
 
 block msg_answer()
     say "Your words go unanswered."
-
-block msg_fullscore()
-    say "You have scored ${score} of a possible ${max_score}, in ${turns} turns."

@@ -574,8 +574,10 @@ person's own `on talk` handler, or prints "There is no reply." With
 `summon.conversations` (section 14), `talk to <person>` opens that person's
 topic menu instead.
 
-Meta verbs: save, restore, undo, quit, score, and a verbose-or-brief toggle,
-using the corresponding Z-machine facilities.
+Meta verbs: save, restore, undo, quit, score, fullscore (the Infocom-style
+breakdown from the labelled award pools; the walk folds away in a game with
+no award statement), and a verbose-or-brief toggle, using the corresponding
+Z-machine facilities.
 
 Every default message is a Cosmos string, overridable globally by replacing
 the Cosmos default or locally by handling the verb on an object or kind.

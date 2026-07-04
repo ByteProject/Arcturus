@@ -434,6 +434,9 @@ verb "quit", "q"
 verb "score"
     score
 
+verb "fullscore", "full"
+    fullscore
+
 verb "restart"
     restart
 
@@ -1096,6 +1099,24 @@ block msg_score()
         say "."
         return 0
     say "You have scored ${score} of a possible ${max_score}."
+
+// The FULL summary line; the earned pool lines print through
+// line_fullscore_pool above it (the handler walks the pools, the wording
+// is here).
+block msg_fullscore()
+    if turns is 1
+        say "You have scored ${score} of a possible ${max_score}, in 1
+             turn."
+        return 0
+    say "You have scored ${score} of a possible ${max_score}, in ${turns}
+         turns."
+
+block line_fullscore_pool(points, label)
+    show("  ")
+    show(points)
+    show(" points, for ")
+    print_packed(label)
+    say ""
 
 block msg_confirm_restart()
     show("Start over from the very beginning? ")

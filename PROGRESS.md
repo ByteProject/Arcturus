@@ -74,6 +74,26 @@ anonymous-points line; ambience per-line dwell.
 
 >>> END DAY-TWO CHECKPOINT <<<
 
+FULLSCORE GOES STANDARD, THE PORT GOES LEAN (2026-07-04, Stefan's ruling
+on the Act II review): score reporting belongs to the score mechanic, so
+FULL/FULLSCORE moved from the extendedverbs granule into the standard meta
+verbs. The agnostic handler (actions.prelude) walks the labelled pools
+through the new language hook line_fullscore_pool; msg_fullscore gained a
+singular branch ("in 1 turn"); the whole pool walk folds under any_awards,
+so a game with no award statement pays only the verb, the stub, and the
+message: ~150 bytes (Cloak 14612 -> 14764), while the extendedverbs and
+interrogation examples SHRANK. ES gets "desglose"/"logros", DE "bilanz"
+(both flagged for the native pass). Cosmos 0.12.1, amalgam regenerated,
+ceilings re-pinned, scoring example no longer summons a verbset for FULL,
+384 tests. AND THE PORT DROPPED summon.extendedverbs (Stefan: importing a
+verbset for three verbs is not memory efficient; his .inf defined them in
+code and so does the port): CUT is a single story verb (the vines answer,
+elsewhere "nothing here needs cutting"), SEARCH is grammar-mapped straight
+onto examine, SWIM answers at the riverbank with Vlad's wading line, BURN
+is out of the game. h2-slice.z5 65904 -> 62832 bytes; walkthrough still
+130/130, FULL says "in 50 turns". ASK/TELL are not in the H2 build (menu
+game); noted in the port header as a sweep item awaiting Stefan's call.
+
 H2 ACT II PORTED WHOLE (2026-07-03, Stefan's go): the Alien Wilderness
 through the Hidden Station, ending at the pod's arrival in the Plaza of
 Reflections (the Act III boundary stub). Verbatim prose from the .inf; the

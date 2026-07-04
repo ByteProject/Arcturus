@@ -79,7 +79,9 @@ is in docs/message-set.md; the roster:
 - BODY AND IDLE: `dig`, `wave`, `sit`, `stand`, `sleep`, `swim`, `swing`,
   `think`, `pray`, `shout`.
 - CONVERSATION: `ask <person> about <subject>`, `tell ... about`, `answer`.
-- META: `fullscore` (the score breakdown, no turn taken).
+
+(`fullscore`/`full` is a STANDARD meta verb, always in: the score mechanic
+ships its own reporting.)
 
 Every default is an ordinary free handler, so the override story is the
 usual one: an object's own `on rub` wins ("on rub / say ..."), a top-level

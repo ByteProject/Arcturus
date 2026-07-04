@@ -485,7 +485,7 @@ the game grows during development; a POINTS pin is the definite value,
 verbatim, for when a rank must sit exactly at a known threshold. Mix them
 freely; unpinned titles keep the even spread.
 
-With the extendedverbs granule, FULL SCORE prints the Infocom-style
+FULL SCORE (or FULL), a standard meta verb, prints the Infocom-style
 breakdown from the pool labels, reporting what this playthrough earned:
 
 ```
