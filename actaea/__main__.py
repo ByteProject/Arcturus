@@ -55,6 +55,11 @@ def main(argv=None) -> int:
         action="store_true",
         help="load and validate the story, print its header, and exit",
     )
+    ap.add_argument(
+        "--disasm",
+        action="store_true",
+        help="disassemble every routine reachable from the entry point",
+    )
     ap.add_argument("--version", action="version", version=f"actaea {__version__}")
     args = ap.parse_args(argv)
 
@@ -67,10 +72,20 @@ def main(argv=None) -> int:
         print(f"actaea: {e}", file=sys.stderr)
         return 2
 
+    if args.disasm:
+        from .decode import disassemble
+
+        try:
+            print(disassemble(story))
+        except ActaeaError as e:
+            print(f"actaea: {e}", file=sys.stderr)
+            return 2
+        return 0
+
     print(_report(story))
     if not args.header:
-        # The run loop arrives with M3; until then --header is the only mode.
-        print("\n(actaea M1: loading and validation only; no execution yet)")
+        # The run loop arrives with M3; until then this is an info tool.
+        print("\n(actaea M2: loading and disassembly only; no execution yet)")
     return 0
 
 
