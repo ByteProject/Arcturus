@@ -28,14 +28,14 @@
 global ambience_rate = 8
 
 on each_turn
-    ambience_pulse()
+    ambience_pulse
 
 // The per-turn sweep over the compiler's ambience table (one record per
 // block: owner, room flag, mode, rate, line count, the guard / play / line
 // guard routines, and two words of live state). First block to fire wins
 // the turn.
 block ambience_pulse()
-    let base = ambience_table()
+    let base = ambience_table
     if base is 0
         return 0
     if ambience_rate is 0

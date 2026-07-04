@@ -57,7 +57,7 @@ block resolve_verb()
         let flags = peek_byte(d + 6)
         if flags is 128
             let base = peek_byte(d + 7)
-            let p = find_particle()
+            let p = find_particle
             if p is not nothing
                 let c = compound(base, p)
                 if c is not nothing
@@ -68,17 +68,17 @@ block resolve_verb()
     // Kein Verb am Satzanfang? Steht irgendwo im Satz eine Richtung, ist es
     // trotzdem ein Gehen-Befehl: so versteht der Parser "nach oben" und "nach
     // unten", wo das erste Wort ("nach") gar nicht im Woerterbuch steht.
-    if find_direction() is not nothing
+    if find_direction is not nothing
         return action_id("go")
     return 0
 
 // The first verb-particle word in the command, as its id (an/ein 1, aus/ab 2,
 // auf 3, zu 4, declared with `particle` below). This is what makes the trennbare
 // Verben work: "schalt die Lampe an" and "schliess die Tuer auf" find their
-// particle here, wherever it falls, and compound() maps base verb + particle to
+// particle here, wherever it falls, and compound maps base verb + particle to
 // the real action.
 block find_particle()
-    let n = word_count()
+    let n = word_count
     let i = 1
     while i < n
         let d = word_dict(i)
@@ -119,7 +119,7 @@ block compound(base, particle)
 // (a direction word's dictionary entry is flagged with bit 6, and byte 2 holds
 // the direction property). Returns nothing if no direction was named.
 block find_direction()
-    let n = word_count()
+    let n = word_count
     let i = 0
     while i < n
         let d = word_dict(i)
@@ -166,7 +166,7 @@ block see_into(obj)
             return 1
         if obj is clear
             return 1
-        if not (obj is openable)
+        if obj is not openable
             return 1
     return 0
 
@@ -176,7 +176,7 @@ block shut_holds(obj)
         return 0
     if obj is clear
         return 0
-    if not (obj is openable)
+    if obj is not openable
         return 0
     return 1
 
@@ -184,7 +184,7 @@ block shut_holds(obj)
 // content matching the word. Records the blocking container in shut_in.
 block shut_search(where, target)
     for each obj in where
-        if not (obj is hidden)
+        if obj is not hidden
             if obj is container
                 if shut_holds(obj)
                     let known = shut_match(obj, target)
@@ -195,7 +195,7 @@ block shut_search(where, target)
 
 block shut_match(holder, target)
     for each x in holder
-        if not (x is hidden)
+        if x is not hidden
             if x is seen
                 if has_word(x, target)
                     return x
@@ -205,7 +205,7 @@ block shut_match(holder, target)
 // scoring matcher (parser.prelude match_phrase): the in-scope object matching
 // the most typed words wins, a tie is a genuine ambiguity (parse_fault 3).
 block match_noun()
-    return match_first_phrase()
+    return match_first_phrase
 
 // Resolve the command's objects into the noun (and, for a two-noun verb, the
 // second). The verb's dictionary entry carries its noun arity in data byte 2.
@@ -220,28 +220,28 @@ block resolve_objects()
             let arity = peek_byte(d + 8)
             let va = peek_byte(d + 7)
             if arity is 2
-                resolve_two_nouns()
+                resolve_two_nouns
                 return 1
             if arity is 0
                 if va is not action_id("oops")
                     if has_extra_words(va) is 1
                         change parse_fault to 2
                 return 1
-    change noun to match_noun()
+    change noun to match_noun
     // An ambiguity fault (3) stands: falling through to the grain and
     // unseen checks would overwrite the honest "which do you mean".
     if parse_fault is not 0
         return 1
     // A pending plural sweep ("take coins", THEM) binds per object later.
-    if any_plurals() is 1
+    if any_plurals is 1
         if plural_go is not 0
             return 1
     if noun is nothing
-        change noun to reach_unscoped()
+        change noun to reach_unscoped
     if noun is nothing
-        change grain to find_scenery()
+        change grain to find_scenery
         if grain is 0
-            change parse_fault to named_unseen()
+            change parse_fault to named_unseen
     return 1
 
 // A hook for reaching an object ordinary scope could not: nothing by default.
@@ -250,7 +250,7 @@ block reach_unscoped()
 
 // Did the player name an object word that nothing in scope answered to?
 block named_unseen()
-    return phrase_named(1, word_count())
+    return phrase_named(1, word_count)
 
 // For an intransitive verb (no noun slot), is there a word after it the grammar
 // cannot use? A go command is the exception: dort zaehlt nur, ob irgendwo eine
@@ -258,9 +258,9 @@ block named_unseen()
 // nicht im Woerterbuch steht.
 block has_extra_words(act)
     if act is action_id("go")
-        if find_direction() is not nothing
+        if find_direction is not nothing
             return 0
-    if word_count() > 1
+    if word_count > 1
         return 1
     return 0
 
@@ -269,8 +269,8 @@ block has_extra_words(act)
 block find_scenery()
     // The walker folds away entirely (any_grains is a compile-time flag) in a
     // game that declares no grains, so unused scenery costs nothing.
-    if any_grains() is 1
-        let n = word_count()
+    if any_grains is 1
+        let n = word_count
         let i = 1
         while i < n
             let d = word_dict(i)
@@ -309,7 +309,7 @@ block is_separator(target)
 // Bind the two noun slots by position: the words before the preposition name the
 // first noun, the words after it name the second.
 block resolve_two_nouns()
-    let n = word_count()
+    let n = word_count
     let b = 0
     let i = 1
     while i < n
@@ -341,13 +341,13 @@ block resolve_two_nouns()
 // Remember the command just parsed so a following "oops" can correct it.
 block note_oops()
     change oops_ready to 0
-    let n = word_count()
+    let n = word_count
     let i = 0
     while i < n
         if word_dict(i) is nothing
             change oops_word to i
             change oops_ready to 1
-            copy_bytes(parse_addr(), oops_addr(), 2 + 4 * n)
+            copy_bytes(parse_addr, oops_addr, 2 + 4 * n)
             return 0
         change i to i + 1
     return 0
@@ -356,24 +356,24 @@ block note_oops()
 // "oops", then re-resolve the patched command and return its action.
 block fix_oops()
     if oops_ready is 0
-        msg_cant_oops()
+        msg_cant_oops
         return 0
     let fix = word_dict(1)
     if fix is nothing
-        msg_cant_oops()
+        msg_cant_oops
         return 0
-    copy_bytes(oops_addr(), parse_addr(), 2 + 4 * peek_byte(oops_addr() + 1))
-    poke_word(parse_addr(), 1 + 2 * oops_word, fix)
-    let act = resolve_verb()
+    copy_bytes(oops_addr, parse_addr, 2 + 4 * peek_byte(oops_addr + 1))
+    poke_word(parse_addr, 1 + 2 * oops_word, fix)
+    let act = resolve_verb
     if act is 0
         return 0
-    change way to find_direction()
-    resolve_objects()
+    change way to find_direction
+    resolve_objects
     if parse_fault is 1
-        msg_cant_see()
+        msg_cant_see
         return 0
     if parse_fault is 3
-        msg_be_specific()
+        msg_be_specific
         return 0
     return act
 
@@ -476,7 +476,7 @@ verb "ausschalten", "abschalten", "ausmachen"
 
 // Die Schaltpartikeln. "an"/"ein" schalten ein, "aus"/"ab" schalten aus. "an"
 // dient auch als Präposition (gib X an Y); das stört nicht, denn der Parser
-// behandelt jedes markierte Wort als Phrasengrenze, und compound() wirkt nur auf
+// behandelt jedes markierte Wort als Phrasengrenze, und compound wirkt nur auf
 // switch/turn/take.
 particle on  "an", "ein"
 particle off "aus", "ab"
@@ -512,7 +512,7 @@ verb "schliesse", "schließe", "schliess", "schließ", "schliessen", "schließen
     unlock noun
 
 // Die Schliesspartikeln. "auf" schliesst auf (unlock); "zu" und "ab" schliessen ab
-// (lock). "ab" ist zugleich die Ausschalt-Partikel; compound() unterscheidet nach
+// (lock). "ab" ist zugleich die Ausschalt-Partikel; compound unterscheidet nach
 // dem Grundverb (schalt vs. schliess), darum stoert die Doppelrolle nicht.
 // Die Pronomen: das grammatische Geschlecht entscheidet, nicht die Belebtheit.
 // Die Lampe ist "sie", der Schlüssel "ihn" (Akkusativ, das Objekt eines
@@ -662,7 +662,7 @@ verb "sing", "singe", "singen"
 // des; ein/eine, einen, einem, eines. A `named` object (Linda, Excalibur) takes no
 // article; that check folds away in a game with no named objects (any_named).
 block art_the(obj, cap, kase)
-    if any_named() is 1
+    if any_named is 1
         if obj is named
             print_name(obj)
             return
@@ -709,7 +709,7 @@ block art_the(obj, cap, kase)
     print_name(obj)
 
 block art_a(obj, cap, kase)
-    if any_named() is 1
+    if any_named is 1
         if obj is named
             print_name(obj)
             return
@@ -765,7 +765,7 @@ block banner_headline()
 
 // The input prompt. It requests a paragraph break rather than forcing its own.
 block prompt()
-    par()
+    par
     show(">")
 
 // What of a holder's contents should be listed: not hidden or concealed, and
@@ -845,7 +845,7 @@ block list_item(obj)
     // der PunyInform-Qualifier): der eine Zustand, den das Listing sonst nicht
     // verrät. Das Prädikativ beugt sich nicht, also reicht EIN Wort.
     if obj is openable
-        if not (obj is open)
+        if obj is not open
             show(" (geschlossen)")
     show_tag(obj)
     list_contents(obj)
@@ -915,7 +915,7 @@ block msg_talk_over()
 // right-aligned, in German words and widths. "Punkte: " is eight cells like the
 // English "Score: " string it replaces; the wide form adds "   Zuege: ".
 block line_status_score(w)
-    if any_awards() is 0
+    if any_awards is 0
         set_cursor(1, w - 7 - status_digits(turns))
         show("Züge: ")
         show(turns)
@@ -1170,7 +1170,7 @@ block msg_extra_words()
 // Read a yes/no answer; returns 1 for an answer that starts with j or J (ja). The
 // caller prints the question first, so this is shared by every confirmation.
 block yes_no()
-    let term = read_input()
+    let term = read_input
     let c = text_char(0)
     if c is 106
         return 1
@@ -1181,7 +1181,7 @@ block yes_no()
 // Ask the player to confirm quitting; returns 1 for yes.
 block confirm_quit()
     show("Willst du wirklich aufhören? ")
-    return yes_no()
+    return yes_no
 
 // The farewell, overridable for a custom send-off.
 block msg_farewell()
@@ -1189,7 +1189,7 @@ block msg_farewell()
 
 // Meta verbs.
 block msg_score()
-    if any_awards() is 0
+    if any_awards is 0
         say "Dieses Spiel zählt keine Punkte."
         return 0
     show("Du hast ${score} von ${max_score} Punkten in ")
@@ -1199,9 +1199,9 @@ block msg_score()
     else
         show(" Zügen")
     show(" erreicht")
-    if any_ranks() is 1
+    if any_ranks is 1
         show(". Das bringt dir den Rang: ")
-        print_rank()
+        print_rank
     say "."
 
 block msg_confirm_restart()

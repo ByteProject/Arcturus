@@ -32,11 +32,11 @@ block read_input()
     // Every fresh line claims the one text buffer, so a chained tail still
     // queued there dies with it (a confirmation asked mid-turn: quit, restart).
     change chain_pos to 0
-    if zc_input() is not 0
-        set_colour(zc_input(), 0)
-    let term = read_line()
-    if zc_input() is not 0
-        set_colour(zc_font(), 0)
+    if zc_input is not 0
+        set_colour(zc_input, 0)
+    let term = read_line
+    if zc_input is not 0
+        set_colour(zc_font, 0)
     return term
 
 // The remembered referent for a canonical pronoun role (docs/02 section 8a):
@@ -54,35 +54,35 @@ block pronoun_slot(role)
     return nothing
 
 block parse()
-    let term = read_input()
+    let term = read_input
     // A fresh line borrows no verb from the last one (noun lists, 8b).
     change chain_prev to 0
     // Remember the full typed length: chain_next restores it when it wakes the
     // queued rest of a chained line (docs/02 section 8b).
-    change chain_max to peek_byte(text_addr() + 1)
-    return parse_line()
+    change chain_max to peek_byte(text_addr + 1)
+    return parse_line
 
 // Parse the command now in the buffers: the whole typed line on the first
 // call, or the re-tokenized tail of a chained line when chain_next re-enters.
 block parse_line()
     change parse_fault to 0
     change shut_in to nothing
-    if word_count() is 0
+    if word_count is 0
         return 0
-    chain_split()
-    let act = resolve_verb()
+    chain_split
+    let act = resolve_verb
     if act is 0
         // A verb-less chained segment borrows the previous command's verb:
         // "take lamp and box" runs the take twice (docs/02 section 8b).
-        change act to verb_fallback()
+        change act to verb_fallback
         if act is 0
             return 0
-    change way to find_direction()
-    resolve_objects()
+    change way to find_direction
+    resolve_objects
     // An ambiguous noun phrase asks rather than refuses: "Which do you
     // mean, the gold coin or the silver coin?" (docs/02 section 8).
     if parse_fault is 3
-        return ask_which()
+        return ask_which
     if parse_fault is not 0
         return 0
     // Remember what the pronouns now mean: the language layer decides which
@@ -93,8 +93,8 @@ block parse_line()
     // TAKE ALL (summon.takeall): a typed all-word hands the command to the
     // granule's expander; a bound noun rides along as the source ("take all
     // from the chest"). The guard folds away without the granule.
-    if any_allwords() is 1
-        if all_typed() is 1
+    if any_allwords is 1
+        if all_typed is 1
             change all_go to 1
     // A language may remap the action now the nouns are known (English turns
     // LOOK <noun> into an examine); the seam lives in the language layer.
@@ -118,7 +118,7 @@ block phrase_score(obj, lo, hi)
             if has_word(obj, d)
                 change s to s + 1
             else
-                if any_plurals() is 1
+                if any_plurals is 1
                     if has_plural(obj, d) is 1
                         change s to s + 1
         change i to i + 1
@@ -163,7 +163,7 @@ block verb_fallback()
     // and THE box", "coge la lampara y LA llave"); a genuinely unknown word
     // is most likely a verb we do not know ("and frobnicate box"), and
     // borrowing over it would silently run the wrong action.
-    let n = word_count()
+    let n = word_count
     let i = 0
     let named = 0
     while i < n
@@ -212,10 +212,10 @@ block match_phrase(lo, hi, plural_ok)
             if peek_byte(d + 6) is 4
                 // THEM names the last group (the plurals granule): the sweep
                 // takes over, in the noun slot only.
-                if any_plurals() is 1
+                if any_plurals is 1
                     if plural_ok is 1
                         if peek_byte(d + 7) is 4
-                            if plural_them() is 1
+                            if plural_them is 1
                                 return nothing
                 let ref = pronoun_slot(peek_byte(d + 7))
                 if ref is not nothing
@@ -227,8 +227,8 @@ block match_phrase(lo, hi, plural_ok)
     let best_score = 0
     let tied = 0
     let obj = 1
-    while obj <= object_count()
-        if not (obj is hidden)
+    while obj <= object_count
+        if obj is not hidden
             let s = phrase_score(obj, lo, hi)
             if s > 0
                 if in_scope(obj)
@@ -256,7 +256,7 @@ block match_phrase(lo, hi, plural_ok)
     if tied is 1
         // A tie made by a group word is not an ambiguity: "take coins" means
         // every coin, and the plurals granule sweeps them (noun slot only).
-        if any_plurals() is 1
+        if any_plurals is 1
             if plural_ok is 1
                 if plural_tie(lo, hi) is 1
                     return nothing
@@ -279,7 +279,7 @@ block match_phrase(lo, hi, plural_ok)
 // what no object's vocabulary carries, so a particle or direction word inside
 // the phrase costs nothing, and a person named Pat survives "pat" the verb.
 block match_first_phrase()
-    let n = word_count()
+    let n = word_count
     let lo = 1
     // A borrowed-verb segment (the "box" leg of "take lamp and box") has no
     // verb word: word 0 is already the noun, so the phrase starts there. A
@@ -321,7 +321,7 @@ block match_first_phrase()
 // the takeall granule is summoned; without it the any_allwords guard folds
 // and dead-code elimination drops this block.
 block all_typed()
-    let n = word_count()
+    let n = word_count
     let i = 1
     while i < n
         let d = word_dict(i)
@@ -337,28 +337,28 @@ block all_typed()
 block list_which()
     let total = 0
     let obj = 1
-    while obj <= object_count()
-        if not (obj is hidden)
+    while obj <= object_count
+        if obj is not hidden
             if phrase_score(obj, ask_lo, ask_hi) is ask_score
                 if in_scope(obj)
                     change total to total + 1
         change obj to obj + 1
-    line_which_open()
+    line_which_open
     let shown = 0
     change obj to 1
-    while obj <= object_count()
-        if not (obj is hidden)
+    while obj <= object_count
+        if obj is not hidden
             if phrase_score(obj, ask_lo, ask_hi) is ask_score
                 if in_scope(obj)
                     if shown is not 0
                         if shown is total - 1
-                            line_which_or()
+                            line_which_or
                         else
                             show(", ")
                     line_which_item(obj)
                     change shown to shown + 1
         change obj to obj + 1
-    line_which_end()
+    line_which_end
 
 // The disambiguation ask (docs/02 section 8): the phrase in [ask_lo, ask_hi)
 // tied between several objects at score ask_score. Ask which one, then read
@@ -370,25 +370,25 @@ block list_which()
 // exactly like "brass hook" typed whole). An empty answer, or one the line
 // has no room for, gives up with the be-specific refusal.
 block ask_which()
-    par()
-    list_which()
+    par
+    list_which
     // Save the command; the answer claims the live buffer.
-    copy_bytes(text_addr(), ask_addr(), peek_byte(text_addr() + 1) + 2)
-    let term = read_input()
-    if word_count() is 0
+    copy_bytes(text_addr, ask_addr, peek_byte(text_addr + 1) + 2)
+    let term = read_input
+    if word_count is 0
         change parse_fault to 3
         return 0
-    change chain_max to peek_byte(text_addr() + 1)
+    change chain_max to peek_byte(text_addr + 1)
     let d = word_dict(0)
     if d is not nothing
         let f = peek_byte(d + 6)
         if f is 128
-            return parse_line()
+            return parse_line
         if f is 64
-            return parse_line()
-    let alen = peek_byte(ask_addr() + 1)
-    let blen = peek_byte(text_addr() + 1)
-    if alen + blen + 1 > peek_byte(text_addr())
+            return parse_line
+    let alen = peek_byte(ask_addr + 1)
+    let blen = peek_byte(text_addr + 1)
+    if alen + blen + 1 > peek_byte(text_addr)
         change parse_fault to 3
         return 0
     // Weave: head, a space, the answer, then the rest of the original line.
@@ -397,14 +397,14 @@ block ask_which()
     let i = blen
     while i > 0
         change i to i - 1
-        poke_byte(text_addr() + ask_at + 1 + i, peek_byte(text_addr() + 2 + i))
-    copy_bytes(ask_addr() + 2, text_addr() + 2, ask_at - 2)
-    poke_byte(text_addr() + ask_at, 32)
-    copy_bytes(ask_addr() + ask_at, text_addr() + ask_at + 1 + blen, alen - ask_at + 2)
-    poke_byte(text_addr() + 1, alen + blen + 1)
+        poke_byte(text_addr + ask_at + 1 + i, peek_byte(text_addr + 2 + i))
+    copy_bytes(ask_addr + 2, text_addr + 2, ask_at - 2)
+    poke_byte(text_addr + ask_at, 32)
+    copy_bytes(ask_addr + ask_at, text_addr + ask_at + 1 + blen, alen - ask_at + 2)
+    poke_byte(text_addr + 1, alen + blen + 1)
     change chain_max to alen + blen + 1
-    retokenize()
-    return parse_line()
+    retokenize
+    return parse_line
 
 // Command chaining (docs/02 section 8b). A chain word (the language layer's
 // `chain` declarations: "and", "then", the comma) ends the current command;
@@ -414,7 +414,7 @@ block ask_which()
 // typed; chain_pos remembers where it starts (0 when the line has no tail).
 block chain_split()
     change chain_pos to 0
-    let n = word_count()
+    let n = word_count
     let i = 1
     while i < n
         let d = word_dict(i)
@@ -435,8 +435,8 @@ block chain_split()
                 if j < n
                     change chain_pos to word_pos(j)
                 // Cut the line down to the current command and re-tokenize.
-                poke_byte(text_addr() + 1, word_pos(i) - 2)
-                retokenize()
+                poke_byte(text_addr + 1, word_pos(i) - 2)
+                retokenize
                 return 0
         change i to i + 1
     return 0
@@ -445,11 +445,11 @@ block chain_split()
 // out, restore the full typed length, re-tokenize, and parse what remains as
 // a fresh command (chain_split then splits off any further chain word).
 block chain_next()
-    poke_byte(text_addr() + 1, chain_max)
+    poke_byte(text_addr + 1, chain_max)
     let i = 2
     while i < chain_pos
-        poke_byte(text_addr() + i, 32)
+        poke_byte(text_addr + i, 32)
         change i to i + 1
     change chain_pos to 0
-    retokenize()
-    return parse_line()
+    retokenize
+    return parse_line

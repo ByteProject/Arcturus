@@ -32,15 +32,15 @@ block run_all(act)
         if noun is not nothing
             all_from(noun)
             return 0
-        all_take()
+        all_take
         return 0
     if act is action_id("drop")
-        all_drop()
+        all_drop
         return 0
     change refused to 1
-    msg_all_verb()
-    fire_turn()
-    tick()
+    msg_all_verb
+    fire_turn
+    tick
     return 0
 
 // Does the object sit in this room's tree (not carried)? Walks the parents.
@@ -93,7 +93,7 @@ block from_takeable(obj)
     return 1
 
 block all_take()
-    let n = object_count()
+    let n = object_count
     let count = 0
     let obj = 1
     while obj <= n
@@ -103,9 +103,9 @@ block all_take()
         change obj to obj + 1
     if count is 0
         change refused to 1
-        msg_all_none()
-        fire_turn()
-        tick()
+        msg_all_none
+        fire_turn
+        tick
     return 0
 
 block all_from(source)
@@ -114,15 +114,15 @@ block all_from(source)
         if shut_holds(source)
             change second to source
             change refused to 1
-            msg_closed()
-            fire_turn()
-            tick()
+            msg_closed
+            fire_turn
+            tick
             return 0
-    let n = object_count()
+    let n = object_count
     let count = 0
     let obj = 1
     while obj <= n
-        if parent_of(obj) is source
+        if obj is in source
             if from_takeable(obj) is 1
                 change count to count + 1
                 sweep_one(obj, action_id("take"))
@@ -130,25 +130,25 @@ block all_from(source)
     if count is 0
         change refused to 1
         msg_all_none_in(source)
-        fire_turn()
-        tick()
+        fire_turn
+        tick
     return 0
 
 block all_drop()
-    let n = object_count()
+    let n = object_count
     let count = 0
     let obj = 1
     while obj <= n
-        if parent_of(obj) is player
-            if not (obj is worn)
+        if obj is in player
+            if obj is not worn
                 change count to count + 1
                 sweep_one(obj, action_id("drop"))
         change obj to obj + 1
     if count is 0
         change refused to 1
-        msg_empty_handed()
-        fire_turn()
-        tick()
+        msg_empty_handed
+        fire_turn
+        tick
     return 0
 
 // The wording. Fork the granule to change any of these lines.

@@ -16,9 +16,9 @@
 //   set_window(n)          draw into window 0 (main) or 1 (upper)
 //   set_cursor(line, col)  move the upper-window cursor (1-based)
 //   set_style(s)           text style: 0 normal, 1 reverse, 2 bold, 4 italic
-//   screen_width()         the screen width in characters, from the header
+//   screen_width         the screen width in characters, from the header
 //
-// The redraw hook is simply prompt(): Cosmos calls prompt() before reading every
+// The redraw hook is simply prompt: Cosmos calls prompt before reading every
 // command (including the first, right after the opening room), so overriding it
 // to paint the bar first means the line is always current, with no change to the
 // turn loop and nothing added to a story that does not summon this granule.
@@ -30,8 +30,8 @@
 // The input prompt, extended: paint the bar, then do the ordinary prompt (the
 // paragraph break and the ">" the core library would have shown).
 block prompt()
-    draw_status()
-    par()
+    draw_status
+    par
     show(">")
 
 // Set up the one-row upper window and paint the bar into it. The painting itself
@@ -49,7 +49,7 @@ block draw_status()
     buffer_mode(0)
     split_window(1)
     set_window(1)
-    status_bar()
+    status_bar
     set_window(0)
     buffer_mode(1)
     change par_pending to held
@@ -70,14 +70,14 @@ block title_in_bar()
 // screen (a 40-column C64, a 53-column Spectrum) gets the compact
 // "Score: <score>/<turns>" so it still fits. Redefine this to change the layout.
 block status_bar()
-    let w = screen_width()
+    let w = screen_width
     if w is 0
         change w to 40
     // The status colour (zcolor.statusline), the way PunyInform's clr_fgstatus
     // works: the bar draws in it, and the base font colour returns afterwards.
     // Unset (0) on a colourless interpreter, so this costs one test there.
-    if zc_status() is not 0
-        set_colour(zc_status(), 0)
+    if zc_status is not 0
+        set_colour(zc_status, 0)
     set_style(1)
     // Fill the line so the whole bar is in reverse video, not just the text.
     set_cursor(1, 1)
@@ -94,6 +94,6 @@ block status_bar()
     // (line_status_score) so a pack sets its own labels and their widths.
     line_status_score(w)
     set_style(0)
-    if zc_status() is not 0
-        set_colour(zc_font(), 0)
+    if zc_status is not 0
+        set_colour(zc_font, 0)
 

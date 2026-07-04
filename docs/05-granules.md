@@ -149,26 +149,26 @@ Three blocks, called in order:
   `width` the length of the LONGEST line, counted by hand the way one counts a
   fixed-width layout. The box adds one space of padding on each side and a
   blank reverse row above and below. Opening the box clears the screen.
-- `quote_line()` advances to the next line and leaves the cursor inside it;
+- `quote_line` advances to the next line and leaves the cursor inside it;
   the author's own `show("...")` then prints that line's text. One
-  `quote_line()` / `show(...)` pair per line, top to bottom. Lines print
+  `quote_line` / `show(...)` pair per line, top to bottom. Lines print
   left-aligned inside the box; pad with leading spaces by hand for a
   right-aligned attribution, exactly as on paper. An empty line is
-  `quote_line()` followed by `show("")`.
-- `quote_done()` draws the bottom row, waits for a single keypress, and clears
+  `quote_line` followed by `show("")`.
+- `quote_done` draws the bottom row, waits for a single keypress, and clears
   the screen for whatever follows. The status line, if summoned, redraws at
   the next prompt.
 
 ```
 on start
     quote(3, 37)
-    quote_line()
+    quote_line
     show("In order to make an apple pie from")
-    quote_line()
+    quote_line
     show("scratch, you must first create the")
-    quote_line()
+    quote_line
     show("universe.        -- Carl Sagan")
-    quote_done()
+    quote_done
 ```
 
 The text goes through `show(...)` directly because a string cannot travel
@@ -178,8 +178,8 @@ minus four (36 is safe on a 40-column Commodore 64); on a screen too narrow to
 center, the box clamps to the left edge rather than wrapping.
 
 An opening quote usually comes BEFORE the banner. Pair the granule with
-`banner false` in the game block and a `print_banner()` call after
-`quote_done()` (01, section 4; 02, section 3), and the game opens in the
+`banner false` in the game block and a `print_banner` call after
+`quote_done` (01, section 4; 02, section 3), and the game opens in the
 classic order: quote, keypress, banner, story. The box prints no words of its
 own, so it works identically in every language, and it draws with the same
 colours the game set with `zcolor` (01, section 16a).

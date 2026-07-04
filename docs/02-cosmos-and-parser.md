@@ -114,8 +114,12 @@ library name and version (Cosmos), separated by spaces rather than a slash.
 The compiler and library versions are build constants, not author-set. A game
 that wants its own opening first (a quote box, a pregame prelude) sets
 `banner false` in the game block, which stops the automatic banner, and calls
-`print_banner()` whenever the banner should appear; never calling it leaves
-the banner out entirely, and dead-code elimination drops it.
+`print_banner` whenever the banner should appear; never calling it leaves
+the banner out entirely, and dead-code elimination drops it. The banner
+manages its own vertical space: it flushes a pending paragraph break before
+printing (so it splices cleanly after mid-game prose) and marks one after,
+and at game start under a status bar the title sits DIRECTLY below the bar
+(where Inform leaves a stray blank line). No story ever pads a banner.
 
 The words in line two are language, not structure, so they come from the
 language layer: `line_by` prints the connector (" by "; " de " in Spanish,
@@ -274,7 +278,7 @@ look prints the title as usual.
 
 A story moves the player without walking through `teleport(dest)`, the
 cutscene arrival (a crash landing, a transit pod, a trapdoor): it relocates
-the player, pays a scored room's points exactly once (the same `arrive()`
+the player, pays a scored room's points exactly once (the same `arrive`
 the go handler funnels through), marks the room visited, and describes it.
 It does not fire the room's `on enter` (that event belongs to walking; a
 teleport's own prose sets the scene). Unused, it folds away.
@@ -508,7 +512,7 @@ Out-of-world actions never enter the chain at all: score, save, restore,
 restart, and quit report on or manage the session rather than act in the
 world, so no object, recipient, or room handler ever sees them (Inform and
 PunyInform mark the same verbs meta). The compiler numbers them past
-`meta_floor()` and the dispatcher routes them straight to the free rules,
+`meta_floor` and the dispatcher routes them straight to the free rules,
 where a story-level `on score` can still override the default.
 
 Each handler runs until it ends or calls `continue`. Ending consumes the
@@ -869,7 +873,7 @@ Verb particles, so separable verbs read naturally. A multi-word verb combines a
 base verb with a particle (English "switch on", "take off"; German "schalt ... an",
 "schliess ... auf"). The particle words are declared in the language layer, not the
 compiler, with `particle <role> "word", ...`. The roles are `on`, `off`, `auf`, and
-`zu` (prelude `_PARTICLE_ROLES`), and the parser's `compound()` block maps a base
+`zu` (prelude `_PARTICLE_ROLES`), and the parser's `compound` block maps a base
 verb plus a role to the real action, so the same word can mean different things
 after different verbs. German uses all four:
 
@@ -879,7 +883,7 @@ after different verbs. German uses all four:
 - `particle auf "auf"` / `particle zu "zu"` with a base `verb "schliess", ...`
   (whose first grammar line is `close`) give the everyday "schliess die Tuer mit
   dem Schluessel auf" (unlock), "... ab" and "... zu" (lock), while bare "schliess
-  die Kiste" still closes. "ab" doubles as the switch-off particle; `compound()`
+  die Kiste" still closes. "ab" doubles as the switch-off particle; `compound`
   keys on the base verb, so "ab" means off after schalt and lock after schliess.
 
 The parser finds the particle wherever it falls (both orders work for a one-noun

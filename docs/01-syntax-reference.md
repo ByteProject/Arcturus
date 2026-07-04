@@ -97,7 +97,7 @@ YYMMDD serial; if omitted the compiler uses the build date. `UUID` is written
 into the story file as an IFID array so IFDB and similar can identify the
 game; it is optional but recommended. `headline` is the subtitle line of the
 banner. `banner false` stops the automatic banner at start: the game prints it
-later with `print_banner()` (after a quote box, say), or never.
+later with `print_banner` (after a quote box, say), or never.
 The banner also names the compiler (Arcturus) and the library
 (Cosmos) with their versions; see 02.
 
@@ -709,6 +709,20 @@ and need no type annotation. Recursion is allowed, bounded by the Z-machine
 stack. The 15-locals limit per Z-machine routine is managed by the compiler,
 which spills to the stack as needed.
 
+PARENTHESES ONLY WHERE THEY EARN THEIR KEEP: a block (or intrinsic) that
+takes no values is called by its bare name, in statement position
+(`print_banner`, `describe_room`) and in value position alike
+(`let k = read_key`, `if any_scored is 1`). The bare name resolves as a call
+only after every data name (locals, globals, objects, constants,
+directions), so story names always win, and naming a block that does take
+values is a compile error pointing at the parenthesized form. Parens appear
+exactly where arguments do: `teleport(wreckage_site)`, `random(6)`,
+`quote(5, 29)`. The same doctrine prefers the English tests over call
+shapes: `if shard is not moved` (never `if not (shard is moved)`; the
+grouped form is for genuinely compound conditions), and `if chip is in
+scope` or the short `chip in box` for the tree test, with `is not in` the
+negation.
+
 Blocks also serve as computed property values (section 6) and as grain
 responses (section 14). A block attached to a property or grain may be named
 and referenced, or written inline as an indented body.
@@ -1044,8 +1058,14 @@ To follow a say with a paragraph break, say it with the `par` modifier:
 `say.par "..."` prints the text and marks the library's pending break, which
 the next output flushes as a single blank line (repeats collapse, docs/02).
 Consecutive prose paragraphs are each a `say.par` line, no bookkeeping
-between them. The modifier composes with a colour in either order:
-`say.yellow.par` and `say.par.yellow` are the same coloured paragraph.
+between them. The mirrored `par.say "..."` puts the break FIRST: the reveal
+paragraph appended under existing prose (a first-visit aside, a description
+that grows a second paragraph when the state changes). Both compose with a
+colour in any order (`say.yellow.par`, `par.say.yellow`), and `par.say.par`
+is a free-standing paragraph. The banner manages its own spacing the same
+way (a trailing pending break; under a status bar the title sits directly
+below the bar), so a story never calls the bare `par` for routine prose. If
+story code reads like Inform new_lines, something is being done wrong.
 
 Interpolation embeds an expression with `${ }`; printing an object prints its
 `name`. Article helpers: `${the ruby}`, `${a ruby}`, and the capitalized

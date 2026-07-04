@@ -42,11 +42,11 @@ language "spanish"
 // necesita las formas sin acento para lo que el jugador escribe. Los códigos
 // son los del juego de caracteres ZSCII por defecto (Standard 1.1, 3.8.5).
 block fold_accents()
-    let n = peek_byte(text_addr() + 1)
+    let n = peek_byte(text_addr + 1)
     let i = 0
     let changed = 0
     while i < n
-        let a = text_addr() + 2 + i
+        let a = text_addr + 2 + i
         let c = peek_byte(a)
         if c is 169
             poke_byte(a, 97)
@@ -71,16 +71,16 @@ block fold_accents()
             change changed to 1
         change i to i + 1
     if changed is 1
-        retokenize()
+        retokenize
 
 block resolve_verb()
-    fold_accents()
+    fold_accents
     let d = word_dict(0)
     if d is not nothing
         let flags = peek_byte(d + 6)
         if flags is 128
             let base = peek_byte(d + 7)
-            let p = find_particle()
+            let p = find_particle
             if p is not nothing
                 let c = compound(base, p)
                 if c is not nothing
@@ -91,7 +91,7 @@ block resolve_verb()
     // ¿Ningún verbo al principio? Si en la frase aparece una dirección, sigue
     // siendo una orden de ir: así el parser entiende "hacia arriba" o "para
     // abajo", donde la primera palabra ni siquiera está en el diccionario.
-    if find_direction() is not nothing
+    if find_direction is not nothing
         return action_id("go")
     // Los clíticos de PunyInformES: una palabra desconocida que termina en
     // -lo/-la/-le/-los/-las/-les suele ser un imperativo con su pronombre
@@ -104,7 +104,7 @@ block resolve_verb()
     // pierde la -r y se reanaliza, con lo que "comer pan" encuentra "come".
     if word_dict(0) is nothing
         let len = word_len(0)
-        let base = text_addr() + word_pos(0)
+        let base = text_addr + word_pos(0)
         let cut = 0
         let slot = 0
         if len > 4
@@ -138,21 +138,21 @@ block resolve_verb()
             while i < cut
                 poke_byte(base + len - 1 - i, 32)
                 change i to i + 1
-            retokenize()
-            let act = resolve_verb()
+            retokenize
+            let act = resolve_verb
             if act is not 0
                 change clitico to slot
             return act
         if len > 2
             if peek_byte(base + len - 1) is 114
                 poke_byte(base + len - 1, 32)
-                retokenize()
-                return resolve_verb()
+                retokenize
+                return resolve_verb
     return 0
 
 // A verb particle after the verb (the "off" in "switch off"), as its id.
 block find_particle()
-    let n = word_count()
+    let n = word_count
     let i = 1
     while i < n
         let d = word_dict(i)
@@ -223,7 +223,7 @@ block compound(base, particle)
 // (a direction word's dictionary entry is flagged with bit 6, and byte 2 holds
 // the direction property). Returns nothing if no direction was named.
 block find_direction()
-    let n = word_count()
+    let n = word_count
     let i = 0
     while i < n
         let d = word_dict(i)
@@ -272,7 +272,7 @@ block see_into(obj)
             return 1
         if obj is clear
             return 1
-        if not (obj is openable)
+        if obj is not openable
             return 1
     return 0
 
@@ -283,7 +283,7 @@ block shut_holds(obj)
         return 0
     if obj is clear
         return 0
-    if not (obj is openable)
+    if obj is not openable
         return 0
     return 1
 
@@ -291,7 +291,7 @@ block shut_holds(obj)
 // content matching the word. Records the blocking container in shut_in.
 block shut_search(where, target)
     for each obj in where
-        if not (obj is hidden)
+        if obj is not hidden
             if obj is container
                 if shut_holds(obj)
                     let known = shut_match(obj, target)
@@ -302,7 +302,7 @@ block shut_search(where, target)
 
 block shut_match(holder, target)
     for each x in holder
-        if not (x is hidden)
+        if x is not hidden
             if x is seen
                 if has_word(x, target)
                     return x
@@ -312,7 +312,7 @@ block shut_match(holder, target)
 // scoring matcher (parser.prelude match_phrase): the in-scope object matching
 // the most typed words wins, a tie is a genuine ambiguity (parse_fault 3).
 block match_noun()
-    return match_first_phrase()
+    return match_first_phrase
 
 // Resolve the command's objects into the noun (and, for a two-noun verb like
 // "put noun on noun", the second). The verb's dictionary entry carries its noun
@@ -331,7 +331,7 @@ block resolve_objects()
             let arity = peek_byte(d + 8)
             let va = peek_byte(d + 7)
             if arity is 2
-                resolve_two_nouns()
+                resolve_two_nouns
                 return 1
             if arity is 0
                 // oops takes a trailing correction word, not a noun; never an error.
@@ -339,7 +339,7 @@ block resolve_objects()
                     if has_extra_words(va) is 1
                         change parse_fault to 2
                 return 1
-    change noun to match_noun()
+    change noun to match_noun
     // Un clítico pendiente ("cogela") es el sustantivo de la orden: el
     // referente de su casilla, si sigue a la vista. Si el referente se fue,
     // cae en el fallo honesto de siempre ("No ves nada de eso por aquí").
@@ -358,15 +358,15 @@ block resolve_objects()
     if parse_fault is not 0
         return 1
     // Un barrido plural pendiente ("coge monedas") liga objeto a objeto.
-    if any_plurals() is 1
+    if any_plurals is 1
         if plural_go is not 0
             return 1
     if noun is nothing
-        change noun to reach_unscoped()
+        change noun to reach_unscoped
     if noun is nothing
-        change grain to find_scenery()
+        change grain to find_scenery
         if grain is 0
-            change parse_fault to named_unseen()
+            change parse_fault to named_unseen
     return 1
 
 // A hook for reaching an object ordinary scope could not: nothing by default, so
@@ -381,7 +381,7 @@ block reach_unscoped()
 // prepositions, and grain words all carry a flag byte), so an unflagged word that
 // the noun match did not consume names a thing that simply is not here.
 block named_unseen()
-    return phrase_named(1, word_count())
+    return phrase_named(1, word_count)
 
 // For an intransitive verb (no noun slot), is there a word after it the grammar
 // cannot use? Returns 1 the moment it finds one. A go command is the exception:
@@ -389,9 +389,9 @@ block named_unseen()
 // lleva la palabra de relleno "hacia", que ni siquiera está en el diccionario.
 block has_extra_words(act)
     if act is action_id("go")
-        if find_direction() is not nothing
+        if find_direction is not nothing
             return 0
-    if word_count() > 1
+    if word_count > 1
         return 1
     return 0
 
@@ -400,8 +400,8 @@ block has_extra_words(act)
 block find_scenery()
     // The walker folds away entirely (any_grains is a compile-time flag) in a
     // game that declares no grains, so unused scenery costs nothing.
-    if any_grains() is 1
-        let n = word_count()
+    if any_grains is 1
+        let n = word_count
         let i = 1
         while i < n
             let d = word_dict(i)
@@ -446,7 +446,7 @@ block is_separator(target)
 // an out-of-scope first noun stay unresolved (so the verb reports "you can't see
 // that") instead of letting the recipient slide into its slot.
 block resolve_two_nouns()
-    let n = word_count()
+    let n = word_count
     let b = 0
     let i = 1
     while i < n
@@ -483,13 +483,13 @@ block resolve_two_nouns()
 // loop must call note_oops even when the verb did not parse (see run_game).
 block note_oops()
     change oops_ready to 0
-    let n = word_count()
+    let n = word_count
     let i = 0
     while i < n
         if word_dict(i) is nothing
             change oops_word to i
             change oops_ready to 1
-            copy_bytes(parse_addr(), oops_addr(), 2 + 4 * n)
+            copy_bytes(parse_addr, oops_addr, 2 + 4 * n)
             return 0
         change i to i + 1
     return 0
@@ -500,26 +500,26 @@ block note_oops()
 // result as an ordinary turn.
 block fix_oops()
     if oops_ready is 0
-        msg_cant_oops()
+        msg_cant_oops
         return 0
     let fix = word_dict(1)
     if fix is nothing
-        msg_cant_oops()
+        msg_cant_oops
         return 0
     // Restore the saved command, then overwrite the bad word's dictionary slot
     // (the two-byte entry at parse offset 2 + 4*index) with the correction.
-    copy_bytes(oops_addr(), parse_addr(), 2 + 4 * peek_byte(oops_addr() + 1))
-    poke_word(parse_addr(), 1 + 2 * oops_word, fix)
-    let act = resolve_verb()
+    copy_bytes(oops_addr, parse_addr, 2 + 4 * peek_byte(oops_addr + 1))
+    poke_word(parse_addr, 1 + 2 * oops_word, fix)
+    let act = resolve_verb
     if act is 0
         return 0
-    change way to find_direction()
-    resolve_objects()
+    change way to find_direction
+    resolve_objects
     if parse_fault is 1
-        msg_cant_see()
+        msg_cant_see
         return 0
     if parse_fault is 3
-        msg_be_specific()
+        msg_be_specific
         return 0
     return act
 
@@ -572,7 +572,7 @@ verb "examinar", "examina", "x", "inspeccionar", "inspecciona"
 // Meta verbs. These report on or steer the session rather than act in the world,
 // so each sets meta_turn: the loop then skips the per-turn pulse and the turn
 // count (a cancelled quit must not cost a turn). quit and restart confirm first.
-// Override on quit for a custom send-off, reusing confirm_quit() and do_quit().
+// Override on quit for a custom send-off, reusing confirm_quit and do_quit.
 verb "fin", "terminar", "termina"
     quit
 
@@ -739,7 +739,7 @@ verb "cantar", "canta"
 // name); a `named` object (Linda, Excalibur) takes no article at all. The named
 // check folds away in a game with no named objects (any_named).
 block art_the(obj, cap)
-    if any_named() is 1
+    if any_named is 1
         if obj is named
             print_name(obj)
             return
@@ -764,7 +764,7 @@ block art_the(obj, cap)
     print_name(obj)
 
 block art_a(obj, cap)
-    if any_named() is 1
+    if any_named is 1
         if obj is named
             print_name(obj)
             return
@@ -800,7 +800,7 @@ block banner_headline()
 // collapsed with any the turn already pending) rather than forcing its own, so
 // responses are separated from the next prompt by exactly one blank line.
 block prompt()
-    par()
+    par
     show(">")
 
 // What of a holder's contents should be listed: not hidden or concealed, and
@@ -886,7 +886,7 @@ block list_item(obj)
     // Martínez): el único estado que el listado no revela por sí solo. El
     // participio concuerda con el género.
     if obj is openable
-        if not (obj is open)
+        if obj is not open
             if obj is feminine
                 show(" (que está cerrada)")
             else
@@ -962,7 +962,7 @@ block msg_talk_over()
 // The status line's score side (the statusline granule): the score and moves,
 // right-aligned, in Spanish words and widths.
 block line_status_score(w)
-    if any_awards() is 0
+    if any_awards is 0
         set_cursor(1, w - 9 - status_digits(turns))
         show("Turnos: ")
         show(turns)
@@ -1242,7 +1242,7 @@ block msg_extra_words()
 // caller prints the question first, so this is shared by every confirmation. The
 // yes test (a leading 'y') is English, so it lives in the language layer.
 block yes_no()
-    let term = read_input()
+    let term = read_input
     let c = text_char(0)
     if c is 115
         return 1
@@ -1253,7 +1253,7 @@ block yes_no()
 // Ask the player to confirm quitting; returns 1 for yes.
 block confirm_quit()
     show("¿Seguro que quieres salir? ")
-    return yes_no()
+    return yes_no
 
 // The farewell, overridable for a custom send-off.
 block msg_farewell()
@@ -1262,7 +1262,7 @@ block msg_farewell()
 // Meta verbs (the score, a restart confirmation, the xyzzy easter egg). save,
 // restore, and undo bring their own messages with the meta-verb opcodes.
 block msg_score()
-    if any_awards() is 0
+    if any_awards is 0
         say "Este juego no lleva puntuación."
         return 0
     show("Has conseguido ${score} de un total de ${max_score} puntos en ")
@@ -1271,9 +1271,9 @@ block msg_score()
         show(" turno")
     else
         show(" turnos")
-    if any_ranks() is 1
+    if any_ranks is 1
         show(", lo que te otorga el rango de ")
-        print_rank()
+        print_rank
     say "."
 
 block msg_confirm_restart()

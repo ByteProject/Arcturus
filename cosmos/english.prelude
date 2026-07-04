@@ -37,7 +37,7 @@ block resolve_verb()
     let flags = peek_byte(d + 6)
     if flags is 128
         let base = peek_byte(d + 7)
-        let p = find_particle()
+        let p = find_particle
         if p is not nothing
             let c = compound(base, p)
             if c is not nothing
@@ -49,7 +49,7 @@ block resolve_verb()
 
 // A verb particle after the verb (the "off" in "switch off"), as its id.
 block find_particle()
-    let n = word_count()
+    let n = word_count
     let i = 1
     while i < n
         let d = word_dict(i)
@@ -83,7 +83,7 @@ block compound(base, particle)
 // (a direction word's dictionary entry is flagged with bit 6, and byte 2 holds
 // the direction property). Returns nothing if no direction was named.
 block find_direction()
-    let n = word_count()
+    let n = word_count
     let i = 0
     while i < n
         let d = word_dict(i)
@@ -132,7 +132,7 @@ block see_into(obj)
             return 1
         if obj is clear
             return 1
-        if not (obj is openable)
+        if obj is not openable
             return 1
     return 0
 
@@ -143,7 +143,7 @@ block shut_holds(obj)
         return 0
     if obj is clear
         return 0
-    if not (obj is openable)
+    if obj is not openable
         return 0
     return 1
 
@@ -151,7 +151,7 @@ block shut_holds(obj)
 // content matching the word. Records the blocking container in shut_in.
 block shut_search(where, target)
     for each obj in where
-        if not (obj is hidden)
+        if obj is not hidden
             if obj is container
                 if shut_holds(obj)
                     let known = shut_match(obj, target)
@@ -162,7 +162,7 @@ block shut_search(where, target)
 
 block shut_match(holder, target)
     for each x in holder
-        if not (x is hidden)
+        if x is not hidden
             if x is seen
                 if has_word(x, target)
                     return x
@@ -172,7 +172,7 @@ block shut_match(holder, target)
 // scoring matcher (parser.prelude match_phrase): the in-scope object matching
 // the most typed words wins, a tie is a genuine ambiguity (parse_fault 3).
 block match_noun()
-    return match_first_phrase()
+    return match_first_phrase
 
 // Resolve the command's objects into the noun (and, for a two-noun verb like
 // "put noun on noun", the second). The verb's dictionary entry carries its noun
@@ -191,7 +191,7 @@ block resolve_objects()
             let arity = peek_byte(d + 8)
             let va = peek_byte(d + 7)
             if arity is 2
-                resolve_two_nouns()
+                resolve_two_nouns
                 return 1
             if arity is 0
                 // oops takes a trailing correction word, not a noun; never an error.
@@ -199,21 +199,21 @@ block resolve_objects()
                     if has_extra_words(va) is 1
                         change parse_fault to 2
                 return 1
-    change noun to match_noun()
+    change noun to match_noun
     // An ambiguity fault (3) stands: falling through to the grain and
     // unseen checks would overwrite the honest "which do you mean".
     if parse_fault is not 0
         return 1
     // A pending plural sweep ("take coins", THEM) binds per object later.
-    if any_plurals() is 1
+    if any_plurals is 1
         if plural_go is not 0
             return 1
     if noun is nothing
-        change noun to reach_unscoped()
+        change noun to reach_unscoped
     if noun is nothing
-        change grain to find_scenery()
+        change grain to find_scenery
         if grain is 0
-            change parse_fault to named_unseen()
+            change parse_fault to named_unseen
     return 1
 
 // A hook for reaching an object ordinary scope could not: nothing by default, so
@@ -228,14 +228,14 @@ block reach_unscoped()
 // prepositions, and grain words all carry a flag byte), so an unflagged word that
 // the noun match did not consume names a thing that simply is not here.
 block named_unseen()
-    return phrase_named(1, word_count())
+    return phrase_named(1, word_count)
 
 // For an intransitive verb (no noun slot), is there a word after it the grammar
 // cannot use? Returns 1 the moment it finds one. A direction after `go` is the
 // exception: movement consumes it through `way`, so "go north" is whole, while
 // "jump north" or "look cloak" carries a word too many.
 block has_extra_words(act)
-    let n = word_count()
+    let n = word_count
     let i = 1
     while i < n
         let keep = 0
@@ -254,8 +254,8 @@ block has_extra_words(act)
 block find_scenery()
     // The walker folds away entirely (any_grains is a compile-time flag) in a
     // game that declares no grains, so unused scenery costs nothing.
-    if any_grains() is 1
-        let n = word_count()
+    if any_grains is 1
+        let n = word_count
         let i = 1
         while i < n
             let d = word_dict(i)
@@ -302,7 +302,7 @@ block is_separator(target)
 // noun stay unresolved (so the verb reports "you can't see that") instead of
 // letting the recipient slide into its slot.
 block resolve_two_nouns()
-    let n = word_count()
+    let n = word_count
     let b = 0
     let i = 1
     while i < n
@@ -339,13 +339,13 @@ block resolve_two_nouns()
 // loop must call note_oops even when the verb did not parse (see run_game).
 block note_oops()
     change oops_ready to 0
-    let n = word_count()
+    let n = word_count
     let i = 0
     while i < n
         if word_dict(i) is nothing
             change oops_word to i
             change oops_ready to 1
-            copy_bytes(parse_addr(), oops_addr(), 2 + 4 * n)
+            copy_bytes(parse_addr, oops_addr, 2 + 4 * n)
             return 0
         change i to i + 1
     return 0
@@ -356,26 +356,26 @@ block note_oops()
 // result as an ordinary turn.
 block fix_oops()
     if oops_ready is 0
-        msg_cant_oops()
+        msg_cant_oops
         return 0
     let fix = word_dict(1)
     if fix is nothing
-        msg_cant_oops()
+        msg_cant_oops
         return 0
     // Restore the saved command, then overwrite the bad word's dictionary slot
     // (the two-byte entry at parse offset 2 + 4*index) with the correction.
-    copy_bytes(oops_addr(), parse_addr(), 2 + 4 * peek_byte(oops_addr() + 1))
-    poke_word(parse_addr(), 1 + 2 * oops_word, fix)
-    let act = resolve_verb()
+    copy_bytes(oops_addr, parse_addr, 2 + 4 * peek_byte(oops_addr + 1))
+    poke_word(parse_addr, 1 + 2 * oops_word, fix)
+    let act = resolve_verb
     if act is 0
         return 0
-    change way to find_direction()
-    resolve_objects()
+    change way to find_direction
+    resolve_objects
     if parse_fault is 1
-        msg_cant_see()
+        msg_cant_see
         return 0
     if parse_fault is 3
-        msg_be_specific()
+        msg_be_specific
         return 0
     return act
 
@@ -427,7 +427,7 @@ verb "examine", "x"
 // Meta verbs. These report on or steer the session rather than act in the world,
 // so each sets meta_turn: the loop then skips the per-turn pulse and the turn
 // count (a cancelled quit must not cost a turn). quit and restart confirm first.
-// Override on quit for a custom send-off, reusing confirm_quit() and do_quit().
+// Override on quit for a custom send-off, reusing confirm_quit and do_quit.
 verb "quit", "q"
     quit
 
@@ -635,7 +635,7 @@ verb "sing"
 // name); a `named` object (Linda, Excalibur) takes no article at all. The named
 // check folds away in a game with no named objects (any_named).
 block art_the(obj, cap)
-    if any_named() is 1
+    if any_named is 1
         if obj is named
             print_name(obj)
             return
@@ -654,7 +654,7 @@ block art_the(obj, cap)
     print_name(obj)
 
 block art_a(obj, cap)
-    if any_named() is 1
+    if any_named is 1
         if obj is named
             print_name(obj)
             return
@@ -691,7 +691,7 @@ block banner_headline()
 // collapsed with any the turn already pending) rather than forcing its own, so
 // responses are separated from the next prompt by exactly one blank line.
 block prompt()
-    par()
+    par
     show(">")
 
 // What of a holder's contents should be listed: not hidden or concealed, and
@@ -776,7 +776,7 @@ block list_item(obj)
     // A closed openable says so (Pablo Martinez's suggestion, the PunyInform
     // qualifier): the one state a player cannot read off the listing.
     if obj is openable
-        if not (obj is open)
+        if obj is not open
             show(" (closed)")
     show_tag(obj)
     list_contents(obj)
@@ -854,7 +854,7 @@ block msg_talk_over()
 block line_status_score(w)
     // A game that scores nothing shows only the move count; the score side
     // would be a permanent "Score: 0". The fold decides at compile time.
-    if any_awards() is 0
+    if any_awards is 0
         set_cursor(1, w - 8 - status_digits(turns))
         show("Moves: ")
         show(turns)
@@ -1105,7 +1105,7 @@ block msg_extra_words()
 // caller prints the question first, so this is shared by every confirmation. The
 // yes test (a leading 'y') is English, so it lives in the language layer.
 block yes_no()
-    let term = read_input()
+    let term = read_input
     let c = text_char(0)
     if c is 121
         return 1
@@ -1116,7 +1116,7 @@ block yes_no()
 // Ask the player to confirm quitting; returns 1 for yes.
 block confirm_quit()
     show("Are you sure you want to quit? ")
-    return yes_no()
+    return yes_no
 
 // The farewell, overridable for a custom send-off.
 block msg_farewell()
@@ -1130,7 +1130,7 @@ block msg_farewell()
 block msg_score()
     // A game that scores nothing says so instead of "0 of a possible 0";
     // the fold makes the branch free either way.
-    if any_awards() is 0
+    if any_awards is 0
         say "This game does not keep score."
         return 0
     show("You have scored ${score} of a possible ${max_score}, in ")
@@ -1139,9 +1139,9 @@ block msg_score()
         show(" turn")
     else
         show(" turns")
-    if any_ranks() is 1
+    if any_ranks is 1
         show(", which earns you the rank of ")
-        print_rank()
+        print_rank
     say "."
 
 block msg_confirm_restart()

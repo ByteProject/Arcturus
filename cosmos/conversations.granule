@@ -31,11 +31,11 @@ block talk_to(person)
 // holds no words and no strings.
 block tell_to(person)
     change refused to 1
-    msg_use_talk()
+    msg_use_talk
 
 block run_talk(person)
     if count_visible(person) is 0
-        msg_no_topics()
+        msg_no_topics
         return 0
     let going = 1
     while going is 1
@@ -43,15 +43,15 @@ block run_talk(person)
         if count > 9
             change count to 9
         if count is 0
-            close_menu()
-            msg_talk_over()
+            close_menu
+            msg_talk_over
             change going to 0
         else
             draw_menu(person, count)
             let pick = menu_choice(count)
             if pick is 0
-                close_menu()
-                msg_talk_over()
+                close_menu
+                msg_talk_over
                 change going to 0
             else
                 set_window(0)
@@ -75,17 +75,17 @@ block draw_menu(person, count)
     // Unbuffered while the menu paints (restored at set_window(0) below), or
     // buffering interpreters reorder the writes around set_cursor.
     buffer_mode(0)
-    let w = screen_width()
+    let w = screen_width
     if w is 0
         change w to 40
-    let top = status_lines()
+    let top = status_lines
     let h = top + count + 3
     set_window(1)
     erase_window(1)
     split_window(h)
     erase_window(1)
     if top is 1
-        status_bar()
+        status_bar
     set_cursor(top + 1, 1)
     line_talk_header(person)
     let i = 0
@@ -100,7 +100,7 @@ block draw_menu(person, count)
                 topic_label(person, i)
         change i to i + 1
     set_cursor(h - 1, 1)
-    line_talk_prompt()
+    line_talk_prompt
     set_cursor(h, 1)
     let d = 1
     while d < w
@@ -115,7 +115,7 @@ block draw_menu(person, count)
 // stray key neither redraws nor exits.
 block menu_choice(count)
     while true
-        let key = read_key()
+        let key = read_key
         if key is 13
             return 0
         if key is 48

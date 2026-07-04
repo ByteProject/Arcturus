@@ -16,7 +16,7 @@
 // and what their property numbers are, because it needs that for movement. These
 // intrinsics open a small window onto that knowledge:
 //
-//   exits_count()   how many directions are properties in this game (a constant)
+//   exits_count   how many directions are properties in this game (a constant)
 //   exit_prop(i)    the property number of the i-th such direction
 //   exit_name(i)    print the i-th direction's name (north, south, ...)
 //
@@ -33,7 +33,7 @@
 // calls msg_cant_go whenever the chosen direction has no exit, so overriding this
 // one block is all it takes; no extra grammar or handlers are needed.
 block msg_cant_go()
-    let n = exits_count()
+    let n = exits_count
     // First pass: count the open exits, so the list can read naturally, with
     // commas between and an "or" before the last one.
     let total = 0
@@ -44,7 +44,7 @@ block msg_cant_go()
             change total to total + 1
         change i to i + 1
     if total is 0
-        msg_no_exits()
+        msg_no_exits
         return 0
     // Second pass: print the exits, choosing the connector by position.
     show("You can only go ")
