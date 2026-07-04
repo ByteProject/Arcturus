@@ -165,11 +165,15 @@ def objtable(objs, defaults=()):
             v = spec.get(key, 0)
             blob[e + off] = (v >> 8) & 0xFF
             blob[e + off + 1] = v & 0xFF
-        # The property table: an empty short name, properties descending.
+        # The property table: the short name (pre-encoded Z-string bytes in
+        # the optional "name" key), then properties descending.
         taddr = OBJ + len(blob)
         blob[e + 12] = (taddr >> 8) & 0xFF
         blob[e + 13] = taddr & 0xFF
-        blob.append(0)  # short-name length 0 (name decoding is M5)
+        name = spec.get("name", b"")
+        assert len(name) % 2 == 0, "a short name is whole words"
+        blob.append(len(name) // 2)
+        blob += name
         for pnum in sorted(spec.get("props", {}), reverse=True):
             data = spec["props"][pnum]
             if len(data) > 2:

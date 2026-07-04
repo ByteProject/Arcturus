@@ -23,8 +23,10 @@ import random as _random
 
 from .decode import LARGE, SMALL, VARIABLE, decode
 from .errors import ActaeaError
+from .dictionary import Dictionary, tokenise
 from .memory import from_signed, to_signed
 from .objects import ObjectTable
+from .text import TextEngine
 
 
 class VMError(ActaeaError):
@@ -41,10 +43,6 @@ class UnimplementedOpcode(ActaeaError):
 # Opcodes that exist but belong to later milestones; the error names where
 # each will arrive so a premature integration test explains itself.
 _LATER = {
-    "print": "M5", "print_ret": "M5", "print_addr": "M5", "print_paddr": "M5",
-    "print_obj": "M5",  # an object opcode, but it PRINTS: it needs the text engine
-    "tokenise": "M5", "encode_text": "M5", "print_unicode": "M5",
-    "check_unicode": "M5", "print_table": "M5",
     "read": "M6", "read_char": "M6",
     "split_window": "M8", "set_window": "M8", "erase_window": "M8",
     "erase_line": "M8", "set_cursor": "M8", "get_cursor": "M8",
@@ -83,6 +81,8 @@ class VM:
         self.pc = story.header.initial_pc
         self.globals_addr = story.header.globals_
         self.objects = ObjectTable(self.mem, story.header.objects)
+        self.text = TextEngine(self.mem, story.header)
+        self.dictionary = Dictionary(self.mem, story.header.dictionary, self.text)
         # The entry point is a bare instruction stream, not a routine, so it
         # runs in a base pseudo-frame that nothing ever returns from.
         self.frames = [Frame(return_pc=0, store=None, locals_=[], argc=0)]
@@ -508,8 +508,7 @@ class VM:
     def _op_quit(self, ins):
         self.halted = True
 
-    # -- numeric output (the full text engine is M5; these two make the
-    # computational machine observable and are complete as they stand) --
+    # -- text output (M5: the engine lives in text.py) --
 
     def _op_print_num(self, ins):
         (v,) = self._values(ins)
@@ -517,19 +516,80 @@ class VM:
 
     def _op_print_char(self, ins):
         (c,) = self._values(ins)
-        # ZSCII 13 is newline; 32..126 match ASCII. The rest of ZSCII (the
-        # extra characters table) arrives with text.py in M5.
-        if c == 13:
-            self.io.print_text("\n")
-        elif 32 <= c <= 126:
-            self.io.print_text(chr(c))
-        else:
-            raise UnimplementedOpcode(
-                f"print_char of ZSCII {c} at {ins.addr:#07x} needs M5's tables"
-            )
+        self.io.print_text(self.text.zscii_to_unicode(c))
 
     def _op_new_line(self, ins):
         self.io.print_text("\n")
+
+    def _op_print(self, ins):
+        # The inline string sits at the end of the instruction; the decoder
+        # kept its span, so its address is the instruction end minus it.
+        text, _ = self.text.decode(ins.next - len(ins.text))
+        self.io.print_text(text)
+
+    def _op_print_ret(self, ins):
+        self._op_print(ins)
+        self.io.print_text("\n")
+        self._ret(1)
+
+    def _op_print_addr(self, ins):
+        (addr,) = self._values(ins)
+        self.io.print_text(self.text.decode(addr)[0])
+
+    def _op_print_paddr(self, ins):
+        (packed,) = self._values(ins)
+        self.io.print_text(self.text.decode(self.mem.unpack(packed))[0])
+
+    def _op_print_obj(self, ins):
+        (obj,) = self._values(ins)
+        addr, _ = self.objects.name_addr(obj)
+        self.io.print_text(self.text.decode(addr)[0])
+
+    def _op_print_table(self, ins):
+        vals = self._values(ins)
+        addr, width = vals[0], vals[1]
+        height = vals[2] if len(vals) > 2 else 1
+        skip = vals[3] if len(vals) > 3 else 0
+        # The honest headless rendering: rows as lines. On the cell grid
+        # (M8) this draws at the cursor, row below row; the io pipe cannot
+        # position, so a newline stands in for the cursor drop.
+        for row in range(height):
+            if row:
+                self.io.print_text("\n")
+            base = addr + row * (width + skip)
+            self.io.print_text(
+                "".join(self.text.zscii_to_unicode(self.mem.byte(base + i))
+                        for i in range(width))
+            )
+
+    def _op_print_unicode(self, ins):
+        (code,) = self._values(ins)
+        self.io.print_text(chr(code))
+
+    def _op_check_unicode(self, ins):
+        # Python strings print anything and (from M7) input returns anything,
+        # so both the can-print and can-read bits stand.
+        (_,) = self._values(ins)
+        self._write_var(ins.store, 3)
+
+    def _op_tokenise(self, ins):
+        vals = self._values(ins)
+        text_addr, parse_addr = vals[0], vals[1]
+        dict_addr = vals[2] if len(vals) > 2 else 0
+        flag = vals[3] if len(vals) > 3 else 0
+        d = self.dictionary if dict_addr == 0 else Dictionary(
+            self.mem, dict_addr, self.text
+        )
+        tokenise(self.mem, text_addr, parse_addr, d, skip_unknown=bool(flag))
+
+    def _op_encode_text(self, ins):
+        text_addr, length, from_, dest = self._values(ins)
+        word = "".join(
+            self.text.zscii_to_unicode(self.mem.byte(text_addr + from_ + i))
+            for i in range(length)
+        )
+        for i, b in enumerate(self.text.encode_word(word)):
+            self.mem.set_byte(dest + i, b)
 
     _ops = {
         "add": _op_add, "sub": _op_sub, "mul": _op_mul, "div": _op_div,
@@ -561,4 +621,9 @@ class VM:
         "nop": _op_nop, "quit": _op_quit,
         "print_num": _op_print_num, "print_char": _op_print_char,
         "new_line": _op_new_line,
+        "print": _op_print, "print_ret": _op_print_ret,
+        "print_addr": _op_print_addr, "print_paddr": _op_print_paddr,
+        "print_obj": _op_print_obj, "print_table": _op_print_table,
+        "print_unicode": _op_print_unicode, "check_unicode": _op_check_unicode,
+        "tokenise": _op_tokenise, "encode_text": _op_encode_text,
     }

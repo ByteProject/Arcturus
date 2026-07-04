@@ -2544,3 +2544,40 @@ the custom alphabet table, abbreviations, encode and decode, the Unicode
 translation table, dictionary lookup, and the print family (print,
 print_ret, print_addr, print_paddr, print_obj, print_table, tokenise,
 encode_text). After M5 the machine talks and CZECH comes within reach.
+
+## 2026-07-04 (night, cont.): Actaea M5 green, the machine talks
+
+text.py: Z-string decode (three alphabets, custom alphabet tables with
+A2's fixed escape/newline, abbreviations from the doubled word addresses,
+10-bit ZSCII escapes spanning word boundaries, nested abbreviations a
+named fault per S 3.3), ZSCII<->Unicode both ways (the Standard 1.1
+default extra table 155..223; a custom Unicode translation table from
+header extension word 3, loaded BEFORE the alphabet table since a custom
+alphabet may name extra characters), and encode_word (the v4+ 9-z-char
+dictionary form). dictionary.py: separators/entry-len/count parsing,
+linear lookup (correct for sorted and unsorted alike), and the v5
+tokeniser (spaces vanish, separators split AND stand, skip_unknown
+leaves the address slot untouched for two-pass merging). VM: the whole
+print family (print, print_ret, print_addr, print_paddr, print_obj,
+print_table as honest headless rows, print_char via the full tables,
+print_unicode, check_unicode -> 3), tokenise, encode_text.
+
+THE CROSS-CHECK: the round-trip tests encode with the ARCTURUS COMPILER's
+zstring and decode with Actaea, two independent implementations meeting
+in the middle, accents included (Mañana, señor Müller está aquí; the
+[[never-strip-accents]] rule as an executable test). encode_word matches
+zstring.encode_dict_word byte for byte.
+
+M5 done-test PASSED, and it is the project's photograph: a real Arcturus
+game (compiled in-process by the real compiler with the real Cosmos)
+BOOTS AND TALKS on Actaea: banner with title/serial/Arcturus/Cosmos
+lines, room description, object intro listing, the > prompt, halting at
+`read at 0x0214c arrives with milestone M6`. Every routine on that path
+(the loop, the banner, the describer, dispatch, the after phase, the
+paragraph machinery) executed on our interpreter. 74 actaea tests, 481
+total. actaea 0.5.0.
+
+NEXT: M6, the conformance gate: aread/read_char through io.py, then
+CZECH and Praxix headless with output matched against the references
+(actaea/conformance/ holds czech.z5 + czech-reference.txt + praxix.z5).
+This is the correctness milestone the whole build hangs on.
