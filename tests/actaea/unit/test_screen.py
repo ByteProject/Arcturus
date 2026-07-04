@@ -155,3 +155,80 @@ def test_cosmos_statusline_draws_into_the_grid():
     assert vm.screen.grid[0][1].style & REVERSE
     # And the room description still flowed to the lower window.
     assert "Crates." in vm.io.text
+
+
+# -- M9: the current look (styles and colours in the model) ---------------------------
+
+def test_colour_state_semantics():
+    from actaea.screen import true_colour_hex
+
+    m, _ = _model()
+    m.set_colour(5, 2)            # yellow on black
+    assert (m.fg, m.bg) == (5, 2)
+    m.set_colour(0, 0)            # 0 keeps both
+    assert (m.fg, m.bg) == (5, 2)
+    m.set_colour(1, 0)            # back to the default foreground
+    assert (m.fg, m.bg) == (1, 2)
+    m.set_true_colour(0x001D, -1)  # true red, keep background
+    assert m.fg == true_colour_hex(0x001D) and m.bg == 2
+    m.set_true_colour(-2, -2)     # defaults
+    assert (m.fg, m.bg) == (1, 1)
+    # Cells written under a colour carry it.
+    m.split(1)
+    m.select(1)
+    m.set_colour(3, 9)
+    m.write("R")
+    assert (m.grid[0][0].fg, m.grid[0][0].bg) == (3, 9)
+
+
+def test_style_set_and_clear():
+    from actaea.screen import BOLD, ITALIC
+
+    m, _ = _model()
+    m.set_style(BOLD)
+    m.set_style(ITALIC)           # styles accumulate (S 8.7.1)
+    assert m.style == BOLD | ITALIC
+    m.set_style(0)                # 0 returns to roman
+    assert m.style == 0
+
+
+def test_colour_and_font_opcodes():
+    import sys, os
+    sys.path.insert(0, os.path.dirname(__file__))
+    from zasm import L, QUIT, S, SP, V, build, ext, long2, print_num, vop
+
+    # set_colour 5,2; set_true_colour red,default; set_font twice.
+    vm, io, _ = build(
+        long2(0x1B, S(5), S(2))                       # set_colour yellow/black
+        + ext(0x0D, L(0x001D), L(0xFFFE))             # true red fg, default bg
+        + ext(0x04, S(4), store=SP) + print_num(V(SP))  # font 4: prev is 1
+        + ext(0x04, S(3), store=SP) + print_num(V(SP))  # font 3: refused, 0
+        + ext(0x04, S(0), store=SP) + print_num(V(SP))  # query: still 4
+        + QUIT
+    )
+    vm.run(max_steps=50)
+    from actaea.screen import true_colour_hex
+
+    assert vm.screen.fg == true_colour_hex(0x001D)
+    assert vm.screen.bg == 1  # -2 = back to default
+    assert io.text == "104"  # prev font 1, refusal 0, query answers 4
+
+
+def test_zcolor_game_drives_the_model():
+    # An Arcturus game using the colour syntax: the compiler lowers
+    # say.<colour> to set_colour pairs around the text; after play the
+    # model is back at the base colour.
+    src = (
+        'game\n    title "Colour Probe"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "Plain."\n'
+        'thing gem in hall\n    name "gem"\n    words gem\n'
+        "    on examine\n"
+        '        say.yellow "It glitters."\n'
+    )
+    story = load(generate(analyze(cosmos.combined_program(parse(src)))))
+    vm = VM(story, CaptureIO(script=["examine gem", "quit", "y"]))
+    vm.run(max_steps=2_000_000)
+    assert vm.halted
+    assert "It glitters." in vm.io.text
+    # flags1 claims colour, so the library's colour path was live.
+    assert vm.mem.byte(0x01) & 0x01

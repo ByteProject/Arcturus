@@ -44,10 +44,7 @@ class UnimplementedOpcode(ActaeaError):
 # Opcodes that exist but belong to later milestones; the error names where
 # each will arrive so a premature integration test explains itself.
 _LATER = {
-    "set_font": "M9",
     "save": "M10", "restore": "M10", "restart": "M10",
-    "output_stream": "M11", "input_stream": "M11", "copy_table": "M11",
-    "scan_table": "M11",
 }
 
 
@@ -110,6 +107,7 @@ class VM:
         # through it to the io sink. Front-ends render the grid via its
         # on_change hook; headless sinks simply never look at it.
         self.screen = ScreenModel(io)
+        self.font = 1  # the current set_font choice (1 normal, 4 fixed)
         self._init_header()
 
     # -- the output funnel: every print opcode lands here ------------------------
@@ -131,8 +129,10 @@ class VM:
         front-end will raise its own flags when it exists."""
         m = self.mem
         flags1 = m.byte(0x01)
-        flags1 |= 0x1C           # bits 2..4: boldface, italic, fixed-space
-        flags1 &= ~0x01 & 0xFF   # bit 0: no colours (yet)
+        # Bits 2..4: boldface, italic, fixed-space; bit 0: colours (M9: the
+        # model carries them and the window renders them; a console simply
+        # shows none, which the standard permits of any colour).
+        flags1 |= 0x1D
         m.set_byte(0x01, flags1)
         m.set_byte(0x1E, 0)      # interpreter number: unspecified
         m.set_byte(0x1F, ord("A"))  # interpreter version: A for Actaea
@@ -747,14 +747,11 @@ class VM:
                 self.mem.set_byte(second + i, data[i])
 
     def _op_set_text_style(self, ins):
-        # The model records the style for the cells it writes; the io hint
-        # stays for style-capable lower windows (M9 renders both).
+        # The screen model is the one truth for the current look, in both
+        # windows: cells record it, and the lower-window renderer reads it
+        # at print time (M9).
         (style,) = self._values(ins)
-        if style == 0:
-            self.screen.style = 0
-        else:
-            self.screen.style |= style
-        self.io.set_style(style)
+        self.screen.set_style(style)
 
     def _op_split_window(self, ins):
         (lines,) = self._values(ins)
@@ -792,14 +789,29 @@ class VM:
         self._values(ins)
 
     def _op_set_colour(self, ins):
-        # Colour hints, like styles: the console ignores them (and its
-        # flags-1 colour bit says so); the GUI renders them at M9.
         vals = self._values(ins)
-        self.io.set_colour(vals[0], vals[1] if len(vals) > 1 else 0)
+        self.screen.set_colour(vals[0], vals[1] if len(vals) > 1 else 0)
 
     def _op_set_true_colour(self, ins):
         vals = self._values(ins)
-        self.io.set_true_colour(vals[0], vals[1] if len(vals) > 1 else 0xFFFE)
+        self.screen.set_true_colour(
+            to_signed(vals[0]),
+            to_signed(vals[1]) if len(vals) > 1 else -1,
+        )
+
+    def _op_set_font(self, ins):
+        # Fonts 1 (normal) and 4 (fixed) are the same face in a monospace
+        # interpreter, so both are "available"; 2 and 3 (character
+        # graphics) are not. The store answers the PREVIOUS font on
+        # success and 0 on refusal; 0 asks without changing (S 15 set_font).
+        (n,) = self._values(ins)
+        if n == 0:
+            self._write_var(ins.store, self.font)
+        elif n in (1, 4):
+            self._write_var(ins.store, self.font)
+            self.font = n
+        else:
+            self._write_var(ins.store, 0)
 
     def _op_tokenise(self, ins):
         vals = self._values(ins)
@@ -856,7 +868,7 @@ class VM:
         "print_unicode": _op_print_unicode, "check_unicode": _op_check_unicode,
         "tokenise": _op_tokenise, "encode_text": _op_encode_text,
         "read": _op_read, "read_char": _op_read_char,
-        "set_text_style": _op_set_text_style,
+        "set_text_style": _op_set_text_style, "set_font": _op_set_font,
         "save_undo": _op_save_undo, "restore_undo": _op_restore_undo,
         "split_window": _op_split_window, "set_window": _op_set_window,
         "erase_window": _op_erase_window, "erase_line": _op_erase_line,

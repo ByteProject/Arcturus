@@ -44,19 +44,6 @@ class IOSystem:
         """One keypress as a ZSCII code (read_char, M7)."""
         raise NotImplementedError("this front-end does not read keys")
 
-    def set_style(self, style: int) -> None:
-        """A text-style hint (set_text_style's argument). A style-less
-        front-end (the console harness) ignores it; the GUI renders it. A
-        hint rather than a required capability, so it defaults to nothing."""
-
-    def set_colour(self, fg: int, bg: int) -> None:
-        """A colour hint (set_colour's standard colour numbers); as with
-        styles, colourless front-ends ignore it."""
-
-    def set_true_colour(self, fg: int, bg: int) -> None:
-        """A Standard 1.1 true-colour hint (15-bit RGB words; -1 keeps, -2
-        default). Ignored wherever colour is not rendered."""
-
     def erase_lower(self) -> None:
         """Clear the lower window (erase_window 0 / -1 / -2). A scrolling
         console keeps its transcript (nothing to clear that would not lose

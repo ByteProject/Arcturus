@@ -32,6 +32,7 @@ from tkinter import font as tkfont
 
 from ..errors import ActaeaError
 from ..io import IOSystem
+from ..screen import BOLD, ITALIC, REVERSE, TRUE_COLOURS, true_colour_hex
 from ..vm import VM
 
 
@@ -66,6 +67,14 @@ class ActaeaApp:
 
         self.font = tkfont.nametofont("TkFixedFont").copy()
         self.font.configure(size=13)
+        # The style variants, shared by the grid and the lower-window tags.
+        self.font_bold = self.font.copy()
+        self.font_bold.configure(weight="bold")
+        self.font_italic = self.font.copy()
+        self.font_italic.configure(slant="italic")
+        self.font_bold_italic = self.font.copy()
+        self.font_bold_italic.configure(weight="bold", slant="italic")
+        self._tags_made: set = set()
 
         # The upper window: a Canvas over the text area, sized in exact
         # character cells, shown only while the story keeps a split open.
@@ -136,6 +145,15 @@ class ActaeaApp:
             self._redraw_queued = True
             self.root.after_idle(self._redraw_grid)
 
+    def _colour(self, value, default: str) -> str:
+        """A cell/model colour as a tk colour: 1 (or anything unmapped) is
+        the front-end default, 2..12 the standard set via the Standard's
+        recommended true colours, a #rrggbb string passes through."""
+        if isinstance(value, str):
+            return value
+        word = TRUE_COLOURS.get(value)
+        return true_colour_hex(word) if word is not None else default
+
     def _redraw_grid(self) -> None:
         self._redraw_queued = False
         model = self.vm.screen
@@ -161,16 +179,20 @@ class ActaeaApp:
                     c += 1
                 chars = "".join(cell.char for cell in row[start:c])
                 x = start * self.cell_w
-                reverse = key[0] & 1
-                if reverse:
+                style, fg, bg = key
+                fg_c = self._colour(fg, "black")
+                bg_c = self._colour(bg, "white")
+                if style & REVERSE:
+                    fg_c, bg_c = bg_c, fg_c
+                if bg_c != "white":
                     self.canvas.create_rectangle(
                         x, y, x + (c - start) * self.cell_w, y + self.cell_h,
-                        fill="black", width=0,
+                        fill=bg_c, width=0,
                     )
-                if chars.strip() or reverse:
+                if chars.strip():
                     self.canvas.create_text(
-                        x, y, text=chars, anchor="nw", font=self.font,
-                        fill="white" if reverse else "black",
+                        x, y, text=chars, anchor="nw", fill=fg_c,
+                        font=self._styled_font(style),
                     )
 
     def clear_story(self) -> None:
@@ -180,9 +202,42 @@ class ActaeaApp:
 
     # -- output --------------------------------------------------------------
 
+    def _styled_font(self, style: int):
+        if style & BOLD and style & ITALIC:
+            return self.font_bold_italic
+        if style & BOLD:
+            return self.font_bold
+        if style & ITALIC:
+            return self.font_italic
+        return self.font
+
+    def _look_tag(self) -> str:
+        """A Text tag for the model's CURRENT look (style + colours),
+        created on first use. Roman-default text uses no tag at all."""
+        m = self.vm.screen
+        style, fg, bg = m.style, m.fg, m.bg
+        if style == 0 and fg == 1 and bg == 1:
+            return ""
+        name = f"look-{style}-{fg}-{bg}"
+        if name not in self._tags_made:
+            fg_c = self._colour(fg, "black")
+            bg_c = self._colour(bg, "white")
+            if style & REVERSE:
+                fg_c, bg_c = bg_c, fg_c
+            self.text.tag_configure(
+                name, foreground=fg_c, background=bg_c,
+                font=self._styled_font(style),
+            )
+            self._tags_made.add(name)
+        return name
+
     def append_story(self, s: str) -> None:
+        tag = self._look_tag()
         self.text.mark_set("insert", "end-1c")
-        self.text.insert("end-1c", s)
+        if tag:
+            self.text.insert("end-1c", s, (tag,))
+        else:
+            self.text.insert("end-1c", s)
         self.text.mark_set("input_start", "end-1c")
         self.text.see("end")
 
