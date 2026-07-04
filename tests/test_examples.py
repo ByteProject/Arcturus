@@ -97,7 +97,7 @@ def test_cloak_of_darkness_parses_cleanly():
     hook = objs["hook"]
     assert hook.parent == "supporter"
 
-    # The foyer overrides `go north` and carries a grain for the chandeliers.
+    # The foyer overrides `go north`; the 1:1 port has no grains anywhere.
     foyer = objs["foyer"]
     go_north = [
         m
@@ -105,7 +105,7 @@ def test_cloak_of_darkness_parses_cleanly():
         if isinstance(m, ast.Handler) and "go" in m.events
     ]
     assert go_north and go_north[0].pattern[0].names == ["north"]
-    assert any(isinstance(m, ast.GrainsBlock) for m in foyer.members)
+    assert not any(isinstance(m, ast.GrainsBlock) for m in foyer.members)
 
     # The message's examine handler reaches both finish endings.
     message = objs["message"]
@@ -185,11 +185,46 @@ def test_cloak_of_darkness_winnable_on_frotz_z8(tmp_path):
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
-def test_cloak_grain_and_scenery_default_on_frotz(tmp_path):
+def test_cloak_scores_like_the_original(tmp_path):
+    # MAX_SCORE 2, as in Firth's cloak.inf: one point for the first hang on
+    # the hook, one for the winning read; the max self-sums from the two
+    # award sites and the ending reports it.
     out = _play(
         "cloak-of-darkness.storyarc",
-        ["examine chandeliers", "take decoration"],
+        ["west", "hang cloak on hook", "score", "east", "south", "read message"],
         tmp_path,
     )
-    assert "Glittering, and far out of reach." in out  # the grain answers examine
-    assert "Just some scenery. Don't worry about it." in out  # the scenery default
+    assert "scored 1 of a possible 2" in out
+    assert "*** You have won ***" in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_cloak_dark_bar_mechanics(tmp_path):
+    # The original's two-tier disturbance: a wrong-way GO in the dark costs
+    # two, any other action one; LOOK and INVENTORY are free; the meta verbs
+    # are out-of-world and never touch the sawdust. One stray jump keeps the
+    # count at 1: the message still reads clean.
+    out = _play(
+        "cloak-of-darkness.storyarc",
+        ["south", "look", "inventory", "score", "jump", "north",
+         "west", "hang cloak on hook", "east", "south", "read message"],
+        tmp_path,
+    )
+    assert out.count("In the dark? You could easily disturb something!") == 1
+    assert "Blundering" not in out
+    assert "*** You have won ***" in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_cloak_losable_on_frotz(tmp_path):
+    # Blundering the wrong way in the dark costs two disturbances at once:
+    # the message is trampled and the game is lost.
+    out = _play(
+        "cloak-of-darkness.storyarc",
+        ["south", "east", "north",
+         "west", "hang cloak on hook", "east", "south", "read message"],
+        tmp_path,
+    )
+    assert "Blundering around in the dark isn't a good idea!" in out
+    assert "carelessly trampled" in out
+    assert "*** You have lost ***" in out

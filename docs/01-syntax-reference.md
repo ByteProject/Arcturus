@@ -812,8 +812,13 @@ thing statue
 
 Here examine has its own reply and every other verb falls to `on other`. The
 name `other` always means "anything not otherwise matched": as a verb here, and
-as the fallback direction in `on go other` (02). Its place in the dispatch
-chain is defined in 02, section 9.
+as the fallback direction in `on go other` (02). A specific handler that runs
+and ends with `continue` climbs to the kind, the room, and the defaults; it
+does not fall into the same object's `on other`, so `on look / continue`
+reads as "pass look through untouched". Inside a `go` handler, `way` holds
+the chosen direction and a bare direction name is comparable against it
+(`if way is not north`), for rules that treat one direction differently.
+The full dispatch chain is defined in 02, section 9.
 
 Life-cycle events. Besides the action events named by verbs, Cosmos fires three
 events as the game runs, handled with the same `on` syntax:
@@ -1229,28 +1234,39 @@ verb "pull", "yank"
 ## 19. Worked example: Cloak of Darkness
 
 The benchmark game implemented in nearly every IF system, the natural second
-conformance target. It exercises darkness, a wearable item that changes a
-room's light, a supporter (the hook), a state counter, and a win-or-lose
-ending.
+conformance target, and a 1:1 port of Roger Firth's reference implementation
+(the PunyInform cloak.inf, which is also the size benchmark, so the content
+matches byte for byte in spirit). It exercises darkness, a wearable item that
+changes a room's light, a supporter (the hook), a state counter with the
+original's two-tier disturbance rules, two `award` sites self-summing the
+classic MAX_SCORE of 2, and a win-or-lose ending.
 
 ```
 game
     title  "Cloak of Darkness"
-    author "Roger Firth, ported to Arcturus"
+    headline "A basic IF demonstration."
+    author "Roger Firth"
+    release 3
+    serial "221116"
     UUID   2a1f8e63-9b07-4c2d-8f3a-5e1d6042b7c9
     start  foyer
 
-// The classic Cloak of Darkness shows a status line, so this port summons one.
+// The classic Cloak of Darkness, a 1:1 port of Roger Firth's reference
+// implementation (the PunyInform cloak.inf, release 3): three rooms, three
+// objects, two points. The original shows the score on its status line, so
+// this port summons one; the two `award 1` sites self-sum the max of 2.
+// One knowing divergence, truer to Firth's spec than to his code: an action
+// aimed at something unseen in the dark ("x message") disturbs the sawdust
+// here, where the Inform parser rejected it before any rule could run.
 summon.statusline
 
 counter disturbed
 
 on start
-    say "Hurrying through the rain-swept November night, you are glad to
-         see the bright lights of the Opera House. It is surprising that
-         there are no others around, but you make your way to the
-         cloakroom to hang up your things."
-
+    say "Hurrying through the rainswept November night, you're glad to see
+         the bright lights of the Opera House. It's surprising that there
+         aren't more people about but, hey, what do you expect in a cheap
+         demo game...?"
 
 room foyer
     name "Foyer of the Opera House"
@@ -1261,14 +1277,9 @@ room foyer
     west  cloakroom
 
     on go north
-        say "You have only just arrived, and besides, the weather outside
+        say "You've only just arrived, and besides, the weather outside
              seems to be getting worse."
         stop
-
-    grains
-        examine "chandeliers" or "decoration" say "Glittering, and far out
-            of reach."
-
 
 room cloakroom
     name "Cloakroom"
@@ -1276,72 +1287,91 @@ room cloakroom
           though now only one remains. The exit is a door to the east."
     east foyer
 
-
 thing hook of supporter in cloakroom
     name  "small brass hook"
     words small, brass, hook, peg
-    fixed
+    scenery
 
     on examine
         if hook holds cloak
-            say "A small brass hook, with a cloak hanging on it."
+            say "It's just a small brass hook, with a cloak hanging on it."
         else
-            say "A small brass hook, screwed to the wall."
+            say "It's just a small brass hook, screwed to the wall."
         stop
-
 
 thing cloak in player
     name  "velvet cloak"
-    words black, velvet, satin, dark, cloak
+    words handsome, dark, black, velvet, satin, cloak
     desc  "A handsome cloak, of velvet trimmed with satin, and slightly
            spattered with raindrops. Its blackness is so deep that it
            almost seems to suck light from the room."
     wearable
     worn
 
-    on drop
-        say "This is no place to leave a smart cloak lying around."
-        stop
+    // The cloak is the light switch: while it is anywhere on the player the
+    // bar stays dark, and it may only be put down in the cloakroom. The
+    // first hang on the hook is worth a point (award pays once by itself).
+    on drop, put
+        if here is not cloakroom
+            say "This isn't the best place to leave a smart cloak lying
+                 around."
+            stop
+        continue
 
+    on after take
+        now bar is not lit
+
+    on after drop, put
+        if here is cloakroom
+            now bar is lit
+            if second is hook
+                award 1
 
 room bar
-    name "Foyer Bar"
-    desc "The bar, much rougher than you would have guessed after the
-          opulence of the foyer to the north, is completely empty. There
-          seems to be some sort of message scrawled in the sawdust on the
-          floor."
+    name "Foyer bar"
+    desc "The bar, much rougher than you'd have guessed after the opulence
+          of the foyer to the north, is completely empty. There seems to be
+          some sort of message scrawled in the sawdust on the floor."
     north foyer
     lit  false
 
-    on enter
-        if player holds cloak
-            now bar is not lit
-        else
-            now bar is lit
+    // In the dark, going anywhere but north gropes badly (two disturbances,
+    // instant ruin) and any other action risks one; look and inventory pass
+    // through untouched, and the meta verbs never reach the room at all
+    // (out-of-world, as in the original).
+    on go
+        if here is not lit
+            if way is not north
+                change disturbed to disturbed + 2
+                say "Blundering around in the dark isn't a good idea!"
+                stop
+        continue
 
-    on each_turn when bar is not lit
-        disturbed++
-        say "Blundering around in the dark isn't a good idea!"
+    on look, inventory
+        continue
 
+    on other
+        if here is not lit
+            disturbed++
+            say "In the dark? You could easily disturb something!"
+            stop
+        continue
 
 thing message in bar
     name  "scrawled message"
-    words message, sawdust, floor, dust, writing
-    fixed
+    words message, sawdust, floor
+    scenery
 
     on examine
-        if bar is not lit
-            say "It is too dark to see anything."
-            stop
         if disturbed < 2
-            say "The message, neatly marked in the sawdust, reads:"
+            award 1
+            say "The message, neatly marked in the sawdust, reads..."
             finish "*** You have won ***"
         else
-            say "The message has been carelessly trampled, making it hard
-                 to read. You can just make out the words:"
+            say "The message has been carelessly trampled, making it
+                 difficult to read. You can just distinguish the words..."
             finish "*** You have lost ***"
         stop
-
 
 verb "read"
     examine noun
@@ -1353,6 +1383,7 @@ verb "hang"
 Both examples lean on Cosmos for the parser, the turn loop, scope, light, and
 the everyday verbs; the per-game logic above is all defined in this document.
 Section 15 of 02 reconciles each example with the Cosmos model in detail.
+
 
 ## Appendix A: reserved words
 

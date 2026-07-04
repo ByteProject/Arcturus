@@ -495,8 +495,21 @@ it as one chain of handlers, most specific first:
 `on other` is the catch-all (01, section 12): at each level a specific
 `on <verb>` is tried before that level's `on other`, so an object's own
 `on other` is its private default, sitting below its specific handlers but
-above the kind chain. A handler that lists several verbs (`on attack, push,
-pull`) is a specific handler for each of those verbs.
+above the kind chain. It fires only for actions the object does not
+otherwise ADDRESS: a specific handler that ran and continued climbs to the
+kind, the room, and the defaults, it never falls into the same object's
+catch-all (so `on look / continue` reads as "pass look through untouched").
+A direction-guarded `on go north` addresses only norths: a southward go on
+an object with no other go handler still reaches its `on other`. A handler
+that lists several verbs (`on attack, push, pull`) is a specific handler
+for each of those verbs.
+
+Out-of-world actions never enter the chain at all: score, save, restore,
+restart, and quit report on or manage the session rather than act in the
+world, so no object, recipient, or room handler ever sees them (Inform and
+PunyInform mark the same verbs meta). The compiler numbers them past
+`meta_floor()` and the dispatcher routes them straight to the free rules,
+where a story-level `on score` can still override the default.
 
 Each handler runs until it ends or calls `continue`. Ending consumes the
 action and stops the chain; `continue` passes to the next handler. If the
@@ -963,18 +976,28 @@ The Brass Lantern:
 - `${turns}` reads the Cosmos turn counter, and the foyer's grain shows cheap
   scenery answering examine without an object.
 
-Cloak of Darkness:
+Cloak of Darkness (a 1:1 port of Firth's reference cloak.inf, which is also
+the PunyInform size benchmark):
 
 - The foyer blocks north with `on go north`, a room-level override at pipeline
-  step 3, and carries a grain for the chandeliers.
+  step 3. The 1:1 port carries no grains: the original answers for nothing
+  beyond its three objects.
 - The cloak is `wearable` and starts `worn`; Cosmos's wear and take-off verbs
   manage `worn`, and putting it on the hook clears `worn` as part of put-on.
+  Its light logic is event-driven, as in the original: `on after take` darkens
+  the bar, `on after drop, put` in the cloakroom relights it, and the first
+  hang on the hook runs an `award 1` (paid once by award's own semantics,
+  where the original needed a flag).
 - The hook is a `supporter`; its child the cloak is on it and in scope, so
   `hook holds cloak` is the test the hook's examine uses.
-- The bar overrides automatic light at the room: its `on enter` sets the room
-  dark while the player holds the cloak and lit otherwise.
-- The `disturbed` counter, its each_turn `++`, and the two `finish` endings
-  are all language-level and need nothing from Cosmos beyond the turn loop.
+- The bar's dark rules are the original's two tiers: `on go` charges two
+  disturbances for a wrong-way grope (`if way is not north`, the direction
+  name as a value), `on other` charges one for any other in-world action,
+  `on look, inventory` pass through (a matched handler that continues climbs
+  the chain, it never falls into the object's own catch-all), and the meta
+  verbs never reach the room at all (out-of-world dispatch, section 9).
+- The `disturbed` counter, the two `award 1` sites self-summing max_score 2,
+  and the two `finish` endings need nothing from Cosmos beyond the loop.
 
 ## Appendix A: Cosmos-reserved names
 
