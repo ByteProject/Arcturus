@@ -426,6 +426,12 @@ room broom_closet
 Things a plain take refuses anyway (scenery, fixed, animate, doors) never
 pay and never count.
 
+A cutscene that moves the player without walking (a crash landing, a
+transit pod) uses `teleport(dest)` (02, section 7), which pays the room's
+first visit exactly like GO does, so no auto-scored point ever becomes
+unreachable; story code that hands an object over without TAKE should
+likewise pay once, or opt the object out.
+
 For everything the compiler cannot know, the events, there is `award`, a
 statement legal anywhere a statement is (handlers, topic bodies, grains):
 
