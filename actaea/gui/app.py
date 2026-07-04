@@ -28,6 +28,7 @@ the later arc_image work draws pictures onto, which is why cell geometry
 is exact from day one."""
 
 import tkinter as tk
+from tkinter import filedialog
 from tkinter import font as tkfont
 
 from ..errors import ActaeaError
@@ -55,6 +56,26 @@ class GuiIO(IOSystem):
 
     def erase_lower(self) -> None:
         self.app.clear_story()
+
+    # The save/restore channels: native file dialogs, on the same single
+    # thread everything else runs on (the VM is only ever inside an opcode
+    # here, exactly as it is inside wait_variable). An empty answer from a
+    # cancelled dialog returns None, which the VM reports as failure.
+
+    _FILETYPES = [("Quetzal saves", "*.qzl *.sav"), ("All files", "*")]
+
+    def save_path(self, default: str):
+        return filedialog.asksaveasfilename(
+            parent=self.app.root, title="Save the story",
+            initialfile=default, defaultextension=".qzl",
+            filetypes=self._FILETYPES,
+        ) or None
+
+    def restore_path(self, default: str):
+        return filedialog.askopenfilename(
+            parent=self.app.root, title="Restore a saved story",
+            filetypes=self._FILETYPES,
+        ) or None
 
 
 class ActaeaApp:

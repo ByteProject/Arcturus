@@ -12,7 +12,6 @@ done-test: a whole Arcturus game boots and talks."""
 import pytest
 
 from actaea.text import TextError
-from actaea.vm import UnimplementedOpcode
 from zasm import L, OBJ, QUIT, S, SP, V, build, objtable, short1, vop
 
 from arcturus import zstring

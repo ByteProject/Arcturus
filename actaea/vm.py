@@ -6,14 +6,11 @@
 """The executor (M3): the evaluation stack, call frames with their locals and
 return addresses, and the run loop over decode.py's instructions.
 
-This milestone implements the computational machine: arithmetic and logic,
-comparisons and branches, load and store, the whole call/return family,
-catch/throw, random, and the numeric prints that make results observable
-through the io.py boundary. Objects and properties arrive with M4, Z-string
-text with M5, reading input with the harness and GUI milestones; touching
-one of those opcodes now raises UnimplementedOpcode naming the milestone,
-which is a deliberate loud failure, never a silent no-op (sound_effect is
-the one designed exception: docs/06 declares sound a no-op forever).
+This began as the computational machine (M3) and grew a milestone at a
+time; with M10's save, restore, and restart the opcode set is complete.
+An opcode with no handler is a loud VMError, never a silent no-op
+(sound_effect is the one designed exception: docs/06 declares sound a
+no-op forever).
 
 Signedness discipline: memory hands out unsigned words; every opcode that
 compares, multiplies, divides, or offsets goes through to_signed/from_signed
@@ -26,6 +23,8 @@ from .errors import ActaeaError
 from .dictionary import Dictionary, tokenise
 from .memory import from_signed, to_signed
 from .objects import ObjectTable
+from .quetzal import QuetzalError
+from . import quetzal
 from .screen import ScreenModel
 from .text import TextEngine
 
@@ -35,17 +34,6 @@ class VMError(ActaeaError):
     call a non-routine, underflow its own stack). The address is included:
     this is Actaea playing fizmo's role, naming the fault instead of
     executing garbage."""
-
-
-class UnimplementedOpcode(ActaeaError):
-    """A real opcode whose milestone has not landed yet."""
-
-
-# Opcodes that exist but belong to later milestones; the error names where
-# each will arrive so a premature integration test explains itself.
-_LATER = {
-    "save": "M10", "restore": "M10", "restart": "M10",
-}
 
 
 def _copy_frames(frames):
@@ -270,11 +258,6 @@ class VM:
         if handler is not None:
             handler(self, ins)
             return
-        later = _LATER.get(ins.name)
-        if later is not None:
-            raise UnimplementedOpcode(
-                f"{ins.name} at {ins.addr:#07x} arrives with milestone {later}"
-            )
         if ins.name == "sound_effect":
             return  # the designed no-op (docs/06: no sound, forever)
         raise VMError(f"no handler for {ins.name} at {ins.addr:#07x}")
@@ -683,6 +666,93 @@ class VM:
         self._write_var(store, 2)
         self._init_header()
 
+    # -- the file-based state trio (M10: Quetzal in quetzal.py, the file
+    # channel through io.save_path/restore_path) --
+
+    def _op_save(self, ins):
+        # EXT:0. The game-state form has no operands; the auxiliary form
+        # (save table bytes name) writes a raw memory region instead, which
+        # no Arcturus game and none of the conformance set uses, so it
+        # honestly reports failure rather than pretending.
+        if ins.operands:
+            self._values(ins)
+            self._write_var(ins.store, 0)
+            return
+        # The saved PC points AT this instruction's store byte (the last
+        # byte of the instruction), the Quetzal convention: restore writes
+        # 2 through it and resumes at the byte after.
+        data = quetzal.write(self.mem, self.frames, ins.next - 1)
+        path = self.io.save_path("save.qzl")
+        if not path:
+            self._write_var(ins.store, 0)
+            return
+        try:
+            with open(path, "wb") as f:
+                f.write(data)
+        except OSError:
+            self._write_var(ins.store, 0)
+            return
+        self._write_var(ins.store, 1)
+
+    def _op_restore(self, ins):
+        # EXT:1. Failure stores 0 and play continues; success never stores
+        # here at all, because execution resumes inside the save that wrote
+        # the file, storing 2 there (S 15 restore).
+        if ins.operands:
+            self._values(ins)
+            self._write_var(ins.store, 0)
+            return
+        path = self.io.restore_path("save.qzl")
+        if not path:
+            self._write_var(ins.store, 0)
+            return
+        try:
+            with open(path, "rb") as f:
+                dyn, frames, pc = quetzal.read(f.read(), self.mem)
+        except OSError:
+            self._write_var(ins.store, 0)
+            return
+        except QuetzalError as e:
+            # The reason is player-facing: "a different story" deserves
+            # better than a bare failure message from the game.
+            self._print(f"[{e}]\n")
+            self._write_var(ins.store, 0)
+            return
+        # The transcription and fixed-pitch bits of Flags 2 survive from
+        # BEFORE the restore (S 6.1.6.1): they describe this session's
+        # transcript, not the saved one's.
+        flags2 = self.mem.word(0x10) & 0x3
+        self.mem.mem[:self.mem.static_base] = dyn
+        self.mem.set_word(0x10, (self.mem.word(0x10) & 0xFFFC) | flags2)
+        self.frames = []
+        for return_pc, store, locals_, argc, stack in frames:
+            f = Frame(return_pc, store, locals_, argc)
+            f.stack = stack
+            self.frames.append(f)
+        self.stream3 = []
+        self.screen_on = True
+        self._init_header()  # interpreter fields are stamped afresh (S 6.1.6.2)
+        var = self.mem.byte(pc)  # the save's store byte
+        self.pc = pc + 1
+        self._write_var(var, 2)
+
+    def _op_restart(self, ins):
+        # Back to the pristine image, except the two Flags 2 bits that
+        # describe the session (S 6.1.6.1), with the machine state and the
+        # screen reset around it.
+        flags2 = self.mem.word(0x10) & 0x3
+        self.mem.reset()
+        self.mem.set_word(0x10, (self.mem.word(0x10) & 0xFFFC) | flags2)
+        self.frames = [Frame(return_pc=0, store=None, locals_=[], argc=0)]
+        self.pc = self.story.header.initial_pc
+        self.stream3 = []
+        self.screen_on = True
+        self.font = 1
+        self.screen.set_style(0)
+        self.screen.set_colour(1, 1)
+        self.screen.erase_window(-1)  # unsplit and clear, back to the boot screen
+        self._init_header()
+
     def _op_output_stream(self, ins):
         vals = self._values(ins)
         n = to_signed(vals[0])
@@ -874,6 +944,7 @@ class VM:
         "read": _op_read, "read_char": _op_read_char,
         "set_text_style": _op_set_text_style, "set_font": _op_set_font,
         "save_undo": _op_save_undo, "restore_undo": _op_restore_undo,
+        "save": _op_save, "restore": _op_restore, "restart": _op_restart,
         "split_window": _op_split_window, "set_window": _op_set_window,
         "erase_window": _op_erase_window, "erase_line": _op_erase_line,
         "set_cursor": _op_set_cursor, "get_cursor": _op_get_cursor,

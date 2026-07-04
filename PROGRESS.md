@@ -2875,3 +2875,49 @@ real games end to end) and then B10 IS COMPLETE.
   B7" fixed but double-check section 13 wording when B10 closes; write
   docs/08-actaea notes? (docs/06 is authoritative; PROGRESS carries the
   build record.)
+
+## 2026-07-05: Actaea M10, Quetzal save/restore and restart
+
+The last file-shaped hole in the machine: quetzal.py writes and reads
+Quetzal 1.4 (IFF/IFZS). IFhd identifies the story by release, serial,
+and checksum FROM THE PRISTINE IMAGE (a game can scribble on its own
+dynamic header) and carries the resume PC, which by the v5 convention
+points AT the save instruction's store byte: restore writes 2 through
+it and resumes at the next byte. CMem is dynamic memory XORed against
+memory.initial with zero runs coded 0x00+(n-1) and trailing zeros
+dropped (an early save is a few hundred bytes); UMem is read too.
+Stks writes the frames exactly as M3 shaped them, dummy entry-stream
+frame first, discard bit, argument mask, per-frame stacks. Unknown
+chunks skip. The module is pure data: no VM import, no files.
+
+The VM grew the trio and lost the last _LATER scaffolding: save (the
+aux-table form honestly refuses), restore (failure stores 0 and play
+continues; a QuetzalError's reason prints, so "this save belongs to a
+different story" reaches the player), restart (pristine image except
+the two Flags 2 session bits per S 6.1.6.1, frames and streams reset,
+erase_window -1 puts the screen back to boot). Both restore and undo
+re-stamp the interpreter header fields (S 6.1.6.2). The io boundary
+gained the file channels as pure "where" questions: save_path and
+restore_path. ConsoleIO prompts dfrotz-style so scripted play keeps
+working, GuiIO opens native tk dialogs, CaptureIO resolves script-fed
+names into a test's tmp_path.
+
+Proofs, per the done-test "a save made in Actaea loads in Frotz and
+the reverse; undo and restart behave": tests/actaea/test_interop.py
+compiles an Arcturus game on the spot and round-trips it BOTH ways
+against dfrotz inside pytest, plus a foreign-save refusal and a
+confirmed restart reboot; test_quetzal.py drills the coding layer and
+the opcodes through zasm (restore resumes inside the save with 2 and
+the saved world; restart preserves exactly the transcription bit). On
+the real game: H2 walks to THE END 360/360 on the M10 build, an
+Actaea save at 43 turns resumes in dfrotz at 105/360, and a dfrotz
+save at the same depth resumes in Actaea, room, score, and inventory
+intact. Every interop failure along the way was the test harness, not
+the format (dfrotz pagination without -h 8000, a stale file's
+overwrite prompt, H2's intro keypresses eating script lines): worth
+recording, because the pytest interop test avoids all three by
+construction. 521 tests. actaea 0.10.0.
+
+Next: M11, the final sweep (TerpEtude's applicable portions, stream 2
+as a real transcript?, timed-input degrade, v8 checks with Jigsaw and
+anchor, real games end to end), and B10 is complete.

@@ -24,3 +24,6 @@ hibernated2/
 editors/vscode/node_modules/
 # The packaged .vsix is committed as the easy-install artifact; rebuild it with
 # tools/build_vsix.py.
+
+# Third-party conformance stories and transcripts (local only)
+actaea/conformance/
