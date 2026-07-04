@@ -601,6 +601,18 @@ verb "read"
 verb "talk", "greet"
     talk noun
 
+verb "ask", "interrogate", "query"
+    ask noun
+    ask noun about
+    ask noun for
+
+verb "tell", "inform"
+    tell noun
+    tell noun about
+
+verb "answer", "respond"
+    answer noun
+
 verb "jump", "hop"
     jump
 
@@ -1045,10 +1057,22 @@ block msg_sing()
 block msg_no_talk()
     say "${The noun} doesn't seem up for a conversation."
 
-// The gentle nudge when TELL (or a stray ask path) should hand over to the
-// conversations menu; lives in the language layer so a pack translates it.
+// The gentle nudge when TELL should hand over to the conversations menu;
+// lives in the language layer so a pack translates it.
 block msg_use_talk()
     say "To get anywhere with ${the noun}, just TALK TO ${the noun}."
+
+// The flat ask/tell/answer defaults (the Infocom granule falls back to
+// these when no topic matches; with no conversation feature they are the
+// whole answer, as in PunyInform).
+block msg_ask()
+    say "${The noun} stays mum on the subject."
+
+block msg_tell()
+    say "${The noun} receives the news with magnificent indifference."
+
+block msg_answer()
+    say "Your words go unanswered."
 
 // Inventory.
 block msg_carrying()

@@ -4,12 +4,13 @@
 // https://github.com/ByteProject/Arcturus
 //
 // The extended verb set: summon it with `summon.extendedverbs`. These are the
-// verbs beyond the always-in standard set (docs/verb-set.md, the E column) -
-// search, throw, dig, the idle and flavor actions, and the Infocom-style
-// conversation verbs ask/tell/answer. Most just speak a default an object can
-// override (most-specific-wins), exactly like the standard sensory verbs;
-// search lists what a container or supporter holds. (FULLSCORE is a standard
-// meta verb, not part of this granule: score reporting ships with scoring.)
+// flavor and idle verbs beyond the always-in standard set (docs/verb-set.md,
+// the E column) - search, throw, dig, rub, pray, and their kin. Most just
+// speak a default an object can override (most-specific-wins), exactly like
+// the standard sensory verbs; search lists what a container or supporter
+// holds. Conversation is NOT here: ask/tell/answer are standard verbs, and
+// the two conversation presentations are their own granules (conversations,
+// infocom_talking; docs/05).
 //
 // The wording lives here, in the granule, so it ships only when summoned. To
 // reskin its lines, fork the granule: extract it, edit your copy, and summon that
@@ -17,12 +18,6 @@
 // granule distinct from the prelude). An object can still override a verb's
 // effect through ordinary handler resolution (most-specific-wins), below.
 //
-// NOTE (the topic conversation system). ask/tell/answer here give a flat default
-// reply. The richer Infocom topic dispatch (ask <person> about <subject> finding
-// an author-defined answer) is the second pass of this granule, built on the
-// shared `topic` model; when summon.conversations is also present, that menu
-// takes over and these verbs defer to it.
-
 // ---------------------------------------------------------------------------
 // Examining and rummaging.
 
@@ -282,95 +277,6 @@ on shout
     msg_shout()
 
 // ---------------------------------------------------------------------------
-// Conversation. ask and tell address a living thing; an object earns the
-// only-animate nudge. The Infocom topic dispatch: ask/tell <person> about
-// <subject> runs the person's matching `topic` if one is in view, else the verb
-// falls back to its flat default. The grammar is one noun plus a trailing
-// preposition (about/for) rather than two nouns, because the subject is a topic
-// word, not an object in scope - resolving it as a second noun would fault.
-// (When summon.conversations is also present, the menu takes over and this topic
-// dispatch defers to it; that mutual exclusion is wired in the conversations pass.)
-
-verb "ask", "interrogate", "query"
-    ask noun about
-    ask noun for
-
-on ask
-    if noun is nothing
-        change refused to 1
-        msg_cant_see()
-        stop
-    if not (noun is animate)
-        change refused to 1
-        msg_only_animate()
-        stop
-    if menu_owns_talk() is 1
-        // The menu is the one conversation surface: asking IS talking, so
-        // open the person's menu instead of lecturing. Whichever granule
-        // owns the typed word "ask", the player lands here (docs/02 s.14;
-        // no summon-order dependence).
-        talk_to(noun)
-        stop
-    if converse(noun) is 1
-        stop
-    msg_ask()
-
-
-verb "tell", "inform"
-    tell noun about
-
-on tell
-    if noun is nothing
-        change refused to 1
-        msg_cant_see()
-        stop
-    if not (noun is animate)
-        change refused to 1
-        msg_only_animate()
-        stop
-    if menu_owns_talk() is 1
-        change refused to 1
-        msg_use_talk()
-        stop
-    if converse(noun) is 1
-        stop
-    msg_tell()
-
-// Find and run a topic the player named. Scanning the typed words for one a
-// visible topic answers to (in declaration order) lets ask and tell share one
-// path: a topic matches on its subject words, not on which verb reached it.
-// Returns 1 if a topic ran, so the verb knows whether to speak its flat default.
-block converse(person)
-    let count = topics_count(person)
-    let i = 0
-    while i < count
-        if topic_visible(person, i)
-            if subject_typed(person, i)
-                topic_run(person, i)
-                return 1
-        change i to i + 1
-    return 0
-
-// Did the player type a word this topic answers to (one of its match words)?
-block subject_typed(person, i)
-    let n = word_count()
-    let w = 1
-    while w < n
-        let target = word_dict(w)
-        if target is not nothing
-            if topic_matches(person, i, target)
-                return 1
-        change w to w + 1
-    return 0
-
-
-verb "answer", "respond"
-    answer noun
-
-on answer
-    msg_answer()
-
-// ---------------------------------------------------------------------------
 // The wording. Fork the granule to change any of these lines.
 
 block msg_search_nothing()
@@ -445,11 +351,3 @@ block msg_pray()
 block msg_shout()
     say "You test the location's acoustics with a loud yell. The results are entirely underwhelming."
 
-block msg_ask()
-    say "${The noun} stays mum on the subject."
-
-block msg_tell()
-    say "${The noun} receives the news with magnificent indifference."
-
-block msg_answer()
-    say "Your words go unanswered."

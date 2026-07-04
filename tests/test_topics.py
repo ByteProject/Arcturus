@@ -173,7 +173,7 @@ def test_topic_runtime_on_frotz(tmp_path):
 ASKTELL = '''game
     title "AskTell"
     start hall
-summon.extendedverbs
+summon.infocom_talking
 room hall
     name "Hall"
     desc "A bare hall."

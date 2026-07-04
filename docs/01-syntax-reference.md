@@ -920,10 +920,11 @@ better tool: one object, one description, one identity.
 A character (a thing that is `animate`, which the `character` kind sets) can hold
 conversation `topic`s. A topic is one subject the player can raise, together with
 the exchange that follows. Topics are inert on their own: a summoned feature
-presents them, either as the Infocom-style ask/tell verbs (`summon.extendedverbs`)
-or as a numbered menu (`summon.conversations`). The two are mutually exclusive,
-and the menu wins when both are present. How they are presented is defined in 02;
-this section defines the construct.
+presents them, either through the Infocom-style ask/tell verbs
+(`summon.infocom_talking`) or as a numbered menu (`summon.conversations`).
+The two are mutually exclusive by the compiler: a game summons exactly one,
+and switching presentations later is a one-line change. How they are
+presented is defined in 02; this section defines the construct.
 
 A topic is declared in the person's body:
 

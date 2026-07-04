@@ -1,0 +1,59 @@
+// infocom_talking.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// summon.infocom_talking: the Infocom-style ask/tell presentation of the
+// `topic` model. ASK <person> ABOUT <subject> (and TELL) scans the typed
+// words for a subject one of the person's visible topics answers to (01
+// section 15; topics live in the person's body), runs it, and falls back to
+// the standard flat default when nothing matches. There is no topic list
+// anywhere: discovery is play, the Infocom way.
+//
+// This granule holds ONLY logic: the ask/tell verb words, their grammar, and
+// every message live in the language layer, so an infocom_talking game is as
+// translatable as any other (the packs carry the words and the lines). It
+// overrides the standard ask_to/tell_to seams; the guards (can't see, only
+// animate) already ran in the standard handlers.
+//
+// The conversations menu is the OTHER presentation of the same topics, and a
+// game picks exactly one: summoning both is a compile error. An author
+// settles on one conversation model; the topics themselves are identical
+// either way, so switching later is a one-line change.
+
+block ask_to(person)
+    if converse(person) is 1
+        return 0
+    msg_ask()
+
+block tell_to(person)
+    if converse(person) is 1
+        return 0
+    msg_tell()
+
+// Find and run a topic the player named. Scanning the typed words for one a
+// visible topic answers to (in declaration order) lets ask and tell share one
+// path: a topic matches on its subject words, not on which verb reached it.
+// Returns 1 if a topic ran, so the seam knows whether to speak the default.
+block converse(person)
+    let count = topics_count(person)
+    let i = 0
+    while i < count
+        if topic_visible(person, i)
+            if subject_typed(person, i)
+                topic_run(person, i)
+                return 1
+        change i to i + 1
+    return 0
+
+// Did the player type a word this topic answers to (one of its match words)?
+block subject_typed(person, i)
+    let n = word_count()
+    let w = 1
+    while w < n
+        let target = word_dict(w)
+        if target is not nothing
+            if topic_matches(person, i, target)
+                return 1
+        change w to w + 1
+    return 0

@@ -4,8 +4,10 @@
 // https://github.com/ByteProject/Arcturus
 //
 // A showcase for the Infocom-style conversation: ask/tell <person> about
-// <subject>, built on the `topic` construct and dispatched by the extendedverbs
-// granule. A detective leans on a suspect across a steel table.
+// <subject>, built on the `topic` construct and dispatched by the
+// infocom_talking granule (the menu-less presentation; summon.conversations
+// is the other, and a game picks exactly one). A detective leans on a
+// suspect across a steel table.
 //
 // Two things this teaches an author:
 //
@@ -39,7 +41,7 @@ game
     author "Stefan Vogt"
     start cell
 
-summon.extendedverbs
+summon.infocom_talking
 
 // The opening beat is pure inner monologue, before the room is even described:
 // it tells the player where to start. There is no menu and no list; the detective

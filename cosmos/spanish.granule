@@ -704,6 +704,19 @@ verb "leer", "lee"
 verb "hablar", "habla", "saludar", "saluda"
     talk noun
 
+verb "pregunta", "preguntar", "pregúntale", "preguntale", "interroga"
+    ask noun
+    ask noun sobre
+    ask noun por
+
+verb "di", "dile", "cuéntale", "cuentale", "cuenta"
+    tell noun
+    tell noun sobre
+    tell noun de
+
+verb "responde", "contesta"
+    answer noun
+
 verb "saltar", "salta", "brincar", "brinca"
     jump
 
@@ -1190,6 +1203,15 @@ block msg_no_talk()
 
 block msg_use_talk()
     say "Para conseguir algo de ${the noun}, usa HABLA CON ${the noun}."
+
+block msg_ask()
+    say "${The noun} no suelta prenda sobre el tema."
+
+block msg_tell()
+    say "${The noun} recibe la noticia con magnífica indiferencia."
+
+block msg_answer()
+    say "Tus palabras quedan sin respuesta."
 
 // Inventory.
 block msg_carrying()

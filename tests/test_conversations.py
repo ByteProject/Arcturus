@@ -144,6 +144,14 @@ def test_menu_wins_in_the_other_summon_order(tmp_path):
     _menu_owns_ask_tell(tmp_path, src, "reversed.z5")
 
 
+def test_conversations_and_infocom_talking_exclude_each_other():
+    # The two presentations of the topic model are mutually exclusive by
+    # design (Stefan's ruling, 2026-07-04): an author settles on one.
+    src = BOTH.replace("summon.extendedverbs", "summon.infocom_talking")
+    with pytest.raises(Exception, match="picks exactly one"):
+        cosmos.combined_program(parse(src))
+
+
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_ask_tell_in_a_menu_only_game(tmp_path):
     # Without extendedverbs the conversations granule supplies ASK and TELL
