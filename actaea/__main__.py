@@ -10,11 +10,21 @@ and, from M7, hands off to the tkinter front-end unless asked to stay on
 the console."""
 
 import argparse
+import os
 import sys
 
 from . import __version__
 from .errors import ActaeaError
 from .loader import load_file
+
+
+def _pipe_closed() -> int:
+    """The reader of our stdout (a `| head`, say) went away: that is a normal
+    ending for an info tool, not an error. Point stdout at the void so the
+    interpreter's exit-time flush does not raise a second time, and leave."""
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    os.dup2(devnull, sys.stdout.fileno())
+    return 0
 
 
 def _report(story) -> str:
@@ -72,21 +82,24 @@ def main(argv=None) -> int:
         print(f"actaea: {e}", file=sys.stderr)
         return 2
 
-    if args.disasm:
-        from .decode import disassemble
+    try:
+        if args.disasm:
+            from .decode import disassemble
 
-        try:
-            print(disassemble(story))
-        except ActaeaError as e:
-            print(f"actaea: {e}", file=sys.stderr)
-            return 2
+            try:
+                print(disassemble(story))
+            except ActaeaError as e:
+                print(f"actaea: {e}", file=sys.stderr)
+                return 2
+            return 0
+
+        print(_report(story))
+        if not args.header:
+            # The run loop arrives with M3; until then this is an info tool.
+            print("\n(actaea M2: loading and disassembly only; no execution yet)")
         return 0
-
-    print(_report(story))
-    if not args.header:
-        # The run loop arrives with M3; until then this is an info tool.
-        print("\n(actaea M2: loading and disassembly only; no execution yet)")
-    return 0
+    except BrokenPipeError:
+        return _pipe_closed()
 
 
 if __name__ == "__main__":
