@@ -39,10 +39,36 @@ def test_parse_shapes():
     assert [s.colour for s in says] == [None, "yellow", None]
 
 
+def test_say_par_modifier_shapes():
+    # say.par marks the paragraph break; it composes with a colour in either
+    # order (Stefan's design, 2026-07-04).
+    prog = parse(
+        'game\n    title "C"\n    start r\non start\n'
+        '    say.par "a"\n'
+        '    say.yellow.par "b"\n'
+        '    say.par.yellow "c"\n'
+        '    say "d"\n'
+    )
+    handler = next(d for d in prog.decls if isinstance(d, ast.Handler))
+    says = [s for s in handler.body if isinstance(s, ast.Say)]
+    assert [(s.colour, s.para) for s in says] == [
+        (None, True), ("yellow", True), ("yellow", True), (None, False),
+    ]
+
+
+def test_say_modifier_errors():
+    with pytest.raises(ArcError) as e:
+        parse('game\n    title "C"\n    start r\non start\n    say.par.par "x"\n')
+    assert "duplicate 'par'" in str(e.value)
+    with pytest.raises(ArcError) as e:
+        parse('game\n    title "C"\n    start r\non start\n    say.red.blue "x"\n')
+    assert "one colour per say" in str(e.value)
+
+
 def test_unknown_colour_is_a_parse_error():
     with pytest.raises(ArcError) as e:
         parse('game\n    title "C"\n    start r\non start\n    say.purple "x"\n')
-    assert "unknown colour 'purple'" in str(e.value)
+    assert "unknown say modifier 'purple'" in str(e.value)
     with pytest.raises(ArcError) as e:
         parse('game\n    title "C"\n    start r\non start\n    zcolor.pen white\n')
     assert "not a zcolor target" in str(e.value)

@@ -1012,21 +1012,34 @@ class Parser:
     def _parse_say(self) -> ast.Say:
         line = self.cur.line
         self.expect_kw("say")
-        # say.yellow "...": a one-shot coloured say. The text prints in the named
-        # colour and the base font colour (zcolor.font) is restored afterwards,
-        # so there is no state to manage and nothing to forget.
+        # say takes a dot-chain of modifiers, in any order: a colour
+        # (say.yellow "...", one-shot; the base font colour is restored
+        # afterwards) and/or `par` (say.par "...", the text is followed by a
+        # paragraph break). say.yellow.par and say.par.yellow both read.
         colour = None
-        if self.check_op("."):
+        para = False
+        while self.check_op("."):
             self.advance()
-            colour = self.expect_name("a colour name after 'say.'").value
-            if colour not in _ZCOLOURS:
+            mod = self.expect_name("a colour name or 'par' after 'say.'").value
+            if mod == "par":
+                if para:
+                    raise self._error("duplicate 'par' modifier on say")
+                para = True
+            elif mod in _ZCOLOURS:
+                if colour is not None:
+                    raise self._error(
+                        f"say already has the colour '{colour}'; one colour "
+                        f"per say"
+                    )
+                colour = mod
+            else:
                 raise self._error(
-                    f"unknown colour '{colour}' (use default, black, red, green, "
-                    f"yellow, blue, magenta, cyan, or white)"
+                    f"unknown say modifier '{mod}' (a colour - default, black, "
+                    f"red, green, yellow, blue, magenta, cyan, white - or par)"
                 )
         value = self.parse_expr()
         self.expect_newline()
-        return ast.Say(value, line, colour)
+        return ast.Say(value, line, colour, para)
 
     def _parse_zcolor(self) -> ast.ZColor:
         # `zcolor.font white` / `zcolor.background black`: set a base screen
