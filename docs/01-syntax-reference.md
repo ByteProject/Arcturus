@@ -814,11 +814,40 @@ on push slab when player holds crowbar
 
 Default versus override. A matching handler replaces the verb's default
 behavior, with the most specific winning (the section 5 resolution order).
-Ending the handler, by its end or `stop`, consumes the action, so the default
-does not run; this is the common "instead" case. To run your code and then
-also let the next, more general handler or the Cosmos default run, end with
-`continue`. To react after the action completes, use `on after <verb> ...`.
-The full ordering is in 02.
+The engine hands the WHOLE action to the handler: the built-in behavior has
+not happened yet, and only happens if the handler passes the action on. A
+handler therefore does one of three things with the action it holds:
+
+1. KEEP IT. Running to the last line consumes the action; nothing else runs.
+   `stop` does exactly the same, from anywhere in the body, so it is the
+   early exit for a refusal inside an `if`, not a required closer. On the
+   last line it is redundant. (Inform's "instead" / `return true`.)
+
+2. PASS IT ON. Ending with `continue` means "I have said my piece; now let
+   the action happen": the chain moves to the next, more general handler
+   (the kind's, the room's) and finally the Cosmos default, which does the
+   real work. (Inform's "before" / `return false`.)
+
+3. REACT AFTERWARDS. `on after <verb>` is a separate handler that runs only
+   once the action has genuinely completed: taken effect, with nothing
+   refusing it along the way. If the action was blocked or replaced by a
+   refusal, the after handler never fires.
+
+```
+on go west
+    if door is locked
+        say "The door won't budge."
+        stop            // consumed: the player stays put
+    say "You slip through."
+    continue            // and now the go really happens
+
+on after go west
+    say "The door clicks shut behind you."
+```
+
+So a handler with `stop` on its last line and one without differ not at all;
+the consequential choice is between ending (keep) and ending with `continue`
+(hand it back). The full ordering is in 02.
 
 `on other` is the catch-all handler: it fires for any action on the object
 that no specific `on <verb>` handler caught. It is the object's own default,
