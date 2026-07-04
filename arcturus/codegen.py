@@ -185,12 +185,23 @@ def _compile_grain(world, gmap, layout, pool, grain, idx, owner, actions) -> Rou
     return rt
 
 
+# The free-rule precedence: a story rule outranks a granule's, which outranks
+# the Cosmos default, so `on xyzzy` in a game reskins the easter egg and
+# `continue` defers back down the chain (docs/01 section 12, docs/05).
+_ORIGIN_RANK = {None: 0, "granule": 1, "library": 2}
+
+
 def _free_react_handlers(world: wm.World, actions: dict):
     """Free-standing rules (owner None), as (action, handler): the game's
     `on start`, free `on each_turn` pulses, and (from B4.5e.3) the Cosmos default
-    verbs. These have no object owner, so they run through react_free."""
+    verbs. These have no object owner, so they run through react_free, most
+    specific origin first (game, then granule, then library)."""
     out = []
-    for h in world.free_handlers:
+    ranked = sorted(
+        world.free_handlers,
+        key=lambda h: _ORIGIN_RANK.get(getattr(h, "origin", None), 0),
+    )
+    for h in ranked:
         if h.pattern:
             continue
         for ev in h.events:
@@ -201,8 +212,12 @@ def _free_react_handlers(world: wm.World, actions: dict):
 
 def _free_other_handlers(world: wm.World):
     """Free-standing `on other` rules: a global catch-all fired last, for any
-    action nothing more specific consumed."""
-    return [h for h in world.free_handlers if "other" in h.events and not h.pattern]
+    action nothing more specific consumed; ordered like the specific rules."""
+    ranked = sorted(
+        world.free_handlers,
+        key=lambda h: _ORIGIN_RANK.get(getattr(h, "origin", None), 0),
+    )
+    return [h for h in ranked if "other" in h.events and not h.pattern]
 
 
 def gen_react_free(world: wm.World, actions: dict, registry) -> Routine:
@@ -422,10 +437,14 @@ _BUILTIN_GLOBALS = [
     # __timers__ holds the base address of the scheduling table (after/every), set
     # at startup; 0 when the story schedules nothing.
     "__timers__",
-    # __strings__ is the first packed string address, set at startup. A computed
-    # (`<name> block`) text property stores its block routine's packed address,
-    # which is below this; a plain one stores a string address, at or above it, so a
-    # read of such a property compares against it to "print or run".
+    # __strings__ is the first packed string address, set at startup, stored with
+    # its TOP BIT FLIPPED (+0x8000 mod 2^16). A computed (`<name> block`) text
+    # property stores its block routine's packed address, which is below the
+    # threshold; a plain one stores a string address, at or above it, so a read of
+    # such a property compares against it to "print or run". Packed addresses are
+    # unsigned but jl compares signed, so both sides carry the sign bias: this
+    # global is pre-biased here, the property value gets +0x8000 at the compare
+    # (see lower._emit_prop_print_or_run).
     "__strings__",
     # The base font colour (zcolor.font), which say.<colour> restores to.
     # Seeded to 1 (the interpreter default) in build_story.
@@ -634,8 +653,13 @@ def build_story(
             sf.set_word(globals_addr + (gmap["player"] - 16) * 2, layout.obj_number["player"])
         # The scheduling table base, so after/every can reach it at run time.
         sf.set_word(globals_addr + (gmap["__timers__"] - 16) * 2, timers_addr)
-        # The string-area threshold, for the computed-property "print or run" test.
-        sf.set_word(globals_addr + (gmap["__strings__"] - 16) * 2, strings_start_packed)
+        # The string-area threshold, for the computed-property "print or run"
+        # test, pre-biased by +0x8000 so the runtime's signed jl orders the two
+        # biased sides as the unsigned packed addresses they really are.
+        sf.set_word(
+            globals_addr + (gmap["__strings__"] - 16) * 2,
+            (strings_start_packed + 0x8000) & 0xFFFF,
+        )
         # The base font colour starts as the interpreter default (1), so a
         # say.<colour> before any zcolor.font still restores sanely.
         sf.set_word(globals_addr + (gmap["__zcfont__"] - 16) * 2, 1)

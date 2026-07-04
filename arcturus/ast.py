@@ -410,6 +410,10 @@ class Handler:
     when: Optional[Expr] = None
     body: list[Stmt] = field(default_factory=list)
     line: int = 0
+    # Where the rule came from: None for the game, "granule", or "library".
+    # Free rules for one action run most-specific-origin first, so a story's
+    # `on xyzzy` overrides the Cosmos default and `continue` defers to it.
+    origin: Optional[str] = None
 
 
 @dataclass

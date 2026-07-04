@@ -55,7 +55,7 @@ block resolve_verb()
     let d = word_dict(0)
     if d is not nothing
         let flags = peek_byte(d + 6)
-        if flags is 128
+        if flags is 128 or flags is 136
             let base = peek_byte(d + 7)
             let p = find_particle
             if p is not nothing
@@ -216,7 +216,7 @@ block resolve_objects()
     change parse_fault to 0
     let d = word_dict(0)
     if d is not nothing
-        if peek_byte(d + 6) is 128
+        if peek_byte(d + 6) is 128 or peek_byte(d + 6) is 136
             let arity = peek_byte(d + 8)
             let va = peek_byte(d + 7)
             if arity is 2
@@ -298,7 +298,7 @@ block is_separator(target)
     // Anything else is content: a pronoun binds as a noun, an article is
     // skipped, and a noun that moonlights as a verb elsewhere ("pick the
     // LOCK", "PAT the person") must not end the phrase it stars in.
-    if peek_byte(target + 6) is 8
+    if peek_byte(target + 6) is 8 or peek_byte(target + 6) is 136
         return 1
     if peek_byte(target + 6) is 64
         return 1

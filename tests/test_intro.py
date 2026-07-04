@@ -52,3 +52,27 @@ def test_intro_until_moved_on_frotz(tmp_path):
     assert "You can see a guttering torch here." in final_look
     # but the static statue keeps its intro.
     assert "A marble statue dominates the room." in final_look
+
+
+def test_strings_threshold_global_is_sign_biased():
+    # The print-or-run test for computed text properties compares packed
+    # addresses, which are unsigned, with jl, which is signed: past file offset
+    # 0x20000 a string's packed address reads as negative and the string gets
+    # CALLED as a routine (the size-triggered Hibernated 2 crash, 2026-07-04).
+    # Both sides of the compare therefore carry a +0x8000 sign bias. This pins
+    # the stored global: top bit set (a small game's real threshold is far below
+    # 0x8000), and the unbiased address lands inside the file, above the code
+    # start, on a packed-address boundary.
+    from arcturus.codegen import _globals_map
+
+    program = cosmos.combined_program(parse(GAME))
+    world = analyze(program)
+    story = generate(world)
+    globals_addr = (story[0x0C] << 8) | story[0x0D]
+    slot = _globals_map(world)["__strings__"]
+    off = globals_addr + (slot - 16) * 2
+    stored = (story[off] << 8) | story[off + 1]
+    assert stored & 0x8000, "threshold global lost its sign bias"
+    threshold = (stored - 0x8000) & 0xFFFF
+    initial_pc = (story[0x06] << 8) | story[0x07]
+    assert initial_pc < threshold * 4 < len(story)
