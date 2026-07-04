@@ -1,8 +1,11 @@
 # Arcturus: Project Roadmap
 
-Status: design phase. This document is the project charter and index. It
+Status: living charter. This document is the project charter and index. It
 records the locked decisions, the reference documents, and the milestones
-from first spec to a finished game.
+from first spec to a finished toolchain; the milestone table in section 7
+tracks what is done. The language, Cosmos, and the compiler shipped through
+the Hibernated 2 port (B8); the Actaea reference interpreter (B10) is in
+progress.
 
 Name: Arcturus. The star, and the narrative arc that every work of
 interactive fiction is built on, so the name points at the medium itself.

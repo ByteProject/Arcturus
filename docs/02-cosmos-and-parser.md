@@ -1,15 +1,17 @@
 # Arcturus Cosmos and Parser
 
-Status: draft v2. This document defines the runtime: Cosmos (the standard
+Status: stable. This document defines the runtime: Cosmos (the standard
 library), the parser, the action pipeline, and the banner. The language
 surface is defined in 01-syntax-reference.md; this document defines the
-behavior that surface drives.
+behavior that surface drives. Like 01 it is authoritative and proven by the
+shipped ports: where the library and this document disagree, the document
+wins, or is amended in the same commit as the correction.
 
 Scope boundary. The compiler pipeline that turns a program plus Cosmos into a
 z5 story file, the construct-to-opcode mapping, and the text-compression
-implementation are owned in the implementation phase (roadmap 03 to 05). This
-document is the behavioral specification those stages must satisfy. Smallest
-possible z-code is a standing requirement on all of it.
+implementation are recorded in 03-compiler-pipeline.md through 05-granules.md.
+This document is the behavioral specification that implementation satisfies.
+Smallest possible z-code is a standing requirement on all of it.
 
 The two worked examples in 01 (the Brass Lantern and Cloak of Darkness) are
 the conformance cases; section 16 reconciles each with the model here.
