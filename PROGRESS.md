@@ -2443,3 +2443,31 @@ head, check ours for wasted slots (96 entries, are all earning?), and see
 whether zabbrv's selection algorithm (or a better one) beats
 tools/arcabbr.py on the same corpus. Credits wording: Stefan writes it by
 hand, off the list.
+
+## 2026-07-04 (night, cont.): Actaea M2 green, the decoder and disassembler
+
+decode.py is the single source of instruction truth the M3 executor and the
+disassembler share: all four forms (long, short, variable, extended), the
+four operand types, the double type byte of call_vs2/call_vn2, store bytes,
+short and signed-14-bit long branches (offsets 0/1 = rfalse/rtrue), and
+inline text kept as a RAW span (rendering is text.py's business, M5).
+Opcode tables carry name/stores/branches/text per count family; illegal-
+in-v5 numbers (0OP:5 old save, 0OP:12 show_status) stay in the map as named
+faults with the address. The disassembler is recursive descent: the v5+
+entry point is a headerless instruction stream, routines are queued from
+constant-operand calls, a frontier of forward branch/jump targets decides
+where a routine really ends. Output is txd-style (sp/Lnn/Gnn, -> stores,
+?~target branches).
+
+M2 done-test PASSED: cloak (202 routines), czech (68), praxix (27), etude
+(3; honest recursive-descent behavior, TerpEtude dispatches through
+computed calls static walking cannot follow), Hibernated 2 (387), and
+Jigsaw.z8 (129) all disassemble to exit 0. The Cloak entry stub reads
+`call_vn 0x0303 / quit`, the very quit the 128K crash hunt kept landing
+in. 26 actaea tests (12 new decode units); 433 total. actaea 0.2.0.
+
+NEXT: M3, the execution core: stack, call frames, locals, arithmetic and
+logic, branches, load and store, call and return, jump; done when
+computational test routines produce correct results headless. The io.py
+interface sketch should land with it (print callbacks needed the moment
+print_num works).
