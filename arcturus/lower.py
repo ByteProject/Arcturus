@@ -1358,7 +1358,17 @@ def _emit_prop_print_or_run(rt, ctx, dot, add_newline):
     stored value is a packed address: below the __strings__ threshold it is the
     property's block routine (call it; the block prints its own text), at or above
     it is a plain string (print it, adding a newline only when asked). This is the
-    "print or run" the computed-property read needs (docs/01 section 6)."""
+    "print or run" the computed-property read needs (docs/01 section 6).
+
+    Packed addresses are UNSIGNED 16-bit, but the Z-machine's jl compares signed:
+    a string laid past file offset 0x20000 has a packed address >= 0x8000, which
+    jl reads as negative, flips the test, and the string gets called as a routine
+    (in practice a clean @quit; the size-triggered H2 crash, 2026-07-04). The
+    machine has no unsigned compare, so both sides carry the classic sign bias:
+    the __strings__ global holds the threshold with its top bit flipped (codegen
+    stores it that way), and the value gets +0x8000 here. add wraps mod 2^16, so
+    adding 0x8000 flips only the top bit, and signed-comparing the two biased
+    values orders them as the unsigned originals."""
     op, t = _operand(rt, ctx, dot.obj)
     v = ctx.alloc_temp()
     rt.op("get_prop", op, Const(ctx.prop_number(dot.prop)), store=Variable(v))
@@ -1366,7 +1376,10 @@ def _emit_prop_print_or_run(rt, ctx, dot, add_newline):
         ctx.free_temp(t)
     run = ctx.new_label()
     done = ctx.new_label()
-    rt.op("jl", Variable(v), Variable(ctx.globals["__strings__"]), branch=(run, True))
+    biased = ctx.alloc_temp()  # v itself stays unbiased for print_paddr / call_vn
+    rt.op("add", Variable(v), Const(0x8000), store=Variable(biased))
+    rt.op("jl", Variable(biased), Variable(ctx.globals["__strings__"]), branch=(run, True))
+    ctx.free_temp(biased)
     rt.op("print_paddr", Variable(v))  # at or above the threshold: a plain string
     if add_newline:
         rt.op("new_line")

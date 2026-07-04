@@ -101,6 +101,9 @@ class Handler:
     owner: Optional[str]  # the object or kind name, or None for a top-level rule
     origin_kind: bool  # True if declared on a kind (vs an instance/room/rule)
     line: int = 0
+    # None for the game, "granule", or "library": free rules for one action
+    # run most-specific-origin first (codegen._ORIGIN_RANK).
+    origin: Optional[str] = None
 
 
 @dataclass

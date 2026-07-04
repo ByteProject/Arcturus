@@ -2313,3 +2313,33 @@ example artifacts, then commit compiler+cosmos work (origin ranking, flag
 - inline emphasis colour (show.<colour>) idea; quality-sweep leftovers (save
   quips, custom smell/listen flavor, Vlad inventory line); "next steps"
   discussion (B10 Actaea vs quality sweep) once the crash is dead.
+
+### RESOLVED same evening: the crash was the print-or-run signed compare
+
+fizmo (Stefan installed it mid-hunt) named what dfrotz swallowed: "More than
+15 locals are not allowed" at the exact crash point. Diagnosis: computed text
+properties discriminate string-vs-routine by comparing the stored packed
+address against the __strings__ threshold with jl, and jl is SIGNED. A string
+laid past file offset 0x20000 has a packed address >= 0x8000, reads as
+negative, flips the test, and the string is CALLED as a routine: its first
+ZSCII byte becomes the local count (fizmo errors, dfrotz executes garbage and
+lands on a clean @quit). Pure size threshold, room-specific, content-blind:
+every bisect fact matched, including h2pad's inert padding.
+
+Fix (lower.py + codegen.py): the classic sign bias, since the Z-machine has
+no unsigned compare and no xor. codegen stores __strings__ pre-biased
+(+0x8000 mod 2^16, top bit flipped); the print-or-run site adds 0x8000 to the
+property value into a scratch temp (v stays unbiased for print_paddr and
+call_vn) and jl orders the biased pair as the unsigned originals. Cost: one
+add per print-or-run site (+8 bytes on computed-properties and scoring, the
+only two examples on that path; re-pinned). Regression test pins the stored
+global's bias (test_intro.py::test_strings_threshold_global_is_sign_biased);
+the walkthrough truth is H2 at 132,768 bytes running to *** THE END *** at
+360/360 on BOTH dfrotz and fizmo-console.
+
+Landed in one series with the blocked work: origin-ranked free handlers,
+dual-role dictionary flag 136 + pack/parser updates, assembler branch range
+asserts (they stay; they ruled paths out). arcc 0.10.2 / Cosmos 0.14.2,
+amalgam and example artifacts rebuilt, 401 tests green. Still parked:
+Stefan's CREDITS wording veto, the after-handler ordering oddity, the
+next-steps discussion (B10 Actaea vs quality sweep).

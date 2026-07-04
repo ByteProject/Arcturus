@@ -252,6 +252,7 @@ class Analyzer:
             owner,
             on_kind,
             decl.line,
+            getattr(decl, "origin", None),
         )
 
     # -- pass 2: kind chains -----------------------------------------------

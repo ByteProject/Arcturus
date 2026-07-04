@@ -405,11 +405,21 @@ class Routine:
                 else:
                     off = newpos(self.labels[f.target]) - newpos(f.offset)
                 if size[id(f)] == 1:
+                    if not (0 <= off <= 63):
+                        raise AssertionError(
+                            f"short branch offset {off} out of 0..63 in "
+                            f"{self.name} -> {f.target}"
+                        )
                     b = 0x40 | (off & 0x3F)  # short form: bit 6 set, 6-bit offset
                     if f.on_true:
                         b |= 0x80
                     new_code.append(b)
                 else:
+                    if not (-8192 <= off <= 8191):
+                        raise AssertionError(
+                            f"long branch offset {off} out of signed 14 bits in "
+                            f"{self.name} -> {f.target}"
+                        )
                     word = off & 0x3FFF
                     hi = word >> 8
                     if f.on_true:
@@ -496,6 +506,11 @@ def link(entry: Routine, routines: list[Routine], base_addr: int, scale: int = 4
                 # New PC = address-after-branch-data + offset - 2, so for a
                 # destination at code offset `target`, offset = target - fx.offset.
                 offset = target - fx.offset
+                if not (-8192 <= offset <= 8191):
+                    raise AssertionError(
+                        f"branch offset {offset} out of signed 14 bits in "
+                        f"{r.name} -> {fx.target}"
+                    )
                 word = offset & 0x3FFF
                 hi = word >> 8
                 if fx.on_true:

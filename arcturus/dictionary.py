@@ -231,11 +231,18 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
                 [_SCENERY_FLAG, (chain_addr >> 8) & 0xFF, chain_addr & 0xFF]
             )
     # Prepositions last, and only where nothing else claimed the word: on/in are
-    # already a particle/direction, and the parser treats those as boundaries too.
+    # already a particle/direction, and the parser treats those as boundaries
+    # too. A word that is BOTH a verb and a grammar literal (H2's ABOUT: the
+    # meta verb, and the boundary of "ask X about Y") carries the combined
+    # flag 0x88; the packs' flag tests accept it in both roles.
     for word in _preposition_words(world):
         enc = encoded[word]
         if enc not in enc_data:
             enc_data[enc] = bytes([_PREPOSITION_FLAG, 0, 0])
+        elif enc_data[enc][0] == _VERB_FLAG:
+            enc_data[enc] = bytes(
+                [_VERB_FLAG | _PREPOSITION_FLAG, enc_data[enc][1], enc_data[enc][2]]
+            )
     # Distinct entries, sorted by encoded bytes for binary search.
     distinct = sorted(set(encoded.values()))
 

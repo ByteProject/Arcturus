@@ -42,7 +42,7 @@ _DEFAULT_LANGUAGE = "english"
 # The Cosmos library version. It is independent of the compiler version: the
 # bundled library can move ahead of (or behind) arcc, and since the embedded
 # library is not visible on disk, the banner reports it alongside arcc's version.
-COSMOS_VERSION = "0.14.1"
+COSMOS_VERSION = "0.14.2"
 
 # Set by the amalgamated build to a dict of {filename: source}.
 _EMBEDDED = None
@@ -317,7 +317,7 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
             )
         gdecls: list = []
         for d in prog.decls:
-            if isinstance(d, ast.BlockDecl):
+            if isinstance(d, (ast.BlockDecl, ast.Handler)):
                 d.origin = "granule"
             gdecls.append(d)
         loaded[key] = gdecls
@@ -355,7 +355,7 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
         if language != _DEFAULT_LANGUAGE and name == default_prelude:
             continue
         for d in parse(src, name).decls:
-            if isinstance(d, ast.BlockDecl):
+            if isinstance(d, (ast.BlockDecl, ast.Handler)):
                 d.origin = "library"
             decls.append(d)
     # A non-default language is a granule, <language>.granule, resolved like any

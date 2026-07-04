@@ -297,7 +297,7 @@ block match_first_phrase()
         if lo < n
             let d = word_dict(lo)
             if d is not nothing
-                if peek_byte(d + 6) is 8
+                if peek_byte(d + 6) is 8 or peek_byte(d + 6) is 136
                     change lo to lo + 1
                     change going to 1
     if lo >= n
@@ -312,9 +312,11 @@ block match_first_phrase()
                 change hi to hi + 1
                 change going to 1
             else
-                if not (peek_byte(e + 6) is 8)
-                    change hi to hi + 1
-                    change going to 1
+                let ef = peek_byte(e + 6)
+                if ef is not 8
+                    if ef is not 136
+                        change hi to hi + 1
+                        change going to 1
     return match_phrase(lo, hi, 1)
 
 // Did the line name an all-word (dictionary flag 1)? Only consulted when
