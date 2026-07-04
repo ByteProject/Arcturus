@@ -45,3 +45,13 @@ block dispatch(action)
             if call_handler(s, action) is 1
                 return
     run_free(action)
+
+// The after phase (docs/02 section 9 step 6) lives at dispatch's call sites
+// in the loop, not in a helper block, so that games without a single
+// `on after` fold it to NOTHING (a wrapper block would cost its call layer
+// even unused; the doctrine is pay-for-use). The loop runs, after a
+// dispatch that nothing refused, the same chain again under the action's
+// synthetic after number: dispatch itself is re-entered with it, the after
+// number passes the meta compare (afters sort below the metas), and react
+// routines answer it only with their `on after` handlers. Grain quips are
+// flavor, not world actions, so a grain turn takes no after pass.

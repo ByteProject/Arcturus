@@ -41,16 +41,51 @@ EVENT_NAMES = frozenset({"start", "enter", "each_turn"})
 META_ACTIONS = ("score", "save", "restore", "restart", "quit")
 
 
+def actions_with_after(world: "World") -> list:
+    """Every action name that has at least one `on after` handler anywhere:
+    on an object, on a kind, or free-standing. Each gets a synthetic after
+    action (see action_numbers); the dispatcher's after phase fires it through
+    the same chain once the real action completes unrefused (docs/02 s.9)."""
+    found = set()
+    pools = [obj.handlers for obj in world.objects.values()]
+    pools.extend(kind.handlers for kind in world.kinds.values())
+    pools.append(world.free_handlers)
+    for handlers in pools:
+        for h in handlers:
+            if h.after:
+                found.update(h.events)
+    return sorted(found)
+
+
+def after_key(action: str) -> str:
+    """The synthetic action name an `on after <action>` handler answers to.
+    The colon keeps it out of any author-writable namespace."""
+    return "after:" + action
+
+
 def action_numbers(world: "World") -> dict:
     """The deterministic action -> number map (0 means no action), shared by
     codegen (react routines, dictionary verb data) and lower (event firing).
     Verbs and the life-cycle events live in one numbering so a react routine can
-    switch on either. The meta actions sort past every in-world one, so a
-    single compare identifies them at run time."""
+    switch on either. The ordering carries two floors: the synthetic after
+    actions sort past every real in-world action (after_floor), and the meta
+    actions sort past those (meta_floor), so a single compare identifies each
+    band at run time."""
     names = sorted(set(world.actions) | {"other"} | EVENT_NAMES)
     world_names = [n for n in names if n not in META_ACTIONS]
+    after_names = [after_key(n) for n in actions_with_after(world)]
     meta_names = [n for n in names if n in META_ACTIONS]
-    return {name: i + 1 for i, name in enumerate(world_names + meta_names)}
+    return {name: i + 1 for i, name in enumerate(world_names + after_names + meta_names)}
+
+
+def after_floor(world: "World") -> int:
+    """The first synthetic after action number: react routines skip their
+    `on other` catch-all at or past it (an after pass is not a player action).
+    With no after handler in the program it equals meta_floor, and the guard
+    never fires for anything the dispatcher lets through."""
+    nums = action_numbers(world)
+    afters = [nums[after_key(n)] for n in actions_with_after(world)]
+    return min(afters) if afters else meta_floor(world)
 
 
 def meta_floor(world: "World") -> int:

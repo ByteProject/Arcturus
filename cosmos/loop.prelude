@@ -83,6 +83,14 @@ block sweep_one(obj, act)
     show(": ")
     change noun to obj
     dispatch(act)
+    // Each swept item is a full turn, so it takes the after pass too
+    // (docs/02 s.9 step 6; folds away without an `on after` in the game).
+    if any_after is 1
+        if grain is 0
+            if refused is 0
+                let aft = after_of(act)
+                if aft is not 0
+                    dispatch(aft)
     fire_turn
     tick
     change last_act to act
@@ -245,6 +253,18 @@ block run_turn(act)
             run_plural(act, w)
             return 0
     dispatch(act)
+    // The after phase: the action ran; if nothing refused it, the `on after`
+    // handlers walk the same chain under the action's synthetic after number
+    // (docs/02 section 9 step 6). The library's can't/won't paths all set
+    // `refused`, and a story handler that refuses should too. A grain turn
+    // is a scenery quip, not a world action, so it takes no after pass. In
+    // a game with no `on after` anywhere, any_after folds all this away.
+    if any_after is 1
+        if grain is 0
+            if refused is 0
+                let aft = after_of(act)
+                if aft is not 0
+                    dispatch(aft)
     if meta_turn is 0
         fire_turn
         tick

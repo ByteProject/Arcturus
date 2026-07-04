@@ -111,6 +111,10 @@ INTRINSICS = frozenset({
     "erase_window", "screen_height", "buffer_mode", "clear_screen", "random",
     "ambience_table", "ranks_table", "any_ranks", "print_packed",
     "pools_table", "award_earned", "any_awards", "meta_floor",
+    # The dispatcher's after phase (docs/02 section 9 step 6): whether any
+    # `on after` handler exists (folds the phase away when not), and the
+    # action -> synthetic-after-action map behind it.
+    "any_after", "after_of",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr", "article_addr", "indefinite_addr", "tag_addr",
@@ -537,6 +541,13 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         op, t = _operand(rt, ctx, args[0])
         rt.op("call_vs", RoutineRef("react_free"), op, store=dest)
         _free(ctx, t)
+    elif name == "after_of":
+        # after_of(action): the action's synthetic after number, 0 when it has
+        # no after handlers (after_map, emitted by codegen). Reached only when
+        # any_after folded true, so the routine is guaranteed to exist.
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("call_vs", RoutineRef("after_map"), op, store=dest)
+        _free(ctx, t)
     elif name == "run_grain":
         # run_grain(id, action): route a matched scenery grain to its routine.
         eval_expr(rt, ctx, args[1], Variable(STACK))  # action (local 2)
@@ -701,6 +712,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         w = ctx.world
         scored = any(_prop_truthy(o.props.get("scored")) for o in w.objects.values())
         _place(rt, Const(1 if (w.award_anon or w.award_pools or scored) else 0), dest)
+    elif name == "any_after":
+        # any_after(): 1 when any `on after` handler exists (compile-time; the
+        # static fold usually decides it before this is reached).
+        _place(rt, Const(1 if wm.actions_with_after(ctx.world) else 0), dest)
     elif name == "ranks_table":
         # ranks_table(): the rank ladder's base address (0 without a ladder).
         _place(rt, Variable(ctx.globals["__ranks__"]), dest)
@@ -1618,6 +1633,10 @@ def _static_value(ctx, expr):
         w = ctx.world
         scored = any(_prop_truthy(o.props.get("scored")) for o in w.objects.values())
         return 1 if (w.award_anon or w.award_pools or scored) else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_after":
+        # 1 when any `on after` handler exists, so the dispatcher's after
+        # phase (and the after_map routine it calls) folds away otherwise.
+        return 1 if wm.actions_with_after(ctx.world) else 0
     # A constant folds to its value, so `if DEBUG is 1` (DEBUG a constant) decides
     # at compile time and an unused branch is never emitted.
     if isinstance(expr, ast.Name):
