@@ -814,40 +814,44 @@ on push slab when player holds crowbar
 
 Default versus override. A matching handler replaces the verb's default
 behavior, with the most specific winning (the section 5 resolution order).
-The engine hands the WHOLE action to the handler: the built-in behavior has
-not happened yet, and only happens if the handler passes the action on. A
-handler therefore does one of three things with the action it holds:
+Writing the handler switches the built-in behavior off: when the action
+fires, your lines run instead of it, and the built-in part only happens if
+you ask for it back. How the handler ENDS decides how much happens:
 
-1. KEEP IT. Running to the last line consumes the action; nothing else runs.
-   `stop` does exactly the same, from anywhere in the body, so it is the
-   early exit for a refusal inside an `if`, not a required closer. On the
-   last line it is redundant. (Inform's "instead" / `return true`.)
+1. End it (reach the last line, or `stop` early): your lines are ALL that
+   happens. An `on go west` that only says "LEAVING" prints the word and
+   the player stays in the room.
 
-2. PASS IT ON. Ending with `continue` means "I have said my piece; now let
-   the action happen": the chain moves to the next, more general handler
-   (the kind's, the room's) and finally the Cosmos default, which does the
-   real work. (Inform's "before" / `return false`.)
+2. End with `continue`: your lines happen, THEN the normal action does.
+   The same handler with `continue` as its last line prints "LEAVING" and
+   then the player really walks west. (`continue` hands the action to the
+   next, more general handler: the kind's, the room's, and finally the
+   Cosmos default, which does the real work.)
 
-3. REACT AFTERWARDS. `on after <verb>` is a separate handler that runs only
-   once the action has genuinely completed: taken effect, with nothing
-   refusing it along the way. If the action was blocked or replaced by a
-   refusal, the after handler never fires.
+3. `on after <verb>` is a separate handler for the third timing: your
+   lines happen AFTER the action has really taken place. The player walks
+   west first, then "The door clicks shut behind you." If the walk never
+   happened (refused, or replaced by a handler that did not continue),
+   the after handler stays silent.
+
+`stop` on a handler's last line changes nothing: reaching the end blocks
+the built-in behavior anyway. `stop` exists to end the handler from the
+MIDDLE of the body, almost always inside an `if`, when a refusal means the
+remaining lines should not run:
 
 ```
 on go west
     if door is locked
         say "The door won't budge."
-        stop            // consumed: the player stays put
+        stop            // end here: no movement
     say "You slip through."
-    continue            // and now the go really happens
+    continue            // unlocked: and now the go really happens
 
 on after go west
     say "The door clicks shut behind you."
 ```
 
-So a handler with `stop` on its last line and one without differ not at all;
-the consequential choice is between ending (keep) and ending with `continue`
-(hand it back). The full ordering is in 02.
+The full ordering is in 02.
 
 `on other` is the catch-all handler: it fires for any action on the object
 that no specific `on <verb>` handler caught. It is the object's own default,
