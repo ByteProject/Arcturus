@@ -8,7 +8,7 @@ the first written for the desktop rather than the metal.
 
 Actaea is not a separate project. It is built inside the existing Arcturus
 repository, by the same project and the same Claude Code context that is
-building the compiler and Cosmos. It is the work of Arcturus milestone B7, the
+building the compiler and Cosmos. It is the work of Arcturus milestone B10, the
 reference interpreter. This document joins the Arcturus docs as 06, and the
 Arcturus CLAUDE.md points to it. The milestones below (M1 to M11) are the
 breakdown of that single roadmap milestone.
@@ -54,7 +54,7 @@ Arcturus all play identically.
   of scope rather than half-built.
 - No arc_image. Actaea is the plain interpreter. The graphics extension is
   later work that you do yourself in this same project, as Arcturus milestones
-  B8 and B9, never as part of bringing Actaea to life. Actaea only leaves the
+  B11 and B12, never as part of bringing Actaea to life. Actaea only leaves the
   door open for it: the cell-grid screen model is built decoupled from its
   renderer so images can later be drawn into cell regions without
   rearchitecting (section 6).
@@ -77,7 +77,7 @@ core asks for.
 This boundary is the single most important design choice. It is what lets
 CZECH and Praxix run headless in the test harness, what keeps the screen model
 testable apart from rendering, and what will later let you add image rendering
-(Arcturus B8 and B9) by extending the front-end and the cell model, not the
+(Arcturus B11 and B12) by extending the front-end and the cell model, not the
 VM.
 
 Module map (within the actaea package):
@@ -162,7 +162,7 @@ character plus its style and colour, owned by screen.py and independent of any
 widget. The front-end renders that buffer; it never holds the truth itself.
 
 That decoupling is deliberate and forward-looking. When you later add
-arc_image, as Arcturus milestones B8 and B9, you extend this cell model and its
+arc_image, as Arcturus milestones B11 and B12, you extend this cell model and its
 renderer to draw a picture into a region of cells, with the pure-text path
 unchanged. Actaea does not build that, but it is built so that adding it is an
 extension rather than a rewrite.
@@ -249,7 +249,7 @@ design.md`.
 ```
 
 Keeping Actaea in the same repo and context is deliberate: the same project
-builds the compiler, the library, and the interpreter, and B8 and B9 will add
+builds the compiler, the library, and the interpreter, and B11 and B12 will add
 graphics across the Arcturus and Actaea code together. Splitting it out would
 sever exactly the shared context that later work depends on.
 
@@ -298,13 +298,13 @@ prior is green. M1 through M6 are headless; the GUI begins at M7.
   applicable TerpEtude tests are green and the games run correctly.
 
 After M11 Actaea is a finished Standard 1.1 interpreter in the Arcturus repo,
-completing milestone B7. arc_image then proceeds as Arcturus milestones B8 and
-B9, in this same project, extending the cell model M8 established.
+completing milestone B10. arc_image then proceeds as Arcturus milestones B11 and
+B12, in this same project, extending the cell model M8 established.
 
 ## 14. Deferred and future hooks
 
 Sound is out of scope and stays out. arc_image is out of scope for Actaea and
-is built later by you, in this same Arcturus project, as milestones B8 and B9;
+is built later by you, in this same Arcturus project, as milestones B11 and B12;
 the only preparation here is the decoupled cell model in M8. z3 is permanently
 out: Arcturus will never target it, and the version-3 status line and header
 quirks are not worth carrying.
