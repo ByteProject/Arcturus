@@ -83,9 +83,9 @@ The road from here, milestone by milestone:
   Trinity-style quote box (`summon.quotes`), banner control for pregame
   preludes, and a compile-statistics ledger after every build, watching the
   story's use of each Z-machine ceiling.
-- **After that:** Ghosts of Blackwood Manor; then a modern reference
-  interpreter, the `arc_image` graphics path (modern systems first, then the
-  8-bit and 16-bit retro machines), and porting The Curse of Rabenstein.
+- **After that:** a modern reference interpreter, the `arc_image` graphics
+  path (modern systems first, then the 8-bit and 16-bit retro machines), and
+  porting The Curse of Rabenstein.
   Reaching 1.0 is tied to those ports.
 
 Follow this section and `PROGRESS.md` for where things stand.

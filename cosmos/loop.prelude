@@ -92,6 +92,36 @@ block sweep_one(obj, act)
     change last_grain to grain
     return 0
 
+// The post-mortem, after a finish banner: the final score, then the
+// classic prompt until the player picks a way out. The answer words are
+// whatever the language pack declared for the restart/restore/quit verbs,
+// matched by their ACTIONS, so every language works without a line here.
+block game_over()
+    par
+    msg_score
+    while true
+        par
+        msg_game_over
+        prompt
+        let n = read_line
+        let handled = 0
+        let d = word_dict(0)
+        if d is not nothing
+            if peek_byte(d + 6) is 128
+                let act = peek_byte(d + 7)
+                if act is action_id("restart")
+                    do_restart
+                if act is action_id("restore")
+                    // A successful restore never returns here (it resumes at
+                    // the save point); reaching the next line means failure.
+                    let r = do_restore
+                    change handled to 1
+                    msg_restore_failed
+                if act is action_id("quit")
+                    do_quit
+        if handled is 0
+            msg_game_over_unknown
+
 block run_game()
     move player to here
     // The start room is visited by definition (and never scores: you did

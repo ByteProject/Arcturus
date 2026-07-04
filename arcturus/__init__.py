@@ -11,4 +11,4 @@ Arcturus itself and is compiled together with the author's program; the
 compiler hardcodes nothing about it, including its version.
 """
 
-__version__ = "0.10.0"
+__version__ = "0.10.1"

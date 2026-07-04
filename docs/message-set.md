@@ -165,6 +165,8 @@ is summoned.)
 | msg_save_failed | save failed | Something went wrong with that save. |
 | msg_restore_failed | restore failed | That save couldn't be restored. |
 | msg_confirm_restart | restart | Start over from the very beginning? |
+| msg_game_over | the post-mortem prompt after a finish banner | Would you like to RESTART, RESTORE a saved game, or QUIT? |
+| msg_game_over_unknown | an unrecognized post-mortem answer | That wasn't one of the choices. |
 | msg_undone | undo ok | Taken back. |
 | msg_cant_undo | nothing to undo | There's nothing to take back. |
 | msg_cant_oops | oops with nothing to correct | There's nothing to put right. |

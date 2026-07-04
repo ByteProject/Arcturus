@@ -1259,6 +1259,12 @@ block confirm_quit()
 block msg_farewell()
     say "Lo dejamos aquí."
 
+block msg_game_over()
+    say "¿Quieres REINICIAR, CARGAR una partida guardada o TERMINAR?"
+
+block msg_game_over_unknown()
+    say "Esa no era una de las opciones."
+
 // Meta verbs (the score, a restart confirmation, the xyzzy easter egg). save,
 // restore, and undo bring their own messages with the meta-verb opcodes.
 block msg_score()

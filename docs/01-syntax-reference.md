@@ -560,7 +560,9 @@ one.
 that also consumes the action (section 12). `continue` ends the current
 handler and passes the action to the next, more general handler (section 12).
 
-`finish` ends the game, printing its final message.
+`finish` ends the game, printing its final message; Cosmos then reports the
+final score (the same line SCORE prints) and offers the classic RESTART,
+RESTORE, QUIT prompt, answered in the pack's own words (02, section 7).
 
 ## 8. Control flow
 
