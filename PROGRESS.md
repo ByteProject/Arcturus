@@ -2430,3 +2430,16 @@ via hibernated2/. Praxix source praxix.inf available if wanted.
 NEXT: M2, the instruction decoder and disassembler (all four forms,
 extended opcodes, store/branch/inline-text flags), done when it
 disassembles a real story without error and the decode unit tests pass.
+
+TODO (Stefan, 2026-07-04): ABBREVIATION QUALITY INVESTIGATION, not now. Data
+point: the Inform/Puny H2 compiles to 137K plain and 123K after Henrik
+Asman's zabbrv; our build is 132.7K plain and 124,244 with the custom
+granule. So our CUSTOM pass buys us less than zabbrv buys Inform (8.5K vs
+14K), while our plain build already beats Inform's plain by 4K, which
+suggests our BAKED-IN standard set is doing part of zabbrv's work up front
+and the distorted baseline hides how good or bad the custom optimizer
+really is. To investigate later: compare the two abbreviation SETS head to
+head, check ours for wasted slots (96 entries, are all earning?), and see
+whether zabbrv's selection algorithm (or a better one) beats
+tools/arcabbr.py on the same corpus. Credits wording: Stefan writes it by
+hand, off the list.
