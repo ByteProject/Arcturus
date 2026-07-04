@@ -188,8 +188,9 @@ done-test.
   verbs (score, save, restore, restart, undo, again, oops, quit), and a fresh,
   distinctive standard message set - not Inform's or Dialog's. The summon loader,
   then the summonable features as embedded granules, built and tested one at a
-  time: `summon.extendedverbs` (the extended verb set, including the Infocom-style
-  ask/tell topic conversation logic), `summon.statusline` (an opt-in status line,
+  time: `summon.extendedverbs` (the extended flavor verb set; the Infocom-style
+  ask/tell topic logic later became its own `summon.infocom_talking`),
+  `summon.statusline` (an opt-in status line,
   the first of the window work), `summon.verbose_exits` (auto-listed exits),
   `summon.conversations` (a menu-driven talk system painted in the upper window,
   the talk_menu equivalent, with code-toggled topics and an easy authoring

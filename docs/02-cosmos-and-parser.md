@@ -997,8 +997,9 @@ Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,
 `lock`, `unlock`, `switch_on`, `switch_off`, `push`, `pull`, `turn`, `give`,
 `show`, `talk`, `wait`, `again`.
 
-Summonable features: `extendedverbs`, `statusline`, `verbose_exits`,
-`conversations`, `takeall`, `plurals`, `ambience`, `debug`, and `language`. Text compression is not a summonable
+Summonable features: `extendedverbs`, `infocom_talking`, `statusline`,
+`verbose_exits`, `conversations`, `takeall`, `plurals`, `ambience`, `debug`,
+and `language`. Text compression is not a summonable
 feature: the standard abbreviation set is always applied, and a story tunes it
 with its own `abbreviations.granule` (`arcc --make-abbreviations`, then summoned by
 name), which the text encoder reads as data rather than loading as runtime blocks
