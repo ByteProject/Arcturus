@@ -307,6 +307,19 @@ def main(argv: list[str] | None = None) -> int:
     ap = _build_argparser()
     args = ap.parse_args(argv)
 
+    # The bare call: no story, no utility flag. It gets the full banner (which
+    # carries the header inside it) and nothing else; printing the header
+    # first as well showed the version block twice (fixed 2026-07-04).
+    utility = (
+        args.extract_library is not None
+        or args.eject_language is not None
+        or args.eject_granule is not None
+    )
+    if not args.source and not utility:
+        if not getattr(args, "quiet", False):
+            print(_banner(), file=sys.stderr)
+        return 2
+
     if not getattr(args, "quiet", False):
         print(_header())
 
@@ -317,10 +330,6 @@ def main(argv: list[str] | None = None) -> int:
         return _eject_language(args.eject_language)
     if args.eject_granule is not None:
         return _eject_granule(args.eject_granule)
-
-    if not args.source:
-        print(_banner(), file=sys.stderr)
-        return 2
 
     # -L directories must be absolute, so the library is deliberately placed and
     # there is no ambiguity about what a story summons by name (docs/05).
