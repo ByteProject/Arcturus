@@ -74,6 +74,28 @@ anonymous-points line; ambience per-line dwell.
 
 >>> END DAY-TWO CHECKPOINT <<<
 
+GAIN JOINS TELEPORT, AND THE OVERHAUL BUMP (2026-07-04, Stefan's
+blessing; arcc 0.10.0 / Cosmos 0.14.0 / vsix 0.10.0, the minor bump
+marking the day's fundamentals overhaul): gain(obj) is a standard Cosmos
+block, teleport's sibling: the acquisition without TAKE pays a scored
+thing's points exactly once (any_scored fold), marks it moved and seen,
+then moves it to the player. THE TAKE HANDLER ITSELF FUNNELS THROUGH
+GAIN, so there is exactly one acquisition path (symmetric with go
+funnelling through arrive); cost ~12 bytes per game for the call frame,
+H2 got smaller (its two sites now share). DOCUMENTED AGAINST MOVE, hard,
+per Stefan: Arcturus's `move` is the silent tree operation, Inform's
+"move lamp to player" idiom is our gain; docs/01 section 5 carries a
+CAREFUL-INFORM-HANDS warning box (gain when the player RECEIVES,
+teleport when the player ARRIVES, move for silent stage management), the
+scoring section and docs/02's teleport passage cross-reference it. H2's
+story-local gain block deleted (the Cosmos one serves). HIGHLIGHTING:
+block calls with arguments render the callee in its own scope
+(entity.name.function) with the arguments left to the value scopes, per
+the screenshot ruling; bare zero-arg calls are lexically plain names and
+stay unscoped. tests: gain pays once, re-take after gain pays nothing.
+399 tests; ceilings re-pinned; all artifacts + amalgam at 0.10.0; H2
+130/130 "in 51 turns".
+
 THE FUNDAMENTALS SESSION: PARENS EARN THEIR KEEP (2026-07-04, Stefan's
 course correction on readability drift, "not the vision I had for this
 language"; arcc 0.9.3 / Cosmos 0.13.4 / vsix 0.9.3): four rulings, all

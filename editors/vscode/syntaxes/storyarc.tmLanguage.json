@@ -37,6 +37,9 @@
             "include": "#keywords"
         },
         {
+            "include": "#calls"
+        },
+        {
             "include": "#operators"
         }
     ],
@@ -321,6 +324,11 @@
                     "match": "\\b(title|headline|author|release|serial|UUID|scoring|banner)\\b"
                 }
             ]
+        },
+        "calls": {
+            "comment": "A block or intrinsic call with arguments: the callee in its own scope, the arguments left to the value scopes (Stefan's policy, 2026-07-04). Bare zero-argument calls are lexically plain names and stay unscoped.",
+            "match": "\\b([a-z_][a-z0-9_]*)(?=\\()",
+            "name": "entity.name.function.call.storyarc"
         },
         "operators": {
             "patterns": [

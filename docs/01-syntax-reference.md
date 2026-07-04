@@ -244,6 +244,16 @@ Containment is the Z-machine object tree: one parent per object, set with
 `in`, changed with `move`, read with `holds`, `in`, and `for each`. The tree
 is a separate axis from properties and is never reached with the dot.
 
+CAREFUL, INFORM HANDS: Arcturus's `move` is the SILENT tree operation; it
+does no bookkeeping of any kind. The Inform idiom "move lamp to player" (an
+acquisition the player should be credited for) is the Cosmos block
+`gain(lamp)`: it pays a scored thing's points exactly once and marks it
+`moved` and `seen` before moving it, the bookkeeping TAKE would have done
+(02, section 7). A bare `move lamp to player` leaves auto-scored points
+unreachable and the object's `intro` un-retired. Rule of thumb: `gain` when
+the player RECEIVES something, `teleport` when the player ARRIVES somewhere,
+`move` for silent stage management behind the scenes.
+
 Directions are object-valued properties on a room whose value is another
 room. `north cellar` sets `north` to `cellar`; it can be changed at run time
 (`change hallway.north to nothing`). Cosmos defines the direction names and
@@ -427,10 +437,11 @@ Things a plain take refuses anyway (scenery, fixed, animate, doors) never
 pay and never count.
 
 A cutscene that moves the player without walking (a crash landing, a
-transit pod) uses `teleport(dest)` (02, section 7), which pays the room's
-first visit exactly like GO does, so no auto-scored point ever becomes
-unreachable; story code that hands an object over without TAKE should
-likewise pay once, or opt the object out.
+transit pod) uses `teleport(dest)`, and one that hands the player an object
+without TAKE (a panel pried open, a mechanism yielding its prize) uses
+`gain(obj)` (both 02, section 7): each pays exactly like the verb would, so
+no auto-scored point ever becomes unreachable. A bare `move obj to player`
+pays nothing (section 5, the move-versus-gain warning).
 
 For everything the compiler cannot know, the events, there is `award`, a
 statement legal anywhere a statement is (handlers, topic bodies, grains):
