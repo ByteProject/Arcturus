@@ -8,7 +8,7 @@ with zasm.py (the test-side encoder independent of the decoder under test)."""
 
 import pytest
 
-from actaea.vm import UnimplementedOpcode, VMError
+from actaea.vm import VMError
 from zasm import (
     GLOBALS, L, NEWLINE, QUIT, RFALSE, RTRUE, S, SP, V, branch, build, ext,
     long2, print_num, routine, run, short0, short1, vop, vop2,
@@ -315,18 +315,17 @@ def test_branch_offsets_zero_and_one_return():
     assert io.text == "1"
 
 
-def test_print_char_and_unimplemented_are_loud():
+def test_print_char_and_unknown_are_loud():
     out = run(
         vop(0x05, S(72)) + vop(0x05, S(105)) + vop(0x05, S(13))  # H i newline
         + QUIT
     )
     assert out == "Hi\n"
-    # The file-based save is real but belongs to M10: loud, with the
-    # milestone named (the ext-form save, 0xBE 0x00).
-    vm, io, _ = build(ext(0x00, store=SP) + QUIT)
-    with pytest.raises(UnimplementedOpcode) as e:
+    # An opcode with no handler stays a loud fault, never a silent no-op:
+    # EXT:5 (draw_picture) is a v6 display opcode, illegal to execute here.
+    vm, io, _ = build(ext(0x05) + QUIT)
+    with pytest.raises(VMError):
         vm.run(max_steps=10)
-    assert "M10" in str(e.value)
 
 
 def test_quit_halts():

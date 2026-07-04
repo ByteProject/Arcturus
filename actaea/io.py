@@ -18,6 +18,7 @@ buffer is core-owned truth and front-ends RENDER it (they never hold state).
 What belongs here is what crosses the boundary as an event: text flowing
 out, keys flowing in, save/restore file channels."""
 
+import os
 import sys
 
 
@@ -49,6 +50,19 @@ class IOSystem:
         console keeps its transcript (nothing to clear that would not lose
         history); a windowed front-end wipes its text area."""
 
+    # The save/restore file channels (M10): the VM builds and parses the
+    # Quetzal bytes itself; all it needs from the front-end is WHERE. None
+    # means the player changed their mind, which the VM reports as an
+    # ordinary save/restore failure.
+
+    def save_path(self, default: str):
+        """A path to write a save to, or None if cancelled."""
+        raise NotImplementedError("this front-end does not save")
+
+    def restore_path(self, default: str):
+        """A path to read a save from, or None if cancelled."""
+        raise NotImplementedError("this front-end does not restore")
+
 
 class ConsoleIO(IOSystem):
     """The plain console: what the headless harness (CZECH, Praxix, and
@@ -77,14 +91,39 @@ class ConsoleIO(IOSystem):
             raise EOFError
         return 13 if ch == "\n" else ord(ch)
 
+    def _ask_filename(self, default: str):
+        # The dfrotz manner: prompt with a default, take a line, an empty
+        # line means the default. Scripted play (a walkthrough on stdin)
+        # feeds the name the same way it feeds commands.
+        sys.stdout.write(f"Please enter a filename [{default}]: ")
+        sys.stdout.flush()
+        try:
+            line = input().strip()
+        except EOFError:
+            return None
+        name = line or default
+        if self._echo:
+            sys.stdout.write(name + "\n")
+        return name
+
+    def save_path(self, default: str):
+        return self._ask_filename(default)
+
+    def restore_path(self, default: str):
+        return self._ask_filename(default)
+
 
 class CaptureIO(IOSystem):
     """Collects output for assertions; used by the tests and by transcript
     comparison in the conformance harness. Input can be scripted."""
 
-    def __init__(self, script=()):
+    def __init__(self, script=(), save_dir=None):
         self.output: list = []
         self.script = list(script)
+        # Where scripted saves land; the script supplies bare filenames the
+        # way a player would, and they resolve into this directory (a test's
+        # tmp_path). None = the current directory.
+        self.save_dir = save_dir
 
     def print_text(self, text: str) -> None:
         self.output.append(text)
@@ -100,6 +139,17 @@ class CaptureIO(IOSystem):
         # press-any-key moments with blank lines, the dfrotz convention).
         ch = self.script.pop(0)
         return 13 if ch in ("\n", "") else ord(ch[0])
+
+    def _next_filename(self, default: str):
+        name = self.script.pop(0).strip() or default
+        self.output.append(name + "\n")  # the transcript shows the answer
+        return os.path.join(self.save_dir, name) if self.save_dir else name
+
+    def save_path(self, default: str):
+        return self._next_filename(default)
+
+    def restore_path(self, default: str):
+        return self._next_filename(default)
 
     @property
     def text(self) -> str:
