@@ -2471,3 +2471,45 @@ logic, branches, load and store, call and return, jump; done when
 computational test routines produce correct results headless. The io.py
 interface sketch should land with it (print callbacks needed the moment
 print_num works).
+
+## 2026-07-04 (night, cont.): Actaea M3 green, the execution core
+
+vm.py runs the computational machine over decode.py's instructions: the
+evaluation stack (per-frame, exactly the shape Quetzal's Stks chunk wants
+back at M10), call frames with locals/return-pc/store-target/argc, and the
+run loop. Implemented: signed arithmetic with truncating div/mod, bitwise
+ops and both shifts, all comparisons (je's multi-way form, signed jl/jg),
+inc_chk/dec_chk, jump, load/store/loadw/loadb/storew/storeb, push/pull,
+the Standard 6.3.4 indirect-variable quirk (a reference to variable 0
+works on the TOP of stack in place: load peeks, store replaces, inc bumps;
+pull pops), the whole call family (vs/vs2/2s/1s and the _n forms, address
+0 yields false, extra args discarded, locals default 0), ret/rtrue/rfalse/
+ret_popped, catch/throw (frame-count semantics, unwind then return),
+check_arg_count, random (seeded = reproducible), verify (against the real
+checksum), piracy (gullible), nop, quit, and the numeric outputs
+(print_num/print_char/new_line) through io.py.
+
+io.py landed as the core-world boundary of docs/06 s.4: IOSystem (loud
+NotImplementedError defaults), ConsoleIO for the harness, CaptureIO for
+tests and transcript comparison. Screen-model calls will speak to
+screen.py's cell model, NOT this interface (front-ends render core-owned
+truth; only boundary-crossing events live in io.py).
+
+Unimplemented opcodes raise UnimplementedOpcode NAMING THE MILESTONE
+(objects M4, Z-string text M5, read M6, screen M8, styles M9, saves M10,
+streams M11); sound_effect is the designed no-op. Faults are named with
+addresses (division by zero, stack underflow, call to a non-routine),
+Actaea playing fizmo's role by construction.
+
+M3 done-test PASSED: 22 hand-assembled computational tests produce correct
+results headless, driven by a test-side encoder deliberately independent
+of both the decoder and the compiler's assembler (the encodings are cross-
+checked by a second implementation). Highlights: recursive factorial
+F(7)=5040 eight frames deep; frames isolate their stacks (a callee popping
+its caller's stack is an underflow fault, S 6.3.2); catch/throw across
+three frames returns the thrown value and neither sentinel prints. 48
+actaea tests; 455 total. actaea 0.3.0.
+
+NEXT: M4, the object tree (48 attributes, properties with one/two-byte
+size forms, the 63-entry defaults table, parent/sibling/child and all
+their opcodes). After that M5 text and the machine starts talking.
