@@ -19,9 +19,9 @@
 //   arcc examples/features/scoring.storyarc -o trial.z5
 //   frotz trial.z5
 //
-// Try: SCORE. Then explore, READ INSCRIPTION, and open the door your way:
-// PICK LOCK WITH NAIL (worth 10) or ATTACK DOOR (worth 5). FULL prints the
-// Infocom-style breakdown of what your playthrough earned.
+// Try: SCORE (score, turns, and your rank in one line). Then explore, READ
+// INSCRIPTION, and open the door your way: PICK LOCK WITH NAIL (worth 10)
+// or ATTACK DOOR (worth 5).
 
 summon.statusline
 

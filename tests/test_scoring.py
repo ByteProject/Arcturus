@@ -66,7 +66,7 @@ def _play(tmp_path, source, commands):
     story = tmp_path / "s.z5"
     story.write_bytes(generate(analyze(cosmos.combined_program(parse(source)))))
     return subprocess.run(
-        [_frotz(), "-p", str(story)],
+        [_frotz(), "-p", "-w", "500", str(story)],
         input=commands, capture_output=True, text=True, timeout=15,
     ).stdout
 
@@ -130,12 +130,26 @@ def test_ranks_announced_and_spread(tmp_path):
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
-def test_full_score_breakdown(tmp_path):
-    # FULL is a standard meta verb: no summon needed, the breakdown ships
-    # with the score mechanic (Stefan's ruling, 2026-07-04).
-    out = _play(tmp_path, GAME, "push panel\nfull\n")
-    assert "5 points, for outsmarting the door" in out
-    assert "in 1 turn." in out  # the singular branch
+def test_score_reports_turns(tmp_path):
+    # SCORE is the one score verb, Infocom-shaped: score, maximum, and the
+    # turn count in one line (Stefan's ruling, 2026-07-04; there is no FULL).
+    out = _play(tmp_path, GAME, "push panel\nscore\nwait\nscore\n")
+    assert "in 1 turn," in out  # the singular branch
+    assert "in 2 turns," in out
+
+
+def test_teleport_pays_a_scored_room_once(tmp_path):
+    # The Cosmos teleport(dest): a cutscene arrival in a scored room pays
+    # its points exactly once, marks it visited, and describes it, so a
+    # bypassed GO never strands max_score points.
+    src = GAME.replace(
+        'verb "meditate"',
+        'verb "warp"\n    warp\n\non warp\n    teleport(yard)\n\nverb "meditate"',
+    )
+    out = _play(tmp_path, src, "warp\nscore\ns\nwarp\nscore\n")
+    assert out.count("Yard\nA yard.") == 2  # described on each arrival
+    assert "scored 5 of a possible" in out
+    assert "scored 10 " not in out  # the second warp pays nothing
 
 
 def test_stats_carry_the_plan(tmp_path):

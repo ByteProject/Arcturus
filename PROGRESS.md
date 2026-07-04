@@ -74,6 +74,33 @@ anonymous-points line; ambience per-line dwell.
 
 >>> END DAY-TWO CHECKPOINT <<<
 
+SCORE IS THE ONE SCORE VERB + TELEPORT + ASK IS TALK (2026-07-04, Stefan's
+blessing after stopping the "full score" phrase work; Cosmos 0.12.2): FULL
+died the same day it went standard. The Infocom way, not the Inform way:
+SCORE now prints score, max, turn count ("in 1 turn" singular), and the
+rank when a ladder is declared, one line, three languages (DE score verb
+is now "punkte"/"punktzahl"; "bilanz" died with FULL). msg_fullscore,
+line_fullscore_pool, the fullscore handler, and the pool TABLE are gone:
+a pool's label is author documentation (source + ledger) and no longer
+reaches the story file; pools_table() folds to 0 (a future breakdown
+granule would revive it). Every ceiling dropped (Cloak 14764 -> 14684;
+the scoring example 15336 -> 15104). TELEPORT(dest) joined the standard
+blocks: the cutscene arrival (crash, pod, trapdoor) that pays a scored
+room exactly once, marks visited, and describes; the go handler funnels
+through the same arrive(), so the payout rule lives once; teleport does
+NOT fire on enter (walking's event); unused it folds away. The H2 port's
+go_to() retired in its favor (5 call sites; story keeps only gain() for
+the TAKE-bypassing plate and slab). ASK IS TALK in menu games (Stefan:
+"TELL holds no right to exist but ASK shall be mapped to talk"): the
+conversations granule declares verb "ask" -> talk noun / talk noun about,
+so ASK VLAD (and "ask vlad about the vines") opens the menu instead of
+lecturing; the about-literal grammar line matters, it puts "about" in the
+dictionary as a phrase boundary, or the matcher spans "vlad ... vines"
+into a disambiguation ask (caught live in the H2 walkthrough). H2 verifies
+130/130 "in 50 turns, which earns you the rank of Savior of the Universe."
+385 tests; amalgam + all artifacts rebuilt. Native pass items: the ES/DE
+score lines reworded (turns clause), the DE ask wording, ranks.
+
 FULLSCORE GOES STANDARD, THE PORT GOES LEAN (2026-07-04, Stefan's ruling
 on the Act II review): score reporting belongs to the score mechanic, so
 FULL/FULLSCORE moved from the extendedverbs granule into the standard meta

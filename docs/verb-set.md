@@ -129,8 +129,7 @@ and this topic dispatch defers to it.
 | Verb and synonyms | Action | Default behavior | Set |
 |---|---|---|---|
 | inventory, i, inv | inventory | list what you carry | S |
-| score | score | show the score | S |
-| fullscore, full | fullscore | break the score down | S |
+| score | score | score, maximum, turn count, and the rank when a ladder is declared | S |
 | save | save | save the game | S |
 | restore | restore | restore a saved game | S |
 | restart | restart | restart from the beginning | S |

@@ -50,7 +50,7 @@ def test_extended_verbs_on_frotz(tmp_path):
     story.write_bytes(_build(WITH))
     out = subprocess.run(
         [_frotz(), "-p", str(story)],
-        input="search chest\ndig\nthink\nrub pebble\nask guard about pebble\nrub guard\nfullscore\n",
+        input="search chest\ndig\nthink\nrub pebble\nask guard about pebble\nrub guard\n",
         capture_output=True, text=True, timeout=15,
     ).stdout
     assert "You find a gold coin." in out  # search lists the chest's contents
@@ -59,7 +59,6 @@ def test_extended_verbs_on_frotz(tmp_path):
     assert "You give the grey pebble a thorough buffing." in out  # rub default on an object
     assert "stays mum" in out  # ask a living thing (flavor)
     assert "The guard does not enjoy that." in out  # the guard's own on rub overrides
-    assert "You have scored 0 of a possible 0" in out  # fullscore breakdown
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")

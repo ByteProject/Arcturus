@@ -653,9 +653,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _free(ctx, t)
         _place(rt, Const(0), dest)
     elif name == "pools_table":
-        # pools_table(): the labelled-pool table for the fullscore breakdown
-        # (0 when no labelled pool exists).
-        _place(rt, Variable(ctx.globals["__pooltab__"]), dest)
+        # pools_table(): always 0. Pool labels are author documentation (the
+        # compile ledger prints them); no pool table reaches the story file.
+        # A future breakdown granule would emit the table and revive this.
+        _place(rt, Const(0), dest)
     elif name == "award_earned":
         # award_earned(i): the earned byte for award site or pool i.
         op, t = _operand(rt, ctx, args[0])

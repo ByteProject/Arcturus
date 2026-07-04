@@ -271,6 +271,13 @@ statusline summoned, the opening description skips its title line: the bar
 already names the room (the PunyInform start-screen convention); every later
 look prints the title as usual.
 
+A story moves the player without walking through `teleport(dest)`, the
+cutscene arrival (a crash landing, a transit pod, a trapdoor): it relocates
+the player, pays a scored room's points exactly once (the same `arrive()`
+the go handler funnels through), marks the room visited, and describes it.
+It does not fire the room's `on enter` (that event belongs to walking; a
+teleport's own prose sets the scene). Unused, it folds away.
+
 ## 8. The parser
 
 The parser turns input into an action with bound objects.
@@ -574,10 +581,9 @@ person's own `on talk` handler, or prints "There is no reply." With
 `summon.conversations` (section 14), `talk to <person>` opens that person's
 topic menu instead.
 
-Meta verbs: save, restore, undo, quit, score, fullscore (the Infocom-style
-breakdown from the labelled award pools; the walk folds away in a game with
-no award statement), and a verbose-or-brief toggle, using the corresponding
-Z-machine facilities.
+Meta verbs: save, restore, undo, quit, score (the one score verb, Infocom-
+shaped: score, maximum, turn count, and the rank when a ladder is declared),
+and a verbose-or-brief toggle, using the corresponding Z-machine facilities.
 
 Every default message is a Cosmos string, overridable globally by replacing
 the Cosmos default or locally by handling the verb on an object or kind.

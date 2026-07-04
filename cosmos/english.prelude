@@ -434,9 +434,6 @@ verb "quit", "q"
 verb "score"
     score
 
-verb "fullscore", "full"
-    fullscore
-
 verb "restart"
     restart
 
@@ -1091,32 +1088,20 @@ block msg_farewell()
 
 // Meta verbs (the score, a restart confirmation, the xyzzy easter egg). save,
 // restore, and undo bring their own messages with the meta-verb opcodes.
+// SCORE is the one score verb, Infocom-shaped: score, maximum, turn count,
+// and the rank when a `ranks` ladder is declared (the clause folds away
+// otherwise).
 block msg_score()
-    if any_ranks() is 1
-        show("You have scored ${score} of a possible ${max_score}, which
-              earns you the rank of ")
-        print_rank()
-        say "."
-        return 0
-    say "You have scored ${score} of a possible ${max_score}."
-
-// The FULL summary line; the earned pool lines print through
-// line_fullscore_pool above it (the handler walks the pools, the wording
-// is here).
-block msg_fullscore()
+    show("You have scored ${score} of a possible ${max_score}, in ")
+    show(turns)
     if turns is 1
-        say "You have scored ${score} of a possible ${max_score}, in 1
-             turn."
-        return 0
-    say "You have scored ${score} of a possible ${max_score}, in ${turns}
-         turns."
-
-block line_fullscore_pool(points, label)
-    show("  ")
-    show(points)
-    show(" points, for ")
-    print_packed(label)
-    say ""
+        show(" turn")
+    else
+        show(" turns")
+    if any_ranks() is 1
+        show(", which earns you the rank of ")
+        print_rank()
+    say "."
 
 block msg_confirm_restart()
     show("Start over from the very beginning? ")

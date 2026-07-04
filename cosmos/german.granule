@@ -430,12 +430,8 @@ verb "untersuch", "untersuche", "untersuchen", "betrachte", "pruefe", "prüfe", 
 verb "beende", "beenden", "ende"
     quit
 
-verb "punkte", "punktestand", "stand"
+verb "punkte", "punktzahl"
     score
-
-// The FULL breakdown (native pass pending: pick the idiomatic word).
-verb "bilanz"
-    fullscore
 
 verb "neustart", "neustarten", "restart"
     restart
@@ -1159,28 +1155,17 @@ block msg_farewell()
 
 // Meta verbs.
 block msg_score()
-    if any_ranks() is 1
-        show("Du hast ${score} von ${max_score} Punkten erreicht. Das bringt
-              dir den Rang: ")
-        print_rank()
-        say "."
-        return 0
-    say "Du hast ${score} von ${max_score} Punkten erreicht."
-
-block msg_fullscore()
+    show("Du hast ${score} von ${max_score} Punkten in ")
+    show(turns)
     if turns is 1
-        say "Du hast ${score} von ${max_score} Punkten in 1 Zug
-             erreicht."
-        return 0
-    say "Du hast ${score} von ${max_score} Punkten in ${turns} Zügen
-         erreicht."
-
-block line_fullscore_pool(points, label)
-    show("  ")
-    show(points)
-    show(" Punkte: ")
-    print_packed(label)
-    say ""
+        show(" Zug")
+    else
+        show(" Zügen")
+    show(" erreicht")
+    if any_ranks() is 1
+        show(". Das bringt dir den Rang: ")
+        print_rank()
+    say "."
 
 block msg_confirm_restart()
     show("Von vorne beginnen? ")
