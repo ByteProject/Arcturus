@@ -92,7 +92,7 @@ class ActaeaApp:
         self.root.geometry(f"{width}x{height}")
         self.canvas = tk.Canvas(
             self.root, height=0, borderwidth=0, highlightthickness=0,
-            background="white",
+            background="black",
         )
         self._grid_shown = False
         self._redraw_queued = False
@@ -103,6 +103,7 @@ class ActaeaApp:
         self.text = tk.Text(
             frame, wrap="word", font=self.font, undo=False,
             padx=8, pady=6, borderwidth=0, highlightthickness=0,
+            background="black", foreground="white", insertbackground="white",
         )
         scroll = tk.Scrollbar(frame, command=self.text.yview)
         self.text.configure(yscrollcommand=scroll.set)
@@ -180,11 +181,11 @@ class ActaeaApp:
                 chars = "".join(cell.char for cell in row[start:c])
                 x = start * self.cell_w
                 style, fg, bg = key
-                fg_c = self._colour(fg, "black")
-                bg_c = self._colour(bg, "white")
+                fg_c = self._colour(fg, "white")
+                bg_c = self._colour(bg, "black")
                 if style & REVERSE:
                     fg_c, bg_c = bg_c, fg_c
-                if bg_c != "white":
+                if bg_c != "black":
                     self.canvas.create_rectangle(
                         x, y, x + (c - start) * self.cell_w, y + self.cell_h,
                         fill=bg_c, width=0,
@@ -220,8 +221,8 @@ class ActaeaApp:
             return ""
         name = f"look-{style}-{fg}-{bg}"
         if name not in self._tags_made:
-            fg_c = self._colour(fg, "black")
-            bg_c = self._colour(bg, "white")
+            fg_c = self._colour(fg, "white")
+            bg_c = self._colour(bg, "black")
             if style & REVERSE:
                 fg_c, bg_c = bg_c, fg_c
             self.text.tag_configure(

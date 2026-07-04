@@ -142,8 +142,11 @@ class VM:
         m.set_word(0x24, 255)    # screen height in units
         m.set_byte(0x26, 1)      # font width in units (v5 order)
         m.set_byte(0x27, 1)      # font height in units
-        m.set_byte(0x2C, 1)      # default background: the default colour
-        m.set_byte(0x2D, 1)      # default foreground: the default colour
+        # Actaea is a dark interpreter: white on black, the screen the
+        # retro-aimed games (H2's zcolor.font white) design for. Declared
+        # here so games can read what "default" means (S 8.3.2).
+        m.set_byte(0x2C, 2)      # default background: black
+        m.set_byte(0x2D, 9)      # default foreground: white
         m.set_word(0x32, 0x0101)  # Standard revision 1.1
 
     # -- variables ----------------------------------------------------------
