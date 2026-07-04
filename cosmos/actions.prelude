@@ -49,6 +49,25 @@ block teleport(dest)
     set_here(dest)
     arrive
 
+// Receive an object without TAKE: the story-facing acquisition for cutscene
+// handovers (a panel pried open, a mechanism dropping its prize into your
+// hand). It does the bookkeeping TAKE would have done: pays a scored thing's
+// points exactly once, marks it moved (the listing switches from its intro
+// to the plain line) and seen (the knowledge model), then moves it to the
+// player. NOT the same statement as `move obj to player`: Arcturus's move is
+// the silent tree operation, no bookkeeping, while Inform's "move" idiom is
+// what gain covers (docs/01 section 5). The take handler itself funnels
+// through gain, so there is exactly one acquisition path. Unused by stories,
+// the block folds into take.
+block gain(obj)
+    if any_scored is 1
+        if obj is scored
+            if obj is not moved
+                change score to score + 5
+    move obj to player
+    now obj is moved
+    now obj is seen
+
 on go
     if way is nothing
         change refused to 1
@@ -110,15 +129,7 @@ on take
     if player holds noun
         msg_have_it
         stop
-    // With `scoring` on, a thing pays out on the first take (docs/01,
-    // Scoring). Folds away in a game that scores nothing.
-    if any_scored is 1
-        if noun is scored
-            if noun is not moved
-                change score to score + 5
-    move noun to player
-    now noun is moved
-    now noun is seen
+    gain(noun)
     msg_taken
 
 on drop

@@ -281,7 +281,13 @@ cutscene arrival (a crash landing, a transit pod, a trapdoor): it relocates
 the player, pays a scored room's points exactly once (the same `arrive`
 the go handler funnels through), marks the room visited, and describes it.
 It does not fire the room's `on enter` (that event belongs to walking; a
-teleport's own prose sets the scene). Unused, it folds away.
+teleport's own prose sets the scene). Its sibling `gain(obj)` is the
+acquisition without TAKE (a cutscene handover): it pays a scored thing's
+points exactly once and marks it `moved` and `seen` before moving it to the
+player; the take handler itself funnels through gain, so there is exactly
+one acquisition path. Neither is Arcturus's `move`, the silent tree
+operation with no bookkeeping (docs/01 section 5 carries the warning for
+Inform hands). Unused by stories, both fold to nothing extra.
 
 ## 8. The parser
 

@@ -150,6 +150,20 @@ def test_score_reports_turns(tmp_path):
     assert "in 2 turns," in out
 
 
+def test_gain_pays_a_scored_thing_once(tmp_path):
+    # The Cosmos gain(obj), teleport's sibling: a cutscene handover pays the
+    # thing's points once and marks it moved and seen; a second gain (or a
+    # later real TAKE) pays nothing. move alone would pay nothing at all.
+    src = GAME.replace(
+        'verb "meditate"',
+        'verb "bestow"\n    bestow\n\non bestow\n    gain(coin)\n    say "Bestowed."\n\nverb "meditate"',
+    )
+    out = _play(tmp_path, src, "bestow\nscore\ndrop coin\ntake coin\nscore\n")
+    assert "scored 5 of a possible" in out
+    assert out.count("Bestowed.") == 1
+    assert "scored 10 " not in out  # neither the re-take nor a re-gain pays
+
+
 def test_teleport_pays_a_scored_room_once(tmp_path):
     # The Cosmos teleport(dest): a cutscene arrival in a scored room pays
     # its points exactly once, marks it visited, and describes it, so a
