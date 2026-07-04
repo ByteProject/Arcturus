@@ -89,9 +89,7 @@ class ActaeaApp:
         # The window opens WIDE ENOUGH for the story's screen: the model is
         # 80 columns, so the status bar and centred quote boxes must fit
         # without the player reaching for the window corner. Exactly 80
-        # cells plus the scrollbar (the grid spans the full width; the
-        # lower window word-wraps a touch earlier, which reads fine), about
-        # 30 lines tall.
+        # cells plus a small margin, about 30 lines tall.
         width = 80 * self.cell_w + 20
         height = 30 * self.cell_h
         self.root.geometry(f"{width}x{height}")
@@ -110,10 +108,11 @@ class ActaeaApp:
             padx=8, pady=6, borderwidth=0, highlightthickness=0,
             background="white", foreground="black", insertbackground="black",
         )
-        scroll = tk.Scrollbar(frame, command=self.text.yview)
-        self.text.configure(yscrollcommand=scroll.set)
-        scroll.pack(side="right", fill="y")
-        self.text.pack(side="left", fill="both", expand=True)
+        # No scrollbar: interpreters never had one, the native widget is an
+        # unstyleable white strip on a game-painted dark screen (Stefan's
+        # eye, 2026-07-05), and the wheel, trackpad, and the unread-text
+        # return cover every way a player actually moves through the text.
+        self.text.pack(fill="both", expand=True)
 
         # The input mark: everything before it is story text and immutable.
         self.text.mark_set("input_start", "end-1c")
