@@ -485,12 +485,13 @@ the game grows during development; a POINTS pin is the definite value,
 verbatim, for when a rank must sit exactly at a known threshold. Mix them
 freely; unpinned titles keep the even spread.
 
-FULL SCORE (or FULL), a standard meta verb, prints the Infocom-style
-breakdown from the pool labels, reporting what this playthrough earned:
+A pool's label is author documentation: it names the pool in the source and
+in the compile ledger, and costs the story file nothing. SCORE is the one
+score verb, Infocom-shaped:
 
 ```
-  5 points, for outsmarting the blast door
-You have scored 55 of a possible 95, in 21 turns.
+You have scored 55 of a possible 95, in 21 turns, which earns you the rank
+of Space Archaeologist.
 ```
 
 The escape hatch: `change score` stays legal (penalties, score-as-resource),

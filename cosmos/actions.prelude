@@ -27,6 +27,28 @@
 on look
     describe_room()
 
+// The arrival, shared by walking and teleporting: with `scoring` on, a room
+// pays out on the first visit (the compiler set the scored bits and summed
+// max_score, docs/01); the payout folds away in a game that scores nothing.
+block arrive()
+    if any_scored() is 1
+        if here is scored
+            if not (here is visited)
+                change score to score + 5
+    now here is visited
+    describe_room()
+
+// Arrive in a room without walking: the story-facing teleport for cutscene
+// moves (a crash landing, a transit pod, a trapdoor). It pays the room's
+// auto-score exactly once, marks it visited, and describes it, so a scored
+// game stays honest however the player got there. It does not fire the
+// room's `on enter` (the enter event belongs to walking; a teleport's own
+// prose sets the scene). Unused, it folds away.
+block teleport(dest)
+    move player to dest
+    set_here(dest)
+    arrive()
+
 on go
     if way is nothing
         change refused to 1
@@ -60,15 +82,7 @@ on go
     set_here(dest)
     fire_enter()
     set_here(parent_of(player))
-    // With `scoring` on, a room pays out on the first visit; the compiler
-    // set the scored bits and summed max_score (docs/01, Scoring). Folds
-    // away in a game that scores nothing.
-    if any_scored() is 1
-        if here is scored
-            if not (here is visited)
-                change score to score + 5
-    now here is visited
-    describe_room()
+    arrive()
 
 on take
     if noun is nothing
@@ -146,26 +160,6 @@ on quit
 on score
     change meta_turn to 1
     msg_score()
-
-on fullscore
-    change meta_turn to 1
-    // The Infocom-style breakdown, from the labelled award pools (docs/01,
-    // Scoring): each earned one prints its points and its label through the
-    // language layer's line_fullscore_pool, then msg_fullscore sums up.
-    // Unlabelled points stay in the total; the whole walk folds away in a
-    // game with no award statement (docs/00, pay for use).
-    if any_awards() is 1
-        let t = pools_table()
-        if t is not 0
-            let n = peek_word(t, 0)
-            let i = 0
-            while i < n
-                let rec = t + 2 + i * 6
-                let e = award_earned(peek_word(rec, 1))
-                if e > 0
-                    line_fullscore_pool(e, peek_word(rec, 2))
-                change i to i + 1
-    msg_fullscore()
 
 on restart
     change meta_turn to 1

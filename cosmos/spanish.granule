@@ -579,10 +579,6 @@ verb "fin", "terminar", "termina"
 verb "puntuacion", "puntuación", "puntos"
     score
 
-// The FULL breakdown (native pass pending: pick the idiomatic word).
-verb "desglose", "logros"
-    fullscore
-
 verb "reiniciar", "recomenzar"
     restart
 
@@ -1236,28 +1232,16 @@ block msg_farewell()
 // Meta verbs (the score, a restart confirmation, the xyzzy easter egg). save,
 // restore, and undo bring their own messages with the meta-verb opcodes.
 block msg_score()
-    if any_ranks() is 1
-        show("Has conseguido ${score} de un total de ${max_score} puntos, lo
-              que te otorga el rango de ")
-        print_rank()
-        say "."
-        return 0
-    say "Has conseguido ${score} de un total de ${max_score} puntos."
-
-block msg_fullscore()
+    show("Has conseguido ${score} de un total de ${max_score} puntos en ")
+    show(turns)
     if turns is 1
-        say "Has conseguido ${score} de un total de ${max_score} puntos
-             en 1 turno."
-        return 0
-    say "Has conseguido ${score} de un total de ${max_score} puntos en
-         ${turns} turnos."
-
-block line_fullscore_pool(points, label)
-    show("  ")
-    show(points)
-    show(" puntos, por ")
-    print_packed(label)
-    say ""
+        show(" turno")
+    else
+        show(" turnos")
+    if any_ranks() is 1
+        show(", lo que te otorga el rango de ")
+        print_rank()
+    say "."
 
 block msg_confirm_restart()
     show("¿Empezar de nuevo desde el principio? ")

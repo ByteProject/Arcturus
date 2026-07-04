@@ -665,12 +665,6 @@ def build_story(
             else:
                 pts = 0
             sf.set_word(objects_addr + pos, pts)
-    if layout is not None and layout.pools_off >= 0:
-        sf.set_word(
-            globals_addr + (gmap["__pooltab__"] - 16) * 2,
-            objects_addr + layout.pools_off,
-        )
-
     m = _meta(world)
     # Flags 2: the story's own announcements (Standard 1.1 section 11.1). Bit 4:
     # the game uses undo (Cosmos ships save_undo in the meta verbs). Bit 6: the

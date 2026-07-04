@@ -80,8 +80,8 @@ is in docs/message-set.md; the roster:
   `think`, `pray`, `shout`.
 - CONVERSATION: `ask <person> about <subject>`, `tell ... about`, `answer`.
 
-(`fullscore`/`full` is a STANDARD meta verb, always in: the score mechanic
-ships its own reporting.)
+(There is no fullscore verb anywhere: SCORE is the one score verb and
+reports score, turns, and rank itself.)
 
 Every default is an ordinary free handler, so the override story is the
 usual one: an object's own `on rub` wins ("on rub / say ..."), a top-level

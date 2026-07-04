@@ -392,13 +392,13 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
 
 
 def _emit_scoring_tables(world, layout) -> None:
-    """The rank ladder and the labelled award pools (docs/01, Scoring).
-    Ranks: a count word, then (threshold, title) word pairs; the titles are
-    string fixups and the thresholds are patched in build_story, where the
-    compiler-summed max_score is known (even spread, or the entry's pinned
-    percent). Pools: a count word, then (points, earned-byte index, label)
-    triples for every pool that carries a label, so fullscore can print the
-    Infocom-style breakdown."""
+    """The rank ladder (docs/01, Scoring): a count word, then (threshold,
+    title) word pairs; the titles are string fixups and the thresholds are
+    patched in build_story, where the compiler-summed max_score is known
+    (even spread, or the entry's pinned percent). A pool's LABEL is author
+    documentation and appears in the compile ledger; it is not emitted into
+    the story file (there is no runtime breakdown verb; a future breakdown
+    granule would revive the pool table here)."""
     table = layout.table
     if world.ranks:
         layout.ranks_off = len(table)
@@ -411,23 +411,6 @@ def _emit_scoring_tables(world, layout) -> None:
             sid = f"rank@{pos}"
             layout.strings[sid] = title
             layout.string_fixups.append((pos + 2, sid))
-    pools = [
-        (idx, best, label)
-        for (idx, best, label) in world.award_pools.values()
-        if label is not None
-    ]
-    if pools:
-        layout.pools_off = len(table)
-        table += bytes(2)
-        _put_word(table, layout.pools_off, len(pools))
-        for idx, best, label in pools:
-            rec = len(table)
-            table += bytes(6)
-            _put_word(table, rec, best)
-            _put_word(table, rec + 2, idx)
-            sid = f"pool@{rec}"
-            layout.strings[sid] = _plain(label)
-            layout.string_fixups.append((rec + 4, sid))
 
 
 def _emit_ambience_tables(world, layout) -> None:

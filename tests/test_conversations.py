@@ -111,19 +111,18 @@ def test_both_summoned_compiles():
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_menu_wins_over_ask_tell_on_frotz(tmp_path):
+    # ASK is a doorway into the menu (Stefan's ruling, 2026-07-04): with the
+    # conversations granule summoned last, ASK PAT opens Pat's topic menu
+    # directly instead of lecturing the player to type TALK TO.
     img = generate(analyze(cosmos.combined_program(parse(BOTH))))
     story = tmp_path / "both.z5"
     story.write_bytes(img)
     out = subprocess.run(
         [_frotz(), "-p", str(story)],
-        input="ask pat about weather\ntalk to pat\n1\n0\nquit\ny\n",
+        input="ask pat about weather\n1\n0\nquit\ny\n",
         capture_output=True, text=True, timeout=20,
     ).stdout
 
-    # ask redirects to TALK TO and does NOT run the topic.
-    ask_part = out.split("Talk to Pat about:")[0]
-    assert "just TALK TO Pat" in ask_part
-    assert "Could be worse." not in ask_part
-
-    # The menu still runs the topic when picked.
+    # ask opens the menu and the picked topic runs.
+    assert "Talk to Pat about:" in out
     assert "Could be worse." in out

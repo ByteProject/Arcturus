@@ -27,45 +27,46 @@ from arcturus.sema import analyze
 
 EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
-# Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.12.1 (2026-07-04).
+# Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.12.2 (2026-07-04).
 CEILINGS = {
-    # 2026-07-04 (Stefan's ruling): FULLSCORE/FULL is a standard meta verb,
-    # score reporting ships with the score mechanic (~150: verb words,
-    # handler, message with its singular-turn branch; the pool walk folds
-    # away in a game with no award statement). extended-verbs example
-    # SHRANK: the granule no longer carries the verb. Before that, the
+    # 2026-07-04 (Stefan's ruling, superseding the same day's FULL move):
+    # there is NO fullscore verb; SCORE is the one score verb and reports
+    # score, max, turns, and rank in one line. Pool labels stay in the
+    # source and ledger but never reach the story file. teleport(dest)
+    # joined the standard blocks (the go handler shares its arrive(), so
+    # walking pays for it; unused teleport folds away). Before that, the
     # 2026-07-03 batch: recipient dispatch (~40), the start-title skip
     # (~25), show_tag (~20); chaining, disambiguation, noun lists with
     # noise words, all core parser features every game carries.
-    "beispiel-deutsch.storyarc": 19900,
-    "brass-lantern.storyarc": 14244,
-    "cloak-of-darkness.storyarc": 14764,
-    "ejemplo-espanol.storyarc": 19168,
-    "features/computed-properties.storyarc": 13092,
-    "features/containers.storyarc": 13124,
-    "features/daemons-and-timers.storyarc": 13424,
-    "features/doors-and-locks.storyarc": 12988,
-    "features/grains.storyarc": 13120,
-    "features/introproperty.storyarc": 14180,
-    "features/kinds-and-inheritance.storyarc": 12948,
-    "features/on-other.storyarc": 12952,
-    "features/zcolor.storyarc": 13472,
-    "features/scoring.storyarc": 15336,
-    "features/spans.storyarc": 13140,
-    "granules/ambience.storyarc": 14584,
-    "granules/conversations.storyarc": 14828,
-    "granules/extended-verbs.storyarc": 16196,
-    "granules/infocom-interrogation.storyarc": 18044,
-    "granules/quotes.storyarc": 13456,
-    "granules/take-all.storyarc": 14872,
-    "granules/plurals.storyarc": 14108,
-    "granules/statusline.storyarc": 13204,
-    "granules/verbose-exits.storyarc": 13340,
+    "beispiel-deutsch.storyarc": 19848,
+    "brass-lantern.storyarc": 14168,
+    "cloak-of-darkness.storyarc": 14684,
+    "ejemplo-espanol.storyarc": 19088,
+    "features/computed-properties.storyarc": 13016,
+    "features/containers.storyarc": 13044,
+    "features/daemons-and-timers.storyarc": 13348,
+    "features/doors-and-locks.storyarc": 12912,
+    "features/grains.storyarc": 13044,
+    "features/introproperty.storyarc": 14104,
+    "features/kinds-and-inheritance.storyarc": 12872,
+    "features/on-other.storyarc": 12876,
+    "features/zcolor.storyarc": 13396,
+    "features/scoring.storyarc": 15104,
+    "features/spans.storyarc": 13060,
+    "granules/ambience.storyarc": 14504,
+    "granules/conversations.storyarc": 14768,
+    "granules/extended-verbs.storyarc": 16116,
+    "granules/infocom-interrogation.storyarc": 17964,
+    "granules/quotes.storyarc": 13380,
+    "granules/take-all.storyarc": 14792,
+    "granules/plurals.storyarc": 14032,
+    "granules/statusline.storyarc": 13124,
+    "granules/verbose-exits.storyarc": 13260,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 15192
+CLOAK_Z8_CEILING = 15112
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

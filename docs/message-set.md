@@ -156,9 +156,7 @@ is summoned.)
 |---|---|---|
 | confirm_quit | quit confirmation | Are you sure you want to quit? |
 | msg_farewell | quit confirmed | We'll leave it there. |
-| msg_score | score | You have scored ${score} of a possible ${max_score}. With a `ranks` ladder: "..., which earns you the rank of <rank>." |
-| msg_fullscore | fullscore, full (no turn taken) | You have scored ${score} of a possible ${max_score}, in ${turns} turns. ("in 1 turn" for the first.) |
-| line_fullscore_pool | one earned pool line above the FULL summary | &nbsp;&nbsp;5 points, for <label> |
+| msg_score | score | You have scored ${score} of a possible ${max_score}, in ${turns} turns. ("in 1 turn" for the first; with a `ranks` ladder, ", which earns you the rank of <rank>" before the period.) |
 | msg_saved | save ok | Saved. |
 | msg_save_failed | save failed | Something went wrong with that save. |
 | msg_restore_failed | restore failed | That save couldn't be restored. |

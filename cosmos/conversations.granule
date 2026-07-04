@@ -18,6 +18,15 @@
 // line_reply, line_end - lives in the prelude, not here, so that part stays
 // overridable from a story and translatable by a language pack.)
 
+// ASK is a doorway into the same menu (Stefan's ruling, 2026-07-04): in a
+// menu game, ASK VLAD simply IS talk to Vlad, so the player who reaches for
+// the classic verb lands in the conversation instead of being lectured to
+// type TALK. Extra words ride along harmlessly ("ask vlad about vines"
+// opens Vlad's menu). TELL has no place in the menu model and stays out.
+verb "ask"
+    talk noun
+    talk noun about
+
 // Override the base talk_to seam: talking to a person opens the topic menu.
 block talk_to(person)
     run_talk(person)
