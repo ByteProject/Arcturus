@@ -1,15 +1,19 @@
 # Arcturus Syntax Reference
 
-Status: draft v2. This is the authoritative definition of the Arcturus
+Status: stable. This is the authoritative definition of the Arcturus
 language surface and its semantics, at the level an author needs to write
-correct programs.
+correct programs. The language is proven in the field: Hibernated 2, a
+full-length commercial game, is ported and plays to completion, and the two
+reference games in sections 18 and 19 are the conformance anchors of the
+whole toolchain. Where the compiler and this document disagree, the document
+wins: the code gets fixed, or the document is amended in the same commit.
 
 Scope boundary. This document defines the language. The runtime behavior the
 language drives, the standard library (named Cosmos), the parser, the action
 pipeline, the banner, and the optional summonable features are defined in
-02-cosmos-and-parser.md. The lowering of each construct to z5 is owned in the
-implementation phase (03 and 04). Where this document says "Cosmos provides X",
-X is specified in 02.
+02-cosmos-and-parser.md. The lowering of each construct to z5 is recorded in
+03-compiler-pipeline.md and 04-codegen-mapping.md. Where this document says
+"Cosmos provides X", X is specified in 02.
 
 The worked examples in sections 18 and 19, the Brass Lantern and the iconic
 Cloak of Darkness, use only constructs defined here and serve as the shared
