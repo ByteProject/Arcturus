@@ -75,6 +75,11 @@ class ActaeaApp:
         self.font_bold_italic = self.font.copy()
         self.font_bold_italic.configure(weight="bold", slant="italic")
         self._tags_made: set = set()
+        # The screen background: white paper until the game paints it. A
+        # game wanting a dark screen sets its background and erases (the
+        # compiler emits exactly that for zcolor.background); the erase is
+        # where the repaint happens, like every desktop terp.
+        self._window_bg = "white"
 
         # The upper window: a Canvas over the text area, sized in exact
         # character cells, shown only while the story keeps a split open.
@@ -92,7 +97,7 @@ class ActaeaApp:
         self.root.geometry(f"{width}x{height}")
         self.canvas = tk.Canvas(
             self.root, height=0, borderwidth=0, highlightthickness=0,
-            background="black",
+            background="white",
         )
         self._grid_shown = False
         self._redraw_queued = False
@@ -103,7 +108,7 @@ class ActaeaApp:
         self.text = tk.Text(
             frame, wrap="word", font=self.font, undo=False,
             padx=8, pady=6, borderwidth=0, highlightthickness=0,
-            background="black", foreground="white", insertbackground="white",
+            background="white", foreground="black", insertbackground="black",
         )
         scroll = tk.Scrollbar(frame, command=self.text.yview)
         self.text.configure(yscrollcommand=scroll.set)
@@ -181,11 +186,11 @@ class ActaeaApp:
                 chars = "".join(cell.char for cell in row[start:c])
                 x = start * self.cell_w
                 style, fg, bg = key
-                fg_c = self._colour(fg, "white")
-                bg_c = self._colour(bg, "black")
+                fg_c = self._colour(fg, "black")
+                bg_c = self._colour(bg, self._window_bg)
                 if style & REVERSE:
                     fg_c, bg_c = bg_c, fg_c
-                if bg_c != "black":
+                if bg_c != self._window_bg:
                     self.canvas.create_rectangle(
                         x, y, x + (c - start) * self.cell_w, y + self.cell_h,
                         fill=bg_c, width=0,
@@ -197,6 +202,19 @@ class ActaeaApp:
                     )
 
     def clear_story(self) -> None:
+        # An erase paints the screen in the game's CURRENT background
+        # (S 8.7.3.3): this is the moment zcolor.background takes over the
+        # whole window rather than only the cells behind new text.
+        bg = self._colour(self.vm.screen.bg, "white")
+        if bg != self._window_bg:
+            self._window_bg = bg
+            fg = self._colour(self.vm.screen.fg, "black")
+            self.text.configure(background=bg, insertbackground=fg)
+            self.canvas.configure(background=bg)
+            self._tags_made.clear()  # cached looks resolved the old paper
+            for tag in self.text.tag_names():
+                if tag.startswith("look-"):
+                    self.text.tag_delete(tag)
         self.text.delete("1.0", "end")
         self.text.mark_set("input_start", "end-1c")
         self.text.mark_set("unread", "1.0")  # a wiped screen is all unread
@@ -221,8 +239,8 @@ class ActaeaApp:
             return ""
         name = f"look-{style}-{fg}-{bg}"
         if name not in self._tags_made:
-            fg_c = self._colour(fg, "white")
-            bg_c = self._colour(bg, "black")
+            fg_c = self._colour(fg, "black")
+            bg_c = self._colour(bg, self._window_bg)
             if style & REVERSE:
                 fg_c, bg_c = bg_c, fg_c
             self.text.tag_configure(

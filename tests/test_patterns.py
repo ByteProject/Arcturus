@@ -135,3 +135,31 @@ def test_free_patterned_rule(tmp_path):
     out = _play(tmp_path, src, "take book\ntake bell\n")
     assert out.count("Got it.") == 2  # both takes complete
     assert out.count("free rule rings") == 1  # only the bell's
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_direction_or_alternatives(tmp_path):
+    # `on go south or up` (H2's fallen-shaft shape): one handler answers
+    # both directions and no others.
+    src = (
+        'game\n    title "DirPat"\n    start pit\n'
+        'room pit\n    name "The Pit"\n    desc "Smooth walls."\n'
+        "    north hall\n"
+        "    on go south or up\n"
+        '        say "The walls are too smooth to climb."\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n    south pit\n'
+    )
+    out = _play(tmp_path, src, "south\nup\nnorth\n")
+    assert out.count("too smooth to climb") == 2
+    assert "Hall" in out  # north still leaves normally
+
+
+def test_comma_in_a_pattern_is_a_named_error(tmp_path):
+    src = (
+        'game\n    title "CommaPat"\n    start pit\n'
+        'room pit\n    name "The Pit"\n    desc "Walls."\n'
+        "    on go south, up\n"
+        '        say "no"\n'
+    )
+    with pytest.raises(Exception) as e:
+        generate(analyze(cosmos.combined_program(parse(src))))
+    assert "join" in str(e.value) and "'or'" in str(e.value)

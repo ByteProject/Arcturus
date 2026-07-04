@@ -2778,3 +2778,29 @@ M9's visible half is Stefan's: H2 in the window shows the coloured
 banner, say.yellow callouts, and the quote box in proper dress. Then
 M10: Quetzal save/restore interoperating with a reference interpreter
 both ways, plus restart.
+
+## 2026-07-05 (cont.): the light interpreter ruling + direction or-lists
+
+Stefan's ruling on M9's look: Actaea's own screen is BLACK ON WHITE
+PAPER; a game that wants a dark screen SETS its colours. H2 not setting
+a background was a bug in the game, now fixed in its source
+(zcolor.background black). The dark-interpreter commit is reverted the
+right way: header default colours declare white paper/black ink
+(S 8.3.2), and the WINDOW BACKGROUND IS DYNAMIC: erase paints the screen
+in the game's current background (S 8.7.3.3), which is exactly the
+moment zcolor.background takes the whole window (the compiler emits
+set_colour + erase_window -1 as a pair). The look-tag cache resets on a
+repaint since cached tags resolved the old paper.
+
+And the compile error Stefan hit exposed the next pattern gap (arcc
+0.10.5): `on go south or up` (an or-list of DIRECTIONS) fell into the
+object branch of _guard_plan and errored. The classifier now handles
+direction operands generally: all-direction or-lists guard `way` against
+the property numbers (single directions compile byte-identically to
+before; sizes unchanged), mixed direction/object operands are a named
+error, directions demand the go action (only go sets `way`), and the
+old silent H2 shape `on go south, up` (comma parsed as a bogus
+preposition, handler never fired) is now a NAMED error pointing at
+'or'. H2's line fixed accordingly; the game recompiles (124,380) and
+walks to THE END at 360/360 with the model ending white-on-black as
+its zcolor declares. 505 tests.
