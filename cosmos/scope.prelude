@@ -44,9 +44,9 @@ block spans_here(obj)
 // runs only when the ordinary match has already failed.
 block spans_match(target)
     let i = 1
-    while i <= object_count()
+    while i <= object_count
         if spans_here(i)
-            if not (i is hidden)
+            if i is not hidden
                 if has_word(i, target)
                     return i
         change i to i + 1
@@ -74,10 +74,10 @@ block in_scope(obj)
     // parser should always answer for. It is never listed (its room is never
     // entered), so a backstage object defends itself in its own handlers.
     // The check folds away in a game that places nothing there.
-    if any_scoperoom() is 1
-        if parent_of(obj) is scope_room()
+    if any_scoperoom is 1
+        if obj is in scope_room
             return 1
-    if is_lit() is 0
+    if is_lit is 0
         // Dark: only what the player carries is in scope.
         if obj in player
             return 1
@@ -86,7 +86,7 @@ block in_scope(obj)
         return 1
     // Spanning objects are checked only in a game that has any; the guard folds
     // away and the spans blocks drop out otherwise (docs/01 section 5).
-    if any_spans() is 1
+    if any_spans is 1
         if spans_here(obj)
             return 1
     let p = parent_of(obj)
@@ -107,7 +107,7 @@ block in_scope(obj)
 
 // Visible needs light (examining); reachable also needs to not be shut away.
 block visible(obj)
-    if is_lit() is 0
+    if is_lit is 0
         return 0
     return in_scope(obj)
 

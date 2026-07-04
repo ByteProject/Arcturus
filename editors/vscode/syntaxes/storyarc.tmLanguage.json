@@ -143,10 +143,10 @@
                             "name": "keyword.control.import.storyarc"
                         },
                         "2": {
-                            "name": "support.function.summon.storyarc"
+                            "name": "storage.modifier.storyarc"
                         },
                         "3": {
-                            "name": "support.function.summon.storyarc"
+                            "name": "storage.modifier.storyarc"
                         }
                     }
                 }
@@ -293,11 +293,14 @@
                     }
                 },
                 {
-                    "comment": "Screen colours (docs/01 16a): zcolor targets, the say.<colour> form, and the say.par paragraph modifier (composable: say.yellow.par).",
-                    "match": "\\b(zcolor|say)((\\.)(font|background|statusline|input|default|black|red|green|yellow|blue|magenta|cyan|white|par))+\\b",
+                    "comment": "Dot-modifier chains, three scopes (Stefan's policy, 2026-07-04): the KEYWORD (say, zcolor, par), the MODIFIER chain (.par, .yellow, .font - one scope, dots included), and the trailing VALUE (the colour word of a zcolor line). say.yellow.par, par.say, zcolor.font white all show three colours.",
+                    "match": "\\b(zcolor|say|par)((?:\\.(?:font|background|statusline|input|default|black|red|green|yellow|blue|magenta|cyan|white|par|say))+)\\b(?:[ \\t]+(default|black|red|green|yellow|blue|magenta|cyan|white)\\b)?",
                     "captures": {
                         "1": {
                             "name": "keyword.other.statement.storyarc"
+                        },
+                        "2": {
+                            "name": "storage.modifier.storyarc"
                         },
                         "3": {
                             "name": "support.constant.colour.storyarc"

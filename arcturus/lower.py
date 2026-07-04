@@ -373,6 +373,26 @@ def eval_expr(rt: Routine, ctx: Context, expr, dest=None) -> None:
         _call(rt, ctx, expr, dest)
         return
 
+    # A bare name that is a block or intrinsic is a zero-argument call:
+    # `print_banner` as a statement, `let k = read_key` as a value. Resolved
+    # after every data name (locals, globals, objects, constants, directions),
+    # so story names always win; a block that takes values still needs the
+    # parenthesized call, and says so.
+    if isinstance(expr, ast.Name) and (
+        expr.name_is_call
+        if hasattr(expr, "name_is_call")
+        else (expr.ident in ctx.world.blocks or expr.ident in INTRINSICS)
+    ):
+        if expr.ident in ctx.world.blocks:
+            params = ctx.world.blocks[expr.ident].params
+            if params:
+                raise LowerError(
+                    f"block '{expr.ident}' takes {len(params)} value(s); "
+                    f"call it with (...)", expr.line
+                )
+        _call(rt, ctx, ast.Call(expr.ident, [], expr.line), dest)
+        return
+
     if isinstance(expr, ast.Dot):
         pnum = ctx.prop_number(expr.prop)
         if pnum is None:
@@ -1133,6 +1153,12 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
     elif isinstance(s, ast.Change):
         _change(rt, ctx, s)
     elif isinstance(s, ast.Say):
+        if s.lead:
+            # par.say: mark the pending break; the say's own print flushes it
+            # as one blank line before the text (repeats collapse).
+            slot = ctx.globals.get("par_pending")
+            if slot is not None:
+                rt.op("store", Const(slot), Const(1))
         if s.colour is not None:
             ctx.world.uses_colours = True
             # say.<colour>: set the foreground, print, restore the base font
@@ -1520,10 +1546,31 @@ def _prop_truthy(decl) -> bool:
     return True
 
 
+def _bare_call_name(ctx, expr):
+    """The name of a bare-Name zero-argument call (a block or intrinsic),
+    resolved after every data name so story names always win; None otherwise."""
+    if not isinstance(expr, ast.Name):
+        return None
+    n = expr.ident
+    if n == "self" or n in ctx.named or n in ctx.globals:
+        return None
+    if ctx.world.constants.get(n) is not None or ctx.is_object_name(n):
+        return None
+    if n in _DIRECTIONS and ctx.prop_number(n) is not None:
+        return None
+    if n in ctx.world.blocks or n in INTRINSICS:
+        return n
+    return None
+
+
 def _static_value(ctx, expr):
     """The compile-time integer value of expr, or None if it is not statically
     known. Covers literals and the compile-time flag intrinsics (any_spans), so a
-    guard like `if any_spans() is 1` can be decided at compile time."""
+    guard like `if any_spans is 1` folds whether the intrinsic is written bare
+    or as a zero-argument call."""
+    name = _bare_call_name(ctx, expr)
+    if name is not None:
+        expr = ast.Call(name, [], getattr(expr, "line", 0))
     if isinstance(expr, ast.Number):
         return expr.value
     if isinstance(expr, ast.Bool):

@@ -74,6 +74,34 @@ anonymous-points line; ambience per-line dwell.
 
 >>> END DAY-TWO CHECKPOINT <<<
 
+THE FUNDAMENTALS SESSION: PARENS EARN THEIR KEEP (2026-07-04, Stefan's
+course correction on readability drift, "not the vision I had for this
+language"; arcc 0.9.3 / Cosmos 0.13.4 / vsix 0.9.3): four rulings, all
+landed. (1) BARE ZERO-ARG CALLS: print_banner, describe_room, let k =
+read_key, if any_scored is 1 - a bare name resolves as a call only after
+every data name (story names win), a block that takes values errors with
+a pointer at the (...) form, and _static_value learned bare names so the
+any_X FOLDS still fold (the first sweep grew every game ~1K until that
+lesson: fold recognition must see both spellings). (2) IS [NOT] IN: the
+tree test with the copula (chip is in scope); parent_of(x) is y sites
+swept to it (identical strict-parent semantics; Stefan's caution heeded,
+only literal parent-is tests rewritten). (3) PAR.SAY: the leading-
+paragraph say for reveal paragraphs; composes fully (par.say.yellow,
+par.say.par). THE BANNER manages its own space now: pending-break flush
+before, pending-break mark after, and at start under a status bar the
+title sits DIRECTLY below the bar (better than Inform's stray blank; the
+leading newline that protected the title from the bar overlay moved to
+the start path, conditional on status_bar). H2 has ZERO par() calls.
+(4) THE STYLE SWEEP: not (x is y) -> x is not y and NAME() -> NAME
+across every prelude, granule, example, H2, and the docs snippets;
+byte-neutral once the fold fix landed (slightly negative). HIGHLIGHTING
+POLICY (the screenshot): dot-chains render three scopes - keyword (say,
+zcolor, par, summon), modifier chain (.par, .yellow, .font, one scope),
+trailing value (the colour word) - grammar reworked, vsix 0.9.3.
+tests/test_sugar.py pins bare calls, is-in, par.say spacing, and the
+banner-under-bar; 398 tests; H2 130/130 "in 51 turns" unchanged.
+PENDING STEFAN: the gain() promotion question (name and blessing).
+
 SAY.PAR: THE PARAGRAPH RIDES THE SAY (2026-07-04, Stefan's sugar order,
 "as little internal-cosmos blocks as possible" in author code; arcc
 0.9.2): `say.par "..."` prints the text and marks the library's pending

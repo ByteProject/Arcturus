@@ -13,7 +13,7 @@
 //
 // The game opens on the quote alone; press any key and the story begins. The
 // pattern: quote(lines, width) with the number of lines and the length of the
-// longest one, then quote_line() and show(...) per line, then quote_done().
+// longest one, then quote_line and show(...) per line, then quote_done.
 // Pad an attribution line with spaces by hand to set it right, exactly as on
 // paper. The status line coexists: it redraws at the first prompt.
 
@@ -22,7 +22,7 @@ game
     headline "A quote-box showcase"
     author "Stefan Vogt"
     start  pad
-    // The quote comes first, so the automatic banner is off; print_banner()
+    // The quote comes first, so the automatic banner is off; print_banner
     // shows it after the keypress, the classic order (quote, then banner).
     banner false
 
@@ -31,14 +31,14 @@ summon.statusline
 
 on start
     quote(3, 24)
-    quote_line()
+    quote_line
     show("Per aspera ad astra.")
-    quote_line()
+    quote_line
     show("")
-    quote_line()
+    quote_line
     show("          -- Seneca")
-    quote_done()
-    print_banner()
+    quote_done
+    print_banner
     say "The gantry lights die one by one as the countdown begins."
 
 room pad

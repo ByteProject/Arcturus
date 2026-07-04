@@ -856,6 +856,11 @@ class Analyzer:
             or self.env.is_direction(name)
         ):
             return
+        # A bare intrinsic name is a zero-argument call (print_banner,
+        # read_key); lower resolves it after every data name.
+        from .lower import INTRINSICS
+        if name in INTRINSICS:
+            return
         raise self._error(f"unknown name '{name}'", line)
 
     def _infer_type(self, expr, locals_: set) -> Optional[str]:

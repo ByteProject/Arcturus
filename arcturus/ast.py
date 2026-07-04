@@ -215,6 +215,10 @@ class Say(Stmt):
     # the print layer collapses). Composes with a colour in either order:
     # say.yellow.par and say.par.yellow both work.
     para: bool = False
+    # par.say "...": the paragraph break comes FIRST, then the text (a reveal
+    # paragraph appended after existing prose). Composes with the rest:
+    # par.say.yellow, and par.say.par for a free-standing paragraph.
+    lead: bool = False
 
 
 @dataclass

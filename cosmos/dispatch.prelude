@@ -20,9 +20,9 @@ block dispatch(action)
     // Out-of-world actions (score, save, restore, restart, quit) never touch
     // the world: no object, recipient, or room handler sees them, exactly as
     // Inform and PunyInform mark their meta verbs. The compiler numbers them
-    // past meta_floor(), so one compare routes them straight to the free
+    // past meta_floor, so one compare routes them straight to the free
     // rules (a story still overrides them there, with a free `on score`).
-    if action >= meta_floor()
+    if action >= meta_floor
         run_free(action)
         return
     if noun is not nothing

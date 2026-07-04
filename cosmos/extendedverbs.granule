@@ -27,25 +27,25 @@ verb "search", "frisk"
 on search
     if noun is nothing
         change refused to 1
-        msg_cant_see()
+        msg_cant_see
         stop
     if noun is supporter
         search_contents(noun)
         stop
     if noun is container
-        if not (noun is open)
+        if noun is not open
             change refused to 1
-            msg_search_closed()
+            msg_search_closed
             stop
         search_contents(noun)
         stop
-    msg_search_nothing()
+    msg_search_nothing
 
 // List what an object holds, or report that it holds nothing of note.
 block search_contents(obj)
     let n = 0
     for each x in obj
-        if not (x is hidden)
+        if x is not hidden
             if n is 0
                 show("You find ")
             else
@@ -53,7 +53,7 @@ block search_contents(obj)
             show("${a x}")
             change n to n + 1
     if n is 0
-        msg_search_nothing()
+        msg_search_nothing
     else
         say "."
 
@@ -66,10 +66,10 @@ verb "throw", "chuck", "toss", "hurl"
 on throw
     if noun is nothing
         change refused to 1
-        msg_cant_see()
+        msg_cant_see
         stop
     change refused to 1
-    msg_throw()
+    msg_throw
 
 
 verb "rub", "polish", "clean", "wipe", "scrub", "dust", "shine", "buff"
@@ -78,9 +78,9 @@ verb "rub", "polish", "clean", "wipe", "scrub", "dust", "shine", "buff"
 on rub
     if noun is nothing
         change refused to 1
-        msg_cant_see()
+        msg_cant_see
         stop
-    msg_rub()
+    msg_rub
 
 
 verb "squeeze", "crush"
@@ -89,9 +89,9 @@ verb "squeeze", "crush"
 on squeeze
     if noun is nothing
         change refused to 1
-        msg_cant_see()
+        msg_cant_see
         stop
-    msg_squeeze()
+    msg_squeeze
 
 
 verb "tie", "attach", "fasten", "secure"
@@ -100,10 +100,10 @@ verb "tie", "attach", "fasten", "secure"
 on tie
     if noun is nothing
         change refused to 1
-        msg_cant_see()
+        msg_cant_see
         stop
     change refused to 1
-    msg_tie()
+    msg_tie
 
 
 verb "cut", "chop", "slice", "prune", "carve"
@@ -112,10 +112,10 @@ verb "cut", "chop", "slice", "prune", "carve"
 on cut
     if noun is nothing
         change refused to 1
-        msg_cant_see()
+        msg_cant_see
         stop
     change refused to 1
-    msg_cut()
+    msg_cut
 
 
 verb "fill"
@@ -124,10 +124,10 @@ verb "fill"
 on fill
     if noun is nothing
         change refused to 1
-        msg_cant_see()
+        msg_cant_see
         stop
     change refused to 1
-    msg_fill()
+    msg_fill
 
 
 verb "burn", "ignite", "torch", "kindle"
@@ -136,10 +136,10 @@ verb "burn", "ignite", "torch", "kindle"
 on burn
     if noun is nothing
         change refused to 1
-        msg_cant_see()
+        msg_cant_see
         stop
     change refused to 1
-    msg_burn()
+    msg_burn
 
 
 verb "blow"
@@ -148,9 +148,9 @@ verb "blow"
 on blow
     if noun is nothing
         change refused to 1
-        msg_cant_see()
+        msg_cant_see
         stop
-    msg_blow()
+    msg_blow
 
 
 verb "set", "adjust"
@@ -159,10 +159,10 @@ verb "set", "adjust"
 on set
     if noun is nothing
         change refused to 1
-        msg_cant_see()
+        msg_cant_see
         stop
     change refused to 1
-    msg_set()
+    msg_set
 
 
 verb "empty", "drain"
@@ -172,9 +172,9 @@ verb "empty", "drain"
 on empty
     if noun is nothing
         change refused to 1
-        msg_cant_see()
+        msg_cant_see
         stop
-    msg_empty()
+    msg_empty
 
 
 verb "buy", "purchase"
@@ -183,10 +183,10 @@ verb "buy", "purchase"
 on buy
     if noun is nothing
         change refused to 1
-        msg_cant_see()
+        msg_cant_see
         stop
     change refused to 1
-    msg_buy()
+    msg_buy
 
 
 verb "consult", "reference"
@@ -195,9 +195,9 @@ verb "consult", "reference"
 on consult
     if noun is nothing
         change refused to 1
-        msg_cant_see()
+        msg_cant_see
         stop
-    msg_consult()
+    msg_consult
 
 // ---------------------------------------------------------------------------
 // Body and idle actions (intransitive; they just speak).
@@ -207,7 +207,7 @@ verb "dig", "excavate"
     dig noun
 
 on dig
-    msg_dig()
+    msg_dig
 
 
 verb "wave", "brandish"
@@ -215,7 +215,7 @@ verb "wave", "brandish"
     wave noun
 
 on wave
-    msg_wave()
+    msg_wave
 
 
 verb "sit", "rest"
@@ -223,21 +223,21 @@ verb "sit", "rest"
 
 on sit
     change refused to 1
-    msg_sit()
+    msg_sit
 
 
 verb "stand"
     stand
 
 on stand
-    msg_stand()
+    msg_stand
 
 
 verb "sleep", "nap", "doze"
     sleep
 
 on sleep
-    msg_sleep()
+    msg_sleep
 
 
 verb "swim", "dive", "paddle"
@@ -245,7 +245,7 @@ verb "swim", "dive", "paddle"
 
 on swim
     change refused to 1
-    msg_swim()
+    msg_swim
 
 
 verb "swing"
@@ -253,28 +253,28 @@ verb "swing"
 
 on swing
     change refused to 1
-    msg_swing()
+    msg_swing
 
 
 verb "think", "ponder", "consider"
     think
 
 on think
-    msg_think()
+    msg_think
 
 
 verb "pray", "worship"
     pray
 
 on pray
-    msg_pray()
+    msg_pray
 
 
 verb "shout", "yell", "scream", "holler"
     shout
 
 on shout
-    msg_shout()
+    msg_shout
 
 // ---------------------------------------------------------------------------
 // The wording. Fork the granule to change any of these lines.

@@ -371,8 +371,11 @@ def _emit_banner(main: Routine, world: wm.World) -> None:
     if "line_by" not in world.blocks:
         main.op("print", text=banner_text(world))
         return
+    # No leading blank: at game start the banner sits directly under the
+    # status bar (where Inform leaves a stray line), and a mid-game banner
+    # gets its space from the pending break the preceding prose marked.
     title, headline, author, line3 = _banner_parts(world)
-    main.op("print", text=f"\n{title}\n")
+    main.op("print", text=f"{title}\n")
     if headline is not None:
         main.op("print", text=headline)
     elif "banner_headline" in world.blocks:
@@ -381,6 +384,10 @@ def _emit_banner(main: Routine, world: wm.World) -> None:
         main.op("print", text="An Interactive Fiction")
     main.op("call_vn", RoutineRef("blk_line_by"))
     main.op("print", text=f"{author}\n{line3}\n")
+    # The banner manages its own trailing space: mark the pending break so
+    # whatever prints next (the opening prose, a room description) stands
+    # one blank line below, with no par() in any story.
+    main.op("store", Const(slot), Const(1))
 
 
 def _start_handler(world: wm.World):
@@ -789,6 +796,13 @@ def build_routines(world: wm.World, gmap: dict, layout, pool):
     _emit_banner(banner_rt, world)
     banner_rt.op("rfalse")
     if _meta(world).get("banner") is not False:
+        # With a status bar summoned, the bar overlays screen row 1, so the
+        # start-time banner steps down one line first and the title sits
+        # DIRECTLY under the bar (Inform shows a stray blank here; a game
+        # without the bar starts at the very top). A mid-game print_banner()
+        # spaces itself from the pending break instead.
+        if "status_bar" in world.blocks:
+            main.op("new_line")
         main.op("call_vn", RoutineRef("cosmos_banner"))
     if "run_game" in world.blocks:
         main.op("call_vn", RoutineRef("blk_run_game"))

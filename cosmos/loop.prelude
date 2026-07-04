@@ -33,7 +33,7 @@ block title_in_bar()
 // under the score, thresholds computed by the compiler from the summed
 // max_score. The packs' msg_score calls this; folds away with any_ranks.
 block print_rank()
-    let t = ranks_table()
+    let t = ranks_table
     if t is 0
         return 0
     let n = peek_word(t, 0)
@@ -52,7 +52,7 @@ block print_rank()
 // the packs' listing lines call this, and it folds away with any_tagged in
 // a game that tags nothing.
 block show_tag(obj)
-    if any_tagged() is 1
+    if any_tagged is 1
         if tag_addr(obj) is not 0
             show(" (")
             show("${obj.tag}")
@@ -83,8 +83,8 @@ block sweep_one(obj, act)
     show(": ")
     change noun to obj
     dispatch(act)
-    fire_turn()
-    tick()
+    fire_turn
+    tick
     change last_act to act
     change last_noun to noun
     change last_second to second
@@ -98,23 +98,23 @@ block run_game()
     // not earn arriving where you begin).
     now here is visited
     // Request the paragraph break that separates the banner from the opening
-    // text. The banner ends on a single newline; this par() (collapsed with the
+    // text. The banner ends on a single newline; this par (collapsed with the
     // one describe_room requests) yields exactly one blank line, whether or not
     // an `on start` prints first.
-    par()
-    run_free(ev_start())
-    if title_in_bar() is 1
+    par
+    run_free(ev_start)
+    if title_in_bar is 1
         change hide_title to 1
-    describe_room()
+    describe_room
     while true
-        prompt()
-        run_chain(parse())
+        prompt
+        run_chain(parse)
         // Snapshot the line's unrecognized word (verb or noun, if any) so a
         // following "oops" can correct it. Done here, after both the understood
         // and the unknown-verb paths, so a mistyped verb is correctable too.
         // After a chained line the buffer holds its last command, so oops
         // corrects exactly the command the player last saw fail.
-        note_oops()
+        note_oops
 
 // Carry out a parsed command, then any commands chained after it on the same
 // line ("take the lamp and open the door then go north", docs/02 section 8b).
@@ -126,16 +126,16 @@ block run_chain(act)
         change refused to 0
         if act is 0
             if parse_fault is 1
-                msg_cant_see()
+                msg_cant_see
             else
                 if parse_fault is 2
-                    msg_extra_words()
+                    msg_extra_words
                 else
                     if parse_fault is 3
-                        msg_be_specific()
+                        msg_be_specific
                     else
-                        if word_count() is not 0
-                            msg_no_verb()
+                        if word_count is not 0
+                            msg_no_verb
             return 0
         run_turn(act)
         if refused is not 0
@@ -146,8 +146,8 @@ block run_chain(act)
         // it ("take lamp and box", the noun lists of docs/02 section 8b).
         change chain_prev to act
         // Each chained command's response is its own paragraph.
-        par()
-        change act to chain_next()
+        par
+        change act to chain_next
 
 // Carry out one understood command. Undo is handled here, not through dispatch:
 // every other command first takes an undo checkpoint (save_undo), so that a later
@@ -160,14 +160,14 @@ block run_turn(act)
     if shut_in is not nothing
         change meta_turn to 1
         change refused to 1
-        msg_open_first()
+        msg_open_first
         return 0
     if act is action_id("undo")
         change meta_turn to 1
-        do_undo()
+        do_undo
         return 0
     if act is action_id("oops")
-        change act to fix_oops()
+        change act to fix_oops
         if act is 0
             change meta_turn to 1
             change refused to 1
@@ -176,7 +176,7 @@ block run_turn(act)
         if last_act is 0
             change meta_turn to 1
             change refused to 1
-            msg_nothing_again()
+            msg_nothing_again
             return 0
         // Replay the previous command by restoring its resolved operands, then
         // fall through to dispatch it exactly as a fresh turn.
@@ -185,30 +185,30 @@ block run_turn(act)
         change second to last_second
         change way to last_way
         change grain to last_grain
-    let r = do_save_undo()
+    let r = do_save_undo
     if r is 2
         change meta_turn to 1
         // The rewound state may date from the middle of a chained line or
         // carry a pending sweep hand-off; taking a turn back must not
         // replay either. Each guard folds away without its granule.
         change chain_pos to 0
-        if any_allwords() is 1
+        if any_allwords is 1
             change all_go to 0
-        if any_plurals() is 1
+        if any_plurals is 1
             change plural_go to 0
-        msg_undone()
-        par()
-        describe_room()
+        msg_undone
+        par
+        describe_room
         return 0
     // A pending sweep (TAKE ALL, "take coins") replaces the ordinary
     // dispatch: one undo checkpoint for the whole sweep (it is one typed
     // command), each swept item still a full turn inside the granule.
-    if any_allwords() is 1
+    if any_allwords is 1
         if all_go is 1
             change all_go to 0
             run_all(act)
             return 0
-    if any_plurals() is 1
+    if any_plurals is 1
         if plural_go is not 0
             let w = plural_go
             change plural_go to 0
@@ -216,8 +216,8 @@ block run_turn(act)
             return 0
     dispatch(act)
     if meta_turn is 0
-        fire_turn()
-        tick()
+        fire_turn
+        tick
         // Remember a real (non-meta) command so a later "again" can repeat it.
         change last_act to act
         change last_noun to noun
@@ -233,10 +233,10 @@ block run_turn(act)
 block do_undo()
     change refused to 1
     if turns is 0
-        msg_cant_undo()
+        msg_cant_undo
         return 0
-    let r = do_restore_undo()
-    msg_cant_undo()
+    let r = do_restore_undo
+    msg_cant_undo
     return 0
 
 // Fire the current room's `on enter` (the loop and the go verb call this after
@@ -245,7 +245,7 @@ block fire_enter()
     if here is not nothing
         let r = handler_of(here)
         if r is not nothing
-            call_handler(r, ev_enter())
+            call_handler(r, ev_enter)
 
 // The per-turn pulse, in reach order: the room's `on each_turn`, then every
 // in-scope object's (a daemon on a thing, active while the thing is here or
@@ -256,33 +256,33 @@ block fire_turn()
     if here is not nothing
         let r = handler_of(here)
         if r is not nothing
-            par()
-            call_handler(r, ev_each_turn())
+            par
+            call_handler(r, ev_each_turn)
     fire_object_turns(here)
     fire_object_turns(player)
-    par()
-    run_free(ev_each_turn())
-    par()
-    tick_timers()
+    par
+    run_free(ev_each_turn)
+    par
+    tick_timers
 
 // Fire the `on each_turn` of every object within `holder` that the player can see
 // into it, recursing into supporters and open or clear containers the same way
 // scope does, so an object's daemon runs exactly while the object is in scope.
 block fire_object_turns(holder)
     for each obj in holder
-        if not (obj is hidden)
+        if obj is not hidden
             let r = handler_of(obj)
             if r is not nothing
-                par()
-                call_handler(r, ev_each_turn())
+                par
+                call_handler(r, ev_each_turn)
             if see_into(obj)
                 fire_object_turns(obj)
 
 // Describe the current room: its name, its description, and what it contains.
 block describe_room()
-    par()
-    if is_lit() is 0
-        msg_dark_room()
+    par
+    if is_lit is 0
+        msg_dark_room
         return
     if hide_title is 1
         change hide_title to 0
@@ -292,15 +292,15 @@ block describe_room()
         say here.desc
     let listed = 0
     for each obj in here
-        if obj is not player and not (obj is hidden) and not (obj is concealed)
-            if intro_addr(obj) is not nothing and not (obj is moved)
-                par()
+        if obj is not player and obj is not hidden and obj is not concealed
+            if intro_addr(obj) is not nothing and obj is not moved
+                par
                 say obj.intro
                 change listed to 0
             else
-                if not (obj is scenery)
+                if obj is not scenery
                     if listed is 0
-                        par()
+                        par
                     change listed to 1
                     list_item(obj)
 

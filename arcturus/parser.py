@@ -904,6 +904,16 @@ class Parser:
             # not a reserved word.
             if t.value == "zcolor":
                 return self._parse_zcolor()
+            # par.say "...": the paragraph comes first, then the text.
+            if (
+                t.value == "par"
+                and self._at(1).kind == T.OP
+                and self._at(1).value == "."
+                and self._at(2).is_kw("say")
+            ):
+                self.advance()
+                self.advance()
+                return self._parse_say(lead=True)
             if t.value == "award" and self._at(1).kind == T.NUMBER:
                 return self._parse_award()
             nxt = self._at(1)
@@ -1009,7 +1019,7 @@ class Parser:
         self.expect_newline()
         return ast.Remove(value, target, line)
 
-    def _parse_say(self) -> ast.Say:
+    def _parse_say(self, lead=False) -> ast.Say:
         line = self.cur.line
         self.expect_kw("say")
         # say takes a dot-chain of modifiers, in any order: a colour
@@ -1039,7 +1049,7 @@ class Parser:
                 )
         value = self.parse_expr()
         self.expect_newline()
-        return ast.Say(value, line, colour, para)
+        return ast.Say(value, line, colour, para, lead)
 
     def _parse_zcolor(self) -> ast.ZColor:
         # `zcolor.font white` / `zcolor.background black`: set a base screen
@@ -1225,8 +1235,17 @@ class Parser:
                 line = self.cur.line
                 self.advance()
                 negated = self.accept_kw("not")
-                right = self._parse_additive()
-                left = ast.IsTest(left, right, negated, line)
+                # `x is in y` / `x is not in y`: the tree test, spelled with
+                # the copula (the bare `x in y` stays the short form).
+                if self.check_kw("in"):
+                    self.advance()
+                    right = self._parse_additive()
+                    left = ast.Binary("in", left, right, line)
+                    if negated:
+                        left = ast.Unary("not", left, line)
+                else:
+                    right = self._parse_additive()
+                    left = ast.IsTest(left, right, negated, line)
             elif self.check_kw("holds"):
                 line = self.cur.line
                 self.advance()

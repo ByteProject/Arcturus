@@ -9,21 +9,21 @@
 // centered from the interpreter-reported screen width, so it sits right on a
 // 40-column Commodore 64 and on a modern 100-column terminal alike.
 //
-// Usage: state the box size, then alternate quote_line() and show(...), one
-// pair per line, and close with quote_done(), which waits for a keypress and
+// Usage: state the box size, then alternate quote_line and show(...), one
+// pair per line, and close with quote_done, which waits for a keypress and
 // clears the screen for whatever follows:
 //
 //   summon.quotes
 //
 //   on start
 //       quote(3, 37)
-//       quote_line()
+//       quote_line
 //       show("In order to make an apple pie from")
-//       quote_line()
+//       quote_line
 //       show("scratch, you must first create the")
-//       quote_line()
+//       quote_line
 //       show("universe.        -- Carl Sagan")
-//       quote_done()
+//       quote_done
 //
 // quote(lines, width) takes the number of text lines and the length of the
 // LONGEST line; the box adds one space of padding on each side and a blank
@@ -64,7 +64,7 @@ block quote(lines, width)
     // word-wrap buffer on, interpreters reorder the writes around set_cursor.
     buffer_mode(0)
     change qb_width to width + 2
-    let sw = screen_width()
+    let sw = screen_width
     change qb_left to (sw - qb_width) / 2 + 1
     if qb_left < 1
         change qb_left to 1
@@ -72,21 +72,21 @@ block quote(lines, width)
     split_window(lines + 4)
     set_window(1)
     change qb_row to 2
-    quote_fill()
+    quote_fill
 
 // Advance to the next line of the box. Follow with show("the line's text").
 block quote_line()
     change qb_row to qb_row + 1
-    quote_fill()
+    quote_fill
 
 // Close the box: draw the bottom row, wait for a keypress, and clear the
 // screen. The status line, if summoned, redraws at the next prompt.
 block quote_done()
     change qb_row to qb_row + 1
-    quote_fill()
+    quote_fill
     set_style(0)
     set_window(0)
-    read_key()
+    read_key
     erase_window(-1)
     buffer_mode(1)
     // The screen is fresh; no break is owed to it.

@@ -22,16 +22,16 @@ block reach_unscoped()
         return nothing
     let act = peek_byte(d + 7)
     if act is action_id("fetch")
-        return match_any()
+        return match_any
     if act is action_id("warp")
-        return match_any()
+        return match_any
     if act is action_id("inspect")
-        return match_any()
+        return match_any
     return nothing
 
 // The first typed word (after the verb) that names any object at all.
 block match_any()
-    let n = word_count()
+    let n = word_count
     let i = 1
     while i < n
         let target = word_dict(i)
@@ -46,7 +46,7 @@ block match_any()
 // The parser reaches only objects in scope; debug reaches all of them.
 block find_any(target)
     let i = 1
-    while i <= object_count()
+    while i <= object_count
         if has_word(i, target)
             return i
         change i to i + 1
@@ -55,7 +55,7 @@ block find_any(target)
 // The room an object ultimately sits in: walk up the tree to the top parent.
 block room_of(obj)
     let r = obj
-    while parent_of(r) is not nothing
+    while r is not in nothing
         change r to parent_of(r)
     return r
 
@@ -75,8 +75,8 @@ verb "tree", "objects"
 
 on tree
     let i = 1
-    while i <= object_count()
-        if parent_of(i) is nothing
+    while i <= object_count
+        if i is in nothing
             tree_from(i, 0)
         change i to i + 1
 
@@ -134,7 +134,7 @@ on warp
     let dest = room_of(noun)
     set_here(dest)
     move player to dest
-    describe_room()
+    describe_room
 
 // inspect (Inform showobj): an object's location and the attributes it has set.
 
