@@ -2709,3 +2709,42 @@ after-callbacks) through boot, look, and a confirmed quit. 491 tests.
 
 M7 DONE-TEST = Stefan's turn: both example games playable start to
 finish in the window, plain text. Hand-off made. Then M8, the cell grid.
+
+## 2026-07-05 (small hours, cont.): Actaea M8, the cell grid
+
+screen.py owns the upper window now, as the honest thing docs/06 demanded:
+a true rows-by-columns buffer of CELLS (char + style + colours from day
+one, so M9 and the arc_image milestones never need a second data path),
+renderer-agnostic, notifying front-ends through on_change and never letting
+them hold screen state. Semantics per the Standard: v5 split keeps
+contents; a cursor stranded outside a shrink homes to 1,1; selecting the
+upper window homes its cursor; the upper window never scrolls and never
+wraps (overruns clip); erase_window 1/0/-1/-2 with the lower clear routed
+through the sink's erase_lower (a scrolling console keeps its transcript;
+the GUI wipes its text area); erase_line to end of row. The VM's window
+opcodes all delegate to the model; set_text_style accumulates style bits
+into it (style 0 clears, others OR, per S 8.7.1); get_cursor answers from
+truth. The M6 dumb-terminal stubs are gone.
+
+The tkinter side renders the grid on a Canvas above the text area: exact
+cell geometry from a measured monospace font, repaints coalesced per idle
+cycle, run-length segments per row, reverse video inverted (full styles
+and colours are M9's), shown only while a split is open. The Canvas is
+the surface arc_image will draw onto; cell geometry is exact from day one
+for that reason.
+
+Proofs, headless (the model IS the truth): 8 unit tests (clipping, split
+keep + cursor homing, select homing, all erase variants, style travel,
+change-signal discipline) plus Cosmos's own statusline driving the grid
+through the real opcodes: one row split held open through play, the
+current room on the left, Score/Moves right, reverse-video cells. And the
+flagship again: HIBERNATED 2's FULL WALKTHROUGH over the live model, THE
+END at 360/360, quote boxes growing the split to 9 rows and folding back,
+finishing with a single status row reading The Throne Room / Score: 360
+Moves: 119. One fix on the way: a blank scripted keypress means Enter
+(the dfrotz walkthrough convention; H2's press-any-key intro found it).
+499 tests. actaea 0.8.0.
+
+M8's VISIBLE done-test is Stefan's turn: H2 in the window (the status
+line correct and stable, quote boxes rendering cleanly over real play).
+Then M9: styles and colours rendered, set_font, true colour.

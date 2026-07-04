@@ -57,6 +57,11 @@ class IOSystem:
         """A Standard 1.1 true-colour hint (15-bit RGB words; -1 keeps, -2
         default). Ignored wherever colour is not rendered."""
 
+    def erase_lower(self) -> None:
+        """Clear the lower window (erase_window 0 / -1 / -2). A scrolling
+        console keeps its transcript (nothing to clear that would not lose
+        history); a windowed front-end wipes its text area."""
+
 
 class ConsoleIO(IOSystem):
     """The plain console: what the headless harness (CZECH, Praxix, and
@@ -103,10 +108,11 @@ class CaptureIO(IOSystem):
         return line
 
     def read_char(self) -> int:
-        # A scripted keypress: one entry per key, as a 1-character string
-        # ("\n" for Enter). ASCII covers the harness's needs.
+        # A scripted keypress: one entry per key, as a 1-character string.
+        # "\n" or an empty entry means Enter (walkthrough files answer
+        # press-any-key moments with blank lines, the dfrotz convention).
         ch = self.script.pop(0)
-        return 13 if ch == "\n" else ord(ch[0])
+        return 13 if ch in ("\n", "") else ord(ch[0])
 
     @property
     def text(self) -> str:

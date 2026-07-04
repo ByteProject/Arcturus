@@ -17,8 +17,15 @@ the VM resumes. Single-threaded, no locks, no queues.
 
 The Text widget is read-only except for the live input region: everything
 before the input mark is story text and refuses edits; the region from the
-mark to the end is the player's line. The M8 cell grid will sit above this
-lower window; nothing here assumes it does not exist."""
+mark to the end is the player's line.
+
+The upper window (M8) is a Canvas above the text area, rendered FROM the
+cell model in screen.py: exact cell geometry (a measured monospace font
+fixes the cell size), repainted when the model signals a change, never
+holding screen state of its own. Reverse-video cells render inverted; the
+full style and colour treatment arrives with M9. The Canvas is the surface
+the later arc_image work draws pictures onto, which is why cell geometry
+is exact from day one."""
 
 import tkinter as tk
 from tkinter import font as tkfont
@@ -45,6 +52,9 @@ class GuiIO(IOSystem):
         ch = self.app.wait_for_key()
         return 13 if ch in ("\r", "\n") else ord(ch)
 
+    def erase_lower(self) -> None:
+        self.app.clear_story()
+
 
 class ActaeaApp:
     """The window: a Text widget with a scrollbar, inline input, and the
@@ -58,8 +68,20 @@ class ActaeaApp:
         self.font = tkfont.nametofont("TkFixedFont").copy()
         self.font.configure(size=13)
 
+        # The upper window: a Canvas over the text area, sized in exact
+        # character cells, shown only while the story keeps a split open.
+        self.cell_w = self.font.measure("0")
+        self.cell_h = self.font.metrics("linespace")
+        self.canvas = tk.Canvas(
+            self.root, height=0, borderwidth=0, highlightthickness=0,
+            background="white",
+        )
+        self._grid_shown = False
+        self._redraw_queued = False
+
         frame = tk.Frame(self.root)
         frame.pack(fill="both", expand=True)
+        self._lower_frame = frame
         self.text = tk.Text(
             frame, wrap="word", font=self.font, undo=False,
             padx=8, pady=6, borderwidth=0, highlightthickness=0,
@@ -89,6 +111,56 @@ class ActaeaApp:
         self.text.focus_set()
 
         self.vm = VM(story, GuiIO(self))
+        self.vm.screen.on_change = self._grid_changed
+
+    # -- the upper window ---------------------------------------------------------
+
+    def _grid_changed(self) -> None:
+        # Coalesce bursts of cell writes into one repaint per idle cycle.
+        if not self._redraw_queued:
+            self._redraw_queued = True
+            self.root.after_idle(self._redraw_grid)
+
+    def _redraw_grid(self) -> None:
+        self._redraw_queued = False
+        model = self.vm.screen
+        if model.rows == 0:
+            if self._grid_shown:
+                self.canvas.pack_forget()
+                self._grid_shown = False
+            return
+        if not self._grid_shown:
+            self.canvas.pack(fill="x", before=self._lower_frame)
+            self._grid_shown = True
+        self.canvas.configure(height=model.rows * self.cell_h)
+        self.canvas.delete("all")
+        for r in range(1, model.rows + 1):
+            row = model.grid[r - 1]
+            y = (r - 1) * self.cell_h
+            c = 0
+            while c < model.cols:
+                # A run of cells sharing one look draws as one segment.
+                start = c
+                key = (row[c].style, row[c].fg, row[c].bg)
+                while c < model.cols and (row[c].style, row[c].fg, row[c].bg) == key:
+                    c += 1
+                chars = "".join(cell.char for cell in row[start:c])
+                x = start * self.cell_w
+                reverse = key[0] & 1
+                if reverse:
+                    self.canvas.create_rectangle(
+                        x, y, x + (c - start) * self.cell_w, y + self.cell_h,
+                        fill="black", width=0,
+                    )
+                if chars.strip() or reverse:
+                    self.canvas.create_text(
+                        x, y, text=chars, anchor="nw", font=self.font,
+                        fill="white" if reverse else "black",
+                    )
+
+    def clear_story(self) -> None:
+        self.text.delete("1.0", "end")
+        self.text.mark_set("input_start", "end-1c")
 
     # -- output --------------------------------------------------------------
 
