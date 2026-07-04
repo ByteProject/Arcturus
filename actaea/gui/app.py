@@ -86,11 +86,10 @@ class ActaeaApp:
         self.cell_w = self.font.measure("0")
         self.cell_h = self.font.metrics("linespace")
 
-        # The window opens WIDE ENOUGH for the story's screen: the model is
-        # 80 columns, so the status bar and centred quote boxes must fit
-        # without the player reaching for the window corner. Exactly 80
-        # cells plus a small margin, about 30 lines tall.
-        width = 80 * self.cell_w + 20
+        # The window IS the story's screen: exactly the model's 80 columns
+        # wide (the status bar's last cell flush with the edge; anything
+        # more shows as a dead strip beside the bar), about 30 lines tall.
+        width = 80 * self.cell_w
         height = 30 * self.cell_h
         self.root.geometry(f"{width}x{height}")
         self.canvas = tk.Canvas(
