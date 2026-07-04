@@ -126,7 +126,9 @@ A one-line status bar across the top of the screen, painted before every prompt:
 the room on the left, the score and move count on the right, in reverse video.
 The right side adapts to the screen width the way PunyInform does - the full
 `Score: n   Moves: n` on a wide screen, the compact `Score: s/t` on a narrow
-retro one. It coexists with the conversations menu: when both are summoned the
+retro one - and to the game: one that scores nothing shows only the move
+count (`Moves: n`), never a permanent "Score: 0". The fold decides at
+compile time, so neither game pays for the other's bar. It coexists with the conversations menu: when both are summoned the
 bar sits pinned above the topic list.
 
 ### quotes

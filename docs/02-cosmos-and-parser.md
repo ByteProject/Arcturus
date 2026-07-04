@@ -265,8 +265,9 @@ Each turn Cosmos runs:
    continue with the next from step 4.
 10. Loop.
 
-The room is described once on entry. The status line (room name and score or
-turns) is maintained continuously by the interpreter. At game start, with the
+The room is described once on entry. The status line (the room name, plus
+the score and move count in a scored game, the move count alone otherwise)
+is repainted before every prompt. At game start, with the
 statusline summoned, the opening description skips its title line: the bar
 already names the room (the PunyInform start-screen convention); every later
 look prints the title as usual.

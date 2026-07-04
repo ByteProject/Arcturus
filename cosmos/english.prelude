@@ -852,6 +852,13 @@ block msg_talk_over()
 // count, right-aligned, in the language's own words and widths. status_digits is a
 // core helper, so this compiles whether or not the granule is summoned.
 block line_status_score(w)
+    // A game that scores nothing shows only the move count; the score side
+    // would be a permanent "Score: 0". The fold decides at compile time.
+    if any_awards() is 0
+        set_cursor(1, w - 8 - status_digits(turns))
+        show("Moves: ")
+        show(turns)
+        return 0
     if w < 54
         set_cursor(1, w - 8 - status_digits(score) - status_digits(turns))
         show("Score: ")
@@ -1121,6 +1128,11 @@ block msg_farewell()
 // and the rank when a `ranks` ladder is declared (the clause folds away
 // otherwise).
 block msg_score()
+    // A game that scores nothing says so instead of "0 of a possible 0";
+    // the fold makes the branch free either way.
+    if any_awards() is 0
+        say "This game does not keep score."
+        return 0
     show("You have scored ${score} of a possible ${max_score}, in ")
     show(turns)
     if turns is 1
