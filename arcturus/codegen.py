@@ -39,26 +39,15 @@ _EVENT_NAMES = wm.EVENT_NAMES
 _action_numbers = wm.action_numbers  # the shared action -> number map
 
 
-def _is_dir_pattern(h: wm.Handler) -> bool:
-    """True for `on go <direction>`: a single operand naming a direction, guarded
-    at run time on the chosen direction (the `way` global)."""
-    return (
-        "go" in h.events
-        and len(h.pattern) == 1
-        and isinstance(h.pattern[0], ast.Operand)
-        and len(h.pattern[0].names) == 1
-    )
-
-
-def _guard_plan(h: wm.Handler, layout, gmap):
+def _guard_plan(h: wm.Handler, layout, gmap, dirnames=frozenset()):
     """A patterned handler's run-time guards, as [(global name, [values])]:
     every listed global must equal one of its values or the handler does not
-    apply this turn (docs/01 section 12). `on go west` guards `way` against
-    the direction's property number; an operand pattern guards `noun` (and,
-    past a preposition, `second`) against object numbers, with `or`
-    alternatives side by side. The keyword `noun` as a pattern name leaves
-    its slot unconstrained (`on take noun`: any noun). None for a handler
-    with no pattern.
+    apply this turn (docs/01 section 12). A direction operand (`on go west`,
+    `on go south or up`) guards `way` against the directions' property
+    numbers; an object operand guards `noun` (and, past a preposition,
+    `second`) against object numbers, with `or` alternatives side by side.
+    The keyword `noun` as a pattern name leaves its slot unconstrained
+    (`on take noun`: any noun). None for a handler with no pattern.
 
     Patterns compile to react-side tests BEFORE the handler routine is
     called, so a failed guard counts as "this object never addressed the
@@ -67,16 +56,35 @@ def _guard_plan(h: wm.Handler, layout, gmap):
     behaved."""
     if not h.pattern:
         return None
-    if _is_dir_pattern(h):
-        return [("way", [layout.prop_number[h.pattern[0].names[0]]])]
     plan = []
     slot = "noun"
     for item in h.pattern:
         if isinstance(item, ast.Prep):
+            if item.word == ",":
+                raise CodegenError(
+                    f"line {h.line}: alternatives in a handler pattern join "
+                    "with 'or', not a comma (a comma separates verbs)"
+                )
             slot = "second"
             continue
         values = []
         wildcard = False
+        dirs = [n for n in item.names if n in dirnames]
+        if dirs:
+            # A direction operand: all alternatives must be directions, and
+            # only the go action sets `way` for the guard to read.
+            if len(dirs) != len(item.names):
+                raise CodegenError(
+                    f"line {h.line}: a pattern mixes directions and objects "
+                    f"({', '.join(item.names)}); guard one kind per operand"
+                )
+            if "go" in h.events:
+                plan.append(("way", [layout.prop_number[n] for n in dirs]))
+                continue
+            raise CodegenError(
+                f"line {h.line}: a direction pattern needs the go action "
+                f"(the parser sets `way` only for go)"
+            )
         for name in item.names:
             if name == slot or name == "noun":
                 wildcard = True  # `on take noun`: anything in this slot
@@ -85,9 +93,10 @@ def _guard_plan(h: wm.Handler, layout, gmap):
                 values.append(layout.obj_number[name])
                 continue
             raise CodegenError(
-                f"handler pattern names '{name}', which is not an object "
-                "(kinds in patterns are not supported yet; test the kind "
-                "inside the handler body instead)"
+                f"line {h.line}: handler pattern names '{name}', which is "
+                "not an object or direction (kinds in patterns are not "
+                "supported yet; test the kind inside the handler body "
+                "instead)"
             )
         if not wildcard and values:
             plan.append((slot, values))
@@ -151,6 +160,7 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
     react_free and the grain routines so the dispatcher can call them all."""
     hname = {id(h): nm for h, nm in registry}
     afloor = wm.after_floor(world) if wm.actions_with_after(world) else None
+    dirnames = frozenset(world.directions.values())
     out = []
     for objname, obj in world.objects.items():
         pairs = _react_handlers(world, obj, actions)
@@ -160,7 +170,7 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
         groups: dict = {}
         for action, h in pairs:
             groups.setdefault(action, []).append((hname[id(h)], h))
-        out.append(_gen_react(objname, groups, actions, layout, gmap, others, afloor))
+        out.append(_gen_react(objname, groups, actions, layout, gmap, others, afloor, dirnames))
     # react_free and grain_dispatch are always present (even empty) so the turn
     # loop and dispatcher can call them unconditionally.
     out.append(gen_react_free(world, actions, registry, layout, gmap))
@@ -297,10 +307,11 @@ def gen_react_free(world: wm.World, actions: dict, registry, layout=None, gmap=N
             groups.setdefault(action, []).append((hname[id(h)], h))
     others = [(hname[id(h)], h) for h in _free_other_handlers(world) if id(h) in hname]
     afloor = wm.after_floor(world) if wm.actions_with_after(world) else None
-    return _gen_react("free", groups, actions, layout, gmap, others, afloor)
+    dirnames = frozenset(world.directions.values())
+    return _gen_react("free", groups, actions, layout, gmap, others, afloor, dirnames)
 
 
-def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None, others=None, afloor=None) -> Routine:
+def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None, others=None, afloor=None, dirnames=frozenset()) -> Routine:
     """react_<obj>(action): switch on the action number; for each action run the
     object's handler routine(s) in order, returning 1 as soon as one consumes the
     action (returns 1). The `on other` catch-all runs only for actions the
@@ -323,7 +334,7 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
     skip_n = 0
     for action, handlers in groups.items():
         rt.label(run_label[action])
-        plans = [_guard_plan(h, layout, gmap) for _, h in handlers]
+        plans = [_guard_plan(h, layout, gmap, dirnames) for _, h in handlers]
         all_guarded = all(p is not None for p in plans)
         if all_guarded:
             rt.op("store", Const(2), Const(0))
