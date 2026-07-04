@@ -3,11 +3,11 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The console entry: `python3 -m actaea <story>`. Today (M1) it loads and
-validates a story file and reports its header; as the milestones land it
-grows into the headless runner that drives CZECH and Praxix (the M6 gate)
-and, from M7, hands off to the tkinter front-end unless asked to stay on
-the console."""
+"""The console entry: `python3 -m actaea <story>` PLAYS the story on the
+console (the headless runner that carried CZECH and Praxix through the M6
+gate). --header reports the parsed header; --disasm prints the reachable
+routines. From M7 this hands off to the tkinter front-end unless asked to
+stay on the console."""
 
 import argparse
 import os
@@ -93,10 +93,24 @@ def main(argv=None) -> int:
                 return 2
             return 0
 
-        print(_report(story))
-        if not args.header:
-            # The run loop arrives with M3; until then this is an info tool.
-            print("\n(actaea M2: loading and disassembly only; no execution yet)")
+        if args.header:
+            print(_report(story))
+            return 0
+
+        # The default: play the story on the console.
+        from .io import ConsoleIO
+        from .vm import VM
+
+        vm = VM(story, ConsoleIO())
+        try:
+            vm.run()
+        except EOFError:
+            # The input pipe ended before the story quit: a normal ending
+            # for scripted play (walkthrough files end where they end).
+            return 0
+        except ActaeaError as e:
+            print(f"\nactaea: {e}", file=sys.stderr)
+            return 3
         return 0
     except BrokenPipeError:
         return _pipe_closed()
