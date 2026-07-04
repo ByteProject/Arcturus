@@ -26,6 +26,7 @@ from .errors import ActaeaError
 from .dictionary import Dictionary, tokenise
 from .memory import from_signed, to_signed
 from .objects import ObjectTable
+from .screen import ScreenModel
 from .text import TextEngine
 
 
@@ -104,12 +105,11 @@ class VM:
         self.screen_on = True
         self.transcript_on = False
         self.stream3: list = []
-        # The headless window model: window 0 is the console; window 1 (the
-        # status area) exists only as a number here, its output discarded,
-        # its cursor ops accepted. This is what a dumb terminal honestly
-        # does; the M8 cell grid in screen.py is the real model and will
-        # take these opcodes over.
-        self.window = 0
+        # The window model (M8): screen.py owns the split, the upper
+        # window's cell grid, and the cursor; lower-window text passes
+        # through it to the io sink. Front-ends render the grid via its
+        # on_change hook; headless sinks simply never look at it.
+        self.screen = ScreenModel(io)
         self._init_header()
 
     # -- the output funnel: every print opcode lands here ------------------------
@@ -120,8 +120,8 @@ class VM:
             for ch in text:
                 table.append(13 if ch == "\n" else self.text.unicode_to_zscii(ch))
             return
-        if self.screen_on and self.window == 0:
-            self.io.print_text(text)
+        if self.screen_on:
+            self.screen.write(text)
 
     def _init_header(self) -> None:
         """The interpreter-set header fields (S 11): what this machine can
@@ -747,32 +747,43 @@ class VM:
                 self.mem.set_byte(second + i, data[i])
 
     def _op_set_text_style(self, ins):
-        # A hint to the front-end; the console harness has no styles and
-        # ignores it (the flags already told the game what is available).
+        # The model records the style for the cells it writes; the io hint
+        # stays for style-capable lower windows (M9 renders both).
         (style,) = self._values(ins)
+        if style == 0:
+            self.screen.style = 0
+        else:
+            self.screen.style |= style
         self.io.set_style(style)
 
     def _op_split_window(self, ins):
-        self._values(ins)  # the size matters when there is a grid to size
+        (lines,) = self._values(ins)
+        self.screen.split(lines)
 
     def _op_set_window(self, ins):
         (w,) = self._values(ins)
-        self.window = w
+        self.screen.select(w)
 
     def _op_erase_window(self, ins):
-        self._values(ins)  # nothing to erase on a scrolling console
+        (n,) = self._values(ins)
+        self.screen.erase_window(to_signed(n))
 
     def _op_erase_line(self, ins):
-        self._values(ins)
+        vals = self._values(ins)
+        if vals and vals[0] == 1:  # operand 1 = "to end of line" (S 15)
+            self.screen.erase_line()
 
     def _op_set_cursor(self, ins):
-        self._values(ins)  # only meaningful over the grid (M8)
+        vals = self._values(ins)
+        row = to_signed(vals[0])
+        col = vals[1] if len(vals) > 1 else 1
+        self.screen.set_cursor(row, col)
 
     def _op_get_cursor(self, ins):
         (table,) = self._values(ins)
-        # Report row 1, column 1: the console has no cursor address space.
-        self.mem.set_word(table, 1)
-        self.mem.set_word(table + 2, 1)
+        row, col = self.screen.get_cursor()
+        self.mem.set_word(table, row)
+        self.mem.set_word(table + 2, col)
 
     def _op_buffer_mode(self, ins):
         # Whether the lower window buffers for word wrap (S 8.7.3.1): purely
