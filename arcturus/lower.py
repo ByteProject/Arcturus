@@ -1149,6 +1149,13 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
             rt.label(skip)
         else:
             _say(rt, ctx, s.value)
+        if s.para:
+            # say.par: the text is followed by a paragraph break (the same
+            # pending-break the par() intrinsic marks; the print layer
+            # collapses repeats into one blank line).
+            slot = ctx.globals.get("par_pending")
+            if slot is not None:
+                rt.op("store", Const(slot), Const(1))
     elif isinstance(s, ast.ZColor):
         ctx.world.uses_colours = True
         n = _ZCOLOURS[s.colour]

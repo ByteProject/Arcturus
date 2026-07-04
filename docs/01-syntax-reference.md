@@ -1040,6 +1040,13 @@ within a line of text:
 say "Hey\n\nThis is two lines below.\n\n\nAnd this three."
 ```
 
+To follow a say with a paragraph break, say it with the `par` modifier:
+`say.par "..."` prints the text and marks the library's pending break, which
+the next output flushes as a single blank line (repeats collapse, docs/02).
+Consecutive prose paragraphs are each a `say.par` line, no bookkeeping
+between them. The modifier composes with a colour in either order:
+`say.yellow.par` and `say.par.yellow` are the same coloured paragraph.
+
 Interpolation embeds an expression with `${ }`; printing an object prints its
 `name`. Article helpers: `${the ruby}`, `${a ruby}`, and the capitalized
 `${The ruby}`, `${A ruby}`; an object with `named` set takes no article.
@@ -1100,7 +1107,8 @@ The `zcolor` statement sets the base colours, one target per line, usually in
 `say.<colour> "..."` prints one text in that colour and then restores the base
 font colour by itself, so an emphasized passage is a single line with no state
 to manage and no restore to forget. It composes with interpolation
-(`say.yellow "${The noun} glows."`). Together, the classic Infocom-era look is
+(`say.yellow "${The noun} glows."`) and with the `par` modifier in either
+order (`say.yellow.par`, section 16). Together, the classic Infocom-era look is
 four lines and stays out of the prose:
 
 ```

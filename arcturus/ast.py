@@ -211,6 +211,10 @@ class Say(Stmt):
     # font colour (zcolor.font). None is a plain say. Colour names are validated
     # against prelude._ZCOLOURS at parse time.
     colour: Optional[str] = None
+    # say.par "...": follow the text with a paragraph break (the pending-break
+    # the print layer collapses). Composes with a colour in either order:
+    # say.yellow.par and say.par.yellow both work.
+    para: bool = False
 
 
 @dataclass

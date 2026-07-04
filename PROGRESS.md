@@ -74,6 +74,22 @@ anonymous-points line; ambience per-line dwell.
 
 >>> END DAY-TWO CHECKPOINT <<<
 
+SAY.PAR: THE PARAGRAPH RIDES THE SAY (2026-07-04, Stefan's sugar order,
+"as little internal-cosmos blocks as possible" in author code; arcc
+0.9.2): `say.par "..."` prints the text and marks the library's pending
+paragraph break, so consecutive prose paragraphs are one line each with
+no par() between them. Modifiers are a composable dot-chain in any
+order, Stefan's addendum: say.yellow.par and say.par.yellow are the
+same coloured paragraph (one colour per say, one par, enforced with
+clear parse errors). Lowering is the same par_pending store the par()
+intrinsic makes, inline, so the sugar is byte-neutral-or-better (H2
+62996 -> 62880: the statement form skips the intrinsic call's value
+plumbing). The H2 port swept: 38 say+par() pairs merged; the four
+surviving par() calls are genuine standalone breaks (before text, not
+after) and stay. docs/01 sections 16 and 16a, the VSCode grammar (the
+say/zcolor rule now matches chained modifiers), and the vsix updated to
+0.9.2 (repackaged directly, no node on PATH). 394 tests; H2 130/130.
+
 CLOAK IS A 1:1 PORT, AND THREE SEMANTICS IT FORCED (2026-07-04, Stefan:
 the benchmark game had grown extras from its first-example days and the
 27K comparison deserved identical content; arcc 0.9.1 / Cosmos 0.13.3):

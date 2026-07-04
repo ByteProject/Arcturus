@@ -293,8 +293,8 @@
                     }
                 },
                 {
-                    "comment": "Screen colours (docs/01 16a): zcolor targets and the say.<colour> form.",
-                    "match": "\\b(zcolor|say)(\\.)(font|background|statusline|input|default|black|red|green|yellow|blue|magenta|cyan|white)\\b",
+                    "comment": "Screen colours (docs/01 16a): zcolor targets, the say.<colour> form, and the say.par paragraph modifier (composable: say.yellow.par).",
+                    "match": "\\b(zcolor|say)((\\.)(font|background|statusline|input|default|black|red|green|yellow|blue|magenta|cyan|white|par))+\\b",
                     "captures": {
                         "1": {
                             "name": "keyword.other.statement.storyarc"
