@@ -17,7 +17,7 @@ import os
 import platform
 import sys
 
-from . import __version__
+from . import __version__, build_id
 from . import abbrev as abbrev_lib
 from . import ast
 from . import cosmos as cosmos_lib
@@ -142,9 +142,35 @@ def _build_argparser() -> argparse.ArgumentParser:
         "file to compress this story further than the built-in default.",
     )
     ap.add_argument(
-        "--version", action="version", version=f"Arcturus {__version__}"
+        "--version", action=_VersionAction, nargs=0,
+        help="show the version, the exact build, and the environment, then exit",
     )
     return ap
+
+
+class _VersionAction(argparse.Action):
+    """Print the version block verbatim. argparse's built-in `version` action
+    runs the text through the help formatter, which reflows the lines into one
+    wrapped paragraph; a plain print keeps the block as written."""
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        print(_version_text())
+        parser.exit(0)
+
+
+def _version_text() -> str:
+    """The full identity block for `arcc --version`: the release, the exact
+    build, the embedded library version, and the environment, so a bug report
+    can name precisely what it ran. Distinct from the compile banner, which
+    stays a lean per-build ledger."""
+    return (
+        f"Arcturus {__version__}  (build {build_id()})\n"
+        "Programming language and compiler for the Infocom Z-machine\n"
+        f"Cosmos standard library {cosmos_lib.COSMOS_VERSION} "
+        f"| Python 3.11+ | no dependencies | {_host_os()}\n"
+        "Copyright (c) 2026, Stefan Vogt "
+        "| https://github.com/ByteProject/Arcturus"
+    )
 
 
 def _all_library_sources() -> dict:

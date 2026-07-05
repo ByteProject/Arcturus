@@ -23,6 +23,7 @@ Usage:
 
 from __future__ import annotations
 
+import hashlib
 import os
 import stat
 import sys
@@ -64,6 +65,7 @@ def _bootstrap():
     pkg.__path__ = []
     sys.modules["arcturus"] = pkg
     exec(compile(_INIT, "arcturus/__init__.py", "exec"), pkg.__dict__)
+    pkg.__build__ = _BUILD_ID  # stamp the fingerprint over the source default (None)
     for name in _MODULE_ORDER:
         mod = types.ModuleType("arcturus." + name)
         mod.__package__ = "arcturus"
@@ -87,6 +89,24 @@ def _read(pkg_dir: str, module: str) -> str:
         return fh.read()
 
 
+def _fingerprint(init_src: str, module_srcs: dict, cosmos_srcs: dict) -> str:
+    """A short content hash of exactly what this amalgam embeds: the package
+    init (which carries __version__), the modules in load order, and the
+    Cosmos sources by name. Deterministic (same source in, same id out), so
+    two builds with the same id are byte-identical and a different id is a
+    genuinely different tool at the same version. __build__ in init_src is
+    None here, so the fingerprint never depends on itself."""
+    h = hashlib.sha256()
+    h.update(init_src.encode("utf-8"))
+    for name in _MODULE_ORDER:
+        h.update(name.encode("utf-8"))
+        h.update(module_srcs[name].encode("utf-8"))
+    for name in sorted(cosmos_srcs):
+        h.update(name.encode("utf-8"))
+        h.update(cosmos_srcs[name].encode("utf-8"))
+    return h.hexdigest()[:7]
+
+
 def build(output_path: str) -> None:
     here = os.path.dirname(os.path.abspath(__file__))
     repo_root = os.path.dirname(here)
@@ -106,7 +126,10 @@ def build(output_path: str) -> None:
                 with open(os.path.join(cosmos_dir, name), "r", encoding="utf-8") as fh:
                     cosmos_srcs[name] = fh.read()
 
+    build_id = _fingerprint(init_src, module_srcs, cosmos_srcs)
+
     parts = [_HEADER]
+    parts.append(f"\n_BUILD_ID = {build_id!r}\n")
     parts.append(f"\n_MODULE_ORDER = {_MODULE_ORDER!r}\n")
     # repr() yields a valid, fully escaped Python string literal for any source.
     parts.append(f"\n_INIT = {init_src!r}\n")
@@ -127,7 +150,7 @@ def build(output_path: str) -> None:
     # Make it directly executable via its shebang.
     mode = os.stat(output_path).st_mode
     os.chmod(output_path, mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-    print(f"wrote {output_path} ({len(script)} bytes)")
+    print(f"wrote {output_path} ({len(script)} bytes, build {build_id})")
 
 
 def main(argv: list[str]) -> int:

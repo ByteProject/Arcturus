@@ -18,10 +18,24 @@ console harness in __main__."""
 
 __version__ = "1.0.0"
 
+# The build fingerprint. __version__ names the intended release; __build__ is a
+# short content hash the amalgamator bakes into build/actaea, so two standalones
+# at the same version but built from different source are still told apart (see
+# arcturus/__init__.py for the full rationale). None means running from source.
+__build__ = None
+
+
+def build_id() -> str:
+    """The build fingerprint for display: the amalgam's baked hash, or 'source'
+    when running from the working tree."""
+    return __build__ or "source"
+
 
 def banner() -> str:
     """The identity block: the CLI shows it for help and the info tools,
-    the front-ends for their About panels. One string, one truth."""
+    the front-ends for their About panels. One string, one truth. It carries
+    no build id, so the About panel and help stay clean; --version appends the
+    build itself (version_text)."""
     return (
         f"Actaea v{__version__} - Z-machine v5/8 interpreter, "
         "debugger and disassembler\n"
@@ -30,3 +44,9 @@ def banner() -> str:
         "Copyright (c) 2026, Stefan Vogt | "
         "https://github.com/ByteProject/Arcturus"
     )
+
+
+def version_text() -> str:
+    """The banner plus the exact build, for `actaea --version`. The banner
+    alone (help, About) stays build-free."""
+    return f"{banner()}\nBuild {build_id()}"
