@@ -15,7 +15,7 @@ I/O interface, and a tkinter front-end that implements that interface. The
 core never imports tkinter; conformance (CZECH, Praxix) runs through the
 console harness in __main__."""
 
-__version__ = "0.12.1"
+__version__ = "0.12.2"
 
 
 def banner() -> str:

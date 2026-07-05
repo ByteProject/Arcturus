@@ -3043,3 +3043,36 @@ Stefan played the polish build and sent three findings, all fixed:
   leaves its own.
 
 540 tests. actaea 0.12.1, build/actaea regenerated.
+
+## 2026-07-05 (cont.): polish round three, the terminal emulator round
+
+Stefan's next screenshots named four bugs; a pyte terminal emulator in
+the test pty (dev-only, scratchpad venv) made them reproducible as
+data instead of pixels:
+
+- CONSOLE, the vanished room text: when Cosmos redraws its status bar
+  around an input, the split changes AFTER the turn's text printed;
+  _make_lower recreated the window and swallowed the description
+  ("font still not painted" = text gone, not miscoloured). The split
+  now RESIZES AND MOVES the window (_resplit), content anchored to
+  the bottom where the story scrolls, with a redrawwin to squash
+  physical-screen leftovers. The emulator shows the description
+  standing and every row black.
+- CONSOLE, the unpainted half screen: blank grid cells carry the
+  default colour pair and rendered as the terminal's own background
+  (Stefan's wallpaper) instead of the game's paper; same for the strip
+  right of the 80-column grid on wider terminals. The console now
+  remembers the paper (the background the last erase painted, the
+  GUI's _window_bg counterpart) and paints default-bg cells and the
+  strip with it.
+- GUI, the five-font menu: the curated-intersection list was the
+  wrong idea; the Font menu now scans EVERY family tkinter reports,
+  keeps the fixed-pitch ones (Font.metrics("fixed")), and builds
+  lazily on first open, so the whole system library is offered.
+- GUI, colours toggle-on losing the text: toggling deleted the look
+  tags, stripping existing story text to the widget default, black on
+  the game's black paper. The tags are now RECONFIGURED in place from
+  their names (style-fg-bg), so the text re-dresses instantly in
+  either direction.
+
+540 tests. actaea 0.12.2, build/actaea regenerated.
