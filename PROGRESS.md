@@ -3013,3 +3013,33 @@ Proofs: the curses front-end drives through a REAL PTY in pytest
 the suite stands at 540. The basename lesson repeated itself
 (test_standalone.py collided across dirs; renamed). actaea 0.12.0,
 build/actaea regenerated.
+
+## 2026-07-05 (cont.): polish round two, from Stefan's screenshots
+
+Stefan played the polish build and sent three findings, all fixed:
+
+- THE CONSOLE FILL: --console showed the terminal's own background
+  where the game's black should be; only text carried its colour. The
+  escape stream told the story: the erases ran with reset attributes,
+  because erase_lower set the window background AFTER erasing. curses
+  fills a cleared window with its background attribute, so the order
+  is the whole fix: bkgd first, then erase (and the window is born
+  with the game's background in _make_lower, so scrolled-in lines and
+  split rebuilds wear it too). The erase-line sequences now carry
+  bg-black on the wire, verified through the pty. The terminal
+  tab/window also takes the story's name (the xterm title sequence)
+  instead of saying Python.
+- THE ABOUT PANEL: the raw banner line-wrapped badly in a messagebox;
+  it is now a laid-out panel (name large, version, the facts in their
+  own lines, the repository clickable, Return/Escape dismiss).
+- FONTS AND MEMORY: View -> Font offers the monospace families the
+  system actually has (a curated list intersected with tkinter's
+  families), and ALL the View settings persist: family, text size,
+  screen height, and the Game Colours toggle land in
+  ~/.config/actaea/settings.json (XDG_CONFIG_HOME honoured) and come
+  back at the next launch. Settings save only on deliberate menu
+  changes, never at boot; the GUI smoke test isolates itself with
+  XDG_CONFIG_HOME so it neither reads the player's settings nor
+  leaves its own.
+
+540 tests. actaea 0.12.1, build/actaea regenerated.

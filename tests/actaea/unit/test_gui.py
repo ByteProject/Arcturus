@@ -31,8 +31,12 @@ GAME = (
 )
 
 
-def test_a_game_plays_in_the_window():
+def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     from actaea.gui.app import ActaeaApp
+
+    # The app reads and writes persistent settings (the View menu);
+    # the test must see neither the user's nor leave its own.
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
 
     story = load(generate(analyze(cosmos.combined_program(parse(GAME)))))
     try:
