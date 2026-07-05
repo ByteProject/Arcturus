@@ -130,7 +130,9 @@ class ConsoleApp:
         # The window carries the game's background from birth: erases,
         # scrolled-in lines, and the blank screen all wear it.
         self.lower.bkgd(" ", self._pair(-1, self._cc(self._paper)))
-        self.lower.move(h - 1, 0)  # story text grows from the bottom up
+        # A fresh screen fills from the TOP, like every terminal terp;
+        # scrolling begins only when the text reaches the bottom.
+        self.lower.move(0, 0)
 
     def _resplit(self, split: int) -> None:
         """The split moved. The window RESIZES AND MOVES, never recreated:
@@ -143,15 +145,19 @@ class ConsoleApp:
         h = max(1, self.term_h - split)
         y, x = self.lower.getyx()
         if d > 0:
-            self.lower.scroll(d)      # keep the bottom rows, shed the top
+            # Text fills from the top, so shrinking clips the BOTTOM: only
+            # when the cursor would fall off does the content scroll up.
+            overflow = y - (h - 1)
+            if overflow > 0:
+                self.lower.scroll(overflow)
+                y -= overflow
             self.lower.resize(h, self.term_w)
             self.lower.mvwin(split, 0)
-            y = max(0, y - d)
         elif d < 0:
+            # The bar shrank: blank rows appear at the bottom, the text
+            # stays exactly where it was.
             self.lower.mvwin(split, 0)
             self.lower.resize(h, self.term_w)
-            self.lower.scroll(d)      # pull the content back down
-            y = min(h - 1, y - d)
         self.lower.move(y, min(x, self.term_w - 1))
         self._split = split
         # The scroll-and-resize dance can leave the physical screen holding
@@ -302,7 +308,7 @@ class ConsoleApp:
         self._paper = self.vm.screen.bg
         self.lower.bkgd(" ", self._pair(-1, self._cc(self._paper)))
         self.lower.erase()
-        self.lower.move(self.lower.getmaxyx()[0] - 1, 0)
+        self.lower.move(0, 0)  # a cleared screen fills from the top
         self._since_input = 0
         self._grid_dirty = True  # the grid strip repaints in the new paper
 

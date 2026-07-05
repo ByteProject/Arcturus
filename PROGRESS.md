@@ -3076,3 +3076,17 @@ data instead of pixels:
   either direction.
 
 540 tests. actaea 0.12.2, build/actaea regenerated.
+
+## 2026-07-05 (cont.): polish round four, the top-fill
+
+GUI: all resolved (Stefan). Console: colours resolved; one layout bug
+left, the room text sitting in the bottom half of a fresh screen with
+a void above it. Cause: the erase anchored the cursor to the BOTTOM
+row (a scrollback habit); real terminal terps fill a cleared screen
+from the top and only scroll when the text reaches the bottom. The
+erase and the window's birth now home to the top-left, and _resplit's
+scroll logic follows: a growing bar clips the BOTTOM (scrolling only
+if the cursor would fall off), a shrinking bar adds blank rows below
+without moving the text. Emulator-verified: the description starts
+under the bar, turns append downward, every row black through
+multiple turns. actaea 0.12.3, build/actaea regenerated.
