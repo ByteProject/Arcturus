@@ -36,10 +36,24 @@ from ..io import IOSystem
 from ..screen import BOLD, ITALIC, REVERSE, TRUE_COLOURS, true_colour_hex
 from ..vm import VM
 
+# Tk keysyms for the keys with ZSCII input codes of their own (S 3.8):
+# cursors, function keys, and the numeric keypad. read_char hands these
+# codes to the game, and read ends on the ones the story's terminating-
+# characters table lists.
+_FUNCTION_KEYS = {
+    "Up": 129, "Down": 130, "Left": 131, "Right": 132,
+    **{f"F{n}": 132 + n for n in range(1, 13)},
+    **{f"KP_{n}": 145 + n for n in range(10)},
+}
+
 
 class GuiIO(IOSystem):
     """The io boundary against the shell. The widget shows the player's
     typing live, so read_line never echoes (the io.py contract)."""
+
+    # The event loop can run input interrupts, so this front-end claims
+    # the header's timed-input bit.
+    supports_timed = True
 
     def __init__(self, app: "ActaeaApp"):
         self.app = app
@@ -47,12 +61,14 @@ class GuiIO(IOSystem):
     def print_text(self, text: str) -> None:
         self.app.append_story(text)
 
-    def read_line(self, max_len: int) -> str:
-        return self.app.wait_for_line(max_len)
+    def read_line(self, max_len, preload="", terminators=frozenset(),
+                  timeout=0.0, on_timeout=None):
+        return self.app.wait_for_line(
+            max_len, preload, terminators, timeout, on_timeout
+        )
 
-    def read_char(self) -> int:
-        ch = self.app.wait_for_key()
-        return 13 if ch in ("\r", "\n") else ord(ch)
+    def read_char(self, timeout=0.0, on_timeout=None) -> int:
+        return self.app.wait_for_key(timeout, on_timeout)
 
     def erase_lower(self) -> None:
         self.app.clear_story()
@@ -75,6 +91,13 @@ class GuiIO(IOSystem):
         return filedialog.askopenfilename(
             parent=self.app.root, title="Restore a saved story",
             filetypes=self._FILETYPES,
+        ) or None
+
+    def transcript_path(self, default: str):
+        return filedialog.asksaveasfilename(
+            parent=self.app.root, title="Transcript file",
+            initialfile=default, defaultextension=".txt",
+            filetypes=[("Transcripts", "*.txt"), ("All files", "*")],
         ) or None
 
 
@@ -145,12 +168,17 @@ class ActaeaApp:
         self.text.mark_gravity("unread", "left")
 
         self._line_ready = tk.BooleanVar(value=False)
-        self._key: tk.StringVar = tk.StringVar(value="")
+        self._key: tk.StringVar = tk.StringVar(value="")  # the wake signal
+        self._key_code = 0            # the actual key, as a ZSCII/Unicode code
         self._reading_line = False
         self._reading_key = False
         self._closed = False
         self._max_len = 0
         self._input_tag = ""
+        self._terminators = frozenset()
+        self._terminator = 13
+        self._timer = None            # the pending after() id for timed input
+        self._timed_out = False
 
         self.text.bind("<Key>", self._on_key)
         self.text.bind("<KeyRelease>", self._on_key_release)
@@ -272,6 +300,13 @@ class ActaeaApp:
         return name
 
     def append_story(self, s: str) -> None:
+        # A print can land MID-READ: a timed-input interrupt routine spoke
+        # (S 8.4.2 asks the interpreter to redisplay the line after). The
+        # typed text lifts off, the story text goes in, the line comes back.
+        typed = ""
+        if self._reading_line:
+            typed = self.text.get("input_start", "end-1c")
+            self.text.delete("input_start", "end-1c")
         tag = self._look_tag()
         self.text.mark_set("insert", "end-1c")
         if tag:
@@ -279,7 +314,17 @@ class ActaeaApp:
         else:
             self.text.insert("end-1c", s)
         self.text.mark_set("input_start", "end-1c")
+        if typed:
+            self._insert_input(typed)
         self.text.see("end")
+
+    def _insert_input(self, s: str) -> None:
+        """Text into the editable region, wearing the input look. The
+        input_start mark's left gravity keeps it before what is inserted."""
+        if self._input_tag:
+            self.text.insert("end-1c", s, (self._input_tag,))
+        else:
+            self.text.insert("end-1c", s)
 
     # -- input: lines ----------------------------------------------------------
 
@@ -293,10 +338,14 @@ class ActaeaApp:
     def _mark_read(self) -> None:
         self.text.mark_set("unread", "end-1c")
 
-    def wait_for_line(self, max_len: int) -> str:
+    def wait_for_line(self, max_len, preload="", terminators=frozenset(),
+                      timeout=0.0, on_timeout=None):
         if self._closed:
             raise EOFError
         self._max_len = max_len
+        self._terminators = terminators
+        self._terminator = 13
+        self._timed_out = False
         # The input wears the CURRENT look: Cosmos sets the input colour
         # (zcolor.input) right before every read, so the tag resolved here
         # is the game's choice; the caret matches it.
@@ -306,18 +355,72 @@ class ActaeaApp:
         )
         self._reading_line = True
         self._line_ready.set(False)
+        if preload:
+            self._absorb_preload(preload)
         self.text.mark_set("insert", "end-1c")
         self._show_unread()
+        self._start_timer(timeout, on_timeout)
         self.root.wait_variable(self._line_ready)
+        self._stop_timer()
         self._reading_line = False
         if self._closed:
             raise EOFError
         self._dress_input()
         line = self.text.get("input_start", "end-1c")
+        if self._timed_out:
+            # The interrupt ended the read: what was typed goes back to the
+            # game as buffer leftovers (next read's preload), so it comes
+            # off the screen; the game owns it now.
+            self.text.delete("input_start", "end-1c")
+            return line, 0
         # The typed line becomes story text, newline included.
         self.append_story("\n")
         self._mark_read()
-        return line
+        return line, self._terminator
+
+    def _absorb_preload(self, preload: str) -> None:
+        """The game handed the read a part-typed line (S 15 read, byte 1).
+        By convention the game has already printed it, so the characters
+        sit at the end of the story text: pull the input mark back over
+        them and they become editable, exactly as if typed. If they are
+        not there (a timed-out line coming back), insert them."""
+        n = len(preload)
+        if self.text.get(f"input_start -{n} chars", "input_start") == preload:
+            self.text.mark_set("input_start", f"input_start -{n} chars")
+            self._dress_input()
+        else:
+            self._insert_input(preload)
+
+    # -- timed input: the after() loop that makes interrupts fire --------------
+
+    def _start_timer(self, timeout, on_timeout) -> None:
+        if timeout > 0 and on_timeout:
+            self._timer = self.root.after(
+                max(1, int(timeout * 1000)), self._tick, timeout, on_timeout
+            )
+
+    def _stop_timer(self) -> None:
+        if self._timer is not None:
+            self.root.after_cancel(self._timer)
+            self._timer = None
+
+    def _tick(self, timeout, on_timeout) -> None:
+        # Fires inside the event loop while the VM is parked in
+        # wait_variable; on_timeout re-enters the VM for the interrupt
+        # routine (vm.call_interrupt), whose printing lands through
+        # append_story's mid-read path. True means end the input.
+        self._timer = None
+        if self._closed or not (self._reading_line or self._reading_key):
+            return
+        if on_timeout():
+            self._timed_out = True
+            if self._reading_line:
+                self._line_ready.set(True)
+            else:
+                self._key_code = 0
+                self._key.set("\x00")
+        else:
+            self._start_timer(timeout, on_timeout)
 
     def _dress_input(self) -> None:
         if self._input_tag:
@@ -334,6 +437,7 @@ class ActaeaApp:
         # (the dedicated binding fires before _on_key, so feed the wait
         # here; Stefan's play-through caught space working and Return not).
         if self._reading_key:
+            self._key_code = 13
             self._key.set("\n")
             return "break"
         if self._reading_line:
@@ -342,7 +446,8 @@ class ActaeaApp:
 
     def _on_backspace(self, event):
         if self._reading_key:
-            self._key.set("\x08")  # ZSCII 8, delete
+            self._key_code = 8  # ZSCII 8, delete
+            self._key.set("\x08")
             return "break"
         # Never eat into the story text before the input mark.
         if not self._reading_line:
@@ -352,18 +457,33 @@ class ActaeaApp:
         return None
 
     def _on_key(self, event):
-        if self._reading_key and event.char:
-            self._key.set(event.char)
+        if self._reading_key:
+            if event.char:
+                self._key_code = ord(event.char)
+                self._key.set(event.char)
+            else:
+                code = _FUNCTION_KEYS.get(event.keysym)
+                if code:
+                    self._key_code = code
+                    self._key.set("\x00")
             return "break"
         if not self._reading_line:
             return "break"  # story is thinking: swallow stray typing
+        if not event.char:
+            # A function key ends the line if the story's terminating-
+            # characters table names it (S 10.7); 255 names them all.
+            code = _FUNCTION_KEYS.get(event.keysym)
+            if code and (code in self._terminators or 255 in self._terminators):
+                self._terminator = code
+                self._line_ready.set(True)
+                return "break"
+            return None  # arrows and the rest keep their editing meaning
         if self.text.compare("insert", "<", "input_start"):
             self.text.mark_set("insert", "end-1c")
-        if event.char:
-            # Typing pulls the view back to the prompt (the player may have
-            # scrolled up to read; their keystrokes belong at the bottom).
-            self.text.see("end")
-        if event.char and len(self.text.get("input_start", "end-1c")) >= self._max_len:
+        # Typing pulls the view back to the prompt (the player may have
+        # scrolled up to read; their keystrokes belong at the bottom).
+        self.text.see("end")
+        if len(self.text.get("input_start", "end-1c")) >= self._max_len:
             return "break"  # the buffer is full: the machine set the limit
         return None
 
@@ -373,18 +493,22 @@ class ActaeaApp:
 
     # -- input: single keys --------------------------------------------------------
 
-    def wait_for_key(self) -> str:
+    def wait_for_key(self, timeout=0.0, on_timeout=None) -> int:
         if self._closed:
             raise EOFError
         self._reading_key = True
+        self._timed_out = False
+        self._key_code = 0
         self._key.set("")
         self._show_unread()
+        self._start_timer(timeout, on_timeout)
         self.root.wait_variable(self._key)
+        self._stop_timer()
         self._reading_key = False
         if self._closed:
             raise EOFError
         self._mark_read()
-        return self._key.get()
+        return 0 if self._timed_out else self._key_code
 
     # -- lifecycle --------------------------------------------------------------------
 

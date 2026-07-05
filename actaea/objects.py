@@ -72,15 +72,19 @@ class ObjectTable:
         self.mem.set_byte(addr, self.mem.byte(addr) & ~bit)
 
     # -- the tree ------------------------------------------------------------------
+    # Asking about object 0 answers "nothing" rather than faulting: real
+    # games do it (Jigsaw calls get_child(0) at boot), the convention among
+    # interpreters is that nothing's relatives are nothing, and only the
+    # MUTATING operations on 0 stay hard errors.
 
     def parent(self, obj: int) -> int:
-        return self.mem.word(self._entry(obj) + 6)
+        return 0 if obj == 0 else self.mem.word(self._entry(obj) + 6)
 
     def sibling(self, obj: int) -> int:
-        return self.mem.word(self._entry(obj) + 8)
+        return 0 if obj == 0 else self.mem.word(self._entry(obj) + 8)
 
     def child(self, obj: int) -> int:
-        return self.mem.word(self._entry(obj) + 10)
+        return 0 if obj == 0 else self.mem.word(self._entry(obj) + 10)
 
     def _set_parent(self, obj: int, to: int) -> None:
         self.mem.set_word(self._entry(obj) + 6, to)
