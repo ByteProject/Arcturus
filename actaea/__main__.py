@@ -98,12 +98,33 @@ def _play_headless(story) -> int:
     return 0
 
 
+class _Cli(argparse.ArgumentParser):
+    """The house style for every tool-facing output: the banner on top
+    (help, usage errors, all of it) and a blank line at the end, so the
+    shell prompt never sits flush against the text."""
+
+    def format_help(self):
+        return banner() + "\n\n" + super().format_help() + "\n"
+
+    def format_usage(self):
+        return banner() + "\n\n" + super().format_usage()
+
+    def error(self, message):
+        self.print_usage(sys.stderr)
+        self.exit(2, f"{self.prog}: error: {message}\n\n")
+
+
+class _Version(argparse.Action):
+    """--version in the house style (argparse's own version action strips
+    the trailing blank line away)."""
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        print(banner() + "\n")
+        parser.exit(0)
+
+
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(
-        prog="actaea",
-        description=banner(),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
+    ap = _Cli(prog="actaea")
     ap.add_argument("story", help="a .z5 or .z8 story file")
     ap.add_argument(
         "--console",
@@ -127,13 +148,14 @@ def main(argv=None) -> int:
         action="store_true",
         help="disassemble every routine reachable from the entry point",
     )
-    ap.add_argument("--version", action="version", version=banner())
+    ap.add_argument("--version", action=_Version, nargs=0,
+                    help="show the version banner and exit")
     args = ap.parse_args(argv)
 
     try:
         story = load_file(args.story)
     except (OSError, ActaeaError) as e:
-        print(f"actaea: {e}", file=sys.stderr)
+        print(f"{banner()}\n\nactaea: {e}\n", file=sys.stderr)
         return 2
 
     try:
@@ -146,11 +168,13 @@ def main(argv=None) -> int:
             except ActaeaError as e:
                 print(f"actaea: {e}", file=sys.stderr)
                 return 2
+            print()
             return 0
 
         if args.header:
             print(banner() + "\n")
             print(_report(story))
+            print()
             return 0
 
         if args.headless:

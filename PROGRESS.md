@@ -3090,3 +3090,20 @@ if the cursor would fall off), a shrinking bar adds blank rows below
 without moving the text. Emulator-verified: the description starts
 under the bar, turns append downward, every row black through
 multiple turns. actaea 0.12.3, build/actaea regenerated.
+
+## 2026-07-05 (cont.): polish round five, the CLI house style
+
+Stefan: console layout confirmed; two CLI gaps remained from his
+banner request. A bare `actaea` (the argparse usage error) showed no
+banner, and no output left a blank line before the next shell prompt.
+A small ArgumentParser subclass is now the house style: format_help
+and format_usage lead with the banner (so help, the bare-invocation
+error, and every usage error wear it), error() ends with the blank
+line, a custom --version action prints banner-plus-blank (argparse's
+own version action strips trailing whitespace), the load-failure path
+prints banner, error, blank, and --header/--disasm close with the
+blank line too. Every tool-facing shape verified byte-exact: all end
+"\n\n", all start with the banner. Play modes stay clean (a piped
+--headless transcript carries no banner; debuggers and BuildTools
+parse game text, not stationery). actaea 0.12.4, build/actaea
+regenerated. 540 tests.
