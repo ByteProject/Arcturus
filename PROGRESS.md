@@ -2968,3 +2968,48 @@ The GUI half of M11 is the visible verification: TerpEtude 4/5 (styles
 and colours), 7 (accents), 8 (arrows and function keys reported), 10/11
 (the countdown ticking mid-input), 12 (editing the preloaded line), and
 a transcript written through the file dialog. Then B10 is complete.
+
+## 2026-07-05 (cont.): the M11 polish, Stefan's five
+
+Stefan's list after playing the sweep build, all landed:
+
+1. THE TERMINAL FRONT-END (his "most important"): --console is now a
+   real playing interpreter in the fizmo-ncursesw manner, on the
+   STANDARD LIBRARY's curses (the zero-dependency rule holds; tkinter
+   and curses both ship with CPython). actaea/console.py is the third
+   front-end on the same headless core and the proof of the io
+   boundary: the game-drawn status bar renders live from the cell grid
+   (curses even diffs it, repainting single cells as the move counter
+   ticks), z-colours map to the terminal's, styles to A_BOLD/A_ITALIC/
+   A_REVERSE, the lower window word-wraps at the terminal width and
+   pages with [MORE], input is edited inline in the game's input
+   colour, timed input runs on getch timeouts, erase paints the
+   game's background, and the final screen holds for a key. --headless
+   is the dumb-frotz pipe, unchanged, for debuggers and the BuildTools;
+   the default ladder is window, then terminal, then pipe, each step
+   announced. Native Windows (no stdlib curses) degrades to headless
+   with a note.
+2. THE STANDALONE: tools/amalgamate_actaea.py builds build/actaea, one
+   self-contained file in the arcc manner. The embedded modules load
+   through a real import hook (lazily, exactly like the package), so
+   the single file still plays headless on a Python without tkinter or
+   curses. Guarded by tests/actaea/test_actaea_standalone.py: the
+   amalgam plays a freshly compiled Cloak with no package on sys.path.
+3. THE BANNER: one identity block in actaea.banner(), shown by --help,
+   --version, --header, --disasm, and both About panels.
+4. MENUS AND SETTINGS (GUI): About Actaea (in the app menu on macOS,
+   Help elsewhere), Text Size, Screen Height, and a Game Colours
+   toggle (off = black-on-white with styles kept; the look caches
+   drop and the paper repaints on toggle).
+5. THE MACOS NAME: the bold menu-bar name belongs to the hosting
+   bundle, which bare Python cannot rename; when pyobjc is installed
+   the NSBundle name becomes Actaea, and either way the app menu's
+   About is ours (tkAboutDialog). A true .app is packaging, out of
+   scope per the roadmap.
+
+Proofs: the curses front-end drives through a REAL PTY in pytest
+(status bar from the statusline granule, ANSI colour on the wire,
+[The story has ended.] hold), the standalone plays packageless, and
+the suite stands at 540. The basename lesson repeated itself
+(test_standalone.py collided across dirs; renamed). actaea 0.12.0,
+build/actaea regenerated.
