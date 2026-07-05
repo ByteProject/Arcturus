@@ -24,6 +24,7 @@ Usage:
 
 from __future__ import annotations
 
+import hashlib
 import os
 import stat
 import sys
@@ -86,6 +87,7 @@ def _bootstrap():
     pkg.__path__ = []
     sys.modules["actaea"] = pkg
     exec(compile(_INIT, "actaea/__init__.py", "exec"), pkg.__dict__)
+    pkg.__build__ = _BUILD_ID  # stamp the fingerprint over the source default (None)
     sys.meta_path.insert(0, _EmbeddedFinder())
     import actaea.__main__ as entry
 
@@ -106,18 +108,35 @@ def _read(pkg_dir: str, module: str) -> str:
         return fh.read()
 
 
+def _fingerprint(init_src: str, module_srcs: dict) -> str:
+    """A short content hash of exactly what this amalgam embeds: the package
+    init (which carries __version__) and the modules in load order.
+    Deterministic, so two builds with the same id are byte-identical and a
+    different id is a genuinely different interpreter at the same version.
+    __build__ in init_src is None here, so the hash never depends on itself."""
+    h = hashlib.sha256()
+    h.update(init_src.encode("utf-8"))
+    for name in _MODULES:
+        h.update(name.encode("utf-8"))
+        h.update(module_srcs[name].encode("utf-8"))
+    return h.hexdigest()[:7]
+
+
 def build(output_path: str) -> None:
     here = os.path.dirname(os.path.abspath(__file__))
     repo_root = os.path.dirname(here)
     pkg_dir = os.path.join(repo_root, _PACKAGE)
 
     init_src = _read(pkg_dir, "__init__")
+    module_srcs = {name: _read(pkg_dir, name) for name in _MODULES}
+    build_id = _fingerprint(init_src, module_srcs)
 
     parts = [_HEADER]
+    parts.append(f"\n_BUILD_ID = {build_id!r}\n")
     parts.append(f"\n_INIT = {init_src!r}\n")
     parts.append("\n_MODULES = {\n")
     for name in _MODULES:
-        parts.append(f"    {'actaea.' + name!r}: {_read(pkg_dir, name)!r},\n")
+        parts.append(f"    {'actaea.' + name!r}: {module_srcs[name]!r},\n")
     parts.append("}\n")
     parts.append(_LOADER)
     script = "".join(parts)
@@ -127,7 +146,7 @@ def build(output_path: str) -> None:
         fh.write(script)
     mode = os.stat(output_path).st_mode
     os.chmod(output_path, mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-    print(f"wrote {output_path} ({len(script)} bytes)")
+    print(f"wrote {output_path} ({len(script)} bytes, build {build_id})")
 
 
 def main(argv: list[str]) -> int:

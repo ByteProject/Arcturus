@@ -9,6 +9,7 @@ on sys.path, and plays a story headless. The story is an Arcturus example
 compiled on the spot, so the whole toolchain meets itself in one test."""
 
 import os
+import re
 import subprocess
 import sys
 
@@ -59,3 +60,8 @@ def test_standalone_plays_without_package(tmp_path):
     )
     assert "Z-machine v5/8 interpreter" in version.stdout
     assert "Standard 1.1 conformant" in version.stdout
+    # The standalone names its exact build (a 7-hex fingerprint, not "source"),
+    # so two amalgams at the same version are told apart.
+    m = re.search(r"Build ([0-9a-f]{7})$", version.stdout, re.MULTILINE)
+    assert m, version.stdout
+    assert m.group(1) != "source"

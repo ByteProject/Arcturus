@@ -21,7 +21,7 @@ import argparse
 import os
 import sys
 
-from . import banner
+from . import banner, version_text
 from .errors import ActaeaError
 from .loader import load_file
 
@@ -115,11 +115,12 @@ class _Cli(argparse.ArgumentParser):
 
 
 class _Version(argparse.Action):
-    """--version in the house style (argparse's own version action strips
-    the trailing blank line away)."""
+    """--version in the house style: the banner plus the exact build, then the
+    trailing blank line (argparse's own version action strips it away, and
+    reflows the text besides)."""
 
     def __call__(self, parser, namespace, values, option_string=None):
-        print(banner() + "\n")
+        print(version_text() + "\n")
         parser.exit(0)
 
 
