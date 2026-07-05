@@ -4,8 +4,15 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .eggs/
-build/
 dist/
+
+# The build directory is scratch, EXCEPT the two shipped standalones: the
+# amalgamated compiler (build/arcc) and interpreter (build/actaea). We track
+# those so adopters can download and run them straight from the repo, no
+# install. Compiled stories stay out via the *.z5/*.z8 rule below.
+build/*
+!build/arcc
+!build/actaea
 
 # Editor and OS
 .DS_Store
