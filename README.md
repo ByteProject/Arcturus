@@ -100,7 +100,7 @@ The most significant recent additions and achievements:
   elimination, abbreviation-based text compression (a standard set by default,
   plus an opt-in pass tuned per game), and dense code generation, with nothing
   to configure. Optional features cost nothing when a game does not use them;
-  Cloak of Darkness compiles to about 12K with the whole modern library linked
+  Cloak of Darkness compiles to about 15K with the whole modern library linked
   in and nothing stripped out by hand.
 - **Summonable granules: pay-for-use extensions.** An opt-in status line,
   verbose exits, two conversation presentations (a menu-driven talk system and
