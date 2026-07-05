@@ -1,214 +1,195 @@
-# Handover to Fable
+# Handover to Opus
 
-Written 2026-07-02 by the outgoing model (Claude Opus 4.8), for Stefan, at the
-point of switching to Anthropic's Fable model. This is an orientation and a
-request: read it, read the authoritative documents it points to, then do an
-independent assessment of the work so far and where it can be improved, before
-we start milestone B8. Nothing here is binding on your judgement; where you find
-this handover or the code wrong, say so.
+Written 2026-07-05 by the outgoing model (Claude Fable 5), for Stefan, at the
+point of handing back to Opus with milestone B10 complete. This replaces the
+2026-07-02 handover that ran the other way. Same request as last time, in the
+same spirit: read this, read the authoritative documents it points to, then
+form your own independent assessment before starting milestone B11. Nothing
+here is binding on your judgement; where you find this handover or the code
+wrong, say so.
 
 ## What Arcturus is
 
 A high-level interactive-fiction language with its own compiler, written in
 Python (standard library only), that emits standard Z-machine version 5 (and,
 with `--zversion 8`, version 8) story files. The standard library is Cosmos,
-written in Arcturus itself and shipped as an editable template. The end goal is
-a complete, hackable IF toolchain, proven by porting three existing games. Full
-charter and locked decisions are in `CLAUDE.md` (read it first) and the three
-authoritative specs under `docs/` (00 roadmap, 01 syntax, 02 cosmos-and-parser).
-When code and a document disagree, the document wins.
+written in Arcturus itself and shipped as an editable template. Since this
+week the project also owns the other end of the pipeline: Actaea, a Standard
+1.1 conformant reference interpreter. Full charter and locked decisions are
+in `CLAUDE.md` (read it first) and the specs under `docs/` (00 roadmap, 01
+syntax, 02 cosmos-and-parser, 06 actaea). When code and a document disagree,
+the document wins.
 
 Author and decision-maker: Stefan Vogt (IF author: Hibernated, Ghosts of
-Blackwood Manor). Expert register, no flattery. His `~/.claude` memory (loaded
-as `MEMORY.md`) carries standing preferences; honor them.
+Blackwood Manor). Expert register, no flattery. The project memory under
+`~/.claude/projects/-Users-stefan-Fiction-Arcturus/memory/` (indexed by
+`MEMORY.md`) carries standing preferences; honor them, and correct any that
+have gone stale.
 
 ## Where the project stands
 
-Milestones B0 to B7 are complete. B8 is next.
-
 | Milestone | Description | Status |
 |-----------|-------------|--------|
-| B0 | Project scaffold and VS Code extension | done |
-| B1 | Lexer and parser to an AST, with unit tests | done |
-| B2 | Semantic analysis and the world-model IR | done |
-| B3 | Z-machine backend MVP (smallest valid story file) | done |
-| B4 | Cosmos compiled: parser, turn loop, standard verbs | done |
-| B5 | Feature-complete library and a fair benchmark | done |
-| B6 | Size pass (DCE, abbreviations, dense codegen) | done |
-| B7 | Language packs (Spanish, German) | done (native review pending) |
-| B8 | Port Hibernated 2 (first full game, maturity milestone) | next |
-| B9 | Port Ghosts of Blackwood Manor (text) | pending |
-| B10 | The reference interpreter, Actaea | pending |
-| B11-B12 | arc_image (modern, then retro) | pending |
+| B0-B7 | Language, compiler, Cosmos, size pass, language packs | done |
+| B8 | Port Hibernated 2 (the maturity milestone) | done: THE END at 360/360, smaller than the Inform build |
+| B9 | Port Ghosts of Blackwood Manor | DROPPED 2026-07-04 (Stefan's call; H2 made its proof redundant; number stays reserved) |
+| B10 | Actaea, the reference interpreter | done 2026-07-05, v1.0.0 |
+| B11 | arc_image on modern systems | NEXT |
+| B12 | arc_image on retro systems | pending |
 | B13 | Port The Curse of Rabenstein (from DAAD) | pending |
 
-Current facts: arcc 0.7.0, Cosmos 0.10.0. 273 tests pass (`python3 -m pytest`).
-Working tree clean except untracked `actaea/` (an unrelated scratch dir; ignore
-it). The living log with per-milestone detail and prior handover checkpoints is
-`PROGRESS.md`.
+Current facts: arcc 0.10.5, Cosmos 0.14.3, Actaea 1.0.0. 540 tests pass
+(`python3 -m pytest`). Working tree clean at commit 9943a93. The living log
+with per-milestone detail is `PROGRESS.md`; the B10 arc (Actaea M1 to M11
+plus Stefan's polish rounds) is its second half.
 
-## Holistic overview, component by component
+## What changed since the last handover (B8 through B10, in brief)
+
+- B8: Hibernated 2 ports completely; all four acts play to THE END at
+  360/360. The port fed the toolchain: zcolor and say.<colour>, the quote
+  box granule, banner control, the compile-statistics ledger, the finish
+  post-mortem, the after phase, operand patterns in handler headers, and
+  two deep compiler bugs found at real-game scale (a signed-compare crash
+  past 128K; direction or-lists). The H2 source is Stefan's commercial
+  game: `hibernated2/` is gitignored and must NEVER be committed.
+- B10: Actaea, built milestone by milestone (M1 loader/memory, M2 decoder/
+  disassembler, M3 executor, M4 objects, M5 text engine, M6 the conformance
+  gate, M7 the tkinter shell, M8 the cell grid, M9 styles and colours, M10
+  Quetzal, M11 the sweep), then five polish rounds from Stefan's play:
+  the curses terminal front-end, the standalone build, CLI banner style,
+  GUI menus with persistent settings, and a chain of screenshot-driven
+  console fixes. `docs/06-actaea.md` is the official documentation;
+  `actaea/actaea-design.md` is the design record.
+
+## Component overview
 
 ### The compiler (`arcturus/`)
-Python 3.11+, standard library only, zero runtime dependencies. Clean module
-boundaries, in dependency order: `errors`, `tokens`, `ast`, `lexer`, `parser`,
-`prelude` (built-in property/attribute/direction/particle tables), `worldmodel`
-(the IR), `sema`, `zstring` (ZSCII text and the accent map), `abbrev`,
-`storyfile`, `assembler`, `objects` (object table, attributes, gender), `dictionary` (vocabulary and
-grammar bytes), `lower` (statements and
-expressions to routines), `cosmos` (library loading, granules, language
-selection), `codegen` (assembly, DCE, story build), `astdump`, `irdump`, `cli`.
-The compiler is amalgamated for distribution into a single self-contained
-`build/arcc` by `tools/amalgamate.py`; regenerate it at every milestone or
-version bump (standing habit, see the memory of the same name). Design records:
-`docs/03-compiler-pipeline.md`, `docs/04-codegen-mapping.md`.
+Unchanged in shape from the previous handover: clean module boundaries in
+dependency order (errors, tokens, ast, lexer, parser, prelude, worldmodel,
+sema, zstring, abbrev, storyfile, assembler, objects, dictionary, lower,
+cosmos, codegen, astdump, irdump, cli). Design records: docs/03 and docs/04.
+Notable additions since: the after phase (docs/02 section 9), operand
+patterns in handler headers including direction or-lists (docs/01 section
+12), the sign-bias fix for packed string addresses past 0x8000, and je's
+multi-operand encoding. Amalgamated to `build/arcc` by
+`tools/amalgamate.py`; regenerate at every milestone (standing habit).
 
 ### The Cosmos library (`cosmos/`)
-Written in Arcturus, embedded into the compiler, and shipped as an editable
-template (`--extract-library`, `--eject-granule`, `--eject-language`). Two
-kinds of file: `.prelude` (always-on core) and `.granule` (summonable, pay for
-use). Core preludes: `english.prelude` (the default language layer: verbs,
-directions, particles, articles, and every message), `parser.prelude` (the
-language-agnostic parser skeleton), `actions.prelude` (action behavior keyed by
-action name, agnostic), `loop.prelude`, `dispatch.prelude`, `scope.prelude`,
-`core.prelude`. Granules: `statusline`, `conversations` (menu-driven),
-`extendedverbs`, `debug`, `verbose_exits`, plus the two language packs
-`spanish.granule` and `german.granule`. Design record: `docs/05-granules.md`;
-runtime and parser: `docs/02-cosmos-and-parser.md`; the verb and message
-inventories are `docs/verb-set.md` and `docs/message-set.md`.
+As before: `.prelude` core (english = the language layer, parser, actions,
+loop, dispatch, scope, core) plus summonable `.granule` features, all
+pay-for-use (unsummoned granules are DCE'd; after-free games are
+byte-identical). Language packs: Spanish and German, functionally complete;
+translation QUALITY certification still awaits native review (Spanish:
+Pablo; German had one native pass by Stefan). The previous handover's
+honest note stands: do not trust any model's self-assessment of non-English
+idiom, your own included.
 
-### The language packs / translations
-The language seam is built and documented (docs/02 section 14a, "Writing in
-another language"). A pack is a granule with a `language "code"` marker,
-selected only by `summon.language "code"`, which drops `english.prelude`. Four
-seams: accents to ZSCII default set (`zstring`), articles and gender (packs own
-`art_the`/`art_a`; `${the:acc noun}` carries case), localized directions and
-verbs, and verb particles (`particle on "..."`, roles on/off/auf/zu). German
-adds three-way gender via `der`/`die`/`das` object declarations (compiler maps
-to feminine/neuter attributes), full case-inflected articles, and separable
-verbs (`schalt ... an`, `schliess ... auf`). Both packs are functionally
-complete and verified on Frotz.
+### Actaea (`actaea/`), new since the last handover
+A Standard 1.1 conformant z5/z8 interpreter, Python stdlib only. The
+architecture is the thing to understand first: a headless VM core (loader,
+memory, decode, vm, objects, text, dictionary, quetzal, screen) behind a
+hard io boundary (`io.py`), with three front-ends that the core cannot tell
+apart: the tkinter window (`gui/app.py`), the curses terminal
+(`console.py`), and the headless pipe (`io.ConsoleIO`). Front-ends RENDER
+the core-owned screen model (`screen.py`, the 80-column cell grid); io
+carries events only (text out, keys in, file paths). Facts you will need:
 
-  IMPORTANT, read this honestly: translation QUALITY is not certified. Spanish
-  awaits native review by Pablo Martinez. German had one native pass by Stefan
-  over the message table (17 corrections applied) and its example prose fixed,
-  but a full native pass is still owed. The outgoing model's judgement of German
-  idiom proved unreliable: it called calqued, obviously-wrong lines "natural."
-  Do not trust any model's self-assessment of non-English idiom, including your
-  own; defer to the native reviewer, and treat "the translation is fine" as
-  unverified until a native speaker signs off. See the memories
-  `translations-must-be-idiomatic` and `never-strip-accents`.
+- Conformance: CZECH 406/406 byte-matched, Praxix all-pass, TerpEtude text
+  portions, dfrotz save interop both directions, five third-party games,
+  H2 end to end: all in the suite. `actaea/conformance/` holds third-party
+  story files, LOCAL ONLY and gitignored; tests skip where absent.
+- Two deliberate leniencies real games forced: table opcodes wrap in 16-bit
+  arithmetic (Anchorhead), object-0 tree reads answer 0 (Jigsaw).
+- Doctrine (Stefan's rulings): Actaea is a LIGHT interpreter, black on
+  white paper; a game wanting a dark screen sets its colours, and the
+  erase repaints the paper. The typed line wears the game's input colour.
+  The window is exactly 80 cells wide. No scrollbar.
+- One Tk root per process: Tk 9.0 on macOS SIGTRAPs on a second root; the
+  GUI smoke test is the only Tk test in the suite.
+- The GUI persists View-menu settings in `~/.config/actaea/settings.json`;
+  tests isolate via XDG_CONFIG_HOME.
+- Standalone: `tools/amalgamate_actaea.py` writes `build/actaea` (embedded
+  modules load through an import hook so tkinter/curses stay optional);
+  regenerate at milestones, same habit as arcc's.
+- The CLI house style: every tool-facing output (help, version, errors,
+  --header, --disasm) starts with the banner and ends with a blank line;
+  play output carries neither.
+- Testing technique worth knowing: the curses front-end is driven through
+  a real pty in pytest, and during B10's debugging a pyte terminal
+  emulator (dev-only, in the session scratchpad venv, not a project
+  dependency) turned Stefan's screenshots into per-cell assertions.
+  Screenshot bugs became data; keep that trick.
 
-### Documentation and README
-`docs/00-roadmap.md` (charter, locked decisions, milestones, size and graphics
-strategy), `docs/01-syntax-reference.md` (the language, with the two conformance
-example games), `docs/02-cosmos-and-parser.md` (the runtime), `docs/03` to
-`docs/05` (pipeline, codegen mapping, granules), `actaea/actaea-design.md` (the
-future interpreter, B10), `docs/verb-set.md`, `docs/message-set.md`. `README.md`
-is the public face (keep it and the docs in sync with any change they describe;
-no AI-process framing in public docs). `docs/07-conformance.md` is named in
-CLAUDE.md but not yet written; it is expected as conformance work proceeds.
+### Verification workflow (the standing hand-off discipline)
+Verify a milestone yourself first (pytest; headless play; dfrotz
+comparison; pty for the console), then STOP and hand the artifact to
+Stefan to verify visibly before advancing. Debug story files with
+fizmo-console, never Frotz (fizmo names faults; dfrotz stays the pytest
+harness: `-p -w 200 -h 8000`, blank line = keypress). H2's full
+walkthrough lives in the session scratchpad as `wtfull.txt` (161 lines;
+its first two lines are the intro keypresses; do not prepend extra blanks).
 
-### Examples (`examples/`)
-The two conformance anchors: `brass-lantern.storyarc`, `cloak-of-darkness.
-storyarc`. Feature showcases in `examples/features/` (containers, computed
-properties, kinds-and-inheritance, doors-and-locks, spans, grains, on-other,
-daemons-and-timers, introproperty). Granule showcases in `examples/granules/`
-(conversations, extended-verbs, infocom-interrogation, statusline,
-verbose-exits). Two full localized games: `ejemplo-espanol.storyarc` (Spanish,
-"La Posada del Faro") and `beispiel-deutsch.storyarc` (German, "Das Gasthaus am
-Leuchtturm"). Compiled localized artifacts live in the gitignored `build/`
-(`posada.z5`, `gasthaus.z5`) for Stefan to hand to native reviewers.
+## Invariants to respect (CLAUDE.md and the memories)
 
-### Tests and tooling
-`tests/` holds 50 test files, 273 tests, run with `pytest` (dev-only
-dependency). Many drive a real interpreter (dfrotz) end to end and skip if none
-is on PATH. Tooling: `tools/amalgamate.py` (build the standalone `arcc`),
-`tools/arcabbr.py`, `tools/build_vsix.py` (the VS Code extension under
-`editors/vscode/`).
+- Smallest possible z-code is a primary objective, judged with correctness.
+- Python standard library only, compiler and interpreter both. tkinter and
+  curses count as stdlib; nothing else does.
+- The document wins over the code; fix whichever is wrong in one commit.
+- Plain ASCII punctuation everywhere. No em or en dashes, anywhere. Hard rule.
+- Non-English text keeps proper accents, with ASCII-typeable fallbacks.
+- Git: plain `git commit` (repo identity ByteProject <stefan@8-bit.info>);
+  never override identity; ask before history operations. Commit per
+  milestone with the done-test named. Update the co-author trailer to your
+  own identity.
+- `hibernated2/` is NEVER committed. `actaea/conformance/` stays local.
+- Regenerate both amalgams (`build/arcc`, `build/actaea`) at milestones.
+- Never explain Arcturus via Inform analogies; describe behavior in
+  Arcturus's own terms. Niche power-features are pay-for-use granules.
+- Keep README and docs in sync with changes, in the same step; no
+  AI-process framing in public documents.
 
-### Memory
-The outgoing model kept file-based memories under
-`~/.claude/projects/-Users-stefan-Fiction-Arcturus/memory/`, indexed by
-`MEMORY.md`. They record who Stefan is, standing feedback (no em dashes ever,
-never strip accents, translations must be idiomatic, never override git
-identity, regenerate the amalgam at milestones, keep public docs in sync,
-interpreter verification is a hand-off), and project decisions. Read the index;
-honor them; correct any that have gone stale.
+## Open items, stated as facts to verify
 
-## Invariants to respect (from CLAUDE.md and the memories)
+- Parked, explicitly deferred by Stefan: the H2 quality-sweep list (top of
+  `hibernated2/hibernated2.storyarc`); the abbreviation-quality TODO
+  (zabbrv on the Inform H2 beat our pass; investigate); inline emphasis
+  colour (`show.<colour>`).
+- Translation native review still owed (Spanish: Pablo; German: full pass).
+- macOS shows "Python" as the app-menu name unless pyobjc is present; a
+  real .app is packaging, out of scope here by charter.
+- Native Windows has no stdlib curses; --console degrades to headless there.
+  Untested on actual Windows.
+- The GUI's terminating-characters and timed-input paths are unit-tested
+  and etude-verified, but no real game in the local set exercises them in
+  anger (Border Zone would).
 
-- Smallest possible z-code is a primary objective, judged alongside correctness.
-- Compiler is Python, standard library only, zero runtime dependencies.
-- The document wins over the code; if the document is wrong, fix it in the same
-  commit as the code.
-- Plain ASCII punctuation everywhere. No em dashes or en dashes, in code,
-  comments, docs, messages, or chat. Hard rule.
-- Non-English text keeps proper accents (they encode to the ZSCII default set
-  and render on Stefan's retro interpreters); every typeable word also carries an
-  ASCII fallback (oeffne beside oeffne), because 8-bit keyboards cannot type
-  accents.
-- Git: use plain `git commit` (repo identity is ByteProject <stefan@8-bit.info>);
-  never override identity; ask before history operations. Commit per milestone
-  with the done-test named. Co-author trailer:
-  `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`
-  (update the attribution to your own identity going forward).
-- Verify a built story on Frotz yourself, then hand the .z5 (with byte size) to
-  Stefan to run before advancing a milestone.
-- Regenerate `build/arcc` (`python3 tools/amalgamate.py`) at every milestone or
-  version bump.
+## Then: milestone B11, arc_image on modern systems
 
-## Known limitations and open questions (facts, to seed your assessment)
+The plan is `docs/00-roadmap.md` section 6 (the graphics plan) and the B11
+entry in section 7. In outline: the capability guard and EXT opcode
+contract (a game asks whether pictures exist and degrades to text cleanly:
+the same story file must still run unchanged on Frotz), room and scene art
+rendered from PNGs, and the rendering capability added to Actaea. This is
+exactly why Actaea's cell grid (M8) is a Canvas with pixel-exact cell
+geometry and why the model is decoupled from the front-ends: B11 is meant
+to be an extension, not a rewrite. The Curse of Rabenstein (B13) is the
+eventual testbed and its art already exists; The design constraint that
+outranks everything: a graphics-enabled story file remains a conformant
+z5/z8 file that plays textually everywhere.
 
-These are stated as facts, not as the outgoing model's assessment, which is what
-Stefan is asking you for. Verify each independently.
-
-- Translation quality is unverified pending native review (Spanish: Pablo;
-  German: a native pass still owed). See the honest note above.
-- German separable lock verbs work only with the particle LAST ("schliess die
-  Tuer mit dem Schluessel auf"); particle-before-noun for a two-noun base
-  ("schliess auf Tuer") misparses because the leading particle becomes the
-  phrase separator. One-noun verbs (switch) take the particle in either order.
-- German gender declaration `der`/`die`/`das` is reserved project-wide as a
-  gender marker; the compiler does not auto-derive gender for German (no reliable
-  spelling rule), so an undeclared noun defaults masculine silently.
-- `docs/07-conformance.md` is promised in CLAUDE.md but not yet written.
-- There is a stale comment in `cosmos/german.granule` near `find_particle`
-  (around line 69) claiming particles are "not wired ... stays inert"; that
-  predates the separable-verb work and is now false. A small fix, left for you or
-  a follow-up.
-- Size: the outgoing model tracked byte sizes per build but there is no
-  automated size-regression gate in the test suite; sizes are checked by hand.
-
-## What Stefan is asking you to do first
-
-Before B8, assess the work so far and identify room for improvement, across all
-of the above: compiler correctness and clarity, Cosmos library design and
-breadth, code size (the primary objective), documentation accuracy and sync,
-example coverage, test coverage and its gaps, and the translations (with the
-caveat that idiom is the native reviewer's call, not yours). Produce your own
-independent read; do not take this handover's framing as settled. Verify claims
-rather than trusting them, run the suite, build and play the examples, and bring
-back a prioritized list of what to improve and what to leave.
-
-## Then: milestone B8
-
-B8 is porting Hibernated 2 (Stefan's game, written in PunyInform, released
-commercially there first) to Arcturus, as the first large, real-world game in
-the language. It targets z5 (retro systems, not z8). This is the maturity
-milestone: a full-length game exercises save/restore, size behavior, and library
-breadth far past any example, and surfaces the gaps only a real game finds. Full
-description: `docs/00-roadmap.md` section 7, B8. Expect the assessment above to
-feed directly into it: fix the cheap gaps while the language is still malleable,
-before a large game locks assumptions in.
+Before writing code, do what Stefan asked of the last transition: an
+independent assessment. Read docs/00 section 6 critically (it predates
+Actaea's build; check its assumptions against the Actaea that now exists),
+run the suite, play H2 on all three front-ends, and bring back a
+prioritized read on the EXT opcode design before committing to it.
 
 ## Quick reference
 
-- Compile: `arcc examples/brass-lantern.storyarc -o build/brass-lantern.z5`
-  (z5 default; `--zversion 8` for v8). Or `python3 -m arcturus.cli ...`.
-- Test: `python3 -m pytest`.
-- Standalone build: `python3 tools/amalgamate.py` writes `build/arcc`.
-- Verify: run the .z5 on dfrotz/frotz; the same file must also run on Stefan's
-  retro interpreters for the 8-bit target.
-- Localized games to hand to reviewers: `build/posada.z5` (Spanish),
-  `build/gasthaus.z5` (German).
+- Compile: `arcc game.storyarc -o build/game.z5` (or `python3 -m
+  arcturus.cli`); `--zversion 8` for v8.
+- Play: `python3 -m actaea build/game.z5` (window), `--console`
+  (terminal), `--headless` (pipe). Tools: `--header`, `--disasm`.
+- Test: `python3 -m pytest` (540; dfrotz-dependent tests skip without it).
+- Standalone builds: `python3 tools/amalgamate.py` (arcc),
+  `python3 tools/amalgamate_actaea.py` (actaea).
+- The build record: `PROGRESS.md`. The user docs: `README.md`, `docs/`.
