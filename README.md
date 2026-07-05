@@ -19,6 +19,33 @@ Arcturus itself and ships as editable source rather than a black box.
 
 The name is a star, Arcturus, and the narrative arc every story is built on.
 
+## Quickstart
+
+The whole toolchain is two self-contained files. Download them and you are
+ready: no installation, no packages, nothing to build. All you need is Python
+3.11 or later, which you almost certainly already have.
+
+| Component | Version | Download |
+|-----------|---------|----------|
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.10.6 | [build/arcc](build/arcc) |
+| **Cosmos**, the standard library | 0.14.3 | shipped inside `arcc` |
+| **Actaea**, the reference interpreter | 1.0.0 | [build/actaea](build/actaea) |
+
+Write a game, compile it, play it:
+
+```
+python3 arcc mygame.storyarc -o mygame.z5    # compile to a Z-machine story
+python3 actaea mygame.z5                      # play it in a window,
+python3 actaea --console mygame.z5            # or in the terminal
+```
+
+The story file `mygame.z5` is a standard Z-machine v5 file: it also plays on
+Frotz, Ozmoo, and any other interpreter, old or new. Then read the docs and
+go: start with the [syntax reference](docs/01-syntax-reference.md) (the
+language, with two complete worked games) and, when you want to play or debug,
+the [Actaea guide](docs/06-actaea.md). The full documentation index is
+[below](#the-language).
+
 ## Philosophy
 
 Arcturus is built for one thing and built for it well: writing modern adventure
@@ -173,24 +200,28 @@ same code generation, a larger 512KB story-file ceiling).
 
 ## Getting started
 
-You need **Python 3.11 or newer**. Nothing else.
+You need **Python 3.11 or newer**. Nothing else. If you only want to write
+games, the [Quickstart](#quickstart) above is the whole story: download
+`build/arcc` and `build/actaea` and go. This section is for working from a
+clone of the repository, and for rebuilding the standalones from source.
 
-### Build the compiler
+### The compiler
 
-The compiler ships as a single self-contained script with no dependencies and
-no installation. Build it from the package:
-
-```
-python3 tools/amalgamate.py build/arcc
-```
-
-This produces `build/arcc`, the standalone compiler, with the whole Cosmos
-library embedded inside it - nothing else to install or locate. Compile an
-example to a story file and play it:
+The prebuilt standalone is tracked at [build/arcc](build/arcc), so a fresh
+clone can compile immediately:
 
 ```
 python3 build/arcc examples/brass-lantern.storyarc -o brass-lantern.z5
-frotz brass-lantern.z5
+python3 build/actaea brass-lantern.z5     # or frotz brass-lantern.z5
+```
+
+To rebuild it from the package after changing the compiler or Cosmos (a single
+self-contained script, the whole Cosmos library embedded inside it, no
+dependencies):
+
+```
+python3 tools/amalgamate.py            # writes build/arcc
+python3 tools/amalgamate_actaea.py     # writes build/actaea
 ```
 
 Useful options:
