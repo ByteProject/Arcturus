@@ -720,7 +720,12 @@ falls silent, with no explicit start or stop. Scope decides reach: a room's
 each_turn is active while the player is in that room, an object's while the object
 is in scope, and a free-standing each_turn (written at the top level, not inside
 an object) runs every turn. Several each_turn handlers may be live at once; they
-fire the room's first, then the free-standing rules.
+fire the room's first, then the free-standing rules. Every live daemon fires:
+each_turn is a pulse, not a player action, so `stop` (or a handler simply
+running to its end) does not silence the sibling daemons the way it consumes a
+verb. This is what lets a game's own `on each_turn` and a granule's pulse (the
+ambience sweep, for instance) run side by side; the same holds for `on start`
+and `on enter`.
 
 Scheduled events fire a block after a set number of turns. `after` fires it once;
 `every` fires it again and again:

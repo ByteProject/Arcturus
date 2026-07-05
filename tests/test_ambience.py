@@ -121,3 +121,46 @@ def test_ambience_without_summon_is_an_error(tmp_path):
     )
     with pytest.raises(ArcError, match="summon.ambience"):
         analyze(cosmos.combined_program(parse(src)))
+
+
+# The granule adds its own free `on each_turn` (the ambience pulse). A game's
+# OWN free `on each_turn` must still fire alongside it: life-cycle events are
+# pulses every hook shares, not player actions the first handler consumes.
+# Regressed a reporter's "summon.ambience turns off bare each_turns"
+# (2026-07-05): free life-cycle handlers used to consume-chain, so the first
+# to return (a bare handler returns 1 by default) silenced the rest.
+COEXIST = (
+    "summon.ambience\n"
+    'game\n    title "Coexist"\n    start hall\n'
+    'on each_turn\n    say "TICK"\n'
+    'room hall\n    name "Hall"\n    desc "A hall."\n'
+    "    ambience every 1 turns\n"
+    '        "A shutter bangs."\n'
+    'thing coin in hall\n    name "coin"\n    words coin\n'
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_bare_each_turn_coexists_with_ambience(tmp_path):
+    out = _play(tmp_path, COEXIST, "wait\nwait\nwait\n")
+    # The game's own pulse fires every turn...
+    assert out.count("TICK") == 3
+    # ...and the ambience block still murmurs on its clock (every turn here),
+    # which it could not do while the bare each_turn consumed the pulse.
+    assert out.count("A shutter bangs.") >= 2
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_multiple_free_each_turn_rules_all_fire(tmp_path):
+    # Two bare `on each_turn` rules, no granule: both fire every turn. A
+    # life-cycle pulse is never consumed by one hook to the exclusion of
+    # the next.
+    src = (
+        'game\n    title "TwoPulse"\n    start hall\n'
+        'on each_turn\n    say "ALPHA"\n'
+        'on each_turn\n    say "BETA"\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+    )
+    out = _play(tmp_path, src, "wait\nwait\n")
+    assert out.count("ALPHA") == 2
+    assert out.count("BETA") == 2
