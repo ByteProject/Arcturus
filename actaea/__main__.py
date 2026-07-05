@@ -3,17 +3,25 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The console entry: `python3 -m actaea <story>` PLAYS the story on the
-console (the headless runner that carried CZECH and Praxix through the M6
-gate). --header reports the parsed header; --disasm prints the reachable
-routines. From M7 this hands off to the tkinter front-end unless asked to
-stay on the console."""
+"""The entry point: `python3 -m actaea <story>` plays the story. Three ways
+to play, one headless core behind all of them:
+
+- the window (default on a desktop): the tkinter front-end;
+- --console: a full terminal interpreter in the manner of fizmo-ncursesw,
+  with the game-drawn status bar, colours, [MORE] paging, and timed input,
+  on the standard library's curses;
+- --headless: the plain stdin/stdout pipe in the manner of dumb frotz, what
+  debuggers, walkthrough scripts, and build tools drive.
+
+--header reports the parsed header; --disasm prints the reachable routines.
+When a requested front-end cannot exist here (no tkinter, no curses, no
+tty), the choice degrades one honest step at a time and says so."""
 
 import argparse
 import os
 import sys
 
-from . import __version__
+from . import banner
 from .errors import ActaeaError
 from .loader import load_file
 
@@ -53,13 +61,62 @@ def _report(story) -> str:
     return "\n".join(lines)
 
 
+def _play_window(story, title: str) -> bool:
+    try:
+        from .gui.app import play
+    except ImportError:
+        return False  # no tkinter on this Python
+    play(story, title)
+    return True
+
+
+def _play_terminal(story) -> bool:
+    if not sys.stdin.isatty():
+        return False  # curses needs a real terminal
+    try:
+        from .console import play
+    except ImportError:
+        return False  # no curses on this platform (native Windows)
+    play(story)
+    return True
+
+
+def _play_headless(story) -> int:
+    from .io import ConsoleIO
+    from .vm import VM
+
+    vm = VM(story, ConsoleIO())
+    try:
+        vm.run()
+    except EOFError:
+        # The input pipe ended before the story quit: a normal ending
+        # for scripted play (walkthrough files end where they end).
+        return 0
+    except ActaeaError as e:
+        print(f"\nactaea: {e}", file=sys.stderr)
+        return 3
+    return 0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(
         prog="actaea",
-        description="Actaea, the Arcturus reference Z-machine interpreter "
-        "(versions 5 and 8).",
+        description=banner(),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     ap.add_argument("story", help="a .z5 or .z8 story file")
+    ap.add_argument(
+        "--console",
+        action="store_true",
+        help="play in the terminal: status bar, colours, [MORE] paging, "
+        "timed input (stdlib curses)",
+    )
+    ap.add_argument(
+        "--headless",
+        action="store_true",
+        help="plain stdin/stdout pipe, dumb-terminal style: for debuggers, "
+        "walkthrough scripts, and build tools (automatic when input is piped)",
+    )
     ap.add_argument(
         "--header",
         action="store_true",
@@ -70,29 +127,21 @@ def main(argv=None) -> int:
         action="store_true",
         help="disassemble every routine reachable from the entry point",
     )
-    ap.add_argument(
-        "--console",
-        action="store_true",
-        help="play on the console instead of the window "
-        "(automatic when input is piped)",
-    )
-    ap.add_argument("--version", action="version", version=f"actaea {__version__}")
+    ap.add_argument("--version", action="version", version=banner())
     args = ap.parse_args(argv)
 
     try:
         story = load_file(args.story)
-    except OSError as e:
-        print(f"actaea: {e}", file=sys.stderr)
-        return 2
-    except ActaeaError as e:
+    except (OSError, ActaeaError) as e:
         print(f"actaea: {e}", file=sys.stderr)
         return 2
 
     try:
         if args.disasm:
-            from .decode import disassemble
-
+            print(banner() + "\n")
             try:
+                from .decode import disassemble
+
                 print(disassemble(story))
             except ActaeaError as e:
                 print(f"actaea: {e}", file=sys.stderr)
@@ -100,36 +149,29 @@ def main(argv=None) -> int:
             return 0
 
         if args.header:
+            print(banner() + "\n")
             print(_report(story))
             return 0
 
-        # The default: the window, when this is an interactive session and
-        # tkinter is present; the console when input is piped (walkthrough
-        # play), when --console asks for it, or when tkinter is absent.
-        if not args.console and sys.stdin.isatty():
-            try:
-                from .gui.app import play
-            except ImportError:
-                pass  # no tkinter on this Python: the console still works
-            else:
-                import os
-                play(story, os.path.basename(args.story))
+        if args.headless:
+            return _play_headless(story)
+
+        if args.console:
+            if _play_terminal(story):
                 return 0
+            print("actaea: no terminal for --console here; "
+                  "playing headless", file=sys.stderr)
+            return _play_headless(story)
 
-        from .io import ConsoleIO
-        from .vm import VM
-
-        vm = VM(story, ConsoleIO())
-        try:
-            vm.run()
-        except EOFError:
-            # The input pipe ended before the story quit: a normal ending
-            # for scripted play (walkthrough files end where they end).
-            return 0
-        except ActaeaError as e:
-            print(f"\nactaea: {e}", file=sys.stderr)
-            return 3
-        return 0
+        # The default ladder: the window on a desktop; the terminal when
+        # tkinter is absent; the pipe when input is piped or nothing
+        # screen-like exists at all.
+        if sys.stdin.isatty():
+            if _play_window(story, os.path.basename(args.story)):
+                return 0
+            if _play_terminal(story):
+                return 0
+        return _play_headless(story)
     except BrokenPipeError:
         return _pipe_closed()
 

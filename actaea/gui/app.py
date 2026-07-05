@@ -30,7 +30,9 @@ is exact from day one."""
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import font as tkfont
+from tkinter import messagebox
 
+from .. import banner
 from ..errors import ActaeaError
 from ..io import IOSystem
 from ..screen import BOLD, ITALIC, REVERSE, TRUE_COLOURS, true_colour_hex
@@ -108,6 +110,11 @@ class ActaeaApp:
     def __init__(self, story, title: str):
         self.root = tk.Tk()
         self.root.title(f"{title} - Actaea")
+        # Settings the menu drives; colours before anything calls _colour.
+        self._use_colours = tk.BooleanVar(value=True)
+        self._font_size = tk.IntVar(value=13)
+        self._rows_var = tk.IntVar(value=30)
+        self._mac_integration()
 
         self.font = tkfont.nametofont("TkFixedFont").copy()
         self.font.configure(size=13)
@@ -133,9 +140,7 @@ class ActaeaApp:
         # The window IS the story's screen: exactly the model's 80 columns
         # wide (the status bar's last cell flush with the edge; anything
         # more shows as a dead strip beside the bar), about 30 lines tall.
-        width = 80 * self.cell_w
-        height = 30 * self.cell_h
-        self.root.geometry(f"{width}x{height}")
+        self._apply_geometry()
         self.canvas = tk.Canvas(
             self.root, height=0, borderwidth=0, highlightthickness=0,
             background="white",
@@ -191,6 +196,95 @@ class ActaeaApp:
 
         self.vm = VM(story, GuiIO(self))
         self.vm.screen.on_change = self._grid_changed
+        self._build_menu()
+
+    # -- the menu, the About panel, the settings ----------------------------------
+
+    def _aqua(self) -> bool:
+        return self.root.tk.call("tk", "windowingsystem") == "aqua"
+
+    def _mac_integration(self) -> None:
+        """macOS niceties. The BOLD name in the menu bar belongs to the
+        hosting bundle: bare Python has no bundle of its own, so it says
+        Python unless pyobjc is installed (then it says Actaea); a proper
+        .app rename is a packaging concern, out of scope here. The About
+        item in that menu is ours either way."""
+        if not self._aqua():
+            return
+        try:
+            from Foundation import NSBundle  # optional; never required
+
+            b = NSBundle.mainBundle()
+            info = b.localizedInfoDictionary() or b.infoDictionary()
+            if info is not None:
+                info["CFBundleName"] = "Actaea"
+        except Exception:
+            pass
+        self.root.createcommand("tkAboutDialog", self._about)
+
+    def _build_menu(self) -> None:
+        menubar = tk.Menu(self.root)
+        if self._aqua():
+            appmenu = tk.Menu(menubar, name="apple")
+            appmenu.add_command(label="About Actaea", command=self._about)
+            appmenu.add_separator()
+            menubar.add_cascade(menu=appmenu)
+        view = tk.Menu(menubar, tearoff=0)
+        size = tk.Menu(view, tearoff=0)
+        for n in (11, 12, 13, 14, 16, 18, 20):
+            size.add_radiobutton(label=f"{n} pt", variable=self._font_size,
+                                 value=n, command=self._retype)
+        lines = tk.Menu(view, tearoff=0)
+        for n in (25, 30, 35, 40):
+            lines.add_radiobutton(label=f"{n} lines", variable=self._rows_var,
+                                  value=n, command=self._apply_geometry)
+        view.add_cascade(label="Text Size", menu=size)
+        view.add_cascade(label="Screen Height", menu=lines)
+        view.add_separator()
+        view.add_checkbutton(label="Game Colours", variable=self._use_colours,
+                             command=self._colours_toggled)
+        menubar.add_cascade(label="View", menu=view)
+        if not self._aqua():
+            helpm = tk.Menu(menubar, tearoff=0)
+            helpm.add_command(label="About Actaea", command=self._about)
+            menubar.add_cascade(label="Help", menu=helpm)
+        self.root.config(menu=menubar)
+
+    def _about(self) -> None:
+        messagebox.showinfo("About Actaea", banner(), parent=self.root)
+
+    def _apply_geometry(self) -> None:
+        self.cell_w = self.font.measure("0")
+        self.cell_h = self.font.metrics("linespace")
+        self.root.geometry(
+            f"{80 * self.cell_w}x{self._rows_var.get() * self.cell_h}"
+        )
+
+    def _retype(self) -> None:
+        n = self._font_size.get()
+        for f in (self.font, self.font_bold, self.font_italic,
+                  self.font_bold_italic):
+            f.configure(size=n)
+        # Tags reference the font objects, so existing text re-sizes with
+        # them; only the cell geometry needs recomputing.
+        self._apply_geometry()
+        self._grid_changed()
+
+    def _colours_toggled(self) -> None:
+        # The cached looks resolved the other setting; drop them and
+        # repaint the paper and the grid in the now-current truth.
+        self._tags_made.clear()
+        for tag in self.text.tag_names():
+            if tag.startswith("look-"):
+                self.text.tag_delete(tag)
+        bg = self._colour(self.vm.screen.bg, "white")
+        self._window_bg = bg
+        self.text.configure(
+            background=bg,
+            insertbackground=self._colour(self.vm.screen.fg, "black"),
+        )
+        self.canvas.configure(background=bg)
+        self._grid_changed()
 
     # -- the upper window ---------------------------------------------------------
 
@@ -203,7 +297,11 @@ class ActaeaApp:
     def _colour(self, value, default: str) -> str:
         """A cell/model colour as a tk colour: 1 (or anything unmapped) is
         the front-end default, 2..12 the standard set via the Standard's
-        recommended true colours, a #rrggbb string passes through."""
+        recommended true colours, a #rrggbb string passes through. With
+        Game Colours off (the View menu), everything is the default:
+        black on white paper, styles kept, an e-reader's idea of a game."""
+        if not self._use_colours.get():
+            return default
         if isinstance(value, str):
             return value
         word = TRUE_COLOURS.get(value)
