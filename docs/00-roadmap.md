@@ -142,11 +142,11 @@ z5. A room carrying `arc_image "cellar"` is invisible to a standard
 interpreter, which simply ignores a property it does not read. On an
 Arcturus-aware interpreter, Cosmos reads the property on room entry and passes
 the name as a numeric resource id to a custom EXT opcode; the interpreter loads
-the picture. Art is authored once as PNGs. On modern systems (the reference
-interpreter, B8-B9) the PNG renders directly; for retro targets (B10) a tool
-converts each PNG into the machine's native or a trimmed, RLE-compressed format
-(.kla on C64, .iff on Amiga, distinct again on a CPC), kept small for 8-bit
-machines.
+the picture. Art is authored once as PNGs. On modern systems the PNG
+renders directly in the reference interpreter, Actaea (B11); for retro targets
+(B12) a tool converts each PNG into the machine's native or a trimmed,
+RLE-compressed format (.kla on C64, .iff on Amiga, distinct again on a CPC),
+kept small for 8-bit machines.
 
 Safe degradation is structural, not a special case. A Z-machine interpreter
 only decodes bytes its control flow reaches. The custom opcode sits behind a
