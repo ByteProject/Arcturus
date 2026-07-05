@@ -106,6 +106,10 @@ class ConsoleApp:
         self.vm.screen.on_change = self._grid_changed
         self._grid_dirty = False
         self._split = 0
+        # The paper: the background the last erase painted the screen in
+        # (the terminal counterpart of the GUI's window background). Blank
+        # grid cells and the strip right of the 80-column grid wear it.
+        self._paper = 1
         self.lower = None
         self._make_lower(0)
 
@@ -125,8 +129,34 @@ class ConsoleApp:
         self.lower.keypad(True)
         # The window carries the game's background from birth: erases,
         # scrolled-in lines, and the blank screen all wear it.
-        self.lower.bkgd(" ", self._pair(-1, self._cc(self.vm.screen.bg)))
+        self.lower.bkgd(" ", self._pair(-1, self._cc(self._paper)))
         self.lower.move(h - 1, 0)  # story text grows from the bottom up
+
+    def _resplit(self, split: int) -> None:
+        """The split moved. The window RESIZES AND MOVES, never recreated:
+        Cosmos redraws its status bar around every input, after the turn's
+        text is already on screen, so recreating here would swallow the
+        room description the player is about to read. Content stays
+        anchored to the bottom, where the story scrolls."""
+        split = min(split, self.term_h - 1)
+        d = split - self._split  # positive: the bar grew, the window shrinks
+        h = max(1, self.term_h - split)
+        y, x = self.lower.getyx()
+        if d > 0:
+            self.lower.scroll(d)      # keep the bottom rows, shed the top
+            self.lower.resize(h, self.term_w)
+            self.lower.mvwin(split, 0)
+            y = max(0, y - d)
+        elif d < 0:
+            self.lower.mvwin(split, 0)
+            self.lower.resize(h, self.term_w)
+            self.lower.scroll(d)      # pull the content back down
+            y = min(h - 1, y - d)
+        self.lower.move(y, min(x, self.term_w - 1))
+        self._split = split
+        # The scroll-and-resize dance can leave the physical screen holding
+        # rows the window model no longer agrees with; repaint from truth.
+        self.lower.redrawwin()
 
     def _resized(self) -> None:
         self.term_h, self.term_w = self.scr.getmaxyx()
@@ -172,25 +202,33 @@ class ConsoleApp:
 
     def _grid_changed(self) -> None:
         self._grid_dirty = True
-        model_rows = self.vm.screen.rows
-        if model_rows != self._split:
-            # The split moved: hand the difference to or from the lower
-            # window. Its content scrolls on; interpreters never preserved
-            # text under a grown status area.
-            self._make_lower(min(model_rows, self.term_h - 1))
+        if self.vm.screen.rows != self._split:
+            self._resplit(self.vm.screen.rows)
 
     def _paint_grid(self) -> None:
         self._grid_dirty = False
         model = self.vm.screen
+        paper = self._paper
         for r in range(min(self._split, model.rows)):
             row = model.grid[r]
             for c in range(min(self.term_w - 1, model.cols)):
                 cell = row[c]
+                # A cell still wearing the default background sits on the
+                # game's paper, exactly as in the window front-end.
+                bg = cell.bg if cell.bg != 1 else paper
                 try:
                     self.scr.addstr(r, c, cell.char,
-                                    self._attr(cell.style, cell.fg, cell.bg))
+                                    self._attr(cell.style, cell.fg, bg))
                 except curses.error:
                     pass  # the terminal edge: curses objects, harmlessly
+            if self.term_w - 1 > model.cols:
+                # The strip right of the 80-column grid: paper, not a hole.
+                try:
+                    self.scr.addstr(r, model.cols,
+                                    " " * (self.term_w - 1 - model.cols),
+                                    self._pair(-1, self._cc(paper)))
+                except curses.error:
+                    pass
         self.scr.noutrefresh()
 
     def _refresh(self) -> None:
@@ -259,11 +297,14 @@ class ConsoleApp:
         # The background FIRST, then the erase: curses fills a cleared
         # window with its background attribute, so this order is what makes
         # the whole screen take the game's colour (the terminal counterpart
-        # of the window repaint at erase, S 8.7.3.3).
-        self.lower.bkgd(" ", self._pair(-1, self._cc(self.vm.screen.bg)))
+        # of the window repaint at erase, S 8.7.3.3). The paper is
+        # remembered for blank grid cells and split changes.
+        self._paper = self.vm.screen.bg
+        self.lower.bkgd(" ", self._pair(-1, self._cc(self._paper)))
         self.lower.erase()
         self.lower.move(self.lower.getmaxyx()[0] - 1, 0)
         self._since_input = 0
+        self._grid_dirty = True  # the grid strip repaints in the new paper
 
     # -- input -------------------------------------------------------------------
 

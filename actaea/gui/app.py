@@ -52,15 +52,6 @@ _FUNCTION_KEYS = {
 
 _REPO_URL = "https://github.com/ByteProject/Arcturus"
 
-# Monospace families worth offering when the system has them; the View menu
-# shows the intersection with what tkinter actually reports.
-_FAMILIES = (
-    "Andale Mono", "Cascadia Mono", "Consolas", "Courier New",
-    "DejaVu Sans Mono", "Fira Code", "IBM Plex Mono", "Iosevka",
-    "JetBrains Mono", "Menlo", "Monaco", "PT Mono", "Source Code Pro",
-    "Ubuntu Mono",
-)
-
 
 def _settings_path() -> str:
     base = os.environ.get(
@@ -274,15 +265,11 @@ class ActaeaApp:
             appmenu.add_separator()
             menubar.add_cascade(menu=appmenu)
         view = tk.Menu(menubar, tearoff=0)
-        fonts = tk.Menu(view, tearoff=0)
-        current = self._family_var.get()
-        available = set(tkfont.families(self.root))
-        choices = [f for f in _FAMILIES if f in available]
-        if current not in choices:
-            choices.insert(0, current)
-        for fam in choices:
-            fonts.add_radiobutton(label=fam, variable=self._family_var,
-                                  value=fam, command=self._retype)
+        # The Font menu lists EVERY fixed-pitch family the system has. The
+        # scan instantiates a font per family, so it runs once, lazily, the
+        # first time the menu opens.
+        fonts = tk.Menu(view, tearoff=0,
+                        postcommand=lambda: self._fill_font_menu(fonts))
         size = tk.Menu(view, tearoff=0)
         for n in (11, 12, 13, 14, 16, 18, 20):
             size.add_radiobutton(label=f"{n} pt", variable=self._font_size,
@@ -303,6 +290,25 @@ class ActaeaApp:
             helpm.add_command(label="About Actaea", command=self._about)
             menubar.add_cascade(label="Help", menu=helpm)
         self.root.config(menu=menubar)
+
+    def _fill_font_menu(self, menu: tk.Menu) -> None:
+        if getattr(self, "_fonts_filled", False):
+            return
+        self._fonts_filled = True
+        current = self._family_var.get()
+        names = set()
+        for fam in tkfont.families(self.root):
+            if fam.startswith(("@", ".")):
+                continue  # Windows vertical variants and hidden UI faces
+            try:
+                if tkfont.Font(root=self.root, family=fam).metrics("fixed"):
+                    names.add(fam)
+            except tk.TclError:
+                continue
+        names.add(current)  # whatever plays now is always offerable
+        for fam in sorted(names):
+            menu.add_radiobutton(label=fam, variable=self._family_var,
+                                 value=fam, command=self._retype)
 
     def _about(self) -> None:
         """The About panel, laid out like one: name large, the facts in
@@ -362,14 +368,17 @@ class ActaeaApp:
         self._persist()
 
     def _colours_toggled(self) -> None:
-        # The cached looks resolved the other setting; drop them and
-        # repaint the paper and the grid in the now-current truth.
-        self._tags_made.clear()
-        for tag in self.text.tag_names():
-            if tag.startswith("look-"):
-                self.text.tag_delete(tag)
+        # Existing text KEEPS its tags; each look tag is reconfigured for
+        # the new setting (deleting them would strip the story's text to
+        # the widget default, black, invisible on a game-painted screen).
         bg = self._colour(self.vm.screen.bg, "white")
         self._window_bg = bg
+        for tag in self.text.tag_names():
+            if tag.startswith("look-"):
+                _, style, fg_part, bg_part = tag.split("-", 3)
+                self._configure_look(tag, int(style),
+                                     self._parse_colour(fg_part),
+                                     self._parse_colour(bg_part))
         self.text.configure(
             background=bg,
             insertbackground=self._colour(self.vm.screen.fg, "black"),
@@ -377,6 +386,10 @@ class ActaeaApp:
         self.canvas.configure(background=bg)
         self._grid_changed()
         self._persist()
+
+    @staticmethod
+    def _parse_colour(part: str):
+        return part if part.startswith("#") else int(part)
 
     # -- the upper window ---------------------------------------------------------
 
@@ -478,16 +491,19 @@ class ActaeaApp:
             return ""
         name = f"look-{style}-{fg}-{bg}"
         if name not in self._tags_made:
-            fg_c = self._colour(fg, "black")
-            bg_c = self._colour(bg, self._window_bg)
-            if style & REVERSE:
-                fg_c, bg_c = bg_c, fg_c
-            self.text.tag_configure(
-                name, foreground=fg_c, background=bg_c,
-                font=self._styled_font(style),
-            )
+            self._configure_look(name, style, fg, bg)
             self._tags_made.add(name)
         return name
+
+    def _configure_look(self, name: str, style: int, fg, bg) -> None:
+        fg_c = self._colour(fg, "black")
+        bg_c = self._colour(bg, self._window_bg)
+        if style & REVERSE:
+            fg_c, bg_c = bg_c, fg_c
+        self.text.tag_configure(
+            name, foreground=fg_c, background=bg_c,
+            font=self._styled_font(style),
+        )
 
     def append_story(self, s: str) -> None:
         # A print can land MID-READ: a timed-input interrupt routine spoke
