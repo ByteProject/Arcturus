@@ -334,6 +334,20 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
     skip_n = 0
     for action, handlers in groups.items():
         rt.label(run_label[action])
+        if action in wm.EVENT_NAMES:
+            # Life-cycle pulses (start, enter, each_turn) are not player
+            # actions to be consumed. Every registered hook fires, exactly
+            # as the per-object turn sweep fires each object's handler
+            # independently and ignores its result. So call them all and
+            # discard the return: a bare `on each_turn` never silences
+            # another daemon, and a granule pulse (the ambience sweep) and
+            # the game's own each_turn coexist. There are no operand
+            # patterns or `on other` for a life-cycle event, so this is the
+            # whole story for these actions.
+            for hn, h in handlers:
+                rt.op("call_vn", RoutineRef(hn))
+            rt.jump("__climb__")
+            continue
         plans = [_guard_plan(h, layout, gmap, dirnames) for _, h in handlers]
         all_guarded = all(p is not None for p in plans)
         if all_guarded:
