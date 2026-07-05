@@ -49,12 +49,16 @@ def test_attributes_set_test_clear():
         t.test_attr(2, 48)
 
 
-def test_tree_reads_and_object_zero_is_a_fault():
+def test_tree_reads_and_object_zero_answers_nothing():
     t = _table()
     assert t.parent(2) == 1 and t.sibling(2) == 4 and t.child(2) == 3
     assert t.parent(1) == 0 and t.child(1) == 2
+    # Nothing's relatives are nothing (Jigsaw asks get_child(0) at boot;
+    # the interpreter convention is 0, not a fault)...
+    assert t.parent(0) == 0 and t.sibling(0) == 0 and t.child(0) == 0
+    # ...but MUTATING object 0 stays a hard error.
     with pytest.raises(ObjectError) as e:
-        t.parent(0)
+        t.set_attr(0, 3)
     assert "nothing" in str(e.value)
 
 

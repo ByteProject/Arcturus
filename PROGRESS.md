@@ -2921,3 +2921,50 @@ construction. 521 tests. actaea 0.10.0.
 Next: M11, the final sweep (TerpEtude's applicable portions, stream 2
 as a real transcript?, timed-input degrade, v8 checks with Jigsaw and
 anchor, real games end to end), and B10 is complete.
+
+## 2026-07-05: Actaea M11, the conformance sweep
+
+The input machinery grew its last limbs. Preloaded input (S 15 read,
+byte 1): the game's part-typed line goes to the front-end and comes
+back as part of the whole line, never re-printed; the GUI absorbs the
+printed characters into the editable region (TerpEtude 12 now reads
+"givenhello", matching dfrotz exactly). The terminating-characters
+table (S 10.7) parses at boot and the GUI ends a read on any listed
+function key, returning its code; read_char now hands the game cursor
+keys, F1..F12, and the keypad, and accented keys translate through
+the text engine, not ord(). Timed input is REAL in the window: the
+VM's call_interrupt runs the routine as a nested execution mid-read
+(a sentinel frame delivers the return value to the interpreter), the
+GUI's after() loop fires it every time/10 seconds, its printing lifts
+the typed line and puts it back (S 8.4.2), and a true return ends the
+read with terminator 0, the typed text surviving as next time's
+preload, which is exactly Border Zone's flow. Headless front-ends
+ignore the pair and honestly leave the header's timed-input bit off;
+the GUI claims it (io.supports_timed).
+
+Stream 2 is a real transcript file: one file per session, opened on
+first use through io.transcript_path (console prompt, tk dialog,
+scripted tmp dir), lower-window text only, player lines included,
+synced BOTH ways with Flags 2 bit 0 at every input (a game flipping
+the bit directly is obeyed; a refused file clears the bit, S 7.1.1.1).
+
+The real-game sweep earned two machine fixes: Anchorhead reads below
+an array at boot, so the four table opcodes now compute their
+addresses in wrapping 16-bit arithmetic like every reference
+interpreter; Jigsaw asks for the children of "nothing" at boot, so
+the tree READS on object 0 answer 0 while mutations stay hard errors.
+Both z8 games now boot and play headless, alongside Ghosts, Calypso,
+and deseos (whose "¿Quieres color?" pins the accent path end to end).
+
+Proofs: TerpEtude's text portions asserted headless (header analysis,
+signed mul/div/mod all ok, multiple undo, preload, lower-casing,
+closing-text-before-quit); timed reads, preload, terminators, and
+both transcript switches drilled through zasm; the five-game sweep in
+tests/actaea/conformance/test_games.py; CZECH still matches the
+reference byte for byte; H2 to THE END 360/360. 538 tests.
+actaea 0.11.0.
+
+The GUI half of M11 is the visible verification: TerpEtude 4/5 (styles
+and colours), 7 (accents), 8 (arrows and function keys reported), 10/11
+(the countdown ticking mid-input), 12 (editing the preloaded line), and
+a transcript written through the file dialog. Then B10 is complete.

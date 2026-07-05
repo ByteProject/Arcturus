@@ -96,6 +96,22 @@ class VM:
         # on_change hook; headless sinks simply never look at it.
         self.screen = ScreenModel(io)
         self.font = 1  # the current set_font choice (1 normal, 4 fixed)
+        # The terminating-characters table (S 10.7): ZSCII function-key
+        # codes, beyond Enter, that end a read; 255 means all of them.
+        self.terminators = frozenset()
+        if story.header.terminating:
+            codes = []
+            addr = story.header.terminating
+            while (c := self.mem.byte(addr)) != 0:
+                codes.append(c)
+                addr += 1
+            self.terminators = frozenset(codes)
+        # Stream 2, the transcript: a real file (M11). The handle opens on
+        # first use and stays for the session (S 7.1.1.2: one file, however
+        # often the game toggles); transcript_on mirrors Flags 2 bit 0.
+        self.transcript = None
+        # An input interrupt's return value lands here (see call_interrupt).
+        self.interrupt_result = 0
         self._init_header()
 
     # -- the output funnel: every print opcode lands here ------------------------
@@ -108,6 +124,10 @@ class VM:
             return
         if self.screen_on:
             self.screen.write(text)
+        # The transcript records the lower window only (S 7.1.1): status
+        # lines and quote boxes are screen dressing, not the story.
+        if self.transcript_on and self.transcript and self.screen.window == 0:
+            self.transcript.write(text)
 
     def _init_header(self) -> None:
         """The interpreter-set header fields (S 11): what this machine can
@@ -121,6 +141,10 @@ class VM:
         # model carries them and the window renders them; a console simply
         # shows none, which the standard permits of any colour).
         flags1 |= 0x1D
+        # Bit 7: timed input. Only a front-end with an event loop can run
+        # input interrupts (the GUI); a blocking console honestly cannot.
+        if getattr(self.io, "supports_timed", False):
+            flags1 |= 0x80
         m.set_byte(0x01, flags1)
         m.set_byte(0x1E, 0)      # interpreter number: unspecified
         m.set_byte(0x1F, ord("A"))  # interpreter version: A for Actaea
@@ -246,8 +270,36 @@ class VM:
             return
         frame = self.frames.pop()
         self.pc = frame.return_pc
-        if frame.store is not None:
+        if frame.store == -1:
+            # An input interrupt's frame (call_interrupt): the value goes to
+            # the interpreter, not to any variable.
+            self.interrupt_result = value
+        elif frame.store is not None:
             self._write_var(frame.store, value)
+
+    def call_interrupt(self, packed: int) -> int:
+        """Run an interrupt routine to completion NOW, mid-read (S 8.4.2:
+        the timed-input routine), and return its value. The routine runs as
+        a nested execution on the same frames: a frame with the sentinel
+        store -1 is pushed and stepped until it returns, which delivers the
+        value to interrupt_result instead of a variable. The read that is
+        waiting resumes exactly where it was."""
+        if packed == 0:
+            return 0
+        addr = self.mem.unpack(packed)
+        nlocals = self.mem.byte(addr)
+        if nlocals > 15:
+            raise VMError(f"interrupt call to {addr:#07x}, not a routine")
+        depth = len(self.frames)
+        saved_pc = self.pc
+        self.frames.append(
+            Frame(return_pc=saved_pc, store=-1, locals_=[0] * nlocals, argc=0)
+        )
+        self.pc = addr + 1
+        self.interrupt_result = 0
+        while len(self.frames) > depth and not self.halted:
+            self.step()
+        return self.interrupt_result
 
     # -- the loop --------------------------------------------------------------
 
@@ -390,21 +442,26 @@ class VM:
         var = self._value(ins.operands[0])
         self._write_indirect(var, from_signed(to_signed(self._read_indirect(var)) - 1))
 
+    # The table opcodes compute array + index in 16-bit arithmetic, wrapping
+    # (the address space they byte-address IS 16 bits): Inform emits negative
+    # indexes freely, and Anchorhead reads below its array at boot. Every
+    # reference interpreter wraps here; a range fault would be wrong.
+
     def _op_loadw(self, ins):
         array, index = self._values(ins)
-        self._write_var(ins.store, self.mem.word(array + 2 * to_signed(index)))
+        self._write_var(ins.store, self.mem.word((array + 2 * index) & 0xFFFF))
 
     def _op_loadb(self, ins):
         array, index = self._values(ins)
-        self._write_var(ins.store, self.mem.byte(array + to_signed(index)))
+        self._write_var(ins.store, self.mem.byte((array + index) & 0xFFFF))
 
     def _op_storew(self, ins):
         array, index, value = self._values(ins)
-        self.mem.set_word(array + 2 * to_signed(index), value)
+        self.mem.set_word((array + 2 * index) & 0xFFFF, value)
 
     def _op_storeb(self, ins):
         array, index, value = self._values(ins)
-        self.mem.set_byte(array + to_signed(index), value)
+        self.mem.set_byte((array + index) & 0xFFFF, value)
 
     def _op_push(self, ins):
         (value,) = self._values(ins)
@@ -550,6 +607,8 @@ class VM:
         pass
 
     def _op_quit(self, ins):
+        if self.transcript:
+            self.transcript.flush()
         self.halted = True
 
     # -- text output (M5: the engine lives in text.py) --
@@ -619,32 +678,82 @@ class VM:
     # -- input (M6: the console harness's read; timed input is a front-end
     # capability and arrives with the GUI work) --
 
+    def _sync_transcript(self) -> None:
+        """Flags 2 bit 0 IS the transcript switch (S 7.3, 7.4): the game may
+        flip the bit directly rather than calling output_stream, so the
+        interpreter checks at every input, the turn boundary. Opening the
+        file happens once per session; a refused file clears the bit again
+        (S 7.1.1.1), which is how the game learns it did not happen."""
+        want = bool(self.mem.word(0x10) & 1)
+        if want and self.transcript is None:
+            path = self.io.transcript_path("transcript.txt")
+            if path:
+                try:
+                    self.transcript = open(path, "a", encoding="utf-8")
+                except OSError:
+                    path = None
+            if not path:
+                self.mem.set_word(0x10, self.mem.word(0x10) & ~1 & 0xFFFF)
+                want = False
+        self.transcript_on = want
+
     def _op_read(self, ins):
         # aread text parse [time routine] -> terminator. The text buffer is
         # byte 0 max letters, byte 1 the typed length, characters from byte 2,
-        # lower-cased by the machine (S 15 read). A time/routine pair is
-        # accepted and ignored here: the headless harness cannot interrupt a
-        # blocking read, and CZECH/Praxix do not rely on it; real timed input
-        # comes with the front-end event loop.
+        # lower-cased by the machine (S 15 read). Byte 1 nonzero on entry is
+        # PRELOADED input (S 15, "left over"): the game printed it and the
+        # line continues from there, so it goes to the front-end to make
+        # editable and comes back as part of the line, never re-printed.
         vals = self._values(ins)
         text_addr, parse_addr = vals[0], vals[1] if len(vals) > 1 else 0
+        time = vals[2] if len(vals) > 2 else 0
+        routine = vals[3] if len(vals) > 3 else 0
+        self._sync_transcript()
         max_len = self.mem.byte(text_addr)
-        # The front-end echoes the line itself, if its display needs it
-        # (the io.read_line contract); the machine lower-cases what it
-        # stores, not what the player saw.
-        line = self.io.read_line(max_len).lower()
+        preload = "".join(
+            self.text.zscii_to_unicode(self.mem.byte(text_addr + 2 + i))
+            for i in range(self.mem.byte(text_addr + 1))
+        )
+        line, term = self.io.read_line(
+            max_len, preload=preload, terminators=self.terminators,
+            timeout=time / 10.0,
+            on_timeout=(lambda: self.call_interrupt(routine) != 0)
+            if time and routine else None,
+        )
+        line = line.lower()
         for i, ch in enumerate(line):
             self.mem.set_byte(text_addr + 2 + i, self.text.unicode_to_zscii(ch))
         self.mem.set_byte(text_addr + 1, len(line))
+        if self.transcript_on and self.transcript:
+            self.transcript.write(line + "\n")
+        if term == 0:
+            # Timed out: the routine asked for the input to end. What was
+            # typed stays in the buffer as next time's preload (that is how
+            # an interrupted command line survives); nothing is parsed.
+            self._write_var(ins.store, 0)
+            return
         if parse_addr:
             tokenise(self.mem, text_addr, parse_addr, self.dictionary)
-        self._write_var(ins.store, 13)  # terminated by newline
+        self._write_var(ins.store, term)
 
     def _op_read_char(self, ins):
         # read_char 1 [time routine] -> zscii. The first operand is always 1
-        # (the keyboard); the time pair is ignored as in read.
-        self._values(ins)
-        self._write_var(ins.store, self.io.read_char())
+        # (the keyboard). The io hands back a Unicode codepoint for
+        # printables and ZSCII codes for the specials (13, 8, 27, and the
+        # function keys, which have no Unicode anyway); the translation to
+        # ZSCII happens here, where the text engine lives, so accented
+        # input works whatever the front-end.
+        vals = self._values(ins)
+        time = vals[1] if len(vals) > 1 else 0
+        routine = vals[2] if len(vals) > 2 else 0
+        code = self.io.read_char(
+            timeout=time / 10.0,
+            on_timeout=(lambda: self.call_interrupt(routine) != 0)
+            if time and routine else None,
+        )
+        if code >= 32 and not 129 <= code <= 154 and not 252 <= code <= 254:
+            code = self.text.unicode_to_zscii(chr(code))
+        self._write_var(ins.store, code)
 
     def _op_save_undo(self, ins):
         self.undo.append(
@@ -774,7 +883,12 @@ class VM:
         elif n in (1, -1):
             self.screen_on = n > 0
         elif n in (2, -2):
-            self.transcript_on = n > 0  # kept as a flag; no transcript file here
+            # Stream 2 and Flags 2 bit 0 are one switch seen two ways
+            # (S 7.1.1.1): selecting the stream sets the bit, and the sync
+            # opens the transcript file on first use.
+            f2 = self.mem.word(0x10)
+            self.mem.set_word(0x10, (f2 | 1) if n > 0 else (f2 & 0xFFFE))
+            self._sync_transcript()
         elif n in (4, -4):
             pass  # the commands file: nothing to record headless
         else:
