@@ -4,8 +4,8 @@ Status: living charter. This document is the project charter and index. It
 records the locked decisions, the reference documents, and the milestones
 from first spec to a finished toolchain; the milestone table in section 7
 tracks what is done. The language, Cosmos, and the compiler shipped through
-the Hibernated 2 port (B8); the Actaea reference interpreter (B10) is in
-progress.
+the Hibernated 2 port (B8); the Actaea reference interpreter (B10) is
+complete. Next is arc_image (B11).
 
 Name: Arcturus. The star, and the narrative arc that every work of
 interactive fiction is built on, so the name points at the medium itself.
@@ -97,7 +97,8 @@ rather than written in advance.
   (extendedverbs, statusline, verbose_exits, conversations, debug): how to summon
   each, what it adds, the blocks an author can override, and how to write your
   own granule.
-- 06-actaea-design.md: the Actaea reference interpreter (built in milestone B10).
+- 06-actaea.md: the Actaea reference interpreter, the official documentation
+  (milestone B10, complete; the design record is actaea/actaea-design.md).
 - 07-conformance.md (the final milestone): the test plan, with the two example
   games as golden tests and a size regression baseline.
 
@@ -234,11 +235,14 @@ done-test.
   self-summed perfect score, the sufficiency proof it would have added is
   already delivered. The number stays reserved so later milestones keep
   their names.
-- B10: the reference interpreter, Actaea. A Standard 1.1 conformant z5/z8
-  interpreter in Python with a tkinter GUI, built under `actaea/`, that plays any
-  well-formed story file and is the testing ground for `arc_image`. Its design is
-  docs/06-actaea-design.md (milestones M1 to M11; headless VM core through M6,
-  GUI from M7).
+- B10: COMPLETE (2026-07-05). The reference interpreter, Actaea: a Standard
+  1.1 conformant z5/z8 interpreter in Python under `actaea/`, playing any
+  well-formed story file, with three front-ends on one headless core (tkinter
+  window, curses terminal, headless pipe), Quetzal saves interoperating with
+  Frotz both ways, and the conformance gate green (CZECH 406/406, Praxix,
+  TerpEtude's text portions, real z5/z8 games). The testing ground for
+  `arc_image`. docs/06-actaea.md is the documentation; actaea/actaea-design.md
+  the design record (M1 to M11, all built).
 - B11: `arc_image` on modern systems (section 6). The capability guard and EXT
   opcode contract, room and scene art rendered from PNGs, the rendering capability
   added to Actaea, with the same story file still running unchanged on Frotz.
@@ -251,10 +255,10 @@ done-test.
 
 ## 8. Status
 
-The design tracks (A0 to A2) are complete. Implementation has reached the end of
-B4: both example games (The Brass Lantern and Cloak of Darkness) compile with the
-standalone `arcc` and are winnable start to finish on Frotz, with the whole
-Cosmos runtime - turn loop, movement, verbs, scope and light, parser, and grains
-- written in Arcturus. Next is the B4 finish polish (paragraph breaks, the
-unrecognized-verb reply, quit), then B5 (the feature-complete library and a fair
-PunyInform benchmark). Current progress is tracked in PROGRESS.md.
+The design tracks (A0 to A2) are complete. Implementation stands at the end of
+B10: the language, Cosmos, and the compiler shipped through the Hibernated 2
+port (B8, all four acts at a self-summed perfect score), and Actaea, the
+reference interpreter, is complete and conformant, so the project owns both
+ends of the pipeline. Next is arc_image on modern systems (B11), then the
+retro targets (B12) and the Rabenstein port (B13). Current progress is
+tracked in PROGRESS.md.

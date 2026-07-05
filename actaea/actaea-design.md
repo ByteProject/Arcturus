@@ -1,17 +1,19 @@
 # Actaea: Design Document
 
-Status: design phase. Actaea is a Standard 1.1 conformant Z-machine
-interpreter for versions 5 and 8, written in Python with a tkinter GUI. It
-plays any well-formed story file, not only Arcturus output. The name continues
-the trans-Neptunian line of the family (Ceres, Varuna, Eris, Haumea), and is
-the first written for the desktop rather than the metal.
+Status: complete. This is the design record of milestone B10, kept beside the
+code it describes; every milestone below (M1 to M11) is built, verified, and
+green. The official user documentation is docs/06-actaea.md. Actaea is a
+Standard 1.1 conformant Z-machine interpreter for versions 5 and 8, written in
+Python with a tkinter GUI, a curses terminal mode, and a headless pipe mode.
+It plays any well-formed story file, not only Arcturus output. The name
+continues the trans-Neptunian line of the family (Ceres, Varuna, Eris,
+Haumea), and is the first written for the desktop rather than the metal.
 
 Actaea is not a separate project. It is built inside the existing Arcturus
-repository, by the same project and the same Claude Code context that is
-building the compiler and Cosmos. It is the work of Arcturus milestone B10, the
-reference interpreter. This document joins the Arcturus docs as 06, and the
-Arcturus CLAUDE.md points to it. The milestones below (M1 to M11) are the
-breakdown of that single roadmap milestone.
+repository, by the same project and the same Claude Code context that built
+the compiler and Cosmos. It is the work of Arcturus milestone B10, the
+reference interpreter. The milestones below (M1 to M11) are the breakdown of
+that single roadmap milestone; PROGRESS.md carries the build record.
 
 arc_image is explicitly not part of Actaea. You build it later, yourself, in
 this same project, as Arcturus milestones B11 and B12. Actaea is the plain,
@@ -229,22 +231,26 @@ only a real screen can show.
 
 Actaea lives inside the existing Arcturus repository as the `actaea/` subtree,
 added to the project Claude Code is already working in. There is no separate
-repo and no separate CLAUDE.md; the existing Arcturus CLAUDE.md gains a short
-Actaea entry pointing here, and this design joins the docs as `docs/06-actaea-
-design.md`.
+repo and no separate CLAUDE.md; the existing Arcturus CLAUDE.md has a short
+Actaea entry, this design record lives beside the code as
+`actaea/actaea-design.md`, and the official user documentation is
+`docs/06-actaea.md`.
 
 ```
 (arcturus repo root)
-  CLAUDE.md                with an Actaea section added
+  CLAUDE.md                with an Actaea section
   docs/
-    06-actaea-design.md    (this document)
+    06-actaea.md           the official Actaea documentation
   arcturus/                the compiler package
   cosmos/                  the Cosmos library
   actaea/                  the interpreter (module map in section 4)
+    actaea-design.md       (this document)
     gui/                   tkinter front-end
+  tools/
+    amalgamate_actaea.py   builds the standalone build/actaea
   tests/
     actaea/
-      conformance/         czech and praxix runners, terpetude assets
+      conformance/         czech, praxix, terpetude, and game runners
       unit/
 ```
 

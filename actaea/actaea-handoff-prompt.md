@@ -1,7 +1,7 @@
 # Actaea continuation prompt (Arcturus milestone B10)
 
 Paste this to the Arcturus Claude Code instance once the updated CLAUDE.md and
-docs/06-actaea-design.md are in the repo. This is not a new project; it is a
+actaea/actaea-design.md are in the repo. This is not a new project; it is a
 new workstream in the repo you already have.
 
 ---
@@ -11,7 +11,7 @@ interpreter, built inside this repository under actaea/. It is a Standard 1.1
 conformant z5 and z8 interpreter in Python with a tkinter GUI, and it plays any
 well-formed story file, not only Arcturus output.
 
-Read docs/06-actaea-design.md in full, and the Actaea section of CLAUDE.md. It
+Read actaea/actaea-design.md in full, and the Actaea section of CLAUDE.md. It
 is authoritative; where code and it disagree, it wins, and a real correction
 updates the document in the same commit.
 

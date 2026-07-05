@@ -88,15 +88,22 @@ The road from here, milestone by milestone:
   each Z-machine ceiling, and the finish post-mortem (final score and the
   classic RESTART / RESTORE / QUIT prompt). The Arcturus build follows the
   game's PunyInform release at its own pace.
-- **In progress: Actaea, the reference interpreter.** A Standard 1.1
-  conformant Z-machine interpreter for versions 5 and 8, written in Python
-  with a tkinter front-end, built in this repository so the project owns
-  both ends of the pipeline. The headless core already loads, disassembles,
-  and runs story files: an Arcturus game boots to its prompt on it, and its
-  text engine decodes exactly what the compiler encodes, two independent
-  implementations checking each other. The conformance gate (CZECH and
-  Praxix against their reference transcripts) is next, then the windowed
-  front-end with a true cell-grid upper window.
+- **Done: Actaea, the reference interpreter.** A Standard 1.1 conformant
+  Z-machine interpreter for versions 5 and 8, written in Python with zero
+  dependencies beyond the standard library, built in this repository so the
+  project owns both ends of the pipeline. Three ways to play on one headless
+  core: a desktop window (true cell-grid status area, styles and colours,
+  menus with persistent settings), a full terminal mode in the
+  fizmo-ncursesw manner (`--console`), and a plain pipe for scripts and
+  debuggers (`--headless`). Quetzal saves interoperate with Frotz in both
+  directions, undo is multi-level, transcripts are real files, and timed
+  input, input preloading, and terminating characters all work as the
+  Standard asks. The conformance gate is green: CZECH 406/406 matched byte
+  for byte against the reference transcript, Praxix all-pass, TerpEtude's
+  text portions, and third-party z5 and z8 games played through. It is also
+  a debugging tool: a header inspector (`--header`) and a disassembler
+  (`--disasm`). Ships as one self-contained file, like the compiler.
+  [docs/06-actaea.md](docs/06-actaea.md) is the documentation.
 - **After that:** the `arc_image` graphics path (modern systems first, then
   the 8-bit and 16-bit retro machines) and porting The Curse of Rabenstein.
   Reaching 1.0 is tied to those ports.
@@ -115,6 +122,8 @@ to start writing Arcturus today:
   turn loop.
 - [docs/05-granules.md](docs/05-granules.md): the summonable granules. How to
   summon them, how to fork one, and how to write your own.
+- [docs/06-actaea.md](docs/06-actaea.md): Actaea, the reference interpreter.
+  The three ways to play, the tools, saves and transcripts, and conformance.
 
 For the curious who want to see under the hood, two further documents cover how
 the compiler itself works:
