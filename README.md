@@ -64,78 +64,57 @@ Arcturus owns its whole pipeline (the compiler, the library, and the interpreter
 it can be this expressive and still compile small, with whole-program optimization
 trimming every build to exactly what the game uses.
 
-## Project status
+## What's new
 
-Arcturus is in **active development**. It is not at a 1.0 release yet, but it
-already compiles complete, playable games. The two worked examples - **The Brass
-Lantern** and the classic **Cloak of Darkness** - compile with the standalone
-`arcc` and are winnable start to finish on Frotz, with the entire Cosmos runtime
-(turn loop, movement, verbs, scope and light, the parser, and scenery) written in
-Arcturus itself.
+Arcturus is in active, healthy development, and the core is solid enough to
+build real games on today. The three pieces of the toolchain - the **compiler**,
+the **Cosmos** standard library, and the **Actaea** reference interpreter - are
+all in stable shape and work together as a real pipeline: write a game, compile
+it, and play it, start to finish. You will still meet the occasional bug (please
+report it), but this is no longer use-at-your-own-risk territory. If you write
+interactive fiction, this is a good time to pick it up.
 
-The road from here, milestone by milestone:
+The most significant recent additions and achievements:
 
-- **Done:** the language spec; the compiler (lexer, parser, semantic analysis,
-  Z-machine code generation); and a feature-complete Cosmos written in Arcturus
-  itself - the full standard verb set, the meta verbs (score, save, restore,
-  undo, again, oops), an original standard message set, kinds and inheritance,
-  the container knowledge model, computed properties, daemons and timers, doors
-  (including two-sided doors) and multi-room scenery, the `topic` conversation
-  model, and the summonable granules: extended flavor verbs, an opt-in status
-  line, verbose exits, two conversation presentations (a menu-driven talk
-  system and the Infocom-style ask/tell; a game picks one), take-all sweeps,
-  plurals, ambience, and debug verbs. The size
-  pass is complete: whole-program dead-code elimination, abbreviation-based text
-  compression (a baked-in default plus an opt-in per-game pass), and dense code
-  generation, all built into the compiler so every build is trimmed with nothing
-  to configure, and optional features cost nothing when a game does not use them.
-  Both example games play end to end, and Cloak of Darkness compiles to about
-  12K with the whole modern Cosmos library linked in and nothing stripped out.
-- **Also done: language packs.** Spanish and German are full members of
-  Arcturus: the verbs, direction words, articles, and every message translated,
-  with correct accents (and a plain-ASCII form for every word the player must
-  type, since an 8-bit keyboard cannot enter them). Spanish
-  (`summon.language "spanish"`) derives grammatical gender automatically
-  (`una lámpara`, `el libro`, agreement like `la caja está abierta`). German
-  (`summon.language "german"`) has three genders and no spelling rule, so the
-  author declares the article (`der`, `die`, `das`) on the object, and the
-  article then inflects for case in the messages (`du nimmst den Schlüssel`, `in
-  der Truhe`) with no further work; separable verbs parse naturally (`schalt
-  die Lampe an`, `schliess die Tür auf`). Worked examples:
-  [examples/ejemplo-espanol.storyarc](examples/ejemplo-espanol.storyarc) and
-  [examples/beispiel-deutsch.storyarc](examples/beispiel-deutsch.storyarc).
-- **Done: the Hibernated 2 port, the maturity milestone.** The first
-  full-length commercial game runs on Arcturus: all four acts play start to
-  finish at full score, exercising save and restore, scoring with ranks, the
-  conversation systems, and the whole library at real-game scale. The port
-  fed the toolchain along the way: Z-machine colours as first-class syntax
-  (`zcolor`, `say.yellow "..."`), the Trinity-style quote box
-  (`summon.quotes`), banner control for pregame preludes, a
-  compile-statistics ledger after every build watching the story's use of
-  each Z-machine ceiling, and the finish post-mortem (final score and the
-  classic RESTART / RESTORE / QUIT prompt). The Arcturus build follows the
-  game's PunyInform release at its own pace.
-- **Done: Actaea, the reference interpreter.** A Standard 1.1 conformant
-  Z-machine interpreter for versions 5 and 8, written in Python with zero
-  dependencies beyond the standard library, built in this repository so the
-  project owns both ends of the pipeline. Three ways to play on one headless
-  core: a desktop window (true cell-grid status area, styles and colours,
-  menus with persistent settings), a full terminal mode in the
-  fizmo-ncursesw manner (`--console`), and a plain pipe for scripts and
-  debuggers (`--headless`). Quetzal saves interoperate with Frotz in both
-  directions, undo is multi-level, transcripts are real files, and timed
-  input, input preloading, and terminating characters all work as the
-  Standard asks. The conformance gate is green: CZECH 406/406 matched byte
-  for byte against the reference transcript, Praxix all-pass, TerpEtude's
-  text portions, and third-party z5 and z8 games played through. It is also
-  a debugging tool: a header inspector (`--header`) and a disassembler
-  (`--disasm`). Ships as one self-contained file, like the compiler.
-  [docs/06-actaea.md](docs/06-actaea.md) is the documentation.
-- **After that:** the `arc_image` graphics path (modern systems first, then
-  the 8-bit and 16-bit retro machines) and porting The Curse of Rabenstein.
-  Reaching 1.0 is tied to those ports.
+- **Actaea, the reference interpreter, reached 1.0.** A Standard 1.1 conformant
+  Z-machine interpreter for versions 5 and 8, in Python with no dependencies
+  beyond the standard library, so the project now owns both ends of the
+  pipeline. Three ways to play on one core: a desktop window (a true cell-grid
+  status area, styles and colours, menus with persistent settings), a full
+  terminal mode in the fizmo-ncursesw manner (`--console`), and a plain pipe
+  for scripts and debuggers (`--headless`). Quetzal saves interoperate with
+  Frotz both ways, undo is multi-level, and the conformance gate is green
+  (CZECH 406/406 matched byte for byte, Praxix all-pass, TerpEtude's text
+  suite, third-party z5 and z8 games). It also inspects headers (`--header`)
+  and disassembles (`--disasm`). [docs/06-actaea.md](docs/06-actaea.md).
+- **Language packs: Spanish and German, as first-class languages.** Not just
+  translated messages: the verbs, articles, and grammar. Spanish
+  (`summon.language "spanish"`) derives gender automatically (`una lámpara`,
+  `el libro`, agreement like `la caja está abierta`); German
+  (`summon.language "german"`) inflects articles for case (`du nimmst den
+  Schlüssel`, `in der Truhe`) and parses separable verbs (`schalt die Lampe
+  an`, `schliess die Tür auf`). Worked examples:
+  [Spanish](examples/ejemplo-espanol.storyarc),
+  [German](examples/beispiel-deutsch.storyarc).
+- **A whole-program size pass, built into every compile.** Dead-code
+  elimination, abbreviation-based text compression (a standard set by default,
+  plus an opt-in pass tuned per game), and dense code generation, with nothing
+  to configure. Optional features cost nothing when a game does not use them;
+  Cloak of Darkness compiles to about 12K with the whole modern library linked
+  in and nothing stripped out by hand.
+- **Summonable granules: pay-for-use extensions.** An opt-in status line,
+  verbose exits, two conversation presentations (a menu-driven talk system and
+  the Infocom-style ask/tell, a game picks one), extended flavor verbs,
+  take-all sweeps, plurals, ambient background text, and debug verbs. You
+  summon what you want; a granule you do not summon adds not a byte.
+- **Colour and presentation as first-class syntax.** Z-machine colours in the
+  language (`zcolor`, `say.yellow "..."`), a Trinity-style quote box
+  (`summon.quotes`), and a compile-statistics ledger after every build that
+  watches the story's headroom against each Z-machine ceiling.
 
-Follow this section and `PROGRESS.md` for where things stand.
+On the horizon is `arc_image`, an optional graphics path (modern systems
+first, then the 8-bit and 16-bit retro machines). For the full, step-by-step
+history, see [PROGRESS.md](PROGRESS.md).
 
 ## The language
 

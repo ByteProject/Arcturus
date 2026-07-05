@@ -154,7 +154,9 @@ class _VersionAction(argparse.Action):
     wrapped paragraph; a plain print keeps the block as written."""
 
     def __call__(self, parser, namespace, values, option_string=None):
-        print(_version_text())
+        # Trailing blank line so the shell prompt does not sit flush against
+        # the block (the same courtesy the Actaea CLI keeps).
+        print(_version_text() + "\n")
         parser.exit(0)
 
 
