@@ -70,14 +70,14 @@ def _play_window(story, title: str) -> bool:
     return True
 
 
-def _play_terminal(story) -> bool:
+def _play_terminal(story, title: str) -> bool:
     if not sys.stdin.isatty():
         return False  # curses needs a real terminal
     try:
         from .console import play
     except ImportError:
         return False  # no curses on this platform (native Windows)
-    play(story)
+    play(story, title)
     return True
 
 
@@ -157,7 +157,7 @@ def main(argv=None) -> int:
             return _play_headless(story)
 
         if args.console:
-            if _play_terminal(story):
+            if _play_terminal(story, os.path.basename(args.story)):
                 return 0
             print("actaea: no terminal for --console here; "
                   "playing headless", file=sys.stderr)
@@ -169,7 +169,7 @@ def main(argv=None) -> int:
         if sys.stdin.isatty():
             if _play_window(story, os.path.basename(args.story)):
                 return 0
-            if _play_terminal(story):
+            if _play_terminal(story, os.path.basename(args.story)):
                 return 0
         return _play_headless(story)
     except BrokenPipeError:

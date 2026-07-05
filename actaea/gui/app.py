@@ -27,12 +27,14 @@ full style and colour treatment arrives with M9. The Canvas is the surface
 the later arc_image work draws pictures onto, which is why cell geometry
 is exact from day one."""
 
+import json
+import os
 import tkinter as tk
+import webbrowser
 from tkinter import filedialog
 from tkinter import font as tkfont
-from tkinter import messagebox
 
-from .. import banner
+from .. import __version__
 from ..errors import ActaeaError
 from ..io import IOSystem
 from ..screen import BOLD, ITALIC, REVERSE, TRUE_COLOURS, true_colour_hex
@@ -47,6 +49,43 @@ _FUNCTION_KEYS = {
     **{f"F{n}": 132 + n for n in range(1, 13)},
     **{f"KP_{n}": 145 + n for n in range(10)},
 }
+
+_REPO_URL = "https://github.com/ByteProject/Arcturus"
+
+# Monospace families worth offering when the system has them; the View menu
+# shows the intersection with what tkinter actually reports.
+_FAMILIES = (
+    "Andale Mono", "Cascadia Mono", "Consolas", "Courier New",
+    "DejaVu Sans Mono", "Fira Code", "IBM Plex Mono", "Iosevka",
+    "JetBrains Mono", "Menlo", "Monaco", "PT Mono", "Source Code Pro",
+    "Ubuntu Mono",
+)
+
+
+def _settings_path() -> str:
+    base = os.environ.get(
+        "XDG_CONFIG_HOME", os.path.join(os.path.expanduser("~"), ".config")
+    )
+    return os.path.join(base, "actaea", "settings.json")
+
+
+def _load_settings() -> dict:
+    try:
+        with open(_settings_path(), encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def _save_settings(data: dict) -> None:
+    path = _settings_path()
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except OSError:
+        pass  # settings are a convenience; play goes on without them
 
 
 class GuiIO(IOSystem):
@@ -110,14 +149,19 @@ class ActaeaApp:
     def __init__(self, story, title: str):
         self.root = tk.Tk()
         self.root.title(f"{title} - Actaea")
-        # Settings the menu drives; colours before anything calls _colour.
-        self._use_colours = tk.BooleanVar(value=True)
-        self._font_size = tk.IntVar(value=13)
-        self._rows_var = tk.IntVar(value=30)
+        # Settings the menu drives, remembered across sessions; colours
+        # before anything calls _colour.
+        st = _load_settings()
+        self._use_colours = tk.BooleanVar(value=bool(st.get("game_colours", True)))
+        self._font_size = tk.IntVar(value=int(st.get("size", 13)))
+        self._rows_var = tk.IntVar(value=int(st.get("rows", 30)))
         self._mac_integration()
 
         self.font = tkfont.nametofont("TkFixedFont").copy()
-        self.font.configure(size=13)
+        self.font.configure(size=self._font_size.get())
+        if st.get("family"):
+            self.font.configure(family=st["family"])
+        self._family_var = tk.StringVar(value=self.font.actual("family"))
         # The style variants, shared by the grid and the lower-window tags.
         self.font_bold = self.font.copy()
         self.font_bold.configure(weight="bold")
@@ -230,6 +274,15 @@ class ActaeaApp:
             appmenu.add_separator()
             menubar.add_cascade(menu=appmenu)
         view = tk.Menu(menubar, tearoff=0)
+        fonts = tk.Menu(view, tearoff=0)
+        current = self._family_var.get()
+        available = set(tkfont.families(self.root))
+        choices = [f for f in _FAMILIES if f in available]
+        if current not in choices:
+            choices.insert(0, current)
+        for fam in choices:
+            fonts.add_radiobutton(label=fam, variable=self._family_var,
+                                  value=fam, command=self._retype)
         size = tk.Menu(view, tearoff=0)
         for n in (11, 12, 13, 14, 16, 18, 20):
             size.add_radiobutton(label=f"{n} pt", variable=self._font_size,
@@ -237,7 +290,8 @@ class ActaeaApp:
         lines = tk.Menu(view, tearoff=0)
         for n in (25, 30, 35, 40):
             lines.add_radiobutton(label=f"{n} lines", variable=self._rows_var,
-                                  value=n, command=self._apply_geometry)
+                                  value=n, command=self._reheight)
+        view.add_cascade(label="Font", menu=fonts)
         view.add_cascade(label="Text Size", menu=size)
         view.add_cascade(label="Screen Height", menu=lines)
         view.add_separator()
@@ -251,7 +305,38 @@ class ActaeaApp:
         self.root.config(menu=menubar)
 
     def _about(self) -> None:
-        messagebox.showinfo("About Actaea", banner(), parent=self.root)
+        """The About panel, laid out like one: name large, the facts in
+        their own lines, the repository clickable."""
+        win = tk.Toplevel(self.root)
+        win.title("About Actaea")
+        win.resizable(False, False)
+        name_font = tkfont.nametofont("TkDefaultFont").copy()
+        name_font.configure(size=24, weight="bold")
+        tk.Label(win, text="Actaea", font=name_font).pack(padx=48, pady=(22, 0))
+        tk.Label(win, text=f"Version {__version__}").pack(pady=(0, 10))
+        tk.Label(
+            win, justify="center",
+            text="Z-machine v5/8 interpreter, debugger and disassembler\n"
+                 "Standard 1.1 conformant\n"
+                 "Part of Arcturus (programming language & compiler)",
+        ).pack(padx=28)
+        tk.Label(win, text="Copyright (c) 2026, Stefan Vogt").pack(pady=(10, 0))
+        link = tk.Label(win, text=_REPO_URL, fg="#2b66c4", cursor="hand2")
+        link.pack(pady=(0, 10))
+        link.bind("<Button-1>", lambda e: webbrowser.open(_REPO_URL))
+        tk.Button(win, text="OK", command=win.destroy).pack(pady=(2, 16))
+        win.bind("<Return>", lambda e: win.destroy())
+        win.bind("<Escape>", lambda e: win.destroy())
+        win.transient(self.root)
+        win.grab_set()
+
+    def _persist(self) -> None:
+        _save_settings({
+            "family": self._family_var.get(),
+            "size": self._font_size.get(),
+            "rows": self._rows_var.get(),
+            "game_colours": self._use_colours.get(),
+        })
 
     def _apply_geometry(self) -> None:
         self.cell_w = self.font.measure("0")
@@ -260,15 +345,21 @@ class ActaeaApp:
             f"{80 * self.cell_w}x{self._rows_var.get() * self.cell_h}"
         )
 
+    def _reheight(self) -> None:
+        self._apply_geometry()
+        self._persist()
+
     def _retype(self) -> None:
         n = self._font_size.get()
+        fam = self._family_var.get()
         for f in (self.font, self.font_bold, self.font_italic,
                   self.font_bold_italic):
-            f.configure(size=n)
-        # Tags reference the font objects, so existing text re-sizes with
+            f.configure(size=n, family=fam)
+        # Tags reference the font objects, so existing text re-dresses with
         # them; only the cell geometry needs recomputing.
         self._apply_geometry()
         self._grid_changed()
+        self._persist()
 
     def _colours_toggled(self) -> None:
         # The cached looks resolved the other setting; drop them and
@@ -285,6 +376,7 @@ class ActaeaApp:
         )
         self.canvas.configure(background=bg)
         self._grid_changed()
+        self._persist()
 
     # -- the upper window ---------------------------------------------------------
 

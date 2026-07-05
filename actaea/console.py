@@ -21,6 +21,7 @@ holds: no binaries, no third-party packages. On platforms without curses
 
 import curses
 import locale
+import sys
 
 from .errors import ActaeaError
 from .io import IOSystem
@@ -122,6 +123,9 @@ class ConsoleApp:
         self.lower = curses.newwin(h, self.term_w, split, 0)
         self.lower.scrollok(True)
         self.lower.keypad(True)
+        # The window carries the game's background from birth: erases,
+        # scrolled-in lines, and the blank screen all wear it.
+        self.lower.bkgd(" ", self._pair(-1, self._cc(self.vm.screen.bg)))
         self.lower.move(h - 1, 0)  # story text grows from the bottom up
 
     def _resized(self) -> None:
@@ -252,10 +256,12 @@ class ConsoleApp:
 
     def erase_lower(self) -> None:
         self._pending = []
-        self.lower.erase()
-        # Colour the cleared screen in the game's background (the terminal
-        # counterpart of the window repaint at erase, S 8.7.3.3).
+        # The background FIRST, then the erase: curses fills a cleared
+        # window with its background attribute, so this order is what makes
+        # the whole screen take the game's colour (the terminal counterpart
+        # of the window repaint at erase, S 8.7.3.3).
         self.lower.bkgd(" ", self._pair(-1, self._cc(self.vm.screen.bg)))
+        self.lower.erase()
         self.lower.move(self.lower.getmaxyx()[0] - 1, 0)
         self._since_input = 0
 
@@ -397,6 +403,11 @@ class ConsoleApp:
         self.lower.getch()
 
 
-def play(story) -> None:
+def play(story, title: str = "") -> None:
     locale.setlocale(locale.LC_ALL, "")  # accents render as themselves
+    # Name the terminal tab/window after the story (the xterm title
+    # sequence; terminals that ignore it, ignore it harmlessly).
+    label = f"{title} - Actaea" if title else "Actaea"
+    sys.stdout.write(f"\x1b]0;{label}\x07")
+    sys.stdout.flush()
     curses.wrapper(lambda scr: ConsoleApp(story, scr).run())
