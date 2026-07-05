@@ -3107,3 +3107,43 @@ blank line too. Every tool-facing shape verified byte-exact: all end
 --headless transcript carries no banner; debuggers and BuildTools
 parse game text, not stationery). actaea 0.12.4, build/actaea
 regenerated. 540 tests.
+
+## 2026-07-05: B10 COMPLETE. Actaea 1.0.0.
+
+Stefan's green light on the last polish closes the milestone. The
+documentation pass that closes it, per his direction:
+
+- The design document moved home: docs/06-actaea-design.md is now
+  actaea/actaea-design.md, the design record living beside the code it
+  describes, its head updated to say so (status: complete, M1 to M11
+  all built).
+- docs/06-actaea.md is NEW: the official Actaea documentation. What it
+  is, the standalone and the package, the three ways to play (window,
+  --console, --headless) and where each degrades, the tools (--header,
+  --disasm, the banner house style), Quetzal saves and undo and
+  transcripts, the full input story (preload, terminating characters,
+  timed input), the conformance record, the two deliberate leniencies,
+  and the arcc-to-actaea loop for Arcturus authors.
+- Every pointer updated: CLAUDE.md's Actaea section (now "complete",
+  three front-ends, distribution note beside the arcc amalgam habit),
+  docs/00-roadmap.md (status head, docs index, B10 marked COMPLETE
+  2026-07-05, section 8 rewritten to the true present: the project owns
+  both ends of the pipeline, next is B11), README (the Actaea bullet
+  flips to Done with the full feature story, docs/06 joins the docs
+  list), actaea/__init__.py, the handoff prompt, HANDOVER.md. No
+  dangling references to the old path outside this build log.
+- Version: 1.0.0. The design doc's own words: after M11 Actaea is a
+  finished Standard 1.1 interpreter. It is. build/actaea regenerated,
+  540 tests green, the banner says v1.0.0.
+
+The B10 arc, in one paragraph for the record: eleven milestones from
+loader to conformance sweep (M1 loader/memory, M2 decoder, M3
+executor, M4 objects, M5 text, M6 the CZECH/Praxix gate, M7 the
+window, M8 the cell grid, M9 styles and colours with the
+light-interpreter ruling, M10 Quetzal, M11 the sweep: preload,
+terminators, timed input, transcript, the z8 leniencies), then
+Stefan's polish rounds (the curses console, the standalone, the
+banner, menus and persistent settings, the About panel, the console
+paper and top-fill, the CLI house style). Three front-ends, one
+headless core, zero dependencies. Next: B11, arc_image on modern
+systems, extending the cell model M8 built for exactly this.

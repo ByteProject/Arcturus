@@ -103,7 +103,7 @@ complete and verified on Frotz.
 `docs/00-roadmap.md` (charter, locked decisions, milestones, size and graphics
 strategy), `docs/01-syntax-reference.md` (the language, with the two conformance
 example games), `docs/02-cosmos-and-parser.md` (the runtime), `docs/03` to
-`docs/05` (pipeline, codegen mapping, granules), `docs/06-actaea-design.md` (the
+`docs/05` (pipeline, codegen mapping, granules), `actaea/actaea-design.md` (the
 future interpreter, B10), `docs/verb-set.md`, `docs/message-set.md`. `README.md`
 is the public face (keep it and the docs in sync with any change they describe;
 no AI-process framing in public docs). `docs/07-conformance.md` is named in

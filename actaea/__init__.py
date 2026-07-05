@@ -5,8 +5,9 @@
 
 """Actaea: a Standard 1.1 conformant Z-machine interpreter for versions 5 and
 8, in Python with a tkinter front-end. It plays any well-formed story file,
-not only Arcturus output. docs/06-actaea-design.md is the authoritative
-design; this package is Arcturus milestone B10.
+not only Arcturus output. docs/06-actaea.md is the official documentation and
+actaea-design.md (beside this package) the design record; this package is
+Arcturus milestone B10, complete.
 
 The architecture is two layers with a hard boundary: a headless virtual
 machine core (loader, memory, decoder, executor, objects, text, dictionary,
@@ -15,7 +16,7 @@ I/O interface, and a tkinter front-end that implements that interface. The
 core never imports tkinter; conformance (CZECH, Praxix) runs through the
 console harness in __main__."""
 
-__version__ = "0.12.4"
+__version__ = "1.0.0"
 
 
 def banner() -> str:

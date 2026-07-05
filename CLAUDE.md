@@ -108,23 +108,27 @@ Darkness (docs/01 sections 18 and 19) must compile, run correctly on Frotz,
 and run on Ceres, and their story files are tracked for size regression
 against a PunyInform-equivalent build.
 
-## Actaea (milestone B10): the reference interpreter
+## Actaea: the reference interpreter (milestone B10, complete)
 
 Actaea is a Standard 1.1 conformant Z-machine interpreter for versions 5 and 8,
-written in Python with a tkinter GUI, built in this repo under `actaea/`. It
-plays any well-formed story file, not only Arcturus output. docs/06-actaea-
-design.md is authoritative for it.
+written in Python, built in this repo under `actaea/`. It plays any well-formed
+story file, not only Arcturus output. docs/06-actaea.md is the official
+documentation; actaea/actaea-design.md is the design record (architecture and
+the M1 to M11 build milestones, all complete).
 
-- Scope: z5 and z8 only; full text styles and colours; a true monospace cell
-  grid for the upper window; Quetzal save and restore with in-memory undo and
-  restart. No sound. No arc_image.
+- Three front-ends on one headless core behind a hard io boundary: the tkinter
+  window (cell-grid status area, styles and colours, menus with persistent
+  settings), the curses terminal (`--console`, fizmo-ncursesw manner), and the
+  plain pipe (`--headless`, dumb-frotz manner, what scripts and BuildTools
+  drive). Both GUI and curses ship inside CPython: zero dependencies holds.
+- Scope: z5 and z8 only; full styles and colours; Quetzal saves interoperating
+  with Frotz both ways; multiple undo; restart; real transcript files; timed
+  input; terminating characters; input preloading. No sound. No v6.
 - arc_image is not part of Actaea. It is built later, in this same project, as
-  milestones B11 and B12. Actaea only keeps the cell model decoupled so that work
-  is an extension. Nothing in Actaea's M1 to M11 touches graphics.
-- Architecture: a headless VM core with a hard boundary to the tkinter front-
-  end. The core passes conformance through a console harness before the GUI
-  exists.
-- Conformance: CZECH and Praxix headless (the M6 gate), and TerpEtude for the
-  screen and input features.
-- Milestones M1 to M11 in docs/06 are the breakdown of B10. Headless through M6,
-  GUI from M7, the cell grid its own milestone (M8) with a visible done-test.
+  milestones B11 and B12; Actaea keeps the cell model decoupled so that work
+  is an extension.
+- Conformance: CZECH 406/406 byte-matched, Praxix all-pass, TerpEtude text
+  portions, real z5/z8 games, and dfrotz save interop, all in the test suite.
+- Distribution: `tools/amalgamate_actaea.py` builds the standalone
+  `build/actaea` (same arrangement as arcc); regenerate it whenever the
+  interpreter changes, alongside `tools/amalgamate.py` for arcc.
