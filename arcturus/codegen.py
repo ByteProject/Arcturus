@@ -934,18 +934,17 @@ def build_routines(world: wm.World, gmap: dict, layout, pool):
     banner_rt = Routine("cosmos_banner", nlocals=0)
     _emit_banner(banner_rt, world)
     banner_rt.op("rfalse")
-    if _meta(world).get("banner") is not False:
-        # With a status bar summoned, the bar overlays screen row 1, so the
-        # start-time banner steps down one line first and the title sits
-        # DIRECTLY under the bar (Inform shows a stray blank here; a game
-        # without the bar starts at the very top). A mid-game print_banner()
-        # spaces itself from the pending break instead.
-        if "status_bar" in world.blocks:
-            main.op("new_line")
-        main.op("call_vn", RoutineRef("cosmos_banner"))
     if "run_game" in world.blocks:
+        # The turn loop (run_game) prints the banner itself, AFTER `on start`,
+        # so a game that sets its screen colours in `on start` has them in place
+        # first and the banner is not erased (the Inform Initialise order). It
+        # respects `banner false` through the auto_banner flag.
         main.op("call_vn", RoutineRef("blk_run_game"))
     else:
+        # No Cosmos turn loop (bare-world unit tests): print the banner here and
+        # run `on start` inline, the older behavior those tests rely on.
+        if _meta(world).get("banner") is not False:
+            main.op("call_vn", RoutineRef("cosmos_banner"))
         start = _start_handler(world)
         if start is not None:
             ctx = Context(world, gmap, layout=layout, in_handler=True, string_pool=pool)

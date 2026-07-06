@@ -21,6 +21,10 @@ from arcturus.sema import analyze
 GAME = (
     'game\n'
     '    title "Para Test"\n'
+    # No auto-banner, so this exercises the paragraph breaks between the opening
+    # text and the room directly: since `on start` now runs before the banner
+    # (Inform's Initialise order), the banner would otherwise sit between them.
+    '    banner false\n'
     '    start den\n'
     'on start\n'
     '    say "Welcome in."\n'

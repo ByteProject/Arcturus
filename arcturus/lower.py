@@ -64,8 +64,10 @@ INTRINSICS = frozenset({
     "run_free", "ev_start", "ev_enter", "ev_each_turn", "action_id", "run_grain",
     "tick_timers",
     # show prints without a trailing newline (say always adds one); print_name
-    # prints an object's short name (so messages can name a passed-in object).
-    "show", "print_name",
+    # prints an object's short name (so messages can name a passed-in object);
+    # new_line prints a bare newline (the library's own line control, e.g.
+    # stepping the start banner below a summoned status bar).
+    "show", "print_name", "new_line",
     # tick advances the turn counter, set_here updates the room (both globals are
     # read-only to author code, so the loop changes them through intrinsics).
     "tick", "set_here",
@@ -81,8 +83,11 @@ INTRINSICS = frozenset({
     "set_colour", "zc_font", "zc_status", "zc_input",
     # print_banner prints the game banner (title, headline, author, release
     # line), for a game that sets `banner false` and shows it after its own
-    # opening (a quote box, a pregame prelude).
-    "print_banner",
+    # opening (a quote box, a pregame prelude). auto_banner is the compile-time
+    # flag (1 unless `banner false`) the turn loop tests to print the banner
+    # itself, AFTER `on start`, so a game that sets its screen colours in
+    # `on start` has them in place and the banner is not erased.
+    "print_banner", "auto_banner",
     # do_quit ends the session (the quit opcode); text_char reads a typed
     # character from the input buffer (for a yes/no confirmation). do_restart
     # restarts the story from the beginning (the restart opcode). do_save /
@@ -582,6 +587,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # building a sentence around a named object).
         _say(rt, ctx, args[0], newline=False)
         _place(rt, Const(0), dest)
+    elif name == "new_line":
+        # new_line(): a bare newline (the raw opcode), for the library's own
+        # line control. No paragraph-break handling: this is a literal line.
+        rt.op("new_line")
+        _place(rt, Const(0), dest)
     elif name == "print_name":
         # print_name(obj): the object's short name, no newline. Flushes a
         # pending paragraph break first, like every other text output (the
@@ -872,6 +882,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_images(): the compile-time image flag (1 or 0), so describe_room
         # folds its whole picture path away in a game with no arc_image.
         _place(rt, Const(_any_images(ctx)), dest)
+    elif name == "auto_banner":
+        # auto_banner(): 1 unless `banner false`, so the turn loop prints the
+        # banner itself after `on start` (a folded constant, like any_X).
+        _place(rt, Const(_auto_banner(ctx)), dest)
     elif name == "image_of":
         # image_of(room): the room's picture id (the arc_image slot), or 0 (the
         # property default) when the room has no picture.
@@ -1008,6 +1022,18 @@ def _any_images(ctx) -> int:
     describe_room guards its picture draw on this so the whole image path folds
     away in a game with no pictures (byte-identical to one that never had them)."""
     return 1 if ctx.world.images else 0
+
+
+def _auto_banner(ctx) -> int:
+    """The compile-time banner flag: 0 when the game block sets `banner false`
+    (the game shows it itself with print_banner), else 1. The turn loop tests
+    this to print the banner after `on start`."""
+    game = ctx.world.game
+    if game is not None:
+        for m in game.meta:
+            if m.key == "banner" and m.value is False:
+                return 0
+    return 1
 
 
 def _zc_guard(rt, ctx) -> str:
@@ -1662,6 +1688,8 @@ def _static_value(ctx, expr):
         return _any_grains(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_images":
         return _any_images(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "auto_banner":
+        return _auto_banner(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_allwords":
         return 1 if ctx.world.all_words else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_plurals":
