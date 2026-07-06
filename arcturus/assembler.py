@@ -152,13 +152,15 @@ _OPCODES = {
     "restore": ("EXT", 0x01, True, False, False),
     "save_undo": ("EXT", 0x09, True, False, False),
     "restore_undo": ("EXT", 0x0A, True, False, False),
-    # draw_image id mode (arc_image, B11): a CUSTOM extended opcode. The
-    # Standard leaves EXT:30-255 unassigned and says a conformant interpreter
-    # "should simply ignore" them (S 14.2), so it degrades safely if ever
-    # decoded; in practice the compiler only emits it behind a runtime
-    # pictures-available guard, so a text-only interpreter never reaches it.
-    # id 0 clears the picture band; mode selects the layout (banner/half).
-    "draw_image": ("EXT", 0x20, False, False, False),
+    # draw_image id mode (arc_image, B11): a CUSTOM extended opcode. It lives at
+    # EXT:0x80, in the 128-255 range the Standard reserves for unofficial/private
+    # extensions (so it can never collide with a future official opcode, which
+    # are assigned from the low end); a conformant interpreter also "should
+    # simply ignore" any EXT opcode it does not recognise (S 14.2), so it
+    # degrades safely if ever decoded. In practice the compiler only emits it
+    # behind a runtime pictures-available guard, so a text-only interpreter
+    # never reaches it. id 0 clears the picture band; mode selects the layout.
+    "draw_image": ("EXT", 0x80, False, False, False),
 }
 
 

@@ -24,10 +24,11 @@ from arcturus.codegen import generate
 from arcturus.parser import parse
 from arcturus.sema import analyze
 
-# 0xBE is the extended-opcode marker; 0x20 is draw_image's EXT number. The pair
-# is the opcode's on-disk signature, so its presence/absence in the story bytes
-# is a direct check of the compile-time fold.
-DRAW_IMAGE = b"\xbe\x20"
+# 0xBE is the extended-opcode marker; 0x80 is draw_image's EXT number (in the
+# 128-255 range the Standard reserves for private extensions). The pair is the
+# opcode's on-disk signature, so its presence/absence in the story bytes is a
+# direct check of the compile-time fold.
+DRAW_IMAGE = b"\xbe\x80"
 
 # Ids named by constants (the readable way authors write them): cellar is slot
 # 1, forest is slot 2, so the interpreter loads 1.png and 2.png.
