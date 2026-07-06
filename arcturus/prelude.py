@@ -199,9 +199,10 @@ _STD_VALUE_PROPS = {
     # of that character's runtime topic table (objects.py emits the table, the
     # conversation granules walk it). T_LIST so it is a slot holding a pointer.
     "topics": T_LIST,
-    # arc_image (B11): a room's picture. The author writes a name (arc_image
-    # "cellar"); the compiler rewrites it to a numeric resource id, so the slot
-    # holds a NUMBER, and the interpreter maps the id to a picture file. A standard
+    # arc_image (B11): a room's picture, named by its resource id. The author
+    # writes the id as a number (arc_image 8) or a constant that folds to one
+    # (arc_image forest), so the slot holds a NUMBER that IS the resource slot:
+    # the interpreter loads <id>.png, a retro build loads slot <id>. A standard
     # interpreter ignores the property; on an aware one Cosmos reads it on room
     # entry (behind the pictures-available guard) and draws the picture.
     "arc_image": T_NUMBER,

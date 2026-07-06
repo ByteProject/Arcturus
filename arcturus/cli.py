@@ -13,7 +13,6 @@ arrives in a later milestone.
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import platform
 import sys
@@ -423,24 +422,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"arcc: error: cannot write {args.output}: {exc}", file=sys.stderr)
             return 2
         print(f"{args.source}: wrote {args.output} ({len(story)} bytes)")
-        # arc_image (B11): a game with pictures gets a resource manifest beside
-        # the story, mapping each picture id to its name, so an aware interpreter
-        # can find the picture file (name.png in the images directory). Emitted
-        # only when the game uses arc_image, so a text game writes nothing extra.
-        if world.images:
-            manifest = os.path.splitext(args.output)[0] + ".arcres"
-            try:
-                with open(manifest, "w", encoding="utf-8") as fh:
-                    json.dump(
-                        {"images": {str(i): n for n, i in world.images.items()}},
-                        fh, indent=2,
-                    )
-                print(f"{args.source}: wrote {manifest} "
-                      f"({len(world.images)} pictures)")
-            except OSError as exc:
-                print(f"arcc: error: cannot write {manifest}: {exc}",
-                      file=sys.stderr)
-                return 2
+        # arc_image (B11): pictures need no compiler sidecar. The id in each room's
+        # arc_image slot IS the resource number, so an aware interpreter loads
+        # <id>.png straight from the images directory (or the .arcres pack that
+        # `arcimg` builds). Nothing extra is written beside the story.
         if stats is not None:
             print(_stats_report(stats, args.zversion))
         return 0

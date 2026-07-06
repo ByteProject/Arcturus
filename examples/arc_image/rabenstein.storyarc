@@ -1,0 +1,100 @@
+// The Curse of Rabenstein: an arc_image demonstration.
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// ============================================================================
+// WHAT THIS IS
+// ============================================================================
+// A two-room walk that shows arc_image, Arcturus's optional graphics. A room
+// can carry a picture that an aware interpreter draws and every standard
+// interpreter ignores, so the compiled story stays a fully conformant
+// Z-machine v5 file. The art here is the Amiga/ST scene work from The Curse of
+// Rabenstein, in DAAD mode (320x96).
+//
+// ============================================================================
+// HOW arc_image WORKS
+// ============================================================================
+// A picture is named by its id, a resource slot. The id IS the identifier
+// every target shares: on a modern system an interpreter loads picture <id>;
+// a retro build (in the works) loads the same slot in the machine's own
+// format. There is no name table to carry down. Write the id as a plain number
+// (arc_image 8) or, as here, a constant that folds to one, which reads better:
+//
+//     constant scene_path = 8
+//     ...
+//         arc_image scene_path
+//
+// Cosmos reads the property on room entry, behind a capability guard the story
+// crosses only on an interpreter that advertises picture support, and draws the
+// picture. That guard is the whole safety story: an interpreter only decodes
+// bytes its control flow reaches, so on Frotz (and in Actaea's text modes) the
+// draw is never reached and the game plays as pure text. Id 0 means "no
+// picture" and clears the band; a room without arc_image clears it too, so the
+// picture always matches the room.
+//
+// Two picture shapes exist, each a whole number of 8-pixel text rows tall so
+// the status bar sits flush beneath the band:
+//     Infocom mode   320x72   9 rows    the upper third (the Arthur look)
+//     DAAD mode      320x96   12 rows   the upper half  (the Rabenstein look)
+// A modern interpreter integer-scales the picture to the window, crisp for
+// pixel art at any font size; pixel art is the medium that looks best.
+//
+// ============================================================================
+// THE PICTURES: THE .arcres FILE
+// ============================================================================
+// The pictures live beside the story, never inside it, so the .z5 stays a
+// plain story file. They travel as an .arcres pack: one file, a zip of the
+// numbered PNGs keyed by id, that the interpreter reads automatically when it
+// sits next to the story. This example ships rabenstein.arcres, which holds
+// pictures 1 and 8. It was built with the arcimg tool:
+//
+//     arcimg pack 8.png 1.png -o rabenstein.arcres
+//
+// arcimg also prepares art that is not already the right size (cropping and
+// scaling a photo or a wrong-sized image to a mode), and lists a pack:
+//
+//     arcimg prep opening.jpg --id 8 --mode daad -o .   // -> 8.png at 320x96
+//     arcimg info rabenstein.arcres                     // list the pack
+//
+// ============================================================================
+// RUNNING IT
+// ============================================================================
+//     arcc rabenstein.storyarc -o rabenstein.z5    // compile (a plain z5 file)
+//     actaea rabenstein.z5                          // play, pictures and all
+//
+// Actaea is the reference interpreter, and its window is where the pictures
+// show; more interpreters that render arc_image are in the works. The very
+// same rabenstein.z5 also plays, as pure text, on Frotz and in Actaea's
+// --console and --headless modes: the pictures are simply absent there.
+
+game
+    title "The Curse of Rabenstein"
+    headline "An arc_image demonstration"
+    author "Stefan Vogt"
+    start opening
+
+constant scene_path = 8
+constant scene_church = 1
+
+summon.statusline
+
+// on start runs before the banner (the Infocom order), so the game can set up
+// its Z-machine colours before a word is printed.
+on start
+    zcolor.font white
+    zcolor.background black
+    zcolor.statusline red
+    zcolor.input red
+
+room opening
+    name "Forsaken Path"
+    desc "You are standing on a path deep in the Black Forest, extending further north from here."
+    arc_image scene_path
+    north church
+
+room church
+    name "Churchyard"
+    desc "A small stone church stands here, its windows dark and its door ajar. The path leads back south."
+    arc_image scene_church
+    south opening

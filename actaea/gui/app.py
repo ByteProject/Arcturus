@@ -27,8 +27,10 @@ full style and colour treatment arrives with M9. The Canvas is the surface
 the later arc_image work draws pictures onto, which is why cell geometry
 is exact from day one."""
 
+import base64
 import json
 import os
+import zipfile
 import tkinter as tk
 import webbrowser
 from math import gcd as _gcd
@@ -142,15 +144,16 @@ class ActaeaApp:
     """The window: a Text widget with a scrollbar, inline input, and the
     run loop driving the VM through GuiIO."""
 
-    def __init__(self, story, title: str, image_names=None, images_dir=None):
+    def __init__(self, story, title: str, images_dir=None, images_zip=None):
         self.root = tk.Tk()
         self.root.title(f"{title} - Actaea")
-        # arc_image (B11): id -> picture name (from the story's .arcres manifest)
-        # and the directory holding the <name>.png files. A picture the model
-        # asks for is loaded on demand and cached; PhotoImages must be kept
-        # referenced or tkinter garbage-collects them off the canvas.
-        self._image_names = image_names or {}
+        # arc_image (B11): an arc_image id IS the resource slot, so a picture the
+        # model asks for is loaded as <id>.png, either from a loose images
+        # directory or from the story's .arcres pack (a zip of the same numbered
+        # PNGs). No name manifest. Loaded on demand and cached; PhotoImages must
+        # be kept referenced or tkinter garbage-collects them off the canvas.
         self._images_dir = images_dir
+        self._images_zip = images_zip
         self._photo_cache: dict = {}    # id -> native PhotoImage
         self._scaled_cache: dict = {}   # (id, target_width) -> scaled PhotoImage
         self._drawn_image = False  # a sentinel distinct from None (no picture)
@@ -471,22 +474,34 @@ class ActaeaApp:
     # -- the picture band (arc_image) -------------------------------------------
 
     def _load_image(self, image_id: int):
-        """The native PhotoImage for a picture id, from <name>.png in the images
-        directory (name from the manifest), loaded once and cached. None when
-        the id is unknown or the file is missing or not a readable image, so a
-        missing picture degrades to an empty band rather than a crash."""
+        """The native PhotoImage for a picture id, loaded as <id>.png and cached.
+        None when the file is missing or not a readable image, so a missing
+        picture degrades to an empty band rather than a crash."""
         if image_id in self._photo_cache:
             return self._photo_cache[image_id]
-        name = self._image_names.get(image_id)
-        if not name or not self._images_dir:
-            return None
-        path = os.path.join(self._images_dir, name + ".png")
-        try:
-            photo = tk.PhotoImage(file=path)
-        except tk.TclError:
-            photo = None
+        photo = self._read_photo(image_id)
         self._photo_cache[image_id] = photo
         return photo
+
+    def _read_photo(self, image_id: int):
+        """Read <id>.png into a PhotoImage: from the loose images directory when
+        one is set, otherwise from the .arcres pack (a zip of the same numbered
+        PNGs). None on any miss (bad path, absent entry, unreadable image)."""
+        fname = f"{image_id}.png"
+        if self._images_dir:
+            try:
+                return tk.PhotoImage(file=os.path.join(self._images_dir, fname))
+            except tk.TclError:
+                return None
+        if self._images_zip:
+            try:
+                with zipfile.ZipFile(self._images_zip) as z:
+                    data = z.read(fname)
+                # tkinter reads PNG bytes through the base64 `data` option.
+                return tk.PhotoImage(data=base64.b64encode(data).decode("ascii"))
+            except (OSError, KeyError, zipfile.BadZipFile, tk.TclError):
+                return None
+        return None
 
     def _scaled_image(self, image_id: int):
         """The picture scaled to fill the window width at its own aspect ratio,
@@ -908,5 +923,5 @@ class ActaeaApp:
                 self.append_story(f"\n[actaea: {e}]\n")
 
 
-def play(story, title: str, image_names=None, images_dir=None) -> None:
-    ActaeaApp(story, title, image_names, images_dir).run()
+def play(story, title: str, images_dir=None, images_zip=None) -> None:
+    ActaeaApp(story, title, images_dir, images_zip).run()

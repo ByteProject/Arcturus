@@ -18,7 +18,6 @@ When a requested front-end cannot exist here (no tkinter, no curses, no
 tty), the choice degrades one honest step at a time and says so."""
 
 import argparse
-import json
 import os
 import sys
 
@@ -62,32 +61,27 @@ def _report(story) -> str:
     return "\n".join(lines)
 
 
-def _load_manifest(story_path: str):
-    """The story's arc_image resources: the sibling `.arcres` manifest maps
-    each picture id to a name, so a front-end can find <name>.png. Returns
-    {id: name} (ids as ints) or {} when there is no manifest."""
-    manifest = os.path.splitext(story_path)[0] + ".arcres"
-    try:
-        with open(manifest, encoding="utf-8") as f:
-            data = json.load(f)
-    except (OSError, ValueError):
-        return {}
-    images = data.get("images", {}) if isinstance(data, dict) else {}
-    out = {}
-    for k, v in images.items():
-        try:
-            out[int(k)] = v
-        except (TypeError, ValueError):
-            continue
-    return out
+def _resolve_images(story_path: str, images_arg):
+    """Where the story's arc_image pictures live. An arc_image id is the
+    resource slot, so a front-end loads <id>.png directly; there is no name
+    manifest. Returns (images_dir, images_zip): a loose directory of numbered
+    PNGs, or a `.arcres` pack (a zip of the same numbered PNGs), whichever
+    applies. Priority: an explicit --images directory; else a sibling .arcres
+    pack; else the story's own directory (the loose debug default)."""
+    if images_arg:
+        return images_arg, None
+    pack = os.path.splitext(story_path)[0] + ".arcres"
+    if os.path.isfile(pack):
+        return None, pack
+    return os.path.dirname(os.path.abspath(story_path)), None
 
 
-def _play_window(story, title: str, image_names=None, images_dir=None) -> bool:
+def _play_window(story, title: str, images_dir=None, images_zip=None) -> bool:
     try:
         from .gui.app import play
     except ImportError:
         return False  # no tkinter on this Python
-    play(story, title, image_names, images_dir)
+    play(story, title, images_dir, images_zip)
     return True
 
 
@@ -172,8 +166,9 @@ def main(argv=None) -> int:
     )
     ap.add_argument(
         "--images", metavar="DIR",
-        help="directory of the story's picture files (arc_image, GUI only); "
-        "defaults to the story's own directory",
+        help="directory of the story's numbered picture files (arc_image, GUI "
+        "only); defaults to a sibling .arcres pack, then the story's own "
+        "directory",
     )
     ap.add_argument("--version", action=_Version, nargs=0,
                     help="show the version banner and exit")
@@ -216,15 +211,14 @@ def main(argv=None) -> int:
 
         # arc_image resources for the window (the terminal and headless modes
         # cannot show pictures, so they ignore them).
-        image_names = _load_manifest(args.story)
-        images_dir = args.images or os.path.dirname(os.path.abspath(args.story))
+        images_dir, images_zip = _resolve_images(args.story, args.images)
 
         # The default ladder: the window on a desktop; the terminal when
         # tkinter is absent; the pipe when input is piped or nothing
         # screen-like exists at all.
         if sys.stdin.isatty():
             if _play_window(story, os.path.basename(args.story),
-                            image_names, images_dir):
+                            images_dir, images_zip):
                 return 0
             if _play_terminal(story, os.path.basename(args.story)):
                 return 0

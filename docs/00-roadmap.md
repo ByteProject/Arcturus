@@ -138,15 +138,23 @@ In priority order:
 
 Once the language is stable, Arcturus gains optional graphics through the
 `arc_image` property, designed so the story file never stops being conformant
-z5. A room carrying `arc_image "cellar"` is invisible to a standard
-interpreter, which simply ignores a property it does not read. On an
-Arcturus-aware interpreter, Cosmos reads the property on room entry and passes
-the name as a numeric resource id to a custom EXT opcode; the interpreter loads
-the picture. Art is authored once as PNGs. On modern systems the PNG
-renders directly in the reference interpreter, Actaea (B11); for retro targets
-(B12) a tool converts each PNG into the machine's native or a trimmed,
-RLE-compressed format (.kla on C64, .iff on Amiga, distinct again on a CPC),
-kept small for 8-bit machines.
+z5. A room carrying `arc_image 8` (or `arc_image cellar`, a constant that folds
+to the number) is invisible to a standard interpreter, which simply ignores a
+property it does not read. The id is a resource slot, the one identifier every
+target shares: on an Arcturus-aware interpreter, Cosmos reads the property on
+room entry and passes the id to a custom EXT opcode, and the interpreter loads
+picture id. There is no name manifest to translate down. Art is authored once
+as PNGs in one of two picture shapes, both a whole number of text rows tall so
+the status bar sits flush beneath the band: Infocom mode (320x72, 9 rows, the
+upper third, the Arthur look) and DAAD mode (320x96, 12 rows, the upper half,
+the Rabenstein look). On modern systems the PNG renders directly in the
+reference interpreter, Actaea, which integer-scales it to the window, crisp for
+pixel art (B11); the author tool `arcimg` prepares the art and packs it into an
+`.arcres` file (a zip of the numbered PNGs) for distribution, the story kept
+separate. For retro targets (B12) `arcimg` gains back-ends that convert each
+PNG into the machine's own trimmed, RLE-compressed format (a custom format per
+machine, sized to fit and not the full-screen .kla/.iff shapes, which cannot be
+cropped to a band), kept small for 8-bit machines.
 
 Safe degradation is structural, not a special case. A Z-machine interpreter
 only decodes bytes its control flow reaches. The custom opcode sits behind a
@@ -244,11 +252,14 @@ done-test.
   `arc_image`. docs/06-actaea.md is the documentation; actaea/actaea-design.md
   the design record (M1 to M11, all built).
 - B11: `arc_image` on modern systems (section 6). The capability guard and EXT
-  opcode contract, room and scene art rendered from PNGs, the rendering capability
-  added to Actaea, with the same story file still running unchanged on Frotz.
+  opcode contract, resource ids written as constants, room and scene art
+  rendered from PNGs in Infocom and DAAD modes, the rendering capability added
+  to Actaea, and the `arcimg` author tool preparing and packing the art into an
+  `.arcres` file, with the same story file still running unchanged on Frotz.
 - B12: `arc_image` on retro systems. Per-platform image formats (a C64 differs
-  from a CPC), the PNG-to-retro porting tools Arcturus drives, and the spec
-  addenda for how the owned Standard 1.1 interpreters extend to render them.
+  from a CPC), `arcimg` gaining the PNG-to-retro back-ends (a trimmed RLE format
+  per machine, sized to the band), and the spec addenda for how the owned
+  Standard 1.1 interpreters extend to render them.
 - B13: port The Curse of Rabenstein from DAAD to Arcturus. Trivial as a port,
   it exercises the `arc_image` graphics path end to end (its art is ready for
   the retro targets) and ships as a worked example game.

@@ -1021,7 +1021,7 @@ def _any_images(ctx) -> int:
     """The compile-time image flag: 1 if any room declares `arc_image`, else 0.
     describe_room guards its picture draw on this so the whole image path folds
     away in a game with no pictures (byte-identical to one that never had them)."""
-    return 1 if ctx.world.images else 0
+    return 1 if ctx.world.uses_images else 0
 
 
 def _auto_banner(ctx) -> int:

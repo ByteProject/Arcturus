@@ -21,15 +21,17 @@ The name is a star, Arcturus, and the narrative arc every story is built on.
 
 ## Quickstart
 
-The whole toolchain is two self-contained files. Download them and you are
-ready: no installation, no packages, nothing to build. All you need is Python
-3.11 or later, which you almost certainly already have.
+The whole toolchain is two self-contained files (a third if your game uses
+pictures). Download them and you are ready: no installation, no packages,
+nothing to build. All you need is Python 3.11 or later, which you almost
+certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.10.6 | [build/arcc](build/arcc) |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.10.7 | [build/arcc](build/arcc) |
 | **Cosmos**, the standard library | 0.14.3 | shipped inside `arcc` |
-| **Actaea**, the reference interpreter | 1.0.0 | [build/actaea](build/actaea) |
+| **Actaea**, the reference interpreter | 1.0.1 | [build/actaea](build/actaea) |
+| **arcimg**, the arc_image picture tool (optional, for graphics) | 1.0.1 | [build/arcimg](build/arcimg) |
 
 Write a game, compile it, play it:
 
@@ -76,6 +78,16 @@ interactive fiction, this is a good time to pick it up.
 
 The most significant recent additions and achievements:
 
+- **Optional graphics: `arc_image`, on modern systems.** A room can carry a
+  picture (`arc_image 8`, or a constant that folds to the id) that shows in
+  Actaea's window, a crisp integer-scaled band above the status bar, in an
+  Infocom shape (320x72, the upper third) or a DAAD shape (320x96, the upper
+  half). The story never stops being a conformant z5: the picture sits behind a
+  capability guard, so the same file plays unchanged and text-only on Frotz and
+  in Actaea's console and pipe modes. The id is a resource slot the pictures are
+  numbered by, so there is no manifest to carry, and the `arcimg` tool prepares
+  the art and packs it into a single `.arcres` file for distribution, the story
+  kept separate. Retro rendering follows next.
 - **Actaea, the reference interpreter, reached 1.0.** A Standard 1.1 conformant
   Z-machine interpreter for versions 5 and 8, in Python with no dependencies
   beyond the standard library, so the project now owns both ends of the
@@ -112,9 +124,9 @@ The most significant recent additions and achievements:
   (`summon.quotes`), and a compile-statistics ledger after every build that
   watches the story's headroom against each Z-machine ceiling.
 
-On the horizon is `arc_image`, an optional graphics path (modern systems
-first, then the 8-bit and 16-bit retro machines). For the full, step-by-step
-history, see [PROGRESS.md](PROGRESS.md).
+On the horizon is `arc_image` for the retro machines: the same numbered
+pictures, converted to each 8-bit and 16-bit machine's own trimmed format. For
+the full, step-by-step history, see [PROGRESS.md](PROGRESS.md).
 
 ## The language
 

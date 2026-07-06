@@ -282,11 +282,12 @@ class World:
     computed_text_props: set = field(default_factory=set)
     # Resolution of every `is` test, keyed by the node's identity.
     is_resolutions: dict[int, str] = field(default_factory=dict)
-    # arc_image picture names (B11), each assigned a stable id 1..N in first-seen
-    # order. The compiler stores the id in a room's `arc_image` slot and emits a
-    # name/id manifest so the interpreter can find the picture file. Empty unless
-    # a game uses `arc_image`, so everything gated on it folds away.
-    images: dict[str, int] = field(default_factory=dict)
+    # arc_image (B11): True once any room declares an `arc_image` picture. The id
+    # in the slot is the author's own number (the resource slot the interpreter
+    # loads as <id>.png), so there is no name manifest; this flag is only the
+    # pay-for-use gate, letting any_images fold the whole picture path away in a
+    # game with no pictures.
+    uses_images: bool = False
 
     def all_handlers(self):
         for obj in self.objects.values():
