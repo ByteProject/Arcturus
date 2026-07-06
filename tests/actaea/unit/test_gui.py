@@ -109,12 +109,16 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     # pixel-grid scaling), so the band is full width and the height follows.
     assert app.vm.screen.image == (1, 0)
     scaled = app._scaled_image(1)
-    assert scaled.width() == 80 * app.cell_w         # fills the width
-    assert abs(scaled.height() / scaled.width() - 96 / 320) < 0.02  # aspect kept
-    # The band is exactly the picture height (status bar directly below, no gap),
-    # and the picture fills the 80-cell width from the left edge.
+    # The picture fills the 80-cell screen width (inside the frame) at its aspect.
+    assert scaled.width() == 80 * app.cell_w
+    assert abs(scaled.height() / scaled.width() - 96 / 320) < 0.02
+    # The band is exactly the picture height (status bar directly below, no gap).
     assert band and max(band) == scaled.height()
-    # The whole screen is exactly 80 cells wide: the window, the picture, and the
-    # status grid all share it, so nothing is shifted or short.
-    assert app.root.winfo_width() == 80 * app.cell_w
+    # The window is the 80-cell screen plus the frame on both sides.
+    assert app.root.winfo_width() == 80 * app.cell_w + 2 * app._margin
+    # The text area is a WHOLE number of lines (so it never shows a half row),
+    # and it shrank to fit under the picture band.
+    n = int(app.text.cget("height"))
+    assert n >= 1
+    assert n < app._rows_var.get()  # the band took some of the rows
     app.root.destroy()
