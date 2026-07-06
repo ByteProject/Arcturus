@@ -32,6 +32,12 @@ class IOSystem:
     # which the standard permits: the bit says so.
     supports_timed = False
 
+    # True only for a front-end that can draw pictures (the GUI). The VM sets
+    # the picture-available header bit from this (arc_image, B11); the console
+    # and headless modes leave it False, so a game's picture guard skips the
+    # draw and the story plays text-only.
+    supports_pictures = False
+
     def print_text(self, text: str) -> None:
         """Story text for the current window, already decoded to str.
         Buffering/word-wrap policy is the screen model's job (M7/M8); until

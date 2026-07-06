@@ -199,6 +199,12 @@ _STD_VALUE_PROPS = {
     # of that character's runtime topic table (objects.py emits the table, the
     # conversation granules walk it). T_LIST so it is a slot holding a pointer.
     "topics": T_LIST,
+    # arc_image (B11): a room's picture. The author writes a name (arc_image
+    # "cellar"); the compiler rewrites it to a numeric resource id, so the slot
+    # holds a NUMBER, and the interpreter maps the id to a picture file. A standard
+    # interpreter ignores the property; on an aware one Cosmos reads it on room
+    # entry (behind the pictures-available guard) and draws the picture.
+    "arc_image": T_NUMBER,
 }
 
 # Direction properties on a room, each an object defaulting to nothing.
@@ -276,6 +282,10 @@ _BUILTINS = {
     # Set for the opening room description when a status bar already names
     # the room: describe_room skips its title line once (library-internal).
     "hide_title": T_NUMBER,
+    # arc_image (B11), library-internal: the picture id currently on screen, so
+    # describe_room only redraws when the room's picture actually changes (a
+    # re-LOOK in the same room reloads nothing). 0 = no picture / initial blank.
+    "shown_image": T_NUMBER,
     # Scoring (docs/01): the earned-bytes table for award sites and pools,
     # and the rank ladder table; both seeded by the compiler.
     "__awards__": T_NUMBER,

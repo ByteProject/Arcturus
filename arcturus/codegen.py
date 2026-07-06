@@ -573,6 +573,9 @@ _BUILTIN_GLOBALS = [
     "__ambience__",
     # The opening-description title skip (a status bar already names the room).
     "hide_title",
+    # arc_image (B11): the picture id currently on screen, so describe_room skips
+    # the draw when the room's picture has not changed (the re-LOOK dedup).
+    "shown_image",
     # Scoring: the award earned-bytes table, the rank ladder, the labelled
     # pools for the fullscore breakdown.
     "__awards__", "__ranks__", "__pooltab__",

@@ -104,12 +104,28 @@ class ScreenModel:
         self.style = ROMAN            # current output style (both windows)
         self.fg = 1
         self.bg = 1
+        # The room picture (arc_image, B11): (id, mode) currently shown, or None
+        # for no picture. Core-owned screen truth like the grid; a front-end
+        # that can draw pictures renders it on change, others ignore it. The
+        # id is a resource number the front-end maps to a picture file.
+        self.image = None
 
     # -- notification ----------------------------------------------------------
 
     def _changed(self) -> None:
         if self.on_change is not None:
             self.on_change()
+
+    def set_image(self, image_id: int, mode: int) -> None:
+        """Show picture `image_id` in band `mode`, or clear the band when the id
+        is 0. A no-op when it already matches what is shown, so a redundant draw
+        never forces a repaint or a reload (the dedup safety net; the library
+        already avoids the redundant call, this backs it up)."""
+        want = None if image_id == 0 else (image_id, mode)
+        if want == self.image:
+            return
+        self.image = want
+        self._changed()
 
     # -- the current look (M9): one truth for BOTH windows -------------------------
     # fg/bg hold either a standard colour number (int) or a precomputed

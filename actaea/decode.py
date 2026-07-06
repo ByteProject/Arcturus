@@ -204,6 +204,11 @@ _EXT = {
     27: _Op("make_menu", branches=True),
     28: _Op("picture_table"),
     29: _Op("buffer_screen", stores=True),  # Standard 1.1 addition
+    # Arcturus's own extended opcode (arc_image, B11), in the unassigned
+    # EXT:30-255 range the Standard says to ignore (S 14.2). draw_image id
+    # mode draws a room picture; a text-only interpreter never reaches it
+    # (the compiler guards it behind pictures-available).
+    0x20: _Op("draw_image"),
 }
 
 

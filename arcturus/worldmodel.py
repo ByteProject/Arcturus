@@ -282,6 +282,11 @@ class World:
     computed_text_props: set = field(default_factory=set)
     # Resolution of every `is` test, keyed by the node's identity.
     is_resolutions: dict[int, str] = field(default_factory=dict)
+    # arc_image picture names (B11), each assigned a stable id 1..N in first-seen
+    # order. The compiler stores the id in a room's `arc_image` slot and emits a
+    # name/id manifest so the interpreter can find the picture file. Empty unless
+    # a game uses `arc_image`, so everything gated on it folds away.
+    images: dict[str, int] = field(default_factory=dict)
 
     def all_handlers(self):
         for obj in self.objects.values():

@@ -118,6 +118,12 @@ INTRINSICS = frozenset({
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr", "article_addr", "indefinite_addr", "tag_addr",
+    # arc_image (B11): any_images is the compile-time flag (1 if any room has a
+    # picture, else 0) that folds the whole image path away in an image-free
+    # game; image_of reads a room's picture id (0 = none); pictures_available
+    # reads the interpreter's picture-capability header bit at run time (0 on a
+    # text-only interpreter); draw_image draws or clears the picture band.
+    "any_images", "image_of", "pictures_available", "draw_image",
     # Conversation topics, for the ask/tell and menu granules: how many a person
     # has, whether topic i is in view, printing its menu label, matching a subject
     # word against it, running its body, and retiring it (so the menu drops a
@@ -862,6 +868,36 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_grains(): the compile-time grains flag (1 or 0), so find_scenery
         # folds its chain walker away in a game with no grains.
         _place(rt, Const(_any_grains(ctx)), dest)
+    elif name == "any_images":
+        # any_images(): the compile-time image flag (1 or 0), so describe_room
+        # folds its whole picture path away in a game with no arc_image.
+        _place(rt, Const(_any_images(ctx)), dest)
+    elif name == "image_of":
+        # image_of(room): the room's picture id (the arc_image slot), or 0 (the
+        # property default) when the room has no picture.
+        op, t = _operand(rt, ctx, args[0])
+        pnum = ctx.prop_number("arc_image")
+        if pnum is None:
+            raise LowerError("image_of needs the arc_image property")
+        rt.op("get_prop", op, Const(pnum), store=dest)
+        _free(ctx, t)
+    elif name == "pictures_available":
+        # pictures_available(): 1 when the interpreter can show pictures, else 0.
+        # Reads header Flags 1 (byte 0x01) bit 1 ("picture displaying available",
+        # a v6 bit a text-only v5 interpreter never sets), the same header-read
+        # shape as the colour guard (_zc_guard). Masked to the bit, then divided
+        # to a clean 0/1 so `if pictures_available is 1` reads naturally.
+        rt.op("loadb", Const(0), Const(1), store=Variable(STACK))
+        rt.op("and", Variable(STACK), Const(2), store=Variable(STACK))
+        rt.op("div", Variable(STACK), Const(2), store=dest)
+    elif name == "draw_image":
+        # draw_image(id, mode): draw the room picture (id 0 clears the band); mode
+        # selects the layout. The custom EXT opcode; only reached behind the
+        # pictures_available guard, so a text interpreter never decodes it.
+        opa, opb, t = _two_operands(rt, ctx, args[0], args[1])
+        rt.op("draw_image", opa, opb)
+        _free(ctx, t)
+        _place(rt, Const(0), dest)
     elif name == "any_allwords":
         # any_allwords(): 1 when the takeall granule declared all-words, else 0,
         # so the parser's TAKE ALL hand-off folds away without the granule.
@@ -965,6 +1001,13 @@ def _any_grains(ctx) -> int:
     """The compile-time grains flag: 1 if anything declares `grains`, else 0.
     find_scenery guards its chain walker on this so it folds away when unused."""
     return 1 if (ctx.layout is not None and ctx.layout.has_grains) else 0
+
+
+def _any_images(ctx) -> int:
+    """The compile-time image flag: 1 if any room declares `arc_image`, else 0.
+    describe_room guards its picture draw on this so the whole image path folds
+    away in a game with no pictures (byte-identical to one that never had them)."""
+    return 1 if ctx.world.images else 0
 
 
 def _zc_guard(rt, ctx) -> str:
@@ -1617,6 +1660,8 @@ def _static_value(ctx, expr):
         return _any_named(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_grains":
         return _any_grains(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_images":
+        return _any_images(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_allwords":
         return 1 if ctx.world.all_words else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_plurals":

@@ -328,12 +328,30 @@ block fire_object_turns(holder)
             if see_into(obj)
                 fire_object_turns(obj)
 
+// Draw the current room's picture (arc_image, B11), or clear the band when the
+// room has none. Only reached behind `any_images` (compile-time) and only draws
+// on an interpreter that reports picture support (pictures_available, run time),
+// so a text-only interpreter never issues the opcode. The `shown_image` dedup is
+// the performance guard Stefan asked for: a re-LOOK in the same room changes
+// nothing, so the picture is never reloaded (a retro target would otherwise
+// re-decompress its image on every look). A game can override this block to
+// change the rendering policy. mode 0 is the default band; layout modes arrive
+// with the renderer.
+block draw_room_image()
+    if pictures_available is 1
+        let id = image_of(here)
+        if id is not shown_image
+            draw_image(id, 0)
+            change shown_image to id
+
 // Describe the current room: its name, its description, and what it contains.
 block describe_room()
     par
     if is_lit is 0
         msg_dark_room
         return
+    if any_images is 1
+        draw_room_image
     if hide_title is 1
         change hide_title to 0
     else
