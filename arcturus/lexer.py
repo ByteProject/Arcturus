@@ -174,6 +174,16 @@ class Lexer:
         if c == "\n":
             line, col = self.line, self.col
             self._advance()
+            # A line ending in a comma continues on the next line: suppress the
+            # NEWLINE and stay mid-line, so the next line's leading spaces are
+            # ordinary whitespace, not indentation (no INDENT/DEDENT). This lets
+            # a long comma list (spans, in, words, plural, verb synonyms) be
+            # broken across lines. The last emitted token being a comma is the
+            # signal; blank and comment-only lines in between are absorbed too,
+            # since they emit no token and leave the comma as the last one.
+            if (self.tokens and self.tokens[-1].kind == T.OP
+                    and self.tokens[-1].value == ","):
+                return  # at_line_start stays False: the logical line continues
             self._emit(T.NEWLINE, "\n", line, col)
             self.at_line_start = True
             return
