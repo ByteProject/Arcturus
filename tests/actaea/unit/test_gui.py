@@ -104,8 +104,12 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     assert out.count("Stars wheel past.") >= 2  # the boot look and the typed one
     assert "We'll leave it there." in out
     assert "[The story has ended.]" in out
-    # The picture band rendered: the model asked for the room's image and the
-    # canvas took the PNG's height (96), so a real picture is on screen.
+    # The picture band rendered: the model asked for the room's image and it
+    # was scaled to fill the window width at its 320x96 aspect ratio (crisp
+    # pixel-grid scaling), so the band is full width and the height follows.
     assert app.vm.screen.image == (1, 0)
-    assert band and max(band) == 96
+    scaled = app._scaled_image(1)
+    assert scaled.width() == 80 * app.cell_w         # fills the width
+    assert abs(scaled.height() / scaled.width() - 96 / 320) < 0.02  # aspect kept
+    assert band and max(band) == scaled.height()     # the band shows it
     app.root.destroy()

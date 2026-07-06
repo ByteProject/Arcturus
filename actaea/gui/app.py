@@ -31,6 +31,7 @@ import json
 import os
 import tkinter as tk
 import webbrowser
+from math import gcd as _gcd
 from tkinter import filedialog
 from tkinter import font as tkfont
 
@@ -150,7 +151,8 @@ class ActaeaApp:
         # referenced or tkinter garbage-collects them off the canvas.
         self._image_names = image_names or {}
         self._images_dir = images_dir
-        self._photo_cache: dict = {}
+        self._photo_cache: dict = {}    # id -> native PhotoImage
+        self._scaled_cache: dict = {}   # (id, target_width) -> scaled PhotoImage
         self._drawn_image = False  # a sentinel distinct from None (no picture)
         # Settings the menu drives, remembered across sessions; colours
         # before anything calls _colour.
@@ -431,7 +433,7 @@ class ActaeaApp:
     # -- the picture band (arc_image) -------------------------------------------
 
     def _load_image(self, image_id: int):
-        """The PhotoImage for a picture id, from <name>.png in the images
+        """The native PhotoImage for a picture id, from <name>.png in the images
         directory (name from the manifest), loaded once and cached. None when
         the id is unknown or the file is missing or not a readable image, so a
         missing picture degrades to an empty band rather than a crash."""
@@ -448,18 +450,57 @@ class ActaeaApp:
         self._photo_cache[image_id] = photo
         return photo
 
+    def _scaled_image(self, image_id: int):
+        """The picture scaled to fill the window width at its own aspect ratio,
+        so the band fills the upper part of the window whatever the font size.
+        These are pixel-art scenes (320x96 for the Amiga/ST art), so scaling
+        stays on the pixel grid to keep it crisp instead of blurring it:
+        tkinter's own zoom (integer up) and subsample (integer down) combine to
+        a rational factor that fills the width EXACTLY (880/320 = 11/4 becomes
+        zoom(11).subsample(4)). A pathological ratio falls back to the nearest
+        integer zoom, and an oversized picture is subsampled down. Cached per
+        (id, width) so a repaint at the same size costs nothing."""
+        native = self._load_image(image_id)
+        if native is None:
+            return None
+        target_w = 80 * self.cell_w
+        iw = native.width() or 1
+        key = (image_id, target_w)
+        cached = self._scaled_cache.get(key)
+        if cached is not None:
+            return cached
+        if iw <= target_w:
+            g = _gcd(target_w, iw)
+            up, down = target_w // g, iw // g
+            if up <= 24:  # keep the intermediate zoom sane
+                scaled = native.zoom(up) if up > 1 else native
+                if down > 1:
+                    scaled = scaled.subsample(down)
+            else:
+                f = max(1, round(target_w / iw))
+                scaled = native.zoom(f) if f > 1 else native
+        else:
+            f = max(1, round(iw / target_w))
+            scaled = native.subsample(f) if f > 1 else native
+        self._scaled_cache[key] = scaled
+        return scaled
+
     def _repaint_image(self) -> None:
         img = self.vm.screen.image  # (id, mode) or None
-        if img == self._drawn_image:
+        # Include the window width in the change key, so a font-size change
+        # (which changes the target width) rescales even if the picture id is
+        # the same.
+        state = None if img is None else (img, 80 * self.cell_w)
+        if state == self._drawn_image:
             return  # nothing changed (the dedup: no reload, no flicker)
-        self._drawn_image = img
+        self._drawn_image = state
         self._image_canvas.delete("all")
-        photo = self._load_image(img[0]) if img is not None else None
+        photo = self._scaled_image(img[0]) if img is not None else None
         if photo is None:
             self._image_canvas.configure(height=0)
             return
         self._image_canvas.configure(height=photo.height())
-        # Centre the picture in the 80-cell window width.
+        # Centre the scaled picture in the 80-cell window width.
         x = max(0, (80 * self.cell_w - photo.width()) // 2)
         self._image_canvas.create_image(x, 0, image=photo, anchor="nw")
 
