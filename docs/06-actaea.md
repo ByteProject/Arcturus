@@ -68,6 +68,18 @@ racing to the bottom, "press any key" accepts any key including Return,
 and the window is exactly 80 cells wide, as the Z-machine screen model
 declares.
 
+Pictures (arc_image): the window is the one front-end that shows a room's
+`arc_image` picture (01 section 6b). It draws a band across the top, above
+the status bar, integer-scaled to the 80-cell width so pixel art stays
+crisp; the status bar and text sit flush beneath it, and the band clears in
+a room with no picture. The console and pipe modes report no picture
+support, so the same story plays there as pure text. Actaea finds the
+pictures next to the story: `--images DIR` points at a directory of numbered
+PNGs (`8.png` is picture id 8, the debug path), and with no flag it reads a
+sibling `.arcres` pack (the zip `arcimg` builds), then the story's own
+directory. There is no name manifest; the id is the file. This is the modern
+half; retro rendering is B12.
+
 On macOS, the application menu shows the hosting Python's name unless
 pyobjc is installed (then it reads Actaea); a proper .app wrapper is a
 packaging concern outside this repository.
@@ -108,6 +120,12 @@ input stream, so a scripted session can save and restore mid-walkthrough.
 - `actaea --version` prints the banner; `--help` the usage. Every
   tool-facing output leads with the banner and ends with a blank line;
   play output carries neither, so piped transcripts stay pure game text.
+
+The pictures a story shows are prepared by a separate tool, `arcimg`, the
+third standalone alongside `arcc` and `actaea` (01 section 6b). It packs
+numbered PNGs into the `.arcres` file Actaea reads (`arcimg pack`), sizes a
+source to a picture mode (`arcimg prep`), and reports a PNG or a pack
+(`arcimg info`); like the others it leads with its banner.
 
 ## 4. Saves, undo, transcripts
 
@@ -165,9 +183,11 @@ Two leniencies exist because real games demand them, and are deliberate:
 the table opcodes compute addresses in wrapping 16-bit arithmetic, and
 asking for the relatives of object 0 answers "nothing" rather than
 faulting (mutating object 0 remains an error). Sound is a designed no-op,
-forever; there is no v6 and no graphics. The `arc_image` picture path is
-a later Arcturus milestone (B11/B12) that extends the cell grid Actaea
-already keeps decoupled for it.
+forever; there is no v6. Graphics are the one Arcturus extension: the
+`arc_image` picture band renders in the window (B11, section 2), with retro
+rendering to follow (B12). It extends the cell grid Actaea already keeps
+decoupled for it, and never touches conformance: a story's pictures are
+separate files, and a picture-less interpreter plays the same z5 as text.
 
 ## 7. For Arcturus authors
 

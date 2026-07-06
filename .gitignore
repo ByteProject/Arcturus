@@ -6,13 +6,21 @@ __pycache__/
 .eggs/
 dist/
 
-# The build directory is scratch, EXCEPT the two shipped standalones: the
-# amalgamated compiler (build/arcc) and interpreter (build/actaea). We track
-# those so adopters can download and run them straight from the repo, no
-# install. Compiled stories stay out via the *.z5/*.z8 rule below.
+# The build directory is scratch, EXCEPT the shipped standalones: the
+# amalgamated compiler (build/arcc), interpreter (build/actaea), and arc_image
+# tool (build/arcimg). We track those so adopters can download and run them
+# straight from the repo, no install. Compiled stories stay out via the
+# *.z5/*.z8 rule below.
 build/*
 !build/arcc
 !build/actaea
+!build/arcimg
+
+# The arc_image working directory: the Rabenstein port and its Director's Cut
+# across platforms, worked on locally and not part of the repo. The committed
+# arc_image example lives under examples/arc_image instead. The leading slash
+# anchors this to the repo root, so examples/arc_image is NOT matched.
+/arc_image/
 
 # Editor and OS
 .DS_Store

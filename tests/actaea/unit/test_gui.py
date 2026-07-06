@@ -30,11 +30,12 @@ import zlib
 
 # The deck carries an arc_image, so the one GUI test (one Tk root per process,
 # the Tk 9.0 rule) also covers the picture band: the room draws its picture and
-# it renders into the top canvas.
+# it renders into the top canvas. The id is slot 1, so the file is 1.png.
 GAME = (
+    'constant starfield = 1\n'
     'game\n    title "Window Probe"\n    start deck\n'
     'room deck\n    name "Observation Deck"\n    desc "Stars wheel past."\n'
-    '    arc_image "starfield"\n'
+    '    arc_image starfield\n'
 )
 
 
@@ -68,12 +69,11 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
 
     world = analyze(cosmos.combined_program(parse(GAME)))
     story = load(generate(world))
-    image_names = {i: n for n, i in world.images.items()}  # {1: "starfield"}
-    _make_png(tmp_path / "starfield.png", 320, 96, (20, 30, 90))
+    # The id is the resource slot, so the file is 1.png (starfield = 1).
+    _make_png(tmp_path / "1.png", 320, 96, (20, 30, 90))
 
     try:
-        app = ActaeaApp(story, "probe", image_names=image_names,
-                        images_dir=str(tmp_path))
+        app = ActaeaApp(story, "probe", images_dir=str(tmp_path))
     except tk.TclError:
         pytest.skip("no display for tkinter")
 

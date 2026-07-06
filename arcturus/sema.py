@@ -410,11 +410,6 @@ class Analyzer:
                 else:
                     player.props[m.name] = m
 
-        # arc_image (B11): assign every picture name a stable id BEFORE collecting
-        # properties, so _collect_members can rewrite each `arc_image "name"` string
-        # to its numeric id (the slot holds a number, not a string address).
-        self._assign_image_ids()
-
         # Game property declarations on kinds and objects.
         for kind in w.kinds.values():
             if kind.decl is not None:
@@ -423,38 +418,44 @@ class Analyzer:
             if obj.decl is not None:
                 self._collect_members(obj.decl.members, obj.name, obj.props, False)
 
-    def _assign_image_ids(self) -> None:
-        """Walk every kind and object declaration for `arc_image` properties,
-        collect the picture names in first-seen order, and assign each a stable
-        id 1..N into world.images. Ids start at 1 so 0 can mean 'no picture'
-        (which clears the band). Deterministic, so the same source yields the
-        same ids and the manifest is stable."""
-        w = self.world
-        decls = [k.decl for k in w.kinds.values() if k.decl is not None]
-        decls += [o.decl for o in w.objects.values() if o.decl is not None]
-        for decl in decls:
-            for m in decl.members:
-                if isinstance(m, ast.PropertyDecl) and m.name == "arc_image":
-                    name = self._image_name(m)
-                    if name not in w.images:
-                        w.images[name] = len(w.images) + 1
-
-    def _image_name(self, m: ast.PropertyDecl) -> str:
-        """The picture name from an `arc_image "name"` declaration: exactly one
-        plain string literal, no interpolation."""
+    def _image_id(self, m: ast.PropertyDecl) -> int:
+        """The numeric image id from `arc_image <id>`: the id IS the resource
+        slot, so the interpreter loads <id>.png (and a retro build loads slot
+        <id>). Written as a plain number (`arc_image 8`) or, for readability, a
+        constant that folds to one (`arc_image forest`, with `constant forest =
+        8`). Id 0 is reserved to mean 'no picture' (it clears the band), so a
+        real picture must be 1 or more. No name manifest: the number is the one
+        identifier shared by every target."""
         vals = m.values
-        if (
-            len(vals) == 1
-            and isinstance(vals[0], ast.StringLit)
-            and len(vals[0].parts) == 1
-            and isinstance(vals[0].parts[0], ast.StringText)
-        ):
-            return vals[0].parts[0].text
+        if len(vals) == 1:
+            n = self._fold_image_id(vals[0])
+            if n is not None:
+                if n <= 0:
+                    raise self._error(
+                        "arc_image id must be 1 or more (0 means no picture)",
+                        m.line,
+                    )
+                if n > 0xFFFF:
+                    raise self._error(
+                        "arc_image id is too large (max 65535)", m.line
+                    )
+                return n
         raise self._error(
-            "arc_image needs a plain picture name in quotes, like "
-            'arc_image "cellar"',
+            "arc_image needs a picture id: a number, or a constant that names "
+            "one, like `arc_image 8` or `arc_image forest` (constant forest = 8)",
             m.line,
         )
+
+    def _fold_image_id(self, v) -> Optional[int]:
+        """Fold an arc_image value to its integer id, or None if it is neither a
+        number literal nor a constant standing for one."""
+        if isinstance(v, ast.Number):
+            return v.value
+        if isinstance(v, ast.Name):
+            c = self.world.constants.get(v.ident)
+            if c is not None and isinstance(c.value, ast.Number):
+                return c.value.value
+        return None
 
     def _collect_members(self, members, owner, props_out, on_kind) -> None:
         w = self.world
@@ -472,15 +473,19 @@ class Analyzer:
                             name=attr, form=ast.PROP_BOOL, line=m.line
                         )
                     continue
-                # arc_image "name" -> the picture's numeric id, so the slot holds
-                # a number the interpreter maps to a file (ids assigned above).
+                # arc_image <id> -> the picture's numeric id in the slot. The id
+                # is the author's own number (or a constant that folds to one),
+                # so the slot holds exactly what the interpreter loads as a file
+                # (<id>.png) and a retro build loads as a slot. Record that the
+                # game uses pictures, so any_images folds to 1.
                 if m.name == "arc_image":
                     m = ast.PropertyDecl(
                         name="arc_image",
                         form=m.form,
-                        values=[ast.Number(self.world.images[self._image_name(m)], m.line)],
+                        values=[ast.Number(self._image_id(m), m.line)],
                         line=m.line,
                     )
+                    w.uses_images = True
                 ty = self._declared_type(m)
                 self._unify_property(m.name, ty, m.line)
                 props_out[m.name] = m

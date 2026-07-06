@@ -412,6 +412,7 @@ carries the attribute of every kind in its chain.
 | `article` | text | The definite article, verbatim, when derivation cannot reach it: `article "las"` (las tijeras), `article "el"` (el agua). |
 | `indefinite` | text | The indefinite article, verbatim: `indefinite "unas"`, or an English mass noun with `indefinite "some"` ("You can see some water here."). |
 | `unseal_with` | object | The object (a key) that locks and unlocks this one (for `lockable` things). |
+| `arc_image` | number | Optional. A room's picture, named by its resource id (`arc_image 8`, or a constant that folds to one). Shown on an aware interpreter, ignored on a standard one. Section 6b. |
 
 `score`, `max_score`, and `turns` are runtime globals, not object properties (02
 section 2).
@@ -518,6 +519,84 @@ of Space Archaeologist.
 The escape hatch: `change score` stays legal (penalties, score-as-resource),
 but it is off the paved road: hand-changed points play no part in the
 computed max. `award` is the road.
+
+## 6b. Room pictures (arc_image)
+
+Optional graphics. A room can carry a picture, shown on an interpreter that can
+display one (Actaea's window) and silently absent everywhere else. The story
+stays a conformant z5 file that runs unchanged, text-only, on any standard
+interpreter: an interpreter only decodes bytes its control flow reaches, and the
+draw sits behind a capability guard a text interpreter never passes. A game that
+declares no picture is byte-identical to one that never could.
+
+A picture is named by its `arc_image` id, a resource slot. The id is one number
+shared by every target: on a modern system the interpreter loads `<id>.png`; a
+retro build (B12) loads slot `<id>` in the machine's own format. So there is no
+name table to translate down. Write the id as a plain number, or, for
+readability, as a constant that folds to one:
+
+```
+constant scene_path = 8
+constant scene_church = 1
+
+room opening
+    name "Forsaken Path"
+    desc "A path deep in the Black Forest, extending north."
+    arc_image scene_path
+    north church
+
+room church
+    name "Churchyard"
+    desc "A small stone church, its door ajar. The path leads back south."
+    arc_image scene_church
+    south opening
+```
+
+Ids start at 1; 0 is reserved to mean "no picture" (it clears the band). Cosmos
+reads the property on room entry, behind the guard, and draws the picture; a
+room with no `arc_image` clears the band, so the picture always matches the
+room. Re-looking in the same room does not redraw (it would make a retro target
+re-decompress its art for nothing).
+
+Art is authored once as PNGs in one of two shapes, each a whole number of
+8-pixel text rows tall so the status bar sits flush under the band:
+
+| Mode | Pixels | Rows | Look |
+|---|---|---|---|
+| Infocom | 320x72 | 9 | The upper third, the classic Arthur style. |
+| DAAD | 320x96 | 12 | The upper half, the Rabenstein style. |
+
+A modern interpreter integer-scales the picture to the window width, which keeps
+pixel art crisp at any font size; pixel art is the medium that looks best.
+
+The pictures live beside the story, not inside it. During development, point the
+interpreter at a directory of numbered PNGs (`actaea game.z5 --images art/`).
+For distribution, the `arcimg` tool packs them into a single `.arcres` file (a
+zip of the numbered PNGs), which the interpreter reads automatically when it
+sits next to the story; the z5 stays a separate file.
+
+`arcimg` is the third standalone tool, shipped like `arcc` and `actaea`
+(`build/arcimg`, a single self-contained file). It has three commands:
+
+```
+arcimg pack SOURCES... -o game.arcres    # zip numbered PNGs into a pack
+arcimg prep SOURCE --id N --mode MODE     # size a source to a mode as N.png
+arcimg info SOURCE                        # a PNG's size, or a pack's contents
+```
+
+`pack` gathers numbered PNGs (from files or a directory) into the distributable
+`.arcres`. `prep` prepares art that is not already the right size, centre-
+cropping and scaling a source (a photo, a JPEG, a wrong-sized PNG) to a mode:
+
+```
+arcimg prep opening.jpg --id 8 --mode daad -o art/    # art/8.png at 320x96
+arcimg pack art/ -o game.arcres                        # the distributable pack
+```
+
+Mode-sized PNGs need nothing but the standard library; `prep` reaches for Pillow
+only to resize or convert, and offers a guided install the first time. A worked
+example, with its `.arcres` and heavily commented source, is in
+[examples/arc_image](../examples/arc_image).
 
 ## 7. Statements
 
