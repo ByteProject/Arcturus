@@ -111,9 +111,10 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     scaled = app._scaled_image(1)
     assert scaled.width() == 80 * app.cell_w         # fills the width
     assert abs(scaled.height() / scaled.width() - 96 / 320) < 0.02  # aspect kept
-    # The band is the picture height snapped UP to a whole number of text lines,
-    # so the band, status bar, and text tile the character grid cleanly.
-    import math
-    expected = math.ceil(scaled.height() / app.cell_h) * app.cell_h
-    assert band and max(band) == expected
+    # The band is exactly the picture height (status bar directly below, no gap),
+    # and the picture fills the 80-cell width from the left edge.
+    assert band and max(band) == scaled.height()
+    # The whole screen is exactly 80 cells wide: the window, the picture, and the
+    # status grid all share it, so nothing is shifted or short.
+    assert app.root.winfo_width() == 80 * app.cell_w
     app.root.destroy()
