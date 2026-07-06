@@ -916,11 +916,12 @@ The full dispatch chain is defined in 02, section 9.
 Life-cycle events. Besides the action events named by verbs, Cosmos fires three
 events as the game runs, handled with the same `on` syntax:
 
-- `on start` runs once at the very beginning, BEFORE the banner (the way Inform
-  runs `Initialise`): world setup, timers armed from the outset, screen colours
-  (`zcolor.background` and friends, so the banner prints on the colours you
-  chose rather than being erased by them), and any opening text you want above
-  the banner. The banner, then the first room description, follow.
+- `on start` runs once at the very beginning, BEFORE the banner: this is where
+  everything that must happen before the game proper belongs. Set up the world,
+  arm timers from the outset, choose the screen colours (`zcolor.background` and
+  friends, so the banner prints on the colours you chose instead of being erased
+  by them), and show an opening the way the Infocom games did, a scene or an
+  epigraph before the title. The banner, then the first room description, follow.
 - `on enter` runs when the player arrives in a room, as that room's handler, so a
   room can react to being entered.
 - `on each_turn` runs once per turn, the per-turn daemon. A `when` guard decides
