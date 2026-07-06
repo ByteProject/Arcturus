@@ -72,7 +72,9 @@ Pictures (arc_image): the window is the one front-end that shows a room's
 `arc_image` picture (01 section 6b). It draws a band across the top, above
 the status bar, integer-scaled to the 80-cell width so pixel art stays
 crisp; the status bar and text sit flush beneath it, and the band clears in
-a room with no picture. The console and pipe modes report no picture
+a room with no picture. The band height comes from the game's mode, carried
+in the draw opcode (`arc_mode`, 9 or 12 rows), so Actaea sizes it without
+first loading the picture, the same way a retro interpreter must. The console and pipe modes report no picture
 support, so the same story plays there as pure text. Actaea finds the
 pictures next to the story: `--images DIR` points at a directory of numbered
 PNGs (`8.png` is picture id 8, the debug path), and with no flag it reads a
