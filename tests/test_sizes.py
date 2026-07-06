@@ -38,35 +38,39 @@ CEILINGS = {
     # 2026-07-03 batch: recipient dispatch (~40), the start-title skip
     # (~25), show_tag (~20); chaining, disambiguation, noun lists with
     # noise words, all core parser features every game carries.
-    "beispiel-deutsch.storyarc": 20056,
-    "brass-lantern.storyarc": 14688,
-    "cloak-of-darkness.storyarc": 15220,
-    "ejemplo-espanol.storyarc": 19284,
-    "features/computed-properties.storyarc": 13292,
-    "features/containers.storyarc": 13316,
-    "features/daemons-and-timers.storyarc": 13620,
-    "features/doors-and-locks.storyarc": 13180,
-    "features/grains.storyarc": 13312,
-    "features/introproperty.storyarc": 14224,
-    "features/kinds-and-inheritance.storyarc": 13136,
-    "features/on-other.storyarc": 13140,
-    "features/zcolor.storyarc": 13520,
-    "features/scoring.storyarc": 15468,
-    "features/spans.storyarc": 13328,
-    "granules/ambience.storyarc": 14628,
-    "granules/conversations.storyarc": 14920,
-    "granules/extended-verbs.storyarc": 15644,
-    "granules/infocom-interrogation.storyarc": 15336,
-    "granules/quotes.storyarc": 13504,
-    "granules/take-all.storyarc": 14912,
-    "granules/plurals.storyarc": 14152,
-    "granules/statusline.storyarc": 13244,
-    "granules/verbose-exits.storyarc": 13528,
+    # 2026-07-07: the parser now binds a pronoun for the SECOND noun too, so
+    # after "show coin to bob" HIM refers to Bob (note_referent(second) in
+    # parser.prelude). +4 to +20 bytes per game (DCE and abbreviations absorb
+    # it unevenly); a small, uniform cost for correct two-object pronoun use.
+    "beispiel-deutsch.storyarc": 20068,
+    "brass-lantern.storyarc": 14692,
+    "cloak-of-darkness.storyarc": 15232,
+    "ejemplo-espanol.storyarc": 19296,
+    "features/computed-properties.storyarc": 13312,
+    "features/containers.storyarc": 13336,
+    "features/daemons-and-timers.storyarc": 13628,
+    "features/doors-and-locks.storyarc": 13200,
+    "features/grains.storyarc": 13332,
+    "features/introproperty.storyarc": 14236,
+    "features/kinds-and-inheritance.storyarc": 13156,
+    "features/on-other.storyarc": 13160,
+    "features/zcolor.storyarc": 13532,
+    "features/scoring.storyarc": 15484,
+    "features/spans.storyarc": 13348,
+    "granules/ambience.storyarc": 14640,
+    "granules/conversations.storyarc": 14940,
+    "granules/extended-verbs.storyarc": 15664,
+    "granules/infocom-interrogation.storyarc": 15348,
+    "granules/quotes.storyarc": 13512,
+    "granules/take-all.storyarc": 14928,
+    "granules/plurals.storyarc": 14172,
+    "granules/statusline.storyarc": 13264,
+    "granules/verbose-exits.storyarc": 13548,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 15688
+CLOAK_Z8_CEILING = 15704
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
