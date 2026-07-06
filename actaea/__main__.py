@@ -18,6 +18,7 @@ When a requested front-end cannot exist here (no tkinter, no curses, no
 tty), the choice degrades one honest step at a time and says so."""
 
 import argparse
+import json
 import os
 import sys
 
@@ -61,12 +62,32 @@ def _report(story) -> str:
     return "\n".join(lines)
 
 
-def _play_window(story, title: str) -> bool:
+def _load_manifest(story_path: str):
+    """The story's arc_image resources: the sibling `.arcres` manifest maps
+    each picture id to a name, so a front-end can find <name>.png. Returns
+    {id: name} (ids as ints) or {} when there is no manifest."""
+    manifest = os.path.splitext(story_path)[0] + ".arcres"
+    try:
+        with open(manifest, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    images = data.get("images", {}) if isinstance(data, dict) else {}
+    out = {}
+    for k, v in images.items():
+        try:
+            out[int(k)] = v
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
+def _play_window(story, title: str, image_names=None, images_dir=None) -> bool:
     try:
         from .gui.app import play
     except ImportError:
         return False  # no tkinter on this Python
-    play(story, title)
+    play(story, title, image_names, images_dir)
     return True
 
 
@@ -149,6 +170,11 @@ def main(argv=None) -> int:
         action="store_true",
         help="disassemble every routine reachable from the entry point",
     )
+    ap.add_argument(
+        "--images", metavar="DIR",
+        help="directory of the story's picture files (arc_image, GUI only); "
+        "defaults to the story's own directory",
+    )
     ap.add_argument("--version", action=_Version, nargs=0,
                     help="show the version banner and exit")
     args = ap.parse_args(argv)
@@ -188,11 +214,17 @@ def main(argv=None) -> int:
                   "playing headless", file=sys.stderr)
             return _play_headless(story)
 
+        # arc_image resources for the window (the terminal and headless modes
+        # cannot show pictures, so they ignore them).
+        image_names = _load_manifest(args.story)
+        images_dir = args.images or os.path.dirname(os.path.abspath(args.story))
+
         # The default ladder: the window on a desktop; the terminal when
         # tkinter is absent; the pipe when input is piped or nothing
         # screen-like exists at all.
         if sys.stdin.isatty():
-            if _play_window(story, os.path.basename(args.story)):
+            if _play_window(story, os.path.basename(args.story),
+                            image_names, images_dir):
                 return 0
             if _play_terminal(story, os.path.basename(args.story)):
                 return 0
