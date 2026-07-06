@@ -79,10 +79,14 @@ block status_bar()
     if zc_status is not 0
         set_colour(zc_status, 0)
     set_style(1)
-    // Fill the line so the whole bar is in reverse video, not just the text.
+    // Fill the WHOLE row in reverse video, all w columns including the last, so
+    // the bar spans the full screen width. Filling the final column is safe on
+    // the top row (the upper window never scrolls, so the bottom-right-corner
+    // scroll quirk that makes games skip the last cell cannot happen here), and
+    // it matters under an arc_image picture, where a short bar shows a gap.
     set_cursor(1, 1)
     let i = 1
-    while i < w
+    while i <= w
         show(" ")
         change i to i + 1
     // Left: the current room.
