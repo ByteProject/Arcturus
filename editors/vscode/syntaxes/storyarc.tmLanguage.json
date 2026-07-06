@@ -258,7 +258,7 @@
             "patterns": [
                 {
                     "name": "support.type.property.storyarc",
-                    "match": "\\b(name|desc|intro|words|capacity|spans|unseal_with|article|indefinite|tag|plural)\\b"
+                    "match": "\\b(name|desc|intro|words|capacity|spans|unseal_with|article|indefinite|tag|plural|arc_image)\\b"
                 },
                 {
                     "comment": "Topic, ambience, and rank header modifiers (docs/01 sections 6a and 15; docs/05 ambience).",
