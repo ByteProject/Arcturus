@@ -135,12 +135,23 @@ block run_game()
     // The start room is visited by definition (and never scores: you did
     // not earn arriving where you begin).
     now here is visited
-    // Request the paragraph break that separates the banner from the opening
-    // text. The banner ends on a single newline; this par (collapsed with the
-    // one describe_room requests) yields exactly one blank line, whether or not
-    // an `on start` prints first.
-    par
+    // `on start` runs FIRST (Inform's Initialise order): the game sets up its
+    // world and its screen (colours, which erase the screen to repaint it)
+    // before anything is drawn. THEN the library prints the banner, onto the
+    // screen the game just established, so setting zcolor.background in
+    // `on start` no longer erases the banner out from under itself.
     run_free(ev_start)
+    if auto_banner is 1
+        // One newline before the banner: it steps the title down to row 2 so a
+        // summoned status bar (which splits and paints row 1 at the first
+        // prompt) does not overwrite it, and it separates any text `on start`
+        // printed above from the banner. This is the placement the compiler
+        // used before the banner moved into the loop.
+        new_line
+        print_banner
+    // Separate the banner (and any text `on start` printed above it) from the
+    // opening room description: one blank line, collapsed with describe_room's.
+    par
     if title_in_bar is 1
         change hide_title to 1
     describe_room
