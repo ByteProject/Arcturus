@@ -127,8 +127,10 @@ INTRINSICS = frozenset({
     # picture, else 0) that folds the whole image path away in an image-free
     # game; image_of reads a room's picture id (0 = none); pictures_available
     # reads the interpreter's picture-capability header bit at run time (0 on a
-    # text-only interpreter); draw_image draws or clears the picture band.
-    "any_images", "image_of", "pictures_available", "draw_image",
+    # text-only interpreter); draw_image draws or clears the picture band;
+    # arc_mode is the game's picture mode (band height in text rows, 9 or 12),
+    # the default when the game does not set `constant arc_mode`.
+    "any_images", "image_of", "pictures_available", "draw_image", "arc_mode",
     # Conversation topics, for the ask/tell and menu granules: how many a person
     # has, whether topic i is in view, printing its menu label, matching a subject
     # word against it, running its body, and retiring it (so the menu drops a
@@ -882,6 +884,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_images(): the compile-time image flag (1 or 0), so describe_room
         # folds its whole picture path away in a game with no arc_image.
         _place(rt, Const(_any_images(ctx)), dest)
+    elif name == "arc_mode":
+        # arc_mode(): the game's picture mode as a folded constant (the default
+        # when no `constant arc_mode` is set). draw_room_image passes it to
+        # draw_image so the interpreter sizes the band from the mode, not the
+        # picture.
+        _place(rt, Const(_arc_mode(ctx)), dest)
     elif name == "auto_banner":
         # auto_banner(): 1 unless `banner false`, so the turn loop prints the
         # banner itself after `on start` (a folded constant, like any_X).
@@ -1022,6 +1030,22 @@ def _any_images(ctx) -> int:
     describe_room guards its picture draw on this so the whole image path folds
     away in a game with no pictures (byte-identical to one that never had them)."""
     return 1 if ctx.world.uses_images else 0
+
+
+def _arc_mode(ctx) -> int:
+    """The game's picture mode: the band height in TEXT ROWS, 9 (Infocom mode,
+    320x72) or 12 (DAAD mode, 320x96). The author sets it once, game-wide, with
+    `constant arc_mode = 9` (or 12); that constant folds directly by ordinary
+    name resolution, so this intrinsic is only reached in its absence and yields
+    the default (9, Infocom, the Z-machine's own upper-third look). The mode
+    travels in the draw_image opcode so the interpreter sizes the band from it
+    WITHOUT loading the picture: an 8-bit target reserves the band and lays out
+    memory in advance, never inferring the shape from pixel dimensions. sema
+    validates the constant is 9 or 12."""
+    c = ctx.world.constants.get("arc_mode")
+    if c is not None and isinstance(c.value, ast.Number):
+        return c.value.value
+    return 9
 
 
 def _auto_banner(ctx) -> int:
@@ -1688,6 +1712,8 @@ def _static_value(ctx, expr):
         return _any_grains(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_images":
         return _any_images(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "arc_mode":
+        return _arc_mode(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "auto_banner":
         return _auto_banner(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_allwords":

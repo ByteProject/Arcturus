@@ -214,6 +214,19 @@ class Analyzer:
                 )
             elif isinstance(decl, ast.ConstantDecl):
                 self._seen(decl.name, decl.line)
+                # arc_image (B11): arc_mode is the game's picture mode, the band
+                # height in text rows. Only 9 (Infocom mode) and 12 (DAAD mode)
+                # exist, so a bad value is a clear error here rather than a wrong
+                # band on an interpreter that trusts the mode.
+                if decl.name == "arc_mode" and not (
+                    isinstance(decl.value, ast.Number)
+                    and decl.value.value in (9, 12)
+                ):
+                    raise self._error(
+                        "arc_mode must be 9 (Infocom mode, 320x72) or 12 "
+                        "(DAAD mode, 320x96)",
+                        decl.line,
+                    )
                 w.constants[decl.name] = wm.Constant(
                     decl.name, self._value_type(decl.value), decl.value, decl.line
                 )

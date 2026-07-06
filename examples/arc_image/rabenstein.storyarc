@@ -34,11 +34,14 @@
 // picture always matches the room.
 //
 // Two picture shapes exist, each a whole number of 8-pixel text rows tall so
-// the status bar sits flush beneath the band:
+// the status bar sits flush beneath the band. You pick one game-wide with a
+// constant named arc_mode (its value is the band height in text rows):
 //     Infocom mode   320x72   9 rows    the upper third (the Arthur look)
 //     DAAD mode      320x96   12 rows   the upper half  (the Rabenstein look)
-// A modern interpreter integer-scales the picture to the window, crisp for
-// pixel art at any font size; pixel art is the medium that looks best.
+// The interpreter sizes the band from arc_mode, never by measuring a picture,
+// so it lays out the screen (and, on an 8-bit machine, its memory) before any
+// picture is loaded. A modern interpreter integer-scales the picture to the
+// window, crisp for pixel art at any font size; pixel art looks best.
 //
 // ============================================================================
 // THE PICTURES: THE .arcres FILE
@@ -73,6 +76,11 @@ game
     headline "An arc_image demonstration"
     author "Stefan Vogt"
     start opening
+
+// The picture mode, game-wide: 12 is DAAD mode (320x96, the upper half), which
+// is what this art is drawn for. The interpreter sizes the band from this, not
+// from the picture, so it never has to load a picture to lay out the screen.
+constant arc_mode = 12
 
 constant scene_path = 8
 constant scene_church = 1

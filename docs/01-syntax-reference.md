@@ -561,10 +561,25 @@ re-decompress its art for nothing).
 Art is authored once as PNGs in one of two shapes, each a whole number of
 8-pixel text rows tall so the status bar sits flush under the band:
 
-| Mode | Pixels | Rows | Look |
-|---|---|---|---|
-| Infocom | 320x72 | 9 | The upper third, the classic Arthur style. |
-| DAAD | 320x96 | 12 | The upper half, the Rabenstein style. |
+| Mode | Pixels | Rows | `arc_mode` | Look |
+|---|---|---|---|---|
+| Infocom | 320x72 | 9 | `9` | The upper third, the classic Arthur style. |
+| DAAD | 320x96 | 12 | `12` | The upper half, the Rabenstein style. |
+
+You declare the mode once, game-wide, with a constant named `arc_mode`, whose
+value is the band height in text rows:
+
+```
+constant arc_mode = 12    // DAAD mode (320x96); 9 for Infocom mode (320x72)
+```
+
+This is deliberate, and it matters for the retro targets: the interpreter learns
+the band size from the story, not by measuring a picture. It reserves the band
+and lays out the screen (and, on an 8-bit machine, its memory) before any
+picture is loaded, so nothing depends on a picture's pixel dimensions. The mode
+travels in the draw opcode itself. `arc_mode` must be `9` or `12`; omitted, it
+defaults to `9` (Infocom mode). All of a game's pictures share the one mode, so
+author your art to match it.
 
 A modern interpreter integer-scales the picture to the window width, which keeps
 pixel art crisp at any font size; pixel art is the medium that looks best.
