@@ -145,6 +145,12 @@ class VM:
         # input interrupts (the GUI); a blocking console honestly cannot.
         if getattr(self.io, "supports_timed", False):
             flags1 |= 0x80
+        # Bit 1: picture displaying available (arc_image, B11). A v6 bit a
+        # text-only v5 interpreter never sets, so a game's pictures-available
+        # guard reads 0 everywhere except a front-end that can actually draw
+        # (only the GUI); the console and headless modes leave it clear.
+        if getattr(self.io, "supports_pictures", False):
+            flags1 |= 0x02
         m.set_byte(0x01, flags1)
         m.set_byte(0x1E, 0)      # interpreter number: unspecified
         m.set_byte(0x1F, ord("A"))  # interpreter version: A for Actaea
@@ -987,6 +993,17 @@ class VM:
             to_signed(vals[1]) if len(vals) > 1 else -1,
         )
 
+    def _op_draw_image(self, ins):
+        # draw_image id mode (arc_image, B11): record the room picture into the
+        # screen model (id 0 clears the band); a front-end that can draw
+        # pictures renders it, others ignore it. The compiler only emits this
+        # behind a pictures-available guard, so it is reached only when this
+        # interpreter advertised picture support (the GUI).
+        vals = self._values(ins)
+        image_id = vals[0]
+        mode = vals[1] if len(vals) > 1 else 0
+        self.screen.set_image(image_id, mode)
+
     def _op_set_font(self, ins):
         # Fonts 1 (normal) and 4 (fixed) are the same face in a monospace
         # interpreter, so both are "available"; 2 and 3 (character
@@ -1057,6 +1074,7 @@ class VM:
         "tokenise": _op_tokenise, "encode_text": _op_encode_text,
         "read": _op_read, "read_char": _op_read_char,
         "set_text_style": _op_set_text_style, "set_font": _op_set_font,
+        "draw_image": _op_draw_image,
         "save_undo": _op_save_undo, "restore_undo": _op_restore_undo,
         "save": _op_save, "restore": _op_restore, "restart": _op_restart,
         "split_window": _op_split_window, "set_window": _op_set_window,
