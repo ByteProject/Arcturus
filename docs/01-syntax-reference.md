@@ -54,7 +54,11 @@ it. Use a consistent unit, four spaces recommended, and never mix tabs and
 spaces. An inconsistent indent is a compile error.
 
 Newlines are significant: one statement or declaration per line. A quoted
-string may span several physical lines (section 16).
+string may span several physical lines (section 16). One exception continues a
+logical line: a line ending in a comma runs on to the next, so a long
+comma-separated list (a `spans` set, an `in` clause, `words`, verb synonyms)
+can be broken across lines and indented freely. Blank and comment-only lines
+between the comma and the continuation are ignored.
 
 ## 3. Values and types
 
@@ -175,6 +179,18 @@ movable object it is ignored, since a carried object's scope follows it. Its
 headline uses are a two-sided door (one door object in both rooms it joins) and
 wide scenery. A room's exit may name such a door, gating movement on it (02
 section 10).
+
+A long span is not confined to one line. Every `spans` line on an object adds
+to its set, so a wide scenery object can list its rooms across as many lines as
+read well, and a line ending in a comma continues on the next (section 2):
+
+```
+thing river
+    scenery
+    spans north_bank, south_bank, ford,
+          mill_race, weir, millpond
+    spans estuary
+```
 
 ```
 room hallway

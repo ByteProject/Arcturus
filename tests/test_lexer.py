@@ -146,3 +146,22 @@ def test_error_invalid_escape():
 def test_error_unexpected_character():
     with pytest.raises(ArcError):
         tokenize("say @\n")
+
+
+def test_trailing_comma_continues_the_line():
+    # A line ending in a comma continues on the next line: no NEWLINE, and no
+    # INDENT/DEDENT for the continuation's leading spaces, so a long comma list
+    # can be broken across lines.
+    one = kinds("spans a, b, c\n")
+    broken = kinds("spans a, b,\n    c\n")
+    assert broken == one  # the break is invisible to the token stream
+    # Comments and blank lines between the comma and the continuation are
+    # absorbed (they emit no token, leaving the comma the last one).
+    assert kinds("spans a, b,   // north\n\n    c\n") == one
+
+
+def test_comma_not_at_line_end_is_unaffected():
+    # A comma in the middle of a line is ordinary; only a trailing one continues.
+    assert kinds("spans a, b\nname x\n") == kinds("spans a, b\nname x\n")
+    # A real newline (no trailing comma) still terminates the logical line.
+    assert T.NEWLINE in kinds("spans a, b\n")
