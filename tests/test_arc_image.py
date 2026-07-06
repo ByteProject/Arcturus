@@ -156,12 +156,36 @@ def test_picture_requested_only_when_the_interpreter_can_show_it():
         supports_pictures = True
 
     # With pictures available: ending in the yard, its picture (forest = id 2)
-    # is the one on screen; the mode is the default band 0.
-    assert _run(PicIO, ["north", "quit", "y"]).screen.image == (2, 0)
+    # is the one on screen; the mode is the game default, 9 (Infocom).
+    assert _run(PicIO, ["north", "quit", "y"]).screen.image == (2, 9)
     # Back in the hall, its own picture (cellar = id 1).
-    assert _run(PicIO, ["north", "south", "quit", "y"]).screen.image == (1, 0)
+    assert _run(PicIO, ["north", "south", "quit", "y"]).screen.image == (1, 9)
     # Without picture support, nothing is ever drawn.
     assert _run(CaptureIO, ["north", "quit", "y"]).screen.image is None
+
+
+def test_arc_mode_flows_to_the_opcode():
+    # The game's arc_mode reaches the interpreter in the draw_image mode operand,
+    # so the band is sized from the mode and not the picture. `constant arc_mode
+    # = 12` (DAAD) overrides the default 9 (Infocom).
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+
+    class PicIO(CaptureIO):
+        supports_pictures = True
+
+    story = load(_compile("constant arc_mode = 12\n" + IMG))
+    vm = VM(story, PicIO(script=["quit", "y"]))
+    vm.run(max_steps=2_000_000)
+    # Started in the hall (cellar = id 1), drawn in DAAD mode 12.
+    assert vm.screen.image == (1, 12)
+
+
+def test_arc_mode_must_be_a_valid_mode():
+    from arcturus.errors import ArcError
+    with pytest.raises(ArcError, match="arc_mode must be 9"):
+        analyze(cosmos.combined_program(parse("constant arc_mode = 7\n" + IMG)))
 
 
 def test_no_resource_sidecar_is_written(tmp_path):

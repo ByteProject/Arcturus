@@ -540,33 +540,43 @@ class ActaeaApp:
 
     def _repaint_image(self) -> None:
         img = self.vm.screen.image  # (id, mode) or None
-        # The change key folds in the window width (a font-size change rescales)
-        # and the game background (a background change repaints the band's
-        # letterbox), so the band only redraws when something it shows actually
-        # changed.
-        state = None if img is None else (img, 80 * self.cell_w, self.vm.screen.bg)
+        # The change key folds in the window width (a font-size change rescales),
+        # the cell height (it sets the band's row count in pixels), and the game
+        # background (a background change repaints the band's letterbox), so the
+        # band only redraws when something it shows actually changed.
+        state = (None if img is None
+                 else (img, 80 * self.cell_w, self.cell_h, self.vm.screen.bg))
         if state == self._drawn_image:
             return  # nothing changed (the dedup: no reload, no flicker)
         self._drawn_image = state
         self._image_canvas.delete("all")
-        photo = self._scaled_image(img[0]) if img is not None else None
-        if photo is None:
+        if img is None:
             self._image_canvas.configure(height=0)
             self._band_h = 0
             self._relayout()
             return
-        # The band is exactly the picture height, so the status bar sits directly
-        # below the picture with no gap. The picture is left-anchored at x=0, the
-        # same origin as the status grid and the text, so all three share the
-        # left edge and the 80-cell width (the picture fills that width exactly).
-        # The band wears the game background so any width margin is the game's
-        # colour, not white.
+        # The band height comes from the MODE, not the picture: mode is the band
+        # in TEXT ROWS (9 = Infocom, 12 = DAAD), so the band is mode * cell_h and
+        # the status bar sits flush below it, a whole number of rows down. The
+        # interpreter knows this from the opcode alone, without the picture, which
+        # is the property an 8-bit target needs. A mode of 0 (or an unknown value)
+        # falls back to the picture's own height.
+        image_id, mode = img
+        band_h = mode * self.cell_h if mode and mode > 0 else 0
+        photo = self._scaled_image(image_id)
+        if not band_h:
+            band_h = photo.height() if photo is not None else 0
+        # The picture fills the 80-cell width and is left-anchored at x=0, the
+        # same origin as the status grid and text, so all three share the left
+        # edge. The band wears the game background so any margin is the game's
+        # colour, and the canvas clips a picture taller than its mode-set band.
         self._image_canvas.configure(
-            height=photo.height(),
+            height=band_h,
             background=self._colour(self.vm.screen.bg, "black"),
         )
-        self._image_canvas.create_image(0, 0, image=photo, anchor="nw")
-        self._band_h = photo.height()
+        if photo is not None:
+            self._image_canvas.create_image(0, 0, image=photo, anchor="nw")
+        self._band_h = band_h
         self._relayout()  # the text below re-fits to whole lines under the band
 
     def _colour(self, value, default: str) -> str:

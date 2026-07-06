@@ -32,6 +32,7 @@ import zlib
 # the Tk 9.0 rule) also covers the picture band: the room draws its picture and
 # it renders into the top canvas. The id is slot 1, so the file is 1.png.
 GAME = (
+    'constant arc_mode = 12\n'   # DAAD mode, to match the 320x96 probe art
     'constant starfield = 1\n'
     'game\n    title "Window Probe"\n    start deck\n'
     'room deck\n    name "Observation Deck"\n    desc "Stars wheel past."\n'
@@ -107,13 +108,17 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     # The picture band rendered: the model asked for the room's image and it
     # was scaled to fill the window width at its 320x96 aspect ratio (crisp
     # pixel-grid scaling), so the band is full width and the height follows.
-    assert app.vm.screen.image == (1, 0)
+    # The mode is the game default, 12 (DAAD), carried in the opcode operand.
+    assert app.vm.screen.image == (1, 12)
     scaled = app._scaled_image(1)
     # The picture fills the 80-cell screen width (inside the frame) at its aspect.
     assert scaled.width() == 80 * app.cell_w
     assert abs(scaled.height() / scaled.width() - 96 / 320) < 0.02
-    # The band is exactly the picture height (status bar directly below, no gap).
-    assert band and max(band) == scaled.height()
+    # The band height comes from the MODE (12 rows), not the picture: the
+    # interpreter sizes it from the opcode alone, and the status bar sits a whole
+    # number of rows down. (For 320x96 art at a 2:1 cell this equals the picture
+    # height, but the mode is what sets it.)
+    assert band and max(band) == 12 * app.cell_h
     # The window is the 80-cell screen plus the frame on both sides.
     assert app.root.winfo_width() == 80 * app.cell_w + 2 * app._margin
     # The text area is a WHOLE number of lines (so it never shows a half row),

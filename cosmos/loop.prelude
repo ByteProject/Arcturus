@@ -346,13 +346,14 @@ block fire_object_turns(holder)
 // the performance guard Stefan asked for: a re-LOOK in the same room changes
 // nothing, so the picture is never reloaded (a retro target would otherwise
 // re-decompress its image on every look). A game can override this block to
-// change the rendering policy. mode 0 is the default band; layout modes arrive
-// with the renderer.
+// change the rendering policy. The mode operand is arc_mode, the game's picture
+// mode (band height in text rows, 9 or 12), so the interpreter knows the band
+// size from the opcode alone, without loading the picture.
 block draw_room_image()
     if pictures_available is 1
         let id = image_of(here)
         if id is not shown_image
-            draw_image(id, 0)
+            draw_image(id, arc_mode)
             change shown_image to id
 
 // Describe the current room: its name, its description, and what it contains.
