@@ -4,8 +4,9 @@ Status: living charter. This document is the project charter and index. It
 records the locked decisions, the reference documents, and the milestones
 from first spec to a finished toolchain; the milestone table in section 7
 tracks what is done. The language, Cosmos, and the compiler shipped through
-the Hibernated 2 port (B8); the Actaea reference interpreter (B10) is
-complete. Next is arc_image (B11).
+the Hibernated 2 port (B8); the Actaea reference interpreter (B10) and
+arc_image on modern systems (B11) are complete. Next are the retro image
+targets (B12).
 
 Name: Arcturus. The star, and the narrative arc that every work of
 interactive fiction is built on, so the name points at the medium itself.
@@ -251,8 +252,9 @@ done-test.
   TerpEtude's text portions, real z5/z8 games). The testing ground for
   `arc_image`. docs/06-actaea.md is the documentation; actaea/actaea-design.md
   the design record (M1 to M11, all built).
-- B11: `arc_image` on modern systems (section 6). The capability guard and EXT
-  opcode contract, resource ids written as constants, room and scene art
+- B11 (complete, 2026-07-07): `arc_image` on modern systems (section 6). The
+  capability guard and the EXT opcode contract, resource ids written as
+  constants and the mode carried in the opcode (`arc_mode`), room and scene art
   rendered from PNGs in Infocom and DAAD modes, the rendering capability added
   to Actaea, and the `arcimg` author tool preparing and packing the art into an
   `.arcres` file, with the same story file still running unchanged on Frotz.
@@ -267,9 +269,10 @@ done-test.
 ## 8. Status
 
 The design tracks (A0 to A2) are complete. Implementation stands at the end of
-B10: the language, Cosmos, and the compiler shipped through the Hibernated 2
-port (B8, all four acts at a self-summed perfect score), and Actaea, the
-reference interpreter, is complete and conformant, so the project owns both
-ends of the pipeline. Next is arc_image on modern systems (B11), then the
-retro targets (B12) and the Rabenstein port (B13). Current progress is
-tracked in PROGRESS.md.
+B11: the language, Cosmos, and the compiler shipped through the Hibernated 2
+port (B8, all four acts at a self-summed perfect score); Actaea, the reference
+interpreter, is complete and conformant (B10); and arc_image graphics render on
+modern systems (B11), the mode carried in the opcode so it degrades to text
+everywhere and extends to retro next. The project owns both ends of the
+pipeline. Next are the retro image targets (B12) and the Rabenstein port (B13).
+Current progress is tracked in PROGRESS.md.

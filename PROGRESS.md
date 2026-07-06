@@ -3147,3 +3147,62 @@ banner, menus and persistent settings, the About panel, the console
 paper and top-fill, the CLI house style). Three front-ends, one
 headless core, zero dependencies. Next: B11, arc_image on modern
 systems, extending the cell model M8 built for exactly this.
+
+## 2026-07-07: B11 COMPLETE. arc_image on modern systems.
+
+Optional graphics land, and the story file never stops being a conformant
+z5. A room carries an `arc_image` picture; an aware interpreter draws it,
+every standard interpreter ignores it, and the same file plays text-only on
+Frotz and in Actaea's console and pipe modes.
+
+The design, settled with Stefan across the milestone:
+
+- The picture id IS the resource slot. The author writes it as a number, or,
+  for readability, a constant that folds to one (`arc_image scene_path`,
+  `constant scene_path = 8`). The interpreter loads `<id>.png`; a retro build
+  will load slot `<id>`. No name manifest to translate down: the number is
+  the one identifier every target shares. (This replaced the first-seen
+  name-to-id table and the JSON sidecar of the early phases.)
+- The mode travels in the opcode, not the pixels. A game sets `constant
+  arc_mode = 9` (Infocom, 320x72, the upper third) or `12` (DAAD, 320x96,
+  the upper half); it folds by ordinary name resolution, defaulting to 9
+  when absent. The interpreter sizes the band from the mode (mode * cell_h),
+  so it lays out the screen without loading a picture, the property an 8-bit
+  target needs. Stefan caught the original pixel-inference as the wrong
+  architecture; this is the fix.
+- The draw is one custom extended opcode, `draw_image id mode`, at EXT:0x80,
+  in the 128-255 range the Standard reserves for private extensions (so it
+  never collides with a future official opcode). Fredrik Ramsberg (Ozmoo,
+  PunyInform) pointed out the range; it started at 0x20.
+- The guard is the capability handshake: a graphics interpreter sets Flags 1
+  bit 1 (the v6 "pictures available" bit) at boot, the library reads it at
+  run time (`pictures_available`), and only issues the draw when set. On
+  Frotz the branch is never taken, so the bytes are never decoded. Belt (the
+  guard) and suspenders (the ignorable EXT range, S 14.2). Pay-for-use: a
+  game with no picture is byte-identical to one that never had the feature
+  (the `any_images` compile-time fold plus DCE).
+
+The pieces:
+
+- Compiler: arc_image as a numeric value property, arc_mode folded and
+  validated (9 or 12), the draw_image opcode, the pictures-available guard,
+  no sidecar written.
+- Cosmos: `draw_room_image` reads the room's picture behind the guard, dedups
+  on a `shown_image` global (a re-LOOK never reloads, so a retro target never
+  re-decompresses), and passes `arc_mode` as the opcode's mode operand.
+- Actaea: the window renders the band, integer-scaled to the 80-cell width
+  (crisp for pixel art), sized from the mode, the status bar flush beneath.
+  It finds the pictures in a `--images` directory or a sibling `.arcres`
+  pack. Console and pipe report no picture support.
+- arcimg, the third standalone tool (build/arcimg, its own banner and build
+  fingerprint): `pack` numbered PNGs into an `.arcres` (a zip), `prep` a
+  source to a mode (Pillow only when it must resize or convert, with a guided
+  install), `info` a PNG or pack.
+- examples/arc_image: a two-room Rabenstein walk, heavily commented, with its
+  `.arcres`. The VS Code extension highlights `arc_image` (0.11.0).
+
+Versions at close: arcc 0.10.9, Cosmos 0.14.4, Actaea 1.0.3, arcimg 1.0.1.
+Both amalgams regenerated, 565 tests green. Docs: docs/01 section 6b (the
+language and the arcimg synopsis), docs/06 section 2 (rendering) and 3 (the
+tool), docs/00 graphics plan. Next: B12, the same numbered pictures converted
+to each retro machine's own trimmed RLE format, and the Rabenstein port (B13).

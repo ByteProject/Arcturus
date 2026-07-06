@@ -78,16 +78,18 @@ interactive fiction, this is a good time to pick it up.
 
 The most significant recent additions and achievements:
 
-- **Optional graphics: `arc_image`, on modern systems.** A room can carry a
-  picture (`arc_image 8`, or a constant that folds to the id) that shows in
-  Actaea's window, a crisp integer-scaled band above the status bar, in an
-  Infocom shape (320x72, the upper third) or a DAAD shape (320x96, the upper
-  half). The story never stops being a conformant z5: the picture sits behind a
+- **Optional graphics: `arc_image`.** A room can carry a picture (`arc_image 8`,
+  or a constant that folds to the id) that shows in Actaea's window as a crisp
+  integer-scaled band above the status bar, in an Infocom shape (320x72, the
+  upper third) or a DAAD shape (320x96, the upper half), chosen once with
+  `arc_mode`. The story never stops being a conformant z5: the picture rides a
+  custom opcode in the range the Standard reserves for private use, behind a
   capability guard, so the same file plays unchanged and text-only on Frotz and
-  in Actaea's console and pipe modes. The id is a resource slot the pictures are
-  numbered by, so there is no manifest to carry, and the `arcimg` tool prepares
-  the art and packs it into a single `.arcres` file for distribution, the story
-  kept separate. Retro rendering follows next.
+  in Actaea's console and pipe modes. The picture id is the resource slot the
+  art is numbered by (no manifest to carry), the mode travels in the opcode so
+  the interpreter never has to measure a picture to lay out the screen, and the
+  `arcimg` tool prepares the art and packs it into a single `.arcres` file, the
+  story kept separate. Retro rendering follows next.
 - **Actaea, the reference interpreter, reached 1.0.** A Standard 1.1 conformant
   Z-machine interpreter for versions 5 and 8, in Python with no dependencies
   beyond the standard library, so the project now owns both ends of the
