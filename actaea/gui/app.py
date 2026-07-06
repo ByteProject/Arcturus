@@ -180,51 +180,62 @@ class ActaeaApp:
         # compiler emits exactly that for zcolor.background); the erase is
         # where the repaint happens, like every desktop terp.
         self._window_bg = "white"
+        # A thin frame in the screen background around the whole content, so the
+        # text and picture are not flush against the window edge. It is part of
+        # the window, not the 80-cell screen: the picture, status bar, and text
+        # all sit inside it, sharing the 80-cell width. It follows the game
+        # background (white paper, or a game's own colour), so it reads as a
+        # matte around the screen rather than a white border on a dark game.
+        self._margin = 10
 
-        # The upper window: a Canvas over the text area, sized in exact
-        # character cells, shown only while the story keeps a split open.
         self.cell_w = self.font.measure("0")
         self.cell_h = self.font.metrics("linespace")
 
-        # The window IS the story's screen: exactly the model's 80 columns
-        # wide (the status bar's last cell flush with the edge; anything
-        # more shows as a dead strip beside the bar), about 30 lines tall.
+        # The window IS the story's 80-cell screen, inside the frame.
         self._apply_geometry()
-        # The picture band (arc_image): a Canvas pinned to the very top of the
-        # window, above the status grid and the text. Height 0 (hidden) until a
-        # room asks for a picture. Packed first, so it stays topmost; the grid
-        # canvas and the lower text frame sit below it.
+        self.root.configure(background=self._window_bg)
+
+        # The picture band (arc_image): a Canvas pinned to the top, inside the
+        # frame, above the status grid and the text. Height 0 (hidden) until a
+        # room asks for a picture; packed first so it stays topmost.
+        m = self._margin
         self._image_canvas = tk.Canvas(
             self.root, height=0, borderwidth=0, highlightthickness=0,
-            background="black",
+            background=self._window_bg,
         )
-        self._image_canvas.pack(fill="x", side="top")
+        self._image_canvas.pack(fill="x", side="top", padx=m, pady=(m, 0))
 
+        # The upper window (status bar): a cell grid, shown only while the story
+        # keeps a split open.
         self.canvas = tk.Canvas(
             self.root, height=0, borderwidth=0, highlightthickness=0,
-            background="white",
+            background=self._window_bg,
         )
         self._grid_shown = False
         self._redraw_queued = False
+        self._band_h = 0  # current picture-band height in pixels (0 = none)
 
-        frame = tk.Frame(self.root)
-        frame.pack(fill="both", expand=True)
+        frame = tk.Frame(self.root, background=self._window_bg)
+        frame.pack(fill="both", expand=True, padx=m, pady=(0, m))
         self._lower_frame = frame
         self.text = tk.Text(
             frame, wrap="word", font=self.font, undo=False,
-            # No left/right padding: an 80-character line then measures exactly
-            # 80 cells, so the window is exactly 80 cells wide and the text, the
-            # status bar, and the picture all share that width and left edge (a
-            # padding here grew the window past 80 cells and shifted the picture,
-            # 2026-07-06). A small top inset keeps the first line off the bar.
-            padx=0, pady=4, borderwidth=0, highlightthickness=0,
-            background="white", foreground="black", insertbackground="black",
+            # No padding inside the text: an 80-character line then measures
+            # exactly 80 cells, so the text, the status bar, and the picture all
+            # share that width and left edge. The margin around the screen is the
+            # frame, added by the outer packing, not here.
+            padx=0, pady=0, borderwidth=0, highlightthickness=0,
+            background=self._window_bg, foreground="black",
+            insertbackground="black",
         )
         # No scrollbar: interpreters never had one, the native widget is an
         # unstyleable white strip on a game-painted dark screen (Stefan's
         # eye, 2026-07-05), and the wheel, trackpad, and the unread-text
-        # return cover every way a player actually moves through the text.
-        self.text.pack(fill="both", expand=True)
+        # return cover every way a player actually moves through the text. Fill
+        # the width but NOT the height: the height is set to a whole number of
+        # text lines (_relayout), so scrolled text never shows a half-clipped
+        # top line; the leftover pixels are the frame's bottom margin.
+        self.text.pack(fill="x", side="top")
 
         # The input mark: everything before it is story text and immutable.
         self.text.mark_set("input_start", "end-1c")
@@ -376,9 +387,28 @@ class ActaeaApp:
     def _apply_geometry(self) -> None:
         self.cell_w = self.font.measure("0")
         self.cell_h = self.font.metrics("linespace")
+        m = self._margin
+        # 80 cells wide and the chosen number of text rows tall, plus the frame
+        # on every side.
         self.root.geometry(
-            f"{80 * self.cell_w}x{self._rows_var.get() * self.cell_h}"
+            f"{80 * self.cell_w + 2 * m}"
+            f"x{self._rows_var.get() * self.cell_h + 2 * m}"
         )
+        self._relayout()
+
+    def _relayout(self) -> None:
+        """Set the text area to a WHOLE number of lines, so scrolled text never
+        shows a half-clipped row at the top (the picture band and status bar can
+        be any pixel height; the text below them takes the whole lines that fit
+        and the leftover pixels join the bottom margin)."""
+        if not hasattr(self, "text"):
+            return  # called once from __init__ before the widgets exist
+        band = getattr(self, "_band_h", 0)
+        status = self.cell_h if getattr(self, "_grid_shown", False) else 0
+        avail = self._rows_var.get() * self.cell_h - band - status
+        n = max(1, avail // self.cell_h)
+        if int(self.text.cget("height")) != n:
+            self.text.configure(height=n)
 
     def _reheight(self) -> None:
         self._apply_geometry()
@@ -413,6 +443,9 @@ class ActaeaApp:
             insertbackground=self._colour(self.vm.screen.fg, "black"),
         )
         self.canvas.configure(background=bg)
+        self._image_canvas.configure(background=bg)
+        self.root.configure(background=bg)
+        self._lower_frame.configure(background=bg)
         self._grid_changed()
         self._persist()
 
@@ -504,6 +537,8 @@ class ActaeaApp:
         photo = self._scaled_image(img[0]) if img is not None else None
         if photo is None:
             self._image_canvas.configure(height=0)
+            self._band_h = 0
+            self._relayout()
             return
         # The band is exactly the picture height, so the status bar sits directly
         # below the picture with no gap. The picture is left-anchored at x=0, the
@@ -516,6 +551,8 @@ class ActaeaApp:
             background=self._colour(self.vm.screen.bg, "black"),
         )
         self._image_canvas.create_image(0, 0, image=photo, anchor="nw")
+        self._band_h = photo.height()
+        self._relayout()  # the text below re-fits to whole lines under the band
 
     def _colour(self, value, default: str) -> str:
         """A cell/model colour as a tk colour: 1 (or anything unmapped) is
@@ -532,14 +569,19 @@ class ActaeaApp:
 
     def _redraw_grid(self) -> None:
         model = self.vm.screen
+        m = self._margin
         if model.rows == 0:
             if self._grid_shown:
                 self.canvas.pack_forget()
                 self._grid_shown = False
+                self._relayout()
             return
         if not self._grid_shown:
-            self.canvas.pack(fill="x", before=self._lower_frame)
+            # Left/right frame, same as the picture and text; no vertical inset
+            # (the bar sits flush under the picture and above the text).
+            self.canvas.pack(fill="x", before=self._lower_frame, padx=m)
             self._grid_shown = True
+            self._relayout()
         self.canvas.configure(height=model.rows * self.cell_h)
         self.canvas.delete("all")
         for r in range(1, model.rows + 1):
@@ -581,6 +623,10 @@ class ActaeaApp:
             self.text.configure(background=bg, insertbackground=fg)
             self.canvas.configure(background=bg)
             self._image_canvas.configure(background=bg)  # band letterbox = paper
+            # The frame around the screen follows the game background too, so it
+            # reads as a matte, not a white border on a dark game.
+            self.root.configure(background=bg)
+            self._lower_frame.configure(background=bg)
             self._tags_made.clear()  # cached looks resolved the old paper
             for tag in self.text.tag_names():
                 if tag.startswith("look-"):
