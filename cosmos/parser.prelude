@@ -53,6 +53,17 @@ block pronoun_slot(role)
         return pron_them
     return nothing
 
+// Notice a resolved noun so a later pronoun can refer to it: skip nothing and
+// skip the player (the player is never IT/HIM/HER), then let the language layer
+// file it in the right slot. Called for both nouns, so a two-object command
+// binds both.
+block note_referent(obj)
+    if obj is nothing
+        return 0
+    if obj is player
+        return 0
+    note_pronouns(obj)
+
 block parse()
     let term = read_input
     // A fresh line borrows no verb from the last one (noun lists, 8b).
@@ -86,10 +97,12 @@ block parse_line()
     if parse_fault is not 0
         return 0
     // Remember what the pronouns now mean: the language layer decides which
-    // slot this noun fills (English by animacy, German by grammatical gender).
-    if noun is not nothing
-        if noun is not player
-            note_pronouns(noun)
+    // slot each noun fills (English by animacy, German by grammatical gender).
+    // Both nouns are noticed, so after "show coin to bob" IT is the coin and
+    // HIM is Bob; when both fall in one slot the second wins, the last thing
+    // named. The player is never a pronoun referent.
+    note_referent(noun)
+    note_referent(second)
     // TAKE ALL (summon.takeall): a typed all-word hands the command to the
     // granule's expander; a bound noun rides along as the source ("take all
     // from the chest"). The guard folds away without the granule.

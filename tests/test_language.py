@@ -240,6 +240,24 @@ def test_english_pronouns_on_frotz(tmp_path):
     assert "Done." in out  # put coin in it: the pronoun bound as second noun
 
 
+def test_the_second_noun_binds_a_pronoun():
+    # A resolved SECOND noun becomes a pronoun referent, so a character named
+    # only as the recipient of a two-object verb answers to "her" afterwards
+    # (headless, so it runs without Frotz). Marta is never the primary noun.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+
+    story = load(generate(analyze(cosmos.combined_program(parse(PRONOUN_GAME)))))
+    io = CaptureIO(script=["take lamp", "show lamp to marta", "x her",
+                           "quit", "y"])
+    VM(story, io).run(max_steps=5_000_000)
+    text = io.text
+    at = text.index(">x her")
+    # "her" resolved to Marta though she was only ever the second noun.
+    assert "She watches you evenly." in text[at:at + 120]
+
+
 GERMAN_PRONOUNS = (
     'summon.language "german"\n'
     'game\n    title "P"\n    start raum\n'

@@ -29,7 +29,7 @@ certainly already have.
 | Component | Version | Download |
 |-----------|---------|----------|
 | **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.10.10 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 0.14.4 | shipped inside `arcc` |
+| **Cosmos**, the standard library | 0.14.5 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.0.3 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.0.1 | [build/arcimg](build/arcimg) |
 
