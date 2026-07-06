@@ -1,4 +1,4 @@
-// The Curse of Rabenstein: an arc_image demonstration.
+// The Demo of Rabenstein: an arc_image demonstration.
 // part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
@@ -69,7 +69,7 @@
 // --console and --headless modes: the pictures are simply absent there.
 
 game
-    title "The Curse of Rabenstein"
+    title "The Demo of Rabenstein"
     headline "An arc_image demonstration"
     author "Stefan Vogt"
     start opening
@@ -89,7 +89,7 @@ on start
 
 room opening
     name "Forsaken Path"
-    desc "You are standing on a path deep in the Black Forest, extending further north from here."
+    desc "You are standing on a path deep in the Black Forest, extending further north from here. On a night like this, the trees cast eerie shadows and people disappear without ever being seen again."
     arc_image scene_path
     north church
 
