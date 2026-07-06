@@ -31,7 +31,7 @@ import json
 import os
 import tkinter as tk
 import webbrowser
-from math import ceil as _ceil, gcd as _gcd
+from math import gcd as _gcd
 from tkinter import filedialog
 from tkinter import font as tkfont
 
@@ -212,7 +212,12 @@ class ActaeaApp:
         self._lower_frame = frame
         self.text = tk.Text(
             frame, wrap="word", font=self.font, undo=False,
-            padx=8, pady=6, borderwidth=0, highlightthickness=0,
+            # No left/right padding: an 80-character line then measures exactly
+            # 80 cells, so the window is exactly 80 cells wide and the text, the
+            # status bar, and the picture all share that width and left edge (a
+            # padding here grew the window past 80 cells and shifted the picture,
+            # 2026-07-06). A small top inset keeps the first line off the bar.
+            padx=0, pady=4, borderwidth=0, highlightthickness=0,
             background="white", foreground="black", insertbackground="black",
         )
         # No scrollbar: interpreters never had one, the native widget is an
@@ -500,20 +505,17 @@ class ActaeaApp:
         if photo is None:
             self._image_canvas.configure(height=0)
             return
-        # Snap the band to a WHOLE number of text lines, so the band, the status
-        # bar, and the scrolling text tile the character grid cleanly (otherwise
-        # the text region is a fractional line and its top row scrolls half
-        # behind the picture). The picture sits at the top of the band; the
-        # sub-line remainder is the game's own background, invisible on a dark
-        # screen. The band also wears the game background so a picture narrower
-        # than the window letterboxes in the game's colour, not white.
-        band_h = _ceil(photo.height() / self.cell_h) * self.cell_h
+        # The band is exactly the picture height, so the status bar sits directly
+        # below the picture with no gap. The picture is left-anchored at x=0, the
+        # same origin as the status grid and the text, so all three share the
+        # left edge and the 80-cell width (the picture fills that width exactly).
+        # The band wears the game background so any width margin is the game's
+        # colour, not white.
         self._image_canvas.configure(
-            height=band_h, background=self._colour(self.vm.screen.bg, "black")
+            height=photo.height(),
+            background=self._colour(self.vm.screen.bg, "black"),
         )
-        # Centre the scaled picture in the 80-cell window width.
-        x = max(0, (80 * self.cell_w - photo.width()) // 2)
-        self._image_canvas.create_image(x, 0, image=photo, anchor="nw")
+        self._image_canvas.create_image(0, 0, image=photo, anchor="nw")
 
     def _colour(self, value, default: str) -> str:
         """A cell/model colour as a tk colour: 1 (or anything unmapped) is
