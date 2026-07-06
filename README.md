@@ -31,7 +31,7 @@ certainly already have.
 | **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.10.8 | [build/arcc](build/arcc) |
 | **Cosmos**, the standard library | 0.14.4 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.0.2 | [build/actaea](build/actaea) |
-| **arcimg**, the arc_image image tool (optional, for graphics) | 1.0.1 | [build/arcimg](build/arcimg) |
+| **arcimg**, the arc_image tool (optional, for graphics) | 1.0.1 | [build/arcimg](build/arcimg) |
 
 Write a game, compile it, play it:
 
