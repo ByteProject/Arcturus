@@ -31,7 +31,7 @@ import json
 import os
 import tkinter as tk
 import webbrowser
-from math import gcd as _gcd
+from math import ceil as _ceil, gcd as _gcd
 from tkinter import filedialog
 from tkinter import font as tkfont
 
@@ -487,10 +487,11 @@ class ActaeaApp:
 
     def _repaint_image(self) -> None:
         img = self.vm.screen.image  # (id, mode) or None
-        # Include the window width in the change key, so a font-size change
-        # (which changes the target width) rescales even if the picture id is
-        # the same.
-        state = None if img is None else (img, 80 * self.cell_w)
+        # The change key folds in the window width (a font-size change rescales)
+        # and the game background (a background change repaints the band's
+        # letterbox), so the band only redraws when something it shows actually
+        # changed.
+        state = None if img is None else (img, 80 * self.cell_w, self.vm.screen.bg)
         if state == self._drawn_image:
             return  # nothing changed (the dedup: no reload, no flicker)
         self._drawn_image = state
@@ -499,7 +500,17 @@ class ActaeaApp:
         if photo is None:
             self._image_canvas.configure(height=0)
             return
-        self._image_canvas.configure(height=photo.height())
+        # Snap the band to a WHOLE number of text lines, so the band, the status
+        # bar, and the scrolling text tile the character grid cleanly (otherwise
+        # the text region is a fractional line and its top row scrolls half
+        # behind the picture). The picture sits at the top of the band; the
+        # sub-line remainder is the game's own background, invisible on a dark
+        # screen. The band also wears the game background so a picture narrower
+        # than the window letterboxes in the game's colour, not white.
+        band_h = _ceil(photo.height() / self.cell_h) * self.cell_h
+        self._image_canvas.configure(
+            height=band_h, background=self._colour(self.vm.screen.bg, "black")
+        )
         # Centre the scaled picture in the 80-cell window width.
         x = max(0, (80 * self.cell_w - photo.width()) // 2)
         self._image_canvas.create_image(x, 0, image=photo, anchor="nw")
@@ -567,6 +578,7 @@ class ActaeaApp:
             fg = self._colour(self.vm.screen.fg, "black")
             self.text.configure(background=bg, insertbackground=fg)
             self.canvas.configure(background=bg)
+            self._image_canvas.configure(background=bg)  # band letterbox = paper
             self._tags_made.clear()  # cached looks resolved the old paper
             for tag in self.text.tag_names():
                 if tag.startswith("look-"):

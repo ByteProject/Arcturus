@@ -111,5 +111,9 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     scaled = app._scaled_image(1)
     assert scaled.width() == 80 * app.cell_w         # fills the width
     assert abs(scaled.height() / scaled.width() - 96 / 320) < 0.02  # aspect kept
-    assert band and max(band) == scaled.height()     # the band shows it
+    # The band is the picture height snapped UP to a whole number of text lines,
+    # so the band, status bar, and text tile the character grid cleanly.
+    import math
+    expected = math.ceil(scaled.height() / app.cell_h) * app.cell_h
+    assert band and max(band) == expected
     app.root.destroy()
