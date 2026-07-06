@@ -105,3 +105,50 @@ def test_runs_on_actaea_headless():
     vm = VM(load(_compile(IMG)), io)
     vm.run(max_steps=2_000_000)
     assert "The Hall" in io.text and "The Yard" in io.text
+
+
+def _run(io_cls, script):
+    from actaea.loader import load
+    from actaea.vm import VM
+    io = io_cls(script=list(script))
+    vm = VM(load(_compile(IMG)), io)
+    vm.run(max_steps=2_000_000)
+    return vm
+
+
+def test_picture_requested_only_when_the_interpreter_can_show_it():
+    # The whole capability gate, headless: a front-end that advertises picture
+    # support (the header bit) makes the room draw its picture into the screen
+    # model; one that does not never touches it. Same story, opposite outcome.
+    from actaea.io import CaptureIO
+
+    class PicIO(CaptureIO):
+        supports_pictures = True
+
+    # With pictures available: ending in the yard, its picture (forest = id 2)
+    # is the one on screen; the mode is the default band 0.
+    assert _run(PicIO, ["north", "quit", "y"]).screen.image == (2, 0)
+    # Back in the hall, its own picture (cellar = id 1).
+    assert _run(PicIO, ["north", "south", "quit", "y"]).screen.image == (1, 0)
+    # Without picture support, nothing is ever drawn.
+    assert _run(CaptureIO, ["north", "quit", "y"]).screen.image is None
+
+
+def test_manifest_round_trips_from_compiler_to_interpreter(tmp_path):
+    # The compiler writes id -> name beside the story; the interpreter reads it
+    # back as {id: name} so it can find <name>.png.
+    import subprocess
+    import sys
+    from actaea.__main__ import _load_manifest
+
+    src = tmp_path / "g.storyarc"
+    src.write_text(IMG)
+    story = tmp_path / "g.z5"
+    subprocess.run(
+        [sys.executable, "-m", "arcturus.cli", str(src), "-o", str(story)],
+        capture_output=True, text=True, check=True,
+    )
+    assert (tmp_path / "g.arcres").exists()
+    assert _load_manifest(str(story)) == {1: "cellar", 2: "forest"}
+    # No story, no manifest: an empty map, never an error.
+    assert _load_manifest(str(tmp_path / "nope.z5")) == {}

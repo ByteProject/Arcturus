@@ -87,6 +87,10 @@ class GuiIO(IOSystem):
     # the header's timed-input bit.
     supports_timed = True
 
+    # The window can draw pictures (arc_image, B11), so it claims the header's
+    # picture-available bit; the console and headless front-ends do not.
+    supports_pictures = True
+
     def __init__(self, app: "ActaeaApp"):
         self.app = app
 
@@ -137,9 +141,17 @@ class ActaeaApp:
     """The window: a Text widget with a scrollbar, inline input, and the
     run loop driving the VM through GuiIO."""
 
-    def __init__(self, story, title: str):
+    def __init__(self, story, title: str, image_names=None, images_dir=None):
         self.root = tk.Tk()
         self.root.title(f"{title} - Actaea")
+        # arc_image (B11): id -> picture name (from the story's .arcres manifest)
+        # and the directory holding the <name>.png files. A picture the model
+        # asks for is loaded on demand and cached; PhotoImages must be kept
+        # referenced or tkinter garbage-collects them off the canvas.
+        self._image_names = image_names or {}
+        self._images_dir = images_dir
+        self._photo_cache: dict = {}
+        self._drawn_image = False  # a sentinel distinct from None (no picture)
         # Settings the menu drives, remembered across sessions; colours
         # before anything calls _colour.
         st = _load_settings()
@@ -176,6 +188,16 @@ class ActaeaApp:
         # wide (the status bar's last cell flush with the edge; anything
         # more shows as a dead strip beside the bar), about 30 lines tall.
         self._apply_geometry()
+        # The picture band (arc_image): a Canvas pinned to the very top of the
+        # window, above the status grid and the text. Height 0 (hidden) until a
+        # room asks for a picture. Packed first, so it stays topmost; the grid
+        # canvas and the lower text frame sit below it.
+        self._image_canvas = tk.Canvas(
+            self.root, height=0, borderwidth=0, highlightthickness=0,
+            background="black",
+        )
+        self._image_canvas.pack(fill="x", side="top")
+
         self.canvas = tk.Canvas(
             self.root, height=0, borderwidth=0, highlightthickness=0,
             background="white",
@@ -394,10 +416,52 @@ class ActaeaApp:
     # -- the upper window ---------------------------------------------------------
 
     def _grid_changed(self) -> None:
-        # Coalesce bursts of cell writes into one repaint per idle cycle.
+        # Coalesce bursts of screen changes into one repaint per idle cycle.
+        # The model signals grid AND picture changes through here, so a repaint
+        # refreshes both.
         if not self._redraw_queued:
             self._redraw_queued = True
-            self.root.after_idle(self._redraw_grid)
+            self.root.after_idle(self._repaint)
+
+    def _repaint(self) -> None:
+        self._redraw_queued = False
+        self._redraw_grid()
+        self._repaint_image()
+
+    # -- the picture band (arc_image) -------------------------------------------
+
+    def _load_image(self, image_id: int):
+        """The PhotoImage for a picture id, from <name>.png in the images
+        directory (name from the manifest), loaded once and cached. None when
+        the id is unknown or the file is missing or not a readable image, so a
+        missing picture degrades to an empty band rather than a crash."""
+        if image_id in self._photo_cache:
+            return self._photo_cache[image_id]
+        name = self._image_names.get(image_id)
+        if not name or not self._images_dir:
+            return None
+        path = os.path.join(self._images_dir, name + ".png")
+        try:
+            photo = tk.PhotoImage(file=path)
+        except tk.TclError:
+            photo = None
+        self._photo_cache[image_id] = photo
+        return photo
+
+    def _repaint_image(self) -> None:
+        img = self.vm.screen.image  # (id, mode) or None
+        if img == self._drawn_image:
+            return  # nothing changed (the dedup: no reload, no flicker)
+        self._drawn_image = img
+        self._image_canvas.delete("all")
+        photo = self._load_image(img[0]) if img is not None else None
+        if photo is None:
+            self._image_canvas.configure(height=0)
+            return
+        self._image_canvas.configure(height=photo.height())
+        # Centre the picture in the 80-cell window width.
+        x = max(0, (80 * self.cell_w - photo.width()) // 2)
+        self._image_canvas.create_image(x, 0, image=photo, anchor="nw")
 
     def _colour(self, value, default: str) -> str:
         """A cell/model colour as a tk colour: 1 (or anything unmapped) is
@@ -413,7 +477,6 @@ class ActaeaApp:
         return true_colour_hex(word) if word is not None else default
 
     def _redraw_grid(self) -> None:
-        self._redraw_queued = False
         model = self.vm.screen
         if model.rows == 0:
             if self._grid_shown:
@@ -744,5 +807,5 @@ class ActaeaApp:
                 self.append_story(f"\n[actaea: {e}]\n")
 
 
-def play(story, title: str) -> None:
-    ActaeaApp(story, title).run()
+def play(story, title: str, image_names=None, images_dir=None) -> None:
+    ActaeaApp(story, title, image_names, images_dir).run()
