@@ -439,6 +439,15 @@ def eval_expr(rt: Routine, ctx: Context, expr, dest=None) -> None:
             ctx.free_temp(tp)
         return
 
+    # An unresolved bare name reaching here is almost always a typo or a
+    # missing declaration (a topic body reading a flag nobody declared); say
+    # WHICH name, not just "unsupported" (a field report hit the bare form).
+    if isinstance(expr, ast.Name):
+        raise LowerError(
+            f"unknown name '{expr.ident}': not a local, global, flag, "
+            f"counter, constant, object, or block (missing declaration?)",
+            expr.line,
+        )
     raise LowerError("unsupported expression", getattr(expr, "line", 0))
 
 
