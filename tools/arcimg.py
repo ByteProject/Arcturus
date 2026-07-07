@@ -646,10 +646,12 @@ def _build_palette(rows, n, snap):
 
 def _dither_amount(rows, budget):
     """The ordered-dither amplitude: 0 for flat art, gentle for gradient art,
-    stronger the smaller the palette budget."""
+    stronger the smaller the palette budget. Tuned on the stresstest pair
+    with Stefan (less is more: the pattern must stay subtler than the art's
+    own texture, and large smooth areas show it first)."""
     if not _gradient_class(rows):
         return 0
-    return {16: 14, 32: 8}.get(budget, 4)
+    return {16: 8, 32: 5}.get(budget, 3)
 
 
 def _convert_ami(rows):
