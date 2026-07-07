@@ -1196,11 +1196,17 @@ The header parts, with the modifiers in any order:
   picks it by number.
 - `when <cond>` guards visibility; the topic is offered only while the condition
   holds, evaluated with `self` bound to the person.
-- `once` retires the topic after it runs, permanently.
+- `once` makes the topic one-shot: after it runs, the player cannot raise it
+  again. Code can still bring it back with `reveal` (below).
 - `hidden` starts the topic out of view, until a `reveal` brings it in.
 
-Three ways in and out of view, and when to use which. They differ in who is
-in control and whether the topic can come back:
+By default a topic is repeatable and never leaves on its own: the player can
+raise it as often as they like. Nothing is needed to keep a topic around; every
+control below only ever takes one OUT of view. (How often a topic can be raised
+also depends on the presentation, and the two differ: see the note below.)
+
+Three ways out of view, and when to use which. They differ in who is in control
+and whether the topic can come back:
 
 - A `when` guard is LIVE STATE: the topic appears and disappears as the
   condition moves, with no bookkeeping. A topic whose own body changes the
@@ -1213,14 +1219,16 @@ in control and whether the topic can come back:
   exact moment a topic enters or leaves, from another topic's body or any
   handler. Revealing is repeatable; use it when no world state naturally
   expresses "this is now worth raising".
-- `once` is a ONE-WAY LATCH: after one telling the topic is gone for good,
-  regardless of guards, and no `reveal` brings it back. Use it for lines
-  that must never repeat (a confession, a joke that dies on the second
-  telling); do not use it for topics a `when` guard already retires, or the
-  guard becomes irrelevant.
+- `once` is a ONE-SHOT: after one telling the player cannot raise it again,
+  regardless of guards. Unlike a `when` guard it does not return on its own,
+  and the player can never bring it back, which is the point (a confession the
+  suspect will not repeat, a joke that dies on the second telling). Only the
+  author can stage a return, with a `reveal` in code, for a line that fires
+  again under new circumstances; `once` then retires it once more. Do not use
+  it for topics a `when` guard already retires, or the guard becomes irrelevant.
 
-They combine: `hidden once` is a revealable one-shot, and a `when` guard on
-a `once` topic gates the single telling.
+They combine: `hidden once` is a one-shot that starts out of view, and a `when`
+guard on a `once` topic gates the single telling.
 
 The body is an ordinary statement block, so any statement is allowed. It adds
 four conversation forms:
