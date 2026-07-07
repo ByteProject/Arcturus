@@ -324,13 +324,19 @@ machines; the rest ride the established framework.
   per-target files. But PROBE disks are in scope, ruled so at R0: putting
   a converted image onto an emulated disk (or into an emulator's memory)
   and seeing it drawn in the right screen area IS this project's
-  verification, and it cannot happen anywhere else. The harness therefore
-  builds test disks and directories with the existing command-line
-  builders in `~/FictionTools` on the Linux side (the `orb` OrbStack
-  machine `debian`): dsktool (MSX), idsk (CPC and Spectrum +3), c1541 and
-  cc1541 (CBM), mkatr (Atari 8-bit ATR), adf.py and gemdos.py (Eris's own
-  Amiga and ST builders), plus nextraw and friends. Installing missing
-  emulators for the bench is in scope too.
+  verification, and it cannot happen anywhere else. Tooling geography:
+  `~/FictionTools` on the Linux side (the `orb` OrbStack machine
+  `debian`) is the Puny BuildTools REFERENCE repository, the one every
+  other BuildTools inherits from; it is at hand for its command-line
+  builders (dsktool for MSX, idsk for CPC and Spectrum +3, mkatr for
+  Atari 8-bit, adf.py and gemdos.py, Eris's own Amiga and ST builders,
+  nextraw and friends) but it is not this project's workbench and is
+  never modified from here. Builders it does not cover for our probes
+  (the Commodore family among them) are installed on the macOS side
+  (VICE brings c1541 alongside its emulators). Installing missing
+  emulators for the bench is in scope. Practical note: inside the orb
+  shell the Mac filesystem is reachable by absolute path
+  (/Users/stefan/Fiction/...), while ~ is the Linux home until exit.
 - The per-target INTERPRETERS themselves (beyond Eris and Varuna
   integration) are Stefan's builds on the blueprints; B12 delivers the
   blueprints proven by probes, not thirteen interpreters.
