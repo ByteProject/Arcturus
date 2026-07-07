@@ -68,8 +68,10 @@ block find_particle()
 
 // Combine a base verb with a particle into a multi-word action, only for the
 // verbs that take one: switch and turn with on/off become switch_on/switch_off,
-// and take with off becomes take_off. Any other base ignores the particle (so
-// "put X on Y" stays a put). Particle ids: on is 1, off is 2.
+// take with off becomes take_off, and take with on becomes enter (GET ON THE
+// HORSE, the boarding idiom; remap_action holds the rest of the GET family).
+// Any other base ignores the particle (so "put X on Y" stays a put).
+// Particle ids: on is 1, off is 2.
 block compound(base, particle)
     if base is action_id("switch_on")
         if particle is 1
@@ -84,6 +86,8 @@ block compound(base, particle)
     if base is action_id("take")
         if particle is 2
             return action_id("take_off")
+        if particle is 1
+            return action_id("enter")
     return nothing
 
 // The chosen direction's property number, from the first direction word typed
@@ -105,12 +109,35 @@ block find_direction()
 // cloak. parser.prelude calls this once the objects are known; here it remaps the
 // look action to examine when a noun or a scenery grain was named. A language pack
 // may override it for its own conventions.
+//
+// The GET idioms live here too. "get" is a take synonym, but with a direction
+// word it is movement or boarding, the way every classic library reads it:
+// GET IN HAYSTACK and GET INTO the same are an enter; GET OUT OF BED and GET
+// DOWN FROM the table leave (exit); a bare GET IN / GET OUT / GET UP / GET
+// DOWN is a walk (go, the way handles it). GET ON X arrives here already as
+// an enter (the take+on particle, compound below), and GET OFF X arrives as
+// a take_off, which flips to exit when the player is actually in or on X
+// (otherwise it stays the wearing verb: GET OFF HAT). Idioms are language,
+// so each pack writes its own; these are English's.
 block remap_action(act)
     if act is action_id("look")
         if noun is not nothing
             return action_id("examine")
         if grain is not 0
             return action_id("examine")
+    if act is action_id("take")
+        if way is not nothing
+            if noun is nothing
+                return action_id("go")
+            if way is out
+                return action_id("exit")
+            if way is down
+                return action_id("exit")
+            return action_id("enter")
+    if act is action_id("take_off")
+        if noun is not nothing
+            if player in noun
+                return action_id("exit")
     return act
 
 // Does the object's vocabulary include this dictionary word?
@@ -464,7 +491,7 @@ direction southeast "southeast", "se"
 direction southwest "southwest", "sw"
 direction up        "up", "u"
 direction down      "down", "d"
-direction in        "in"
+direction in        "in", "into"
 direction out       "out"
 
 verb "take", "get", "carry"

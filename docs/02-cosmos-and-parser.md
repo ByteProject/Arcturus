@@ -673,8 +673,12 @@ are alternative inputs.
 - put noun in noun, put noun on noun.
 - wear (don) noun; take off (remove, doff) noun.
 - inventory (i, inv).
-- go direction (n, s, e, w, ne, nw, se, sw, u, d, in, out).
-- enter noun, exit (out).
+- go direction (n, s, e, w, ne, nw, se, sw, u, d, in/into, out).
+- enter noun, exit (out). English also reads the GET idioms: GET IN/INTO X
+  and GET ON X are enter, GET OUT OF X (and GET OFF X when the player is in
+  or on X) is exit, and a bare GET IN/OUT/UP/DOWN walks; GET OFF HAT stays
+  the wearing verb. The remaps live in the English pack (remap_action and
+  the take+on particle), so each language writes its own idioms.
 - open noun, close (shut) noun.
 - lock noun with noun, unlock noun with noun.
 - switch on noun, switch off noun (turn on, turn off).
