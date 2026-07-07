@@ -28,7 +28,7 @@ certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.11.0 | [build/arcc](build/arcc) |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.11.1 | [build/arcc](build/arcc) |
 | **Cosmos**, the standard library | 0.15.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.0.3 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.0.1 | [build/arcimg](build/arcimg) |
@@ -125,6 +125,7 @@ The most significant recent additions and achievements:
   to configure. Optional features cost nothing when a game does not use them;
   Cloak of Darkness compiles to about 15K with the whole modern library linked
   in and nothing stripped out by hand.
+
 On the horizon is `arc_image` for the retro machines: the same numbered
 pictures, converted to each 8-bit and 16-bit machine's own trimmed format. For
 the full, step-by-step history, see [PROGRESS.md](PROGRESS.md).
