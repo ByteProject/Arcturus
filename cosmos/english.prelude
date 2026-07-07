@@ -321,11 +321,10 @@ block resolve_two_nouns()
                     change b to i
         change i to i + 1
     // The reversed dative (GIVE/SHOW BOB COIN): two adjacent nouns, no
-    // preposition to split on. Find the boundary by probing each split point
-    // for the first where BOTH sides name a single object, then swap the roles
-    // (the first object is the recipient, the second the thing). If no clean
-    // split exists, fall through to the ordinary single-phrase path (which
-    // asks "which do you mean"), exactly as before.
+    // preposition to split on. Probe each boundary for the first where BOTH
+    // sides name a single object, then swap the roles (the first object is the
+    // recipient, the second the thing). No clean split falls through to the
+    // ordinary single-phrase path, which asks "which do you mean", as before.
     if two_reverse is 1
         if b is 0
             let sp = 2

@@ -41,10 +41,12 @@ CEILINGS = {
     # 2026-07-07 (pronouns): the parser now binds a pronoun for the SECOND noun
     # too, so after "show coin to bob" HIM refers to Bob. +4 to +20 bytes/game.
     # 2026-07-07 (reversed dative): GIVE/SHOW accept the reversed order (GIVE BOB
-    # COIN), with the reverse split and probe_noun in english.prelude. +~196
-    # bytes for English games; German and Spanish are UNCHANGED (their packs have
-    # no reverse line, so the whole path DCEs away, the pay-for-language model).
-    "beispiel-deutsch.storyarc": 20068,
+    # COIN), with the reverse split (inline per pack) and the shared probe_noun.
+    # +~196 bytes for a pack that declares a reverse line. English got it first;
+    # German followed (gib Bob die Muenze, its natural dative), +196 here. Spanish
+    # is UNCHANGED: its dative uses the mandatory personal "a" (da a Maria la
+    # moneda) or clitics, not the adjacent-noun form, so no reverse line applies.
+    "beispiel-deutsch.storyarc": 20264,
     "brass-lantern.storyarc": 14888,
     "cloak-of-darkness.storyarc": 15428,
     "ejemplo-espanol.storyarc": 19296,
