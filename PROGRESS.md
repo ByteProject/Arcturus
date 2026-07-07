@@ -3280,3 +3280,41 @@ section 15 (grammar overriding), docs/04 section 7 (the table encoding),
 examples/features/grammar.storyarc. The checkpoint note that scoped the
 overhaul was deleted once it landed; this entry is the record. Verified on
 fizmo-console and handed off. Next: B12 stays next.
+
+## 2026-07-07: B12 R0 COMPLETE. The retro arc_image charter and roadmap.
+
+B12 opened with its roadmap, not with code: docs/08-arcimage-retro.md,
+drafted from a four-way research sweep over the fourteen target machines
+(Commodore, Sinclair/Amstrad, MSX/Atari/Apple, and the 16-bits) and
+approved by Stefan the same day, every open decision ruled.
+
+The reframe that shaped it: B12's center of gravity is the CONVERSION
+INTELLIGENCE, not the file format. One band-shaped master painting per
+image (320x72 or 320x96, the author provides the right shape; ST-class 16
+colors the expected common denominator), and arcimg derives the ideal
+native version for every target: palette, geometry, attribute-clash
+solving, detail reduction. Hand-painted native art stays as an optional
+1:1 lint-and-encode path. The blueprints (format, converter, interpreter
+contract, verification probe) are written so interpreters that do not
+exist yet can be built from the documents alone, and Vezza announced it
+will implement the same public contract.
+
+The research validated B11's bets outright: the 72/96-pixel bands align
+exactly with the 8-pixel text rows of every one of the fourteen machines,
+and every machine wants its payload in native memory order, so the loader
+on a 1 MHz CPU is a dumb RLE-unpack. Targets fall into three conversion
+classes: quantize (Amiga, ST, DOS, CPC, MSX2, Next, MEGA65), cell (C64,
+Spectrum +3, Plus/4, MSX1, C128 VDC; the per-cell solvers are the real
+work), and signal (Apple II, NTSC-modeled).
+
+Rulings at R0: waves ordered Eris-first (Amiga/ST/DOS end to end, the
+contract's reference implementation) with C64 leading wave 2; DOS is VGA
+mode 13h only (Infocom's MCGA precedent); file naming <id>.<TAG>;
+band-shaped masters; Colodore as the C64 reference palette; the C128 VDC
+blueprint is written even though its interpreter fate is decided later;
+ST text reserves palette indices 0 and 15 (to be verified against Eris's
+ST screen layer in R2); probe-disk building is IN scope (the FictionTools
+builders on the Linux side: dsktool, idsk, c1541, mkatr, adf.py,
+gemdos.py), game-disk packaging stays out.
+
+Next: R1, the format spec and the shared RLE codec.
