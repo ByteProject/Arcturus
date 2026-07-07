@@ -180,6 +180,8 @@ class Obj:
 class GrammarLine:
     action: str
     items: list[ast.GrammarItem]
+    # A reversed two-noun line (give/show BOB COIN): the two noun roles swap.
+    reverse: bool = False
 
 
 @dataclass

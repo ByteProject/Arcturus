@@ -787,6 +787,14 @@ A grammar line is an action name, then slots and literal words. Slots:
 including "all"), `text` (free text). Bare words such as `in`, `on`, `with`
 are literal prepositions. Two-object lines bind `noun` and `second`.
 
+A two-noun line may end in `reverse`, for a verb whose two objects can be typed
+in the other order without a preposition, the classic dative: GIVE and SHOW take
+both `give noun to noun` ("give the coin to Bob") and `give noun noun reverse`
+("give Bob the coin"). On a reversed line the first object is the recipient
+(`second`) and the last is the thing (`noun`), so both orders reach the same
+handler with the same roles. The parser splits the two adjacent nouns for you;
+`reverse` needs exactly two `noun` slots and no preposition between them.
+
 Standard verbs, including talk-to, come from Cosmos; how input is tokenized
 and resolved is defined in 02. This section defines only how you declare a
 verb and how its grammar names the action your handlers receive.

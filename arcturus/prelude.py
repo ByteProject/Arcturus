@@ -257,6 +257,10 @@ _BUILTINS = {
     "pron_them": T_OBJECT,
     "grain": T_NUMBER,  # the matched scenery grain (id+1), set by the parser
     "parse_fault": T_NUMBER,  # set by the parser when a named object is out of scope
+    # Set by resolve_objects when the matched verb has a reversed two-noun form
+    # (give/show BOB COIN): resolve_two_nouns then splits the adjacent nouns and
+    # swaps the roles. Library-internal (docs/02 section 8).
+    "two_reverse": T_NUMBER,
     "meta_turn": T_NUMBER,  # set by a meta verb so the loop skips the turn pulse
     # The previous non-meta command, remembered so "again" can replay it.
     "last_act": T_NUMBER,

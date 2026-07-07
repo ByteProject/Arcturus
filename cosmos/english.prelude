@@ -185,11 +185,19 @@ block resolve_objects()
     change second to nothing
     change grain to 0
     change parse_fault to 0
+    change two_reverse to 0
     let d = word_dict(0)
     if d is not nothing
         if peek_byte(d + 6) is 128 or peek_byte(d + 6) is 136
             let arity = peek_byte(d + 8)
             let va = peek_byte(d + 7)
+            // A reverse-capable two-noun verb (give/show) is encoded as 6 (2 plus
+            // bit 2): the same two-noun path, but resolve_two_nouns may split two
+            // adjacent nouns and swap them (GIVE BOB COIN) when no preposition
+            // separates them.
+            if arity is 6
+                change two_reverse to 1
+                change arity to 2
             if arity is 2
                 resolve_two_nouns
                 return 1
@@ -312,6 +320,24 @@ block resolve_two_nouns()
                 if is_separator(d)
                     change b to i
         change i to i + 1
+    // The reversed dative (GIVE/SHOW BOB COIN): two adjacent nouns, no
+    // preposition to split on. Find the boundary by probing each split point
+    // for the first where BOTH sides name a single object, then swap the roles
+    // (the first object is the recipient, the second the thing). If no clean
+    // split exists, fall through to the ordinary single-phrase path (which
+    // asks "which do you mean"), exactly as before.
+    if two_reverse is 1
+        if b is 0
+            let sp = 2
+            while sp < n
+                let recip = probe_noun(1, sp)
+                if recip is not nothing
+                    let gift = probe_noun(sp, n)
+                    if gift is not nothing
+                        change second to recip
+                        change noun to gift
+                        return 1
+                change sp to sp + 1
     if b is 0
         change b to n
     change noun to match_phrase(1, b, 0)
@@ -553,9 +579,11 @@ verb "exit", "leave"
 
 verb "give", "offer", "feed", "pay"
     give noun to noun
+    give noun noun reverse
 
 verb "show", "display", "present"
     show noun to noun
+    show noun noun reverse
 
 verb "touch", "feel", "pat"
     touch noun

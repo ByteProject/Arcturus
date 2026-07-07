@@ -258,6 +258,45 @@ def test_the_second_noun_binds_a_pronoun():
     assert "She watches you evenly." in text[at:at + 120]
 
 
+# A character with an `on give` handler and a coin to hand over: enough to prove
+# the reversed dative binds noun (the thing) and second (the recipient) both ways.
+DATIVE_GAME = (
+    'game\n    title "D"\n    start hall\n'
+    'room hall\n    name "Hall"\n    desc "A hall."\n'
+    'thing coin in hall\n    name "coin"\n    words coin\n'
+    'thing bob of character in hall\n    name "Bob"\n    words bob\n    named\n'
+    '    on give\n        say "Bob pockets ${the noun}."\n'
+)
+
+
+def _dative_play(cmds):
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    story = load(generate(analyze(cosmos.combined_program(parse(DATIVE_GAME)))))
+    io = CaptureIO(script=cmds + ["quit", "y"])
+    VM(story, io).run(max_steps=5_000_000)
+    return io.text
+
+
+def test_reversed_dative_give_both_orders():
+    # GIVE COIN TO BOB (forward) and GIVE BOB THE COIN (reversed) both reach
+    # Bob's `on give` with noun = the coin, not an ambiguity question.
+    for cmd in ("give coin to bob", "give bob the coin", "give bob coin"):
+        out = _dative_play([cmd])
+        at = out.index(">" + cmd)
+        window = out[at:at + 160]
+        assert "Bob pockets the coin." in window, cmd
+        assert "Which do you mean" not in window, cmd
+
+
+def test_reverse_needs_two_noun_slots():
+    from arcturus.errors import ArcError
+    src = MIN + 'verb "wave"\n    wave noun reverse\n'
+    with pytest.raises(ArcError, match="two noun slots"):
+        analyze(cosmos.combined_program(parse(src)))
+
+
 GERMAN_PRONOUNS = (
     'summon.language "german"\n'
     'game\n    title "P"\n    start raum\n'

@@ -493,6 +493,10 @@ class GrammarLine:
     action: str
     items: list[GrammarItem]
     line: int = 0
+    # A `reverse` marker at the end of a two-noun line (give/show BOB COIN):
+    # the two adjacent nouns are matched and their roles swapped, so the first
+    # object is the recipient (second) and the last is the thing (noun).
+    reverse: bool = False
 
 
 @dataclass
