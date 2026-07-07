@@ -232,10 +232,12 @@ A blueprint is "proven" when its probe is green. Per target:
   from the emulated disk or injected memory, decode, display; once for
   mode 9, once for mode 12. The probe is written from the blueprint alone,
   which is precisely the test the blueprint must pass.
-- A scripted emulator run drives it and captures a screenshot; the shot is
-  compared against the converter's own rendering of the same file (the
-  converter can render any .arc back to PNG for exactly this purpose, and
-  that round-trip is also the unit test of the format).
+- The emulator is launched with the probe FOR Stefan, and the visual
+  verdict is his: no screenshot automation anywhere in the harness (if
+  something looks off, Stefan supplies the screenshot). The mechanical
+  side of verification is the converter's render-back: arcimg renders any
+  .arc back to PNG, and that encode/render round-trip is the unit test of
+  the format, run in pytest long before an emulator is opened.
 - The bench runs on the macOS side: FS-UAE or vAmigaTS (Amiga), Hatari
   (ST), DOSBox-X (DOS), VICE x64sc/x128/xplus4 (CBM), Caprice/CPCEC
   (CPC), openMSX (MSX1/2), Fuse or ZEsarUX (+3), atari800 (A8),
@@ -345,3 +347,133 @@ machines; the rest ride the established framework.
 - Hand-authored per-machine art remains possible forever (the lint path);
   the converter must never be a ceiling, only a floor that removes eight
   months of pixel work.
+
+## 10. The .arc container, version 1 (R1)
+
+Everything is BIG-ENDIAN (the Z-machine convention; the family reads
+Z-machine files already, and the 68k targets agree).
+
+HEADER, 16 bytes:
+
+    offset  size  field
+    0       4     magic "ARCI"
+    4       1     container version (1)
+    5       1     target id (the table below)
+    6       1     mode (9 or 12; the band height in text rows)
+    7       1     section count
+    8       2     native width in pixels
+    10      2     native height in pixels (mode x 8, or the target's
+                  equivalent under its own pixel geometry)
+    12      2     image id (the arc_image resource slot, a sanity check
+                  against the filename)
+    14      2     reserved, 0
+
+SECTION TABLE, 6 bytes per section, immediately after the header:
+
+    0       1     section type
+    1       1     flags (0 unless a target addendum defines bits)
+    2       2     uncompressed length in bytes
+    4       2     compressed length in bytes (including the end sentinel)
+
+Section data streams follow, in table order, each RLE-compressed
+separately. Section types: 1 bitmap, 2 screen (a per-cell matrix of
+color nibbles: the C64 screen RAM, the TED color matrix, the MSX1 color
+table), 3 color (a second per-cell matrix: C64 color RAM, TED luminance),
+4 attributes (one attribute byte per cell: Spectrum, VDC), 5 palette
+(native hardware encoding), 6 linetable (per-scanline register values:
+Atari 8-bit), 7 registers (a handful of global hardware values: the C64
+background, the TED globals, the CPC border).
+
+THE RLE SCHEME, shared by every target (PackBits-shaped, byte-oriented,
+chosen so the decoder is a few dozen bytes on a 6502 or Z80):
+
+    control c = 0x00..0x7F   literal: copy the next c+1 bytes
+    control c = 0x81..0xFF   run: repeat the next byte 257-c times (2..128)
+    control c = 0x80         end of section
+
+The uncompressed length in the table is authoritative; the 0x80 sentinel
+lets a streaming loader run without tracking it. The encoder never emits
+a run shorter than 3 (a 2-run is cheaper as literal content).
+
+TARGET TABLE (id, tag, native band geometry at mode 9 / 12, sections in
+payload order):
+
+    id  tag  geometry              sections
+    1   AMI  320x72 / 320x96       bitmap, palette
+    2   AST  320x72 / 320x96       bitmap, palette
+    3   DOS  320x72 / 320x96       bitmap, palette
+    4   C64  160x72 / 160x96       bitmap, screen, color, registers
+    5   P4   320x72 / 320x96       bitmap, screen, color, registers
+    6   CPC  160x72 / 160x96       bitmap, palette, registers
+    7   MS1  256x72 / 256x96       bitmap, color
+    8   MS2  256x72 / 256x96       bitmap, palette
+    9   ZX3  256x72 / 256x96       bitmap, attributes
+    10  A8   160x72 / 160x96       bitmap, linetable
+    11  AP2  280x72 / 280x96       bitmap
+    12  NXT  320x72 / 320x96       bitmap, palette
+    13  M65  320x72 / 320x96       bitmap, palette
+    14  VDC  640x72 / 640x96       bitmap, attributes
+
+PAYLOAD LAYOUTS, per target (native memory order; the loader never
+reorders; the full loader detail lives in each wave's addendum):
+
+- AMI: bitmap is 5 bitplanes, row-interleaved ILBM-style (row of plane
+  0, row of plane 1, ..., 40 bytes each); palette is 32 words of $0RGB.
+- AST: bitmap is the ST's fixed word interleave (per 16-pixel group, 4
+  consecutive words hold planes 0..3; 160 bytes per row); palette is 16
+  words in STF format (3 bits per gun; an STE palette block may follow
+  as a second palette section with flags bit 0 set, 4 bits per gun).
+- DOS: bitmap is chunky, one byte per pixel, row-major; palette is 256
+  triples of 6-bit DAC values.
+- C64: multicolor bitmap in the VIC's cell order (per cell row: 40 cells
+  of 8 bytes, each byte four 2-bit pixels); screen is one byte per cell
+  (the two per-cell color nibbles), row-major cells; color is one byte
+  per cell (color RAM nibble); registers is [background $D021].
+- P4: TED hires bitmap in cell order (like the C64 hires layout); screen
+  is the color matrix (two hue nibbles per cell), color is the luminance
+  matrix (two luma nibbles per cell); registers is [$FF15, $FF16] when
+  the image is multicolor, empty for hires.
+- CPC: Mode 0 bytes with the hardware pixel-bit shuffle already applied,
+  lines in ascending screen-block address order (the eight 0x800
+  sub-blocks, band rows only: eight contiguous runs); palette is 16
+  hardware ink numbers (0..26); registers is [border ink].
+- MS1: bitmap is the Screen 2 pattern table for the band's tiles (8
+  bytes per 8x8 tile, tiles in name order); color is the matching color
+  table (same shape, one fg/bg byte per pattern byte). The name table is
+  implicit (identity); the loader writes it.
+- MS2: bitmap is Screen 5 nibble-packed pixels, 128 bytes per line,
+  linear; palette is 16 V9938 palette-register pairs.
+- ZX3: bitmap is the ULA's interleaved-thirds layout restricted to the
+  band's rows, in ascending screen address order; attributes is one byte
+  per 8x8 cell, row-major.
+- A8: bitmap is ANTIC mode E, 40 bytes per line, linear; linetable is 4
+  bytes per band line (COLBK, COLPF0, COLPF1, COLPF2 in GTIA hue<<4|luma
+  form), replayed by the display-list interrupt.
+- AP2: bitmap is HGR bytes (7 pixels plus the palette bit per byte), 40
+  bytes per line, in DISPLAY row order top to bottom; the loader places
+  rows via the standard hi-res line-address table (the one documented
+  exception to dumb linear unpacking; a DHGR variant lands with wave 4).
+- NXT: bitmap is Layer 2 320-mode column-major (for each x, the band's
+  bytes top to bottom); palette is 256 two-byte 9-bit entries in
+  NextReg 0x44 order.
+- M65: bitmap is FCM characters, 64 bytes each, in reading order; the
+  screen and color RAM rows are formulaic (consecutive char indices) and
+  the loader generates them; palette is 255 nibble-swapped RGB triples
+  (index 255 is reserved by the hardware's alpha path).
+- VDC: bitmap is 1bpp, 80 bytes per row, linear; attributes is one byte
+  per 8x8 cell (fg nibble, bg nibble), row-major, 80 per cell row.
+
+arcimg is the only writer of this format; the loaders are its readers.
+arcimg can also RENDER any .arc back to a PNG through the target's
+reference palette, which is both the format's unit test (encode, decode,
+render, compare) and the preview an author sees without an emulator.
+
+R1 status: implemented in arcimg 1.1.0 (`arcimg targets`, `arcimg render`,
+and the codec and layout machinery behind them), with the pack/unpack
+round trip proven bit-exact for all fourteen targets in both modes and
+the golden corpus in place (tests/test_arcformat.py). Compressed-size
+entries join the ledger per wave, when real conversions of the corpus
+exist to measure; the render previews of the wave-less targets use
+serviceable reference palettes that each wave's addendum freezes against
+measured values (TED, GTIA, and the Apple II artifact model are the
+marked approximations).

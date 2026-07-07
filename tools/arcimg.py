@@ -48,8 +48,9 @@ import shutil
 import struct
 import sys
 import zipfile
+import zlib
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -189,6 +190,1141 @@ def _crop_to_ratio(img, tw: int, th: int):
     return img
 
 
+# ==============================================================================
+# The .arc container, version 1 (docs/08 section 10): the retro image format.
+# Big-endian throughout. One file per image id per target; arcimg is the only
+# writer, the per-machine loaders are its readers, and render_arc() below is
+# its round-trip unit test (encode, decode, render to PNG, compare).
+# ==============================================================================
+
+ARC_MAGIC = b"ARCI"
+ARC_VERSION = 1
+
+# Section types (docs/08 section 10).
+SEC_BITMAP = 1     # the pixel data, in the target's native memory order
+SEC_SCREEN = 2     # per-cell color-nibble matrix (C64 screen RAM, TED color)
+SEC_COLOR = 3      # second per-cell matrix (C64 color RAM, TED luminance)
+SEC_ATTR = 4       # one attribute byte per cell (Spectrum, VDC)
+SEC_PALETTE = 5    # the palette, in native hardware encoding
+SEC_LINETABLE = 6  # per-scanline register values (Atari 8-bit)
+SEC_REGS = 7       # a handful of global hardware values
+
+
+def rle_encode(data: bytes) -> bytes:
+    """The shared RLE scheme: c<=0x7F copies c+1 literal bytes, c>=0x81
+    repeats the next byte 257-c times (2..128), 0x80 ends the section. Runs
+    shorter than 3 ship as literals (a 2-run costs the same and merges)."""
+    out = bytearray()
+    i, n = 0, len(data)
+    lit = 0  # start of the pending literal stretch
+    while i < n:
+        # Measure the run at i.
+        j = i + 1
+        while j < n and data[j] == data[i] and j - i < 128:
+            j += 1
+        if j - i >= 3:
+            # Flush pending literals, then the run.
+            k = lit
+            while k < i:
+                take = min(128, i - k)
+                out.append(take - 1)
+                out += data[k:k + take]
+                k += take
+            out.append(257 - (j - i))
+            out.append(data[i])
+            i = j
+            lit = i
+        else:
+            i = j
+    k = lit
+    while k < n:
+        take = min(128, n - k)
+        out.append(take - 1)
+        out += data[k:k + take]
+        k += take
+    out.append(0x80)
+    return bytes(out)
+
+
+def rle_decode(data: bytes) -> bytes:
+    """Inverse of rle_encode; stops at the 0x80 sentinel."""
+    out = bytearray()
+    i = 0
+    while i < len(data):
+        c = data[i]
+        i += 1
+        if c == 0x80:
+            return bytes(out)
+        if c < 0x80:
+            out += data[i:i + c + 1]
+            i += c + 1
+        else:
+            out += bytes([data[i]]) * (257 - c)
+            i += 1
+    raise ValueError("RLE stream ended without the 0x80 sentinel")
+
+
+def write_arc(target_id, mode, width, height, image_id, sections) -> bytes:
+    """Assemble a .arc file: header, section table, RLE'd section streams.
+    `sections` is a list of (type, flags, raw_bytes)."""
+    out = bytearray()
+    out += ARC_MAGIC
+    out += bytes([ARC_VERSION, target_id, mode, len(sections)])
+    out += struct.pack(">HHHH", width, height, image_id, 0)
+    streams = []
+    for stype, flags, raw in sections:
+        comp = rle_encode(raw)
+        out += struct.pack(">BBHH", stype, flags, len(raw), len(comp))
+        streams.append(comp)
+    for comp in streams:
+        out += comp
+    return bytes(out)
+
+
+def read_arc(blob: bytes):
+    """Parse a .arc file back into (header dict, [(type, flags, raw_bytes)]).
+    Raises ValueError on anything malformed; a loader on real hardware does
+    the same checks with cheaper manners."""
+    if len(blob) < 16 or blob[:4] != ARC_MAGIC:
+        raise ValueError("not a .arc file (bad magic)")
+    version, target_id, mode, count = blob[4], blob[5], blob[6], blob[7]
+    if version != ARC_VERSION:
+        raise ValueError(f"unsupported .arc version {version}")
+    width, height, image_id, _ = struct.unpack(">HHHH", blob[8:16])
+    head = {"target": target_id, "mode": mode, "width": width,
+            "height": height, "id": image_id}
+    pos = 16
+    table = []
+    for _ in range(count):
+        stype, flags, ulen, clen = struct.unpack(">BBHH", blob[pos:pos + 6])
+        table.append((stype, flags, ulen, clen))
+        pos += 6
+    sections = []
+    for stype, flags, ulen, clen in table:
+        raw = rle_decode(blob[pos:pos + clen])
+        if len(raw) != ulen:
+            raise ValueError(
+                f"section {stype}: {len(raw)} bytes, table says {ulen}")
+        sections.append((stype, flags, raw))
+        pos += clen
+    return head, sections
+
+
+# -- reference palettes (render-back; frozen per target in its wave) -----------
+
+# C64: Colodore (ruled at R0; Pepto ships as data too, in its wave).
+_COLODORE = [
+    (0x00, 0x00, 0x00), (0xFF, 0xFF, 0xFF), (0x81, 0x33, 0x38),
+    (0x75, 0xCE, 0xC8), (0x8E, 0x3C, 0x97), (0x56, 0xAC, 0x4D),
+    (0x2E, 0x2C, 0x9B), (0xED, 0xF1, 0x71), (0x8E, 0x50, 0x29),
+    (0x55, 0x38, 0x00), (0xC4, 0x6C, 0x71), (0x4A, 0x4A, 0x4A),
+    (0x7B, 0x7B, 0x7B), (0xA9, 0xFF, 0x9F), (0x70, 0x6D, 0xEB),
+    (0xB2, 0xB2, 0xB2),
+]
+
+# Spectrum: 8 base colors at two levels; bright black is black. Normal 0xD7.
+def _zx_color(ink: int, bright: int):
+    lvl = 0xFF if bright else 0xD7
+    return ((lvl if ink & 2 else 0), (lvl if ink & 4 else 0),
+            (lvl if ink & 1 else 0))
+
+# MSX1: the canonical TMS9918A palette, entries 1..15 (0 is transparent).
+_TMS9918 = [
+    (0x00, 0x00, 0x00), (0x00, 0x00, 0x00), (0x3E, 0xB8, 0x49),
+    (0x74, 0xD0, 0x7D), (0x59, 0x55, 0xE0), (0x80, 0x76, 0xF1),
+    (0xB9, 0x5E, 0x51), (0x65, 0xDB, 0xEF), (0xDB, 0x65, 0x59),
+    (0xFF, 0x89, 0x7D), (0xCC, 0xC3, 0x5E), (0xDE, 0xD0, 0x87),
+    (0x3A, 0xA2, 0x41), (0xB7, 0x66, 0xB5), (0xCC, 0xCC, 0xCC),
+    (0xFF, 0xFF, 0xFF),
+]
+
+# Plus/4 (TED): 16 hues x 8 luma. A serviceable approximation for previews;
+# the wave-3 addendum freezes measured values (YAPE/plus4emu tables).
+_TED_LUMA = [22, 40, 53, 66, 90, 122, 168, 226]
+_TED_HUES = {  # hue -> (u, v) chroma direction, roughly; 0 is grey
+    1: (0.0, 0.0), 2: (0.28, 0.35), 3: (-0.28, -0.35), 4: (0.36, -0.22),
+    5: (-0.36, 0.22), 6: (-0.12, 0.44), 7: (0.12, -0.44), 8: (0.42, 0.12),
+    9: (0.38, -0.05), 10: (0.20, -0.40), 11: (-0.42, 0.10),
+    12: (-0.30, 0.35), 13: (0.05, 0.45), 14: (-0.44, -0.10),
+    15: (-0.20, 0.42),
+}
+
+def _ted_color(hue: int, luma: int):
+    if hue == 0:
+        return (0, 0, 0)
+    y = _TED_LUMA[luma & 7]
+    u, v = _TED_HUES.get(hue & 15, (0.0, 0.0))
+    r = y + 90 * v
+    g = y - 30 * u - 46 * v
+    b = y + 110 * u
+    clamp = lambda c: max(0, min(255, int(round(c))))
+    return (clamp(r), clamp(g), clamp(b))
+
+# Atari 8-bit (GTIA hue<<4|luma): the common NTSC approximation; the wave-4
+# addendum freezes a measured table.
+def _gtia_color(hl: int):
+    import math
+    hue, luma = (hl >> 4) & 15, hl & 15
+    y = 20 + luma * 15
+    if hue == 0:
+        c = max(0, min(255, y))
+        return (c, c, c)
+    angle = math.radians((hue - 1) * 24 - 58)
+    u, v = 0.28 * math.cos(angle), 0.28 * math.sin(angle)
+    r = y + 292 * v
+    g = y - 100 * u - 149 * v
+    b = y + 517 * u
+    clamp = lambda cc: max(0, min(255, int(round(cc))))
+    return (clamp(r), clamp(g), clamp(b))
+
+# Apple II HGR: black, white, and the two artifact pairs.
+_HGR = {
+    "black": (0, 0, 0), "white": (255, 255, 255),
+    "purple": (255, 68, 253), "green": (20, 245, 60),
+    "blue": (20, 207, 253), "orange": (255, 106, 60),
+}
+
+# C128 VDC: 16 RGBI (bit0 intensity); color 12 is dark yellow, not brown.
+def _vdc_color(idx: int):
+    i = 0x55 if idx & 1 else 0
+    base = lambda on: 0xAA if on else 0
+    return (min(255, base(idx & 8) + i), min(255, base(idx & 4) + i),
+            min(255, base(idx & 2) + i))
+
+# CPC: 27 hardware colors as an r*9+g*3+b index, levels 0/128/255. The
+# loader maps the index to its gate-array value with a 27-byte table (the
+# wave-2 addendum).
+def _cpc_color(idx: int):
+    lv = (0, 0x80, 0xFF)
+    return (lv[(idx // 9) % 3], lv[(idx // 3) % 3], lv[idx % 3])
+
+
+# -- a minimal PNG writer (stdlib; render-back needs no Pillow) -----------------
+
+def _write_png(path: str, rows) -> None:
+    """Write RGB rows (each a list of (r,g,b)) as a PNG. Filter 0 per row."""
+    h = len(rows)
+    w = len(rows[0])
+    raw = bytearray()
+    for row in rows:
+        raw.append(0)
+        for r, g, b in row:
+            raw += bytes((r, g, b))
+    def chunk(tag, payload):
+        return (struct.pack(">I", len(payload)) + tag + payload
+                + struct.pack(">I", zlib.crc32(tag + payload) & 0xFFFFFFFF))
+    with open(path, "wb") as f:
+        f.write(_PNG_SIG)
+        f.write(chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)))
+        f.write(chunk(b"IDAT", zlib.compress(bytes(raw), 9)))
+        f.write(chunk(b"IEND", b""))
+
+
+# -- per-target layout packers and renderers -----------------------------------
+#
+# Each target packs a NATIVE image (a dict whose shape is the machine's own:
+# indexed pixels plus the cell matrices and registers it needs) into its .arc
+# sections, unpacks them back, and renders the native image to RGB rows for
+# the PNG preview. pack/unpack are exact inverses; the tests hold them to it.
+# The pixel index conventions match the payload layout notes in docs/08 s.10.
+
+def _planar_rows(pixels, w, h, planes):
+    """Amiga-style row-interleaved bitplanes: per row, one 40-byte (w/8) row
+    per plane, plane 0 first. Bit 7 is the leftmost pixel."""
+    out = bytearray()
+    span = w // 8
+    for y in range(h):
+        row = pixels[y]
+        for p in range(planes):
+            for bx in range(span):
+                byte = 0
+                for bit in range(8):
+                    if (row[bx * 8 + bit] >> p) & 1:
+                        byte |= 0x80 >> bit
+                out.append(byte)
+    return bytes(out)
+
+
+def _unplanar_rows(data, w, h, planes):
+    span = w // 8
+    pixels = [[0] * w for _ in range(h)]
+    pos = 0
+    for y in range(h):
+        for p in range(planes):
+            for bx in range(span):
+                byte = data[pos]
+                pos += 1
+                for bit in range(8):
+                    if byte & (0x80 >> bit):
+                        pixels[y][bx * 8 + bit] |= 1 << p
+    return pixels
+
+
+def _st_words(pixels, w, h):
+    """The ST's fixed interleave: per 16-pixel group, 4 consecutive plane
+    words. Bit 15 is the leftmost pixel of the group."""
+    out = bytearray()
+    for y in range(h):
+        row = pixels[y]
+        for gx in range(0, w, 16):
+            for p in range(4):
+                word = 0
+                for bit in range(16):
+                    if (row[gx + bit] >> p) & 1:
+                        word |= 0x8000 >> bit
+                out += struct.pack(">H", word)
+    return bytes(out)
+
+
+def _un_st_words(data, w, h):
+    pixels = [[0] * w for _ in range(h)]
+    pos = 0
+    for y in range(h):
+        for gx in range(0, w, 16):
+            for p in range(4):
+                (word,) = struct.unpack(">H", data[pos:pos + 2])
+                pos += 2
+                for bit in range(16):
+                    if word & (0x8000 >> bit):
+                        pixels[y][gx + bit] |= 1 << p
+    return pixels
+
+
+def _cells_bitmap(pixels, w, h, bits):
+    """C64-family cell-ordered bitmap: per 8px-tall cell row, per cell, the
+    cell's 8 line bytes. `bits` is 1 (hires: 8 pixels) or 2 (multicolor: 4)."""
+    per_byte = 8 // bits
+    out = bytearray()
+    cells_x = w // per_byte
+    for cy in range(h // 8):
+        for cx in range(cells_x):
+            for line in range(8):
+                row = pixels[cy * 8 + line]
+                byte = 0
+                for i in range(per_byte):
+                    byte = (byte << bits) | row[cx * per_byte + i]
+                out.append(byte)
+    return bytes(out)
+
+
+def _un_cells_bitmap(data, w, h, bits):
+    per_byte = 8 // bits
+    mask = (1 << bits) - 1
+    pixels = [[0] * w for _ in range(h)]
+    cells_x = w // per_byte
+    pos = 0
+    for cy in range(h // 8):
+        for cx in range(cells_x):
+            for line in range(8):
+                byte = data[pos]
+                pos += 1
+                for i in range(per_byte):
+                    shift = bits * (per_byte - 1 - i)
+                    pixels[cy * 8 + line][cx * per_byte + i] = (byte >> shift) & mask
+    return pixels
+
+
+def _pack_1bpp(pixels, w, h):
+    """Plain 1bpp rows, bit 7 leftmost (VDC, and the Spectrum's row form
+    before the interleave reorders whole rows)."""
+    out = bytearray()
+    for y in range(h):
+        for bx in range(w // 8):
+            byte = 0
+            for bit in range(8):
+                if pixels[y][bx * 8 + bit]:
+                    byte |= 0x80 >> bit
+            out.append(byte)
+    return bytes(out)
+
+
+def _unpack_1bpp(data, w, h):
+    pixels = [[0] * w for _ in range(h)]
+    span = w // 8
+    for y in range(h):
+        for bx in range(span):
+            byte = data[y * span + bx]
+            for bit in range(8):
+                pixels[y][bx * 8 + bit] = 1 if byte & (0x80 >> bit) else 0
+    return pixels
+
+
+def _zx_row_order(h):
+    """Band rows in ascending ULA screen address: address bits are
+    T T LLL RRR (third, line-in-char, char-row), so order by
+    (third, line-in-char, char-row)."""
+    return sorted(range(h), key=lambda y: (y >> 6, y & 7, (y >> 3) & 7))
+
+
+def _cpc_row_order(h):
+    """Band rows in ascending screen-block address: the eight 0x800
+    sub-blocks each hold every 8th line, so order by (line mod 8, line div 8)."""
+    return sorted(range(h), key=lambda y: (y & 7, y >> 3))
+
+
+def _cpc_mode0_byte(pa, pb):
+    """The Mode 0 pixel-bit shuffle (CPCWiki): byte bits 7,5,3,1 carry pixel
+    A's bits 0,2,1,3 and bits 6,4,2,0 carry pixel B's. Verified against the
+    firmware tables; the wave-2 probe re-proves it on hardware layout."""
+    return (((pa & 1) << 7) | ((pb & 1) << 6)
+            | (((pa >> 2) & 1) << 5) | (((pb >> 2) & 1) << 4)
+            | (((pa >> 1) & 1) << 3) | (((pb >> 1) & 1) << 2)
+            | (((pa >> 3) & 1) << 1) | ((pb >> 3) & 1))
+
+
+def _cpc_mode0_unbyte(byte):
+    pa = (((byte >> 7) & 1) | (((byte >> 3) & 1) << 1)
+          | (((byte >> 5) & 1) << 2) | (((byte >> 1) & 1) << 3))
+    pb = (((byte >> 6) & 1) | (((byte >> 2) & 1) << 1)
+          | (((byte >> 4) & 1) << 2) | ((byte & 1) << 3))
+    return pa, pb
+
+
+# The target registry. Geometry is (width per mode is fixed; height = mode*8
+# except where the target's pixel shape differs, and it never does: every
+# machine's band is mode*8 of ITS OWN pixels; only the WIDTH varies).
+
+TARGETS = {}
+
+
+class Target:
+    def __init__(self, tid, tag, width, pack, unpack, render, pattern):
+        self.id = tid
+        self.tag = tag
+        self.width = width
+        self.pack = pack        # native dict -> [(type, flags, bytes)]
+        self.unpack = unpack    # (sections, w, h) -> native dict
+        self.render = render    # (native, w, h) -> RGB rows
+        self.pattern = pattern  # (w, h) -> native dict (a legal test image)
+
+    def height(self, mode):
+        return mode * 8
+
+
+def _target(tid, tag, width):
+    def deco(cls):
+        TARGETS[tag] = Target(tid, tag, width, cls.pack, cls.unpack,
+                              cls.render, cls.pattern)
+        return cls
+    return deco
+
+
+def _sections_by_type(sections):
+    return {stype: raw for stype, _flags, raw in sections}
+
+
+# ---- AMI: 5 bitplanes row-interleaved + $0RGB palette -------------------------
+
+@_target(1, "AMI", 320)
+class _Ami:
+    @staticmethod
+    def pack(native):
+        pal = bytearray()
+        for r, g, b in native["palette"]:
+            pal += struct.pack(">H", ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4))
+        return [(SEC_BITMAP, 0, _planar_rows(native["pixels"], native["w"], native["h"], 5)),
+                (SEC_PALETTE, 0, bytes(pal))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        pal = []
+        raw = s[SEC_PALETTE]
+        for i in range(0, len(raw), 2):
+            (word,) = struct.unpack(">H", raw[i:i + 2])
+            pal.append((((word >> 8) & 15) * 17, ((word >> 4) & 15) * 17,
+                        (word & 15) * 17))
+        return {"w": w, "h": h, "pixels": _unplanar_rows(s[SEC_BITMAP], w, h, 5),
+                "palette": pal}
+
+    @staticmethod
+    def render(native, w, h):
+        pal = native["palette"]
+        return [[pal[p] for p in row] for row in native["pixels"]]
+
+    @staticmethod
+    def pattern(w, h):
+        # Palette entries are 4-bit fixed points (multiples of 17), the
+        # values the hardware can show: the snap rule, obeyed at the source.
+        pal = [((i % 16) * 17, (15 - i % 16) * 17, ((i * 3) % 16) * 17)
+               for i in range(32)]
+        pixels = [[((x // 10) + (y // 8) * 3) % 32 for x in range(w)]
+                  for y in range(h)]
+        return {"w": w, "h": h, "pixels": pixels, "palette": pal}
+
+
+# ---- AST: ST word-interleaved 4 planes + 3-bit palette -------------------------
+
+@_target(2, "AST", 320)
+class _Ast:
+    @staticmethod
+    def pack(native):
+        pal = bytearray()
+        for r, g, b in native["palette"]:
+            pal += struct.pack(">H", ((r >> 5) << 8) | ((g >> 5) << 4) | (b >> 5))
+        return [(SEC_BITMAP, 0, _st_words(native["pixels"], native["w"], native["h"])),
+                (SEC_PALETTE, 0, bytes(pal))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        pal = []
+        raw = s[SEC_PALETTE]
+        for i in range(0, len(raw), 2):
+            (word,) = struct.unpack(">H", raw[i:i + 2])
+            c3 = lambda v: round(v * 255 / 7)
+            pal.append((c3((word >> 8) & 7), c3((word >> 4) & 7), c3(word & 7)))
+        return {"w": w, "h": h, "pixels": _un_st_words(s[SEC_BITMAP], w, h),
+                "palette": pal}
+
+    @staticmethod
+    def render(native, w, h):
+        pal = native["palette"]
+        return [[pal[p] for p in row] for row in native["pixels"]]
+
+    @staticmethod
+    def pattern(w, h):
+        pal = [(round((i & 7) * 255 / 7), round((7 - (i & 7)) * 255 / 7),
+                round(((i * 3) & 7) * 255 / 7)) for i in range(16)]
+        pixels = [[((x // 20) + (y // 16)) % 16 for x in range(w)]
+                  for y in range(h)]
+        return {"w": w, "h": h, "pixels": pixels, "palette": pal}
+
+
+# ---- DOS: chunky mode 13h + 6-bit DAC palette ---------------------------------
+
+@_target(3, "DOS", 320)
+class _Dos:
+    @staticmethod
+    def pack(native):
+        pal = bytearray()
+        for r, g, b in native["palette"]:
+            pal += bytes((r >> 2, g >> 2, b >> 2))
+        flat = bytearray()
+        for row in native["pixels"]:
+            flat += bytes(row)
+        return [(SEC_BITMAP, 0, bytes(flat)), (SEC_PALETTE, 0, bytes(pal))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        raw = s[SEC_PALETTE]
+        c6 = lambda v: round(v * 255 / 63)
+        pal = [(c6(raw[i]), c6(raw[i + 1]), c6(raw[i + 2]))
+               for i in range(0, len(raw), 3)]
+        bm = s[SEC_BITMAP]
+        pixels = [list(bm[y * w:(y + 1) * w]) for y in range(h)]
+        return {"w": w, "h": h, "pixels": pixels, "palette": pal}
+
+    @staticmethod
+    def render(native, w, h):
+        pal = native["palette"]
+        return [[pal[p] for p in row] for row in native["pixels"]]
+
+    @staticmethod
+    def pattern(w, h):
+        # 6-bit DAC fixed points, per the snap rule.
+        c6 = lambda v: round((v % 64) * 255 / 63)
+        pal = [(c6(i * 5), c6(i * 3), c6(255 - i)) for i in range(256)]
+        pixels = [[(x + y * 2) % 256 for x in range(w)] for y in range(h)]
+        return {"w": w, "h": h, "pixels": pixels, "palette": pal}
+
+
+# ---- C64: multicolor bitmap + screen + color RAM + background -----------------
+
+@_target(4, "C64", 160)
+class _C64:
+    @staticmethod
+    def pack(native):
+        return [(SEC_BITMAP, 0, _cells_bitmap(native["pixels"], native["w"], native["h"], 2)),
+                (SEC_SCREEN, 0, bytes(native["screen"])),
+                (SEC_COLOR, 0, bytes(native["color"])),
+                (SEC_REGS, 0, bytes(native["regs"]))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        return {"w": w, "h": h,
+                "pixels": _un_cells_bitmap(s[SEC_BITMAP], w, h, 2),
+                "screen": list(s[SEC_SCREEN]), "color": list(s[SEC_COLOR]),
+                "regs": list(s[SEC_REGS])}
+
+    @staticmethod
+    def render(native, w, h):
+        cells_x = w // 4
+        bg = native["regs"][0] & 15
+        rows = []
+        for y in range(h):
+            row = []
+            for x in range(w):
+                cell = (y // 8) * cells_x + (x // 4)
+                code = native["pixels"][y][x]
+                if code == 0:
+                    c = bg
+                elif code == 1:
+                    c = (native["screen"][cell] >> 4) & 15
+                elif code == 2:
+                    c = native["screen"][cell] & 15
+                else:
+                    c = native["color"][cell] & 15
+                rgb = _COLODORE[c]
+                row.append(rgb)
+                row.append(rgb)  # 2:1 wide pixels render doubled
+            rows.append(row)
+        return rows
+
+    @staticmethod
+    def pattern(w, h):
+        cells_x, cells_y = w // 4, h // 8
+        pixels = [[(x // 1 + y) % 4 for x in range(w)] for y in range(h)]
+        screen = [((c * 7) % 256) & 0xFF for c in range(cells_x * cells_y)]
+        color = [(c * 3) % 16 for c in range(cells_x * cells_y)]
+        return {"w": w, "h": h, "pixels": pixels, "screen": screen,
+                "color": color, "regs": [6]}
+
+
+# ---- P4: TED hires + color matrix + luminance matrix --------------------------
+
+@_target(5, "P4", 320)
+class _P4:
+    @staticmethod
+    def pack(native):
+        return [(SEC_BITMAP, 0, _cells_bitmap(native["pixels"], native["w"], native["h"], 1)),
+                (SEC_SCREEN, 0, bytes(native["screen"])),
+                (SEC_COLOR, 0, bytes(native["color"])),
+                (SEC_REGS, 0, bytes(native.get("regs", [])))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        return {"w": w, "h": h,
+                "pixels": _un_cells_bitmap(s[SEC_BITMAP], w, h, 1),
+                "screen": list(s[SEC_SCREEN]), "color": list(s[SEC_COLOR]),
+                "regs": list(s.get(SEC_REGS, b""))}
+
+    @staticmethod
+    def render(native, w, h):
+        cells_x = w // 8
+        rows = []
+        for y in range(h):
+            row = []
+            for x in range(w):
+                cell = (y // 8) * cells_x + (x // 8)
+                bit = native["pixels"][y][x]
+                hues = native["screen"][cell]
+                lumas = native["color"][cell]
+                if bit:
+                    hue, luma = (hues >> 4) & 15, (lumas >> 4) & 7
+                else:
+                    hue, luma = hues & 15, lumas & 7
+                row.append(_ted_color(hue, luma))
+            rows.append(row)
+        return rows
+
+    @staticmethod
+    def pattern(w, h):
+        cells_x, cells_y = w // 8, h // 8
+        pixels = [[1 if (x + y) % 3 == 0 else 0 for x in range(w)]
+                  for y in range(h)]
+        screen = [((c % 15) + 1) << 4 | ((c * 5) % 15 + 1)
+                  for c in range(cells_x * cells_y)]
+        color = [((c % 8) << 4) | ((7 - c % 8)) for c in range(cells_x * cells_y)]
+        return {"w": w, "h": h, "pixels": pixels, "screen": screen,
+                "color": color, "regs": []}
+
+
+# ---- CPC: Mode 0 with the bit shuffle, sub-block row order --------------------
+
+@_target(6, "CPC", 160)
+class _Cpc:
+    @staticmethod
+    def pack(native):
+        w, h = native["w"], native["h"]
+        out = bytearray()
+        for y in _cpc_row_order(h):
+            row = native["pixels"][y]
+            for x in range(0, w, 2):
+                out.append(_cpc_mode0_byte(row[x], row[x + 1]))
+        return [(SEC_BITMAP, 0, bytes(out)),
+                (SEC_PALETTE, 0, bytes(native["palette"])),
+                (SEC_REGS, 0, bytes(native["regs"]))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        pixels = [[0] * w for _ in range(h)]
+        pos = 0
+        bm = s[SEC_BITMAP]
+        for y in _cpc_row_order(h):
+            for x in range(0, w, 2):
+                pa, pb = _cpc_mode0_unbyte(bm[pos])
+                pos += 1
+                pixels[y][x], pixels[y][x + 1] = pa, pb
+        return {"w": w, "h": h, "pixels": pixels,
+                "palette": list(s[SEC_PALETTE]), "regs": list(s[SEC_REGS])}
+
+    @staticmethod
+    def render(native, w, h):
+        inks = native["palette"]
+        rows = []
+        for y in range(h):
+            row = []
+            for x in range(w):
+                rgb = _cpc_color(inks[native["pixels"][y][x]] % 27)
+                row.append(rgb)
+                row.append(rgb)  # 2:1 wide pixels
+            rows.append(row)
+        return rows
+
+    @staticmethod
+    def pattern(w, h):
+        pixels = [[(x // 10 + y // 8) % 16 for x in range(w)] for y in range(h)]
+        palette = [(i * 5 + 2) % 27 for i in range(16)]
+        return {"w": w, "h": h, "pixels": pixels, "palette": palette,
+                "regs": [0]}
+
+
+# ---- MS1: Screen 2 pattern + color tables, tile order --------------------------
+
+@_target(7, "MS1", 256)
+class _Ms1:
+    @staticmethod
+    def pack(native):
+        w, h = native["w"], native["h"]
+        tiles_x = w // 8
+        pat = bytearray()
+        col = bytearray()
+        for ty in range(h // 8):
+            for tx in range(tiles_x):
+                for line in range(8):
+                    pat.append(native["pattern"][ty * 8 + line][tx])
+                    col.append(native["colors"][ty * 8 + line][tx])
+        return [(SEC_BITMAP, 0, bytes(pat)), (SEC_COLOR, 0, bytes(col))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        tiles_x = w // 8
+        pattern = [[0] * tiles_x for _ in range(h)]
+        colors = [[0] * tiles_x for _ in range(h)]
+        pos = 0
+        pat, col = s[SEC_BITMAP], s[SEC_COLOR]
+        for ty in range(h // 8):
+            for tx in range(tiles_x):
+                for line in range(8):
+                    pattern[ty * 8 + line][tx] = pat[pos]
+                    colors[ty * 8 + line][tx] = col[pos]
+                    pos += 1
+        return {"w": w, "h": h, "pattern": pattern, "colors": colors}
+
+    @staticmethod
+    def render(native, w, h):
+        rows = []
+        for y in range(h):
+            row = []
+            for x in range(w):
+                byte = native["pattern"][y][x // 8]
+                cbyte = native["colors"][y][x // 8]
+                on = byte & (0x80 >> (x % 8))
+                idx = (cbyte >> 4) if on else (cbyte & 15)
+                row.append(_TMS9918[idx if idx else 1])
+            rows.append(row)
+        return rows
+
+    @staticmethod
+    def pattern(w, h):
+        tiles_x = w // 8
+        pattern = [[(0xF0 if (y // 4) % 2 else 0x3C) for _tx in range(tiles_x)]
+                   for y in range(h)]
+        colors = [[(((y // 8 + tx) % 15 + 1) << 4) | ((tx * 3) % 15 + 1)
+                   for tx in range(tiles_x)] for y in range(h)]
+        return {"w": w, "h": h, "pattern": pattern, "colors": colors}
+
+
+# ---- MS2: Screen 5 nibble-packed + V9938 palette ------------------------------
+
+@_target(8, "MS2", 256)
+class _Ms2:
+    @staticmethod
+    def pack(native):
+        out = bytearray()
+        for row in native["pixels"]:
+            for x in range(0, len(row), 2):
+                out.append((row[x] << 4) | row[x + 1])
+        pal = bytearray()
+        for r, g, b in native["palette"]:
+            pal.append(((r >> 5) << 4) | (b >> 5))
+            pal.append(g >> 5)
+        return [(SEC_BITMAP, 0, bytes(out)), (SEC_PALETTE, 0, bytes(pal))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        bm = s[SEC_BITMAP]
+        pixels = []
+        span = w // 2
+        for y in range(h):
+            row = []
+            for i in range(span):
+                byte = bm[y * span + i]
+                row.append(byte >> 4)
+                row.append(byte & 15)
+            pixels.append(row)
+        raw = s[SEC_PALETTE]
+        c3 = lambda v: round(v * 255 / 7)
+        pal = [(c3((raw[i] >> 4) & 7), c3(raw[i + 1] & 7), c3(raw[i] & 7))
+               for i in range(0, len(raw), 2)]
+        return {"w": w, "h": h, "pixels": pixels, "palette": pal}
+
+    @staticmethod
+    def render(native, w, h):
+        pal = native["palette"]
+        return [[pal[p] for p in row] for row in native["pixels"]]
+
+    @staticmethod
+    def pattern(w, h):
+        pal = [(round((i & 7) * 255 / 7), round(((i * 5) & 7) * 255 / 7),
+                round((7 - (i & 7)) * 255 / 7)) for i in range(16)]
+        pixels = [[(x // 16 + y // 8) % 16 for x in range(w)] for y in range(h)]
+        return {"w": w, "h": h, "pixels": pixels, "palette": pal}
+
+
+# ---- ZX3: interleaved-thirds bitmap + attributes ------------------------------
+
+@_target(9, "ZX3", 256)
+class _Zx3:
+    @staticmethod
+    def pack(native):
+        w, h = native["w"], native["h"]
+        linear = _pack_1bpp(native["pixels"], w, h)
+        span = w // 8
+        out = bytearray()
+        for y in _zx_row_order(h):
+            out += linear[y * span:(y + 1) * span]
+        return [(SEC_BITMAP, 0, bytes(out)),
+                (SEC_ATTR, 0, bytes(native["attrs"]))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        span = w // 8
+        linear = bytearray(span * h)
+        bm = s[SEC_BITMAP]
+        for i, y in enumerate(_zx_row_order(h)):
+            linear[y * span:(y + 1) * span] = bm[i * span:(i + 1) * span]
+        return {"w": w, "h": h, "pixels": _unpack_1bpp(bytes(linear), w, h),
+                "attrs": list(s[SEC_ATTR])}
+
+    @staticmethod
+    def render(native, w, h):
+        cells_x = w // 8
+        rows = []
+        for y in range(h):
+            row = []
+            for x in range(w):
+                attr = native["attrs"][(y // 8) * cells_x + (x // 8)]
+                bright = (attr >> 6) & 1
+                ink, paper = attr & 7, (attr >> 3) & 7
+                on = native["pixels"][y][x]
+                row.append(_zx_color(ink if on else paper, bright))
+            rows.append(row)
+        return rows
+
+    @staticmethod
+    def pattern(w, h):
+        cells_x = w // 8
+        pixels = [[1 if ((x ^ y) & 4) else 0 for x in range(w)]
+                  for y in range(h)]
+        attrs = [((c % 8) | (((c * 3) % 8) << 3) | (0x40 if c % 2 else 0))
+                 for c in range(cells_x * (h // 8))]
+        return {"w": w, "h": h, "pixels": pixels, "attrs": attrs}
+
+
+# ---- A8: ANTIC mode E + per-line color registers ------------------------------
+
+@_target(10, "A8", 160)
+class _A8:
+    @staticmethod
+    def pack(native):
+        out = bytearray()
+        for row in native["pixels"]:
+            for x in range(0, len(row), 4):
+                out.append((row[x] << 6) | (row[x + 1] << 4)
+                           | (row[x + 2] << 2) | row[x + 3])
+        return [(SEC_BITMAP, 0, bytes(out)),
+                (SEC_LINETABLE, 0, bytes(native["lines"]))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        bm = s[SEC_BITMAP]
+        span = w // 4
+        pixels = []
+        for y in range(h):
+            row = []
+            for i in range(span):
+                byte = bm[y * span + i]
+                row += [(byte >> 6) & 3, (byte >> 4) & 3, (byte >> 2) & 3,
+                        byte & 3]
+            pixels.append(row)
+        return {"w": w, "h": h, "pixels": pixels,
+                "lines": list(s[SEC_LINETABLE])}
+
+    @staticmethod
+    def render(native, w, h):
+        rows = []
+        for y in range(h):
+            regs = native["lines"][y * 4:(y + 1) * 4]
+            row = []
+            for x in range(w):
+                rgb = _gtia_color(regs[native["pixels"][y][x]])
+                row.append(rgb)
+                row.append(rgb)  # 2:1 wide pixels
+            rows.append(row)
+        return rows
+
+    @staticmethod
+    def pattern(w, h):
+        pixels = [[(x // 8 + y // 8) % 4 for x in range(w)] for y in range(h)]
+        lines = []
+        for y in range(h):
+            lines += [((y // 8) % 16) << 4 | 2, ((y // 4) % 16) << 4 | 6,
+                      ((y // 2) % 16) << 4 | 10, (y % 16) << 4 | 14]
+        return {"w": w, "h": h, "pixels": pixels, "lines": lines}
+
+
+# ---- AP2: HGR bytes in display row order --------------------------------------
+
+@_target(11, "AP2", 280)
+class _Ap2:
+    @staticmethod
+    def pack(native):
+        out = bytearray()
+        for y in range(native["h"]):
+            for bx in range(native["w"] // 7):
+                byte = native["hibits"][y][bx] << 7
+                for i in range(7):
+                    if native["pixels"][y][bx * 7 + i]:
+                        byte |= 1 << i
+                out.append(byte)
+        return [(SEC_BITMAP, 0, bytes(out))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        bm = s[SEC_BITMAP]
+        span = w // 7
+        pixels = [[0] * w for _ in range(h)]
+        hibits = [[0] * span for _ in range(h)]
+        for y in range(h):
+            for bx in range(span):
+                byte = bm[y * span + bx]
+                hibits[y][bx] = (byte >> 7) & 1
+                for i in range(7):
+                    pixels[y][bx * 7 + i] = (byte >> i) & 1
+        return {"w": w, "h": h, "pixels": pixels, "hibits": hibits}
+
+    @staticmethod
+    def render(native, w, h):
+        # A simplified HGR preview: lit pixels take the group's artifact
+        # pair by column parity, adjacent lit pixels read white. The wave-4
+        # addendum brings the NTSC-modeled version.
+        rows = []
+        for y in range(h):
+            row = []
+            for x in range(w):
+                if not native["pixels"][y][x]:
+                    row.append(_HGR["black"])
+                    continue
+                left = x > 0 and native["pixels"][y][x - 1]
+                right = x < w - 1 and native["pixels"][y][x + 1]
+                if left or right:
+                    row.append(_HGR["white"])
+                    continue
+                pair = native["hibits"][y][x // 7]
+                if x % 2 == 0:
+                    row.append(_HGR["blue"] if pair else _HGR["purple"])
+                else:
+                    row.append(_HGR["orange"] if pair else _HGR["green"])
+            rows.append(row)
+        return rows
+
+    @staticmethod
+    def pattern(w, h):
+        pixels = [[1 if (x + y) % 4 == 0 else 0 for x in range(w)]
+                  for y in range(h)]
+        hibits = [[(bx + y // 8) % 2 for bx in range(w // 7)]
+                  for y in range(h)]
+        return {"w": w, "h": h, "pixels": pixels, "hibits": hibits}
+
+
+# ---- NXT: Layer 2 column-major + 9-bit palette ---------------------------------
+
+@_target(12, "NXT", 320)
+class _Nxt:
+    @staticmethod
+    def pack(native):
+        w, h = native["w"], native["h"]
+        out = bytearray()
+        for x in range(w):
+            for y in range(h):
+                out.append(native["pixels"][y][x])
+        pal = bytearray()
+        for r, g, b in native["palette"]:
+            r3, g3, b3 = r >> 5, g >> 5, b >> 5
+            pal.append((r3 << 5) | (g3 << 2) | (b3 >> 1))
+            pal.append(b3 & 1)
+        return [(SEC_BITMAP, 0, bytes(out)), (SEC_PALETTE, 0, bytes(pal))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        bm = s[SEC_BITMAP]
+        pixels = [[0] * w for _ in range(h)]
+        pos = 0
+        for x in range(w):
+            for y in range(h):
+                pixels[y][x] = bm[pos]
+                pos += 1
+        raw = s[SEC_PALETTE]
+        c3 = lambda v: round(v * 255 / 7)
+        pal = []
+        for i in range(0, len(raw), 2):
+            b0, b1 = raw[i], raw[i + 1]
+            pal.append((c3(b0 >> 5), c3((b0 >> 2) & 7),
+                        c3(((b0 & 3) << 1) | (b1 & 1))))
+        return {"w": w, "h": h, "pixels": pixels, "palette": pal}
+
+    @staticmethod
+    def render(native, w, h):
+        pal = native["palette"]
+        return [[pal[p] for p in row] for row in native["pixels"]]
+
+    @staticmethod
+    def pattern(w, h):
+        pal = [(round(((i >> 5) & 7) * 255 / 7),
+                round(((i >> 2) & 7) * 255 / 7),
+                round((i & 3) * 2 * 255 / 7)) for i in range(256)]
+        pixels = [[(x + y) % 256 for x in range(w)] for y in range(h)]
+        return {"w": w, "h": h, "pixels": pixels, "palette": pal}
+
+
+# ---- M65: FCM chars + nibble-swapped palette -----------------------------------
+
+@_target(13, "M65", 320)
+class _M65:
+    @staticmethod
+    def pack(native):
+        w, h = native["w"], native["h"]
+        out = bytearray()
+        for cy in range(h // 8):
+            for cx in range(w // 8):
+                for line in range(8):
+                    for i in range(8):
+                        out.append(native["pixels"][cy * 8 + line][cx * 8 + i])
+        swap = lambda v: ((v & 15) << 4) | (v >> 4)
+        pal = bytearray()
+        for r, g, b in native["palette"]:
+            pal += bytes((swap(r), swap(g), swap(b)))
+        return [(SEC_BITMAP, 0, bytes(out)), (SEC_PALETTE, 0, bytes(pal))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        bm = s[SEC_BITMAP]
+        pixels = [[0] * w for _ in range(h)]
+        pos = 0
+        for cy in range(h // 8):
+            for cx in range(w // 8):
+                for line in range(8):
+                    for i in range(8):
+                        pixels[cy * 8 + line][cx * 8 + i] = bm[pos]
+                        pos += 1
+        swap = lambda v: ((v & 15) << 4) | (v >> 4)
+        raw = s[SEC_PALETTE]
+        pal = [(swap(raw[i]), swap(raw[i + 1]), swap(raw[i + 2]))
+               for i in range(0, len(raw), 3)]
+        return {"w": w, "h": h, "pixels": pixels, "palette": pal}
+
+    @staticmethod
+    def render(native, w, h):
+        pal = native["palette"]
+        return [[pal[p if p < len(pal) else 0] for p in row]
+                for row in native["pixels"]]
+
+    @staticmethod
+    def pattern(w, h):
+        pal = [((i * 2) & 0xFF, (255 - i) & 0xFF, (i * 5) & 0xFF)
+               for i in range(255)]
+        pixels = [[(x * 2 + y) % 255 for x in range(w)] for y in range(h)]
+        return {"w": w, "h": h, "pixels": pixels, "palette": pal}
+
+
+# ---- VDC: 1bpp 640-wide + fg/bg attributes -------------------------------------
+
+@_target(14, "VDC", 640)
+class _Vdc:
+    @staticmethod
+    def pack(native):
+        return [(SEC_BITMAP, 0, _pack_1bpp(native["pixels"], native["w"], native["h"])),
+                (SEC_ATTR, 0, bytes(native["attrs"]))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        return {"w": w, "h": h, "pixels": _unpack_1bpp(s[SEC_BITMAP], w, h),
+                "attrs": list(s[SEC_ATTR])}
+
+    @staticmethod
+    def render(native, w, h):
+        cells_x = w // 8
+        rows = []
+        for y in range(h):
+            row = []
+            for x in range(w):
+                attr = native["attrs"][(y // 8) * cells_x + (x // 8)]
+                on = native["pixels"][y][x]
+                row.append(_vdc_color((attr >> 4) & 15 if on else attr & 15))
+            rows.append(row)
+        return rows
+
+    @staticmethod
+    def pattern(w, h):
+        cells_x = w // 8
+        pixels = [[1 if ((x // 2) ^ y) & 2 else 0 for x in range(w)]
+                  for y in range(h)]
+        attrs = [((c % 16) << 4) | ((c * 5) % 16)
+                 for c in range(cells_x * (h // 8))]
+        return {"w": w, "h": h, "pixels": pixels, "attrs": attrs}
+
+
+def encode_native(tag: str, mode: int, image_id: int, native) -> bytes:
+    """A native image (the target's own dict shape) into .arc bytes."""
+    t = TARGETS[tag]
+    return write_arc(t.id, mode, native["w"], native["h"], image_id,
+                     t.pack(native))
+
+
+def decode_arc(blob: bytes):
+    """.arc bytes back into (tag, mode, image id, native dict)."""
+    head, sections = read_arc(blob)
+    by_id = {t.id: t for t in TARGETS.values()}
+    t = by_id.get(head["target"])
+    if t is None:
+        raise ValueError(f"unknown target id {head['target']}")
+    native = t.unpack(sections, head["width"], head["height"])
+    return t.tag, head["mode"], head["id"], native
+
+
+def render_arc(blob: bytes, out_png: str) -> None:
+    """Render a .arc to a PNG preview through the target's reference
+    palette: the format's own round-trip test, and the author's no-emulator
+    preview."""
+    tag, _mode, _iid, native = decode_arc(blob)
+    t = TARGETS[tag]
+    _write_png(out_png, t.render(native, native["w"], native["h"]))
+
+
 # -- commands ------------------------------------------------------------------
 
 def cmd_prep(args) -> int:
@@ -298,6 +1434,26 @@ def cmd_info(args) -> int:
     return 0
 
 
+def cmd_targets(args) -> int:
+    print("retro targets (docs/08; conversion back-ends land per wave):")
+    for tag in sorted(TARGETS, key=lambda t: TARGETS[t].id):
+        t = TARGETS[tag]
+        print(f"  {t.id:>3}  {t.tag:<4} {t.width}x72 / {t.width}x96")
+    return 0
+
+
+def cmd_render(args) -> int:
+    try:
+        with open(args.source, "rb") as f:
+            blob = f.read()
+        render_arc(blob, args.out)
+    except (OSError, ValueError) as exc:
+        print(f"arcimg: {exc}", file=sys.stderr)
+        return 2
+    print(f"arcimg: rendered {args.source} to {args.out}")
+    return 0
+
+
 class _Version(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         print(_version_text() + "\n")
@@ -348,6 +1504,17 @@ def build_parser() -> argparse.ArgumentParser:
         "info", help="report a PNG's size or list a pack's pictures")
     p_info.add_argument("source", help="a PNG file or an .arcres pack")
     p_info.set_defaults(func=cmd_info)
+
+    p_targets = sub.add_parser(
+        "targets", help="list the retro targets (docs/08)")
+    p_targets.set_defaults(func=cmd_targets)
+
+    p_render = sub.add_parser(
+        "render", help="render a .arc image to a PNG preview")
+    p_render.add_argument("source", help="a .arc file")
+    p_render.add_argument("-o", "--out", required=True,
+                          help="the PNG to write")
+    p_render.set_defaults(func=cmd_render)
     return ap
 
 
