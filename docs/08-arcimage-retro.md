@@ -218,11 +218,15 @@ on that platform's disk), the memory strategy (main RAM vs VRAM vs banked),
 the decode loop sketch, and how text renders below the band on machines
 where the interpreter draws its own font.
 
-Eris is the REFERENCE IMPLEMENTATION of the contract: one new EXT case in
-the core behind a `zio_draw_image(id, mode)` seam, two platform renderers
-(Amiga planes + copper split palette, ST low-res planes), asset files on
-the game disk via the existing disk builders. Eris is also the real-
-hardware proving ground.
+The interpreters implement the contract INDEPENDENTLY, after B12 is done:
+Stefan builds each on the blueprints alone and comes back only if probing
+left an issue undiscovered. B12 itself never patches an interpreter; its
+proof is the probes (section 6). For the record, the Eris sketch is one
+new EXT case in the core behind a `zio_draw_image(id, mode)` seam and two
+platform renderers (Amiga planes with a copper palette split, ST low-res
+planes), with the asset files delivered by its own disk builders; that
+work belongs to Eris, on its own schedule, and real hardware is its
+proving ground then.
 
 ## 6. Verification: the probe harness
 
@@ -244,10 +248,11 @@ A blueprint is "proven" when its probe is green. Per target:
   AppleWin-class (Apple II), CSpect or ZEsarUX (Next), Xemu (MEGA65).
   Several are already installed; each target's probe work starts by
   checking which, rather than installing duplicates.
-- Eris goes further: the full end-to-end (interpreter, real z5, real
-  disks, both platforms), verified in emulators by us and on real hardware
-  by Stefan. That is the hand-off model from the project method, applied
-  to B12.
+- Interpreter integration is deliberately NOT part of the harness: the
+  probes prove the blueprint, and the interpreters (Eris first) implement
+  it independently once B12 is done, returning here only if a probe
+  missed something. The end-to-end on real hardware is that later step's
+  proof, not this milestone's.
 
 ## 7. Sub-milestones
 
@@ -263,22 +268,22 @@ method). Naming: R for retro.
   and the golden corpus scaffold from the Rabenstein masters.
   Done-test: encode + render-back round-trips bit-exact on every target
   format, sizes recorded in the ledger.
-- R2. WAVE 1, the quantize 16-bits, and the contract proven end to end:
-  Amiga, ST, DOS converters and probes; the Eris reference implementation
-  (core EXT case, zio_draw_image, two renderers, disk delivery); the
-  first two per-target addenda written from the working code.
-  Done-test: the Rabenstein demo z5 with converted art plays with
-  pictures in Eris under FS-UAE and Hatari and text-only on Frotz
-  unchanged; the DOS probe shows both modes in DOSBox-X; Stefan verifies
-  Eris on real hardware.
+- R2. WAVE 1, the quantize 16-bits: Amiga, ST, and DOS converters and
+  probes, and the first per-target addenda written from the working
+  probe code. No interpreter is touched (section 5): the probes are the
+  proof.
+  Done-test: the converted Rabenstein corpus approved by Stefan for all
+  three targets, and each probe shows the picture in both modes (FS-UAE
+  or vAmiga, Hatari, DOSBox-X), visually confirmed by Stefan.
 - R3. WAVE 2, the cell class flagship: C64, ZX Spectrum +3, CPC.
   The per-cell solver framework, the three probes (VICE, Fuse, Caprice),
   the addenda (the CPC one feeds Haumea directly).
   Done-test: corpus conversions approved by Stefan per target; probes
   green both modes.
-- R4. WAVE 3: Atari 8-bit (per-line palettes; Varuna gains the band as
-  the second interpreter integration), MSX1, MSX2, Plus/4.
-  Done-test: probes green; Varuna shows the band in atari800.
+- R4. WAVE 3: Atari 8-bit (the per-line palette solver), MSX1, MSX2,
+  Plus/4.
+  Done-test: corpus conversions approved; probes green in atari800,
+  openMSX, and xplus4, both modes.
 - R5. WAVE 4: Apple II (HGR, plus the DHGR variant), Spectrum Next,
   MEGA65; the C128 ruling executed (C64 asset reused in C64 mode; the
   VDC addendum written if ruled in).
@@ -289,11 +294,14 @@ method). Naming: R for retro.
   Done-test: a fresh reader can implement a target from the blueprints
   alone; B13 (the Rabenstein port) is unblocked.
 
-Wave order rationale: Wave 1 proves the whole pipeline shape end to end on
-machines where conversion is easy and an interpreter already exists, so
-format or contract mistakes surface before the hard conversion work; Wave
-2 is the conversion-intelligence proof on the three most iconic attribute
-machines; the rest ride the established framework.
+Wave order rationale: Wave 1 proves the whole pipeline shape (convert,
+encode, disk, probe, addendum) on the machines where conversion is easy,
+so format or contract mistakes surface before the hard conversion work;
+Wave 2 is the conversion-intelligence proof on the three most iconic
+attribute machines; the rest ride the established framework. The
+playground for all of it is the repo's `arc_image/` directory (the
+Rabenstein working set: the masters under `arc_image/rabenstein/images/`,
+per-target conversions landing beside them).
 
 ## 8. Ruled decisions (R0, 2026-07-07, Stefan)
 

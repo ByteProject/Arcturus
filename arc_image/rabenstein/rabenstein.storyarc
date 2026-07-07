@@ -1,0 +1,50 @@
+// The Curse of Rabenstein: an arc_image demonstration.
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A two-room walk that shows the arc_image graphics path on a modern system.
+// The art is the Amiga/ST scene work from The Curse of Rabenstein (DAAD mode,
+// 320x96), in images/modern. The story is a conformant z5 file: it plays with
+// pictures in Actaea's window and, unchanged, as pure text everywhere else.
+//
+// Build and play:
+//   arcc rabenstein.storyarc -o rabenstein.z5
+//   arcimg pack images/modern -o rabenstein.arcres
+//   actaea rabenstein.z5                       # reads the sibling .arcres pack
+// Or, straight from the loose art while iterating:
+//   actaea rabenstein.z5 --images images/modern
+
+game
+    title "The Curse of Rabenstein"
+    headline "An arc_image demonstration"
+    author "Stefan Vogt"
+    start opening
+
+// Picture ids are resource slots, read best as named constants: the compiler
+// stores the number, an aware interpreter loads <id>.png (from the .arcres pack
+// or the --images directory).
+constant scene_path = 8
+constant scene_church = 1
+
+summon.statusline
+
+// on start runs before the banner (the Infocom order), so the game can set up
+// its Z-machine colours before a word is printed.
+on start
+    zcolor.font white
+    zcolor.background black
+    zcolor.statusline red
+    zcolor.input red
+
+room opening
+    name "Forsaken Path"
+    desc "You are standing on a path deep in the Black Forest, extending further north from here."
+    arc_image scene_path
+    north church
+
+room church
+    name "Churchyard"
+    desc "A small stone church stands here, its windows dark and its door ajar. The path leads back south."
+    arc_image scene_church
+    south opening

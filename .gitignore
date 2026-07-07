@@ -16,11 +16,11 @@ build/*
 !build/actaea
 !build/arcimg
 
-# The arc_image working directory: the Rabenstein port and its Director's Cut
-# across platforms, worked on locally and not part of the repo. The committed
-# arc_image example lives under examples/arc_image instead. The leading slash
-# anchors this to the repo root, so examples/arc_image is NOT matched.
-/arc_image/
+# The arc_image directory is the B12 playground (docs/08): the Rabenstein
+# working set, its master PNGs, and the per-target conversions as the waves
+# land. Tracked since R1; compiled stories inside it stay out via the
+# *.z5/*.z8 rules below. The small teaching example remains at
+# examples/arc_image.
 
 # Editor and OS
 .DS_Store
