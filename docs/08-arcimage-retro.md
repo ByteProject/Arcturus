@@ -236,10 +236,12 @@ A blueprint is "proven" when its probe is green. Per target:
   compared against the converter's own rendering of the same file (the
   converter can render any .arc back to PNG for exactly this purpose, and
   that round-trip is also the unit test of the format).
-- The bench: FS-UAE or vAmigaTS (Amiga), Hatari (ST), DOSBox-X (DOS),
-  VICE x64sc/x128/xplus4 (CBM), Caprice/CPCEC (CPC), openMSX (MSX1/2),
-  Fuse or ZEsarUX (+3), atari800 (A8), AppleWin-class (Apple II), CSpect
-  or ZEsarUX (Next), Xemu (MEGA65).
+- The bench runs on the macOS side: FS-UAE or vAmigaTS (Amiga), Hatari
+  (ST), DOSBox-X (DOS), VICE x64sc/x128/xplus4 (CBM), Caprice/CPCEC
+  (CPC), openMSX (MSX1/2), Fuse or ZEsarUX (+3), atari800 (A8),
+  AppleWin-class (Apple II), CSpect or ZEsarUX (Next), Xemu (MEGA65).
+  Several are already installed; each target's probe work starts by
+  checking which, rather than installing duplicates.
 - Eris goes further: the full end-to-end (interpreter, real z5, real
   disks, both platforms), verified in emulators by us and on real hardware
   by Stefan. That is the hand-off model from the project method, applied
