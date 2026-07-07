@@ -1551,11 +1551,14 @@ def _line(rt, ctx, s: ast.Line):
 
 
 def _topic_toggle(rt, ctx, s: ast.TopicToggle):
-    """`reveal <id>` / `hide <id>`: set or clear the HIDDEN bit in a sibling
-    topic's live-state byte. The subject resolves to a table index at compile
-    time (topics only ever reveal/hide siblings on the same person, `self`), so
-    this is a direct poke with no runtime lookup."""
-    from .objects import TOPIC_REC, TOPIC_HIDDEN
+    """`reveal <id>` / `hide <id>`: clear or set the out-of-view bits in a
+    sibling topic's live-state byte. `hide` sets HIDDEN. `reveal` clears HIDDEN
+    AND RETIRED, so code can bring back a `once` topic that has already run: the
+    player never can (that is the point of `once`), but the author can stage a
+    return, after which `once` retires it again. The subject resolves to a table
+    index at compile time (topics only ever reveal/hide siblings on the same
+    person, `self`), so this is a direct poke with no runtime lookup."""
+    from .objects import TOPIC_REC, TOPIC_HIDDEN, TOPIC_RETIRED
 
     if s.target not in ctx.topic_index:
         raise LowerError(f"reveal/hide names an unknown topic '{s.target}'", s.line)
@@ -1572,7 +1575,8 @@ def _topic_toggle(rt, ctx, s: ast.TopicToggle):
     rt.op("add", Variable(STACK), Const(state_off), store=Variable(addr))
     rt.op("loadb", Variable(addr), Const(0), store=Variable(STACK))
     if s.reveal:
-        rt.op("and", Variable(STACK), Const(0xFF ^ TOPIC_HIDDEN), store=Variable(STACK))
+        rt.op("and", Variable(STACK),
+              Const(0xFF ^ (TOPIC_HIDDEN | TOPIC_RETIRED)), store=Variable(STACK))
     else:
         rt.op("or", Variable(STACK), Const(TOPIC_HIDDEN), store=Variable(STACK))
     rt.op("storeb", Variable(addr), Const(0), Variable(STACK))

@@ -794,8 +794,20 @@ thing barman of character in bar
 This is the same `topic` construct the Infocom-style ask/tell path uses
 (summon.infocom_talking, docs/05): `words` are the ask/tell subject words,
 `when` gates visibility, `hidden` plus `reveal`/`hide` unlock by name, `once`
-retires after use, and `you`/`reply`/`say` form the exchange. The two granules
-are two presentations of one model and are mutually exclusive BY THE COMPILER:
+retires after use, and `you`/`reply`/`say` form the exchange.
+
+The one place the two presentations differ is REPETITION, and it follows each
+one's shape. In the MENU, every topic the player picks leaves the list, so the
+menu shrinks as the person is drawn out: a plain topic is spent when picked, and
+`once` adds nothing there. On the ASK/TELL path there is no list to shrink, so a
+plain topic is REPEATABLE, the player may raise it again and again, and `once` is
+what marks the one that should answer only the first time (the confession, not
+the weather). Either way `once` stops only the PLAYER: a `reveal` in the author's
+code brings a spent or `once` topic back for another turn, after which it is
+spent again.
+
+The two granules are two presentations of one model and are mutually exclusive
+BY THE COMPILER:
 summoning both is an error, an author settles on one. ASK, TELL, and ANSWER
 are standard verbs either way (as in PunyInform): with no conversation granule
 they hand over to the talk brush-off (elevated conversation belongs to the

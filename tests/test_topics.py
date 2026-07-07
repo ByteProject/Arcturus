@@ -215,3 +215,42 @@ def test_ask_tell_dispatch_on_frotz(tmp_path):
     assert "stays mum" in parts[3]  # paris retired by `once`
     assert 'Linda: "Ah, the art."' in parts[4]  # tell reaches the revealed topic
     assert "stays mum" in parts[5]  # unknown subject -> flat default
+
+
+REVIVE = (
+    'game\n    title "T"\n    start hall\n'
+    'summon.infocom_talking\n'
+    'room hall\n    name "Hall"\n    desc "x"\n'
+    'thing bob of character in hall\n    name "Bob"\n    words bob\n    named\n'
+    '    topic secret "a secret" words secret once\n'
+    '        reply "I did it."\n'
+    '    topic poke "a poke" words poke\n'
+    '        reply "Poke."\n'
+    '        reveal secret\n'
+)
+
+
+def test_reveal_brings_back_a_once_topic():
+    # `once` stops the PLAYER, not the author: a spent `once` topic can be
+    # revealed back in code, runs again, then retires again (docs/01 15).
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+
+    story = load(generate(analyze(cosmos.combined_program(parse(REVIVE)))))
+    io = CaptureIO(script=[
+        "ask bob about secret",   # runs
+        "ask bob about secret",   # once: stays mum
+        "ask bob about poke",     # body reveals secret
+        "ask bob about secret",   # revived: runs again
+        "ask bob about secret",   # once again: stays mum
+    ])
+    try:
+        VM(story, io).run(max_steps=5_000_000)
+    except IndexError:
+        pass
+    parts = io.text.split(">")
+    assert 'Bob: "I did it."' in parts[1]   # first telling
+    assert "stays mum" in parts[2]          # once retired it
+    assert 'Bob: "I did it."' in parts[4]   # reveal brought it back, it ran again
+    assert "stays mum" in parts[5]          # and once retired it once more

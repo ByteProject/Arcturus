@@ -108,6 +108,14 @@ shares the same path. There is no topic list anywhere: discovery is play,
 the Infocom way, and TALK TO stays the flat brush-off a person can override
 to nudge the player toward the two verbs that matter.
 
+With no list to exhaust, a plain topic here is REPEATABLE: the player may raise
+it again and again (asking about the weather twice answers twice), and `once` is
+what marks the topic that should answer only the first time (a confession the
+suspect will not repeat). `once` stops only the PLAYER; a `reveal` in the
+author's code brings a spent one back for another turn, after which it is spent
+again. This is the opposite default from the conversations menu, where picking a
+topic removes it from the list, so `once` adds nothing there (below).
+
 The granule holds ONLY logic, and is as translatable as the menu: the
 ask/tell/answer verb words, their grammar, and every message live in the
 language layer (the packs carry them), and the granule overrides the
@@ -235,7 +243,10 @@ thing wirtin of character in inn
 - VISIBILITY is live, three ways (01 section 15 explains when to use which):
   a `when` guard follows the story state by itself; `hidden` topics enter
   view when another topic's body (or any handler) runs `reveal <subject>`;
-  `once` retires a topic permanently after one telling.
+  `once` retires a topic after one telling. In the menu, picking a topic
+  removes it from the list regardless, so `once` is redundant here; it earns
+  its keep on the ask/tell path (above), where plain topics repeat. Either
+  way a `reveal` in code brings a retired topic back for another turn.
 - The BODY is an ordinary statement block: `you`/`reply` print attributed,
   auto-quoted dialogue (framing overridable via line_you/line_reply/
   line_end), `say` is narration, and any statement works: set flags, move
