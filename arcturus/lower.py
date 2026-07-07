@@ -1854,7 +1854,16 @@ def _is_list_source(ctx, source) -> bool:
 def _for_each(rt, ctx, s: ast.ForEach):
     """`for each x in <object>` walks the object's tree children with
     get_child / get_sibling. (List iteration and `for each ... of <kind>` over
-    instances are not lowered yet.)"""
+    instances are not lowered yet.)
+
+    MOVE-SAFE: the next sibling is cached BEFORE the body runs, so a body
+    that moves x itself (emptying a container into the room, the single most
+    common tree loop in IF) cannot derail the walk into the destination's
+    sibling chain. Without the cache that classic shape follows the moved
+    object's rewritten pointer and loops forever, sweeping in bystanders (a
+    field report caught the player inside a bucket's iteration). Moving OTHER
+    objects out of the same parent mid-loop remains the author's risk, as
+    everywhere since Infocom."""
     if s.relation == "of":
         raise LowerError(
             "'for each ... of <kind>' over instances is not supported yet", s.line
@@ -1862,21 +1871,29 @@ def _for_each(rt, ctx, s: ast.ForEach):
     if _is_list_source(ctx, s.source):
         raise LowerError("list iteration is not supported yet", s.line)
     xslot = ctx.resolve_var(s.var, s.line)
+    nxt = ctx.alloc_temp()
     objop, t = _operand(rt, ctx, s.source)
     body = ctx.new_label()
+    cont = ctx.new_label()
     done = ctx.new_label()
     # x = first child; if none, skip the loop.
     rt.op("get_child", objop, store=Variable(xslot), branch=(body, True))
     rt.jump(done)
     rt.label(body)
+    # next = x's sibling, fetched while x is still in place (get_sibling is a
+    # branch opcode; the branch just falls through to the body either way).
+    rt.op("get_sibling", Variable(xslot), store=Variable(nxt), branch=(cont, True))
+    rt.label(cont)
     had = s.var in ctx.object_locals
     ctx.object_locals.add(s.var)  # the loop var holds an object
     compile_block(rt, ctx, s.body)
     if not had:
         ctx.object_locals.discard(s.var)
-    # x = next sibling; loop while one exists.
-    rt.op("get_sibling", Variable(xslot), store=Variable(xslot), branch=(body, True))
+    # x = the cached next; loop while one exists.
+    rt.op("store", Const(xslot), Variable(nxt))
+    rt.op("jz", Variable(xslot), branch=(body, False))
     rt.label(done)
+    ctx.free_temp(nxt)
     _free(ctx, t)
 
 

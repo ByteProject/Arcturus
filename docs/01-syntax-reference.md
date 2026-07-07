@@ -731,6 +731,18 @@ for each word in ruby.synonyms // list elements
 for each door of room          // every instance of a kind
 ```
 
+The tree walk is MOVE-SAFE for its own loop object: the next child is noted
+before the body runs, so emptying a container the obvious way just works,
+with no drain idiom to learn:
+
+```
+for each x in bucket
+    move x to here
+```
+
+Moving OTHER objects out of the same parent inside the body remains the
+author's own risk, as it has been on every Z-machine library.
+
 `switch`, on a number or a string, with no fall-through; a `case` may list
 several values, and `else` is the default:
 
