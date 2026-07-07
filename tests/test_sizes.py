@@ -55,6 +55,11 @@ CEILINGS = {
     # the whole path folds away (any_tables) unless a game declares such a
     # verb. features/grammar.storyarc is the one that does, and its ceiling
     # (14340 vs the ~13400 feature baseline) is the matcher's full price.
+    # 2026-07-07 (enter consumes): `on enter` on a THING is the ENTER verb, an
+    # ordinary consumable action, no longer mistaken for the room-arrival
+    # event (whose results are ignored). react_free's enter branch gains the
+    # consume checks: +8 on the one ceiling that had zero slack
+    # (features/grammar 14340 -> 14348); every other example absorbed it.
     "beispiel-deutsch.storyarc": 20268,
     "brass-lantern.storyarc": 14900,
     "cloak-of-darkness.storyarc": 15448,
@@ -64,7 +69,7 @@ CEILINGS = {
     "features/daemons-and-timers.storyarc": 13824,
     "features/doors-and-locks.storyarc": 13396,
     "features/grains.storyarc": 13528,
-    "features/grammar.storyarc": 14340,
+    "features/grammar.storyarc": 14348,
     "features/introproperty.storyarc": 14440,
     "features/kinds-and-inheritance.storyarc": 13360,
     "features/on-other.storyarc": 13360,
