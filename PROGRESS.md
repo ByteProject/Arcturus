@@ -3318,3 +3318,34 @@ builders on the Linux side: dsktool, idsk, c1541, mkatr, adf.py,
 gemdos.py), game-disk packaging stays out.
 
 Next: R1, the format spec and the shared RLE codec.
+
+## 2026-07-07: B12 R1 COMPLETE. The .arc container and the format layer.
+
+The retro image format exists and proves itself. docs/08 section 10 holds
+the specification: a 16-byte big-endian header (magic, version, target id,
+mode, geometry, image id), a section table, and per-section RLE streams in
+a shared PackBits-shaped scheme whose decoder is a few dozen bytes on a
+6502 or Z80, with 0x80 as an end sentinel so a streaming loader needs no
+length counter. Sections carry the payload in each machine's NATIVE memory
+order (the Spectrum thirds, the CPC sub-blocks and Mode 0 bit shuffle, the
+C64 cell order, the Amiga row-interleaved planes, the ST word interleave,
+the Next column-major layer), palettes in native hardware encoding, so
+every loader is a dumb unpack.
+
+arcimg 1.1.0 implements the whole family: pack/unpack/render for all
+fourteen targets, `arcimg targets` (the ledger as a command), and `arcimg
+render` (any .arc back to a PNG through the target's reference palette,
+via a stdlib PNG writer, no Pillow). The done-test is
+tests/test_arcformat.py: the RLE codec's edges, container fault handling,
+and for every target in both modes a legal native test image (cell
+matrices and registers included) that packs, writes, reads, unpacks to the
+identical native image, and re-encodes bit-identically; plus a render
+smoke test per target and the golden-corpus check (the Rabenstein masters,
+320x96, the conversion acceptance material for the waves). 50 new tests;
+the suite stands at 659.
+
+Deviations noted: compressed sizes join the ledger per wave (they need
+real conversions to mean anything), and the TED, GTIA, and Apple II
+preview palettes are marked approximations until their waves freeze
+measured values. Next: R2, wave 1 (Amiga, ST, DOS converters and probes,
+and the Eris reference implementation of the interpreter contract).

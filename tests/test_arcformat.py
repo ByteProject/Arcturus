@@ -1,0 +1,150 @@
+# test_arcformat.py
+# part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+# Copyright (c) 2026, Stefan Vogt.
+# https://github.com/ByteProject/Arcturus
+
+"""The .arc container (docs/08 section 10), B12 R1. Three gates:
+
+- the shared RLE codec round-trips exactly, including its edges (long runs,
+  long literals, empty data, run-length limits);
+- every target's native layout packs and unpacks to the identical native
+  image, through a real .arc file (write_arc/read_arc in the middle), for
+  both band modes: the encode side of the format is its own decode's proof;
+- every target renders to a PNG preview without an emulator in sight.
+
+The test patterns are legal native images built in each machine's own terms
+(cell matrices and registers included), so the sections carry realistic
+structure, not noise."""
+
+import os
+import sys
+
+import pytest
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tools"))
+import arcimg  # noqa: E402
+
+
+# -- the RLE codec ------------------------------------------------------------
+
+def test_rle_round_trips():
+    cases = [
+        b"",
+        b"A",
+        b"AB",
+        b"AAA",
+        b"A" * 128,
+        b"A" * 129,
+        b"A" * 1000,
+        bytes(range(256)) * 3,
+        b"AB" * 200,                      # 2-runs must ship as literals
+        b"X" * 2 + b"Y" * 3 + b"Z" * 130,
+        bytes([0x80]) * 50,               # the sentinel byte as DATA
+    ]
+    for data in cases:
+        enc = arcimg.rle_encode(data)
+        assert enc[-1] == 0x80
+        assert arcimg.rle_decode(enc) == data, data[:16]
+
+
+def test_rle_runs_compress():
+    enc = arcimg.rle_encode(b"\x00" * 3840)
+    assert len(enc) < 3840 // 32
+
+
+def test_rle_missing_sentinel_faults():
+    with pytest.raises(ValueError):
+        arcimg.rle_decode(b"\x01AB")  # literal then truncation, no 0x80
+
+
+# -- the container ---------------------------------------------------------------
+
+def test_header_and_sections_round_trip():
+    sections = [(arcimg.SEC_BITMAP, 0, bytes(range(200))),
+                (arcimg.SEC_PALETTE, 1, b"\x0F" * 32)]
+    blob = arcimg.write_arc(3, 12, 320, 96, 8, sections)
+    head, back = arcimg.read_arc(blob)
+    assert head == {"target": 3, "mode": 12, "width": 320, "height": 96,
+                    "id": 8}
+    assert back == sections
+
+
+def test_bad_magic_faults():
+    with pytest.raises(ValueError):
+        arcimg.read_arc(b"NOPE" + b"\x00" * 20)
+
+
+def test_length_mismatch_faults():
+    blob = bytearray(arcimg.write_arc(1, 9, 320, 72, 1,
+                                      [(arcimg.SEC_BITMAP, 0, b"AB" * 8)]))
+    # Corrupt the table's uncompressed length.
+    blob[18] = 0xFF
+    with pytest.raises(ValueError):
+        arcimg.read_arc(bytes(blob))
+
+
+# -- every target, both modes ----------------------------------------------------
+
+ALL_TAGS = sorted(arcimg.TARGETS, key=lambda t: arcimg.TARGETS[t].id)
+
+
+@pytest.mark.parametrize("tag", ALL_TAGS)
+@pytest.mark.parametrize("mode", [9, 12])
+def test_target_round_trips_exactly(tag, mode):
+    t = arcimg.TARGETS[tag]
+    w, h = t.width, t.height(mode)
+    native = t.pattern(w, h)
+    blob = arcimg.encode_native(tag, mode, 8, native)
+    tag2, mode2, iid, back = arcimg.decode_arc(blob)
+    assert (tag2, mode2, iid) == (tag, mode, 8)
+    assert back == native, f"{tag} mode {mode}: unpack does not invert pack"
+    # A second encode of the round-tripped native is bit-identical: the
+    # format has one canonical encoding.
+    assert arcimg.encode_native(tag, mode, 8, back) == blob
+
+
+@pytest.mark.parametrize("tag", ALL_TAGS)
+def test_target_renders_a_png(tag, tmp_path):
+    t = arcimg.TARGETS[tag]
+    w, h = t.width, t.height(9)
+    blob = arcimg.encode_native(tag, 9, 3, t.pattern(w, h))
+    out = tmp_path / f"{tag}.png"
+    arcimg.render_arc(blob, str(out))
+    data = out.read_bytes()
+    assert data[:8] == arcimg._PNG_SIG
+    # The preview's pixel width doubles for the wide-pixel machines.
+    import struct
+    pw, ph = struct.unpack(">II", data[16:24])
+    assert ph == h
+    assert pw in (w, w * 2)
+
+
+def test_the_golden_corpus_is_in_place():
+    # The Rabenstein masters are the conversion corpus (docs/08 section 4):
+    # every wave's back-end converts them and the results are the acceptance
+    # gate. R1 only guarantees the corpus is present and band-shaped.
+    import zipfile
+    pack = os.path.join(os.path.dirname(__file__), "..", "examples",
+                        "arc_image", "rabenstein.arcres")
+    with zipfile.ZipFile(pack) as z:
+        names = sorted(z.namelist())
+        assert names, "the corpus pack is empty"
+        for name in names:
+            data = z.read(name)
+            assert data[:8] == arcimg._PNG_SIG
+            import struct
+            w, h = struct.unpack(">II", data[16:24])
+            assert (w, h) in ((320, 72), (320, 96)), name
+
+
+def test_the_ledger_is_complete():
+    # Fourteen targets, ids 1..14, each with the geometry docs/08 records.
+    assert len(arcimg.TARGETS) == 14
+    ids = sorted(t.id for t in arcimg.TARGETS.values())
+    assert ids == list(range(1, 15))
+    widths = {t.tag: t.width for t in arcimg.TARGETS.values()}
+    assert widths == {
+        "AMI": 320, "AST": 320, "DOS": 320, "C64": 160, "P4": 320,
+        "CPC": 160, "MS1": 256, "MS2": 256, "ZX3": 256, "A8": 160,
+        "AP2": 280, "NXT": 320, "M65": 320, "VDC": 640,
+    }
