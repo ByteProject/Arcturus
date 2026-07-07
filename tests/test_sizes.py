@@ -46,35 +46,38 @@ CEILINGS = {
     # German followed (gib Bob die Muenze, its natural dative), +196 here. Spanish
     # is UNCHANGED: its dative uses the mandatory personal "a" (da a Maria la
     # moneda) or clitics, not the adjacent-noun form, so no reverse line applies.
-    "beispiel-deutsch.storyarc": 20264,
-    "brass-lantern.storyarc": 14888,
-    "cloak-of-darkness.storyarc": 15428,
+    # 2026-07-07 (self fix): an owned handler now takes its self object as an
+    # argument so a kind handler sees the right instance (docs/01 9); +0 to +20
+    # bytes/game for the per-call argument.
+    "beispiel-deutsch.storyarc": 20268,
+    "brass-lantern.storyarc": 14900,
+    "cloak-of-darkness.storyarc": 15448,
     "ejemplo-espanol.storyarc": 19296,
-    "features/computed-properties.storyarc": 13508,
+    "features/computed-properties.storyarc": 13512,
     "features/containers.storyarc": 13532,
     "features/daemons-and-timers.storyarc": 13824,
     "features/doors-and-locks.storyarc": 13396,
     "features/grains.storyarc": 13528,
-    "features/introproperty.storyarc": 14432,
-    "features/kinds-and-inheritance.storyarc": 13352,
-    "features/on-other.storyarc": 13356,
-    "features/zcolor.storyarc": 13728,
-    "features/scoring.storyarc": 15680,
+    "features/introproperty.storyarc": 14440,
+    "features/kinds-and-inheritance.storyarc": 13360,
+    "features/on-other.storyarc": 13360,
+    "features/zcolor.storyarc": 13732,
+    "features/scoring.storyarc": 15684,
     "features/spans.storyarc": 13544,
-    "granules/ambience.storyarc": 14836,
+    "granules/ambience.storyarc": 14840,
     "granules/conversations.storyarc": 15136,
-    "granules/extended-verbs.storyarc": 15860,
-    "granules/infocom-interrogation.storyarc": 15544,
+    "granules/extended-verbs.storyarc": 15864,
+    "granules/infocom-interrogation.storyarc": 15552,
     "granules/quotes.storyarc": 13708,
-    "granules/take-all.storyarc": 15124,
+    "granules/take-all.storyarc": 15128,
     "granules/plurals.storyarc": 14368,
-    "granules/statusline.storyarc": 13460,
+    "granules/statusline.storyarc": 13464,
     "granules/verbose-exits.storyarc": 13744,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 15904
+CLOAK_Z8_CEILING = 15912
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

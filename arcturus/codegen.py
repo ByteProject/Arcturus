@@ -326,6 +326,17 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
     pay nothing)."""
     others = others or []
     rt = Routine("react_" + objname, nlocals=2)  # 1 = action, 2 = a guard ran
+    # An owned handler is called with this react routine's own object as its self
+    # argument (docs/01 section 9). react_free has no object; its handlers are
+    # free rules (no owner), so they are called with no argument and read the
+    # noun. The handler h decides: owned -> pass the object, free -> pass nothing.
+    self_num = layout.obj_number.get(objname) if layout is not None else None
+
+    def self_args(h):
+        if h.owner is not None and self_num is not None:
+            return (Const(self_num),)
+        return ()
+
     run_label = {}
     for i, action in enumerate(groups):
         run_label[action] = f"run{i}"
@@ -345,7 +356,7 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
             # patterns or `on other` for a life-cycle event, so this is the
             # whole story for these actions.
             for hn, h in handlers:
-                rt.op("call_vn", RoutineRef(hn))
+                rt.op("call_vn", RoutineRef(hn), *self_args(h))
             rt.jump("__climb__")
             continue
         plans = [_guard_plan(h, layout, gmap, dirnames) for _, h in handlers]
@@ -376,11 +387,11 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
                         rt.label(ok)
                 if all_guarded:
                     rt.op("store", Const(2), _CONST_ONE)
-                rt.op("call_vs", RoutineRef(hn), store=Variable(STACK))
+                rt.op("call_vs", RoutineRef(hn), *self_args(h), store=Variable(STACK))
                 rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
                 rt.label(skip)
             else:
-                rt.op("call_vs", RoutineRef(hn), store=Variable(STACK))
+                rt.op("call_vs", RoutineRef(hn), *self_args(h), store=Variable(STACK))
                 rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
         if all_guarded:
             # Every match was guarded: if none ran, the object never
@@ -399,7 +410,7 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
         if afloor is not None:
             rt.op("jl", Variable(1), Const(afloor), branch=("__climb__", False))
         for hn, h in others:
-            rt.op("call_vs", RoutineRef(hn), store=Variable(STACK))
+            rt.op("call_vs", RoutineRef(hn), *self_args(h), store=Variable(STACK))
             rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
     rt.label("__climb__")
     rt.op("ret", Const(0))  # nothing consumed it: let it climb the chain
@@ -868,23 +879,28 @@ def build_story(
 
 
 def _self_operand(world: wm.World, handler: wm.Handler, layout):
-    """What `self` is inside a handler routine: an object/room handler knows its
-    owner at compile time (a constant), while a kind or free-standing handler
-    runs for whichever object is the noun (the noun global)."""
-    if (
-        handler.owner is not None
-        and not handler.origin_kind
-        and handler.owner in layout.obj_number
-    ):
-        return Const(layout.obj_number[handler.owner])
+    """What `self` is inside a handler routine (docs/01 section 9: the enclosing
+    object). An OWNED handler (on an object or a kind) reads its self object from
+    the routine's first argument: the per-object react routine passes its own
+    object, so a kind handler shared by many objects sees the RIGHT instance,
+    even when dispatched on the second noun (a container's `on put`) or the room
+    (a room kind's `on enter`), not the noun. A free-standing rule has no owner,
+    so its self is the noun, the object the rule acts on."""
+    if handler.owner is not None:
+        return Variable(1)
     return Variable(_globals_map(world)["noun"])
 
 
 def _compile_handler(world, gmap, layout, pool, handler, name) -> Routine:
-    rt = Routine(name, nlocals=0)
+    # An owned handler takes its self object as the routine's first argument
+    # (the per-object react routine passes it); a free rule takes none and reads
+    # the noun. The reserved slot keeps the body's own locals starting after it.
+    params = ("__self__",) if handler.owner is not None else ()
+    rt = Routine(name, nlocals=len(params))
     ctx = Context(
         world,
         gmap,
+        params=params,
         layout=layout,
         self_value=_self_operand(world, handler, layout),
         in_handler=True,
