@@ -180,9 +180,33 @@ headline uses are a two-sided door (one door object in both rooms it joins) and
 wide scenery. A room's exit may name such a door, gating movement on it (02
 section 10).
 
+A span target may be a room KIND, not just a named room: `spans outside_room`
+puts the object in scope in *every* room of that kind. The sun and the sky hang
+over every outdoor room, the walls stand in every indoor one, and you name the
+kind once instead of listing rooms:
+
+```
+kind outside_room of room     // a marker kind: no body needed
+
+room meadow of outside_room
+    name "Meadow"
+    ...
+
+thing the_sun
+    scenery
+    spans outside_room        // in scope in meadow and every other outside_room
+    desc "It blazes overhead."
+```
+
+Every room is known at compile time, so the kind expands to its rooms as you
+build; there is no runtime cost beyond the ordinary span. A room of a subkind
+counts too (a `beach_room of outside_room` is an outside room). A kind used only
+to tag its instances like this can be declared with no body at all.
+
 A long span is not confined to one line. Every `spans` line on an object adds
-to its set, so a wide scenery object can list its rooms across as many lines as
-read well, and a line ending in a comma continues on the next (section 2):
+to its set, so a wide scenery object can list its rooms (or kinds) across as many
+lines as read well, and a line ending in a comma continues on the next (section
+2):
 
 ```
 thing river

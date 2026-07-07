@@ -280,18 +280,50 @@ class Analyzer:
                     f"'{obj.name}' is of unknown kind '{obj.kind}'", obj.line
                 )
             obj.chain = self._chain(obj.kind, obj.line)
-            # A spanned name must be a declared room (docs/01 section 5): the
-            # object is visible from each of these rooms as well as its own.
+            # A spanned name is a declared room, or a room KIND (docs/01 section
+            # 5): `the_sun spans outside_room` puts the object in scope in every
+            # room of that kind. Every room is known at compile time, so a kind
+            # expands to its rooms here; the runtime spans table and scope check
+            # stay exactly as they are for a list of named rooms.
+            expanded: list[str] = []
             for rname in obj.spans:
+                if rname in w.kinds:
+                    if "room" not in self._chain(rname, obj.line):
+                        raise self._error(
+                            f"'{obj.name}' spans '{rname}', a kind that is not a "
+                            f"room kind", obj.line
+                        )
+                    rooms = [
+                        o.name for o in w.objects.values()
+                        if o.category == "room"
+                        and rname in self._chain(o.kind, o.line)
+                    ]
+                    if not rooms:
+                        raise self._error(
+                            f"'{obj.name}' spans '{rname}', a room kind with no "
+                            f"rooms", obj.line
+                        )
+                    for rm in rooms:
+                        if rm not in expanded:
+                            expanded.append(rm)
+                    continue
                 target = w.objects.get(rname)
                 if target is None:
                     raise self._error(
-                        f"'{obj.name}' spans unknown room '{rname}'", obj.line
+                        f"'{obj.name}' spans unknown room or kind '{rname}'",
+                        obj.line
                     )
                 if target.category != "room":
                     raise self._error(
                         f"'{obj.name}' spans '{rname}', which is not a room", obj.line
                     )
+                if rname not in expanded:
+                    expanded.append(rname)
+            obj.spans = expanded
+            # The parser homes a spanning object with no `in` in spans[0]; when
+            # that was a kind, repoint it to the first room the kind expanded to.
+            if obj.location in w.kinds and expanded:
+                obj.location = expanded[0]
 
     def _chain(self, start: str, line: int) -> list[str]:
         chain: list[str] = []

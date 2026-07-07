@@ -25,7 +25,9 @@
 //
 // Neither the moon nor the lighthouse is a real object in any of these rooms.
 // Each is one scenery object that spans the rooms it can be seen from, so `look`
-// never lists it and it costs nothing per room.
+// never lists it and it costs nothing per room. The moon shows the two ways to
+// name a span: a KIND (every room of kind outdoor) and, for the lighthouse, an
+// explicit list of rooms.
 
 game
     title  "A Walk by Moonlight"
@@ -33,34 +35,39 @@ game
     author "Stefan Vogt"
     start  clearing
 
-room clearing
+// A marker kind, no body: it exists only to tag the open-air rooms, so the moon
+// can span all of them by naming the kind once.
+kind outdoor of room
+
+room clearing of outdoor
     name "The Clearing"
     desc "A grassy clearing ringed close by black pines. A path climbs northeast
           to the ridge, and a track drops south to the shore."
     northeast ridge
     south shore
 
-room ridge
+room ridge of outdoor
     name "The Ridge"
     desc "A bare granite ridge, open to the whole sky. The clearing lies back
           southwest, and the shore is down to the south."
     southwest clearing
     south shore
 
-room shore
+room shore of outdoor
     name "The Shore"
     desc "A pebbled shore where slow waves turn over. The ridge rises to the
           north, and the clearing is back up the track, also north."
     north clearing
 
-// The moon is seen from everywhere: it spans all three rooms. With no `in`, it
-// lives in the first room it spans (the clearing) and is in scope in the others.
+// The moon is seen from every open-air room: it spans the KIND, so adding another
+// outdoor room later needs no change here. With no `in`, it lives in the first
+// room the kind expands to (the clearing) and is in scope in the others.
 thing moon
     name "silver moon"
     words moon, silver
     scenery
     desc "A full silver moon, so bright it throws hard shadows from the pines."
-    spans clearing, ridge, shore
+    spans outdoor
 
 // The lighthouse is only visible from the open ground: it spans the ridge and the
 // shore, but not the tree-ringed clearing, so it cannot be referred to there.

@@ -379,7 +379,10 @@ class Parser:
         if self.accept_kw("of"):
             parent = self._kind_name("a parent kind name")
         self.expect_newline()
-        members = self.parse_members()
+        # A kind may have no body: a marker subclass like `kind outside_room of
+        # room`, used to tag its instances (for `is outside_room`, or an object
+        # that `spans outside_room`). An object still needs a body.
+        members = self.parse_members() if self.check(T.INDENT) else []
         return ast.KindDecl(name, parent, members, line)
 
     def parse_member(self) -> ast.Member:
