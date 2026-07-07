@@ -25,6 +25,7 @@ build/*
 /arc_image/ast/
 /arc_image/dos/
 /arc_image/previews/
+/arc_image/stress-out/
 
 # Editor and OS
 .DS_Store
