@@ -859,8 +859,58 @@ follows three checked rules: at most two slots per line, a literal word
 between two slots (adjacent bare nouns belong to `reverse`, which is a
 plain-model feature), and single-word verb synonyms.
 
-Standard verbs, including talk-to, come from Cosmos; how input is tokenized
-and resolved is defined in 02 (the positional matcher in 02 section 8c). This
+EXTENDING THE STANDARD GRAMMAR. The grammar is not a fixed table you write
+additions into; it is the sum of every `verb` declaration in the compile,
+Cosmos's and yours alike, and your game is expected to add its own. Three
+patterns cover what a game wants:
+
+A new verb is just a declaration plus handlers. The action name is yours to
+invent; naming it in a grammar line is what creates it:
+
+```
+verb "dig", "excavate"
+    dig
+    dig noun
+    dig noun with held
+    dig in noun with held
+
+on dig
+    ...noun and second are bound as usual...
+```
+
+A new way to say an old thing reuses the standard action, so every handler
+and default response already in place answers the new wording too. The line
+names the standard action, and nothing else is needed:
+
+```
+verb "peruse"
+    examine noun
+```
+
+A richer shape for a standard verb redeclares it. List the verb's words and
+every line you want, the standard ones you keep plus your own; for the words
+it declares, the later declaration wins, so your version replaces the Cosmos
+one wholesale:
+
+```
+verb "attack", "hit", "break", "kill", "fight", "smash"
+    attack noun
+    attack noun with held
+```
+
+The showcase for all of this, including the LOOK extension with its two
+wording-selected actions, is `examples/features/grammar.storyarc`; compile it
+and type along. The same patterns hold in any language, because a language
+pack's verbs are ordinary declarations too: a German game redeclares `grabe`
+with `dig in noun mit noun` and the same matcher serves it (02 section 8c).
+When several of your lines could fit the same typed command, remember the
+matcher's order: the line with more literal words is tried first, declaration
+order breaks ties, so you rarely need to think about it; when in doubt, put
+the more specific wording first anyway, which reads better in the source.
+
+Standard verbs, including talk-to, come from Cosmos; the full list of
+standard grammar lines is 02 appendix B, and how input is tokenized and
+resolved is defined in 02 (the positional matcher in 02 section 8c). This
 section defines only how you declare a verb and how its grammar names the
 action your handlers receive.
 
