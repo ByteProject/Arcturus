@@ -38,39 +38,41 @@ CEILINGS = {
     # 2026-07-03 batch: recipient dispatch (~40), the start-title skip
     # (~25), show_tag (~20); chaining, disambiguation, noun lists with
     # noise words, all core parser features every game carries.
-    # 2026-07-07: the parser now binds a pronoun for the SECOND noun too, so
-    # after "show coin to bob" HIM refers to Bob (note_referent(second) in
-    # parser.prelude). +4 to +20 bytes per game (DCE and abbreviations absorb
-    # it unevenly); a small, uniform cost for correct two-object pronoun use.
+    # 2026-07-07 (pronouns): the parser now binds a pronoun for the SECOND noun
+    # too, so after "show coin to bob" HIM refers to Bob. +4 to +20 bytes/game.
+    # 2026-07-07 (reversed dative): GIVE/SHOW accept the reversed order (GIVE BOB
+    # COIN), with the reverse split and probe_noun in english.prelude. +~196
+    # bytes for English games; German and Spanish are UNCHANGED (their packs have
+    # no reverse line, so the whole path DCEs away, the pay-for-language model).
     "beispiel-deutsch.storyarc": 20068,
-    "brass-lantern.storyarc": 14692,
-    "cloak-of-darkness.storyarc": 15232,
+    "brass-lantern.storyarc": 14888,
+    "cloak-of-darkness.storyarc": 15428,
     "ejemplo-espanol.storyarc": 19296,
-    "features/computed-properties.storyarc": 13312,
-    "features/containers.storyarc": 13336,
-    "features/daemons-and-timers.storyarc": 13628,
-    "features/doors-and-locks.storyarc": 13200,
-    "features/grains.storyarc": 13332,
-    "features/introproperty.storyarc": 14236,
-    "features/kinds-and-inheritance.storyarc": 13156,
-    "features/on-other.storyarc": 13160,
-    "features/zcolor.storyarc": 13532,
-    "features/scoring.storyarc": 15484,
-    "features/spans.storyarc": 13348,
-    "granules/ambience.storyarc": 14640,
-    "granules/conversations.storyarc": 14940,
-    "granules/extended-verbs.storyarc": 15664,
-    "granules/infocom-interrogation.storyarc": 15348,
-    "granules/quotes.storyarc": 13512,
-    "granules/take-all.storyarc": 14928,
-    "granules/plurals.storyarc": 14172,
-    "granules/statusline.storyarc": 13264,
-    "granules/verbose-exits.storyarc": 13548,
+    "features/computed-properties.storyarc": 13508,
+    "features/containers.storyarc": 13532,
+    "features/daemons-and-timers.storyarc": 13824,
+    "features/doors-and-locks.storyarc": 13396,
+    "features/grains.storyarc": 13528,
+    "features/introproperty.storyarc": 14432,
+    "features/kinds-and-inheritance.storyarc": 13352,
+    "features/on-other.storyarc": 13356,
+    "features/zcolor.storyarc": 13728,
+    "features/scoring.storyarc": 15680,
+    "features/spans.storyarc": 13544,
+    "granules/ambience.storyarc": 14836,
+    "granules/conversations.storyarc": 15136,
+    "granules/extended-verbs.storyarc": 15860,
+    "granules/infocom-interrogation.storyarc": 15544,
+    "granules/quotes.storyarc": 13708,
+    "granules/take-all.storyarc": 15124,
+    "granules/plurals.storyarc": 14368,
+    "granules/statusline.storyarc": 13460,
+    "granules/verbose-exits.storyarc": 13744,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 15704
+CLOAK_Z8_CEILING = 15904
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

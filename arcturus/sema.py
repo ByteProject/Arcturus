@@ -139,7 +139,7 @@ class Analyzer:
                     line=decl.line,
                 )
             elif isinstance(decl, ast.VerbDecl):
-                grammar = [wm.GrammarLine(g.action, g.items) for g in decl.grammar]
+                grammar = [wm.GrammarLine(g.action, g.items, g.reverse) for g in decl.grammar]
                 w.verbs.append(wm.Verb(decl.words, grammar, decl.line))
             elif isinstance(decl, ast.DirectionDecl):
                 if not self.env.is_direction(decl.prop):

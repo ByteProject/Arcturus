@@ -837,10 +837,24 @@ class Parser:
         line = self.cur.line
         action = self.expect_name("an action name").value
         items: list[ast.GrammarItem] = []
+        reverse = False
         while not self.check(T.NEWLINE):
+            # A trailing `reverse` marks a reversed two-noun line (give/show BOB
+            # COIN): the parser swaps the two noun roles. It is a line modifier,
+            # not a grammar word, so it must come last and only on a two-noun line.
+            if (self.check(T.NAME) and self.cur.value == "reverse"
+                    and self._at(1).kind == T.NEWLINE):
+                self.advance()
+                reverse = True
+                break
             items.append(self._parse_grammar_item())
         self.expect_newline()
-        return ast.GrammarLine(action, items, line)
+        if reverse and sum(isinstance(it, ast.Slot) for it in items) != 2:
+            raise self._error(
+                "`reverse` needs exactly two noun slots, like `give noun noun "
+                "reverse` (it swaps the recipient and the thing)"
+            )
+        return ast.GrammarLine(action, items, line, reverse)
 
     def _parse_grammar_item(self) -> ast.GrammarItem:
         tok = self.cur

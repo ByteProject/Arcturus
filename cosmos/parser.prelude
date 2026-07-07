@@ -137,6 +137,35 @@ block phrase_score(obj, lo, hi)
         change i to i + 1
     return s
 
+// A side-effect-free probe: the single in-scope object the words in [lo, hi)
+// name, or nothing when none matches or two tie. Unlike match_phrase it sets no
+// parse_fault and asks nothing, so the reversed-dative split can try candidate
+// boundaries without disturbing the real parse. Folds away with the reverse
+// grammar it serves (no give/show reverse line, no caller, DCE drops it).
+block probe_noun(lo, hi)
+    let best = nothing
+    let best_score = 0
+    let tied = 0
+    let obj = 1
+    while obj <= object_count
+        if obj is not hidden
+            let s = phrase_score(obj, lo, hi)
+            if s > 0
+                if in_scope(obj)
+                    if s > best_score
+                        change best to obj
+                        change best_score to s
+                        change tied to 0
+                    else
+                        if s is best_score
+                            change tied to 1
+        change obj to obj + 1
+    if best_score is 0
+        return nothing
+    if tied is 1
+        return nothing
+    return best
+
 // Is this word in the object's plural (group) vocabulary? The plurals
 // granule's counterpart of has_word (docs/05); a game without `plural`
 // declarations has no property and the intrinsic answers 0.

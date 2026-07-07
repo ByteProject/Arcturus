@@ -150,7 +150,9 @@ def _verb_arity(world: wm.World) -> dict:
     (capped at 2). 0 marks an intransitive verb (jump, look, wait): the parser
     uses this to reject a command that piles words onto a verb with no slot for
     them, instead of silently dropping them. 2 marks a two-noun verb (put noun on
-    noun), so the parser resolves a second noun."""
+    noun), so the parser resolves a second noun. A verb with a reversed two-noun
+    line (give/show BOB COIN) adds bit 2 (value 4), so 6 is a reverse-capable
+    two-noun verb: the parser then splits two adjacent nouns and swaps them."""
     out: dict = {}
     for verb in world.verbs:
         slots = max(
@@ -159,6 +161,8 @@ def _verb_arity(world: wm.World) -> dict:
         )
         if slots > 2:
             slots = 2
+        if any(line.reverse for line in verb.grammar):
+            slots = slots | 4  # 2 -> 6: a reverse-capable two-noun verb
         for phrase in verb.words:
             tokens = phrase.lower().split()
             if len(tokens) == 1:
