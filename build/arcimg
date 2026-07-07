@@ -56,7 +56,7 @@ __version__ = "1.2.0"
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = '0518874'
+__build__ = '08a7484'
 
 
 def build_id() -> str:
@@ -538,6 +538,77 @@ def _nearest(c, palette, lo=0, hi=None):
     return bi
 
 
+def _kmeans_polish(rows, palette, iterations=4):
+    """A few Lloyd iterations over the image's color histogram: colors vote
+    for their nearest palette entry, entries move to their voters' centroid.
+    Median-cut splits by spatial extent and starves small, perceptually loud
+    regions (a sunset's sun); the polish gives them their entry back. Flat
+    art is unaffected: when the palette already matches the histogram, no
+    entry moves and the loop exits on the first pass."""
+    hist = {}
+    for row in rows:
+        for c in row:
+            hist[c] = hist.get(c, 0) + 1
+    pal = list(palette)
+    for _ in range(iterations):
+        sums = [[0, 0, 0, 0] for _ in pal]
+        for c, cnt in hist.items():
+            s = sums[_nearest(c, pal)]
+            s[0] += c[0] * cnt
+            s[1] += c[1] * cnt
+            s[2] += c[2] * cnt
+            s[3] += cnt
+        moved = False
+        for i, s in enumerate(sums):
+            if s[3] == 0:
+                continue
+            nc = (round(s[0] / s[3]), round(s[1] / s[3]), round(s[2] / s[3]))
+            if nc != pal[i]:
+                pal[i] = nc
+                moved = True
+        if not moved:
+            break
+    return pal
+
+
+# Bayer 4x4, for the gradient masters. Ordered (never error diffusion) on
+# purpose: it is spatially stable, it will not bleed across the cell hardware
+# of the later waves, and RLE survives it far better (docs/08 section 4).
+_BAYER4 = ((0, 8, 2, 10), (12, 4, 14, 6), (3, 11, 1, 9), (15, 7, 13, 5))
+
+
+def _map_pixels(rows, palette, dither, lo=0, hi=None):
+    """Master pixels to palette indices, with optional low-amplitude ordered
+    dithering: the zero-centred Bayer threshold is added to the channels
+    before the nearest-color lookup (the classic arbitrary-palette ordered
+    dither). `dither` is the amplitude in 8-bit channel units; 0 is off."""
+    out = []
+    for y, row in enumerate(rows):
+        orow = []
+        for x, c in enumerate(row):
+            if dither:
+                t = (_BAYER4[y & 3][x & 3] / 15.0 - 0.5) * 2 * dither
+                c = (min(255, max(0, round(c[0] + t))),
+                     min(255, max(0, round(c[1] + t))),
+                     min(255, max(0, round(c[2] + t))))
+            orow.append(_nearest(c, palette, lo, hi))
+        out.append(orow)
+    return out
+
+
+def _gradient_class(rows):
+    """Is this master gradient art (thousands of blended colors) rather than
+    flat pixel art? Decides the dithering default: flat art is never dithered
+    (its conversion is exact already); gradient art gets the banding softened."""
+    seen = set()
+    for row in rows:
+        for c in row:
+            seen.add(c)
+            if len(seen) > 256:
+                return True
+    return False
+
+
 def _snap4(c):
     return tuple(round(v * 15 / 255) * 17 for v in c)
 
@@ -560,13 +631,31 @@ def _dedupe(palette):
 
 
 # Wave 1 conversion back-ends: master rows (320x72/96 RGB) -> native dict.
-# The rule from docs/08: build the palette, snap it to the target's gun depth
-# BEFORE mapping pixels, then map. No dithering at these color counts.
+# The rules from docs/08: build the palette (median cut, then the k-means
+# polish so small loud regions keep their entry), snap it to the target's gun
+# depth BEFORE mapping pixels, then map. Flat pixel-art masters convert
+# without dithering (exactly, whenever they fit the budget); gradient-class
+# masters get a low-amplitude ordered dither scaled to the palette budget.
+
+def _build_palette(rows, n, snap):
+    pal = _median_cut(rows, n)
+    if _gradient_class(rows):
+        pal = _kmeans_polish(rows, pal)
+    return _dedupe([snap(c) for c in pal])
+
+
+def _dither_amount(rows, budget):
+    """The ordered-dither amplitude: 0 for flat art, gentle for gradient art,
+    stronger the smaller the palette budget."""
+    if not _gradient_class(rows):
+        return 0
+    return {16: 14, 32: 8}.get(budget, 4)
+
 
 def _convert_ami(rows):
     w, h = len(rows[0]), len(rows)
-    pal = _dedupe([_snap4(c) for c in _median_cut(rows, 32)])
-    pixels = [[_nearest(c, pal) for c in row] for row in rows]
+    pal = _build_palette(rows, 32, _snap4)
+    pixels = _map_pixels(rows, pal, _dither_amount(rows, 32))
     return {"w": w, "h": h, "pixels": pixels,
             "palette": pal + [(0, 0, 0)] * (32 - len(pal))}
 
@@ -581,31 +670,31 @@ def _convert_ast(rows):
     w, h = len(rows[0]), len(rows)
     def luma(c):
         return 2 * c[0] + 4 * c[1] + c[2]
-    pal = _dedupe([_snap3(c) for c in _median_cut(rows, 16)])
+    pal = _build_palette(rows, 16, _snap3)
     pal.sort(key=luma)
     if luma(pal[-1]) < 4 * 255:  # no usable ink: trade one slot for white
-        pal = _dedupe([_snap3(c) for c in _median_cut(rows, 15)])
+        pal = _build_palette(rows, 15, _snap3)
         pal.sort(key=luma)
         pal.append((255, 255, 255))
     palette = pal + [(0, 0, 0)] * (16 - len(pal))
     if len(pal) < 16:
         palette = pal[:-1] + [(0, 0, 0)] * (16 - len(pal)) + [pal[-1]]
-    pixels = [[_nearest(c, palette) for c in row] for row in rows]
+    pixels = _map_pixels(rows, palette, _dither_amount(rows, 16))
     return {"w": w, "h": h, "pixels": pixels, "palette": palette}
 
 
 def _convert_dos(rows):
     # Indices 0..15 stay the interpreter's (a standard text palette); the art
-    # palette begins at 16. Masters carry few colors, so this is near 1:1.
+    # palette begins at 16. At 240 art entries no dithering is ever needed.
     w, h = len(rows[0]), len(rows)
-    art = _dedupe([_snap6(c) for c in _median_cut(rows, 240)])
+    art = _build_palette(rows, 240, _snap6)
     base = [(0, 0, 0), (0, 0, 170), (0, 170, 0), (0, 170, 170),
             (170, 0, 0), (170, 0, 170), (170, 85, 0), (170, 170, 170),
             (85, 85, 85), (85, 85, 255), (85, 255, 85), (85, 255, 255),
             (255, 85, 85), (255, 85, 255), (255, 255, 85), (255, 255, 255)]
     palette = [_snap6(c) for c in base] + art
     palette += [(0, 0, 0)] * (256 - len(palette))
-    pixels = [[16 + _nearest(c, art) for c in row] for row in rows]
+    pixels = [[i + 16 for i in row] for row in _map_pixels(rows, art, 0)]
     return {"w": w, "h": h, "pixels": pixels, "palette": palette}
 
 

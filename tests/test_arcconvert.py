@@ -87,3 +87,32 @@ def test_wrong_shape_is_refused(tmp_path):
 def test_unwaved_target_says_so():
     with pytest.raises(ValueError, match="wave order"):
         arcimg.convert_master(os.path.join(MASTERS, ALL[0]), "C64")
+
+
+# -- the gradient path (the stresstest class) ---------------------------------
+
+STRESS = os.path.join(os.path.dirname(__file__), "..", "arc_image",
+                      "stresstest", "beach.png")
+
+
+def test_flat_and_gradient_masters_are_told_apart():
+    flat = arcimg._read_png(os.path.join(MASTERS, ALL[0]))
+    assert not arcimg._gradient_class(flat)
+    assert arcimg._gradient_class(arcimg._read_png(STRESS))
+
+
+def test_gradient_master_converts_and_round_trips():
+    rows = arcimg._read_png(STRESS)
+    for tag, budget in (("AMI", 32), ("AST", 16), ("DOS", 256)):
+        native = arcimg._CONVERTERS[tag](rows)
+        assert len(native["palette"]) == budget
+        blob = arcimg.encode_native(tag, 12, 100, native)
+        _t, _m, _i, back = arcimg.decode_arc(blob)
+        assert back == native, tag
+
+
+def test_gradient_master_is_dithered_flat_art_is_not():
+    rows = arcimg._read_png(STRESS)
+    assert arcimg._dither_amount(rows, 16) > 0
+    flat = arcimg._read_png(os.path.join(MASTERS, ALL[0]))
+    assert arcimg._dither_amount(flat, 16) == 0
