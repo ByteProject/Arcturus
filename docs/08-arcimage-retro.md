@@ -485,3 +485,19 @@ exist to measure; the render previews of the wave-less targets use
 serviceable reference palettes that each wave's addendum freezes against
 measured values (TED, GTIA, and the Apple II artifact model are the
 marked approximations).
+
+WAVE 1 SIZES (R2; the 21-picture Rabenstein corpus, mode 12, RLE'd):
+AMI 217,025 bytes total (10.3K average against 19.2K uncompressed), AST
+249,035 (11.9K against 15.4K; the ST word interleave breaks runs, so it
+compresses the worst of the three), DOS 313,149 (14.9K against 30.7K).
+Conversion fidelity over the corpus: AST and DOS are BIT-EXACT (the
+masters sit on the 3-bit and 6-bit gun grids; Stefan painted them in
+ST-class color), AMI differs only by the unavoidable 4-bit gun snap
+(under 8 per channel, invisible). The ST text contract shipped as ruling
+7's guarantee clause rather than the reservation: art takes all 16
+entries, sorted darkest-first, entry 0 is the text paper and entry 15
+the ink, and the converter re-quantizes to 15 plus white only when the
+art carries no readable light color, so a 16-color master loses nothing.
+The playground carries the outputs (arc_image/ami, ast, dos; previews
+beside them), all regenerable with `arcimg convert` and gitignored as
+derived artifacts; the masters are the tracked truth.
