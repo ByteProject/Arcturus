@@ -291,6 +291,13 @@ method). Naming: R for retro.
 - R6. Close: the public interpreter-contract document published (the
   Vezza-facing cut), arcimg 2.0 released (amalgam, README, versions),
   docs/00 and PROGRESS synced, the size ledger final.
+  The handover is DOCUMENTS AND CONTENT (Stefan's ruling): docs/09 plus,
+  per target, the probe source as reference loader code, the two-mode
+  .arc test assets (the beach pair is the standard set), and the arcimg
+  standalone for converting art and for rendering any .arc back to PNG
+  as ground truth. An implementer, whether a fresh session in an
+  interpreter repo or a third party, starts with working pictures on day
+  one and never reads Arcturus internals.
   Done-test: a fresh reader can implement a target from the blueprints
   alone; B13 (the Rabenstein port) is unblocked.
 
@@ -325,9 +332,13 @@ per-target conversions landing beside them).
    contract. R2 verifies this against Eris's existing ST screen layer
    before the addendum is frozen (the contract must match what Eris 1.0
    already does, not fight it); Eris covers both Amiga and ST.
-8. THE PUBLIC CONTRACT: this file grows the addenda; R6 cuts the
-   standalone interpreter-facing document (docs/09) from it, so Vezza
-   never needs to read Arcturus internals.
+8. THE PUBLIC CONTRACT: docs/09-arcimage-interpreters.md is the
+   implementer's book, live from wave 1 (amended from "cut it at R6" by
+   Stefan's ruling to write each chapter while its probe is fresh): part
+   A the contract, part B the format with reference decoders, part C one
+   chapter per proven target. Vezza and the interpreter sessions read
+   docs/09 and the probe sources, never Arcturus internals; R6 only
+   finalizes and publishes.
 
 ## 9. Boundaries
 
