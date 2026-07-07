@@ -867,6 +867,11 @@ class Parser:
         if tok.kind == T.NAME and tok.value in _GRAMMAR_SLOTS:
             self.advance()
             return ast.Slot(tok.value)
+        # A quoted literal is the same as a bare one; the quotes let a word that
+        # is elsewhere a slot keyword ("noun" the word) appear as vocabulary.
+        if tok.kind == T.STRING:
+            self.advance()
+            return ast.Word(self._plain_text(tok))
         # A literal preposition word (in, on, with, to, ...).
         self.advance()
         return ast.Word(tok.value)

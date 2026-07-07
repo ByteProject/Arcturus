@@ -49,6 +49,12 @@ CEILINGS = {
     # 2026-07-07 (self fix): an owned handler now takes its self object as an
     # argument so a kind handler sees the right instance (docs/01 9); +0 to +20
     # bytes/game for the per-call argument.
+    # 2026-07-07 (positional grammar, docs/02 8c): a verb the flag model cannot
+    # represent (dig in noun with held; look_under under noun) compiles to a
+    # grammar table and a positional matcher. Every ceiling here is UNCHANGED:
+    # the whole path folds away (any_tables) unless a game declares such a
+    # verb. features/grammar.storyarc is the one that does, and its ceiling
+    # (14340 vs the ~13400 feature baseline) is the matcher's full price.
     "beispiel-deutsch.storyarc": 20268,
     "brass-lantern.storyarc": 14900,
     "cloak-of-darkness.storyarc": 15448,
@@ -58,6 +64,7 @@ CEILINGS = {
     "features/daemons-and-timers.storyarc": 13824,
     "features/doors-and-locks.storyarc": 13396,
     "features/grains.storyarc": 13528,
+    "features/grammar.storyarc": 14340,
     "features/introproperty.storyarc": 14440,
     "features/kinds-and-inheritance.storyarc": 13360,
     "features/on-other.storyarc": 13360,

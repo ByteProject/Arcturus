@@ -1,7 +1,21 @@
 # Checkpoint: a positional grammar layer for Arcturus
 
-Status: DESIGN NOTE, not yet built. Written 2026-07-07 as a handoff for a
-dedicated grammar-parser overhaul. The goal is a real, positional grammar system
+Status: IMPLEMENTED, 2026-07-07 (arcc 0.11.0 / Cosmos 0.15.0), same day it was
+written. The design that landed is documented in docs/01 section 10 (the
+author's view) and docs/02 section 8c (the model and the matcher); this note
+stays as the design record of WHY. The one deviation from the sketch below:
+the goal of "subsume the flag model" was refused on size grounds. The flag
+model is exact for every standard verb, so it stays, byte for byte, and the
+compiler gives a table only to a verb the flags cannot represent; the whole
+positional path folds away (any_tables) in a game with none. Every acceptance
+case in section 7 passed, including the per-line-action LOOK UNDER / LOOK
+BEHIND pair; the quoted-literal crash in section 2 is fixed (a quoted literal
+is the bare word); tests/test_grammar_tables.py holds the cases.
+
+The original note follows.
+
+Original status: DESIGN NOTE, not yet built. Written 2026-07-07 as a handoff for
+a dedicated grammar-parser overhaul. The goal is a real, positional grammar system
 that is a genuine alternative to Inform's, while keeping every simple statement
 that works today working unchanged, and without sacrificing Arcturus's small
 z-code. Falling behind Inform on grammar expressiveness is treated as a real

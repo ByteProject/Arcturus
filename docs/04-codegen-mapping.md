@@ -133,6 +133,17 @@ the parse buffer against the dictionary, and `loadb`/`storeb`/`loadw`/`storew`
 read and write memory. The text and parse buffers sit at fixed dynamic-memory
 addresses just after the globals (`TEXT_BUFFER_ADDR`, `PARSE_BUFFER_ADDR`).
 
+A verb whose grammar needs the positional matcher (docs/02 section 8c;
+`worldmodel.needs_table`) is flagged as a TABLED verb, and its data bytes hold
+the address of its grammar table instead of an action and an arity. The tables
+sit in static memory with the grain chains, right before the dictionary: per
+line an action byte, one byte per token (a literal word token carries its
+dictionary address, backpatched after the dictionary is placed, the same
+word-fixup recipe the object table uses), a zero closing each line and a zero
+in action position closing the table. Lines are emitted in matcher order
+(`worldmodel.table_line_order`). A game with no tabled verb emits no table,
+and the matcher folds away behind `any_tables`.
+
 ## 8. Conversation topics (B5)
 
 A person with `topic` declarations carries a `topics` property holding the

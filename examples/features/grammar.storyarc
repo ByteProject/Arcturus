@@ -1,0 +1,104 @@
+// grammar.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for positional grammar (docs/01 section 10). Most verbs need no
+// more than a noun and a preposition between two nouns, and those compile to
+// the classic flag model. But a verb may put a word BEFORE its first noun, or
+// use its wording to pick the action, and then the compiler quietly gives the
+// verb a grammar table: its lines are matched position by position, and the
+// first line that fits the typed words wins. Only a game that declares such a
+// verb pays a byte for the machinery. Compile and run:
+//
+//   arcc examples/features/grammar.storyarc -o grammar.z5
+//   frotz grammar.z5
+//
+// Try, in order:
+//   dig                          the bare line
+//   dig sand                     one noun
+//   dig in sand                  the leading IN, matched, not misread
+//   dig sand with trowel         two nouns, the classic shape
+//   dig in sand with trowel      leading word AND two nouns, the line that
+//                                a flag-model parser cannot represent
+//   look under bench             one verb word, and the wording picks...
+//   look behind bench            ...two different actions
+//   dig with trowel              an empty slot: the action asks its question
+//
+// The LOOK lines share the standard verb: a game's own lines extend it, and
+// look_under/look_behind are ordinary actions with ordinary handlers.
+
+game
+    title  "The Trial Pit"
+    headline "A positional-grammar showcase"
+    author "Stefan Vogt"
+    start  pit
+
+room pit
+    name "The Trial Pit"
+    desc "A roped-off square of ground, churned and waiting. A bench sits at
+          the edge, and the sand in the pit looks freshly raked."
+
+thing sand in pit
+    name "sand"
+    words sand, ground
+    scenery
+    fixed
+    desc "Raked into neat furrows. Somebody expects it to be dug."
+
+thing trowel in pit
+    name "trowel"
+    words trowel
+    desc "Short, honest, and sharp enough."
+
+thing bench in pit
+    name "bench"
+    words bench
+    scenery
+    fixed
+    desc "A plank on two crates. It has seen worse."
+
+// The anchor verb: the last line leads with IN, so the whole verb is matched
+// positionally. Lines are tried most-specific first, so IN SAND WITH TROWEL
+// finds its line before the bare `dig noun` could swallow the words.
+verb "dig", "excavate"
+    dig
+    dig noun
+    dig noun with held
+    dig in noun with held
+
+on dig
+    if noun is nothing
+        say "You pat the ground, looking for a place to start. Naming one
+             would help."
+        stop
+    if noun is not sand
+        say "${The noun} would not thank you for that."
+        stop
+    if second is nothing
+        say "You scoop at the sand with your hands. It goes slowly."
+        stop
+    say "You sink ${the second} into the sand and turn over a neat, dark
+         spadeful. Very satisfying."
+
+// Wording that picks the action: the same LOOK the player already knows, with
+// two lines whose leading word routes to two new actions.
+verb "look", "l"
+    look
+    look noun
+    look at noun
+    look_under under noun
+    look_behind behind noun
+
+on look_under bench
+    say "Under the bench: a forgotten sandwich, fossilising quietly."
+
+on look_behind bench
+    say "Behind the bench, out of the wind, someone has scratched a tally
+         into the crate. Eleven so far."
+
+on look_under
+    say "Nothing under ${the noun} but ground."
+
+on look_behind
+    say "Nothing behind ${the noun} worth the crouch."

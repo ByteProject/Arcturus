@@ -58,6 +58,11 @@ INTRINSICS = frozenset({
     # object spans (a static-if, see _if).
     "spans_addr", "spans_count", "any_spans", "any_doors", "any_named", "any_grains",
     "any_allwords", "any_tagged", "any_scored", "any_scoperoom", "scope_room",
+    # any_tables is the compile-time positional-grammar flag (1 if any verb's
+    # grammar needs a table, docs/02 section 8c): the packs and the matcher
+    # guard on it, so a game whose verbs all fit the flag model folds the whole
+    # table path away and its story file is byte-identical.
+    "any_tables",
     # The turn loop fires life-cycle events: run_free runs the free rules for an
     # action, and ev_* name the event action numbers (start, enter, each_turn).
     # tick_timers counts down the after/every schedule once per turn.
@@ -876,6 +881,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _place(rt, Variable(ctx.globals["__zcinput__"]), dest)
     elif name == "print_banner":
         rt.op("call_vn", RoutineRef("cosmos_banner"))
+    elif name == "any_tables":
+        # any_tables(): the compile-time positional-grammar flag (1 or 0), so
+        # the grammar-table matcher and the packs' tabled-verb branches fold
+        # away in a game whose verbs all fit the flag model.
+        _place(rt, Const(_any_tables(ctx)), dest)
     elif name == "any_grains":
         # any_grains(): the compile-time grains flag (1 or 0), so find_scenery
         # folds its chain walker away in a game with no grains.
@@ -1023,6 +1033,13 @@ def _any_grains(ctx) -> int:
     """The compile-time grains flag: 1 if anything declares `grains`, else 0.
     find_scenery guards its chain walker on this so it folds away when unused."""
     return 1 if (ctx.layout is not None and ctx.layout.has_grains) else 0
+
+
+def _any_tables(ctx) -> int:
+    """The compile-time positional-grammar flag: 1 if any verb's grammar needs
+    a table (worldmodel.needs_table), else 0. The matcher and the packs' tabled
+    branches guard on this, so the whole path folds away when no verb tables."""
+    return 1 if any(wm.needs_table(v) for v in ctx.world.verbs) else 0
 
 
 def _any_images(ctx) -> int:
@@ -1714,6 +1731,8 @@ def _static_value(ctx, expr):
         return _any_named(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_grains":
         return _any_grains(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tables":
+        return _any_tables(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_images":
         return _any_images(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "arc_mode":

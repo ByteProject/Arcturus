@@ -96,6 +96,11 @@ block parse_line()
         return ask_which
     if parse_fault is not 0
         return 0
+    // A tabled verb's matched grammar line may have chosen its own action
+    // (look_under under noun); the flag path leaves line_act at 0.
+    if any_tables is 1
+        if line_act is not 0
+            change act to line_act
     // Remember what the pronouns now mean: the language layer decides which
     // slot each noun fills (English by animacy, German by grammatical gender).
     // Both nouns are noticed, so after "show coin to bob" IT is the coin and
@@ -165,6 +170,145 @@ block probe_noun(lo, hi)
     if tied is 1
         return nothing
     return best
+
+// ==========================================================================
+// The positional grammar matcher (docs/02 section 8c). A verb whose grammar
+// the flag model cannot represent (a leading preposition on a two-noun verb,
+// "dig in noun with held", or wording that selects the action, "look_under
+// under noun") carries a TABLE: its lines in matcher order, each an action
+// byte, one byte per token (1 noun, 2 held, 3 multi, 4 text; 5 a literal
+// word, its dictionary address in the next two bytes), and a closing zero; a
+// zero in action position ends the table. The matcher walks the typed words
+// against each line and the first line whose shape fits wins: its action
+// goes to line_act, its slots resolve through match_phrase. Everything here
+// folds away (any_tables) in a game whose verbs all fit the flag model.
+// ==========================================================================
+
+// The dictionary address of the next literal token on this grammar line, or
+// 0 when only slots and the line's end remain (a slot then absorbs to the
+// end of the command).
+block next_literal(tok)
+    let t = peek_byte(tok)
+    while t is not 0
+        if t is 5
+            return peek_word(tok + 1, 0)
+        change tok to tok + 1
+        change t to peek_byte(tok)
+    return 0
+
+// Does this line fit the typed words, position by position? A literal token
+// must BE the typed word at its place; a slot absorbs the words up to the
+// line's next literal (scanning ahead for it; a line whose literal the
+// player did not type cannot match) or to the end; and the whole command
+// must be consumed. On a fit the slots resolve through the scoring matcher,
+// with the same faults as the classic path: a tie asks (fault 3), a
+// named-but-unresolved noun on a two-slot line is rejected (fault 1), a
+// one-slot miss falls to the debug reach, scenery, and the honest can't-see.
+// An EMPTY slot stays nothing and the action asks its own question ("dig
+// what?"). Returns 1 when the line matched (any fault stands), 0 to try the
+// next line.
+block try_line(line, n)
+    let tok = line + 1
+    let p = 1
+    let slots = 0
+    let s1lo = 0
+    let s1hi = 0
+    let s2lo = 0
+    let s2hi = 0
+    let t = peek_byte(tok)
+    while t is not 0
+        if t is 5
+            // A literal: the typed word here must be exactly this word.
+            if p >= n
+                return 0
+            let lw = peek_word(tok + 1, 0)
+            if word_dict(p) is not lw
+                return 0
+            change p to p + 1
+            change tok to tok + 3
+        else
+            // A slot: absorb up to this line's next literal, or to the end.
+            let edge = n
+            let litw = next_literal(tok + 1)
+            if litw is not 0
+                change edge to p
+                let found = 0
+                while found is 0
+                    if edge >= n
+                        return 0
+                    if word_dict(edge) is litw
+                        change found to 1
+                    else
+                        change edge to edge + 1
+            change slots to slots + 1
+            if slots is 1
+                change s1lo to p
+                change s1hi to edge
+            else
+                change s2lo to p
+                change s2hi to edge
+            change p to edge
+            change tok to tok + 1
+        change t to peek_byte(tok)
+    if p < n
+        return 0
+    // The shape fits: resolve the slots.
+    if slots is 0
+        return 1
+    if s1hi > s1lo
+        let pl = 0
+        if slots is 1
+            change pl to 1
+        change noun to match_phrase(s1lo, s1hi, pl)
+        if parse_fault is not 0
+            return 1
+        if noun is nothing
+            // A pending plural sweep ("take coins") binds per object later.
+            if any_plurals is 1
+                if plural_go is not 0
+                    return 1
+            if slots is 2
+                change parse_fault to 1
+                return 1
+            change noun to reach_unscoped
+            if noun is nothing
+                change grain to find_scenery
+                if grain is 0
+                    change parse_fault to named_unseen
+            return 1
+    if slots is 2
+        if s2hi > s2lo
+            change second to match_phrase(s2lo, s2hi, 0)
+            if parse_fault is not 0
+                return 1
+            if second is nothing
+                change parse_fault to 1
+    return 1
+
+// Try a tabled verb's lines in table order (most literal words first, so a
+// bare noun slot cannot swallow a wording a more specific line spells out).
+// The first line that fits sets line_act and the nouns; no fit at all means
+// the verb was understood but the rest was not (fault 2, "you lost me").
+block grammar_match(tbl)
+    let n = word_count
+    let act = peek_byte(tbl)
+    while act is not 0
+        if try_line(tbl, n) is 1
+            change line_act to act
+            return 1
+        // Step past this line's tokens to the next line's action byte.
+        change tbl to tbl + 1
+        let k = peek_byte(tbl)
+        while k is not 0
+            if k is 5
+                change tbl to tbl + 3
+            else
+                change tbl to tbl + 1
+            change k to peek_byte(tbl)
+        change tbl to tbl + 1
+        change act to peek_byte(tbl)
+    change parse_fault to 2
+    return 0
 
 // Is this word in the object's plural (group) vocabulary? The plurals
 // granule's counterpart of has_word (docs/05); a game without `plural`
@@ -430,6 +574,11 @@ block ask_which()
             return parse_line
         if f is 64
             return parse_line
+        if any_tables is 1
+            // A tabled verb (a positional grammar table instead of an arity)
+            // is a change of mind too.
+            if f is 144 or f is 152
+                return parse_line
     let alen = peek_byte(ask_addr + 1)
     let blen = peek_byte(text_addr + 1)
     if alen + blen + 1 > peek_byte(text_addr)

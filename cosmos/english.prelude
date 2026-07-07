@@ -35,6 +35,13 @@ block resolve_verb()
     if d is nothing
         return 0
     let flags = peek_byte(d + 6)
+    if any_tables is 1
+        // A tabled verb (docs/02 section 8c): the data bytes hold its grammar
+        // table's address, and the table's first byte is the first line's
+        // action, the base until the matcher picks the real line (line_act).
+        if flags is 144 or flags is 152
+            let tbl = peek_word(d + 7, 0)
+            return peek_byte(tbl)
     if flags is 128 or flags is 136
         let base = peek_byte(d + 7)
         let p = find_particle
@@ -186,8 +193,17 @@ block resolve_objects()
     change grain to 0
     change parse_fault to 0
     change two_reverse to 0
+    if any_tables is 1
+        change line_act to 0
     let d = word_dict(0)
     if d is not nothing
+        if any_tables is 1
+            // A tabled verb: the positional matcher owns the whole command,
+            // slots, faults, scenery fallback and all (docs/02 section 8c).
+            if peek_byte(d + 6) is 144 or peek_byte(d + 6) is 152
+                let tbl = peek_word(d + 7, 0)
+                grammar_match(tbl)
+                return 1
         if peek_byte(d + 6) is 128 or peek_byte(d + 6) is 136
             let arity = peek_byte(d + 8)
             let va = peek_byte(d + 7)
@@ -410,6 +426,9 @@ block fix_oops()
     if parse_fault is 3
         msg_be_specific
         return 0
+    if any_tables is 1
+        if line_act is not 0
+            change act to line_act
     return act
 
 // ==========================================================================

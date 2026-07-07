@@ -55,6 +55,14 @@ block resolve_verb()
     let d = word_dict(0)
     if d is not nothing
         let flags = peek_byte(d + 6)
+        if any_tables is 1
+            // Ein Verb mit Grammatiktabelle (docs/02 Abschnitt 8c): die
+            // Datenbytes tragen die Adresse der Tabelle, deren erstes Byte
+            // die Handlung der ersten Zeile ist; die eigentliche Zeile
+            // waehlt spaeter der Matcher (line_act).
+            if flags is 144 or flags is 152
+                let tbl = peek_word(d + 7, 0)
+                return peek_byte(tbl)
         if flags is 128 or flags is 136
             let base = peek_byte(d + 7)
             let p = find_particle
@@ -215,8 +223,17 @@ block resolve_objects()
     change grain to 0
     change parse_fault to 0
     change two_reverse to 0
+    if any_tables is 1
+        change line_act to 0
     let d = word_dict(0)
     if d is not nothing
+        if any_tables is 1
+            // Ein Verb mit Grammatiktabelle: der positionsgenaue Matcher
+            // uebernimmt den ganzen Befehl (docs/02 Abschnitt 8c).
+            if peek_byte(d + 6) is 144 or peek_byte(d + 6) is 152
+                let tbl = peek_word(d + 7, 0)
+                grammar_match(tbl)
+                return 1
         if peek_byte(d + 6) is 128 or peek_byte(d + 6) is 136
             let arity = peek_byte(d + 8)
             let va = peek_byte(d + 7)
@@ -400,6 +417,9 @@ block fix_oops()
     if parse_fault is 3
         msg_be_specific
         return 0
+    if any_tables is 1
+        if line_act is not 0
+            change act to line_act
     return act
 
 // ==========================================================================
@@ -529,12 +549,12 @@ verb "oeffne", "öffne", "oeffnen", "öffnen"
 // oder ohne "mit dem Schluessel"), "... auf" schliesst auf (unlock). Die Partikel
 // darf davor oder danach stehen. Das ist genau, wie ein Deutscher es sagt:
 // "Hast du die Haustuer abgeschlossen?" -> "schliess die Haustuer ab".
+// Die mit-Zeile traegt den Schluessel ins zweite Feld ("schliess die Tuer mit
+// dem Schluessel ab"); WELCHE Handlung laeuft, entscheidet allein die Partikel
+// (compound oben), nie die Zeile, darum steht hier ueberall close.
 verb "schliesse", "schließe", "schliess", "schließ", "schliessen", "schließen", "zumachen"
     close noun
-    lock noun mit noun
-    lock noun
-    unlock noun mit noun
-    unlock noun
+    close noun mit noun
 
 // Die Schliesspartikeln. "auf" schliesst auf (unlock); "zu" und "ab" schliessen ab
 // (lock). "ab" ist zugleich die Ausschalt-Partikel; compound unterscheidet nach

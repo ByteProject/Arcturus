@@ -28,8 +28,8 @@ certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.10.14 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 0.14.8 | shipped inside `arcc` |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.11.0 | [build/arcc](build/arcc) |
+| **Cosmos**, the standard library | 0.15.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.0.3 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.0.1 | [build/arcimg](build/arcimg) |
 
@@ -78,6 +78,15 @@ interactive fiction, this is a good time to pick it up.
 
 The most significant recent additions and achievements:
 
+- **Positional grammar.** A verb's grammar lines can now say more than "one
+  noun" or "two nouns around a preposition": a literal word may open a line
+  (`dig in noun with held`), and a line's wording may select its own action,
+  so LOOK UNDER BED and LOOK BEHIND BED reach `look_under` and `look_behind`,
+  two ordinary actions with ordinary handlers. The compiler notices such a
+  verb and matches it position by position, most specific line first, while
+  every plain verb stays on the compact model it always had; a game with no
+  positional verb compiles byte-identical to one built before the feature
+  existed. See [examples/features/grammar.storyarc](examples/features/grammar.storyarc).
 - **Optional graphics: `arc_image`.** A room can carry a picture (`arc_image 8`,
   or a constant that folds to the id) that shows in Actaea's window as a crisp
   integer-scaled band above the status bar, in an Infocom shape (320x72, the
@@ -164,9 +173,9 @@ Cloak of Darkness. Small teaching showcases sit alongside them:
 [examples/features/](examples/features/) isolates core-language features (the
 container knowledge model, computed properties, kinds and inheritance, doors
 and locks, multi-room scenery with `spans`, the `intro` first-look property,
-grains, the object catch-all, daemons and timers, Z-machine colours with
-the self-restoring coloured say, and the player object with its standard
-self-words, pronouns, and Spanish clitic forms), and
+grains, positional grammar, the object catch-all, daemons and timers,
+Z-machine colours with the self-restoring coloured say, and the player object
+with its standard self-words, pronouns, and Spanish clitic forms), and
 [examples/granules/](examples/granules/) shows the summonable granules (the
 Infocom-style and menu-driven conversation systems, the status line, verbose
 exits, the extended verbs, and the quote box).
