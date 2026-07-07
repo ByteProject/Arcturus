@@ -66,6 +66,14 @@ _NOISE_FLAG = 0x03
 # begins. Words already flagged otherwise (on/in are a particle/direction) are
 # left as they are; the parser treats any flagged word as a phrase boundary.
 _PREPOSITION_FLAG = 0x08
+# A verb with a positional grammar table (docs/02 section 8c): the verb bit
+# plus bit 4, and the data bytes hold the ADDRESS of the verb's table instead
+# of an action and an arity (the table's first byte is its first line's
+# action, which is where resolve_verb finds the base action). Bit 4 alone is
+# the scenery flag; the combination collides with nothing because every
+# library check compares flag bytes for exact equality. With the preposition
+# bit (a tabled verb word that is also a grammar literal) it reads 0x98.
+_TABLED_FLAG = _VERB_FLAG | 0x10
 
 # Verb particles for multi-word verbs (switch on, schliess auf). The WORDS are no
 # longer hardcoded: a language pack declares them (`particle on "on"` in English,
@@ -155,6 +163,8 @@ def _verb_arity(world: wm.World) -> dict:
     two-noun verb: the parser then splits two adjacent nouns and swaps them."""
     out: dict = {}
     for verb in world.verbs:
+        if wm.needs_table(verb):
+            continue  # a tabled verb's data bytes hold its table address
         slots = max(
             (sum(1 for it in line.items if isinstance(it, ast.Slot)) for line in verb.grammar),
             default=0,
@@ -177,7 +187,7 @@ def _verb_actions(world: wm.World, action_numbers) -> dict:
     if action_numbers is None:
         return out
     for verb in world.verbs:
-        if not verb.grammar:
+        if not verb.grammar or wm.needs_table(verb):
             continue
         action = action_numbers.get(verb.grammar[0].action)
         if action is None:
@@ -189,12 +199,15 @@ def _verb_actions(world: wm.World, action_numbers) -> dict:
     return out
 
 
-def build(world: wm.World, action_numbers=None, direction_props=None, scenery=None) -> tuple[bytes, dict]:
+def build(world: wm.World, action_numbers=None, direction_props=None, scenery=None,
+          grammar_tables=None) -> tuple[bytes, dict]:
     """Return the dictionary bytes and a word -> offset (within the dictionary)
     map for the entry each word resolves to. Verb words carry their action,
     direction words carry the go action and the direction property, and scenery
     (grain) words (from `scenery`: word -> chain address) carry the address of
-    their grain chain, in their data bytes."""
+    their grain chain, in their data bytes. A tabled verb word (from
+    `grammar_tables`: word -> table address) carries the address of its
+    positional grammar table instead of an action and an arity."""
     words = set(collect_vocab(world))
     if direction_props:
         words |= set(direction_props)
@@ -234,18 +247,26 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
             enc_data[encoded[word]] = bytes(
                 [_SCENERY_FLAG, (chain_addr >> 8) & 0xFF, chain_addr & 0xFF]
             )
+    # Tabled verbs after the plain verb data (a word is one or the other, and
+    # the tabling rule decides): the data bytes hold the table's address.
+    if grammar_tables:
+        for word, table_addr in grammar_tables.items():
+            enc_data[encoded[word]] = bytes(
+                [_TABLED_FLAG, (table_addr >> 8) & 0xFF, table_addr & 0xFF]
+            )
     # Prepositions last, and only where nothing else claimed the word: on/in are
     # already a particle/direction, and the parser treats those as boundaries
     # too. A word that is BOTH a verb and a grammar literal (H2's ABOUT: the
     # meta verb, and the boundary of "ask X about Y") carries the combined
-    # flag 0x88; the packs' flag tests accept it in both roles.
+    # flag 0x88 (0x98 for a tabled verb); the packs' flag tests accept it in
+    # both roles.
     for word in _preposition_words(world):
         enc = encoded[word]
         if enc not in enc_data:
             enc_data[enc] = bytes([_PREPOSITION_FLAG, 0, 0])
-        elif enc_data[enc][0] == _VERB_FLAG:
+        elif enc_data[enc][0] in (_VERB_FLAG, _TABLED_FLAG):
             enc_data[enc] = bytes(
-                [_VERB_FLAG | _PREPOSITION_FLAG, enc_data[enc][1], enc_data[enc][2]]
+                [enc_data[enc][0] | _PREPOSITION_FLAG, enc_data[enc][1], enc_data[enc][2]]
             )
     # Distinct entries, sorted by encoded bytes for binary search.
     distinct = sorted(set(encoded.values()))

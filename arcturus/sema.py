@@ -253,6 +253,53 @@ class Analyzer:
             for line in verb.grammar:
                 w.actions.add(line.action)
 
+        # A verb whose grammar the flag model cannot represent gets a positional
+        # grammar table (docs/02 section 8c). The table matcher walks each line
+        # token by token, so a few shapes the classic splitter tolerated by
+        # accident are checked honestly here.
+        for verb in w.verbs:
+            if not wm.needs_table(verb):
+                continue
+            head = verb.words[0]
+            for phrase in verb.words:
+                if len(phrase.split()) != 1:
+                    raise self._error(
+                        f"verb '{head}': positional grammar (a literal before "
+                        f"the first noun, or wording that selects the action) "
+                        f"needs single-word verb synonyms; '{phrase}' has more",
+                        verb.line,
+                    )
+            for line in verb.grammar:
+                slots = [it for it in line.items if isinstance(it, ast.Slot)]
+                if len(slots) > 2:
+                    raise self._error(
+                        f"verb '{head}': a grammar line takes at most two noun "
+                        f"slots",
+                        verb.line,
+                    )
+                if line.reverse:
+                    raise self._error(
+                        f"verb '{head}': `reverse` is not available on a verb "
+                        f"with positional grammar; give the reversed order its "
+                        f"own line with a literal word instead",
+                        verb.line,
+                    )
+                for a, b in zip(line.items, line.items[1:]):
+                    if isinstance(a, ast.Slot) and isinstance(b, ast.Slot):
+                        raise self._error(
+                            f"verb '{head}': in positional grammar two noun "
+                            f"slots need a literal word between them, like "
+                            f"'{line.action} noun with noun'",
+                            verb.line,
+                        )
+                for it in line.items:
+                    if isinstance(it, ast.Slot) and it.kind == "direction":
+                        raise self._error(
+                            f"verb '{head}': a `direction` slot is not "
+                            f"available in positional grammar",
+                            verb.line,
+                        )
+
     def _make_handler(
         self, decl: ast.Handler, owner: Optional[str], on_kind: bool
     ) -> wm.Handler:

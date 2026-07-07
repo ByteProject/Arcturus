@@ -549,7 +549,8 @@ def _start_handler(world: wm.World):
 # operands) so "again" can replay it.
 _BUILTIN_GLOBALS = [
     "turns", "score", "max_score", "player", "here", "noun", "second",
-    "way", "grain", "par_pending", "parse_fault", "two_reverse", "meta_turn",
+    "way", "grain", "par_pending", "parse_fault", "two_reverse", "line_act",
+    "meta_turn",
     "last_act", "last_noun", "last_second", "last_way", "last_grain",
     # oops_ready flags that the previous command had an unrecognized word;
     # oops_word is that word's parse-buffer index, for "oops" to correct.
@@ -718,8 +719,47 @@ def build_story(
                     )
                 chains += b"\x00\x00"  # terminator: grain id 0
             sf.append(bytes(chains))
-    dict_bytes, word_offsets = dictionary.build(world, _action_numbers(world), dprops, scenery)
+    # Positional grammar tables (docs/02 section 8c): one static table per verb
+    # the flag model cannot represent (worldmodel.needs_table). Each table is a
+    # run of lines in matcher order (worldmodel.table_line_order): an action
+    # byte, then one byte per token (1 noun, 2 held, 3 multi, 4 text; 5 is a
+    # literal word and carries its dictionary address in the next two bytes),
+    # a zero closing the line, and a zero in action position closing the table.
+    # The literal addresses are backpatched once the dictionary is placed, the
+    # same way object `words` properties are. The tables sit with the grain
+    # chains, right before the dictionary; a game with no tabled verb emits
+    # nothing here and its story file is byte-identical.
+    grammar_tables: dict = {}
+    grammar_fixups: list = []  # (absolute position, literal word)
+    slot_codes = {"noun": 1, "held": 2, "multi": 3, "text": 4}
+    tabled = wm.tabled_verbs(world) if layout is not None else []
+    if tabled:
+        actions_map = _action_numbers(world)
+        tb = bytearray()
+        tbase = sf.here()
+        for verb in tabled:
+            taddr = tbase + len(tb)
+            for phrase in verb.words:
+                grammar_tables[phrase.lower()] = taddr  # sema: single words only
+            for gline in wm.table_line_order(verb.grammar):
+                tb.append(actions_map[gline.action] & 0xFF)
+                for it in gline.items:
+                    if isinstance(it, ast.Slot):
+                        tb.append(slot_codes.get(it.kind, 1))
+                    else:
+                        tb.append(5)
+                        grammar_fixups.append((tbase + len(tb), it.text.lower()))
+                        tb += b"\x00\x00"
+                tb.append(0)  # end of line
+            tb.append(0)  # end of table (a zero where an action would be)
+        sf.append(bytes(tb))
+    dict_bytes, word_offsets = dictionary.build(
+        world, _action_numbers(world), dprops, scenery, grammar_tables
+    )
     dict_addr = sf.append(dict_bytes)
+    # Now the dictionary is placed, point each literal token at its word.
+    for pos, word in grammar_fixups:
+        sf.set_word(pos, dict_addr + word_offsets[word])
 
     # High memory: the entry stub and routines, run from the initial PC.
     high_base = sf.here()

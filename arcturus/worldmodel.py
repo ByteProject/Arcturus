@@ -191,6 +191,72 @@ class Verb:
     line: int = 0
 
 
+def line_shape(line: GrammarLine) -> tuple:
+    """The positional signature of a grammar line: its slots and literal words,
+    in order. Two lines with the same shape cannot be told apart by positional
+    matching (only the particle machinery can, as with switch on/off)."""
+    out = []
+    for it in line.items:
+        if isinstance(it, ast.Slot):
+            out.append(("slot", it.kind))
+        else:
+            out.append(("word", it.text.lower()))
+    return tuple(out)
+
+
+def needs_table(verb: Verb) -> bool:
+    """Does this verb need the positional grammar table (docs/02 section 8c)?
+
+    The flag model (a noun arity plus any-separator splitting) represents most
+    verbs exactly, and those stay on it, byte for byte. That includes a leading
+    preposition on a ONE-noun verb (look AT noun): the phrase matcher skips a
+    leading boundary word and its scoring ignores stray ones. The model is
+    lossy, and the table takes over, when:
+      - the verb takes two nouns on some line AND a line puts a literal word
+        before its first slot (dig IN noun with held): the splitter would take
+        the leading word for the boundary between the two nouns; or
+      - two lines with different shapes name different actions (the line's
+        wording selects the action, which a single per-verb action byte
+        cannot express: look_under under noun vs look_behind behind noun).
+    Lines that differ in action but not in shape (switch_on noun / switch_off
+    noun) do NOT table the verb: no positional match could tell them apart;
+    the particle machinery already does."""
+    max_slots = max(
+        (sum(1 for it in line.items if isinstance(it, ast.Slot)) for line in verb.grammar),
+        default=0,
+    )
+    if max_slots >= 2:
+        for line in verb.grammar:
+            for it in line.items:
+                if isinstance(it, ast.Slot):
+                    break
+                return True  # a literal before any slot
+    actions = {line.action for line in verb.grammar}
+    shapes = {line_shape(line) for line in verb.grammar}
+    return len(actions) > 1 and len(shapes) > 1
+
+
+def tabled_verbs(world: "World") -> list:
+    """The verbs whose grammar is emitted as a positional table, in declaration
+    order (deterministic layout)."""
+    return [v for v in world.verbs if needs_table(v)]
+
+
+def table_line_order(grammar: list) -> list:
+    """The order the runtime tries a tabled verb's lines in: most literal words
+    first (so `dig in noun with held` is probed before `dig noun`, whose bare
+    slot would swallow the literals), and among the literal-free lines fewest
+    tokens first (so a bare `dig` catches DIG before `dig noun` matches it with
+    an empty slot). The sort is stable, so lines the rule does not separate keep
+    their declared order."""
+    def lits(line):
+        return sum(1 for it in line.items if isinstance(it, ast.Word))
+
+    return sorted(
+        grammar, key=lambda l: (-lits(l), len(l.items) if lits(l) == 0 else 0)
+    )
+
+
 @dataclass
 class Global:
     # See ast.GlobalDecl: "global", "flag", or "counter".

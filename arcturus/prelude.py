@@ -261,6 +261,11 @@ _BUILTINS = {
     # (give/show BOB COIN): resolve_two_nouns then splits the adjacent nouns and
     # swaps the roles. Library-internal (docs/02 section 8).
     "two_reverse": T_NUMBER,
+    # Set by the positional grammar matcher (docs/02 section 8c) to the matched
+    # line's action, so a verb whose wording selects the action (look_under
+    # under noun) reaches the right handler; 0 when no table line decided.
+    # Library-internal.
+    "line_act": T_NUMBER,
     "meta_turn": T_NUMBER,  # set by a meta verb so the loop skips the turn pulse
     # The previous non-meta command, remembered so "again" can replay it.
     "last_act": T_NUMBER,

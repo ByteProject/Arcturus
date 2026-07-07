@@ -822,9 +822,47 @@ handler with the same roles. The parser splits the two adjacent nouns for you;
 reversed lines its language wants: the German pack does, since recipient-first
 (`gib Bob die Muenze`) is the natural dative there.
 
+POSITIONAL GRAMMAR. A line's first name is its action, and the action need not
+be the same on every line, so a verb's wording can say more than "one noun" or
+"two nouns around a preposition":
+
+```
+verb "dig", "excavate"
+    dig
+    dig noun
+    dig noun with held
+    dig in noun with held
+
+verb "look", "l"
+    look
+    look noun
+    look at noun
+    look_under under noun
+    look_behind behind noun
+```
+
+A literal may open a line (`dig in noun with held`), and a leading word may
+select the line's own action, so LOOK UNDER BED and LOOK BEHIND BED reach
+`look_under` and `look_behind`, two ordinary actions with ordinary handlers.
+The compiler notices such a verb and matches it positionally: lines are tried
+most specific first (most literal words, then, among literal-free lines,
+fewest slots), and the first line that fits the typed words wins. Everything
+else about the turn is unchanged: slots resolve through the same scoring
+matcher, ambiguity still asks, pronouns still bind, and a command no line
+accounts for is refused honestly. A quoted literal (`dig "in" noun`) is the
+same as the bare word.
+
+This costs bytes only where it is used: a verb whose lines are the plain
+shapes stays on the compact model, and a game with no positional verb compiles
+byte-identical to one built before the feature existed. A positional verb
+follows three checked rules: at most two slots per line, a literal word
+between two slots (adjacent bare nouns belong to `reverse`, which is a
+plain-model feature), and single-word verb synonyms.
+
 Standard verbs, including talk-to, come from Cosmos; how input is tokenized
-and resolved is defined in 02. This section defines only how you declare a
-verb and how its grammar names the action your handlers receive.
+and resolved is defined in 02 (the positional matcher in 02 section 8c). This
+section defines only how you declare a verb and how its grammar names the
+action your handlers receive.
 
 Direction words are declared the same spirit, mapping vocabulary to a fixed
 direction property:

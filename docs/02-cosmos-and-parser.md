@@ -311,9 +311,13 @@ small and under the author's control. Dictionary entries are truncated to the
 Z-machine word resolution, so long words collide on their prefix; this is a
 property of the format.
 
-Verb resolution. The first verb word selects a `verb` declaration; its
-grammar lines are tried in order, and the first whose shape matches wins,
-producing an action and slot fillers.
+Verb resolution. The first verb word selects a `verb` declaration. Most
+verbs compile to the flag model: the word's dictionary entry carries the
+action and the noun arity, a two-noun command splits at its preposition, and
+a one-noun phrase reaches past a leading one (LOOK AT CLOAK). A verb whose
+grammar says more than that (a leading word on a two-noun verb, or wording
+that selects the action) is matched positionally against its grammar lines
+instead: section 8c.
 
 Noun resolution and adjectives. Arcturus has no separate adjective type;
 adjectives are ordinary entries in an object's `words`, ranked the same as
@@ -490,6 +494,64 @@ anything", and a bare noun typed on its own line is still no command. Since
 the list words are the chain words, a language pack localizes noun lists
 automatically. Lists distribute over ONE-noun verbs; "give x and y to z"
 stays out (v1).
+
+## 8c. Positional grammar
+
+Two grammar models serve one `verb` declaration syntax, and the compiler
+picks per verb. The FLAG MODEL is the compact default: the verb's dictionary
+entry carries its action and its noun arity, a two-noun command splits at the
+first preposition-flagged word, and the phrase matcher's scoring tolerates a
+leading or stray literal in a one-noun phrase. It represents every standard
+verb exactly and costs nothing beyond the dictionary entry. The POSITIONAL
+MODEL takes over for a verb whose grammar the flags cannot express:
+
+- a literal word before the first slot of a verb that takes two nouns
+  somewhere (`dig in noun with held`: the splitter would take the leading IN
+  for the boundary between the nouns); or
+- lines with different shapes naming different actions (`look_under under
+  noun` next to `look_behind behind noun`: one verb word, and the wording
+  picks the action, where the flag model has a single action byte).
+
+Lines that differ in action but not in shape (`switch_on noun` next to
+`switch_off noun`) stay on the flag model: no positional match could tell
+them apart, and the particle machinery already does.
+
+Such a verb compiles to a GRAMMAR TABLE in static memory. Its dictionary
+entry is flagged as a tabled verb and its data bytes hold the table's address
+instead of an action and an arity. The table is the verb's lines in matcher
+order: per line an action byte, one byte per token (noun, held, multi, text;
+a literal word carries its dictionary address), and a closing zero; a zero in
+action position ends the table. Matcher order is most literal words first, so
+`dig in noun with held` is probed before `dig noun`, whose bare slot would
+absorb the literals; among literal-free lines, fewest tokens first, so a bare
+`dig` catches DIG before `dig noun` matches it with an empty slot. The sort
+is stable; lines it does not separate keep their declared order.
+
+The matcher (`grammar_match` / `try_line`, in the agnostic skeleton) walks
+the typed words against each line and the first line that fits wins. A
+literal token must BE the typed word at its position; a slot absorbs the
+words up to the line's next literal, or to the end; the whole command must be
+consumed. On a fit the line's action is taken and the slots resolve through
+the same scoring matcher as everything else, with the same faults: a tie asks
+"which do you mean", a named-but-unresolved noun on a two-slot line is
+rejected, a one-slot miss falls through to grains and the honest can't-see,
+and an EMPTY slot stays nothing so the action asks its own question ("dig
+what?"). When no line fits at all, the verb was understood but the rest was
+not: "You lost me after that." Disambiguation answers, pronouns, chaining,
+AGAIN, and OOPS all work on tabled verbs unchanged.
+
+The rules a positional verb must follow are checked at compile time: two
+slots per line at most, a literal word between two slots (the adjacent-noun
+`reverse` form stays a flag-model feature), and single-word verb synonyms.
+The `direction` slot is not available on a tabled verb.
+
+Pay for use: the matcher and the packs' tabled-verb branches sit behind the
+`any_tables` compile-time flag, so a game whose verbs all fit the flag model
+folds the whole path away and its story file does not grow by a byte. A game
+that declares one positional verb pays once for the matcher and then a few
+bytes per line. The matcher is language-agnostic; each pack's grammar lines
+feed it through the same table format, so a German `grabe in noun mit noun`
+works the moment it is declared.
 
 ## 9. The action pipeline
 
