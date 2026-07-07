@@ -39,7 +39,7 @@ _EVENT_NAMES = wm.EVENT_NAMES
 _action_numbers = wm.action_numbers  # the shared action -> number map
 
 
-def _guard_plan(h: wm.Handler, layout, gmap, dirnames=frozenset()):
+def _guard_plan(h: wm.Handler, layout, gmap, dirnames=frozenset(), self_num=None):
     """A patterned handler's run-time guards, as [(global name, [values])]:
     every listed global must equal one of its values or the handler does not
     apply this turn (docs/01 section 12). A direction operand (`on go west`,
@@ -88,6 +88,18 @@ def _guard_plan(h: wm.Handler, layout, gmap, dirnames=frozenset()):
         for name in item.names:
             if name == slot or name == "noun":
                 wildcard = True  # `on take noun`: anything in this slot
+                continue
+            if name == "self":
+                # The react routine's own object: an instance handler guards
+                # its owner's number, a kind handler guards each instance's
+                # own number (react routines are per object, so self_num is
+                # always the right one for the copy being compiled).
+                if self_num is None:
+                    raise CodegenError(
+                        f"line {h.line}: 'self' in a handler header needs an "
+                        "enclosing object"
+                    )
+                values.append(self_num)
                 continue
             if layout is not None and name in layout.obj_number:
                 values.append(layout.obj_number[name])
@@ -373,7 +385,8 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
                 rt.op("call_vn", RoutineRef(hn), *self_args(h))
             rt.jump("__climb__")
             continue
-        plans = [_guard_plan(h, layout, gmap, dirnames) for _, h in handlers]
+        plans = [_guard_plan(h, layout, gmap, dirnames, self_num)
+                 for _, h in handlers]
         all_guarded = all(p is not None for p in plans)
         if all_guarded:
             rt.op("store", Const(2), Const(0))
