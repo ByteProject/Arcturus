@@ -535,14 +535,16 @@ class Parser:
         if self.check(T.NAME):
             return self.advance().value
         # The matched-object keywords and the builtin kinds may appear as
-        # handler operands (on take noun; on put thing in chest), and `in`
-        # the direction as a go operand (on go in), keyword though it is.
+        # handler operands (on take noun; on put thing in chest), `in` the
+        # direction as a go operand (on go in), and `self` as the enclosing
+        # object (on put noun in self), keywords though they are.
         if self.cur.kind == T.KW and self.cur.value in (
             "noun",
             "second",
             "thing",
             "room",
             "in",
+            "self",
         ):
             return self.advance().value
         raise self._error(

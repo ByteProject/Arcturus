@@ -708,7 +708,7 @@ class Analyzer:
             if isinstance(m, ast.PropertyDecl) and m.form == ast.PROP_BLOCK:
                 self._check_body(m.body, set())
             elif isinstance(m, ast.Handler):
-                self._check_handler(m)
+                self._check_handler(m, owned=True)
             elif isinstance(m, ast.GrainsBlock):
                 for g in m.grains:
                     self._check_grain(g)
@@ -727,7 +727,7 @@ class Analyzer:
                         probe.append(ast.ExprStmt(ast.Call(l.do, [], l.line)))
                 self._check_body(probe, set())
 
-    def _check_handler(self, h) -> None:
+    def _check_handler(self, h, owned: bool = False) -> None:
         events = h.events if isinstance(h, wm.Handler) else h.events
         pattern = h.pattern
         body = h.body
@@ -742,13 +742,26 @@ class Analyzer:
         for item in pattern:
             if isinstance(item, ast.Operand):
                 for name in item.names:
-                    self._check_operand(name, line)
+                    self._check_operand(
+                        name, line,
+                        owned or getattr(h, "owner", None) is not None)
         if when is not None:
             self._check_condition(when, set(), line)
         self._check_body(body, set())
 
-    def _check_operand(self, name: str, line: int) -> None:
+    def _check_operand(self, name: str, line: int, owned: bool = False) -> None:
         w = self.world
+        if name == "self":
+            # The enclosing object as its own operand (`on put noun in self`,
+            # `on enter self`); in a kind body it means each instance. Only a
+            # handler WITH an enclosure can say it.
+            if owned:
+                return
+            raise self._error(
+                "'self' in a handler header needs an enclosing object; a "
+                "free-standing rule names its object instead",
+                line,
+            )
         if (
             name in w.objects
             or name in w.kinds

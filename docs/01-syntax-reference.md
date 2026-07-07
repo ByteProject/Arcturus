@@ -1024,6 +1024,22 @@ on put ruby or ring in chest
 The handler fires when `noun` is the ruby or the ring and `second` is the
 chest, with `noun` bound to whichever matched.
 
+Inside an object or kind body, `self` stands as an operand for the enclosing
+object itself, which reads naturally where the object appears in its own
+pattern:
+
+```
+thing haystack of container in farm
+    ...
+    on put noun in self       // anything put into THIS haystack
+        move noun to nothing
+        say "${The noun} vanishes into the hay."
+```
+
+In a kind body `self` means each instance, so every barrel of a kind guards
+its own number. A free-standing rule has no enclosure and names its object
+instead; writing `self` there is a compile error that says so.
+
 One handler may answer several verbs at once, by listing the verbs separated
 by commas, so a shared response is written once:
 
