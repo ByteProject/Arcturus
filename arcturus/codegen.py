@@ -170,7 +170,14 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
         groups: dict = {}
         for action, h in pairs:
             groups.setdefault(action, []).append((hname[id(h)], h))
-        out.append(_gen_react(objname, groups, actions, layout, gmap, others, afloor, dirnames))
+        # `enter` is two things sharing one name: on a ROOM it is the arrival
+        # event (fire_enter runs every hook and ignores the results), on a
+        # THING it is the ENTER verb, an ordinary consumable action (a scenery
+        # shack's `on enter` teleport must consume, docs/01 section 7). The
+        # object's category picks the semantic; room kinds and thing kinds
+        # follow their instances here.
+        events = wm.EVENT_NAMES if obj.category == "room" else wm.EVENT_NAMES - {"enter"}
+        out.append(_gen_react(objname, groups, actions, layout, gmap, others, afloor, dirnames, events))
     # react_free and grain_dispatch are always present (even empty) so the turn
     # loop and dispatcher can call them unconditionally.
     out.append(gen_react_free(world, actions, registry, layout, gmap))
@@ -308,10 +315,17 @@ def gen_react_free(world: wm.World, actions: dict, registry, layout=None, gmap=N
     others = [(hname[id(h)], h) for h in _free_other_handlers(world) if id(h) in hname]
     afloor = wm.after_floor(world) if wm.actions_with_after(world) else None
     dirnames = frozenset(world.directions.values())
-    return _gen_react("free", groups, actions, layout, gmap, others, afloor, dirnames)
+    # Free `on enter` rules are the ENTER verb (the Cosmos default action, and
+    # any game rule over it), never the room-arrival event: fire_enter calls
+    # only the room's own react. So the verb semantics apply here too, and the
+    # most specific consuming rule wins like any other verb.
+    return _gen_react(
+        "free", groups, actions, layout, gmap, others, afloor, dirnames,
+        wm.EVENT_NAMES - {"enter"},
+    )
 
 
-def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None, others=None, afloor=None, dirnames=frozenset()) -> Routine:
+def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None, others=None, afloor=None, dirnames=frozenset(), event_names=wm.EVENT_NAMES) -> Routine:
     """react_<obj>(action): switch on the action number; for each action run the
     object's handler routine(s) in order, returning 1 as soon as one consumes the
     action (returns 1). The `on other` catch-all runs only for actions the
@@ -345,7 +359,7 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
     skip_n = 0
     for action, handlers in groups.items():
         rt.label(run_label[action])
-        if action in wm.EVENT_NAMES:
+        if action in event_names:
             # Life-cycle pulses (start, enter, each_turn) are not player
             # actions to be consumed. Every registered hook fires, exactly
             # as the per-object turn sweep fires each object's handler

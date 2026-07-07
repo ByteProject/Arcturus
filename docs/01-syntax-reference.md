@@ -1156,7 +1156,11 @@ events as the game runs, handled with the same `on` syntax:
   by them), and show an opening the way the Infocom games did, a scene or an
   epigraph before the title. The banner, then the first room description, follow.
 - `on enter` runs when the player arrives in a room, as that room's handler, so a
-  room can react to being entered.
+  room can react to being entered. The name is shared with the ENTER verb, and
+  the owner decides which is meant: on a room it is this arrival event (every
+  hook fires; walking continues), while on a thing it is the ordinary verb
+  handler, consuming like any other, which is what lets a scenery facade
+  redirect ENTER into a `teleport` without the default refusal following.
 - `on each_turn` runs once per turn, the per-turn daemon. A `when` guard decides
   when it is awake, and its reach follows scope: a room's runs while the player is
   there, an object's while it is in scope, a free-standing one every turn.
