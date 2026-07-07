@@ -3206,3 +3206,77 @@ Both amalgams regenerated, 565 tests green. Docs: docs/01 section 6b (the
 language and the arcimg synopsis), docs/06 section 2 (rendering) and 3 (the
 tool), docs/00 graphics plan. Next: B12, the same numbered pictures converted
 to each retro machine's own trimmed RLE format, and the Rabenstein port (B13).
+
+## 2026-07-07: the positional grammar layer (arcc 0.11.0, Cosmos 0.15.0)
+
+Between B11 and B12, working through early-adopter feedback, one report
+outgrew the bug-fix batch: a verb declared as `dig in noun with held` did not
+parse (`DIG IN SAND WITH SHOVEL` fell into disambiguation, `DIG IN SAND`
+bound no noun). The cause was structural, not a bug: the runtime parser was
+flag-driven, reducing every verb to a noun arity plus its preposition words
+and splitting a two-noun command at the first separator, so a grammar line's
+SHAPE was never consulted. A leading literal on a two-noun verb could not
+work, and neither could wording that selects the action (LOOK UNDER vs LOOK
+BEHIND). Falling short of Inform on grammar expressiveness was ruled a real
+minus for the language, so this was done properly rather than patched: a
+checkpoint note captured the verified model and its limits, and the overhaul
+landed the same day.
+
+The design that landed, and why:
+
+- The surface syntax never changed. A grammar line's first name has always
+  been its action, and its literal positions were already parsed and stored;
+  only the backend threw the shape away. Everything below is compiler and
+  library.
+- TWO grammar models behind one `verb` syntax, and the compiler picks per
+  verb (worldmodel.needs_table). The flag model is exact for every standard
+  verb in all three language packs, including leading literals on one-noun
+  verbs (LOOK AT CLOAK, the phrase matcher skips) and particle-decided
+  actions (switch on/off), so those verbs stay on it, byte for byte. A verb
+  earns a positional TABLE only when the flags are lossy: a literal before
+  the first slot of a two-noun verb, or different actions on different line
+  shapes. "Subsume the flag model" was considered and refused on size
+  grounds; tables for the standard verbs would cost every game ~600 bytes
+  for nothing.
+- The table sits in static memory with the grain chains: per line an action
+  byte, one byte per token, literal tokens carrying their dictionary address
+  (backpatched like object words); the tabled verb's dictionary entry holds
+  the table address in its data bytes (flags 0x90, 0x98 with the preposition
+  bit). Lines are emitted most-literals-first, then fewest-tokens among the
+  literal-free, so a bare `dig noun` cannot swallow a wording a more
+  specific line spells out.
+- The matcher (grammar_match/try_line, parser.prelude) is language-agnostic;
+  each pack's resolve_verb/resolve_objects branch to it on the tabled flags,
+  Spanish keeping its pending clitic as the noun. Slots resolve through the
+  same scoring matcher as everything else, so ties still ask, a
+  named-but-unresolved slot is still rejected, an empty slot lets the action
+  ask its own question, and no line fitting is the honest extra-words
+  refusal. Disambiguation answers, pronouns, chaining, AGAIN, and OOPS work
+  unchanged on tabled verbs.
+- Pay-for-use holds exactly: the whole path folds behind `any_tables`, and
+  every pre-existing example compiled to its old byte size (all ceilings
+  unchanged). The new features/grammar.storyarc showcase pays the full
+  price, 14340 bytes against the ~13400 feature baseline.
+- Fallout fixed along the way: quoted grammar literals (`dig "in" noun`)
+  used to crash the compiler and are now the bare word; the German pack's
+  schliesse block dropped its aspirational lock/unlock lines (they never
+  dispatched, the particles decide) for an honest `close noun mit noun`,
+  behavior unchanged.
+
+Sema checks a positional verb honestly: two slots per line at most, a
+literal word between two slots (the adjacent-noun form belongs to `reverse`,
+which stays a flag-model feature), single-word synonyms, no `direction`
+slot. Authors extend grammar per game: new verbs, new words feeding standard
+actions (`verb "peruse"` with `examine noun`), or a standard verb redeclared
+with richer lines, the later declaration winning for its words (docs/01
+section 10).
+
+Versions at close: arcc 0.11.0, Cosmos 0.15.0. Amalgam regenerated, 602
+tests green (tests/test_grammar_tables.py holds the acceptance cases, the
+tabling rule, and the zero-tabled-packs proof; test_sizes.py pins the
+zero-cost claim). Docs: docs/01 section 10 (positional grammar and the
+extension patterns), docs/02 section 8c (the model and the matcher), docs/02
+section 15 (grammar overriding), docs/04 section 7 (the table encoding),
+examples/features/grammar.storyarc. The checkpoint note that scoped the
+overhaul was deleted once it landed; this entry is the record. Verified on
+fizmo-console and handed off. Next: B12 stays next.

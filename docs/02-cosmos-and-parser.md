@@ -553,6 +553,12 @@ bytes per line. The matcher is language-agnostic; each pack's grammar lines
 feed it through the same table format, so a German `grabe in noun mit noun`
 works the moment it is declared.
 
+The worked showcase is `examples/features/grammar.storyarc`: the dig verb
+with its leading IN, and a LOOK extended with `look_under`/`look_behind`,
+two wording-selected actions. The authoring patterns (adding verbs, feeding
+standard actions from new words, redeclaring a standard verb with richer
+lines) are 01 section 10.
+
 ## 9. The action pipeline
 
 An action carries its verb, `noun`, and optional `second`. Cosmos dispatches
@@ -1065,6 +1071,13 @@ Brass Lantern's pull and the Cloak's hang); or fork a Cosmos file by copying
 it into the project and editing it, so the build uses the local copy. Most
 games use only the first three; the fourth exists so Cosmos is never a
 ceiling.
+
+The GRAMMAR is overridable the same way, and no fork is ever needed for it:
+a game's `verb` declaration extends the standard set, feeds an existing
+action from a new word (`verb "peruse"` with `examine noun`), or redeclares a
+standard verb with a richer line set, positional lines included, and the
+later declaration wins for its words. The authoring patterns are 01 section
+10; the worked showcase is `examples/features/grammar.storyarc`.
 
 ## 16. How the examples use Cosmos
 

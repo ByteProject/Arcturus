@@ -125,16 +125,6 @@ The most significant recent additions and achievements:
   to configure. Optional features cost nothing when a game does not use them;
   Cloak of Darkness compiles to about 15K with the whole modern library linked
   in and nothing stripped out by hand.
-- **Summonable granules: pay-for-use extensions.** An opt-in status line,
-  verbose exits, two conversation presentations (a menu-driven talk system and
-  the Infocom-style ask/tell, a game picks one), extended flavor verbs,
-  take-all sweeps, plurals, ambient background text, and debug verbs. You
-  summon what you want; a granule you do not summon adds not a byte.
-- **Colour and presentation as first-class syntax.** Z-machine colours in the
-  language (`zcolor`, `say.yellow "..."`), a Trinity-style quote box
-  (`summon.quotes`), and a compile-statistics ledger after every build that
-  watches the story's headroom against each Z-machine ceiling.
-
 On the horizon is `arc_image` for the retro machines: the same numbered
 pictures, converted to each 8-bit and 16-bit machine's own trimmed format. For
 the full, step-by-step history, see [PROGRESS.md](PROGRESS.md).
