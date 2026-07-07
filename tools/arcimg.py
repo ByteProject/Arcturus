@@ -571,10 +571,22 @@ def _kmeans_polish(rows, palette, iterations=4):
     return pal
 
 
-# Bayer 4x4, for the gradient masters. Ordered (never error diffusion) on
+# Bayer 8x8, for the gradient masters. Ordered (never error diffusion) on
 # purpose: it is spatially stable, it will not bleed across the cell hardware
 # of the later waves, and RLE survives it far better (docs/08 section 4).
-_BAYER4 = ((0, 8, 2, 10), (12, 4, 14, 6), (3, 11, 1, 9), (15, 7, 13, 5))
+# 8x8 rather than 4x4 by Stefan's eye on the stresstest beach: the 4x4
+# matrix's threshold geometry draws little 2x2 crosses in smooth regions;
+# the 8x8 tile spreads the thresholds and the clusters dissolve into grain.
+_BAYER8 = (
+    (0, 32, 8, 40, 2, 34, 10, 42),
+    (48, 16, 56, 24, 50, 18, 58, 26),
+    (12, 44, 4, 36, 14, 46, 6, 38),
+    (60, 28, 52, 20, 62, 30, 54, 22),
+    (3, 35, 11, 43, 1, 33, 9, 41),
+    (51, 19, 59, 27, 49, 17, 57, 25),
+    (15, 47, 7, 39, 13, 45, 5, 37),
+    (63, 31, 55, 23, 61, 29, 53, 21),
+)
 
 
 def _map_pixels(rows, palette, dither, lo=0, hi=None):
@@ -587,7 +599,7 @@ def _map_pixels(rows, palette, dither, lo=0, hi=None):
         orow = []
         for x, c in enumerate(row):
             if dither:
-                t = (_BAYER4[y & 3][x & 3] / 15.0 - 0.5) * 2 * dither
+                t = (_BAYER8[y & 7][x & 7] / 63.0 - 0.5) * 2 * dither
                 c = (min(255, max(0, round(c[0] + t))),
                      min(255, max(0, round(c[1] + t))),
                      min(255, max(0, round(c[2] + t))))
