@@ -461,9 +461,11 @@ block resolve_two_nouns()
     change noun to match_phrase(1, b, 0)
     if parse_fault is not 0
         return 1
-    // A slot that named object words but bound nothing is a thing out of scope.
+    // A named-but-unresolved noun (a known object out of scope, an unknown word,
+    // a stray non-noun) faults so the turn is rejected rather than run with no
+    // noun; an EMPTY slot (b is 1) is left to the action's own default.
     if noun is nothing
-        if phrase_named(1, b) is 1
+        if b > 1
             change parse_fault to 1
             return 1
     if b < n
@@ -471,7 +473,7 @@ block resolve_two_nouns()
         if parse_fault is not 0
             return 1
         if second is nothing
-            if phrase_named(b + 1, n) is 1
+            if b + 1 < n
                 change parse_fault to 1
     return 1
 

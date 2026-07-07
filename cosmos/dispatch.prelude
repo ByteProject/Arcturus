@@ -33,12 +33,17 @@ block dispatch(action)
     // The second noun's handlers come next: the RECIPIENT of a give or show,
     // the container of a put, may answer for itself ("give chip to vlad"
     // runs Vlad's own `on give`), the way Inform consults the second's life.
+    // Only when there IS a first noun to act on, though: an incomplete "give to
+    // vlad" has nothing being given, so the recipient has nothing to react to
+    // and the action runs its own "give what" default instead of Vlad's handler
+    // seeing a nothing noun.
     if second is not nothing
         if second is not noun
-            let s2 = handler_of(second)
-            if s2 is not nothing
-                if call_handler(s2, action) is 1
-                    return
+            if noun is not nothing
+                let s2 = handler_of(second)
+                if s2 is not nothing
+                    if call_handler(s2, action) is 1
+                        return
     if here is not nothing
         let s = handler_of(here)
         if s is not nothing
