@@ -50,7 +50,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -397,6 +397,233 @@ def _vdc_color(idx: int):
 def _cpc_color(idx: int):
     lv = (0, 0x80, 0xFF)
     return (lv[(idx // 9) % 3], lv[(idx // 3) % 3], lv[idx % 3])
+
+
+# -- a minimal PNG reader (stdlib; band-sized masters need no Pillow) -----------
+
+def _read_png(path: str):
+    """Read a PNG into rows of (r, g, b). Handles the shapes masters arrive
+    in: 8-bit truecolor (with or without alpha), palette, and grayscale, all
+    five filters, non-interlaced. Anything else raises ValueError and the
+    caller may fall back to Pillow."""
+    with open(path, "rb") as f:
+        data = f.read()
+    if data[:8] != _PNG_SIG:
+        raise ValueError(f"{path}: not a PNG")
+    pos = 8
+    w = h = None
+    bitdepth = ctype = None
+    palette = None
+    idat = bytearray()
+    while pos < len(data):
+        (ln,) = struct.unpack(">I", data[pos:pos + 4])
+        tag = data[pos + 4:pos + 8]
+        body = data[pos + 8:pos + 8 + ln]
+        pos += 12 + ln
+        if tag == b"IHDR":
+            w, h, bitdepth, ctype, _comp, _filt, interlace = struct.unpack(
+                ">IIBBBBB", body)
+            if bitdepth != 8 or interlace != 0:
+                raise ValueError(f"{path}: only 8-bit non-interlaced PNGs")
+            if ctype not in (0, 2, 3, 6):
+                raise ValueError(f"{path}: unsupported PNG color type {ctype}")
+        elif tag == b"PLTE":
+            palette = [tuple(body[i:i + 3]) for i in range(0, len(body), 3)]
+        elif tag == b"IDAT":
+            idat += body
+        elif tag == b"IEND":
+            break
+    raw = zlib.decompress(bytes(idat))
+    channels = {0: 1, 2: 3, 3: 1, 6: 4}[ctype]
+    stride = w * channels
+    rows = []
+    prev = bytearray(stride)
+    p = 0
+    for _y in range(h):
+        f0 = raw[p]
+        row = bytearray(raw[p + 1:p + 1 + stride])
+        p += 1 + stride
+        if f0 == 1:  # Sub
+            for i in range(channels, stride):
+                row[i] = (row[i] + row[i - channels]) & 0xFF
+        elif f0 == 2:  # Up
+            for i in range(stride):
+                row[i] = (row[i] + prev[i]) & 0xFF
+        elif f0 == 3:  # Average
+            for i in range(stride):
+                a = row[i - channels] if i >= channels else 0
+                row[i] = (row[i] + (a + prev[i]) // 2) & 0xFF
+        elif f0 == 4:  # Paeth
+            for i in range(stride):
+                a = row[i - channels] if i >= channels else 0
+                b = prev[i]
+                c = prev[i - channels] if i >= channels else 0
+                q = a + b - c
+                pa, pb, pc = abs(q - a), abs(q - b), abs(q - c)
+                pred = a if (pa <= pb and pa <= pc) else (b if pb <= pc else c)
+                row[i] = (row[i] + pred) & 0xFF
+        prev = row
+        if ctype == 2:
+            rows.append([tuple(row[i:i + 3]) for i in range(0, stride, 3)])
+        elif ctype == 6:
+            rows.append([tuple(row[i:i + 3]) for i in range(0, stride, 4)])
+        elif ctype == 3:
+            rows.append([palette[v] for v in row])
+        else:  # grayscale
+            rows.append([(v, v, v) for v in row])
+    return rows
+
+
+# -- the quantizer (Wave 1: the palette targets) ---------------------------------
+
+def _median_cut(rows, n):
+    """Median-cut the image's distinct colors down to at most n
+    representatives, weighted by pixel count. Painted masters carry few
+    distinct colors, so this is exact (a pass-through) whenever the master
+    already fits the budget."""
+    hist = {}
+    for row in rows:
+        for c in row:
+            hist[c] = hist.get(c, 0) + 1
+    colors = list(hist.items())
+    if len(colors) <= n:
+        return [c for c, _cnt in colors]
+    boxes = [colors]
+    while len(boxes) < n:
+        # Split the box with the largest weighted spread.
+        best, best_spread, best_axis = None, -1, 0
+        for bi, box in enumerate(boxes):
+            if len(box) < 2:
+                continue
+            for axis in range(3):
+                vals = [c[axis] for c, _ in box]
+                spread = max(vals) - min(vals)
+                if spread > best_spread:
+                    best, best_spread, best_axis = bi, spread, axis
+        if best is None:
+            break
+        box = boxes.pop(best)
+        box.sort(key=lambda e: e[0][best_axis])
+        total = sum(cnt for _c, cnt in box)
+        acc, cut = 0, len(box) // 2
+        for i, (_c, cnt) in enumerate(box):
+            acc += cnt
+            if acc * 2 >= total:
+                cut = max(1, min(len(box) - 1, i + 1))
+                break
+        boxes.append(box[:cut])
+        boxes.append(box[cut:])
+    out = []
+    for box in boxes:
+        total = sum(cnt for _c, cnt in box)
+        r = round(sum(c[0] * cnt for c, cnt in box) / total)
+        g = round(sum(c[1] * cnt for c, cnt in box) / total)
+        b = round(sum(c[2] * cnt for c, cnt in box) / total)
+        out.append((r, g, b))
+    return out
+
+
+def _dist(a, b):
+    """Perceptually weighted squared distance (green counts most)."""
+    return (2 * (a[0] - b[0]) ** 2 + 4 * (a[1] - b[1]) ** 2
+            + 3 * (a[2] - b[2]) ** 2)
+
+
+def _nearest(c, palette, lo=0, hi=None):
+    best, bi = None, lo
+    for i in range(lo, hi if hi is not None else len(palette)):
+        d = _dist(c, palette[i])
+        if best is None or d < best:
+            best, bi = d, i
+    return bi
+
+
+def _snap4(c):
+    return tuple(round(v * 15 / 255) * 17 for v in c)
+
+
+def _snap3(c):
+    return tuple(round(round(v * 7 / 255) * 255 / 7) for v in c)
+
+
+def _snap6(c):
+    return tuple(round(round(v * 63 / 255) * 255 / 63) for v in c)
+
+
+def _dedupe(palette):
+    seen, out = set(), []
+    for c in palette:
+        if c not in seen:
+            seen.add(c)
+            out.append(c)
+    return out
+
+
+# Wave 1 conversion back-ends: master rows (320x72/96 RGB) -> native dict.
+# The rule from docs/08: build the palette, snap it to the target's gun depth
+# BEFORE mapping pixels, then map. No dithering at these color counts.
+
+def _convert_ami(rows):
+    w, h = len(rows[0]), len(rows)
+    pal = _dedupe([_snap4(c) for c in _median_cut(rows, 32)])
+    pixels = [[_nearest(c, pal) for c in row] for row in rows]
+    return {"w": w, "h": h, "pixels": pixels,
+            "palette": pal + [(0, 0, 0)] * (32 - len(pal))}
+
+
+def _convert_ast(rows):
+    # The ST text contract (docs/08, ruling 7's guarantee clause): entry 0 is
+    # the darkest color (the text paper) and entry 15 the lightest (the text
+    # ink), SHARED with the art rather than reserved, so a 16-color master
+    # (the ST-class common denominator) converts without losing a color. The
+    # converter guarantees the ink is readable: only when the art has no
+    # light color at all does it give up one slot for white.
+    w, h = len(rows[0]), len(rows)
+    def luma(c):
+        return 2 * c[0] + 4 * c[1] + c[2]
+    pal = _dedupe([_snap3(c) for c in _median_cut(rows, 16)])
+    pal.sort(key=luma)
+    if luma(pal[-1]) < 4 * 255:  # no usable ink: trade one slot for white
+        pal = _dedupe([_snap3(c) for c in _median_cut(rows, 15)])
+        pal.sort(key=luma)
+        pal.append((255, 255, 255))
+    palette = pal + [(0, 0, 0)] * (16 - len(pal))
+    if len(pal) < 16:
+        palette = pal[:-1] + [(0, 0, 0)] * (16 - len(pal)) + [pal[-1]]
+    pixels = [[_nearest(c, palette) for c in row] for row in rows]
+    return {"w": w, "h": h, "pixels": pixels, "palette": palette}
+
+
+def _convert_dos(rows):
+    # Indices 0..15 stay the interpreter's (a standard text palette); the art
+    # palette begins at 16. Masters carry few colors, so this is near 1:1.
+    w, h = len(rows[0]), len(rows)
+    art = _dedupe([_snap6(c) for c in _median_cut(rows, 240)])
+    base = [(0, 0, 0), (0, 0, 170), (0, 170, 0), (0, 170, 170),
+            (170, 0, 0), (170, 0, 170), (170, 85, 0), (170, 170, 170),
+            (85, 85, 85), (85, 85, 255), (85, 255, 85), (85, 255, 255),
+            (255, 85, 85), (255, 85, 255), (255, 255, 85), (255, 255, 255)]
+    palette = [_snap6(c) for c in base] + art
+    palette += [(0, 0, 0)] * (256 - len(palette))
+    pixels = [[16 + _nearest(c, art) for c in row] for row in rows]
+    return {"w": w, "h": h, "pixels": pixels, "palette": palette}
+
+
+_CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos}
+
+
+def convert_master(path: str, tag: str):
+    """A band-shaped master PNG into (mode, native dict) for a target."""
+    rows = _read_png(path)
+    w, h = len(rows[0]), len(rows)
+    if (w, h) not in ((320, 72), (320, 96)):
+        raise ValueError(
+            f"{path}: a master is 320x72 or 320x96, this is {w}x{h}")
+    if tag not in _CONVERTERS:
+        raise ValueError(
+            f"no converter for target {tag} yet (wave order, docs/08); "
+            f"available: {', '.join(sorted(_CONVERTERS))}")
+    return (9 if h == 72 else 12), _CONVERTERS[tag](rows)
 
 
 # -- a minimal PNG writer (stdlib; render-back needs no Pillow) -----------------
@@ -1434,6 +1661,34 @@ def cmd_info(args) -> int:
     return 0
 
 
+def cmd_convert(args) -> int:
+    tag = args.target.upper()
+    entries = _collect_numbered(args.sources)
+    if not entries:
+        print("arcimg: no <number>.png masters to convert", file=sys.stderr)
+        return 2
+    os.makedirs(args.out, exist_ok=True)
+    if args.preview:
+        os.makedirs(args.preview, exist_ok=True)
+    total = 0
+    for iid in sorted(entries):
+        try:
+            mode, native = convert_master(entries[iid], tag)
+        except ValueError as exc:
+            print(f"arcimg: {exc}", file=sys.stderr)
+            return 2
+        blob = encode_native(tag, mode, iid, native)
+        dest = os.path.join(args.out, f"{iid}.{tag}")
+        with open(dest, "wb") as f:
+            f.write(blob)
+        total += len(blob)
+        print(f"arcimg: wrote {dest} ({len(blob)} bytes, mode {mode})")
+        if args.preview:
+            render_arc(blob, os.path.join(args.preview, f"{iid}-{tag}.png"))
+    print(f"arcimg: {len(entries)} pictures, {total} bytes total")
+    return 0
+
+
 def cmd_targets(args) -> int:
     print("retro targets (docs/08; conversion back-ends land per wave):")
     for tag in sorted(TARGETS, key=lambda t: TARGETS[t].id):
@@ -1508,6 +1763,18 @@ def build_parser() -> argparse.ArgumentParser:
     p_targets = sub.add_parser(
         "targets", help="list the retro targets (docs/08)")
     p_targets.set_defaults(func=cmd_targets)
+
+    p_conv = sub.add_parser(
+        "convert", help="convert band-shaped masters to a retro target")
+    p_conv.add_argument("sources", nargs="+",
+                        help="directories and/or <number>.png masters")
+    p_conv.add_argument("--target", required=True,
+                        help="the target tag (AMI, AST, DOS, ...)")
+    p_conv.add_argument("-o", "--out", required=True,
+                        help="output directory for the <id>.<TAG> files")
+    p_conv.add_argument("--preview",
+                        help="also render each result to PNG in this directory")
+    p_conv.set_defaults(func=cmd_convert)
 
     p_render = sub.add_parser(
         "render", help="render a .arc image to a PNG preview")
