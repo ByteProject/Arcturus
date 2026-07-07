@@ -396,6 +396,11 @@ class Parser:
             return self.parse_ambience()
         if self.check(T.NAME):
             return self.parse_property()
+        # The `in` direction property (a room's inward exit, `in cabin`): the
+        # word is also the containment keyword, so it arrives as a keyword
+        # token; admit it as a property head, like `direction in "in"` does.
+        if self.check_kw("in"):
+            return self.parse_property()
         raise self._error(
             "expected a property, an 'on' handler, a 'grains' block, or a "
             f"'topic', got {self._describe(self.cur)}"
@@ -444,7 +449,12 @@ class Parser:
         return ast.TopicDecl(subject, label, words, when, once, hidden, body, line)
 
     def parse_property(self) -> ast.PropertyDecl:
-        tok = self.expect_name("a property name")
+        # `in` (the direction property) is also the containment keyword, so
+        # its token is a keyword; every other property head is a plain name.
+        if self.check_kw("in"):
+            tok = self.advance()
+        else:
+            tok = self.expect_name("a property name")
         name = tok.value
         if name in ("words", "plural"):
             # Vocabulary, not expressions: any word is admissible, including
@@ -525,12 +535,14 @@ class Parser:
         if self.check(T.NAME):
             return self.advance().value
         # The matched-object keywords and the builtin kinds may appear as
-        # handler operands (on take noun; on put thing in chest).
+        # handler operands (on take noun; on put thing in chest), and `in`
+        # the direction as a go operand (on go in), keyword though it is.
         if self.cur.kind == T.KW and self.cur.value in (
             "noun",
             "second",
             "thing",
             "room",
+            "in",
         ):
             return self.advance().value
         raise self._error(
@@ -1328,6 +1340,11 @@ class Parser:
                     index = self.parse_expr()
                     self.expect_op(")")
                     e = ast.DynDot(e, index, line)
+                elif self.check_kw("in"):
+                    # hall.in, the direction property: `in` is also the
+                    # containment keyword, so it arrives as a keyword token.
+                    self.advance()
+                    e = ast.Dot(e, "in", line)
                 else:
                     prop = self.expect_name("a property name").value
                     e = ast.Dot(e, prop, line)
