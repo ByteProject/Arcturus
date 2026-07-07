@@ -297,6 +297,49 @@ def test_reverse_needs_two_noun_slots():
         analyze(cosmos.combined_program(parse(src)))
 
 
+# German has both fixes: the second-noun pronoun binding (shared parse_line) and
+# the reversed dative (gib Bob die Muenze, its natural recipient-first order).
+GERMAN_DATIVE = (
+    'summon.language "german"\n'
+    'game\n    title "T"\n    start raum\n'
+    'room raum\n    name "Raum"\n    desc "x"\n'
+    'thing muenze in raum\n    name "Muenze"\n    words muenze\n    die\n'
+    'thing hans of character in raum\n    name "Hans"\n    words hans\n    named\n'
+    '    der\n    desc "Ein alter Mann."\n'
+)
+
+
+def _german_play(cmds):
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    story = load(generate(analyze(cosmos.combined_program(parse(GERMAN_DATIVE)))))
+    io = CaptureIO(script=cmds)
+    try:
+        VM(story, io).run(max_steps=5_000_000)
+    except IndexError:
+        pass  # script exhausted at a prompt; io.text holds what played
+    return io.text
+
+
+def test_german_second_noun_binds_a_pronoun():
+    # After "gib muenze an hans" (Hans is the second noun), "untersuche ihn"
+    # resolves to Hans: the shared parse_line notices both nouns.
+    out = _german_play(["nimm muenze", "gib muenze an hans", "untersuche ihn"])
+    at = out.index(">untersuche ihn")
+    assert "Ein alter Mann." in out[at:at + 120]
+
+
+def test_german_reversed_dative():
+    # The natural German order, recipient first with no "an": "gib hans die
+    # muenze" reaches the give action (Hans declines), not a disambiguation.
+    out = _german_play(["nimm muenze", "gib hans die muenze"])
+    at = out.index(">gib hans die muenze")
+    window = out[at:at + 160]
+    assert "Muenze" in window and "Skandal" in window  # the give refusal ran
+    assert "Wie bitte" not in window and "meinst du" not in window.lower()
+
+
 GERMAN_PRONOUNS = (
     'summon.language "german"\n'
     'game\n    title "P"\n    start raum\n'

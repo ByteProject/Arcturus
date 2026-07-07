@@ -794,6 +794,9 @@ both `give noun to noun` ("give the coin to Bob") and `give noun noun reverse`
 (`second`) and the last is the thing (`noun`), so both orders reach the same
 handler with the same roles. The parser splits the two adjacent nouns for you;
 `reverse` needs exactly two `noun` slots and no preposition between them.
+`reverse` is part of the grammar, not English, so a language pack declares the
+reversed lines its language wants: the German pack does, since recipient-first
+(`gib Bob die Muenze`) is the natural dative there.
 
 Standard verbs, including talk-to, come from Cosmos; how input is tokenized
 and resolved is defined in 02. This section defines only how you declare a
