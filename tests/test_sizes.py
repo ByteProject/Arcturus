@@ -55,41 +55,48 @@ CEILINGS = {
     # the whole path folds away (any_tables) unless a game declares such a
     # verb. features/grammar.storyarc is the one that does, and its ceiling
     # (14340 vs the ~13400 feature baseline) is the matcher's full price.
+    # 2026-07-07 (GET idioms): English reads GET IN/INTO X as enter, GET
+    # ON X as enter (the take+on particle), GET OUT OF/DOWN FROM X and GET
+    # OFF X-you-are-in as exit, and a bare GET IN/OUT/UP/DOWN as go; "into"
+    # joined the in-direction vocabulary, which also splits PUT X INTO Y
+    # properly. All in remap_action/compound in the English pack: +68 to +84
+    # bytes per English game; German and Spanish are UNCHANGED (idioms are
+    # language, each pack writes its own).
     # 2026-07-07 (enter consumes): `on enter` on a THING is the ENTER verb, an
     # ordinary consumable action, no longer mistaken for the room-arrival
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
     "beispiel-deutsch.storyarc": 20268,
-    "brass-lantern.storyarc": 14900,
-    "cloak-of-darkness.storyarc": 15448,
+    "brass-lantern.storyarc": 14968,
+    "cloak-of-darkness.storyarc": 15516,
     "ejemplo-espanol.storyarc": 19296,
-    "features/computed-properties.storyarc": 13512,
-    "features/containers.storyarc": 13532,
-    "features/daemons-and-timers.storyarc": 13824,
-    "features/doors-and-locks.storyarc": 13396,
-    "features/grains.storyarc": 13528,
-    "features/grammar.storyarc": 14348,
-    "features/introproperty.storyarc": 14440,
-    "features/kinds-and-inheritance.storyarc": 13360,
-    "features/on-other.storyarc": 13360,
-    "features/zcolor.storyarc": 13732,
-    "features/scoring.storyarc": 15684,
-    "features/spans.storyarc": 13544,
-    "granules/ambience.storyarc": 14840,
-    "granules/conversations.storyarc": 15136,
-    "granules/extended-verbs.storyarc": 15864,
-    "granules/infocom-interrogation.storyarc": 15552,
-    "granules/quotes.storyarc": 13708,
-    "granules/take-all.storyarc": 15128,
-    "granules/plurals.storyarc": 14368,
-    "granules/statusline.storyarc": 13464,
-    "granules/verbose-exits.storyarc": 13744,
+    "features/computed-properties.storyarc": 13580,
+    "features/containers.storyarc": 13600,
+    "features/daemons-and-timers.storyarc": 13892,
+    "features/doors-and-locks.storyarc": 13464,
+    "features/grains.storyarc": 13596,
+    "features/grammar.storyarc": 14432,
+    "features/introproperty.storyarc": 14508,
+    "features/kinds-and-inheritance.storyarc": 13428,
+    "features/on-other.storyarc": 13428,
+    "features/zcolor.storyarc": 13800,
+    "features/scoring.storyarc": 15756,
+    "features/spans.storyarc": 13616,
+    "granules/ambience.storyarc": 14916,
+    "granules/conversations.storyarc": 15208,
+    "granules/extended-verbs.storyarc": 15932,
+    "granules/infocom-interrogation.storyarc": 15620,
+    "granules/quotes.storyarc": 13776,
+    "granules/take-all.storyarc": 15196,
+    "granules/plurals.storyarc": 14436,
+    "granules/statusline.storyarc": 13536,
+    "granules/verbose-exits.storyarc": 13816,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 15912
+CLOAK_Z8_CEILING = 15984
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
