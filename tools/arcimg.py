@@ -608,6 +608,27 @@ def _map_pixels(rows, palette, dither, lo=0, hi=None):
     return out
 
 
+def _protect_extremes(rows, palette, snap):
+    """Salience protection: the image's brightest color cluster must exist
+    in the palette (the swallowed sun/moon lesson: median cut and k-means
+    both starve small, perceptually loud regions). If the brightest pixels
+    have no near palette entry, the least-used entry is replaced."""
+    brightest = max((c for row in rows for c in row),
+                    key=lambda c: 2 * c[0] + 4 * c[1] + c[2])
+    target = snap(brightest)
+    if any(_dist(target, p) < 900 for p in palette):
+        return palette
+    # Replace the least-used entry with the protected color.
+    counts = [0] * len(palette)
+    for row in rows:
+        for c in row:
+            counts[_nearest(c, palette)] += 1
+    victim = counts.index(min(counts))
+    out = list(palette)
+    out[victim] = target
+    return out
+
+
 def _gradient_class(rows):
     """Is this master gradient art (thousands of blended colors) rather than
     flat pixel art? Decides the dithering default: flat art is never dithered
@@ -777,18 +798,38 @@ def _convert_c64(rows):
     hists = [[cell_hist(cx, cy) for cx in range(cells_x)]
              for cy in range(cells_y)]
 
+    def cell_pick(hist, bg):
+        """The cell's three free colors by GREEDY ERROR MINIMIZATION in the
+        luminance-dominant space, not by frequency: a few very bright pixels
+        (a moon over dark trees) cost more to lose than a middling shade
+        seen often, so they claim a slot (the swallowed-moon lesson)."""
+        pool = [c for c in hist if c != bg]
+        free = []
+        allowed = [bg]
+        while pool and len(free) < 3:
+            def gain(cand):
+                cost = 0
+                for c, cnt in hist.items():
+                    d = min(_dist_luma(_COLODORE[c], _COLODORE[a])
+                            for a in allowed + [cand])
+                    cost += cnt * d
+                return cost
+            pick = min(pool, key=gain)
+            free.append(pick)
+            allowed.append(pick)
+            pool.remove(pick)
+        free += [bg] * (3 - len(free))
+        return free
+
     def bg_cost(bg):
         cost = 0
         for cy in range(cells_y):
             for cx in range(cells_x):
                 hist = hists[cy][cx]
-                free = sorted((c for c in hist if c != bg),
-                              key=hist.get, reverse=True)[:3]
-                allowed = [bg] + free
+                allowed = [bg] + cell_pick(hist, bg)
                 for c, cnt in hist.items():
-                    if c not in allowed:
-                        cost += cnt * min(_dist(_COLODORE[c], _COLODORE[a])
-                                          for a in allowed)
+                    cost += cnt * min(_dist_luma(_COLODORE[c], _COLODORE[a])
+                                      for a in allowed)
         return cost
 
     bg = min(candidates, key=bg_cost)
@@ -798,17 +839,15 @@ def _convert_c64(rows):
     for cy in range(cells_y):
         for cx in range(cells_x):
             hist = hists[cy][cx]
-            free = sorted((c for c in hist if c != bg),
-                          key=hist.get, reverse=True)[:3]
-            free += [bg] * (3 - len(free))  # pad: unused slots mirror bg
+            free = cell_pick(hist, bg)
             allowed = [bg] + free
             for yy in range(8):
                 for xx in range(4):
                     c = idx[cy * 8 + yy][cx * 4 + xx]
                     if c not in allowed:
                         c = min(allowed,
-                                key=lambda a, cc=c: _dist(_COLODORE[cc],
-                                                          _COLODORE[a]))
+                                key=lambda a, cc=c: _dist_luma(_COLODORE[cc],
+                                                               _COLODORE[a]))
                     pixels[cy * 8 + yy][cx * 4 + xx] = allowed.index(c)
             screen.append((free[0] << 4) | free[1])
             color.append(free[2])
@@ -816,16 +855,20 @@ def _convert_c64(rows):
             "color": color, "regs": [bg]}
 
 
-def _dist_zx(a, b):
-    """The Spectrum's matching space: LUMINANCE-DOMINANT. The palette is all
-    full-saturation primaries, so plain hue-proximity maps a dark muted
-    brown to screaming red; weighting luminance ~20x (tuned by eye on the
-    corpus) makes dark things dark first and colored second, the way every
-    good Spectrum converter works."""
+def _dist_luma(a, b, w=20):
+    """Luminance-dominant distance: dark things match dark first, colored
+    second (Stefan's "think darker and brighter"). w=20 tuned by eye on the
+    corpus; the cell solvers run on this, because attribute hardware
+    punishes a wrong brightness far harder than a wrong hue (the moon must
+    survive the sky's cell)."""
     ya = 2 * a[0] + 4 * a[1] + a[2]
     yb = 2 * b[0] + 4 * b[1] + b[2]
-    return (20 * (ya - yb) ** 2 // 49
+    return (w * (ya - yb) ** 2 // 49
             + (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2)
+
+
+def _dist_zx(a, b):
+    return _dist_luma(a, b, 20)
 
 
 def _convert_zx3(rows):
@@ -839,6 +882,12 @@ def _convert_zx3(rows):
     # two colors win by a margin no jitter crosses), while mixed cells get
     # the authentic Spectrum texture instead of hard banding.
     rows = _crop_width(rows, 256)
+    # The Spectrum idiom pre-curve: darken toward black (v^2/255). Spectrum
+    # art is black-dominated with bright accents (black is the clash-free
+    # color, Stefan's school); the curve moves the master's tonal mass onto
+    # that idiom before the cells are solved, and the corpus comes out as
+    # blue-on-black linework instead of saturated patchwork.
+    rows = [[tuple(v * v // 255 for v in c) for c in row] for row in rows]
     w, h = len(rows[0]), len(rows)
     amp = 28 if _gradient_class(rows) else 16
     cells_x, cells_y = w // 8, h // 8
@@ -855,16 +904,31 @@ def _convert_zx3(rows):
                 for c in cell:
                     i = min(range(8), key=lambda k: _dist_zx(c, pal[k]))
                     votes[i] = votes.get(i, 0) + 1
-                top = sorted(votes, key=votes.get, reverse=True)[:2]
-                if len(top) == 1:
-                    top.append(top[0])
-                paper, ink = top[0], top[1]
-                err = sum(min(_dist_zx(c, pal[paper]), _dist_zx(c, pal[ink]))
-                          for c in cell)
-                if best is None or err < best[0]:
-                    best = (err, bright, paper, ink)
+                top = sorted(votes, key=votes.get, reverse=True)
+                # Candidate pairs, the Spectrum school: black-plus-dominant
+                # first (black is clash-free and carries the classic look;
+                # Stefan's own Rabenstein Spectrum art is black-dominated),
+                # then the two most voted. Black pairs get a bias.
+                cands = []
+                dom = next((t for t in top if t != 0), top[0])
+                cands.append((0, dom))
+                if len(top) >= 2:
+                    cands.append((top[0], top[1]))
+                if top[0] != 0:
+                    cands.append((0, top[0]))
+                for a, b in cands:
+                    err = sum(min(_dist_zx(c, pal[a]), _dist_zx(c, pal[b]))
+                              for c in cell)
+                    if 0 in (a, b):
+                        err = err * 17 // 20  # the black bias
+                    if best is None or err < best[0]:
+                        best = (err, bright, a, b)
             _err, bright, paper, ink = best
+            # Paper is the darker of the pair (text sits on dark), ink the
+            # brighter: the convention his art follows everywhere.
             pal = [_zx_color(i, bright) for i in range(8)]
+            if _dist_zx(pal[paper], (0, 0, 0)) > _dist_zx(pal[ink], (0, 0, 0)):
+                paper, ink = ink, paper
             for yy in range(8):
                 for xx in range(8):
                     c = rows[cy * 8 + yy][cx * 8 + xx]
@@ -892,12 +956,12 @@ def _convert_cpc(rows):
         return (lv[q3(c[0])], lv[q3(c[1])], lv[q3(c[2])])
 
     pal = _build_palette(rows, 16, snap27)
+    pal = _protect_extremes(rows, pal, snap27)
     pal += [(0, 0, 0)] * (16 - len(pal))
-    # The 27-cube has no muted colors at all (three levels per channel), so
-    # gradient art needs a STRONGER mix than the other 16-color targets: a
-    # sunset's dusty purple only exists as gray+pink+blue blended by the
-    # dither (tuned on the stresstest beach). Flat art stays undithered.
-    pixels = _map_pixels(rows, pal, 20 if _gradient_class(rows) else 0)
+    # Color-first, dither-last (Stefan's ruling on the stresstest): the
+    # palette carries the salient colors (the sun is protected above), and
+    # the mix stays gentle. Flat art stays undithered.
+    pixels = _map_pixels(rows, pal, 8 if _gradient_class(rows) else 0)
     inks = [q3(c[0]) * 9 + q3(c[1]) * 3 + q3(c[2]) for c in pal]
     return {"w": w, "h": h, "pixels": pixels, "palette": inks, "regs": [0]}
 
