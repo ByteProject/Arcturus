@@ -56,7 +56,7 @@ __version__ = "1.2.0"
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = '4266ede'
+__build__ = '7fa40ef'
 
 
 def build_id() -> str:
@@ -667,11 +667,25 @@ def _dither_amount(rows, budget):
 
 
 def _convert_ami(rows):
+    # The same text contract as the ST (docs/09): the palette is luminance
+    # sorted, entry 0 the darkest (COLOR00: the flat area below the band and
+    # the interpreter's text paper, STABLE across pictures instead of a
+    # random art color; a probe caught the background flipping brown to
+    # pink between two beaches), entry 31 a guaranteed-readable light ink.
     w, h = len(rows[0]), len(rows)
+    def luma(c):
+        return 2 * c[0] + 4 * c[1] + c[2]
     pal = _build_palette(rows, 32, _snap4)
-    pixels = _map_pixels(rows, pal, _dither_amount(rows, 32))
-    return {"w": w, "h": h, "pixels": pixels,
-            "palette": pal + [(0, 0, 0)] * (32 - len(pal))}
+    pal.sort(key=luma)
+    if luma(pal[-1]) < 4 * 255:  # no usable ink: trade one slot for white
+        pal = _build_palette(rows, 31, _snap4)
+        pal.sort(key=luma)
+        pal.append((255, 255, 255))
+    palette = pal + [(0, 0, 0)] * (32 - len(pal))
+    if len(pal) < 32:
+        palette = pal[:-1] + [(0, 0, 0)] * (32 - len(pal)) + [pal[-1]]
+    pixels = _map_pixels(rows, palette, _dither_amount(rows, 32))
+    return {"w": w, "h": h, "pixels": pixels, "palette": palette}
 
 
 def _convert_ast(rows):
