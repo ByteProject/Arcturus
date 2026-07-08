@@ -514,6 +514,17 @@ ST-class color), AMI differs only by the unavoidable 4-bit gun snap
 entries, sorted darkest-first, entry 0 is the text paper and entry 15
 the ink, and the converter re-quantizes to 15 plus white only when the
 art carries no readable light color, so a 16-color master loses nothing.
+WAVE 2 SIZES (R3, converter stage; the corpus, mode 12, RLE'd):
+C64 76,554 bytes total (3.6K average against 4.8K uncompressed), ZX3
+65,535 (3.1K against 3.5K), CPC 127,218 (6.1K against 7.7K). The cell
+solvers: C64 elects its global background by total remap cost and keeps
+each cell's three most frequent colors; the Spectrum matches in a
+LUMINANCE-DOMINANT space (20x luma weight, or dark muted browns become
+screaming red) and always pair-dithers inside the cell (flat cells are
+immune by construction); the CPC, whose 27-cube has no muted colors at
+all, mixes gradients at amplitude 20 so a sunset's dusty purple exists
+as blended gray+pink+blue.
+
 The playground carries the outputs (arc_image/ami, ast, dos; previews
 beside them), all regenerable with `arcimg convert` and gitignored as
 derived artifacts; the masters are the tracked truth.

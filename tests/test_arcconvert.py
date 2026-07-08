@@ -86,7 +86,7 @@ def test_wrong_shape_is_refused(tmp_path):
 
 def test_unwaved_target_says_so():
     with pytest.raises(ValueError, match="wave order"):
-        arcimg.convert_master(os.path.join(MASTERS, ALL[0]), "C64")
+        arcimg.convert_master(os.path.join(MASTERS, ALL[0]), "M65")
 
 
 # -- the gradient path (the stresstest class) ---------------------------------
@@ -116,3 +116,43 @@ def test_gradient_master_is_dithered_flat_art_is_not():
     assert arcimg._dither_amount(rows, 16) > 0
     flat = arcimg._read_png(os.path.join(MASTERS, ALL[0]))
     assert arcimg._dither_amount(flat, 16) == 0
+
+
+# -- wave 2: the cell class -----------------------------------------------------
+
+@pytest.mark.parametrize("name", SAMPLE)
+def test_cell_targets_convert_and_round_trip(name):
+    path = os.path.join(MASTERS, name)
+    iid = int(name.split(".")[0])
+    for tag in ("C64", "ZX3", "CPC"):
+        mode, native = arcimg.convert_master(path, tag)
+        blob = arcimg.encode_native(tag, mode, iid, native)
+        tag2, mode2, iid2, back = arcimg.decode_arc(blob)
+        assert (tag2, mode2, iid2) == (tag, mode, iid)
+        assert back == native, tag
+
+
+def test_c64_cells_respect_the_hardware():
+    # Every 4x8 cell uses at most the background plus its three cell colors,
+    # by construction: the pixel codes are 2-bit; the real check is that the
+    # background register is one of the fixed 16 and the matrices are bytes.
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, ALL[0]), "C64")
+    assert 0 <= native["regs"][0] <= 15
+    assert all(0 <= b <= 255 for b in native["screen"])
+    assert all(0 <= b <= 15 for b in native["color"])
+    assert all(0 <= p <= 3 for row in native["pixels"] for p in row)
+
+
+def test_zx3_attrs_are_legal():
+    # Ink and paper share the bright level by construction; the attribute
+    # byte never sets flash and always parses back to the palette.
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, ALL[0]), "ZX3")
+    for attr in native["attrs"]:
+        assert attr & 0x80 == 0  # no flash
+    assert all(p in (0, 1) for row in native["pixels"] for p in row)
+
+
+def test_cpc_inks_are_in_the_cube():
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, ALL[0]), "CPC")
+    assert len(native["palette"]) == 16
+    assert all(0 <= i <= 26 for i in native["palette"])
