@@ -433,6 +433,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `visited` | The room has been entered before (Cosmos sets it on entry). Use it to vary a room's description on return. |
 | `moved` | Set the first time the player takes an object. While clear, the object shows its `intro` text in a room description instead of the plain listing. |
 | `animate` | An animate agent (a person, animal, robot, or AI). The conversation and give verbs apply only to the animate; the `character` kind sets it by default, and animate objects refuse being taken. |
+| `component` | This thing is PART OF the thing it sits `in` (a lever in a machine, a button on a panel; the equivalent of Dialog's `#partof`). The object tree carries the relation, so the part follows its whole wherever the whole moves; the attribute grants what a plain thing's insides never get: the part is in scope whenever the whole is, `take` answers that it is part of it (`msg_part_of`), and it never lists as the whole's contents. Make the part `on pull` / `on push` handlers do the machine's work. To detach one in play, clear the attribute and move it. A game with no components pays nothing (`any_components`). |
 
 The standard kinds are also attributes, set by `of <kind>` and tested with `is
 <kind>`: `thing`, `room`, `container`, `supporter`, `door`, `character`. An object

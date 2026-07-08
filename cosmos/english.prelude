@@ -808,6 +808,11 @@ block content_listable(holder, x)
     if any_enterable is 1
         if x is player
             return 0
+    // A component is part of the holder, not carried contents: the machine
+    // never lists its own levers. Folds away without components.
+    if any_components is 1
+        if x is component
+            return 0
     if x is hidden
         return 0
     if x is concealed
@@ -1044,6 +1049,13 @@ block msg_have_it()
 
 block msg_take_self()
     say "You keep a firm grip on yourself."
+
+// Taking a component (a lever in a machine): the part stays on its whole.
+block msg_part_of()
+    let p = parent_of(noun)
+    show("That's part of ")
+    art_the(p, 0)
+    say "."
 
 block msg_dropped()
     say "Down it goes."

@@ -95,6 +95,12 @@ block in_scope(obj)
     if p is player
         return 1
     if p is not nothing
+        // A component (a lever in a machine, docs/01) is in scope wherever
+        // the thing it is part of is: the tree carries the relation, the
+        // attribute grants the visibility a plain thing's insides never get.
+        if any_components is 1
+            if obj is component
+                return in_scope(p)
         // On a supporter, or inside a container the player can see into (open,
         // clear, or lidless), that is itself in scope. see_into is the single
         // rule both this and the noun matcher share.

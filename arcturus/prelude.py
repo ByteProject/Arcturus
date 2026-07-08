@@ -102,6 +102,14 @@ _STD_BOOL_PROPS = [
     # Set the first time the player takes an object; while clear, the object
     # shows its `intro` text in a room description instead of the plain listing.
     "moved",
+    # A component: this thing is PART OF the thing it sits in (a lever in a
+    # machine, a button on a panel). The tree carries the relation, so the
+    # part follows its whole wherever it moves; the attribute grants what a
+    # plain thing's insides never get: the part is in scope whenever the
+    # whole is, take answers that it is part of it, and it never lists as
+    # contents. Our equivalent of Dialog's #partof; declare `component` on
+    # the part and place it `in` the whole.
+    "component",
     # An animate agent: people, animals, robots, AIs. The conversation and give
     # verbs apply only to the animate; the character kind sets it by default, and
     # animate objects refuse being taken.
