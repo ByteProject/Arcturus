@@ -128,6 +128,13 @@ block remap_action(act)
     if act is action_id("take")
         if way is not nothing
             if noun is nothing
+                // A bare GET OUT / GET UP / GET DOWN while inside or on
+                // something means getting off it (exit), not a walk: GET
+                // OUT in a crate must not answer "no exit that way".
+                // Folds away with nothing to be inside (any_enterable).
+                if any_enterable is 1
+                    if parent_of(player) is not here
+                        return action_id("exit")
                 return action_id("go")
             if way is out
                 return action_id("exit")
