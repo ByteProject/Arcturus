@@ -56,7 +56,7 @@ __version__ = "1.5.0"
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = 'd6456a9'
+__build__ = 'f8cc519'
 
 
 def build_id() -> str:
@@ -1320,7 +1320,9 @@ def _convert_zx3(rows, salient=None):
         idx[y][x] = 14                    # the hinted object: bright white
     cells_x, cells_y = w // 8, h // 8
     pixels = [[0] * w for _ in range(h)]
-    attrs = []
+
+    # Pass 1: per cell, the best legal pair under EACH bright level.
+    choices = []                        # per cell: {bright: (err, a, b)}
     for cy in range(cells_y):
         for cx in range(cells_x):
             cell = [(rows[cy * 8 + yy][cx * 8 + xx],
@@ -1332,7 +1334,7 @@ def _convert_zx3(rows, salient=None):
             forced = any((cx * 8 + xx, cy * 8 + yy) in sal
                          for yy in range(8) for xx in range(8)) if sal \
                 else False
-            best = None
+            per_bright = {}
             for bright in (0, 1):
                 legal = list(range(8)) if bright == 0 \
                     else [0] + list(range(8, 15))
@@ -1355,15 +1357,64 @@ def _convert_zx3(rows, salient=None):
                     a = top[0]
                     b = top[1] if len(top) > 1 else top[0]
                     cands = {(a, b), (0, a)}
+                bb = None
                 for a, b in cands:
                     err = sum(min(_dist_zx15(c, _ZX15[a]),
                                   _dist_zx15(c, _ZX15[b]))
                               for c, _i in cell)
                     if 0 in (a, b):
                         err = err * 19 // 20    # the black school, gently
-                    if best is None or err < best[0]:
-                        best = (err, bright, a, b)
-            _err, bright, a, b = best
+                    if bb is None or err < bb[0]:
+                        bb = (err, a, b)
+                per_bright[bright] = bb
+            choices.append(per_bright)
+
+    # Pass 2: bright coherence. The master's cloud whites sit BETWEEN the
+    # Spectrum's two whites, so independent cell picks oscillate: a grey
+    # D7 cloud block and its darker cyan sky drop into an otherwise bright
+    # sky (the blocky clash Stefan called out around rounded clouds). A
+    # pixel artist commits the whole region to one bright level; this
+    # smoothing does the same: a cell surrounded by a clear majority of
+    # the other level flips to it unless its own error cost forbids. The
+    # two whites are nearly interchangeable, so white-dominated cells
+    # (cloud interiors) get a looser bound and the sky's level can
+    # propagate through the whole cloud over the rounds.
+    brights = [0 if pb[0][0] <= pb[1][0] else 1 for pb in choices]
+    white_frac = []
+    for n in range(len(choices)):
+        cx, cy = n % cells_x, n // cells_x
+        whites = sum(1 for yy in range(8) for xx in range(8)
+                     if idx[cy * 8 + yy][cx * 8 + xx] in (7, 14))
+        white_frac.append(whites / 64)
+    for _round in range(4):
+        flipped = False
+        for n, per_bright in enumerate(choices):
+            cx, cy = n % cells_x, n // cells_x
+            nb = [brights[yy * cells_x + xx]
+                  for yy in range(max(0, cy - 1), min(cells_y, cy + 2))
+                  for xx in range(max(0, cx - 1), min(cells_x, cx + 2))
+                  if (xx, yy) != (cx, cy)]
+            if not nb:
+                continue
+            other = 1 - brights[n]
+            if sum(1 for v in nb if v == other) * 3 >= len(nb) * 2:
+                mine = per_bright[brights[n]][0]
+                theirs = per_bright[other][0]
+                # 1.35x normally; 2.2x when the cell is mostly white
+                num, den = (11, 5) if white_frac[n] >= 0.6 else (27, 20)
+                if theirs * den <= mine * num:
+                    brights[n] = other
+                    flipped = True
+        if not flipped:
+            break
+
+    # Pass 3: emit pixels and attributes from the settled choices.
+    attrs = []
+    for cy in range(cells_y):
+        for cx in range(cells_x):
+            n = cy * cells_x + cx
+            bright = brights[n]
+            _err, a, b = choices[n][bright]
 
             def luma(i):
                 c = _ZX15[i]
@@ -1394,22 +1445,56 @@ def _convert_cpc(rows, salient=None):
     # cube (levels 0/128/255 per channel), no cells: the quantize recipe with
     # the wide-pixel geometry. Ink numbers are the r*9+g*3+b index; the
     # loader maps them to gate-array values with its own table (docs/09).
+    #
+    # Ink selection picks the best 16 OF THE 27 directly, by greedy error
+    # minimization over the image histogram. The earlier route (median cut,
+    # then snap each cluster to the cube) collapsed a gradient master's 16
+    # clusters into a handful of inks after snapping and padded the rest
+    # with black: the stresstest beach came out a six-ink grey mess. There
+    # is no cluster middleman to collapse here; a flat master whose colors
+    # sit on the cube still gets them exactly.
     rows = _halve_width(rows)
     w, h = len(rows[0]), len(rows)
 
     def q3(v):
         return 0 if v < 64 else (1 if v < 192 else 2)
 
-    def snap27(c):
-        lv = (0, 0x80, 0xFF)
-        return (lv[q3(c[0])], lv[q3(c[1])], lv[q3(c[2])])
-
-    pal = _build_palette(rows, 16, snap27)
-    pal = _protect_extremes(rows, pal, snap27)
+    lv = (0, 0x80, 0xFF)
+    cube = [(lv[r], lv[g], lv[b])
+            for r in range(3) for g in range(3) for b in range(3)]
+    hist = {}
+    for row in rows:
+        for c in row:
+            hist[c] = hist.get(c, 0) + 1
+    colors = list(hist)
+    dmat = [[_dist(c, k) for k in cube] for c in colors]
+    INF = 1 << 60
+    cur = [INF] * len(colors)          # best distance under chosen inks
+    chosen = []
+    while len(chosen) < 16 and len(chosen) < 27:
+        best_gain, best_k = -1, None
+        for k in range(27):
+            if k in chosen:
+                continue
+            gain = 0
+            for ci in range(len(colors)):
+                d = dmat[ci][k]
+                if d < cur[ci]:
+                    gain += hist[colors[ci]] * (cur[ci] - d)
+            if gain > best_gain:
+                best_gain, best_k = gain, k
+        if best_gain <= 0 and len(chosen) >= 1:
+            break                       # every color is already exact
+        chosen.append(best_k)
+        for ci in range(len(colors)):
+            d = dmat[ci][best_k]
+            if d < cur[ci]:
+                cur[ci] = d
+    pal = [cube[k] for k in chosen]
     pal += [(0, 0, 0)] * (16 - len(pal))
     # Color-first, dither-last (Stefan's ruling on the stresstest): the
-    # palette carries the salient colors (the sun is protected above), and
-    # the mix stays gentle. Flat art stays undithered.
+    # palette carries the salient colors, and the mix stays gentle. Flat
+    # art stays undithered.
     pixels = _map_pixels(rows, pal, 8 if _gradient_class(rows) else 0)
     inks = [q3(c[0]) * 9 + q3(c[1]) * 3 + q3(c[2]) for c in pal]
     return {"w": w, "h": h, "pixels": pixels, "palette": inks, "regs": [0]}
@@ -1458,8 +1543,13 @@ def _salient_pixels(rows, discs):
         bright = sum(l for l, _x, _y in lums[half:]) / (len(lums) - half)
         if bright - dark < 200:      # uniform disc: all of it is the object
             out.update((x, y) for _l, x, y in lums)
-        else:                        # occluded disc: the bright side only
-            cut = (dark + bright) / 2
+        else:
+            # Occluded disc: the author's circle is the shape's truth, so
+            # only clear occluders (trees in front, near the dark cluster)
+            # are excluded. The low cut also keeps the artist's own
+            # rim-dither pixels inside the disc, so the promoted shape
+            # stays round instead of notched.
+            cut = dark + (bright - dark) * 0.35
             out.update((x, y) for l, x, y in lums if l >= cut)
     return out
 
