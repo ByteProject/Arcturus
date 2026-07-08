@@ -36,6 +36,28 @@ Commands:
   arcimg info SOURCE
       Report the size of a PNG, or list the pictures in an .arcres pack.
 
+  arcimg convert SOURCES... --target TAG -o DIR [--preview DIR]
+      The retro path (docs/08): derive each master's native version for a
+      target (AMI, AST, DOS, C64, ZX3, CPC, ...) as <id>.<TAG> .arc files.
+      Pictures convert in parallel; outputs newer than their master, its
+      .hint sidecar, and this tool are skipped make-style. A master may
+      carry <id>.hint ({"salient": [[cx, cy, r], ...]}) naming bright discs
+      (a moon, a sun) that must survive conversion visibly.
+
+  arcimg targets | arcimg render FILE -o PNG
+      List the target ledger; render any .arc back to a PNG preview.
+
+  arcimg scr SOURCE -o out.scr / arcimg unscr FILE --id N -o DIR
+      The Spectrum polish loop. `scr` writes a ZX3 conversion (or converts
+      a master on the spot) as a standard 6912-byte .scr: the band on top,
+      a black bar below, so any editor gets the full 256x192 frame. The
+      author fixes cells in SevenuP, img2spec, or any Spectrum tool, and
+      `unscr` takes the file back: detects the band (9 or 12 rows; --mode
+      overrides), strips the bar, lints (FLASH refused, content below the
+      band reported), and writes <id>.ZX3 stamped HAND-AUTHORED (header
+      byte 15 = 1). `convert` never overwrites a hand-authored file, with
+      or without --force; delete it to reconvert from the master.
+
 Pillow is an author-side convenience, never shipped to players: arcc and the
 Actaea interpreter stay pure standard library. It is reached only to resize or
 convert a source that is not already a mode-sized PNG.
@@ -50,7 +72,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.6.0"
+__version__ = "1.6.1"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -2898,18 +2920,42 @@ def cmd_scr(args) -> int:
     return 0
 
 
+def _detect_scr_mode(data: bytes) -> int:
+    """Which band does this .scr carry? A 9-row export's rows 72..96 are
+    part of the black bar (bitmap clear, attrs 0), so if that stripe is
+    empty the band is 9 rows, otherwise 12. --mode overrides, for the
+    rare hand image whose rows 72..96 are genuinely all black-on-black."""
+    for y in range(72, 96):
+        for xb in range(32):
+            if data[_scr_bitmap_offset(y, xb)]:
+                return 12
+    if any(data[6144 + cy * 32 + cx] for cy in range(9, 12)
+           for cx in range(32)):
+        return 12
+    return 9
+
+
 def cmd_unscr(args) -> int:
     with open(args.source, "rb") as f:
         data = f.read()
+    if len(data) != 6912:
+        print(f"arcimg: a .scr is 6912 bytes, this is {len(data)}",
+              file=sys.stderr)
+        return 2
+    mode = args.mode
+    if mode is None:
+        mode = _detect_scr_mode(data)
+        print(f"arcimg: detected a {mode * 8}-row band (mode {mode}); "
+              f"pass --mode to override")
     try:
-        native, warnings = native_from_scr(data, args.mode)
+        native, warnings = native_from_scr(data, mode)
     except ValueError as exc:
         print(f"arcimg: {exc}", file=sys.stderr)
         return 2
     for warning in warnings:
         print(f"arcimg: note: {warning}")
     os.makedirs(args.out, exist_ok=True)
-    blob = encode_native("ZX3", args.mode, args.id, native, hand=True)
+    blob = encode_native("ZX3", mode, args.id, native, hand=True)
     dest = os.path.join(args.out, f"{args.id}.ZX3")
     with open(dest, "wb") as f:
         f.write(blob)
@@ -3040,8 +3086,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_unscr.add_argument("source", help="the polished .scr")
     p_unscr.add_argument("--id", type=int, required=True,
                          help="the image id it belongs to")
-    p_unscr.add_argument("--mode", type=int, choices=(9, 12), default=12,
-                         help="band mode (default 12, the 96-row band)")
+    p_unscr.add_argument("--mode", type=int, choices=(9, 12),
+                         help="band mode; detected from the file when "
+                              "omitted (the black bar gives it away)")
     p_unscr.add_argument("-o", "--out", required=True,
                          help="output directory (the zx3 portfolio dir)")
     p_unscr.add_argument("--preview",
