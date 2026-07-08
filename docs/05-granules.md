@@ -42,7 +42,12 @@ summon "/path/to/fork.granule"  // exactly this file
 
 - **`summon.statusline`** (dotted) always uses the copy baked into `arcc`. It
   never looks at your directories. This is the form to use for the official
-  feature, and the one the shipped examples use. The dotted form also covers the
+  feature, and the one the shipped examples use. Mind the fork trap: editing
+  an extracted granule beside the story does nothing while the summon stays
+  dotted (a deleted default message keeps printing, because the bundled copy
+  still supplies it); the compiler notices a same-named `.granule` beside the
+  story and prints a note naming the fix, which is the bare-filename form
+  below. The dotted form also covers the
   non-granule feature `summon.language "<name>"`, a compiler feature rather than a
   runtime module (section 6). The tuned abbreviation set is not a dotted feature;
   it is summoned by name (section 7).
