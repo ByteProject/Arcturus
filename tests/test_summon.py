@@ -69,3 +69,29 @@ def test_summoned_override_runs_on_frotz(tmp_path):
         input="jump\n", capture_output=True, text=True, timeout=15,
     ).stdout
     assert "The granule jump wins." in out  # the granule's message, not the default
+
+
+def test_dotted_summon_warns_about_a_fork_beside_the_story(tmp_path, capsys):
+    # The fork trap (the adopter's dig): an extracted, edited granule beside
+    # the story does nothing while the summon stays dotted; the compiler says
+    # so and names the bare-filename form that uses the fork.
+    (tmp_path / "extendedverbs.granule").write_text("// my fork\n")
+    program = parse(
+        'game\n    title "T"\n    start cell\nsummon.extendedverbs\n'
+        'room cell\n    name "Cell"\n',
+        "t.storyarc",
+    )
+    cosmos.combined_program(program, story_dir=str(tmp_path))
+    err = capsys.readouterr().err
+    assert "always uses the bundled copy" in err
+    assert "summon extendedverbs.granule" in err
+
+
+def test_dotted_summon_stays_quiet_without_a_fork(tmp_path, capsys):
+    program = parse(
+        'game\n    title "T"\n    start cell\nsummon.extendedverbs\n'
+        'room cell\n    name "Cell"\n',
+        "t.storyarc",
+    )
+    cosmos.combined_program(program, story_dir=str(tmp_path))
+    assert "bundled copy" not in capsys.readouterr().err

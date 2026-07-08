@@ -240,6 +240,17 @@ def _resolve_summon(s: ast.Summon, bundled: dict, lib_dirs, story_dir):
             )
         fname = s.target + ".granule"
         if fname in bundled:
+            # The fork trap: an extracted, edited copy sits beside the story,
+            # but the dotted form always takes the bundled one, so the edits
+            # silently do nothing (a deleted default message keeps printing).
+            # Say so, and name the form that uses the fork.
+            if story_dir and os.path.isfile(os.path.join(story_dir, fname)):
+                print(
+                    f"arcc: note: '{fname}' exists beside the story, but "
+                    f"summon.{s.target} always uses the bundled copy; write "
+                    f"`summon {fname}` to use your file",
+                    file=sys.stderr,
+                )
             return "feature:" + fname, bundled[fname], fname
         raise ArcError(
             f"summon: unknown built-in feature '{s.target}'", s.line,
