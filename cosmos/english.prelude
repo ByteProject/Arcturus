@@ -272,6 +272,10 @@ block resolve_objects()
         change grain to find_scenery
         if grain is 0
             change parse_fault to named_unseen
+            if parse_fault is 0
+                change unknown_at to first_unknown(1, word_count)
+                if unknown_at is not 0
+                    change parse_fault to 4
     return 1
 
 // A hook for reaching an object ordinary scope could not: nothing by default, so
@@ -401,7 +405,7 @@ block resolve_two_nouns()
     // 1) is left to the action, which asks "give what".
     if noun is nothing
         if b > 1
-            change parse_fault to 1
+            change parse_fault to noun_fault(1, b)
             return 1
     if b < n
         change second to match_phrase(b + 1, n, 0)
@@ -411,7 +415,7 @@ block resolve_two_nouns()
         // an empty one (nothing after the preposition) goes to the action.
         if second is nothing
             if b + 1 < n
-                change parse_fault to 1
+                change parse_fault to noun_fault(b + 1, n)
     return 1
 
 // Remember the command just parsed so a following "oops" can correct it: find the
@@ -904,6 +908,19 @@ block list_item(obj)
     say " here."
 
 // Parser.
+// The player typed a word the story's dictionary does not know at
+// all: name it (spelled back from the text buffer), so a typo is
+// told apart from a real thing that is not here.
+block msg_unknown_word()
+    show("This story doesn't know the word \"")
+    let p = word_pos(unknown_at) - 2
+    let n = word_len(unknown_at)
+    let i = 0
+    while i < n
+        show_char(text_char(p + i))
+        change i to i + 1
+    say "\"."
+
 block msg_cant_see()
     say "You see nothing of the sort here."
 

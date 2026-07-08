@@ -107,8 +107,9 @@ def test_empty_slot_is_left_to_the_action():
 
 
 def test_unresolved_slot_faults_honestly():
-    # An unknown word in a two-slot line is rejected, not run with no noun.
-    assert "You see nothing of the sort here." in _reply("dig in xyzzq with shovel")
+    # An unknown word in a two-slot line is rejected, not run with no noun,
+    # and named back (parse_fault 4).
+    assert 'know the word "xyzzq"' in _reply("dig in xyzzq with shovel")
 
 
 def test_slot_ambiguity_asks_and_the_answer_resolves():
@@ -124,7 +125,7 @@ def test_pronoun_binds_inside_a_slot():
 
 def test_oops_corrects_into_the_table():
     text = _run(["dig in samd with shovel", "oops sand"])
-    assert "You see nothing of the sort here." in text
+    assert 'know the word "samd"' in text
     assert "DIG the sand USING the shovel." in text
 
 

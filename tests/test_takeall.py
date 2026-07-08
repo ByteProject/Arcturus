@@ -124,6 +124,6 @@ NO_GRANULE = (
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_without_granule_all_is_an_unknown_word(tmp_path):
     # Unsummoned, "all" is not in the dictionary and the hooks fold away:
-    # the command falls into the ordinary can't-see refusal.
+    # the word is named back, telling the player this story has no ALL.
     out = _play(tmp_path, NO_GRANULE, "take all\n")
-    assert "You see nothing of the sort here." in out
+    assert 'know the word "all"' in out

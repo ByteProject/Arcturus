@@ -23,7 +23,11 @@ block copy_bytes(src, dst, n)
 // understood) and sets the noun. A 0 return with parse_fault set means a verb was
 // understood but the rest did not fit: parse_fault 1 named an object out of scope
 // (the loop reports "can't see"), parse_fault 2 piled extra words onto a verb
-// that has no slot for them (the loop reports "extra words").
+// that has no slot for them (the loop reports "extra words"), parse_fault 3 is
+// an ambiguity the player did not resolve, parse_fault 4 a typed word the
+// dictionary does not know at all (unknown_at holds its index; the loop names
+// it back). A noun slot that HAD words but resolved nothing always faults, so
+// a handler seeing noun = nothing can trust the player typed the bare verb.
 // Read one line of player input. When an input colour is set (zcolor.input),
 // the typed text prints in that colour and the base font colour returns the
 // moment the line is entered, the way PunyInform's clr_fginput works. With no
@@ -268,13 +272,17 @@ block try_line(line, n)
                 if plural_go is not 0
                     return 1
             if slots is 2
-                change parse_fault to 1
+                change parse_fault to noun_fault(s1lo, s1hi)
                 return 1
             change noun to reach_unscoped
             if noun is nothing
                 change grain to find_scenery
                 if grain is 0
                     change parse_fault to named_unseen
+                    if parse_fault is 0
+                        change unknown_at to first_unknown(s1lo, s1hi)
+                        if unknown_at is not 0
+                            change parse_fault to 4
             return 1
     if slots is 2
         if s2hi > s2lo
@@ -282,7 +290,7 @@ block try_line(line, n)
             if parse_fault is not 0
                 return 1
             if second is nothing
-                change parse_fault to 1
+                change parse_fault to noun_fault(s2lo, s2hi)
     return 1
 
 // Try a tabled verb's lines in table order (most literal words first, so a
@@ -364,6 +372,28 @@ block verb_fallback()
     if named is 1
         return chain_prev
     return 0
+
+// The index of the first typed word in [lo, hi) the dictionary does not
+// know at all, or 0 when every word is known. An unknown word can never
+// resolve, so the turn reports it by name rather than dispatching the
+// action with an empty noun (the custom-verb trap: "read sdlfjh" ran the
+// author's handler as if the player had typed a bare "read").
+block first_unknown(lo, hi)
+    let i = lo
+    while i < hi
+        if word_dict(i) is nothing
+            return i
+        change i to i + 1
+    return 0
+
+// The fault for a noun slot that HAD typed words but resolved to nothing:
+// 4 (with unknown_at set, the turn names the word) when a word is not in
+// the dictionary at all; else 1, a real thing that is not here (can't see).
+block noun_fault(lo, hi)
+    change unknown_at to first_unknown(lo, hi)
+    if unknown_at is not 0
+        return 4
+    return 1
 
 // Does the range name any object word at all (one the matcher could try)?
 // Distinguishes "took a shot at something and missed" (a can't-see fault)

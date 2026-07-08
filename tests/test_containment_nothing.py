@@ -49,7 +49,7 @@ def _play(cmds):
 
 def test_unknown_word_is_refused_without_a_jin_warning():
     text = _play(["take sdjfh"])
-    assert "You see nothing of the sort here." in text
+    assert 'know the word "sdjfh"' in text  # named back (parse_fault 4)
     assert "STOPPED" not in text
 
 
@@ -62,17 +62,20 @@ def test_the_guard_still_guards():
 def test_holds_with_nothing_is_false():
     text = _play(["push zzzz"])
     assert "HOLDS" not in text
-    assert "You see nothing of the sort here." in text
+    assert 'know the word "zzzz"' in text
 
 
 def test_the_article_prints_nothing_for_an_unresolved_object():
     # The same total-operator doctrine for the print path: ${the noun} with
-    # noun = nothing prints the word, never an illegal print_obj 0.
-    game = GAME.replace(
-        'on take\n',
-        'on take\n    say "You reach for ${the noun}."\n', 1)
+    # noun = nothing prints the word, never an illegal print_obj 0. A bare
+    # custom verb is the honest vehicle now that garbage nouns fault before
+    # dispatch: the handler runs with noun = nothing only for a bare verb.
+    game = GAME + (
+        'verb "grope"\n    grope noun\n    grope\n'
+        'on grope\n    say "You reach for ${the noun}."\n'
+    )
     story = load(generate(analyze(cosmos.combined_program(parse(game)))))
-    io = CaptureIO(script=["take zzz"])
+    io = CaptureIO(script=["grope"])
     try:
         VM(story, io).run(max_steps=30_000_000)
     except IndexError:

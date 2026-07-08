@@ -201,7 +201,7 @@ def test_oops_corrects_a_typo_on_frotz(tmp_path):
         input="take cdoin\noops coin\ninventory\n",  # fix the misspelled noun
         capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "You see nothing of the sort here." in out  # the typo failed
+    assert 'know the word "cdoin"' in out  # the typo failed, named back
     assert "Got it." in out  # oops re-ran it as "take coin"
     assert "gold coin" in out  # and the coin is now in hand
 

@@ -110,7 +110,8 @@ NO_GRANULE = (
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_without_granule_group_words_are_unknown(tmp_path):
-    # Unsummoned, a group word is not vocabulary: the honest can't-see. (Noun
-    # lists are core and tested with chaining, not here.)
+    # Unsummoned, a group word is not vocabulary: the word is named back,
+    # which tells the player it is not a word this story uses. (Noun lists
+    # are core and tested with chaining, not here.)
     out = _play(tmp_path, NO_GRANULE, "take coins\n")
-    assert "You see nothing of the sort here." in out
+    assert 'know the word "coins"' in out

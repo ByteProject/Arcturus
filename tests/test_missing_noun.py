@@ -47,7 +47,7 @@ def test_garbage_first_noun_does_not_run_the_recipient_handler():
     # An unknown word in the thing slot: rejected, the recipient never reacts.
     for cmd in ("give sdlfkj to bob", "show sdlfkj to bob", "put sdlfkj in box"):
         out = _run(cmd)
-        assert "You see nothing of the sort here." in out, cmd
+        assert 'know the word "sdlfkj"' in out, cmd
         assert "GIVE" not in out and "SHOW" not in out and "PUT" not in out, cmd
 
 
@@ -62,7 +62,7 @@ def test_empty_first_noun_does_not_run_the_recipient_handler():
 def test_garbage_recipient_faults():
     # A named-but-unresolved recipient is rejected, not treated as "to whom".
     out = _run("give coin to sdlfkj")
-    assert "You see nothing of the sort here." in out
+    assert 'know the word "sdlfkj"' in out
     assert "GIVE" not in out
 
 

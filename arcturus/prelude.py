@@ -265,6 +265,10 @@ _BUILTINS = {
     "pron_them": T_OBJECT,
     "grain": T_NUMBER,  # the matched scenery grain (id+1), set by the parser
     "parse_fault": T_NUMBER,  # set by the parser when a named object is out of scope
+    # The parse-buffer index of the first typed word the dictionary does not
+    # know at all, set beside parse_fault 4 so the turn can name the word
+    # ("This story doesn't know the word ..."). Library-internal.
+    "unknown_at": T_NUMBER,
     # Set by resolve_objects when the matched verb has a reversed two-noun form
     # (give/show BOB COIN): resolve_two_nouns then splits the adjacent nouns and
     # swaps the roles. Library-internal (docs/02 section 8).

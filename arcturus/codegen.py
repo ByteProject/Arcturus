@@ -576,8 +576,8 @@ def _start_handler(world: wm.World):
 # operands) so "again" can replay it.
 _BUILTIN_GLOBALS = [
     "turns", "score", "max_score", "player", "here", "noun", "second",
-    "way", "grain", "par_pending", "parse_fault", "two_reverse", "line_act",
-    "meta_turn",
+    "way", "grain", "par_pending", "parse_fault", "unknown_at", "two_reverse",
+    "line_act", "meta_turn",
     "last_act", "last_noun", "last_second", "last_way", "last_grain",
     # oops_ready flags that the previous command had an unrecognized word;
     # oops_word is that word's parse-buffer index, for "oops" to correct.

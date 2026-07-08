@@ -82,6 +82,9 @@ INTRINSICS = frozenset({
     # new_line prints a bare newline (the library's own line control, e.g.
     # stepping the start banner below a summoned status bar).
     "show", "print_name", "new_line",
+    # show_char prints one ZSCII character (the unknown-word report spells the
+    # typed word back from the text buffer, char by char).
+    "show_char",
     # tick advances the turn counter, set_here updates the room (both globals are
     # read-only to author code, so the loop changes them through intrinsics).
     "tick", "set_here",
@@ -812,6 +815,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # screen_height(): the screen height in lines (header byte 0x20), so the
         # menu can cap the upper window to what fits.
         rt.op("loadb", Const(0), Const(0x20), store=dest)
+    elif name == "show_char":
+        # show_char(c): print one ZSCII character.
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("print_char", op)
+        _place(rt, Const(0), dest)
+        _free(ctx, t)
     elif name == "text_char":
         # text_char(i): the i-th character typed on the last input line. In v5 the
         # text buffer holds the characters from byte 2 onward (byte 1 is the count).
