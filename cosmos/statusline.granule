@@ -89,9 +89,13 @@ block status_bar()
     while i <= w
         show(" ")
         change i to i + 1
-    // Left: the current room.
+    // Left: the current room, with the nested location when the player is
+    // in or on something ("Crypt (on the altar)"), like the title line.
     set_cursor(1, 2)
     print_name(here)
+    if any_enterable is 1
+        if parent_of(player) is not here
+            line_nested(parent_of(player))
     // Right, right-aligned: measure the text (status_digits, since the digit
     // counts vary) and start that many columns in from the edge.
     // Right, right-aligned: the score and moves, painted by the language layer

@@ -777,6 +777,17 @@ block art_a(obj, cap)
 block line_by()
     show(" by ")
 
+// The nested-location suffix on the room title and the status bar: the
+// player stands on a supporter or in a container, and the header says so,
+// "Crypt (on the altar)". Supporters take "on", everything else "in".
+block line_nested(obj)
+    if obj is supporter
+        show(" (on ")
+    else
+        show(" (in ")
+    art_the(obj, 0)
+    show(")")
+
 block banner_headline()
     show("An Interactive Fiction")
 
@@ -792,6 +803,11 @@ block prompt()
 // container) or the player already knows the item is there (it is `seen`). That
 // last case is the memory - a closed opaque box still lists what you have seen.
 block content_listable(holder, x)
+    // The player never lists as a holder's contents ("an altar (contains
+    // yourself)"); possible only where something is enterable, so it folds.
+    if any_enterable is 1
+        if x is player
+            return 0
     if x is hidden
         return 0
     if x is concealed
