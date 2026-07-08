@@ -88,7 +88,7 @@ HEADER, 16 bytes:
     +8   2  native width in pixels
     +10  2  native height in pixels (mode x 8)
     +12  2  image id (matches the filename; a cheap sanity check)
-    +14  1  codec: 0 = RLE, 1 = ZX0 (the default)
+    +14  1  codec: 0 = RLE, 1 = ZX0, 2 = LZSA2 (fixed per target, part C)
     +15  1  reserved, 0
 
 SECTION TABLE, section-count entries of 6 bytes, at offset 16:
@@ -99,8 +99,8 @@ SECTION TABLE, section-count entries of 6 bytes, at offset 16:
     +4   2  compressed length (includes the end sentinel)
 
 The compressed section streams follow the table immediately, in table
-order, each RLE-packed. A loader locates section N's stream by summing the
-compressed lengths before it.
+order, each packed with the file's codec. A loader locates section N's
+stream by summing the compressed lengths before it.
 
 Section types: 1 bitmap, 2 screen matrix, 3 color matrix, 4 attributes,
 5 palette, 6 line table, 7 registers. Which sections a target carries, and
@@ -112,17 +112,22 @@ their exact meaning, is per target (part C); two rules hold everywhere:
 - Palette payloads are in the machine's NATIVE hardware encoding and are
   written to the hardware verbatim.
 
-THE CODEC (header byte 14): 0 = RLE, 1 = ZX0. ZX0 is the default since
-2026-07-08 (Einar Saukas's format, forward mode with inverted gamma: the
-stream every published ZX0 decompressor targets). The corpus bake-off
-behind the ruling is docs/08; the shape of it: ZX0 cuts the RLE sizes by
-another quarter to half (a CPC picture 6.0K -> 3.7K, a Spectrum picture
-2.8K -> 1.9K), sits within a few percent of Exomizer, and has the
-smallest decompressors in the business: the canonical Z80 decoder is
-about 70 bytes, the 6502 port about 130, with 68000 and 8086 ports
-published. An interpreter implements ONE codec: whichever the assets it
-ships were packed with (arcimg packs ZX0 unless told otherwise); reading
-the codec byte and refusing the other is honest behavior.
+THE CODEC (header byte 14): 0 = RLE, 1 = ZX0, 2 = LZSA2. Every target
+chapter in part C mandates exactly ONE codec, so a real interpreter
+carries exactly one decoder; reading the codec byte and refusing
+anything else is honest behavior. The assignment (both rulings
+2026-07-08, the bake-off and the speed amendment in docs/08):
+
+- ZX0 (Einar Saukas) for the 8-bit cell targets (C64, Spectrum +3, CPC,
+  and the rest of the small-machine family). Best ratio of the field,
+  and the smallest decompressors in the business: the canonical Z80
+  decoder is about 70 bytes, the 6502 port about 130. These pictures
+  share a floppy with the story; every byte counts.
+- LZSA2 (Emmanuel Marty) for the 16-bit big-disk targets (Amiga, ST,
+  DOS; later MSX2, Next, MEGA65). About 5% larger than ZX0 on the
+  corpus, but it packs two orders of magnitude faster (the author's
+  regeneration loop) and decompresses faster on 68000/8086. Those disks
+  have room; a z5 story caps at 256K either way.
 
 ZX0 IN ONE PARAGRAPH (the full executable specification is
 zx0_decompress in arcimg, a verbatim port of the reference dzx0): the
@@ -191,10 +196,31 @@ iteration before the byte load:
             bra     .next
     .end:   rts
 
+LZSA2 IN ONE PARAGRAPH (the full executable specification is
+lzsa2_decompress in arcimg, ported from BlockFormat_LZSA2.md and
+verified byte-identical against the reference tool over the corpus;
+sections are RAW blocks, no stream header): a block is consecutive
+commands, each a token byte XYZ|LL|MMM plus optional extensions. LL
+(bits 4-3) literals follow the token: 0-2 direct, 3 means read a nibble
+(0-14 adds to 3; 15 means read a byte: 0-237 adds to 18, 239 means a
+little-endian 16-bit absolute count follows). Then the match offset by
+XYZ (bits 7-5), stored NEGATIVE, unexpressed high bits set to 1: 00Z a
+nibble is offset bits 1-4 and NOT Z is bit 0; 01Z a byte is bits 0-7
+and NOT Z is bit 8; 10Z a nibble is bits 9-12, NOT Z is bit 8, a byte
+is bits 0-7, then subtract 512; 110 two bytes big-to-little are a full
+16-bit offset; 111 reuses the previous offset. Then the match length:
+MMM+2 direct for 0-6, else read a nibble (0-14 adds to 9; 15 means read
+a byte: 24 plus it, 233 means 16-bit absolute follows, and 232 is END
+OF DATA). Nibbles come from a one-byte buffer, high half first. The EOD
+test is the documented tri-state: add 24 to the byte and branch on
+overflow. Reference assembly decompressors for Z80, 6502, and 8088 ship
+in the lzsa repository under a permissive license; the probes carry
+adapted 8086 and 68000 versions as they convert to the codec.
+
 6502 and Z80 RLE decoders land with their waves' chapters if a target
 chooses codec 0; for ZX0 use the published decompressors (the official
-Z80 versions ship with ZX0 itself; 6502, 68000, and 8086 ports are in
-the probes as they convert to the codec).
+Z80 versions ship with ZX0 itself; 6502 and Z80 versions land in the
+probes with wave 2's chapters).
 
 ## Part C: the targets
 
@@ -239,7 +265,9 @@ art's 16..255. Nothing to align, nothing to approximate.
 
 LOADER RECIPE (the probe's shape): verify the magic; walk the section table
 twice, palette pass first (so the picture never flashes in wrong colors),
-bitmap pass second; each pass RLE-decodes its section to its destination.
+bitmap pass second; each pass decodes its section to its destination
+(the chapter's codec is LZSA2; the verified probe of 2026-07-08 still
+spoke RLE and its rebuild against LZSA2 assets is the pending step).
 Under 120 instructions all told. Clear the band region before drawing a
 new image only if the new image is narrower than the old (they never are;
 a mode change between draws is the one case, and re-entering mode 13h
@@ -262,7 +290,7 @@ Verified: Hatari, both modes, 2026-07-08 (probe:
 Two 68000 lessons the probe paid for, so an implementer does not: an .arc
 file can be ODD-length, so anything embedding or loading one to memory
 must align it (an even boundary) before touching the header with word or
-long reads, or the 68000 answers with an address error; and the RLE
+long reads, or the 68000 answers with an address error; and the
 decoder's counter register must be cleared EVERY iteration (dbra leaves
 $FFFF in the counter word; part B's listing has it right).
 
@@ -296,7 +324,7 @@ set_colour approximately by mapping each requested colour to its nearest
 art-palette entry. Either way the art palette itself is never modified.
 
 LOADER RECIPE: verify magic; walk the table; palette section to
-Setpalette, bitmap section RLE-decoded to Physbase(). The probe is ~90
+Setpalette, bitmap section decoded to Physbase(). The probe is ~90
 lines of 68k including the TOS scaffolding.
 
 ASSETS. `<id>.AST` beside the story (GEMDOS 8.3-safe). Test pair: 90.AST,
@@ -339,3 +367,10 @@ Workbench: a bootblock trackload). The facts:
   modes; the Z-machine colours clause (part A.5) and the per-target
   colour answers; the AMI text contract (sorted palette) after the
   brown-to-pink background finding; wave 1 complete.
+- 2026-07-08 (the codec rulings): header byte 14 grows codec 2, LZSA2,
+  mandated for the 16-bit trio (and later MS2, NXT, M65); ZX0 stays the
+  8-bit cell targets' codec. Part B carries both one-paragraph specs;
+  arcimg's zx0_decompress and lzsa2_decompress are the executable ones.
+  The wave-1 probes still speak RLE against pre-ruling assets; their
+  LZSA2 rebuild (8086 and 68000 decoders adapted from the lzsa
+  repository) is the next probe step and re-verification.

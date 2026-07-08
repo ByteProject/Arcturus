@@ -177,3 +177,46 @@ def test_the_ledger_is_complete():
         "CPC": 160, "MS1": 256, "MS2": 256, "ZX3": 256, "A8": 160,
         "AP2": 280, "NXT": 320, "M65": 320, "VDC": 640,
     }
+
+
+# -- LZSA2 (codec 2, the 16-bit trio's codec) -----------------------------------
+
+# A reference vector produced by Emmanuel Marty's lzsa tool (-f2 -r) from the
+# plaintext below: the decoder must reproduce it byte-exactly without the
+# external packer being present.
+_LZSA2_PLAIN = (b"the quick brown fox jumps over the lazy dog, " * 3
+                + bytes(range(64)) + b"\x00" * 200 + b"the quick end")
+_LZSA2_VECTOR = bytes.fromhex(
+    "1af00d74686520717569636b2062726f776e20666f78206a756d7073206f7665"
+    "72205f7f6c617a7920646f672c20d3421fff2f000102030405060708090a0b0c"
+    "0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c"
+    "2d2e2f303132333435363738393a3b3c3d3e3f00f1af6771ff0f656e64e8")
+
+
+def test_lzsa2_decoder_reference_vector():
+    assert arcimg.lzsa2_decompress(_LZSA2_VECTOR) == _LZSA2_PLAIN
+
+
+def test_lzsa2_empty_convention():
+    assert arcimg.lzsa2_decompress(b"") == b""
+
+
+def test_the_16bit_targets_default_to_lzsa2():
+    for tag in ("AMI", "AST", "DOS", "MS2", "NXT", "M65"):
+        assert arcimg.TARGETS[tag].codec == arcimg.CODEC_LZSA2, tag
+    for tag in ("C64", "ZX3", "CPC", "MS1", "A8", "AP2", "P4", "VDC"):
+        assert arcimg.TARGETS[tag].codec == arcimg.CODEC_ZX0, tag
+
+
+def test_lzsa2_arc_roundtrip():
+    # write_arc with codec 2 needs the packer; skip where it is absent.
+    if arcimg._find_lzsa() is None:
+        import pytest
+        pytest.skip("no lzsa packer available")
+    raw = bytes(range(256)) * 8
+    blob = arcimg.write_arc(1, 12, 320, 96, 7, [(1, 0, raw)],
+                            codec=arcimg.CODEC_LZSA2)
+    assert blob[14] == arcimg.CODEC_LZSA2
+    head, sections = arcimg.read_arc(blob)
+    assert head["codec"] == arcimg.CODEC_LZSA2
+    assert sections == [(1, 0, raw)]

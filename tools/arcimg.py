@@ -50,7 +50,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -493,17 +493,180 @@ def rle_decode(data: bytes) -> bytes:
     raise ValueError("RLE stream ended without the 0x80 sentinel")
 
 
-# Codecs (header byte 14): 0 = the RLE scheme below, 1 = ZX0 (the default
-# since Stefan's ruling, 2026-07-08; the corpus bake-off is in docs/08).
+# -- LZSA2 (codec 2): the 16-bit targets' codec ---------------------------------
+#
+# Ruled 2026-07-08 (the codec bake-off addendum, docs/08): the big-disk 16-bit
+# targets (Amiga, ST, DOS) take LZSA2 instead of ZX0. Measured on the corpus:
+# LZSA2 is ~5% larger than ZX0 (~300 bytes per picture) but packs 75x faster
+# and decompresses faster on 68000/8086, and those machines have disk room to
+# spare while a z5 story caps at 256K anyway. The 8-bit cell targets keep ZX0
+# (best ratio, ~70-byte Z80 decoder) because their pictures are the ones that
+# share a floppy with the story.
+#
+# Packing shells out to Emmanuel Marty's `lzsa` tool (the BuildTools standard;
+# FictionTools carries it): an optimal LZSA2 parse in pure Python would be as
+# slow as the ZX0 packer, which is the problem being solved. Decompression is
+# pure Python below, ported from BlockFormat_LZSA2.md, and doubles as the
+# executable spec for the interpreter decoders (docs/09 Part B). Every pack is
+# round-tripped through this decoder before it is accepted.
+
+def _find_lzsa():
+    """The lzsa binary: $ARCIMG_LZSA, then PATH, then FictionTools via orb
+    (the OrbStack debian machine, Stefan's arrangement)."""
+    env = os.environ.get("ARCIMG_LZSA")
+    if env:
+        return [env]
+    path = shutil.which("lzsa")
+    if path:
+        return [path]
+    if shutil.which("orb"):
+        return "orb"
+    return None
+
+
+def lzsa2_compress(data: bytes) -> bytes:
+    """Raw LZSA2 block via the external packer, verified by lzsa2_decompress.
+    The empty convention matches ZX0: empty in, empty out."""
+    if not data:
+        return b""
+    cmd = _find_lzsa()
+    if cmd is None:
+        raise RuntimeError(
+            "lzsa binary not found: install lzsa, set ARCIMG_LZSA, or use "
+            "--codec zx0")
+    import tempfile
+    tmp = tempfile.mkdtemp(prefix="arcimg-lzsa-")
+    try:
+        src = os.path.join(tmp, "in.raw")
+        dst = os.path.join(tmp, "out.lzsa2")
+        with open(src, "wb") as f:
+            f.write(data)
+        if cmd == "orb":
+            # orb sees the Mac filesystem under /mnt/mac; the binary lives
+            # in FictionTools in the debian machine's own home
+            args = ["orb", "-m", "debian", "bash", "-c",
+                    '"$HOME"/FictionTools/lzsa -f2 -r "$1" "$2"', "-",
+                    "/mnt/mac" + os.path.realpath(src),
+                    "/mnt/mac" + os.path.realpath(dst)]
+        else:
+            args = cmd + ["-f2", "-r", src, dst]
+        import subprocess
+        r = subprocess.run(args, capture_output=True)
+        if r.returncode != 0 or not os.path.exists(dst):
+            raise RuntimeError(
+                f"lzsa failed: {r.stderr.decode(errors='replace').strip()}")
+        with open(dst, "rb") as f:
+            comp = f.read()
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    if lzsa2_decompress(comp) != data:
+        raise RuntimeError("lzsa round-trip mismatch (packer bug?)")
+    return comp
+
+
+def lzsa2_decompress(blob: bytes) -> bytes:
+    """Raw LZSA2 block decoder, a faithful port of BlockFormat_LZSA2.md.
+
+    Token XYZ|LL|MMM. LL 0-2 direct, 3 extends by nibble (0-14 adds), nibble
+    15 extends by byte (0-237 adds 18; 239 means a little-endian 16-bit
+    absolute follows). MMM+2 is the match length, 7 extends the same way
+    (byte adds 24; 233 means 16-bit absolute; 232 is EOD). Offsets decode by
+    XYZ and are NEGATIVE (unexpressed high bits set to 1):
+      00Z  5-bit: nibble is bits 1-4, NOT Z is bit 0
+      01Z  9-bit: byte is bits 0-7, NOT Z is bit 8
+      10Z 13-bit: nibble is bits 9-12, NOT Z is bit 8, byte is bits 0-7,
+                  then subtract 512
+      110 16-bit: byte is bits 8-15, then byte is bits 0-7
+      111 repeat: the previous offset
+    Nibbles come from a one-byte buffer, high half first."""
+    if not blob:
+        return b""
+    out = bytearray()
+    pos = 0
+    nib_ready = False
+    nib_store = 0
+    offset = 0
+
+    def byte():
+        nonlocal pos
+        v = blob[pos]
+        pos += 1
+        return v
+
+    def nibble():
+        nonlocal nib_ready, nib_store
+        if nib_ready:
+            nib_ready = False
+            return nib_store & 0x0F
+        nib_store = byte()
+        nib_ready = True
+        return nib_store >> 4
+
+    while True:
+        token = byte()
+        # literals
+        lits = (token >> 3) & 3
+        if lits == 3:
+            n = nibble()
+            if n == 15:
+                b = byte()
+                lits = (byte() | (byte() << 8)) if b == 239 else 18 + b
+            else:
+                lits = 3 + n
+        out += blob[pos:pos + lits]
+        pos += lits
+        # offset
+        xyz = token >> 5
+        if xyz < 2:                                  # 00Z: 5-bit
+            offset = (nibble() << 1) | (~token >> 5 & 1) | ~0x1F
+        elif xyz < 4:                                # 01Z: 9-bit
+            offset = ((~token >> 5 & 1) << 8) | byte() | ~0x1FF
+        elif xyz < 6:                                # 10Z: 13-bit
+            offset = ((nibble() << 9) | ((~token >> 5 & 1) << 8) | byte()) \
+                     | ~0x1FFF
+            offset -= 512
+        elif xyz == 6:                               # 110: 16-bit
+            offset = ((byte() << 8) | byte()) - 0x10000
+        # 111: repeat, offset unchanged
+        # match length
+        mlen = (token & 7) + 2
+        if mlen == 9:
+            n = nibble()
+            if n == 15:
+                b = byte()
+                if b == 232:
+                    return bytes(out)                # EOD marker
+                mlen = (byte() | (byte() << 8)) if b == 233 else 24 + b
+            else:
+                mlen = 9 + n
+        src = len(out) + offset
+        if src < 0:
+            raise ValueError("LZSA2 offset before start")
+        for _ in range(mlen):
+            out.append(out[src])
+            src += 1
+
+
+# Codecs (header byte 14): 0 = the RLE scheme above, 1 = ZX0 (the 8-bit cell
+# targets and the default), 2 = LZSA2 (the 16-bit targets; see the ruling
+# note above). Each target chapter in docs/09 mandates exactly one codec, so
+# a real interpreter carries exactly one decoder.
 CODEC_RLE = 0
 CODEC_ZX0 = 1
+CODEC_LZSA2 = 2
+
+_CODECS = {
+    CODEC_RLE: (rle_encode, rle_decode),
+    CODEC_ZX0: (zx0_compress, zx0_decompress),
+    CODEC_LZSA2: (lzsa2_compress, lzsa2_decompress),
+}
 
 
 def write_arc(target_id, mode, width, height, image_id, sections,
               codec=CODEC_ZX0) -> bytes:
     """Assemble a .arc file: header, section table, compressed section
     streams. `sections` is a list of (type, flags, raw_bytes)."""
-    pack = zx0_compress if codec == CODEC_ZX0 else rle_encode
+    pack = _CODECS[codec][0]
     out = bytearray()
     out += ARC_MAGIC
     out += bytes([ARC_VERSION, target_id, mode, len(sections)])
@@ -528,9 +691,9 @@ def read_arc(blob: bytes):
     if version != ARC_VERSION:
         raise ValueError(f"unsupported .arc version {version}")
     width, height, image_id, codec, _r = struct.unpack(">HHHBB", blob[8:16])
-    if codec not in (CODEC_RLE, CODEC_ZX0):
+    if codec not in _CODECS:
         raise ValueError(f"unknown .arc codec {codec}")
-    unpack = zx0_decompress if codec == CODEC_ZX0 else rle_decode
+    unpack = _CODECS[codec][1]
     head = {"target": target_id, "mode": mode, "width": width,
             "height": height, "id": image_id, "codec": codec}
     pos = 16
@@ -769,10 +932,11 @@ def _dist(a, b):
             + 3 * (a[2] - b[2]) ** 2)
 
 
-def _nearest(c, palette, lo=0, hi=None):
+def _nearest(c, palette, lo=0, hi=None, metric=None):
+    dist = metric or _dist
     best, bi = None, lo
     for i in range(lo, hi if hi is not None else len(palette)):
-        d = _dist(c, palette[i])
+        d = dist(c, palette[i])
         if best is None or d < best:
             best, bi = d, i
     return bi
@@ -829,11 +993,12 @@ _BAYER8 = (
 )
 
 
-def _map_pixels(rows, palette, dither, lo=0, hi=None):
+def _map_pixels(rows, palette, dither, lo=0, hi=None, metric=None):
     """Master pixels to palette indices, with optional low-amplitude ordered
     dithering: the zero-centred Bayer threshold is added to the channels
     before the nearest-color lookup (the classic arbitrary-palette ordered
-    dither). `dither` is the amplitude in 8-bit channel units; 0 is off."""
+    dither). `dither` is the amplitude in 8-bit channel units; 0 is off.
+    `metric` overrides the distance (the Spectrum's saturation-aware one)."""
     out = []
     for y, row in enumerate(rows):
         orow = []
@@ -843,7 +1008,7 @@ def _map_pixels(rows, palette, dither, lo=0, hi=None):
                 c = (min(255, max(0, round(c[0] + t))),
                      min(255, max(0, round(c[1] + t))),
                      min(255, max(0, round(c[2] + t))))
-            orow.append(_nearest(c, palette, lo, hi))
+            orow.append(_nearest(c, palette, lo, hi, metric))
         out.append(orow)
     return out
 
@@ -927,7 +1092,7 @@ def _dither_amount(rows, budget):
     return {16: 8, 32: 5}.get(budget, 3)
 
 
-def _convert_ami(rows):
+def _convert_ami(rows, salient=None):
     # The same text contract as the ST (docs/09): the palette is luminance
     # sorted, entry 0 the darkest (COLOR00: the flat area below the band and
     # the interpreter's text paper, STABLE across pictures instead of a
@@ -949,7 +1114,7 @@ def _convert_ami(rows):
     return {"w": w, "h": h, "pixels": pixels, "palette": palette}
 
 
-def _convert_ast(rows):
+def _convert_ast(rows, salient=None):
     # The ST text contract (docs/08, ruling 7's guarantee clause): entry 0 is
     # the darkest color (the text paper) and entry 15 the lightest (the text
     # ink), SHARED with the art rather than reserved, so a 16-color master
@@ -972,7 +1137,7 @@ def _convert_ast(rows):
     return {"w": w, "h": h, "pixels": pixels, "palette": palette}
 
 
-def _convert_dos(rows):
+def _convert_dos(rows, salient=None):
     # Indices 0..15 stay the interpreter's (a standard text palette); the art
     # palette begins at 16. At 240 art entries no dithering is ever needed.
     w, h = len(rows[0]), len(rows)
@@ -1009,7 +1174,7 @@ def _bayer_at(x, y, amount):
     return (_BAYER8[y & 7][x & 7] / 63.0 - 0.5) * 2 * amount
 
 
-def _convert_c64(rows):
+def _convert_c64(rows, salient=None):
     # Multicolor bitmap: 160 wide, 2:1 pixels, per 4x8 cell THREE free colors
     # plus ONE global background, all from the fixed 16 (Colodore). The
     # solver: index every pixel into the 16 (gradient masters get the Bayer
@@ -1020,6 +1185,14 @@ def _convert_c64(rows):
     w, h = len(rows[0]), len(rows)
     amp = _dither_amount(rows, 16)
     idx = _map_pixels(rows, _COLODORE, amp)
+    if salient:
+        # The hinted object (a moon, a sun) gets the palette's brightest
+        # entry, solid: no palette in the fixed 16 holds both a teal night
+        # sky and a pale disc apart, so the disc goes white, exactly what a
+        # C64 pixel artist paints. The big white count per cell then defends
+        # its slot in cell_pick on its own.
+        for x, y in salient:
+            idx[y][x // 2] = 1
     freq = {}
     for row in idx:
         for c in row:
@@ -1107,93 +1280,116 @@ def _dist_luma(a, b, w=20):
             + (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2)
 
 
-def _dist_zx(a, b):
-    # The Spectrum match adds a SATURATION term: its palette is nearly all
-    # full-saturation primaries, and a pastel master color must prefer the
-    # calm options (white, cyan, black) over a screaming hue of similar
-    # distance. Weight 3, tuned on the training corpus (Stefan's own
-    # Spectrum Rabenstein art) against the daylight graveyard.
+# The 15 real Spectrum colors: 0..7 the basic levels (black first), 8..14
+# the bright levels of ink 1..7 (bright black is black). Index i decodes to
+# (ink, bright) = (i, 0) below 8, (i - 7, 1) from 8 up.
+_ZX15 = [_zx_color(i, 0) for i in range(8)] + \
+        [_zx_color(i, 1) for i in range(1, 8)]
+
+
+def _dist_zx15(a, b):
+    # The Spectrum match: luminance-dominant plus a SATURATION term. The
+    # palette is all full-blast primaries, and a dark muted brown or mauve
+    # must land on the calm options (black, the darker hues) instead of a
+    # screaming red of similar plain distance. The pipeline around this
+    # metric is the plain Polizei one (no pre-curves, no vote biases); the
+    # metric alone carries the taste.
     sa = max(a) - min(a)
     sb = max(b) - min(b)
     return _dist_luma(a, b, 20) + 3 * (sa - sb) ** 2
 
 
-def _convert_zx3(rows):
+def _convert_zx3(rows, salient=None):
     # The Spectrum: 256 wide, per 8x8 cell exactly TWO colors sharing one
-    # bright level (black lives in both halves). Per cell, both bright
-    # levels are tried: the cell's pixels vote for their nearest of the
-    # eight (in the luminance-dominant space), the two most voted become
-    # paper (majority) and ink, and the level with the smaller remap error
-    # wins. The two-color remap always carries a Bayer mix (16 for flat art,
-    # 28 for gradient masters): a genuinely flat cell is immune (its own
-    # two colors win by a margin no jitter crosses), while mixed cells get
-    # the authentic Spectrum texture instead of hard banding.
+    # bright level (black lives in both halves). The doctrine, relearned on
+    # Stefan's own hand-painted Spectrum Rabenstein (arc_image/Training) and
+    # on Pixel Polizei's manner: FIRST downsample every pixel to its nearest
+    # of the fifteen real Spectrum colors, plainly, with no pre-curves (an
+    # earlier night-darkening curve crushed whole scenes to black); THEN
+    # resolve each cell to a legal pair. Black is the school's canvas: it is
+    # the one color legal beside both bright levels, so black-partnered
+    # pairs clash least and get a gentle preference, never a forced crush.
     rows = _crop_width(rows, 256)
-    # The Spectrum idiom pre-curve, CONDITIONAL: night scenes darken toward
-    # black (v^2/255; black is the clash-free color and the school's
-    # foundation), day scenes stay untouched. The first cut applied the
-    # curve globally and wrecked the daylight graveyard of the training
-    # corpus into saturated chaos; mean luminance decides now.
-    total = count = 0
-    for row in rows:
-        for c in row:
-            total += 2 * c[0] + 4 * c[1] + c[2]
-            count += 7
-    if total // count < 100:
-        rows = [[tuple(v * v // 255 for v in c) for c in row] for row in rows]
+    sal = {(x - 32, y) for x, y in salient
+           if 32 <= x < 288} if salient else set()
     w, h = len(rows[0]), len(rows)
-    amp = 28 if _gradient_class(rows) else 16
+    grad = _gradient_class(rows)
+    amp = 5 if grad else 0
+    idx = _map_pixels(rows, _ZX15, amp, metric=_dist_zx15)
+    for x, y in sal:
+        idx[y][x] = 14                    # the hinted object: bright white
     cells_x, cells_y = w // 8, h // 8
     pixels = [[0] * w for _ in range(h)]
     attrs = []
     for cy in range(cells_y):
         for cx in range(cells_x):
-            cell = [rows[cy * 8 + yy][cx * 8 + xx]
+            cell = [(rows[cy * 8 + yy][cx * 8 + xx],
+                     idx[cy * 8 + yy][cx * 8 + xx])
                     for yy in range(8) for xx in range(8)]
+            hist = {}
+            for _c, i in cell:
+                hist[i] = hist.get(i, 0) + 1
+            forced = any((cx * 8 + xx, cy * 8 + yy) in sal
+                         for yy in range(8) for xx in range(8)) if sal \
+                else False
             best = None
             for bright in (0, 1):
-                pal = [_zx_color(i, bright) for i in range(8)]
-                votes = {}
-                for c in cell:
-                    i = min(range(8), key=lambda k: _dist_zx(c, pal[k]))
-                    votes[i] = votes.get(i, 0) + 1
-                top = sorted(votes, key=votes.get, reverse=True)
-                # Candidate pairs, the Spectrum school: black-plus-dominant
-                # first (black is clash-free and carries the classic look;
-                # Stefan's own Rabenstein Spectrum art is black-dominated),
-                # then the two most voted. Black pairs get a bias.
-                cands = []
-                dom = next((t for t in top if t != 0), top[0])
-                cands.append((0, dom))
-                if len(top) >= 2:
-                    cands.append((top[0], top[1]))
-                if top[0] != 0:
-                    cands.append((0, top[0]))
+                legal = list(range(8)) if bright == 0 \
+                    else [0] + list(range(8, 15))
+                legal_set = set(legal)
+                proj = {}
+                for i, cnt in hist.items():
+                    li = i if i in legal_set else min(
+                        legal, key=lambda k: _dist_zx15(_ZX15[i], _ZX15[k]))
+                    proj[li] = proj.get(li, 0) + cnt
+                top = sorted(proj, key=proj.get, reverse=True)
+                if forced:
+                    # The object's ink is white in this half (normal white
+                    # against a colored sky, bright white against black
+                    # trees: his moon cells are bright-on-black, the sky
+                    # cells must not turn into a glowing attribute box).
+                    white = 7 if bright == 0 else 14
+                    partners = [t for t in top if t != white] or [0]
+                    cands = {(white, partners[0]), (white, 0)}
+                else:
+                    a = top[0]
+                    b = top[1] if len(top) > 1 else top[0]
+                    cands = {(a, b), (0, a)}
                 for a, b in cands:
-                    err = sum(min(_dist_zx(c, pal[a]), _dist_zx(c, pal[b]))
-                              for c in cell)
+                    err = sum(min(_dist_zx15(c, _ZX15[a]),
+                                  _dist_zx15(c, _ZX15[b]))
+                              for c, _i in cell)
                     if 0 in (a, b):
-                        err = err * 17 // 20  # the black bias
+                        err = err * 19 // 20    # the black school, gently
                     if best is None or err < best[0]:
                         best = (err, bright, a, b)
-            _err, bright, paper, ink = best
-            # Paper is the darker of the pair (text sits on dark), ink the
-            # brighter: the convention his art follows everywhere.
-            pal = [_zx_color(i, bright) for i in range(8)]
-            if _dist_zx(pal[paper], (0, 0, 0)) > _dist_zx(pal[ink], (0, 0, 0)):
-                paper, ink = ink, paper
+            _err, bright, a, b = best
+
+            def luma(i):
+                c = _ZX15[i]
+                return 2 * c[0] + 4 * c[1] + c[2]
+            # Paper the darker, ink the brighter: his convention everywhere.
+            paper, ink = (a, b) if luma(a) <= luma(b) else (b, a)
+            pp, pi = _ZX15[paper], _ZX15[ink]
             for yy in range(8):
                 for xx in range(8):
-                    c = rows[cy * 8 + yy][cx * 8 + xx]
-                    t = _bayer_at(cx * 8 + xx, cy * 8 + yy, amp)
-                    c = tuple(min(255, max(0, round(v + t))) for v in c)
-                    on = _dist_zx(c, pal[ink]) < _dist_zx(c, pal[paper])
-                    pixels[cy * 8 + yy][cx * 8 + xx] = 1 if on else 0
-            attrs.append(ink | (paper << 3) | (0x40 if bright else 0))
+                    x, y = cx * 8 + xx, cy * 8 + yy
+                    if (x, y) in sal:
+                        pixels[y][x] = 1      # the object is solid ink
+                        continue
+                    c = rows[y][x]
+                    if grad:
+                        t = _bayer_at(x, y, 8)
+                        c = tuple(min(255, max(0, round(v + t))) for v in c)
+                    pixels[y][x] = 1 if _dist_zx15(c, pi) < \
+                        _dist_zx15(c, pp) else 0
+            ink_n = ink if ink < 8 else ink - 7
+            paper_n = paper if paper < 8 else paper - 7
+            attrs.append(ink_n | (paper_n << 3) | (0x40 if bright else 0))
     return {"w": w, "h": h, "pixels": pixels, "attrs": attrs}
 
 
-def _convert_cpc(rows):
+def _convert_cpc(rows, salient=None):
     # Mode 0: 160 wide, 2:1 pixels, 16 inks freely chosen from the 27-color
     # cube (levels 0/128/255 per channel), no cells: the quantize recipe with
     # the wide-pixel geometry. Ink numbers are the r*9+g*3+b index; the
@@ -1223,6 +1419,51 @@ _CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,
                "C64": _convert_c64, "ZX3": _convert_zx3, "CPC": _convert_cpc}
 
 
+def _read_hint(path: str):
+    """The optional author sidecar beside a master: 8.png may have 8.hint,
+    a small JSON file. {"salient": [[cx, cy, r], ...]} marks the bright
+    objects that must stay visible after conversion (a moon, a sun), as
+    discs in master pixel coordinates. Seconds of author work, and every
+    target benefits at once; detection was tried and is not reliable on
+    pixel art (clouds share the moon's colors, trees occlude its shape),
+    so the author states the intent and the tool honors it."""
+    hint = os.path.splitext(path)[0] + ".hint"
+    if not os.path.exists(hint):
+        return None
+    import json
+    with open(hint) as f:
+        data = json.load(f)
+    discs = data.get("salient")
+    return [tuple(int(v) for v in d) for d in discs] if discs else None
+
+
+def _salient_pixels(rows, discs):
+    """The set of (x, y) the hint protects: within each disc, the pixels of
+    its bright side. An occluder in front (trees before the moon) is darker
+    and stays untouched; a fully visible disc (the sun) is taken whole."""
+    h, w = len(rows), len(rows[0])
+    out = set()
+    for cx, cy, r in discs:
+        lums = []
+        for y in range(max(0, cy - r), min(h, cy + r + 1)):
+            for x in range(max(0, cx - r), min(w, cx + r + 1)):
+                if (x - cx) ** 2 + (y - cy) ** 2 <= r * r:
+                    c = rows[y][x]
+                    lums.append((2 * c[0] + 4 * c[1] + c[2], x, y))
+        if not lums:
+            continue
+        lums.sort()
+        half = len(lums) // 2
+        dark = sum(l for l, _x, _y in lums[:half]) / max(1, half)
+        bright = sum(l for l, _x, _y in lums[half:]) / (len(lums) - half)
+        if bright - dark < 200:      # uniform disc: all of it is the object
+            out.update((x, y) for _l, x, y in lums)
+        else:                        # occluded disc: the bright side only
+            cut = (dark + bright) / 2
+            out.update((x, y) for l, x, y in lums if l >= cut)
+    return out
+
+
 def convert_master(path: str, tag: str):
     """A band-shaped master PNG into (mode, native dict) for a target."""
     rows = _read_png(path)
@@ -1234,7 +1475,9 @@ def convert_master(path: str, tag: str):
         raise ValueError(
             f"no converter for target {tag} yet (wave order, docs/08); "
             f"available: {', '.join(sorted(_CONVERTERS))}")
-    return (9 if h == 72 else 12), _CONVERTERS[tag](rows)
+    discs = _read_hint(path)
+    salient = _salient_pixels(rows, discs) if discs else None
+    return (9 if h == 72 else 12), _CONVERTERS[tag](rows, salient)
 
 
 # -- a minimal PNG writer (stdlib; render-back needs no Pillow) -----------------
@@ -1426,7 +1669,8 @@ TARGETS = {}
 
 
 class Target:
-    def __init__(self, tid, tag, width, pack, unpack, render, pattern):
+    def __init__(self, tid, tag, width, pack, unpack, render, pattern,
+                 codec=CODEC_ZX0):
         self.id = tid
         self.tag = tag
         self.width = width
@@ -1434,15 +1678,22 @@ class Target:
         self.unpack = unpack    # (sections, w, h) -> native dict
         self.render = render    # (native, w, h) -> RGB rows
         self.pattern = pattern  # (w, h) -> native dict (a legal test image)
+        self.codec = codec      # the codec this target's chapter mandates
 
     def height(self, mode):
         return mode * 8
 
 
+# The 16-bit big-disk targets take LZSA2, everything else ZX0 (the codec
+# ruling; the note above lzsa2_compress has the measured trade).
+_LZSA2_TAGS = {"AMI", "AST", "DOS", "M65", "MS2", "NXT"}
+
+
 def _target(tid, tag, width):
     def deco(cls):
+        codec = CODEC_LZSA2 if tag in _LZSA2_TAGS else CODEC_ZX0
         TARGETS[tag] = Target(tid, tag, width, cls.pack, cls.unpack,
-                              cls.render, cls.pattern)
+                              cls.render, cls.pattern, codec)
         return cls
     return deco
 
@@ -2137,11 +2388,13 @@ class _Vdc:
 
 
 def encode_native(tag: str, mode: int, image_id: int, native,
-                  codec=CODEC_ZX0) -> bytes:
-    """A native image (the target's own dict shape) into .arc bytes."""
+                  codec=None) -> bytes:
+    """A native image (the target's own dict shape) into .arc bytes. The
+    codec defaults to the target's own (LZSA2 on the 16-bit trio, ZX0
+    elsewhere); pass one explicitly to override."""
     t = TARGETS[tag]
     return write_arc(t.id, mode, native["w"], native["h"], image_id,
-                     t.pack(native), codec)
+                     t.pack(native), t.codec if codec is None else codec)
 
 
 def decode_arc(blob: bytes):
@@ -2273,6 +2526,39 @@ def cmd_info(args) -> int:
     return 0
 
 
+_CODEC_NAMES = {"rle": CODEC_RLE, "zx0": CODEC_ZX0, "lzsa2": CODEC_LZSA2}
+
+
+def _convert_stale(master, dest, preview):
+    """make-style currency: the output stands if it is newer than the
+    master, its hint sidecar (if any), and this tool itself."""
+    outs = [dest] + ([preview] if preview else [])
+    if not all(os.path.exists(o) for o in outs):
+        return True
+    deps = [master, os.path.abspath(__file__)]
+    hint = os.path.splitext(master)[0] + ".hint"
+    if os.path.exists(hint):
+        deps.append(hint)
+    newest_dep = max(os.path.getmtime(d) for d in deps)
+    return min(os.path.getmtime(o) for o in outs) < newest_dep
+
+
+def _convert_job(job):
+    """One picture, start to finish; module-level so worker processes can
+    reach it. Returns (iid, dest, size, mode) or an error string."""
+    iid, path, tag, dest, preview, codec = job
+    try:
+        mode, native = convert_master(path, tag)
+        blob = encode_native(tag, mode, iid, native, codec)
+    except (ValueError, RuntimeError) as exc:
+        return f"{path}: {exc}"
+    with open(dest, "wb") as f:
+        f.write(blob)
+    if preview:
+        render_arc(blob, preview)
+    return (iid, dest, len(blob), mode)
+
+
 def cmd_convert(args) -> int:
     tag = args.target.upper()
     entries = _collect_numbered(args.sources)
@@ -2282,22 +2568,35 @@ def cmd_convert(args) -> int:
     os.makedirs(args.out, exist_ok=True)
     if args.preview:
         os.makedirs(args.preview, exist_ok=True)
-    total = 0
+    codec = _CODEC_NAMES[args.codec] if args.codec else None
+    jobs = []
+    skipped = 0
     for iid in sorted(entries):
-        try:
-            mode, native = convert_master(entries[iid], tag)
-        except ValueError as exc:
-            print(f"arcimg: {exc}", file=sys.stderr)
-            return 2
-        blob = encode_native(tag, mode, iid, native)
         dest = os.path.join(args.out, f"{iid}.{tag}")
-        with open(dest, "wb") as f:
-            f.write(blob)
-        total += len(blob)
-        print(f"arcimg: wrote {dest} ({len(blob)} bytes, mode {mode})")
-        if args.preview:
-            render_arc(blob, os.path.join(args.preview, f"{iid}-{tag}.png"))
-    print(f"arcimg: {len(entries)} pictures, {total} bytes total")
+        preview = os.path.join(args.preview, f"{iid}-{tag}.png") \
+            if args.preview else None
+        if not args.force and not _convert_stale(entries[iid], dest, preview):
+            skipped += 1
+            continue
+        jobs.append((iid, entries[iid], tag, dest, preview, codec))
+    if len(jobs) > 1 and not args.serial:
+        # The packers dominate the wall clock (ZX0's optimal parse above
+        # all); pictures are independent, so they convert in parallel.
+        import multiprocessing
+        with multiprocessing.Pool() as pool:
+            results = pool.map(_convert_job, jobs)
+    else:
+        results = [_convert_job(j) for j in jobs]
+    total = 0
+    for res in results:
+        if isinstance(res, str):
+            print(f"arcimg: {res}", file=sys.stderr)
+            return 2
+        _iid, dest, size, mode = res
+        total += size
+        print(f"arcimg: wrote {dest} ({size} bytes, mode {mode})")
+    note = f", {skipped} current (skipped)" if skipped else ""
+    print(f"arcimg: {len(jobs)} pictures, {total} bytes total{note}")
     return 0
 
 
@@ -2386,6 +2685,13 @@ def build_parser() -> argparse.ArgumentParser:
                         help="output directory for the <id>.<TAG> files")
     p_conv.add_argument("--preview",
                         help="also render each result to PNG in this directory")
+    p_conv.add_argument("--codec", choices=sorted(_CODEC_NAMES),
+                        help="override the target's codec (default: LZSA2 on "
+                             "the 16-bit trio, ZX0 elsewhere)")
+    p_conv.add_argument("--force", action="store_true",
+                        help="reconvert even when outputs are current")
+    p_conv.add_argument("--serial", action="store_true",
+                        help="convert one picture at a time (no worker pool)")
     p_conv.set_defaults(func=cmd_convert)
 
     p_render = sub.add_parser(
