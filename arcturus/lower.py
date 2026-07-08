@@ -1187,10 +1187,36 @@ def _emit_test(rt, ctx, expr, label, on_true):
             child, parent = expr.right, expr.left
         else:
             child, parent = expr.left, expr.right
-        opa, opb, tmp = _two_operands(rt, ctx, child, parent)
-        rt.op("jin", opa, opb, branch=(label, on_true))
-        if tmp is not None:
-            ctx.free_temp(tmp)
+        # The containment test is TOTAL: `nothing in X` is false, never an
+        # illegal @jin with object 0 (a field game's free `on take` tested an
+        # unresolved noun and the interpreter warned on every turn). A child
+        # that is a compile-time object skips the guard; anything else gets
+        # a jz gate BEFORE the parent evaluates, so a skipped test leaves
+        # nothing on the stack (and the parent expression short-circuits).
+        from .assembler import SMALL, LARGE
+        copa = _leaf_operand(ctx, child) if _is_leaf(ctx, child) else None
+        if copa is not None and copa.kind in (SMALL, LARGE) and copa.value != 0 \
+                and copa.routine is None and copa.string is None:
+            opa, opb, tmp = _two_operands(rt, ctx, child, parent)
+            rt.op("jin", opa, opb, branch=(label, on_true))
+            if tmp is not None:
+                ctx.free_temp(tmp)
+            return
+        t = ctx.alloc_temp()
+        eval_expr(rt, ctx, child, Variable(t))
+        if on_true:
+            skip = ctx.new_label()
+            rt.op("jz", Variable(t), branch=(skip, True))
+            opb, tp = _operand(rt, ctx, parent)
+            rt.op("jin", Variable(t), opb, branch=(label, True))
+            rt.label(skip)
+        else:
+            rt.op("jz", Variable(t), branch=(label, True))
+            opb, tp = _operand(rt, ctx, parent)
+            rt.op("jin", Variable(t), opb, branch=(label, False))
+        ctx.free_temp(t)
+        if tp is not None:
+            ctx.free_temp(tp)
         return
     # Any other expression: evaluate to a value and test against zero.
     op, t = _operand(rt, ctx, expr)
