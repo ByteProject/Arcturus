@@ -50,13 +50,13 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = '7fa40ef'
+__build__ = '37a9446'
 
 
 def build_id() -> str:
@@ -726,7 +726,184 @@ def _convert_dos(rows):
     return {"w": w, "h": h, "pixels": pixels, "palette": palette}
 
 
-_CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos}
+# ---- wave 2: the cell class (C64, ZX Spectrum +3) and the CPC ------------------
+
+def _halve_width(rows):
+    """320 -> 160 for the wide-pixel machines: an exact 2:1 average."""
+    out = []
+    for row in rows:
+        out.append([tuple((a + b) // 2 for a, b in zip(row[x], row[x + 1]))
+                    for x in range(0, len(row), 2)])
+    return out
+
+
+def _crop_width(rows, w):
+    """Center-crop the 320-wide master to a narrower band (the docs/08
+    geometry policy: crop, do not squeeze)."""
+    x0 = (len(rows[0]) - w) // 2
+    return [row[x0:x0 + w] for row in rows]
+
+
+def _bayer_at(x, y, amount):
+    return (_BAYER8[y & 7][x & 7] / 63.0 - 0.5) * 2 * amount
+
+
+def _convert_c64(rows):
+    # Multicolor bitmap: 160 wide, 2:1 pixels, per 4x8 cell THREE free colors
+    # plus ONE global background, all from the fixed 16 (Colodore). The
+    # solver: index every pixel into the 16 (gradient masters get the Bayer
+    # jitter here), elect the background among the most frequent indices by
+    # total remap cost, then per cell keep the three most frequent non-
+    # background colors and remap the stragglers.
+    rows = _halve_width(rows)
+    w, h = len(rows[0]), len(rows)
+    amp = _dither_amount(rows, 16)
+    idx = _map_pixels(rows, _COLODORE, amp)
+    freq = {}
+    for row in idx:
+        for c in row:
+            freq[c] = freq.get(c, 0) + 1
+    candidates = sorted(freq, key=freq.get, reverse=True)[:4]
+    cells_x, cells_y = w // 4, h // 8
+
+    def cell_hist(cx, cy):
+        hist = {}
+        for yy in range(8):
+            for xx in range(4):
+                c = idx[cy * 8 + yy][cx * 4 + xx]
+                hist[c] = hist.get(c, 0) + 1
+        return hist
+
+    hists = [[cell_hist(cx, cy) for cx in range(cells_x)]
+             for cy in range(cells_y)]
+
+    def bg_cost(bg):
+        cost = 0
+        for cy in range(cells_y):
+            for cx in range(cells_x):
+                hist = hists[cy][cx]
+                free = sorted((c for c in hist if c != bg),
+                              key=hist.get, reverse=True)[:3]
+                allowed = [bg] + free
+                for c, cnt in hist.items():
+                    if c not in allowed:
+                        cost += cnt * min(_dist(_COLODORE[c], _COLODORE[a])
+                                          for a in allowed)
+        return cost
+
+    bg = min(candidates, key=bg_cost)
+    pixels = [[0] * w for _ in range(h)]
+    screen = []
+    color = []
+    for cy in range(cells_y):
+        for cx in range(cells_x):
+            hist = hists[cy][cx]
+            free = sorted((c for c in hist if c != bg),
+                          key=hist.get, reverse=True)[:3]
+            free += [bg] * (3 - len(free))  # pad: unused slots mirror bg
+            allowed = [bg] + free
+            for yy in range(8):
+                for xx in range(4):
+                    c = idx[cy * 8 + yy][cx * 4 + xx]
+                    if c not in allowed:
+                        c = min(allowed,
+                                key=lambda a, cc=c: _dist(_COLODORE[cc],
+                                                          _COLODORE[a]))
+                    pixels[cy * 8 + yy][cx * 4 + xx] = allowed.index(c)
+            screen.append((free[0] << 4) | free[1])
+            color.append(free[2])
+    return {"w": w, "h": h, "pixels": pixels, "screen": screen,
+            "color": color, "regs": [bg]}
+
+
+def _dist_zx(a, b):
+    """The Spectrum's matching space: LUMINANCE-DOMINANT. The palette is all
+    full-saturation primaries, so plain hue-proximity maps a dark muted
+    brown to screaming red; weighting luminance ~20x (tuned by eye on the
+    corpus) makes dark things dark first and colored second, the way every
+    good Spectrum converter works."""
+    ya = 2 * a[0] + 4 * a[1] + a[2]
+    yb = 2 * b[0] + 4 * b[1] + b[2]
+    return (20 * (ya - yb) ** 2 // 49
+            + (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2)
+
+
+def _convert_zx3(rows):
+    # The Spectrum: 256 wide, per 8x8 cell exactly TWO colors sharing one
+    # bright level (black lives in both halves). Per cell, both bright
+    # levels are tried: the cell's pixels vote for their nearest of the
+    # eight (in the luminance-dominant space), the two most voted become
+    # paper (majority) and ink, and the level with the smaller remap error
+    # wins. The two-color remap always carries a Bayer mix (16 for flat art,
+    # 28 for gradient masters): a genuinely flat cell is immune (its own
+    # two colors win by a margin no jitter crosses), while mixed cells get
+    # the authentic Spectrum texture instead of hard banding.
+    rows = _crop_width(rows, 256)
+    w, h = len(rows[0]), len(rows)
+    amp = 28 if _gradient_class(rows) else 16
+    cells_x, cells_y = w // 8, h // 8
+    pixels = [[0] * w for _ in range(h)]
+    attrs = []
+    for cy in range(cells_y):
+        for cx in range(cells_x):
+            cell = [rows[cy * 8 + yy][cx * 8 + xx]
+                    for yy in range(8) for xx in range(8)]
+            best = None
+            for bright in (0, 1):
+                pal = [_zx_color(i, bright) for i in range(8)]
+                votes = {}
+                for c in cell:
+                    i = min(range(8), key=lambda k: _dist_zx(c, pal[k]))
+                    votes[i] = votes.get(i, 0) + 1
+                top = sorted(votes, key=votes.get, reverse=True)[:2]
+                if len(top) == 1:
+                    top.append(top[0])
+                paper, ink = top[0], top[1]
+                err = sum(min(_dist_zx(c, pal[paper]), _dist_zx(c, pal[ink]))
+                          for c in cell)
+                if best is None or err < best[0]:
+                    best = (err, bright, paper, ink)
+            _err, bright, paper, ink = best
+            pal = [_zx_color(i, bright) for i in range(8)]
+            for yy in range(8):
+                for xx in range(8):
+                    c = rows[cy * 8 + yy][cx * 8 + xx]
+                    t = _bayer_at(cx * 8 + xx, cy * 8 + yy, amp)
+                    c = tuple(min(255, max(0, round(v + t))) for v in c)
+                    on = _dist_zx(c, pal[ink]) < _dist_zx(c, pal[paper])
+                    pixels[cy * 8 + yy][cx * 8 + xx] = 1 if on else 0
+            attrs.append(ink | (paper << 3) | (0x40 if bright else 0))
+    return {"w": w, "h": h, "pixels": pixels, "attrs": attrs}
+
+
+def _convert_cpc(rows):
+    # Mode 0: 160 wide, 2:1 pixels, 16 inks freely chosen from the 27-color
+    # cube (levels 0/128/255 per channel), no cells: the quantize recipe with
+    # the wide-pixel geometry. Ink numbers are the r*9+g*3+b index; the
+    # loader maps them to gate-array values with its own table (docs/09).
+    rows = _halve_width(rows)
+    w, h = len(rows[0]), len(rows)
+
+    def q3(v):
+        return 0 if v < 64 else (1 if v < 192 else 2)
+
+    def snap27(c):
+        lv = (0, 0x80, 0xFF)
+        return (lv[q3(c[0])], lv[q3(c[1])], lv[q3(c[2])])
+
+    pal = _build_palette(rows, 16, snap27)
+    pal += [(0, 0, 0)] * (16 - len(pal))
+    # The 27-cube has no muted colors at all (three levels per channel), so
+    # gradient art needs a STRONGER mix than the other 16-color targets: a
+    # sunset's dusty purple only exists as gray+pink+blue blended by the
+    # dither (tuned on the stresstest beach). Flat art stays undithered.
+    pixels = _map_pixels(rows, pal, 20 if _gradient_class(rows) else 0)
+    inks = [q3(c[0]) * 9 + q3(c[1]) * 3 + q3(c[2]) for c in pal]
+    return {"w": w, "h": h, "pixels": pixels, "palette": inks, "regs": [0]}
+
+
+_CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,
+               "C64": _convert_c64, "ZX3": _convert_zx3, "CPC": _convert_cpc}
 
 
 def convert_master(path: str, tag: str):
