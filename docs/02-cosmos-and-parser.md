@@ -347,7 +347,11 @@ agnostic skeleton) scores every in-scope object by how many of the phrase's
 typed words its `words` contain, then takes the single best:
 
 - No object matches: the grain check, then "You see nothing of the sort
-  here." if an object word was typed.
+  here." if a known object word was typed, or "This story doesn't know
+  the word \"...\"" (the word spelled back from the input) if a typed
+  word is in no dictionary entry at all. Either way the action is NOT
+  dispatched: a handler that sees `noun is nothing` can trust it means
+  the player typed the bare verb, never an unresolved phrase.
 - One object scores best: it fills the slot.
 - Several tie at the best score: a genuine ambiguity. The parser asks
   "Which do you mean, the gold coin or the silver coin?", printing each
@@ -379,8 +383,11 @@ box") are core (section 8b). Every swept item is a full turn, the chaining
 rule. Unsummoned, "all" and group words are ordinary unknown words.
 
 Unknown words. A word in no dictionary entry is ignored where it cannot
-matter and answers "You see nothing of the sort here." where it named the
-only candidate noun. The messages are Cosmos blocks and overridable.
+matter; where it sat in a noun slot the turn answers "This story doesn't
+know the word \"...\"", naming the word (msg_unknown_word, parse_fault 4,
+the word spelled back from the text buffer), so a typo is told apart from
+a real thing that is not here, and OOPS corrects it on the next line. The
+messages are Cosmos blocks and overridable.
 
 Grains. When a `noun` slot finds no real object but the typed word is a grain
 word on `here` or an in-scope object, and the action's verb is one the grain
