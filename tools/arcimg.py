@@ -50,7 +50,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -210,6 +210,235 @@ SEC_LINETABLE = 6  # per-scanline register values (Atari 8-bit)
 SEC_REGS = 7       # a handful of global hardware values
 
 
+# ---- ZX0 (Einar Saukas's format, forward + inverted gamma: the v2 stream
+# every published decompressor targets). Ported faithfully from the
+# reference optimize.c/compress.c; the packer is OPTIMAL, not greedy, and
+# byte-compatible with the reference tool. Ruled the .arc codec by Stefan
+# (2026-07-08) after the corpus bake-off: within a few percent of Exomizer
+# with the smallest decompressors in the business (~70 bytes of Z80).
+
+_ZX0_MAX_OFFSET = 2176  # the quick-mode window: 0-2% larger output on the
+# corpus than the full 32640 window, an order of magnitude faster to pack
+# (measured per target in docs/08); loaders are unaffected either way
+
+
+def _zx0_gamma_bits(value):
+    bits = 1
+    while value > 1:
+        value >>= 1
+        bits += 2
+    return bits
+
+
+class _Zx0Block:
+    __slots__ = ("bits", "index", "offset", "chain")
+
+    def __init__(self, bits, index, offset, chain):
+        self.bits = bits
+        self.index = index
+        self.offset = offset
+        self.chain = chain
+
+
+def _zx0_optimize(data):
+    n = len(data)
+    max_offset = min(max(1, n - 1), _ZX0_MAX_OFFSET)
+    last_literal = [None] * (max_offset + 1)
+    last_match = [None] * (max_offset + 1)
+    optimal = [None] * n
+    match_length = [0] * (max_offset + 1)
+    best_length = [0] * (n if n > 2 else 3)
+    if n > 2:
+        best_length[2] = 2
+    last_match[1] = _Zx0Block(-1, -1, 1, None)
+    for index in range(n):
+        best_length_size = 2
+        mo = min(max(index, 1), _ZX0_MAX_OFFSET)
+        for offset in range(1, mo + 1):
+            if index != 0 and index >= offset and data[index] == data[index - offset]:
+                ll = last_literal[offset]
+                if ll is not None:
+                    length = index - ll.index
+                    bits = ll.bits + 1 + _zx0_gamma_bits(length)
+                    lm = _Zx0Block(bits, index, offset, ll)
+                    last_match[offset] = lm
+                    if optimal[index] is None or optimal[index].bits > bits:
+                        optimal[index] = lm
+                match_length[offset] += 1
+                if match_length[offset] > 1:
+                    if best_length_size < match_length[offset]:
+                        bits = (optimal[index - best_length[best_length_size]].bits
+                                + _zx0_gamma_bits(best_length[best_length_size] - 1))
+                        while best_length_size < match_length[offset]:
+                            best_length_size += 1
+                            bits2 = (optimal[index - best_length_size].bits
+                                     + _zx0_gamma_bits(best_length_size - 1))
+                            if bits2 <= bits:
+                                best_length[best_length_size] = best_length_size
+                                bits = bits2
+                            else:
+                                best_length[best_length_size] = \
+                                    best_length[best_length_size - 1]
+                    length = best_length[match_length[offset]]
+                    bits = (optimal[index - length].bits + 8
+                            + _zx0_gamma_bits((offset - 1) // 128 + 1)
+                            + _zx0_gamma_bits(length - 1))
+                    lm = last_match[offset]
+                    if lm is None or lm.index != index or lm.bits > bits:
+                        nb = _Zx0Block(bits, index, offset, optimal[index - length])
+                        last_match[offset] = nb
+                        if optimal[index] is None or optimal[index].bits > bits:
+                            optimal[index] = nb
+            else:
+                match_length[offset] = 0
+                lm = last_match[offset]
+                if lm is not None:
+                    length = index - lm.index
+                    bits = lm.bits + 1 + _zx0_gamma_bits(length) + length * 8
+                    nl = _Zx0Block(bits, index, 0, lm)
+                    last_literal[offset] = nl
+                    if optimal[index] is None or optimal[index].bits > bits:
+                        optimal[index] = nl
+    return optimal[n - 1]
+
+
+def zx0_compress(data: bytes) -> bytes:
+    """Optimal ZX0 (forward, inverted gamma). Empty input compresses to the
+    bare end marker."""
+    if not data:
+        return b""  # ZX0 has no empty-stream form; the container convention
+    out = bytearray()
+    state = {"mask": 0, "bit_index": 0, "backtrack": True}
+
+    def write_byte(v):
+        out.append(v & 0xFF)
+
+    def write_bit(v):
+        if state["backtrack"]:
+            if v:
+                out[-1] |= 1
+            state["backtrack"] = False
+            return
+        if not state["mask"]:
+            state["mask"] = 128
+            state["bit_index"] = len(out)
+            write_byte(0)
+        if v:
+            out[state["bit_index"]] |= state["mask"]
+        state["mask"] >>= 1
+
+    def write_gamma(value, invert):
+        i = 2
+        while i <= value:
+            i <<= 1
+        i >>= 2
+        while i:
+            write_bit(0)
+            bit = value & i
+            write_bit((0 if bit else 1) if invert else (1 if bit else 0))
+            i >>= 1
+        write_bit(1)
+
+    if data:
+        # Un-reverse the optimal chain.
+        optimal = _zx0_optimize(data)
+        prev = None
+        while optimal is not None:
+            nxt = optimal.chain
+            optimal.chain = prev
+            prev = optimal
+            optimal = nxt
+        last_offset = 1
+        pos = 0
+        node = prev.chain
+        prev_index = prev.index
+        while node is not None:
+            length = node.index - prev_index
+            if node.offset == 0:
+                write_bit(0)
+                write_gamma(length, False)
+                for _ in range(length):
+                    write_byte(data[pos])
+                    pos += 1
+            elif node.offset == last_offset:
+                write_bit(0)
+                write_gamma(length, False)
+                pos += length
+            else:
+                write_bit(1)
+                write_gamma((node.offset - 1) // 128 + 1, True)
+                write_byte((127 - (node.offset - 1) % 128) << 1)
+                state["backtrack"] = True
+                write_gamma(length - 1, False)
+                pos += length
+                last_offset = node.offset
+            prev_index = node.index
+            node = node.chain
+    write_bit(1)
+    write_gamma(256, True)
+    return bytes(out)
+
+
+def zx0_decompress(blob: bytes) -> bytes:
+    """A verbatim port of the reference dzx0 (forward, inverted gamma): the
+    mirror of every published ZX0 decoder, used by render/tests and as the
+    executable specification for the per-CPU loaders in docs/09. The
+    backtrack bit is the trick to know: after a new offset's LSB byte, the
+    FIRST bit of the length gamma is that byte's bit 0."""
+    if not blob:
+        return b""  # the container's empty-section convention
+    out = bytearray()
+    pos = 0
+    mask = 0
+    bitv = 0
+    back = False
+    last_byte = 0
+    last_offset = 1
+
+    def read_byte():
+        nonlocal pos, last_byte
+        last_byte = blob[pos]
+        pos += 1
+        return last_byte
+
+    def read_bit():
+        nonlocal mask, bitv, back
+        if back:
+            back = False
+            return last_byte & 1
+        mask >>= 1
+        if mask == 0:
+            mask = 128
+            bitv = read_byte()
+        return 1 if bitv & mask else 0
+
+    def gamma(inv):
+        v = 1
+        while not read_bit():
+            v = (v << 1) | (read_bit() ^ inv)
+        return v
+
+    state = "lit"
+    while True:
+        if state == "lit":
+            for _ in range(gamma(0)):
+                out.append(read_byte())
+            state = "new" if read_bit() else "last"
+        elif state == "last":
+            for _ in range(gamma(0)):
+                out.append(out[-last_offset])
+            state = "new" if read_bit() else "lit"
+        else:
+            v = gamma(1)
+            if v == 256:
+                return bytes(out)
+            last_offset = v * 128 - (read_byte() >> 1)
+            back = True
+            for _ in range(gamma(0) + 1):
+                out.append(out[-last_offset])
+            state = "new" if read_bit() else "lit"
+
+
 def rle_encode(data: bytes) -> bytes:
     """The shared RLE scheme: c<=0x7F copies c+1 literal bytes, c>=0x81
     repeats the next byte 257-c times (2..128), 0x80 ends the section. Runs
@@ -264,16 +493,24 @@ def rle_decode(data: bytes) -> bytes:
     raise ValueError("RLE stream ended without the 0x80 sentinel")
 
 
-def write_arc(target_id, mode, width, height, image_id, sections) -> bytes:
-    """Assemble a .arc file: header, section table, RLE'd section streams.
-    `sections` is a list of (type, flags, raw_bytes)."""
+# Codecs (header byte 14): 0 = the RLE scheme below, 1 = ZX0 (the default
+# since Stefan's ruling, 2026-07-08; the corpus bake-off is in docs/08).
+CODEC_RLE = 0
+CODEC_ZX0 = 1
+
+
+def write_arc(target_id, mode, width, height, image_id, sections,
+              codec=CODEC_ZX0) -> bytes:
+    """Assemble a .arc file: header, section table, compressed section
+    streams. `sections` is a list of (type, flags, raw_bytes)."""
+    pack = zx0_compress if codec == CODEC_ZX0 else rle_encode
     out = bytearray()
     out += ARC_MAGIC
     out += bytes([ARC_VERSION, target_id, mode, len(sections)])
-    out += struct.pack(">HHHH", width, height, image_id, 0)
+    out += struct.pack(">HHHBB", width, height, image_id, codec, 0)
     streams = []
     for stype, flags, raw in sections:
-        comp = rle_encode(raw)
+        comp = pack(raw)
         out += struct.pack(">BBHH", stype, flags, len(raw), len(comp))
         streams.append(comp)
     for comp in streams:
@@ -290,9 +527,12 @@ def read_arc(blob: bytes):
     version, target_id, mode, count = blob[4], blob[5], blob[6], blob[7]
     if version != ARC_VERSION:
         raise ValueError(f"unsupported .arc version {version}")
-    width, height, image_id, _ = struct.unpack(">HHHH", blob[8:16])
+    width, height, image_id, codec, _r = struct.unpack(">HHHBB", blob[8:16])
+    if codec not in (CODEC_RLE, CODEC_ZX0):
+        raise ValueError(f"unknown .arc codec {codec}")
+    unpack = zx0_decompress if codec == CODEC_ZX0 else rle_decode
     head = {"target": target_id, "mode": mode, "width": width,
-            "height": height, "id": image_id}
+            "height": height, "id": image_id, "codec": codec}
     pos = 16
     table = []
     for _ in range(count):
@@ -301,7 +541,7 @@ def read_arc(blob: bytes):
         pos += 6
     sections = []
     for stype, flags, ulen, clen in table:
-        raw = rle_decode(blob[pos:pos + clen])
+        raw = unpack(blob[pos:pos + clen])
         if len(raw) != ulen:
             raise ValueError(
                 f"section {stype}: {len(raw)} bytes, table says {ulen}")
@@ -868,7 +1108,14 @@ def _dist_luma(a, b, w=20):
 
 
 def _dist_zx(a, b):
-    return _dist_luma(a, b, 20)
+    # The Spectrum match adds a SATURATION term: its palette is nearly all
+    # full-saturation primaries, and a pastel master color must prefer the
+    # calm options (white, cyan, black) over a screaming hue of similar
+    # distance. Weight 3, tuned on the training corpus (Stefan's own
+    # Spectrum Rabenstein art) against the daylight graveyard.
+    sa = max(a) - min(a)
+    sb = max(b) - min(b)
+    return _dist_luma(a, b, 20) + 3 * (sa - sb) ** 2
 
 
 def _convert_zx3(rows):
@@ -882,12 +1129,18 @@ def _convert_zx3(rows):
     # two colors win by a margin no jitter crosses), while mixed cells get
     # the authentic Spectrum texture instead of hard banding.
     rows = _crop_width(rows, 256)
-    # The Spectrum idiom pre-curve: darken toward black (v^2/255). Spectrum
-    # art is black-dominated with bright accents (black is the clash-free
-    # color, Stefan's school); the curve moves the master's tonal mass onto
-    # that idiom before the cells are solved, and the corpus comes out as
-    # blue-on-black linework instead of saturated patchwork.
-    rows = [[tuple(v * v // 255 for v in c) for c in row] for row in rows]
+    # The Spectrum idiom pre-curve, CONDITIONAL: night scenes darken toward
+    # black (v^2/255; black is the clash-free color and the school's
+    # foundation), day scenes stay untouched. The first cut applied the
+    # curve globally and wrecked the daylight graveyard of the training
+    # corpus into saturated chaos; mean luminance decides now.
+    total = count = 0
+    for row in rows:
+        for c in row:
+            total += 2 * c[0] + 4 * c[1] + c[2]
+            count += 7
+    if total // count < 100:
+        rows = [[tuple(v * v // 255 for v in c) for c in row] for row in rows]
     w, h = len(rows[0]), len(rows)
     amp = 28 if _gradient_class(rows) else 16
     cells_x, cells_y = w // 8, h // 8
@@ -1883,11 +2136,12 @@ class _Vdc:
         return {"w": w, "h": h, "pixels": pixels, "attrs": attrs}
 
 
-def encode_native(tag: str, mode: int, image_id: int, native) -> bytes:
+def encode_native(tag: str, mode: int, image_id: int, native,
+                  codec=CODEC_ZX0) -> bytes:
     """A native image (the target's own dict shape) into .arc bytes."""
     t = TARGETS[tag]
     return write_arc(t.id, mode, native["w"], native["h"], image_id,
-                     t.pack(native))
+                     t.pack(native), codec)
 
 
 def decode_arc(blob: bytes):

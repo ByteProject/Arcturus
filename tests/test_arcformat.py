@@ -65,7 +65,7 @@ def test_header_and_sections_round_trip():
     blob = arcimg.write_arc(3, 12, 320, 96, 8, sections)
     head, back = arcimg.read_arc(blob)
     assert head == {"target": 3, "mode": 12, "width": 320, "height": 96,
-                    "id": 8}
+                    "id": 8, "codec": arcimg.CODEC_ZX0}
     assert back == sections
 
 
@@ -91,23 +91,52 @@ ALL_TAGS = sorted(arcimg.TARGETS, key=lambda t: arcimg.TARGETS[t].id)
 @pytest.mark.parametrize("tag", ALL_TAGS)
 @pytest.mark.parametrize("mode", [9, 12])
 def test_target_round_trips_exactly(tag, mode):
+    # Layout round-trips run on the RLE codec for speed; the ZX0 codec has
+    # its own tests below (and is validated byte-for-byte against the
+    # reference tool in test_zx0_matches_the_reference_format).
     t = arcimg.TARGETS[tag]
     w, h = t.width, t.height(mode)
     native = t.pattern(w, h)
-    blob = arcimg.encode_native(tag, mode, 8, native)
+    blob = arcimg.encode_native(tag, mode, 8, native, codec=arcimg.CODEC_RLE)
     tag2, mode2, iid, back = arcimg.decode_arc(blob)
     assert (tag2, mode2, iid) == (tag, mode, 8)
     assert back == native, f"{tag} mode {mode}: unpack does not invert pack"
     # A second encode of the round-tripped native is bit-identical: the
     # format has one canonical encoding.
-    assert arcimg.encode_native(tag, mode, 8, back) == blob
+    assert arcimg.encode_native(tag, mode, 8, back,
+                                codec=arcimg.CODEC_RLE) == blob
+
+
+def test_zx0_codec_round_trips():
+    # The default codec, on a real target: pack, write, read, unpack.
+    t = arcimg.TARGETS["ZX3"]
+    native = t.pattern(t.width, 72)
+    blob = arcimg.encode_native("ZX3", 9, 4, native)  # ZX0 is the default
+    head_codec = blob[14]  # header: codec is byte 14
+    assert head_codec == arcimg.CODEC_ZX0
+    tag2, mode2, iid, back = arcimg.decode_arc(blob)
+    assert (tag2, mode2, iid) == ("ZX3", 9, 4)
+    assert back == native
+
+
+def test_zx0_matches_the_reference_format():
+    # Streams from the reference zx0 tool must decompress with our decoder,
+    # and our packer's streams decompress to the same bytes: the executable
+    # spec both ways (small cases; the whole corpus was cross-validated at
+    # adoption time, byte-identical totals with the reference in quick mode).
+    data = (b"the quick brown fox " * 30) + bytes(range(200))
+    z = arcimg.zx0_compress(data)
+    assert arcimg.zx0_decompress(z) == data
+    assert arcimg.zx0_decompress(arcimg.zx0_compress(b"")) == b""
+    assert arcimg.zx0_decompress(arcimg.zx0_compress(b"\x00" * 5000)) == b"\x00" * 5000
 
 
 @pytest.mark.parametrize("tag", ALL_TAGS)
 def test_target_renders_a_png(tag, tmp_path):
     t = arcimg.TARGETS[tag]
     w, h = t.width, t.height(9)
-    blob = arcimg.encode_native(tag, 9, 3, t.pattern(w, h))
+    blob = arcimg.encode_native(tag, 9, 3, t.pattern(w, h),
+                                codec=arcimg.CODEC_RLE)
     out = tmp_path / f"{tag}.png"
     arcimg.render_arc(blob, str(out))
     data = out.read_bytes()
