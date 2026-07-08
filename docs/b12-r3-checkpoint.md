@@ -30,23 +30,28 @@ DONE in R3 so far:
   72 rows of beach).
 - arcimg 1.5.0, standalone rebuilt, README table bumped; suite 715.
 
+THE CONVERSION GATE PASSED (2026-07-08, evening, rounds 4-7): C64 and
+CPC carry Stefan's FULL APPROVAL (converters frozen). Spectrum ruled at
+~90% with the ship framing: full confidence, except ZX results may want
+minor author polish per image; the polish loop is `arcimg scr` /
+`arcimg unscr` (band + black bar .scr round-trip, hand-authored flag in
+header byte 15 that convert never overwrites). arcimg 1.6.0.
+
 PENDING, in order:
-1. Stefan's viewing pass of arc_image/previews (all six targets), the
-   R3 conversion gate. Ground truth for ZX taste: his Training shots.
-2. Probes backport: wave-1 probes (dos/ast/ami) still decode RLE and
+1. Probes backport: wave-1 probes (dos/ast/ami) still decode RLE and
    predate the codec ruling; they need LZSA2 decompressors now (8086
    and 68000, adapt from the lzsa repository's permissively licensed
    asm), embed the regenerated 90/100 assets, rebuild, Stefan
    re-verifies in DOSBox-X/Hatari/FS-UAE (payload flags only; his
    configs rule the display).
-3. R3 probes: C64 .prg (ACME on orb debian; VICE for launch, ask
+2. R3 probes: C64 .prg (ACME on orb debian; VICE for launch, ask
    Stefan for path or install approval), ZX +3 and CPC as .sna
    snapshots (sjasmplus at ~/.local/bin/sjasmplus; ZEsarUX covers
    both, ASK STEFAN FOR ITS PATH at first launch, never screenshot).
    These decode ZX0: Z80 decoder ~70B (official), 6502 ~130B.
-4. docs/09 chapters C.4 C64, C.5 ZX3, C.6 CPC from working probe code;
+3. docs/09 chapters C.4 C64, C.5 ZX3, C.6 CPC from working probe code;
    Z80 + 6502 ZX0 decoder listings into part B.
-5. R3 close: docs/08 milestone record, PROGRESS entry, delete this
+4. R3 close: docs/08 milestone record, PROGRESS entry, delete this
    checkpoint file.
 
 Per picture: ZX 2.1K, C64 2.8K, CPC 3.7K (ZX0); AMI 7.2K, AST 7.0K,

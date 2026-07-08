@@ -65,7 +65,7 @@ def test_header_and_sections_round_trip():
     blob = arcimg.write_arc(3, 12, 320, 96, 8, sections)
     head, back = arcimg.read_arc(blob)
     assert head == {"target": 3, "mode": 12, "width": 320, "height": 96,
-                    "id": 8, "codec": arcimg.CODEC_ZX0}
+                    "id": 8, "codec": arcimg.CODEC_ZX0, "hand": False}
     assert back == sections
 
 
@@ -220,3 +220,56 @@ def test_lzsa2_arc_roundtrip():
     head, sections = arcimg.read_arc(blob)
     assert head["codec"] == arcimg.CODEC_LZSA2
     assert sections == [(1, 0, raw)]
+
+
+# -- the Spectrum polish round-trip (scr in and out) ----------------------------
+
+def test_scr_round_trip():
+    native = arcimg.TARGETS["ZX3"].pattern(256, 96)
+    scr = arcimg.scr_from_native(native)
+    assert len(scr) == 6912
+    back, warnings = arcimg.native_from_scr(scr, 12)
+    assert back == native
+    assert warnings == []
+
+
+def test_scr_black_bar_is_black():
+    native = arcimg.TARGETS["ZX3"].pattern(256, 72)
+    scr = arcimg.scr_from_native(native)
+    # every attr cell below the 72-row band is 0 (black on black)
+    assert all(scr[6144 + cy * 32 + cx] == 0
+               for cy in range(9, 24) for cx in range(32))
+
+
+def test_unscr_warns_about_content_below_band():
+    native = arcimg.TARGETS["ZX3"].pattern(256, 72)
+    scr = bytearray(arcimg.scr_from_native(native))
+    scr[6144 + 20 * 32 + 3] = 0x07     # an attr below the band
+    _back, warnings = arcimg.native_from_scr(bytes(scr), 9)
+    assert warnings and "below" in warnings[0]
+
+
+def test_unscr_refuses_flash():
+    import pytest
+    native = arcimg.TARGETS["ZX3"].pattern(256, 96)
+    scr = bytearray(arcimg.scr_from_native(native))
+    scr[6144] |= 0x80
+    with pytest.raises(ValueError, match="FLASH"):
+        arcimg.native_from_scr(bytes(scr), 12)
+
+
+def test_hand_flag_travels_and_protects(tmp_path):
+    native = arcimg.TARGETS["ZX3"].pattern(256, 96)
+    blob = arcimg.encode_native("ZX3", 12, 5, native,
+                                codec=arcimg.CODEC_RLE, hand=True)
+    assert blob[15] == 1
+    head, _s = arcimg.read_arc(blob)
+    assert head["hand"] is True
+    dest = tmp_path / "5.ZX3"
+    dest.write_bytes(blob)
+    assert arcimg._is_hand_authored(str(dest))
+    plain = arcimg.encode_native("ZX3", 12, 5, native,
+                                 codec=arcimg.CODEC_RLE)
+    assert plain[15] == 0
+    dest.write_bytes(plain)
+    assert not arcimg._is_hand_authored(str(dest))
