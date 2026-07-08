@@ -63,6 +63,10 @@ INTRINSICS = frozenset({
     # status bar ("Crypt (on the altar)") folds away in a game the player
     # can never climb into anything in.
     "any_enterable",
+    # any_components is 1 when anything declares `component` (a lever in a
+    # machine), so the part-of scope rule, the take answer, and the listing
+    # exclusion fold away otherwise.
+    "any_components",
     # any_tables is the compile-time positional-grammar flag (1 if any verb's
     # grammar needs a table, docs/02 section 8c): the packs and the matcher
     # guard on it, so a game whose verbs all fit the flag model folds the whole
@@ -962,6 +966,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _place(rt, Const(1 if any(
             "supporter" in o.chain or "container" in o.chain
             for o in ctx.world.objects.values()) else 0), dest)
+    elif name == "any_components":
+        # any_components(): 1 when anything declares `component` (object or
+        # kind default), so the part-of hooks fold away otherwise.
+        _place(rt, Const(_any_components(ctx.world)), dest)
     elif name == "any_scored":
         # any_scored(): 1 when anything declares `scored`, so the award hooks
         # in take and go fold away in a scoreless game.
@@ -1234,6 +1242,18 @@ def _emit_test(rt, ctx, expr, label, on_true):
     rt.op("jz", op, branch=(label, not on_true))
     if t is not None:
         ctx.free_temp(t)
+
+
+def _any_components(world) -> int:
+    """1 when any object or kind declares `component` truthy: the part-of
+    hooks (scope, take, listings) fold on this."""
+    if any(_prop_truthy(o.props.get("component"))
+           for o in world.objects.values()):
+        return 1
+    if any(_prop_truthy(k.props.get("component"))
+           for k in world.kinds.values()):
+        return 1
+    return 0
 
 
 def _kind_test(rt, ctx, expr: ast.IsTest, label, on_true):
@@ -1794,6 +1814,8 @@ def _static_value(ctx, expr):
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_enterable":
         return 1 if any("supporter" in o.chain or "container" in o.chain
                         for o in ctx.world.objects.values()) else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_components":
+        return _any_components(ctx.world)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scored":
         return 1 if any(_prop_truthy(o.props.get("scored")) for o in ctx.world.objects.values()) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scoperoom":

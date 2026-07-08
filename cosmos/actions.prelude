@@ -114,6 +114,13 @@ on take
         change refused to 1
         msg_take_self
         stop
+    // A component stays part of its whole: the lever does not come off the
+    // machine. Folds away in a game with no components (any_components).
+    if any_components is 1
+        if noun is component
+            change refused to 1
+            msg_part_of
+            stop
     if noun is scenery
         change refused to 1
         msg_scenery

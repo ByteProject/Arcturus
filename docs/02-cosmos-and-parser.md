@@ -156,6 +156,14 @@ referable while a coin in a closed opaque box is not: the closed lid shields its
 contents from scope until the box is opened. A `clear` container (a glass jar) is
 the exception, exposing its contents while still shut.
 
+A `component` (01, standard attributes) rides its own scope rule: the part
+is in scope whenever its whole is, whatever the whole's kind, so a lever
+declared `component` and placed in a plain machine is referable while an
+ordinary thing dropped "inside" a plain thing stays out of scope (a plain
+thing has no insides to see into). The rule, like the take answer and the
+listing exclusion, folds away in a game with no components
+(`any_components`).
+
 One place stands outside the room-and-carry rule: the BACKSTAGE scope room
 (01, section 5). An object placed `in scope` (or moved there at run time,
 `move x to scope`) is in scope in every room, light or dark: the home of a

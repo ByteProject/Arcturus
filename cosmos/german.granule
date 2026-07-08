@@ -847,6 +847,11 @@ block content_listable(holder, x)
     if any_enterable is 1
         if x is player
             return 0
+    // A component is part of the holder, not carried contents: the machine
+    // never lists its own levers. Folds away without components.
+    if any_components is 1
+        if x is component
+            return 0
     if x is hidden
         return 0
     if x is concealed
@@ -1079,6 +1084,13 @@ block msg_have_it()
 
 block msg_take_self()
     say "Dich selbst zumindest hast du fest im Griff."
+
+// Ein Bestandteil bleibt an seinem Ganzen; der Artikel steht im Dativ (zu).
+block msg_part_of()
+    let p = parent_of(noun)
+    show("Das gehört zu ")
+    art_the(p, 0, 2)
+    say "."
 
 block msg_dropped()
     say "Fallen gelassen."
