@@ -142,5 +142,6 @@ palbuf: ds.b    32
         even
 image9:
         incbin  "90.AST"
-image12:
-        incbin  "100.AST"
+        even                    ; an .arc can be odd-length: every embedded
+image12:                        ; image needs its own alignment, or the
+        incbin  "100.AST"       ; header long-compare address-errors (bombs)

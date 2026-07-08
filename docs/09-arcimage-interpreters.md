@@ -213,10 +213,16 @@ can stream). Conventional-memory cost: effectively zero.
 
 ### C.2 Atari ST (target id 2, tag AST, files `<id>.AST`)
 
-PROVISIONAL: the chapter is written; the probe run is pending its visual
-verification. The recipe below is the probe's
-(`arc_image/probes/ast/probe.s`, build with
+Verified: Hatari, both modes, 2026-07-08 (probe:
+`arc_image/probes/ast/probe.s`, build with
 `vasmm68k_mot -Ftos -o PROBE.PRG probe.s`).
+
+Two 68000 lessons the probe paid for, so an implementer does not: an .arc
+file can be ODD-length, so anything embedding or loading one to memory
+must align it (an even boundary) before touching the header with word or
+long reads, or the 68000 answers with an address error; and the RLE
+decoder's counter register must be cleared EVERY iteration (dbra leaves
+$FFFF in the counter word; part B's listing has it right).
 
 VIDEO. ST low resolution, 320x200, 16 colors from 512 (STF; 4096 on the
 STE), 4 bitplanes, the fixed hardware interleave: per 16-pixel group, 4
@@ -267,3 +273,5 @@ facts an implementer can already rely on, from the format spec:
 
 - 2026-07-08: first cut: the contract, the format, the DOS chapter
   (verified), the ST chapter (provisional), the Amiga layout facts.
+- 2026-07-08 (later): the ST chapter verified in Hatari, both modes, with
+  the odd-length alignment lesson recorded.
