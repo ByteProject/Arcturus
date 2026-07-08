@@ -3349,3 +3349,38 @@ real conversions to mean anything), and the TED, GTIA, and Apple II
 preview palettes are marked approximations until their waves freeze
 measured values. Next: R2, wave 1 (Amiga, ST, DOS converters and probes,
 and the Eris reference implementation of the interpreter contract).
+
+## 2026-07-08: B12 R2 COMPLETE. Wave 1: Amiga, Atari ST, DOS, proven.
+
+The quantize wave is done end to end: converters, corpus, probes,
+chapters. arcimg grew the master pipeline (stdlib PNG reader, median cut
+with a k-means polish so small loud regions keep their palette entries,
+gun-depth snapping before mapping, and gradient-gated ordered dithering,
+Bayer 8x8 after Stefan's eye caught the 4x4's cross artifacts, amplitudes
+halved on his "less is more"). The 21-master corpus converts bit-exact on
+AST and DOS and snap-only on AMI; the stresstest pair (two gradient
+paintings, 17-19 thousand colors) is what the dithering machinery was
+tuned on, and it is the machinery waves 2 and 3 inherit.
+
+Three probes, written from the blueprint alone and each verified by
+Stefan in both band modes: DOS (nasm .COM, mode 13h, palette-first
+section walk, DOSBox-X), Atari ST (vasm TOS .PRG, Setpalette verbatim,
+decode to Physbase, Hatari), Amiga (a raw bootblock trackload, no
+Workbench, a copper list displaying the interleaved planes in place,
+FS-UAE on Kickstart 1.3). The probes paid for real lessons, all recorded
+in docs/09: the 68000 dbra counter trap, odd-length .arc alignment, the
+copper one-frame-wonder (the band-bottom plane switch needs its top-of-
+frame restore), DOS square-pixel presentation (CRT aspect correction
+makes eggs of suns), and the text-color contract (luminance-sorted
+palettes, darkest as stable paper, guaranteed-readable ink) after the
+below-band background flipped colors between pictures.
+
+The implementer handover exists NOW, not at R6 (Stefan's ruling:
+documents AND content): docs/09-arcimage-interpreters.md carries the
+contract (including the Z-machine colours clause: art palettes are never
+modified, text colours are per machine: DOS's reserved system range, the
+Amiga's per-frame copper reload, the STF's declare-or-approximate
+choice), the format with reference RLE decoders (x86, 68k), and one
+verified chapter per target; arc_image/probes/ holds the reference
+loaders and the two-mode test assets. Next: R3, the cell class: C64,
+Spectrum +3, CPC.

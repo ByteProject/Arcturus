@@ -268,13 +268,17 @@ method). Naming: R for retro.
   and the golden corpus scaffold from the Rabenstein masters.
   Done-test: encode + render-back round-trips bit-exact on every target
   format, sizes recorded in the ledger.
-- R2. WAVE 1, the quantize 16-bits: Amiga, ST, and DOS converters and
-  probes, and the first per-target addenda written from the working
-  probe code. No interpreter is touched (section 5): the probes are the
-  proof.
-  Done-test: the converted Rabenstein corpus approved by Stefan for all
-  three targets, and each probe shows the picture in both modes (FS-UAE
-  or vAmiga, Hatari, DOSBox-X), visually confirmed by Stefan.
+- R2 (COMPLETE, 2026-07-08). WAVE 1, the quantize 16-bits: Amiga, ST,
+  and DOS converters and probes, and the per-target chapters in docs/09
+  written from the working probe code. No interpreter was touched: the
+  probes are the proof.
+  Done-test PASSED: the corpus (21 masters, bit-exact on AST/DOS,
+  snap-only on AMI) and the stresstest pair approved by Stefan, with two
+  taste rulings folded in (dither halved, Bayer 8x8); all three probes
+  verified by Stefan in both modes (DOSBox-X, Hatari, FS-UAE). Findings
+  that became contract: square-pixel presentation on DOS, the text-color
+  palette contract on both 68k machines, the Z-machine colours clause,
+  and the copper per-frame restore.
 - R3. WAVE 2, the cell class flagship: C64, ZX Spectrum +3, CPC.
   The per-cell solver framework, the three probes (VICE, Fuse, Caprice),
   the addenda (the CPC one feeds Haumea directly).
