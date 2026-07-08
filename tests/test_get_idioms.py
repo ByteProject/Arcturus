@@ -87,3 +87,12 @@ def test_get_off_a_worn_thing_stays_take_off():
 
 def test_put_into_splits_the_nouns():
     assert "Done." in _reply(["put lamp into box"])
+
+
+def test_bare_get_out_while_nested_is_exit():
+    # GET OUT / GET UP with no noun, while inside or on something, means
+    # getting off it, never a walk (the adopter's crate answered "There's
+    # no exit in that direction"). Un-nested, the walk stays a walk (the
+    # test above covers it).
+    assert "Done." in _reply(["get in box", "get out"])
+    assert "Done." in _reply(["get on cart", "get up"])
