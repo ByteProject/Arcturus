@@ -610,6 +610,24 @@ equal citizens was the earlier mistake: dark cells scattered
 everywhere, and every boundary between the levels clashed around
 rounded shapes. Dark-ish master content renders as black paper with
 bright ink, which IS the school; the graveyard statue keeps its grey.
+The pivot pair (from studying img2spec at Stefan's pointer) joins the
+per-cell candidates: split the cell at its median luminance, average
+each side, snap each average to the half's palette; structure catches
+what frequency projection misses.
+
+THE SPECTRUM FRAMING (R3, 2026-07-08, Stefan): C64 and CPC conversions
+carry full approval and their converters are frozen; the tool speaks of
+its conversions with full confidence, EXCEPT that Spectrum results,
+depending on the image, may want minor author polish (his estimate:
+90% there, and genuinely good conversions already). The polish loop is
+first-class: `arcimg scr` writes any ZX3 conversion as a standard
+6912-byte .scr, the band on top and a black bar below so editors get
+the full 256x192 frame; the author fixes cells in any Spectrum tool
+(SevenuP, img2spec); `arcimg unscr` takes the file back, strips the
+bar, lints it (FLASH refused, content below the band reported), and
+returns it to the portfolio as <id>.ZX3 stamped hand-authored (header
+byte 15 = 1), which `arcimg convert` thereafter refuses to overwrite,
+force or not; delete the file to reconvert. Loaders ignore byte 15.
 
 The playground carries the outputs (arc_image/ami, ast, dos; previews
 beside them), all regenerable with `arcimg convert` and gitignored as

@@ -89,7 +89,8 @@ HEADER, 16 bytes:
     +10  2  native height in pixels (mode x 8)
     +12  2  image id (matches the filename; a cheap sanity check)
     +14  1  codec: 0 = RLE, 1 = ZX0, 2 = LZSA2 (fixed per target, part C)
-    +15  1  reserved, 0
+    +15  1  provenance: 0 converted, 1 hand-authored. Loaders IGNORE it
+            (it protects an author's native edits from reconversion)
 
 SECTION TABLE, section-count entries of 6 bytes, at offset 16:
 

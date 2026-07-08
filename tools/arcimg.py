@@ -50,7 +50,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.5.0"
+__version__ = "1.6.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -663,14 +663,18 @@ _CODECS = {
 
 
 def write_arc(target_id, mode, width, height, image_id, sections,
-              codec=CODEC_ZX0) -> bytes:
+              codec=CODEC_ZX0, hand=False) -> bytes:
     """Assemble a .arc file: header, section table, compressed section
-    streams. `sections` is a list of (type, flags, raw_bytes)."""
+    streams. `sections` is a list of (type, flags, raw_bytes). `hand`
+    stamps header byte 15: 1 marks a hand-authored image (imported from
+    an author's native edit), which `arcimg convert` will never
+    overwrite; loaders ignore the byte either way."""
     pack = _CODECS[codec][0]
     out = bytearray()
     out += ARC_MAGIC
     out += bytes([ARC_VERSION, target_id, mode, len(sections)])
-    out += struct.pack(">HHHBB", width, height, image_id, codec, 0)
+    out += struct.pack(">HHHBB", width, height, image_id, codec,
+                       1 if hand else 0)
     streams = []
     for stype, flags, raw in sections:
         comp = pack(raw)
@@ -690,12 +694,14 @@ def read_arc(blob: bytes):
     version, target_id, mode, count = blob[4], blob[5], blob[6], blob[7]
     if version != ARC_VERSION:
         raise ValueError(f"unsupported .arc version {version}")
-    width, height, image_id, codec, _r = struct.unpack(">HHHBB", blob[8:16])
+    width, height, image_id, codec, hand = struct.unpack(">HHHBB",
+                                                         blob[8:16])
     if codec not in _CODECS:
         raise ValueError(f"unknown .arc codec {codec}")
     unpack = _CODECS[codec][1]
     head = {"target": target_id, "mode": mode, "width": width,
-            "height": height, "id": image_id, "codec": codec}
+            "height": height, "id": image_id, "codec": codec,
+            "hand": hand == 1}
     pos = 16
     table = []
     for _ in range(count):
@@ -1574,6 +1580,75 @@ def _convert_cpc(rows, salient=None):
 
 _CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,
                "C64": _convert_c64, "ZX3": _convert_zx3, "CPC": _convert_cpc}
+
+
+# -- the Spectrum polish round-trip (.scr in and out) ---------------------------
+#
+# The ZX framing (Stefan's ruling, 2026-07-08): the conversions are strong
+# starting points, and depending on the image an author may want to polish
+# a few cells by hand. So arcimg speaks the editors' language: `arcimg scr`
+# writes a conversion as a standard 6912-byte .scr (the band at the top, a
+# black bar below to keep the full 256x192 frame every editor expects), the
+# author polishes it in SevenuP, img2spec, or any Spectrum tool, and
+# `arcimg unscr` takes the fixed file back, strips the bar, and returns it
+# to the portfolio as a hand-authored .arc that `arcimg convert` will never
+# overwrite (header byte 15).
+
+def _scr_bitmap_offset(y, xb):
+    """The ULA's screen interleave: y to its bitmap row address."""
+    return ((y & 0xC0) << 5) | ((y & 7) << 8) | ((y & 0x38) << 2) | xb
+
+
+def scr_from_native(native) -> bytes:
+    """A ZX3 native dict as a full 6912-byte .scr: band at top, black bar
+    below (paper black, ink black, bitmap clear)."""
+    w, h = native["w"], native["h"]
+    out = bytearray(6912)
+    for y in range(h):
+        for xb in range(w // 8):
+            b = 0
+            for bit in range(8):
+                b = (b << 1) | native["pixels"][y][xb * 8 + bit]
+            out[_scr_bitmap_offset(y, xb)] = b
+    for cy in range(h // 8):
+        for cx in range(w // 8):
+            out[6144 + cy * 32 + cx] = native["attrs"][cy * (w // 8) + cx]
+    return bytes(out)
+
+
+def native_from_scr(data: bytes, mode: int):
+    """The top band of a .scr back into a ZX3 native dict, with the lint
+    warnings an import deserves: content below the band is dropped (and
+    said so), FLASH attributes are refused (the band never flashes)."""
+    if len(data) != 6912:
+        raise ValueError(f"a .scr is 6912 bytes, this is {len(data)}")
+    w, h = 256, mode * 8
+    pixels = [[0] * w for _ in range(h)]
+    for y in range(h):
+        for xb in range(w // 8):
+            b = data[_scr_bitmap_offset(y, xb)]
+            for bit in range(8):
+                pixels[y][xb * 8 + bit] = (b >> (7 - bit)) & 1
+    attrs = []
+    warnings = []
+    for cy in range(h // 8):
+        for cx in range(32):
+            a = data[6144 + cy * 32 + cx]
+            if a & 0x80:
+                raise ValueError(
+                    f"cell ({cx},{cy}) sets FLASH; the band never flashes")
+            attrs.append(a)
+    below = False
+    for y in range(h, 192):
+        for xb in range(32):
+            if data[_scr_bitmap_offset(y, xb)]:
+                below = True
+    if any(data[6144 + cy * 32 + cx]
+           for cy in range(h // 8, 24) for cx in range(32)):
+        below = True
+    if below:
+        warnings.append(f"content below the {h}-row band was dropped")
+    return {"w": w, "h": h, "pixels": pixels, "attrs": attrs}, warnings
 
 
 def _read_hint(path: str):
@@ -2566,13 +2641,15 @@ class _Vdc:
 
 
 def encode_native(tag: str, mode: int, image_id: int, native,
-                  codec=None) -> bytes:
+                  codec=None, hand=False) -> bytes:
     """A native image (the target's own dict shape) into .arc bytes. The
     codec defaults to the target's own (LZSA2 on the 16-bit trio, ZX0
-    elsewhere); pass one explicitly to override."""
+    elsewhere); pass one explicitly to override. `hand` marks the file
+    hand-authored (see write_arc)."""
     t = TARGETS[tag]
     return write_arc(t.id, mode, native["w"], native["h"], image_id,
-                     t.pack(native), t.codec if codec is None else codec)
+                     t.pack(native), t.codec if codec is None else codec,
+                     hand)
 
 
 def decode_arc(blob: bytes):
@@ -2707,6 +2784,16 @@ def cmd_info(args) -> int:
 _CODEC_NAMES = {"rle": CODEC_RLE, "zx0": CODEC_ZX0, "lzsa2": CODEC_LZSA2}
 
 
+def _is_hand_authored(dest):
+    """Header byte 15 of an existing .arc: 1 means an author's own native
+    edit came back through `arcimg unscr` and conversion must not touch it."""
+    if not os.path.exists(dest):
+        return False
+    with open(dest, "rb") as f:
+        head = f.read(16)
+    return len(head) == 16 and head[:4] == ARC_MAGIC and head[15] == 1
+
+
 def _convert_stale(master, dest, preview):
     """make-style currency: the output stands if it is newer than the
     master, its hint sidecar (if any), and this tool itself."""
@@ -2753,6 +2840,12 @@ def cmd_convert(args) -> int:
         dest = os.path.join(args.out, f"{iid}.{tag}")
         preview = os.path.join(args.preview, f"{iid}-{tag}.png") \
             if args.preview else None
+        if _is_hand_authored(dest):
+            # An author's own edit (arcimg unscr) always wins; even --force
+            # respects it. Delete the file to reconvert from the master.
+            print(f"arcimg: {dest} is hand-authored, keeping it")
+            skipped += 1
+            continue
         if not args.force and not _convert_stale(entries[iid], dest, preview):
             skipped += 1
             continue
@@ -2775,6 +2868,58 @@ def cmd_convert(args) -> int:
         print(f"arcimg: wrote {dest} ({size} bytes, mode {mode})")
     note = f", {skipped} current (skipped)" if skipped else ""
     print(f"arcimg: {len(jobs)} pictures, {total} bytes total{note}")
+    return 0
+
+
+def cmd_scr(args) -> int:
+    src = args.source
+    if src.lower().endswith(".png"):
+        try:
+            _mode, native = convert_master(src, "ZX3")
+        except ValueError as exc:
+            print(f"arcimg: {exc}", file=sys.stderr)
+            return 2
+    else:
+        with open(src, "rb") as f:
+            blob = f.read()
+        try:
+            tag, _mode, _iid, native = decode_arc(blob)
+        except ValueError as exc:
+            print(f"arcimg: {exc}", file=sys.stderr)
+            return 2
+        if tag != "ZX3":
+            print(f"arcimg: {src} is a {tag} image, scr wants ZX3",
+                  file=sys.stderr)
+            return 2
+    with open(args.out, "wb") as f:
+        f.write(scr_from_native(native))
+    print(f"arcimg: wrote {args.out} (6912 bytes, {native['h']}-row band, "
+          f"black bar below)")
+    return 0
+
+
+def cmd_unscr(args) -> int:
+    with open(args.source, "rb") as f:
+        data = f.read()
+    try:
+        native, warnings = native_from_scr(data, args.mode)
+    except ValueError as exc:
+        print(f"arcimg: {exc}", file=sys.stderr)
+        return 2
+    for warning in warnings:
+        print(f"arcimg: note: {warning}")
+    os.makedirs(args.out, exist_ok=True)
+    blob = encode_native("ZX3", args.mode, args.id, native, hand=True)
+    dest = os.path.join(args.out, f"{args.id}.ZX3")
+    with open(dest, "wb") as f:
+        f.write(blob)
+    print(f"arcimg: wrote {dest} ({len(blob)} bytes, hand-authored: "
+          f"convert will keep it)")
+    if args.preview:
+        os.makedirs(args.preview, exist_ok=True)
+        p = os.path.join(args.preview, f"{args.id}-ZX3.png")
+        render_arc(blob, p)
+        print(f"arcimg: wrote {p}")
     return 0
 
 
@@ -2878,6 +3023,30 @@ def build_parser() -> argparse.ArgumentParser:
     p_render.add_argument("-o", "--out", required=True,
                           help="the PNG to write")
     p_render.set_defaults(func=cmd_render)
+
+    p_scr = sub.add_parser(
+        "scr", help="write a Spectrum conversion as a standard .scr for "
+                    "hand polish (band on top, black bar below)")
+    p_scr.add_argument("source",
+                       help="a <id>.ZX3 file, or a master PNG to convert")
+    p_scr.add_argument("-o", "--out", required=True,
+                       help="the .scr to write (6912 bytes)")
+    p_scr.set_defaults(func=cmd_scr)
+
+    p_unscr = sub.add_parser(
+        "unscr", help="take a polished .scr back: strip the black bar and "
+                      "return it to the portfolio as <id>.ZX3 "
+                      "(hand-authored; convert will never overwrite it)")
+    p_unscr.add_argument("source", help="the polished .scr")
+    p_unscr.add_argument("--id", type=int, required=True,
+                         help="the image id it belongs to")
+    p_unscr.add_argument("--mode", type=int, choices=(9, 12), default=12,
+                         help="band mode (default 12, the 96-row band)")
+    p_unscr.add_argument("-o", "--out", required=True,
+                         help="output directory (the zx3 portfolio dir)")
+    p_unscr.add_argument("--preview",
+                         help="also render the result to PNG here")
+    p_unscr.set_defaults(func=cmd_unscr)
     return ap
 
 
