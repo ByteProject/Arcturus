@@ -55,6 +55,10 @@ CEILINGS = {
     # the whole path folds away (any_tables) unless a game declares such a
     # verb. features/grammar.storyarc is the one that does, and its ceiling
     # (14340 vs the ~13400 feature baseline) is the matcher's full price.
+    # 2026-07-08 (total articles): ${the x} and ${a x} print "nothing"
+    # (nichts, nada) for an unresolved object instead of an illegal
+    # print_obj 0 (Actaea halts on those; the same field game). A few
+    # bytes per pack.
     # 2026-07-08 (total containment): `X in Y` and `X holds Y` gate the
     # child operand on nothing BEFORE the @jin (and before Y evaluates), so
     # a handler testing an unresolved noun is false instead of an illegal
@@ -78,36 +82,36 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 20360,
-    "brass-lantern.storyarc": 15080,
-    "cloak-of-darkness.storyarc": 15628,
-    "ejemplo-espanol.storyarc": 19392,
-    "features/computed-properties.storyarc": 13692,
-    "features/containers.storyarc": 13712,
-    "features/daemons-and-timers.storyarc": 14004,
-    "features/doors-and-locks.storyarc": 13580,
-    "features/grains.storyarc": 13708,
-    "features/grammar.storyarc": 14544,
-    "features/introproperty.storyarc": 14620,
-    "features/kinds-and-inheritance.storyarc": 13540,
-    "features/on-other.storyarc": 13540,
-    "features/zcolor.storyarc": 13912,
-    "features/scoring.storyarc": 15868,
-    "features/spans.storyarc": 13732,
-    "granules/ambience.storyarc": 15028,
-    "granules/conversations.storyarc": 15320,
-    "granules/extended-verbs.storyarc": 16044,
-    "granules/infocom-interrogation.storyarc": 15732,
-    "granules/quotes.storyarc": 13888,
-    "granules/take-all.storyarc": 15320,
-    "granules/plurals.storyarc": 14548,
-    "granules/statusline.storyarc": 13648,
-    "granules/verbose-exits.storyarc": 13928,
+    "beispiel-deutsch.storyarc": 20400,
+    "brass-lantern.storyarc": 15120,
+    "cloak-of-darkness.storyarc": 15668,
+    "ejemplo-espanol.storyarc": 19432,
+    "features/computed-properties.storyarc": 13732,
+    "features/containers.storyarc": 13752,
+    "features/daemons-and-timers.storyarc": 14044,
+    "features/doors-and-locks.storyarc": 13620,
+    "features/grains.storyarc": 13748,
+    "features/grammar.storyarc": 14584,
+    "features/introproperty.storyarc": 14660,
+    "features/kinds-and-inheritance.storyarc": 13580,
+    "features/on-other.storyarc": 13580,
+    "features/zcolor.storyarc": 13952,
+    "features/scoring.storyarc": 15908,
+    "features/spans.storyarc": 13772,
+    "granules/ambience.storyarc": 15068,
+    "granules/conversations.storyarc": 15360,
+    "granules/extended-verbs.storyarc": 16084,
+    "granules/infocom-interrogation.storyarc": 15772,
+    "granules/quotes.storyarc": 13928,
+    "granules/take-all.storyarc": 15360,
+    "granules/plurals.storyarc": 14588,
+    "granules/statusline.storyarc": 13688,
+    "granules/verbose-exits.storyarc": 13968,
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 16104
+CLOAK_Z8_CEILING = 16136
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
