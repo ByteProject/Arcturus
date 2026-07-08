@@ -65,6 +65,14 @@ unchanged, text-only. The contract:
    This is verified behavior, not aspiration: the same story file must play
    identically on a picture build and a text build, pictures aside.
 
+5. Z-MACHINE COLOURS. The band's palette belongs to the ART and is never
+   modified by the interpreter; a game's set_colour requests concern the
+   TEXT AREA only, and each chapter says how its machine honors them
+   (a reserved system range on DOS, a per-frame palette split on the
+   Amiga, a declared-or-approximated choice on the ST). The general rule:
+   pictures must never change what a game's colour requests mean, and
+   colour requests must never repaint a picture.
+
 ## Part B: the .arc file format, version 1
 
 One file per image id per target. Everything is BIG-ENDIAN. All offsets in
@@ -195,6 +203,10 @@ SECTIONS, in file order:
   (the interpreter may use them for its text colors); the art occupies 16
   upward.
 
+Z-COLOURS: entries 0..15 are the standard PC palette and carry every
+Z-machine colour; the interpreter's text uses them and never touches the
+art's 16..255. Nothing to align, nothing to approximate.
+
 LOADER RECIPE (the probe's shape): verify the magic; walk the section table
 twice, palette pass first (so the picture never flashes in wrong colors),
 bitmap pass second; each pass RLE-decodes its section to its destination.
@@ -246,6 +258,13 @@ guarantees entry 15 is readable ink (it trades one art slot for white only
 when the art has no light color). The interpreter prints its text in
 ink 15 on paper 0 and never needs palette entries of its own.
 
+Z-COLOURS: the STF has one palette per frame and no reliable raster split,
+so while a picture is displayed an interpreter chooses one of two
+conformant answers: declare colours unavailable (Flags 1 bit 0 is the
+interpreter's own declaration; text runs ink 15 on paper 0), or honor
+set_colour approximately by mapping each requested colour to its nearest
+art-palette entry. Either way the art palette itself is never modified.
+
 LOADER RECIPE: verify magic; walk the table; palette section to
 Setpalette, bitmap section RLE-decoded to Physbase(). The probe is ~90
 lines of 68k including the TOS scaffolding.
@@ -266,8 +285,17 @@ facts an implementer can already rely on, from the format spec:
 - palette (type 5): 32 words of $0RGB (OCS 4-bit guns), COLOR00..COLOR31
   verbatim.
 - The band is the top of the display; text below is the interpreter's
-  business (Eris renders its own text plane; a copper split can give the
-  text area independent colors).
+  business.
+- Z-COLOURS AND THE SPLIT: the copper list that ends the band (the same
+  wait the probe uses to switch the planes off) is where the interpreter
+  reloads the colour registers for its text area, EVERY frame: the art
+  keeps all 32 entries above the line, and below it the interpreter
+  aligns the Z-machine colours onto registers it owns outright. The
+  probe's one-frame lesson applies to the restore direction too: whatever
+  the bottom of the frame changes, the top of the list must set back.
+- As a courtesy to implementations that do not split, the converter
+  luminance-sorts the palette: entry 0 is the art's darkest (a stable
+  dark paper) and entry 31 a guaranteed-readable light ink.
 
 ## Change log
 
