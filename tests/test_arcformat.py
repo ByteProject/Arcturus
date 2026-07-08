@@ -273,3 +273,20 @@ def test_hand_flag_travels_and_protects(tmp_path):
     assert plain[15] == 0
     dest.write_bytes(plain)
     assert not arcimg._is_hand_authored(str(dest))
+
+
+def test_unscr_detects_the_band_mode():
+    # a 9-row export leaves rows 72..96 inside the black bar; a 12-row
+    # export does not: detection reads the stripe.
+    nine = arcimg.TARGETS["ZX3"].pattern(256, 72)
+    twelve = arcimg.TARGETS["ZX3"].pattern(256, 96)
+    assert arcimg._detect_scr_mode(arcimg.scr_from_native(nine)) == 9
+    assert arcimg._detect_scr_mode(arcimg.scr_from_native(twelve)) == 12
+
+
+def test_scr_round_trip_nine_rows():
+    native = arcimg.TARGETS["ZX3"].pattern(256, 72)
+    back, warnings = arcimg.native_from_scr(
+        arcimg.scr_from_native(native), 9)
+    assert back == native
+    assert warnings == []
