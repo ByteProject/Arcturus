@@ -96,3 +96,31 @@ def test_bare_get_out_while_nested_is_exit():
     # test above covers it).
     assert "Done." in _reply(["get in box", "get out"])
     assert "Done." in _reply(["get on cart", "get up"])
+
+
+def test_exit_with_a_noun_respects_it():
+    # The author's own `exit noun` grammar (the adopter's recipe): leaving
+    # the named thing works, leaving a thing you are not in refuses, and
+    # naming an unrelated object while nested does NOT dump you out.
+    game = GAME + 'verb "leave"\n    exit noun\n    exit\n'
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    import shutil
+    import subprocess
+    if not (shutil.which("dfrotz") or shutil.which("frotz")):
+        import pytest
+        pytest.skip("no Frotz interpreter on PATH")
+    import tempfile, os
+    story = os.path.join(tempfile.mkdtemp(), "e.z5")
+    open(story, "wb").write(generate(analyze(cosmos.combined_program(parse(game)))))
+    frotz = shutil.which("dfrotz") or shutil.which("frotz")
+    out = subprocess.run(
+        [frotz, "-p", "-w", "80", story],
+        input="leave box\nget in box\nleave lamp\nleave box\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "You aren't in that." in out          # not in it yet; and lamp
+    assert out.count("You aren't in that.") == 2
+    assert out.count("Done.") == 2               # get in + the real leave

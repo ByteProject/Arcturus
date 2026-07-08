@@ -427,6 +427,18 @@ on enter
     msg_cant_enter
 
 on exit
+    // With a noun (the author's `exit noun` grammar, or GET OUT OF X): leave
+    // that thing in particular, refusing when the player is not in it. The
+    // check folds away with nothing to be inside (any_enterable).
+    if any_enterable is 1
+        if noun is not nothing
+            if player in noun
+                move player to parent_of(noun)
+                msg_done
+                stop
+            change refused to 1
+            msg_not_in_that
+            stop
     if player is in here
         msg_not_inside
         stop

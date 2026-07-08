@@ -1131,6 +1131,10 @@ block msg_take_self()
 // Un componente no se separa de su conjunto. La contracción "del" se forma
 // aquí (de + el), porque art_the no conjuga preposiciones; un objeto con
 // nombre propio o femenino sigue el camino normal.
+// Leaving a named thing the player is not actually in (exit noun).
+block msg_not_in_that()
+    say "No estás ahí."
+
 block msg_part_of()
     let p = parent_of(noun)
     show("Eso es parte de")
