@@ -357,6 +357,10 @@ block draw_room_image()
             change shown_image to id
 
 // Describe the current room: its name, its description, and what it contains.
+// The title line adds where the player stands when nested inside or on
+// something ("Crypt (on the altar)"): the wording is the language layer's
+// line_nested, and the whole check folds away, byte-identical, in a game
+// with nothing to climb into (any_enterable).
 block describe_room()
     par
     if is_lit is 0
@@ -367,7 +371,13 @@ block describe_room()
     if hide_title is 1
         change hide_title to 0
     else
-        say here
+        if any_enterable is 1
+            print_name(here)
+            if parent_of(player) is not here
+                line_nested(parent_of(player))
+            new_line
+        else
+            say here
     if desc_addr(here) is not nothing
         say here.desc
     let listed = 0

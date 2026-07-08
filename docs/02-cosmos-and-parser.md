@@ -282,6 +282,18 @@ statusline summoned, the opening description skips its title line: the bar
 already names the room (the PunyInform start-screen convention); every later
 look prints the title as usual.
 
+When the player stands on a supporter or inside a container, the room
+title and the status bar both say where: "Crypt (on the altar)", "Cellar
+(in the crate)". The wording is the language layer's `line_nested(obj)`
+block (English on/in; German auf/in with the dative article through
+art_the; Spanish sobre/en), so a language pack or a story overrides the
+phrasing like any other line_* block. The whole feature rides the
+compile-time `any_enterable` flag (1 when any object is a supporter or a
+container by kind): a game with nothing to climb into folds it away and
+its story file is byte-identical. The same flag guards the rule that the
+player never appears in a holder's contents listing ("an altar (contains
+yourself)" never prints).
+
 A story moves the player without walking through `teleport(dest)`, the
 cutscene arrival (a crash landing, a transit pod, a trapdoor): it relocates
 the player, pays a scored room's points exactly once (the same `arrive`

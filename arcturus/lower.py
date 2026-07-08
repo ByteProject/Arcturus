@@ -58,6 +58,11 @@ INTRINSICS = frozenset({
     # object spans (a static-if, see _if).
     "spans_addr", "spans_count", "any_spans", "any_doors", "any_named", "any_grains",
     "any_allwords", "any_tagged", "any_scored", "any_scoperoom", "scope_room",
+    # any_enterable is 1 when any object is a supporter or a container (by
+    # kind chain), so the nested-location suffix on the room title and the
+    # status bar ("Crypt (on the altar)") folds away in a game the player
+    # can never climb into anything in.
+    "any_enterable",
     # any_tables is the compile-time positional-grammar flag (1 if any verb's
     # grammar needs a table, docs/02 section 8c): the packs and the matcher
     # guard on it, so a game whose verbs all fit the flag model folds the whole
@@ -951,6 +956,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_tagged(): 1 when any object declares a `tag` qualifier, so the
         # listing hook folds away otherwise.
         _place(rt, Const(1 if any("tag" in o.props for o in ctx.world.objects.values()) else 0), dest)
+    elif name == "any_enterable":
+        # any_enterable(): 1 when any object is a supporter or container by
+        # kind, so the nested-location suffix folds away otherwise.
+        _place(rt, Const(1 if any(
+            "supporter" in o.chain or "container" in o.chain
+            for o in ctx.world.objects.values()) else 0), dest)
     elif name == "any_scored":
         # any_scored(): 1 when anything declares `scored`, so the award hooks
         # in take and go fold away in a scoreless game.
@@ -1780,6 +1791,9 @@ def _static_value(ctx, expr):
         return 1 if "them" in ctx.world.pronouns.values() else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tagged":
         return 1 if any("tag" in o.props for o in ctx.world.objects.values()) else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_enterable":
+        return 1 if any("supporter" in o.chain or "container" in o.chain
+                        for o in ctx.world.objects.values()) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scored":
         return 1 if any(_prop_truthy(o.props.get("scored")) for o in ctx.world.objects.values()) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scoperoom":

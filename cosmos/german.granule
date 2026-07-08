@@ -819,6 +819,17 @@ block art_a(obj, cap, kase)
 block line_by()
     show(" von ")
 
+// Der Ortszusatz in Titelzeile und Statusleiste: "Krypta (auf dem Altar)",
+// "Keller (in der Kiste)". Träger nehmen "auf", alles andere "in"; der
+// Artikel kommt im Dativ aus art_the (kase 2).
+block line_nested(obj)
+    if obj is supporter
+        show(" (auf ")
+    else
+        show(" (in ")
+    art_the(obj, 0, 2)
+    show(")")
+
 block banner_headline()
     show("Ein Textadventure")
 
@@ -831,6 +842,11 @@ block prompt()
 // either the holder shows its contents or the player already knows the item is
 // there (the knowledge model).
 block content_listable(holder, x)
+    // The player never lists as a holder's contents ("an altar (contains
+    // yourself)"); possible only where something is enterable, so it folds.
+    if any_enterable is 1
+        if x is player
+            return 0
     if x is hidden
         return 0
     if x is concealed

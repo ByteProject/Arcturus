@@ -839,6 +839,16 @@ block art_a(obj, cap)
 block line_by()
     show(" de ")
 
+// El sufijo de posición en el título y la barra: "Cripta (sobre el altar)",
+// "Sótano (en la caja)". Los soportes llevan "sobre", lo demás "en".
+block line_nested(obj)
+    if obj is supporter
+        show(" (sobre ")
+    else
+        show(" (en ")
+    art_the(obj, 0)
+    show(")")
+
 block banner_headline()
     show("Una aventura conversacional")
 
@@ -854,6 +864,11 @@ block prompt()
 // container) or the player already knows the item is there (it is `seen`). That
 // last case is the memory - a closed opaque box still lists what you have seen.
 block content_listable(holder, x)
+    // The player never lists as a holder's contents ("an altar (contains
+    // yourself)"); possible only where something is enterable, so it folds.
+    if any_enterable is 1
+        if x is player
+            return 0
     if x is hidden
         return 0
     if x is concealed
