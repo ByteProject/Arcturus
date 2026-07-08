@@ -1194,6 +1194,16 @@ def _emit_test(rt, ctx, expr, label, on_true):
         if res == wm.IS_KIND:
             _kind_test(rt, ctx, expr, label, on_true)
             return
+        if res == wm.IS_PREDICATE:
+            # `lamp is visible`: call the one-parameter block and branch on
+            # its truth (nonzero), negation riding the same flip as every
+            # other is-test.
+            t = not on_true if expr.negated else on_true
+            eval_expr(rt, ctx, expr.left, Variable(STACK))
+            rt.op("call_vs", RoutineRef("blk_" + expr.right.ident),
+                  Variable(STACK), store=Variable(STACK))
+            rt.op("jz", Variable(STACK), branch=(label, not t))
+            return
         t = not on_true if expr.negated else on_true
         opa, opb, tmp = _two_operands(rt, ctx, expr.left, expr.right)
         rt.op("je", opa, opb, branch=(label, t))

@@ -287,6 +287,7 @@ class Block:
 # How an `is` test resolved (docs/01 section 9).
 IS_PROPERTY = "property"  # right side is a boolean property: an attribute test
 IS_KIND = "kind"  # right side is a kind name: a kind-membership test
+IS_PREDICATE = "predicate"  # right side names a one-parameter block: a call test
 IS_EQUALITY = "equality"  # otherwise: an equality / identity comparison
 
 
