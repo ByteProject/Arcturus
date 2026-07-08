@@ -1103,6 +1103,10 @@ block msg_take_self()
     say "Dich selbst zumindest hast du fest im Griff."
 
 // Ein Bestandteil bleibt an seinem Ganzen; der Artikel steht im Dativ (zu).
+// Leaving a named thing the player is not actually in (exit noun).
+block msg_not_in_that()
+    say "Da bist du nicht drin."
+
 block msg_part_of()
     let p = parent_of(noun)
     show("Das gehört zu ")

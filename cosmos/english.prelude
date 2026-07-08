@@ -1075,6 +1075,10 @@ block msg_take_self()
     say "You keep a firm grip on yourself."
 
 // Taking a component (a lever in a machine): the part stays on its whole.
+// Leaving a named thing the player is not actually in (exit noun).
+block msg_not_in_that()
+    say "You aren't in that."
+
 block msg_part_of()
     let p = parent_of(noun)
     show("That's part of ")
