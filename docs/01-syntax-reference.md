@@ -791,11 +791,25 @@ if hook is supporter
 if noun is not container
 ```
 
+Predicate test: `<value> is <block>` and `<value> is not <block>` when the right
+side names a block with exactly one parameter: the block is called with the left
+side and the test is its truth (nonzero). So the library's predicates read the
+way the attributes do:
+
+```
+if lamp is visible
+if coin is not reachable
+```
+
+The block should return 0 or 1; `visible(lamp)` remains equivalent. Blocks of
+any other arity are ordinary values here and keep the call-them-with-parens
+error.
+
 Disambiguation: when the right operand is a bare identifier, `is` is a property
 test if it names a declared boolean property, a kind-membership test if it names
-a kind, and otherwise an equality. A name that is both a boolean property and an
-object (or a kind and an object) used with `is` is a compile-time clash to
-rename.
+a kind, a predicate test if it names a one-parameter block, and otherwise an
+equality. A name that is both a boolean property and an object (or a kind and an
+object) used with `is` is a compile-time clash to rename.
 
 Logic: `and`, `or`, `not`, short-circuiting.
 Property read with the dot, chainable: `ruby.value`, `hallway.north.name`.

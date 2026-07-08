@@ -998,6 +998,15 @@ class Analyzer:
             if right.ident in self.world.kinds:
                 self.world.is_resolutions[id(expr)] = wm.IS_KIND
                 return
+            # A one-parameter block used as a predicate: `lamp is visible`
+            # reads as visible(lamp), the way `is` already reads attributes
+            # and kinds. Attributes and kinds win the name; blocks with any
+            # other arity stay ordinary values (the equality error path
+            # tells the author to call them).
+            blk = self.world.blocks.get(right.ident)
+            if blk is not None and len(blk.params) == 1:
+                self.world.is_resolutions[id(expr)] = wm.IS_PREDICATE
+                return
         self.world.is_resolutions[id(expr)] = wm.IS_EQUALITY
         self._check_expr(right, locals_)
 
