@@ -23,7 +23,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tools"))
 import arcimg  # noqa: E402
 
 MASTERS = os.path.join(os.path.dirname(__file__), "..", "arc_image", "masters")
-ALL = sorted(os.listdir(MASTERS), key=lambda s: int(s.split(".")[0]))
+ALL = sorted((n for n in os.listdir(MASTERS) if n.endswith(".png")),
+             key=lambda s: int(s.split(".")[0]))
 # The full corpus check runs on a spread; the whole set is the CLI's job.
 SAMPLE = [ALL[0], ALL[2], ALL[8], ALL[15], ALL[-1]]
 
@@ -159,3 +160,58 @@ def test_cpc_inks_are_in_the_cube():
     _mode, native = arcimg.convert_master(os.path.join(MASTERS, ALL[0]), "CPC")
     assert len(native["palette"]) == 16
     assert all(0 <= i <= 26 for i in native["palette"])
+
+
+# -- the salient hint (the moon ruling, docs/08) --------------------------------
+
+def _disc_master(tmp_path):
+    """A synthetic night scene: dark teal sky, darker ground band, and a
+    pale disc that no fixed palette separates from the sky by hue alone."""
+    rows = []
+    for y in range(96):
+        row = []
+        for x in range(320):
+            if y > 64:
+                row.append((20, 30, 20))
+            else:
+                row.append((0, 120, 120))
+            if (x - 160) ** 2 + (y - 32) ** 2 <= 14 * 14:
+                row[-1] = (0, 160, 220)
+        rows.append(row)
+    p = tmp_path / "3.png"
+    arcimg._write_png(str(p), rows)
+    (tmp_path / "3.hint").write_text('{"salient": [[160, 32, 14]]}\n')
+    return str(p)
+
+
+def test_hint_promotes_the_disc_to_white(tmp_path):
+    path = _disc_master(tmp_path)
+    for tag in ("C64", "ZX3"):
+        _mode, native = arcimg.convert_master(path, tag)
+        t = arcimg.TARGETS[tag]
+        rendered = t.render(native, native["w"], native["h"])
+        whites = sum(1 for row in rendered for c in row
+                     if c[0] > 200 and c[1] > 200 and c[2] > 200)
+        assert whites > 100, tag
+
+
+def test_no_hint_no_change(tmp_path):
+    # The same master without its sidecar must not sprout white pixels.
+    path = _disc_master(tmp_path)
+    os.remove(str(tmp_path / "3.hint"))
+    _mode, native = arcimg.convert_master(path, "C64")
+    rendered = arcimg.TARGETS["C64"].render(native, native["w"], native["h"])
+    whites = sum(1 for row in rendered for c in row
+                 if c[0] > 200 and c[1] > 200 and c[2] > 200)
+    assert whites == 0
+
+
+def test_zx3_attrs_are_hardware_legal():
+    # Every attribute byte: ink and paper 0..7, and the pair must be
+    # honest about the shared bright bit by construction (bit 6 only).
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, "8.png"),
+                                          "ZX3")
+    for attr in native["attrs"]:
+        assert attr & 0x80 == 0          # no flash
+        ink, paper = attr & 7, (attr >> 3) & 7
+        assert 0 <= ink <= 7 and 0 <= paper <= 7

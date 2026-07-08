@@ -92,6 +92,18 @@ Reading the ledger, the targets fall into three conversion classes:
 Band width varies (160, 256, 280, 320): the geometry policy in section 4
 handles it once, for all targets.
 
+Lineage notes (Stefan, 2026-07-08, from the original Rabenstein ports):
+MEGA65 uses the same IFF specifications as the Amiga, and the historical
+MSX2 and Spectrum Next versions were ported FROM the Amiga graphics (the
+Next with reduced width). So the three remaining quantize-class targets
+are small deltas on the wave-1 Amiga recipe: same palette selection,
+their own gun snap and layout. They also share the Amiga's disk-room
+class, which is why the codec ruling groups them under LZSA2. They sit
+in wave 3 not for difficulty but because wave order was ruled
+Amiga/ST/DOS first, then the cell class led by the C64; the quantize
+stragglers follow the cell work because the cell solvers were the open
+research and these three are recipe application.
+
 ## 3. The format family: .arc files
 
 One format family, one name: an `.arc` image (working name; the extension
@@ -525,16 +537,66 @@ Python port of the reference optimizer/compressor, validated
 byte-identical against the reference tool in quick mode (the 2176-byte
 window, 0-2% off the full window, an order of magnitude faster to pack).
 
+THE CODEC RULING, AMENDED (R3, 2026-07-08, Stefan): the 16-bit big-disk
+targets (AMI, AST, DOS, and later MS2, NXT, M65) take LZSA2 as codec 2
+instead of ZX0. Measured on the corpus: LZSA2 is ~5% larger than ZX0
+(406,004 vs 425,301 bytes over the three targets, roughly 300 bytes per
+picture) but packs 75x faster (ZX0's optimal parse in Python took 1486s
+for the corpus, the native lzsa tool 20s) and decompresses faster on
+68000/8086. Those machines have disk room to spare while a z5 story
+caps at 256K; author regeneration time is what actually hurts. The
+8-bit cell targets keep ZX0: their pictures share a floppy with the
+story, and the tiny decoder matters there. Each target chapter of
+docs/09 mandates exactly one codec, so no interpreter ever carries two.
+arcimg packs LZSA2 through Emmanuel Marty's lzsa tool ($ARCIMG_LZSA,
+PATH, or FictionTools via orb) and verifies every pack against its own
+pure-Python decoder, which is ported from BlockFormat_LZSA2.md and
+validated byte-identical on the full corpus; that decoder is the
+executable spec for the interpreter side. Also in the amendment, the
+regeneration loop itself: `arcimg convert` now converts pictures in a
+worker pool and skips outputs that are newer than their master, its
+.hint sidecar, and the tool (make-style), so a corpus regen is minutes
+and an incremental one is seconds.
+
+THE SALIENT RULING (R3, 2026-07-08): a master may carry an optional
+sidecar, `8.png` beside `8.hint`, a one-line JSON file of the form
+{"salient": [[cx, cy, r], ...]} naming bright discs (a moon, a sun) in
+master pixel coordinates. Converters whose palette cannot hold the disc
+apart from its sky promote the disc's bright side to the palette's top
+entry, solid, no dither: the C64's white disc against the green night
+sky, the Spectrum's white moon (normal white beside a colored sky,
+bright white against black trees, so no glowing attribute box forms).
+Fully automatic detection was built three ways (threshold blobs, Hough
+circles, disc templates) and rejected: on pixel-art masters the clouds
+share the moon's colors and the trees occlude its shape, so every
+detector either misses the real moon or fires on junk. The author
+states the intent once, in seconds, and all fourteen targets benefit;
+this is the same author-in-charge philosophy as Pixel Polizei's
+check-and-comply loop. Occlusion is handled inside the disc: only the
+bright half of the hinted circle is promoted, so trees in front of the
+moon stay trees.
+
 WAVE 2 SIZES (R3, converter stage; the corpus, mode 12, RLE'd):
 C64 76,554 bytes total (3.6K average against 4.8K uncompressed), ZX3
 65,535 (3.1K against 3.5K), CPC 127,218 (6.1K against 7.7K). The cell
 solvers: C64 elects its global background by total remap cost and keeps
-each cell's three most frequent colors; the Spectrum matches in a
-LUMINANCE-DOMINANT space (20x luma weight, or dark muted browns become
-screaming red) and always pair-dithers inside the cell (flat cells are
-immune by construction); the CPC, whose 27-cube has no muted colors at
-all, mixes gradients at amplitude 20 so a sunset's dusty purple exists
-as blended gray+pink+blue.
+each cell's three most frequent colors; the CPC, whose 27-cube has no
+muted colors at all, mixes gradients gently (color first, dither as
+seasoning).
+
+THE SPECTRUM DOCTRINE (R3, 2026-07-08, relearned on Stefan's own
+hand-painted Spectrum Rabenstein, arc_image/Training, and on Pixel
+Polizei's manner): FIRST downsample every pixel to its nearest of the
+fifteen real Spectrum colors, plainly, with no pre-curves; THEN resolve
+each 8x8 cell to a legal same-bright pair by remap error. Black is the
+school's canvas, the one color legal beside both bright levels, so
+black-partnered pairs get a gentle preference (19/20), never a forced
+luma crush. The earlier draft (luminance-dominant voting, a night
+pre-curve, a 17/20 black bias, always-on pair dither) interacted into
+black soup and saturated patchwork; each thumb on the scale was removed
+and the training corpus judged the result: the graveyard now reads as
+kin to the hand-painted one (cyan sky, white clouds, the magenta band,
+green ground, blue-on-black trees).
 
 The playground carries the outputs (arc_image/ami, ast, dos; previews
 beside them), all regenerable with `arcimg convert` and gitignored as

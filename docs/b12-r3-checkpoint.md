@@ -1,40 +1,53 @@
 # B12 R3 checkpoint (working note, delete at R3 close)
 
-State 2026-07-08, written before a context compaction; the durable truth
-is docs/08 (design record) + docs/09 (implementer book) + this delta.
+State 2026-07-08, evening; the durable truth is docs/08 (design record)
++ docs/09 (implementer book) + this delta.
 
 DONE in R3 so far:
-- Wave-2 converters (C64 multicolor solver, ZX 2-per-cell solver, CPC
-  mode-0 quantize) with two review rounds from Stefan (the pixel artist):
-  luminance-dominant matching, saturation term for ZX pastels, greedy
-  error-min cell colors, _protect_extremes for suns/moons, conditional
-  night-only ZX pre-curve, dither amp CPC 8 / ZX pair-mix 16/28.
-- ZX0 ruled and shipped as the .arc codec (byte 14; RLE stays codec 0):
-  pure-Python reference-faithful packer in arcimg (quick window 2176),
-  byte-identical vs reference tool; bake-off table in docs/08.
-- Training corpus: arc_image/training/ZX Spectrum/ (Stefan's art).
+- Wave-2 converters (C64 multicolor solver, ZX solver, CPC mode-0
+  quantize) through THREE review rounds from Stefan (the pixel artist).
+  The third round rebuilt the Spectrum on the Polizei doctrine: nearest
+  of the 15 real colors first (saturation-aware metric _dist_zx15, NO
+  pre-curve), then legal same-bright pairs per cell, gentle 19/20 black
+  preference. Judged against his hand-painted Spectrum Rabenstein
+  (arc_image/Training/ZX Spectrum/).
+- THE SALIENT RULING: optional .hint sidecar per master ({"salient":
+  [[cx,cy,r],...]}); converters promote the disc's bright side to the
+  palette top (C64 white moon, ZX two-white treatment). Auto-detection
+  tried three ways and rejected; docs/08 records why. masters/8.hint is
+  the first (the moon of picture 8, the standing complaint, now fixed).
+- Codecs: ZX0 (codec 1) for the 8-bit cell targets; LZSA2 (codec 2,
+  amendment ruling) for AMI/AST/DOS and later MS2/NXT/M65. lzsa binary
+  packs (FictionTools via orb, $ARCIMG_LZSA, or PATH), arcimg's own
+  lzsa2_decompress (spec-ported, corpus-verified) checks every pack and
+  is the interpreters' executable spec (docs/09 part B).
+- Regen loop: cmd_convert converts in a worker pool and skips current
+  outputs (master/.hint/tool mtimes, make-style); the FULL six-target
+  regen incl. stress now takes ~75 seconds (was ~35 minutes).
+- All assets + previews regenerated: AMI 151K / AST 148K / DOS 128K
+  (LZSA2) / C64 59K / ZX3 45K / CPC 79K corpus totals; stress pair and
+  the mode-9 probe assets 90.* now exist for ALL six targets (90 = top
+  72 rows of beach).
+- arcimg 1.5.0, standalone rebuilt, README table bumped; suite 715.
 
 PENDING, in order:
-1. Asset regen (ZX0 + trained converters): AMI, ZX3 done; AST/DOS/C64/CPC
-   in a background job at checkpoint time. Command lives in the shell
-   history; rerunning the per-target loop is idempotent.
-2. Probes backport: wave-1 probes (dos/ast/ami) still decode RLE. Write
-   ZX0 decompressors (x86 for probe.asm, 68k for probe.s/payload.s,
-   modeled on dzx0; the backtrack bit and the dbra trap are documented in
-   docs/09 part B), embed regenerated 90/100 assets, rebuild, and Stefan
-   re-verifies in DOSBox-X/Hatari/FS-UAE (launch with payload flags only;
-   his configs rule the display).
-3. Stefan's viewing pass of arc_image/previews (all six targets), the R3
-   conversion gate.
-4. R3 probes: C64 .prg (ACME on orb debian; VICE for launch, likely needs
-   install approval or path from Stefan), ZX +3 and CPC as crafted .sna
-   snapshots (sjasmplus at ~/.local/bin/sjasmplus; ZEsarUX covers both,
-   ASK STEFAN FOR ITS PATH at first launch, never screenshot, he
-   verifies visually).
-5. docs/09 chapters C.4 C64, C.5 ZX3, C.6 CPC from working probe code;
-   6502 + Z80 ZX0 decoders into part B references.
-6. R3 close: docs/08 milestone record, PROGRESS entry, ledger sizes final
-   (ZX0 numbers), delete this checkpoint file.
+1. Stefan's viewing pass of arc_image/previews (all six targets), the
+   R3 conversion gate. Ground truth for ZX taste: his Training shots.
+2. Probes backport: wave-1 probes (dos/ast/ami) still decode RLE and
+   predate the codec ruling; they need LZSA2 decompressors now (8086
+   and 68000, adapt from the lzsa repository's permissively licensed
+   asm), embed the regenerated 90/100 assets, rebuild, Stefan
+   re-verifies in DOSBox-X/Hatari/FS-UAE (payload flags only; his
+   configs rule the display).
+3. R3 probes: C64 .prg (ACME on orb debian; VICE for launch, ask
+   Stefan for path or install approval), ZX +3 and CPC as .sna
+   snapshots (sjasmplus at ~/.local/bin/sjasmplus; ZEsarUX covers
+   both, ASK STEFAN FOR ITS PATH at first launch, never screenshot).
+   These decode ZX0: Z80 decoder ~70B (official), 6502 ~130B.
+4. docs/09 chapters C.4 C64, C.5 ZX3, C.6 CPC from working probe code;
+   Z80 + 6502 ZX0 decoder listings into part B.
+5. R3 close: docs/08 milestone record, PROGRESS entry, delete this
+   checkpoint file.
 
-Sizes with ZX0 (docs/08 has the full table): ZX 1.9K, C64 2.8K, CPC 3.7K,
-AMI 6.9K, AST 6.6K, DOS 5.7K per picture on the 21-master corpus.
+Per picture: ZX 2.1K, C64 2.8K, CPC 3.7K (ZX0); AMI 7.2K, AST 7.0K,
+DOS 6.1K (LZSA2, ~5% over ZX0, 75x faster to pack; ruled worth it).
