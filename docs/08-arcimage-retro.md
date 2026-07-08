@@ -514,6 +514,17 @@ ST-class color), AMI differs only by the unavoidable 4-bit gun snap
 entries, sorted darkest-first, entry 0 is the text paper and entry 15
 the ink, and the converter re-quantizes to 15 plus white only when the
 art carries no readable light color, so a 16-color master loses nothing.
+THE CODEC RULING (R3, 2026-07-08): ZX0 replaces RLE as the default .arc
+codec (header byte 14; RLE remains codec 0). The bake-off over the
+corpus sections, per picture: C64 3602 RLE -> 2779 ZX0, ZX3 2778 ->
+1865, CPC 6024 -> 3663, AMI 11013 -> 6796, AST 11830 -> 6596, DOS 14883
+-> 5743; Exomizer wins only marginally (and clearly only on DOS, the
+machine that least cares), LZSA2 sits between. ZX0's decompressors are
+the smallest of the field (~70 bytes of Z80). arcimg carries a pure
+Python port of the reference optimizer/compressor, validated
+byte-identical against the reference tool in quick mode (the 2176-byte
+window, 0-2% off the full window, an order of magnitude faster to pack).
+
 WAVE 2 SIZES (R3, converter stage; the corpus, mode 12, RLE'd):
 C64 76,554 bytes total (3.6K average against 4.8K uncompressed), ZX3
 65,535 (3.1K against 3.5K), CPC 127,218 (6.1K against 7.7K). The cell

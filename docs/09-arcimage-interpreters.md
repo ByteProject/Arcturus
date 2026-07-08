@@ -88,7 +88,8 @@ HEADER, 16 bytes:
     +8   2  native width in pixels
     +10  2  native height in pixels (mode x 8)
     +12  2  image id (matches the filename; a cheap sanity check)
-    +14  2  reserved, 0
+    +14  1  codec: 0 = RLE, 1 = ZX0 (the default)
+    +15  1  reserved, 0
 
 SECTION TABLE, section-count entries of 6 bytes, at offset 16:
 
@@ -111,15 +112,41 @@ their exact meaning, is per target (part C); two rules hold everywhere:
 - Palette payloads are in the machine's NATIVE hardware encoding and are
   written to the hardware verbatim.
 
-THE RLE SCHEME (shared by every target; control byte c):
+THE CODEC (header byte 14): 0 = RLE, 1 = ZX0. ZX0 is the default since
+2026-07-08 (Einar Saukas's format, forward mode with inverted gamma: the
+stream every published ZX0 decompressor targets). The corpus bake-off
+behind the ruling is docs/08; the shape of it: ZX0 cuts the RLE sizes by
+another quarter to half (a CPC picture 6.0K -> 3.7K, a Spectrum picture
+2.8K -> 1.9K), sits within a few percent of Exomizer, and has the
+smallest decompressors in the business: the canonical Z80 decoder is
+about 70 bytes, the 6502 port about 130, with 68000 and 8086 ports
+published. An interpreter implements ONE codec: whichever the assets it
+ships were packed with (arcimg packs ZX0 unless told otherwise); reading
+the codec byte and refusing the other is honest behavior.
+
+ZX0 IN ONE PARAGRAPH (the full executable specification is
+zx0_decompress in arcimg, a verbatim port of the reference dzx0): the
+stream interleaves single indicator bits, interlaced Elias gamma values,
+and plain bytes. Three block kinds: LITERALS (gamma length, then that
+many bytes), REPEAT (gamma length, copy from the last offset), and NEW
+OFFSET (gamma-inverted MSB where 256 marks the end of the stream, an LSB
+byte, then gamma length-minus-one whose FIRST bit rides bit 0 of that
+LSB byte: the backtrack trick every decoder must honor). After literals
+the next bit chooses repeat (0) or new offset (1); after any copy it
+chooses literals (0) or new offset (1). offset = MSB*128 - (LSB >> 1);
+decompression is a plain byte loop with one 2176-byte-max lookback into
+its own output, no window buffer needed since sections decompress whole
+into their destination.
+
+THE RLE SCHEME (codec 0; control byte c):
 
     c = 0x00..0x7F   literal: copy the next c+1 bytes to the output
     c = 0x81..0xFF   run: repeat the next byte 257-c times (2..128)
     c = 0x80         end of section
 
 The uncompressed length in the table is authoritative; the 0x80 sentinel
-lets a streaming loader run without a counter. Reference decoders, both
-about a dozen instructions:
+lets a streaming loader run without a counter. RLE reference decoders,
+both about a dozen instructions:
 
 x86 (16-bit, ds:si = stream, es:di = destination; from the DOS probe):
 
@@ -164,7 +191,10 @@ iteration before the byte load:
             bra     .next
     .end:   rts
 
-6502 and Z80 reference decoders land with their waves' chapters.
+6502 and Z80 RLE decoders land with their waves' chapters if a target
+chooses codec 0; for ZX0 use the published decompressors (the official
+Z80 versions ship with ZX0 itself; 6502, 68000, and 8086 ports are in
+the probes as they convert to the codec).
 
 ## Part C: the targets
 

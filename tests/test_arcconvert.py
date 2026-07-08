@@ -61,7 +61,8 @@ def test_conversions_round_trip_through_the_container(name):
     iid = int(name.split(".")[0])
     for tag in ("AMI", "AST", "DOS"):
         mode, native = arcimg.convert_master(path, tag)
-        blob = arcimg.encode_native(tag, mode, iid, native)
+        blob = arcimg.encode_native(tag, mode, iid, native,
+                                    codec=arcimg.CODEC_RLE)
         tag2, mode2, iid2, back = arcimg.decode_arc(blob)
         assert (tag2, mode2, iid2) == (tag, mode, iid)
         assert back == native
@@ -106,7 +107,8 @@ def test_gradient_master_converts_and_round_trips():
     for tag, budget in (("AMI", 32), ("AST", 16), ("DOS", 256)):
         native = arcimg._CONVERTERS[tag](rows)
         assert len(native["palette"]) == budget
-        blob = arcimg.encode_native(tag, 12, 100, native)
+        blob = arcimg.encode_native(tag, 12, 100, native,
+                                    codec=arcimg.CODEC_RLE)
         _t, _m, _i, back = arcimg.decode_arc(blob)
         assert back == native, tag
 
@@ -126,7 +128,8 @@ def test_cell_targets_convert_and_round_trip(name):
     iid = int(name.split(".")[0])
     for tag in ("C64", "ZX3", "CPC"):
         mode, native = arcimg.convert_master(path, tag)
-        blob = arcimg.encode_native(tag, mode, iid, native)
+        blob = arcimg.encode_native(tag, mode, iid, native,
+                                    codec=arcimg.CODEC_RLE)
         tag2, mode2, iid2, back = arcimg.decode_arc(blob)
         assert (tag2, mode2, iid2) == (tag, mode, iid)
         assert back == native, tag
