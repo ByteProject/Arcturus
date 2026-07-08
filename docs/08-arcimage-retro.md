@@ -242,12 +242,12 @@ A blueprint is "proven" when its probe is green. Per target:
   side of verification is the converter's render-back: arcimg renders any
   .arc back to PNG, and that encode/render round-trip is the unit test of
   the format, run in pytest long before an emulator is opened.
-- The bench runs on the macOS side: FS-UAE or vAmigaTS (Amiga), Hatari
-  (ST), DOSBox-X (DOS), VICE x64sc/x128/xplus4 (CBM), Caprice/CPCEC
-  (CPC), openMSX (MSX1/2), Fuse or ZEsarUX (+3), atari800 (A8),
-  AppleWin-class (Apple II), CSpect or ZEsarUX (Next), Xemu (MEGA65).
-  Several are already installed; each target's probe work starts by
-  checking which, rather than installing duplicates.
+- The bench runs on the macOS side: FS-UAE (Amiga), Hatari (ST),
+  DOSBox-X (DOS), VICE x64sc/x128/xplus4 (CBM), ZEsarUX for BOTH the
+  Spectrum +3 and the CPC (Stefan's ruling: no Caprice) and for the
+  Next, openMSX (MSX1/2), atari800 (A8), AppleWin-class (Apple II),
+  Xemu (MEGA65). Several are already installed; each target's probe work
+  starts by checking which, rather than installing duplicates.
 - Interpreter integration is deliberately NOT part of the harness: the
   probes prove the blueprint, and the interpreters (Eris first) implement
   it independently once B12 is done, returning here only if a probe
@@ -280,8 +280,9 @@ method). Naming: R for retro.
   palette contract on both 68k machines, the Z-machine colours clause,
   and the copper per-frame restore.
 - R3. WAVE 2, the cell class flagship: C64, ZX Spectrum +3, CPC.
-  The per-cell solver framework, the three probes (VICE, Fuse, Caprice),
-  the addenda (the CPC one feeds Haumea directly).
+  The per-cell solver framework, the three probes (VICE for the C64,
+  ZEsarUX for both the +3 and the CPC), the addenda (the CPC one feeds
+  Haumea directly).
   Done-test: corpus conversions approved by Stefan per target; probes
   green both modes.
 - R4. WAVE 3: Atari 8-bit (the per-line palette solver), MSX1, MSX2,
