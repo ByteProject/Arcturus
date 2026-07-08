@@ -274,8 +274,10 @@ ASSETS. `<id>.AST` beside the story (GEMDOS 8.3-safe). Test pair: 90.AST,
 
 ### C.3 Amiga (target id 1, tag AMI, files `<id>.AMI`)
 
-PENDING: the chapter is written with its probe (in progress). Layout
-facts an implementer can already rely on, from the format spec:
+Verified: FS-UAE (A500, Kickstart 1.3), both modes, 2026-07-08 (probe:
+`arc_image/probes/ami/`, `python3 build_adf.py` assembles boot.s and
+payload.s with vasm and lays the bootable ADF; no filesystem, no
+Workbench: a bootblock trackload). The facts:
 
 - bitmap (type 1): 5 bitplanes, row-interleaved ILBM-style (row of plane
   0, row of plane 1, ..., 40 bytes each; 200 bytes per pixel row in
@@ -303,3 +305,7 @@ facts an implementer can already rely on, from the format spec:
   (verified), the ST chapter (provisional), the Amiga layout facts.
 - 2026-07-08 (later): the ST chapter verified in Hatari, both modes, with
   the odd-length alignment lesson recorded.
+- 2026-07-08 (later still): the Amiga chapter verified in FS-UAE, both
+  modes; the Z-machine colours clause (part A.5) and the per-target
+  colour answers; the AMI text contract (sorted palette) after the
+  brown-to-pink background finding; wave 1 complete.
