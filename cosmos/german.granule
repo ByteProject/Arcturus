@@ -709,6 +709,12 @@ verb "sing", "singe", "singen"
 // des; ein/eine, einen, einem, eines. A `named` object (Linda, Excalibur) takes no
 // article; that check folds away in a game with no named objects (any_named).
 block art_the(obj, cap, kase)
+    // Total, like the containment test: an unresolved noun prints
+    // as the word, never an illegal print_obj 0 (docs/02 s.12).
+    if obj is nothing
+        show("nichts")
+        return
+
     if any_named is 1
         if obj is named
             print_name(obj)
@@ -756,6 +762,12 @@ block art_the(obj, cap, kase)
     print_name(obj)
 
 block art_a(obj, cap, kase)
+    // Total, like the containment test: an unresolved noun prints
+    // as the word, never an illegal print_obj 0 (docs/02 s.12).
+    if obj is nothing
+        show("nichts")
+        return
+
     if any_named is 1
         if obj is named
             print_name(obj)

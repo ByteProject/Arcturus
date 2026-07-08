@@ -63,3 +63,18 @@ def test_holds_with_nothing_is_false():
     text = _play(["push zzzz"])
     assert "HOLDS" not in text
     assert "You see nothing of the sort here." in text
+
+
+def test_the_article_prints_nothing_for_an_unresolved_object():
+    # The same total-operator doctrine for the print path: ${the noun} with
+    # noun = nothing prints the word, never an illegal print_obj 0.
+    game = GAME.replace(
+        'on take\n',
+        'on take\n    say "You reach for ${the noun}."\n', 1)
+    story = load(generate(analyze(cosmos.combined_program(parse(game)))))
+    io = CaptureIO(script=["take zzz"])
+    try:
+        VM(story, io).run(max_steps=30_000_000)
+    except IndexError:
+        pass
+    assert "You reach for nothing." in io.text
