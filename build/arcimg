@@ -56,7 +56,7 @@ __version__ = "1.5.0"
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = 'ac5ee89'
+__build__ = '6d037e8'
 
 
 def build_id() -> str:
@@ -1357,6 +1357,21 @@ def _convert_zx3(rows, salient=None):
                     a = top[0]
                     b = top[1] if len(top) > 1 else top[0]
                     cands = {(a, b), (0, a)}
+                    # The pivot pair (img2spec's manner): split the cell at
+                    # its median luminance, average each side, snap each
+                    # average to this half. Derives the cell's two tones
+                    # from its structure; catches what frequency misses
+                    # (gradient cells, two-tone cells in scattered thirds).
+                    lums = sorted((2 * c[0] + 4 * c[1] + c[2], c)
+                                  for c, _i in cell)
+                    piv = lums[len(lums) // 2][0]
+                    lo = [c for l, c in lums if l <= piv]
+                    hi = [c for l, c in lums if l > piv] or lo
+                    avg = lambda g: tuple(sum(v[k] for v in g) // len(g)
+                                          for k in range(3))
+                    cands.add(tuple(min(
+                        legal, key=lambda k, cc=avg(g): _dist_zx15(
+                            cc, _ZX15[k])) for g in (lo, hi)))
                 bb = None
                 for a, b in cands:
                     err = sum(min(_dist_zx15(c, _ZX15[a]),
@@ -1519,12 +1534,40 @@ def _convert_cpc(rows, salient=None):
                 cur[ci] = d
     pal = [cube[k] for k in chosen]
     pal += [(0, 0, 0)] * (16 - len(pal))
-    # Color-first, dither-last (Stefan's ruling on the stresstest): the
-    # palette carries the salient colors, and the mix stays gentle. Flat
-    # art stays undithered. The pixel map uses the same chroma-keeping
-    # metric that chose the inks.
-    pixels = _map_pixels(rows, pal, 8 if _gradient_class(rows) else 0,
-                         metric=dist_cpc)
+    # Color-first, dither-only-at-transitions (Stefan the pixel artist: he
+    # would not blend a whole sky, he would replace its color flat and
+    # layer a few pixels where the bands meet). So: map every pixel FLAT
+    # to its nearest ink; then, for gradient masters only, sprinkle the
+    # Bayer mix on the pixels that sit at a quantization band boundary
+    # inside a smooth region of the master. Band interiors stay solid (a
+    # sun stays a solid disc), hard edges (cliff against sky) stay hard.
+    pixels = _map_pixels(rows, pal, 0, metric=dist_cpc)
+    if _gradient_class(rows):
+        out = [row[:] for row in pixels]
+        for y in range(h):
+            for x in range(w):
+                me = pixels[y][x]
+                c = rows[y][x]
+                mixed = smooth = True
+                mx = 0
+                for dy in (-1, 0, 1):
+                    for dx in (-1, 0, 1):
+                        ny, nx = y + dy, x + dx
+                        if 0 <= ny < h and 0 <= nx < w:
+                            if pixels[ny][nx] != me:
+                                mx = 1
+                            n = rows[ny][nx]
+                            if (abs(n[0] - c[0]) + abs(n[1] - c[1])
+                                    + abs(n[2] - c[2])) > 90:
+                                smooth = False
+                mixed = bool(mx)
+                if mixed and smooth:
+                    t = (_BAYER8[y & 7][x & 7] / 63.0 - 0.5) * 2 * 10
+                    j = (min(255, max(0, round(c[0] + t))),
+                         min(255, max(0, round(c[1] + t))),
+                         min(255, max(0, round(c[2] + t))))
+                    out[y][x] = _nearest(j, pal, metric=dist_cpc)
+        pixels = out
     inks = [q3(c[0]) * 9 + q3(c[1]) * 3 + q3(c[2]) for c in pal]
     return {"w": w, "h": h, "pixels": pixels, "palette": inks, "regs": [0]}
 
