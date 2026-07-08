@@ -573,30 +573,43 @@ detector either misses the real moon or fires on junk. The author
 states the intent once, in seconds, and all fourteen targets benefit;
 this is the same author-in-charge philosophy as Pixel Polizei's
 check-and-comply loop. Occlusion is handled inside the disc: only the
-bright half of the hinted circle is promoted, so trees in front of the
-moon stay trees.
+bright side of the hinted circle is promoted, CONNECTED FROM THE CROWN
+(the region reachable from the disc's topmost bright row), so trees in
+front of the moon stay trees and bright foreground pixels inside a low
+moon's circle (path glints, water) do not mirror a second half-disc
+into the ground.
 
 WAVE 2 SIZES (R3, converter stage; the corpus, mode 12, RLE'd):
 C64 76,554 bytes total (3.6K average against 4.8K uncompressed), ZX3
 65,535 (3.1K against 3.5K), CPC 127,218 (6.1K against 7.7K). The cell
 solvers: C64 elects its global background by total remap cost and keeps
 each cell's three most frequent colors; the CPC, whose 27-cube has no
-muted colors at all, mixes gradients gently (color first, dither as
-seasoning).
+muted colors at all, picks its 16 inks directly from the 27 by greedy
+error minimization (no cluster middleman to collapse; the earlier
+median-cut-then-snap route left a gradient master six inks and a grey
+mess) with a chroma-dumping penalty, because by plain distance a dusty
+mauve sky IS closest to grey while an artist keeps the hue family and
+accepts rose; gradients mix gently (color first, dither as seasoning).
 
-THE SPECTRUM DOCTRINE (R3, 2026-07-08, relearned on Stefan's own
-hand-painted Spectrum Rabenstein, arc_image/Training, and on Pixel
-Polizei's manner): FIRST downsample every pixel to its nearest of the
-fifteen real Spectrum colors, plainly, with no pre-curves; THEN resolve
-each 8x8 cell to a legal same-bright pair by remap error. Black is the
-school's canvas, the one color legal beside both bright levels, so
-black-partnered pairs get a gentle preference (19/20), never a forced
-luma crush. The earlier draft (luminance-dominant voting, a night
-pre-curve, a 17/20 black bias, always-on pair dither) interacted into
-black soup and saturated patchwork; each thumb on the scale was removed
-and the training corpus judged the result: the graveyard now reads as
-kin to the hand-painted one (cyan sky, white clouds, the magenta band,
-green ground, blue-on-black trees).
+THE SPECTRUM DOCTRINE (R3, 2026-07-08, revised same day on Stefan's
+critique with the master references: his own Spectrum Rabenstein in
+arc_image/Training, Vanja Utne's Hibernated 1, Rail/Slave's Eight Feet
+Under, Shawn G. McClure's Hibernated 2): BRIGHT IS THE CANVAS. Those
+pictures live almost entirely in black plus the seven bright colors;
+the dark level appears rarely and deliberately, as regional shadowing,
+never as a nearest-color accident. The pipeline: downsample every pixel
+to its nearest of the fifteen real colors (saturation-aware metric, no
+pre-curves), resolve each 8x8 cell to a legal same-bright pair by remap
+error with a gentle 19/20 black-pair preference, and render the cell
+BRIGHT unless (a) the dark pair actually uses normal white D7, the
+Spectrum's only grey, which stonework dissolves without, (b) the cell
+is not cloud-white (whites follow their sky), and (c) the dark fit is
+decisively better (0.55). A coherence pass then settles stragglers to
+their neighborhood's level. Treating dark and bright hues as fifteen
+equal citizens was the earlier mistake: dark cells scattered
+everywhere, and every boundary between the levels clashed around
+rounded shapes. Dark-ish master content renders as black paper with
+bright ink, which IS the school; the graveyard statue keeps its grey.
 
 The playground carries the outputs (arc_image/ami, ast, dos; previews
 beside them), all regenerable with `arcimg convert` and gitignored as
