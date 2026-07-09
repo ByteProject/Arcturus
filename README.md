@@ -312,3 +312,5 @@ MIT. See the headers in each source file.
 
 Thanks to **Pablo Martínez** for the translation of the Spanish language
 granule.
+
+Special thanks to **improvmonster** for early adoption and bug hunting.
