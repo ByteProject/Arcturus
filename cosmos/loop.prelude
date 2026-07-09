@@ -201,6 +201,49 @@ block run_chain(act)
         par
         change act to chain_next
 
+// Run an action as part of the CURRENT turn, the way the player's own
+// command would dispatch it: Inform's <<take book>>, Dialog's (try ...).
+// Reached through the perform intrinsic, perform("take", book): the action
+// name resolves at compile time, the operands default to nothing, and a
+// direction rides the way slot (perform("go", west)), because go reads
+// way, never noun. The full pipeline runs: the can't/won't refusals, the
+// handler chain, the messages, and the after phase; then the enclosing
+// command's own operands come back, so the outer turn (and a later AGAIN)
+// still sees what the player actually typed. Returns 1 when the action
+// carried, 0 when it refused; the enclosing turn's own refused flag is
+// untouched either way. No new undo point and no extra turn tick: it is
+// one turn's work. Costs nothing unless called (DCE).
+block cosmos_perform(act, obj, other)
+    let sn = noun
+    let ss = second
+    let sw = way
+    let sg = grain
+    let sr = refused
+    change refused to 0
+    change grain to 0
+    if act is action_id("go")
+        change way to obj
+        change noun to nothing
+    else
+        change noun to obj
+        change way to nothing
+    change second to other
+    dispatch(act)
+    if any_after is 1
+        if refused is 0
+            let aft = after_of(act)
+            if aft is not 0
+                dispatch(aft)
+    let ok = 1
+    if refused is not 0
+        change ok to 0
+    change noun to sn
+    change second to ss
+    change way to sw
+    change grain to sg
+    change refused to sr
+    return ok
+
 // Carry out one understood command. Undo is handled here, not through dispatch:
 // every other command first takes an undo checkpoint (save_undo), so that a later
 // undo rewinds to just before it. When save_undo returns 2 the machine has just

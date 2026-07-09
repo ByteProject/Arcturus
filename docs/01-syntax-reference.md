@@ -489,6 +489,25 @@ without TAKE (a panel pried open, a mechanism yielding its prize) uses
 no auto-scored point ever becomes unreachable. A bare `move obj to player`
 pays nothing (section 5, the move-versus-gain warning).
 
+The general form is `perform`: run any action as part of the current turn,
+exactly as the player's own command would dispatch it, refusals, handlers,
+and messages included (Inform's `<<take book>>`, Dialog's `(try ...)`):
+
+```
+perform("take", book)         // the full TAKE, "Got it." and all
+perform("go", west)           // a real move; a direction rides the way slot
+perform("give", coin, bob)    // two nouns
+if perform("open", chest) is 0
+    say "The chest defies you."   // 0 means the action refused
+```
+
+The action name is checked at compile time; the enclosing command's own
+operands are restored afterwards (a later AGAIN still repeats what the
+player typed), and no extra turn passes: it is one turn's work. Where
+`teleport` and `gain` exist they stay the better word (they are silent
+about the how); `perform` is for when you want the verb's whole voice.
+Costs nothing in a game that never calls it.
+
 For everything the compiler cannot know, the events, there is `award`, a
 statement legal anywhere a statement is (handlers, topic bodies, grains):
 

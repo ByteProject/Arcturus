@@ -77,6 +77,11 @@ INTRINSICS = frozenset({
     # tick_timers counts down the after/every schedule once per turn.
     "run_free", "ev_start", "ev_enter", "ev_each_turn", "action_id", "run_grain",
     "tick_timers",
+    # perform("take", book) runs an action as part of the current turn, the
+    # way the player's own command would dispatch it (Inform's <<take book>>,
+    # Dialog's (try ...)); the library block it calls saves and restores the
+    # enclosing command's operands and returns 1 unless the action refused.
+    "perform",
     # show prints without a trailing newline (say always adds one); print_name
     # prints an object's short name (so messages can name a passed-in object);
     # new_line prints a bare newline (the library's own line control, e.g.
@@ -619,6 +624,27 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         if num is None:
             raise LowerError(f"action_id: unknown action '{text}'")
         _place(rt, Const(num), dest)
+    elif name == "perform":
+        # perform("take", book) / perform("go", west) / perform("give", coin,
+        # bob): the action name resolves at compile time like action_id; the
+        # optional operands default to nothing. Lowers to the library's
+        # cosmos_perform, which dispatches within the current turn and
+        # restores the enclosing command's operands.
+        if not args or not isinstance(args[0], ast.StringLit):
+            raise LowerError(
+                'perform needs a quoted action name: perform("take", book)',
+                expr.line)
+        text = "".join(p.text for p in args[0].parts if isinstance(p, ast.StringText))
+        num = wm.action_numbers(ctx.world).get(text)
+        if num is None:
+            raise LowerError(f"perform: unknown action '{text}'")
+        for i in (2, 1):
+            if len(args) > i:
+                eval_expr(rt, ctx, args[i], Variable(STACK))
+            else:
+                rt.op("push", Const(0))
+        rt.op("call_vs", RoutineRef("blk_cosmos_perform"), Const(num),
+              Variable(STACK), Variable(STACK), store=dest)
     elif name == "show":
         # show(text): print without a trailing newline (for prompts and for
         # building a sentence around a named object).
