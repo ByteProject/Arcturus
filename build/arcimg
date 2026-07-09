@@ -42,7 +42,10 @@ Commands:
       Pictures convert in parallel; outputs newer than their master, its
       .hint sidecar, and this tool are skipped make-style. A master may
       carry <id>.hint ({"salient": [[cx, cy, r], ...]}) naming bright discs
-      (a moon, a sun) that must survive conversion visibly.
+      (a moon, a sun) that must survive conversion visibly. The 16-bit
+      targets pack LZSA2: Emmanuel Marty's lzsa tool is used when found
+      ($ARCIMG_LZSA, then PATH) for the optimal parse, and the built-in
+      pure-Python packer otherwise (~8% larger, no dependency ever).
 
   arcimg targets | arcimg render FILE -o PNG
       List the target ledger; render any .arc back to a PNG preview.
@@ -72,13 +75,13 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.6.1"
+__version__ = "1.7.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = 'fb812b0'
+__build__ = '9c4948b'
 
 
 def build_id() -> str:
@@ -525,65 +528,242 @@ def rle_decode(data: bytes) -> bytes:
 # (best ratio, ~70-byte Z80 decoder) because their pictures are the ones that
 # share a floppy with the story.
 #
-# Packing shells out to Emmanuel Marty's `lzsa` tool (the BuildTools standard;
-# FictionTools carries it): an optimal LZSA2 parse in pure Python would be as
-# slow as the ZX0 packer, which is the problem being solved. Decompression is
-# pure Python below, ported from BlockFormat_LZSA2.md, and doubles as the
-# executable spec for the interpreter decoders (docs/09 Part B). Every pack is
-# round-tripped through this decoder before it is accepted.
+# Packing prefers Emmanuel Marty's `lzsa` tool when one is around, because
+# its optimal parse beats any quick parse; without one, a pure-Python greedy
+# packer below produces the same format about 8% larger (measured on the
+# corpus), so arcimg never NEEDS an external binary (the BuildTools 4.0
+# doctrine: Python only, no Linux dependency, every disk builder
+# self-contained). The chain, ruled 2026-07-09:
+#
+#   $ARCIMG_LZSA (an explicit binary)  ->  `lzsa` on PATH  ->  built-in greedy
+#
+# Note the trade an author should know (documented in docs/08): with the tool
+# on PATH the assets pack ~8% smaller, but two machines only produce
+# byte-identical assets when both have the same lzsa (or neither has one).
+# Decompression is pure Python below, ported from BlockFormat_LZSA2.md, and
+# doubles as the executable spec for the interpreter decoders (docs/09
+# Part B). Every pack, from either packer, is round-tripped through that
+# decoder before it is accepted.
 
 def _find_lzsa():
-    """The lzsa binary: $ARCIMG_LZSA, then PATH, then FictionTools via orb
-    (the OrbStack debian machine, Stefan's arrangement)."""
+    """The lzsa binary: $ARCIMG_LZSA, then PATH; None means the built-in
+    greedy packer takes over. Never a remote machine, never an error."""
     env = os.environ.get("ARCIMG_LZSA")
     if env:
         return [env]
     path = shutil.which("lzsa")
     if path:
         return [path]
-    if shutil.which("orb"):
-        return "orb"
     return None
 
 
 def lzsa2_compress(data: bytes) -> bytes:
-    """Raw LZSA2 block via the external packer, verified by lzsa2_decompress.
-    The empty convention matches ZX0: empty in, empty out."""
+    """Raw LZSA2 block: the external packer when one is found, the built-in
+    greedy packer otherwise, both verified by lzsa2_decompress. The empty
+    convention matches ZX0: empty in, empty out."""
     if not data:
         return b""
     cmd = _find_lzsa()
     if cmd is None:
-        raise RuntimeError(
-            "lzsa binary not found: install lzsa, set ARCIMG_LZSA, or use "
-            "--codec zx0")
-    import tempfile
-    tmp = tempfile.mkdtemp(prefix="arcimg-lzsa-")
-    try:
-        src = os.path.join(tmp, "in.raw")
-        dst = os.path.join(tmp, "out.lzsa2")
-        with open(src, "wb") as f:
-            f.write(data)
-        if cmd == "orb":
-            # orb sees the Mac filesystem under /mnt/mac; the binary lives
-            # in FictionTools in the debian machine's own home
-            args = ["orb", "-m", "debian", "bash", "-c",
-                    '"$HOME"/FictionTools/lzsa -f2 -r "$1" "$2"', "-",
-                    "/mnt/mac" + os.path.realpath(src),
-                    "/mnt/mac" + os.path.realpath(dst)]
-        else:
-            args = cmd + ["-f2", "-r", src, dst]
+        comp = _lzsa2_greedy(data)
+    else:
         import subprocess
-        r = subprocess.run(args, capture_output=True)
-        if r.returncode != 0 or not os.path.exists(dst):
-            raise RuntimeError(
-                f"lzsa failed: {r.stderr.decode(errors='replace').strip()}")
-        with open(dst, "rb") as f:
-            comp = f.read()
-    finally:
-        shutil.rmtree(tmp, ignore_errors=True)
+        import tempfile
+        tmp = tempfile.mkdtemp(prefix="arcimg-lzsa-")
+        try:
+            src = os.path.join(tmp, "in.raw")
+            dst = os.path.join(tmp, "out.lzsa2")
+            with open(src, "wb") as f:
+                f.write(data)
+            r = subprocess.run(cmd + ["-f2", "-r", src, dst],
+                               capture_output=True)
+            if r.returncode != 0 or not os.path.exists(dst):
+                raise RuntimeError(
+                    f"lzsa failed: "
+                    f"{r.stderr.decode(errors='replace').strip()}")
+            with open(dst, "rb") as f:
+                comp = f.read()
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
     if lzsa2_decompress(comp) != data:
-        raise RuntimeError("lzsa round-trip mismatch (packer bug?)")
+        raise RuntimeError("LZSA2 round-trip mismatch (packer bug?)")
     return comp
+
+
+def _lzsa2_greedy(data: bytes) -> bytes:
+    """The built-in LZSA2 packer: a greedy hash-chain parse with one step
+    of lazy evaluation and rep-match awareness, emitting every mode of the
+    raw block format. About 8% larger than the lzsa tool's optimal parse on
+    the corpus, in seconds, deterministic, and dependency-free."""
+    n = len(data)
+    out = bytearray()
+    pending = -1                         # index of the half-filled nibble byte
+
+    def nibble(v):
+        nonlocal pending
+        if pending < 0:
+            out.append((v & 0xF) << 4)
+            pending = len(out) - 1
+        else:
+            out[pending] |= v & 0xF
+            pending = -1
+
+    def literals_extra(count):
+        # the token carries 3; a nibble 0-14 adds; 15 -> a byte adds to 18;
+        # byte 239 -> little-endian word, absolute.
+        rest = count - 3
+        if rest < 15:
+            nibble(rest)
+            return
+        nibble(15)
+        if count <= 255:                 # byte 0..237 (238/239 reserved)
+            out.append(count - 18)
+            return
+        out.append(239)
+        out.append(count & 0xFF)
+        out.append(count >> 8)
+
+    def match_extra(mlen):
+        # the token carries 7 (+2 minmatch = 9); a nibble adds to 9;
+        # 15 -> a byte adds to 24; byte 233 -> word absolute; 232 is EOD.
+        rest = mlen - 9
+        if rest < 15:
+            nibble(rest)
+            return
+        nibble(15)
+        if mlen <= 255 and mlen - 24 <= 231:
+            out.append(mlen - 24)
+            return
+        out.append(233)
+        out.append(mlen & 0xFF)
+        out.append(mlen >> 8)
+
+    def emit(lits_at, lits_n, d, mlen, last_d):
+        # token XYZ|LL|MMM plus the trailing pieces, in stream order
+        ll = lits_n if lits_n < 3 else 3
+        mm = (mlen - 2) if (mlen - 2) < 7 else 7
+        if d == last_d:
+            xyz = 0b111
+        elif d <= 32:
+            xyz = 0b000 | ((~((-d) & 0x1F)) & 1)
+        elif d <= 512:
+            xyz = 0b010 | ((~(((-d) & 0x1FF) >> 8)) & 1)
+        elif d <= 8704:
+            xyz = 0b100 | ((~(((-(d - 512)) & 0x1FFF) >> 8)) & 1)
+        else:
+            xyz = 0b110
+        out.append((xyz << 5) | (ll << 3) | mm)
+        if lits_n >= 3:
+            literals_extra(lits_n)
+        out.extend(data[lits_at:lits_at + lits_n])
+        if d != last_d:
+            if d <= 32:
+                nibble(((-d) & 0x1F) >> 1)
+            elif d <= 512:
+                out.append((-d) & 0xFF)
+            elif d <= 8704:
+                v = (-(d - 512)) & 0x1FFF
+                nibble((v >> 9) & 0xF)
+                out.append(v & 0xFF)
+            else:
+                v = (-d) & 0xFFFF
+                out.append(v >> 8)
+                out.append(v & 0xFF)
+        if mlen - 2 >= 7:
+            match_extra(mlen)
+
+    head = {}
+    prev = [0] * n
+    CHAIN = 256
+
+    def insert(i):
+        if i + 2 < n:
+            h = (data[i] << 16) | (data[i + 1] << 8) | data[i + 2]
+            prev[i] = head.get(h, -1)
+            head[h] = i
+
+    def offset_cost(d, last):
+        # what an offset spends, in half-bytes (a nibble is 1)
+        if d == last:
+            return 0
+        if d <= 32:
+            return 1
+        if d <= 512:
+            return 2
+        if d <= 8704:
+            return 3
+        return 4
+
+    def find(i, last):
+        # the best (gain, len, d) at i: gain in half-bytes saved against
+        # spelling the same bytes as literals; a rep-match rides free
+        best = (0, 0, 0)
+        m = n - i
+        if last and i >= last:
+            l = 0
+            while l < m and data[i + l] == data[i - last + l]:
+                l += 1
+            if l >= 2:
+                g = 2 * l - 2 - (1 if l >= 9 else 0)
+                if g > best[0]:
+                    best = (g, l, last)
+        if i + 2 < n:
+            h = (data[i] << 16) | (data[i + 1] << 8) | data[i + 2]
+            j = head.get(h, -1)
+            depth = 0
+            while j >= 0 and depth < CHAIN:
+                d = i - j
+                if d > 0xFFFF:
+                    break
+                l = 0
+                while l < m and data[j + l] == data[i + l]:
+                    l += 1
+                if l >= 2:
+                    g = 2 * l - 2 - offset_cost(d, last)                         - (1 if l >= 9 else 0)
+                    if g > best[0]:
+                        best = (g, l, d)
+                if l >= 512:
+                    break
+                j = prev[j]
+                depth += 1
+        return best
+
+    i = 0
+    lits_at = 0
+    last_d = 0
+    while i < n:
+        gain, best_len, best_d = find(i, last_d)
+        if best_len >= 2 and gain > 0:
+            # the lazy step: a clearly better match one byte on defers this
+            if i + 1 < n:
+                g2, _l2, _d2 = find(i + 1, last_d)
+                if g2 > gain + 2:
+                    insert(i)
+                    i += 1
+                    continue
+            emit(lits_at, i - lits_at, best_d, best_len, last_d)
+            last_d = best_d
+            stop = i + best_len
+            while i < stop:
+                insert(i)
+                i += 1
+            lits_at = i
+        else:
+            insert(i)
+            i += 1
+
+    # the EOD command: trailing literals, a 9-bit offset byte of zero
+    # (ignored by decoders, the spec's shape), then the 232 marker
+    lits_n = i - lits_at
+    ll = lits_n if lits_n < 3 else 3
+    out.append((0b010 << 5) | (ll << 3) | 7)
+    if lits_n >= 3:
+        literals_extra(lits_n)
+    out.extend(data[lits_at:lits_at + lits_n])
+    out.append(0)
+    nibble(15)
+    out.append(232)
+    return bytes(out)
 
 
 def lzsa2_decompress(blob: bytes) -> bytes:
