@@ -154,7 +154,8 @@ The uncompressed length in the table is authoritative; the 0x80 sentinel
 lets a streaming loader run without a counter. RLE reference decoders,
 both about a dozen instructions:
 
-x86 (16-bit, ds:si = stream, es:di = destination; from the DOS probe):
+x86 (16-bit, ds:si = stream, es:di = destination; from the R2 DOS probe,
+kept as the codec-0 reference):
 
     unrle:  lodsb
             cmp  al, 80h
@@ -232,8 +233,9 @@ proven; the ledger of all fourteen planned targets is docs/08 section 2.
 
 ### C.1 DOS (target id 3, tag DOS, files `<id>.DOS`)
 
-Verified: DOSBox-X, both modes, 2026-07-08 (probe:
-`arc_image/probes/dos/probe.asm`, `nasm -f bin probe.asm -o PROBE.COM`).
+Verified: DOSBox-X, both modes, 2026-07-08; re-verified with the LZSA2
+codec 2026-07-09 (probe: `arc_image/probes/dos/probe.asm`,
+`nasm -f bin probe.asm -o PROBE.COM`).
 
 VIDEO. VGA/MCGA mode 13h, 320x200, 256 colors, chunky (one byte per pixel,
 linear at A000:0000). This is the ONLY DOS target: no EGA or CGA variants
@@ -266,13 +268,16 @@ art's 16..255. Nothing to align, nothing to approximate.
 
 LOADER RECIPE (the probe's shape): verify the magic; walk the section table
 twice, palette pass first (so the picture never flashes in wrong colors),
-bitmap pass second; each pass decodes its section to its destination
-(the chapter's codec is LZSA2; the verified probe of 2026-07-08 still
-spoke RLE and its rebuild against LZSA2 assets is the pending step).
-Under 120 instructions all told. Clear the band region before drawing a
-new image only if the new image is narrower than the old (they never are;
-a mode change between draws is the one case, and re-entering mode 13h
-clears the screen anyway).
+bitmap pass second; each pass decodes its section to its destination.
+The chapter's codec is LZSA2 (part B); do not write the decompressor
+yourself: Emmanuel Marty's space-efficient 8088 routine from the lzsa
+distribution (zlib license) is carried verbatim in the probe source and
+drops in as published, with the probe's own calling convention (ds:si =
+raw block, es:di = destination; trashes ax/bx/cx/dx/bp). Everything
+around it stays under 120 instructions. Clear the band region before
+drawing a new image only if the new image is narrower than the old (they
+never are; a mode change between draws is the one case, and re-entering
+mode 13h clears the screen anyway).
 
 ASSETS. `<id>.DOS` beside the story file (8.3-safe by construction: the id
 is decimal, at most five digits). The standard test pair: 90.DOS (mode 9),
@@ -375,3 +380,9 @@ Workbench: a bootblock trackload). The facts:
   The wave-1 probes still speak RLE against pre-ruling assets; their
   LZSA2 rebuild (8086 and 68000 decoders adapted from the lzsa
   repository) is the next probe step and re-verification.
+- 2026-07-09: the DOS probe rebuilt on LZSA2 (Marty's 8088 decompressor
+  carried verbatim, zlib license) and re-verified in DOSBox-X, both
+  modes; chapter C.1 updated probe-after-probe. The ST and Amiga
+  rebuilds follow with the 68000 decompressor, written from part B's
+  spec (the lzsa repository has no 68000 routine); their chapters and
+  the change log record it when their probes are re-verified.
