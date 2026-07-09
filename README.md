@@ -305,13 +305,13 @@ The compiler is developed as a clean, modular Python package under
 generation stages). For distribution it is amalgamated into the single `arcc`
 script, so the shipped artifact stays identical to the source.
 
-## License
-
-MIT. See the headers in each source file.
-
 ## Join the community on Discord
 
 https://discord.gg/JF6YNUTPfT
+
+## License
+
+MIT. See the headers in each source file.
 
 ## Credits
 
