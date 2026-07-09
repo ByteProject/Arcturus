@@ -100,8 +100,14 @@ rather than written in advance.
   own granule.
 - 06-actaea.md: the Actaea reference interpreter, the official documentation
   (milestone B10, complete; the design record is actaea/actaea-design.md).
-- 07-conformance.md (the final milestone): the test plan, with the two example
-  games as golden tests and a size regression baseline.
+- 07-arc-image.md: the author guide to pictures: the master art, the arcimg
+  workflow down to every machine, and what plays where. (The conformance
+  evidence needs no document: the suite enforces it every run, with the two
+  example games as golden tests and the size-regression ceilings beside
+  them in tests/test_sizes.py.)
+- 08-arcimage-interpreters.md: the implementer's book for the arc_image
+  retro targets, one proven chapter per machine (the probes live in
+  arc_image/probes/, the design record in arc_image/reference/design.md).
 
 The two worked examples in 01, the Brass Lantern and Cloak of Darkness, are
 the shared reference programs across all documents.

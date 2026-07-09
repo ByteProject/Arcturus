@@ -641,7 +641,7 @@ arcimg pack art/ -o game.arcres                        # the distributable pack
 ```
 
 The full picture workflow, the retro conversions, and which interpreters
-play the pictures today and next, is its own author guide: docs/09.
+play the pictures today and next, is its own author guide: docs/07.
 
 Mode-sized PNGs need nothing but the standard library; `prep` reaches for Pillow
 only to resize or convert, and offers a guided install the first time. A worked
