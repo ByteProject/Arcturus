@@ -689,6 +689,11 @@ class Analyzer:
         for obj in w.objects.values():
             if obj.decl is not None:
                 self._resolve_owner(obj.decl.members, on_kind=False)
+        # The player is SEEDED, not declared: its `player.<prop>`
+        # augmentations live aside and must be resolved like any owner's
+        # members, or an is-test in a player.desc block never resolves and
+        # a typo there skips sema entirely (the worn field report).
+        self._resolve_owner(self._player_decls, on_kind=False)
         for h in w.free_handlers:
             self._check_handler(h)
         for blk in w.blocks.values():

@@ -62,3 +62,39 @@ def test_examine_self_default_on_frotz(tmp_path):
     ).stdout
     assert "admire ourselves" in out
     assert "rewards a closer look" not in out
+
+
+def test_player_block_body_is_resolved_like_any_owner(tmp_path):
+    # The field report (improvmonster): `if x is worn` inside a player.desc
+    # block died in codegen with "unknown name 'worn'". The player is
+    # seeded, not declared, and its augmentation bodies skipped sema's
+    # resolution pass: no is-test resolution, and typos there escaped sema
+    # entirely. They resolve like any owner's members now.
+    import shutil
+    import subprocess
+    src = (
+        'game\n    title "W"\n    start den\n'
+        'room den\n    name "Den"\n    desc "Cosy."\n'
+        'thing hat in player\n    name "hat"\n    wearable\n    worn\n'
+        'player.desc block\n'
+        '    show("A fine figure. ")\n'
+        '    for each x in player\n'
+        '        if x is worn\n'
+        '            show("Wearing ${a x}")\n'
+        '    say "."\n'
+    )
+    story_bytes = generate(analyze(cosmos.combined_program(parse(src))))
+    frotz = shutil.which("dfrotz") or shutil.which("frotz")
+    if frotz:
+        story = tmp_path / "w.z5"
+        story.write_bytes(story_bytes)
+        out = subprocess.run(
+            [frotz, "-p", "-w", "80", str(story)],
+            input="x me\n", capture_output=True, text=True, timeout=15,
+        ).stdout
+        assert "Wearing a hat." in out
+    # and a typo in a player block is now a sema error, not a codegen one
+    from arcturus.errors import ArcError
+    bad = src.replace("if x is worn", "if x is wornn")
+    with pytest.raises(ArcError):
+        analyze(cosmos.combined_program(parse(bad)))
