@@ -396,6 +396,63 @@ constraint. The facts:
   luminance-sorts the palette: entry 0 is the art's darkest (a stable
   dark paper) and entry 31 a guaranteed-readable light ink.
 
+### C.4 Commodore 64 (target id 4, tag C64, files `<id>.C64`)
+
+Verified: VICE x64sc, both modes, 2026-07-09; the decode path was also
+proven byte-exact against the packer's sections through VICE's remote
+monitor before the visual pass.
+
+Probe: [arc_image/probes/c64/](../arc_image/probes/c64/), source
+`probe.asm` with the decoder `dzx0_6502.asm` beside it and the embedded
+test assets 90.C64 and 100.C64. Build (ACME):
+`acme -f cbm -o probe.prg probe.asm`.
+
+VIDEO. Multicolor bitmap mode: $D011 = $3B, $D016 = $D8, $D018 = $18
+(VIC bank 0, matrix at $0400, bitmap at $2000). 160x200 wide pixels,
+2:1; the band is the top 9 or 12 cell rows. Per 4x8 cell: three free
+colors (matrix high nibble = pixel code 1, low nibble = code 2, color
+RAM = code 3) plus one global background (code 0, $D021).
+
+CODEC. ZX0 (part B), the standard v2 stream. Do not write the
+decompressor: Tobias Bindhammer's bitfire routine decodes it as
+published (BSD 3-Clause, carried verbatim as `dzx0_6502.asm` with one
+documented adaptation: the caller preloads the destination in the
+zero-page pointer instead of a hardwired address). Entry: X = source
+lo, A = source hi; it owns zero page $F8-$FC. Each stream ends at its
+own end marker, so the loader never counts output bytes.
+
+SECTIONS, in file order, every payload already in native memory order:
+
+- bitmap (type 1): cell-ordered rows for $2000 (2880 bytes in mode 9,
+  3840 in mode 12). Decode straight to $2000.
+- screen (type 2): the video matrix cell colors for $0400 (360 / 480).
+- color (type 3): the color RAM nibbles for $D800 (360 / 480).
+- registers (type 7): one byte, the shared background; write to $D021.
+
+Z-COLOURS. The fixed 16 carry every Z-machine colour; the interpreter's
+text lives in the cells BELOW the band (its own matrix and color RAM
+rows), so text colours and art never share a register except $D021, the
+global background. An interpreter that lets the player recolour the
+background must accept that the band's code-0 pixels recolour with it
+(the same global-register nature the Amiga chapter documents for
+COLOR00); keeping the story's background equal to the art's register is
+the simple answer.
+
+LOADER RECIPE (the probe's shape): clear the canvas (bitmap, matrix,
+color RAM) so the sub-band area sits flat; verify the magic; walk the
+section table once, dispatching each type to its native destination and
+advancing the data cursor by the table's compressed lengths. Under 120
+instructions around the decoder. The probe waits on KERNAL GETIN
+between the two images; a real interpreter draws its text below the
+band instead.
+
+ASSETS. `<id>.C64` beside the story. The standard test pair: 90.C64
+(mode 9), 100.C64 (mode 12).
+
+MEMORY. Bitmap and matrix decode into the VIC bank, color RAM into
+$D800: no staging buffers at all beyond one byte for the register
+section. The decoder's zero page is $F8-$FC plus the walk's $02-$07.
+
 ## Change log
 
 - 2026-07-08: first cut: the contract, the format, the DOS chapter
@@ -428,3 +485,7 @@ constraint. The facts:
   routine and re-verified in FS-UAE, both modes; C.3 updated. THE
   WAVE-1 BACKPORT IS COMPLETE: all three 16-bit probes decode LZSA2
   against current assets, and every chapter's codec matches its files.
+- 2026-07-09 (evening): the C64 probe (the first cell-class target):
+  ZX0 via the bitfire 6502 decoder carried verbatim, proven byte-exact
+  through VICE's remote monitor in warp before the visual pass, then
+  verified by Stefan in x64sc, both modes. Chapter C.4.
