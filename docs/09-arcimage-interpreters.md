@@ -231,11 +231,21 @@ their native layouts, the loader recipe (against the probe source), the
 asset naming, and the verified-on line. Chapters appear as their probes are
 proven; the ledger of all fourteen planned targets is docs/08 section 2.
 
+The probe directory linked in each chapter is PART OF THE HANDOVER, not an
+appendix: it carries the working reference loader this chapter was written
+from (source, embedded test assets, the built binary, and any build
+script). Read the two side by side; where prose and probe could ever
+disagree, the probe is the machine-checked half.
+
 ### C.1 DOS (target id 3, tag DOS, files `<id>.DOS`)
 
 Verified: DOSBox-X, both modes, 2026-07-08; re-verified with the LZSA2
-codec 2026-07-09 (probe: `arc_image/probes/dos/probe.asm`,
-`nasm -f bin probe.asm -o PROBE.COM`).
+codec 2026-07-09.
+
+Probe: [arc_image/probes/dos/](../arc_image/probes/dos/), source
+`probe.asm` (the LZSA2 decompressor carried verbatim), the embedded test
+assets 90.DOS and 100.DOS, and the built PROBE.COM. Build:
+`nasm -f bin probe.asm -o PROBE.COM`.
 
 VIDEO. VGA/MCGA mode 13h, 320x200, 256 colors, chunky (one byte per pixel,
 linear at A000:0000). This is the ONLY DOS target: no EGA or CGA variants
@@ -289,9 +299,12 @@ can stream). Conventional-memory cost: effectively zero.
 
 ### C.2 Atari ST (target id 2, tag AST, files `<id>.AST`)
 
-Verified: Hatari, both modes, 2026-07-08 (probe:
-`arc_image/probes/ast/probe.s`, build with
-`vasmm68k_mot -Ftos -o PROBE.PRG probe.s`).
+Verified: Hatari, both modes, 2026-07-08 (the RLE build; the LZSA2
+rebuild re-verifies when the 68000 decompressor lands).
+
+Probe: [arc_image/probes/ast/](../arc_image/probes/ast/), source
+`probe.s` with the embedded test assets 90.AST and 100.AST. Build:
+`vasmm68k_mot -Ftos -o PROBE.PRG probe.s`.
 
 Two 68000 lessons the probe paid for, so an implementer does not: an .arc
 file can be ODD-length, so anything embedding or loading one to memory
@@ -338,10 +351,13 @@ ASSETS. `<id>.AST` beside the story (GEMDOS 8.3-safe). Test pair: 90.AST,
 
 ### C.3 Amiga (target id 1, tag AMI, files `<id>.AMI`)
 
-Verified: FS-UAE (A500, Kickstart 1.3), both modes, 2026-07-08 (probe:
-`arc_image/probes/ami/`, `python3 build_adf.py` assembles boot.s and
-payload.s with vasm and lays the bootable ADF; no filesystem, no
-Workbench: a bootblock trackload). The facts:
+Verified: FS-UAE (A500, Kickstart 1.3), both modes, 2026-07-08 (the RLE
+build; the LZSA2 rebuild re-verifies when the 68000 decompressor lands).
+
+Probe: [arc_image/probes/ami/](../arc_image/probes/ami/), sources
+`boot.s` and `payload.s` with the embedded test assets. Build:
+`python3 build_adf.py` assembles both with vasm and lays the bootable
+ADF; no filesystem, no Workbench: a bootblock trackload. The facts:
 
 - bitmap (type 1): 5 bitplanes, row-interleaved ILBM-style (row of plane
   0, row of plane 1, ..., 40 bytes each; 200 bytes per pixel row in
