@@ -145,6 +145,10 @@ INTRINSICS = frozenset({
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr", "article_addr", "indefinite_addr", "tag_addr",
+    "appearance_addr",
+    # any_appearance is 1 when anything declares `appearance`, so the room
+    # describer's check folds away otherwise.
+    "any_appearance",
     # arc_image (B11): any_images is the compile-time flag (1 if any room has a
     # picture, else 0) that folds the whole image path away in an image-free
     # game; image_of reads a room's picture id (0 = none); pictures_available
@@ -869,7 +873,7 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("get_prop_addr", op, Const(_words_prop(ctx)), store=dest)
         _free(ctx, t)
     elif name in ("desc_addr", "intro_addr", "article_addr", "indefinite_addr",
-                  "tag_addr"):
+                  "tag_addr", "appearance_addr"):
         # <prop>_addr(obj): the address of the object's desc, intro, article,
         # or indefinite property (0 if it has none), so the room describer and
         # the article blocks can test for one before printing it.
@@ -1014,6 +1018,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_components(): 1 when anything declares `component` (object or
         # kind default), so the part-of hooks fold away otherwise.
         _place(rt, Const(_any_components(ctx.world)), dest)
+    elif name == "any_appearance":
+        # any_appearance(): 1 when anything declares `appearance`, so the
+        # room describer's check folds away otherwise.
+        _place(rt, Const(_any_prop(ctx.world, "appearance")), dest)
     elif name == "any_scored":
         # any_scored(): 1 when anything declares `scored`, so the award hooks
         # in take and go fold away in a scoreless game.
@@ -1296,6 +1304,16 @@ def _emit_test(rt, ctx, expr, label, on_true):
     rt.op("jz", op, branch=(label, not on_true))
     if t is not None:
         ctx.free_temp(t)
+
+
+def _any_prop(world, prop: str) -> int:
+    """1 when any object or kind sets the property at all: the presence
+    folds (any_appearance) ride on this."""
+    if any(prop in o.props for o in world.objects.values()):
+        return 1
+    if any(prop in k.props for k in world.kinds.values()):
+        return 1
+    return 0
 
 
 def _any_components(world) -> int:
@@ -1870,6 +1888,8 @@ def _static_value(ctx, expr):
                         for o in ctx.world.objects.values()) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_components":
         return _any_components(ctx.world)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_appearance":
+        return _any_prop(ctx.world, "appearance")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scored":
         return 1 if any(_prop_truthy(o.props.get("scored")) for o in ctx.world.objects.values()) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scoperoom":

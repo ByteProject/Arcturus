@@ -177,6 +177,13 @@ _STD_VALUE_PROPS = {
     # object sits untouched in place (until it has `moved`), in place of the
     # plain "You can see X here." Useful for set dressing and static objects.
     "intro": T_TEXT,
+    # The paragraph the object ALWAYS owns in a room description, replacing
+    # its listing line ("Bumble is sweeping by the counter." instead of "You
+    # can see Bumble here."): Inform's describe, Dialog's (appearance $).
+    # Unlike intro it never expires with `moved`, and a computed block
+    # (`appearance block`) words it by state. The room describer checks it
+    # first; hidden and concealed still suppress everything.
+    "appearance": T_TEXT,
     # Article overrides, for the objects derivation cannot reach: `article` is
     # what ${the x} prints ("las" for las tijeras, "el" for el agua), and
     # `indefinite` what ${a x} prints ("unas"; English "some" for mass nouns).

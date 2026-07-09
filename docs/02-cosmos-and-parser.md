@@ -187,6 +187,13 @@ this). `hidden` removes an object from scope entirely until cleared.
 `scenery` keeps it referable for examining but omits it from contents
 listings and refuses taking.
 
+The room description paragraphs an object can own, in the order checked:
+`appearance` (always, never expiring, computed by state if a block),
+`intro` (until the object is first taken), and the plain listing line
+("You can see a broom here."). `hidden` and `concealed` suppress all
+three. The appearance check folds away in a game that sets none
+(`any_appearance`).
+
 ## 5a. The container knowledge model
 
 Cosmos tracks what the player has learned, not only what is in view this instant,
