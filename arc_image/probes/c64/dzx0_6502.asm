@@ -2,7 +2,7 @@
 ;
 ; Tobias Bindhammer's decoder from the bitfire project
 ; (https://github.com/bboxy/bitfire, BSD 3-Clause), carried verbatim for
-; the standard ZX0 v2 stream (the format arcimg packs; docs/09 part B),
+; the standard ZX0 v2 stream (the format arcimg packs; docs/08 part B),
 ; with ONE adaptation: the destination is preloaded by the caller in the
 ; zero-page pointer .lz_dst instead of being hardwired.
 ;

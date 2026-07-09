@@ -72,8 +72,8 @@ summon.extendedverbs
 ```
 
 The verbs beyond the always-in standard set. The full verb-to-action table
-with every synonym is docs/verb-set.md (the E column) and each default line
-is in docs/message-set.md; the roster:
+with every synonym, and each default line, is the granule source itself
+(cosmos/extendedverbs.granule, the editable template); the roster:
 
 - RUMMAGING: `search`/`frisk` (lists what a container or supporter holds;
   a closed container keeps its secrets).
@@ -263,7 +263,7 @@ the list repaints, reflecting anything the topic revealed, hid, or retired;
 0, or running out of topics, closes it ("You let the conversation rest
 there."). A person with nothing to raise answers msg_no_topics ("You can't
 think of anything worth raising right now."). Every framing line is in the
-language layer, so packs translate it (docs/message-set.md).
+language layer, so packs translate it.
 
 ASK AND TELL. The standard ask lands in the menu (asking IS talking:
 `ask vlad`, and even `ask vlad about the vines`, opens Vlad's menu, the

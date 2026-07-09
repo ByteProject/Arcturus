@@ -5,6 +5,11 @@ Stefan the same day, rulings folded into section 8). This is the design
 record for B12, the way actaea-design.md was for B10; it grows the format
 spec and the per-target blueprints as they land.
 
+This file lives with the working set (arc_image/reference/), not under
+docs/: docs/ is the author- and implementer-facing shelf, and this is
+the engine room. Authors read docs/09-arc-image.md; interpreter authors
+read docs/08-arcimage-interpreters.md.
+
 ## 1. Charter
 
 B11 ended with pictures on modern systems and a promise: the same numbered
@@ -281,7 +286,7 @@ method). Naming: R for retro.
   Done-test: encode + render-back round-trips bit-exact on every target
   format, sizes recorded in the ledger.
 - R2 (COMPLETE, 2026-07-08). WAVE 1, the quantize 16-bits: Amiga, ST,
-  and DOS converters and probes, and the per-target chapters in docs/09
+  and DOS converters and probes, and the per-target chapters in docs/08
   written from the working probe code. No interpreter was touched: the
   probes are the proof.
   Done-test PASSED: the corpus (21 masters, bit-exact on AST/DOS,
@@ -308,7 +313,7 @@ method). Naming: R for retro.
 - R6. Close: the public interpreter-contract document published (the
   Vezza-facing cut), arcimg 2.0 released (amalgam, README, versions),
   docs/00 and PROGRESS synced, the size ledger final.
-  The handover is DOCUMENTS AND CONTENT (Stefan's ruling): docs/09 plus,
+  The handover is DOCUMENTS AND CONTENT (Stefan's ruling): docs/08 plus,
   per target, the probe source as reference loader code, the two-mode
   .arc test assets (the beach pair is the standard set), and the arcimg
   standalone for converting art and for rendering any .arc back to PNG
@@ -349,12 +354,12 @@ per-target conversions landing beside them).
    contract. R2 verifies this against Eris's existing ST screen layer
    before the addendum is frozen (the contract must match what Eris 1.0
    already does, not fight it); Eris covers both Amiga and ST.
-8. THE PUBLIC CONTRACT: docs/09-arcimage-interpreters.md is the
+8. THE PUBLIC CONTRACT: docs/08-arcimage-interpreters.md is the
    implementer's book, live from wave 1 (amended from "cut it at R6" by
    Stefan's ruling to write each chapter while its probe is fresh): part
    A the contract, part B the format with reference decoders, part C one
    chapter per proven target. Vezza and the interpreter sessions read
-   docs/09 and the probe sources, never Arcturus internals; R6 only
+   docs/08 and the probe sources, never Arcturus internals; R6 only
    finalizes and publishes.
 
 ## 9. Boundaries
@@ -547,7 +552,7 @@ for the corpus, the native lzsa tool 20s) and decompresses faster on
 caps at 256K; author regeneration time is what actually hurts. The
 8-bit cell targets keep ZX0: their pictures share a floppy with the
 story, and the tiny decoder matters there. Each target chapter of
-docs/09 mandates exactly one codec, so no interpreter ever carries two.
+docs/08 mandates exactly one codec, so no interpreter ever carries two.
 arcimg packs LZSA2 through Emmanuel Marty's lzsa tool when one is
 found ($ARCIMG_LZSA first, then PATH), and otherwise through its own
 built-in pure-Python greedy packer (ruled 2026-07-09): arcimg never

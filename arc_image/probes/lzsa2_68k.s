@@ -4,7 +4,7 @@
 ;
 ; Shared by the ST and Amiga probes (and any 68000 interpreter): the lzsa
 ; distribution carries no 68000 routine, so this one is written from the
-; block format specification in docs/09 part B; arcimg's lzsa2_decompress
+; block format specification in docs/08 part B; arcimg's lzsa2_decompress
 ; is the executable reference it was checked against, byte for byte, on
 ; real sections under vamos before it ever touched an emulator.
 ;

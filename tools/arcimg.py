@@ -37,7 +37,7 @@ Commands:
       Report the size of a PNG, or list the pictures in an .arcres pack.
 
   arcimg convert SOURCES... --target TAG -o DIR [--preview DIR]
-      The retro path (docs/08): derive each master's native version for a
+      The retro path (arc_image/reference/design.md): derive each master's native version for a
       target (AMI, AST, DOS, C64, ZX3, CPC, ...) as <id>.<TAG> .arc files.
       Pictures convert in parallel; outputs newer than their master, its
       .hint sidecar, and this tool are skipped make-style. A master may
@@ -216,7 +216,7 @@ def _crop_to_ratio(img, tw: int, th: int):
 
 
 # ==============================================================================
-# The .arc container, version 1 (docs/08 section 10): the retro image format.
+# The .arc container, version 1 (arc_image/reference/design.md section 10): the retro image format.
 # Big-endian throughout. One file per image id per target; arcimg is the only
 # writer, the per-machine loaders are its readers, and render_arc() below is
 # its round-trip unit test (encode, decode, render to PNG, compare).
@@ -225,7 +225,7 @@ def _crop_to_ratio(img, tw: int, th: int):
 ARC_MAGIC = b"ARCI"
 ARC_VERSION = 1
 
-# Section types (docs/08 section 10).
+# Section types (arc_image/reference/design.md section 10).
 SEC_BITMAP = 1     # the pixel data, in the target's native memory order
 SEC_SCREEN = 2     # per-cell color-nibble matrix (C64 screen RAM, TED color)
 SEC_COLOR = 3      # second per-cell matrix (C64 color RAM, TED luminance)
@@ -244,7 +244,7 @@ SEC_REGS = 7       # a handful of global hardware values
 
 _ZX0_MAX_OFFSET = 2176  # the quick-mode window: 0-2% larger output on the
 # corpus than the full 32640 window, an order of magnitude faster to pack
-# (measured per target in docs/08); loaders are unaffected either way
+# (measured per target in arc_image/reference/design.md); loaders are unaffected either way
 
 
 def _zx0_gamma_bits(value):
@@ -407,7 +407,7 @@ def zx0_compress(data: bytes) -> bytes:
 def zx0_decompress(blob: bytes) -> bytes:
     """A verbatim port of the reference dzx0 (forward, inverted gamma): the
     mirror of every published ZX0 decoder, used by render/tests and as the
-    executable specification for the per-CPU loaders in docs/09. The
+    executable specification for the per-CPU loaders in docs/08. The
     backtrack bit is the trick to know: after a new offset's LSB byte, the
     FIRST bit of the length gamma is that byte's bit 0."""
     if not blob:
@@ -520,7 +520,7 @@ def rle_decode(data: bytes) -> bytes:
 
 # -- LZSA2 (codec 2): the 16-bit targets' codec ---------------------------------
 #
-# Ruled 2026-07-08 (the codec bake-off addendum, docs/08): the big-disk 16-bit
+# Ruled 2026-07-08 (the codec bake-off addendum, arc_image/reference/design.md): the big-disk 16-bit
 # targets (Amiga, ST, DOS) take LZSA2 instead of ZX0. Measured on the corpus:
 # LZSA2 is ~5% larger than ZX0 (~300 bytes per picture) but packs 75x faster
 # and decompresses faster on 68000/8086, and those machines have disk room to
@@ -537,11 +537,11 @@ def rle_decode(data: bytes) -> bytes:
 #
 #   $ARCIMG_LZSA (an explicit binary)  ->  `lzsa` on PATH  ->  built-in greedy
 #
-# Note the trade an author should know (documented in docs/08): with the tool
+# Note the trade an author should know (documented in arc_image/reference/design.md): with the tool
 # on PATH the assets pack ~8% smaller, but two machines only produce
 # byte-identical assets when both have the same lzsa (or neither has one).
 # Decompression is pure Python below, ported from BlockFormat_LZSA2.md, and
-# doubles as the executable spec for the interpreter decoders (docs/09
+# doubles as the executable spec for the interpreter decoders (docs/08
 # Part B). Every pack, from either packer, is round-tripped through that
 # decoder before it is accepted.
 
@@ -851,7 +851,7 @@ def lzsa2_decompress(blob: bytes) -> bytes:
 
 # Codecs (header byte 14): 0 = the RLE scheme above, 1 = ZX0 (the 8-bit cell
 # targets and the default), 2 = LZSA2 (the 16-bit targets; see the ruling
-# note above). Each target chapter in docs/09 mandates exactly one codec, so
+# note above). Each target chapter in docs/08 mandates exactly one codec, so
 # a real interpreter carries exactly one decoder.
 CODEC_RLE = 0
 CODEC_ZX0 = 1
@@ -1185,7 +1185,7 @@ def _kmeans_polish(rows, palette, iterations=4):
 
 # Bayer 8x8, for the gradient masters. Ordered (never error diffusion) on
 # purpose: it is spatially stable, it will not bleed across the cell hardware
-# of the later waves, and RLE survives it far better (docs/08 section 4).
+# of the later waves, and RLE survives it far better (arc_image/reference/design.md section 4).
 # 8x8 rather than 4x4 by Stefan's eye on the stresstest beach: the 4x4
 # matrix's threshold geometry draws little 2x2 crosses in smooth regions;
 # the 8x8 tile spreads the thresholds and the clusters dissolve into grain.
@@ -1277,7 +1277,7 @@ def _dedupe(palette):
 
 
 # Wave 1 conversion back-ends: master rows (320x72/96 RGB) -> native dict.
-# The rules from docs/08: build the palette (median cut, then the k-means
+# The rules from arc_image/reference/design.md: build the palette (median cut, then the k-means
 # polish so small loud regions keep their entry), snap it to the target's gun
 # depth BEFORE mapping pixels, then map. Flat pixel-art masters convert
 # without dithering (exactly, whenever they fit the budget); gradient-class
@@ -1301,7 +1301,7 @@ def _dither_amount(rows, budget):
 
 
 def _convert_ami(rows, salient=None):
-    # The same text contract as the ST (docs/09): the palette is luminance
+    # The same text contract as the ST (docs/08): the palette is luminance
     # sorted, entry 0 the darkest (COLOR00: the flat area below the band and
     # the interpreter's text paper, STABLE across pictures instead of a
     # random art color; a probe caught the background flipping brown to
@@ -1323,7 +1323,7 @@ def _convert_ami(rows, salient=None):
 
 
 def _convert_ast(rows, salient=None):
-    # The ST text contract (docs/08, ruling 7's guarantee clause): entry 0 is
+    # The ST text contract (arc_image/reference/design.md, ruling 7's guarantee clause): entry 0 is
     # the darkest color (the text paper) and entry 15 the lightest (the text
     # ink), SHARED with the art rather than reserved, so a 16-color master
     # (the ST-class common denominator) converts without losing a color. The
@@ -1372,7 +1372,7 @@ def _halve_width(rows):
 
 
 def _crop_width(rows, w):
-    """Center-crop the 320-wide master to a narrower band (the docs/08
+    """Center-crop the 320-wide master to a narrower band (the arc_image/reference/design.md
     geometry policy: crop, do not squeeze)."""
     x0 = (len(rows[0]) - w) // 2
     return [row[x0:x0 + w] for row in rows]
@@ -1683,7 +1683,7 @@ def _convert_cpc(rows, salient=None):
     # Mode 0: 160 wide, 2:1 pixels, 16 inks freely chosen from the 27-color
     # cube (levels 0/128/255 per channel), no cells: the quantize recipe with
     # the wide-pixel geometry. Ink numbers are the r*9+g*3+b index; the
-    # loader maps them to gate-array values with its own table (docs/09).
+    # loader maps them to gate-array values with its own table (docs/08).
     #
     # Ink selection picks the best 16 OF THE 27 directly, by greedy error
     # minimization over the image histogram. The earlier route (median cut,
@@ -1928,7 +1928,7 @@ def convert_master(path: str, tag: str):
             f"{path}: a master is 320x72 or 320x96, this is {w}x{h}")
     if tag not in _CONVERTERS:
         raise ValueError(
-            f"no converter for target {tag} yet (wave order, docs/08); "
+            f"no converter for target {tag} yet (wave order, arc_image/reference/design.md); "
             f"available: {', '.join(sorted(_CONVERTERS))}")
     discs = _read_hint(path)
     salient = _salient_pixels(rows, discs) if discs else None
@@ -1962,7 +1962,7 @@ def _write_png(path: str, rows) -> None:
 # indexed pixels plus the cell matrices and registers it needs) into its .arc
 # sections, unpacks them back, and renders the native image to RGB rows for
 # the PNG preview. pack/unpack are exact inverses; the tests hold them to it.
-# The pixel index conventions match the payload layout notes in docs/08 s.10.
+# The pixel index conventions match the payload layout notes in arc_image/reference/design.md s.10.
 
 def _planar_rows(pixels, w, h, planes):
     """Amiga-style row-interleaved bitplanes: per row, one 40-byte (w/8) row
@@ -3150,7 +3150,7 @@ def cmd_unscr(args) -> int:
 
 
 def cmd_targets(args) -> int:
-    print("retro targets (docs/08; conversion back-ends land per wave):")
+    print("retro targets (arc_image/reference/design.md; conversion back-ends land per wave):")
     for tag in sorted(TARGETS, key=lambda t: TARGETS[t].id):
         t = TARGETS[tag]
         print(f"  {t.id:>3}  {t.tag:<4} {t.width}x72 / {t.width}x96")
@@ -3221,7 +3221,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_info.set_defaults(func=cmd_info)
 
     p_targets = sub.add_parser(
-        "targets", help="list the retro targets (docs/08)")
+        "targets", help="list the retro targets (arc_image/reference/design.md)")
     p_targets.set_defaults(func=cmd_targets)
 
     p_conv = sub.add_parser(

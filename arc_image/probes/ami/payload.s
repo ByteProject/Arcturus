@@ -1,4 +1,4 @@
-; payload.s - the Amiga arc_image probe proper (B12 R2, docs/08 section 6)
+; payload.s - the Amiga arc_image probe proper (B12 R2, arc_image/reference/design.md section 6)
 ; part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 ; Copyright (c) 2026, Stefan Vogt.
 ;
@@ -120,7 +120,7 @@ waitmouse:
         bne     .down
         rts
 
-; ---- the LZSA2 decoder (codec 2, docs/09 part B) -------------------------------
+; ---- the LZSA2 decoder (codec 2, docs/08 part B) -------------------------------
 ; the shared 68000 routine (register-only, so it rides the bootblock's
 ; position-independent world untouched); proven byte-exact under vamos
 ; before it reached the copper. a0 = raw block, a1 = dest; trashes

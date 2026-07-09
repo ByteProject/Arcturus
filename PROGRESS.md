@@ -2873,7 +2873,7 @@ real games end to end) and then B10 IS COMPLETE.
   abbreviation-quality TODO (zabbrv comparison), inline emphasis colour
   (show.<colour>), B10 docs debt: docs/06 M-numbering says "milestone
   B7" fixed but double-check section 13 wording when B10 closes; write
-  docs/08-actaea notes? (docs/06 is authoritative; PROGRESS carries the
+  arc_image/reference/design.md-actaea notes? (docs/06 is authoritative; PROGRESS carries the
   build record.)
 
 ## 2026-07-05: Actaea M10, Quetzal save/restore and restart
@@ -3283,7 +3283,7 @@ fizmo-console and handed off. Next: B12 stays next.
 
 ## 2026-07-07: B12 R0 COMPLETE. The retro arc_image charter and roadmap.
 
-B12 opened with its roadmap, not with code: docs/08-arcimage-retro.md,
+B12 opened with its roadmap, not with code: arc_image/reference/design.md,
 drafted from a four-way research sweep over the fourteen target machines
 (Commodore, Sinclair/Amstrad, MSX/Atari/Apple, and the 16-bits) and
 approved by Stefan the same day, every open decision ruled.
@@ -3321,7 +3321,7 @@ Next: R1, the format spec and the shared RLE codec.
 
 ## 2026-07-07: B12 R1 COMPLETE. The .arc container and the format layer.
 
-The retro image format exists and proves itself. docs/08 section 10 holds
+The retro image format exists and proves itself. arc_image/reference/design.md section 10 holds
 the specification: a 16-byte big-endian header (magic, version, target id,
 mode, geometry, image id), a section table, and per-section RLE streams in
 a shared PackBits-shaped scheme whose decoder is a few dozen bytes on a
@@ -3368,7 +3368,7 @@ section walk, DOSBox-X), Atari ST (vasm TOS .PRG, Setpalette verbatim,
 decode to Physbase, Hatari), Amiga (a raw bootblock trackload, no
 Workbench, a copper list displaying the interleaved planes in place,
 FS-UAE on Kickstart 1.3). The probes paid for real lessons, all recorded
-in docs/09: the 68000 dbra counter trap, odd-length .arc alignment, the
+in docs/08: the 68000 dbra counter trap, odd-length .arc alignment, the
 copper one-frame-wonder (the band-bottom plane switch needs its top-of-
 frame restore), DOS square-pixel presentation (CRT aspect correction
 makes eggs of suns), and the text-color contract (luminance-sorted
@@ -3376,7 +3376,7 @@ palettes, darkest as stable paper, guaranteed-readable ink) after the
 below-band background flipped colors between pictures.
 
 The implementer handover exists NOW, not at R6 (Stefan's ruling:
-documents AND content): docs/09-arcimage-interpreters.md carries the
+documents AND content): docs/08-arcimage-interpreters.md carries the
 contract (including the Z-machine colours clause: art palettes are never
 modified, text colours are per machine: DOS's reserved system range, the
 Amiga's per-frame copper reload, the STF's declare-or-approximate

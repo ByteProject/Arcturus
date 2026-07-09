@@ -1,4 +1,4 @@
-; boot.s - the Amiga probe's bootblock (B12 R2, docs/08 section 6)
+; boot.s - the Amiga probe's bootblock (B12 R2, arc_image/reference/design.md section 6)
 ; part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 ; Copyright (c) 2026, Stefan Vogt.
 ;

@@ -228,7 +228,7 @@ _STD_ACTIONS = {
     "inventory", "go", "enter", "exit", "open", "close", "lock", "unlock",
     "switch_on", "switch_off", "push", "pull", "turn", "give", "show", "talk",
     "wait", "again", "insert",
-    # The rest of the standard verb set (docs/verb-set.md). These exist as verbs
+    # The rest of the standard verb set (docs/02 section 9). These exist as verbs
     # in the language layer, but the names must be known here too, so a handler
     # (`on touch`) or a grain line (`touch "stone"`) checks out even when a
     # program is analyzed without Cosmos (--no-cosmos, the bare IR tests).
