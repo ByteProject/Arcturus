@@ -98,3 +98,64 @@ def test_player_block_body_is_resolved_like_any_owner(tmp_path):
     bad = src.replace("if x is worn", "if x is wornn")
     with pytest.raises(ArcError):
         analyze(cosmos.combined_program(parse(bad)))
+
+
+def test_list_worn_in_three_languages(tmp_path):
+    # worn_count / list_worn: the punctuated worn list as a library service
+    # (the two-pass idiom improvmonster hand-wrote), DCE'd when uncalled.
+    import shutil
+    import subprocess
+    frotz = shutil.which("dfrotz") or shutil.which("frotz")
+    if not frotz:
+        pytest.skip("no Frotz interpreter on PATH")
+
+    def run(src, cmds):
+        story = tmp_path / "l.z5"
+        story.write_bytes(generate(analyze(cosmos.combined_program(parse(src)))))
+        return subprocess.run(
+            [frotz, "-p", "-w", "80", str(story)],
+            input=cmds, capture_output=True, text=True, timeout=15,
+        ).stdout
+
+    en = (
+        'game\n    title "L"\n    start den\n'
+        'room den\n    name "Den"\n    desc "C."\n'
+        'thing hat in player\n    name "hat"\n    wearable\n    worn\n'
+        'thing cloak in player\n    name "cloak"\n    wearable\n    worn\n'
+        'thing ring in player\n    name "ring"\n    wearable\n    worn\n'
+        'player.desc block\n'
+        '    if worn_count is 0\n'
+        '        say "Quite bare."\n'
+        '        return 0\n'
+        '    show("You wear ")\n'
+        '    list_worn\n'
+        '    say "."\n'
+    )
+    out = run(en, "x me\n")
+    assert "You wear a hat, a cloak and a ring." in out
+
+    de = (
+        'game\n    title "L"\n    start halle\nsummon.language "german"\n'
+        'room halle\n    name "Halle"\n    desc "K."\n'
+        'thing hut in player\n    name "Hut"\n    wearable\n    worn\n'
+        'thing umhang in player\n    name "Umhang"\n    wearable\n    worn\n'
+        'player.desc block\n'
+        '    show("Du trägst ")\n'
+        '    list_worn\n'
+        '    say "."\n'
+    )
+    out = run(de, "untersuche mich\n")
+    assert "Du trägst einen Hut und einen Umhang." in out
+
+    es = (
+        'game\n    title "L"\n    start sala\nsummon.language "spanish"\n'
+        'room sala\n    name "Sala"\n    desc "N."\n'
+        'thing anillo in player\n    name "anillo"\n    wearable\n    worn\n'
+        'thing capa in player\n    name "capa"\n    feminine\n    wearable\n    worn\n'
+        'player.desc block\n'
+        '    show("Llevas ")\n'
+        '    list_worn\n'
+        '    say "."\n'
+    )
+    out = run(es, "examinate\n")
+    assert "Llevas un anillo y una capa." in out
