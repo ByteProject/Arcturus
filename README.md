@@ -78,6 +78,33 @@ interactive fiction, this is a good time to pick it up.
 
 The most significant recent additions and achievements:
 
+- **arc_image reaches the retro machines.** The same numbered pictures a
+  modern build shows now convert to the 8-bit and 16-bit machines' own
+  formats: paint ONE master per scene, and `arcimg convert` derives the
+  native version for the Commodore 64, ZX Spectrum +3, Amstrad CPC, Amiga,
+  Atari ST, and DOS, resolving each machine's palette and color-cell
+  constraints, with PNG previews to judge without an emulator, an author
+  hint that keeps a moon or sun visible on the narrowest palettes, and a
+  polish loop that round-trips Spectrum art through any .scr editor.
+  Reference loaders are proven on real emulators for four machines so far,
+  and the interpreter blueprints ship with the toolkit
+  ([docs/07-arc-image.md](docs/07-arc-image.md) for authors).
+- **`perform` and `appearance`: the classic bridges, grown from the field.**
+  `perform("take", book)` runs any action as part of the current turn,
+  refusals, messages, and after-phase included, with the action name checked
+  at compile time (Inform's `<<take book>>`, Dialog's `(try ...)`); the
+  `appearance` property is the paragraph an object always owns in a room
+  description ("Bumble is sweeping by the counter."), worded by state when
+  computed, beside `intro`'s until-first-taken rule. Both came from early
+  adopters porting real games, and both cost nothing in a game that never
+  uses them; component objects (a lever that is `component` of its machine)
+  arrived the same way.
+- **A parser that names your typo.** A noun phrase that resolves to nothing
+  no longer runs the action with an empty noun: a real thing that is not
+  here keeps the classic refusal, and a word the story does not know at all
+  is spelled back ("This story doesn't know the word \"sdlfjh\".", worded
+  by each language pack), with OOPS correcting it on the next line. Handlers
+  can finally trust that `noun is nothing` means a bare verb.
 - **Positional grammar.** A verb's grammar lines can now say more than "one
   noun" or "two nouns around a preposition": a literal word may open a line
   (`dig in noun with held`), and a line's wording may select its own action,
@@ -98,38 +125,13 @@ The most significant recent additions and achievements:
   art is numbered by (no manifest to carry), the mode travels in the opcode so
   the interpreter never has to measure a picture to lay out the screen, and the
   `arcimg` tool prepares the art and packs it into a single `.arcres` file, the
-  story kept separate. Retro rendering follows next; the author guide is
+  story kept separate. The author guide is
   [docs/07-arc-image.md](docs/07-arc-image.md).
-- **Actaea, the reference interpreter, reached 1.0.** A Standard 1.1 conformant
-  Z-machine interpreter for versions 5 and 8, in Python with no dependencies
-  beyond the standard library, so the project now owns both ends of the
-  pipeline. Three ways to play on one core: a desktop window (a true cell-grid
-  status area, styles and colours, menus with persistent settings), a full
-  terminal mode in the fizmo-ncursesw manner (`--console`), and a plain pipe
-  for scripts and debuggers (`--headless`). Quetzal saves interoperate with
-  Frotz both ways, undo is multi-level, and the conformance gate is green
-  (CZECH 406/406 matched byte for byte, Praxix all-pass, TerpEtude's text
-  suite, third-party z5 and z8 games). It also inspects headers (`--header`)
-  and disassembles (`--disasm`). [docs/06-actaea.md](docs/06-actaea.md).
-- **Language packs: Spanish and German, as first-class languages.** Not just
-  translated messages: the verbs, articles, and grammar. Spanish
-  (`summon.language "spanish"`) derives gender automatically (`una lámpara`,
-  `el libro`, agreement like `la caja está abierta`); German
-  (`summon.language "german"`) inflects articles for case (`du nimmst den
-  Schlüssel`, `in der Truhe`) and parses separable verbs (`schalt die Lampe
-  an`, `schliess die Tür auf`). Worked examples:
-  [Spanish](examples/ejemplo-espanol.storyarc),
-  [German](examples/beispiel-deutsch.storyarc).
-- **A whole-program size pass, built into every compile.** Dead-code
-  elimination, abbreviation-based text compression (a standard set by default,
-  plus an opt-in pass tuned per game), and dense code generation, with nothing
-  to configure. Optional features cost nothing when a game does not use them;
-  Cloak of Darkness compiles to about 15K with the whole modern library linked
-  in and nothing stripped out by hand.
 
-On the horizon is `arc_image` for the retro machines: the same numbered
-pictures, converted to each 8-bit and 16-bit machine's own trimmed format. For
-the full, step-by-step history, see [PROGRESS.md](PROGRESS.md).
+On the horizon: the remaining retro targets (MSX, Atari 8-bit, Plus/4, Apple
+II, Spectrum Next, MEGA65) and the interpreters that adopt the proven
+blueprints, machine by machine. For the full, step-by-step history, see
+[PROGRESS.md](PROGRESS.md).
 
 ## The language
 
