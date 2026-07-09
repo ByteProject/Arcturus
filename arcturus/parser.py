@@ -1272,8 +1272,11 @@ class Parser:
                 self.advance()
                 negated = self.accept_kw("not")
                 # `x is in y` / `x is not in y`: the tree test, spelled with
-                # the copula (the bare `x in y` stays the short form).
-                if self.check_kw("in"):
+                # the copula (the bare `x in y` stays the short form). With
+                # NOTHING after the `in`, it is the direction instead:
+                # `if way is in` compares against the in direction (the
+                # keyword doubles as a value at expression head).
+                if self.check_kw("in") and self._peek_starts_expression():
                     self.advance()
                     right = self._parse_additive()
                     left = ast.Binary("in", left, right, line)
@@ -1370,6 +1373,21 @@ class Parser:
             args.append(self.parse_expr())
         return args
 
+    def _peek_starts_expression(self) -> bool:
+        """Does the token AFTER the current one start an expression? The
+        `is in` disambiguation peeks past the `in`: a following operand
+        means the tree test (x is in y); none means the direction value
+        (way is in)."""
+        t = self._at(1)
+        if t.kind in (T.NUMBER, T.STRING, T.NAME):
+            return True
+        if t.kind == T.KW and t.value in (
+            "true", "false", "nothing", "self", "player", "here", "noun",
+            "second", "thing", "room", "in",
+        ):
+            return True
+        return t.is_op("(")
+
     def _parse_primary(self) -> ast.Expr:
         t = self.cur
         if t.kind == T.NUMBER:
@@ -1391,6 +1409,13 @@ class Parser:
             if t.value in ("self", "player", "here", "noun", "second"):
                 self.advance()
                 return ast.Name(t.value, t.line)
+            # `in` doubles as the direction: at expression HEAD it can only
+            # be the value (the infix containment `lamp in player` needs a
+            # left operand first), so perform("go", in) and `if way is in`
+            # read naturally. The other direction words are plain names.
+            if t.value == "in":
+                self.advance()
+                return ast.Name("in", t.line)
             # The builtin kinds `thing` and `room` may be named as values, for
             # example as the source of `for each door of room`.
             if t.value in ("thing", "room"):

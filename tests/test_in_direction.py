@@ -61,3 +61,36 @@ def test_on_go_in_handler_fires():
 
 def test_in_property_reads_by_dot_access():
     assert "PROP OK." in _play(["push probe"])
+
+
+def test_in_as_an_expression_value(tmp_path):
+    # perform("go", in) and `if way is in`: at expression HEAD the keyword
+    # can only be the direction (infix containment needs a left operand),
+    # so it reads as a plain name there (improvmonster's two-minute probe
+    # of perform).
+    import shutil
+    import subprocess
+    src = (
+        'game\n    title "In"\n    start porch\n'
+        'room porch\n    name "Porch"\n    desc "Boards."\n    in cabin\n'
+        'room cabin\n    name "Cabin"\n    desc "Snug."\n    out porch\n'
+        'on go\n'
+        '    if way is in\n'
+        '        say "(inward)"\n'
+        '    continue\n'
+        'verb "slip"\n    slip\n'
+        'on slip\n    perform("go", in)\n'
+    )
+    story_bytes = generate(analyze(cosmos.combined_program(parse(src))))
+    frotz = shutil.which("dfrotz") or shutil.which("frotz")
+    if not frotz:
+        import pytest
+        pytest.skip("no Frotz interpreter on PATH")
+    story = tmp_path / "i.z5"
+    story.write_bytes(story_bytes)
+    out = subprocess.run(
+        [frotz, "-p", "-w", "80", str(story)],
+        input="slip\nout\nin\n", capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "Cabin" in out                 # perform("go", in) moved us
+    assert out.count("(inward)") == 2     # once for slip, once for typed IN
