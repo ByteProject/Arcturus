@@ -427,18 +427,40 @@ block describe_room()
     if desc_addr(here) is not nothing
         say here.desc
     let listed = 0
+    // Two shapes of the same loop body, chosen at compile time
+    // (any_appearance): an object with an `appearance` ALWAYS owns its
+    // paragraph (Inform's describe, Dialog's appearance), before intro's
+    // until-moved rule and the plain listing; a game without one keeps
+    // the original body, byte-identical.
     for each obj in here
         if obj is not player and obj is not hidden and obj is not concealed
-            if intro_addr(obj) is not nothing and obj is not moved
-                par
-                say obj.intro
-                change listed to 0
-            else
-                if obj is not scenery
-                    if listed is 0
+            if any_appearance is 1
+                if appearance_addr(obj) is not nothing
+                    par
+                    say obj.appearance
+                    change listed to 0
+                else
+                    if intro_addr(obj) is not nothing and obj is not moved
                         par
-                    change listed to 1
-                    list_item(obj)
+                        say obj.intro
+                        change listed to 0
+                    else
+                        if obj is not scenery
+                            if listed is 0
+                                par
+                            change listed to 1
+                            list_item(obj)
+            else
+                if intro_addr(obj) is not nothing and obj is not moved
+                    par
+                    say obj.intro
+                    change listed to 0
+                else
+                    if obj is not scenery
+                        if listed is 0
+                            par
+                        change listed to 1
+                        list_item(obj)
 
 // How many digits a non-negative number prints as (scores and turn counts stay
 // well under five). Used to right-align the score block without a string length.

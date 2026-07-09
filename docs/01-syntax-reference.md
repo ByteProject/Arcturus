@@ -449,6 +449,7 @@ carries the attribute of every kind in its chain.
 | `tag` | text | A short state qualifier appended to the object in listings and the inventory: "a fluid canister (full)". Usually computed (`tag block`); print with `show`, not `say`, so it stays inline. The parentheses come from the listing. |
 | `plural` | list | The words that name this object AS PART OF A GROUP (`plural coins` on each coin): "take coins" acts on every match in scope. Only with `summon.plurals` (02 section 8; docs/05); ignored otherwise. |
 | `intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). |
+| `appearance` | text | The paragraph the object ALWAYS owns in a room description, replacing its listing line and never expiring ("Bumble is sweeping by the counter."): Inform's describe, Dialog's `(appearance $)`. A computed block (`appearance block`) words it by state; checked before `intro`; `hidden`/`concealed` still suppress. Costs nothing in a game that never sets one. |
 | `capacity` | number | How many objects a container or supporter holds. |
 | `article` | text | The definite article, verbatim, when derivation cannot reach it: `article "las"` (las tijeras), `article "el"` (el agua). |
 | `indefinite` | text | The indefinite article, verbatim: `indefinite "unas"`, or an English mass noun with `indefinite "some"` ("You can see some water here."). |
