@@ -309,6 +309,10 @@ script, so the shipped artifact stays identical to the source.
 
 MIT. See the headers in each source file.
 
+## Join the community on Discord
+
+https://discord.gg/JF6YNUTPfT
+
 ## Credits
 
 Thanks to **Pablo Martínez** for the translation of the Spanish language
