@@ -133,3 +133,28 @@ def test_plain_thing_insides_still_disappear(tmp_path):
     story.write_bytes(_build(plain))
     out = _run(story, "x lever\n")
     assert "A brass lever." not in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_components_on_characters_and_the_player(tmp_path):
+    # The adopter's hats-and-aprons case: a component of a character is in
+    # scope through them, take answers part-of, and a component of the
+    # PLAYER is part of you, not luggage: the inventory skips it.
+    game = (
+        'game\n    title "Hat"\n    start inn\n'
+        'room inn\n    name "Inn"\n    desc "Warm."\n'
+        'thing bob of character in inn\n    name "Bob"\n    named\n'
+        '    desc "The innkeeper."\n'
+        'thing hat in bob\n    name "hat"\n    desc "A felt hat."\n'
+        '    component\n    worn\n'
+        'thing apron in player\n    name "apron"\n    desc "Leather."\n'
+        '    component\n'
+    )
+    story = tmp_path / "h.z5"
+    story.write_bytes(_build(game))
+    out = _run(story, "x hat\ntake hat\nx apron\ntake apron\ni\n")
+    assert "A felt hat." in out                  # in scope through Bob
+    assert "That's part of Bob." in out
+    assert "Leather." in out
+    assert "part of yourself" in out
+    assert "precisely nothing" in out            # a body part is not luggage
