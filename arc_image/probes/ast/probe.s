@@ -8,7 +8,7 @@
 ;
 ;   vasmm68k_mot -Ftos -o PROBE.PRG probe.s
 ;
-; and run in Hatari (GEMDOS drive autostart). The RLE decoder is the same
+; and run in Hatari (GEMDOS drive autostart). The LZSA2 decoder is the same
 ; dozen instructions as everywhere; the ST specifics are Physbase for the
 ; screen, Setpalette with the file's palette section VERBATIM (the .arc
 ; carries STF 3-bit hardware words), and the fixed 160-bytes-per-row
@@ -94,7 +94,7 @@ draw:
 .pal:   ; decode the 32 palette bytes to a buffer, then Setpalette
         lea     palbuf,a1
         move.l  a4,a0
-        bsr     unrle
+        bsr     lzsa2_depack
         pea     palbuf
         move.w  #6,-(sp)                ; XBIOS Setpalette
         trap    #14
@@ -106,34 +106,18 @@ draw:
         bsr     physbase                ; a0 clobbered: reorder below
         move.l  a0,a1                   ; a1 = screen
         move.l  a4,a0                   ; a0 = compressed stream
-        bsr     unrle
+        bsr     lzsa2_depack
         bra     .next
 
 .out:   rts
 
-; ---- the RLE decoder (docs/08 section 10) --------------------------------------
-; in: a0 = compressed stream, a1 = destination.
-; control < $80: copy control+1 literals; > $80: repeat next byte 257-control
-; times; = $80: end of section.
+; ---- the LZSA2 decoder (codec 2, docs/09 part B) -------------------------------
+; shared with the Amiga probe: written from the spec (no 68000 routine
+; exists upstream), proven byte-exact under vamos on real sections from
+; both packers before it touched an emulator. a0 = raw block, a1 = dest;
+; trashes d0-d5/a2, none of which the section walk holds.
 
-unrle:
-.next:  moveq   #0,d0                   ; the WHOLE register: dbra leaves
-        move.b  (a0)+,d0                ; $FFFF in d0.w and move.b keeps it
-        cmp.b   #$80,d0
-        beq     .end
-        blo     .lit
-        neg.b   d0                      ; 256 - control
-        addq.b  #1,d0                   ; 257 - control (2..128, fits a byte? 128 ok)
-        move.b  (a0)+,d1
-        subq.w  #1,d0
-.run:   move.b  d1,(a1)+
-        dbra    d0,.run
-        bra     .next
-.lit:                                   ; control+1 literal bytes
-.cl:    move.b  (a0)+,(a1)+
-        dbra    d0,.cl
-        bra     .next
-.end:   rts
+        include "../lzsa2_68k.s"
 
         section bss
 palbuf: ds.b    32

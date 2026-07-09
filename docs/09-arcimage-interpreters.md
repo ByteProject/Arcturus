@@ -175,7 +175,8 @@ kept as the codec-0 reference):
             jmp  unrle
     .end:   ret
 
-68000 (a0 = stream, a1 = destination; from the ST probe). Mind the dbra
+68000 (a0 = stream, a1 = destination; from the R2 ST probe, kept as the
+codec-0 reference). Mind the dbra
 trap: it leaves $FFFF in the counter word, so clear the register EVERY
 iteration before the byte load:
 
@@ -299,12 +300,22 @@ can stream). Conventional-memory cost: effectively zero.
 
 ### C.2 Atari ST (target id 2, tag AST, files `<id>.AST`)
 
-Verified: Hatari, both modes, 2026-07-08 (the RLE build; the LZSA2
-rebuild re-verifies when the 68000 decompressor lands).
+Verified: Hatari, both modes, 2026-07-08; re-verified with the LZSA2
+codec 2026-07-09.
 
 Probe: [arc_image/probes/ast/](../arc_image/probes/ast/), source
 `probe.s` with the embedded test assets 90.AST and 100.AST. Build:
 `vasmm68k_mot -Ftos -o PROBE.PRG probe.s`.
+
+CODEC. LZSA2 (part B). The decompressor is the shared 68000 routine
+[arc_image/probes/lzsa2_68k.s](../arc_image/probes/lzsa2_68k.s), written
+from the part B spec (the lzsa distribution has no 68000 routine) and
+proven byte-exact under vamos on real sections from both packers before
+it reached an emulator; reuse it rather than writing your own. Register
+convention: a0 = raw block, a1 = destination, trashes d0-d5/a2, register
+only (no absolute addresses, so it rides position-independent code
+unchanged). Its one constraint: match offsets apply as sign-extended
+16-bit adds, correct because no .arc section exceeds 32K uncompressed.
 
 Two 68000 lessons the probe paid for, so an implementer does not: an .arc
 file can be ODD-length, so anything embedding or loading one to memory
@@ -402,3 +413,8 @@ ADF; no filesystem, no Workbench: a bootblock trackload. The facts:
   rebuilds follow with the 68000 decompressor, written from part B's
   spec (the lzsa repository has no 68000 routine); their chapters and
   the change log record it when their probes are re-verified.
+- 2026-07-09 (later): the shared 68000 LZSA2 decompressor
+  (arc_image/probes/lzsa2_68k.s) written from the part B spec and
+  proven byte-exact under vamos (real AST and AMI sections, both
+  packers, plus a corruption control); the ST probe rebuilt on it and
+  re-verified in Hatari, both modes. C.2 updated probe-after-probe.
