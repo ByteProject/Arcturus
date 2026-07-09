@@ -362,13 +362,19 @@ ASSETS. `<id>.AST` beside the story (GEMDOS 8.3-safe). Test pair: 90.AST,
 
 ### C.3 Amiga (target id 1, tag AMI, files `<id>.AMI`)
 
-Verified: FS-UAE (A500, Kickstart 1.3), both modes, 2026-07-08 (the RLE
-build; the LZSA2 rebuild re-verifies when the 68000 decompressor lands).
+Verified: FS-UAE (A500, Kickstart 1.3), both modes, 2026-07-08;
+re-verified with the LZSA2 codec 2026-07-09.
 
 Probe: [arc_image/probes/ami/](../arc_image/probes/ami/), sources
 `boot.s` and `payload.s` with the embedded test assets. Build:
 `python3 build_adf.py` assembles both with vasm and lays the bootable
-ADF; no filesystem, no Workbench: a bootblock trackload. The facts:
+ADF; no filesystem, no Workbench: a bootblock trackload.
+
+CODEC. LZSA2 (part B), decoded by the same shared 68000 routine as the
+ST, [arc_image/probes/lzsa2_68k.s](../arc_image/probes/lzsa2_68k.s):
+register-only, so the bootblock's position-independent world needs no
+relocation for it; see C.2 for the convention and the 32K offset
+constraint. The facts:
 
 - bitmap (type 1): 5 bitplanes, row-interleaved ILBM-style (row of plane
   0, row of plane 1, ..., 40 bytes each; 200 bytes per pixel row in
@@ -418,3 +424,7 @@ ADF; no filesystem, no Workbench: a bootblock trackload. The facts:
   proven byte-exact under vamos (real AST and AMI sections, both
   packers, plus a corruption control); the ST probe rebuilt on it and
   re-verified in Hatari, both modes. C.2 updated probe-after-probe.
+- 2026-07-09 (later still): the Amiga probe rebuilt on the shared
+  routine and re-verified in FS-UAE, both modes; C.3 updated. THE
+  WAVE-1 BACKPORT IS COMPLETE: all three 16-bit probes decode LZSA2
+  against current assets, and every chapter's codec matches its files.
