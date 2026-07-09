@@ -548,11 +548,19 @@ caps at 256K; author regeneration time is what actually hurts. The
 8-bit cell targets keep ZX0: their pictures share a floppy with the
 story, and the tiny decoder matters there. Each target chapter of
 docs/09 mandates exactly one codec, so no interpreter ever carries two.
-arcimg packs LZSA2 through Emmanuel Marty's lzsa tool ($ARCIMG_LZSA,
-PATH, or FictionTools via orb) and verifies every pack against its own
-pure-Python decoder, which is ported from BlockFormat_LZSA2.md and
-validated byte-identical on the full corpus; that decoder is the
-executable spec for the interpreter side. Also in the amendment, the
+arcimg packs LZSA2 through Emmanuel Marty's lzsa tool when one is
+found ($ARCIMG_LZSA first, then PATH), and otherwise through its own
+built-in pure-Python greedy packer (ruled 2026-07-09): arcimg never
+NEEDS an external binary, matching the BuildTools 4.0 doctrine (Python
+only, no Linux dependency, every Trans-Neptunian disk builder
+self-contained). The built-in parse is about 8% larger than the tool's
+optimal parse on the corpus and runs in seconds; the trade an author
+should know: with the tool on PATH the assets pack smaller, but two
+machines only produce byte-identical assets when both have the same
+lzsa (or neither has one). Every pack, from either packer, is verified
+against arcimg's own pure-Python decoder, which is ported from
+BlockFormat_LZSA2.md and validated byte-identical on the full corpus;
+that decoder is the executable spec for the interpreter side. Also in the amendment, the
 regeneration loop itself: `arcimg convert` now converts pictures in a
 worker pool and skips outputs that are newer than their master, its
 .hint sidecar, and the tool (make-style), so a corpus regen is minutes

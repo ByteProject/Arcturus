@@ -290,3 +290,26 @@ def test_scr_round_trip_nine_rows():
         arcimg.scr_from_native(native), 9)
     assert back == native
     assert warnings == []
+
+
+def test_builtin_greedy_packer_round_trips(monkeypatch):
+    # The packer chain (ruled 2026-07-09): $ARCIMG_LZSA, then PATH, then the
+    # built-in greedy packer, never a remote machine and never an error.
+    # With no binary found, packing must still work, pure Python.
+    monkeypatch.setattr(arcimg, "_find_lzsa", lambda: None)
+    for data in (
+        b"", b"a", b"ab" * 700,
+        bytes(range(256)) * 6,
+        b"the quick brown fox " * 40 + bytes(1000) + b"the quick end",
+    ):
+        comp = arcimg.lzsa2_compress(data)
+        assert arcimg.lzsa2_decompress(comp) == data
+
+
+def test_greedy_packer_handles_real_sections(monkeypatch):
+    monkeypatch.setattr(arcimg, "_find_lzsa", lambda: None)
+    native = arcimg.TARGETS["AMI"].pattern(320, 96)
+    blob = arcimg.write_arc(1, 12, 320, 96, 3, arcimg.TARGETS["AMI"].pack(native),
+                            codec=arcimg.CODEC_LZSA2)
+    _t, _m, _i, back = arcimg.decode_arc(blob)
+    assert back == native
