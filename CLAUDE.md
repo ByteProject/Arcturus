@@ -98,7 +98,7 @@ pyproject.toml
 - Work milestone by milestone from docs/00 section 7 (B0 to B13). Each has a
   concrete done-test; do not advance until it passes.
 - Produce docs/03-compiler-pipeline.md, docs/04-codegen-mapping.md,
-  docs/05-granules.md, and docs/07-conformance.md as the matching work is done,
+  and docs/05-granules.md as the matching work is done,
   so the design record stays current.
 
 ## Conformance

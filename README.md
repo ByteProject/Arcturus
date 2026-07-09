@@ -99,7 +99,7 @@ The most significant recent additions and achievements:
   the interpreter never has to measure a picture to lay out the screen, and the
   `arcimg` tool prepares the art and packs it into a single `.arcres` file, the
   story kept separate. Retro rendering follows next; the author guide is
-  [docs/09-arc-image.md](docs/09-arc-image.md).
+  [docs/07-arc-image.md](docs/07-arc-image.md).
 - **Actaea, the reference interpreter, reached 1.0.** A Standard 1.1 conformant
   Z-machine interpreter for versions 5 and 8, in Python with no dependencies
   beyond the standard library, so the project now owns both ends of the
@@ -145,7 +145,7 @@ to start writing Arcturus today:
   summon them, how to fork one, and how to write your own.
 - [docs/06-actaea.md](docs/06-actaea.md): Actaea, the reference interpreter.
   The three ways to play, the tools, saves and transcripts, and conformance.
-- [docs/09-arc-image.md](docs/09-arc-image.md): pictures in your story. The
+- [docs/07-arc-image.md](docs/07-arc-image.md): pictures in your story. The
   master art, the `arcimg` workflow from PNG to every machine, and what plays
   where today.
 
@@ -158,9 +158,6 @@ the compiler itself works:
 - [docs/04-codegen-mapping.md](docs/04-codegen-mapping.md): the backend. How
   Arcturus constructs map to Z-machine opcodes and the story-file image, plus the
   size levers (dead-code elimination and abbreviation text compression).
-- [docs/07-conformance.md](docs/07-conformance.md): conformance. What the
-  compiler guarantees, the interpreter-driven evidence behind it, and the size
-  record the test suite protects.
 
 A fuller wiki will follow as the project matures. For a taste, the two worked
 games live under [examples/](examples/) - the Brass Lantern and the classic

@@ -7,7 +7,7 @@ spec and the per-target blueprints as they land.
 
 This file lives with the working set (arc_image/reference/), not under
 docs/: docs/ is the author- and implementer-facing shelf, and this is
-the engine room. Authors read docs/09-arc-image.md; interpreter authors
+the engine room. Authors read docs/07-arc-image.md; interpreter authors
 read docs/08-arcimage-interpreters.md.
 
 ## 1. Charter
