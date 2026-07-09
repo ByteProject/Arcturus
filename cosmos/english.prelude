@@ -1324,6 +1324,35 @@ block msg_cant_undo()
 block msg_cant_oops()
     say "There's nothing to put right."
 
+// How many things the player wears; the pure count beside list_worn, so a
+// story can guard its phrasing ("You're dressed in nothing at all") before
+// printing a prefix. Both cost nothing unless called (DCE).
+block worn_count()
+    let n = 0
+    for each x in player
+        if x is worn
+            change n to n + 1
+    return n
+
+// Print what the player wears as a punctuated list, "a hat, a cloak and
+// boots", with no framing and no newline: the story writes its own prose
+// around it. Returns the count. The two-pass count-then-join shape is the
+// library's own listing idiom (list_contents_run).
+block list_worn()
+    let total = worn_count
+    let shown = 0
+    for each x in player
+        if x is worn
+            if shown is not 0
+                if shown is total - 1
+                    show(" and ")
+                else
+                    show(", ")
+            show("${a x}")
+            change shown to shown + 1
+    return total
+
+
 // One line of an inventory listing; a worn item is tagged, a container or
 // supporter names what it holds.
 block list_held(obj)

@@ -141,6 +141,14 @@ The in-versus-on distinction is carried by the parent's kind: a child of a
 Cosmos uses the parent's kind to choose the preposition when listing or
 describing contents and to decide scope.
 
+Two small services for a story describing the player's outfit (a custom
+`player.desc block`, say): `worn_count` is the number of things the player
+wears, and `list_worn` prints them as a punctuated list ("a hat, a cloak
+and a ring"; German declines the articles, Spanish joins with "y") with no
+framing and no newline, returning the count, so the story writes its own
+prose around it. Both cost nothing unless called (dead-code elimination),
+and each language layer words its own.
+
 ## 5. Scope and visibility
 
 Scope is the set of objects the parser considers when resolving a noun, and
