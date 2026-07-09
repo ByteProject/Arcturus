@@ -37,14 +37,17 @@ minor author polish per image; the polish loop is `arcimg scr` /
 `arcimg unscr` (band + black bar .scr round-trip, hand-authored flag in
 header byte 15 that convert never overwrites). arcimg 1.6.0.
 
+WAVE-1 BACKPORT COMPLETE (2026-07-09): all three 16-bit probes decode
+LZSA2 against current assets and are re-verified by Stefan (DOSBox-X,
+Hatari, FS-UAE, both modes each). The 8088 decoder is Marty's own,
+verbatim; the 68000 one (arc_image/probes/lzsa2_68k.s, shared by ST
+and Amiga) is written from the part B spec and was proven byte-exact
+under vamos (in orb) before touching an emulator. docs/09 C.1-C.3
+updated probe-after-probe with probe-directory links (the handover
+rule, Part C preamble).
+
 PENDING, in order:
-1. Probes backport: wave-1 probes (dos/ast/ami) still decode RLE and
-   predate the codec ruling; they need LZSA2 decompressors now (8086
-   and 68000, adapt from the lzsa repository's permissively licensed
-   asm), embed the regenerated 90/100 assets, rebuild, Stefan
-   re-verifies in DOSBox-X/Hatari/FS-UAE (payload flags only; his
-   configs rule the display).
-2. R3 probes: C64 .prg (ACME on orb debian; VICE for launch, ask
+1. R3 probes: C64 .prg (ACME on orb debian; VICE for launch, ask
    Stefan for path or install approval), ZX +3 and CPC as .sna
    snapshots (sjasmplus at ~/.local/bin/sjasmplus; ZEsarUX covers
    both, ASK STEFAN FOR ITS PATH at first launch, never screenshot).
