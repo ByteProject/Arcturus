@@ -221,12 +221,25 @@ on xyzzy
     msg_xyzzy
 
 on inventory
+    // Two shapes of the same loop, chosen at compile time (any_components):
+    // a component of the player (an apron that is part of a uniform, a
+    // prosthetic) is part of you, not luggage, so the inventory skips it
+    // the way the room listing does; a game with no components keeps the
+    // plain loop, byte-identical.
     let carrying = 0
-    for each obj in player
-        if carrying is 0
-            msg_carrying
-        change carrying to carrying + 1
-        list_held(obj)
+    if any_components is 1
+        for each obj in player
+            if obj is not component
+                if carrying is 0
+                    msg_carrying
+                change carrying to carrying + 1
+                list_held(obj)
+    else
+        for each obj in player
+            if carrying is 0
+                msg_carrying
+            change carrying to carrying + 1
+            list_held(obj)
     if carrying is 0
         msg_empty_handed
 
