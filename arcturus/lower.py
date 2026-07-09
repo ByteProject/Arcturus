@@ -455,6 +455,15 @@ def eval_expr(rt: Routine, ctx: Context, expr, dest=None) -> None:
     # missing declaration (a topic body reading a flag nobody declared); say
     # WHICH name, not just "unsupported" (a field report hit the bare form).
     if isinstance(expr, ast.Name):
+        # A KIND used as a value gets its own answer: `if garment is worn`
+        # is a category error a reader cannot fix from "unknown name", and
+        # the field paraphrase of that message was "worn isn't recognized".
+        if expr.ident in ctx.world.kinds:
+            raise LowerError(
+                f"'{expr.ident}' is a kind, not a value: test an instance "
+                f"(or `noun is {expr.ident}` for membership)",
+                expr.line,
+            )
         raise LowerError(
             f"unknown name '{expr.ident}': not a local, global, flag, "
             f"counter, constant, object, or block (missing declaration?)",

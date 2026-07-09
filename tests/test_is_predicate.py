@@ -106,3 +106,20 @@ def test_reachable_differs_from_visible_through_glass(tmp_path):
     assert "You'll have to open the jar first." in out
     assert "In hand range." in out
     assert "Got it." in out
+
+
+def test_kind_as_value_gets_a_category_error():
+    # `if garment is worn` (a KIND on the left) is a category error; the
+    # message says so instead of "unknown name" (the field paraphrase of
+    # which was "worn isn't recognized").
+    src = (
+        'game\n    title "W"\n    start den\n'
+        'room den\n    name "Den"\n    desc "C."\n'
+        'kind garment of thing\n    wearable\n'
+        'thing hat of garment in den\n    name "hat"\n'
+        'verb "check"\n    check\n'
+        'on check\n    if garment is worn\n        say "?"\n'
+    )
+    import arcturus.lower as lower
+    with pytest.raises(lower.LowerError, match="is a kind, not a value"):
+        _build(src)
