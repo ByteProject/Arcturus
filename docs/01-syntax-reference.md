@@ -805,6 +805,11 @@ if hook is supporter
 if noun is not container
 ```
 
+The direction `in` doubles as a keyword (the containment operator, and the
+copula form `x is in y`). Where only a value can stand, it is the direction:
+`perform("go", in)` and `if way is in` both read naturally, while
+`x is in y` with an operand after the `in` stays the tree test.
+
 Predicate test: `<value> is <block>` and `<value> is not <block>` when the right
 side names a block with exactly one parameter: the block is called with the left
 side and the test is its truth (nonzero). So the library's predicates read the
