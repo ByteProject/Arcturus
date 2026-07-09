@@ -95,11 +95,11 @@ show:
         bra     .each
 .bmp:   move.l  a4,a0
         lea     BITMAP,a1
-        bsr     unrle
+        bsr     lzsa2_depack
         bra     .next
 .pal:   move.l  a4,a0
         lea     palbuf(pc),a1
-        bsr     unrle
+        bsr     lzsa2_depack
         lea     palbuf(pc),a0
         lea     COLOR00(a6),a1
         moveq   #32-1,d0
@@ -120,26 +120,13 @@ waitmouse:
         bne     .down
         rts
 
-; ---- the RLE decoder (docs/09 part B, the 68000 reference) --------------------
+; ---- the LZSA2 decoder (codec 2, docs/09 part B) -------------------------------
+; the shared 68000 routine (register-only, so it rides the bootblock's
+; position-independent world untouched); proven byte-exact under vamos
+; before it reached the copper. a0 = raw block, a1 = dest; trashes
+; d0-d5/a2, none of which the section walk holds.
 
-unrle:
-.next:  moveq   #0,d0                   ; dbra leaves $FFFF in the counter
-        move.b  (a0)+,d0
-        cmp.b   #$80,d0
-        beq     .end
-        blo     .lit
-        neg.b   d0
-        addq.b  #1,d0                   ; 257 - c
-        move.b  (a0)+,d1
-        subq.w  #1,d0
-.run:   move.b  d1,(a1)+
-        dbra    d0,.run
-        bra     .next
-.lit:
-.cl:    move.b  (a0)+,(a1)+
-        dbra    d0,.cl
-        bra     .next
-.end:   rts
+        include "../lzsa2_68k.s"
 
 ; ---- the copper list -----------------------------------------------------------
 ; Bitplane pointers: the interleaved buffer displays in place, planes 40
