@@ -117,5 +117,29 @@ block visible(obj)
         return 0
     return in_scope(obj)
 
+// The shut container standing between the player's hand and the object, or
+// nothing when the way is clear. Sight and touch differ exactly here: a
+// closed CLEAR jar shows its coin (see_into) and still blocks the hand.
+block reach_blocker(obj)
+    let p = parent_of(obj)
+    while p is not nothing
+        if p is here
+            return nothing
+        if p is player
+            return nothing
+        if p is container
+            if p is openable
+                if p is not open
+                    return p
+        change p to parent_of(p)
+    return nothing
+
+// Visible AND touchable: the documented contract (docs/02 section 5), which
+// taking and most physical actions want. `<obj> is reachable` reads it as a
+// predicate.
 block reachable(obj)
-    return visible(obj)
+    if visible(obj) is 0
+        return 0
+    if reach_blocker(obj) is nothing
+        return 1
+    return 0

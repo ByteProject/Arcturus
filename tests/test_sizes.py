@@ -82,36 +82,36 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 20828,  # 2026-07-09 exit noun respects the noun
-    "brass-lantern.storyarc": 15356,  # 2026-07-09 unknown words named back
-    "cloak-of-darkness.storyarc": 16084,  # 2026-07-09 exit noun respects the noun
-    "ejemplo-espanol.storyarc": 19852,  # 2026-07-09 exit noun respects the noun
-    "features/computed-properties.storyarc": 13968,  # 2026-07-09 unknown words named back
-    "features/containers.storyarc": 14152,  # 2026-07-09 exit noun respects the noun
-    "features/daemons-and-timers.storyarc": 14280,  # 2026-07-09 unknown words named back
-    "features/doors-and-locks.storyarc": 13856,  # 2026-07-09 unknown words named back
-    "features/grains.storyarc": 13984,  # 2026-07-09 unknown words named back
-    "features/grammar.storyarc": 14868,  # 2026-07-09 unknown words named back
-    "features/introproperty.storyarc": 15076,  # 2026-07-09 exit noun respects the noun
-    "features/kinds-and-inheritance.storyarc": 13816,  # 2026-07-09 unknown words named back
-    "features/on-other.storyarc": 13816,  # 2026-07-09 unknown words named back
-    "features/zcolor.storyarc": 14188,  # 2026-07-09 unknown words named back
-    "features/scoring.storyarc": 16144,  # 2026-07-09 unknown words named back
-    "features/spans.storyarc": 14008,  # 2026-07-09 unknown words named back
-    "granules/ambience.storyarc": 15304,  # 2026-07-09 unknown words named back
-    "granules/conversations.storyarc": 15596,  # 2026-07-09 unknown words named back
-    "granules/extended-verbs.storyarc": 16484,  # 2026-07-09 exit noun respects the noun
-    "granules/infocom-interrogation.storyarc": 16008,  # 2026-07-09 unknown words named back
-    "granules/quotes.storyarc": 14164,  # 2026-07-09 unknown words named back
-    "granules/take-all.storyarc": 15776,  # 2026-07-09 exit noun respects the noun
-    "granules/plurals.storyarc": 14824,  # 2026-07-09 unknown words named back
-    "granules/statusline.storyarc": 13924,  # 2026-07-09 unknown words named back
-    "granules/verbose-exits.storyarc": 14204,  # 2026-07-09 unknown words named back
+    "beispiel-deutsch.storyarc": 20900,  # 2026-07-09 reachable honors its contract
+    "brass-lantern.storyarc": 15428,  # 2026-07-09 reachable honors its contract
+    "cloak-of-darkness.storyarc": 16156,  # 2026-07-09 reachable honors its contract
+    "ejemplo-espanol.storyarc": 19924,  # 2026-07-09 reachable honors its contract
+    "features/computed-properties.storyarc": 14040,  # 2026-07-09 reachable honors its contract
+    "features/containers.storyarc": 14224,  # 2026-07-09 reachable honors its contract
+    "features/daemons-and-timers.storyarc": 14352,  # 2026-07-09 reachable honors its contract
+    "features/doors-and-locks.storyarc": 13928,  # 2026-07-09 reachable honors its contract
+    "features/grains.storyarc": 14056,  # 2026-07-09 reachable honors its contract
+    "features/grammar.storyarc": 14940,  # 2026-07-09 reachable honors its contract
+    "features/introproperty.storyarc": 15148,  # 2026-07-09 reachable honors its contract
+    "features/kinds-and-inheritance.storyarc": 13888,  # 2026-07-09 reachable honors its contract
+    "features/on-other.storyarc": 13888,  # 2026-07-09 reachable honors its contract
+    "features/zcolor.storyarc": 14260,  # 2026-07-09 reachable honors its contract
+    "features/scoring.storyarc": 16216,  # 2026-07-09 reachable honors its contract
+    "features/spans.storyarc": 14080,  # 2026-07-09 reachable honors its contract
+    "granules/ambience.storyarc": 15376,  # 2026-07-09 reachable honors its contract
+    "granules/conversations.storyarc": 15668,  # 2026-07-09 reachable honors its contract
+    "granules/extended-verbs.storyarc": 16556,  # 2026-07-09 reachable honors its contract
+    "granules/infocom-interrogation.storyarc": 16080,  # 2026-07-09 reachable honors its contract
+    "granules/quotes.storyarc": 14236,  # 2026-07-09 reachable honors its contract
+    "granules/take-all.storyarc": 15848,  # 2026-07-09 reachable honors its contract
+    "granules/plurals.storyarc": 14896,  # 2026-07-09 reachable honors its contract
+    "granules/statusline.storyarc": 13996,  # 2026-07-09 reachable honors its contract
+    "granules/verbose-exits.storyarc": 14276,  # 2026-07-09 reachable honors its contract
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 16552  # 2026-07-09 exit noun respects the noun
+CLOAK_Z8_CEILING = 16624  # 2026-07-09 reachable honors its contract
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

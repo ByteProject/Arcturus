@@ -121,6 +121,14 @@ on take
             change refused to 1
             msg_part_of
             stop
+    // Visible is not touchable: a coin in a CLOSED clear jar is in scope
+    // (the glass shows it) but the hand does not pass; answer "open it
+    // first" (the same message the parser's shut_in path uses).
+    if reach_blocker(noun) is not nothing
+        change refused to 1
+        change shut_in to reach_blocker(noun)
+        msg_open_first
+        stop
     if noun is scenery
         change refused to 1
         msg_scenery
