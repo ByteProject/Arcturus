@@ -26,6 +26,7 @@ Cosmos standard library is hardcoded here.
 
 from __future__ import annotations
 
+import sys
 from typing import Optional
 
 from . import ast
@@ -45,6 +46,10 @@ class Analyzer:
         self.env = env if env is not None else prelude.standard_environment()
         self.filename = filename
         self.world = wm.World()
+        # Every property name the story's code READS (a dot access, or the
+        # right side of an is-test): the unread-property note compares the
+        # set props against it (see _lint_unread_props).
+        self.prop_reads: set = set()
         # player.<prop> augmentations, applied to the seeded player object in
         # the properties pass.
         self._player_decls: list = []
@@ -64,6 +69,7 @@ class Analyzer:
         self._auto_score()
         self._resolve_bodies()
         self._scan_awards()
+        self._lint_unread_props()
         # A summoned abbreviations.granule (B6) is compile-time data, not runtime
         # blocks, so it rides on the program straight through to codegen.
         self.world.abbreviations = getattr(self.program, "abbreviations", None)
@@ -953,6 +959,7 @@ class Analyzer:
             self._resolve_name(expr.ident, locals_, expr.line)
             return
         if isinstance(expr, ast.Dot):
+            self.prop_reads.add(expr.prop)
             self._check_expr(expr.obj, locals_)
             return
         if isinstance(expr, ast.DynDot):
@@ -993,6 +1000,7 @@ class Analyzer:
                         f"object; rename one",
                         expr.line,
                     )
+                self.prop_reads.add(right.ident)
                 self.world.is_resolutions[id(expr)] = wm.IS_PROPERTY
                 return
             if right.ident in self.world.kinds:
@@ -1069,6 +1077,38 @@ class Analyzer:
         if name in self.world.objects or self.env.is_direction(name):
             return prelude.T_OBJECT
         return None
+
+
+    def _lint_unread_props(self) -> None:
+        """A custom property set on an object but never read anywhere is
+        almost always a typo, or a newer standard attribute compiled by an
+        OLDER arcc (property names are open by design, so the declaration
+        stays legal and silently inert: the `component` case, where a build
+        predating the attribute accepted it as a custom property and the
+        apron simply never entered scope). Say so, as a note."""
+        std = set(self.env.properties)
+        skip = {"tag"}  # the listing qualifier rides props but is not one
+        noted = 0
+        pools = [(o.name, o.props) for o in self.world.objects.values()]
+        pools += [(k.name, k.props) for k in self.world.kinds.values()
+                  if k.origin == "game"]
+        for owner, props in pools:
+            for pname in props:
+                if pname in std or pname in skip or pname in self.prop_reads:
+                    continue
+                if self.env.is_direction(pname):
+                    continue
+                noted += 1
+                if noted <= 5:
+                    print(
+                        f"arcc: note: property '{pname}' on '{owner}' is "
+                        f"never read by the story or the library; a typo, or "
+                        f"an attribute this arcc version does not know?",
+                        file=sys.stderr,
+                    )
+        if noted > 5:
+            print(f"arcc: note: ({noted - 5} more unread properties)",
+                  file=sys.stderr)
 
 
 def analyze(

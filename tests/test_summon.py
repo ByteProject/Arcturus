@@ -95,3 +95,34 @@ def test_dotted_summon_stays_quiet_without_a_fork(tmp_path, capsys):
     )
     cosmos.combined_program(program, story_dir=str(tmp_path))
     assert "bundled copy" not in capsys.readouterr().err
+
+
+def test_unread_property_gets_a_note(tmp_path, capsys):
+    # The stale-build trap (the adopter's component-on-an-older-arcc):
+    # property names are open by design, so a newer attribute compiled by
+    # an older arcc is legal and silently inert. A custom property that is
+    # set but never read draws a note naming it.
+    program = parse(
+        'game\n    title "T"\n    start r\n'
+        'room r\n    name "R"\n    desc "D."\n'
+        'thing apron in r\n    name "apron"\n    componnet\n',
+        "t.storyarc",
+    )
+    analyze(cosmos.combined_program(program))
+    err = capsys.readouterr().err
+    assert "property 'componnet' on 'apron'" in err
+    assert "never read" in err
+
+
+def test_read_custom_property_stays_quiet(tmp_path, capsys):
+    program = parse(
+        'game\n    title "T"\n    start r\n'
+        'room r\n    name "R"\n    desc "D."\n'
+        'thing apron in r\n    name "apron"\n    grime 3\n'
+        'verb "scrub"\n    scrub\n'
+        'on scrub\n    if player.grime is 0\n        say "Clean."\n'
+        '    say "Grimy: ${apron.grime}."\n',
+        "t.storyarc",
+    )
+    analyze(cosmos.combined_program(program))
+    assert "never read" not in capsys.readouterr().err
