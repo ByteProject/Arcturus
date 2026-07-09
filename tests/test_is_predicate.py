@@ -74,3 +74,35 @@ def test_other_arities_keep_the_call_error():
     )
     with pytest.raises(ArcError, match="call it with"):
         _build(src)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_reachable_differs_from_visible_through_glass(tmp_path):
+    # The documented contract (docs/02): visible is sight, reachable is
+    # touch. A coin in a CLOSED clear jar is visible, not reachable, and
+    # take answers "open it first"; opening the jar changes all three.
+    game = (
+        'game\n    title "Jar"\n    start lab\n'
+        'room lab\n    name "Lab"\n    desc "A lab."\n'
+        'thing jar of container in lab\n    name "jar"\n    clear\n'
+        '    openable\n    fixed\n'
+        'thing coin in jar\n    name "coin"\n'
+        'verb "probe"\n    probe noun\n'
+        'on probe\n'
+        '    if noun is visible\n'
+        '        if noun is not reachable\n'
+        '            say "Seen, sealed."\n'
+        '            stop\n'
+        '        say "In hand range."\n'
+    )
+    story = tmp_path / "j.z5"
+    story.write_bytes(_build(game))
+    out = subprocess.run(
+        [_frotz(), "-p", "-w", "80", str(story)],
+        input="probe coin\ntake coin\nopen jar\nprobe coin\ntake coin\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "Seen, sealed." in out
+    assert "You'll have to open the jar first." in out
+    assert "In hand range." in out
+    assert "Got it." in out
