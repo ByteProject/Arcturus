@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The .arc container (docs/08 section 10), B12 R1. Three gates:
+"""The .arc container (arc_image/reference/design.md section 10), B12 R1. Three gates:
 
 - the shared RLE codec round-trips exactly, including its edges (long runs,
   long literals, empty data, run-length limits);
@@ -149,7 +149,7 @@ def test_target_renders_a_png(tag, tmp_path):
 
 
 def test_the_golden_corpus_is_in_place():
-    # The Rabenstein masters are the conversion corpus (docs/08 section 4):
+    # The Rabenstein masters are the conversion corpus (arc_image/reference/design.md section 4):
     # every wave's back-end converts them and the results are the acceptance
     # gate. R1 only guarantees the corpus is present and band-shaped.
     import zipfile
@@ -167,7 +167,7 @@ def test_the_golden_corpus_is_in_place():
 
 
 def test_the_ledger_is_complete():
-    # Fourteen targets, ids 1..14, each with the geometry docs/08 records.
+    # Fourteen targets, ids 1..14, each with the geometry arc_image/reference/design.md records.
     assert len(arcimg.TARGETS) == 14
     ids = sorted(t.id for t in arcimg.TARGETS.values())
     assert ids == list(range(1, 15))

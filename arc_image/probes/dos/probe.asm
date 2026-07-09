@@ -1,4 +1,4 @@
-; probe.asm - the DOS arc_image probe (B12 R2, docs/08 section 6)
+; probe.asm - the DOS arc_image probe (B12 R2, arc_image/reference/design.md section 6)
 ; part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 ; Copyright (c) 2026, Stefan Vogt.
 ;
@@ -9,11 +9,11 @@
 ;   nasm -f bin probe.asm -o PROBE.COM
 ;
 ; and run in DOSBOX-X with this directory mounted. The codec is LZSA2
-; (codec 2, the 16-bit trio's codec, docs/09 part B); the decompressor is
+; (codec 2, the 16-bit trio's codec, docs/08 part B); the decompressor is
 ; Emmanuel Marty's own space-efficient 8088 routine, carried verbatim.
 ; Everything else is section-table walking.
 ;
-; .arc recap (docs/08 section 10, all words BIG-endian): 16-byte header
+; .arc recap (arc_image/reference/design.md section 10, all words BIG-endian): 16-byte header
 ; (magic "ARCI", version, target, mode, section count, width, height, id,
 ; codec, provenance), then 6-byte table entries (type, flags, uncompressed
 ; length, compressed length), then the LZSA2 raw blocks in table order (one
@@ -120,7 +120,7 @@ handle: push si
         pop si
         ret
 
-; ---- the LZSA2 decoder (codec 2, docs/09 part B) -----------------------------
+; ---- the LZSA2 decoder (codec 2, docs/08 part B) -----------------------------
 ; Emmanuel Marty's space-efficient raw-block decompressor for 8088, from the
 ; lzsa distribution (zlib license), carried as published: in ds:si = raw
 ; LZSA2 block, es:di = destination, out ax = decompressed size. Trashes

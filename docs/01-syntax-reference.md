@@ -632,22 +632,16 @@ zip of the numbered PNGs), which the interpreter reads automatically when it
 sits next to the story; the z5 stays a separate file.
 
 `arcimg` is the third standalone tool, shipped like `arcc` and `actaea`
-(`build/arcimg`, a single self-contained file). It has three commands:
-
-```
-arcimg pack SOURCES... -o game.arcres    # zip numbered PNGs into a pack
-arcimg prep SOURCE --id N --mode MODE     # size a source to a mode as N.png
-arcimg info SOURCE                        # a PNG's size, or a pack's contents
-```
-
-`pack` gathers numbered PNGs (from files or a directory) into the distributable
-`.arcres`. `prep` prepares art that is not already the right size, centre-
-cropping and scaling a source (a photo, a JPEG, a wrong-sized PNG) to a mode:
+(`build/arcimg`, a single self-contained file). The two commands of the
+modern path:
 
 ```
 arcimg prep opening.jpg --id 8 --mode daad -o art/    # art/8.png at 320x96
 arcimg pack art/ -o game.arcres                        # the distributable pack
 ```
+
+The full picture workflow, the retro conversions, and which interpreters
+play the pictures today and next, is its own author guide: docs/09.
 
 Mode-sized PNGs need nothing but the standard library; `prep` reaches for Pillow
 only to resize or convert, and offers a guided install the first time. A worked

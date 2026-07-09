@@ -98,7 +98,8 @@ The most significant recent additions and achievements:
   art is numbered by (no manifest to carry), the mode travels in the opcode so
   the interpreter never has to measure a picture to lay out the screen, and the
   `arcimg` tool prepares the art and packs it into a single `.arcres` file, the
-  story kept separate. Retro rendering follows next.
+  story kept separate. Retro rendering follows next; the author guide is
+  [docs/09-arc-image.md](docs/09-arc-image.md).
 - **Actaea, the reference interpreter, reached 1.0.** A Standard 1.1 conformant
   Z-machine interpreter for versions 5 and 8, in Python with no dependencies
   beyond the standard library, so the project now owns both ends of the
@@ -144,6 +145,9 @@ to start writing Arcturus today:
   summon them, how to fork one, and how to write your own.
 - [docs/06-actaea.md](docs/06-actaea.md): Actaea, the reference interpreter.
   The three ways to play, the tools, saves and transcripts, and conformance.
+- [docs/09-arc-image.md](docs/09-arc-image.md): pictures in your story. The
+  master art, the `arcimg` workflow from PNG to every machine, and what plays
+  where today.
 
 For the curious who want to see under the hood, two further documents cover how
 the compiler itself works:

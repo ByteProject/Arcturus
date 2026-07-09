@@ -5,7 +5,7 @@ band. It is written to be sufficient ALONE: an interpreter author (or a
 fresh working session inside an interpreter's own repository) implements a
 target from this document, the reference probe source, and the test assets,
 without ever opening the Arcturus repository. The design record behind it is
-docs/08-arcimage-retro.md; nothing there is required reading.
+arc_image/reference/design.md; nothing there is required reading.
 
 The handover package for a target is:
 
@@ -117,7 +117,7 @@ THE CODEC (header byte 14): 0 = RLE, 1 = ZX0, 2 = LZSA2. Every target
 chapter in part C mandates exactly ONE codec, so a real interpreter
 carries exactly one decoder; reading the codec byte and refusing
 anything else is honest behavior. The assignment (both rulings
-2026-07-08, the bake-off and the speed amendment in docs/08):
+2026-07-08, the bake-off and the speed amendment in arc_image/reference/design.md):
 
 - ZX0 (Einar Saukas) for the 8-bit cell targets (C64, Spectrum +3, CPC,
   and the rest of the small-machine family). Best ratio of the field,
@@ -230,7 +230,7 @@ probes with wave 2's chapters).
 Each chapter gives the target id and tag, the video setup, the sections and
 their native layouts, the loader recipe (against the probe source), the
 asset naming, and the verified-on line. Chapters appear as their probes are
-proven; the ledger of all fourteen planned targets is docs/08 section 2.
+proven; the ledger of all fourteen planned targets is arc_image/reference/design.md section 2.
 
 The probe directory linked in each chapter is PART OF THE HANDOVER, not an
 appendix: it carries the working reference loader this chapter was written

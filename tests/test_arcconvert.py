@@ -162,7 +162,7 @@ def test_cpc_inks_are_in_the_cube():
     assert all(0 <= i <= 26 for i in native["palette"])
 
 
-# -- the salient hint (the moon ruling, docs/08) --------------------------------
+# -- the salient hint (the moon ruling, arc_image/reference/design.md) --------------------------------
 
 def _disc_master(tmp_path):
     """A synthetic night scene: dark teal sky, darker ground band, and a

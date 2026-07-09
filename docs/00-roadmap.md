@@ -259,7 +259,7 @@ done-test.
   to Actaea, and the `arcimg` author tool preparing and packing the art into an
   `.arcres` file, with the same story file still running unchanged on Frotz.
 - B12 (in progress; the approved charter, target ledger, and sub-milestones
-  R0 to R6 are docs/08-arcimage-retro.md): `arc_image` on retro systems,
+  R0 to R6 are arc_image/reference/design.md): `arc_image` on retro systems,
   fourteen targets. The center of gravity is the conversion intelligence:
   one band-shaped master painting per image, `arcimg` deriving the ideal
   native version per machine (palette, resolution, attribute-clash solving),

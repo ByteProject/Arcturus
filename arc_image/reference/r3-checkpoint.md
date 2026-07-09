@@ -1,7 +1,7 @@
 # B12 R3 checkpoint (working note, delete at R3 close)
 
-State 2026-07-08, evening; the durable truth is docs/08 (design record)
-+ docs/09 (implementer book) + this delta.
+State 2026-07-08, evening; the durable truth is arc_image/reference/design.md (design record)
++ docs/08 (implementer book) + this delta.
 
 DONE in R3 so far:
 - Wave-2 converters (C64 multicolor solver, ZX solver, CPC mode-0
@@ -14,13 +14,13 @@ DONE in R3 so far:
 - THE SALIENT RULING: optional .hint sidecar per master ({"salient":
   [[cx,cy,r],...]}); converters promote the disc's bright side to the
   palette top (C64 white moon, ZX two-white treatment). Auto-detection
-  tried three ways and rejected; docs/08 records why. masters/8.hint is
+  tried three ways and rejected; arc_image/reference/design.md records why. masters/8.hint is
   the first (the moon of picture 8, the standing complaint, now fixed).
 - Codecs: ZX0 (codec 1) for the 8-bit cell targets; LZSA2 (codec 2,
   amendment ruling) for AMI/AST/DOS and later MS2/NXT/M65. lzsa binary
   packs (FictionTools via orb, $ARCIMG_LZSA, or PATH), arcimg's own
   lzsa2_decompress (spec-ported, corpus-verified) checks every pack and
-  is the interpreters' executable spec (docs/09 part B).
+  is the interpreters' executable spec (docs/08 part B).
 - Regen loop: cmd_convert converts in a worker pool and skips current
   outputs (master/.hint/tool mtimes, make-style); the FULL six-target
   regen incl. stress now takes ~75 seconds (was ~35 minutes).
@@ -42,7 +42,7 @@ LZSA2 against current assets and are re-verified by Stefan (DOSBox-X,
 Hatari, FS-UAE, both modes each). The 8088 decoder is Marty's own,
 verbatim; the 68000 one (arc_image/probes/lzsa2_68k.s, shared by ST
 and Amiga) is written from the part B spec and was proven byte-exact
-under vamos (in orb) before touching an emulator. docs/09 C.1-C.3
+under vamos (in orb) before touching an emulator. docs/08 C.1-C.3
 updated probe-after-probe with probe-directory links (the handover
 rule, Part C preamble).
 
@@ -52,9 +52,9 @@ PENDING, in order:
    snapshots (sjasmplus at ~/.local/bin/sjasmplus; ZEsarUX covers
    both, ASK STEFAN FOR ITS PATH at first launch, never screenshot).
    These decode ZX0: Z80 decoder ~70B (official), 6502 ~130B.
-3. docs/09 chapters C.4 C64, C.5 ZX3, C.6 CPC from working probe code;
+3. docs/08 chapters C.4 C64, C.5 ZX3, C.6 CPC from working probe code;
    Z80 + 6502 ZX0 decoder listings into part B.
-4. R3 close: docs/08 milestone record, PROGRESS entry, delete this
+4. R3 close: arc_image/reference/design.md milestone record, PROGRESS entry, delete this
    checkpoint file.
 
 Per picture: ZX 2.1K, C64 2.8K, CPC 3.7K (ZX0); AMI 7.2K, AST 7.0K,

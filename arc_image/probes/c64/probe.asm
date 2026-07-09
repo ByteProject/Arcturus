@@ -1,4 +1,4 @@
-; probe.asm - the C64 arc_image probe (B12 R3, docs/08 section 6)
+; probe.asm - the C64 arc_image probe (B12 R3, arc_image/reference/design.md section 6)
 ; part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 ; Copyright (c) 2026, Stefan Vogt.
 ;
@@ -9,12 +9,12 @@
 ;   acme -f cbm -o probe.prg probe.asm
 ;
 ; and run in VICE (x64sc, autostart). The codec is ZX0 (codec 1, the
-; 8-bit cell targets' codec, docs/09 part B); the decompressor is Tobias
+; 8-bit cell targets' codec, docs/08 part B); the decompressor is Tobias
 ; Bindhammer's bitfire routine for the standard v2 stream, carried
 ; verbatim (dzx0_6502.asm beside this file). Everything else is
 ; section-table walking.
 ;
-; .arc recap (docs/08 section 10, all words BIG-endian): 16-byte header
+; .arc recap (arc_image/reference/design.md section 10, all words BIG-endian): 16-byte header
 ; (magic "ARCI", version, target, mode, section count, width, height, id,
 ; codec, provenance), then 6-byte table entries (type, flags, uncompressed
 ; length, compressed length), then the ZX0 streams in table order (each
