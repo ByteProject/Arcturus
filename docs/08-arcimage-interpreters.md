@@ -7,6 +7,17 @@ target from this document, the reference probe source, and the test assets,
 without ever opening the Arcturus repository. The design record behind it is
 arc_image/reference/design.md; nothing there is required reading.
 
+The pipeline, in one paragraph, because the first question every
+implementer asks is what is authored and what is derived: the author
+paints ONE MASTER PNG per picture (320x72 or 320x96; nobody ever edits a
+.arc). The `arcimg` tool derives each machine's native version from that
+master as `<id>.<TAG>` (8.C64, 8.CPC, ...), each a small .arc container
+whose payload is already in the machine's own memory order. An
+interpreter loads only its own tag's files and never converts anything;
+the modern path (Actaea) ships the PNGs themselves in an .arcres zip
+instead. Masters are the single source; .arc files are per-machine
+DELIVERY, regenerated at build time.
+
 The handover package for a target is:
 
 - this document (part A, part B, and the target's chapter in part C);
