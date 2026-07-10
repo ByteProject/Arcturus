@@ -1,0 +1,50 @@
+// components.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for component objects (docs/01, standard attributes): a thing
+// declared `component` and placed in another thing is PART OF it. The part
+// is in scope whenever the whole is (a plain thing's insides never are),
+// TAKE answers that it is part of it, it never lists as contents, and the
+// tree carries the relation, so the part follows the whole. Compile and run:
+//
+//   arcc examples/features/components.storyarc -o components.z5
+//   frotz components.z5
+//
+// TRY: x press / x lever / pull lever / take lever / take plate
+
+game
+    title "Components"
+    headline "A part that belongs to its whole"
+    start workshop
+
+summon.statusline
+
+room workshop
+    name "Print Workshop"
+    desc "Ink in the air, sawdust underfoot."
+
+thing press in workshop
+    name "printing press"
+    words press, printing
+    desc "An iron hand press. A long lever cocks the platen, and the type
+        plate sits in its bed."
+    fixed
+
+// The lever and the plate live IN the press and are marked `component`:
+// referable and pullable although the press is no container, and never
+// listed as the press's contents.
+thing lever in press
+    name "long lever"
+    words lever, long
+    desc "Smooth from a thousand pulls."
+    component
+    on pull
+        say "The platen comes down with a satisfying thump."
+
+thing plate in press
+    name "type plate"
+    words plate, type
+    desc "Mirror-writing, locked into its chase."
+    component

@@ -98,8 +98,10 @@ The most significant recent additions and achievements:
   computed, beside `intro`'s until-first-taken rule. Both came from early
   adopters porting real games, and both cost nothing in a game that never
   uses them; component objects (a lever that is `component` of its machine)
-  arrived the same way. One scene shows the whole batch:
-  [examples/features/field-kit.storyarc](examples/features/field-kit.storyarc).
+  arrived the same way. Worked examples:
+  [perform](examples/features/perform.storyarc),
+  [appearance](examples/features/appearance.storyarc),
+  [components](examples/features/components.storyarc).
 - **A parser that names your typo.** A noun phrase that resolves to nothing
   no longer runs the action with an empty noun: a real thing that is not
   here keeps the classic refusal, and a word the story does not know at all

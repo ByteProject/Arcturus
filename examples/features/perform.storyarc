@@ -1,0 +1,69 @@
+// perform.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for perform (docs/01, expressions and statements): run an
+// action as part of the current turn, exactly as the player's own command
+// would dispatch it, refusals, messages, and after phase included. The
+// action name is checked at compile time; a direction rides the way slot
+// (go reads way, never noun); the return value is 1 unless the action
+// refused. Compile and run:
+//
+//   arcc examples/features/perform.storyarc -o perform.z5
+//   frotz perform.z5
+//
+// TRY: pack / i / pack / flee / out
+
+game
+    title "Perform"
+    headline "Actions from author code"
+    start office
+
+summon.statusline
+
+room office
+    name "Cluttered Office"
+    desc "Paper everywhere. A low hatch leads in to the archive."
+    in archive
+
+room archive
+    name "Archive"
+    desc "Rolling shelves, cold air. The office is back out the hatch."
+    out office
+
+thing satchel in office
+    name "satchel"
+    desc "Scuffed but roomy."
+
+thing ledger in office
+    name "ledger"
+    desc "Every page a small confession."
+
+// PACK runs two takes as one turn's work: each take prints its own
+// message, each reports success or refusal back to the caller.
+verb "pack"
+    pack
+
+on pack
+    let got = 0
+    if perform("take", satchel) is 1
+        change got to got + 1
+    if perform("take", ledger) is 1
+        change got to got + 1
+    if got is 0
+        say "Everything is already packed."
+
+// FLEE is a real move: perform("go", in) walks the player through the
+// hatch, arrival description and all; the way slot carries the direction.
+verb "flee"
+    flee
+
+on flee
+    say "Footsteps in the corridor!"
+    perform("go", in)
+
+on go
+    if way is in
+        say "(squeezing through the hatch)"
+    continue
