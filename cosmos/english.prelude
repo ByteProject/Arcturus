@@ -1086,6 +1086,17 @@ block msg_part_of()
     say "."
 
 block msg_dropped()
+    // Nested, the message says where it lands (the Hibernated 2 manner):
+    // onto the altar, into the crate. Folds away without enterables.
+    if any_enterable is 1
+        if parent_of(player) is not here
+            if parent_of(player) is supporter
+                show("Down it goes, onto ")
+            else
+                show("Down it goes, into ")
+            art_the(parent_of(player), 0)
+            say "."
+            return 0
     say "Down it goes."
 
 block msg_not_holding()
