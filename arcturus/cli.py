@@ -145,7 +145,19 @@ def _build_argparser() -> argparse.ArgumentParser:
         "--version", action=_VersionAction, nargs=0,
         help="show the version, the exact build, and the environment, then exit",
     )
+    ap.add_argument(
+        "--update", action=_UpdateAction, nargs=0,
+        help="refresh this standalone (and actaea/arcimg beside it) to the "
+        "latest published build, then exit. The ONLY command that touches "
+        "the network; arcc never checks by itself.",
+    )
     return ap
+
+
+class _UpdateAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        from .updater import run_update
+        parser.exit(run_update())
 
 
 class _VersionAction(argparse.Action):

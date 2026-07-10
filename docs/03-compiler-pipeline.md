@@ -219,6 +219,14 @@ dependencies, so it runs wherever Python does and works no matter where the user
 puts it. `tests/test_standalone.py` runs the generated script with no package on
 the path, to prevent drift between the package and the shipped artifact.
 
+The standalone updates itself: `arcc --update` fetches the latest published
+build from the repository, validates it (a plausible standalone that parses
+and carries a version string), and atomically replaces the running file,
+refreshing `actaea` and `arcimg` too when they sit in the same directory.
+Two promises hold: this is the ONLY command that ever touches the network
+(arcc has no passive version check and never phones home), and it refuses
+to run from the repository package, where `git pull` is the honest answer.
+
 ## 8. The version model
 
 Two versions are tracked independently. The compiler version is
