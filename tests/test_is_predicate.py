@@ -123,3 +123,24 @@ def test_kind_as_value_gets_a_category_error():
     import arcturus.lower as lower
     with pytest.raises(lower.LowerError, match="is a kind, not a value"):
         _build(src)
+
+
+def test_change_on_a_boolean_property_teaches_now():
+    # Ichiro's port: `change self.was_read to true` on a kind's boolean
+    # property; the old error ("cannot change property") gave no way
+    # forward. It now names the split: now for attributes, change for
+    # value properties.
+    src = (
+        'game\n    title "R"\n    start den\n'
+        'room den\n    name "Den"\n    desc "C."\n'
+        'kind readable of thing\n'
+        '    was_read false\n'
+        '    on read\n'
+        '        change self.was_read to true\n'
+        'thing note of readable in den\n    name "note"\n'
+        'verb "read"\n    read noun\n'
+    )
+    import arcturus.lower as lower
+    with pytest.raises(lower.LowerError,
+                       match="now <obj> is was_read"):
+        _build(src)
