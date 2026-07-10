@@ -82,12 +82,12 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 20900,  # 2026-07-09 reachable honors its contract
+    "beispiel-deutsch.storyarc": 21004,  # 2026-07-11 drop lands where you are
     "brass-lantern.storyarc": 15428,  # 2026-07-09 reachable honors its contract
-    "cloak-of-darkness.storyarc": 16156,  # 2026-07-09 reachable honors its contract
-    "ejemplo-espanol.storyarc": 19924,  # 2026-07-09 reachable honors its contract
+    "cloak-of-darkness.storyarc": 16248,  # 2026-07-11 drop lands where you are
+    "ejemplo-espanol.storyarc": 20008,  # 2026-07-11 drop lands where you are
     "features/computed-properties.storyarc": 14040,  # 2026-07-09 reachable honors its contract
-    "features/containers.storyarc": 14224,  # 2026-07-09 reachable honors its contract
+    "features/containers.storyarc": 14316,  # 2026-07-11 drop lands where you are
     "features/daemons-and-timers.storyarc": 14352,  # 2026-07-09 reachable honors its contract
     "features/doors-and-locks.storyarc": 13928,  # 2026-07-09 reachable honors its contract
     "features/appearance.storyarc": 14724,  # 2026-07-10 new
@@ -95,7 +95,7 @@ CEILINGS = {
     "features/perform.storyarc": 14276,  # 2026-07-10 new
     "features/grains.storyarc": 14056,  # 2026-07-09 reachable honors its contract
     "features/grammar.storyarc": 14940,  # 2026-07-09 reachable honors its contract
-    "features/introproperty.storyarc": 15148,  # 2026-07-09 reachable honors its contract
+    "features/introproperty.storyarc": 15240,  # 2026-07-11 drop lands where you are
     "features/kinds-and-inheritance.storyarc": 13888,  # 2026-07-09 reachable honors its contract
     "features/on-other.storyarc": 13888,  # 2026-07-09 reachable honors its contract
     "features/zcolor.storyarc": 14260,  # 2026-07-09 reachable honors its contract
@@ -103,10 +103,10 @@ CEILINGS = {
     "features/spans.storyarc": 14080,  # 2026-07-09 reachable honors its contract
     "granules/ambience.storyarc": 15376,  # 2026-07-09 reachable honors its contract
     "granules/conversations.storyarc": 15668,  # 2026-07-09 reachable honors its contract
-    "granules/extended-verbs.storyarc": 16556,  # 2026-07-09 reachable honors its contract
+    "granules/extended-verbs.storyarc": 16648,  # 2026-07-11 drop lands where you are
     "granules/infocom-interrogation.storyarc": 16080,  # 2026-07-09 reachable honors its contract
     "granules/quotes.storyarc": 14236,  # 2026-07-09 reachable honors its contract
-    "granules/take-all.storyarc": 15848,  # 2026-07-09 reachable honors its contract
+    "granules/take-all.storyarc": 15940,  # 2026-07-11 drop lands where you are
     "granules/plurals.storyarc": 14896,  # 2026-07-09 reachable honors its contract
     "granules/statusline.storyarc": 13996,  # 2026-07-09 reachable honors its contract
     "granules/verbose-exits.storyarc": 14276,  # 2026-07-09 reachable honors its contract
@@ -114,7 +114,7 @@ CEILINGS = {
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 16624  # 2026-07-09 reachable honors its contract
+CLOAK_Z8_CEILING = 16712  # 2026-07-11 drop lands where you are
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

@@ -155,7 +155,14 @@ on drop
     if not (player holds noun)
         msg_not_holding
         stop
-    move noun to here
+    // A drop lands where the player IS: in the crate or on the altar when
+    // nested, the room floor otherwise (parent_of(player) is `here` when
+    // not nested, so the plain game pays nothing extra in behavior; the
+    // guard folds away without enterables).
+    if any_enterable is 1
+        move noun to parent_of(player)
+    else
+        move noun to here
     now noun is not worn
     msg_dropped
 

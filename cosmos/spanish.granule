@@ -1152,6 +1152,16 @@ block msg_part_of()
     say "."
 
 block msg_dropped()
+    // Anidado, la línea dice adónde: sobre el altar, en la caja.
+    if any_enterable is 1
+        if parent_of(player) is not here
+            if parent_of(player) is supporter
+                show("Cae sobre ")
+            else
+                show("Cae en ")
+            art_the(parent_of(player), 0)
+            say "."
+            return 0
     say "Al suelo."
 
 block msg_not_holding()

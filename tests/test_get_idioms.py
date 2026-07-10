@@ -124,3 +124,15 @@ def test_exit_with_a_noun_respects_it():
     assert "You aren't in that." in out          # not in it yet; and lamp
     assert out.count("You aren't in that.") == 2
     assert out.count("Done.") == 2               # get in + the real leave
+
+
+def test_drop_lands_where_the_player_is():
+    # Charles's report: dropping while in a container or on a supporter
+    # left the item in the room. It lands in the enclosure now, and the
+    # message says where (the Hibernated 2 manner).
+    text = _reply(["take lamp", "get in box", "drop lamp"])
+    assert "into the box" in text
+    text = _play(["take lamp", "get in box", "drop lamp", "get out", "look"])
+    assert "box (contains" in text and "lamp" in text
+    text = _reply(["take lamp", "get on cart", "drop lamp"])
+    assert "onto the cart" in text

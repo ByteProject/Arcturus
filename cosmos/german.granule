@@ -1114,6 +1114,17 @@ block msg_part_of()
     say "."
 
 block msg_dropped()
+    // Verschachtelt sagt die Zeile wohin (Akkusativ: auf den Altar, in
+    // die Kiste). Entfaellt ohne betretbare Dinge.
+    if any_enterable is 1
+        if parent_of(player) is not here
+            if parent_of(player) is supporter
+                show("Fallen gelassen, auf ")
+            else
+                show("Fallen gelassen, in ")
+            art_the(parent_of(player), 0, 1)
+            say "."
+            return 0
     say "Fallen gelassen."
 
 block msg_not_holding()
