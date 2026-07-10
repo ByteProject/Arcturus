@@ -346,9 +346,9 @@
       ]
     },
     "services": {
-      "comment": "The library services an author calls bare or tests with `is`: teleport/gain/perform, the worn list, the sight-and-touch predicates. Curated, not exhaustive: the documented author surface only.",
+      "comment": "The library services an author calls bare or tests with `is`: the cutscene trio (teleport/gain/convey), perform, the worn list, the sight-and-touch predicates. Curated, not exhaustive: the documented author surface only.",
       "name": "support.function.library.storyarc",
-      "match": "\\b(teleport|gain|perform|worn_count|list_worn|visible|reachable)\\b"
+      "match": "\\b(teleport|gain|convey|perform|worn_count|list_worn|visible|reachable)\\b"
     }
   }
 }

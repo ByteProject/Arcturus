@@ -63,7 +63,7 @@ on launch
 // downstream, and either convey the boat there (the player rides along)
 // or, at the sea, come to rest.
 on each_turn
-    if adrift is 1
+    if adrift is true
         let downstream = here.south
         if downstream is nothing
             change adrift to false

@@ -30,7 +30,7 @@ GAME = (
     'verb "go2"\n    go2\n'
     'on go2\n    change adrift to true\n    say "Off."\n'
     'on each_turn\n'
-    '    if adrift is 1\n'
+    '    if adrift is true\n'
     '        let nxt = here.south\n'
     '        if nxt is nothing\n'
     '            change adrift to false\n'
