@@ -20,9 +20,10 @@
 ;                     START, so the loader is eight straight copies of
 ;                     height*10 bytes from the staged stream to
 ;                     $C000 + s*$800. No other math exists.
-;   type 5  palette   16 firmware ink numbers (0..26); the loader maps
-;                     them to gate-array hardware colors with the 27-byte
-;                     table below and programs pens 0-15.
+;   type 5  palette   16 ink indices in the 27-cube, r*9+g*3+b with
+;                     levels 0..2; the loader maps them to gate-array
+;                     hardware colors with the 27-byte table below and
+;                     programs pens 0-15.
 ;   type 7  registers one byte, the border ink (firmware number).
 ;
 ; The gate array wants MODE 0 with both ROMs disabled ($8C); the CRTC's
@@ -34,8 +35,13 @@
         org $4000
 
 start:  di
+        ld sp, $3FF0            ; our stack, below the code
         ld bc, $7F8C            ; gate array: mode 0, ROMs off
         out (c), c
+        call crtc               ; OWN the screen geometry: an injected or
+                                ; firmware-scrolled CRTC has a nonzero
+                                ; display offset, and the picture wraps
+        call cls
         ld hl, image9
         call draw
         call waitkey
@@ -43,7 +49,25 @@ start:  di
         ld hl, image12
         call draw
         call waitkey
-        jr $                    ; done; sit still
+        jp start                ; and around again: 9, 12, 9, 12 forever
+
+; the standard 40x25 screen at $C000: R1/R2/R6/R7 geometry, R12/R13
+; display start (this is what firmware scrolling moves), R9 char height
+crtc:   ld hl, crtctab
+        xor a
+.reg:   ld b, $BC               ; CRTC register select
+        out (c), a
+        ld b, $BD               ; CRTC register data
+        ld d, (hl)
+        inc hl
+        out (c), d
+        inc a
+        cp 14
+        jr nz, .reg
+        ret
+
+crtctab:
+        db 63, 40, 46, $8E, 38, 0, 25, 30, 0, 7, 0, 0, $30, 0
 
 cls:    ld hl, $C000            ; the whole 16K screen to zero (pen 0)
         ld de, $C001
@@ -107,7 +131,7 @@ draw:   push hl
         ld de, regbuf
         call dzx0_standard
         ld a, (regbuf)
-        call hw                 ; firmware -> hardware color
+        call hw                 ; cube index -> hardware color
         ld bc, $7F10            ; select the border
         out (c), c
         ld b, $7F
@@ -193,9 +217,12 @@ hw:     push hl
         pop hl
         ret
 
-hwtab:  db $54,$44,$55,$5C,$58,$5D,$4C,$45,$4D
-        db $56,$46,$57,$5E,$40,$5F,$4E,$47,$4F
-        db $52,$42,$53,$5A,$59,$5B,$4A,$43,$4B
+; the .arc ink index is r*9+g*3+b with levels 0..2 (the 27-cube in RGB
+; order, arc_image/reference/design.md section 10), NOT the firmware's
+; ink numbering: this table is indexed by that cube.
+hwtab:  db $54,$44,$55,$56,$46,$57,$52,$42,$53
+        db $5C,$58,$5D,$5E,$40,$5F,$5A,$59,$5B
+        db $4C,$45,$4D,$4E,$47,$4F,$4A,$43,$4B
 
 ; wait for a key: select AY register 14 through the PPI, then strobe the
 ; ten keyboard rows; any held key pulls a bit low

@@ -516,6 +516,73 @@ MEMORY. One staging buffer of 3072 bytes (the largest band bitmap);
 attributes decode in place. The decoder uses no memory beyond its 68
 bytes of code.
 
+### C.6 Amstrad CPC (target id 6, tag CPC, files `<id>.CPC`)
+
+Verified: ZEsarUX, CPC 6128, both modes, 2026-07-10, via the ZRCP
+injection route (ZEsarUX has NO CPC snapshot support: its .sna reader is
+Spectrum-only and answers "corrupt file"; the crafted v1 snapshot the
+build also emits is for the WinAPE family). The block-copy algorithm was
+validated in Python against the true screen layout before assembly.
+
+Probe: [arc_image/probes/cpc/](../arc_image/probes/cpc/), source
+`probe.asm` with the shared decoder
+[arc_image/probes/dzx0_z80.asm](../arc_image/probes/dzx0_z80.asm) and
+`build_sna.py` (a hand-built v1 snapshot, pure Python). Build:
+`sjasmplus probe.asm` then `python3 build_sna.py`.
+
+VIDEO. Mode 0, 160x200 fat pixels, 16 pens from the 27-color cube. OWN
+THE CRTC: program the standard 40x25 screen at $C000 yourself (R0-R13:
+63, 40, 46, $8E, 38, 0, 25, 30, 0, 7, 0, 0, $30, 0); an injected or
+firmware-scrolled machine has a nonzero display offset in R12/R13 and
+the picture wraps and shifts. Clear the full 16K before the first draw:
+whatever was on screen shows through the sub-band area otherwise.
+
+CODEC. ZX0 (part B), the same 68-byte shared decoder as the Spectrum.
+
+SECTIONS, in file order:
+
+- bitmap (type 1): Mode 0 bytes in SUB-BLOCK order. The screen's eight
+  $800 blocks each hold every 8th raster line, and the band's rows land
+  contiguously at each block's START: the loader is eight straight
+  copies of height*10 bytes from the staged stream to $C000 + s*$800.
+  No other math exists.
+- palette (type 5): 16 ink indices IN THE 27-CUBE, r*9+g*3+b with gun
+  levels 0..2. This is NOT the firmware's ink numbering: the cube is
+  RGB-ordered, the firmware order is luminance-grouped, and a loader
+  built with the familiar firmware table paints systematically wrong
+  colors (this probe's second build did). The cube-indexed hardware
+  table, verbatim:
+
+      54 44 55 56 46 57 52 42 53   ; r=0: g=0,1,2 x b=0,1,2
+      5C 58 5D 5E 40 5F 5A 59 5B   ; r=1
+      4C 45 4D 4E 47 4F 4A 43 4B   ; r=2
+
+  Program pens 0-15 through the gate array (pen select, then color with
+  bit 6 set).
+- registers (type 7): one byte, the border ink as a cube index.
+
+THE SPLIT SCREEN (the interpreter's screen model). Mode 0 and mode 1
+fetch the SAME 80 bytes per scanline: the memory layout is identical,
+only the gate array's pixel interpretation differs. So an interpreter
+keeps ONE linear screen and switches mode at the band boundary with a
+raster-timed gate-array write (the classic rupture, off the 300Hz
+interrupt): band rows render mode 0 in 16 colors, the text below
+renders mode 1 at 320 wide. The same interrupt may reload pens 0-3 for
+the text region and restore the art's palette at frame top, giving text
+its own paper and ink without touching the picture: below the band the
+probe's pen 0 wears the image's first palette entry (grey for one test
+image, purple for the other), and the region pen reload is how a real
+interpreter makes that area its own. This is the CPC's equivalent of
+the Amiga chapter's copper clause; DAAD's CPC games shipped exactly
+this construction.
+
+ASSETS. `<id>.CPC` beside the story. The standard test pair: 90.CPC
+(mode 9), 100.CPC (mode 12).
+
+MEMORY. One staging buffer of 7680 bytes (the largest band bitmap);
+palette and registers stage in 17 bytes. The keyboard is read through
+the PPI/AY row scan (the probe's anykey is the reference).
+
 ## Change log
 
 - 2026-07-08: first cut: the contract, the format, the DOS chapter
@@ -555,3 +622,8 @@ bytes of code.
 - 2026-07-10: the Spectrum +3 probe, verified by Stefan in ZEsarUX on
   the +3 itself (the ZRCP injection route; snapshots switch machines).
   Chapter C.5 with the stack, machine, and type-4 lessons.
+- 2026-07-10 (later): the CPC probe, verified by Stefan in ZEsarUX on
+  the 6128 (ZRCP; ZEsarUX has no CPC snapshot support). Chapter C.6
+  with the cube-vs-firmware ink trap, the CRTC-ownership and
+  clear-first lessons, and the split-screen clause. R3'S PROBE ROW IS
+  COMPLETE: six machines, six proven blueprints.
