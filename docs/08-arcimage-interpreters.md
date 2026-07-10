@@ -432,7 +432,11 @@ SECTIONS, in file order, every payload already in native memory order:
 Z-COLOURS. The fixed 16 carry every Z-machine colour; the interpreter's
 text lives in the cells BELOW the band (its own matrix and color RAM
 rows), so text colours and art never share a register except $D021, the
-global background. An interpreter that lets the player recolour the
+global background. The screen model is the interpreter's choice of two
+classic constructions: a raster split at the band boundary (bitmap mode
+above, cheap text mode below; the VIC's stable raster interrupt makes
+this easier than the CPC's rupture) or a full-screen bitmap with the
+font rendered into it. Either honors this chapter unchanged. An interpreter that lets the player recolour the
 background must accept that the band's code-0 pixels recolour with it
 (the same global-register nature the Amiga chapter documents for
 COLOR00); keeping the story's background equal to the art's register is
@@ -560,6 +564,16 @@ SECTIONS, in file order:
   Program pens 0-15 through the gate array (pen select, then color with
   bit 6 set).
 - registers (type 7): one byte, the border ink as a cube index.
+
+Z-COLOURS. The 27-cube contains every Z-machine colour at full
+saturation (as cube indices: black 0, blue 2, green 6, cyan 8, red 18,
+magenta 20, yellow 24, white 26). The art's sixteen pens are never
+modified; the TEXT region is mode 1, four concurrent pens, reloaded per
+frame by the split below, so the interpreter allocates text pens to the
+Z-colours a game actually requests and degrades gracefully past four in
+one frame (an IF page rarely wants more than paper, ink, and an
+emphasis). This is Haumea's one real colour-design point; nothing else
+on the machine constrains it.
 
 THE SPLIT SCREEN (the interpreter's screen model). Mode 0 and mode 1
 fetch the SAME 80 bytes per scanline: the memory layout is identical,
