@@ -1806,7 +1806,8 @@ Section 15 of 02 reconciles each example with the Cosmos model in detail.
 ## Appendix A: reserved words
 
 `game`, `room`, `thing`, `kind`, `verb`, `of`, `in`, `on`, `after`, `block`,
-`return`, `global`, `constant`, `let`, `change`, `to`, `now`, `is`, `not`,
+`return`, `global`, `flag`, `counter`, `constant`, `let`, `change`, `to`,
+`now`, `is`, `not`,
 `add`, `remove`, `from`, `move`, `say`, `stop`, `continue`, `finish`, `if`,
 `else`, `while`, `for`, `each`, `switch`, `case`, `and`, `or`, `holds`,
 `when`, `self`, `player`, `here`, `noun`, `second`, `nothing`, `true`,
@@ -1850,6 +1851,8 @@ slot           := "noun" | "held" | "multi" | "text"
 
 block_decl     := "block" id "(" [ params ] ")" INDENT { statement } DEDENT
 global_decl    := "global" id "=" expr
+flag_decl      := "flag" id [ "=" ( "true" | "false" ) ]
+counter_decl   := "counter" id [ "=" number ]
 constant_decl  := "constant" id "=" expr
 rule           := handler
 

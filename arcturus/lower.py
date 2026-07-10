@@ -1544,8 +1544,16 @@ def _change(rt, ctx, s: ast.Change):
     if isinstance(s.target, ast.Dot):
         pnum = ctx.prop_number(s.target.prop)
         if pnum is None:
+            # A declared property with no slot is a boolean packed as an
+            # attribute bit: the field report wrote `change self.was_read
+            # to true` and the old message ("cannot change property") gave
+            # no way forward. Teach the split: now for attributes, change
+            # for values.
             raise LowerError(
-                f"cannot change property '{s.target.prop}'", s.line
+                f"'{s.target.prop}' is a boolean property: set it with "
+                f"`now <obj> is {s.target.prop}`, clear it with "
+                f"`now <obj> is not {s.target.prop}` (change is for value "
+                f"properties)", s.line
             )
         if isinstance(s.value, ast.StringLit):
             # A text-property write stores the packed address of a new string.
