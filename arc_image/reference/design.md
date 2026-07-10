@@ -100,7 +100,15 @@ handles it once, for all targets.
 Lineage notes (Stefan, 2026-07-08, from the original Rabenstein ports):
 MEGA65 uses the same IFF specifications as the Amiga, and the historical
 MSX2 and Spectrum Next versions were ported FROM the Amiga graphics (the
-Next with reduced width). So the three remaining quantize-class targets
+Next with reduced width). MSX2 screen-model note for its chapter
+(2026-07-10): Screen 5 is a true bitmap, so text renders into it like
+DOS (the V9938's block-copy commands accelerate the font); its sixteen
+on-screen colors come from ONE global 512-color palette shared by band
+and text, so the CPC's per-region reload clause applies, executed more
+cleanly through the V9938's line interrupt: art palette above the band
+boundary, text palette below, per frame. MSX1 is the different machine
+entirely: fixed 15, Screen 2 cell constraints, pattern-based text, no
+line interrupt and none needed. So the three remaining quantize-class targets
 are small deltas on the wave-1 Amiga recipe: same palette selection,
 their own gun snap and layout. They also share the Amiga's disk-room
 class, which is why the codec ruling groups them under LZSA2. They sit
