@@ -101,6 +101,7 @@ CEILINGS = {
     "features/zcolor.storyarc": 14260,  # 2026-07-09 reachable honors its contract
     "features/scoring.storyarc": 16216,  # 2026-07-09 reachable honors its contract
     "features/spans.storyarc": 14080,  # 2026-07-09 reachable honors its contract
+    "features/vehicles.storyarc": 14584,  # 2026-07-11 convey, new
     "granules/ambience.storyarc": 15376,  # 2026-07-09 reachable honors its contract
     "granules/conversations.storyarc": 15668,  # 2026-07-09 reachable honors its contract
     "granules/extended-verbs.storyarc": 16648,  # 2026-07-11 drop lands where you are

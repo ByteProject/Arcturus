@@ -49,6 +49,22 @@ block teleport(dest)
     set_here(dest)
     arrive
 
+// Move a VEHICLE (with everything it carries) to another room, the
+// story-facing primitive for a boat, a lift, a mine cart. If the player
+// is aboard, their room follows: the tree already carries the player
+// inside the vehicle, so moving the vehicle moves the player, and this
+// refreshes `here` (the cached room, which a plain move leaves stale, the
+// vehicle trap) and describes the new room. Moving the vehicle alone, or
+// the player-out/vehicle/player-in dance, both leave `here` pointing at
+// the old room; this is the one call that keeps scope honest. It does not
+// fire the room's `on enter` (arriving by vehicle is not walking, same as
+// teleport). Unused, it folds away.
+block convey(vehicle, dest)
+    move vehicle to dest
+    if player is in vehicle
+        set_here(dest)
+        arrive
+
 // Receive an object without TAKE: the story-facing acquisition for cutscene
 // handovers (a panel pried open, a mechanism dropping its prize into your
 // hand). It does the bookkeeping TAKE would have done: pays a scored thing's

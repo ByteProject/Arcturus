@@ -1,0 +1,72 @@
+// vehicles.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for convey (docs/01, world model): moving a VEHICLE the
+// player rides. The player boards a boat and casts off; each turn the
+// current drifts the boat one room downstream, carrying the player. The
+// trap convey avoids: `here` (the player's room) is cached, so moving a
+// vehicle by hand leaves scope pointing at the old room; convey refreshes
+// it and describes the arrival. Compile and run:
+//
+//   arcc examples/features/vehicles.storyarc -o vehicles.z5
+//   frotz vehicles.z5
+//
+// TRY: enter boat / x oar / launch / z / z / (drift to the sea)
+
+game
+    title "Vehicles"
+    headline "A boat that carries the player"
+    start jetty
+
+summon.statusline
+
+flag adrift
+
+room jetty
+    name "Old Jetty"
+    desc "A rickety jetty. The river runs south to the mill."
+    south millpond
+
+room millpond
+    name "Millpond"
+    desc "Still water under a broken wheel. The river goes on south."
+    south estuary
+
+room estuary
+    name "Estuary"
+    desc "The river widens and loses itself in the grey sea."
+
+thing boat of container in jetty
+    name "rowing boat"
+    words boat, rowing, dinghy
+    desc "Weathered, but it floats."
+    open
+    fixed
+
+thing oar in boat
+    name "oar"
+    desc "One oar, which explains a lot about the drifting."
+
+verb "launch", "depart", "sail"
+    launch
+
+on launch
+    if player is not in boat
+        say "You would want to be in the boat first."
+        stop
+    change adrift to true
+    say "You loose the rope and push off. The current takes you."
+
+// The current drives the boat once per turn while adrift: find the room
+// downstream, and either convey the boat there (the player rides along)
+// or, at the sea, come to rest.
+on each_turn
+    if adrift is 1
+        let downstream = here.south
+        if downstream is nothing
+            change adrift to false
+            say "The boat grounds gently on the shingle. Journey's end."
+        else
+            convey(boat, downstream)

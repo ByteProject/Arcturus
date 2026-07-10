@@ -490,6 +490,16 @@ without TAKE (a panel pried open, a mechanism yielding its prize) uses
 no auto-scored point ever becomes unreachable. A bare `move obj to player`
 pays nothing (section 5, the move-versus-gain warning).
 
+A VEHICLE the player rides (a boat, a lift, a mine cart) moves with
+`convey(vehicle, dest)`. The player sits inside the vehicle in the object
+tree, so moving the vehicle carries them; what a plain `move` cannot do is
+refresh `here`, the player's cached room, and scope then still answers for
+the room left behind (the vehicle trap). `convey` moves the vehicle,
+updates `here` when the player is aboard, and describes the arrival, so a
+self-driving boat is one line in `on each_turn`:
+`convey(boat, here.south)`. See
+[examples/features/vehicles.storyarc](../examples/features/vehicles.storyarc).
+
 The general form is `perform`: run any action as part of the current turn,
 exactly as the player's own command would dispatch it, refusals, handlers,
 and messages included (Inform's `<<take book>>`, Dialog's `(try ...)`):
