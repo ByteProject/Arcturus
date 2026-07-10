@@ -90,7 +90,9 @@ CEILINGS = {
     "features/containers.storyarc": 14224,  # 2026-07-09 reachable honors its contract
     "features/daemons-and-timers.storyarc": 14352,  # 2026-07-09 reachable honors its contract
     "features/doors-and-locks.storyarc": 13928,  # 2026-07-09 reachable honors its contract
-    "features/field-kit.storyarc": 15436,  # 2026-07-10 the adopter batch, new
+    "features/appearance.storyarc": 14724,  # 2026-07-10 new
+    "features/components.storyarc": 14192,  # 2026-07-10 new
+    "features/perform.storyarc": 14276,  # 2026-07-10 new
     "features/grains.storyarc": 14056,  # 2026-07-09 reachable honors its contract
     "features/grammar.storyarc": 14940,  # 2026-07-09 reachable honors its contract
     "features/introproperty.storyarc": 15148,  # 2026-07-09 reachable honors its contract

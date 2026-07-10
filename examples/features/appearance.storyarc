@@ -1,0 +1,90 @@
+// appearance.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the appearance property (docs/01, standard value
+// properties): the paragraph an object ALWAYS owns in a room description,
+// replacing its "You can see ... here" line and never expiring; a computed
+// block words it by state. Beside it, the player's own outfit as prose:
+// worn_count and list_worn in a player.desc block. Compile and run:
+//
+//   arcc examples/features/appearance.storyarc -o appearance.z5
+//   frotz appearance.z5
+//
+// TRY: look / x keeper / x me / wear coat / x me / ring bell / look
+
+game
+    title "Appearance"
+    headline "The paragraph an object owns"
+    start lamproom
+
+summon.statusline
+
+room lamproom
+    name "Lamp Room"
+    desc "Glass on every side, the sea far below."
+
+// A computed appearance: the keeper's paragraph is worded by state, and
+// the plain listing line never prints for her.
+thing keeper of character in lamproom
+    name "keeper"
+    words keeper, lighthouse
+    named false
+    desc "Weathered, unhurried, entirely at home up here."
+    alarmed false
+    appearance block
+        if keeper is alarmed
+            say "The keeper grips the rail, scanning the water."
+        else
+            say "The keeper trims the great lamp, humming to herself."
+
+// A static appearance: permanent, unlike intro (which expires when the
+// object is first taken).
+thing lamp in lamproom
+    name "great lamp"
+    words lamp, great, light
+    desc "A first-order lens, bright as a small sun."
+    fixed
+    appearance "The great lamp turns slowly in its cage of brass."
+
+thing bell in lamproom
+    name "signal bell"
+    words bell, signal
+    desc "For fog, and for worse."
+    fixed
+
+thing coat in player
+    name "oilskin coat"
+    words coat, oilskin
+    desc "Stiff with salt."
+    wearable
+
+thing boots in player
+    name "sea boots"
+    words boots, sea
+    desc "Two sizes too big, exactly as intended."
+    indefinite "some"
+    wearable
+    worn
+
+// The player's own appearance: worn_count guards the phrasing, list_worn
+// prints the outfit with the library's own punctuation.
+player.desc block
+    show("Salt-scoured and cheerful. ")
+    if worn_count is 0
+        say "You are dressed for a much warmer lighthouse."
+        return 0
+    show("You're wearing ")
+    list_worn
+    say "."
+
+verb "ring"
+    ring noun
+
+on ring
+    if noun is not bell
+        say "Nothing here rings but the bell."
+        stop
+    now keeper is alarmed
+    say "The bell's toll rolls out over the water."
