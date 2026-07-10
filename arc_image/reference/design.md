@@ -297,11 +297,24 @@ method). Naming: R for retro.
   palette contract on both 68k machines, the Z-machine colours clause,
   and the copper per-frame restore.
 - R3. WAVE 2, the cell class flagship: C64, ZX Spectrum +3, CPC.
-  The per-cell solver framework, the three probes (VICE for the C64,
-  ZEsarUX for both the +3 and the CPC), the addenda (the CPC one feeds
-  Haumea directly).
-  Done-test: corpus conversions approved by Stefan per target; probes
-  green both modes.
+  COMPLETE 2026-07-10. The per-cell solver framework landed and was
+  refined through seven review rounds with Stefan's pixel-artist eye
+  and his hand-painted Spectrum art as training data; the conversion
+  gate passed 2026-07-08 (C64 and CPC with full approval, converters
+  frozen; the Spectrum at the ~90% framing with the scr polish loop).
+  The codec era arrived mid-milestone: ZX0 for the 8-bit targets,
+  LZSA2 for the 16-bit trio (with arcimg's built-in pure-Python packer
+  as the no-binary default), and the wave-1 probes were backported and
+  re-verified. All three wave-2 probes are proven and verified by
+  Stefan both modes (VICE x64sc for the C64; ZEsarUX for the +3 via
+  ZRCP injection and for the CPC likewise, ZEsarUX having no CPC
+  snapshot support). Chapters C.4-C.6 carry the blueprints and the
+  paid-for lessons: the type-4 attribute number, the stack and
+  machine-identity snapshot traps, the 27-cube ink indexing against
+  the firmware-numbering trap, CRTC ownership, and the CPC
+  split-screen clause that feeds Haumea directly. Per picture on the
+  corpus: C64 2.8K, ZX3 2.1K, CPC 3.7K (ZX0); AMI 7.2K, AST 7.0K, DOS
+  6.1K (LZSA2).
 - R4. WAVE 3: Atari 8-bit (the per-line palette solver), MSX1, MSX2,
   Plus/4.
   Done-test: corpus conversions approved; probes green in atari800,
