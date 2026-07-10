@@ -2,7 +2,7 @@
 ; part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 ; Copyright (c) 2026, Stefan Vogt.
 ;
-; A crafted 48K snapshot for the ULA screen that displays two embedded .arc
+; A crafted 128K-family snapshot for the ULA screen that displays two embedded .arc
 ; images (mode 9, then mode 12 after a keypress), written from the blueprint
 ; alone: the reference Spectrum loader for the format. Build (sjasmplus):
 ;
@@ -27,16 +27,19 @@
 ;                       + R*$20. A partial third (the band's tail) spans
 ;                       only height/8 char-rows, so R is bounded per
 ;                       third from the header's height, never assumed 8.
-;   type 2  attributes  one byte per 8x8 cell, row-major: decode STRAIGHT
+;   type 4  attributes  one byte per 8x8 cell, row-major: decode STRAIGHT
 ;                       to $5800 (contiguous); the rows below the band
 ;                       stay paper black, where an interpreter's text
 ;                       goes.
 
-        DEVICE ZXSPECTRUM48
+        DEVICE ZXSPECTRUM128     ; the 128K snapshot variant: the +3
+                                     ; loads it natively, no machine downgrade
 
         org $8000
 
 start:  di
+        ld sp, $7FF0            ; OUR stack, below the code: the snapshot's
+                                ; default would sit in the screen we clear
         xor a
         out ($fe), a            ; black border
         call cls
@@ -47,7 +50,8 @@ start:  di
         ld hl, image12
         call draw
         call waitkey
-        jr $                    ; the probe is done; sit still
+        jp start                ; and around again: 9, 12, 9, 12 forever
+                                ; (a bare Spectrum has no OS to return to)
 
 cls:    ld hl, $4000            ; pixels and attributes all zero
         ld de, $4001
@@ -111,7 +115,7 @@ draw:   push hl
         call scatter
         jr .adv
 .notbmp:
-        cp 2
+        cp 4                    ; SEC_ATTR (the Spectrum's attribute file)
         jr nz, .adv
         ld hl, (cur)            ; attributes: straight to the attr file
         ld de, $5800
@@ -211,3 +215,5 @@ image12:
         incbin "100.ZX3"
 
         SAVESNA "probe.sna", start
+        SAVEBIN "probe.bin", start, $ - start   ; the raw image, for the
+                                                ; ZRCP injection route (C.5)

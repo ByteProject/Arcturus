@@ -453,6 +453,69 @@ MEMORY. Bitmap and matrix decode into the VIC bank, color RAM into
 $D800: no staging buffers at all beyond one byte for the register
 section. The decoder's zero page is $F8-$FC plus the walk's $02-$07.
 
+### C.5 ZX Spectrum +3 (target id 9, tag ZX3, files `<id>.ZX3`)
+
+Verified: ZEsarUX, Spectrum +3 (ROM 4.1), both modes, 2026-07-10, via
+the machine-exact injection route below; the scatter algorithm was also
+validated in Python against the true ULA addresses for both band modes
+before assembly.
+
+Probe: [arc_image/probes/zx3/](../arc_image/probes/zx3/), source
+`probe.asm` with the shared decoder
+[arc_image/probes/dzx0_z80.asm](../arc_image/probes/dzx0_z80.asm) and
+the embedded test assets. Build: `sjasmplus probe.asm` (emits both
+probe.sna, the 128K snapshot, and probe.bin, the raw image).
+
+VIDEO. The ULA screen, identical on every model from the 48K to the +3:
+bitmap at $4000 in the interleaved thirds, the attribute file at $5800.
+The band is the top 72 or 96 pixel rows (9 or 12 attribute rows); below
+it everything stays paper black, the interpreter's text area.
+
+CODEC. ZX0 (part B). The decompressor is Einar Saukas & Urusergi's
+68-byte "standard" routine, carried verbatim (BSD 3-Clause); HL =
+source, DE = destination. Reuse it; do not write your own.
+
+SECTIONS, in file order:
+
+- bitmap (type 1): the band's 32-byte pixel rows in ASCENDING ULA
+  ADDRESS order (third, line-in-char, char-row). Decode to a staging
+  buffer, then a triple loop writes rows to $4000 + T*$800 + L*$100 +
+  R*$20. A PARTIAL third (the band's tail) spans only rows/8 char-rows:
+  bound R per third from the header's height, never assume 8. (The
+  probe's scatter is thirty lines; take it.)
+- attributes (type 4): one byte per cell, row-major, contiguous: decode
+  STRAIGHT to $5800. Mind the number: type 4 is SEC_ATTR; type 2 is the
+  C64's color matrix, and the probe's first build checked 2 and painted
+  a perfect picture in black on black.
+
+Z-COLOURS. The fixed 15 carry every Z-machine colour. The interpreter's
+text lives in the attribute rows below the band; the art's attributes
+are never shared with text, so nothing needs aligning.
+
+LESSONS THE PROBE PAID FOR (beyond the type-4 one above):
+
+- A bare-metal program must claim its own stack FIRST: sjasmplus's 48K
+  SAVESNA parks SP inside the screen area, and clearing the screen then
+  wipes the return addresses (the first black-screen build).
+- Snapshot formats carry a MACHINE: loading a 48K .sna downgrades the
+  emulated machine to a 48K Spectrum, and the 128K .sna runs as a plain
+  128k. For machine-exact +3 verification use ZEsarUX's remote protocol
+  instead: `--enable-remoteprotocol`, then `enter-cpu-step`,
+  `load-binary <absolute path> 32768 0`, `set-register PC=8000H`,
+  `exit-cpu-step`. Register values are HEX WITH THE H SUFFIX (decimal
+  parses wrong), paths must be absolute (ZEsarUX chdirs into its app
+  bundle), and send ONE command per connection: a multi-command pipe
+  races the parser.
+- A probe should loop its pictures (9, 12, 9, ...): a bare Spectrum has
+  no OS to return to, and a final freeze reads as a crash.
+
+ASSETS. `<id>.ZX3` beside the story. The standard test pair: 90.ZX3
+(mode 9), 100.ZX3 (mode 12).
+
+MEMORY. One staging buffer of 3072 bytes (the largest band bitmap);
+attributes decode in place. The decoder uses no memory beyond its 68
+bytes of code.
+
 ## Change log
 
 - 2026-07-08: first cut: the contract, the format, the DOS chapter
@@ -489,3 +552,6 @@ section. The decoder's zero page is $F8-$FC plus the walk's $02-$07.
   ZX0 via the bitfire 6502 decoder carried verbatim, proven byte-exact
   through VICE's remote monitor in warp before the visual pass, then
   verified by Stefan in x64sc, both modes. Chapter C.4.
+- 2026-07-10: the Spectrum +3 probe, verified by Stefan in ZEsarUX on
+  the +3 itself (the ZRCP injection route; snapshots switch machines).
+  Chapter C.5 with the stack, machine, and type-4 lessons.
