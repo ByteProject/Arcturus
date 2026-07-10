@@ -1,0 +1,120 @@
+// field-kit.storyarc - the adopter batch of July 2026, in one scene:
+// appearance (the paragraph an object owns), component (a part that
+// follows its whole), perform (programmatic actions), worn_count and
+// list_worn (the outfit as prose), the visible/reachable predicates,
+// and the IN direction standing wherever a value can.
+//
+//   arcc examples/features/field-kit.storyarc -o build/field-kit.z5
+//
+// TRY: x me / x barber / anger barber / x strop / take strop / x jar /
+//      take clasp / open jar / take clasp / dress / in / out
+
+game
+    title "The Field Kit"
+    headline "A showcase of the July additions"
+    start shop
+
+summon.statusline
+
+room shop
+    name "Barbershop"
+    desc "Dust motes drift through the light. A doorway leads in to the
+        back room."
+    in backroom
+
+room backroom
+    name "Back Room"
+    desc "Shelves of tonics. The shop is back out the way you came."
+    out shop
+
+// appearance: the paragraph the barber ALWAYS owns in the room
+// description, worded by state; nobody reads "You can see a barber here."
+thing barber of character in shop
+    name "barber"
+    words barber, bumble, portly, fellow
+    desc "A portly fellow with a red face and thinning brown hair."
+    angry false
+    appearance block
+        if barber is angry
+            say "The barber glowers at you from behind his chair."
+        else
+            say "The barber hums as he sweeps around his chair."
+
+// component: the strop is PART OF the chair. It follows the chair, it is
+// in scope whenever the chair is, and taking it answers part-of.
+thing chair in shop
+    name "barber's chair"
+    words chair, barbers
+    desc "Cast iron and cracked leather. A leather strop hangs from one
+        arm."
+    fixed
+    appearance "The great iron chair commands the middle of the floor."
+
+thing strop in chair
+    name "leather strop"
+    words strop, leather
+    desc "For putting an edge back on a razor."
+    component
+
+// visible is sight, reachable is touch: the clasp shows through the
+// glass but the hand does not pass until the jar opens.
+thing jar of container in shop
+    name "glass jar"
+    words jar, glass
+    desc "A heavy glass jar with a lid."
+    clear
+    openable
+    fixed
+
+thing clasp in jar
+    name "silver clasp"
+    words clasp, silver
+    desc "A clasp for an apron strap."
+
+// worn_count and list_worn: the outfit as prose, in the player's own
+// description. The two-pass punctuation is the library's.
+thing smock in player
+    name "smock"
+    desc "Plain cotton, mostly clean."
+    wearable
+    worn
+
+thing cap in player
+    name "cap"
+    desc "A flat cap."
+    wearable
+
+player.desc block
+    show("Presentable enough for a shave. ")
+    if worn_count is 0
+        say "You are, however, dressed in nothing at all."
+        return 0
+    show("You're wearing ")
+    list_worn
+    say "."
+
+// perform: run an action as the player's own command would, refusals,
+// messages, and after phase included. DRESS puts on whatever is carried;
+// ANGER pokes the barber and then tries to flee IN to the back room.
+verb "dress"
+    dress
+
+on dress
+    if perform("wear", cap) is 1
+        say "Ready for company."
+
+verb "anger"
+    anger noun
+
+on anger
+    if noun is not barber
+        say "It only works on the barber."
+        stop
+    now barber is angry
+    say "You question his hygiene. The humming stops."
+    perform("go", in)
+
+on go
+    if way is in
+        say "(ducking through the doorway)"
+    continue
