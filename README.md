@@ -28,10 +28,14 @@ certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.11.18 | [build/arcc](build/arcc) |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.11.19 | [build/arcc](build/arcc) |
 | **Cosmos**, the standard library | 0.22.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.0.3 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.7.0 | [build/arcimg](build/arcimg) |
+
+Each is one self-contained file: download, `chmod +x`, done. Keeping them
+current is one command: `arcc --update` refreshes all three in place (the
+only time arcc ever touches the network; there is no passive check).
 
 Write a game, compile it, play it:
 
