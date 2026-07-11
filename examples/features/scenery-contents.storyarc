@@ -1,0 +1,84 @@
+// scenery-contents.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for `constant scenery_contents = 1` (docs/01, the scenery row).
+// Scenery stays out of the room's contents listing; this constant opts in,
+// once for the whole game, to have what sits ON or IN a scenery holder told
+// anyway, each holder in its own paragraph ("On the counter you can see a
+// bell and a candle."). The knowledge model still rules per item: a closed
+// opaque holder keeps its secret until first opened, then is remembered.
+// Delete the constant and recompile: the paragraphs vanish and the pass
+// costs nothing (pay for use). Compile and run:
+//
+//   arcc examples/features/scenery-contents.storyarc -o scenery.z5
+//   frotz scenery.z5
+//
+// TRY: look (the counter's and the barrel's paragraphs) / take bell / look
+//      (the counter's line adjusts) / open drawer / close drawer / look
+//      (the drawer's paragraph stays: you remember the shilling)
+
+game
+    title "The Chandlery"
+    headline "A scenery contents showcase"
+    author "Stefan Vogt"
+    start shop
+
+summon.statusline
+
+constant scenery_contents = 1
+
+room shop
+    name "The Chandlery"
+    desc "A narrow village shop smelling of tallow and rope. A long counter
+          runs the length of it, an open barrel stands by the door, and a
+          brass-handled drawer is set into the counter's front."
+
+// A scenery supporter: the counter is prose, never a listed object, but
+// with the constant its wares get their own paragraph ("On the counter
+// you can see a small bell and a tallow candle.").
+thing counter of supporter in shop
+    name "counter"
+    words counter, oak
+    desc "Oak, polished by a century of elbows."
+    scenery
+
+thing bell in counter
+    name "small bell"
+    words bell, small
+    desc "Ring for service."
+
+thing candle in counter
+    name "tallow candle"
+    words candle, tallow
+    desc "It smells like the rest of the shop."
+
+// A scenery container, standing open: "In the barrel you can see an apple."
+thing barrel of container in shop
+    name "barrel"
+    words barrel, cask
+    desc "An open barrel, wearing its hoops loosely."
+    open
+    scenery
+
+thing apple in barrel
+    name "apple"
+    words apple
+    desc "Wrinkled but honest."
+
+// A closed, opaque scenery container: the knowledge model holds this
+// paragraph back until the drawer is first opened; once seen, the
+// shilling is remembered and the paragraph stays even when shut again.
+thing drawer of container in shop
+    name "brass-handled drawer"
+    words drawer, brass, handle
+    desc "Set into the counter's front, with a brass handle."
+    openable
+    open false
+    scenery
+
+thing shilling in drawer
+    name "worn shilling"
+    words shilling, coin
+    desc "A shilling worn nearly smooth."
