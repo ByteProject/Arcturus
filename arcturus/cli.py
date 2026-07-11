@@ -276,6 +276,10 @@ def _make_abbreviations(args) -> int:
             src = fh.read()
     except OSError as exc:
         print(f"arcc: error: cannot read {args.source}: {exc}", file=sys.stderr)
+        # The classic slip: `arcc update` without the dashes reads as a
+        # source file. Point at the flag instead of leaving a bare ENOENT.
+        if args.source == "update":
+            print("arcc: did you mean `arcc --update`?", file=sys.stderr)
         return 2
     try:
         program = parse(src, args.source)
@@ -386,6 +390,10 @@ def main(argv: list[str] | None = None) -> int:
             src = fh.read()
     except OSError as exc:
         print(f"arcc: error: cannot read {args.source}: {exc}", file=sys.stderr)
+        # The classic slip: `arcc update` without the dashes reads as a
+        # source file. Point at the flag instead of leaving a bare ENOENT.
+        if args.source == "update":
+            print("arcc: did you mean `arcc --update`?", file=sys.stderr)
         return 2
 
     try:

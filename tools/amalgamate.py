@@ -36,7 +36,8 @@ _MODULE_ORDER = [
     # prelude before parser: the parser reads the colour-name table from it.
     "errors", "tokens", "ast", "lexer", "prelude", "parser", "worldmodel",
     "sema", "zstring", "abbrev", "storyfile", "assembler", "objects",
-    "dictionary", "lower", "cosmos", "codegen", "astdump", "irdump", "cli",
+    "dictionary", "lower", "cosmos", "codegen", "astdump", "irdump",
+    "updater", "cli",
 ]
 
 _HEADER = '''#!/usr/bin/env python3
@@ -111,6 +112,20 @@ def build(output_path: str) -> None:
     here = os.path.dirname(os.path.abspath(__file__))
     repo_root = os.path.dirname(here)
     pkg_dir = os.path.join(repo_root, _PACKAGE)
+
+    # Refuse to build an incomplete amalgam: every module in the package must
+    # be on the embed list, or a lazy import dies at the user's prompt (the
+    # way `arcc --update` did when updater.py was born after this list).
+    on_disk = {
+        n[:-3] for n in os.listdir(pkg_dir)
+        if n.endswith(".py") and n not in ("__init__.py", "__main__.py")
+    }
+    missing = sorted(on_disk - set(_MODULE_ORDER))
+    if missing:
+        raise SystemExit(
+            f"amalgamate: arcturus/{', '.join(missing)}.py not in _MODULE_ORDER; "
+            f"add it (the standalone would ship without it)"
+        )
 
     init_src = _read(pkg_dir, "__init__")
     module_srcs = {name: _read(pkg_dir, name) for name in _MODULE_ORDER}
