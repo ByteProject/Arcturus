@@ -70,7 +70,7 @@ def _describe(name: str, source: str) -> str:
 def _print_header() -> None:
     import arcturus
     build = getattr(arcturus, "__build__", None) or "source"
-    print(f"Arcturus {arcturus.__version__}  (build {build}) "
+    print(f"Arcturus {arcturus.__version__} (build {build}) "
           "-- UPDATING SCRIPTS")
     print("Programming language and compiler for the Infocom Z-machine")
     print("Copyright (c) 2026, Stefan Vogt "

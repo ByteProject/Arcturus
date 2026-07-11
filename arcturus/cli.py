@@ -202,7 +202,7 @@ def _version_text() -> str:
     can name precisely what it ran. Distinct from the compile banner, which
     stays a lean per-build ledger."""
     return (
-        f"Arcturus {__version__}  (build {build_id()})\n"
+        f"Arcturus {__version__} (build {build_id()})\n"
         "Programming language and compiler for the Infocom Z-machine\n"
         f"Cosmos standard library {cosmos_lib.COSMOS_VERSION} "
         f"| {_python()} | {_host_os()}\n"
@@ -373,8 +373,8 @@ def _header() -> str:
         f'Arcturus -- [ arcc {__version__} | Cosmos {cosmos_lib.COSMOS_VERSION} '
         f'| {_python()} | {_host_os()} ]\n'
         'Programming language and compiler for the Infocom Z-machine\n'
-        'Copyright (c) 2026, Stefan Vogt.\n'
-        'https://github.com/ByteProject/Arcturus\n'
+        'Copyright (c) 2026, Stefan Vogt '
+        '| https://github.com/ByteProject/Arcturus\n'
     )
 
 
