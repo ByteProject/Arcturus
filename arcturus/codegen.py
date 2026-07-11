@@ -579,6 +579,9 @@ _BUILTIN_GLOBALS = [
     "way", "grain", "par_pending", "parse_fault", "unknown_at", "two_reverse",
     "line_act", "meta_turn",
     "last_act", "last_noun", "last_second", "last_way", "last_grain",
+    # last_here is the room the remembered command ran in, so a replayed
+    # scenery-grain quip refuses in another room.
+    "last_here",
     # oops_ready flags that the previous command had an unrecognized word;
     # oops_word is that word's parse-buffer index, for "oops" to correct.
     "oops_ready", "oops_word",

@@ -82,40 +82,40 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 21600,  # 2026-07-11 English meta words everywhere
-    "brass-lantern.storyarc": 15852,  # 2026-07-11 English meta words everywhere
-    "cloak-of-darkness.storyarc": 16672,  # 2026-07-11 English meta words everywhere
-    "ejemplo-espanol.storyarc": 20616,  # 2026-07-11 English meta words everywhere
-    "features/computed-properties.storyarc": 14464,  # 2026-07-11 English meta words everywhere
-    "features/containers.storyarc": 14740,  # 2026-07-11 English meta words everywhere
-    "features/daemons-and-timers.storyarc": 14776,  # 2026-07-11 English meta words everywhere
-    "features/doors-and-locks.storyarc": 14352,  # 2026-07-11 English meta words everywhere
-    "features/appearance.storyarc": 15144,  # 2026-07-11 English meta words everywhere
-    "features/components.storyarc": 14616,  # 2026-07-11 English meta words everywhere
-    "features/perform.storyarc": 14700,  # 2026-07-11 English meta words everywhere
-    "features/grains.storyarc": 14480,  # 2026-07-11 English meta words everywhere
-    "features/grammar.storyarc": 15476,  # 2026-07-11 English meta words everywhere
-    "features/introproperty.storyarc": 15664,  # 2026-07-11 English meta words everywhere
-    "features/kinds-and-inheritance.storyarc": 14312,  # 2026-07-11 English meta words everywhere
-    "features/on-other.storyarc": 14312,  # 2026-07-11 English meta words everywhere
-    "features/zcolor.storyarc": 14684,  # 2026-07-11 English meta words everywhere
-    "features/scoring.storyarc": 16636,  # 2026-07-11 English meta words everywhere
-    "features/spans.storyarc": 14504,  # 2026-07-11 English meta words everywhere
-    "features/vehicles.storyarc": 15004,  # 2026-07-11 English meta words everywhere
-    "granules/ambience.storyarc": 15796,  # 2026-07-11 English meta words everywhere
-    "granules/conversations.storyarc": 16092,  # 2026-07-11 English meta words everywhere
-    "granules/extended-verbs.storyarc": 17072,  # 2026-07-11 English meta words everywhere
-    "granules/infocom-interrogation.storyarc": 16504,  # 2026-07-11 English meta words everywhere
-    "granules/quotes.storyarc": 14660,  # 2026-07-11 English meta words everywhere
-    "granules/take-all.storyarc": 16364,  # 2026-07-11 English meta words everywhere
-    "granules/plurals.storyarc": 15320,  # 2026-07-11 English meta words everywhere
-    "granules/statusline.storyarc": 14420,  # 2026-07-11 English meta words everywhere
-    "granules/verbose-exits.storyarc": 14700,  # 2026-07-11 English meta words everywhere
+    "beispiel-deutsch.storyarc": 21688,  # 2026-07-11 again re-checks scope
+    "brass-lantern.storyarc": 15940,  # 2026-07-11 again re-checks scope
+    "cloak-of-darkness.storyarc": 16736,  # 2026-07-11 again re-checks scope
+    "ejemplo-espanol.storyarc": 20704,  # 2026-07-11 again re-checks scope
+    "features/computed-properties.storyarc": 14524,  # 2026-07-11 again re-checks scope
+    "features/containers.storyarc": 14800,  # 2026-07-11 again re-checks scope
+    "features/daemons-and-timers.storyarc": 14836,  # 2026-07-11 again re-checks scope
+    "features/doors-and-locks.storyarc": 14412,  # 2026-07-11 again re-checks scope
+    "features/appearance.storyarc": 15204,  # 2026-07-11 again re-checks scope
+    "features/components.storyarc": 14676,  # 2026-07-11 again re-checks scope
+    "features/perform.storyarc": 14760,  # 2026-07-11 again re-checks scope
+    "features/grains.storyarc": 14568,  # 2026-07-11 again re-checks scope
+    "features/grammar.storyarc": 15536,  # 2026-07-11 again re-checks scope
+    "features/introproperty.storyarc": 15724,  # 2026-07-11 again re-checks scope
+    "features/kinds-and-inheritance.storyarc": 14372,  # 2026-07-11 again re-checks scope
+    "features/on-other.storyarc": 14372,  # 2026-07-11 again re-checks scope
+    "features/zcolor.storyarc": 14744,  # 2026-07-11 again re-checks scope
+    "features/scoring.storyarc": 16724,  # 2026-07-11 again re-checks scope
+    "features/spans.storyarc": 14564,  # 2026-07-11 again re-checks scope
+    "features/vehicles.storyarc": 15064,  # 2026-07-11 again re-checks scope
+    "granules/ambience.storyarc": 15856,  # 2026-07-11 again re-checks scope
+    "granules/conversations.storyarc": 16152,  # 2026-07-11 again re-checks scope
+    "granules/extended-verbs.storyarc": 17132,  # 2026-07-11 again re-checks scope
+    "granules/infocom-interrogation.storyarc": 16564,  # 2026-07-11 again re-checks scope
+    "granules/quotes.storyarc": 14720,  # 2026-07-11 again re-checks scope
+    "granules/take-all.storyarc": 16452,  # 2026-07-11 again re-checks scope
+    "granules/plurals.storyarc": 15404,  # 2026-07-11 again re-checks scope
+    "granules/statusline.storyarc": 14480,  # 2026-07-11 again re-checks scope
+    "granules/verbose-exits.storyarc": 14760,  # 2026-07-11 again re-checks scope
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 17152  # 2026-07-11 English meta words everywhere
+CLOAK_Z8_CEILING = 17216  # 2026-07-11 again re-checks scope
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
