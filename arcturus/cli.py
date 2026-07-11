@@ -49,13 +49,13 @@ def _python() -> str:
 
 
 def _banner() -> str:
+    """The bare call: the one banner, then the usage lines. Composed from
+    _header() so the two can never drift apart; there is no lean variant
+    (Stefan's rule: the same banner everywhere, every time; only the
+    updater wears its own dress)."""
     return (
-        f'Arcturus -- [ arcc {__version__} | Cosmos {cosmos_lib.COSMOS_VERSION} '
-        f'| {_python()} | {_host_os()} ]\n'
-        'Programming language and compiler for the Infocom Z-machine\n'
-        'Copyright (c) 2026, Stefan Vogt.\n'
-        'https://github.com/ByteProject/Arcturus\n'
-        '\n'
+        _header()
+        + '\n'
         'This is the compiler for the Arcturus programming language. Type -h for help.\n'
         'Compiles to Infocom format, also called Z-machine story files.\n'
         '\n'
@@ -365,13 +365,16 @@ def _stats_report(stats: dict, version: int) -> str:
 
 
 def _header() -> str:
-    """The banner printed on every invocation (the bare call adds the usage
-    lines): who is speaking, in which version, before any result."""
+    """THE banner, the same on every invocation, before any result: what is
+    speaking, in which versions, in which environment, whose it is, and
+    where it lives. The bare call adds usage lines after it; the updater
+    alone wears its own header."""
     return (
         f'Arcturus -- [ arcc {__version__} | Cosmos {cosmos_lib.COSMOS_VERSION} '
         f'| {_python()} | {_host_os()} ]\n'
         'Programming language and compiler for the Infocom Z-machine\n'
         'Copyright (c) 2026, Stefan Vogt.\n'
+        'https://github.com/ByteProject/Arcturus\n'
     )
 
 
