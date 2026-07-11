@@ -1341,6 +1341,11 @@ block msg_cant_lock()
 block msg_close_first()
     say "Antes tendrás que cerrar ${the noun}."
 
+// Sin nombrar la llave a propósito: un DESTRANCA a secas no debe
+// revelar qué llave abre una cerradura aún por descubrir.
+block msg_no_key()
+    say "No tienes la llave adecuada."
+
 block msg_wrong_key()
     say "${The second} no encaja."
 

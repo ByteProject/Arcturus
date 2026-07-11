@@ -1269,6 +1269,11 @@ block msg_cant_lock()
 block msg_close_first()
     say "Zuerst musst du ${the:acc noun} schließen."
 
+// Bewusst ohne Namen: ein nacktes SCHLIESS AUF darf nicht verraten,
+// welcher Schlüssel zu einem noch unentdeckten Schloss passt.
+block msg_no_key()
+    say "Dir fehlt der passende Schlüssel."
+
 block msg_wrong_key()
     say "${The second} passt nicht."
 

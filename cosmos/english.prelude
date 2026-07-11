@@ -1232,6 +1232,11 @@ block msg_cant_lock()
 block msg_close_first()
     say "You'd have to close ${the noun} first."
 
+// Deliberately unnamed: a bare UNLOCK on an undiscovered lock must not
+// spoil which key fits it.
+block msg_no_key()
+    say "You don't have the right key."
+
 block msg_wrong_key()
     say "${The second} doesn't fit."
 

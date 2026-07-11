@@ -43,6 +43,7 @@ def test_functional_verbs_on_frotz(tmp_path):
     story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
     script = (
         "open chest\n"  # locked -> refused
+        "take brass key\n"  # the key must be in hand (locks demand it)
         "unlock chest with brass key\n"  # the right key
         "open chest\n"  # now opens
         "take coin\n"
@@ -83,6 +84,7 @@ def test_two_noun_binds_by_position_on_frotz(tmp_path):
     story = tmp_path / "f.z5"
     story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
     script = (
+        "take brass key\n"  # the key must be in hand (locks demand it)
         "unlock chest with brass key\n"
         "open chest\n"
         "take coin\n"

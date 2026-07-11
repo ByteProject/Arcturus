@@ -408,6 +408,10 @@ on open
             change refused to 1
             msg_wrong_key
             stop
+        if not (player holds second)
+            change refused to 1
+            msg_no_key
+            stop
         now noun is not locked
         msg_unlocked
     if noun is open
@@ -448,12 +452,21 @@ on lock
         change refused to 1
         msg_close_first
         stop
+    // A bare LOCK reaches for the lock's own key, but reaching is not
+    // having: the key must actually be carried (the field report: every
+    // lock opened for free when no second was typed). A lockable with no
+    // unseal_with is a keyless bolt and works bare-handed.
     if second is nothing
         change second to noun.unseal_with
     if second is not noun.unseal_with
         change refused to 1
         msg_wrong_key
         stop
+    if second is not nothing
+        if not (player holds second)
+            change refused to 1
+            msg_no_key
+            stop
     now noun is locked
     msg_locked
 
@@ -469,12 +482,19 @@ on unlock
     if noun is not locked
         msg_unlocked
         stop
+    // The mirror of lock's rule: the auto-supplied (or named) key must be
+    // carried, or the answer is honest; keyless locks stay bare-handed.
     if second is nothing
         change second to noun.unseal_with
     if second is not noun.unseal_with
         change refused to 1
         msg_wrong_key
         stop
+    if second is not nothing
+        if not (player holds second)
+            change refused to 1
+            msg_no_key
+            stop
     now noun is not locked
     msg_unlocked
 
