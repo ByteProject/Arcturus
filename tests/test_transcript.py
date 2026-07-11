@@ -92,10 +92,34 @@ def test_german_mitschrift(tmp_path):
     assert "Es läuft gerade keine Mitschrift." in out
 
 
+def test_english_fallback_in_german(tmp_path):
+    # The English meta words answer in a German game, with German replies.
+    out = _run(
+        ["transcript", "schau", "transcript on", "transcript off", "unscript"],
+        game=GERMAN, save_dir=str(tmp_path),
+    )
+    assert "Mitschrift läuft. Ab jetzt wird alles aufgezeichnet." in out
+    assert "Die Mitschrift läuft schon." in out
+    assert "Mitschrift beendet." in out
+    assert "Es läuft gerade keine Mitschrift." in out
+
+
 def test_spanish_transcripcion(tmp_path):
     out = _run(
         ["transcripcion", "mira", "transcripcion", "transcripcion no",
          "transcripcion no"],
+        game=SPANISH, save_dir=str(tmp_path),
+    )
+    assert "Transcripción en marcha. Desde aquí queda todo registrado." in out
+    assert "La transcripción ya está en marcha." in out
+    assert "Transcripción finalizada." in out
+    assert "No hay ninguna transcripción en marcha." in out
+
+
+def test_english_fallback_in_spanish(tmp_path):
+    # The English meta words answer in a Spanish game, with Spanish replies.
+    out = _run(
+        ["transcript", "mira", "transcript on", "transcript off", "unscript"],
         game=SPANISH, save_dir=str(tmp_path),
     )
     assert "Transcripción en marcha. Desde aquí queda todo registrado." in out

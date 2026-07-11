@@ -29,7 +29,7 @@ certainly already have.
 | Component | Version | Download |
 |-----------|---------|----------|
 | **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.11.21 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 0.24.0 | shipped inside `arcc` |
+| **Cosmos**, the standard library | 0.25.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.0.4 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.7.0 | [build/arcimg](build/arcimg) |
 
@@ -90,7 +90,9 @@ The most significant recent additions and achievements:
   SCRIPT and TRANSCRIPT OFF / UNSCRIPT, honestly: the library reads the
   interpreter's own flag back, so a cancelled file prompt never claims a
   recording. Worded natively in all three languages (MITSCHRIFT AN,
-  TRANSCRIPCION). See
+  TRANSCRIPCION), and the English meta words (SAVE, UNDO, SCORE, TRANSCRIPT
+  and their kin) answer in every pack, so the session is never hostage to a
+  guessed translation. See
   [examples/features/direction-grammar.storyarc](examples/features/direction-grammar.storyarc).
 - **arc_image reaches the retro machines.** The same numbered pictures a
   modern build shows now convert to the 8-bit and 16-bit machines' own

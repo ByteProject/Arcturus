@@ -492,38 +492,45 @@ verb "untersuch", "untersuche", "untersuchen", "betrachte", "pruefe", "prüfe", 
     examine noun
 
 // Meta verbs. Each sets meta_turn, so the loop skips the per-turn pulse and the
-// turn count. quit and restart confirm first.
-verb "beende", "beenden", "ende"
+// turn count. quit and restart confirm first. Jedes Meta-Verb hört AUCH auf
+// sein englisches Original (quit, score, save, restore, undo, again, oops,
+// transcript): wer englische Adventures gewohnt ist, rät das deutsche Wort
+// nicht immer beim ersten Mal, und die Sitzungsverben müssen einfach gehen.
+verb "beende", "beenden", "ende", "quit"
     quit
 
-verb "punkte", "punktzahl"
+verb "punkte", "punktzahl", "score"
     score
 
 verb "neustart", "neustarten", "restart"
     restart
 
 // Saving and restoring.
-verb "sichern", "sichere", "speichern", "speichere"
+verb "sichern", "sichere", "speichern", "speichere", "save"
     save
 
-verb "laden", "lade", "wiederherstellen"
+verb "laden", "lade", "wiederherstellen", "restore", "load"
     restore
 
 // Die Mitschrift (Ausgabestrom 2): MITSCHRIFT oder PROTOKOLL startet sie,
 // MITSCHRIFT AUS beendet sie. Die Partikeln an/aus laufen wie bei schalt
-// über compound; die Datei gehört dem Interpreter.
-verb "mitschrift", "protokoll", "transkript"
+// über compound; die Datei gehört dem Interpreter. Englisch als Rückfall:
+// TRANSCRIPT ON/OFF (die Partikeln unten kennen on und off) und UNSCRIPT.
+verb "mitschrift", "protokoll", "transkript", "transcript", "script"
     transcript
     transcript_off
 
+verb "unscript"
+    transcript_off
+
 // undo and again are intercepted by the turn loop before dispatch.
-verb "widerrufen", "rueckgaengig", "rückgängig"
+verb "widerrufen", "rueckgaengig", "rückgängig", "undo"
     undo
 
-verb "wiederhole", "wiederholen", "nochmal", "g"
+verb "wiederhole", "wiederholen", "nochmal", "g", "again"
     again
 
-verb "ups", "hoppla", "korrigiere"
+verb "ups", "hoppla", "korrigiere", "oops"
     oops
 
 // The magic word, a normal (if fruitless) action; an author can override it.
@@ -551,8 +558,8 @@ verb "ausschalten", "abschalten", "ausmachen"
 // dient auch als Präposition (gib X an Y); das stört nicht, denn der Parser
 // behandelt jedes markierte Wort als Phrasengrenze, und compound wirkt nur auf
 // switch/turn/take.
-particle on  "an", "ein"
-particle off "aus", "ab"
+particle on  "an", "ein", "on"
+particle off "aus", "ab", "off"
 
 verb "anziehen", "anlegen", "trag", "trage"
     wear noun
