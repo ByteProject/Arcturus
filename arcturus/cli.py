@@ -42,10 +42,16 @@ def _host_os() -> str:
     return name or "unknown"
 
 
+def _python() -> str:
+    """The Python actually executing the tool (a bug report names the real
+    environment, not the minimum requirement)."""
+    return f"Python {platform.python_version()}"
+
+
 def _banner() -> str:
     return (
         f'Arcturus -- [ arcc {__version__} | Cosmos {cosmos_lib.COSMOS_VERSION} '
-        f'| python3 | stdlib | {_host_os()} ]\n'
+        f'| {_python()} | {_host_os()} ]\n'
         'Copyright (c) 2026, Stefan Vogt.\n'
         'https://github.com/ByteProject/Arcturus\n'
         '\n'
@@ -56,8 +62,25 @@ def _banner() -> str:
     )
 
 
+class _ArcParser(argparse.ArgumentParser):
+    """argparse, with the house banner on every mouth it speaks through:
+    --help opens with the header (every arcc output shows the banner) and
+    closes with one blank line (the house rule for every tool's output);
+    a usage error carries the header on stderr the same way."""
+
+    def print_help(self, file=None):
+        out = file or sys.stdout
+        print(_header(), file=out)
+        super().print_help(out)
+        print(file=out)
+
+    def error(self, message):
+        print(_header(), file=sys.stderr)
+        super().error(message)
+
+
 def _build_argparser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(
+    ap = _ArcParser(
         prog="arcc",
         description="Compile Arcturus (.storyarc) file to Z-machine format.",
     )
@@ -181,7 +204,7 @@ def _version_text() -> str:
         f"Arcturus {__version__}  (build {build_id()})\n"
         "Programming language and compiler for the Infocom Z-machine\n"
         f"Cosmos standard library {cosmos_lib.COSMOS_VERSION} "
-        f"| Python 3.11+ | no dependencies | {_host_os()}\n"
+        f"| {_python()} | {_host_os()}\n"
         "Copyright (c) 2026, Stefan Vogt "
         "| https://github.com/ByteProject/Arcturus"
     )
@@ -345,7 +368,7 @@ def _header() -> str:
     lines): who is speaking, in which version, before any result."""
     return (
         f'Arcturus -- [ arcc {__version__} | Cosmos {cosmos_lib.COSMOS_VERSION} '
-        f'| python3 | stdlib | {_host_os()} ]\n'
+        f'| {_python()} | {_host_os()} ]\n'
         'Copyright (c) 2026, Stefan Vogt.\n'
     )
 
@@ -371,13 +394,23 @@ def main(argv: list[str] | None = None) -> int:
     if not getattr(args, "quiet", False):
         print(_header())
 
-    # Library-extraction utilities run without a story file.
+    # Library-extraction utilities run without a story file. Each success
+    # closes with the house blank line.
     if args.extract_library is not None:
-        return _extract_library(args.extract_library)
+        rc = _extract_library(args.extract_library)
+        if rc == 0:
+            print()
+        return rc
     if args.eject_language is not None:
-        return _eject_language(args.eject_language)
+        rc = _eject_language(args.eject_language)
+        if rc == 0:
+            print()
+        return rc
     if args.eject_granule is not None:
-        return _eject_granule(args.eject_granule)
+        rc = _eject_granule(args.eject_granule)
+        if rc == 0:
+            print()
+        return rc
 
     # -L directories must be absolute, so the library is deliberately placed and
     # there is no ambiguity about what a story summons by name (docs/05).
@@ -456,10 +489,15 @@ def main(argv: list[str] | None = None) -> int:
         # `arcimg` builds). Nothing extra is written beside the story.
         if stats is not None:
             print(_stats_report(stats, args.zversion))
+            # One blank line after the output, the house rule for every tool
+            # (-q is script mode and stays bare for pipelines).
+            print()
         return 0
 
     objects = len(world.objects)
     print(f"{args.source}: parsed and checked cleanly ({objects} objects)")
+    if not args.quiet:
+        print()
     return 0
 
 
