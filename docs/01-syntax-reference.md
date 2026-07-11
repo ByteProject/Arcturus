@@ -203,6 +203,11 @@ build; there is no runtime cost beyond the ordinary span. A room of a subkind
 counts too (a `beach_room of outside_room` is an outside room). A kind used only
 to tag its instances like this can be declared with no body at all.
 
+Roomness itself flows through the kind chain: an instance of a kind OF ROOM
+is a room in every respect (exits, spans, the start room), whether it was
+declared with the `room` keyword or with `thing`. The keyword is a reading
+aid; the chain is the truth.
+
 A long span is not confined to one line. Every `spans` line on an object adds
 to its set, so a wide scenery object can list its rooms (or kinds) across as many
 lines as read well, and a line ending in a comma continues on the next (section
