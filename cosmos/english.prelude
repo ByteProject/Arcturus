@@ -976,6 +976,24 @@ block msg_unknown_word()
         change i to i + 1
     say "\"."
 
+// A bare verb ("take", "open") asks its question, echoing the verb as
+// typed ("Take what?"), the way msg_unknown_word spells a typo back. The
+// first letter is capitalized when it is plain a-z; an accented initial
+// is echoed as typed (the case tables stop at ASCII, and it stays honest).
+block msg_noun_missing()
+    let p = word_pos(0) - 2
+    let n = word_len(0)
+    let i = 0
+    while i < n
+        let c = text_char(p + i)
+        if i is 0
+            if c >= 97
+                if c <= 122
+                    change c to c - 32
+        show_char(c)
+        change i to i + 1
+    say " what?"
+
 block msg_cant_see()
     say "You see nothing of the sort here."
 

@@ -27,7 +27,7 @@ verb "search", "frisk"
 on search
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     if noun is supporter
         search_contents(noun)
@@ -66,7 +66,7 @@ verb "throw", "chuck", "toss", "hurl"
 on throw
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_throw
@@ -78,7 +78,7 @@ verb "rub", "polish", "clean", "wipe", "scrub", "dust", "shine", "buff"
 on rub
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     msg_rub
 
@@ -89,7 +89,7 @@ verb "squeeze", "crush"
 on squeeze
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     msg_squeeze
 
@@ -100,7 +100,7 @@ verb "tie", "attach", "fasten", "secure"
 on tie
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_tie
@@ -112,7 +112,7 @@ verb "cut", "chop", "slice", "prune", "carve"
 on cut
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_cut
@@ -124,7 +124,7 @@ verb "fill"
 on fill
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_fill
@@ -136,7 +136,7 @@ verb "burn", "ignite", "torch", "kindle"
 on burn
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_burn
@@ -148,7 +148,7 @@ verb "blow"
 on blow
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     msg_blow
 
@@ -159,7 +159,7 @@ verb "set", "adjust"
 on set
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_set
@@ -172,7 +172,7 @@ verb "empty", "drain"
 on empty
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     msg_empty
 
@@ -183,7 +183,7 @@ verb "buy", "purchase"
 on buy
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_buy
@@ -195,7 +195,7 @@ verb "consult", "reference"
 on consult
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     msg_consult
 

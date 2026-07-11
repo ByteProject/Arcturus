@@ -29,7 +29,7 @@ certainly already have.
 | Component | Version | Download |
 |-----------|---------|----------|
 | **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.11.21 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 0.25.2 | shipped inside `arcc` |
+| **Cosmos**, the standard library | 0.25.3 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.0.4 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.7.0 | [build/arcimg](build/arcimg) |
 
@@ -123,7 +123,10 @@ The most significant recent additions and achievements:
   here keeps the classic refusal, and a word the story does not know at all
   is spelled back ("This story doesn't know the word \"sdlfjh\".", worded
   by each language pack), with OOPS correcting it on the next line. Handlers
-  can finally trust that `noun is nothing` means a bare verb.
+  can finally trust that `noun is nothing` means a bare verb, and the bare
+  verb asks its own question ("Take what?", "Nimm was?", "¿Coge qué?"), while
+  a pronoun with nothing to refer to gets its own answer too. Three
+  situations, three responses, in every language.
 - **Positional grammar.** A verb's grammar lines can now say more than "one
   noun" or "two nouns around a preposition": a literal word may open a line
   (`dig in noun with held`), and a line's wording may select its own action,

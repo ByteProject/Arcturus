@@ -96,8 +96,10 @@ def test_group_word_with_one_left_binds_singular(tmp_path):
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_them_with_no_group_is_honest(tmp_path):
+    # THEM with no group is an unbound pronoun, not a thing that is
+    # elsewhere and not a bare verb: the pronoun fault answers.
     out = _play(tmp_path, GAME, "drop them\n")
-    assert "You see nothing of the sort here." in out
+    assert "You'll have to say what you mean." in out
 
 
 NO_GRANULE = (

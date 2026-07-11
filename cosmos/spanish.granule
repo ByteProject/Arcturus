@@ -359,6 +359,10 @@ block resolve_objects()
                                 if ref is not nothing
                                     if in_scope(ref)
                                         change noun to ref
+                                // Un clítico sin referente ("cógelos" sin
+                                // grupo) es el fallo del pronombre (5).
+                                if noun is nothing
+                                    change parse_fault to 5
                 change clitico to 0
                 return 1
         if peek_byte(d + 6) is 128 or peek_byte(d + 6) is 136
@@ -386,6 +390,10 @@ block resolve_objects()
                 if ref is not nothing
                     if in_scope(ref)
                         change noun to ref
+                // Un clítico sin referente ("cógelos" sin grupo previo) es
+                // el fallo del pronombre (5, msg_no_it), no un verbo a secas.
+                if noun is nothing
+                    change parse_fault to 5
     change clitico to 0
     // Un fallo de ambigüedad (3) se respeta: caer en el decorado o en el
     // "no lo ves" taparía el honesto "cuál quieres decir".
@@ -1050,6 +1058,23 @@ block msg_unknown_word()
         show_char(text_char(p + i))
         change i to i + 1
     say "\"."
+
+// Un verbo a secas ("coge", "abre") pregunta, con el verbo tecleado como
+// eco ("¿Coge qué?"). La mayúscula solo se aplica en el rango ASCII.
+block msg_noun_missing()
+    show("¿")
+    let p = word_pos(0) - 2
+    let n = word_len(0)
+    let i = 0
+    while i < n
+        let c = text_char(p + i)
+        if i is 0
+            if c >= 97
+                if c <= 122
+                    change c to c - 32
+        show_char(c)
+        change i to i + 1
+    say " qué?"
 
 block msg_cant_see()
     say "No ves nada de eso por aquí."
