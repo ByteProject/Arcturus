@@ -411,7 +411,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | Attribute | Meaning and usage |
 |---|---|
 | `fixed` | The object cannot be taken; it stays where it is. `take` refuses it. |
-| `scenery` | Background detail: still referable for `examine`, but left out of the room's contents listing and not takeable (gives the scenery line). |
+| `scenery` | Background detail: still referable for `examine`, but left out of the room's contents listing and not takeable (gives the scenery line). A game that wants what sits ON or IN scenery holders told anyway opts in once with `constant scenery_contents = 1`: each such holder then gets its own paragraph ("On the counter you can see a bell and a candle."), the knowledge model deciding per item (PunyInform's OPTIONAL_PRINT_SCENERY_CONTENTS, as a fold: off by default, zero bytes unused). |
 | `hidden` | Out of scope entirely until cleared: an undiscovered object, neither listed nor referable. Clear it when the object is revealed. |
 | `concealed` | In scope and actable, but omitted from the room's contents listing (present but not spelled out in the description). |
 | `wearable` | Can be worn; the `wear` verb accepts it. |
