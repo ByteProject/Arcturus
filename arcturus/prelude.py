@@ -331,6 +331,9 @@ _BUILTINS = {
     "ask_hi": T_NUMBER,
     "ask_score": T_NUMBER,
     "ask_at": T_NUMBER,
+    # The held tiebreak's direction for the current command (1 prefer the
+    # candidate in hand, 0 prefer the one not held; TAKE wants 0).
+    "tie_want": T_NUMBER,
     # Set by the parser when a typed all-word hands the command to the takeall
     # granule's expander (TAKE ALL); consumed by the turn loop.
     "all_go": T_NUMBER,

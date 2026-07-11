@@ -82,40 +82,40 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 21960,  # 2026-07-11 three refusals, three answers
-    "brass-lantern.storyarc": 16184,  # 2026-07-11 three refusals, three answers
-    "cloak-of-darkness.storyarc": 16980,  # 2026-07-11 three refusals, three answers
-    "ejemplo-espanol.storyarc": 20992,  # 2026-07-11 three refusals, three answers
-    "features/computed-properties.storyarc": 14768,  # 2026-07-11 three refusals, three answers
-    "features/containers.storyarc": 15044,  # 2026-07-11 three refusals, three answers
-    "features/daemons-and-timers.storyarc": 15080,  # 2026-07-11 three refusals, three answers
-    "features/doors-and-locks.storyarc": 14656,  # 2026-07-11 three refusals, three answers
-    "features/appearance.storyarc": 15448,  # 2026-07-11 three refusals, three answers
-    "features/components.storyarc": 14920,  # 2026-07-11 three refusals, three answers
-    "features/perform.storyarc": 15004,  # 2026-07-11 three refusals, three answers
-    "features/grains.storyarc": 14812,  # 2026-07-11 three refusals, three answers
-    "features/grammar.storyarc": 15780,  # 2026-07-11 three refusals, three answers
-    "features/introproperty.storyarc": 15968,  # 2026-07-11 three refusals, three answers
-    "features/kinds-and-inheritance.storyarc": 14616,  # 2026-07-11 three refusals, three answers
-    "features/on-other.storyarc": 14616,  # 2026-07-11 three refusals, three answers
-    "features/zcolor.storyarc": 14988,  # 2026-07-11 three refusals, three answers
-    "features/scoring.storyarc": 16968,  # 2026-07-11 three refusals, three answers
-    "features/spans.storyarc": 14808,  # 2026-07-11 three refusals, three answers
-    "features/vehicles.storyarc": 15308,  # 2026-07-11 three refusals, three answers
-    "granules/ambience.storyarc": 16100,  # 2026-07-11 three refusals, three answers
-    "granules/conversations.storyarc": 16396,  # 2026-07-11 three refusals, three answers
-    "granules/extended-verbs.storyarc": 17376,  # 2026-07-11 three refusals, three answers
-    "granules/infocom-interrogation.storyarc": 16808,  # 2026-07-11 three refusals, three answers
-    "granules/quotes.storyarc": 14964,  # 2026-07-11 three refusals, three answers
-    "granules/take-all.storyarc": 16696,  # 2026-07-11 three refusals, three answers
-    "granules/plurals.storyarc": 15644,  # 2026-07-11 three refusals, three answers
-    "granules/statusline.storyarc": 14724,  # 2026-07-11 three refusals, three answers
-    "granules/verbose-exits.storyarc": 15004,  # 2026-07-11 three refusals, three answers
+    "beispiel-deutsch.storyarc": 22116,  # 2026-07-11 the held tiebreak
+    "brass-lantern.storyarc": 16340,  # 2026-07-11 the held tiebreak
+    "cloak-of-darkness.storyarc": 17136,  # 2026-07-11 the held tiebreak
+    "ejemplo-espanol.storyarc": 21148,  # 2026-07-11 the held tiebreak
+    "features/computed-properties.storyarc": 14924,  # 2026-07-11 the held tiebreak
+    "features/containers.storyarc": 15200,  # 2026-07-11 the held tiebreak
+    "features/daemons-and-timers.storyarc": 15236,  # 2026-07-11 the held tiebreak
+    "features/doors-and-locks.storyarc": 14812,  # 2026-07-11 the held tiebreak
+    "features/appearance.storyarc": 15604,  # 2026-07-11 the held tiebreak
+    "features/components.storyarc": 15076,  # 2026-07-11 the held tiebreak
+    "features/perform.storyarc": 15160,  # 2026-07-11 the held tiebreak
+    "features/grains.storyarc": 14968,  # 2026-07-11 the held tiebreak
+    "features/grammar.storyarc": 15932,  # 2026-07-11 the held tiebreak
+    "features/introproperty.storyarc": 16124,  # 2026-07-11 the held tiebreak
+    "features/kinds-and-inheritance.storyarc": 14772,  # 2026-07-11 the held tiebreak
+    "features/on-other.storyarc": 14772,  # 2026-07-11 the held tiebreak
+    "features/zcolor.storyarc": 15144,  # 2026-07-11 the held tiebreak
+    "features/scoring.storyarc": 17124,  # 2026-07-11 the held tiebreak
+    "features/spans.storyarc": 14964,  # 2026-07-11 the held tiebreak
+    "features/vehicles.storyarc": 15464,  # 2026-07-11 the held tiebreak
+    "granules/ambience.storyarc": 16256,  # 2026-07-11 the held tiebreak
+    "granules/conversations.storyarc": 16552,  # 2026-07-11 the held tiebreak
+    "granules/extended-verbs.storyarc": 17532,  # 2026-07-11 the held tiebreak
+    "granules/infocom-interrogation.storyarc": 16964,  # 2026-07-11 the held tiebreak
+    "granules/quotes.storyarc": 15120,  # 2026-07-11 the held tiebreak
+    "granules/take-all.storyarc": 16848,  # 2026-07-11 the held tiebreak
+    "granules/plurals.storyarc": 15800,  # 2026-07-11 the held tiebreak
+    "granules/statusline.storyarc": 14880,  # 2026-07-11 the held tiebreak
+    "granules/verbose-exits.storyarc": 15160,  # 2026-07-11 the held tiebreak
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 17464  # 2026-07-11 three refusals, three answers
+CLOAK_Z8_CEILING = 17624  # 2026-07-11 the held tiebreak
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
