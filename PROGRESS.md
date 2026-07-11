@@ -3384,3 +3384,116 @@ choice), the format with reference RLE decoders (x86, 68k), and one
 verified chapter per target; arc_image/probes/ holds the reference
 loaders and the two-mode test assets. Next: R3, the cell class: C64,
 Spectrum +3, CPC.
+
+## 2026-07-08/09: B12 R3, the conversion gate. The codec era.
+
+Wave 2's converters (C64 multicolor, Spectrum attribute cells, CPC mode
+0) were built and then refined through seven review rounds under
+Stefan's pixel-artist eye, with his own hand-painted Spectrum Rabenstein
+as training data. What the rounds taught, all recorded in the design
+record: luminance-dominant matching with a saturation term, greedy
+error-minimizing cell colors, protected palette extremes (the swallowed
+moon), the salient-disc hint sidecar (author states the moon once, every
+target keeps it, connected-from-crown so a low moon never mirrors into
+the ground), BRIGHT IS THE CANVAS on the Spectrum (dark cells only where
+D7 grey earns them), best-16-of-27 ink election with a chroma-dumping
+penalty on the CPC, and flat fields with dither only at band transitions
+(Stefan: replace the color, sprinkle the seams). The gate passed
+2026-07-08: C64 and CPC approved and frozen; the Spectrum ruled ~90%
+with the ship framing (full confidence, minor polish per image) and a
+first-class polish loop: arcimg scr/unscr round-trips a conversion
+through any .scr editor, hand-authored results stamped in the header
+(byte 15) so convert never overwrites them, band mode auto-detected.
+
+The codec era arrived mid-milestone. Measured on the corpus against
+LZSA1/2, Exomizer, and RLE, ZX0 was ruled the .arc codec for the 8-bit
+targets (arcimg carries a pure-Python packer validated byte-identical
+against the reference, plus the spec-ported decoder that doubles as the
+interpreters' executable spec); the 16-bit trio took LZSA2 for pack
+speed, first via Emmanuel Marty's tool, then, after Stefan's no-binaries
+ruling for the BuildTools 4.0 direction, with a built-in pure-Python
+greedy packer (8% over optimal, seconds, dependency-free) behind
+$ARCIMG_LZSA and PATH. Regens dropped from twenty minutes to ~75 seconds
+(parallel conversion, make-style skipping). arcimg reached 1.7.0.
+
+## 2026-07-09/11: The adopter wave. Cosmos 0.15 to 0.23.
+
+Early adopters arrived ahead of any announcement and drove the busiest
+library stretch of the project: Charles Moore Jr. (improvmonster, now
+credited in the README and a Discord contributor), Shawn Sijnstra
+announcing Vezza adoption across targets, Ichiro Ota porting his
+PunyInform game. Shipped from their reports, each with tests, docs, and
+the pay-for-use fold discipline (byte-identical when unused):
+
+- The room title and status bar say where the player stands ("Crypt (on
+  the altar)"), line_nested worded per language, German in the dative.
+- Component objects: `component` on a thing placed in another makes it
+  part of the whole (Dialog's #partof with the tree carrying the
+  relation): scope through plain things, part-of take answers, no
+  contents listing, parts follow their whole; player components are not
+  luggage.
+- perform("take", book): programmatic actions, the full pipeline,
+  compile-checked names, direction rides the way slot (and the `in`
+  direction stands wherever a value can; `way is in` disambiguates from
+  the copula by lookahead).
+- appearance: the paragraph an object always owns in a room description
+  (Inform's describe), computed by state, beside intro's until-moved
+  rule.
+- worn_count/list_worn (the punctuated outfit), convey (a vehicle
+  carries the player; here refreshes; the vehicles example), drop lands
+  where the player is with the destination worded (the Hibernated 2
+  manner), scenery_contents = 1 lists scenery holders' contents (the
+  Puny bridge, the arc_mode constant manner), the is-predicate form
+  (`if lamp is visible` reads any one-parameter block), reachable
+  honoring its documented contract (take through closed glass fixed).
+- Parser honesty: an unresolved noun never dispatches (noun is nothing
+  now MEANS a bare verb), typos are spelled back and OOPS corrects them,
+  all three language layers.
+- Diagnostics born from confusion: the fork trap note (a dotted summon
+  beside an edited granule), the unread-property note (stale binaries
+  and typos tell on themselves), kind-as-value and change-on-boolean
+  errors that teach the right syntax, sema resolving player-block
+  bodies (the was_read hole).
+- arcc --update: the standalone refreshes itself and its siblings from
+  the published build, validated before replacement, explicit-only
+  networking; the answer to three stale-binary hunts in three days.
+
+arcc ended the stretch at 0.11.20, Cosmos at 0.23.0, the suite at 774;
+the VS Code extension (0.12.1) learned the week's language and the
+examples grew components, appearance, perform, and vehicles (fresh
+scenes only: adopter code stays private, the field-kit lesson).
+
+## 2026-07-10: The documentation shelf, reorganized.
+
+Stefan's ruling: docs/ is for authors and interpreter authors. The
+arc_image design record moved to the engine room
+(arc_image/reference/design.md), the interpreter book renumbered to
+docs/08, a new author guide docs/07-arc-image.md (masters, workflow,
+polish loop, the honest what-plays-where table), 07-conformance retired
+as a stale snapshot the test suite outlives, message-set and verb-set
+deleted as work docs, every cross-reference rewritten, the README's
+what's-new five rotated forward (retro arc_image, perform/appearance,
+the typo-naming parser).
+
+## 2026-07-10: B12 R3 COMPLETE. Six machines, six proven blueprints.
+
+The wave-1 probes were backported to LZSA2 (Marty's 8088 decompressor
+verbatim; a shared 68000 decompressor written from the spec and proven
+byte-exact under vamos before any emulator) and re-verified. The wave-2
+probes landed: C64 (ACME, bitfire's ZX0 decoder verbatim, proven through
+VICE's remote monitor before Stefan's visual pass), Spectrum +3 and CPC
+(sjasmplus snapshots sharing the 68-byte ZX0 decoder, verified in
+ZEsarUX through ZRCP injection after the snapshot-machine lesson).
+Chapters C.4-C.6 carry the paid-for lessons: the type-4 attribute
+number, own-your-stack and own-your-CRTC, the 27-cube ink indexing
+against the firmware-numbering trap, the CPC split-screen clause (mode 0
+band, mode 1 text, one raster write, pens reloaded per region) that
+feeds Haumea, and the Z-colours answers per machine (Haumea's four
+concurrent text pens the only real design point; MSX2 noted as the CPC's
+colour cousin with the V9938 line interrupt). One apology recorded in
+standing notes: ZEsarUX persists CLI flags into its config and display
+flags wrecked Stefan's setup once; machine, snap, and remote-protocol
+flags only, forever. The R3 checkpoint file was deleted as always
+promised. Next: the adopter support queue (Shawn's target spec for
+Vezza's machine awaited; Charles ongoing; Ichiro porting), then R4
+(Atari 8-bit, MSX1/2, Plus/4).
