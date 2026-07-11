@@ -61,6 +61,15 @@ class Analyzer:
 
     def analyze(self) -> wm.World:
         self._collect()
+        # An object's category follows its kind chain: `thing parlor of
+        # lounge`, where lounge is a kind OF ROOM, makes parlor a ROOM in
+        # every respect (spans, exits, the start room, the room table),
+        # exactly as if the room keyword had been used. The keyword is a
+        # reading aid; the chain is the truth. (A field report: a spanned
+        # instance of a room kind was refused as "not a room".)
+        for obj in self.world.objects.values():
+            if obj.category != "room" and self._rooted_in_room(obj.kind):
+                obj.category = "room"
         self._resolve_kinds()
         self._build_properties()
         # After the members are collected: the automatic scored bits need
@@ -393,6 +402,19 @@ class Analyzer:
             # that was a kind, repoint it to the first room the kind expanded to.
             if obj.location in w.kinds and expanded:
                 obj.location = expanded[0]
+
+    def _rooted_in_room(self, kind_name: str) -> bool:
+        """Does this kind chain reach `room`? A tolerant walk: an unknown or
+        cyclic kind answers False here and gets its proper error from the
+        kind-resolution pass, with its own context."""
+        seen: set[str] = set()
+        cur: Optional[str] = kind_name
+        while cur is not None and cur in self.world.kinds and cur not in seen:
+            if cur == "room":
+                return True
+            seen.add(cur)
+            cur = self.world.kinds[cur].parent
+        return False
 
     def _chain(self, start: str, line: int) -> list[str]:
         chain: list[str] = []
