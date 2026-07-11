@@ -95,7 +95,9 @@ and reverse, word wrap at the terminal width, [MORE] paging, inline input
 in the game's input colour, and timed input on the terminal clock. The
 screen fills from the top after a clear and scrolls once it reaches the
 bottom; erasing paints the whole screen in the game's background. The
-terminal tab is titled after the story.
+terminal tab is titled after the story for the session and gets its old
+name back on exit (the terminal's title stack; terminals without one
+keep the story title, as before).
 
 Native Windows has no stdlib curses; there, --console degrades to the
 headless pipe with a note (WSL plays fine).
