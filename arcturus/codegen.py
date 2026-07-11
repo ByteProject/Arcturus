@@ -758,7 +758,9 @@ def build_story(
     # nothing here and its story file is byte-identical.
     grammar_tables: dict = {}
     grammar_fixups: list = []  # (absolute position, literal word)
-    slot_codes = {"noun": 1, "held": 2, "multi": 3, "text": 4}
+    # 6 is a `direction` slot: it consumes one direction-flagged word (the
+    # value rides `way`, which the parser binds before the tables run).
+    slot_codes = {"noun": 1, "held": 2, "multi": 3, "text": 4, "direction": 6}
     tabled = wm.tabled_verbs(world) if layout is not None else []
     if tabled:
         actions_map = _action_numbers(world)

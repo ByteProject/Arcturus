@@ -873,8 +873,9 @@ verb "put"
 
 A grammar line is an action name, then slots and literal words. Slots:
 `noun` (one in-scope object), `held` (a held object), `multi` (several,
-including "all"), `text` (free text). Bare words such as `in`, `on`, `with`
-are literal prepositions. Two-object lines bind `noun` and `second`.
+including "all"), `text` (free text), and `direction` (one direction word,
+below). Bare words such as `in`, `on`, `with` are literal prepositions.
+Two-object lines bind `noun` and `second`.
 
 A two-noun line may end in `reverse`, for a verb whose two objects can be typed
 in the other order without a preposition, the classic dative: GIVE and SHOW take
@@ -920,9 +921,31 @@ same as the bare word.
 This costs bytes only where it is used: a verb whose lines are the plain
 shapes stays on the compact model, and a game with no positional verb compiles
 byte-identical to one built before the feature existed. A positional verb
-follows three checked rules: at most two slots per line, a literal word
-between two slots (adjacent bare nouns belong to `reverse`, which is a
+follows the checked rules: at most two noun slots per line, a literal word
+between two noun slots (adjacent bare nouns belong to `reverse`, which is a
 plain-model feature), and single-word verb synonyms.
+
+THE DIRECTION SLOT. A line ending in `direction` accepts a direction word
+there, which is how SWIM SOUTH and PUSH CRATE WEST parse:
+
+```
+verb "swim", "paddle"
+    swim
+    swim direction
+
+verb "push", "shove"
+    push noun
+    push noun direction
+```
+
+The direction is not a noun: it rides `way`, the same slot GO uses, so the
+handler asks `if way is nothing` (declare the bare line too, so a plain SWIM
+can ask "which way?"), compares `if way is south`, or hands the move to the
+walking machinery whole with `perform("go", way)`. A noun slot before it
+ends its phrase at the direction word, so in PUSH CRATE WEST the noun is the
+crate. One `direction` slot per line, always last; a verb with such a line
+compiles to the positional table. The worked showcase is
+[examples/features/direction-grammar.storyarc](../examples/features/direction-grammar.storyarc).
 
 EXTENDING THE STANDARD GRAMMAR. The grammar is not a fixed table you write
 additions into; it is the sum of every `verb` declaration in the compile,

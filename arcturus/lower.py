@@ -122,6 +122,10 @@ INTRINSICS = frozenset({
     # opcodes; each returns the opcode result (0 fail, 1 saved, 2 resumed).
     "do_quit", "text_char", "do_restart",
     "do_save", "do_restore", "do_save_undo", "do_restore_undo",
+    # transcript_open / transcript_close select and deselect output stream 2
+    # (the transcript). The interpreter owns the file; the library reads
+    # Flags 2 bit 0 afterwards to see whether the stream really opened.
+    "transcript_open", "transcript_close",
     # parse_addr / oops_addr give the live parse buffer and its oops backup, so
     # the language layer can snapshot a command and patch it for "oops".
     # text_addr gives the text buffer, and retokenize re-runs the tokenizer over
@@ -233,6 +237,16 @@ class Context:
             if name not in self.named:
                 self.named[name] = slot
                 slot += 1
+        # A Z-machine routine has at most 15 locals, parameters included. An
+        # over-full routine would emit an illegal header and crash the
+        # interpreter mid-game ("call to non-routine"), so refuse it here
+        # with the count and the cure.
+        if slot - 1 > _MAX_LOCALS:
+            raise LowerError(
+                f"this block declares {slot - 1} locals (parameters plus "
+                f"`let`s), but a Z-machine routine holds at most "
+                f"{_MAX_LOCALS}; move part of the work into a helper block"
+            )
         self.temp_base = slot
         self.temp_top = slot
         self.peak = slot - 1
@@ -719,6 +733,16 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # do_restore_undo(): undo to the last checkpoint. On success jumps back to
         # the do_save_undo point (so this only returns 0 on failure).
         rt.op("restore_undo", store=dest)
+    elif name == "transcript_open":
+        # transcript_open(): select output stream 2. The interpreter opens (or
+        # prompts for) the transcript file and sets Flags 2 bit 0 on success.
+        rt.op("output_stream", Const(2))
+        _place(rt, Const(0), dest)
+    elif name == "transcript_close":
+        # transcript_close(): deselect stream 2 (-2 as the unsigned 16-bit word;
+        # the interpreter reads the operand as signed) and close the transcript.
+        rt.op("output_stream", Const(0xFFFE))
+        _place(rt, Const(0), dest)
     elif name == "parse_addr":
         # parse_addr(): the address of the live parse buffer.
         _place(rt, Const(storyfile.PARSE_BUFFER_ADDR), dest)

@@ -220,7 +220,15 @@ def needs_table(verb: Verb) -> bool:
         cannot express: look_under under noun vs look_behind behind noun).
     Lines that differ in action but not in shape (switch_on noun / switch_off
     noun) do NOT table the verb: no positional match could tell them apart;
-    the particle machinery already does."""
+    the particle machinery already does.
+
+    A `direction` slot (swim direction, push noun direction) always tables
+    its verb: the flag model's arity byte has no room for "and a direction
+    word may stand here"; only `go` gets that tolerance in the classic path."""
+    for line in verb.grammar:
+        for it in line.items:
+            if isinstance(it, ast.Slot) and it.kind == "direction":
+                return True
     max_slots = max(
         (sum(1 for it in line.items if isinstance(it, ast.Slot)) for line in verb.grammar),
         default=0,

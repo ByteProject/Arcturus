@@ -88,6 +88,11 @@ block compound(base, particle)
             return action_id("take_off")
         if particle is 1
             return action_id("enter")
+    if base is action_id("transcript")
+        if particle is 1
+            return action_id("transcript")
+        if particle is 2
+            return action_id("transcript_off")
     return nothing
 
 // The chosen direction's property number, from the first direction word typed
@@ -301,11 +306,19 @@ block has_extra_words(act)
     let i = 1
     while i < n
         let keep = 0
+        let d = word_dict(i)
         if act is action_id("go")
-            let d = word_dict(i)
             if d is not nothing
                 if peek_byte(d + 6) is 64
                     change keep to 1
+        // A particle that compounds with this verb is part of the verb, not
+        // an extra word (TRANSCRIPT ON has no noun slot to carry the "on");
+        // a particle no compound claims still refuses ("jump on").
+        if keep is 0
+            if d is not nothing
+                if peek_byte(d + 6) is 32
+                    if compound(act, peek_byte(d + 7)) is not nothing
+                        change keep to 1
         if keep is 0
             return 1
         change i to i + 1
@@ -536,6 +549,16 @@ verb "save"
 
 verb "restore"
     restore
+
+// The transcript: TRANSCRIPT (or SCRIPT) starts one, TRANSCRIPT OFF (or
+// UNSCRIPT, the Infocom word) ends it. The on/off particles route through
+// compound below, like switch; the interpreter owns the file.
+verb "transcript", "script"
+    transcript
+    transcript_off
+
+verb "unscript"
+    transcript_off
 
 // undo and again are intercepted by the turn loop (run_turn) before dispatch, so
 // they need no handler here; the declarations just register the verbs and their
@@ -1358,6 +1381,21 @@ block msg_save_failed()
 
 block msg_restore_failed()
     say "That save couldn't be restored."
+
+block msg_transcript_on()
+    say "Transcript on. Everything from here is being recorded."
+
+block msg_transcript_off()
+    say "Transcript off."
+
+block msg_transcript_already()
+    say "The transcript is already running."
+
+block msg_transcript_not_on()
+    say "No transcript is running."
+
+block msg_transcript_failed()
+    say "No transcript was started."
 
 block msg_undone()
     say "Taken back."

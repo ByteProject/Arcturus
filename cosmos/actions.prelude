@@ -240,6 +240,37 @@ on restore
     change refused to 1
     msg_restore_failed
 
+// The transcript (output stream 2). The interpreter owns the file: opening
+// the stream makes it prompt for one, and it reports the truth in Flags 2
+// bit 0, so a player who cancels the prompt gets an honest failure line
+// instead of a false "transcript on".
+block transcript_active()
+    let f = peek_byte(17)
+    let h = f / 2
+    return f - h - h
+
+on transcript
+    change meta_turn to 1
+    if transcript_active is 1
+        change refused to 1
+        msg_transcript_already
+        stop
+    transcript_open
+    if transcript_active is 1
+        msg_transcript_on
+        stop
+    change refused to 1
+    msg_transcript_failed
+
+on transcript_off
+    change meta_turn to 1
+    if transcript_active is 0
+        change refused to 1
+        msg_transcript_not_on
+        stop
+    msg_transcript_off
+    transcript_close
+
 on xyzzy
     msg_xyzzy
 

@@ -225,6 +225,9 @@ block compound(base, particle)
     if base is action_id("take")
         if particle is 2
             return action_id("take_off")
+    if base is action_id("transcript")   // transcripcion no -> detenerla
+        if particle is 2
+            return action_id("transcript_off")
     return nothing
 
 // The chosen direction's property number, from the first direction word typed
@@ -424,8 +427,20 @@ block has_extra_words(act)
     if act is action_id("go")
         if find_direction is not nothing
             return 0
-    if word_count > 1
-        return 1
+    let n = word_count
+    let i = 1
+    while i < n
+        let keep = 0
+        let d = word_dict(i)
+        // Una partícula que forma compuesto con este verbo es parte del
+        // verbo ("transcripcion no"); cualquier otra palabra sobra.
+        if d is not nothing
+            if peek_byte(d + 6) is 32
+                if compound(act, peek_byte(d + 7)) is not nothing
+                    change keep to 1
+        if keep is 0
+            return 1
+        change i to i + 1
     return 0
 
 // A scenery grain word (flagged bit 4) whose owner is in scope; returns the
@@ -629,6 +644,19 @@ verb "guardar", "graba", "grabar"
 
 verb "recuperar", "cargar", "carga", "restaurar"
     restore
+
+// La transcripción (flujo de salida 2): TRANSCRIPCION la pone en marcha y
+// TRANSCRIPCION NO la detiene (la partícula de abajo, vía compound). El
+// intérprete es quien abre y posee el archivo. La forma con tilde funciona
+// por el pliegue de acentos (fold_accents).
+verb "transcripcion", "transcripción", "transcribir", "script"
+    transcript
+    transcript_off
+
+// La primera partícula del pack: "no" tras el verbo de transcripción la
+// apaga. compound solo la reclama para ese verbo, así que un "no" en
+// cualquier otra orden sigue siendo una palabra de más, con su rechazo.
+particle off "no"
 
 // undo and again are intercepted by the turn loop (run_turn) before dispatch, so
 // they need no handler here; the declarations just register the verbs and their
@@ -1473,6 +1501,21 @@ block msg_save_failed()
 
 block msg_restore_failed()
     say "No se pudo recuperar esa partida."
+
+block msg_transcript_on()
+    say "Transcripción en marcha. Desde aquí queda todo registrado."
+
+block msg_transcript_off()
+    say "Transcripción finalizada."
+
+block msg_transcript_already()
+    say "La transcripción ya está en marcha."
+
+block msg_transcript_not_on()
+    say "No hay ninguna transcripción en marcha."
+
+block msg_transcript_failed()
+    say "No se ha iniciado la transcripción."
 
 block msg_undone()
     say "Deshecho."
