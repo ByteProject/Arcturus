@@ -26,8 +26,11 @@ block copy_bytes(src, dst, n)
 // that has no slot for them (the loop reports "extra words"), parse_fault 3 is
 // an ambiguity the player did not resolve, parse_fault 4 a typed word the
 // dictionary does not know at all (unknown_at holds its index; the loop names
-// it back). A noun slot that HAD words but resolved nothing always faults, so
-// a handler seeing noun = nothing can trust the player typed the bare verb.
+// it back), and parse_fault 5 a pronoun with nothing to refer to (IT before
+// anything was named, THEM with no group; the loop asks the player to say
+// what they mean). A noun slot that HAD words but resolved nothing always
+// faults, so a handler seeing noun = nothing can trust the player typed the
+// bare verb, and the handlers ask their question (msg_noun_missing).
 // Read one line of player input. When an input colour is set (zcolor.input),
 // the typed text prints in that colour and the base font colour returns the
 // moment the line is entered, the way PunyInform's clr_fginput works. With no
@@ -472,6 +475,10 @@ block match_phrase(lo, hi, plural_ok)
                 if ref is not nothing
                     if in_scope(ref)
                         return ref
+                // A pronoun with nothing to refer to is its own honest
+                // fault (5, msg_no_it): the player pointed, but at nothing;
+                // neither a bare verb nor a thing that is elsewhere.
+                change parse_fault to 5
                 return nothing
         change i to i + 1
     let best = nothing

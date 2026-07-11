@@ -1013,6 +1013,23 @@ block msg_unknown_word()
         change i to i + 1
     say "\" kennt diese Geschichte nicht."
 
+// Ein nacktes Verb ("nimm", "öffne") fragt nach, mit dem Verb wie
+// getippt als Echo ("Nimm was?"). Der erste Buchstabe wird nur im
+// ASCII-Bereich großgeschrieben; ein Umlaut-Anfang bleibt wie getippt.
+block msg_noun_missing()
+    let p = word_pos(0) - 2
+    let n = word_len(0)
+    let i = 0
+    while i < n
+        let c = text_char(p + i)
+        if i is 0
+            if c >= 97
+                if c <= 122
+                    change c to c - 32
+        show_char(c)
+        change i to i + 1
+    say " was?"
+
 block msg_cant_see()
     say "So etwas siehst du hier nicht."
 

@@ -414,6 +414,15 @@ the word spelled back from the text buffer), so a typo is told apart from
 a real thing that is not here, and OOPS corrects it on the next line. The
 messages are Cosmos blocks and overridable.
 
+The refusals stay distinct, three situations, three answers: a BARE VERB
+asks its question with the verb echoed as typed ("Take what?", "Nimm was?",
+"¿Coge qué?", msg_noun_missing, since an unresolved noun never dispatches, a
+handler's empty noun always means a bare verb); a named thing that is simply
+NOT HERE keeps the classic refusal (msg_cant_see, parse_fault 1); and a
+PRONOUN WITH NOTHING TO REFER TO (IT before anything was named, THEM with no
+group, an unbound Spanish clitic) asks the player to say what they mean
+(msg_no_it, parse_fault 5).
+
 Grains. When a `noun` slot finds no real object but the typed word is a grain
 word on `here` or an in-scope object, and the action's verb is one the grain
 answers, Cosmos runs the grain's response (a `say`, a `do` block, or its

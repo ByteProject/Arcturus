@@ -52,7 +52,7 @@ block plural_tie(lo, hi)
 // A typed THEM names the last group, if there was one; the sweep re-runs
 // over that group word, so it honestly covers whatever of the group is
 // still in scope. With no group remembered, the ordinary pronoun path
-// answers (an empty them-slot falls to "you see nothing of the sort").
+// answers (an empty them is the pronoun fault, msg_no_it).
 block plural_them()
     if last_plural is 0
         return 0

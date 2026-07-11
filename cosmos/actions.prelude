@@ -122,7 +122,7 @@ on go
 on take
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     // Taking yourself comes before every other refusal: the player is animate
     // and would otherwise get the "has other ideas" meant for characters.
@@ -166,7 +166,7 @@ on take
 on drop
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     if not (player holds noun)
         msg_not_holding
@@ -185,7 +185,7 @@ on drop
 on examine
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     now noun is seen
     if desc_addr(noun) is nothing
@@ -300,7 +300,7 @@ on inventory
 on switch_on
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_no_switch
@@ -308,7 +308,7 @@ on switch_on
 on switch_off
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_no_switch
@@ -316,7 +316,7 @@ on switch_off
 on wear
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     if noun is not wearable
         change refused to 1
@@ -332,7 +332,7 @@ on wear
 on take_off
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     if noun is not worn
         msg_not_worn
@@ -343,7 +343,7 @@ on take_off
 on put
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     if second is nothing
         change refused to 1
@@ -369,7 +369,7 @@ on put
 on insert
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     if second is nothing
         change refused to 1
@@ -390,7 +390,7 @@ on insert
 on open
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     if noun is not openable
         change refused to 1
@@ -424,7 +424,7 @@ on open
 on close
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     if noun is not openable
         change refused to 1
@@ -439,7 +439,7 @@ on close
 on lock
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     if noun is not lockable
         change refused to 1
@@ -473,7 +473,7 @@ on lock
 on unlock
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     if noun is not lockable
         change refused to 1
@@ -501,7 +501,7 @@ on unlock
 on enter
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     if player in noun
         msg_already_there
@@ -543,7 +543,7 @@ on exit
 on give
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     if second is nothing
         change refused to 1
@@ -559,7 +559,7 @@ on give
 on show
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     if second is nothing
         change refused to 1
@@ -575,21 +575,21 @@ on show
 on touch
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     msg_touch
 
 on smell
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     msg_smell
 
 on taste
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_taste
@@ -600,7 +600,7 @@ on listen
 on eat
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_eat
@@ -612,7 +612,7 @@ on drink
 on attack
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_attack
@@ -620,7 +620,7 @@ on attack
 on kiss
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_kiss
@@ -628,7 +628,7 @@ on kiss
 on push
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_no_effect
@@ -636,7 +636,7 @@ on push
 on pull
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_no_effect
@@ -644,7 +644,7 @@ on pull
 on turn
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_no_effect
@@ -652,7 +652,7 @@ on turn
 on climb
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     change refused to 1
     msg_cant_climb
@@ -660,7 +660,7 @@ on climb
 on talk
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         stop
     if noun is animate
         talk_to(noun)
@@ -688,7 +688,7 @@ on tell
 block convo_guard()
     if noun is nothing
         change refused to 1
-        msg_cant_see
+        msg_noun_missing
         return 0
     if noun is not animate
         change refused to 1

@@ -405,4 +405,5 @@ def test_spanish_clitic_pronouns_on_frotz(tmp_path):
     # cogerlo while already holding it: the chain (clitic split, then the -r
     # retry) resolved to take + libro, and take answers "you already have it".
     assert "Ya tienes el libro." in out
-    assert "No ves nada de eso" in out  # cogelos: empty plural slot, honest
+    # cogelos with no group: an unbound clitic is the pronoun fault.
+    assert "Tendrás que decir a qué te refieres." in out
