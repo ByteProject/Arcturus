@@ -276,9 +276,13 @@ def _make_abbreviations(args) -> int:
             src = fh.read()
     except OSError as exc:
         print(f"arcc: error: cannot read {args.source}: {exc}", file=sys.stderr)
-        # The classic slip: `arcc update` without the dashes reads as a
-        # source file. Point at the flag instead of leaving a bare ENOENT.
-        if args.source == "update":
+        # The classic slips: `arcc update` without the dashes, `arcc --
+        # update` with a stray space (the bare -- ends option parsing),
+        # and a pasted command whose -- was smart-substituted into an
+        # en/em dash (macOS text fields do this), which argparse reads
+        # as a positional. All strand "update" in the source slot;
+        # point at the flag instead of leaving a bare ENOENT.
+        if args.source.lstrip("-\u2013\u2014") == "update":
             print("arcc: did you mean `arcc --update`?", file=sys.stderr)
         return 2
     try:
@@ -390,9 +394,13 @@ def main(argv: list[str] | None = None) -> int:
             src = fh.read()
     except OSError as exc:
         print(f"arcc: error: cannot read {args.source}: {exc}", file=sys.stderr)
-        # The classic slip: `arcc update` without the dashes reads as a
-        # source file. Point at the flag instead of leaving a bare ENOENT.
-        if args.source == "update":
+        # The classic slips: `arcc update` without the dashes, `arcc --
+        # update` with a stray space (the bare -- ends option parsing),
+        # and a pasted command whose -- was smart-substituted into an
+        # en/em dash (macOS text fields do this), which argparse reads
+        # as a positional. All strand "update" in the source slot;
+        # point at the flag instead of leaving a bare ENOENT.
+        if args.source.lstrip("-\u2013\u2014") == "update":
             print("arcc: did you mean `arcc --update`?", file=sys.stderr)
         return 2
 
