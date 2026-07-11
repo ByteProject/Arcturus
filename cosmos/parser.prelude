@@ -95,6 +95,12 @@ block parse_line()
         change act to verb_fallback
         if act is 0
             return 0
+    // The held tiebreak's direction for this command (the matcher applies
+    // it where a tie is found): most verbs mean the thing in hand, TAKE
+    // means the one not yet there.
+    change tie_want to 1
+    if act is action_id("take")
+        change tie_want to 0
     change way to find_direction
     resolve_objects
     // An ambiguous noun phrase asks rather than refuses: "Which do you
@@ -518,14 +524,20 @@ block match_phrase(lo, hi, plural_ok)
             if plural_ok is 1
                 if plural_tie(lo, hi) is 1
                     return nothing
-        // A genuine ambiguity: remember the phrase (so the ask can list the
-        // tied candidates) and where an answer's narrowing words weave back
-        // in (just past the phrase's last word). parse_line runs the ask.
-        change parse_fault to 3
+        // Remember the phrase first (the tiebreak and the ask both read
+        // the ask_* range), then the held tiebreak: exactly one candidate
+        // on the side this verb wants (tie_want: in hand for most verbs,
+        // out of hand for TAKE) settles the tie silently, the mirror you
+        // carry over the guard's. Only a tie that survives becomes the
+        // genuine ambiguity, and parse_line runs the ask; ask_at is where
+        // an answer's narrowing words weave back in.
         change ask_lo to lo
         change ask_hi to hi
         change ask_score to best_score
         change ask_at to word_pos(hi - 1) + word_len(hi - 1)
+        if which_tiebreak(tie_want) is not nothing
+            return which_tiebreak(tie_want)
+        change parse_fault to 3
         return nothing
     return best
 
@@ -619,6 +631,30 @@ block list_which()
                     change shown to shown + 1
         change obj to obj + 1
     line_which_end
+
+// The held tiebreak (docs/02 section 8, a field rule): a tie where exactly
+// one candidate answers for the player's hands is not an ambiguity worth a
+// question. EXAMINE MIRROR with one in hand and one on the guard means the
+// held one; TAKE MIRROR in the same room means the one NOT held (taking
+// wants the takeable one), so the caller asks for the side the verb can do
+// something with. Returns the single candidate on that side, or nothing
+// when the tie genuinely stands (none there, or more than one).
+block which_tiebreak(want_held)
+    let pick = nothing
+    let obj = 1
+    while obj <= object_count
+        if obj is not hidden
+            if phrase_score(obj, ask_lo, ask_hi) is ask_score
+                if in_scope(obj)
+                    let h = 0
+                    if player holds obj
+                        change h to 1
+                    if h is want_held
+                        if pick is not nothing
+                            return nothing
+                        change pick to obj
+        change obj to obj + 1
+    return pick
 
 // The disambiguation ask (docs/02 section 8): the phrase in [ask_lo, ask_hi)
 // tied between several objects at score ask_score. Ask which one, then read

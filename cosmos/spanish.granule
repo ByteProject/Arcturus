@@ -573,6 +573,9 @@ block fix_oops()
     let act = resolve_verb
     if act is 0
         return 0
+    change tie_want to 1
+    if act is action_id("take")
+        change tie_want to 0
     change way to find_direction
     resolve_objects
     if parse_fault is 1

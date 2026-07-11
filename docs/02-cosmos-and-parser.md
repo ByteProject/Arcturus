@@ -378,7 +378,14 @@ typed words its `words` contain, then takes the single best:
   dispatched: a handler that sees `noun is nothing` can trust it means
   the player typed the bare verb, never an unresolved phrase.
 - One object scores best: it fills the slot.
-- Several tie at the best score: a genuine ambiguity. The parser asks
+- Several tie at the best score: first the HELD TIEBREAK. A tie where
+  exactly one candidate is in the player's hands is not an ambiguity
+  worth a question: EXAMINE MIRROR with your own in hand and the guard's
+  on the guard means yours, silently. TAKE runs the tiebreak the other
+  way (exactly one candidate NOT held wins, since taking wants the
+  takeable one), so a held thing never shadows the one on the table. A
+  tie with nobody on the wanted side, or two candidates there, stands.
+- The tie survives: a genuine ambiguity. The parser asks
   "Which do you mean, the gold coin or the silver coin?", printing each
   candidate with its article (in German, declined to the accusative), and
   reads the answer. An answer that starts with a verb or a direction is a
