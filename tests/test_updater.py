@@ -44,7 +44,7 @@ def test_update_replaces_and_reports(tmp_path, monkeypatch, capsys):
     assert rc == 0
     assert "arcc: updated  v0.11.18 -> v0.11.99" in out
     assert "arcimg: updated  v1.7.0 -> v1.8.0" in out
-    assert "UPDATING BINARIES" in out
+    assert "UPDATING SCRIPTS" in out
     assert out.endswith("\n\n")  # the house blank line closes the output
     assert me.read_bytes() == fresh["arcc"]
     assert sib.read_bytes() == fresh["arcimg"]
