@@ -59,7 +59,8 @@ block status_lines()
     return 1
 
 // The bar names the room, so the opening description skips its title line
-// (loop.prelude, the PunyInform start-screen convention).
+// and the prose scrolls straight under the bar (loop.prelude; Stefan's
+// start-screen design, not Puny's, whose Look always prints the name).
 block title_in_bar()
     return 1
 

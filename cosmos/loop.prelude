@@ -24,8 +24,9 @@ block status_lines()
 
 // Is the room name already on screen in a status bar? 0 by default; the
 // statusline granule overrides it to 1, and the opening room description
-// then skips its title line (the bar says where you are), the PunyInform
-// start-screen convention. Later looks print the title as usual.
+// then skips its title line (the bar says where you are), so the opening
+// prose scrolls straight under the bar: Stefan's start-screen design.
+// Later looks print the title as usual.
 block title_in_bar()
     return 0
 

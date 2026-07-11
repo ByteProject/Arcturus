@@ -312,8 +312,8 @@ The room is described once on entry. The status line (the room name, plus
 the score and move count in a scored game, the move count alone otherwise)
 is repainted before every prompt. At game start, with the
 statusline summoned, the opening description skips its title line: the bar
-already names the room (the PunyInform start-screen convention); every later
-look prints the title as usual.
+already names the room, and the opening prose scrolls straight under it;
+every later look prints the title as usual.
 
 When the player stands on a supporter or inside a container, the room
 title and the status bar both say where: "Crypt (on the altar)", "Cellar
