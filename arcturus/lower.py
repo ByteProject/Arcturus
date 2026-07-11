@@ -56,7 +56,8 @@ INTRINSICS = frozenset({
     # a compile-time flag (1 if any object spans, else 0) the scope code guards on,
     # so `if any_spans() is 1` folds away and DCE drops the spans blocks when no
     # object spans (a static-if, see _if).
-    "spans_addr", "spans_count", "any_spans", "any_doors", "any_named", "any_grains",
+    "spans_addr", "spans_count", "any_spans", "any_doors", "any_named",
+    "any_pluribus", "any_grains",
     "any_allwords", "any_tagged", "any_scored", "any_scoperoom", "scope_room",
     # any_enterable is 1 when any object is a supporter or a container (by
     # kind chain), so the nested-location suffix on the room title and the
@@ -963,6 +964,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_named(): the compile-time named flag (1 or 0), so the article blocks
         # fold their `named` check away in a game with no proper-named objects.
         _place(rt, Const(_any_named(ctx)), dest)
+    elif name == "any_pluribus":
+        # any_pluribus(): the compile-time grammatical-plural flag (1 or 0); the
+        # number-agreement machinery folds away in an unmarked game.
+        _place(rt, Const(_any_pluribus(ctx)), dest)
     elif name == "set_colour":
         opa, opb, t = _two_operands(rt, ctx, args[0], args[1])
         rt.op("set_colour", opa, opb)
@@ -1141,6 +1146,13 @@ def _any_named(ctx) -> int:
     else 0. The article blocks guard their named check on this so it folds away in
     a game with no named objects."""
     return 1 if (ctx.layout is not None and ctx.layout.has_named) else 0
+
+
+def _any_pluribus(ctx) -> int:
+    """The compile-time pluribus flag: 1 if any object is grammatically plural,
+    else 0. The articles, the ${is x} copula, and the message branches guard on
+    it, so an unmarked game stays byte-identical."""
+    return 1 if (ctx.layout is not None and ctx.layout.has_pluribus) else 0
 
 
 def _any_grains(ctx) -> int:
@@ -1855,7 +1867,20 @@ def _say_with_article(rt, ctx, article, case, expr):
     to 0 (nominative) and an uninflected art_the is called exactly as before."""
     op, t = _operand(rt, ctx, expr)
     cap = 1 if article[0].isupper() else 0
-    block = "blk_art_a" if article.lower() in ("a", "an") else "blk_art_the"
+    low = article.lower()
+    if low == "is":
+        # The number-agreeing copula, ${is x}: art_is prints is or are by the
+        # object's pluribus attribute, worded by the language pack (ist/sind,
+        # está/están). It does not inflect for case, so a tag is refused.
+        if case is not None:
+            raise ArcError(
+                f"${{is:{case} ...}}: the copula takes no case tag"
+            )
+        rt.op("call_vn", RoutineRef("blk_art_is"), op, Const(cap))
+        if t is not None:
+            ctx.free_temp(t)
+        return
+    block = "blk_art_a" if low in ("a", "an") else "blk_art_the"
     if case is None:
         rt.op("call_vn", RoutineRef(block), op, Const(cap))
     else:
@@ -1918,6 +1943,8 @@ def _static_value(ctx, expr):
         return _any_doors(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_named":
         return _any_named(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_pluribus":
+        return _any_pluribus(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_grains":
         return _any_grains(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tables":

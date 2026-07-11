@@ -846,6 +846,22 @@ block art_the(obj, cap)
         show(" ")
         print_name(obj)
         return
+    // El plural (pluribus): los/las, por género. Se pliega sin objetos
+    // marcados.
+    if any_pluribus is 1
+        if obj is pluribus
+            if obj is feminine
+                if cap is 1
+                    show("Las ")
+                else
+                    show("las ")
+            else
+                if cap is 1
+                    show("Los ")
+                else
+                    show("los ")
+            print_name(obj)
+            return
     if obj is feminine
         if cap is 1
             show("La ")
@@ -875,6 +891,22 @@ block art_a(obj, cap)
         show(" ")
         print_name(obj)
         return
+    // El plural indefinido: unos/unas (unas tijeras). Se pliega sin
+    // objetos marcados.
+    if any_pluribus is 1
+        if obj is pluribus
+            if obj is feminine
+                if cap is 1
+                    show("Unas ")
+                else
+                    show("unas ")
+            else
+                if cap is 1
+                    show("Unos ")
+                else
+                    show("unos ")
+            print_name(obj)
+            return
     if obj is feminine
         if cap is 1
             show("Una ")
@@ -886,6 +918,24 @@ block art_a(obj, cap)
         else
             show("un ")
     print_name(obj)
+
+// La cópula con número (docs/01 sección 16): ${is x} imprime "está" o
+// "están" según el atributo pluribus del objeto (estar, el verbo de estados
+// y lugares que usan los mensajes). Sin objetos marcados, la rama plural
+// se pliega.
+block art_is(obj, cap)
+    if any_pluribus is 1
+        if obj is pluribus
+            if cap is 1
+                show("Están")
+            else
+                show("están")
+            return 0
+    if cap is 1
+        show("Está")
+    else
+        show("está")
+    return 0
 
 // Las palabras de la cabecera. El compilador arma la cabecera (título, lema,
 // autor, línea de versión), pero las palabras ENTRE las partes son del idioma:
@@ -1188,6 +1238,10 @@ block msg_not_inside()
     say "No estás dentro de nada."
 
 block msg_cant_climb()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} no son para escalar."
+            return 0
     say "${The noun} no es para escalar."
 
 // Sensory.
@@ -1196,12 +1250,20 @@ block msg_examine_self()
     say "¿Vamos a admirarnos un rato más o jugamos a la aventura?"
 
 block msg_nothing_special()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} no tienen nada de particular."
+            return 0
     say "${The noun} no tiene nada de particular."
 
 block msg_touch()
     say "Tocas ${the noun}. No notas nada que tus ojos no vieran ya."
 
 block msg_smell()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} huelen más o menos como esperabas."
+            return 0
     say "${The noun} huele más o menos como esperabas."
 
 block msg_listen()
@@ -1212,15 +1274,30 @@ block msg_taste()
 
 // Carrying and giving.
 block msg_taken()
+    if any_pluribus is 1
+        if noun is pluribus
+            if noun is feminine
+                say "Cogidas."
+            else
+                say "Cogidos."
+            return 0
     if noun is feminine
         say "Cogida."
     else
         say "Cogido."
 
 block msg_fixed()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} se quedan justo donde están."
+            return 0
     say "${The noun} se queda justo donde está."
 
 block msg_animate_refuses()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} tienen otros planes."
+            return 0
     say "${The noun} tiene otros planes."
 
 block msg_have_it()
@@ -1256,6 +1333,17 @@ block msg_dropped()
     // Anidado, la línea dice adónde: sobre el altar, en la caja.
     if any_enterable is 1
         if parent_of(player) is not here
+            // La forma plural es un duplicado completo bajo el pliegue: un
+            // juego sin objetos marcados conserva las cadenas originales.
+            if any_pluribus is 1
+                if noun is pluribus
+                    if parent_of(player) is supporter
+                        show("Caen sobre ")
+                    else
+                        show("Caen en ")
+                    art_the(parent_of(player), 0)
+                    say "."
+                    return 0
             if parent_of(player) is supporter
                 show("Cae sobre ")
             else
@@ -1275,9 +1363,20 @@ block msg_put_where()
     say "¿Sobre qué, o dentro de qué?"
 
 block msg_cant_put()
+    if any_pluribus is 1
+        if second is pluribus
+            say "${The second} no pueden contenerlo."
+            return 0
     say "${The second} no puede contenerlo."
 
 block msg_closed()
+    if any_pluribus is 1
+        if second is pluribus
+            if second is feminine
+                say "${The second} están cerradas."
+            else
+                say "${The second} están cerrados."
+            return 0
     if second is feminine
         say "${The second} está cerrada."
     else
@@ -1287,19 +1386,41 @@ block msg_to_whom()
     say "¿A quién?"
 
 block msg_give()
+    if any_pluribus is 1
+        if second is pluribus
+            say "${The second} no quieren ${the noun}. Qué desfachatez."
+            return 0
     say "${The second} no quiere ${the noun}. Qué desfachatez."
 
 block msg_show()
+    if any_pluribus is 1
+        if second is pluribus
+            say "Parece que a ${the second} no les interesa demasiado."
+            return 0
     say "Parece que a ${the second} no le interesa demasiado."
 
 // Wearing.
 block msg_worn()
+    if any_pluribus is 1
+        if noun is pluribus
+            if noun is feminine
+                say "Puestas."
+            else
+                say "Puestos."
+            return 0
     if noun is feminine
         say "Puesta."
     else
         say "Puesto."
 
 block msg_already_worn()
+    if any_pluribus is 1
+        if noun is pluribus
+            if noun is feminine
+                say "Ya llevas puestas ${the noun}."
+            else
+                say "Ya llevas puestos ${the noun}."
+            return 0
     say "Ya llevas puesto ${the noun}."
 
 block msg_cant_wear()
@@ -1313,57 +1434,118 @@ block msg_not_worn()
 
 // Doors, containers, locks.
 block msg_opened()
+    if any_pluribus is 1
+        if noun is pluribus
+            if noun is feminine
+                say "Abiertas."
+            else
+                say "Abiertos."
+            return 0
     if noun is feminine
         say "Abierta."
     else
         say "Abierto."
 
 block msg_already_open()
+    if any_pluribus is 1
+        if noun is pluribus
+            if noun is feminine
+                say "${The noun} ya están abiertas."
+            else
+                say "${The noun} ya están abiertos."
+            return 0
     if noun is feminine
         say "${The noun} ya está abierta."
     else
         say "${The noun} ya está abierto."
 
 block msg_cant_open()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} no se abren."
+            return 0
     say "${The noun} no se abre."
 
 block msg_open_locked()
+    if any_pluribus is 1
+        if noun is pluribus
+            if noun is feminine
+                say "${The noun} están cerradas con llave."
+            else
+                say "${The noun} están cerrados con llave."
+            return 0
     if noun is feminine
         say "${The noun} está cerrada con llave."
     else
         say "${The noun} está cerrado con llave."
 
 block msg_door_locked(d)
+    if any_pluribus is 1
+        if d is pluribus
+            if d is feminine
+                say "${The d} están cerradas con llave."
+            else
+                say "${The d} están cerrados con llave."
+            return 0
     if d is feminine
         say "${The d} está cerrada con llave."
     else
         say "${The d} está cerrado con llave."
 
 block msg_door_shut(d)
+    if any_pluribus is 1
+        if d is pluribus
+            if d is feminine
+                say "${The d} están cerradas. Primero tienes que abrir ${the d}."
+            else
+                say "${The d} están cerrados. Primero tienes que abrir ${the d}."
+            return 0
     if d is feminine
         say "${The d} está cerrada. Primero tienes que abrir ${the d}."
     else
         say "${The d} está cerrado. Primero tienes que abrir ${the d}."
 
 block msg_closed_it()
+    if any_pluribus is 1
+        if noun is pluribus
+            if noun is feminine
+                say "Cerradas."
+            else
+                say "Cerrados."
+            return 0
     if noun is feminine
         say "Cerrada."
     else
         say "Cerrado."
 
 block msg_already_shut()
+    if any_pluribus is 1
+        if noun is pluribus
+            if noun is feminine
+                say "${The noun} ya están cerradas."
+            else
+                say "${The noun} ya están cerrados."
+            return 0
     if noun is feminine
         say "${The noun} ya está cerrada."
     else
         say "${The noun} ya está cerrado."
 
 block msg_cant_close()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} no se cierran."
+            return 0
     say "${The noun} no se cierra."
 
 block msg_locked()
     say "Cierras con llave."
 
 block msg_cant_lock()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} no se pueden cerrar con llave."
+            return 0
     say "${The noun} no se puede cerrar con llave."
 
 block msg_close_first()
@@ -1375,31 +1557,61 @@ block msg_no_key()
     say "No tienes la llave adecuada."
 
 block msg_wrong_key()
+    if any_pluribus is 1
+        if second is pluribus
+            say "${The second} no encajan."
+            return 0
     say "${The second} no encaja."
 
 block msg_unlocked()
     say "Abres con llave."
 
 block msg_cant_unlock()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} no se pueden abrir con llave."
+            return 0
     say "${The noun} no se puede abrir con llave."
 
 // Operating.
 block msg_no_switch()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} no se pueden encender."
+            return 0
     say "${The noun} no se puede encender."
 
 block msg_already_on()
+    if any_pluribus is 1
+        if noun is pluribus
+            if noun is feminine
+                say "${The noun} ya están encendidas."
+            else
+                say "${The noun} ya están encendidos."
+            return 0
     if noun is feminine
         say "${The noun} ya está encendida."
     else
         say "${The noun} ya está encendido."
 
 block msg_already_off()
+    if any_pluribus is 1
+        if noun is pluribus
+            if noun is feminine
+                say "${The noun} ya están apagadas."
+            else
+                say "${The noun} ya están apagados."
+            return 0
     if noun is feminine
         say "${The noun} ya está apagada."
     else
         say "${The noun} ya está apagado."
 
 block msg_no_effect()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} no se inmutan."
+            return 0
     say "${The noun} no se inmuta."
 
 // Body, action, idle.
@@ -1426,15 +1638,27 @@ block msg_sing()
 
 // Conversation.
 block msg_no_talk()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} no parecen con ganas de conversar."
+            return 0
     say "${The noun} no parece con ganas de conversar."
 
 block msg_use_talk()
     say "Para conseguir algo de ${the noun}, usa HABLA CON ${the noun}."
 
 block msg_ask()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} no sueltan prenda sobre el tema."
+            return 0
     say "${The noun} no suelta prenda sobre el tema."
 
 block msg_tell()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} reciben la noticia con magnífica indiferencia."
+            return 0
     say "${The noun} recibe la noticia con magnífica indiferencia."
 
 block msg_answer()

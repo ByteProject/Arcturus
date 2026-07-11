@@ -794,6 +794,16 @@ block art_a(obj, cap)
         show(" ")
         print_name(obj)
         return
+    // A pluribus object has no singular article: "some scissors" (the
+    // hand-set indefinite above still wins; folds away unmarked).
+    if any_pluribus is 1
+        if obj is pluribus
+            if cap is 1
+                show("Some ")
+            else
+                show("some ")
+            print_name(obj)
+            return
     if obj is an
         if cap is 1
             show("An ")
@@ -805,6 +815,24 @@ block art_a(obj, cap)
         else
             show("a ")
     print_name(obj)
+
+// The number-agreeing copula (docs/01 section 16): ${is x} prints "is" or
+// "are" by the object's pluribus attribute, so one sentence template serves
+// the scissors and the lamp alike. cap 1 is ${Is x}. In an unmarked game
+// the plural branch folds away and this prints "is", period.
+block art_is(obj, cap)
+    if any_pluribus is 1
+        if obj is pluribus
+            if cap is 1
+                show("Are")
+            else
+                show("are")
+            return 0
+    if cap is 1
+        show("Is")
+    else
+        show("is")
+    return 0
 
 // The banner words. The compiler assembles the banner (title, headline,
 // author, the release line), but the words BETWEEN the parts are language:
@@ -1111,6 +1139,10 @@ block msg_not_inside()
     say "You aren't inside anything to leave."
 
 block msg_cant_climb()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} aren't for climbing."
+            return 0
     say "${The noun} isn't for climbing."
 
 // Sensory.
@@ -1127,6 +1159,10 @@ block msg_touch()
     say "You touch ${the noun}. You feel nothing that your eyes didn't already see."
 
 block msg_smell()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} smell about as you'd expect."
+            return 0
     say "${The noun} smells about as you'd expect."
 
 block msg_listen()
@@ -1137,12 +1173,24 @@ block msg_taste()
 
 // Carrying and giving.
 block msg_taken()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "Got them."
+            return 0
     say "Got it."
 
 block msg_fixed()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} stay exactly where they are."
+            return 0
     say "${The noun} stays exactly where it is."
 
 block msg_animate_refuses()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} have other ideas."
+            return 0
     say "${The noun} has other ideas."
 
 block msg_have_it()
@@ -1167,12 +1215,27 @@ block msg_dropped()
     // onto the altar, into the crate. Folds away without enterables.
     if any_enterable is 1
         if parent_of(player) is not here
+            // The plural wording is a full duplicate under the fold, so an
+            // unmarked game keeps the original strings, byte for byte.
+            if any_pluribus is 1
+                if noun is pluribus
+                    if parent_of(player) is supporter
+                        show("Down they go, onto ")
+                    else
+                        show("Down they go, into ")
+                    art_the(parent_of(player), 0)
+                    say "."
+                    return 0
             if parent_of(player) is supporter
                 show("Down it goes, onto ")
             else
                 show("Down it goes, into ")
             art_the(parent_of(player), 0)
             say "."
+            return 0
+    if any_pluribus is 1
+        if noun is pluribus
+            say "Down they go."
             return 0
     say "Down it goes."
 
@@ -1189,28 +1252,50 @@ block msg_cant_put()
     say "${The second} won't hold it."
 
 block msg_closed()
+    if any_pluribus is 1
+        say "${The second} ${is second} shut."
+        return 0
     say "${The second} is shut."
 
 block msg_to_whom()
     say "To whom?"
 
 block msg_give()
+    if any_pluribus is 1
+        if second is pluribus
+            say "${The second} don't want ${the noun}. Outrageous."
+            return 0
     say "${The second} doesn't want ${the noun}. Outrageous."
 
 block msg_show()
+    if any_pluribus is 1
+        say "Seems like ${the second} ${is second} not really into that."
+        return 0
     say "Seems like ${the second} is not really into that."
 
 // Wearing.
 block msg_worn()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "On they go."
+            return 0
     say "On it goes."
 
 block msg_already_worn()
     say "You're already wearing ${the noun}."
 
 block msg_cant_wear()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} were never meant to be worn."
+            return 0
     say "${The noun} was never meant to be worn."
 
 block msg_removed()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "Off they come."
+            return 0
     say "Off it comes."
 
 block msg_not_worn()
@@ -1221,33 +1306,61 @@ block msg_opened()
     say "Open."
 
 block msg_already_open()
+    if any_pluribus is 1
+        say "${The noun} ${is noun} already open."
+        return 0
     say "${The noun} is already open."
 
 block msg_cant_open()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} don't open."
+            return 0
     say "${The noun} doesn't open."
 
 block msg_open_locked()
+    if any_pluribus is 1
+        say "${The noun} ${is noun} locked."
+        return 0
     say "${The noun} is locked."
 
 block msg_door_locked(d)
+    if any_pluribus is 1
+        say "${The d} ${is d} locked."
+        return 0
     say "${The d} is locked."
 
 block msg_door_shut(d)
+    if any_pluribus is 1
+        if d is pluribus
+            say "${The d} are shut. You open them first."
+            return 0
     say "${The d} is shut. You open it first."
 
 block msg_closed_it()
     say "Shut."
 
 block msg_already_shut()
+    if any_pluribus is 1
+        say "${The noun} ${is noun} already shut."
+        return 0
     say "${The noun} is already shut."
 
 block msg_cant_close()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} don't close."
+            return 0
     say "${The noun} doesn't close."
 
 block msg_locked()
     say "Locked."
 
 block msg_cant_lock()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} don't lock."
+            return 0
     say "${The noun} doesn't lock."
 
 block msg_close_first()
@@ -1259,25 +1372,47 @@ block msg_no_key()
     say "You don't have the right key."
 
 block msg_wrong_key()
+    if any_pluribus is 1
+        if second is pluribus
+            say "${The second} don't fit."
+            return 0
     say "${The second} doesn't fit."
 
 block msg_unlocked()
     say "Unlocked."
 
 block msg_cant_unlock()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} don't unlock."
+            return 0
     say "${The noun} doesn't unlock."
 
 // Operating.
 block msg_no_switch()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} aren't the switching kind."
+            return 0
     say "${The noun} isn't the switching kind."
 
 block msg_already_on()
+    if any_pluribus is 1
+        say "${The noun} ${is noun} already on."
+        return 0
     say "${The noun} is already on."
 
 block msg_already_off()
+    if any_pluribus is 1
+        say "${The noun} ${is noun} already off."
+        return 0
     say "${The noun} is already off."
 
 block msg_no_effect()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} hold firm."
+            return 0
     say "${The noun} holds firm."
 
 // Body, action, idle.
@@ -1285,6 +1420,9 @@ block msg_attack()
     say "Hitting things rarely helps, and it won't start now."
 
 block msg_eat()
+    if any_pluribus is 1
+        say "${The noun} ${is noun} not on the menu."
+        return 0
     say "${The noun} is not on the menu."
 
 block msg_drink()
@@ -1304,6 +1442,10 @@ block msg_sing()
 
 // Conversation.
 block msg_no_talk()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} don't seem up for a conversation."
+            return 0
     say "${The noun} doesn't seem up for a conversation."
 
 // The gentle nudge when TELL should hand over to the conversations menu;
@@ -1315,9 +1457,17 @@ block msg_use_talk()
 // these when no topic matches; with no conversation feature they are the
 // whole answer, as in PunyInform).
 block msg_ask()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} stay mum on the subject."
+            return 0
     say "${The noun} stays mum on the subject."
 
 block msg_tell()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} receive the news with magnificent indifference."
+            return 0
     say "${The noun} receives the news with magnificent indifference."
 
 block msg_answer()

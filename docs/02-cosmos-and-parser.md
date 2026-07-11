@@ -1140,6 +1140,16 @@ adjectives do not inflect ("die Kiste ist offen", "der Schrank ist offen"), so t
 messages carry no per-gender variants: only the article changes, in the one place
 it is printed. The worked example is `examples/beispiel-deutsch.storyarc`.
 
+Number joins gender: the `pluribus` attribute (docs/01, standard attributes)
+marks the one object that is grammatically plural (the scissors), and the same
+machinery agrees. The article blocks grow a plural column (English "some";
+German's bare indefinite plural and die/die/den/der by case; Spanish los/las,
+unos/unas, by gender), the pack's `art_is` block words the `${is x}` copula
+(is/are, ist/sind, está/están), and the core messages carry number branches
+beside the gender ones, every one under the `any_pluribus` fold, so a game
+with no pluribus object compiles byte-identical. The German and Spanish plural
+wordings await their native passes.
+
 Abbreviations. The baked-in abbreviation set is tuned to the English library, so a
 non-English game is built with no default set rather than English abbreviations
 that would not fit and would only cost the table (docs/04 section 10). Cosmos

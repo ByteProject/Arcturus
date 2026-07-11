@@ -427,6 +427,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `an` | The indefinite article is "an", not "a". Derived from the name's first letter (a vowel -> `an`); set `an` or `an false` only for an exception (an hour, a unicorn). |
 | `feminine` | Grammatical gender. Drives the Spanish articles and agreement (la lampara, Cogida), the German article (declared there with `die`, which sets this), and the English "her" pronoun on a character. Spanish derives it from a head noun ending in -a or a reliably feminine suffix; declare it where spelling cannot reveal it (la llave; an English Ruth). Masculine is the unmarked default. |
 | `neutral` | The third German gender, declared there with `das` (das Buch, "es"). English and Spanish never read it. |
+| `pluribus` | Grammatical number: ONE object that is grammatically plural (the scissors, the boots; e pluribus unum, many speaking through one). The articles read it ("some scissors"; German's bare indefinite plural and die/die/den/der by case; Spanish los/las, unos/unas), `${is x}` agrees (is/are, ist/sind, está/están), and the core messages conjugate ("The scissors stay exactly where they are."). NOT the plurals granule, whose group words sweep several distinct singular objects ("take coins"). Costs nothing in a game that never sets it. |
 | `switchable` | Marks a thing the `switch` verb targets, but the effect is the author's: unlike `openable` or `edible`, there is no built-in on/off behavior (the library has no way to know what turning a thing on should do), so give the object `on switch_on` and `on switch_off` handlers. Without them, switching it is refused (`msg_no_switch`). The attribute itself only advertises intent. |
 | `openable` | Can be opened and closed; the `open` / `close` verbs apply. |
 | `open` | Currently open (a container or door). Set by `open`, cleared by `close`. A closed container hides its contents from scope. |
@@ -1522,6 +1523,12 @@ der/den/dem). The cases are `nom`, `acc` (or `akk`), `dat`, and `gen`; with no
 tag the case is nominative. English and Spanish ignore the tag, so it costs
 nothing there; a language pack's article block reads it (02, section 14a). Only
 the definite and indefinite article take a tag.
+
+The copula agrees the same way: `${is ruby}` (capitalized `${Is ruby}`) prints
+"is", or "are" when the object is `pluribus` (the scissors), worded by the
+language pack (ist/sind; está/están, the estar of states and places). One
+sentence template serves every number in every language: "${The coins}
+${is coins} under the steamshovel." It takes no case tag.
 
 Screen colours have their own section, 16a, below.
 
