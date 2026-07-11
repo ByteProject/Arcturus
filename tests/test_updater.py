@@ -78,3 +78,24 @@ def test_real_amalgam_passes_validation():
         data = f.read()
     assert updater._validate("arcc", data) == ""
     assert updater._version_in(data.decode("utf-8", "replace")) != "unknown"
+
+
+def test_amalgam_embeds_every_package_module():
+    # The bug this fences: updater.py was born after the amalgamator's module
+    # list, so `arcc --update` shipped as a flag whose import died inside the
+    # standalone. The amalgamator now refuses to build an incomplete list;
+    # this asserts the same completeness from the suite's side.
+    import importlib.util
+    here = os.path.dirname(os.path.abspath(__file__))
+    root = os.path.dirname(here)
+    spec = importlib.util.spec_from_file_location(
+        "amalgamate", os.path.join(root, "tools", "amalgamate.py"))
+    am = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(am)
+    pkg = os.path.join(root, "arcturus")
+    on_disk = {n[:-3] for n in os.listdir(pkg)
+               if n.endswith(".py") and n not in ("__init__.py", "__main__.py")}
+    assert on_disk == set(am._MODULE_ORDER), (
+        "arcturus/ and tools/amalgamate.py _MODULE_ORDER disagree; "
+        "a module missing there ships a broken standalone"
+    )
