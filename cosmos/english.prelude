@@ -547,7 +547,7 @@ verb "restart"
 verb "save"
     save
 
-verb "restore"
+verb "restore", "load"
     restore
 
 // The transcript: TRANSCRIPT (or SCRIPT) starts one, TRANSCRIPT OFF (or

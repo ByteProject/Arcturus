@@ -225,7 +225,9 @@ block compound(base, particle)
     if base is action_id("take")
         if particle is 2
             return action_id("take_off")
-    if base is action_id("transcript")   // transcripcion no -> detenerla
+    if base is action_id("transcript")   // transcripcion no / transcript on
+        if particle is 1
+            return action_id("transcript")
         if particle is 2
             return action_id("transcript_off")
     return nothing
@@ -626,48 +628,58 @@ verb "examinar", "examina", "x", "inspeccionar", "inspecciona"
 // so each sets meta_turn: the loop then skips the per-turn pulse and the turn
 // count (a cancelled quit must not cost a turn). quit and restart confirm first.
 // Override on quit for a custom send-off, reusing confirm_quit and do_quit.
-verb "fin", "terminar", "termina"
+// Cada verbo meta responde TAMBIÉN a su original inglés (quit, score, save,
+// restore, undo, again, oops, transcript): quien viene de jugar en inglés no
+// siempre acierta la palabra española a la primera, y los verbos de sesión
+// tienen que funcionar sin más.
+verb "fin", "terminar", "termina", "quit"
     quit
 
-verb "puntuacion", "puntuación", "puntos"
+verb "puntuacion", "puntuación", "puntos", "score"
     score
 
-verb "reiniciar", "recomenzar"
+verb "reiniciar", "recomenzar", "restart"
     restart
 
 // Saving and restoring. do_save returns 1 when the save is written; a successful
 // restore does not return into the restore handler at all, it resumes at the
 // do_save point with result 2 (so the save handler redescribes the room after a
 // restore). The restore handler is reached only when the restore fails.
-verb "guardar", "graba", "grabar"
+verb "guardar", "graba", "grabar", "save"
     save
 
-verb "recuperar", "cargar", "carga", "restaurar"
+verb "recuperar", "cargar", "carga", "restaurar", "restore", "load"
     restore
 
 // La transcripción (flujo de salida 2): TRANSCRIPCION la pone en marcha y
 // TRANSCRIPCION NO la detiene (la partícula de abajo, vía compound). El
 // intérprete es quien abre y posee el archivo. La forma con tilde funciona
-// por el pliegue de acentos (fold_accents).
-verb "transcripcion", "transcripción", "transcribir", "script"
+// por el pliegue de acentos (fold_accents). Inglés como respaldo:
+// TRANSCRIPT ON/OFF (las partículas de abajo) y UNSCRIPT.
+verb "transcripcion", "transcripción", "transcribir", "transcript", "script"
     transcript
     transcript_off
 
-// La primera partícula del pack: "no" tras el verbo de transcripción la
-// apaga. compound solo la reclama para ese verbo, así que un "no" en
-// cualquier otra orden sigue siendo una palabra de más, con su rechazo.
-particle off "no"
+verb "unscript"
+    transcript_off
+
+// Las primeras partículas del pack: "no" (o el inglés "off") tras el verbo
+// de transcripción la apaga, y "on" la enciende explícitamente. compound
+// solo las reclama para ese verbo, así que un "no" en cualquier otra orden
+// sigue siendo una palabra de más, con su rechazo.
+particle on  "on"
+particle off "no", "off"
 
 // undo and again are intercepted by the turn loop (run_turn) before dispatch, so
 // they need no handler here; the declarations just register the verbs and their
 // actions. again replays the previous non-meta command.
-verb "deshacer"
+verb "deshacer", "undo"
     undo
 
-verb "repetir", "repite", "g", "otra"
+verb "repetir", "repite", "g", "otra", "again"
     again
 
-verb "ups", "corregir"
+verb "ups", "corregir", "oops"
     oops
 
 // The magic word. Not a meta verb (it is a normal, if fruitless, action), so it

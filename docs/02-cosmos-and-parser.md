@@ -771,6 +771,14 @@ transcript was started" rather than a false confirmation, and the closing
 German words it MITSCHRIFT/PROTOKOLL AN and AUS; Spanish TRANSCRIPCION and
 TRANSCRIPCION NO.
 
+The English meta words work in every language pack: QUIT, SCORE, RESTART,
+SAVE, RESTORE (and LOAD), UNDO, AGAIN, OOPS, TRANSCRIPT/SCRIPT ON/OFF, and
+UNSCRIPT are declared as extra synonyms in the German and Spanish packs. A
+player used to English adventures guesses the localized session verb wrong
+at first; the session must never be hostage to vocabulary, so the original
+always answers. In-world verbs stay purely native: the fallback is a meta
+courtesy, not a second grammar.
+
 Every default message is a Cosmos string, overridable globally by replacing
 the Cosmos default or locally by handling the verb on an object or kind.
 
