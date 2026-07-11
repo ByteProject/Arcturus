@@ -71,7 +71,7 @@ def _print_header() -> None:
     import arcturus
     build = getattr(arcturus, "__build__", None) or "source"
     print(f"Arcturus {arcturus.__version__}  (build {build}) "
-          "-- UPDATING BINARIES")
+          "-- UPDATING SCRIPTS")
     print("Programming language and compiler for the Infocom Z-machine")
     print("Copyright (c) 2026, Stefan Vogt "
           "| https://github.com/ByteProject/Arcturus")
