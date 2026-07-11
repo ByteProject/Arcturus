@@ -287,11 +287,14 @@ _BUILTINS = {
     "line_act": T_NUMBER,
     "meta_turn": T_NUMBER,  # set by a meta verb so the loop skips the turn pulse
     # The previous non-meta command, remembered so "again" can replay it.
+    # last_here is the room it ran in, kept so a replayed scenery-grain quip
+    # is refused in another room (only stored in a game with grains).
     "last_act": T_NUMBER,
     "last_noun": T_OBJECT,
     "last_second": T_OBJECT,
     "last_way": T_NUMBER,
     "last_grain": T_NUMBER,
+    "last_here": T_OBJECT,
     # oops correction: a flag and the offending word's parse-buffer index.
     "oops_ready": T_NUMBER,
     "oops_word": T_NUMBER,

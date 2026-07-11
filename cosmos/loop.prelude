@@ -91,6 +91,11 @@ block sweep_one(obj, act)
                 let aft = after_of(act)
                 if aft is not 0
                     dispatch(aft)
+    // last_here is captured BEFORE the pulse: a scenery quip answers for the
+    // room it ran in, and the pulse may relocate the player (a teleport in
+    // each_turn), which is the one way a grain replay can go stale.
+    if any_grains is 1
+        change last_here to here
     fire_turn
     tick
     change last_act to act
@@ -273,6 +278,30 @@ block run_turn(act)
             change refused to 1
             msg_nothing_again
             return 0
+        // The world may have moved on since the command was typed: an
+        // operand that has left scope refuses now, exactly as retyping the
+        // command would, instead of acting on a ghost (the field report was
+        // a lantern spirited to nothing, forever examinable through AGAIN).
+        // A scenery quip is bound to its room the same way.
+        if last_noun is not nothing
+            if not in_scope(last_noun)
+                change meta_turn to 1
+                change refused to 1
+                msg_cant_see
+                return 0
+        if last_second is not nothing
+            if not in_scope(last_second)
+                change meta_turn to 1
+                change refused to 1
+                msg_cant_see
+                return 0
+        if any_grains is 1
+            if last_grain is not 0
+                if here is not last_here
+                    change meta_turn to 1
+                    change refused to 1
+                    msg_cant_see
+                    return 0
         // Replay the previous command by restoring its resolved operands, then
         // fall through to dispatch it exactly as a fresh turn.
         change act to last_act
@@ -323,6 +352,11 @@ block run_turn(act)
                 if aft is not 0
                     dispatch(aft)
     if meta_turn is 0
+        // last_here is captured BEFORE the pulse: a scenery quip answers for
+        // the room it ran in, and the pulse may relocate the player (a
+        // teleport in each_turn), the one way a grain replay can go stale.
+        if any_grains is 1
+            change last_here to here
         fire_turn
         tick
         // Remember a real (non-meta) command so a later "again" can repeat it.
