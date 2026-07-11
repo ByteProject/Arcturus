@@ -67,6 +67,11 @@ INTRINSICS = frozenset({
     # machine), so the part-of scope rule, the take answer, and the listing
     # exclusion fold away otherwise.
     "any_components",
+    # any_scenery_contents is 1 when the game sets `constant
+    # scenery_contents = 1` (the PunyInform OPTIONAL_PRINT_SCENERY_CONTENTS
+    # bridge): the room description then lists what sits on or in scenery
+    # holders; 0 (the default) folds the pass away.
+    "any_scenery_contents",
     # any_tables is the compile-time positional-grammar flag (1 if any verb's
     # grammar needs a table, docs/02 section 8c): the packs and the matcher
     # guard on it, so a game whose verbs all fit the flag model folds the whole
@@ -1022,6 +1027,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_appearance(): 1 when anything declares `appearance`, so the
         # room describer's check folds away otherwise.
         _place(rt, Const(_any_prop(ctx.world, "appearance")), dest)
+    elif name == "any_scenery_contents":
+        # any_scenery_contents(): 1 when the game opts in with `constant
+        # scenery_contents = 1` (the arc_mode manner: the constant folds by
+        # name where declared; this default covers its absence).
+        _place(rt, Const(_scenery_contents(ctx)), dest)
     elif name == "any_scored":
         # any_scored(): 1 when anything declares `scored`, so the award hooks
         # in take and go fold away in a scoreless game.
@@ -1304,6 +1314,15 @@ def _emit_test(rt, ctx, expr, label, on_true):
     rt.op("jz", op, branch=(label, not on_true))
     if t is not None:
         ctx.free_temp(t)
+
+
+def _scenery_contents(ctx) -> int:
+    """1 when the game sets `constant scenery_contents = 1`: the opt-in
+    for listing scenery holders' contents in the room description."""
+    c = ctx.world.constants.get("scenery_contents")
+    if c is not None and isinstance(c.value, ast.Number):
+        return 1 if c.value.value else 0
+    return 0
 
 
 def _any_prop(world, prop: str) -> int:
@@ -1898,6 +1917,8 @@ def _static_value(ctx, expr):
         return _any_components(ctx.world)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_appearance":
         return _any_prop(ctx.world, "appearance")
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scenery_contents":
+        return _scenery_contents(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scored":
         return 1 if any(_prop_truthy(o.props.get("scored")) for o in ctx.world.objects.values()) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scoperoom":

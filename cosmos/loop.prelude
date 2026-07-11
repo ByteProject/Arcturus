@@ -461,6 +461,14 @@ block describe_room()
                             par
                         change listed to 1
                         list_item(obj)
+    // The scenery pass (constant scenery_contents = 1, the PunyInform
+    // OPTIONAL_PRINT_SCENERY_CONTENTS bridge): what sits on or in a
+    // scenery holder gets its own paragraph ("On the table you can see
+    // a jar."), worded by the language layer. Off by default; folds away.
+    if any_scenery_contents is 1
+        for each obj in here
+            if obj is scenery and obj is not hidden and obj is not concealed
+                scenery_holder_line(obj)
 
 // How many digits a non-negative number prints as (scores and turn counts stay
 // well under five). Used to right-align the score block without a string length.

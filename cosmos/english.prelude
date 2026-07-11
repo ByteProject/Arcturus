@@ -837,7 +837,39 @@ block content_listable(holder, x)
         return 1
     return 0
 
-// Append " (contains a, b and c)" to a container or supporter just named, listing
+// One scenery holder's paragraph (constant scenery_contents = 1): what
+// sits on or in it, the knowledge model deciding per item. Prints
+// nothing when the holder holds nothing tellable.
+block scenery_holder_line(obj)
+    if obj is not container
+        if obj is not supporter
+            return 0
+    let total = 0
+    for each x in obj
+        if content_listable(obj, x)
+            change total to total + 1
+    if total is 0
+        return 0
+    par
+    if obj is supporter
+        show("On ")
+    else
+        show("In ")
+    art_the(obj, 0)
+    show(" you can see ")
+    let shown = 0
+    for each x in obj
+        if content_listable(obj, x)
+            if shown is not 0
+                if shown is total - 1
+                    show(" and ")
+                else
+                    show(", ")
+            art_a(x, 0)
+            now x is seen
+            change shown to shown + 1
+    say "."
+
 // the contents the player can see or remembers and marking each as seen. Prints
 // nothing when there is nothing to show. One level deep, by design.
 block list_contents(holder)
@@ -971,6 +1003,7 @@ block line_reply(speaker)
 block line_end()
     say "\""
 
+// Append " (contains a, b and c)" to a container or supporter just named, listing
 // Conversation menu framing (the conversations granule, docs/05). Held in the
 // language layer so a pack translates it; every block here is dropped by dead-code
 // elimination in a game that does not summon the menu.

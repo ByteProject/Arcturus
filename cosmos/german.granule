@@ -866,6 +866,39 @@ block content_listable(holder, x)
         return 1
     return 0
 
+// One scenery holder's paragraph (constant scenery_contents = 1): what
+// sits on or in it, the knowledge model deciding per item. Prints
+// nothing when the holder holds nothing tellable.
+block scenery_holder_line(obj)
+    if obj is not container
+        if obj is not supporter
+            return 0
+    let total = 0
+    for each x in obj
+        if content_listable(obj, x)
+            change total to total + 1
+    if total is 0
+        return 0
+    par
+    if obj is supporter
+        show("Auf ")
+    else
+        show("In ")
+    art_the(obj, 0, 2)
+    show(" siehst du ")
+    let shown = 0
+    for each x in obj
+        if content_listable(obj, x)
+            if shown is not 0
+                if shown is total - 1
+                    show(" und ")
+                else
+                    show(", ")
+            art_a(x, 0)
+            now x is seen
+            change shown to shown + 1
+    say "."
+
 // Append " (enthaelt ...)" to a container or supporter just named. "enthaelt"
 // takes the accusative, so the contents are listed with ${a:acc x}.
 block list_contents(holder)
