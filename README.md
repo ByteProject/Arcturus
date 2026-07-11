@@ -98,7 +98,7 @@ The most significant recent additions and achievements:
   refusals, messages, and after-phase included, with the action name checked
   at compile time (Inform's `<<take book>>`, Dialog's `(try ...)`); the
   `appearance` property is the paragraph an object always owns in a room
-  description ("Bumble is sweeping by the counter."), worded by state when
+  description ("The keeper is trimming the wick."), worded by state when
   computed, beside `intro`'s until-first-taken rule. Both came from early
   adopters porting real games, and both cost nothing in a game that never
   uses them; component objects (a lever that is `component` of its machine)

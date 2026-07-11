@@ -411,7 +411,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | Attribute | Meaning and usage |
 |---|---|
 | `fixed` | The object cannot be taken; it stays where it is. `take` refuses it. |
-| `scenery` | Background detail: still referable for `examine`, but left out of the room's contents listing and not takeable (gives the scenery line). A game that wants what sits ON or IN scenery holders told anyway opts in once with `constant scenery_contents = 1`: each such holder then gets its own paragraph ("On the counter you can see a bell and a candle."), the knowledge model deciding per item (PunyInform's OPTIONAL_PRINT_SCENERY_CONTENTS, as a fold: off by default, zero bytes unused). |
+| `scenery` | Background detail: still referable for `examine`, but left out of the room's contents listing and not takeable (gives the scenery line). A game that wants what sits ON or IN scenery holders told anyway opts in once with `constant scenery_contents = 1`: each such holder then gets its own paragraph ("On the counter you can see a bell and a candle."), the knowledge model deciding per item (PunyInform's OPTIONAL_PRINT_SCENERY_CONTENTS, as a fold: off by default, zero bytes unused). Worked example: [examples/features/scenery-contents.storyarc](../examples/features/scenery-contents.storyarc). |
 | `hidden` | Out of scope entirely until cleared: an undiscovered object, neither listed nor referable. Clear it when the object is revealed. |
 | `concealed` | In scope and actable, but omitted from the room's contents listing (present but not spelled out in the description). |
 | `wearable` | Can be worn; the `wear` verb accepts it. |
@@ -449,7 +449,7 @@ carries the attribute of every kind in its chain.
 | `tag` | text | A short state qualifier appended to the object in listings and the inventory: "a fluid canister (full)". Usually computed (`tag block`); print with `show`, not `say`, so it stays inline. The parentheses come from the listing. |
 | `plural` | list | The words that name this object AS PART OF A GROUP (`plural coins` on each coin): "take coins" acts on every match in scope. Only with `summon.plurals` (02 section 8; docs/05); ignored otherwise. |
 | `intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). |
-| `appearance` | text | The paragraph the object ALWAYS owns in a room description, replacing its listing line and never expiring ("Bumble is sweeping by the counter."): Inform's describe, Dialog's `(appearance $)`. A computed block (`appearance block`) words it by state; checked before `intro`; `hidden`/`concealed` still suppress. Costs nothing in a game that never sets one. |
+| `appearance` | text | The paragraph the object ALWAYS owns in a room description, replacing its listing line and never expiring ("The keeper is trimming the wick."): Inform's describe, Dialog's `(appearance $)`. A computed block (`appearance block`) words it by state; checked before `intro`; `hidden`/`concealed` still suppress. Costs nothing in a game that never sets one. |
 | `capacity` | number | How many objects a container or supporter holds. |
 | `article` | text | The definite article, verbatim, when derivation cannot reach it: `article "las"` (las tijeras), `article "el"` (el agua). |
 | `indefinite` | text | The indefinite article, verbatim: `indefinite "unas"`, or an English mass noun with `indefinite "some"` ("You can see some water here."). |

@@ -194,6 +194,16 @@ The room description paragraphs an object can own, in the order checked:
 three. The appearance check folds away in a game that sets none
 (`any_appearance`).
 
+Scenery holders can join the room description too: with
+`constant scenery_contents = 1` declared once, every scenery container or
+supporter in the room gets its own paragraph after the listing pass
+("On the counter you can see a bell and a candle."), worded by
+`scenery_holder_line` in the language layer, the knowledge model deciding
+per item exactly as in section 5a: a closed opaque holder keeps its
+secret until first opened, then is remembered. Empty holders print
+nothing. Off by default and folded away entirely when the constant is
+absent (examples/features/scenery-contents.storyarc).
+
 ## 5a. The container knowledge model
 
 Cosmos tracks what the player has learned, not only what is in view this instant,

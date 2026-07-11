@@ -23,17 +23,17 @@ from arcturus.sema import analyze
 GAME = (
     'game\n    title "A"\n    start shop\n'
     'room shop\n    name "Shop"\n    desc "Dusty."\n'
-    'thing bumble of character in shop\n    name "Bumble"\n    named\n'
+    'thing keeper of character in shop\n    name "keeper"\n'
     '    scenery\n    angry false\n'
     '    appearance block\n'
-    '        if bumble is angry\n'
-    '            say "Bumble glowers at you."\n'
+    '        if keeper is angry\n'
+    '            say "The keeper glowers at you."\n'
     '        else\n'
-    '            say "Bumble is sweeping the floor."\n'
+    '            say "The keeper is sweeping the floor."\n'
     'thing broom in shop\n    name "broom"\n'
     '    appearance "A worn broom leans against the wall."\n'
     'verb "anger"\n    anger\n'
-    'on anger\n    now bumble is angry\n    say "Insulted."\n'
+    'on anger\n    now keeper is angry\n    say "Insulted."\n'
 )
 
 
@@ -69,6 +69,6 @@ def test_computed_appearance_follows_state(tmp_path):
     story = tmp_path / "a.z5"
     story.write_bytes(_build(GAME))
     out = _run(story, "anger\nlook\n")
-    assert "Bumble is sweeping the floor." in out   # the opening description
-    assert "Bumble glowers at you." in out          # after the state change
-    assert "You can see Bumble here." not in out    # never the listing line
+    assert "The keeper is sweeping the floor." in out   # the opening description
+    assert "The keeper glowers at you." in out          # after the state change
+    assert "You can see the keeper here." not in out    # never the listing line
