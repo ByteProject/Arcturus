@@ -82,40 +82,40 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 21688,  # 2026-07-11 again re-checks scope
-    "brass-lantern.storyarc": 15940,  # 2026-07-11 again re-checks scope
-    "cloak-of-darkness.storyarc": 16736,  # 2026-07-11 again re-checks scope
-    "ejemplo-espanol.storyarc": 20704,  # 2026-07-11 again re-checks scope
-    "features/computed-properties.storyarc": 14524,  # 2026-07-11 again re-checks scope
-    "features/containers.storyarc": 14800,  # 2026-07-11 again re-checks scope
-    "features/daemons-and-timers.storyarc": 14836,  # 2026-07-11 again re-checks scope
-    "features/doors-and-locks.storyarc": 14412,  # 2026-07-11 again re-checks scope
-    "features/appearance.storyarc": 15204,  # 2026-07-11 again re-checks scope
-    "features/components.storyarc": 14676,  # 2026-07-11 again re-checks scope
-    "features/perform.storyarc": 14760,  # 2026-07-11 again re-checks scope
-    "features/grains.storyarc": 14568,  # 2026-07-11 again re-checks scope
-    "features/grammar.storyarc": 15536,  # 2026-07-11 again re-checks scope
-    "features/introproperty.storyarc": 15724,  # 2026-07-11 again re-checks scope
-    "features/kinds-and-inheritance.storyarc": 14372,  # 2026-07-11 again re-checks scope
-    "features/on-other.storyarc": 14372,  # 2026-07-11 again re-checks scope
-    "features/zcolor.storyarc": 14744,  # 2026-07-11 again re-checks scope
-    "features/scoring.storyarc": 16724,  # 2026-07-11 again re-checks scope
-    "features/spans.storyarc": 14564,  # 2026-07-11 again re-checks scope
-    "features/vehicles.storyarc": 15064,  # 2026-07-11 again re-checks scope
-    "granules/ambience.storyarc": 15856,  # 2026-07-11 again re-checks scope
-    "granules/conversations.storyarc": 16152,  # 2026-07-11 again re-checks scope
-    "granules/extended-verbs.storyarc": 17132,  # 2026-07-11 again re-checks scope
-    "granules/infocom-interrogation.storyarc": 16564,  # 2026-07-11 again re-checks scope
-    "granules/quotes.storyarc": 14720,  # 2026-07-11 again re-checks scope
-    "granules/take-all.storyarc": 16452,  # 2026-07-11 again re-checks scope
-    "granules/plurals.storyarc": 15404,  # 2026-07-11 again re-checks scope
-    "granules/statusline.storyarc": 14480,  # 2026-07-11 again re-checks scope
-    "granules/verbose-exits.storyarc": 14760,  # 2026-07-11 again re-checks scope
+    "beispiel-deutsch.storyarc": 21796,  # 2026-07-11 locks demand their key in hand
+    "brass-lantern.storyarc": 16036,  # 2026-07-11 locks demand their key in hand
+    "cloak-of-darkness.storyarc": 16832,  # 2026-07-11 locks demand their key in hand
+    "ejemplo-espanol.storyarc": 20804,  # 2026-07-11 locks demand their key in hand
+    "features/computed-properties.storyarc": 14620,  # 2026-07-11 locks demand their key in hand
+    "features/containers.storyarc": 14896,  # 2026-07-11 locks demand their key in hand
+    "features/daemons-and-timers.storyarc": 14932,  # 2026-07-11 locks demand their key in hand
+    "features/doors-and-locks.storyarc": 14508,  # 2026-07-11 locks demand their key in hand
+    "features/appearance.storyarc": 15300,  # 2026-07-11 locks demand their key in hand
+    "features/components.storyarc": 14772,  # 2026-07-11 locks demand their key in hand
+    "features/perform.storyarc": 14856,  # 2026-07-11 locks demand their key in hand
+    "features/grains.storyarc": 14664,  # 2026-07-11 locks demand their key in hand
+    "features/grammar.storyarc": 15632,  # 2026-07-11 locks demand their key in hand
+    "features/introproperty.storyarc": 15820,  # 2026-07-11 locks demand their key in hand
+    "features/kinds-and-inheritance.storyarc": 14468,  # 2026-07-11 locks demand their key in hand
+    "features/on-other.storyarc": 14468,  # 2026-07-11 locks demand their key in hand
+    "features/zcolor.storyarc": 14840,  # 2026-07-11 locks demand their key in hand
+    "features/scoring.storyarc": 16820,  # 2026-07-11 locks demand their key in hand
+    "features/spans.storyarc": 14660,  # 2026-07-11 locks demand their key in hand
+    "features/vehicles.storyarc": 15160,  # 2026-07-11 locks demand their key in hand
+    "granules/ambience.storyarc": 15952,  # 2026-07-11 locks demand their key in hand
+    "granules/conversations.storyarc": 16248,  # 2026-07-11 locks demand their key in hand
+    "granules/extended-verbs.storyarc": 17228,  # 2026-07-11 locks demand their key in hand
+    "granules/infocom-interrogation.storyarc": 16660,  # 2026-07-11 locks demand their key in hand
+    "granules/quotes.storyarc": 14816,  # 2026-07-11 locks demand their key in hand
+    "granules/take-all.storyarc": 16548,  # 2026-07-11 locks demand their key in hand
+    "granules/plurals.storyarc": 15500,  # 2026-07-11 locks demand their key in hand
+    "granules/statusline.storyarc": 14576,  # 2026-07-11 locks demand their key in hand
+    "granules/verbose-exits.storyarc": 14856,  # 2026-07-11 locks demand their key in hand
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 17216  # 2026-07-11 again re-checks scope
+CLOAK_Z8_CEILING = 17312  # 2026-07-11 locks demand their key in hand
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
