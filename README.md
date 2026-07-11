@@ -28,8 +28,8 @@ certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.11.20 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 0.23.0 | shipped inside `arcc` |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.11.21 | [build/arcc](build/arcc) |
+| **Cosmos**, the standard library | 0.24.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.0.4 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.7.0 | [build/arcimg](build/arcimg) |
 
@@ -82,6 +82,16 @@ interactive fiction, this is a good time to pick it up.
 
 The most significant recent additions and achievements:
 
+- **SWIM SOUTH parses, and TRANSCRIPT records.** A grammar line can end in a
+  `direction` slot (`push noun direction`, `swim direction`), so PUSH CRATE
+  WEST and SWIM SOUTH reach their handlers with the direction riding `way`,
+  the same slot GO uses; hand the move to the walking machinery whole with
+  `perform("go", way)`. And every game now answers the classic TRANSCRIPT /
+  SCRIPT and TRANSCRIPT OFF / UNSCRIPT, honestly: the library reads the
+  interpreter's own flag back, so a cancelled file prompt never claims a
+  recording. Worded natively in all three languages (MITSCHRIFT AN,
+  TRANSCRIPCION). See
+  [examples/features/direction-grammar.storyarc](examples/features/direction-grammar.storyarc).
 - **arc_image reaches the retro machines.** The same numbered pictures a
   modern build shows now convert to the 8-bit and 16-bit machines' own
   formats: paint ONE master per scene, and `arcimg convert` derives the
@@ -121,20 +131,6 @@ The most significant recent additions and achievements:
   every plain verb stays on the compact model it always had; a game with no
   positional verb compiles byte-identical to one built before the feature
   existed. See [examples/features/grammar.storyarc](examples/features/grammar.storyarc).
-- **Optional graphics: `arc_image`.** A room can carry a picture (`arc_image 8`,
-  or a constant that folds to the id) that shows in Actaea's window as a crisp
-  integer-scaled band above the status bar, in an Infocom shape (320x72, the
-  upper third) or a DAAD shape (320x96, the upper half), chosen once with
-  `arc_mode`. The story never stops being a conformant z5: the picture rides a
-  custom opcode in the range the Standard reserves for private use, behind a
-  capability guard, so the same file plays unchanged and text-only on Frotz and
-  in Actaea's console and pipe modes. The picture id is the resource slot the
-  art is numbered by (no manifest to carry), the mode travels in the opcode so
-  the interpreter never has to measure a picture to lay out the screen, and the
-  `arcimg` tool prepares the art and packs it into a single `.arcres` file, the
-  story kept separate. The author guide is
-  [docs/07-arc-image.md](docs/07-arc-image.md).
-
 On the horizon: the remaining retro targets (MSX, Atari 8-bit, Plus/4, Apple
 II, Spectrum Next, MEGA65) and the interpreters that adopt the proven
 blueprints, machine by machine. For the full, step-by-step history, see

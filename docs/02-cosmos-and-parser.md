@@ -571,9 +571,9 @@ them apart, and the particle machinery already does.
 Such a verb compiles to a GRAMMAR TABLE in static memory. Its dictionary
 entry is flagged as a tabled verb and its data bytes hold the table's address
 instead of an action and an arity. The table is the verb's lines in matcher
-order: per line an action byte, one byte per token (noun, held, multi, text;
-a literal word carries its dictionary address), and a closing zero; a zero in
-action position ends the table. Matcher order is most literal words first, so
+order: per line an action byte, one byte per token (noun, held, multi, text,
+direction; a literal word carries its dictionary address), and a closing
+zero; a zero in action position ends the table. Matcher order is most literal words first, so
 `dig in noun with held` is probed before `dig noun`, whose bare slot would
 absorb the literals; among literal-free lines, fewest tokens first, so a bare
 `dig` catches DIG before `dig noun` matches it with an empty slot. The sort
@@ -592,10 +592,22 @@ what?"). When no line fits at all, the verb was understood but the rest was
 not: "You lost me after that." Disambiguation answers, pronouns, chaining,
 AGAIN, and OOPS all work on tabled verbs unchanged.
 
+The `direction` slot (SWIM SOUTH, PUSH CRATE WEST) lives on this model: a
+line ending in `direction` demands a direction word at that position and
+consumes it, and a noun slot before it stops its phrase at the first typed
+direction word, so in PUSH CRATE WEST the noun is the crate. The word needs
+no binding of its own: the parser sets `way` from the whole line before any
+grammar runs, exactly as it does for GO, so the handler asks `if way is
+south` or hands the move to the walking machinery with `perform("go", way)`.
+A verb with a direction line always compiles to a table: the flag model's
+arity byte has no room for "and a direction word may stand here", and only
+`go` gets that tolerance on the classic path. The worked showcase is
+`examples/features/direction-grammar.storyarc`.
+
 The rules a positional verb must follow are checked at compile time: two
-slots per line at most, a literal word between two slots (the adjacent-noun
-`reverse` form stays a flag-model feature), and single-word verb synonyms.
-The `direction` slot is not available on a tabled verb.
+noun slots per line at most, a literal word between two noun slots (the
+adjacent-noun `reverse` form stays a flag-model feature), single-word verb
+synonyms, and at most one `direction` slot, closing its line.
 
 Pay for use: the matcher and the packs' tabled-verb branches sit behind the
 `any_tables` compile-time flag, so a game whose verbs all fit the flag model
@@ -750,6 +762,14 @@ asking IS talking until a granule redefines it.
 Meta verbs: save, restore, undo, quit, score (the one score verb, Infocom-
 shaped: score, maximum, turn count, and the rank when a ladder is declared),
 and a verbose-or-brief toggle, using the corresponding Z-machine facilities.
+TRANSCRIPT (or SCRIPT) opens output stream 2, the transcript the interpreter
+records to a file of the player's choosing; TRANSCRIPT OFF (or UNSCRIPT, the
+Infocom word) closes it. The library reads the truth back from Flags 2 bit 0,
+so a player who cancels the interpreter's file prompt gets an honest "No
+transcript was started" rather than a false confirmation, and the closing
+"Transcript off" is printed before the stream shuts so it lands in the file.
+German words it MITSCHRIFT/PROTOKOLL AN and AUS; Spanish TRANSCRIPCION and
+TRANSCRIPCION NO.
 
 Every default message is a Cosmos string, overridable globally by replacing
 the Cosmos default or locally by handling the verb on an object or kind.
@@ -1234,7 +1254,11 @@ verb "show"                       -> show noun to noun
 verb "talk to", "talk", "speak to" -> talk noun
 verb "wait", "z"                  -> wait
 verb "again", "g"                 -> again
+verb "transcript", "script"       -> transcript
+                                     transcript_off (with the off particle)
+verb "unscript"                   -> transcript_off
 ```
 
-The direction slot is special to GO: it matches a direction name and reads
-the matching room property rather than resolving an object.
+A direction word never resolves as an object: for GO (and a bare typed
+direction) it selects the room property to follow, and in a grammar line's
+`direction` slot (01 section 10) it fills `way` the same way.

@@ -1,0 +1,82 @@
+// direction-grammar.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the `direction` grammar slot (docs/01 section 10): a verb
+// line that ends in `direction` accepts a direction word there, so SWIM
+// SOUTH and PUSH LOG WEST parse. The direction rides `way`, the same slot
+// GO uses, so a handler asks `if way is nothing` or `if way is south` and
+// can even hand the move to the walking machinery with perform("go", way).
+// A verb with such a line goes on the positional grammar table; a game
+// that never writes one stays byte-identical. Compile and run:
+//
+//   arcc examples/features/direction-grammar.storyarc -o ford.z5
+//   frotz ford.z5
+//
+// TRY: swim (which way?) / swim south / push log south / swim south /
+//      look / swim north
+
+game
+    title "The Ford"
+    headline "A direction grammar showcase"
+    author "Stefan Vogt"
+    start bank
+
+summon.statusline
+
+room bank
+    name "River Bank"
+    desc "Reeds and mud. The river invites you south."
+    south shallows
+
+room shallows
+    name "The Shallows"
+    desc "Knee-deep water over gravel. The bank lies north, deeper water south."
+    north bank
+    south pool
+
+room pool
+    name "The Pool"
+    desc "Slow, deep water. The shallows are back north."
+    north shallows
+
+thing log in shallows
+    name "drift log"
+    words log, drift, driftwood
+    desc "A waterlogged trunk, more raft than tree."
+    fixed
+
+// SWIM alone asks; SWIM <direction> follows the river where an exit
+// exists, riding the ordinary walking machinery through perform.
+verb "swim", "wade", "paddle"
+    swim
+    swim direction
+
+on swim
+    if way is nothing
+        say "Swim which way?"
+        stop
+    if here.(way) is nothing
+        say "Nothing that way but bank and bramble."
+        stop
+    say "You strike out through the water."
+    perform("go", way)
+
+// PUSH LOG <direction>: the direction word bounds the noun phrase, so the
+// noun is the log and `way` is where it should go.
+verb "push", "shove", "roll"
+    push noun
+    push noun direction
+
+on push
+    if noun is not log
+        continue
+    if way is nothing
+        say "The log bobs and stays. Give it a direction."
+        stop
+    if here.(way) is nothing
+        say "The current won't take it that way."
+        stop
+    move log to here.(way)
+    say "You heave, and the log drifts off with the current."

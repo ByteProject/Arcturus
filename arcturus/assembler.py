@@ -142,6 +142,11 @@ _OPCODES = {
     # tokenise text parse: re-tokenize the text buffer into the parse buffer,
     # after library code has patched the text (the Spanish infinitive retry).
     "tokenise": ("VAR", 0x1B, False, False, False),
+    # output_stream n: select (positive) or deselect (negative, as the 16-bit
+    # two's complement) an output stream. Stream 2 is the transcript; the
+    # interpreter opens the file (prompting the player) and mirrors it in
+    # Flags 2 bit 0, which is how the library learns whether it really started.
+    "output_stream": ("VAR", 0x13, False, False, False),
     # random n: 1..n uniformly (n > 0); the interpreter owns the generator.
     "random": ("VAR", 0x07, True, False, False),
     "set_cursor": ("VAR", 0x0F, False, False, False),

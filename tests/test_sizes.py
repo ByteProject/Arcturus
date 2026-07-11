@@ -82,40 +82,40 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 21004,  # 2026-07-11 drop lands where you are
-    "brass-lantern.storyarc": 15428,  # 2026-07-09 reachable honors its contract
-    "cloak-of-darkness.storyarc": 16248,  # 2026-07-11 drop lands where you are
-    "ejemplo-espanol.storyarc": 20008,  # 2026-07-11 drop lands where you are
-    "features/computed-properties.storyarc": 14040,  # 2026-07-09 reachable honors its contract
-    "features/containers.storyarc": 14316,  # 2026-07-11 drop lands where you are
-    "features/daemons-and-timers.storyarc": 14352,  # 2026-07-09 reachable honors its contract
-    "features/doors-and-locks.storyarc": 13928,  # 2026-07-09 reachable honors its contract
-    "features/appearance.storyarc": 14724,  # 2026-07-10 new
-    "features/components.storyarc": 14192,  # 2026-07-10 new
-    "features/perform.storyarc": 14276,  # 2026-07-10 new
-    "features/grains.storyarc": 14056,  # 2026-07-09 reachable honors its contract
-    "features/grammar.storyarc": 14940,  # 2026-07-09 reachable honors its contract
-    "features/introproperty.storyarc": 15240,  # 2026-07-11 drop lands where you are
-    "features/kinds-and-inheritance.storyarc": 13888,  # 2026-07-09 reachable honors its contract
-    "features/on-other.storyarc": 13888,  # 2026-07-09 reachable honors its contract
-    "features/zcolor.storyarc": 14260,  # 2026-07-09 reachable honors its contract
-    "features/scoring.storyarc": 16216,  # 2026-07-09 reachable honors its contract
-    "features/spans.storyarc": 14080,  # 2026-07-09 reachable honors its contract
-    "features/vehicles.storyarc": 14584,  # 2026-07-11 convey, new
-    "granules/ambience.storyarc": 15376,  # 2026-07-09 reachable honors its contract
-    "granules/conversations.storyarc": 15668,  # 2026-07-09 reachable honors its contract
-    "granules/extended-verbs.storyarc": 16648,  # 2026-07-11 drop lands where you are
-    "granules/infocom-interrogation.storyarc": 16080,  # 2026-07-09 reachable honors its contract
-    "granules/quotes.storyarc": 14236,  # 2026-07-09 reachable honors its contract
-    "granules/take-all.storyarc": 15940,  # 2026-07-11 drop lands where you are
-    "granules/plurals.storyarc": 14896,  # 2026-07-09 reachable honors its contract
-    "granules/statusline.storyarc": 13996,  # 2026-07-09 reachable honors its contract
-    "granules/verbose-exits.storyarc": 14276,  # 2026-07-09 reachable honors its contract
+    "beispiel-deutsch.storyarc": 21484,  # 2026-07-11 transcript is a player right
+    "brass-lantern.storyarc": 15844,  # 2026-07-11 transcript is a player right
+    "cloak-of-darkness.storyarc": 16664,  # 2026-07-11 transcript is a player right
+    "ejemplo-espanol.storyarc": 20496,  # 2026-07-11 transcript is a player right
+    "features/computed-properties.storyarc": 14456,  # 2026-07-11 transcript is a player right
+    "features/containers.storyarc": 14732,  # 2026-07-11 transcript is a player right
+    "features/daemons-and-timers.storyarc": 14768,  # 2026-07-11 transcript is a player right
+    "features/doors-and-locks.storyarc": 14344,  # 2026-07-11 transcript is a player right
+    "features/appearance.storyarc": 15132,  # 2026-07-11 transcript is a player right
+    "features/components.storyarc": 14608,  # 2026-07-11 transcript is a player right
+    "features/perform.storyarc": 14692,  # 2026-07-11 transcript is a player right
+    "features/grains.storyarc": 14472,  # 2026-07-11 transcript is a player right
+    "features/grammar.storyarc": 15468,  # 2026-07-11 transcript is a player right
+    "features/introproperty.storyarc": 15656,  # 2026-07-11 transcript is a player right
+    "features/kinds-and-inheritance.storyarc": 14304,  # 2026-07-11 transcript is a player right
+    "features/on-other.storyarc": 14304,  # 2026-07-11 transcript is a player right
+    "features/zcolor.storyarc": 14676,  # 2026-07-11 transcript is a player right
+    "features/scoring.storyarc": 16628,  # 2026-07-11 transcript is a player right
+    "features/spans.storyarc": 14492,  # 2026-07-11 transcript is a player right
+    "features/vehicles.storyarc": 14996,  # 2026-07-11 transcript is a player right
+    "granules/ambience.storyarc": 15784,  # 2026-07-11 transcript is a player right
+    "granules/conversations.storyarc": 16080,  # 2026-07-11 transcript is a player right
+    "granules/extended-verbs.storyarc": 17064,  # 2026-07-11 transcript is a player right
+    "granules/infocom-interrogation.storyarc": 16496,  # 2026-07-11 transcript is a player right
+    "granules/quotes.storyarc": 14652,  # 2026-07-11 transcript is a player right
+    "granules/take-all.storyarc": 16356,  # 2026-07-11 transcript is a player right
+    "granules/plurals.storyarc": 15312,  # 2026-07-11 transcript is a player right
+    "granules/statusline.storyarc": 14408,  # 2026-07-11 transcript is a player right
+    "granules/verbose-exits.storyarc": 14688,  # 2026-07-11 transcript is a player right
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 16712  # 2026-07-11 drop lands where you are
+CLOAK_Z8_CEILING = 17144  # 2026-07-11 transcript is a player right
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

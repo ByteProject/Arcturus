@@ -276,7 +276,29 @@ class Analyzer:
                         verb.line,
                     )
             for line in verb.grammar:
-                slots = [it for it in line.items if isinstance(it, ast.Slot)]
+                # A `direction` slot consumes exactly one direction word (SWIM
+                # SOUTH, PUSH CRATE WEST); the value rides `way`, as with go.
+                # It is not a noun slot, so it is excluded from the noun-slot
+                # rules below, and it must close its line: a direction word is
+                # where an English movement phrase ends, and the matcher uses
+                # it as the boundary that stops a noun phrase.
+                dirs = [it for it in line.items
+                        if isinstance(it, ast.Slot) and it.kind == "direction"]
+                if len(dirs) > 1:
+                    raise self._error(
+                        f"verb '{head}': a grammar line takes at most one "
+                        f"`direction` slot",
+                        verb.line,
+                    )
+                if dirs and (not isinstance(line.items[-1], ast.Slot)
+                             or line.items[-1].kind != "direction"):
+                    raise self._error(
+                        f"verb '{head}': a `direction` slot must be the last "
+                        f"item on its line, like '{line.action} noun direction'",
+                        verb.line,
+                    )
+                slots = [it for it in line.items
+                         if isinstance(it, ast.Slot) and it.kind != "direction"]
                 if len(slots) > 2:
                     raise self._error(
                         f"verb '{head}': a grammar line takes at most two noun "
@@ -291,18 +313,12 @@ class Analyzer:
                         verb.line,
                     )
                 for a, b in zip(line.items, line.items[1:]):
-                    if isinstance(a, ast.Slot) and isinstance(b, ast.Slot):
+                    if (isinstance(a, ast.Slot) and isinstance(b, ast.Slot)
+                            and a.kind != "direction" and b.kind != "direction"):
                         raise self._error(
                             f"verb '{head}': in positional grammar two noun "
                             f"slots need a literal word between them, like "
                             f"'{line.action} noun with noun'",
-                            verb.line,
-                        )
-                for it in line.items:
-                    if isinstance(it, ast.Slot) and it.kind == "direction":
-                        raise self._error(
-                            f"verb '{head}': a `direction` slot is not "
-                            f"available in positional grammar",
                             verb.line,
                         )
 
