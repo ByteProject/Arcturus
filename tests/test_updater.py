@@ -42,8 +42,10 @@ def test_update_replaces_and_reports(tmp_path, monkeypatch, capsys):
     rc = updater.run_update(fetch=lambda name: fresh[name])
     out = capsys.readouterr().out
     assert rc == 0
-    assert "arcc: v0.11.18 -> v0.11.99" in out
-    assert "arcimg: v1.7.0 -> v1.8.0" in out
+    assert "arcc: updated  v0.11.18 -> v0.11.99" in out
+    assert "arcimg: updated  v1.7.0 -> v1.8.0" in out
+    assert "UPDATING BINARIES" in out
+    assert out.endswith("\n\n")  # the house blank line closes the output
     assert me.read_bytes() == fresh["arcc"]
     assert sib.read_bytes() == fresh["arcimg"]
 
@@ -99,3 +101,21 @@ def test_amalgam_embeds_every_package_module():
         "arcturus/ and tools/amalgamate.py _MODULE_ORDER disagree; "
         "a module missing there ships a broken standalone"
     )
+
+
+def test_cosmos_only_update_is_visible(tmp_path, monkeypatch, capsys):
+    # The real use case: the same arcc version ships a newer embedded Cosmos.
+    # The byte comparison already updates it; the report must SAY so.
+    def with_cosmos(v, cv):
+        return (b"#!/usr/bin/env python3\n"
+                + f'__version__ = "{v}"\n'.encode()
+                + f'COSMOS_VERSION = "{cv}"\n'.encode()
+                + b"# " + b"x" * 60_000 + b"\n")
+    me = tmp_path / "arcc"
+    me.write_bytes(with_cosmos("0.11.23", "0.25.3"))
+    monkeypatch.setattr(arcturus, "__build__", "testbuild", raising=False)
+    monkeypatch.setattr(sys, "argv", [str(me)])
+    rc = updater.run_update(fetch=lambda name: with_cosmos("0.11.23", "0.26.0"))
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "arcc: updated  v0.11.23 (Cosmos 0.25.3) -> v0.11.23 (Cosmos 0.26.0)" in out

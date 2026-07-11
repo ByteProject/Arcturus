@@ -32,8 +32,13 @@ import urllib.request
 RAW_BASE = "https://raw.githubusercontent.com/ByteProject/Arcturus/main/build/"
 SIBLINGS = ("actaea", "arcimg")
 
-# The version constant every standalone carries in its embedded source.
+# The version constant every standalone carries in its embedded source, the
+# Cosmos version arcc embeds (a real update may be Cosmos-only: same arcc
+# version, new library, different bytes), and the build fingerprint that
+# tells two builds at the same version apart.
 _VERSION_RE = re.compile(r'__version__\s*=\s*(?:\\)?["\']([0-9][0-9.]*)(?:\\)?["\']')
+_COSMOS_RE = re.compile(r'COSMOS_VERSION\s*=\s*(?:\\)?["\']([0-9][0-9.]*)(?:\\)?["\']')
+_BUILD_RE = re.compile(r"_BUILD_ID\s*=\s*['\"]([0-9a-f]+)['\"]")
 
 
 def _fetch(name: str) -> bytes:
@@ -44,6 +49,33 @@ def _fetch(name: str) -> bytes:
 def _version_in(source: str) -> str:
     m = _VERSION_RE.search(source)
     return m.group(1) if m else "unknown"
+
+
+def _describe(name: str, source: str) -> str:
+    """One binary's identity: version, the embedded Cosmos (arcc only), and
+    the exact build, so a Cosmos-only or rebuild-only refresh reads as the
+    real change it is rather than a puzzling v0.11.22 -> v0.11.22."""
+    parts = []
+    if name == "arcc":
+        m = _COSMOS_RE.search(source)
+        if m:
+            parts.append("Cosmos " + m.group(1))
+    b = _BUILD_RE.search(source)
+    if b:
+        parts.append("build " + b.group(1))
+    tail = f" ({', '.join(parts)})" if parts else ""
+    return f"v{_version_in(source)}{tail}"
+
+
+def _print_header() -> None:
+    import arcturus
+    build = getattr(arcturus, "__build__", None) or "source"
+    print(f"Arcturus {arcturus.__version__}  (build {build}) "
+          "-- UPDATING BINARIES")
+    print("Programming language and compiler for the Infocom Z-machine")
+    print("Copyright (c) 2026, Stefan Vogt "
+          "| https://github.com/ByteProject/Arcturus")
+    print()
 
 
 def _validate(name: str, data: bytes) -> str:
@@ -75,10 +107,12 @@ def _replace(path: str, data: bytes) -> None:
 def run_update(fetch=_fetch) -> int:
     """The --update command. Returns the exit code."""
     import arcturus
+    _print_header()
     if getattr(arcturus, "__build__", None) is None:
         print("arcc: --update refreshes the standalone build; you are "
               "running from the repository package. Use `git pull` and "
               "`python3 tools/amalgamate.py` instead.", file=sys.stderr)
+        print()
         return 2
 
     me = os.path.realpath(sys.argv[0])
@@ -110,12 +144,11 @@ def run_update(fetch=_fetch) -> int:
                   file=sys.stderr)
             failures += 1
             continue
+        old = _describe(name, current.decode("utf-8", "replace"))
         if data == current:
-            print(f"{name}: already current "
-                  f"(v{_version_in(current.decode('utf-8', 'replace'))})")
+            print(f"{name}: already current, {old}")
             continue
-        old_v = _version_in(current.decode("utf-8", "replace"))
-        new_v = _version_in(data.decode("utf-8"))
+        new = _describe(name, data.decode("utf-8"))
         try:
             _replace(path, data)
         except OSError as exc:
@@ -123,5 +156,7 @@ def run_update(fetch=_fetch) -> int:
                   file=sys.stderr)
             failures += 1
             continue
-        print(f"{name}: v{old_v} -> v{new_v} ({path})")
+        print(f"{name}: updated  {old} -> {new}")
+    # One blank line after the output, the house rule for every tool.
+    print()
     return 1 if failures else 0
