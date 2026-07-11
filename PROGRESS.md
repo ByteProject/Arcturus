@@ -3497,3 +3497,47 @@ flags only, forever. The R3 checkpoint file was deleted as always
 promised. Next: the adopter support queue (Shawn's target spec for
 Vezza's machine awaited; Charles ongoing; Ichiro porting), then R4
 (Atari 8-bit, MSX1/2, Plus/4).
+
+## 2026-07-11: The support week continues. Directions, transcripts, and a keeper.
+
+Housekeeping first: scenery_contents got its worked example (The
+Chandlery, whose drawer keeps its secret until opened) and its docs/02
+paragraph, and the sweep found Bumble, an adopter's character, in the
+README, docs/01, a compiler comment, and a test; all four now use the
+appearance example's own lighthouse keeper. Adopter names stay private,
+everywhere public. The scoring chapter (01 6a) was rewritten on Stefan's
+review: it had grown by accretion, vehicles and perform wedged between
+the automatic rules and award; now 6a tells scoring end to end and the
+movers (teleport, gain, convey, perform) live in section 7 beside move.
+Actaea 1.0.4 gives the terminal its name back on exit (the xterm title
+stack; Stefan's own observation).
+
+Then Charles's next pair, both shipped in arcc 0.11.21 / Cosmos 0.24.0.
+The `direction` grammar slot: a line may end in `direction` (swim
+direction, push noun direction), so SWIM SOUTH and PUSH CRATE WEST
+parse; the direction rides `way`, GO's own slot, and perform("go", way)
+hands the move to the walking machinery whole. Always tabled (the flag
+model's arity byte cannot say it); byte-identical when unused; The Ford
+is the worked example. And TRANSCRIPT/SCRIPT with TRANSCRIPT OFF and
+UNSCRIPT, ruled core by Stefan (a player right, worth +416 per game):
+output stream 2, with the library reading Flags 2 bit 0 back so a
+cancelled file prompt never claims a recording, and the closing line
+printed before the stream shuts so it lands in the file. Actaea's
+handler verified spec-exact. Found en route and fenced: a block with
+more than 15 locals compiled into an illegal routine header and crashed
+mid-game; it is a named compile error now (try_line itself sat at
+exactly 15, hence dir_scan).
+
+Cosmos 0.25.0 closed the day with Stefan's fallback ruling: the English
+meta words (QUIT, SCORE, SAVE, RESTORE/LOAD, UNDO, AGAIN, OOPS,
+TRANSCRIPT and kin) answer in every language pack, replying natively,
+because a player who guesses the localized session verb wrong must
+never be locked out of the session. Spanish gained its first particles
+for it (no/on/off); the TRANSCRIPCION NO wording is flagged for Pablo's
+native pass. Shawn's palette question was answered along the way (the
+Rabenstein masters are 16 colours by DAAD heritage, Degas PI1's
+ceiling, not by rule; masters are truecolor and the converters quantize
+per target) and his Agon-class plan confirmed against the design:
+masters are 320 across precisely so a double-width VDP scales for free.
+His target spec is awaited without a queue slot; Ichiro's port is
+resolved. 791 tests. More Charles bombs incoming, by his own promise.
