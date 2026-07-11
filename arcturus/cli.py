@@ -52,6 +52,7 @@ def _banner() -> str:
     return (
         f'Arcturus -- [ arcc {__version__} | Cosmos {cosmos_lib.COSMOS_VERSION} '
         f'| {_python()} | {_host_os()} ]\n'
+        'Programming language and compiler for the Infocom Z-machine\n'
         'Copyright (c) 2026, Stefan Vogt.\n'
         'https://github.com/ByteProject/Arcturus\n'
         '\n'
@@ -369,6 +370,7 @@ def _header() -> str:
     return (
         f'Arcturus -- [ arcc {__version__} | Cosmos {cosmos_lib.COSMOS_VERSION} '
         f'| {_python()} | {_host_os()} ]\n'
+        'Programming language and compiler for the Infocom Z-machine\n'
         'Copyright (c) 2026, Stefan Vogt.\n'
     )
 
