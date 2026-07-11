@@ -254,7 +254,7 @@
     "attributes": {
       "comment": "Standard Cosmos boolean attributes (docs/02).",
       "name": "support.type.attribute.storyarc",
-      "match": "\\b(fixed|scenery|hidden|concealed|wearable|worn|lit|edible|named|switchable|openable|open|lockable|locked|visited|clear|seen|moved|animate|an|feminine|neutral|scored|component)\\b"
+      "match": "\\b(fixed|scenery|hidden|concealed|wearable|worn|lit|edible|named|switchable|openable|open|lockable|locked|visited|clear|seen|moved|animate|an|feminine|neutral|pluribus|scored|component)\\b"
     },
     "properties": {
       "comment": "Standard Cosmos value properties and the topic modifiers.",

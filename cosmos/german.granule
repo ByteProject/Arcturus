@@ -765,6 +765,23 @@ block art_the(obj, cap, kase)
         show(" ")
         print_name(obj)
         return
+    // Der Plural (pluribus): die/die/den/der, die eigene Spalte der
+    // Kasustabelle. Faltet sich ohne markierte Objekte weg.
+    if any_pluribus is 1
+        if obj is pluribus
+            if cap is 1
+                show("D")
+            else
+                show("d")
+            if kase is 2
+                show("en ")
+            else
+                if kase is 3
+                    show("er ")
+                else
+                    show("ie ")
+            print_name(obj)
+            return
     if cap is 1
         show("D")
     else
@@ -816,6 +833,12 @@ block art_a(obj, cap, kase)
         show(" ")
         print_name(obj)
         return
+    // Unbestimmter Plural hat im Deutschen keinen Artikel: "Du siehst
+    // hier Stiefel." Faltet sich ohne markierte Objekte weg.
+    if any_pluribus is 1
+        if obj is pluribus
+            print_name(obj)
+            return
     if cap is 1
         show("E")
     else
@@ -849,6 +872,23 @@ block art_a(obj, cap, kase)
                     else
                         show("ines ")
     print_name(obj)
+
+// Die Kopula mit Numerus (docs/01 Abschnitt 16): ${is x} druckt "ist"
+// oder "sind" nach dem pluribus-Attribut des Objekts. Ohne markierte
+// Objekte faltet sich der Plural-Zweig weg.
+block art_is(obj, cap)
+    if any_pluribus is 1
+        if obj is pluribus
+            if cap is 1
+                show("Sind")
+            else
+                show("sind")
+            return 0
+    if cap is 1
+        show("Ist")
+    else
+        show("ist")
+    return 0
 
 // Die Banner-Wörter. Der Compiler setzt das Banner zusammen (Titel, Untertitel,
 // Autor, Versionszeile), aber die Wörter ZWISCHEN den Teilen gehören der
@@ -1138,6 +1178,9 @@ block msg_not_inside()
     say "Du bist in nichts, aus dem du aussteigen könntest."
 
 block msg_cant_climb()
+    if any_pluribus is 1
+        say "${The noun} ${is noun} nicht zum Klettern geeignet."
+        return 0
     say "${The noun} ist nicht zum Klettern geeignet."
 
 // Sensory.
@@ -1147,12 +1190,20 @@ block msg_examine_self()
          Adventure?"
 
 block msg_nothing_special()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "An ${the:dat noun} ist nichts Besonderes zu sehen."
+            return 0
     say "An ${the:dat noun} ist nichts Besonderes zu sehen."
 
 block msg_touch()
     say "Du berührst ${the:acc noun}. Nichts, was deine Augen nicht schon gesehen hätten."
 
 block msg_smell()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} riechen ungefähr so, wie du es erwartet hast."
+            return 0
     say "${The noun} riecht ungefähr so, wie du es erwartet hast."
 
 block msg_listen()
@@ -1168,7 +1219,12 @@ block msg_taken()
 
 block msg_fixed()
     // Das Pronomen richtet sich nach dem Geschlecht: die Tür bleibt, wo SIE
-    // ist; der Schrank, wo ER ist; das Buch, wo ES ist.
+    // ist; der Schrank, wo ER ist; das Buch, wo ES ist. Der Plural zuerst:
+    // die Stiefel bleiben, wo sie sind.
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} bleiben ziemlich genau, wo sie sind."
+            return 0
     if noun is feminine
         say "${The noun} bleibt ziemlich genau, wo sie ist."
         return 0
@@ -1178,6 +1234,10 @@ block msg_fixed()
     say "${The noun} bleibt ziemlich genau, wo er ist."
 
 block msg_animate_refuses()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} haben andere Pläne."
+            return 0
     say "${The noun} hat andere Pläne."
 
 block msg_have_it()
@@ -1221,18 +1281,33 @@ block msg_put_where()
     say "Worauf, oder worin?"
 
 block msg_cant_put()
+    if any_pluribus is 1
+        if second is pluribus
+            say "${The second} können das nicht fassen."
+            return 0
     say "${The second} kann das nicht fassen."
 
 block msg_closed()
+    if any_pluribus is 1
+        say "${The second} ${is second} geschlossen."
+        return 0
     say "${The second} ist geschlossen."
 
 block msg_to_whom()
     say "Wem?"
 
 block msg_give()
+    if any_pluribus is 1
+        if second is pluribus
+            say "${The second} wollen ${the:acc noun} nicht. Skandal."
+            return 0
     say "${The second} will ${the:acc noun} nicht. Skandal."
 
 block msg_show()
+    if any_pluribus is 1
+        if second is pluribus
+            say "${The second} scheinen sich nicht dafür zu interessieren."
+            return 0
     say "${The second} scheint sich nicht dafür zu interessieren."
 
 // Wearing.
@@ -1257,33 +1332,60 @@ block msg_opened()
     say "Geöffnet."
 
 block msg_already_open()
+    if any_pluribus is 1
+        say "${The noun} ${is noun} schon offen."
+        return 0
     say "${The noun} ist schon offen."
 
 block msg_cant_open()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} lassen sich nicht öffnen."
+            return 0
     say "${The noun} lässt sich nicht öffnen."
 
 block msg_open_locked()
+    if any_pluribus is 1
+        say "${The noun} ${is noun} abgeschlossen."
+        return 0
     say "${The noun} ist abgeschlossen."
 
 block msg_door_locked(d)
+    if any_pluribus is 1
+        say "${The d} ${is d} abgeschlossen."
+        return 0
     say "${The d} ist abgeschlossen."
 
 block msg_door_shut(d)
+    if any_pluribus is 1
+        say "${The d} ${is d} zu. Du musst ${the:acc d} erst öffnen."
+        return 0
     say "${The d} ist zu. Du musst ${the:acc d} erst öffnen."
 
 block msg_closed_it()
     say "Geschlossen."
 
 block msg_already_shut()
+    if any_pluribus is 1
+        say "${The noun} ${is noun} schon geschlossen."
+        return 0
     say "${The noun} ist schon geschlossen."
 
 block msg_cant_close()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} lassen sich nicht schließen."
+            return 0
     say "${The noun} lässt sich nicht schließen."
 
 block msg_locked()
     say "Abgeschlossen."
 
 block msg_cant_lock()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} lassen sich nicht abschließen."
+            return 0
     say "${The noun} lässt sich nicht abschließen."
 
 block msg_close_first()
@@ -1295,25 +1397,47 @@ block msg_no_key()
     say "Dir fehlt der passende Schlüssel."
 
 block msg_wrong_key()
+    if any_pluribus is 1
+        if second is pluribus
+            say "${The second} passen nicht."
+            return 0
     say "${The second} passt nicht."
 
 block msg_unlocked()
     say "Aufgeschlossen."
 
 block msg_cant_unlock()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} lassen sich nicht aufschließen."
+            return 0
     say "${The noun} lässt sich nicht aufschließen."
 
 // Operating.
 block msg_no_switch()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} lassen sich nicht einschalten."
+            return 0
     say "${The noun} lässt sich nicht einschalten."
 
 block msg_already_on()
+    if any_pluribus is 1
+        say "${The noun} ${is noun} schon an."
+        return 0
     say "${The noun} ist schon an."
 
 block msg_already_off()
+    if any_pluribus is 1
+        say "${The noun} ${is noun} schon aus."
+        return 0
     say "${The noun} ist schon aus."
 
 block msg_no_effect()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} rühren sich nicht."
+            return 0
     say "${The noun} rührt sich nicht."
 
 // Body, action, idle.
@@ -1321,6 +1445,10 @@ block msg_attack()
     say "Auf Dinge einzuschlagen hilft selten, und daran wird sich auch jetzt nichts ändern."
 
 block msg_eat()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} stehen nicht auf dem Speiseplan."
+            return 0
     say "${The noun} steht nicht auf dem Speiseplan."
 
 block msg_drink()
@@ -1340,6 +1468,10 @@ block msg_sing()
 
 // Conversation.
 block msg_no_talk()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} scheinen nicht zum Reden aufgelegt."
+            return 0
     say "${The noun} scheint nicht zum Reden aufgelegt."
 
 block msg_use_talk()
@@ -1347,6 +1479,10 @@ block msg_use_talk()
          ${the:dat noun}."
 
 block msg_ask()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} lassen sich zu dem Thema nichts entlocken."
+            return 0
     say "${The noun} lässt sich zu dem Thema nichts entlocken."
 
 block msg_tell()

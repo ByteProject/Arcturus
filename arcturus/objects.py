@@ -133,6 +133,10 @@ class Layout:
     # ${the noun} only needs its runtime named-check when this holds, so a game
     # with no named objects pays nothing for it.
     has_named: bool = False
+    # True if any object is `pluribus` (grammatically plural: the scissors).
+    # The articles, the ${is x} copula, and the message branches guard on
+    # any_pluribus, so an unmarked game folds them all away.
+    has_pluribus: bool = False
     # True if any (non-movable) object declares `spans`. The scope code guards its
     # spans checks with `any_spans()`, which folds to this; a game with no spanning
     # objects folds the checks away and dead-code elimination drops the spans
@@ -266,6 +270,15 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
             decl = _effective_props(world, world.objects[name]).get("named")
             if decl is not None and _bool_value(decl):
                 layout.has_named = True
+                break
+
+    # Does any object resolve to `pluribus` (grammatical plural)? Same folding
+    # role as has_named, for the number-agreement machinery.
+    if "pluribus" in layout.attr_number:
+        for name in world.objects:
+            decl = _effective_props(world, world.objects[name]).get("pluribus")
+            if decl is not None and _bool_value(decl):
+                layout.has_pluribus = True
                 break
 
     # Does any non-movable object declare `spans`? Only then does the scope code

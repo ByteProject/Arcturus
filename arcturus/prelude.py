@@ -132,6 +132,12 @@ _STD_BOOL_PROPS = [
     # der -> masculine (neither bit). Masculine is still the default, so a masculine
     # noun needs nothing. English and Spanish ignore `neutral`.
     "neutral",
+    # Grammatical number: ONE object that is grammatically plural (the scissors,
+    # the boots; e pluribus unum, many speaking through one). The articles and the
+    # ${is x} copula read it: "some scissors", "the coins ARE gone", German's die
+    # with the plural case column, Spanish los/las. NOT the plurals granule, whose
+    # group words sweep several distinct (grammatically singular) objects.
+    "pluribus",
 ]
 
 # The three German definite articles, written as bare object declarations to state

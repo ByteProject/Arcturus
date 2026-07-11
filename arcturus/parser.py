@@ -25,16 +25,19 @@ from .errors import ArcError
 from .lexer import RawInterp, tokenize
 from .prelude import _ZCOLOURS
 
-# Articles recognized at the start of an interpolation (docs/01 section 16).
-_ARTICLES = frozenset({"a", "an", "the", "A", "An", "The"})
+# Articles recognized at the start of an interpolation (docs/01 section 16),
+# plus the number-agreeing copula `is` (${is x} prints is/are by the object's
+# pluribus attribute, worded by the language pack: ist/sind, está/están).
+_ARTICLES = frozenset({"a", "an", "the", "is", "A", "An", "The", "Is"})
 
 # A leading article, an optional :case tag, and the expression that follows. The
 # article alternatives are ordered longest-first so "an" wins over "a". The tag
 # (:acc, :dat, and so on) is only read by a case-inflected language layer; English
 # and Spanish ignore it. A real expression must follow, so ${the} alone is left as
-# a plain variable read, matching the earlier behaviour.
+# a plain variable read, matching the earlier behaviour (${is} alone was never
+# valid: `is` starts no expression).
 _ARTICLE_CASE_RE = re.compile(
-    r"^\s*(An|The|an|the|A|a)(?::([A-Za-z]+))?\s+(\S.*)$",
+    r"^\s*(An|The|Is|an|the|is|A|a)(?::([A-Za-z]+))?\s+(\S.*)$",
     re.DOTALL,
 )
 
