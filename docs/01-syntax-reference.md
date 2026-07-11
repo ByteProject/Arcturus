@@ -483,42 +483,6 @@ room broom_closet
 Things a plain take refuses anyway (scenery, fixed, animate, doors) never
 pay and never count.
 
-A cutscene that moves the player without walking (a crash landing, a
-transit pod) uses `teleport(dest)`, and one that hands the player an object
-without TAKE (a panel pried open, a mechanism yielding its prize) uses
-`gain(obj)` (both 02, section 7): each pays exactly like the verb would, so
-no auto-scored point ever becomes unreachable. A bare `move obj to player`
-pays nothing (section 5, the move-versus-gain warning).
-
-A VEHICLE the player rides (a boat, a lift, a mine cart) moves with
-`convey(vehicle, dest)`. The player sits inside the vehicle in the object
-tree, so moving the vehicle carries them; what a plain `move` cannot do is
-refresh `here`, the player's cached room, and scope then still answers for
-the room left behind (the vehicle trap). `convey` moves the vehicle,
-updates `here` when the player is aboard, and describes the arrival, so a
-self-driving boat is one line in `on each_turn`:
-`convey(boat, here.south)`. See
-[examples/features/vehicles.storyarc](../examples/features/vehicles.storyarc).
-
-The general form is `perform`: run any action as part of the current turn,
-exactly as the player's own command would dispatch it, refusals, handlers,
-and messages included (Inform's `<<take book>>`, Dialog's `(try ...)`):
-
-```
-perform("take", book)         // the full TAKE, "Got it." and all
-perform("go", west)           // a real move; a direction rides the way slot
-perform("give", coin, bob)    // two nouns
-if perform("open", chest) is 0
-    say "The chest defies you."   // 0 means the action refused
-```
-
-The action name is checked at compile time; the enclosing command's own
-operands are restored afterwards (a later AGAIN still repeats what the
-player typed), and no extra turn passes: it is one turn's work. Where
-`teleport` and `gain` exist they stay the better word (they are silent
-about the how); `perform` is for when you want the verb's whole voice.
-Costs nothing in a game that never calls it.
-
 For everything the compiler cannot know, the events, there is `award`, a
 statement legal anywhere a statement is (handlers, topic bodies, grains):
 
@@ -539,7 +503,9 @@ else
     award 5 for door_solved "outsmarting the blast door"
 ```
 
-A pool pays once, whichever branch fires first.
+A pool pays once, whichever branch fires first. Its label is author
+documentation: it names the pool in the source and in the compile ledger,
+and costs the story file nothing.
 
 MAX_SCORE COMPUTES ITSELF: the sum of every automatic room and thing, every
 anonymous award site, and every pool counted once at its maximum. It is
@@ -578,14 +544,21 @@ the game grows during development; a POINTS pin is the definite value,
 verbatim, for when a rank must sit exactly at a known threshold. Mix them
 freely; unpinned titles keep the even spread.
 
-A pool's label is author documentation: it names the pool in the source and
-in the compile ledger, and costs the story file nothing. SCORE is the one
-score verb, Infocom-shaped:
+SCORE is the one score verb, Infocom-shaped:
 
 ```
 You have scored 55 of a possible 95, in 21 turns, which earns you the rank
 of Space Archaeologist.
 ```
+
+One care the automatic points ask for: they pay through the verbs, so a
+cutscene must pay the same way. Moving the player without walking (a crash
+landing, a transit pod) is `teleport(dest)`; handing the player an object
+without TAKE (a panel pried open, a mechanism yielding its prize) is
+`gain(obj)`. Each pays exactly like the verb would, so no auto-scored
+point ever becomes unreachable; a bare `move obj to player` pays nothing.
+Section 5 has the rule of thumb (the move-versus-gain warning), section 7
+the statements themselves.
 
 The escape hatch: `change score` stays legal (penalties, score-as-resource),
 but it is off the paved road: hand-changed points play no part in the
@@ -703,6 +676,42 @@ change ruby.desc to "The ruby sits exposed."
 move knife to player
 move note to nothing
 ```
+
+Three calls elevate `move` for the set pieces a silent tree operation
+would get wrong, each doing the bookkeeping its verb would have done
+(all three in 02, section 7). `teleport(dest)` moves the player without
+walking (a crash landing, a transit pod) and describes the arrival.
+`gain(obj)` hands the player an object without TAKE (a panel pried open,
+a mechanism yielding its prize); section 5 has the move-versus-gain
+warning, and with `scoring` on both pay exactly like their verbs
+(section 6a). `convey(vehicle, dest)` moves a VEHICLE the player rides
+(a boat, a lift, a mine cart): the player sits inside the vehicle in the
+object tree, so moving the vehicle carries them, but what a plain `move`
+cannot do is refresh `here`, the player's cached room, and scope then
+still answers for the room left behind (the vehicle trap). `convey`
+moves the vehicle, updates `here` when the player is aboard, and
+describes the arrival, so a self-driving boat is one line in
+`on each_turn`: `convey(boat, here.south)`. See
+[examples/features/vehicles.storyarc](../examples/features/vehicles.storyarc).
+
+The general form is `perform`: run any action as part of the current turn,
+exactly as the player's own command would dispatch it, refusals, handlers,
+and messages included (Inform's `<<take book>>`, Dialog's `(try ...)`):
+
+```
+perform("take", book)         // the full TAKE, "Got it." and all
+perform("go", west)           // a real move; a direction rides the way slot
+perform("give", coin, bob)    // two nouns
+if perform("open", chest) is 0
+    say "The chest defies you."   // 0 means the action refused
+```
+
+The action name is checked at compile time; the enclosing command's own
+operands are restored afterwards (a later AGAIN still repeats what the
+player typed), and no extra turn passes: it is one turn's work. Where
+`teleport` and `gain` exist they stay the better word (they are silent
+about the how); `perform` is for when you want the verb's whole voice.
+Costs nothing in a game that never calls it.
 
 `add ... to ...` and `remove ... from ...` operate on list properties only:
 
