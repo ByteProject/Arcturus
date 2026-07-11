@@ -452,9 +452,16 @@ class ConsoleApp:
 
 def play(story, title: str = "") -> None:
     locale.setlocale(locale.LC_ALL, "")  # accents render as themselves
-    # Name the terminal tab/window after the story (the xterm title
-    # sequence; terminals that ignore it, ignore it harmlessly).
+    # Name the terminal tab/window after the story for the session, then
+    # give the old name back on the way out: push the current title on
+    # the terminal's title stack (xterm XTWINOPS 22), set ours, and pop
+    # (23) when the story ends, however it ends. Terminals without the
+    # stack ignore both pushes harmlessly and keep today's behavior.
     label = f"{title} - Actaea" if title else "Actaea"
-    sys.stdout.write(f"\x1b]0;{label}\x07")
+    sys.stdout.write(f"\x1b[22;0t\x1b]0;{label}\x07")
     sys.stdout.flush()
-    curses.wrapper(lambda scr: ConsoleApp(story, scr).run())
+    try:
+        curses.wrapper(lambda scr: ConsoleApp(story, scr).run())
+    finally:
+        sys.stdout.write("\x1b[23;0t")
+        sys.stdout.flush()
