@@ -26,8 +26,8 @@
 // emitted by the compiler ONLY when this granule is summoned, so an unsummoned
 // verbose_exits costs the story file nothing.
 //
-// To change the phrasing, fork the granule (this msg_cant_go override belongs to
-// it, so it is not overridable from a story while the granule is summoned).
+// To change the phrasing, redefine msg_cant_go in the story (most-specific-
+// wins: the game's block beats this granule's) or fork the granule.
 
 // Replace the standard blocked-direction reply with a live exit list. The go verb
 // calls msg_cant_go whenever the chosen direction has no exit, so overriding this

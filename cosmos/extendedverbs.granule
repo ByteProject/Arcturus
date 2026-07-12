@@ -12,11 +12,11 @@
 // the two conversation presentations are their own granules (conversations,
 // infocom_talking; docs/05).
 //
-// The wording lives here, in the granule, so it ships only when summoned. To
-// reskin its lines, fork the granule: extract it, edit your copy, and summon that
-// (a granule's own blocks are not overridable from a story; that is what keeps a
-// granule distinct from the prelude). An object can still override a verb's
-// effect through ordinary handler resolution (most-specific-wins), below.
+// The wording lives here, in the granule, so it ships only when summoned.
+// Reskin any line from the story by redefining its msg_ block (most-specific-
+// wins: game over granule over library), or fork the granule to reshape it
+// wholesale. An object overrides a verb's effect through ordinary handler
+// resolution the same way, below.
 //
 // ---------------------------------------------------------------------------
 // Examining and rummaging.

@@ -252,10 +252,30 @@ class Analyzer:
                 )
             elif isinstance(decl, ast.BlockDecl):
                 prior = w.blocks.get(decl.name)
-                # A game or granule block overrides a library block of the same
-                # name; any other repeat is a genuine duplicate.
-                if prior is not None and prior.origin == "library" and decl.origin != "library":
-                    pass
+                # Most-specific-wins, the chain complete: a game block
+                # overrides a granule block overrides a library block of the
+                # same name (combined_program loads in that order). Messages
+                # (msg_*, line_*) are a granule's public skin and reskin
+                # silently; capturing any OTHER granule block gets a note,
+                # since colliding with a granule's internal helper by accident
+                # breaks the granule mysteriously (the reason the old rule
+                # forbade this outright). A repeat at the same origin is a
+                # genuine duplicate.
+                rank = {"library": 0, "granule": 1, "game": 2}
+                if prior is not None and (
+                    rank.get(decl.origin, 2) > rank.get(prior.origin, 2)
+                ):
+                    if prior.origin == "granule" and not (
+                        decl.name.startswith("msg_")
+                        or decl.name.startswith("line_")
+                    ):
+                        print(
+                            f"arcc: note: block '{decl.name}' replaces a "
+                            f"summoned granule's block of the same name; if "
+                            f"this is not a deliberate override, rename "
+                            f"yours (the granule may depend on its own)",
+                            file=sys.stderr,
+                        )
                 else:
                     self._seen(decl.name, decl.line)
                 w.blocks[decl.name] = wm.Block(
