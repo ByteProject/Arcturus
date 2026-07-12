@@ -115,7 +115,7 @@ CEILINGS = {
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 17624  # 2026-07-11 the held tiebreak
+CLOAK_Z8_CEILING = 17624  # 2026-07-12 identical strings pool once
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

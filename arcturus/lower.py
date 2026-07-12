@@ -1734,10 +1734,23 @@ def _say(rt, ctx, value, newline=True):
         rt.op("new_line")
 
 
+def _const_string(ctx, value):
+    """A name that names a STRING constant stands for its literal, so `say
+    DESC_OFFICE` (and show, and a conversation line) prints the text, with
+    its interpolation, exactly as if it were written in place. A number or
+    object constant is untouched and prints as its value, as before."""
+    if isinstance(value, ast.Name):
+        c = ctx.world.constants.get(value.ident)
+        if c is not None and isinstance(c.value, ast.StringLit):
+            return c.value
+    return value
+
+
 def _emit_say(rt, ctx, value):
     """Print a say value (a string with interpolation, or a bare expression)
     with no paragraph flush and no trailing newline. _say wraps it with both;
     _line wraps it with a speaker prefix and quotation marks."""
+    value = _const_string(ctx, value)
     if isinstance(value, ast.StringLit):
         for part in value.parts:
             if isinstance(part, ast.StringText):

@@ -142,6 +142,26 @@ the compiler, which checks the promise each head makes, and is free to pack
 flags into bits later without any source change. The Z-machine offers 240;
 the compiler allocates them and errors only if a program exceeds that.
 
+A CONSTANT costs no global at all: it inlines to its value at every use. A
+STRING constant stands for its text anywhere text stands, so one wording is
+written once and shared:
+
+```
+constant MOTTO = "Measure twice, ship once."
+
+thing plaque in office
+    desc MOTTO          // the property reads as the literal
+
+on rub
+    say MOTTO           // and say / show print it
+```
+
+The string is stored once (identical strings always are) and the name is
+purely compile-time. One care: a plain property string is a static Z-string,
+so `${...}` interpolation inside one is dropped at runtime (the compiler
+notes it and names the cure, a computed `desc block`); in `say` and `show`
+the same constant interpolates as usual.
+
 ## 5. The world model
 
 Two built-in categories introduce objects: `room` for locations, `thing` for
