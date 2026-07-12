@@ -669,11 +669,15 @@ that lists several verbs (`on attack, push, pull`) is a specific handler
 for each of those verbs.
 
 Out-of-world actions never enter the chain at all: score, save, restore,
-restart, and quit report on or manage the session rather than act in the
-world, so no object, recipient, or room handler ever sees them (Inform and
-PunyInform mark the same verbs meta). The compiler numbers them past
-`meta_floor` and the dispatcher routes them straight to the free rules,
-where a story-level `on score` can still override the default.
+restart, quit, and the transcript pair report on or manage the session
+rather than act in the world, so no object, recipient, or room handler ever
+sees them (Inform and PunyInform mark the same verbs meta). The compiler
+numbers them past `meta_floor` and the dispatcher routes them straight to
+the free rules, where a story-level `on score` can still override the
+default. The band is open to declaration: `verb "about" meta` puts a
+verb's actions there too, for ABOUT and HELP verbs and the debug granule's
+reach-anything tools, whose GONEAR must never fire an object's `on other`
+on the way past.
 
 Each handler runs until it ends or calls `continue`. Ending consumes the
 action and stops the chain; `continue` passes to the next handler. If the

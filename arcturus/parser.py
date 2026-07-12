@@ -695,6 +695,14 @@ class Parser:
         while self.check_op(","):
             self.advance()
             words.append(self._plain_text(self.expect(T.STRING, "a verb word")))
+        # A trailing `meta` marks the verb's actions out-of-world: dispatched
+        # straight to the free rules, past every object and room handler (an
+        # `on other` included), the band score/save/quit live in. For ABOUT
+        # and HELP verbs, and the debug granule's reach-anything tools.
+        meta = False
+        if self.check(T.NAME) and self.cur.value == "meta":
+            self.advance()
+            meta = True
         self.expect_newline()
         self.expect(T.INDENT, "an indented grammar body")
         grammar: list[ast.GrammarLine] = []
@@ -704,7 +712,7 @@ class Parser:
                 continue
             grammar.append(self._parse_grammar_line())
         self.expect(T.DEDENT)
-        return ast.VerbDecl(words, grammar, line)
+        return ast.VerbDecl(words, grammar, line, meta)
 
     def parse_language_decl(self) -> ast.LanguageDecl:
         # `language "spanish"`: the self-identifying marker of a language pack.

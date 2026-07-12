@@ -156,6 +156,11 @@ class Analyzer:
             elif isinstance(decl, ast.VerbDecl):
                 grammar = [wm.GrammarLine(g.action, g.items, g.reverse) for g in decl.grammar]
                 w.verbs.append(wm.Verb(decl.words, grammar, decl.line))
+                # `verb ... meta`: its actions join the out-of-world band
+                # (dispatched past every object handler, `on other` included).
+                if decl.meta:
+                    for g in decl.grammar:
+                        w.meta_actions.add(g.action)
             elif isinstance(decl, ast.DirectionDecl):
                 if not self.env.is_direction(decl.prop):
                     raise self._error(

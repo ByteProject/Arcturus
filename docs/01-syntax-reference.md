@@ -973,6 +973,19 @@ crate. One `direction` slot per line, always last; a verb with such a line
 compiles to the positional table. The worked showcase is
 [examples/features/direction-grammar.storyarc](../examples/features/direction-grammar.storyarc).
 
+A verb whose actions are OUT-OF-WORLD takes a trailing `meta`:
+
+```
+verb "about", "credits" meta
+    about
+```
+
+Its actions dispatch straight to the free rules, past every object and room
+handler (`on other` included), beside score/save/quit: the right shape for
+ABOUT and HELP verbs, and what keeps the debug granule's GONEAR from firing
+story code on the way past. A meta handler that should not cost a turn sets
+`meta_turn`, as the standard session verbs do (02, section 9).
+
 EXTENDING THE STANDARD GRAMMAR. The grammar is not a fixed table you write
 additions into; it is the sum of every `verb` declaration in the compile,
 Cosmos's and yours alike, and your game is expected to add its own. Three
