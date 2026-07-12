@@ -267,9 +267,12 @@ def _resolve_summon(s: ast.Summon, bundled: dict, lib_dirs, story_dir):
         if fname in bundled:
             # Found nothing local; fall back to the bundled copy, and say so, so
             # the author knows their fork was not picked up.
+            stem = fname[: -len(".granule")]
             print(
-                f"arcc: note: '{fname}' not found in the story directory or any "
-                f"-L directory; using the bundled granule",
+                f"arcc: note: using the bundled {fname} (you have no copy in "
+                f"the story directory or any -L directory; if you never "
+                f"intended a fork, `summon.{stem}` states that exactly and "
+                f"quiets this note)",
                 file=sys.stderr,
             )
             return "feature:" + fname, bundled[fname], fname
