@@ -162,6 +162,42 @@ def test_cpc_inks_are_in_the_cube():
     assert all(0 <= i <= 26 for i in native["palette"])
 
 
+# -- wave 3: the Atari 8-bit per-line solver ------------------------------------
+
+@pytest.mark.parametrize("name", SAMPLE)
+def test_a8_converts_and_round_trips(name):
+    path = os.path.join(MASTERS, name)
+    iid = int(name.split(".")[0])
+    mode, native = arcimg.convert_master(path, "A8")
+    blob = arcimg.encode_native("A8", mode, iid, native,
+                                codec=arcimg.CODEC_RLE)
+    tag2, mode2, iid2, back = arcimg.decode_arc(blob)
+    assert (tag2, mode2, iid2) == ("A8", mode, iid)
+    assert back == native
+
+
+def test_a8_respects_the_hardware():
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, ALL[0]), "A8")
+    h = native["h"]
+    assert len(native["lines"]) == 4 * h  # four registers per scanline
+    # GTIA does not decode luminance bit 0: every table byte is even.
+    assert all(b & 1 == 0 and 0 <= b <= 255 for b in native["lines"])
+    assert all(0 <= p <= 3 for row in native["pixels"] for p in row)
+
+
+def test_a8_line_table_is_quiet():
+    # The whole point of the solver: line palettes drawn from one stable
+    # global set, held and role-assigned line to line, so flat regions emit
+    # IDENTICAL table rows (no shimmer on screen, runs for ZX0). On the
+    # corpus the table holds 21-29 distinct rows per 96 lines with about
+    # 60 exact repeats; the bounds are loose thirds of that.
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, ALL[0]), "A8")
+    h = native["h"]
+    rows = [tuple(native["lines"][y * 4:(y + 1) * 4]) for y in range(h)]
+    assert len(set(rows)) < h // 3
+    assert sum(1 for y in range(1, h) if rows[y] == rows[y - 1]) > h // 3
+
+
 # -- the salient hint (the moon ruling, arc_image/reference/design.md) --------------------------------
 
 def _disc_master(tmp_path):
@@ -193,6 +229,18 @@ def test_hint_promotes_the_disc_to_white(tmp_path):
         whites = sum(1 for row in rendered for c in row
                      if c[0] > 200 and c[1] > 200 and c[2] > 200)
         assert whites > 100, tag
+
+
+def test_a8_hint_promotes_the_disc_to_full_luminance(tmp_path):
+    # The A8 promotion keeps the disc's HUE (128 colors allow it) but lifts
+    # it to full GTIA luminance: the disc must stand apart from the sky it
+    # glows out of.
+    path = _disc_master(tmp_path)
+    _mode, native = arcimg.convert_master(path, "A8")
+    rendered = arcimg.TARGETS["A8"].render(native, native["w"], native["h"])
+    bright = sum(1 for row in rendered for c in row
+                 if 2 * c[0] + 4 * c[1] + c[2] > 1300)
+    assert bright > 300
 
 
 def test_no_hint_no_change(tmp_path):

@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.7.0"
+__version__ = "1.8.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -1780,8 +1780,150 @@ def _convert_cpc(rows, salient=None):
     return {"w": w, "h": h, "pixels": pixels, "palette": inks, "regs": [0]}
 
 
+# The 128 colors an Atari color register can hold apart: 16 hues x 8
+# luminances. GTIA does not decode luminance bit 0, so only even values
+# exist; the byte is hue<<4 | luma, written to the register verbatim.
+_GTIA128 = [(hue << 4) | (luma << 1) for hue in range(16) for luma in range(8)]
+_GTIA_RGB = [_gtia_color(v) for v in _GTIA128]
+
+# The incumbency weight for the per-line solver: the previous line's four
+# colors enter the next line's greedy pick with their cost discounted by
+# w * _A8_HOLD / 100 (about 80 _dist_luma units per pixel). Enough that a
+# challenger who merely ties loses to the incumbent and flat regions emit
+# identical table rows; far too little to hold a register through a real
+# content change (one full GTIA luminance step scores about 20000).
+_A8_HOLD = 8000
+
+
+def _convert_a8(rows, salient=None):
+    # ANTIC mode E: 160 wide, 2:1 pixels, FOUR colors per scanline out of
+    # the 128, replayed by a display-list interrupt from a 4-bytes-per-line
+    # table. Between classes, as the design record says: no cell hardware,
+    # but the palette is per LINE, so the solver's whole job is vertical
+    # coherence. The R3 lesson applies with the line as the cell: index the
+    # image against ONE stable global palette first (16 GTIA colors, the
+    # ST-class budget), then per line pick the best four OF THOSE by greedy
+    # error minimization, HOLD near-identical picks to the previous line,
+    # and permute so each register keeps its role down the picture. Line
+    # palettes drawn from one fixed set cannot shimmer, flat regions emit
+    # identical table rows (ZX0 eats them), and a sky gradient still works:
+    # the global palette holds its steps and each line picks its own four.
+    rows = _halve_width(rows)
+    w, h = len(rows[0]), len(rows)
+    # The dither budget is the color SPACE, not the per-line four: the line
+    # palettes already adapt vertically, so the pattern only has to soften
+    # what a single line cannot hold, and at 16-budget amplitude it reads
+    # as speckle over the whole picture (the corpus said so).
+    amp = _dither_amount(rows, 128)
+    snap = lambda c: _GTIA_RGB[_nearest(c, _GTIA_RGB, metric=_dist_luma)]
+    pal = _build_palette(rows, 16, snap)
+    pal = _protect_extremes(rows, pal, snap)
+    if salient:
+        # The hinted disc (a moon, a sun): promoted to its own hue at FULL
+        # GTIA luminance, added to the global palette, every disc pixel
+        # mapped to it solid (the swallowed-moon ruling, R3: the disc's
+        # bright side goes to the palette's top, exactly what a pixel
+        # artist paints). The disc's honest color is a glow one step off
+        # the sky, and a moon that does not stand apart is no moon; the
+        # 128-color space lets the promotion keep the hue where the C64
+        # had to go white. The line pick below then defends the register
+        # on every line the disc crosses, because its count is real.
+        bright = max((rows[y][x // 2] for x, y in salient),
+                     key=lambda c: 2 * c[0] + 4 * c[1] + c[2])
+        gi = _GTIA128[_nearest(bright, _GTIA_RGB, metric=_dist_luma)]
+        disc = _gtia_color((gi & 0xF0) | 14)
+        if disc not in pal:
+            pal.append(disc)
+    gbytes = [_GTIA128[_nearest(c, _GTIA_RGB, metric=_dist_luma)] for c in pal]
+    idx = _map_pixels(rows, pal, amp, metric=_dist_luma)
+    if salient:
+        di = pal.index(disc)
+        for x, y in salient:
+            idx[y][x // 2] = di
+
+    def line_pick(hist, seed):
+        """The line's four global colors by greedy error minimization (the
+        C64's cell_pick with the line as the cell): each round adds the
+        color that saves the line the most, so a few very bright pixels
+        outvote a middling shade seen often. `seed` biases round one toward
+        the previous line's registers: ties and near-ties keep the old set,
+        which is what keeps the table quiet."""
+        picks, allowed = [], []
+        pool = list(hist)
+        while pool and len(picks) < 4:
+            def cost(cand):
+                total = 0
+                for c, cnt in hist.items():
+                    d = min(_dist_luma(pal[c], pal[a])
+                            for a in allowed + [cand])
+                    total += cnt * d
+                return total - (seed.get(cand, 0))
+            pick = min(pool, key=cost)
+            picks.append(pick)
+            allowed.append(pick)
+            pool.remove(pick)
+        while len(picks) < 4:
+            picks.append(picks[-1])
+        return picks
+
+    from itertools import permutations
+    pixels, lines = [], []
+    prev = None  # last line's four global palette indices
+    for y in range(h):
+        # The vote is a three-line window, the center counting double, but
+        # only line y is mapped: neighbours seeing near-identical votes pick
+        # near-identical sets, which kills the odd/even oscillation that
+        # horizontally busy rows otherwise show as streaks. A hard horizon
+        # still switches sets within a line of the boundary.
+        hist = {}
+        for c in idx[y]:
+            hist[c] = hist.get(c, 0) + 2
+        for yy in (y - 1, y + 1):
+            if 0 <= yy < h:
+                for c in idx[yy]:
+                    hist[c] = hist.get(c, 0) + 1
+        # The previous line's colors are worth a discount proportional to
+        # the line's weight: a pick that merely ties a stranger loses to
+        # the incumbent, but a genuinely better color always wins.
+        seed = {}
+        if prev is not None:
+            bonus = (w * _A8_HOLD) // 100
+            seed = {p: bonus for p in prev}
+        picks = line_pick(hist, seed)
+        if prev is None:
+            # First line: the most frequent color takes register 0 (the
+            # background), so the packed bitmap zero-fills and the border
+            # continues the line's backdrop.
+            regs = sorted(set(picks), key=lambda p: -hist.get(p, 0))
+            while len(regs) < 4:
+                regs.append(regs[-1])
+        else:
+            # ASSIGNMENT: permute so each register keeps its role; an exact
+            # repeat costs nothing, so unchanged sets emit unchanged rows.
+            regs = min(
+                (list(perm) for perm in permutations(picks)),
+                key=lambda perm: sum(
+                    0 if perm[i] == prev[i]
+                    else _dist_luma(pal[perm[i]], pal[prev[i]])
+                    for i in range(4)))
+        prev = regs
+        lines += [gbytes[r] for r in regs]
+        # Every pixel to its nearest of the line's four, via the global
+        # index it already has (exact when the pick kept its color).
+        remap = {}
+        prow = []
+        for c in idx[y]:
+            if c not in remap:
+                remap[c] = min(range(4),
+                               key=lambda i: _dist_luma(pal[c], pal[regs[i]]))
+            prow.append(remap[c])
+        pixels.append(prow)
+    return {"w": w, "h": h, "pixels": pixels, "lines": lines}
+
+
 _CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,
-               "C64": _convert_c64, "ZX3": _convert_zx3, "CPC": _convert_cpc}
+               "C64": _convert_c64, "ZX3": _convert_zx3, "CPC": _convert_cpc,
+               "A8": _convert_a8}
 
 
 # -- the Spectrum polish round-trip (.scr in and out) ---------------------------
