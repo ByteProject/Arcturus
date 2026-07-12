@@ -803,8 +803,8 @@ that also consumes the action (section 12). `continue` ends the current
 handler and passes the action to the next, more general handler (section 12).
 
 `alter` speaks an action's report yourself, keeping the default MECHANICS:
-say your line (or compose one in an indented body, the way a computed
-property words itself), then `continue`; the take, the drop, the open run
+say your line (or compose one under `alter block`, the same shape a
+computed property takes), then `continue`; the take, the drop, the open run
 exactly as always, and the library's success line stays silent. A plain
 `say` before `continue` keeps its classic meaning, flavor stacked above
 the default report, so nothing existing changes; and refusals never honor
@@ -816,7 +816,7 @@ on take
     continue
 
 on drop
-    alter
+    alter block
         show("You set the idol down")
         if here is shrine
             show(", and the shrine seems to sigh")

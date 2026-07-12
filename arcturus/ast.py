@@ -261,7 +261,7 @@ class Continue(Stmt):
 
 @dataclass
 class Alter(Stmt):
-    """alter "..." or alter + an indented body: speak the action's report
+    """alter "..." or alter block + an indented body: speak the action's report
     yourself. Marks the report as spoken, so when the handler continues,
     the default runs its full mechanics and its success line stays silent
     (refusals never honor the mark). The block form composes wording the

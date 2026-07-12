@@ -8,8 +8,8 @@
 // continues: the take or drop runs in full (scoring, bookkeeping, the
 // tree), and the library's success line ("Got it.", "Down it goes.")
 // stays silent, because the report is already spoken. Two forms: one
-// line (alter "..."), or a bare alter opening an indented body whose
-// printing collectively IS the report, for wording composed by state.
+// line (alter "..."), or `alter block` opening an indented body whose
+// printing collectively IS the report, the computed-property shape, for wording composed by state.
 // Two guardrails, both shown below: a plain say before continue still
 // stacks above the default line (the flavor idiom), and refusals never
 // honor alter, so a failed action answers honestly whatever you
@@ -55,7 +55,7 @@ thing flute in reliquary
     // The block form: compose the report with show and say, branch on
     // state, then continue into the untouched drop.
     on drop
-        alter
+        alter block
             show("You lay the flute down")
             if here is crypt
                 show(", and the dark leans in to listen")
