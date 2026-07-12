@@ -3586,14 +3586,14 @@ words and drew the line himself: the requested five plus membership,
 last, and random, none of the rest, because the rest (append, reverse,
 collect) are exactly the features that need a runtime heap, the Dialog
 trap this language exists to refuse. Then he named it: a star catalog,
-of course. `catalog colonel_letter` declares a fixed ordered collection
+of course. `catalog last_letter` declares a fixed ordered collection
 one value per line, one type per catalog; calculate folds to a constant
 at compile time, entry and last are one loadw, dice rides random,
 position scans (and `in` branches on the same block: membership costs
 no new vocabulary), `for each` iterates, a catalog passes to a block as
 its offset, and `change entry(...) to` rewrites one entry in place with
 a single storew, because the tables live in dynamic memory and there is
-no allocator anywhere. quote_catalog draws Ichiro's colonel's letter as
+no allocator anywhere. quote_catalog draws a whole letter as
 a box in one call, frame sized from compile-time header words. Found
 under it and fixed: quote_done unsplit the whole screen, so the first
 line printed after a mid-game box vanished beneath the statusline's

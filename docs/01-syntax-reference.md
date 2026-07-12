@@ -168,11 +168,11 @@ catalog: one value per indented line, one TYPE of value per catalog
 written:
 
 ```
-catalog colonel_letter
-    "Doctor,"
+catalog last_letter
+    "To be read when I am gone:"
     ""
-    "A matter from the old days requires"
-    "attention."
+    "The garden knows. Dig nowhere."
+    "E. Mereweather"
 
 catalog suspects
     butler
@@ -184,12 +184,12 @@ The operations, all 1-based, all total (out of range answers 0/nothing):
 
 ```
 calculate(suspects)              // how many entries: 3
-entry(colonel_letter, 3)         // the third entry
-last(colonel_letter)             // the final entry
+entry(last_letter, 3)            // the third entry
+last(last_letter)                // the final entry
 dice(omens)                      // one entry at random
 position(suspects, butler)       // an entry's number, or 0 when absent
 if butler in suspects            // membership: the `in` you already know
-for each line in colonel_letter  // iterate in order; say line prints right
+for each line in last_letter     // iterate in order; say line prints right
 change entry(verdicts, 2) to "guilty"   // rewrite ONE entry in place
 ```
 

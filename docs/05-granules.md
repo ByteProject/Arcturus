@@ -158,7 +158,7 @@ summon.quotes
 ```
 
 The one-call form draws the whole box from a text catalog (docs/01,
-catalogs): `quote_catalog(colonel_letter)` sizes the frame from the
+catalogs): `quote_catalog(last_letter)` sizes the frame from the
 catalog's compile-time header (line count and widest line, no author
 arithmetic, nothing measured at run time) and prints every entry. The
 line-by-line form below remains for hand-built boxes.
