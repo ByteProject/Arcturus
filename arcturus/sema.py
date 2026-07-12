@@ -311,9 +311,14 @@ class Analyzer:
                 # forbade this outright). A repeat at the same origin is a
                 # genuine duplicate.
                 rank = {"library": 0, "granule": 1, "game": 2}
-                if prior is not None and (
-                    rank.get(decl.origin, 2) > rank.get(prior.origin, 2)
-                ):
+                new_r = rank.get(decl.origin, 2)
+                prior_r = rank.get(prior.origin, 2) if prior is not None else -1
+                if prior is not None and new_r < prior_r:
+                    # The more specific block already won (a game chapter
+                    # loaded before the granule it overrides): the less
+                    # specific late arrival is simply not taken.
+                    pass
+                elif prior is not None and new_r > prior_r:
                     if prior.origin == "granule" and not (
                         decl.name.startswith("msg_")
                         or decl.name.startswith("line_")
@@ -325,11 +330,14 @@ class Analyzer:
                             f"yours (the granule may depend on its own)",
                             file=sys.stderr,
                         )
+                    w.blocks[decl.name] = wm.Block(
+                        decl.name, decl.params, decl.body, decl.line, decl.origin
+                    )
                 else:
                     self._seen(decl.name, decl.line)
-                w.blocks[decl.name] = wm.Block(
-                    decl.name, decl.params, decl.body, decl.line, decl.origin
-                )
+                    w.blocks[decl.name] = wm.Block(
+                        decl.name, decl.params, decl.body, decl.line, decl.origin
+                    )
             elif isinstance(decl, ast.Handler):
                 w.free_handlers.append(self._make_handler(decl, None, False))
             elif isinstance(decl, ast.GrainsAttach):

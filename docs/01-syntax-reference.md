@@ -1420,6 +1420,14 @@ summon "extensions/lockpicking.granule"  // an explicit file
   you summon a tuned `abbreviations.granule` (below).
 - The quoted form is an explicit path, with no bundled fallback.
 
+A MULTI-FILE GAME summons its own chapters the same way: `summon
+rooms.storyarc`, `summon messages.storyarc`, and so on from the main file.
+A summoned `.storyarc` is a CHAPTER of the game, not a module: its blocks
+and handlers rank as GAME in the override chain (05, section 1), so a
+message override in messages.storyarc beats the library's and a summoned
+granule's exactly as if it were written in the main file, in any summon
+order. Only `.granule` files ride at granule rank.
+
 Text compression is not a summonable feature. The compiler always applies a
 standard abbreviation set, so nothing is required to get it. A story can tune the
 set to its own text with `arcc --make-abbreviations`, which writes an

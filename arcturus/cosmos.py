@@ -329,10 +329,19 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
                 f'summon.language "{stem}", not a plain summon',
                 s.line, filename="<summon>",
             )
+        # A summoned .storyarc is a CHAPTER of the game, not a module: a
+        # multi-file game splits its rooms, items, and message overrides
+        # across files and summons them from main. Its blocks and handlers
+        # rank as GAME, so a message override in messages.storyarc beats a
+        # granule's message like one written in main itself (the field
+        # shape: a chapter file collided with extendedverbs at granule
+        # rank and every override was a duplicate). A .granule stays a
+        # granule: above the library, below the game.
+        origin = "game" if srcname.endswith(".storyarc") else "granule"
         gdecls: list = []
         for d in prog.decls:
             if isinstance(d, (ast.BlockDecl, ast.Handler)):
-                d.origin = "granule"
+                d.origin = origin
             gdecls.append(d)
         loaded[key] = gdecls
         order.append(key)
