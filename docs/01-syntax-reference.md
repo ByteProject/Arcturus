@@ -804,7 +804,8 @@ handler and passes the action to the next, more general handler (section 12).
 
 `alter` speaks an action's report yourself, keeping the default MECHANICS:
 say your line (or compose one under `alter block`, the same shape a
-computed property takes), then `continue`; the take, the drop, the open run
+computed property takes; a bare `alter` on its own line opens the same
+body), then `continue`; the take, the drop, the open run
 exactly as always, and the library's success line stays silent. A plain
 `say` before `continue` keeps its classic meaning, flavor stacked above
 the default report, so nothing existing changes; and refusals never honor
