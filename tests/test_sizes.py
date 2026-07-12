@@ -29,12 +29,12 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
 CEILINGS = {
-    "features/beyond.storyarc": 16120,  # 2026-07-12 the beyond showcase
-    "features/alter.storyarc": 15652,  # 2026-07-12 the alter showcase
-    "features/catalogs.storyarc": 15812,  # 2026-07-12 joins the gate (was never tracked)
-    "features/direction-grammar.storyarc": 16000,  # 2026-07-12 joins the gate (was never tracked)
-    "features/scenery-contents.storyarc": 15836,  # 2026-07-12 joins the gate (was never tracked)
-    "granules/nautical.storyarc": 15668,  # 2026-07-12 joins the gate (was never tracked)
+    "features/beyond.storyarc": 16264,  # 2026-07-12 climb and GO ON board supporters
+    "features/alter.storyarc": 15796,  # 2026-07-12 climb and GO ON board supporters
+    "features/catalogs.storyarc": 15852,  # 2026-07-12 climb and GO ON board supporters
+    "features/direction-grammar.storyarc": 16040,  # 2026-07-12 climb and GO ON board supporters
+    "features/scenery-contents.storyarc": 15980,  # 2026-07-12 climb and GO ON board supporters
+    "granules/nautical.storyarc": 15708,  # 2026-07-12 climb and GO ON board supporters
     # 2026-07-04 (Stefan's ruling, superseding the same day's FULL move):
     # there is NO fullscore verb; SCORE is the one score verb and reports
     # score, max, turns, and rank in one line. Pool labels stay in the
@@ -88,40 +88,40 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 22116,  # 2026-07-11 the held tiebreak
-    "brass-lantern.storyarc": 16352,  # 2026-07-12 death vs finish: cloak dies, so it pays
-    "cloak-of-darkness.storyarc": 17260,  # 2026-07-12 death vs finish: cloak dies, so it pays
-    "ejemplo-espanol.storyarc": 21148,  # 2026-07-11 the held tiebreak
-    "features/computed-properties.storyarc": 14924,  # 2026-07-11 the held tiebreak
-    "features/containers.storyarc": 15200,  # 2026-07-11 the held tiebreak
-    "features/daemons-and-timers.storyarc": 15236,  # 2026-07-11 the held tiebreak
-    "features/doors-and-locks.storyarc": 14812,  # 2026-07-11 the held tiebreak
-    "features/appearance.storyarc": 15604,  # 2026-07-11 the held tiebreak
-    "features/components.storyarc": 15076,  # 2026-07-11 the held tiebreak
-    "features/perform.storyarc": 15160,  # 2026-07-11 the held tiebreak
-    "features/grains.storyarc": 14968,  # 2026-07-11 the held tiebreak
-    "features/grammar.storyarc": 15932,  # 2026-07-11 the held tiebreak
-    "features/introproperty.storyarc": 16124,  # 2026-07-11 the held tiebreak
-    "features/kinds-and-inheritance.storyarc": 14772,  # 2026-07-11 the held tiebreak
-    "features/on-other.storyarc": 14772,  # 2026-07-11 the held tiebreak
-    "features/zcolor.storyarc": 15144,  # 2026-07-11 the held tiebreak
-    "features/scoring.storyarc": 17124,  # 2026-07-11 the held tiebreak
-    "features/spans.storyarc": 14964,  # 2026-07-11 the held tiebreak
-    "features/vehicles.storyarc": 15464,  # 2026-07-11 the held tiebreak
-    "granules/ambience.storyarc": 16256,  # 2026-07-11 the held tiebreak
-    "granules/conversations.storyarc": 16552,  # 2026-07-11 the held tiebreak
-    "granules/extended-verbs.storyarc": 17532,  # 2026-07-11 the held tiebreak
-    "granules/infocom-interrogation.storyarc": 16964,  # 2026-07-11 the held tiebreak
-    "granules/quotes.storyarc": 15144,  # 2026-07-12 quote_done gives the bar its row back
-    "granules/take-all.storyarc": 16848,  # 2026-07-11 the held tiebreak
-    "granules/plurals.storyarc": 15800,  # 2026-07-11 the held tiebreak
-    "granules/statusline.storyarc": 14880,  # 2026-07-11 the held tiebreak
-    "granules/verbose-exits.storyarc": 15160,  # 2026-07-11 the held tiebreak
+    "beispiel-deutsch.storyarc": 22220,  # 2026-07-12 climb and GO ON board supporters
+    "brass-lantern.storyarc": 16392,  # 2026-07-12 climb and GO ON board supporters
+    "cloak-of-darkness.storyarc": 17432,  # 2026-07-12 climb and GO ON board supporters
+    "ejemplo-espanol.storyarc": 21252,  # 2026-07-12 climb and GO ON board supporters
+    "features/computed-properties.storyarc": 14964,  # 2026-07-12 climb and GO ON board supporters
+    "features/containers.storyarc": 15344,  # 2026-07-12 climb and GO ON board supporters
+    "features/daemons-and-timers.storyarc": 15276,  # 2026-07-12 climb and GO ON board supporters
+    "features/doors-and-locks.storyarc": 14852,  # 2026-07-12 climb and GO ON board supporters
+    "features/appearance.storyarc": 15644,  # 2026-07-12 climb and GO ON board supporters
+    "features/components.storyarc": 15116,  # 2026-07-12 climb and GO ON board supporters
+    "features/perform.storyarc": 15200,  # 2026-07-12 climb and GO ON board supporters
+    "features/grains.storyarc": 15008,  # 2026-07-12 climb and GO ON board supporters
+    "features/grammar.storyarc": 15972,  # 2026-07-12 climb and GO ON board supporters
+    "features/introproperty.storyarc": 16268,  # 2026-07-12 climb and GO ON board supporters
+    "features/kinds-and-inheritance.storyarc": 14812,  # 2026-07-12 climb and GO ON board supporters
+    "features/on-other.storyarc": 14812,  # 2026-07-12 climb and GO ON board supporters
+    "features/zcolor.storyarc": 15184,  # 2026-07-12 climb and GO ON board supporters
+    "features/scoring.storyarc": 17164,  # 2026-07-12 climb and GO ON board supporters
+    "features/spans.storyarc": 15004,  # 2026-07-12 climb and GO ON board supporters
+    "features/vehicles.storyarc": 15608,  # 2026-07-12 climb and GO ON board supporters
+    "granules/ambience.storyarc": 16296,  # 2026-07-12 climb and GO ON board supporters
+    "granules/conversations.storyarc": 16592,  # 2026-07-12 climb and GO ON board supporters
+    "granules/extended-verbs.storyarc": 17676,  # 2026-07-12 climb and GO ON board supporters
+    "granules/infocom-interrogation.storyarc": 17004,  # 2026-07-12 climb and GO ON board supporters
+    "granules/quotes.storyarc": 15184,  # 2026-07-12 climb and GO ON board supporters
+    "granules/take-all.storyarc": 16992,  # 2026-07-12 climb and GO ON board supporters
+    "granules/plurals.storyarc": 15840,  # 2026-07-12 climb and GO ON board supporters
+    "granules/statusline.storyarc": 14920,  # 2026-07-12 climb and GO ON board supporters
+    "granules/verbose-exits.storyarc": 15200,  # 2026-07-12 climb and GO ON board supporters
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 17752  # 2026-07-12 death vs finish: cloak dies, so it pays
+CLOAK_Z8_CEILING = 17928  # 2026-07-12 climb and GO ON board supporters
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
