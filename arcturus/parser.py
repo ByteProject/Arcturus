@@ -1173,13 +1173,15 @@ class Parser:
         return ast.Finish(message, line)
 
     def _parse_alter(self) -> ast.Alter:
-        # alter "text" speaks the report in one line; a bare `alter` opens
-        # an indented body whose printing collectively IS the report.
+        # alter "text" speaks the report in one line; `alter block` opens an
+        # indented body whose printing collectively IS the report, the same
+        # shape a computed property takes (desc block).
         line = self.cur.line
         self.expect_kw("alter")
-        if self.check(T.NEWLINE):
+        if self.check_kw("block"):
             self.advance()
-            self.expect(T.INDENT, "an indented report body (or a string on the alter line)")
+            self.expect_newline()
+            self.expect(T.INDENT, "an indented report body under `alter block`")
             body: list[ast.Stmt] = []
             while not self.check(T.DEDENT):
                 if self.check(T.NEWLINE):
@@ -1188,6 +1190,11 @@ class Parser:
                 body.append(self.parse_statement())
             self.expect(T.DEDENT)
             return ast.Alter(None, body, line)
+        if self.check(T.NEWLINE):
+            raise self._error(
+                "alter takes a string (alter \"...\") or an indented body "
+                "(`alter block`)"
+            )
         value = self.parse_expr()
         self.expect_newline()
         return ast.Alter(value, [], line)

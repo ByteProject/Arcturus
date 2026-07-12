@@ -30,7 +30,7 @@ GAME = (
     '        alter "The idol comes free with a reluctance you can feel."\n'
     '        continue\n'
     '    on drop\n'
-    '        alter\n'
+    '        alter block\n'
     '            show("You set the idol down")\n'
     '            if here is shrine\n'
     '                show(", and the shrine seems to sigh")\n'
