@@ -1310,6 +1310,15 @@ class Parser:
                 self.advance()
                 right = self._parse_additive()
                 left = ast.Binary("holds", left, right, line)
+            elif self.cur.kind == T.NAME and self.cur.value == "within":
+                # a within b: transitive containment, anywhere in the tree
+                # (the coin in a purse in a bucket the player holds). Not a
+                # reserved word: it desugars to the Cosmos walk within(a, b),
+                # which dead-code elimination drops when never asked.
+                line = self.cur.line
+                self.advance()
+                right = self._parse_additive()
+                left = ast.Call("within", [left, right], line)
             elif self.check_kw("in"):
                 line = self.cur.line
                 self.advance()

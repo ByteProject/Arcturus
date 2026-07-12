@@ -337,7 +337,7 @@
       "patterns": [
         {
           "name": "keyword.operator.word.storyarc",
-          "match": "\\b(is|not|and|or|holds|in|of|mod)\\b"
+          "match": "\\b(is|not|and|or|holds|in|within|of|mod)\\b"
         },
         {
           "name": "keyword.operator.storyarc",
