@@ -1239,6 +1239,41 @@ def _any_named(ctx) -> int:
     return 1 if (ctx.layout is not None and ctx.layout.has_named) else 0
 
 
+def _bare_const_value(ctx, expr) -> bool:
+    """Is expr a bare name that lowers to a nonzero compile-time constant (a
+    direction, an object, a number constant, a catalog)? Such a thing as a
+    CONDITION is always true, which no one ever means."""
+    if not isinstance(expr, ast.Name) or not _is_leaf(ctx, expr):
+        return False
+    op = _leaf_operand(ctx, expr)
+    return (op is not None and op.routine is None and op.string is None
+            and op.kind in (0, 1) and op.value != 0)
+
+
+def _distribute_is_list(ctx, expr):
+    """The is-list (docs/01 section 9): `way is aft or north` distributes to
+    `way is aft or way is north`, and the negated form to NEITHER (`way is
+    not aft and way is not north`, the natural reading). Only a bare
+    compile-time value distributes: before this sugar such an operand was an
+    always-true constant, never working code, so no legal program changes
+    meaning; a flag or global as an operand stays the condition it always
+    was. Chains distribute left to right."""
+    if not isinstance(expr, ast.Logic) or expr.op != "or":
+        return expr
+    left = _distribute_is_list(ctx, expr.left)
+    if not _bare_const_value(ctx, expr.right):
+        return ast.Logic(expr.op, left, expr.right, expr.line)
+    # The subject: the nearest is-test on the left spine.
+    probe = left
+    while isinstance(probe, ast.Logic):
+        probe = probe.right
+    if not isinstance(probe, ast.IsTest):
+        return ast.Logic(expr.op, left, expr.right, expr.line)
+    new_test = ast.IsTest(probe.left, expr.right, probe.negated, expr.line)
+    joiner = "and" if probe.negated else "or"
+    return ast.Logic(joiner, left, new_test, expr.line)
+
+
 def _catalog_off(ctx, expr):
     """The word offset of a named catalog from the region base, or None. A
     catalog name IS this small constant at runtime, which is how a catalog
@@ -1402,22 +1437,20 @@ def _materialize_bool(rt, ctx, expr, dest):
 
 def cond_jump(rt: Routine, ctx: Context, expr, label: str, on_true: bool) -> None:
     if isinstance(expr, ast.Logic):
-        # The Inform6 or-list trap (a field report: `if way is north or aft`
-        # was always true): a bare value as a logic operand is a constant
-        # condition. Say so at compile time and show the cure.
+        expr = _distribute_is_list(ctx, expr)
+    if isinstance(expr, ast.Logic):
+        # A bare value as a logic operand that the is-list rewrite above
+        # could NOT claim (no comparison on its left to distribute from) is
+        # a constant condition: say so and show the cure.
         for side in (expr.left, expr.right):
-            if isinstance(side, ast.Name) and _is_leaf(ctx, side):
-                op = _leaf_operand(ctx, side)
-                if op is not None and op.routine is None and op.string is None \
-                        and op.kind in (0, 1) and op.value != 0:
-                    print(
-                        f"arcc: note: '{side.ident}' stands alone in an "
-                        f"'{expr.op}' condition, so it is a constant and "
-                        f"always true; a comparison distributes by hand "
-                        f"(`way is north or way is aft`), never by comma "
-                        f"or by listing",
-                        file=sys.stderr,
-                    )
+            if _bare_const_value(ctx, side):
+                print(
+                    f"arcc: note: '{side.ident}' stands alone in an "
+                    f"'{expr.op}' condition, so it is a constant and "
+                    f"always true; write the comparison out "
+                    f"(`way is north or way is aft`)",
+                    file=sys.stderr,
+                )
         if expr.op == "and":
             if on_true:
                 skip = ctx.new_label()
