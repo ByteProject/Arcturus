@@ -300,10 +300,13 @@ Each turn Cosmos runs:
    13).
 8. Increment `turns`. If a `finish` ended the game, print the final message,
    then the post-mortem: the final score (msg_score, rank included) and the
-   classic prompt, "Would you like to RESTART, RESTORE a saved game, or
-   QUIT?" (msg_game_over), answered with the pack's own restart/restore/quit
-   verb words (matched by action, so every language works untranslated); a
-   failed restore reports and re-asks, anything else re-prompts.
+   classic prompt, "Would you like to RESTART, RESTORE a saved game, UNDO
+   the last command, or QUIT?" (msg_game_over), answered with the pack's own
+   restart/restore/undo/quit verb words (matched by action, so every
+   language works untranslated). UNDO takes back the fatal command itself,
+   through the checkpoint every turn already takes, resuming play as if it
+   were never typed; a failed restore or undo reports and re-asks, anything
+   else re-prompts.
 9. If the line chained further commands (section 8b) and this one succeeded,
    continue with the next from step 4.
 10. Loop.

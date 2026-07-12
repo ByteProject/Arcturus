@@ -131,6 +131,15 @@ block game_over()
                     let r = do_restore
                     change handled to 1
                     msg_restore_failed
+                if act is action_id("undo")
+                    // Take back the fatal command (the checkpoint every turn
+                    // takes, before it dispatched): on success restore_undo
+                    // resumes inside run_turn, which reports the undo and
+                    // redescribes the room, so this line is only reached
+                    // when the interpreter has no undo to give.
+                    let u = do_restore_undo
+                    change handled to 1
+                    msg_cant_undo
                 if act is action_id("quit")
                     do_quit
         if handled is 0

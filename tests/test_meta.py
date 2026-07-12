@@ -58,7 +58,7 @@ def test_finish_post_mortem(tmp_path):
     ).stdout
     assert "*** You have won ***" in out
     assert "scored 5 of a possible 5" in out
-    assert "Would you like to RESTART, RESTORE a saved game, or QUIT?" in out
+    assert "Would you like to RESTART, RESTORE a saved game, UNDO the last command, or QUIT?" in out
     assert "That wasn't one of the choices." in out
 
 
