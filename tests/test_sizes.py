@@ -83,8 +83,8 @@ CEILINGS = {
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
     "beispiel-deutsch.storyarc": 22116,  # 2026-07-11 the held tiebreak
-    "brass-lantern.storyarc": 16384,  # 2026-07-12 UNDO at the death prompt
-    "cloak-of-darkness.storyarc": 17180,  # 2026-07-12 UNDO at the death prompt
+    "brass-lantern.storyarc": 16352,  # 2026-07-12 death vs finish: cloak dies, so it pays
+    "cloak-of-darkness.storyarc": 17260,  # 2026-07-12 death vs finish: cloak dies, so it pays
     "ejemplo-espanol.storyarc": 21148,  # 2026-07-11 the held tiebreak
     "features/computed-properties.storyarc": 14924,  # 2026-07-11 the held tiebreak
     "features/containers.storyarc": 15200,  # 2026-07-11 the held tiebreak
@@ -115,7 +115,7 @@ CEILINGS = {
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 17664  # 2026-07-12 UNDO at the death prompt
+CLOAK_Z8_CEILING = 17752  # 2026-07-12 death vs finish: cloak dies, so it pays
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

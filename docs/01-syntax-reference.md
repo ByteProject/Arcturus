@@ -761,6 +761,10 @@ handler and passes the action to the next, more general handler (section 12).
 `finish` ends the game, printing its final message; Cosmos then reports the
 final score (the same line SCORE prints) and offers the classic RESTART,
 RESTORE, QUIT prompt, answered in the pack's own words (02, section 7).
+`death` is the same statement for an ending the player may take back: its
+prompt adds UNDO, which rewinds the fatal command itself, while a `finish`
+(a victory, a completed story) stays final; a won game must stay won.
+Write `finish "*** You have won ***"`, `death "*** You have died ***"`.
 
 ## 8. Control flow
 
@@ -1879,7 +1883,7 @@ thing message in bar
         else
             say "The message has been carelessly trampled, making it
                  difficult to read. You can just distinguish the words..."
-            finish "*** You have lost ***"
+            death "*** You have lost ***"
         stop
 
 verb "read"
@@ -1899,7 +1903,7 @@ Section 15 of 02 reconciles each example with the Cosmos model in detail.
 `game`, `room`, `thing`, `kind`, `verb`, `of`, `in`, `on`, `after`, `block`,
 `return`, `global`, `flag`, `counter`, `constant`, `let`, `change`, `to`,
 `now`, `is`, `not`,
-`add`, `remove`, `from`, `move`, `say`, `stop`, `continue`, `finish`, `if`,
+`add`, `remove`, `from`, `move`, `say`, `stop`, `continue`, `finish`, `death`, `if`,
 `else`, `while`, `for`, `each`, `switch`, `case`, `and`, `or`, `holds`,
 `when`, `self`, `player`, `here`, `noun`, `second`, `nothing`, `true`,
 `false`, `list`, `summon`, `grains`, `do`, `title`, `headline`, `author`,
@@ -1948,7 +1952,7 @@ constant_decl  := "constant" id "=" expr
 rule           := handler
 
 statement      := let | change | now | move | add | remove | say
-                | stop | continue | finish | if | while | for | switch
+                | stop | continue | finish | death | if | while | for | switch
                 | return | call
 switch         := "switch" expr INDENT { case } [ else_case ] DEDENT
 case           := "case" value { "," value } INDENT { statement } DEDENT

@@ -115,7 +115,16 @@ block game_over()
     msg_score
     while true
         par
-        msg_game_over
+        // A death offers the way back; a finish (a victory, a completed
+        // story) stays final: a won game must stay won. The whole choice
+        // folds to the classic prompt in a game with no death statement.
+        if any_death is 1
+            if died is 1
+                msg_game_over_died
+            else
+                msg_game_over
+        else
+            msg_game_over
         prompt
         let n = read_line
         let handled = 0
@@ -132,14 +141,19 @@ block game_over()
                     change handled to 1
                     msg_restore_failed
                 if act is action_id("undo")
-                    // Take back the fatal command (the checkpoint every turn
-                    // takes, before it dispatched): on success restore_undo
-                    // resumes inside run_turn, which reports the undo and
-                    // redescribes the room, so this line is only reached
-                    // when the interpreter has no undo to give.
-                    let u = do_restore_undo
-                    change handled to 1
-                    msg_cant_undo
+                    if any_death is 1
+                        if died is 1
+                            // Take back the fatal command (the checkpoint
+                            // every turn takes, before it dispatched): on
+                            // success restore_undo resumes inside run_turn,
+                            // which reports the undo and redescribes the
+                            // room, so this line is only reached when the
+                            // interpreter has no undo to give. After a
+                            // finish, undo falls to "not one of the
+                            // choices": a won game stays won.
+                            let u = do_restore_undo
+                            change handled to 1
+                            msg_cant_undo
                 if act is action_id("quit")
                     do_quit
         if handled is 0

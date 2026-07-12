@@ -263,6 +263,10 @@ class Continue(Stmt):
 class Finish(Stmt):
     message: Optional[Expr] = None
     line: int = 0
+    # `death "..."`: an ending the player may take back. The post-mortem
+    # offers UNDO only here; a `finish` (a victory, a completed story)
+    # stays final: a won game must stay won (Stefan's ruling).
+    died: bool = False
 
 
 @dataclass

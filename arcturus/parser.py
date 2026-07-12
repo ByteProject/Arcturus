@@ -1141,6 +1141,15 @@ class Parser:
         self.expect_newline()
         return ast.Finish(message, line)
 
+    def _parse_death(self) -> ast.Finish:
+        # `death "*** You have died ***"`: finish's shape, marked as an
+        # ending the player may take back (the post-mortem offers UNDO).
+        line = self.cur.line
+        self.expect_kw("death")
+        message = None if self.check(T.NEWLINE) else self.parse_expr()
+        self.expect_newline()
+        return ast.Finish(message, line, died=True)
+
     def _parse_return(self) -> ast.Return:
         line = self.cur.line
         self.expect_kw("return")
@@ -1515,6 +1524,7 @@ _STMT_KEYWORDS = {
     "stop": Parser._parse_stop,
     "continue": Parser._parse_continue,
     "finish": Parser._parse_finish,
+    "death": Parser._parse_death,
     "return": Parser._parse_return,
     "if": Parser._parse_if,
     "while": Parser._parse_while,

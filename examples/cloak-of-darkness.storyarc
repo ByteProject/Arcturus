@@ -126,7 +126,7 @@ thing message in bar
         else
             say "The message has been carelessly trampled, making it
                  difficult to read. You can just distinguish the words..."
-            finish "*** You have lost ***"
+            death "*** You have lost ***"
         stop
 
 verb "read"
