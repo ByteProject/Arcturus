@@ -3699,3 +3699,23 @@ one dumping-metric attempt at the Pepto mapping made it worse and was
 reverted, the plain Polizei manner stands. Dylan Barry passed away
 early this year; his CPC art remains the reference this architecture
 is built on. arcimg 1.9.0, 866 tests.
+
+## 2026-07-13, later: the cube middleman was the grey, C64 direct is the base
+
+Stefan's two corrections landed the architecture. One: the C64 shall
+be the base of everything (his original words, mis-implemented as a
+CPC-cube intermediate). Two: the grey-sky mystery, finally traced,
+was NOT palettes: the invented 27-cube middleman has no dark purple,
+so every soft master color greyed BEFORE any machine saw it; Polizei
+maps each machine direct from the source and always did. Rebuilt:
+C64 direct from master (Polizei recipe, Colodore reaffirmed after
+the one-day Pepto experiment, Pepto has no teal and no hot pink),
+CPC direct with R3's chroma-dump metric restored at weight 4 (at 3
+the grey beat the dusk purple by four percent), A8 riding the C64
+through a Colodore-GTIA injective table. The beach is back on all
+three: purple sky to the top, golden sun, no grey anywhere. Corpus
+sheets reviewed complete for C64/CPC/A8; A8 keeps mild full-width
+compromises on the two busiest scenes (the honest 4-per-line cost).
+design.md 8a records the detour and its lesson honestly. Awaiting
+Stefan's gate on the three rebuilt sets. arcimg 1.9.0 (build
+5ed93db), 866 tests.

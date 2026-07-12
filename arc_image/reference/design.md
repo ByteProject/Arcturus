@@ -193,32 +193,34 @@ Architecture: one shared front half, per-target back halves.
     depth BEFORE pixel mapping (4-bit Amiga, 3-bit ST, 6-bit VGA, 3-bit
     MSX2/Next channels), then map. Unchanged: approved in wave 1, and
     conversion there is near-lossless.
-  - THE FLAT BASE, and the 8-bit family from it: the master converts
-    once to the equivalent of a CPC original (160 wide, colors from the
-    27-cube, at most 16 inks by frequency, no blending, no dither), and
-    every 8-bit sibling converts FROM that flat image using Pixel
-    Polizei's recipes (Markku Reunanen, WTFPL; source kept uncommitted
-    at arc_image/reference/ppolizei/): plain nearest to the machine's
-    full palette, then frequency-and-locality fixes (C64: background
-    from clashing blocks, top-3-plus-bg per block; Spectrum: dominant
-    color sets the cell's bright, top two take the cell). No global
-    optimizers and no taste metrics on this path. The doctrine's proof
-    is historical: the well-regarded original Rabenstein 8-bit ports
-    were Dylan Barry's CPC art fed through Pixel Polizei; the CPC is
-    the freest 8-bit canvas (16 inks, no cells), which is why the flat
-    base IS the CPC conversion. On flat 16-ink input most cells never
-    clash and the fixes are rare and local; the earlier architecture
-    fed painterly masters directly to constraint solvers, and every
-    stage (blend-averaging, dithering, global optimization) manufactured
-    the very colors and noise the next stage fought to remove.
-  - The Atari 8-bit derives from the C64 CONVERSION (same 160-wide 2:1
-    geometry; Pepto maps onto GTIA through a frozen injective 16-entry
-    table): the C64's 8-line cell rhythm is the segment grid, and a
-    dynamic program allocates the four per-line registers per segment,
-    emitted as the table the display-list interrupt replays. A
-    hand-authored .C64 (the polish loop) is the source of the whole
-    8-bit family when present. Per-hue luma refinement is staged behind
-    the plain-mapping gate.
+  - THE 8-BIT FAMILY, by Pixel Polizei's recipes (Markku Reunanen,
+    WTFPL; source kept uncommitted at arc_image/reference/ppolizei/),
+    each machine DIRECT from the master, no intermediate: every pixel
+    maps plainly to the machine's own palette (width halving collapses
+    pairs by agreement, never an average), then frequency-and-locality
+    fixes (C64: background elected by clashing blocks only, a clashing
+    block keeps its three most frequent colors plus background;
+    Spectrum: dominant color sets the cell's bright, top two take the
+    cell; CPC: the sixteen most frequent cube colors are the inks, the
+    pixel-to-cube step carrying R3's chroma-dumping metric at weight 4,
+    because the cube holds no dark purple and plain distance sent every
+    dusk sky to grey). No global optimizers. The doctrine's proof is
+    historical: the well-regarded original Rabenstein 8-bit ports were
+    Dylan Barry's CPC art fed through Pixel Polizei. A ONE-DAY DETOUR
+    is on record and retired: an intermediate "flat base" on the CPC
+    cube greyed every soft master color (the 27-cube has no dark
+    purple), which is the reminder that Polizei converts to each
+    machine directly and so do we.
+  - The C64 CONVERSION IS THE BASE of the deriving 8-bit siblings
+    (Stefan's ruling): the Atari 8-bit consumes it (same 160-wide 2:1
+    geometry; Colodore maps onto GTIA through a frozen injective
+    16-entry table), the C64's 8-line cell rhythm is the segment grid,
+    and a dynamic program allocates the four per-line registers per
+    segment, emitted as the table the display-list interrupt replays.
+    A hand-authored .C64 (the polish loop) is the source of the whole
+    deriving family when present. Per-hue luma refinement is staged
+    behind the plain-mapping gate. Plus/4 and MSX1 decide their source
+    (C64 or direct) at their own machine rounds.
   - Signal class: Apple II via NTSC modeling (the ii-pix lineage), with
     the palette-bit group constraint driving a constraint-aware diffuser
     (wave 4; expected to consume the flat base as well, ruled at its own
@@ -381,15 +383,19 @@ per-target conversions landing beside them).
 
 ## 8a. Amendments (R4, 2026-07-13, Stefan)
 
-- THE FLAT-BASE ARCHITECTURE (section 4) supersedes the per-machine
-  taste machinery for the whole 8-bit family. Blessed after five A8
-  rounds and the re-found truth of the historical workflow: Dylan
-  Barry's CPC originals through Pixel Polizei made the ports Stefan
-  rates highest; the tool now mirrors that flow with the master as the
-  only author-facing input.
-- C64 PALETTE: Pepto, for conversion AND render-back, exactly as Pixel
-  Polizei ships it ("the Polizei way because I know it is working").
-  This amends R0's decision 5; Colodore stays in the tool as data.
+- THE POLIZEI ARCHITECTURE (section 4) supersedes the per-machine
+  taste machinery for the whole 8-bit family: each machine direct from
+  the master by Polizei's recipes, and the C64 conversion is the base
+  of the deriving siblings (A8 first). Blessed after five A8 rounds
+  and the re-found truth of the historical workflow: Dylan Barry's CPC
+  originals through Pixel Polizei made the ports Stefan rates highest;
+  the master stays the only author-facing input. (A same-day detour
+  through a CPC-cube intermediate greyed the corpus and is retired;
+  the grey-sky mystery traced to that cube's missing dark purple.)
+- C64 PALETTE: Colodore REAFFIRMED for conversion and render after a
+  one-day Pepto experiment (Pepto holds no teal and no hot pink; the
+  Colodore corpus read genuinely well; the real-hardware verdict is
+  the probe's). Pepto ships as data, as Polizei carries it.
 - PIXEL POLIZEI REFERENCE: the WTFPL source is kept UNCOMMITTED at
   arc_image/reference/ppolizei/ (gitignored), the reference for every
   machine not yet implemented.
