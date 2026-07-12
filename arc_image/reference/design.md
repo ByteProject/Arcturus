@@ -177,31 +177,57 @@ Architecture: one shared front half, per-target back halves.
   near 1:1; nothing is ever upsampled.
 - FRONT: load the master PNG, geometry (crop or scale the 320-wide master
   to 256/280/160 wide; center-crop is the default for narrower targets,
-  per-image override available; halve horizontally for the wide-pixel
-  modes, which is an exact 2:1 average), then into a perceptual space
-  (linear RGB/Lab) for all color decisions. Never quantize in gamma sRGB.
-- BACK, per class:
-  - Quantize class: median-cut to the target's simultaneous-color budget,
-    palette snapped to the gun depth BEFORE pixel mapping (4-bit Amiga,
-    3-bit ST, 6-bit VGA, 3-bit MSX2/Next channels), then map.
-  - Cell class: global/shared colors first (the C64 background, the TED
-    globals), then a per-cell color-set solve (choose the cell's 2 or 3
-    colors minimizing perceptual error over the cell), then requantize
-    the cell's pixels against its own set. Luma-first for the Plus/4
-    (dither in luminance, keep hue flat), per-8x1-octet pairs for MSX1,
-    bright-constrained pairs for the Spectrum.
+  per-image override available). AMENDED 2026-07-13: on the 8-bit path
+  the width halving is NOT an average (averaging manufactures blend
+  colors); pairs collapse by agreement, disagreement resolved by global
+  frequency. The original perceptual-space clause ("never quantize in
+  gamma sRGB") was never implemented, and Pixel Polizei's attested
+  results use plain RGB distance on flat input; the clause is retired
+  for the flat-base path and stands only as an option for the
+  master-to-base ink selection if a future corpus demands it.
+- BACK, in two families (AMENDED per Stefan's flat-base ruling,
+  2026-07-13, which superseded the original cell-class machinery after
+  the A8 rounds proved it wrong at the root):
+  - Quantize class (the 16-bit trio, MSX2, Next, MEGA65): median-cut to
+    the target's simultaneous-color budget, palette snapped to the gun
+    depth BEFORE pixel mapping (4-bit Amiga, 3-bit ST, 6-bit VGA, 3-bit
+    MSX2/Next channels), then map. Unchanged: approved in wave 1, and
+    conversion there is near-lossless.
+  - THE FLAT BASE, and the 8-bit family from it: the master converts
+    once to the equivalent of a CPC original (160 wide, colors from the
+    27-cube, at most 16 inks by frequency, no blending, no dither), and
+    every 8-bit sibling converts FROM that flat image using Pixel
+    Polizei's recipes (Markku Reunanen, WTFPL; source kept uncommitted
+    at arc_image/reference/ppolizei/): plain nearest to the machine's
+    full palette, then frequency-and-locality fixes (C64: background
+    from clashing blocks, top-3-plus-bg per block; Spectrum: dominant
+    color sets the cell's bright, top two take the cell). No global
+    optimizers and no taste metrics on this path. The doctrine's proof
+    is historical: the well-regarded original Rabenstein 8-bit ports
+    were Dylan Barry's CPC art fed through Pixel Polizei; the CPC is
+    the freest 8-bit canvas (16 inks, no cells), which is why the flat
+    base IS the CPC conversion. On flat 16-ink input most cells never
+    clash and the fixes are rare and local; the earlier architecture
+    fed painterly masters directly to constraint solvers, and every
+    stage (blend-averaging, dithering, global optimization) manufactured
+    the very colors and noise the next stage fought to remove.
+  - The Atari 8-bit derives from the C64 CONVERSION (same 160-wide 2:1
+    geometry; Pepto maps onto GTIA through a frozen injective 16-entry
+    table): the C64's 8-line cell rhythm is the segment grid, and a
+    dynamic program allocates the four per-line registers per segment,
+    emitted as the table the display-list interrupt replays. A
+    hand-authored .C64 (the polish loop) is the source of the whole
+    8-bit family when present. Per-hue luma refinement is staged behind
+    the plain-mapping gate.
   - Signal class: Apple II via NTSC modeling (the ii-pix lineage), with
-    the palette-bit group constraint driving a constraint-aware diffuser.
-  - Atari 8-bit sits between classes: per-SCANLINE 4-color palettes from
-    the 128-color hue/luma space, solved with vertical coherence so the
-    palette does not shimmer, emitted as a small table a display-list
-    interrupt replays. Cheap at runtime, a large fidelity win.
-- DITHER POLICY: ordered (Bayer) by default everywhere. On cell hardware
-  error diffusion bleeds across cell boundaries and destabilizes the
-  per-cell solve; everywhere it damages RLE ratios (up to 2x). Error
-  diffusion is an opt-in flag for the cell-free targets (CPC, MSX2), and
-  no dithering at all is the default at 32+ colors (Amiga) and 256 (DOS,
-  MEGA65).
+    the palette-bit group constraint driving a constraint-aware diffuser
+    (wave 4; expected to consume the flat base as well, ruled at its own
+    machine round).
+- DITHER POLICY (amended with the flat base): NONE on the 8-bit path,
+  the Polizei manner; an author who wants dither paints it (the polish
+  loops). The quantize class keeps the wave-1 policy: ordered (Bayer)
+  for gradient masters, scaled to the budget, error diffusion opt-in
+  (CPC's flag retired with its converter), nothing at 32+ colors.
 - The reference corpus: the Rabenstein masters (320x96, painted, 12-15
   colors). Every back-end's output over the corpus is a golden test, and
   the corpus conversions are the acceptance gate Stefan reviews per
@@ -352,6 +378,27 @@ attribute machines; the rest ride the established framework. The
 playground for all of it is the repo's `arc_image/` directory (the
 Rabenstein working set: the masters under `arc_image/rabenstein/images/`,
 per-target conversions landing beside them).
+
+## 8a. Amendments (R4, 2026-07-13, Stefan)
+
+- THE FLAT-BASE ARCHITECTURE (section 4) supersedes the per-machine
+  taste machinery for the whole 8-bit family. Blessed after five A8
+  rounds and the re-found truth of the historical workflow: Dylan
+  Barry's CPC originals through Pixel Polizei made the ports Stefan
+  rates highest; the tool now mirrors that flow with the master as the
+  only author-facing input.
+- C64 PALETTE: Pepto, for conversion AND render-back, exactly as Pixel
+  Polizei ships it ("the Polizei way because I know it is working").
+  This amends R0's decision 5; Colodore stays in the tool as data.
+- PIXEL POLIZEI REFERENCE: the WTFPL source is kept UNCOMMITTED at
+  arc_image/reference/ppolizei/ (gitignored), the reference for every
+  machine not yet implemented.
+- HAND-POLISH INHERITANCE: a hand-authored .C64 is the source of the
+  whole 8-bit family's conversions when present (arcimg convert --c64).
+- RE-GATE: C64, CPC, and A8 rebuilt on the new architecture await
+  Stefan's corpus review; the Spectrum keeps its R3 solver (already
+  Polizei-shaped, and geometrically it cannot consume the 160-wide
+  base) pending the same review.
 
 ## 8. Ruled decisions (R0, 2026-07-07, Stefan)
 
