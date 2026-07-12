@@ -887,6 +887,16 @@ a purse in a bucket the player holds; Inform's IndirectlyContains). All
 three are total (`nothing` answers false); negate `within` with
 `if not (coin within player)`. It costs nothing in a game that never asks.
 
+The right side of `within` can be anything, a ROOM included: containment IS
+the tree, and a room is the tree's top. `coin within treasure_chamber` is
+true with the coin nested in a chest there, and `coin within here` asks
+whether something is physically in the current room, however buried (a
+carried coin is within whatever room the player stands in). Two edges:
+`within` answers physical containment only, so a spanning scenery object is
+within its home room alone (scope is `visible`'s business, not the tree's),
+and a two-sided door seats in one place, so probing doors with `within` may
+surprise.
+
 Built-in references in handler and block bodies: `self` (the enclosing
 object), `player`, `here` (the current room), `noun` and `second` (the
 matched objects), `nothing`. Cosmos also provides `<obj> is visible` and
