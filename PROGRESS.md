@@ -3600,3 +3600,29 @@ line printed after a mid-game box vanished beneath the statusline's
 repaint. The Inquest is the worked example; every ceiling except the
 repaired quotes example stands untouched, the byte-identical proof.
 arcc 0.11.32, Cosmos 0.31.0, highlighter 0.13.0, 832 tests.
+
+## 2026-07-12, evening: the seams a big port finds.
+
+The day's second half belonged to one adopter's large multi-file game
+and the seams it pressed on. Nautical went 3D on Stefan's correction (a
+vessel is a volume: ALOFT and BELOW ride up and down) and learned the
+shore with dirs_nautical, the flag ruled over the automatic room-probe
+that could not tell a crow's nest from a tavern; verbose_exits proved
+composed on both sides of the gangplank. Stefan's one question ("he has
+to type way is aft, and not way is aft or north?") dissolved the
+or-list ambiguity: bare-constant operands were always-true bugs, never
+working code, so the is-list sugar claims exactly that territory (`way
+is aft or north`, the negated form meaning neither) and no legal
+program changes meaning. The multi-file mystery cracked the same way:
+`summon messages.storyarc` had loaded the game's own chapters at
+granule rank, so overriding a granule message was a same-rank duplicate
+however arranged; a summoned .storyarc now ranks as GAME, the lattice
+complete (a late less-specific block loses silently), the structure
+never designed for made official. And the report seam closed with
+`alter`, Stefan's name: speak the action's report yourself, one line or
+a composed body, continue into untouched mechanics, the default's
+success line silent, refusals never fooled, the flavor say still
+stacking, every guard behind the any_alter fold with the ceilings
+standing as proof. The catalogs announcement scrub also happened, and
+is recorded where it belongs: in the memory that says adopter snippets
+are adopter content. arcc 0.11.36, Cosmos 0.33.0, 850 tests.
