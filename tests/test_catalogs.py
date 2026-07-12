@@ -132,6 +132,34 @@ def test_quote_catalog_draws_the_box(tmp_path):
     assert "posted" in out
 
 
+def test_property_holds_a_catalog():
+    # A field report (Ichiro Ota): a kind handler reading a catalog through
+    # self.<prop> got the FIRST catalog for every object. The property typed
+    # as object, the name resolved to nothing, and the slot silently held 0,
+    # which IS the first catalog's word offset. A catalog name in a property
+    # value now stores its offset, so each object reads its own.
+    game = (
+        'game\n    title "T"\n    start crypt\n'
+        'catalog decoy\n    "the decoy line"\n'
+        'catalog plaque_text\n    "Erected 1887."\n    "By subscription."\n'
+        'catalog stone_text\n    "Here lies proof."\n'
+        'room crypt\n    name "Crypt"\n    desc "Cold."\n'
+        'kind inscribed of thing\n'
+        '    on examine\n'
+        '        say "lines ${calculate(self.writing)}: ${entry(self.writing, 1)}"\n'
+        'thing plaque of inscribed in crypt\n'
+        '    name "plaque"\n    words plaque\n'
+        '    writing plaque_text\n'
+        'thing stone of inscribed in crypt\n'
+        '    name "stone"\n    words stone\n'
+        '    writing stone_text\n'
+    )
+    out = _run(["x plaque", "x stone"], game=game)
+    assert "lines 2: Erected 1887." in out
+    assert "lines 1: Here lies proof." in out
+    assert "the decoy line" not in out
+
+
 def test_mixed_catalog_is_refused():
     bad = ('game\n    title "T"\n    start r\nroom r\n    name "R"\n    desc "D."\n'
            'catalog odd\n    "text"\n    7\n')

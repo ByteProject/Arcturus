@@ -195,7 +195,11 @@ change entry(verdicts, 2) to "guilty"   // rewrite ONE entry in place
 
 A catalog passes to a block as an ordinary value (`quote_catalog(letter)`,
 docs/05), and entry/calculate work on the parameter inside; `for each` and
-the compile-folds need the catalog named in place. Underneath: a static
+the compile-folds need the catalog named in place. A property can hold a
+catalog the same way: `writing plaque_text` on an object (or as a kind
+default) stores the catalog, and `entry(self.writing, 1)` in a kind
+handler reads each object's own; the property types as a number, since a
+catalog value is one. Underneath: a static
 table in dynamic memory, so `calculate` on a named catalog folds to a
 constant at compile time, `entry` and `last` are a single memory read,
 `change entry` a single write, and there is no heap and no allocator

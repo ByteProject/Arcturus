@@ -3652,3 +3652,25 @@ un-rotted (version-agnostic). State: arcc 0.11.38, Cosmos 0.34.1,
 highlighter 0.13.3, 855 tests, all committed. Open: Charles's THIRD
 Dialog feature (Stefan holds it, guessed granule-shaped); Shawn's
 Agon-class target spec (Australia lag); then B12 R4.
+
+## 2026-07-12, late: catalogs travel through properties (arcc 0.11.39)
+
+Ichiro's field report, a classic silent-zero trap: a kind handler read
+a catalog through self.<prop> and got the FIRST catalog for every
+object. The property value named a catalog, sema typed any name value
+as object, the fill found no such object and stored 0, and 0 is the
+first catalog's word offset, so every readable in his game showed the
+same text with no error anywhere. Three-line fix in the right places:
+sema types a catalog-naming property value as number (a catalog value
+IS its word offset), the layout computes catalog offsets BEFORE the
+object table is emitted (they follow from declaration order alone; the
+region itself still lands at the end, the corruption lesson stands),
+and _fill_property stores the offset. Now `writing plaque_text` on an
+object (or a kind default) reads back through entry(self.writing, 1),
+calculate, quote_catalog, all of it, per object. Regression test with
+invented content (a crypt, a plaque, a stone), docs/01 catalogs
+section notes the pattern. Ceilings untouched: the precompute emits
+identical bytes. State: arcc 0.11.39, Cosmos 0.34.1, 856 tests,
+amalgam regenerated. Open: Charles's third Dialog feature (parked for
+discussion, Stefan's call), Shawn's spec (not yet arrived), and B12 R4
+resumes next.
