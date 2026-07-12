@@ -824,7 +824,8 @@ on drop
     continue
 ```
 
-Costs nothing in a game that never alters (any_alter).
+Costs nothing in a game that never alters (any_alter). Worked example:
+[examples/features/alter.storyarc](../examples/features/alter.storyarc).
 
 `finish` ends the game, printing its final message; Cosmos then reports the
 final score (the same line SCORE prints) and offers the classic RESTART,

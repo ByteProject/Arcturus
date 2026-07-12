@@ -1,0 +1,85 @@
+// alter.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for alter (docs/01 section 7): default mechanics, your
+// wording. A handler that speaks the action's report itself, then
+// continues: the take or drop runs in full (scoring, bookkeeping, the
+// tree), and the library's success line ("Got it.", "Down it goes.")
+// stays silent, because the report is already spoken. Two forms: one
+// line (alter "..."), or a bare alter opening an indented body whose
+// printing collectively IS the report, for wording composed by state.
+// Two guardrails, both shown below: a plain say before continue still
+// stacks above the default line (the flavor idiom), and refusals never
+// honor alter, so a failed action answers honestly whatever you
+// narrated. Compile and run:
+//
+//   arcc examples/features/alter.storyarc -o reliquary.z5
+//   frotz reliquary.z5
+//
+// TRY: take flute (one-line alter; no "Got it.") / drop flute (the block
+//      form, worded by where you stand) / take slab (alter, then the
+//      refusal still speaks) / take stub (plain say: flavor plus the
+//      default "Got it.", unchanged)
+
+game
+    title "The Reliquary"
+    headline "An alter showcase"
+    author "Stefan Vogt"
+    start reliquary
+
+summon.statusline
+
+room reliquary
+    name "Reliquary"
+    desc "A low stone room that swallows every echo. A bone flute and a
+          candle stub rest on the slab that fills the room's heart."
+    north crypt
+
+room crypt
+    name "Crypt"
+    desc "Colder. Darker. Emptier."
+    south reliquary
+
+// The one-line form: the report is yours, the mechanics are the
+// library's. No "Got it." follows; the flute is truly taken.
+thing flute in reliquary
+    name "bone flute"
+    words flute, bone
+    desc "Someone's tibia, once. Six holes, patient workmanship."
+    on take
+        alter "The flute comes to your hand as if it had been waiting."
+        continue
+
+    // The block form: compose the report with show and say, branch on
+    // state, then continue into the untouched drop.
+    on drop
+        alter
+            show("You lay the flute down")
+            if here is crypt
+                show(", and the dark leans in to listen")
+            say "."
+        continue
+
+// The refusal guardrail: alter speaks, but the slab is fixed, so the
+// take FAILS and the library's refusal still answers. alter never lets
+// you narrate success over a failure.
+thing slab of supporter in reliquary
+    name "stone slab"
+    words slab, stone
+    desc "A single piece, older than the room around it."
+    fixed
+    on take
+        alter "You set your shoulder against the slab."
+        continue
+
+// The flavor idiom, unchanged: a plain say before continue stacks ABOVE
+// the default report, exactly as it always has.
+thing stub in reliquary
+    name "candle stub"
+    words stub, candle
+    desc "An inch of tallow, wick like a burnt fingernail."
+    on take
+        say "Tallow crumbles under your fingers."
+        continue
