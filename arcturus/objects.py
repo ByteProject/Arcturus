@@ -149,6 +149,10 @@ class Layout:
     # direction nobody can walk (the nautical four in a landlocked game)
     # adds nothing to the verbose_exits routines.
     live_directions: list = field(default_factory=list)
+    # catalog name -> word offset from the catalog region's start; the region's
+    # byte offset within the table. __catalogs__ = objects_addr + region_off.
+    catalogs: dict = field(default_factory=dict)
+    catalog_region_off: int = 0
     # True if any object is of the `door` kind. The go handler guards its door
     # detour (open/lock check, step to the far side) with `any_doors()`, so a game
     # with no doors folds it away and pays nothing.
@@ -341,6 +345,33 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
         a += 1
 
     _emit_table(world, layout)
+    # The catalog region (docs/01, catalogs): every declared catalog laid
+    # out end to end inside the dynamic table, so a single entry is
+    # rewritable in place (change entry(...) is one storew and there is no
+    # heap anywhere). Per catalog: [count, widest, e1..eN] as words; widest
+    # is the longest text entry's display length (for the quote box) and 0
+    # for number and object catalogs. Text entries are string fixups into
+    # the shared pool (identical text stored once); offsets are in WORDS
+    # from the region start, whose byte address seeds __catalogs__.
+    layout.catalog_region_off = len(layout.table)
+    for cname, cat in world.catalogs.items():
+        layout.catalogs[cname] = (len(layout.table) - layout.catalog_region_off) // 2
+        widest = 0
+        if cat.etype == "text":
+            widest = max(len(_plain(v)) for v in cat.values)
+        _append_word(layout.table, len(cat.values))
+        _append_word(layout.table, widest)
+        for v in cat.values:
+            at = len(layout.table)
+            if cat.etype == "text":
+                sid = f"cat_{cname}@{at}"
+                layout.strings[sid] = _plain(v)
+                layout.string_fixups.append((at, sid))
+                _append_word(layout.table, 0)
+            elif cat.etype == "number":
+                _append_word(layout.table, v.value & 0xFFFF)
+            else:
+                _append_word(layout.table, layout.obj_number.get(v.ident, 0))
     return layout
 
 
@@ -745,6 +776,11 @@ def _plain(lit: ast.StringLit) -> str:
     return "".join(
         part.text for part in lit.parts if isinstance(part, ast.StringText)
     )
+
+
+def _append_word(buf: bytearray, value: int) -> None:
+    buf.append((value >> 8) & 0xFF)
+    buf.append(value & 0xFF)
 
 
 def _put_word(buf: bytearray, off: int, value: int) -> None:

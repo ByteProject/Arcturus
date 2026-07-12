@@ -157,6 +157,12 @@ bar sits pinned above the topic list.
 summon.quotes
 ```
 
+The one-call form draws the whole box from a text catalog (docs/01,
+catalogs): `quote_catalog(colonel_letter)` sizes the frame from the
+catalog's compile-time header (line count and widest line, no author
+arithmetic, nothing measured at run time) and prints every entry. The
+line-by-line form below remains for hand-built boxes.
+
 A centered, reverse-video quote box in the upper window, in the tradition of
 Infocom's Trinity: the classic way to open a game with an epigraph. The box is
 centered from the interpreter-reported screen width, so it sits right on a

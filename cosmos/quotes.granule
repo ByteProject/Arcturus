@@ -88,6 +88,29 @@ block quote_done()
     set_window(0)
     read_key
     erase_window(-1)
+    // erase -1 unsplits the whole screen, so give the status bar its row
+    // back before prose resumes: without this, the first line printed
+    // after a mid-game box lands on row 1 and the next prompt's bar
+    // repaint paints straight over it (found when quote_catalog's
+    // follow-up say vanished under the statusline).
+    if status_lines > 0
+        split_window(status_lines)
     buffer_mode(1)
     // The screen is fresh; no break is owed to it.
     change par_pending to 0
+
+// The one-call form (docs/01, catalogs): draw the whole box from a text
+// catalog. The line count and the width of the longest line are read from
+// the catalog's header words, both computed at compile time from the
+// literals, so nothing is measured at run time and the author does no
+// arithmetic: declare the letter as a catalog, then quote_catalog(letter).
+block quote_catalog(l)
+    let n = peek_word(catalogs_base, l)
+    let w = peek_word(catalogs_base, l + 1)
+    quote(n, w)
+    let i = 1
+    while i <= n
+        quote_line
+        print_packed(peek_word(catalogs_base, l + 1 + i))
+        change i to i + 1
+    quote_done

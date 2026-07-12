@@ -31,3 +31,18 @@ block within(obj, outer)
             return 1
         change p to parent_of(p)
     return 0
+
+// The catalog scan (docs/01, catalogs): the 1-based number of the first
+// entry equal to val, or 0 when absent. `position(suspects, butler)` is
+// the author call; `butler in suspects` branches on the same block, so
+// membership and position share one routine, present only when some game
+// asks (DCE). The region layout is [count, widest, e1..eN] per catalog,
+// reached through the __catalogs__ base; l is the catalog's word offset.
+block position(l, val)
+    let n = peek_word(catalogs_base, l)
+    let i = 1
+    while i <= n
+        if peek_word(catalogs_base, l + 1 + i) is val
+            return i
+        change i to i + 1
+    return 0

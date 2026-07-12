@@ -129,6 +129,12 @@ INTRINSICS = frozenset({
     # (the transcript). The interpreter owns the file; the library reads
     # Flags 2 bit 0 afterwards to see whether the stream really opened.
     "transcript_open", "transcript_close",
+    # The catalog operations (docs/01, catalogs; Stefan's star-catalog naming):
+    # calculate = how many entries, entry = the i-th (1-based), last, dice = a
+    # random one. All lower to a loadw against the __catalogs__ base, folding
+    # to constants when the catalog is named in place; catalogs_base exposes
+    # the base to Cosmos (the position block, the quote box).
+    "calculate", "entry", "last", "dice", "catalogs_base",
     # parse_addr / oops_addr give the live parse buffer and its oops backup, so
     # the language layer can snapshot a command and patch it for "oops".
     # text_addr gives the text buffer, and retokenize re-runs the tokenizer over
@@ -349,6 +355,8 @@ def _is_leaf(ctx: Context, expr) -> bool:
         c = ctx.world.constants.get(expr.ident)
         if c is not None:
             return _is_leaf(ctx, c.value)
+        if ctx.layout is not None and expr.ident in ctx.layout.catalogs:
+            return True  # a catalog name is its word offset, a constant
         return (
             expr.ident in ctx.named
             or expr.ident in ctx.globals
@@ -373,6 +381,8 @@ def _leaf_operand(ctx: Context, expr):
         c = ctx.world.constants.get(expr.ident)
         if c is not None:
             return _leaf_operand(ctx, c.value)
+        if ctx.layout is not None and expr.ident in ctx.layout.catalogs:
+            return Const(ctx.layout.catalogs[expr.ident])
         if expr.ident in ctx.named or expr.ident in ctx.globals:
             return Variable(ctx.resolve_var(expr.ident, expr.line))
         if ctx.is_object_name(expr.ident):
@@ -577,6 +587,79 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         opa, opb, t = _two_operands(rt, ctx, args[0], args[1])
         rt.op("loadw", opa, opb, store=dest)
         _free(ctx, t)
+    elif name == "catalogs_base":
+        _place(rt, _catalog_base(ctx), dest)
+    elif name == "calculate":
+        # calculate(cat): the entry count. A named catalog folds to a constant.
+        off = _catalog_off(ctx, args[0])
+        if off is not None:
+            _place(rt, Const(len(ctx.world.catalogs[args[0].ident].values)), dest)
+        else:
+            op, t = _operand(rt, ctx, args[0])
+            rt.op("loadw", _catalog_base(ctx), op, store=dest)
+            _free(ctx, t)
+    elif name == "entry":
+        # entry(cat, i): the i-th entry, 1-based. Layout per catalog:
+        # [count, widest, e1..eN], so entry i sits at word off+1+i.
+        off = _catalog_off(ctx, args[0])
+        if off is not None and isinstance(args[1], ast.Number):
+            i = args[1].value
+            n = len(ctx.world.catalogs[args[0].ident].values)
+            if not 1 <= i <= n:
+                raise LowerError(
+                    f"entry({args[0].ident}, {i}): the catalog has {n} "
+                    f"entries (1..{n})", call.line)
+            rt.op("loadw", _catalog_base(ctx), Const(off + 1 + i), store=dest)
+        elif off is not None:
+            op, t = _operand(rt, ctx, args[1])
+            idx = ctx.alloc_temp()
+            rt.op("add", op, Const(off + 1), store=Variable(idx))
+            rt.op("loadw", _catalog_base(ctx), Variable(idx), store=dest)
+            ctx.free_temp(idx)
+            _free(ctx, t)
+        else:
+            # A catalog parameter: its value is the word offset.
+            opc, tc = _operand(rt, ctx, args[0])
+            opi, ti = _operand(rt, ctx, args[1])
+            idx = ctx.alloc_temp()
+            rt.op("add", opc, opi, store=Variable(idx))
+            rt.op("add", Variable(idx), Const(1), store=Variable(idx))
+            rt.op("loadw", _catalog_base(ctx), Variable(idx), store=dest)
+            ctx.free_temp(idx)
+            _free(ctx, tc)
+            _free(ctx, ti)
+    elif name == "last":
+        off = _catalog_off(ctx, args[0])
+        if off is not None:
+            n = len(ctx.world.catalogs[args[0].ident].values)
+            rt.op("loadw", _catalog_base(ctx), Const(off + 1 + n), store=dest)
+        else:
+            opc, tc = _operand(rt, ctx, args[0])
+            idx = ctx.alloc_temp()
+            rt.op("loadw", _catalog_base(ctx), opc, store=Variable(idx))
+            rt.op("add", Variable(idx), opc, store=Variable(idx))
+            rt.op("add", Variable(idx), Const(1), store=Variable(idx))
+            rt.op("loadw", _catalog_base(ctx), Variable(idx), store=dest)
+            ctx.free_temp(idx)
+            _free(ctx, tc)
+    elif name == "dice":
+        # dice(cat): one entry at random (1..count rides random's contract).
+        off = _catalog_off(ctx, args[0])
+        idx = ctx.alloc_temp()
+        if off is not None:
+            n = len(ctx.world.catalogs[args[0].ident].values)
+            rt.op("random", Const(n), store=Variable(idx))
+            rt.op("add", Variable(idx), Const(off + 1), store=Variable(idx))
+            rt.op("loadw", _catalog_base(ctx), Variable(idx), store=dest)
+        else:
+            opc, tc = _operand(rt, ctx, args[0])
+            rt.op("loadw", _catalog_base(ctx), opc, store=Variable(idx))
+            rt.op("random", Variable(idx), store=Variable(idx))
+            rt.op("add", Variable(idx), opc, store=Variable(idx))
+            rt.op("add", Variable(idx), Const(1), store=Variable(idx))
+            rt.op("loadw", _catalog_base(ctx), Variable(idx), store=dest)
+            _free(ctx, tc)
+        ctx.free_temp(idx)
     elif name == "poke_byte":
         # storeb(addr, 0, v): push v then addr so addr is read first.
         eval_expr(rt, ctx, args[1], Variable(STACK))
@@ -1154,6 +1237,33 @@ def _any_named(ctx) -> int:
     return 1 if (ctx.layout is not None and ctx.layout.has_named) else 0
 
 
+def _catalog_off(ctx, expr):
+    """The word offset of a named catalog from the region base, or None. A
+    catalog name IS this small constant at runtime, which is how a catalog
+    passes to a block: the offset travels as an ordinary value, and entry /
+    calculate read through the __catalogs__ base wherever it lands."""
+    if isinstance(expr, ast.Name) and ctx.layout is not None:
+        return ctx.layout.catalogs.get(expr.ident)
+    return None
+
+
+def _catalog_etype(ctx, expr):
+    """The element type (text/number/object) when expr names a catalog, or,
+    for a call that reads one (entry/last/dice), the type of what it reads.
+    None when unknowable at compile time (a catalog passed as a parameter)."""
+    if isinstance(expr, ast.Call) and expr.name in ("entry", "last", "dice") and expr.args:
+        return _catalog_etype(ctx, expr.args[0])
+    if isinstance(expr, ast.Name):
+        c = ctx.world.catalogs.get(expr.ident)
+        if c is not None:
+            return c.etype
+    return None
+
+
+def _catalog_base(ctx):
+    return Variable(ctx.globals["__catalogs__"])
+
+
 def _contains_death(node) -> bool:
     """Does this AST/world node contain a `death` statement anywhere below?
     A generic dataclass walk, so nested ifs, loops, switches, topic bodies,
@@ -1351,6 +1461,20 @@ def _emit_test(rt, ctx, expr, label, on_true):
         rt.op("je", opa, opb, branch=(label, t))
         if tmp is not None:
             ctx.free_temp(tmp)
+        return
+    if isinstance(expr, ast.Binary) and expr.op == "in" \
+            and _catalog_off(ctx, expr.right) is not None:
+        # Membership in a catalog: `x in suspects` calls the position scan
+        # (core.prelude; DCE'd when no game asks) and branches on found > 0.
+        # Zero new vocabulary: the `in` you already know, aimed at a catalog.
+        valop, tv = _operand(rt, ctx, expr.left)
+        rt.op(
+            "call_vs", RoutineRef("blk_position"),
+            Const(_catalog_off(ctx, expr.right)), valop,
+            store=Variable(STACK),
+        )
+        _free(ctx, tv)
+        rt.op("jg", Variable(STACK), Const(0), branch=(label, on_true))
         return
     if isinstance(expr, ast.Binary) and expr.op in ("holds", "in"):
         # holds: left holds right => right is in left; in: left is in right.
@@ -1640,7 +1764,53 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
     return False  # the statement falls through to whatever follows
 
 
+def _change_entry(rt, ctx, s: ast.Change) -> bool:
+    """change entry(cat, i) to v: rewrite one catalog entry in place, a
+    single storew (the tables live in dynamic memory; no heap anywhere).
+    The value must match the catalog's element type when both are known."""
+    t = s.target
+    if not (isinstance(t, ast.Call) and t.name == "entry" and len(t.args) == 2):
+        return False
+    off = _catalog_off(ctx, t.args[0])
+    et = _catalog_etype(ctx, t.args[0])
+    if et == "text" and isinstance(s.value, ast.StringLit):
+        if ctx.string_pool is None:
+            raise LowerError("no string pool available", s.line)
+        text = "".join(
+            p.text for p in s.value.parts if isinstance(p, ast.StringText)
+        )
+        valop, tv = StringRef(ctx.string_pool.add(text)), None
+    elif et == "number" and isinstance(s.value, ast.StringLit):
+        raise LowerError(
+            f"catalog '{t.args[0].ident}' holds numbers; a string cannot be "
+            f"written into it", s.line)
+    else:
+        valop, tv = _operand(rt, ctx, s.value)
+    if off is not None and isinstance(t.args[1], ast.Number):
+        i = t.args[1].value
+        n = len(ctx.world.catalogs[t.args[0].ident].values)
+        if not 1 <= i <= n:
+            raise LowerError(
+                f"entry({t.args[0].ident}, {i}): the catalog has {n} "
+                f"entries (1..{n})", s.line)
+        rt.op("storew", _catalog_base(ctx), Const(off + 1 + i), valop)
+    else:
+        opc, tc = _operand(rt, ctx, t.args[0])
+        opi, ti = _operand(rt, ctx, t.args[1])
+        idx = ctx.alloc_temp()
+        rt.op("add", opc, opi, store=Variable(idx))
+        rt.op("add", Variable(idx), Const(1), store=Variable(idx))
+        rt.op("storew", _catalog_base(ctx), Variable(idx), valop)
+        ctx.free_temp(idx)
+        _free(ctx, tc)
+        _free(ctx, ti)
+    _free(ctx, tv)
+    return True
+
+
 def _change(rt, ctx, s: ast.Change):
+    if _change_entry(rt, ctx, s):
+        return
     if isinstance(s.target, ast.Name):
         eval_expr(rt, ctx, s.value, Variable(ctx.resolve_var(s.target.ident, s.line)))
         return
@@ -1872,7 +2042,60 @@ def _is_object_expr(ctx, expr) -> bool:
     return False
 
 
+def _say_threshold(rt, ctx, expr):
+    """Print a value that is a string's packed address or a number, told
+    apart at runtime by the biased __strings__ threshold (the computed
+    property "print or run" trick, aimed at print_num instead of a call)."""
+    v = ctx.alloc_temp()
+    eval_expr(rt, ctx, expr, Variable(v))
+    num = ctx.new_label()
+    done = ctx.new_label()
+    biased = ctx.alloc_temp()
+    rt.op("add", Variable(v), Const(0x8000), store=Variable(biased))
+    rt.op("jl", Variable(biased), Variable(ctx.globals["__strings__"]), branch=(num, True))
+    ctx.free_temp(biased)
+    rt.op("print_paddr", Variable(v))
+    rt.jump(done)
+    rt.label(num)
+    rt.op("print_num", Variable(v))
+    rt.label(done)
+    ctx.free_temp(v)
+
+
 def _say_value(rt, ctx, expr):
+    # A catalog read (entry/last/dice) prints by the catalog's element type:
+    # text as the packed string, an object as its short name, a number as
+    # digits. A catalog that arrived as a parameter is unknowable here, so
+    # its value prints through the same string-threshold discrimination the
+    # computed properties use (text lists live above __strings__).
+    if isinstance(expr, ast.Call) and expr.name in ("entry", "last", "dice") and expr.args:
+        et = _catalog_etype(ctx, expr)
+        if et is None and not isinstance(expr.args[0], ast.Number):
+            _say_threshold(rt, ctx, expr)
+            return
+        if et == "text":
+            op, t = _operand(rt, ctx, expr)
+            rt.op("print_paddr", op)
+            _free(ctx, t)
+            return
+        if et == "object":
+            op, t = _operand(rt, ctx, expr)
+            rt.op("print_obj", op)
+            _free(ctx, t)
+            return
+        # number falls through to the ordinary numeric print below.
+    if isinstance(expr, ast.Name):
+        et = getattr(ctx, "catalog_locals", {}).get(expr.ident)
+        if et == "text":
+            op, t = _operand(rt, ctx, expr)
+            rt.op("print_paddr", op)
+            _free(ctx, t)
+            return
+        if et == "object":
+            op, t = _operand(rt, ctx, expr)
+            rt.op("print_obj", op)
+            _free(ctx, t)
+            return
     if _is_object_expr(ctx, expr):
         _say_object(rt, ctx, expr)
         return
@@ -2149,6 +2372,34 @@ def _for_each(rt, ctx, s: ast.ForEach):
         )
     if _is_list_source(ctx, s.source):
         raise LowerError("list iteration is not supported yet", s.line)
+    off = _catalog_off(ctx, s.source)
+    if off is not None:
+        # for each x in <catalog>: an indexed walk, 1..count, four
+        # instructions of loop plus the read. x carries the element type so
+        # `say x` prints text and objects correctly inside the body.
+        cat = ctx.world.catalogs[s.source.ident]
+        xslot = ctx.resolve_var(s.var, s.line)
+        i = ctx.alloc_temp()
+        rt.op("store", Const(i), Const(1))
+        top = ctx.new_label()
+        done = ctx.new_label()
+        rt.label(top)
+        rt.op("jg", Variable(i), Const(len(cat.values)), branch=(done, True))
+        idx = ctx.alloc_temp()
+        rt.op("add", Variable(i), Const(off + 1), store=Variable(idx))
+        rt.op("loadw", _catalog_base(ctx), Variable(idx), store=Variable(xslot))
+        ctx.free_temp(idx)
+        if not hasattr(ctx, "catalog_locals"):
+            ctx.catalog_locals = {}
+        ctx.catalog_locals[s.var] = cat.etype
+        for stmt in s.body:
+            compile_stmt(rt, ctx, stmt)
+        ctx.catalog_locals.pop(s.var, None)
+        rt.op("inc", Const(i))
+        rt.jump(top)
+        rt.label(done)
+        ctx.free_temp(i)
+        return
     xslot = ctx.resolve_var(s.var, s.line)
     nxt = ctx.alloc_temp()
     objop, t = _operand(rt, ctx, s.source)

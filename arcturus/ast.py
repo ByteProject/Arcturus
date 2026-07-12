@@ -516,6 +516,19 @@ class VerbDecl:
 
 
 @dataclass
+class CatalogDecl:
+    """catalog <name>: a fixed, ordered collection declared once (a star
+    catalog: Stefan's naming), one value per indented line. Elements are one
+    type per catalog (text, number, or object); the table is static data in
+    dynamic memory, so a single entry can be rewritten in place. Zero bytes
+    in a game that declares none."""
+
+    name: str
+    values: list[Expr] = field(default_factory=list)
+    line: int = 0
+
+
+@dataclass
 class LanguageDecl:
     # A self-identifying marker at the top of a language pack: `language "spanish"`.
     # The compiler uses it to require that a language granule is selected with

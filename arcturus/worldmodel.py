@@ -165,6 +165,14 @@ class Grain:
 
 
 @dataclass
+class Catalog:
+    name: str
+    etype: str  # "text", "number", or "object": one element type per catalog
+    values: list = field(default_factory=list)  # ast.Expr, homogeneous
+    line: int = 0
+
+
+@dataclass
 class Obj:
     name: str
     category: str  # "room" or "thing"
@@ -314,6 +322,8 @@ class World:
     game: Optional[ast.GameBlock] = None
     # Actions of verbs declared `meta` (see meta_actions above).
     meta_actions: set = field(default_factory=set)
+    # catalog declarations, in declaration order (the layout is deterministic).
+    catalogs: dict = field(default_factory=dict)
     start_room: Optional[str] = None
     kinds: dict[str, Kind] = field(default_factory=dict)
     objects: dict[str, Obj] = field(default_factory=dict)

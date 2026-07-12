@@ -197,6 +197,8 @@ class Parser:
             return self.parse_noise()
         if t.kind == T.NAME and t.value == "ranks":
             return self.parse_ranks()
+        if t.kind == T.NAME and t.value == "catalog":
+            return self.parse_catalog()
         if t.kind == T.NAME and t.value in ("flag", "counter"):
             return self.parse_flag_counter()
         if t.value == "player" and t.kind in (T.NAME, T.KW):
@@ -903,6 +905,26 @@ class Parser:
 
     # -- globals, constants, blocks ----------------------------------------
 
+    def parse_catalog(self) -> ast.CatalogDecl:
+        # catalog <name>, then one value per indented line: a string, a
+        # number, or an object name. The compiler counts; no size is written.
+        line = self.cur.line
+        self.advance()  # the leading `catalog`
+        name = self.expect_name("a catalog name").value
+        self.expect_newline()
+        self.expect(T.INDENT, "an indented list of values, one per line")
+        values: list[ast.Expr] = []
+        while not self.check(T.DEDENT):
+            if self.check(T.NEWLINE):
+                self.advance()
+                continue
+            values.append(self.parse_expr())
+            self.expect_newline()
+        self.expect(T.DEDENT)
+        if not values:
+            raise self._error(f"catalog '{name}' is empty", None)
+        return ast.CatalogDecl(name, values, line)
+
     def parse_global(self) -> ast.GlobalDecl:
         line = self.cur.line
         self.expect_kw("global")
@@ -1003,10 +1025,19 @@ class Parser:
         line = self.cur.line
         self.expect_kw("change")
         target = self.parse_postfix()
-        if not isinstance(target, (ast.Name, ast.Dot, ast.DynDot)):
+        # change entry(cat, i) to v rewrites one catalog entry in place
+        # (docs/01, catalogs); any other call is not an lvalue.
+        entry_target = (
+            isinstance(target, ast.Call)
+            and target.name == "entry"
+            and len(target.args) == 2
+        )
+        if not entry_target and not isinstance(
+            target, (ast.Name, ast.Dot, ast.DynDot)
+        ):
             raise self._error(
-                "the left side of 'change' must be a local, a global, or a "
-                "property"
+                "the left side of 'change' must be a local, a global, a "
+                "property, or a catalog entry(...)"
             )
         self.expect_kw("to")
         value = self.parse_expr()

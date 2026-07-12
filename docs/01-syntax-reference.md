@@ -162,6 +162,50 @@ so `${...}` interpolation inside one is dropped at runtime (the compiler
 notes it and names the cure, a computed `desc block`); in `say` and `show`
 the same constant interpolates as usual.
 
+A CATALOG is a fixed, ordered collection declared once, like a star
+catalog: one value per indented line, one TYPE of value per catalog
+(strings, numbers, or objects), the compiler counting so no size is ever
+written:
+
+```
+catalog colonel_letter
+    "Doctor,"
+    ""
+    "A matter from the old days requires"
+    "attention."
+
+catalog suspects
+    butler
+    gardener
+    doctor
+```
+
+The operations, all 1-based, all total (out of range answers 0/nothing):
+
+```
+calculate(suspects)              // how many entries: 3
+entry(colonel_letter, 3)         // the third entry
+last(colonel_letter)             // the final entry
+dice(omens)                      // one entry at random
+position(suspects, butler)       // an entry's number, or 0 when absent
+if butler in suspects            // membership: the `in` you already know
+for each line in colonel_letter  // iterate in order; say line prints right
+change entry(verdicts, 2) to "guilty"   // rewrite ONE entry in place
+```
+
+A catalog passes to a block as an ordinary value (`quote_catalog(letter)`,
+docs/05), and entry/calculate work on the parameter inside; `for each` and
+the compile-folds need the catalog named in place. Underneath: a static
+table in dynamic memory, so `calculate` on a named catalog folds to a
+constant at compile time, `entry` and `last` are a single memory read,
+`change entry` a single write, and there is no heap and no allocator
+anywhere (the Dialog trap, deliberately refused: the list features that
+would need one, append/reverse/collect, are the ones left out). A game
+that declares no catalog is byte-identical. The interpolation rule matches
+plain property strings: a catalog string is static, so `${...}` inside one
+is a compile error. `calculate`, `entry`, `last`, `dice`, and `position`
+are library-owned names.
+
 ## 5. The world model
 
 Two built-in categories introduce objects: `room` for locations, `thing` for
@@ -1918,6 +1962,7 @@ Section 15 of 02 reconciles each example with the Cosmos model in detail.
 `return`, `global`, `flag`, `counter`, `constant`, `let`, `change`, `to`,
 `now`, `is`, `not`,
 `add`, `remove`, `from`, `move`, `say`, `stop`, `continue`, `finish`, `death`, `if`,
+`catalog` (as a declaration head),
 `else`, `while`, `for`, `each`, `switch`, `case`, `and`, `or`, `holds`,
 `when`, `self`, `player`, `here`, `noun`, `second`, `nothing`, `true`,
 `false`, `list`, `summon`, `grains`, `do`, `title`, `headline`, `author`,
