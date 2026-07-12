@@ -292,7 +292,7 @@
       "patterns": [
         {
           "name": "keyword.control.storyarc",
-          "match": "\\b(if|else|while|for|each|switch|case|when|return|stop|continue|finish|death|do|on|after|every)\\b"
+          "match": "\\b(if|else|while|for|each|switch|case|when|return|stop|continue|finish|death|alter|do|on|after|every)\\b"
         },
         {
           "name": "keyword.other.statement.storyarc",

@@ -588,6 +588,9 @@ _BUILTIN_GLOBALS = [
     "last_act", "last_noun", "last_second", "last_way", "last_grain",
     # 1 when the ending was a `death` (the post-mortem then offers UNDO).
     "died",
+    # 1 once a handler spoke this action's report (`alter`); the default's
+    # success line then stays silent. Cleared per dispatch.
+    "altered",
     # last_here is the room the remembered command ran in, so a replayed
     # scenery-grain quip refuses in another room.
     "last_here",

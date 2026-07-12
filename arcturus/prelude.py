@@ -311,6 +311,8 @@ _BUILTINS = {
     "died": T_NUMBER,
     # The catalog region's byte address, seeded at build (docs/01, catalogs).
     "__catalogs__": T_NUMBER,
+    # 1 once a handler spoke this action's report (alter); library-internal.
+    "altered": T_NUMBER,
     # oops correction: a flag and the offending word's parse-buffer index.
     "oops_ready": T_NUMBER,
     "oops_word": T_NUMBER,

@@ -1172,6 +1172,26 @@ class Parser:
         self.expect_newline()
         return ast.Finish(message, line)
 
+    def _parse_alter(self) -> ast.Alter:
+        # alter "text" speaks the report in one line; a bare `alter` opens
+        # an indented body whose printing collectively IS the report.
+        line = self.cur.line
+        self.expect_kw("alter")
+        if self.check(T.NEWLINE):
+            self.advance()
+            self.expect(T.INDENT, "an indented report body (or a string on the alter line)")
+            body: list[ast.Stmt] = []
+            while not self.check(T.DEDENT):
+                if self.check(T.NEWLINE):
+                    self.advance()
+                    continue
+                body.append(self.parse_statement())
+            self.expect(T.DEDENT)
+            return ast.Alter(None, body, line)
+        value = self.parse_expr()
+        self.expect_newline()
+        return ast.Alter(value, [], line)
+
     def _parse_death(self) -> ast.Finish:
         # `death "*** You have died ***"`: finish's shape, marked as an
         # ending the player may take back (the post-mortem offers UNDO).
@@ -1565,6 +1585,7 @@ _STMT_KEYWORDS = {
     "continue": Parser._parse_continue,
     "finish": Parser._parse_finish,
     "death": Parser._parse_death,
+    "alter": Parser._parse_alter,
     "return": Parser._parse_return,
     "if": Parser._parse_if,
     "while": Parser._parse_while,

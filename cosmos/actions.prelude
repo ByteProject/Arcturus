@@ -161,7 +161,11 @@ on take
         msg_have_it
         stop
     gain(noun)
-    msg_taken
+    if any_alter is 1
+        if altered is 0
+            msg_taken
+    else
+        msg_taken
 
 on drop
     if noun is nothing
@@ -180,7 +184,11 @@ on drop
     else
         move noun to here
     now noun is not worn
-    msg_dropped
+    if any_alter is 1
+        if altered is 0
+            msg_dropped
+    else
+        msg_dropped
 
 on examine
     if noun is nothing
@@ -327,7 +335,11 @@ on wear
         stop
     move noun to player
     now noun is worn
-    msg_worn
+    if any_alter is 1
+        if altered is 0
+            msg_worn
+    else
+        msg_worn
 
 on take_off
     if noun is nothing
@@ -338,7 +350,11 @@ on take_off
         msg_not_worn
         stop
     now noun is not worn
-    msg_removed
+    if any_alter is 1
+        if altered is 0
+            msg_removed
+    else
+        msg_removed
 
 on put
     if noun is nothing
@@ -413,12 +429,20 @@ on open
             msg_no_key
             stop
         now noun is not locked
-        msg_unlocked
+        if any_alter is 1
+            if altered is 0
+                msg_unlocked
+        else
+            msg_unlocked
     if noun is open
         msg_already_open
         stop
     now noun is open
-    msg_opened
+    if any_alter is 1
+        if altered is 0
+            msg_opened
+    else
+        msg_opened
     reveal_contents(noun)
 
 on close
@@ -434,7 +458,11 @@ on close
         msg_already_shut
         stop
     now noun is not open
-    msg_closed_it
+    if any_alter is 1
+        if altered is 0
+            msg_closed_it
+    else
+        msg_closed_it
 
 on lock
     if noun is nothing
@@ -468,7 +496,11 @@ on lock
             msg_no_key
             stop
     now noun is locked
-    msg_locked
+    if any_alter is 1
+        if altered is 0
+            msg_locked
+    else
+        msg_locked
 
 on unlock
     if noun is nothing
@@ -496,7 +528,11 @@ on unlock
             msg_no_key
             stop
     now noun is not locked
-    msg_unlocked
+    if any_alter is 1
+        if altered is 0
+            msg_unlocked
+    else
+        msg_unlocked
 
 on enter
     if noun is nothing
@@ -508,7 +544,11 @@ on enter
         stop
     if noun is supporter
         move player to noun
-        msg_done
+        if any_alter is 1
+            if altered is 0
+                msg_done
+        else
+            msg_done
         stop
     if noun is container
         if noun is not open
@@ -516,7 +556,11 @@ on enter
             msg_cant_enter
             stop
         move player to noun
-        msg_done
+        if any_alter is 1
+            if altered is 0
+                msg_done
+        else
+            msg_done
         stop
     change refused to 1
     msg_cant_enter
@@ -529,7 +573,11 @@ on exit
         if noun is not nothing
             if player in noun
                 move player to parent_of(noun)
-                msg_done
+                if any_alter is 1
+                    if altered is 0
+                        msg_done
+                else
+                    msg_done
                 stop
             change refused to 1
             msg_not_in_that
@@ -538,7 +586,11 @@ on exit
         msg_not_inside
         stop
     move player to here
-    msg_done
+    if any_alter is 1
+        if altered is 0
+            msg_done
+    else
+        msg_done
 
 on give
     if noun is nothing

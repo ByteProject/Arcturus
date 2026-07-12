@@ -61,7 +61,7 @@ INTRINSICS = frozenset({
     # so `if any_spans() is 1` folds away and DCE drops the spans blocks when no
     # object spans (a static-if, see _if).
     "spans_addr", "spans_count", "any_spans", "any_doors", "any_named",
-    "any_pluribus", "any_death", "any_grains",
+    "any_pluribus", "any_death", "any_alter", "any_grains",
     "any_allwords", "any_tagged", "any_scored", "any_scoperoom", "scope_room",
     # any_enterable is 1 when any object is a supporter or a container (by
     # kind chain), so the nested-location suffix on the room title and the
@@ -317,6 +317,8 @@ def _collect_lets(body, out: list) -> None:
             _collect_lets(s.body, out)
         elif isinstance(s, ast.ForEach):
             out.append(s.var)
+            _collect_lets(s.body, out)
+        elif isinstance(s, ast.Alter):
             _collect_lets(s.body, out)
         elif isinstance(s, ast.Switch):
             for c in s.cases:
@@ -1059,6 +1061,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_death(): 1 if any `death` statement exists; the post-mortem's
         # UNDO machinery folds away in a game whose endings all `finish`.
         _place(rt, Const(_any_death(ctx)), dest)
+    elif name == "any_alter":
+        # any_alter(): 1 if any `alter` statement exists; the report guards
+        # fold away in a game that never alters.
+        _place(rt, Const(_any_alter(ctx)), dest)
     elif name == "set_colour":
         opa, opb, t = _two_operands(rt, ctx, args[0], args[1])
         rt.op("set_colour", opa, opb)
@@ -1301,24 +1307,28 @@ def _catalog_base(ctx):
     return Variable(ctx.globals["__catalogs__"])
 
 
-def _contains_death(node) -> bool:
-    """Does this AST/world node contain a `death` statement anywhere below?
-    A generic dataclass walk, so nested ifs, loops, switches, topic bodies,
-    and grain bodies are all covered without naming each shape."""
+def _walk_contains(node, pred) -> bool:
+    """Does this AST/world node satisfy pred anywhere below? A generic
+    dataclass walk, so nested ifs, loops, switches, topic bodies, and grain
+    bodies are all covered without naming each shape."""
     import dataclasses
-    if isinstance(node, ast.Finish):
-        return node.died
+    if pred(node):
+        return True
     if not dataclasses.is_dataclass(node):
         return False
     for f in dataclasses.fields(node):
         v = getattr(node, f.name)
         if isinstance(v, list):
             for item in v:
-                if dataclasses.is_dataclass(item) and _contains_death(item):
+                if dataclasses.is_dataclass(item) and _walk_contains(item, pred):
                     return True
-        elif dataclasses.is_dataclass(v) and _contains_death(v):
+        elif dataclasses.is_dataclass(v) and _walk_contains(v, pred):
             return True
     return False
+
+
+def _contains_death(node) -> bool:
+    return _walk_contains(node, lambda n: isinstance(n, ast.Finish) and n.died)
 
 
 def _any_death(ctx) -> int:
@@ -1329,13 +1339,32 @@ def _any_death(ctx) -> int:
     w = ctx.world
     memo = getattr(w, "_has_death_memo", None)
     if memo is None:
-        roots = list(w.blocks.values()) + list(w.free_handlers)
-        for obj in w.objects.values():
-            roots += obj.handlers + obj.grains + obj.topics
-        for kind in w.kinds.values():
-            roots += kind.handlers + kind.grains + kind.topics
-        memo = 1 if any(_contains_death(r) for r in roots) else 0
+        memo = 1 if any(_contains_death(r) for r in _world_roots(w)) else 0
         w._has_death_memo = memo
+    return memo
+
+
+def _world_roots(w):
+    roots = list(w.blocks.values()) + list(w.free_handlers)
+    for obj in w.objects.values():
+        roots += obj.handlers + obj.grains + obj.topics
+    for kind in w.kinds.values():
+        roots += kind.handlers + kind.grains + kind.topics
+    return roots
+
+
+def _any_alter(ctx) -> int:
+    """The compile-time alter flag: 1 if any `alter` statement exists. The
+    report guards at the library's success messages fold away without one,
+    so a game that never alters compiles byte-identical."""
+    w = ctx.world
+    memo = getattr(w, "_has_alter_memo", None)
+    if memo is None:
+        memo = 1 if any(
+            _walk_contains(r, lambda n: isinstance(n, ast.Alter))
+            for r in _world_roots(w)
+        ) else 0
+        w._has_alter_memo = memo
     return memo
 
 
@@ -1759,6 +1788,20 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
             if t is not None:
                 ctx.free_temp(t)
         return True
+    elif isinstance(s, ast.Alter):
+        # Speak the report yourself: mark it spoken, then print. The default
+        # the handler continues into runs its mechanics with its success
+        # line silent (the guards in actions.prelude); refusals never look
+        # at the mark, so a failed action still answers honestly.
+        slot = ctx.globals.get("altered")
+        if slot is not None:
+            rt.op("store", Const(slot), Const(1))
+        if s.value is not None:
+            _say(rt, ctx, s.value)
+        else:
+            for stmt in s.body:
+                compile_stmt(rt, ctx, stmt)
+        return False
     elif isinstance(s, ast.Finish):
         if s.message is not None:
             _say(rt, ctx, s.message)
@@ -2282,6 +2325,8 @@ def _static_value(ctx, expr):
         return _any_pluribus(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_death":
         return _any_death(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_alter":
+        return _any_alter(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_grains":
         return _any_grains(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tables":

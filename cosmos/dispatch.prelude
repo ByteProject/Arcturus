@@ -14,6 +14,10 @@
 // consume the action (return 1); the first that does ends the walk.
 
 block dispatch(action)
+    // A handler that alters speaks the report; the mark lives for one
+    // action. Folds away in a game that never alters.
+    if any_alter is 1
+        change altered to 0
     if grain is not 0
         run_grain(grain, action)
         return

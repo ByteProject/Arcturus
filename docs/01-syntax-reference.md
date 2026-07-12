@@ -802,6 +802,30 @@ one.
 that also consumes the action (section 12). `continue` ends the current
 handler and passes the action to the next, more general handler (section 12).
 
+`alter` speaks an action's report yourself, keeping the default MECHANICS:
+say your line (or compose one in an indented body, the way a computed
+property words itself), then `continue`; the take, the drop, the open run
+exactly as always, and the library's success line stays silent. A plain
+`say` before `continue` keeps its classic meaning, flavor stacked above
+the default report, so nothing existing changes; and refusals never honor
+the mark, so a failed action still answers honestly.
+
+```
+on take
+    alter "The idol comes free with a reluctance you can feel."
+    continue
+
+on drop
+    alter
+        show("You set the idol down")
+        if here is shrine
+            show(", and the shrine seems to sigh")
+        say "."
+    continue
+```
+
+Costs nothing in a game that never alters (any_alter).
+
 `finish` ends the game, printing its final message; Cosmos then reports the
 final score (the same line SCORE prints) and offers the classic RESTART,
 RESTORE, QUIT prompt, answered in the pack's own words (02, section 7).
@@ -1981,7 +2005,7 @@ Section 15 of 02 reconciles each example with the Cosmos model in detail.
 `game`, `room`, `thing`, `kind`, `verb`, `of`, `in`, `on`, `after`, `block`,
 `return`, `global`, `flag`, `counter`, `constant`, `let`, `change`, `to`,
 `now`, `is`, `not`,
-`add`, `remove`, `from`, `move`, `say`, `stop`, `continue`, `finish`, `death`, `if`,
+`add`, `remove`, `from`, `move`, `say`, `stop`, `continue`, `finish`, `death`, `alter`, `if`,
 `catalog` (as a declaration head),
 `else`, `while`, `for`, `each`, `switch`, `case`, `and`, `or`, `holds`,
 `when`, `self`, `player`, `here`, `noun`, `second`, `nothing`, `true`,
@@ -2031,7 +2055,7 @@ constant_decl  := "constant" id "=" expr
 rule           := handler
 
 statement      := let | change | now | move | add | remove | say
-                | stop | continue | finish | death | if | while | for | switch
+                | stop | continue | finish | death | alter | if | while | for | switch
                 | return | call
 switch         := "switch" expr INDENT { case } [ else_case ] DEDENT
 case           := "case" value { "," value } INDENT { statement } DEDENT
