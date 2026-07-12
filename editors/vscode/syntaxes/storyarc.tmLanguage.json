@@ -155,6 +155,18 @@
               "name": "storage.modifier.storyarc"
             }
           }
+        },
+        {
+          "comment": "catalog <name>: the declaration head and the catalog's name.",
+          "match": "^\\s*(catalog|ranks)\\s+([A-Za-z][A-Za-z0-9_]*)?",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.storyarc"
+            },
+            "2": {
+              "name": "entity.name.type.storyarc"
+            }
+          }
         }
       ]
     },
@@ -192,11 +204,17 @@
               "include": "#builtins"
             },
             {
+              "include": "#services"
+            },
+            {
+              "include": "#calls"
+            },
+            {
               "include": "#operators"
             },
             {
-              "comment": "The leading article of an interpolation: the/The/a/an.",
-              "match": "\\b(the|The|a|an)\\b",
+              "comment": "The leading article or copula of an interpolation, with an optional case tag.",
+              "match": "\\b(the|The|a|an|A|An|is|Is)(?::[a-z]+)?\\b",
               "name": "keyword.other.article.storyarc"
             },
             {
