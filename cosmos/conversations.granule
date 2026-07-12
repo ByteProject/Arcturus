@@ -14,7 +14,8 @@
 //
 // This is the same `topic` model the extendedverbs ask/tell path walks; the two
 // are mutually exclusive views of one thing (the menu wins). To change the menu
-// wording or layout, fork the granule. (The conversation line framing - line_you,
+// wording or layout, override the blocks from the story or fork the granule.
+// (The conversation line framing - line_you,
 // line_reply, line_end - lives in the prelude, not here, so that part stays
 // overridable from a story and translatable by a language pack.)
 

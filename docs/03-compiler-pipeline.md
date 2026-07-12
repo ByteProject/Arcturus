@@ -168,7 +168,8 @@ game's. `--no-cosmos` opts out.
 Overriding works against the prelude. A block defined in the game (or in a
 summoned granule) overrides a Cosmos *prelude* block of the same name: redefine
 `msg_jump()` in the story and it replaces the library's, with no unpacking. A
-granule's own blocks, by contrast, are not overridable from a story; to change a
+granule's own blocks resolve by the same most-specific-wins chain (a game
+block replaces them, with a note outside the msg_*/line_* skin); to reshape a
 granule you fork it. That boundary is what keeps a granule distinct from a
 prelude (otherwise a granule would just be a renamed prelude), and a granule
 overriding a prelude is exactly what a language pack relies on. The full model -

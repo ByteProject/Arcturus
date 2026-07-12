@@ -11,23 +11,29 @@ is in 02.
 Cosmos comes in two kinds of file, both ordinary Arcturus that lex identically;
 the extension marks the role (01, section 2):
 
-- A `.prelude` is part of the core library, loaded before every story. The
-  prelude is the **overridable base**: redefine a prelude block of the same name
-  in your story (or in a granule) and yours wins.
-- A `.granule` is a **summoned module**, loaded only when a story summons it, and
-  left out entirely otherwise. A granule is **forked, not overridden**: if you
-  want to change one, you take a copy of the whole file and edit it.
+- A `.prelude` is part of the core library, loaded before every story.
+- A `.granule` is a **summoned module**, loaded only when a story summons it,
+  and left out entirely otherwise.
 
-That boundary is the point of having two kinds. A granule's own blocks are *not*
-overridable from a story (the compiler reports a duplicate definition). If they
-were, a granule would be nothing more than a renamed prelude. So:
+Overriding is one rule, the chain complete: **most specific wins**. A game
+block overrides a granule block overrides a library block of the same name.
+That is how the statusline granule replaces the core `prompt` (a granule
+overriding the prelude), how a translation's blocks replace the English
+wording (a language pack is a granule), and how a story reskins one line of
+a summoned feature: redefine `msg_throw` and yours speaks, extendedverbs
+summoned or not.
 
-> **Prelude blocks: overridable, per block. Granule blocks: forked, whole file.**
+> **Most specific wins: game over granule over library, block by block.**
 
-A granule *can* override a **prelude** block, though. That is how the statusline
-granule replaces the core `prompt`, and it is exactly what a language pack needs:
-a translation is a granule whose blocks override the English prelude's. The
-asymmetry only forbids a *story* from reaching into a *granule*.
+One courtesy at the granule seam: a granule's messages (`msg_*`, `line_*`)
+are its public skin and reskin silently, but a game block that replaces any
+OTHER granule block gets a compile note, because colliding with a granule's
+internal helper by accident (a block name you never saw, in a file you never
+opened) breaks the granule mysteriously. The note names the block; if the
+override is deliberate, it is working as declared, and if not, rename yours.
+
+Forking (section 4) remains the way to reshape a granule wholesale: take the
+file, edit anything, summon your copy.
 
 ## 2. Summoning a granule
 
@@ -93,7 +99,8 @@ Every default is an ordinary free handler, so the override story is the
 usual one: an object's own `on rub` wins ("on rub / say ..."), a top-level
 `on rub` rule reskins the verb game-wide, and `continue` defers back to the
 granule's default. The granule's own message blocks (msg_throw, msg_dig,
-...) are granule-owned wording: to rewrite them, fork the granule (section
+...) are granule-owned wording: override any of them from the story
+(most-specific-wins), or fork the granule to reshape the set wholesale (section
 4) rather than overriding from the story.
 
 ### infocom_talking
