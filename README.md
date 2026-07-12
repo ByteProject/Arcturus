@@ -82,6 +82,17 @@ interactive fiction, this is a good time to pick it up.
 
 The most significant recent additions and achievements:
 
+- **Catalogs: list power without the list tax.** `catalog` declares a
+  fixed, ordered collection, one value per line (the lines of a letter, a
+  roster of suspects, a table of numbers), and the operations read like
+  prose: `calculate` for how many, `entry(x, 3)` for the third, `last`,
+  `dice` for one at random, `position` for where something sits, plain
+  `in` for membership, `for each` to iterate, and `change entry(...) to`
+  rewriting one entry in place. Underneath there is no heap and no
+  runtime library, only static tables and single opcodes, so it runs
+  fast on a C64; a game that declares no catalog pays zero bytes. The
+  quote box draws a whole letter from one with one call
+  ([worked example](examples/features/catalogs.storyarc)).
 - **SWIM SOUTH parses, and TRANSCRIPT records.** A grammar line can end in a
   `direction` slot (`push noun direction`, `swim direction`), so PUSH CRATE
   WEST and SWIM SOUTH reach their handlers with the direction riding `way`,
@@ -127,19 +138,7 @@ The most significant recent additions and achievements:
   verb asks its own question ("Take what?", "Nimm was?", "¿Coge qué?"), while
   a pronoun with nothing to refer to gets its own answer too. Three
   situations, three responses, in every language.
-- **Positional grammar.** A verb's grammar lines can now say more than "one
-  noun" or "two nouns around a preposition": a literal word may open a line
-  (`dig in noun with held`), and a line's wording may select its own action,
-  so LOOK UNDER BED and LOOK BEHIND BED reach `look_under` and `look_behind`,
-  two ordinary actions with ordinary handlers. The compiler notices such a
-  verb and matches it position by position, most specific line first, while
-  every plain verb stays on the compact model it always had; a game with no
-  positional verb compiles byte-identical to one built before the feature
-  existed. See [examples/features/grammar.storyarc](examples/features/grammar.storyarc).
-On the horizon: the remaining retro targets (MSX, Atari 8-bit, Plus/4, Apple
-II, Spectrum Next, MEGA65) and the interpreters that adopt the proven
-blueprints, machine by machine. For the full, step-by-step history, see
-[PROGRESS.md](PROGRESS.md).
+
 
 ## The language
 
