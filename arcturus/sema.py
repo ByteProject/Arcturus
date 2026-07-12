@@ -821,6 +821,13 @@ class Analyzer:
             return prelude.T_TEXT
         if isinstance(expr, ast.Bool):
             return prelude.T_BOOL
+        if isinstance(expr, ast.Name) and expr.ident in self.world.catalogs:
+            # A property can hold a catalog: the value is the catalog's word
+            # offset, a plain number, so `self.writing` travels into entry(),
+            # quote_catalog(), and the rest exactly like the name written in
+            # place (a field report: the slot used to type as object, resolve
+            # to nothing, and silently read as the FIRST catalog).
+            return prelude.T_NUMBER
         if isinstance(expr, (ast.Nothing, ast.Name)):
             return prelude.T_OBJECT
         if isinstance(expr, ast.Binary) and expr.op in ("+", "-", "*", "/", "mod"):

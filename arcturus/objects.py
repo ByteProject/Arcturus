@@ -355,6 +355,16 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
         layout.kind_attr[kname] = a
         a += 1
 
+    # Catalog word offsets, BEFORE the table is emitted: a property can hold
+    # a catalog name (`writing PLAQUE_TEXT`), and _fill_property needs the
+    # offset while the property tables are being written. The offsets follow
+    # from declaration order alone ([count, widest, e1..eN] per catalog), so
+    # they are known before the region itself is appended below.
+    woff = 0
+    for cname, cat in world.catalogs.items():
+        layout.catalogs[cname] = woff
+        woff += 2 + len(cat.values)
+
     _emit_table(world, layout)
     # The catalog region (docs/01, catalogs): every declared catalog laid
     # out end to end inside the dynamic table, so a single entry is
@@ -366,7 +376,6 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
     # from the region start, whose byte address seeds __catalogs__.
     layout.catalog_region_off = len(layout.table)
     for cname, cat in world.catalogs.items():
-        layout.catalogs[cname] = (len(layout.table) - layout.catalog_region_off) // 2
         widest = 0
         if cat.etype == "text":
             widest = max(len(_plain(v)) for v in cat.values)
@@ -749,10 +758,15 @@ def _fill_property(world, layout, pname, decl, data_at) -> None:
         return
     if ptype == prelude.T_NUMBER:
         value = 0
-        if decl.form == ast.PROP_VALUE and decl.values and isinstance(
-            decl.values[0], ast.Number
-        ):
-            value = decl.values[0].value & 0xFFFF
+        if decl.form == ast.PROP_VALUE and decl.values:
+            v = decl.values[0]
+            if isinstance(v, ast.Number):
+                value = v.value & 0xFFFF
+            elif isinstance(v, ast.Name) and v.ident in layout.catalogs:
+                # A catalog name stands for its word offset (sema typed the
+                # property as number for exactly this), so the slot reads
+                # back as the same small constant the name means in code.
+                value = layout.catalogs[v.ident] & 0xFFFF
         _put_word(layout.table, data_at, value)
         return
     # list/block properties: deferred (words to B4.4, computed to B4.5)
