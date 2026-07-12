@@ -708,7 +708,8 @@ handlers for examine, take, drop, push, pull, turn, and the like (section
 `room`: `name`, `desc`, `lit` (true by default; a dark room declares `lit
 false`), `visited`, and the direction properties (`north`, `south`, `east`,
 `west`, `northeast`, `northwest`, `southeast`, `southwest`, `up`, `down`, `in`,
-`out`), each an object defaulting `nothing`. A direction may name a room or a
+`out`, and the nautical `fore`, `aft`, `port`, `starboard`, whose player words
+are the nautical granule), each an object defaulting `nothing`. A direction may name a room or a
 door. Default `go <direction>` reads the matching property and moves the player,
 or, when there is no exit, prints "You can't go that way." A room overrides one
 direction with its own `on go <direction>`. The full movement model, including
@@ -1230,7 +1231,9 @@ the PunyInform size benchmark):
 ## Appendix A: Cosmos-reserved names
 
 Direction names: `north`, `south`, `east`, `west`, `northeast`, `northwest`,
-`southeast`, `southwest`, `up`, `down`, `in`, `out`. The `go` verb also
+`southeast`, `southwest`, `up`, `down`, `in`, `out`, `fore`, `aft`, `port`,
+`starboard` (the nautical four; their words are the nautical granule). The
+`go` verb also
 reserves `other` as the blocked-direction fallback operand (`on go other`,
 section 11a); it is not itself a direction.
 

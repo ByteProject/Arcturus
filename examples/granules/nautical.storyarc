@@ -1,0 +1,75 @@
+// nautical.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the nautical granule (docs/05): FORE, AFT, PORT, and
+// STARBOARD as real directions, for a game set where the compass fails.
+// Cardinal directions are measured around the pole of a planet; a ship's
+// deck and deep space have no pole, so a vessel is laid out along its own
+// axis. The direction properties (fore, aft, port, starboard) are part of
+// the compiler's standard set and read like any other in exits and
+// handlers; the granule opts in the player's words, F and SB included.
+// Compile and run:
+//
+//   arcc examples/granules/nautical.storyarc -o freighter.z5
+//   frotz freighter.z5
+//
+// TRY: aft / port / examine crate / sb / aft / f / fore / fore
+
+game
+    title "The Cormorant"
+    headline "A nautical directions showcase"
+    author "Stefan Vogt"
+    start bridge
+
+summon.nautical
+summon.statusline
+
+room bridge
+    name "Bridge"
+    desc "The freighter's bridge, all worn brass and quiet dials. The
+          companionway leads aft."
+    aft companionway
+
+room companionway
+    name "Companionway"
+    desc "A narrow passage along the ship's spine. The bridge is fore, the
+          engine room aft; hatches open to port and starboard."
+    fore bridge
+    aft engine_room
+    port hold
+    starboard galley
+
+room hold
+    name "Cargo Hold"
+    desc "Netting and shadow. The hatch back to the companionway is to
+          starboard."
+    starboard companionway
+
+thing crate in hold
+    name "strapped crate"
+    words crate, strapped
+    desc "Stencilled MACHINE PARTS, strapped down twice. Somebody did not
+          trust this sea."
+    fixed
+
+room galley
+    name "Galley"
+    desc "A pot the size of a kettle drum, bolted down. The companionway is
+          to port."
+    port companionway
+
+room engine_room
+    name "Engine Room"
+    desc "The engine thrums like a heart that has never once skipped. The
+          companionway is fore."
+    fore companionway
+
+// A direction handler reads like any other: on go <direction>. This one
+// adds a line on the way forward from the companionway, then lets the
+// ordinary walk continue.
+on go fore
+    if here is companionway
+        say "You duck the low frame out of habit."
+    continue

@@ -142,6 +142,13 @@ class Layout:
     # objects folds the checks away and dead-code elimination drops the spans
     # blocks, so it pays nothing for the feature.
     has_spans: bool = False
+    # The directions ALIVE in this game, in canonical order: those with player
+    # words declared (the pack's compass set; nautical when its granule is
+    # summoned) or written as an exit on some room. The exits_count /
+    # exit_prop / exit_name trio iterates exactly these, so a standard
+    # direction nobody can walk (the nautical four in a landlocked game)
+    # adds nothing to the verbose_exits routines.
+    live_directions: list = field(default_factory=list)
     # True if any object is of the `door` kind. The go handler guards its door
     # detour (open/lock check, step to the far side) with `any_doors()`, so a game
     # with no doors folds it away and pays nothing.
@@ -280,6 +287,19 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
             if decl is not None and _bool_value(decl):
                 layout.has_pluribus = True
                 break
+
+    # The live directions (see the Layout field): worded, or used as an exit.
+    worded = set(world.directions.values())
+    used = set()
+    dir_names = set(prelude._DIRECTIONS)
+    for name, obj in world.objects.items():
+        for pname in _effective_props(world, obj):
+            if pname in dir_names:
+                used.add(pname)
+    layout.live_directions = [
+        d for d in prelude._DIRECTIONS
+        if (d in worded or d in used) and d in layout.prop_number
+    ]
 
     # Does any non-movable object declare `spans`? Only then does the scope code
     # keep its spans checks (any_spans folds to this); otherwise they cost nothing.

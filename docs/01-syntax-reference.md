@@ -1017,7 +1017,11 @@ direction northeast "northeast", "ne"
 ```
 
 The property name (`north`, `northeast`, `up`, `in`, ...) is one of the standard
-directions and never changes; the quoted words are the player's vocabulary. Like
+directions and never changes; the quoted words are the player's vocabulary. The
+standard set also holds the four nautical directions (`fore`, `aft`, `port`,
+`starboard`) for a vessel or a deep space craft; their player words are the
+opt-in nautical granule (docs/05), while the properties are always legal in
+exits and handlers and, like every direction, cost nothing unused. Like
 verbs and messages, direction words are part of the language layer, so a language
 pack redeclares them (`direction north "norte", "n"`) and Cosmos ships the English
 set. A game rarely writes these; it summons a language, or uses the default

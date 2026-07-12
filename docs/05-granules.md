@@ -207,6 +207,21 @@ Replaces the blunt "there's no exit in that direction" with a list of the room's
 actual exits ("You can only go north or east from here."), read from the
 compiler's own direction data, so it always matches the map.
 
+### nautical
+
+```
+summon.nautical
+```
+
+The four nautical directions, FORE, AFT, PORT, and STARBOARD (with F and SB
+as the ship's shorthand), for a game set aboard a vessel or a deep space
+craft, where the compass fails: cardinal directions are measured around the
+pole of a planet, and in deep space there is no pole (the Hibernated
+problem). The direction properties are part of the compiler's standard set,
+so exits, handlers, and `way` tests read like any other (`fore engine_room`,
+`on go fore`, `if way is aft`); the granule adds the player-facing words.
+Nautical and compass directions coexist in one game.
+
 ### conversations
 
 ```
