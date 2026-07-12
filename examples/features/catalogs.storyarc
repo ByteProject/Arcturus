@@ -28,18 +28,17 @@ game
 summon.quotes
 summon.statusline
 
-catalog colonel_letter
-    "Doctor,"
+catalog last_letter
+    "To be read when I am gone:"
     ""
-    "A matter from the old days requires"
-    "attention."
+    "Trust no lock in this house and"
+    "no smile at my table."
     ""
-    "Present yourself at the Black Swan"
-    "Inn at your earliest convenience."
+    "The garden knows. Dig nowhere."
     ""
-    "Ashworth"
+    "E. Mereweather"
     ""
-    "~Steady hands save lives.~"
+    "~The tide keeps its own ledger.~"
 
 catalog omens
     "a raven on the weathervane"
@@ -60,11 +59,11 @@ catalog verdicts
 room parlor
     name "Parlor"
     desc "An inquest in a parlor: the butler, the gardener, and the doctor
-          wait. The colonel's letter lies on the table."
+          wait. The dead man's last letter lies on the table."
 
 thing letter in parlor
-    name "colonel's letter"
-    words letter, colonels
+    name "last letter"
+    words letter, last
     fixed
 
 thing butler of character in parlor
@@ -84,9 +83,9 @@ verb "read"
 
 on read_it
     if noun is letter
-        quote_catalog(colonel_letter)
-        say "The letter runs ${calculate(colonel_letter)} lines and ends:
-             ${last(colonel_letter)}"
+        quote_catalog(last_letter)
+        say "The letter runs ${calculate(last_letter)} lines and ends:
+             ${last(last_letter)}"
         stop
     continue
 

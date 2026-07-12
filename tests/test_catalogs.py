@@ -26,9 +26,9 @@ GAME = (
     'game\n    title "T"\n    start study\n'
     'summon.quotes\n'
     'catalog letter\n'
-    '    "Doctor,"\n'
-    '    "A matter requires attention."\n'
-    '    "Ashworth"\n'
+        '    "To be read when I am gone:"\n'
+    '    "The garden knows. Dig nowhere."\n'
+    '    "E. Mereweather"\n'
     'catalog primes\n'
     '    2\n'
     '    3\n'
@@ -92,16 +92,16 @@ def _run(cmds, game=GAME):
 def test_reads_folds_and_scans():
     out = _run(["audit"])
     assert "count 3 / 4" in out
-    assert "entry3: Ashworth" in out
+    assert "entry3: E. Mereweather" in out
     assert "last: 7" in out
     assert "pos gardener: 2" in out
     assert "pos player: 0" in out
     assert "butler listed" in out
     assert "player unlisted" in out
     assert "dice landed on the table" in out
-    assert "via block: A matter requires attention." in out
+    assert "via block: The garden knows. Dig nowhere." in out
     assert "2 3 5 7" in out
-    assert "Doctor,\nA matter requires attention.\nAshworth" in out
+    assert "To be read when I am gone:\nThe garden knows. Dig nowhere.\nE. Mereweather" in out
 
 
 def test_change_entry_rewrites_in_place():
@@ -128,7 +128,7 @@ def test_quote_catalog_draws_the_box(tmp_path):
         [_frotz(), "-p", "-w", "120", str(story)],
         input="poster\n \nquit\ny\n", capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "A matter requires attention." in out
+    assert "The garden knows. Dig nowhere." in out
     assert "posted" in out
 
 
