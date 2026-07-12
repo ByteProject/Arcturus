@@ -59,7 +59,7 @@ INTRINSICS = frozenset({
     # so `if any_spans() is 1` folds away and DCE drops the spans blocks when no
     # object spans (a static-if, see _if).
     "spans_addr", "spans_count", "any_spans", "any_doors", "any_named",
-    "any_pluribus", "any_grains",
+    "any_pluribus", "any_death", "any_grains",
     "any_allwords", "any_tagged", "any_scored", "any_scoperoom", "scope_room",
     # any_enterable is 1 when any object is a supporter or a container (by
     # kind chain), so the nested-location suffix on the room title and the
@@ -970,6 +970,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_pluribus(): the compile-time grammatical-plural flag (1 or 0); the
         # number-agreement machinery folds away in an unmarked game.
         _place(rt, Const(_any_pluribus(ctx)), dest)
+    elif name == "any_death":
+        # any_death(): 1 if any `death` statement exists; the post-mortem's
+        # UNDO machinery folds away in a game whose endings all `finish`.
+        _place(rt, Const(_any_death(ctx)), dest)
     elif name == "set_colour":
         opa, opb, t = _two_operands(rt, ctx, args[0], args[1])
         rt.op("set_colour", opa, opb)
@@ -1148,6 +1152,44 @@ def _any_named(ctx) -> int:
     else 0. The article blocks guard their named check on this so it folds away in
     a game with no named objects."""
     return 1 if (ctx.layout is not None and ctx.layout.has_named) else 0
+
+
+def _contains_death(node) -> bool:
+    """Does this AST/world node contain a `death` statement anywhere below?
+    A generic dataclass walk, so nested ifs, loops, switches, topic bodies,
+    and grain bodies are all covered without naming each shape."""
+    import dataclasses
+    if isinstance(node, ast.Finish):
+        return node.died
+    if not dataclasses.is_dataclass(node):
+        return False
+    for f in dataclasses.fields(node):
+        v = getattr(node, f.name)
+        if isinstance(v, list):
+            for item in v:
+                if dataclasses.is_dataclass(item) and _contains_death(item):
+                    return True
+        elif dataclasses.is_dataclass(v) and _contains_death(v):
+            return True
+    return False
+
+
+def _any_death(ctx) -> int:
+    """The compile-time death flag: 1 if any `death` statement exists in the
+    program, else 0. game_over's UNDO offer and the died prompt fold away in
+    a game whose endings are all `finish` (a won game carries no way back,
+    and no bytes for one)."""
+    w = ctx.world
+    memo = getattr(w, "_has_death_memo", None)
+    if memo is None:
+        roots = list(w.blocks.values()) + list(w.free_handlers)
+        for obj in w.objects.values():
+            roots += obj.handlers + obj.grains + obj.topics
+        for kind in w.kinds.values():
+            roots += kind.handlers + kind.grains + kind.topics
+        memo = 1 if any(_contains_death(r) for r in roots) else 0
+        w._has_death_memo = memo
+    return memo
 
 
 def _any_pluribus(ctx) -> int:
@@ -1546,9 +1588,13 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
         if s.message is not None:
             _say(rt, ctx, s.message)
         # After the *** banner the Cosmos post-mortem takes over: the final
-        # score and the RESTART / RESTORE / QUIT prompt (loop.prelude
-        # game_over). A bare build without Cosmos falls back to ending the
-        # session outright.
+        # score and the prompt (loop.prelude game_over). `death` sets the
+        # died global first, and only then does the prompt offer UNDO: a
+        # won game must stay won. A bare build without Cosmos falls back
+        # to ending the session outright.
+        slot = ctx.globals.get("died")
+        if slot is not None and (s.died or _any_death(ctx)):
+            rt.op("store", Const(slot), Const(1 if s.died else 0))
         if "game_over" in ctx.world.blocks:
             rt.op("call_vn", RoutineRef("blk_game_over"))
         rt.op("quit")
@@ -1960,6 +2006,8 @@ def _static_value(ctx, expr):
         return _any_named(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_pluribus":
         return _any_pluribus(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_death":
+        return _any_death(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_grains":
         return _any_grains(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tables":

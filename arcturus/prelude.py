@@ -307,6 +307,8 @@ _BUILTINS = {
     "last_way": T_NUMBER,
     "last_grain": T_NUMBER,
     "last_here": T_OBJECT,
+    # 1 when the ending was a `death`; game_over offers UNDO only then.
+    "died": T_NUMBER,
     # oops correction: a flag and the offending word's parse-buffer index.
     "oops_ready": T_NUMBER,
     "oops_word": T_NUMBER,

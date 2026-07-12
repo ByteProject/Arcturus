@@ -21,6 +21,7 @@ import datetime
 
 from . import __version__
 from . import abbrev
+from . import assembler
 from . import ast
 from . import cosmos
 from . import dictionary
@@ -585,6 +586,8 @@ _BUILTIN_GLOBALS = [
     "way", "grain", "par_pending", "parse_fault", "unknown_at", "two_reverse",
     "line_act", "meta_turn",
     "last_act", "last_noun", "last_second", "last_way", "last_grain",
+    # 1 when the ending was a `death` (the post-mortem then offers UNDO).
+    "died",
     # last_here is the room the remembered command ran in, so a replayed
     # scenery-grain quip refuses in another room.
     "last_here",
@@ -1511,22 +1514,39 @@ def generate(world: wm.World, version: int = 5, stats=None) -> bytes:
         zstring.set_abbreviations([])
 
 
+_LAST_LIVE_ROUTINES: set = set()
+
+
 def harvest_strings(world: wm.World) -> list:
     """Every string the compiler would encode into `world`, gathered with
     abbreviations off so the raw program text is captured, not the abbreviation
     strings themselves. The --make-abbreviations pass and tools/arcabbr.py pool
-    this to compute a set. The banner line (story-specific) is dropped."""
+    this to compute a set. The banner line (story-specific) is dropped, and so
+    is the inline text of routines dead-code elimination prunes: encoding
+    happens as routines are built, before the prune, so without this filter
+    the tuner would spend abbreviation slots on text that never ships (found
+    when two long dead prompt strings tipped a tuned set below the default)."""
     saved_default = abbrev.DEFAULT_ABBREVS
     saved_world = world.abbreviations
     abbrev.DEFAULT_ABBREVS = []
     world.abbreviations = None
     zstring.begin_harvest()
+    assembler.TEXT_LOG = []
     try:
         generate(world)
     finally:
         strings = zstring.end_harvest()
+        log = assembler.TEXT_LOG
+        assembler.TEXT_LOG = None
         abbrev.DEFAULT_ABBREVS = saved_default
         world.abbreviations = saved_world
+    live = _LAST_LIVE_ROUTINES
+    for rname, text in log:
+        if rname not in live:
+            try:
+                strings.remove(text)
+            except ValueError:
+                pass
     return [s for s in strings if "Serial number" not in s]
 
 
@@ -1609,6 +1629,10 @@ def _generate(world: wm.World, version: int = 5, stats=None) -> bytes:
     # is compiled in full, but a given game reaches only a fraction of it. Drop the
     # rest before laying out high memory.
     all_routines = _prune_unreachable(entry, all_routines, layout)
+    # The survivors, for the abbreviation harvest (harvest_strings): text in
+    # a pruned routine never ships, so the tuner must not see it.
+    global _LAST_LIVE_ROUTINES
+    _LAST_LIVE_ROUTINES = {r.name for r in all_routines} | {entry.name}
 
     if stats is not None:
         # The world-model numbers for the --stats report, each beside its ceiling

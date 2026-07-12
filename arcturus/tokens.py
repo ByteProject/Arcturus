@@ -38,7 +38,7 @@ KEYWORDS = frozenset(
         "game", "room", "thing", "kind", "verb", "of", "in", "on", "after",
         "block", "return", "global", "constant", "let", "change", "to", "now",
         "is", "not", "add", "remove", "from", "move", "say", "stop",
-        "continue", "finish", "if", "else", "while", "for", "each", "switch",
+        "continue", "finish", "death", "if", "else", "while", "for", "each", "switch",
         "case", "and", "or", "holds", "when", "self", "player", "here", "noun",
         "second", "nothing", "true", "false", "list", "summon", "grains", "do",
         "title", "headline", "author", "release", "serial", "UUID", "start",

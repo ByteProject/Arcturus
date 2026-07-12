@@ -1532,6 +1532,10 @@ block msg_farewell()
     say "Dann lassen wir es für heute gut sein."
 
 block msg_game_over()
+    say "Möchtest du NEU STARTEN, einen Spielstand LADEN oder BEENDEN?"
+
+// Nur nach einem `death`-Ende: der Weg zurück steht zur Wahl.
+block msg_game_over_died()
     say "Möchtest du NEU STARTEN, einen Spielstand LADEN, den letzten Zug WIDERRUFEN oder BEENDEN?"
 
 block msg_game_over_unknown()

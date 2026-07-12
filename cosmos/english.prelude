@@ -1516,6 +1516,10 @@ block msg_farewell()
 
 // The post-mortem prompt after a finish banner (loop.prelude game_over).
 block msg_game_over()
+    say "Would you like to RESTART, RESTORE a saved game, or QUIT?"
+
+// After a `death` ending only: the way back is on the menu.
+block msg_game_over_died()
     say "Would you like to RESTART, RESTORE a saved game, UNDO the last command, or QUIT?"
 
 block msg_game_over_unknown()

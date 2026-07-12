@@ -178,6 +178,13 @@ class _Fixup:
     wide: bool = True  # branch encoded in two bytes
 
 
+# When a list, records (routine name, inline text) for every print/print_ret
+# emitted, so the abbreviation harvest can discard the text of routines that
+# dead-code elimination later prunes (their strings never ship, and a tuned
+# set must not spend slots on them). None outside a harvest.
+TEXT_LOG: list | None = None
+
+
 class Routine:
     """A routine (or the entry stub). `entry` routines are placed at the initial
     program counter with no routine header; ordinary routines get a header and
@@ -215,6 +222,8 @@ class Routine:
         self.code += self._encode(form, code, list(operands))
         if has_text:
             assert text is not None
+            if TEXT_LOG is not None:
+                TEXT_LOG.append((self.name, text))
             self.code += zstring.encode(text)
         if stores:
             assert store is not None

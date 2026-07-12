@@ -298,15 +298,16 @@ Each turn Cosmos runs:
 7. Fire active `on each_turn` handlers (the room's, and in-scope objects'),
    subject to their `when` guards, then fire any scheduled events (section
    13).
-8. Increment `turns`. If a `finish` ended the game, print the final message,
-   then the post-mortem: the final score (msg_score, rank included) and the
-   classic prompt, "Would you like to RESTART, RESTORE a saved game, UNDO
-   the last command, or QUIT?" (msg_game_over), answered with the pack's own
+8. Increment `turns`. If a `finish` or `death` ended the game, print the
+   final message, then the post-mortem: the final score (msg_score, rank
+   included) and the classic prompt, answered with the pack's own
    restart/restore/undo/quit verb words (matched by action, so every
-   language works untranslated). UNDO takes back the fatal command itself,
-   through the checkpoint every turn already takes, resuming play as if it
-   were never typed; a failed restore or undo reports and re-asks, anything
-   else re-prompts.
+   language works untranslated). After a `death` the prompt adds UNDO
+   (msg_game_over_died), which takes back the fatal command itself through
+   the checkpoint every turn already takes, resuming play as if it were
+   never typed; after a `finish` the prompt is the classic three
+   (msg_game_over) and an UNDO answer is refused: a won game stays won. A
+   failed restore or undo reports and re-asks, anything else re-prompts.
 9. If the line chained further commands (section 8b) and this one succeeded,
    continue with the next from step 4.
 10. Loop.
