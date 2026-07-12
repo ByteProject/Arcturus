@@ -504,6 +504,11 @@ class VerbDecl:
     words: list[str]
     grammar: list[GrammarLine]
     line: int = 0
+    # `verb "about" meta`: this verb's actions are out-of-world. The
+    # dispatcher routes them straight to the free rules, so no object or
+    # room handler (an `on other` included) ever sees them; the same band
+    # score/save/quit live in, opened to declaration.
+    meta: bool = False
 
 
 @dataclass

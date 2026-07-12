@@ -38,7 +38,16 @@ EVENT_NAMES = frozenset({"start", "enter", "each_turn"})
 # report on or manage the session rather than act in the world, so no object
 # or room handler ever sees them. Numbered LAST so the dispatcher's guard is
 # a single compare against meta_floor() (see dispatch.prelude).
-META_ACTIONS = ("score", "save", "restore", "restart", "quit")
+META_ACTIONS = ("score", "save", "restore", "restart", "quit",
+                "transcript", "transcript_off")
+
+
+def meta_actions(world: "World") -> set:
+    """Every out-of-world action: the library's fixed set plus the actions of
+    verbs declared `meta` (`verb "about" meta`; the debug granule's
+    reach-anything tools). The dispatcher routes them straight to the free
+    rules, past every object and room handler, `on other` included."""
+    return set(META_ACTIONS) | world.meta_actions
 
 
 def actions_with_after(world: "World") -> list:
@@ -71,10 +80,11 @@ def action_numbers(world: "World") -> dict:
     actions sort past every real in-world action (after_floor), and the meta
     actions sort past those (meta_floor), so a single compare identifies each
     band at run time."""
+    metas = meta_actions(world)
     names = sorted(set(world.actions) | {"other"} | EVENT_NAMES)
-    world_names = [n for n in names if n not in META_ACTIONS]
+    world_names = [n for n in names if n not in metas]
     after_names = [after_key(n) for n in actions_with_after(world)]
-    meta_names = [n for n in names if n in META_ACTIONS]
+    meta_names = [n for n in names if n in metas]
     return {name: i + 1 for i, name in enumerate(world_names + after_names + meta_names)}
 
 
@@ -93,7 +103,7 @@ def meta_floor(world: "World") -> int:
     With no meta action in the program (never in practice; the standard verbs
     carry them), the floor sits past every action and the guard never fires."""
     nums = action_numbers(world)
-    metas = [nums[n] for n in META_ACTIONS if n in nums]
+    metas = [nums[n] for n in meta_actions(world) if n in nums]
     return min(metas) if metas else len(nums) + 1
 
 
@@ -302,6 +312,8 @@ IS_EQUALITY = "equality"  # otherwise: an equality / identity comparison
 @dataclass
 class World:
     game: Optional[ast.GameBlock] = None
+    # Actions of verbs declared `meta` (see meta_actions above).
+    meta_actions: set = field(default_factory=set)
     start_room: Optional[str] = None
     kinds: dict[str, Kind] = field(default_factory=dict)
     objects: dict[str, Obj] = field(default_factory=dict)

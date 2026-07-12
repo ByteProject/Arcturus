@@ -70,7 +70,7 @@ block indent(depth)
 // tree: the whole object tree, each top-level object (rooms, and anything
 // detached) and its contents below it, indented.
 
-verb "tree", "objects"
+verb "tree", "objects" meta
     tree
 
 on tree
@@ -91,7 +91,7 @@ block tree_from(obj, depth)
 // scope: what is reachable from here - the room and what you carry, on into open
 // or clear containers and onto supporters, the way the noun matcher sees it.
 
-verb "scope"
+verb "scope" meta
     scope
 
 on scope
@@ -110,7 +110,7 @@ block scope_from(holder, depth)
 // ---------------------------------------------------------------------------
 // fetch (Inform purloin): pull any object into your hands.
 
-verb "fetch", "purloin"
+verb "fetch", "purloin" meta
     fetch noun
 
 on fetch
@@ -124,7 +124,7 @@ on fetch
 
 // warp (Inform gonear): teleport to wherever an object is.
 
-verb "warp", "gonear"
+verb "warp", "gonear" meta
     warp noun
 
 on warp
@@ -138,7 +138,7 @@ on warp
 
 // inspect (Inform showobj): an object's location and the attributes it has set.
 
-verb "inspect", "showobj"
+verb "inspect", "showobj" meta
     inspect noun
 
 on inspect
