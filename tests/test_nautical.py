@@ -24,10 +24,23 @@ from actaea.vm import VM
 GAME = (
     'game\n    title "T"\n    start bridge\n'
     'summon.nautical\n'
+    'summon.verbose_exits\n'
     'room bridge\n    name "Bridge"\n    desc "Dials."\n    aft walkway\n'
+    '    up nest\n'
+    'room nest\n    name "Nest"\n    desc "High."\n    down bridge\n'
     'room walkway\n    name "Walkway"\n    desc "Narrow."\n'
-    '    fore bridge\n    port hold\n'
+    '    fore bridge\n    port hold\n    out quay\n'
     'room hold\n    name "Hold"\n    desc "Dark shapes."\n    starboard walkway\n'
+    'room quay\n    name "Quay"\n    desc "Dry land."\n    in walkway\n'
+    '    down cellar\n'
+    '    on enter\n'
+    '        change dirs_nautical to false\n'
+    'room cellar\n    name "Cellar"\n    desc "Cool."\n    up quay\n'
+    'on go\n'
+    '    if here is quay\n'
+    '        if way is in\n'
+    '            change dirs_nautical to true\n'
+    '    continue\n'
     'on go fore\n'
     '    if here is walkway\n'
     '        say "You duck the frame."\n'
@@ -60,6 +73,30 @@ def test_nautical_words_walk_the_ship():
     assert "Hold" in out                  # port
     assert "You duck the frame." in out   # the on go fore handler
     assert out.count("Bridge") >= 2       # f walked fore after the handler
+
+
+def test_aloft_and_below_ride_up_and_down():
+    out = _run(["aloft", "below"])
+    assert "Nest" in out                  # aloft climbed
+    assert out.count("Bridge") >= 2       # below came back down
+
+
+def test_the_gate_ashore_and_the_universal_below():
+    out = _run(["aft", "out", "port", "below", "up", "in", "port"])
+    # Ashore: the nautical-only word refuses honestly...
+    assert "Nautical directions mean nothing here." in out
+    # ...while BELOW stays live everywhere (the quay's cellar).
+    assert "Cellar" in out
+    # Back aboard, the gangway re-arms the flag and PORT walks again.
+    assert "Hold" in out
+
+
+def test_verbose_exits_composes_with_the_gate():
+    # Aboard, a missed compass word lists the live exits, nautical included;
+    # ashore, the nautical word gets the gate, never a misleading list.
+    out = _run(["north", "aft", "out", "sb"])
+    assert "You can only go up or aft from here." in out   # aboard, bridge
+    assert "Nautical directions mean nothing here." in out  # ashore, sb
 
 
 def test_unsummoned_properties_compile_but_words_are_unknown():

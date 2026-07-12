@@ -24,6 +24,20 @@
 // for aft, because a language pack needs it as an article. Nautical and
 // compass directions coexist: a lighthouse game may use both.
 //
+// A vessel is a volume, not a deck plan (a submarine, a crow's nest), so
+// the nautical vocabulary is 3D: ALOFT and BELOW ride the existing up and
+// down properties as extra words, exactly as spoken aboard. They are NOT
+// gated by dirs_nautical below, because they are synonyms of universal
+// directions: gating them would gate every cellar staircase ashore.
+//
+// WHERE NAUTICAL WORDS APPLY: dirs_nautical, a flag, true by default (a
+// pure ship game never touches it). Set it false when the player steps
+// ashore and true at the gangplank back, and FORE/AFT/PORT/STARBOARD then
+// refuse honestly ("Nautical directions mean nothing here.") instead of
+// the misleading "no exit that way" (a field request). The message is a
+// msg block, so a story rewords it; the whole gate costs nothing while
+// the flag stays true.
+//
 // The words are English, like every granule's wording: a translation forks
 // this file beside its language pack (docs/05).
 
@@ -31,3 +45,24 @@ direction fore      "fore", "f"
 direction aft       "aft"
 direction port      "port"
 direction starboard "starboard", "sb"
+direction up        "aloft"
+direction down      "below"
+
+flag dirs_nautical = true
+
+// The gate, a free rule ahead of the library's walk (granule origin runs
+// first): ashore, the four nautical-only words answer for themselves.
+on go
+    if dirs_nautical is false
+        if way is fore or way is aft
+            change refused to 1
+            msg_no_nautical
+            stop
+        if way is port or way is starboard
+            change refused to 1
+            msg_no_nautical
+            stop
+    continue
+
+block msg_no_nautical()
+    say "Nautical directions mean nothing here."

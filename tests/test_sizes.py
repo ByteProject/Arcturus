@@ -29,6 +29,10 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
 CEILINGS = {
+    "features/catalogs.storyarc": 15812,  # 2026-07-12 joins the gate (was never tracked)
+    "features/direction-grammar.storyarc": 16000,  # 2026-07-12 joins the gate (was never tracked)
+    "features/scenery-contents.storyarc": 15836,  # 2026-07-12 joins the gate (was never tracked)
+    "granules/nautical.storyarc": 15668,  # 2026-07-12 joins the gate (was never tracked)
     # 2026-07-04 (Stefan's ruling, superseding the same day's FULL move):
     # there is NO fullscore verb; SCORE is the one score verb and reports
     # score, max, turns, and rank in one line. Pool labels stay in the
@@ -156,3 +160,22 @@ def test_cloak_beats_the_punyinform_benchmark():
     # The charter check (docs/00 section 5): the golden game stays strictly under
     # its PunyInform-equivalent build.
     assert len(_compile("cloak-of-darkness.storyarc")) < PUNY_CLOAK_BYTES
+
+
+def test_every_example_is_ceiling_tracked():
+    # A new example must join the size gate in the same commit (the wave of
+    # 2026-07 grew four examples that quietly skipped it). rabenstein is the
+    # arc_image showcase and stays untracked, as found.
+    import os
+    import re as _re
+    src = open(os.path.abspath(__file__)).read()
+    tracked = set(_re.findall(r'"([^"]+\.storyarc)"', src))
+    excluded = {"arc_image/rabenstein.storyarc"}
+    root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "examples")
+    on_disk = set()
+    for r, _, files in os.walk(root):
+        for f in files:
+            if f.endswith(".storyarc"):
+                on_disk.add(os.path.relpath(os.path.join(r, f), root))
+    missing = sorted(on_disk - tracked - excluded)
+    assert not missing, f"examples missing from the size gate: {missing}"
