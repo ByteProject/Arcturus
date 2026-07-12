@@ -137,6 +137,9 @@ class Layout:
     # The articles, the ${is x} copula, and the message branches guard on
     # any_pluribus, so an unmarked game folds them all away.
     has_pluribus: bool = False
+    # True if any object is `beyond` (visible, not touchable); the touch
+    # guards fold away without one.
+    has_beyond: bool = False
     # True if any (non-movable) object declares `spans`. The scope code guards its
     # spans checks with `any_spans()`, which folds to this; a game with no spanning
     # objects folds the checks away and dead-code elimination drops the spans
@@ -290,6 +293,14 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
             decl = _effective_props(world, world.objects[name]).get("pluribus")
             if decl is not None and _bool_value(decl):
                 layout.has_pluribus = True
+                break
+
+    # Does any object resolve to `beyond`? Same folding role as the others.
+    if "beyond" in layout.attr_number:
+        for name in world.objects:
+            decl = _effective_props(world, world.objects[name]).get("beyond")
+            if decl is not None and _bool_value(decl):
+                layout.has_beyond = True
                 break
 
     # The live directions (see the Layout field): worded, or used as an exit.

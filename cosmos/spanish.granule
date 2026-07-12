@@ -1129,6 +1129,13 @@ block msg_noun_missing()
         change i to i + 1
     say " qué?"
 
+// El rechazo de beyond (docs/01): a la vista, pero la mano no llega.
+block msg_beyond(obj)
+    if any_pluribus is 1
+        say "${The obj} ${is obj} fuera de tu alcance."
+        return 0
+    say "${The obj} está fuera de tu alcance."
+
 block msg_cant_see()
     say "No ves nada de eso por aquí."
 

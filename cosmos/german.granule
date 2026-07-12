@@ -1073,6 +1073,13 @@ block msg_noun_missing()
         change i to i + 1
     say " was?"
 
+// Die beyond-Abweisung (docs/01): sichtbar, aber die Hand kommt nicht hin.
+block msg_beyond(obj)
+    if any_pluribus is 1
+        say "${The obj} ${is obj} außer Reichweite."
+        return 0
+    say "${The obj} ist außer Reichweite."
+
 block msg_cant_see()
     say "So etwas siehst du hier nicht."
 

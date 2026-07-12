@@ -61,7 +61,7 @@ INTRINSICS = frozenset({
     # so `if any_spans() is 1` folds away and DCE drops the spans blocks when no
     # object spans (a static-if, see _if).
     "spans_addr", "spans_count", "any_spans", "any_doors", "any_named",
-    "any_pluribus", "any_death", "any_alter", "any_grains",
+    "any_pluribus", "any_beyond", "any_death", "any_alter", "any_grains",
     "any_allwords", "any_tagged", "any_scored", "any_scoperoom", "scope_room",
     # any_enterable is 1 when any object is a supporter or a container (by
     # kind chain), so the nested-location suffix on the room title and the
@@ -1065,6 +1065,9 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_alter(): 1 if any `alter` statement exists; the report guards
         # fold away in a game that never alters.
         _place(rt, Const(_any_alter(ctx)), dest)
+    elif name == "any_beyond":
+        # any_beyond(): 1 if any object is beyond; the touch guards fold.
+        _place(rt, Const(_any_beyond(ctx)), dest)
     elif name == "set_colour":
         opa, opb, t = _two_operands(rt, ctx, args[0], args[1])
         rt.op("set_colour", opa, opb)
@@ -1366,6 +1369,13 @@ def _any_alter(ctx) -> int:
         ) else 0
         w._has_alter_memo = memo
     return memo
+
+
+def _any_beyond(ctx) -> int:
+    """The compile-time beyond flag: 1 if any object is `beyond` (visible,
+    not touchable). The touch guards in the action defaults fold away in a
+    game where everything is within arm's length."""
+    return 1 if (ctx.layout is not None and ctx.layout.has_beyond) else 0
 
 
 def _any_pluribus(ctx) -> int:
@@ -2327,6 +2337,8 @@ def _static_value(ctx, expr):
         return _any_death(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_alter":
         return _any_alter(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_beyond":
+        return _any_beyond(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_grains":
         return _any_grains(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tables":

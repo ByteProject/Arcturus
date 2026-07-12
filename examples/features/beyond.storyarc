@@ -1,0 +1,67 @@
+// beyond.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for beyond (docs/01, standard attributes): visible but not
+// touchable. A beyond thing stays in scope and answers EXAMINE, but every
+// touching action refuses ("... is beyond your reach"), and conversation
+// still crosses the gap (you can talk to someone you cannot touch). The
+// attribute is STATE, which is the whole point against faking it with
+// scenery: clear it and the hand arrives. Static faraway decoration (a
+// mountain range, a mural across the chasm) needs no object at all; that
+// is a grain's job (docs/01 section 14). Beyond is for distance that
+// MATTERS to the model. Compile and run:
+//
+//   arcc examples/features/beyond.storyarc -o larder.z5
+//   frotz larder.z5
+//
+// TRY: x jar / take jar (beyond your reach) / ask cook about jar (talk
+//      crosses the gap) / get on stool / take jar (the hand arrives) /
+//      get down
+
+game
+    title "The Larder"
+    headline "A beyond showcase"
+    author "Stefan Vogt"
+    start larder
+
+summon.statusline
+summon.infocom_talking
+
+room larder
+    name "Larder"
+    desc "Shelves climb to the rafters. The honey jar sits one shelf too
+          high, the way honey always does. A stool waits in the corner,
+          and the cook watches you from the doorway."
+
+// One shelf too high: examinable, discussable, and not takeable until
+// the stool changes the geometry.
+thing jar in larder
+    name "honey jar"
+    words jar, honey
+    desc "Amber and patient. It has outwaited better climbers than you."
+    beyond
+
+// The stool is the state change: standing on it brings the jar within
+// reach; stepping down puts it beyond again. `beyond` is an ordinary
+// attribute, so `now` flips it like any other.
+thing stool of supporter in larder
+    name "stool"
+    words stool
+    desc "Three legs, one wobble."
+    fixed
+    on enter
+        now jar is not beyond
+        continue
+    on exit
+        now jar is beyond
+        continue
+
+thing cook of character in larder
+    name "cook"
+    words cook
+    desc "Flour to the elbows, patience worn thin."
+    topic jar "the honey jar" words jar, honey
+        you "Could you get the honey down for me?"
+        reply "Stool's in the corner. My knees retired years ago."
