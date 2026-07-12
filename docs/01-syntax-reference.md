@@ -925,6 +925,16 @@ object) used with `is` is a compile-time clash to rename.
 
 Logic: `and`, `or`, `not`, short-circuiting.
 Property read with the dot, chainable: `ruby.value`, `hallway.north.name`.
+An `is` comparison distributes over `or` when the extra operands are bare
+values: `if way is aft or north` means `way is aft or way is north`, and
+chains extend it (`aft or north or up`). The negated form means NEITHER:
+`if way is not aft or north` is `way is not aft and way is not north`, the
+sentence's own reading. Only compile-time values distribute (directions,
+objects, numbers, constants); a flag or global after `or` stays the
+condition it always was (`if lamp is lit or emergency_power`), so nothing
+existing changes meaning. A bare value the sugar cannot claim still earns
+a compile note naming the cure.
+
 Tree tests: `player holds lantern`, `lantern in player`, and the transitive
 `coin within player`, true anywhere in the tree however nested (the coin in
 a purse in a bucket the player holds; Inform's IndirectlyContains). All
