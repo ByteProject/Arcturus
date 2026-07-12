@@ -230,9 +230,15 @@ _STD_VALUE_PROPS = {
 }
 
 # Direction properties on a room, each an object defaulting to nothing.
+# The nautical four (fore, aft, port, starboard) are for a vessel or a deep
+# space craft, where the compass has no pole to point at (Hibernated's
+# problem); their player-facing words ship in nautical.granule, opt-in, and
+# like every direction the property costs nothing in a game that never
+# writes an exit with it.
 _DIRECTIONS = [
     "north", "south", "east", "west", "northeast", "northwest", "southeast",
     "southwest", "up", "down", "in", "out",
+    "fore", "aft", "port", "starboard",
 ]
 
 # Standard action names a verb grammar line can produce (docs/02 appendix A).

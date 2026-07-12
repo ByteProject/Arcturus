@@ -33,13 +33,15 @@ from .prelude import _DIRECTIONS, _ZCOLOURS
 
 
 def exit_directions(layout):
-    """The standard directions that are actual properties in this program, in
-    canonical order. The verbose_exits granule iterates these to list a room's
-    live exits; the order is shared by the exit_prop/exit_name backing routines
-    (codegen) and the exits_count intrinsic so indices line up."""
+    """The directions ALIVE in this program (worded by a pack or granule, or
+    written as an exit), in canonical order. The verbose_exits granule
+    iterates these to list a room's live exits; the order is shared by the
+    exit_prop/exit_name backing routines (codegen) and the exits_count
+    intrinsic so indices line up. Standard directions nobody can walk (the
+    nautical four in a landlocked game) are left out, so they cost nothing."""
     if layout is None:
         return []
-    return [d for d in _DIRECTIONS if d in layout.prop_number]
+    return list(layout.live_directions)
 
 # Reserved intrinsic functions: calls that lower to opcodes, not a routine call.
 # They are the low-level primitives Cosmos's parser and loop sit on (the bridge

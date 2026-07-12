@@ -1,0 +1,33 @@
+// nautical.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// An opt-in feature: summon it with `summon.nautical`. The four nautical
+// directions, FORE, AFT, PORT, and STARBOARD, for a game set aboard a ship,
+// a submarine, or a deep space craft, where the compass fails: cardinal
+// directions are measured around the pole of a planet, and in deep space
+// there is no pole (the Hibernated problem, solved here the way Hibernated
+// solved it).
+//
+// The direction PROPERTIES (fore, aft, port, starboard) are part of the
+// compiler's standard set, so an exit reads like any other and the whole
+// pipeline already understands it: `fore engine_room` on a room, `on go
+// fore` in a handler, `if way is aft`, teleports and conveys alike. Like
+// every direction, a property costs nothing in a game that never writes an
+// exit with it. What this granule adds is the PLAYER-FACING WORDS, exactly
+// as the language layer declares the compass words; unsummoned, the words
+// are not in the dictionary and typing "fore" is an ordinary unknown word.
+//
+// The abbreviations: F for fore and SB for starboard (the classic ship's
+// shorthand); AFT and PORT are already as short as spoken. A is not offered
+// for aft, because a language pack needs it as an article. Nautical and
+// compass directions coexist: a lighthouse game may use both.
+//
+// The words are English, like every granule's wording: a translation forks
+// this file beside its language pack (docs/05).
+
+direction fore      "fore", "f"
+direction aft       "aft"
+direction port      "port"
+direction starboard "starboard", "sb"

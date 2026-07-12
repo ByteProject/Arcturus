@@ -28,8 +28,8 @@ certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.11.25 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 0.27.0 | shipped inside `arcc` |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.11.26 | [build/arcc](build/arcc) |
+| **Cosmos**, the standard library | 0.28.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.0.4 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.7.0 | [build/arcimg](build/arcimg) |
 
@@ -180,7 +180,7 @@ Z-machine colours with the self-restoring coloured say, and the player object
 with its standard self-words, pronouns, and Spanish clitic forms), and
 [examples/granules/](examples/granules/) shows the summonable granules (the
 Infocom-style and menu-driven conversation systems, the status line, verbose
-exits, the extended verbs, and the quote box).
+exits, the extended verbs, the nautical directions, and the quote box).
 
 ## File extensions
 
