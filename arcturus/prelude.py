@@ -309,6 +309,8 @@ _BUILTINS = {
     "last_here": T_OBJECT,
     # 1 when the ending was a `death`; game_over offers UNDO only then.
     "died": T_NUMBER,
+    # The catalog region's byte address, seeded at build (docs/01, catalogs).
+    "__catalogs__": T_NUMBER,
     # oops correction: a flag and the offending word's parse-buffer index.
     "oops_ready": T_NUMBER,
     "oops_word": T_NUMBER,

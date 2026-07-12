@@ -106,7 +106,7 @@ CEILINGS = {
     "granules/conversations.storyarc": 16552,  # 2026-07-11 the held tiebreak
     "granules/extended-verbs.storyarc": 17532,  # 2026-07-11 the held tiebreak
     "granules/infocom-interrogation.storyarc": 16964,  # 2026-07-11 the held tiebreak
-    "granules/quotes.storyarc": 15120,  # 2026-07-11 the held tiebreak
+    "granules/quotes.storyarc": 15144,  # 2026-07-12 quote_done gives the bar its row back
     "granules/take-all.storyarc": 16848,  # 2026-07-11 the held tiebreak
     "granules/plurals.storyarc": 15800,  # 2026-07-11 the held tiebreak
     "granules/statusline.storyarc": 14880,  # 2026-07-11 the held tiebreak

@@ -597,6 +597,9 @@ _BUILTIN_GLOBALS = [
     # shut_in holds the closed container a named object is known to be inside but
     # shut away in, so the loop can answer "open it first" instead of "can't see".
     "shut_in",
+    # __catalogs__ holds the byte address of the catalog region (docs/01,
+    # catalogs); entry/calculate/dice lower to loadw/storew against it.
+    "__catalogs__",
     # __timers__ holds the base address of the scheduling table (after/every), set
     # at startup; 0 when the story schedules nothing.
     "__timers__",
@@ -870,6 +873,13 @@ def build_story(
             sf.set_word(globals_addr + (gmap["player"] - 16) * 2, layout.obj_number["player"])
         # The scheduling table base, so after/every can reach it at run time.
         sf.set_word(globals_addr + (gmap["__timers__"] - 16) * 2, timers_addr)
+        # The catalog region's byte address (docs/01, catalogs); zero, and
+        # never read, in a game that declares none.
+        if layout.catalogs:
+            sf.set_word(
+                globals_addr + (gmap["__catalogs__"] - 16) * 2,
+                objects_addr + layout.catalog_region_off,
+            )
         # The string-area threshold, for the computed-property "print or run"
         # test, pre-biased by +0x8000 so the runtime's signed jl orders the two
         # biased sides as the unsigned packed addresses they really are.

@@ -71,6 +71,17 @@ class Analyzer:
             if obj.category != "room" and self._rooted_in_room(obj.kind):
                 obj.category = "room"
         self._resolve_kinds()
+        # Catalog object entries must name real objects (checked here, after
+        # every object is collected, so declaration order never matters).
+        for cat in self.world.catalogs.values():
+            if cat.etype == "object":
+                for v in cat.values:
+                    if v.ident not in self.world.objects:
+                        raise self._error(
+                            f"catalog '{cat.name}': '{v.ident}' is not an "
+                            f"object",
+                            cat.line,
+                        )
         self._build_properties()
         # After the members are collected: the automatic scored bits need
         # the real attributes (fixed blocks a thing, `scored false` opts
@@ -93,6 +104,7 @@ class Analyzer:
             or name in self.world.globals
             or name in self.world.constants
             or name in self.world.blocks
+            or name in self.world.catalogs
         ):
             raise self._error(f"duplicate declaration of '{name}'", line)
 
@@ -152,6 +164,43 @@ class Analyzer:
                     spans=list(decl.spans),
                     decl=decl,
                     line=decl.line,
+                )
+            elif isinstance(decl, ast.CatalogDecl):
+                self._seen(decl.name, decl.line)
+                values = [self._const_text(v) for v in decl.values]
+                etype = None
+                for v in values:
+                    if isinstance(v, ast.StringLit):
+                        vt = "text"
+                    elif isinstance(v, ast.Number):
+                        vt = "number"
+                    elif isinstance(v, ast.Name):
+                        vt = "object"
+                    else:
+                        raise self._error(
+                            f"catalog '{decl.name}': an entry must be a "
+                            f"string, a number, or an object name",
+                            decl.line,
+                        )
+                    if etype is None:
+                        etype = vt
+                    elif vt != etype:
+                        raise self._error(
+                            f"catalog '{decl.name}' mixes {etype} and {vt} "
+                            f"entries; a catalog holds one type of value",
+                            decl.line,
+                        )
+                    if vt == "text" and any(
+                        not isinstance(p, ast.StringText) for p in v.parts
+                    ):
+                        raise self._error(
+                            f"catalog '{decl.name}': an entry is a static "
+                            f"string, so ${{...}} interpolation cannot run "
+                            f"in it",
+                            decl.line,
+                        )
+                w.catalogs[decl.name] = wm.Catalog(
+                    decl.name, etype, values, decl.line
                 )
             elif isinstance(decl, ast.VerbDecl):
                 grammar = [wm.GrammarLine(g.action, g.items, g.reverse) for g in decl.grammar]
@@ -1124,6 +1173,7 @@ class Analyzer:
             or name in w.globals
             or name in w.constants
             or name in w.blocks
+            or name in w.catalogs
             or name in self.env.builtins
             or self.env.is_direction(name)
         ):
