@@ -1790,169 +1790,106 @@ def _convert_cpc(rows, salient=None):
 _GTIA128 = [(hue << 4) | (luma << 1) for hue in range(16) for luma in range(8)]
 _GTIA_RGB = [_gtia_color(v) for v in _GTIA128]
 
-# The incumbency weight for the per-line solver: the previous line's four
-# colors enter the next line's greedy pick with their cost discounted by
-# w * _A8_HOLD / 100 (about 80 _dist_luma units per pixel). Enough that a
-# challenger who merely ties loses to the incumbent and flat regions emit
-# identical table rows; far too little to hold a register through a real
-# content change (one full GTIA luminance step scores about 20000).
+# Colodore to GTIA, computed against the current wheel (a future measured
+# wheel shifts the whole mapping with it); the frozen table is printed in
+# the C.7 chapter for Stefan's ruling, the Colodore way. INJECTIVE: two
+# C64 colors never share a GTIA byte (plain nearest merged red and orange
+# into one, and a fire would lose its shading), so the best matches claim
+# their bytes first and a collision takes its next-best unused one.
+def _c64_to_gtia():
+    order = sorted(range(16), key=lambda i: min(
+        _dist(_COLODORE[i], g) for g in _GTIA_RGB))
+    out = [0] * 16
+    taken = set()
+    for i in order:
+        ranked = sorted(range(len(_GTIA_RGB)),
+                        key=lambda k: _dist(_COLODORE[i], _GTIA_RGB[k]))
+        for k in ranked:
+            if _GTIA128[k] not in taken:
+                out[i] = _GTIA128[k]
+                taken.add(_GTIA128[k])
+                break
+    return out
+
+
+# The split penalty for the A8 block solver, in _dist units per pixel of
+# one line: a palette change between 8-line blocks must save at least one
+# line's worth of visibly wrong pixels, or the blocks share a set.
 _A8_HOLD = 8000
 
 
-def _convert_a8(rows, salient=None):
-    # ANTIC mode E: 160 wide, 2:1 pixels, FOUR colors per scanline out of
-    # the 128, replayed by a display-list interrupt from a 4-bytes-per-line
-    # table. Between classes, as the design record says: no cell hardware,
-    # but the palette is per LINE, so the solver's whole job is vertical
-    # coherence. The R3 lesson applies with the line as the cell: index the
-    # image against ONE stable global palette first (16 GTIA colors, the
-    # ST-class budget), then per line pick the best four OF THOSE by greedy
-    # error minimization, HOLD near-identical picks to the previous line,
-    # and permute so each register keeps its role down the picture. Line
-    # palettes drawn from one fixed set cannot shimmer, flat regions emit
-    # identical table rows (ZX0 eats them), and a sky gradient still works:
-    # the global palette holds its steps and each line picks its own four.
-    rows = _halve_width(rows)
-    w, h = len(rows[0]), len(rows)
-    # The dither budget is the color SPACE, not the per-line four: the line
-    # palettes already adapt vertically, so the pattern only has to soften
-    # what a single line cannot hold, and at 16-budget amplitude it reads
-    # as speckle over the whole picture (the corpus said so).
-    amp = _dither_amount(rows, 128)
-    # The global palette is the best 20 OF THE 128 by greedy error
-    # minimization over the image histogram, under the CPC's two paid-for
-    # lessons verbatim. No median-cut middleman: snapping clusters collapsed
-    # neighbours into one entry and gradient masters greyed out (the CPC's
-    # "six-ink grey mess", reproduced here as Stefan's grey beach sky). And
-    # CHROMA DUMPING COSTS EXTRA: by plain distance a dusk purple IS closest
-    # to the grey ramp, on the A8's wheel as much as on the CPC's cube; an
-    # artist keeps the hue family and accepts the brightness error, so the
-    # metric does too. Luma-dominance is kept ONLY in the per-segment pick
-    # and remap below, defending small bright features.
-    # The saturation term is CAPPED at the wheel's own maximum spread: a
-    # master's hot pink is more saturated than anything GTIA offers, and
-    # uncapped it would penalize every candidate, flipping the ordering to
-    # saturation-first regardless of hue (a saturated blue beat the pale
-    # pink, and picture 5 turned from hot pink to purple).
-    maxsa = max(max(c) - min(c) for c in _GTIA_RGB)
-
-    def dist_a8(a, b):
-        sa = min(max(a) - min(a), maxsa)
-        sb = max(b) - min(b)
-        return _dist(a, b) + 3 * max(0, sa - sb) * sa
-
-    ghist = {}
-    for row in rows:
-        for c in row:
-            ghist[c] = ghist.get(c, 0) + 1
-    if len(ghist) > 512:
-        # Gradient masters carry thousands of blends; bucket them (the
-        # palette CHOICE needs the histogram's shape, not its long tail).
-        buckets = {}
-        for c, cnt in ghist.items():
-            key = (c[0] >> 4, c[1] >> 4, c[2] >> 4)
-            r, g, b, n = buckets.get(key, (0, 0, 0, 0))
-            buckets[key] = (r + c[0] * cnt, g + c[1] * cnt,
-                            b + c[2] * cnt, n + cnt)
-        ghist = {(r // n, g // n, b // n): n
-                 for r, g, b, n in buckets.values()}
-    gcolors = list(ghist)
-    gdmat = [[dist_a8(c, k) for k in _GTIA_RGB] for c in gcolors]
-    INF = 1 << 60
-    cur = [INF] * len(gcolors)
-    chosen = []
-    while len(chosen) < 20:
-        bg, bk = 0, None
-        for k in range(len(_GTIA_RGB)):
-            if k in chosen:
-                continue
-            gain = 0
-            for ci in range(len(gcolors)):
-                d = gdmat[ci][k]
-                if d < cur[ci]:
-                    gain += ghist[gcolors[ci]] * (cur[ci] - d)
-            if gain > bg:
-                bg, bk = gain, k
-        if bk is None:
-            break  # every remaining candidate is useless (flat master)
-        chosen.append(bk)
-        for ci in range(len(gcolors)):
-            if gdmat[ci][bk] < cur[ci]:
-                cur[ci] = gdmat[ci][bk]
-    pal = [_GTIA_RGB[k] for k in chosen]
-    snap = lambda c: _GTIA_RGB[_nearest(c, _GTIA_RGB, metric=dist_a8)]
-    pal = _protect_extremes(rows, pal, snap)
-    if salient:
-        # The hinted disc (a moon, a sun): promoted to its own hue at FULL
-        # GTIA luminance, added to the global palette, every disc pixel
-        # mapped to it solid (the swallowed-moon ruling, R3: the disc's
-        # bright side goes to the palette's top, exactly what a pixel
-        # artist paints). The disc's honest color is a glow one step off
-        # the sky, and a moon that does not stand apart is no moon; the
-        # 128-color space lets the promotion keep the hue where the C64
-        # had to go white. The line pick below then defends the register
-        # on every line the disc crosses, because its count is real.
-        bright = max((rows[y][x // 2] for x, y in salient),
-                     key=lambda c: 2 * c[0] + 4 * c[1] + c[2])
-        gi = _GTIA128[_nearest(bright, _GTIA_RGB, metric=dist_a8)]
-        disc = _gtia_color((gi & 0xF0) | 14)
-        if disc not in pal:
-            pal.append(disc)
-    gbytes = [_GTIA128[_nearest(c, _GTIA_RGB)] for c in pal]
-    idx = _map_pixels(rows, pal, amp, metric=dist_a8)
-    if salient:
-        # Force a HALVED cell to the disc only when both of its master
-        # pixels are salient: forcing on either one stomped every
-        # glow-beside-tree pair, and the treeline the hint's crown rule
-        # had carefully excluded was erased anyway, leaving a solid ball
-        # over the trees (Stefan's round-5 review). Mixed rim cells keep
-        # their honest averaged mapping.
-        di = pal.index(disc)
-        cells = {}
-        for x, y in salient:
-            key = (x // 2, y)
-            cells[key] = cells.get(key, 0) + 1
-        for (hx, y), n in cells.items():
-            if n == 2:
-                idx[y][hx] = di
-
-    # Per-line histograms over the global palette, and their prefix sums, so
-    # any line range's merged histogram is one subtraction per color.
-    P = len(pal)
-    pre = [[0] * P]
+def _c64_indices(c64):
+    """A C64 native as a per-pixel Colodore index image: 0-3 codes resolved
+    through the background register, the screen nibbles, and color RAM."""
+    w, h = c64["w"], c64["h"]
+    bg = c64["regs"][0]
+    cells_x = w // 4
+    out = []
     for y in range(h):
-        row = list(pre[-1])
-        for c in idx[y]:
-            row[c] += 1
-        pre.append(row)
+        row = []
+        base = (y // 8) * cells_x
+        for x in range(w):
+            code = c64["pixels"][y][x]
+            if code == 0:
+                row.append(bg)
+            else:
+                cell = base + x // 4
+                s = c64["screen"][cell]
+                row.append((s >> 4) & 15 if code == 1 else
+                           s & 15 if code == 2 else
+                           c64["color"][cell] & 15)
+        out.append(row)
+    return out
 
-    def seg_hist(i, j):
-        return [pre[j + 1][c] - pre[i][c] for c in range(P)]
 
-    # The pick and remap run on the SAME dumping metric as the global
-    # steps: with luma-dominance here, the grey entries the rocks need
-    # would win whole sky segments (greys match any luma), and the beach's
-    # sunset rendered in three greys and a gold. A bright feature stays
-    # defended without the luma weighting: against a dark segment it is a
-    # huge distance in any honest metric.
-    dmat = [[dist_a8(pal[a], pal[b]) for b in range(P)] for a in range(P)]
-    must = set()
-    if salient:
-        must = {y for _x, y in salient}
+def _a8_from_c64(c64):
+    """The A8 solve FROM THE C64 CONVERSION, not from the master (Stefan's
+    R4 ruling, the way the 80s actually ported): the C64's cell solver has
+    already made every taste decision, the geometry is pixel-identical
+    (160 wide, 2:1), Colodore's sixteen map near one-to-one onto GTIA's
+    wheel, and the input's own 8-line cell rhythm becomes the segment
+    grid, so palette changes land where the art itself changes instead of
+    chopping a cliff mid-object (four rounds of master-based solving said
+    so). The cost, accepted: the A8 shows C64 art on Atari rather than
+    exploiting the full 128-color wheel; per-hue luma refinement is staged
+    behind Stefan's judgment of the plain mapping. Masters stay the only
+    author-facing input; this is plumbing, and a hand-polished .C64 flows
+    through it to the whole family (the inheritance ruling)."""
+    w, h = c64["w"], c64["h"]
+    cidx = _c64_indices(c64)
+    gt = _c64_to_gtia()
+    grgb = [_gtia_color(b) for b in gt]
 
-    def seg_pick(hist, force):
-        """A range's four global colors by greedy error minimization (the
-        C64's cell_pick with the segment as the cell): each round adds the
-        color that saves the segment the most, so a few very bright pixels
-        outvote a middling shade seen often. `force` (the hinted disc)
-        claims its register before the greedy rounds run."""
-        picks = list(force)
-        pool = [c for c in range(P) if hist[c] and c not in picks]
+    # Pick and remap on the dumping metric (the CPC lesson, one level
+    # deeper): by plain distance the night sky's blue is closer to dark
+    # grey than to black, and a segment that dropped blue turned the sky
+    # grey. A saturated color keeps its family: it costs extra to serve
+    # it with a grey register.
+    def dd(a, b):
+        sa = max(grgb[a]) - min(grgb[a])
+        sb = max(grgb[b]) - min(grgb[b])
+        return _dist(grgb[a], grgb[b]) + 3 * max(0, sa - sb) * sa
+
+    dmat = [[dd(a, b) for b in range(16)] for a in range(16)]
+
+    # Per-block histograms: the block is the C64's 8-line cell row.
+    nb = (h + 7) // 8
+    hists = []
+    for b in range(nb):
+        hist = [0] * 16
+        for y in range(b * 8, min(h, b * 8 + 8)):
+            for c in cidx[y]:
+                hist[c] += 1
+        hists.append(hist)
+
+    def seg_pick(hist):
+        picks = []
+        pool = [c for c in range(16) if hist[c]]
         while pool and len(picks) < 4:
             best, bc = None, None
             for cand in pool:
                 total = 0
-                for c in range(P):
+                for c in range(16):
                     cnt = hist[c]
                     if cnt:
                         d = dmat[c][cand]
@@ -1971,49 +1908,36 @@ def _convert_a8(rows, salient=None):
         return picks
 
     def seg_cost(hist, picks):
-        total = 0
-        for c in range(P):
-            cnt = hist[c]
-            if cnt:
-                total += cnt * min(dmat[c][a] for a in picks)
-        return total
+        return sum(hist[c] * min(dmat[c][a] for a in picks)
+                   for c in range(16) if hist[c])
 
-    # THE SEGMENTS: an A8 artist changes the palette at content boundaries
-    # (the horizon, a roofline), not per line, so the solver partitions the
-    # band into runs of lines SHARING one four-color set, by dynamic
-    # programming: a boundary exists only where it saves more error than
-    # the split penalty. Within a segment a stripe is impossible; this
-    # replaced the per-line pick whose rival near-tie sets striped every
-    # horizontally busy region of the first corpus round (Stefan's review).
-    # The penalty is per-pixel-scaled: one boundary must be worth about
-    # _A8_HOLD units on every pixel of one line. The MINIMUM HEIGHT is the
-    # second guard (round three): in a busy band the penalty alone still
-    # let the optimum degenerate into 1-2 line slivers, per-line striping
-    # by another name, so a segment is at least 4 lines and a hard content
-    # change lands as a stepped band, the way an artist would paint it.
+    # Segments over BLOCKS by dynamic programming, as before but on the
+    # cell-row grid: a boundary exists only where it saves more error
+    # than the penalty, and it can only land where the C64 art itself
+    # changes.
     lam = w * _A8_HOLD
-    minseg = 4
-    best = [0] + [None] * h  # best[j]: minimal cost of lines 0..j-1
-    cut = [0] * (h + 1)      # the start of the last segment in that optimum
+    best = [0] + [None] * nb
+    cut = [0] * (nb + 1)
     memo = {}
-    for j in range(h):
+    for j in range(nb):
         bj, bi = None, 0
-        for i in range(j + 2 - minseg):
+        for i in range(j + 1):
             if best[i] is None:
                 continue
             key = (i, j)
             if key not in memo:
-                hist = seg_hist(i, j)
-                force = [di] if salient and any(i <= y <= j for y in must) \
-                    else []
-                memo[key] = seg_cost(hist, seg_pick(hist, force))
+                merged = [0] * 16
+                for b in range(i, j + 1):
+                    for c in range(16):
+                        merged[c] += hists[b][c]
+                memo[key] = seg_cost(merged, seg_pick(merged))
             total = best[i] + memo[key] + lam
             if bj is None or total < bj:
                 bj, bi = total, i
         best[j + 1] = bj
         cut[j + 1] = bi
     bounds = []
-    j = h
+    j = nb
     while j > 0:
         bounds.append((cut[j], j - 1))
         j = cut[j]
@@ -2021,22 +1945,18 @@ def _convert_a8(rows, salient=None):
 
     from itertools import permutations
     pixels, lines = [], []
-    prev = None  # the previous segment's four registers
+    prev = None
     for i, j in bounds:
-        hist = seg_hist(i, j)
-        force = [di] if salient and any(i <= y <= j for y in must) else []
-        picks = seg_pick(hist, force)
+        merged = [0] * 16
+        for b in range(i, j + 1):
+            for c in range(16):
+                merged[c] += hists[b][c]
+        picks = seg_pick(merged)
         if prev is None:
-            # First segment: the most frequent color takes register 0 (the
-            # background), so the packed bitmap zero-fills and the border
-            # continues the backdrop.
-            regs = sorted(set(picks), key=lambda p: -hist[p])
+            regs = sorted(set(picks), key=lambda p: -merged[p])
             while len(regs) < 4:
                 regs.append(regs[-1])
         else:
-            # ASSIGNMENT: permute so a color that survives the boundary
-            # keeps its register (the bitmap codes stay stable and the
-            # table row changes only where the palette really does).
             regs = min(
                 (list(perm) for perm in permutations(picks)),
                 key=lambda perm: sum(
@@ -2044,11 +1964,17 @@ def _convert_a8(rows, salient=None):
                     for k in range(4)))
         prev = regs
         remap = [min(range(4), key=lambda k: dmat[c][regs[k]])
-                 for c in range(P)]
-        for y in range(i, j + 1):
-            lines += [gbytes[r] for r in regs]
-            pixels.append([remap[c] for c in idx[y]])
+                 for c in range(16)]
+        for y in range(i * 8, min(h, (j + 1) * 8)):
+            lines += [gt[r] for r in regs]
+            pixels.append([remap[c] for c in cidx[y]])
     return {"w": w, "h": h, "pixels": pixels, "lines": lines}
+
+
+def _convert_a8(rows, salient=None):
+    # Master in, C64 taste first, A8 out. The salient hint rides through
+    # the C64 conversion (its white-moon promotion is the inherited one).
+    return _a8_from_c64(_convert_c64(rows, salient))
 
 
 _CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,
@@ -3285,9 +3211,16 @@ def _convert_stale(master, dest, preview):
 def _convert_job(job):
     """One picture, start to finish; module-level so worker processes can
     reach it. Returns (iid, dest, size, mode) or an error string."""
-    iid, path, tag, dest, preview, codec = job
+    iid, path, tag, dest, preview, codec, c64src = job
     try:
-        mode, native = convert_master(path, tag)
+        if c64src is not None:
+            # The inherited route: decode the author's .C64 and solve the
+            # A8 from it; the mode rides the .C64 header.
+            with open(c64src, "rb") as f:
+                _tag, mode, _iid, c64 = decode_arc(f.read())
+            native = _a8_from_c64(c64)
+        else:
+            mode, native = convert_master(path, tag)
         blob = encode_native(tag, mode, iid, native, codec)
     except (ValueError, RuntimeError) as exc:
         return f"{path}: {exc}"
@@ -3323,7 +3256,20 @@ def cmd_convert(args) -> int:
         if not args.force and not _convert_stale(entries[iid], dest, preview):
             skipped += 1
             continue
-        jobs.append((iid, entries[iid], tag, dest, preview, codec))
+        c64src = None
+        if tag == "A8":
+            # Hand-polish inheritance (Stefan's ruling): when the author's
+            # own .C64 edit exists, it is the source of the 8-bit family's
+            # taste and the A8 derives from it; one polish pass, every
+            # sibling benefits. Default location: the c64 directory beside
+            # this target's output directory (the portfolio layout).
+            c64dir = args.c64 or os.path.join(
+                os.path.dirname(os.path.abspath(args.out)), "c64")
+            cand = os.path.join(c64dir, f"{iid}.C64")
+            if _is_hand_authored(cand):
+                c64src = cand
+                print(f"arcimg: {dest} inherits the hand-authored {cand}")
+        jobs.append((iid, entries[iid], tag, dest, preview, codec, c64src))
     if len(jobs) > 1 and not args.serial:
         # The packers dominate the wall clock (ZX0's optimal parse above
         # all); pictures are independent, so they convert in parallel.
@@ -3509,6 +3455,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_conv.add_argument("--codec", choices=sorted(_CODEC_NAMES),
                         help="override the target's codec (default: LZSA2 on "
                              "the 16-bit trio, ZX0 elsewhere)")
+    p_conv.add_argument("--c64",
+                        help="directory holding <id>.C64 files; a "
+                             "hand-authored one becomes the A8's source "
+                             "(default: the c64 directory beside --out)")
     p_conv.add_argument("--force", action="store_true",
                         help="reconvert even when outputs are current")
     p_conv.add_argument("--serial", action="store_true",
