@@ -14,3 +14,20 @@
 // replaced by real library code as Cosmos is built out.
 block cosmos_ready()
     return 1
+
+// Transitive containment (docs/01 section 9): is obj anywhere inside
+// outer's tree, however nested? The coin in a purse in a bucket the
+// player holds answers `coin within player`. The `within` operator
+// desugars to this walk; a game that never asks pays nothing (DCE).
+// Total, like the direct tests: `nothing within x` is false.
+block within(obj, outer)
+    if obj is nothing
+        return 0
+    if outer is nothing
+        return 0
+    let p = parent_of(obj)
+    while p is not nothing
+        if p is outer
+            return 1
+        change p to parent_of(p)
+    return 0

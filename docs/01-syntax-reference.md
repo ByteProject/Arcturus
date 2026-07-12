@@ -881,7 +881,11 @@ object) used with `is` is a compile-time clash to rename.
 
 Logic: `and`, `or`, `not`, short-circuiting.
 Property read with the dot, chainable: `ruby.value`, `hallway.north.name`.
-Tree tests: `player holds lantern`, `lantern in player`.
+Tree tests: `player holds lantern`, `lantern in player`, and the transitive
+`coin within player`, true anywhere in the tree however nested (the coin in
+a purse in a bucket the player holds; Inform's IndirectlyContains). All
+three are total (`nothing` answers false); negate `within` with
+`if not (coin within player)`. It costs nothing in a game that never asks.
 
 Built-in references in handler and block bodies: `self` (the enclosing
 object), `player`, `here` (the current room), `noun` and `second` (the
