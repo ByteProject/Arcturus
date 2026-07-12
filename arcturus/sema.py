@@ -539,6 +539,8 @@ class Analyzer:
         player = w.objects.get("player")
         if player is not None:
             for m in self._player_decls:
+                if m.form == ast.PROP_VALUE and m.values:
+                    m.values = [self._const_text(v) for v in m.values]
                 self._unify_property(m.name, self._declared_type(m), m.line)
                 prior = player.props.get(m.name)
                 if m.name == "words" and prior is not None and m.form == ast.PROP_VALUE:
@@ -593,10 +595,37 @@ class Analyzer:
                 return c.value.value
         return None
 
+    def _const_text(self, v):
+        """A property value naming a STRING constant stands for its literal:
+        `desc DESC_OFFICE` reads exactly as the text written in place (the
+        field request: one wording shared between desc and say). Number and
+        object constants pass through untouched."""
+        if isinstance(v, ast.Name):
+            c = self.world.constants.get(v.ident)
+            if c is not None and isinstance(c.value, ast.StringLit):
+                return c.value
+        return v
+
     def _collect_members(self, members, owner, props_out, on_kind) -> None:
         w = self.world
         for m in members:
             if isinstance(m, ast.PropertyDecl):
+                if m.form == ast.PROP_VALUE and m.values:
+                    m.values = [self._const_text(v) for v in m.values]
+                    # A plain property string is a static Z-string: an ${...}
+                    # inside one cannot run and is dropped at encode time.
+                    # Say so, and name the cure, instead of printing a hole.
+                    for v in m.values:
+                        if isinstance(v, ast.StringLit) and any(
+                            not isinstance(p, ast.StringText) for p in v.parts
+                        ):
+                            print(
+                                f"arcc: note: '{m.name}' on '{owner}': "
+                                f"interpolation in a plain property string is "
+                                f"dropped at runtime; use a computed "
+                                f"`{m.name} block` to word it by state",
+                                file=sys.stderr,
+                            )
                 # A German gender article (der / die / das) is not a property in its
                 # own right: it states the object's gender the way an author thinks
                 # of it, and maps to the gender attributes. der is masculine, the

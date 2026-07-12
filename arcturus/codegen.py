@@ -464,14 +464,20 @@ class CodegenError(ArcError):
 
 class StringPool:
     """Strings allocated during lowering (text-property writes, dynamic text).
-    build_story lays them out in high memory and backpatches their addresses."""
+    build_story lays them out in high memory and backpatches their addresses.
+    Identical text is stored ONCE and shared: two rooms with the same desc, or
+    a string constant used in several properties, cost one packed string."""
 
     def __init__(self) -> None:
         self.strings: dict[str, str] = {}
+        self._by_text: dict[str, str] = {}
 
     def add(self, text: str) -> str:
-        sid = f"s{len(self.strings)}"
-        self.strings[sid] = text
+        sid = self._by_text.get(text)
+        if sid is None:
+            sid = f"s{len(self.strings)}"
+            self.strings[sid] = text
+            self._by_text[text] = sid
         return sid
 
 
@@ -815,12 +821,20 @@ def build_story(
     while sf.here() % scale != 0:
         sf.append(b"\x00")
     strings_start_packed = sf.here() // scale
+    # Identical text is laid out ONCE and every reference shares the address:
+    # two rooms with the same desc, a string constant used across several
+    # properties, a repeated message. Smallest possible z-code is the charter.
     string_packed: dict[str, int] = {}
+    text_packed: dict[str, int] = {}
     for sid, text in all_strings.items():
-        while sf.here() % scale != 0:
-            sf.append(b"\x00")
-        string_packed[sid] = sf.here() // scale
-        sf.append(zstring.encode(text))
+        at = text_packed.get(text)
+        if at is None:
+            while sf.here() % scale != 0:
+                sf.append(b"\x00")
+            at = sf.here() // scale
+            sf.append(zstring.encode(text))
+            text_packed[text] = at
+        string_packed[sid] = at
     # Backpatch the object table (desc properties and react routine addresses)
     # and the code (string refs).
     if layout is not None:
