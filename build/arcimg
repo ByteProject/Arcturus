@@ -81,7 +81,7 @@ __version__ = "1.8.0"
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = '77003b1'
+__build__ = '216d5b5'
 
 
 def build_id() -> str:
@@ -971,8 +971,12 @@ def _ted_color(hue: int, luma: int):
     clamp = lambda c: max(0, min(255, int(round(c))))
     return (clamp(r), clamp(g), clamp(b))
 
-# Atari 8-bit (GTIA hue<<4|luma): the common NTSC approximation; the wave-4
-# addendum freezes a measured table.
+# Atari 8-bit (GTIA hue<<4|luma): the common NTSC approximation; the R4
+# addendum freezes a table measured from the probe emulator. Saturation
+# 0.21: enough chroma for a sunset orange. No constant suits every master
+# (0.28 made the wheel neon, 0.13 washed it out), and it does not have to:
+# soft master shades are defended by the chroma-dumping metric in the A8
+# converter, the CPC lesson, not by desaturating the whole wheel.
 def _gtia_color(hl: int):
     import math
     hue, luma = (hl >> 4) & 15, hl & 15
@@ -981,7 +985,7 @@ def _gtia_color(hl: int):
         c = max(0, min(255, y))
         return (c, c, c)
     angle = math.radians((hue - 1) * 24 - 58)
-    u, v = 0.28 * math.cos(angle), 0.28 * math.sin(angle)
+    u, v = 0.21 * math.cos(angle), 0.21 * math.sin(angle)
     r = y + 292 * v
     g = y - 100 * u - 149 * v
     b = y + 517 * u
@@ -1815,15 +1819,68 @@ def _convert_a8(rows, salient=None):
     # what a single line cannot hold, and at 16-budget amplitude it reads
     # as speckle over the whole picture (the corpus said so).
     amp = _dither_amount(rows, 128)
-    # The global steps are HUE-AWARE (_dist, the perceptual default): the
-    # luminance-dominant metric is hue-blind by design, and building or
-    # snapping the global palette with it collapsed every warm master into
-    # grey (pink at one luma and grey at the same luma look identical to
-    # it: Stefan's round-3 review, "monotone", "where is the pink coming
-    # from"). Luma-dominance is kept ONLY where it earns its keep, in the
-    # per-segment pick and remap below, defending small bright features.
-    snap = lambda c: _GTIA_RGB[_nearest(c, _GTIA_RGB)]
-    pal = _build_palette(rows, 20, snap)
+    # The global palette is the best 20 OF THE 128 by greedy error
+    # minimization over the image histogram, under the CPC's two paid-for
+    # lessons verbatim. No median-cut middleman: snapping clusters collapsed
+    # neighbours into one entry and gradient masters greyed out (the CPC's
+    # "six-ink grey mess", reproduced here as Stefan's grey beach sky). And
+    # CHROMA DUMPING COSTS EXTRA: by plain distance a dusk purple IS closest
+    # to the grey ramp, on the A8's wheel as much as on the CPC's cube; an
+    # artist keeps the hue family and accepts the brightness error, so the
+    # metric does too. Luma-dominance is kept ONLY in the per-segment pick
+    # and remap below, defending small bright features.
+    # The saturation term is CAPPED at the wheel's own maximum spread: a
+    # master's hot pink is more saturated than anything GTIA offers, and
+    # uncapped it would penalize every candidate, flipping the ordering to
+    # saturation-first regardless of hue (a saturated blue beat the pale
+    # pink, and picture 5 turned from hot pink to purple).
+    maxsa = max(max(c) - min(c) for c in _GTIA_RGB)
+
+    def dist_a8(a, b):
+        sa = min(max(a) - min(a), maxsa)
+        sb = max(b) - min(b)
+        return _dist(a, b) + 3 * max(0, sa - sb) * sa
+
+    ghist = {}
+    for row in rows:
+        for c in row:
+            ghist[c] = ghist.get(c, 0) + 1
+    if len(ghist) > 512:
+        # Gradient masters carry thousands of blends; bucket them (the
+        # palette CHOICE needs the histogram's shape, not its long tail).
+        buckets = {}
+        for c, cnt in ghist.items():
+            key = (c[0] >> 4, c[1] >> 4, c[2] >> 4)
+            r, g, b, n = buckets.get(key, (0, 0, 0, 0))
+            buckets[key] = (r + c[0] * cnt, g + c[1] * cnt,
+                            b + c[2] * cnt, n + cnt)
+        ghist = {(r // n, g // n, b // n): n
+                 for r, g, b, n in buckets.values()}
+    gcolors = list(ghist)
+    gdmat = [[dist_a8(c, k) for k in _GTIA_RGB] for c in gcolors]
+    INF = 1 << 60
+    cur = [INF] * len(gcolors)
+    chosen = []
+    while len(chosen) < 20:
+        bg, bk = 0, None
+        for k in range(len(_GTIA_RGB)):
+            if k in chosen:
+                continue
+            gain = 0
+            for ci in range(len(gcolors)):
+                d = gdmat[ci][k]
+                if d < cur[ci]:
+                    gain += ghist[gcolors[ci]] * (cur[ci] - d)
+            if gain > bg:
+                bg, bk = gain, k
+        if bk is None:
+            break  # every remaining candidate is useless (flat master)
+        chosen.append(bk)
+        for ci in range(len(gcolors)):
+            if gdmat[ci][bk] < cur[ci]:
+                cur[ci] = gdmat[ci][bk]
+    pal = [_GTIA_RGB[k] for k in chosen]
+    snap = lambda c: _GTIA_RGB[_nearest(c, _GTIA_RGB, metric=dist_a8)]
     pal = _protect_extremes(rows, pal, snap)
     if salient:
         # The hinted disc (a moon, a sun): promoted to its own hue at FULL
@@ -1837,16 +1894,27 @@ def _convert_a8(rows, salient=None):
         # on every line the disc crosses, because its count is real.
         bright = max((rows[y][x // 2] for x, y in salient),
                      key=lambda c: 2 * c[0] + 4 * c[1] + c[2])
-        gi = _GTIA128[_nearest(bright, _GTIA_RGB)]
+        gi = _GTIA128[_nearest(bright, _GTIA_RGB, metric=dist_a8)]
         disc = _gtia_color((gi & 0xF0) | 14)
         if disc not in pal:
             pal.append(disc)
     gbytes = [_GTIA128[_nearest(c, _GTIA_RGB)] for c in pal]
-    idx = _map_pixels(rows, pal, amp)
+    idx = _map_pixels(rows, pal, amp, metric=dist_a8)
     if salient:
+        # Force a HALVED cell to the disc only when both of its master
+        # pixels are salient: forcing on either one stomped every
+        # glow-beside-tree pair, and the treeline the hint's crown rule
+        # had carefully excluded was erased anyway, leaving a solid ball
+        # over the trees (Stefan's round-5 review). Mixed rim cells keep
+        # their honest averaged mapping.
         di = pal.index(disc)
+        cells = {}
         for x, y in salient:
-            idx[y][x // 2] = di
+            key = (x // 2, y)
+            cells[key] = cells.get(key, 0) + 1
+        for (hx, y), n in cells.items():
+            if n == 2:
+                idx[y][hx] = di
 
     # Per-line histograms over the global palette, and their prefix sums, so
     # any line range's merged histogram is one subtraction per color.
@@ -1861,7 +1929,13 @@ def _convert_a8(rows, salient=None):
     def seg_hist(i, j):
         return [pre[j + 1][c] - pre[i][c] for c in range(P)]
 
-    dmat = [[_dist_luma(pal[a], pal[b]) for b in range(P)] for a in range(P)]
+    # The pick and remap run on the SAME dumping metric as the global
+    # steps: with luma-dominance here, the grey entries the rocks need
+    # would win whole sky segments (greys match any luma), and the beach's
+    # sunset rendered in three greys and a gold. A bright feature stays
+    # defended without the luma weighting: against a dark segment it is a
+    # huge distance in any honest metric.
+    dmat = [[dist_a8(pal[a], pal[b]) for b in range(P)] for a in range(P)]
     must = set()
     if salient:
         must = {y for _x, y in salient}
