@@ -283,8 +283,9 @@ A Visual Studio Code extension provides syntax highlighting for `.storyarc`,
 `.prelude`, and `.granule` files. Install the packaged extension:
 
 - In VS Code: Extensions view, `...` menu, **Install from VSIX...**, then choose
-  [editors/vscode/arcturus-0.11.0.vsix](editors/vscode/arcturus-0.11.0.vsix); or
-- from a terminal: `code --install-extension editors/vscode/arcturus-0.11.0.vsix`
+  the `arcturus-<version>.vsix` in [editors/vscode/](editors/vscode/) (exactly
+  one ships there, always the current one); or
+- from a terminal: `code --install-extension editors/vscode/arcturus-*.vsix`
 
 This works on macOS, Windows, and Linux. The extension source is under
 [editors/vscode/](editors/vscode/); rebuild the `.vsix` with
