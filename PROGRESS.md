@@ -3626,3 +3626,29 @@ stacking, every guard behind the any_alter fold with the ceilings
 standing as proof. The catalogs announcement scrub also happened, and
 is recorded where it belongs: in the memory that says adopter snippets
 are adopter content. arcc 0.11.36, Cosmos 0.33.0, 850 tests.
+
+## 2026-07-12, night: checkpoint. Two of three Dialog features down.
+
+Since the evening entry: alter settled its final shape on Stefan's
+coherence ruling (`alter block` for the composed body, rhyming with
+desc block, the bare-newline form kept beside it by his call, both
+proven byte-identical) and got its worked example, The Reliquary, all
+four behaviors in one scene. Then Dialog feature two of Charles's
+three: `beyond`, Stefan's name and his reasoning (a light bulb without
+a ladder is not distant, but it is beyond) after his plane-landing
+insight settled implement-over-recipe: visible and examinable, every
+touching action refusing "beyond your reach" (three languages,
+pluribus-aware), conversation crossing the gap, throwing-at
+deliberately legal, and the whole thing STATE, toggled with now. The
+grain division is doctrine now: static faraway decoration is a grain's
+job; beyond is distance that matters to the model. Guards at 23 sites
+behind any_beyond, folded AT THE CALL SITE after the first pass paid
+the call everywhere (the lesson now twice-learned). The Larder is the
+example, and it exposed a general gap Stefan ruled on whole: ENTER, GO
+ON, and CLIMB all board a supporter now, climb through the full enter
+pipeline in the agnostic layer, GO ON/GO IN as English idioms beside
+the GET family, native packs untouched. README's vsix section
+un-rotted (version-agnostic). State: arcc 0.11.38, Cosmos 0.34.1,
+highlighter 0.13.3, 855 tests, all committed. Open: Charles's THIRD
+Dialog feature (Stefan holds it, guessed granule-shaped); Shawn's
+Agon-class target spec (Australia lag); then B12 R4.
