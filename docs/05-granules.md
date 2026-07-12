@@ -25,6 +25,10 @@ summoned or not.
 
 > **Most specific wins: game over granule over library, block by block.**
 
+A summoned `.storyarc` (the chapters of a multi-file game, 01 section 13)
+counts as GAME here, whatever order it loads in; only `.granule` files ride
+at granule rank.
+
 One courtesy at the granule seam: a granule's messages (`msg_*`, `line_*`)
 are its public skin and reskin silently, but a game block that replaces any
 OTHER granule block gets a compile note, because colliding with a granule's
