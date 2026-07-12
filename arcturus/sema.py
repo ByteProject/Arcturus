@@ -1183,6 +1183,13 @@ class Analyzer:
         from .lower import INTRINSICS
         if name in INTRINSICS:
             return
+        if name == "direction":
+            raise self._error(
+                "unknown name 'direction': the chosen direction rides `way` "
+                "(if way is north, if way is aft); `direction` is the "
+                "declaration keyword and the grammar slot",
+                line,
+            )
         raise self._error(f"unknown name '{name}'", line)
 
     def _infer_type(self, expr, locals_: set) -> Optional[str]:
