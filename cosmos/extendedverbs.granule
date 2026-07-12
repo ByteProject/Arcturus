@@ -39,7 +39,11 @@ on search
             stop
         search_contents(noun)
         stop
-    msg_search_nothing
+    if any_alter is 1
+        if altered is 0
+            msg_search_nothing
+    else
+        msg_search_nothing
 
 // List what an object holds, or report that it holds nothing of note.
 block search_contents(obj)
@@ -69,7 +73,11 @@ on throw
         msg_noun_missing
         stop
     change refused to 1
-    msg_throw
+    if any_alter is 1
+        if altered is 0
+            msg_throw
+    else
+        msg_throw
 
 
 verb "rub", "polish", "clean", "wipe", "scrub", "dust", "shine", "buff"
@@ -80,7 +88,11 @@ on rub
         change refused to 1
         msg_noun_missing
         stop
-    msg_rub
+    if any_alter is 1
+        if altered is 0
+            msg_rub
+    else
+        msg_rub
 
 
 verb "squeeze", "crush"
@@ -91,7 +103,11 @@ on squeeze
         change refused to 1
         msg_noun_missing
         stop
-    msg_squeeze
+    if any_alter is 1
+        if altered is 0
+            msg_squeeze
+    else
+        msg_squeeze
 
 
 verb "tie", "attach", "fasten", "secure"
@@ -103,7 +119,11 @@ on tie
         msg_noun_missing
         stop
     change refused to 1
-    msg_tie
+    if any_alter is 1
+        if altered is 0
+            msg_tie
+    else
+        msg_tie
 
 
 verb "cut", "chop", "slice", "prune", "carve"
@@ -115,7 +135,11 @@ on cut
         msg_noun_missing
         stop
     change refused to 1
-    msg_cut
+    if any_alter is 1
+        if altered is 0
+            msg_cut
+    else
+        msg_cut
 
 
 verb "fill"
@@ -127,7 +151,11 @@ on fill
         msg_noun_missing
         stop
     change refused to 1
-    msg_fill
+    if any_alter is 1
+        if altered is 0
+            msg_fill
+    else
+        msg_fill
 
 
 verb "burn", "ignite", "torch", "kindle"
@@ -139,7 +167,11 @@ on burn
         msg_noun_missing
         stop
     change refused to 1
-    msg_burn
+    if any_alter is 1
+        if altered is 0
+            msg_burn
+    else
+        msg_burn
 
 
 verb "blow"
@@ -150,7 +182,11 @@ on blow
         change refused to 1
         msg_noun_missing
         stop
-    msg_blow
+    if any_alter is 1
+        if altered is 0
+            msg_blow
+    else
+        msg_blow
 
 
 verb "set", "adjust"
@@ -162,7 +198,11 @@ on set
         msg_noun_missing
         stop
     change refused to 1
-    msg_set
+    if any_alter is 1
+        if altered is 0
+            msg_set
+    else
+        msg_set
 
 
 verb "empty", "drain"
@@ -174,7 +214,11 @@ on empty
         change refused to 1
         msg_noun_missing
         stop
-    msg_empty
+    if any_alter is 1
+        if altered is 0
+            msg_empty
+    else
+        msg_empty
 
 
 verb "buy", "purchase"
@@ -186,7 +230,11 @@ on buy
         msg_noun_missing
         stop
     change refused to 1
-    msg_buy
+    if any_alter is 1
+        if altered is 0
+            msg_buy
+    else
+        msg_buy
 
 
 verb "consult", "reference"
@@ -197,7 +245,11 @@ on consult
         change refused to 1
         msg_noun_missing
         stop
-    msg_consult
+    if any_alter is 1
+        if altered is 0
+            msg_consult
+    else
+        msg_consult
 
 // ---------------------------------------------------------------------------
 // Body and idle actions (intransitive; they just speak).
@@ -207,7 +259,11 @@ verb "dig", "excavate"
     dig noun
 
 on dig
-    msg_dig
+    if any_alter is 1
+        if altered is 0
+            msg_dig
+    else
+        msg_dig
 
 
 verb "wave", "brandish"
@@ -215,7 +271,11 @@ verb "wave", "brandish"
     wave noun
 
 on wave
-    msg_wave
+    if any_alter is 1
+        if altered is 0
+            msg_wave
+    else
+        msg_wave
 
 
 verb "sit", "rest"
@@ -223,21 +283,33 @@ verb "sit", "rest"
 
 on sit
     change refused to 1
-    msg_sit
+    if any_alter is 1
+        if altered is 0
+            msg_sit
+    else
+        msg_sit
 
 
 verb "stand"
     stand
 
 on stand
-    msg_stand
+    if any_alter is 1
+        if altered is 0
+            msg_stand
+    else
+        msg_stand
 
 
 verb "sleep", "nap", "doze"
     sleep
 
 on sleep
-    msg_sleep
+    if any_alter is 1
+        if altered is 0
+            msg_sleep
+    else
+        msg_sleep
 
 
 verb "swim", "dive", "paddle"
@@ -245,7 +317,11 @@ verb "swim", "dive", "paddle"
 
 on swim
     change refused to 1
-    msg_swim
+    if any_alter is 1
+        if altered is 0
+            msg_swim
+    else
+        msg_swim
 
 
 verb "swing"
@@ -253,28 +329,44 @@ verb "swing"
 
 on swing
     change refused to 1
-    msg_swing
+    if any_alter is 1
+        if altered is 0
+            msg_swing
+    else
+        msg_swing
 
 
 verb "think", "ponder", "consider"
     think
 
 on think
-    msg_think
+    if any_alter is 1
+        if altered is 0
+            msg_think
+    else
+        msg_think
 
 
 verb "pray", "worship"
     pray
 
 on pray
-    msg_pray
+    if any_alter is 1
+        if altered is 0
+            msg_pray
+    else
+        msg_pray
 
 
 verb "shout", "yell", "scream", "holler"
     shout
 
 on shout
-    msg_shout
+    if any_alter is 1
+        if altered is 0
+            msg_shout
+    else
+        msg_shout
 
 // ---------------------------------------------------------------------------
 // The wording. Fork the granule to change any of these lines.

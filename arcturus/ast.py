@@ -260,6 +260,19 @@ class Continue(Stmt):
 
 
 @dataclass
+class Alter(Stmt):
+    """alter "..." or alter + an indented body: speak the action's report
+    yourself. Marks the report as spoken, so when the handler continues,
+    the default runs its full mechanics and its success line stays silent
+    (refusals never honor the mark). The block form composes wording the
+    way a computed property does."""
+
+    value: Optional[Expr] = None       # the one-line form
+    body: list[Stmt] = field(default_factory=list)  # the block form
+    line: int = 0
+
+
+@dataclass
 class Finish(Stmt):
     message: Optional[Expr] = None
     line: int = 0
