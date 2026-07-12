@@ -1815,8 +1815,15 @@ def _convert_a8(rows, salient=None):
     # what a single line cannot hold, and at 16-budget amplitude it reads
     # as speckle over the whole picture (the corpus said so).
     amp = _dither_amount(rows, 128)
-    snap = lambda c: _GTIA_RGB[_nearest(c, _GTIA_RGB, metric=_dist_luma)]
-    pal = _build_palette(rows, 16, snap)
+    # The global steps are HUE-AWARE (_dist, the perceptual default): the
+    # luminance-dominant metric is hue-blind by design, and building or
+    # snapping the global palette with it collapsed every warm master into
+    # grey (pink at one luma and grey at the same luma look identical to
+    # it: Stefan's round-3 review, "monotone", "where is the pink coming
+    # from"). Luma-dominance is kept ONLY where it earns its keep, in the
+    # per-segment pick and remap below, defending small bright features.
+    snap = lambda c: _GTIA_RGB[_nearest(c, _GTIA_RGB)]
+    pal = _build_palette(rows, 20, snap)
     pal = _protect_extremes(rows, pal, snap)
     if salient:
         # The hinted disc (a moon, a sun): promoted to its own hue at FULL
@@ -1830,12 +1837,12 @@ def _convert_a8(rows, salient=None):
         # on every line the disc crosses, because its count is real.
         bright = max((rows[y][x // 2] for x, y in salient),
                      key=lambda c: 2 * c[0] + 4 * c[1] + c[2])
-        gi = _GTIA128[_nearest(bright, _GTIA_RGB, metric=_dist_luma)]
+        gi = _GTIA128[_nearest(bright, _GTIA_RGB)]
         disc = _gtia_color((gi & 0xF0) | 14)
         if disc not in pal:
             pal.append(disc)
-    gbytes = [_GTIA128[_nearest(c, _GTIA_RGB, metric=_dist_luma)] for c in pal]
-    idx = _map_pixels(rows, pal, amp, metric=_dist_luma)
+    gbytes = [_GTIA128[_nearest(c, _GTIA_RGB)] for c in pal]
+    idx = _map_pixels(rows, pal, amp)
     if salient:
         di = pal.index(disc)
         for x, y in salient:
@@ -1905,14 +1912,21 @@ def _convert_a8(rows, salient=None):
     # replaced the per-line pick whose rival near-tie sets striped every
     # horizontally busy region of the first corpus round (Stefan's review).
     # The penalty is per-pixel-scaled: one boundary must be worth about
-    # _A8_HOLD units on every pixel of one line.
+    # _A8_HOLD units on every pixel of one line. The MINIMUM HEIGHT is the
+    # second guard (round three): in a busy band the penalty alone still
+    # let the optimum degenerate into 1-2 line slivers, per-line striping
+    # by another name, so a segment is at least 4 lines and a hard content
+    # change lands as a stepped band, the way an artist would paint it.
     lam = w * _A8_HOLD
-    best = [0] * (h + 1)   # best[j]: minimal cost of lines 0..j-1
-    cut = [0] * (h + 1)    # the start of the last segment in that optimum
+    minseg = 4
+    best = [0] + [None] * h  # best[j]: minimal cost of lines 0..j-1
+    cut = [0] * (h + 1)      # the start of the last segment in that optimum
     memo = {}
     for j in range(h):
         bj, bi = None, 0
-        for i in range(j + 1):
+        for i in range(j + 2 - minseg):
+            if best[i] is None:
+                continue
             key = (i, j)
             if key not in memo:
                 hist = seg_hist(i, j)
