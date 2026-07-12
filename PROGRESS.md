@@ -3541,3 +3541,39 @@ per target) and his Agon-class plan confirmed against the design:
 masters are 320 across precisely so a double-width VDP scales for free.
 His target spec is awaited without a queue slot; Ichiro's port is
 resolved. 791 tests. More Charles bombs incoming, by his own promise.
+
+## 2026-07-12: The language grows where the ports press on it.
+
+The adopter wave turned from bugs to language. pluribus (arcc 0.11.25,
+Cosmos 0.27.0), Stefan's name by way of e pluribus unum and Vince
+Gilligan: grammatical number joins gender in the language model, one
+attribute driving the articles ("some scissors"; German's bare
+indefinite plural and its die/die/den/der case column; Spanish
+los/las, unos/unas), the new ${is x} copula tag in the article family
+(is/are, ist/sind, esta/estan), and number branches through the core
+messages of all three packs, every one behind the any_pluribus fold
+(byte-identical unmarked; the fold needed its _static_value entry,
+caught when the ceilings briefly moved). The nautical granule (0.11.26,
+0.28.0): FORE, AFT, PORT, STARBOARD as standard direction properties
+with the words opt-in, the Hibernated problem solved the way Hibernated
+solved it, and verbose_exits taught to list only LIVE directions.
+String constants for Ichiro Ota (0.11.27): a constant stands for its
+text in desc and say alike, identical strings now pool once in the
+story file (smallest possible z-code, made true when the docs sentence
+claiming it was found false), and interpolation dropped in a plain
+property string gets a teaching note. Verbs learned `meta` for Charles
+(0.11.28): the out-of-world band opened to declaration, the debug
+tools and TRANSCRIPT routed past every on other. And the endings split
+on Stefan's ruling (0.11.29, 0.29.0): finish stays final, death offers
+UNDO and rewinds the fatal command; any_death folds the machinery away
+from games that never die (brass-lantern shrank, cloak honestly pays),
+and the abbreviation harvest stopped counting text DCE prunes, exposed
+by the twin dead prompts. Earlier the same day: AGAIN re-checks scope
+(the immortal lantern), locks demand their key in hand, three refusals
+got three answers (the bare verb asks with its verb echoed, the
+unbound pronoun found msg_no_it, wired at last), the held tiebreak
+settles what one hand already answers, roomness flows through the kind
+chain, and the updater learned its manners (header, Cosmos version,
+the house blank line) after Stefan caught the amalgam shipping without
+updater.py at all. 824 tests. Charles holds the Epic Bughunter title
+on the Discord; the queue stays warm.
