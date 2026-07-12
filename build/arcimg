@@ -81,7 +81,7 @@ __version__ = "1.8.0"
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = 'f0a1ae9'
+__build__ = '1cd6cf6'
 
 
 def build_id() -> str:
@@ -1841,83 +1841,125 @@ def _convert_a8(rows, salient=None):
         for x, y in salient:
             idx[y][x // 2] = di
 
-    def line_pick(hist, seed):
-        """The line's four global colors by greedy error minimization (the
-        C64's cell_pick with the line as the cell): each round adds the
-        color that saves the line the most, so a few very bright pixels
-        outvote a middling shade seen often. `seed` biases round one toward
-        the previous line's registers: ties and near-ties keep the old set,
-        which is what keeps the table quiet."""
-        picks, allowed = [], []
-        pool = list(hist)
+    # Per-line histograms over the global palette, and their prefix sums, so
+    # any line range's merged histogram is one subtraction per color.
+    P = len(pal)
+    pre = [[0] * P]
+    for y in range(h):
+        row = list(pre[-1])
+        for c in idx[y]:
+            row[c] += 1
+        pre.append(row)
+
+    def seg_hist(i, j):
+        return [pre[j + 1][c] - pre[i][c] for c in range(P)]
+
+    dmat = [[_dist_luma(pal[a], pal[b]) for b in range(P)] for a in range(P)]
+    must = set()
+    if salient:
+        must = {y for _x, y in salient}
+
+    def seg_pick(hist, force):
+        """A range's four global colors by greedy error minimization (the
+        C64's cell_pick with the segment as the cell): each round adds the
+        color that saves the segment the most, so a few very bright pixels
+        outvote a middling shade seen often. `force` (the hinted disc)
+        claims its register before the greedy rounds run."""
+        picks = list(force)
+        pool = [c for c in range(P) if hist[c] and c not in picks]
         while pool and len(picks) < 4:
-            def cost(cand):
+            best, bc = None, None
+            for cand in pool:
                 total = 0
-                for c, cnt in hist.items():
-                    d = min(_dist_luma(pal[c], pal[a])
-                            for a in allowed + [cand])
-                    total += cnt * d
-                return total - (seed.get(cand, 0))
-            pick = min(pool, key=cost)
-            picks.append(pick)
-            allowed.append(pick)
-            pool.remove(pick)
+                for c in range(P):
+                    cnt = hist[c]
+                    if cnt:
+                        d = dmat[c][cand]
+                        for a in picks:
+                            if dmat[c][a] < d:
+                                d = dmat[c][a]
+                        total += cnt * d
+                if bc is None or total < bc:
+                    best, bc = cand, total
+            picks.append(best)
+            pool.remove(best)
+        if not picks:
+            picks = [0]
         while len(picks) < 4:
             picks.append(picks[-1])
         return picks
 
+    def seg_cost(hist, picks):
+        total = 0
+        for c in range(P):
+            cnt = hist[c]
+            if cnt:
+                total += cnt * min(dmat[c][a] for a in picks)
+        return total
+
+    # THE SEGMENTS: an A8 artist changes the palette at content boundaries
+    # (the horizon, a roofline), not per line, so the solver partitions the
+    # band into runs of lines SHARING one four-color set, by dynamic
+    # programming: a boundary exists only where it saves more error than
+    # the split penalty. Within a segment a stripe is impossible; this
+    # replaced the per-line pick whose rival near-tie sets striped every
+    # horizontally busy region of the first corpus round (Stefan's review).
+    # The penalty is per-pixel-scaled: one boundary must be worth about
+    # _A8_HOLD units on every pixel of one line.
+    lam = w * _A8_HOLD
+    best = [0] * (h + 1)   # best[j]: minimal cost of lines 0..j-1
+    cut = [0] * (h + 1)    # the start of the last segment in that optimum
+    memo = {}
+    for j in range(h):
+        bj, bi = None, 0
+        for i in range(j + 1):
+            key = (i, j)
+            if key not in memo:
+                hist = seg_hist(i, j)
+                force = [di] if salient and any(i <= y <= j for y in must) \
+                    else []
+                memo[key] = seg_cost(hist, seg_pick(hist, force))
+            total = best[i] + memo[key] + lam
+            if bj is None or total < bj:
+                bj, bi = total, i
+        best[j + 1] = bj
+        cut[j + 1] = bi
+    bounds = []
+    j = h
+    while j > 0:
+        bounds.append((cut[j], j - 1))
+        j = cut[j]
+    bounds.reverse()
+
     from itertools import permutations
     pixels, lines = [], []
-    prev = None  # last line's four global palette indices
-    for y in range(h):
-        # The vote is a three-line window, the center counting double, but
-        # only line y is mapped: neighbours seeing near-identical votes pick
-        # near-identical sets, which kills the odd/even oscillation that
-        # horizontally busy rows otherwise show as streaks. A hard horizon
-        # still switches sets within a line of the boundary.
-        hist = {}
-        for c in idx[y]:
-            hist[c] = hist.get(c, 0) + 2
-        for yy in (y - 1, y + 1):
-            if 0 <= yy < h:
-                for c in idx[yy]:
-                    hist[c] = hist.get(c, 0) + 1
-        # The previous line's colors are worth a discount proportional to
-        # the line's weight: a pick that merely ties a stranger loses to
-        # the incumbent, but a genuinely better color always wins.
-        seed = {}
-        if prev is not None:
-            bonus = (w * _A8_HOLD) // 100
-            seed = {p: bonus for p in prev}
-        picks = line_pick(hist, seed)
+    prev = None  # the previous segment's four registers
+    for i, j in bounds:
+        hist = seg_hist(i, j)
+        force = [di] if salient and any(i <= y <= j for y in must) else []
+        picks = seg_pick(hist, force)
         if prev is None:
-            # First line: the most frequent color takes register 0 (the
+            # First segment: the most frequent color takes register 0 (the
             # background), so the packed bitmap zero-fills and the border
-            # continues the line's backdrop.
-            regs = sorted(set(picks), key=lambda p: -hist.get(p, 0))
+            # continues the backdrop.
+            regs = sorted(set(picks), key=lambda p: -hist[p])
             while len(regs) < 4:
                 regs.append(regs[-1])
         else:
-            # ASSIGNMENT: permute so each register keeps its role; an exact
-            # repeat costs nothing, so unchanged sets emit unchanged rows.
+            # ASSIGNMENT: permute so a color that survives the boundary
+            # keeps its register (the bitmap codes stay stable and the
+            # table row changes only where the palette really does).
             regs = min(
                 (list(perm) for perm in permutations(picks)),
                 key=lambda perm: sum(
-                    0 if perm[i] == prev[i]
-                    else _dist_luma(pal[perm[i]], pal[prev[i]])
-                    for i in range(4)))
+                    0 if perm[k] == prev[k] else dmat[perm[k]][prev[k]]
+                    for k in range(4)))
         prev = regs
-        lines += [gbytes[r] for r in regs]
-        # Every pixel to its nearest of the line's four, via the global
-        # index it already has (exact when the pick kept its color).
-        remap = {}
-        prow = []
-        for c in idx[y]:
-            if c not in remap:
-                remap[c] = min(range(4),
-                               key=lambda i: _dist_luma(pal[c], pal[regs[i]]))
-            prow.append(remap[c])
-        pixels.append(prow)
+        remap = [min(range(4), key=lambda k: dmat[c][regs[k]])
+                 for c in range(P)]
+        for y in range(i, j + 1):
+            lines += [gbytes[r] for r in regs]
+            pixels.append([remap[c] for c in idx[y]])
     return {"w": w, "h": h, "pixels": pixels, "lines": lines}
 
 
