@@ -1025,6 +1025,14 @@ block msg_noun_missing()
         change i to i + 1
     say " what?"
 
+// The beyond refusal (docs/01, beyond): visible, examinable, and the
+// hand does not get there. Takes the object (noun or second).
+block msg_beyond(obj)
+    if any_pluribus is 1
+        say "${The obj} ${is obj} beyond your reach."
+        return 0
+    say "${The obj} is beyond your reach."
+
 block msg_cant_see()
     say "You see nothing of the sort here."
 

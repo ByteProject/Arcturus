@@ -88,6 +88,9 @@ on rub
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     if any_alter is 1
         if altered is 0
             msg_rub
@@ -103,6 +106,9 @@ on squeeze
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     if any_alter is 1
         if altered is 0
             msg_squeeze
@@ -134,6 +140,9 @@ on cut
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     change refused to 1
     if any_alter is 1
         if altered is 0
@@ -150,6 +159,9 @@ on fill
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     change refused to 1
     if any_alter is 1
         if altered is 0
@@ -166,6 +178,9 @@ on burn
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     change refused to 1
     if any_alter is 1
         if altered is 0
@@ -182,6 +197,9 @@ on blow
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     if any_alter is 1
         if altered is 0
             msg_blow
@@ -214,6 +232,9 @@ on empty
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     if any_alter is 1
         if altered is 0
             msg_empty

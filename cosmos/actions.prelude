@@ -119,11 +119,37 @@ on go
     set_here(parent_of(player))
     arrive
 
+// Visible is not touchable, the open-air case (docs/01, beyond): the
+// chandelier overhead, the jar on the top shelf. The guard refuses every
+// TOUCHING action while examine, scope, and conversation stay free; it is
+// state, so `now jar is not beyond` when the stool is gained. THROWING AT
+// a beyond thing is deliberately not guarded: the arm reaches where the
+// hand cannot. Both guards fold away in a game where everything is within
+// arm's length (any_beyond).
+block beyond_guard()
+    if any_beyond is 1
+        if noun is beyond
+            change refused to 1
+            msg_beyond(noun)
+            return 1
+    return 0
+
+block beyond_guard_second()
+    if any_beyond is 1
+        if second is beyond
+            change refused to 1
+            msg_beyond(second)
+            return 1
+    return 0
+
 on take
     if noun is nothing
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     // Taking yourself comes before every other refusal: the player is animate
     // and would otherwise get the "has other ideas" meant for characters.
     if noun is player
@@ -310,6 +336,9 @@ on switch_on
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     change refused to 1
     msg_no_switch
 
@@ -318,6 +347,9 @@ on switch_off
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     change refused to 1
     msg_no_switch
 
@@ -365,6 +397,9 @@ on put
         change refused to 1
         msg_put_where
         stop
+    if any_beyond is 1
+        if beyond_guard_second is 1
+            stop
     if second is supporter
         move noun to second
         now noun is not worn
@@ -408,6 +443,9 @@ on open
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     if noun is not openable
         change refused to 1
         msg_cant_open
@@ -450,6 +488,9 @@ on close
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     if noun is not openable
         change refused to 1
         msg_cant_close
@@ -469,6 +510,9 @@ on lock
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     if noun is not lockable
         change refused to 1
         msg_cant_lock
@@ -507,6 +551,9 @@ on unlock
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     if noun is not lockable
         change refused to 1
         msg_cant_unlock
@@ -539,6 +586,9 @@ on enter
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     if player in noun
         msg_already_there
         stop
@@ -605,6 +655,9 @@ on give
         change refused to 1
         msg_only_animate
         stop
+    if any_beyond is 1
+        if beyond_guard_second is 1
+            stop
     change refused to 1
     msg_give
 
@@ -629,6 +682,9 @@ on touch
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     msg_touch
 
 on smell
@@ -654,6 +710,9 @@ on eat
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     change refused to 1
     msg_eat
 
@@ -666,6 +725,9 @@ on attack
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     change refused to 1
     msg_attack
 
@@ -682,6 +744,9 @@ on push
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     change refused to 1
     msg_no_effect
 
@@ -690,6 +755,9 @@ on pull
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     change refused to 1
     msg_no_effect
 
@@ -698,6 +766,9 @@ on turn
         change refused to 1
         msg_noun_missing
         stop
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
     change refused to 1
     msg_no_effect
 

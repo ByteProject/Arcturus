@@ -138,6 +138,13 @@ _STD_BOOL_PROPS = [
     # with the plural case column, Spanish los/las. NOT the plurals granule, whose
     # group words sweep several distinct (grammatically singular) objects.
     "pluribus",
+    # Visible but not touchable, the open-air case: a chandelier overhead, a
+    # jar on the top shelf, a plane still landing. `beyond` keeps the object
+    # in scope and examinable while every touching action refuses ("... is
+    # beyond your reach"), and it is STATE: `now jar is not beyond` when the
+    # player gains the stool. Static faraway decoration needs no object at
+    # all: that is a grain's job (docs/01 section 14).
+    "beyond",
 ]
 
 # The three German definite articles, written as bare object declarations to state

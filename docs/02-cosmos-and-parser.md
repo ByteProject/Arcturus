@@ -183,7 +183,9 @@ handlers. The whole mechanism folds away in a game that stages nothing.
 Two predicates Cosmos provides for conditions: `<obj> is visible` (in scope
 and the location lit; examining needs this) and `<obj> is reachable` (visible
 and not behind a closed container; taking and most physical actions need
-this). `hidden` removes an object from scope entirely until cleared.
+this). The open-air case of the same doctrine is the `beyond` attribute
+(docs/01): visible and examinable while every touching action refuses,
+toggled with `now` as the geometry changes. `hidden` removes an object from scope entirely until cleared.
 `scenery` keeps it referable for examining but omits it from contents
 listings and refuses taking.
 
