@@ -93,6 +93,11 @@ block compound(base, particle)
             return action_id("transcript")
         if particle is 2
             return action_id("transcript_off")
+    if base is action_id("go")
+        // GO ON THE STOOL boards it, like GET ON: the enter action with
+        // the noun the phrase resolves (go carries a noun slot for this).
+        if particle is 1
+            return action_id("enter")
     return nothing
 
 // The chosen direction's property number, from the first direction word typed
@@ -150,6 +155,12 @@ block remap_action(act)
         if noun is not nothing
             if player in noun
                 return action_id("exit")
+    if act is action_id("go")
+        // GO IN THE CRATE, GO INTO: the in-direction plus a named thing is
+        // boarding, the same reading the GET family gets above.
+        if way is in
+            if noun is not nothing
+                return action_id("enter")
     return act
 
 // Does the object's vocabulary include this dictionary word?
@@ -504,6 +515,7 @@ verb "look", "l"
 // default handles the rest: follow a static exit, or refuse the move.
 verb "go", "walk", "run"
     go
+    go noun
 
 // The direction words: each maps its vocabulary to a fixed direction property.
 // This is the English set; a language pack redeclares these with its own words

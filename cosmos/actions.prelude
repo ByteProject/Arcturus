@@ -777,6 +777,13 @@ on climb
         change refused to 1
         msg_noun_missing
         stop
+    // Climbing something you can stand on IS boarding it: CLIMB STOOL
+    // lands you on the stool through the full enter pipeline, the stool's
+    // own handlers included. Folds away with nothing to stand on.
+    if any_enterable is 1
+        if noun is supporter
+            perform("enter", noun)
+            stop
     change refused to 1
     msg_cant_climb
 
