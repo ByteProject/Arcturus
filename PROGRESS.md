@@ -3674,3 +3674,28 @@ identical bytes. State: arcc 0.11.39, Cosmos 0.34.1, 856 tests,
 amalgam regenerated. Open: Charles's third Dialog feature (parked for
 discussion, Stefan's call), Shawn's spec (not yet arrived), and B12 R4
 resumes next.
+
+## 2026-07-13: the flat-base architecture, Stefan's ruling after the wall
+
+Five A8 rounds hit the wall and Stefan called it: something fundamental.
+The answer was in his own history. The well-regarded Rabenstein 8-bit
+ports were Dylan Barry's CPC originals fed through Pixel Polizei
+(Markku Reunanen's checker: plain nearest, frequency, local fixes, no
+dither, no optimizers); Stefan only repainted Spectrum and the 16-bits.
+Our pipeline did the opposite, painterly masters into constraint
+solvers, each stage manufacturing what the next fought. Blessed and
+built: the FLAT BASE (master -> 160-wide, 27-cube, 16 inks by
+frequency, no blending, no dither) with the CPC converter now being the
+base itself, the C64 by Polizei's recipe (Pepto, amending R0's
+Colodore) from the base, the A8 riding the C64 as before, hand-authored
+.C64 as the whole family's source (arcimg convert --c64), PP source
+stashed uncommitted at arc_image/reference/ppolizei. design.md amended
+(section 4 rewritten, 8a amendments, perceptual clause retired).
+Corpus previews are the gate for Stefan's eye. Known open: the
+gradient-class stress beach greys under Pepto (its approved ancestor
+was Colodore-rendered and vivid; Pepto is muted by design and has no
+teal or hot pink; a metric cannot conjure colors a palette lacks), and
+one dumping-metric attempt at the Pepto mapping made it worse and was
+reverted, the plain Polizei manner stands. Dylan Barry passed away
+early this year; his CPC art remains the reference this architecture
+is built on. arcimg 1.9.0, 866 tests.

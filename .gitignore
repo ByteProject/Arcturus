@@ -47,3 +47,4 @@ editors/vscode/node_modules/
 
 # Third-party conformance stories and transcripts (local only)
 actaea/conformance/
+arc_image/reference/ppolizei/

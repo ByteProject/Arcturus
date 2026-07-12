@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.8.0"
+__version__ = "1.9.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -923,7 +923,19 @@ def read_arc(blob: bytes):
 
 # -- reference palettes (render-back; frozen per target in its wave) -----------
 
-# C64: Colodore (ruled at R0; Pepto ships as data too, in its wave).
+# C64: Pepto, exactly as Pixel Polizei ships it (m_c64mc.pde, WTFPL,
+# Markku Reunanen): the conversion AND render palette by Stefan's 2026-07-13
+# amendment of the R0 Colodore ruling ("the Polizei way because I know it
+# is working"). Colodore stays below as data.
+_PEPTO = [
+    (0x00, 0x00, 0x00), (0xFF, 0xFF, 0xFF), (0x68, 0x37, 0x2B),
+    (0x70, 0xA4, 0xB2), (0x6F, 0x3D, 0x86), (0x58, 0x8D, 0x43),
+    (0x35, 0x28, 0x79), (0xB8, 0xC7, 0x6F), (0x6F, 0x4F, 0x25),
+    (0x43, 0x39, 0x00), (0x9A, 0x67, 0x59), (0x44, 0x44, 0x44),
+    (0x6C, 0x6C, 0x6C), (0x9A, 0xD2, 0x84), (0x6C, 0x5E, 0xB5),
+    (0x95, 0x95, 0x95),
+]
+
 _COLODORE = [
     (0x00, 0x00, 0x00), (0xFF, 0xFF, 0xFF), (0x81, 0x33, 0x38),
     (0x75, 0xCE, 0xC8), (0x8E, 0x3C, 0x97), (0x56, 0xAC, 0x4D),
@@ -1386,33 +1398,93 @@ def _bayer_at(x, y, amount):
     return (_BAYER8[y & 7][x & 7] / 63.0 - 0.5) * 2 * amount
 
 
-def _convert_c64(rows, salient=None):
-    # Multicolor bitmap: 160 wide, 2:1 pixels, per 4x8 cell THREE free colors
-    # plus ONE global background, all from the fixed 16 (Colodore). The
-    # solver: index every pixel into the 16 (gradient masters get the Bayer
-    # jitter here), elect the background among the most frequent indices by
-    # total remap cost, then per cell keep the three most frequent non-
-    # background colors and remap the stragglers.
-    rows = _halve_width(rows)
-    w, h = len(rows[0]), len(rows)
-    amp = _dither_amount(rows, 16)
-    idx = _map_pixels(rows, _COLODORE, amp)
-    if salient:
-        # The hinted object (a moon, a sun) gets the palette's brightest
-        # entry, solid: no palette in the fixed 16 holds both a teal night
-        # sky and a pale disc apart, so the disc goes white, exactly what a
-        # C64 pixel artist paints. The big white count per cell then defends
-        # its slot in cell_pick on its own.
-        for x, y in salient:
-            idx[y][x // 2] = 1
+def _flat_base(rows, salient=None):
+    """Master to THE FLAT BASE (Stefan's architecture ruling, 2026-07-13):
+    the equivalent of the CPC original every good historical Rabenstein
+    8-bit port was fed from (Dylan Barry painted on the CPC first; Pixel
+    Polizei applied the sibling constraints). 160 wide, colors from the
+    CPC's 27-cube, at most SIXTEEN inks chosen by frequency, and NO
+    blending and NO dither anywhere: averaging manufactures blend colors
+    and dither manufactures noise, and the constraint stages downstream
+    then fight to remove both (five rounds of A8 taste machinery said
+    so). Pairs collapse by agreement, disagreement resolved by global
+    frequency. Returns (rows of ink indices, ink cube ids)."""
+    lv = (0, 0x80, 0xFF)
+    cube = [(lv[r], lv[g], lv[b])
+            for r in range(3) for g in range(3) for b in range(3)]
+    m = [[_nearest(c, cube) for c in row] for row in rows]
     freq = {}
-    for row in idx:
-        for c in row:
-            freq[c] = freq.get(c, 0) + 1
-    candidates = sorted(freq, key=freq.get, reverse=True)[:4]
+    for row in m:
+        for i in row:
+            freq[i] = freq.get(i, 0) + 1
+    half = []
+    for row in m:
+        out = []
+        for x in range(0, len(row), 2):
+            a, b = row[x], row[x + 1]
+            out.append(a if a == b or freq.get(a, 0) >= freq.get(b, 0)
+                       else b)
+        half.append(out)
+    freq = {}
+    for row in half:
+        for i in row:
+            freq[i] = freq.get(i, 0) + 1
+    inks = sorted(freq, key=freq.get, reverse=True)[:16]
+    order = {k: i for i, k in enumerate(inks)}
+    stray = {}
+    base = []
+    for row in half:
+        out = []
+        for i in row:
+            if i in order:
+                out.append(order[i])
+            else:
+                if i not in stray:
+                    stray[i] = order[min(
+                        inks, key=lambda k: _dist(cube[i], cube[k]))]
+                out.append(stray[i])
+        base.append(out)
+    if salient:
+        # The moon ruling rides the base: a halved cell whose BOTH master
+        # pixels are salient takes the brightest ink (the A8 lesson: on
+        # either-pixel forcing the treeline dies).
+        bright = order[max(inks, key=lambda k: 2 * cube[k][0]
+                           + 4 * cube[k][1] + cube[k][2])]
+        cells = {}
+        for x, y in salient:
+            cells[(x // 2, y)] = cells.get((x // 2, y), 0) + 1
+        for (hx, y), n in cells.items():
+            if n == 2:
+                base[y][hx] = bright
+    return base, inks
+
+
+def _convert_c64(rows, salient=None):
+    # Multicolor bitmap, by PIXEL POLIZEI'S RECIPE from the flat base
+    # (m_c64mc.pde, WTFPL, Markku Reunanen; the workflow that made the
+    # historical Rabenstein ports): every base ink maps plainly to its
+    # nearest Pepto color, the background is the most frequent color
+    # among the CLASHING blocks only, and a clashing block keeps its
+    # three most frequent colors plus the background, remapped locally.
+    # Frequency and locality, no global optimizer: on flat 16-ink input
+    # most blocks never clash and the fix is rare and gentle.
+    base, inks = _flat_base(rows, salient)
+    h, w = len(base), len(base[0])
+    irgb = [_cpc_color(k) for k in inks]
+    pmap = [_nearest(c, _PEPTO) for c in irgb]
+    idx = [[pmap[i] for i in row] for row in base]
+    if salient:
+        # The hinted disc goes WHITE, exactly what a C64 pixel artist
+        # paints (the swallowed-moon ruling, unchanged from R3).
+        cells = {}
+        for x, y in salient:
+            cells[(x // 2, y)] = cells.get((x // 2, y), 0) + 1
+        for (hx, y), n in cells.items():
+            if n == 2:
+                idx[y][hx] = 1
     cells_x, cells_y = w // 4, h // 8
 
-    def cell_hist(cx, cy):
+    def block_hist(cx, cy):
         hist = {}
         for yy in range(8):
             for xx in range(4):
@@ -1420,60 +1492,48 @@ def _convert_c64(rows, salient=None):
                 hist[c] = hist.get(c, 0) + 1
         return hist
 
-    hists = [[cell_hist(cx, cy) for cx in range(cells_x)]
+    hists = [[block_hist(cx, cy) for cx in range(cells_x)]
              for cy in range(cells_y)]
 
-    def cell_pick(hist, bg):
-        """The cell's three free colors by GREEDY ERROR MINIMIZATION in the
-        luminance-dominant space, not by frequency: a few very bright pixels
-        (a moon over dark trees) cost more to lose than a middling shade
-        seen often, so they claim a slot (the swallowed-moon lesson)."""
-        pool = [c for c in hist if c != bg]
-        free = []
-        allowed = [bg]
-        while pool and len(free) < 3:
-            def gain(cand):
-                cost = 0
-                for c, cnt in hist.items():
-                    d = min(_dist_luma(_COLODORE[c], _COLODORE[a])
-                            for a in allowed + [cand])
-                    cost += cnt * d
-                return cost
-            pick = min(pool, key=gain)
-            free.append(pick)
-            allowed.append(pick)
-            pool.remove(pick)
-        free += [bg] * (3 - len(free))
-        return free
-
-    def bg_cost(bg):
-        cost = 0
+    # Background election, the Polizei way: only blocks that would clash
+    # (four or more distinct colors) vote, each for every color it holds.
+    votes = {}
+    for cy in range(cells_y):
+        for cx in range(cells_x):
+            if len(hists[cy][cx]) > 3:
+                for c in hists[cy][cx]:
+                    votes[c] = votes.get(c, 0) + 1
+    if votes:
+        bg = max(votes, key=votes.get)
+    else:
+        total = {}
         for cy in range(cells_y):
             for cx in range(cells_x):
-                hist = hists[cy][cx]
-                allowed = [bg] + cell_pick(hist, bg)
-                for c, cnt in hist.items():
-                    cost += cnt * min(_dist_luma(_COLODORE[c], _COLODORE[a])
-                                      for a in allowed)
-        return cost
+                for c, n in hists[cy][cx].items():
+                    total[c] = total.get(c, 0) + n
+        bg = max(total, key=total.get)
 
-    bg = min(candidates, key=bg_cost)
     pixels = [[0] * w for _ in range(h)]
     screen = []
     color = []
     for cy in range(cells_y):
         for cx in range(cells_x):
             hist = hists[cy][cx]
-            free = cell_pick(hist, bg)
+            # The block's free colors: its most frequent non-background
+            # colors, three at most (the Polizei fix keeps exactly these).
+            free = [c for c in sorted(hist, key=hist.get, reverse=True)
+                    if c != bg][:3]
             allowed = [bg] + free
+            argb = [_PEPTO[c] for c in allowed]
             for yy in range(8):
                 for xx in range(4):
                     c = idx[cy * 8 + yy][cx * 4 + xx]
-                    if c not in allowed:
-                        c = min(allowed,
-                                key=lambda a, cc=c: _dist_luma(_COLODORE[cc],
-                                                               _COLODORE[a]))
-                    pixels[cy * 8 + yy][cx * 4 + xx] = allowed.index(c)
+                    if c in allowed:
+                        code = allowed.index(c)
+                    else:
+                        code = _nearest(_PEPTO[c], argb)
+                    pixels[cy * 8 + yy][cx * 4 + xx] = code
+            free += [bg] * (3 - len(free))
             screen.append((free[0] << 4) | free[1])
             color.append(free[2])
     return {"w": w, "h": h, "pixels": pixels, "screen": screen,
@@ -1685,103 +1745,17 @@ def _convert_zx3(rows, salient=None):
 
 def _convert_cpc(rows, salient=None):
     # Mode 0: 160 wide, 2:1 pixels, 16 inks freely chosen from the 27-color
-    # cube (levels 0/128/255 per channel), no cells: the quantize recipe with
-    # the wide-pixel geometry. Ink numbers are the r*9+g*3+b index; the
-    # loader maps them to gate-array values with its own table (docs/08).
-    #
-    # Ink selection picks the best 16 OF THE 27 directly, by greedy error
-    # minimization over the image histogram. The earlier route (median cut,
-    # then snap each cluster to the cube) collapsed a gradient master's 16
-    # clusters into a handful of inks after snapping and padded the rest
-    # with black: the stresstest beach came out a six-ink grey mess. There
-    # is no cluster middleman to collapse here; a flat master whose colors
-    # sit on the cube still gets them exactly.
-    rows = _halve_width(rows)
-    w, h = len(rows[0]), len(rows)
-
-    def q3(v):
-        return 0 if v < 64 else (1 if v < 192 else 2)
-
-    lv = (0, 0x80, 0xFF)
-    cube = [(lv[r], lv[g], lv[b])
-            for r in range(3) for g in range(3) for b in range(3)]
-
-    def dist_cpc(a, b):
-        # Chroma dumping costs extra. The 27-cube has no dusty mid colors,
-        # and by plain distance a mauve sunset sky IS closest to grey; an
-        # artist keeps the hue family (rose) and accepts the brightness
-        # error instead. Penalize losing saturation, scaled by how much
-        # saturation there was to lose; exact matches are unaffected.
-        sa = max(a) - min(a)
-        sb = max(b) - min(b)
-        return _dist(a, b) + 3 * max(0, sa - sb) * sa
-
-    hist = {}
-    for row in rows:
-        for c in row:
-            hist[c] = hist.get(c, 0) + 1
-    colors = list(hist)
-    dmat = [[dist_cpc(c, k) for k in cube] for c in colors]
-    INF = 1 << 60
-    cur = [INF] * len(colors)          # best distance under chosen inks
-    chosen = []
-    while len(chosen) < 16 and len(chosen) < 27:
-        best_gain, best_k = -1, None
-        for k in range(27):
-            if k in chosen:
-                continue
-            gain = 0
-            for ci in range(len(colors)):
-                d = dmat[ci][k]
-                if d < cur[ci]:
-                    gain += hist[colors[ci]] * (cur[ci] - d)
-            if gain > best_gain:
-                best_gain, best_k = gain, k
-        if best_gain <= 0 and len(chosen) >= 1:
-            break                       # every color is already exact
-        chosen.append(best_k)
-        for ci in range(len(colors)):
-            d = dmat[ci][best_k]
-            if d < cur[ci]:
-                cur[ci] = d
-    pal = [cube[k] for k in chosen]
-    pal += [(0, 0, 0)] * (16 - len(pal))
-    # Color-first, dither-only-at-transitions (Stefan the pixel artist: he
-    # would not blend a whole sky, he would replace its color flat and
-    # layer a few pixels where the bands meet). So: map every pixel FLAT
-    # to its nearest ink; then, for gradient masters only, sprinkle the
-    # Bayer mix on the pixels that sit at a quantization band boundary
-    # inside a smooth region of the master. Band interiors stay solid (a
-    # sun stays a solid disc), hard edges (cliff against sky) stay hard.
-    pixels = _map_pixels(rows, pal, 0, metric=dist_cpc)
-    if _gradient_class(rows):
-        out = [row[:] for row in pixels]
-        for y in range(h):
-            for x in range(w):
-                me = pixels[y][x]
-                c = rows[y][x]
-                mixed = smooth = True
-                mx = 0
-                for dy in (-1, 0, 1):
-                    for dx in (-1, 0, 1):
-                        ny, nx = y + dy, x + dx
-                        if 0 <= ny < h and 0 <= nx < w:
-                            if pixels[ny][nx] != me:
-                                mx = 1
-                            n = rows[ny][nx]
-                            if (abs(n[0] - c[0]) + abs(n[1] - c[1])
-                                    + abs(n[2] - c[2])) > 90:
-                                smooth = False
-                mixed = bool(mx)
-                if mixed and smooth:
-                    t = (_BAYER8[y & 7][x & 7] / 63.0 - 0.5) * 2 * 10
-                    j = (min(255, max(0, round(c[0] + t))),
-                         min(255, max(0, round(c[1] + t))),
-                         min(255, max(0, round(c[2] + t))))
-                    out[y][x] = _nearest(j, pal, metric=dist_cpc)
-        pixels = out
-    inks = [q3(c[0]) * 9 + q3(c[1]) * 3 + q3(c[2]) for c in pal]
-    return {"w": w, "h": h, "pixels": pixels, "palette": inks, "regs": [0]}
+    # cube, no cells. Since the architecture ruling this converter IS the
+    # flat base: the CPC is the freest 8-bit canvas, which is why Dylan
+    # Barry painted Rabenstein on it first and why every 8-bit sibling
+    # derives from this image. Ink selection is Polizei's: the sixteen
+    # most frequent cube colors, stragglers to their nearest kept ink.
+    base, inks = _flat_base(rows, salient)
+    pal = list(inks)
+    while len(pal) < 16:
+        pal.append(0)  # unused slots; a duplicate ink is legal hardware
+    return {"w": len(base[0]), "h": len(base), "pixels": base,
+            "palette": pal, "regs": [0]}
 
 
 # The 128 colors an Atari color register can hold apart: 16 hues x 8
@@ -1789,6 +1763,7 @@ def _convert_cpc(rows, salient=None):
 # exist; the byte is hue<<4 | luma, written to the register verbatim.
 _GTIA128 = [(hue << 4) | (luma << 1) for hue in range(16) for luma in range(8)]
 _GTIA_RGB = [_gtia_color(v) for v in _GTIA128]
+
 
 # Colodore to GTIA, computed against the current wheel (a future measured
 # wheel shifts the whole mapping with it); the frozen table is printed in
@@ -1798,12 +1773,12 @@ _GTIA_RGB = [_gtia_color(v) for v in _GTIA128]
 # their bytes first and a collision takes its next-best unused one.
 def _c64_to_gtia():
     order = sorted(range(16), key=lambda i: min(
-        _dist(_COLODORE[i], g) for g in _GTIA_RGB))
+        _dist(_PEPTO[i], g) for g in _GTIA_RGB))
     out = [0] * 16
     taken = set()
     for i in order:
         ranked = sorted(range(len(_GTIA_RGB)),
-                        key=lambda k: _dist(_COLODORE[i], _GTIA_RGB[k]))
+                        key=lambda k: _dist(_PEPTO[i], _GTIA_RGB[k]))
         for k in ranked:
             if _GTIA128[k] not in taken:
                 out[i] = _GTIA128[k]
@@ -2509,7 +2484,7 @@ class _C64:
                     c = native["screen"][cell] & 15
                 else:
                     c = native["color"][cell] & 15
-                rgb = _COLODORE[c]
+                rgb = _PEPTO[c]
                 row.append(rgb)
                 row.append(rgb)  # 2:1 wide pixels render doubled
             rows.append(row)
