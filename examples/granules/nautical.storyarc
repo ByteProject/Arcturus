@@ -15,7 +15,9 @@
 //   arcc examples/granules/nautical.storyarc -o freighter.z5
 //   frotz freighter.z5
 //
-// TRY: aft / port / examine crate / sb / aft / f / fore / fore
+// TRY: aft / port / examine crate / sb / aloft / below / aft / f / fore /
+//      fore (ashore) / port ("Nautical directions mean nothing here.") /
+//      board / port
 
 game
     title "The Cormorant"
@@ -29,8 +31,15 @@ summon.statusline
 room bridge
     name "Bridge"
     desc "The freighter's bridge, all worn brass and quiet dials. The
-          companionway leads aft."
+          companionway leads aft; the lookout's perch is aloft."
     aft companionway
+    up perch
+
+room perch
+    name "Lookout's Perch"
+    desc "Wind and gulls. The bridge is below: a vessel is a volume, and
+          ALOFT and BELOW are as nautical as PORT and STARBOARD."
+    down bridge
 
 room companionway
     name "Companionway"
@@ -63,8 +72,28 @@ room galley
 room engine_room
     name "Engine Room"
     desc "The engine thrums like a heart that has never once skipped. The
-          companionway is fore."
+          companionway is fore; the gangway to the quay is out."
     fore companionway
+    out quay
+
+// Ashore, nautical words stop applying: the gangway flips dirs_nautical,
+// the granule's flag (true by default, so a pure ship game never touches
+// it), and FORE/AFT/PORT/STARBOARD then refuse with their own honest line
+// instead of a misleading "no exit". ALOFT and BELOW stay live: they ride
+// up and down, which exist everywhere.
+room quay
+    name "Quay"
+    desc "Dry land, coiled ropes, the Cormorant at her lines. The gangway
+          back aboard is in."
+    in engine_room
+    on enter
+        change dirs_nautical to false
+
+on go
+    if here is quay
+        if way is in
+            change dirs_nautical to true
+    continue
 
 // A direction handler reads like any other: on go <direction>. This one
 // adds a line on the way forward from the companionway, then lets the

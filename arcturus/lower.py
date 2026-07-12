@@ -23,6 +23,8 @@ LowerError for them.
 
 from __future__ import annotations
 
+import sys
+
 from . import ast
 from . import storyfile
 from . import worldmodel as wm
@@ -1400,6 +1402,22 @@ def _materialize_bool(rt, ctx, expr, dest):
 
 def cond_jump(rt: Routine, ctx: Context, expr, label: str, on_true: bool) -> None:
     if isinstance(expr, ast.Logic):
+        # The Inform6 or-list trap (a field report: `if way is north or aft`
+        # was always true): a bare value as a logic operand is a constant
+        # condition. Say so at compile time and show the cure.
+        for side in (expr.left, expr.right):
+            if isinstance(side, ast.Name) and _is_leaf(ctx, side):
+                op = _leaf_operand(ctx, side)
+                if op is not None and op.routine is None and op.string is None \
+                        and op.kind in (0, 1) and op.value != 0:
+                    print(
+                        f"arcc: note: '{side.ident}' stands alone in an "
+                        f"'{expr.op}' condition, so it is a constant and "
+                        f"always true; a comparison distributes by hand "
+                        f"(`way is north or way is aft`), never by comma "
+                        f"or by listing",
+                        file=sys.stderr,
+                    )
         if expr.op == "and":
             if on_true:
                 skip = ctx.new_label()

@@ -226,14 +226,25 @@ compiler's own direction data, so it always matches the map.
 summon.nautical
 ```
 
-The four nautical directions, FORE, AFT, PORT, and STARBOARD (with F and SB
-as the ship's shorthand), for a game set aboard a vessel or a deep space
-craft, where the compass fails: cardinal directions are measured around the
-pole of a planet, and in deep space there is no pole (the Hibernated
-problem). The direction properties are part of the compiler's standard set,
-so exits, handlers, and `way` tests read like any other (`fore engine_room`,
+The nautical directions, FORE, AFT, PORT, and STARBOARD (with F and SB as
+the ship's shorthand), plus ALOFT and BELOW riding the existing up and
+down, because a vessel is a volume, not a deck plan (a submarine, a
+crow's nest): for a game set aboard a ship or a deep space craft, where
+the compass fails (cardinal directions are measured around the pole of a
+planet, and in deep space there is no pole; the Hibernated problem). The
+four horizontal properties are part of the compiler's standard set, so
+exits, handlers, and `way` tests read like any other (`fore engine_room`,
 `on go fore`, `if way is aft`); the granule adds the player-facing words.
 Nautical and compass directions coexist in one game.
+
+WHERE THE WORDS APPLY: `dirs_nautical`, the granule's flag, true by
+default, so a pure ship game never touches it. Set it false as the player
+steps ashore (`change dirs_nautical to false`, back to true at the
+gangplank) and the four nautical-only words refuse honestly, "Nautical
+directions mean nothing here." (msg_no_nautical, overridable), instead of
+a misleading "no exit". ALOFT and BELOW stay live either way: they are
+synonyms of up and down, which exist everywhere, and gating them would
+gate every cellar staircase ashore.
 
 ### conversations
 
