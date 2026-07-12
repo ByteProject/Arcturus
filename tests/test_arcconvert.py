@@ -185,6 +185,20 @@ def test_a8_respects_the_hardware():
     assert all(0 <= p <= 3 for row in native["pixels"] for p in row)
 
 
+def test_a8_inherits_the_c64_taste():
+    # The R4 ruling: the A8 derives from the C64 conversion (the 80s port
+    # route), so every register byte it ever emits is one of the sixteen
+    # Colodore-mapped GTIA bytes, and the mapping is injective (red and
+    # orange must not merge; a fire keeps its shading).
+    gt = arcimg._c64_to_gtia()
+    assert len(set(gt)) == 16
+    allowed = set(gt)
+    for name in (ALL[0], "8.png"):
+        _mode, native = arcimg.convert_master(os.path.join(MASTERS, name),
+                                              "A8")
+        assert set(native["lines"]) <= allowed, name
+
+
 def test_a8_line_table_is_quiet():
     # The whole point of the solver: line palettes drawn from one stable
     # global set, held and role-assigned line to line, so flat regions emit
@@ -229,6 +243,24 @@ def test_hint_promotes_the_disc_to_white(tmp_path):
         whites = sum(1 for row in rendered for c in row
                      if c[0] > 200 and c[1] > 200 and c[2] > 200)
         assert whites > 100, tag
+
+
+def test_a8_hand_polished_c64_is_the_source(tmp_path):
+    # Hand-polish inheritance (Stefan's ruling): a hand-authored .C64 is
+    # the source of the whole 8-bit family's taste, so the A8 job derives
+    # from it, mode included, instead of reconverting the master.
+    path = os.path.join(MASTERS, ALL[0])
+    mode, c64 = arcimg.convert_master(path, "C64")
+    hand = tmp_path / f"{ALL[0].split('.')[0]}.C64"
+    hand.write_bytes(arcimg.encode_native("C64", mode, 0, c64, hand=True))
+    assert arcimg._is_hand_authored(str(hand))
+    dest = tmp_path / "0.A8"
+    res = arcimg._convert_job((0, path, "A8", str(dest), None, None,
+                               str(hand)))
+    assert not isinstance(res, str), res
+    tag2, mode2, _iid, native = arcimg.decode_arc(dest.read_bytes())
+    assert (tag2, mode2) == ("A8", mode)
+    assert set(native["lines"]) <= set(arcimg._c64_to_gtia())
 
 
 def test_a8_hint_promotes_the_disc_to_full_luminance(tmp_path):
