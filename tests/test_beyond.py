@@ -79,3 +79,32 @@ def test_second_slot_guarded_but_talk_free():
     out = _run(["put pebble in basket", "ask keeper about honey"])
     assert "The basket is beyond your reach." in out
     assert "Top shelf. Use the stool." in out    # conversation crosses the gap
+
+
+def test_beyond_speaks_its_own_why():
+    # The Charles request: attach the reason to the attribute itself, the
+    # desc-block shape. String form, block form, and the generic fallback.
+    game = (
+        'game\n    title "T"\n    start pantry\n'
+        'room pantry\n    name "Pantry"\n    desc "Shelves."\n'
+        'thing jar in pantry\n    name "jar"\n    words jar\n'
+        '    beyond "Without the ladder, the top shelf might as well be the moon."\n'
+        'thing bulb in pantry\n    name "bulb"\n    words bulb\n'
+        '    beyond block\n'
+        '        show("It hangs a clear ")\n'
+        '        show(3)\n'
+        '        say " feet above your reach."\n'
+        'thing hook in pantry\n    name "hook"\n    words hook\n'
+        '    beyond\n'
+    )
+    from arcturus import cosmos as _c
+    story = generate(analyze(_c.combined_program(parse(game))))
+    io = CaptureIO(script=["take jar", "take bulb", "take hook"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert "might as well be the moon." in out
+    assert "It hangs a clear 3 feet above your reach." in out
+    assert "beyond your reach" in out          # the generic fallback, hook

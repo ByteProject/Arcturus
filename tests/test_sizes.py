@@ -29,7 +29,7 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
 CEILINGS = {
-    "features/beyond.storyarc": 16264,  # 2026-07-12 climb and GO ON board supporters
+    "features/beyond.storyarc": 16330,  # 2026-07-13 beyond carries its why (guard presence test, the Charles request)
     "features/alter.storyarc": 15980,  # 2026-07-13 alter defers: hoisted report routines + call sites (the Charles timing fix)
     "features/catalogs.storyarc": 15852,  # 2026-07-12 climb and GO ON board supporters
     "features/direction-grammar.storyarc": 16040,  # 2026-07-12 climb and GO ON board supporters

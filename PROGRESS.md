@@ -3763,3 +3763,18 @@ Z-machine). Three slots, each with one owner: say = the attempt,
 alter = the report, on after = the coda. Syntax unchanged, all three
 forms; a game without alter stays byte-identical (ceilings prove it;
 the alter example's own ceiling raised with the dated note). Suite 867.
+
+## 2026-07-13, late: beyond carries its why (arcc 0.11.41, Cosmos 0.36.0)
+
+Charles again, and Stefan endorsed on sight: the beyond refusal should
+say WHY the thing is out of reach, per object, the desc-block shape.
+Built exactly so: `beyond "Without the ladder, the top shelf might as
+well be the moon."` speaks your line instead of the generic
+msg_beyond; `beyond block` opens a computed body worded by state; bare
+`beyond` keeps the pack's message. Under the hood sema splits the
+valued form into the bool attribute plus a beyond_why text property
+(computed under the block form, the desc machinery unchanged), the
+guards test presence via beyond_why_addr (absent property folds to
+nothing, a beyond game without whys pays only the test), and both
+noun and second slots speak it. Only the beyond example's ceiling
+moved, dated. Suite 868.

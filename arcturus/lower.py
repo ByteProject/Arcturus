@@ -169,6 +169,7 @@ INTRINSICS = frozenset({
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr", "article_addr", "indefinite_addr", "tag_addr",
     "appearance_addr",
+    "beyond_why_addr",
     # any_appearance is 1 when anything declares `appearance`, so the room
     # describer's check folds away otherwise.
     "any_appearance",
@@ -1009,7 +1010,7 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("get_prop_addr", op, Const(_words_prop(ctx)), store=dest)
         _free(ctx, t)
     elif name in ("desc_addr", "intro_addr", "article_addr", "indefinite_addr",
-                  "tag_addr", "appearance_addr"):
+                  "tag_addr", "appearance_addr", "beyond_why_addr"):
         # <prop>_addr(obj): the address of the object's desc, intro, article,
         # or indefinite property (0 if it has none), so the room describer and
         # the article blocks can test for one before printing it.
@@ -1017,6 +1018,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         op, t = _operand(rt, ctx, args[0])
         pnum = ctx.prop_number(prop)
         if pnum is None:
+            if prop == "beyond_why":
+                # A game with beyond but no why texts: the presence test
+                # answers nothing and the generic msg_beyond speaks.
+                _place(rt, Const(0), dest)
+                _free(ctx, t)
+                return
             raise LowerError(f"{name} needs a {prop} property")
         rt.op("get_prop_addr", op, Const(pnum), store=dest)
         _free(ctx, t)
