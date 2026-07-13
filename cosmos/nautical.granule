@@ -38,6 +38,18 @@
 // msg block, so a story rewords it; the whole gate costs nothing while
 // the flag stays true.
 //
+// IF YOUR GAME BEGINS ASHORE: the default is true (aboard), so set the
+// flag false at the very start, not only when stepping off the boat, or
+// the OPENING room treats nautical directions as live and answers "no
+// exit" there. An `on start` rule does it:
+//
+//   on start
+//       change dirs_nautical to false
+//
+// The compiler notes this for you when the start room has no nautical
+// exit (a field report: the opening room is the one place a step-off
+// handler cannot reach).
+//
 // The words are English, like every granule's wording: a translation forks
 // this file beside its language pack (docs/05).
 

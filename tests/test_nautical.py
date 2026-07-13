@@ -105,3 +105,44 @@ def test_unsummoned_properties_compile_but_words_are_unknown():
     out = _run(["aft"], game=UNSUMMONED)
     assert "Those words don't add up to anything." in out
     assert "Walkway" not in out
+
+
+def test_land_start_gets_a_note(capsys):
+    # A field report (via Charles Moore Jr.): dirs_nautical defaults to true
+    # (aboard), so a game that begins ashore must set it false at the start
+    # or the opening room answers a nautical direction with the generic "no
+    # exit". The compiler notes it when the start room has no nautical exit.
+    game = (
+        'game\n    title "T"\n    start dock\nsummon.nautical\n'
+        'room dock\n    name "Dock"\n    desc "Planks."\n    in deck\n'
+        'room deck\n    name "Deck"\n    desc "Aboard."\n    out dock\n    aft cabin\n'
+        'room cabin\n    name "Cabin"\n    desc "Snug."\n    fore deck\n'
+    )
+    analyze(cosmos.combined_program(parse(game)))
+    err = capsys.readouterr().err
+    assert "nautical granule is summoned" in err
+    assert "dirs_nautical" in err
+
+
+def test_ship_start_is_quiet(capsys):
+    # The start room HAS a nautical exit (a vessel), so the default is right.
+    game = (
+        'game\n    title "T"\n    start bridge\nsummon.nautical\n'
+        'room bridge\n    name "Bridge"\n    desc "Brass."\n    aft hold\n'
+        'room hold\n    name "Hold"\n    desc "Dark."\n    fore bridge\n'
+    )
+    analyze(cosmos.combined_program(parse(game)))
+    assert "nautical granule is summoned" not in capsys.readouterr().err
+
+
+def test_land_start_handled_is_quiet(capsys):
+    # The author sets the flag at the start, so no note.
+    game = (
+        'game\n    title "T"\n    start dock\nsummon.nautical\n'
+        'on start\n    change dirs_nautical to false\n'
+        'room dock\n    name "Dock"\n    desc "Planks."\n    in deck\n'
+        'room deck\n    name "Deck"\n    desc "Aboard."\n    out dock\n    aft cabin\n'
+        'room cabin\n    name "Cabin"\n    desc "Snug."\n    fore deck\n'
+    )
+    analyze(cosmos.combined_program(parse(game)))
+    assert "nautical granule is summoned" not in capsys.readouterr().err

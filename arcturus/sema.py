@@ -92,6 +92,7 @@ class Analyzer:
         self._scan_awards()
         self._lint_unread_props()
         self._lint_alter_without_continue()
+        self._lint_nautical_land_start()
         # A summoned abbreviations.granule (B6) is compile-time data, not runtime
         # blocks, so it rides on the program straight through to codegen.
         self.world.abbreviations = getattr(self.program, "abbreviations", None)
@@ -1342,6 +1343,65 @@ class Analyzer:
                     f"alter, to hand the action to the library",
                     file=sys.stderr,
                 )
+
+    def _lint_nautical_land_start(self) -> None:
+        """A diagnostic for the shipped nautical granule (docs/05). Its
+        `dirs_nautical` flag defaults to TRUE, meaning aboard: the four
+        nautical directions are live and a bad one answers with the generic
+        "no exit". A game that BEGINS ASHORE must set the flag false at the
+        start, or the opening room silently gets that generic refusal instead
+        of the nautical one (a field report). If the granule is in use, the
+        start room declares no nautical exit (so it is likely dry land), and
+        no `on start` rule already sets the flag, say so."""
+        w = self.world
+        if "dirs_nautical" not in w.globals or w.start_room is None:
+            return
+        start = w.objects.get(w.start_room)
+        if start is None:
+            return
+        from . import objects as objmod
+        eff = objmod._effective_props(w, start)
+        if any(d in eff for d in ("fore", "aft", "port", "starboard")):
+            return  # the start room IS nautical: the default (aboard) is right
+        for h in w.free_handlers:
+            if "start" in h.events and self._sets_flag(h.body, "dirs_nautical"):
+                return  # the author already manages the flag at the start
+        print(
+            f"arcc: note: the nautical granule is summoned and the start room "
+            f"'{w.start_room}' has no fore/aft/port/starboard exit. "
+            f"dirs_nautical defaults to true (aboard), so a nautical direction "
+            f"there answers 'no exit' rather than the nautical refusal. If the "
+            f"start is dry land, set `change dirs_nautical to false` at the "
+            f"start (an `on start` rule).",
+            file=sys.stderr,
+        )
+
+    def _sets_flag(self, body, name: str) -> bool:
+        """Does this statement body assign the named flag anywhere (a `change
+        <flag> to ...`)? A generic dataclass walk, so nested ifs and loops
+        are covered."""
+        found = [False]
+
+        def visit(node):
+            if isinstance(node, ast.Change) and isinstance(
+                getattr(node, "target", None), ast.Name
+            ) and node.target.ident == name:
+                found[0] = True
+                return
+            if not dataclasses.is_dataclass(node):
+                return
+            for f in dataclasses.fields(node):
+                v = getattr(node, f.name)
+                if isinstance(v, list):
+                    for item in v:
+                        if dataclasses.is_dataclass(item):
+                            visit(item)
+                elif dataclasses.is_dataclass(v):
+                    visit(v)
+
+        for s in body:
+            visit(s)
+        return found[0]
 
 
 def analyze(

@@ -3923,3 +3923,18 @@ the true budget. NOTE: a mid-build misstep renamed the stat to
 "flags" -- reverted, because Arcturus HAS a distinct `flag` feature
 (a global boolean); calling attributes flags would have been wrong.
 Suite 879.
+
+## 2026-07-14: nautical land-start note (arcc 0.12.1)
+
+Charles Moore Jr. (self-resolved, shared for review): a nautical game
+that begins ASHORE got "no exit" instead of the nautical refusal for
+FORE/AFT/PORT/STARBOARD in the opening room. Not a bug: dirs_nautical
+defaults to true (aboard), so the opening room treats nautical
+directions as live until the flag is set false; a step-off handler
+can reach every land room EXCEPT the start. The fix is guidance made
+loud: the compiler now notes it when the nautical granule is summoned,
+the start room has no nautical exit, and no on-start rule sets the
+flag (sema._lint_nautical_land_start, scoped to the shipped granule
+via the dirs_nautical signal). Fires for a land start, silent for The
+Cormorant (ship start) and for an author who sets it in on start.
+Granule comment and docs/05 gained the land-start guidance. Suite 882.

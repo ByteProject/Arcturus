@@ -250,6 +250,14 @@ a misleading "no exit". ALOFT and BELOW stay live either way: they are
 synonyms of up and down, which exist everywhere, and gating them would
 gate every cellar staircase ashore.
 
+If your game BEGINS ashore, set the flag false at the very start, not just
+when stepping off the boat: the default is true (aboard), so the opening
+room would otherwise treat nautical directions as live and answer "no
+exit" there. An `on start` rule does it: `on start` / `change dirs_nautical
+to false`. The compiler emits a note when the nautical granule is summoned
+and the start room has no nautical exit, since the opening room is the one
+place a step-off handler can never reach.
+
 ### conversations
 
 ```
