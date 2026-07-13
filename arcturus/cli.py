@@ -333,6 +333,22 @@ def _make_abbreviations(args) -> int:
     return 0
 
 
+def _kinds_note(stats: dict) -> str:
+    """The kind budget, shown beside the attribute count so the two are never
+    confused: kinds are Arcturus sugar, effectively unlimited, riding the
+    attribute slots the real attributes leave free (the fast test) and
+    spilling to catalog membership scans beyond. Only genuine attributes are
+    bounded by the 48 ceiling."""
+    backed = stats.get("kinds_backed", 0)
+    spilled = stats.get("kinds_spilled", 0)
+    total = backed + spilled
+    if not total:
+        return ""
+    if spilled:
+        return f", kinds {total} ({spilled} spilled to catalogs)"
+    return f", kinds {total}"
+
+
 def _stats_report(stats: dict, version: int) -> str:
     """The compile-statistics ledger: what the story uses of each ceiling. Each
     line groups what an author watches together; a value with a hard Z-machine
@@ -343,8 +359,9 @@ def _stats_report(stats: dict, version: int) -> str:
         f"  world     {stats['objects']} objects in {stats['kinds']} kinds; "
         f"{stats['grains']} grains, {stats['topics']} topics, "
         f"{stats['timers']} timers",
-        f"  tables    attributes {stats['attributes']}/{stats['attributes_max']}, "
-        f"properties {stats['properties']}/{stats['properties_max']}, "
+        f"  tables    attributes {stats['attributes']}/{stats['attributes_max']}"
+        + _kinds_note(stats)
+        + f", properties {stats['properties']}/{stats['properties_max']}, "
         f"globals {stats['globals']}/{stats['globals_max']}",
         f"  grammar   {stats['verbs']} verbs, {stats['grammar_lines']} grammar "
         f"lines, {stats['actions']} actions; {stats['dict_words']} dictionary "

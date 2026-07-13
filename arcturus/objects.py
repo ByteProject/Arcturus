@@ -274,14 +274,15 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
         prop = world.properties[name]
         if prop.storage == wm.STORE_ATTRIBUTE:
             if a >= _MAX_ATTRIBUTES:
-                # The only real attribute ceiling: genuine boolean FLAGS, which
-                # must be attributes (mutable per-object state). Kinds never
-                # cause this, they spill to catalog membership; so name flags,
-                # not kinds. (Flags spilling to property bytes is a later lever.)
+                # The only real attribute ceiling: genuine object attributes
+                # (mutable per-object boolean state). Kinds never cause this,
+                # they spill to catalog membership; so name attributes, not
+                # kinds. (Attributes spilling to property bytes is a later
+                # lever, when even this ceiling can move.)
                 raise _err(
-                    f"more than {_MAX_ATTRIBUTES} boolean flags: the "
-                    f"Z-machine v5 attribute limit. Kinds do not count here "
-                    f"(they spill to catalogs); this is genuine flag state")
+                    f"more than {_MAX_ATTRIBUTES} attributes: the Z-machine "
+                    f"v5 limit. Kinds do not count here (they spill to "
+                    f"catalogs); this is genuine object attribute state")
             layout.attr_number[name] = a
             a += 1
         elif name not in _SPECIAL:

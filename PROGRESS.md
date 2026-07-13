@@ -3892,3 +3892,34 @@ line and the cure. The misplaced-continue error (continue inside the
 block) now guides placement too (ctx.in_alter_block marker). docs/01
 states the continue requirement as a rule. Compiler-only, Cosmos
 unchanged. Suite 872.
+
+## 2026-07-14: kinds are effectively unlimited (arcc 0.12.0)
+
+Charles Moore Jr. hit the 48-attribute wall porting a 200K Dialog
+game, "out of kinds and attributes". Root: a kind is Arcturus sugar,
+not a Z-machine concept (Stefan's framing: Inform's classes are just
+objects and cost nothing), yet every kind unconditionally burned one
+of the 48 attributes so `obj is <kind>` could be a one-byte
+test_attr. Three tiers, built together (minor bump for the
+capability):
+- Lever 1: a kind gets a runtime attribute ONLY when the program
+  tests `obj is <kind>`. Spanning (Charles's most-used feature)
+  expands to concrete rooms at compile time and never tests the kind,
+  so scenery-organizing kinds now cost ZERO. sema counts test sites
+  (world.kind_tests).
+- Attribute-back the tested kinds busiest-first from the slots real
+  attributes leave free (flags... no, genuine object attributes come
+  first, they cannot spill).
+- Catalog spill: overflow tested kinds get a synthesized extent
+  catalog (transitive instances) and `obj is <kind>` becomes a
+  membership scan; kinds uncapped. Verified on the VM incl. transitive
+  membership through a spilled parent. Reuses the catalog feature
+  (Stefan's call: our own architecture, not Inform's ofclass); the
+  scan reads resident dynamic memory, no Ozmoo disk paging.
+The only real ceiling is now 48 genuine ATTRIBUTES, and the error
+names them honestly (kinds never count). `arcc -s` shows
+"attributes N/48, kinds M (K spilled to catalogs)" so the author sees
+the true budget. NOTE: a mid-build misstep renamed the stat to
+"flags" -- reverted, because Arcturus HAS a distinct `flag` feature
+(a global boolean); calling attributes flags would have been wrong.
+Suite 879.

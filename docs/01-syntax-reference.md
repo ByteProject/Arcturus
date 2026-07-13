@@ -521,9 +521,9 @@ compile time and consumes no attribute at all. Tested kinds take the fast
 one-byte membership test from the attribute slots your real flags leave free,
 busiest first; when those run out, further tested kinds fall back to a catalog
 membership scan (slightly slower, but only on the cold tail), so you never hit
-a "too many kinds" wall. The only real attribute ceiling is 48 genuine boolean
-FLAGS (mutable per-object state), which is the Z-machine v5 limit; `arcc -s`
-shows flags and kinds separately so you always see your true budget.
+a "too many kinds" wall. The only real ceiling is 48 genuine object attributes
+(mutable per-object state), which is the Z-machine v5 limit; `arcc -s` shows
+attributes and kinds separately so you always see your true budget.
 
 ### Standard value properties
 
