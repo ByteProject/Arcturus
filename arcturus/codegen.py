@@ -1023,6 +1023,10 @@ def _hoist_alters(world, gmap, layout, pool, handler, name):
         ctx = Context(world, gmap, layout=layout,
                       self_value=Variable(gmap["altered_self"]),
                       string_pool=pool)
+        # The alter body is a deferred report routine, not handler flow, so
+        # `continue` is illegal here; the marker lets the error name where
+        # continue belongs (the handler body, one indent out).
+        ctx.in_alter_block = True
         if node.value is not None:
             _say(aux, ctx, node.value)
         else:

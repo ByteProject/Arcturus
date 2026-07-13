@@ -128,3 +128,35 @@ def test_no_exit_never_staggers():
     east = out.split(">east")[1]
     assert "You stagger drunkenly onward." in east
     assert east.index("stagger") < east.index("Yard")  # before the room
+
+
+def test_alter_without_continue_gets_a_note(capsys):
+    # The field trap (Charles Moore Jr.): a handler that alters but never
+    # continues dies at the handler level (the general handler design), so
+    # it consumes the action, the library's success site never runs, and
+    # the registered report can never fire, silently. The compiler says so,
+    # naming the alter's line and the cure.
+    game = (
+        'game\n    title "T"\n    start veranda\nsummon.extendedverbs\n'
+        'room veranda\n    name "Veranda"\n    desc "A veranda."\n'
+        'thing swing of supporter in veranda\n    name "swing"\n    words swing\n'
+        '    on climb, enter\n'
+        '        alter "You settle onto the swing."\n'
+    )
+    analyze(cosmos.combined_program(parse(game)))
+    err = capsys.readouterr().err
+    assert "alters but never continues" in err
+    assert "add `continue`" in err
+
+
+def test_alter_with_continue_stays_quiet(capsys):
+    game = (
+        'game\n    title "T"\n    start veranda\nsummon.extendedverbs\n'
+        'room veranda\n    name "Veranda"\n    desc "A veranda."\n'
+        'thing swing of supporter in veranda\n    name "swing"\n    words swing\n'
+        '    on climb, enter\n'
+        '        alter "You settle onto the swing."\n'
+        '        continue\n'
+    )
+    analyze(cosmos.combined_program(parse(game)))
+    assert "alters but never continues" not in capsys.readouterr().err

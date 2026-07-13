@@ -821,6 +821,14 @@ the attempt and the success between them. The registered body runs after
 the handler has returned: it reads globals, `noun`, and `self`, but not
 the handler's own `let` locals.
 
+The `continue` is REQUIRED, not decoration: a handler that alters but
+never continues dies at the handler level (the general handler design,
+section 12), so it consumes the action, the library's success site never
+runs, and your report can never fire, nor does the action itself happen.
+The compiler notes this at build time. Put `continue` in the handler
+body, one indent out from the alter; it does not belong inside an `alter
+block`, which is the report's text, not handler flow.
+
 ```
 on take
     alter "The idol comes free with a reluctance you can feel."
