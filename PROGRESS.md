@@ -3797,3 +3797,79 @@ lines at parse time, so the dictionary, both grammar models, and the
 matcher never learn a new shape, and it costs exactly what writing
 the lines out costs. Slots refuse to be alternatives with a clear
 error. Suite 870.
+
+## 2026-07-13, checkpoint for the next session (Opus pickup)
+
+State of the repo: arcc 0.11.43 (amalgam build 82a3549), Cosmos
+0.36.0, arcimg 1.10.0 (build da4a1f1), Actaea 1.0.4, highlighter
+0.13.3 (current; no grammar changes needed today). HEAD f7fd9a4,
+870 tests green, all amalgams regenerated and committed. Stefan
+pushed through arcc 0.11.40; EVERYTHING SINCE (0.11.41 beyond-why,
+0.11.42 say-way, 0.11.43 or-particles, the Larder example) awaits
+his push, so arcc --update lags until then.
+
+THE ADOPTER WAVE, all Charles Moore Jr., all shipped today with
+tests, docs, and Discord replies delivered in-thread: (1) alter
+REGISTERS and fires only on success, at the report site, instead of
+the default line (codegen._hoist_alters routines, altered +
+altered_self globals, run_alter intrinsic at 36 library sites, GO
+fires before the room description, perform saves/restores, handler
+locals cannot cross into the deferred body); say = attempt, alter =
+report, on after = coda. (2) beyond carries its why: beyond "..." /
+beyond block (sema splits into the attribute + beyond_why text prop,
+guards test presence via beyond_why_addr, generic msg_beyond stays
+the fallback; The Larder shows both forms). (3) say way / ${way}
+speaks the direction's canonical word (cosmos_dir_name je-chain over
+live directions, emitted only when referenced). (4) grammar
+particles chain with or (put noun in or into noun; parse-time
+expansion into sibling lines, no new matcher shape).
+
+ARC_IMAGE, where it stands. The architecture is settled and
+design.md section 4 is the authoritative record: C64 direct from
+master by Pixel Polizei's recipe on Colodore, THE SPICE (seam-only
+in-cell dither, 0.40 midband, smooth-mask gated, discs solid), C64
+is the base of the deriving family, CPC = recolor of C64 pixels
+with cube-space de-grey (keeps the dither weave; grey-axis ban),
+A8 = segment solve over the C64's 8-line cell rhythm with defenses
+priced inside seg_pick (bright star, dark anchor, neutral-first
+victims, symmetric chroma penalty), the DE-GREY re-reads C64 greys
+through the master's hue everywhere (salient discs exempt). PP
+source stashed UNCOMMITTED at arc_image/reference/ppolizei
+(gitignored). BEACH GATE PASSED on C64+CPC+A8 (commit 0740b58);
+Stefan explicitly deferred the corpus review ("I will check the
+corpus later"): the corpus and stress sets on disk are current with
+the final code, sheets swept clean by Fable, but STEFAN'S CORPUS
+VERDICT IS THE OPEN GATE before anything is frozen.
+
+R3 corrections status: C64 and CPC are REBUILT (this supersedes
+their R3-frozen converters) and are part of that pending corpus
+verdict. The Spectrum keeps its R3 solver untouched: it cannot
+consume the 160-wide base geometrically; its re-gate is pending
+alongside, with Stefan's crop note on record (crop the RIGHT side
+off for 256-wide targets, never center; suspected old ZX hurt).
+
+R4 state per machine (the per-machine rule stands: converter +
+design.md + docs/08 chapter + probe complete before the next
+machine): A8 converter is beach-gate-passed, corpus pending, then
+its PROBE (atari800; Stefan has not yet answered whether/where it
+is installed, ask before launching anything) which includes
+freezing the MEASURED GTIA table (the formula in _gtia_color is an
+approximation at sat 0.21; preview and selection share it so errors
+cancel in preview but not on hardware), then docs/08 C.7 written
+probe-fresh. MSX1, MSX2, Plus/4 NOT STARTED; each decides its
+source (C64-derived or direct) at its own round; A8 luma freedom
+(same hue, GTIA luma refinement) stays STAGED behind the corpus
+gate. Blocked/parked: Charles's THIRD Dialog feature (Stefan holds
+it, wants discussion first, likely granule-shaped); Shawn
+Sijnstra's Agon-class target spec (not yet arrived); B12 R5/R6
+after R4.
+
+Working habits the next model must keep: beach-only tuning, ONE
+corpus pass after a gate; never run the full pytest suite in a
+detached background shell (the curses console test blocks without a
+TTY); adopter content never reaches public artifacts; design-level
+changes are discussed BEFORE implementation; every ceiling raise
+carries a dated note; regenerate and commit amalgams at every bump
+and keep the README version table current; memory files under
+~/.claude carry the standing rulings (b12-charter-and-rulings above
+all; READ arc_image/reference/design.md before any B12 work).
