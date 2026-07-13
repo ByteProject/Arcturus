@@ -3719,3 +3719,27 @@ compromises on the two busiest scenes (the honest 4-per-line cost).
 design.md 8a records the detour and its lesson honestly. Awaiting
 Stefan's gate on the three rebuilt sets. arcimg 1.9.0 (build
 5ed93db), 866 tests.
+
+## 2026-07-13, the beach gate: spice, inheritance, de-grey (arcimg 1.10.0)
+
+Stefan's beach-first discipline paid. Rounds on one image, fast, no
+corpus churn between tweaks, and every fix landed as doctrine. THE
+SPICE (his ruling, all 8-bit targets, C64 the proving ground): flat
+conversion first, then in-cell dither against the master reference,
+firing only at smooth seams in the 0.40 midband, where the purple of
+the clouds meets the pink; his verdict "amazing, exactly how it
+should be". THE INHERITANCE, asked twice and finally heard: the CPC
+derives from the C64 by recolor, pixels and dither verbatim, so
+nothing is ever dithered twice. THE DE-GREY, born from his
+observation that C64 grey is absorbed by Colodore but jars
+elsewhere: siblings re-read every grey C64 pixel through the
+master's hue (the CPC in its own cube space, keeping the shimmer
+weave alive; salient discs exempt, their promotion is deliberately
+anti-master). The A8 got its defenses PRICED INSIDE the segment
+optimizer (bright star, dark anchor, neutral-first victims,
+symmetric chroma penalty: grey rock goes to black, never sea-blue),
+which healed the grey bar and moved the brown split to where light
+would fall; Stefan reads the cliff as sun above, shadow below, and
+gate-approved all three machines. Corpus regenerated once, sheets
+swept. design.md section 4 rewritten to the final architecture.
+arcimg 1.10.0 (build da4a1f1), 866 tests.
