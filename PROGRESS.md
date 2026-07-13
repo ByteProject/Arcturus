@@ -3743,3 +3743,23 @@ would fall; Stefan reads the cliff as sun above, shadow below, and
 gate-approved all three machines. Corpus regenerated once, sheets
 swept. design.md section 4 rewritten to the final architecture.
 arcimg 1.10.0 (build da4a1f1), 866 tests.
+
+## 2026-07-13, later: alter learns to wait (arcc 0.11.40, Cosmos 0.35.0)
+
+Charles's second alter report cut deep and true: the custom narration
+fired at handler time, before validation, so the drunk staggered west
+and then hit "there is no exit". Stefan probed whether a before-slot
+was needed; the honest answer settled it (before-text that only prints
+on success is the success slot wearing a different name), and he ruled:
+do it. alter now REGISTERS instead of prints: the body hoists into its
+own routine at compile time (codegen._hoist_alters), its packed address
+rides the altered global with self captured into altered_self, and the
+library's 36 report sites (actions.prelude and extendedverbs.granule)
+call it instead of the default line, only on success. Refusals discard
+the registration unfired, GO fires it after the move and before the
+room description, perform saves and restores it around nested actions,
+and handler locals stay out of the deferred body (no closures on the
+Z-machine). Three slots, each with one owner: say = the attempt,
+alter = the report, on after = the coda. Syntax unchanged, all three
+forms; a game without alter stays byte-identical (ceilings prove it;
+the alter example's own ceiling raised with the dated note). Suite 867.

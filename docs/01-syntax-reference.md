@@ -807,14 +807,19 @@ one.
 that also consumes the action (section 12). `continue` ends the current
 handler and passes the action to the next, more general handler (section 12).
 
-`alter` speaks an action's report yourself, keeping the default MECHANICS:
-say your line (or compose one under `alter block`, the same shape a
-computed property takes; a bare `alter` on its own line opens the same
-body), then `continue`; the take, the drop, the open run
-exactly as always, and the library's success line stays silent. A plain
-`say` before `continue` keeps its classic meaning, flavor stacked above
-the default report, so nothing existing changes; and refusals never honor
-the mark, so a failed action still answers honestly.
+`alter` REGISTERS an action's report in your own words, keeping the
+default MECHANICS: give your line (or compose one under `alter block`,
+the same shape a computed property takes; a bare `alter` on its own line
+opens the same body), then `continue`. The line prints at REPORT TIME,
+instead of the library's success line, and only if the action actually
+succeeds: a refused take, a walk with no exit, never fires it, so the
+custom narration cannot narrate a success that did not happen (a field
+report). On a successful GO it prints just before the new room's
+description. A plain `say` before `continue` keeps its classic meaning,
+flavor printed immediately and regardless of outcome, so the two cover
+the attempt and the success between them. The registered body runs after
+the handler has returned: it reads globals, `noun`, and `self`, but not
+the handler's own `let` locals.
 
 ```
 on take

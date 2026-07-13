@@ -137,6 +137,9 @@ INTRINSICS = frozenset({
     # to constants when the catalog is named in place; catalogs_base exposes
     # the base to Cosmos (the position block, the quote box).
     "calculate", "entry", "last", "dice", "catalogs_base",
+    # run_alter: fire the registered alter report (Cosmos-internal): call
+    # the routine whose packed address sits in `altered`, then consume it.
+    "run_alter",
     # parse_addr / oops_addr give the live parse buffer and its oops backup, so
     # the language layer can snapshot a command and patch it for "oops".
     # text_addr gives the text buffer, and retokenize re-runs the tokenizer over
@@ -737,6 +740,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         if num is None:
             raise LowerError(f"action_id: unknown action '{text}'")
         _place(rt, Const(num), dest)
+    elif name == "run_alter":
+        slot = ctx.globals["altered"]
+        rt.op("call_vn", Variable(slot))
+        rt.op("store", Const(slot), Const(0))
+        _place(rt, Const(0), dest)
     elif name == "perform":
         # perform("take", book) / perform("go", west) / perform("give", coin,
         # bob): the action name resolves at compile time like action_id; the
@@ -756,8 +764,17 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
                 eval_expr(rt, ctx, args[i], Variable(STACK))
             else:
                 rt.op("push", Const(0))
+        # A nested action must not consume the enclosing handler's alter
+        # registration (its success site would fire it): save, clear, call,
+        # restore. Folds away with any_alter.
+        if _any_alter(ctx):
+            aslot = ctx.globals["altered"]
+            rt.op("push", Variable(aslot))
+            rt.op("store", Const(aslot), Const(0))
         rt.op("call_vs", RoutineRef("blk_cosmos_perform"), Const(num),
               Variable(STACK), Variable(STACK), store=dest)
+        if _any_alter(ctx):
+            rt.op("pull", Const(ctx.globals["altered"]))
     elif name == "show":
         # show(text): print without a trailing newline (for prompts and for
         # building a sentence around a named object).
@@ -1799,18 +1816,30 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
                 ctx.free_temp(t)
         return True
     elif isinstance(s, ast.Alter):
-        # Speak the report yourself: mark it spoken, then print. The default
-        # the handler continues into runs its mechanics with its success
-        # line silent (the guards in actions.prelude); refusals never look
-        # at the mark, so a failed action still answers honestly.
+        # REGISTER the replacement report, print nothing now (Charles's
+        # field report: the old eager print narrated success before the
+        # action was validated). The body was hoisted into its own routine
+        # (codegen._hoist_alters); its packed address lands in `altered`,
+        # the live self in `altered_self`, and the library calls it at
+        # report time, instead of the default line, only when the action
+        # actually succeeds. Refusals never consult it, so the failed
+        # staggering west never prints.
         slot = ctx.globals.get("altered")
-        if slot is not None:
-            rt.op("store", Const(slot), Const(1))
-        if s.value is not None:
-            _say(rt, ctx, s.value)
+        amap = getattr(ctx, "alter_map", None)
+        if slot is not None and amap and id(s) in amap:
+            sslot = ctx.globals.get("altered_self")
+            if sslot is not None and ctx.self_value is not None:
+                rt.op("store", Const(sslot), ctx.self_value)
+            rt.op("store", Const(slot), RoutineRef(amap[id(s)]))
         else:
-            for stmt in s.body:
-                compile_stmt(rt, ctx, stmt)
+            # Bare-world fallback (unit tests without the handler registry):
+            # print eagerly, and never mark (a mark without a routine behind
+            # it would send the report site's call into open memory).
+            if s.value is not None:
+                _say(rt, ctx, s.value)
+            else:
+                for stmt in s.body:
+                    compile_stmt(rt, ctx, stmt)
         return False
     elif isinstance(s, ast.Finish):
         if s.message is not None:
