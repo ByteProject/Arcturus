@@ -3787,3 +3787,13 @@ the direction's canonical word through cosmos_dir_name, a je-chain
 over the live directions keyed by property number, emitted only when
 referenced (the exit_name gating extended); way 0 prints nothing. One
 compiler change, no Cosmos bump, ceilings untouched. Suite 869.
+
+## 2026-07-13, night: particles chain with or (arcc 0.11.43)
+
+Charles: INTO and ONTO forced new grammar lines. Now `put noun in or
+into noun` on one line, the is-list `or` (his earlier lesson applied
+to the surface): the parser expands alternatives into sibling grammar
+lines at parse time, so the dictionary, both grammar models, and the
+matcher never learn a new shape, and it costs exactly what writing
+the lines out costs. Slots refuse to be alternatives with a clear
+error. Suite 870.

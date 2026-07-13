@@ -712,7 +712,7 @@ class Parser:
             if self.check(T.NEWLINE):
                 self.advance()
                 continue
-            grammar.append(self._parse_grammar_line())
+            grammar.extend(self._parse_grammar_line())
         self.expect(T.DEDENT)
         return ast.VerbDecl(words, grammar, line, meta)
 
@@ -863,10 +863,14 @@ class Parser:
         self.expect_newline()
         return ast.NoiseDecl(words, line)
 
-    def _parse_grammar_line(self) -> ast.GrammarLine:
+    def _parse_grammar_line(self) -> list:
+        # Returns one line per particle combination: `put noun in or into
+        # noun` (the Charles request: chained particles, the is-list `or`)
+        # expands into the in-line and the into-line, so the dictionary,
+        # both grammar models, and the matcher never learn a new shape.
         line = self.cur.line
         action = self.expect_name("an action name").value
-        items: list[ast.GrammarItem] = []
+        alts: list[list[ast.GrammarItem]] = []
         reverse = False
         while not self.check(T.NEWLINE):
             # A trailing `reverse` marks a reversed two-noun line (give/show BOB
@@ -877,14 +881,28 @@ class Parser:
                 self.advance()
                 reverse = True
                 break
-            items.append(self._parse_grammar_item())
+            it = self._parse_grammar_item()
+            group = [it]
+            while (isinstance(it, ast.Word) and self.check(T.NAME)
+                   and self.cur.value == "or"):
+                self.advance()  # `or`
+                alt = self._parse_grammar_item()
+                if not isinstance(alt, ast.Word):
+                    raise self._error(
+                        "`or` in a grammar line joins particle words (in or "
+                        "into); a slot like noun cannot be an alternative")
+                group.append(alt)
+            alts.append(group)
         self.expect_newline()
-        if reverse and sum(isinstance(it, ast.Slot) for it in items) != 2:
+        if reverse and sum(isinstance(g[0], ast.Slot) for g in alts) != 2:
             raise self._error(
                 "`reverse` needs exactly two noun slots, like `give noun noun "
                 "reverse` (it swaps the recipient and the thing)"
             )
-        return ast.GrammarLine(action, items, line, reverse)
+        import itertools
+        return [ast.GrammarLine(action, list(combo), line, reverse)
+                for combo in itertools.product(*alts)] if alts else [
+                ast.GrammarLine(action, [], line, reverse)]
 
     def _parse_grammar_item(self) -> ast.GrammarItem:
         tok = self.cur
