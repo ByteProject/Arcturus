@@ -274,7 +274,14 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
         prop = world.properties[name]
         if prop.storage == wm.STORE_ATTRIBUTE:
             if a >= _MAX_ATTRIBUTES:
-                raise _err("more than 48 attributes; attribute spill is a later milestone")
+                # The only real attribute ceiling: genuine boolean FLAGS, which
+                # must be attributes (mutable per-object state). Kinds never
+                # cause this, they spill to catalog membership; so name flags,
+                # not kinds. (Flags spilling to property bytes is a later lever.)
+                raise _err(
+                    f"more than {_MAX_ATTRIBUTES} boolean flags: the "
+                    f"Z-machine v5 attribute limit. Kinds do not count here "
+                    f"(they spill to catalogs); this is genuine flag state")
             layout.attr_number[name] = a
             a += 1
         elif name not in _SPECIAL:
@@ -373,26 +380,30 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
         layout.kind_attr[kname] = a
         a += 1
     layout.kind_spilled = [k for k in tested if k not in layout.kind_attr]
-    if layout.kind_spilled:
-        # Step 1 guard (removed when the catalog spill lands): until the spill
-        # exists, an overflow is still a hard stop, but an HONEST one, naming
-        # flags and kinds separately so the author never mistakes a kind for
-        # a flag ceiling.
-        flags = a - len(layout.kind_attr)
-        raise _err(
-            f"{flags} boolean flags plus {len(tested)} membership-tested "
-            f"kinds exceed the {_MAX_ATTRIBUTES}-attribute limit of a "
-            f"Z-machine v5 story file")
+    # A spilled kind's transitive instances (every object whose chain includes
+    # it), in ascending object-number order. `obj is <spilled_kind>` becomes a
+    # membership scan of this list, so kinds are limitless past the attribute
+    # budget. Computed here because the extents feed the catalog region below.
+    kind_extents = {
+        kname: [layout.obj_number[o] for o, obj in world.objects.items()
+                if kname in obj.chain]
+        for kname in layout.kind_spilled
+    }
 
     # Catalog word offsets, BEFORE the table is emitted: a property can hold
     # a catalog name (`writing PLAQUE_TEXT`), and _fill_property needs the
     # offset while the property tables are being written. The offsets follow
     # from declaration order alone ([count, widest, e1..eN] per catalog), so
-    # they are known before the region itself is appended below.
+    # they are known before the region itself is appended below. The spilled
+    # kinds' extent catalogs share the region, their offsets continuing after
+    # the author catalogs.
     woff = 0
     for cname, cat in world.catalogs.items():
         layout.catalogs[cname] = woff
         woff += 2 + len(cat.values)
+    for kname in layout.kind_spilled:
+        layout.kind_catalog[kname] = woff
+        woff += 2 + len(kind_extents[kname])
 
     _emit_table(world, layout)
     # The catalog region (docs/01, catalogs): every declared catalog laid
@@ -421,6 +432,14 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
                 _append_word(layout.table, v.value & 0xFFFF)
             else:
                 _append_word(layout.table, layout.obj_number.get(v.ident, 0))
+    # The spilled kinds' extent catalogs, same [count, widest, e1..eN] shape,
+    # widest 0 (object entries), in the same order their offsets were assigned.
+    for kname in layout.kind_spilled:
+        members = kind_extents[kname]
+        _append_word(layout.table, len(members))
+        _append_word(layout.table, 0)
+        for num in members:
+            _append_word(layout.table, num)
     return layout
 
 

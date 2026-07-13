@@ -1666,12 +1666,23 @@ def _any_components(world) -> int:
 
 
 def _kind_test(rt, ctx, expr: ast.IsTest, label, on_true):
-    # `obj is <kind>`: test the kind's attribute (set on every instance of the
-    # kind, B4.5c).
-    att = ctx.kind_attr(expr.right.ident)
+    # `obj is <kind>`: a test_attr when the kind is attribute-backed (an
+    # instance carries the kind's attribute, B4.5c). When the kind spilled
+    # past the 48-attribute budget, it is a MEMBERSHIP SCAN of the kind's
+    # extent catalog instead (the object numbers of its transitive instances),
+    # so kinds are limitless. The boolean result is identical; only the cost
+    # differs (one instruction vs. a scan, paid only on the cold spilled tail).
+    kname = expr.right.ident
+    att = ctx.kind_attr(kname)
     t = not on_true if expr.negated else on_true
     objop, tmp = _operand(rt, ctx, expr.left)
-    rt.op("test_attr", objop, Const(att), branch=(label, t))
+    if att is not None:
+        rt.op("test_attr", objop, Const(att), branch=(label, t))
+    else:
+        off = ctx.layout.kind_catalog[kname]
+        rt.op("call_vs", RoutineRef("blk_position"), Const(off), objop,
+              store=Variable(STACK))
+        rt.op("jg", Variable(STACK), Const(0), branch=(label, t))
     if tmp is not None:
         ctx.free_temp(tmp)
 

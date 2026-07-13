@@ -510,9 +510,20 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `animate` | An animate agent (a person, animal, robot, or AI). The conversation and give verbs apply only to the animate; the `character` kind sets it by default, and animate objects refuse being taken. |
 | `component` | This thing is PART OF the thing it sits `in` (a lever in a machine, a button on a panel; the equivalent of Dialog's `#partof`). The object tree carries the relation, so the part follows its whole wherever the whole moves; the attribute grants what a plain thing's insides never get: the part is in scope whenever the whole is, `take` answers that it is part of it (`msg_part_of`), and it never lists as the whole's contents. Make the part `on pull` / `on push` handlers do the machine's work. To detach one in play, clear the attribute and move it. A game with no components pays nothing (`any_components`). |
 
-The standard kinds are also attributes, set by `of <kind>` and tested with `is
-<kind>`: `thing`, `room`, `container`, `supporter`, `door`, `character`. An object
-carries the attribute of every kind in its chain.
+The standard kinds are set by `of <kind>` and tested with `is <kind>`: `thing`,
+`room`, `container`, `supporter`, `door`, `character`.
+
+A kind is Arcturus sugar, not a Z-machine concept, so **kinds are effectively
+unlimited and cost you nothing until you test one.** A kind is given a runtime
+identity only where the program actually writes `obj is <kind>`; a kind used
+only to organize, share handlers or properties, or span scenery is resolved at
+compile time and consumes no attribute at all. Tested kinds take the fast
+one-byte membership test from the attribute slots your real flags leave free,
+busiest first; when those run out, further tested kinds fall back to a catalog
+membership scan (slightly slower, but only on the cold tail), so you never hit
+a "too many kinds" wall. The only real attribute ceiling is 48 genuine boolean
+FLAGS (mutable per-object state), which is the Z-machine v5 limit; `arcc -s`
+shows flags and kinds separately so you always see your true budget.
 
 ### Standard value properties
 
