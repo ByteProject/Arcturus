@@ -878,8 +878,9 @@ def build_story(
         # The scheduling table base, so after/every can reach it at run time.
         sf.set_word(globals_addr + (gmap["__timers__"] - 16) * 2, timers_addr)
         # The catalog region's byte address (docs/01, catalogs); zero, and
-        # never read, in a game that declares none.
-        if layout.catalogs:
+        # never read, in a game with neither author catalogs nor a spilled
+        # kind (whose extent catalog lives in the same region).
+        if layout.catalogs or layout.kind_catalog:
             sf.set_word(
                 globals_addr + (gmap["__catalogs__"] - 16) * 2,
                 objects_addr + layout.catalog_region_off,
