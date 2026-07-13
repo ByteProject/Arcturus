@@ -75,13 +75,13 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.9.0"
+__version__ = "1.10.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = '5ed93db'
+__build__ = 'da4a1f1'
 
 
 def build_id() -> str:
@@ -1420,6 +1420,16 @@ def _collapse_pairs(idx):
     return out
 
 
+def _forced_cells(salient):
+    """The halved cells a hint forces (both master pixels salient)."""
+    if not salient:
+        return frozenset()
+    cells = {}
+    for x, y in salient:
+        cells[(x // 2, y)] = cells.get((x // 2, y), 0) + 1
+    return frozenset(k for k, n in cells.items() if n == 2)
+
+
 def _force_disc(idx, salient, value):
     """The moon ruling at halved width: a cell takes the disc's color only
     when BOTH master pixels are salient (either-pixel forcing erased the
@@ -1430,6 +1440,51 @@ def _force_disc(idx, salient, value):
     for (hx, y), n in cells.items():
         if n == 2:
             idx[y][hx] = value
+
+
+# The spice (Stefan's ruling, twice: "a little", "only on spots", the
+# R3 CPC wording made doctrine: replace color flat, SPRINKLE AT SEAMS).
+# A pixel dithers only where BOTH hold: the master is locally SMOOTH
+# there (a gradient band, not detail or texture), and the master sits
+# genuinely between the two candidate colors (t in the 0.3..0.5
+# midband, the exact strip where flat mapping hard-switches sides;
+# 0.40 after Stefan's second too-much verdict).
+# Everything else maps flat, so the dither draws the seam between two
+# color bands, where the purple of the clouds meets the pink, and
+# appears nowhere else.
+_SPICE_MIN = 600
+_SPICE_BAND = 0.40
+_SMOOTH = 900  # neighbour distance below which the master counts as smooth
+
+
+def _seam_mask(refs):
+    """Where is the master locally smooth (gradient, not detail)? True
+    where the right and down neighbours sit close in color."""
+    h, w = len(refs), len(refs[0])
+    mask = [[False] * w for _ in range(h)]
+    for y in range(h):
+        for x in range(w):
+            r = refs[y][x + 1] if x + 1 < w else refs[y][x]
+            d = refs[y + 1][x] if y + 1 < h else refs[y][x]
+            mask[y][x] = (_dist(refs[y][x], r) < _SMOOTH
+                          and _dist(refs[y][x], d) < _SMOOTH)
+    return mask
+
+
+def _spice(M, argb, x, y, smooth=True):
+    """The final in-cell mapping with the artist's dither: flat nearest
+    everywhere, except at a smooth seam where the master sits midway
+    between the two nearest allowed colors. Returns the code into argb."""
+    d = [_dist(M, a) for a in argb]
+    i1 = min(range(len(argb)), key=lambda i: d[i])
+    if not smooth or len(argb) < 2 or d[i1] < _SPICE_MIN:
+        return i1
+    i2 = min((i for i in range(len(argb)) if i != i1),
+             key=lambda i: d[i])
+    t = d[i1] / (d[i1] + d[i2])  # 0 (pure i1) .. 0.5 (halfway)
+    if t < _SPICE_BAND:
+        return i1  # clearly one side of the seam: flat
+    return i2 if _BAYER8[y & 7][x & 7] / 64.0 < t else i1
 
 
 def _convert_c64(rows, salient=None):
@@ -1447,8 +1502,18 @@ def _convert_c64(rows, salient=None):
     idx = _collapse_pairs([[_nearest(c, _COLODORE) for c in row]
                            for row in rows])
     h, w = len(idx), len(idx[0])
+    # The master reference at halved width (pair averages; legitimate
+    # here, it is only the dither's yardstick, never a palette input).
+    refs = [[tuple((a + b) // 2 for a, b in zip(row[x], row[x + 1]))
+             for x in range(0, len(row), 2)] for row in rows]
+    seam = _seam_mask(refs)
+    forced = set()
     if salient:
         _force_disc(idx, salient, 1)  # the disc goes white, the R3 ruling
+        cells = {}
+        for x, y in salient:
+            cells[(x // 2, y)] = cells.get((x // 2, y), 0) + 1
+        forced = {k for k, n in cells.items() if n == 2}
     cells_x, cells_y = w // 4, h // 8
 
     def block_hist(cx, cy):
@@ -1492,12 +1557,14 @@ def _convert_c64(rows, salient=None):
             argb = [_COLODORE[c] for c in allowed]
             for yy in range(8):
                 for xx in range(4):
-                    c = idx[cy * 8 + yy][cx * 4 + xx]
-                    if c in allowed:
-                        code = allowed.index(c)
-                    else:
-                        code = _nearest(_COLODORE[c], argb)
-                    pixels[cy * 8 + yy][cx * 4 + xx] = code
+                    px, py = cx * 4 + xx, cy * 8 + yy
+                    if (px, py) in forced:
+                        # The disc stays solid; spice never speckles it.
+                        pixels[py][px] = allowed.index(1) if 1 in allowed \
+                            else _nearest(_COLODORE[1], argb)
+                        continue
+                    pixels[py][px] = _spice(refs[py][px], argb, px, py,
+                                            seam[py][px])
             free += [bg] * (3 - len(free))
             screen.append((free[0] << 4) | free[1])
             color.append(free[2])
@@ -1708,16 +1775,17 @@ def _convert_zx3(rows, salient=None):
     return {"w": w, "h": h, "pixels": pixels, "attrs": attrs}
 
 
-def _convert_cpc(rows, salient=None):
-    # Mode 0: 160 wide, 2:1 pixels, 16 inks freely chosen from the
-    # 27-color cube, no cells. Polizei's recipe (m_cpcm0.pde) with R3's
-    # ruled metric restored: pixels map to the cube with the CHROMA-
-    # DUMPING distance (a dusk purple keeps its family: the cube has no
-    # dark purple, and by plain distance (100,76,138) lands on the grey
-    # (128,128,128), the standing grey-sky complaint, finally traced; at
-    # weight 3 the grey still won by four percent, so the weight is 4),
-    # the sixteen most frequent cube colors become the inks, stragglers
-    # remap to their nearest kept ink.
+def _cpc_from_c64(c64, refs=None, skip=frozenset()):
+    """The CPC FROM THE C64 CONVERSION (Stefan's base ruling): same
+    160-wide 2:1 geometry, the C64's pixels and dither verbatim, every
+    Colodore color recolored to its nearest cube ink. GREYS are re-read
+    through the master DIRECTLY IN CUBE SPACE, not through Colodore's
+    sixteen: the C64 dithers grey against color as a Colodore idiom, and
+    re-reading both halves through Colodore collapsed the weave flat
+    (Stefan's question, where did the dither go); the cube's own
+    in-between shades keep the shimmer alive as navy against blue. The
+    grey-axis ban rides along: a chromatic master pixel never lands on
+    mid-grey or white."""
     lv = (0, 0x80, 0xFF)
     cube = [(lv[r], lv[g], lv[b])
             for r in range(3) for g in range(3) for b in range(3)]
@@ -1725,39 +1793,63 @@ def _convert_cpc(rows, salient=None):
     def dist_cpc(a, b):
         sa = max(a) - min(a)
         sb = max(b) - min(b)
+        if sa >= 32 and sb == 0 and b != (0, 0, 0):
+            return 1 << 30
         return _dist(a, b) + 4 * max(0, sa - sb) * sa
 
-    idx = _collapse_pairs([[_nearest(c, cube, metric=dist_cpc)
-                            for c in row] for row in rows])
+    to_cube = [_nearest(_COLODORE[c], cube) for c in range(16)]
+    cidx = _c64_indices(c64)
+    h, w = len(cidx), len(cidx[0])
+    raw = [[0] * w for _ in range(h)]
+    memo = {}
+    for y in range(h):
+        for x in range(w):
+            c = cidx[y][x]
+            col = _COLODORE[c]
+            k = to_cube[c]
+            if (refs is not None and (x, y) not in skip
+                    and max(col) - min(col) < 32):
+                M = refs[y][x]
+                if max(M) - min(M) >= 32:
+                    if M not in memo:
+                        memo[M] = _nearest(M, cube, metric=dist_cpc)
+                    k = memo[M]
+            raw[y][x] = k
+    # Ink budget: the sixteen most frequent cube colors; stragglers to
+    # their nearest kept ink (the Polizei recipe, unchanged).
     freq = {}
-    for row in idx:
-        for i in row:
-            freq[i] = freq.get(i, 0) + 1
+    for row in raw:
+        for k in row:
+            freq[k] = freq.get(k, 0) + 1
     inks = sorted(freq, key=freq.get, reverse=True)[:16]
     order = {k: i for i, k in enumerate(inks)}
     stray = {}
     pixels = []
-    for row in idx:
+    for row in raw:
         out = []
-        for i in row:
-            if i in order:
-                out.append(order[i])
+        for k in row:
+            if k in order:
+                out.append(order[k])
             else:
-                if i not in stray:
-                    stray[i] = order[min(
-                        inks,
-                        key=lambda k: dist_cpc(cube[i], cube[k]))]
-                out.append(stray[i])
+                if k not in stray:
+                    stray[k] = order[min(
+                        inks, key=lambda q: _dist(cube[k], cube[q]))]
+                out.append(stray[k])
         pixels.append(out)
-    if salient:
-        bright = order[max(inks, key=lambda k: 2 * cube[k][0]
-                           + 4 * cube[k][1] + cube[k][2])]
-        _force_disc(pixels, salient, bright)
     pal = list(inks)
     while len(pal) < 16:
         pal.append(0)  # unused slots; a duplicate ink is legal hardware
-    return {"w": len(pixels[0]), "h": len(pixels), "pixels": pixels,
-            "palette": pal, "regs": [0]}
+    return {"w": w, "h": h, "pixels": pixels, "palette": pal,
+            "regs": [0]}
+
+
+def _convert_cpc(rows, salient=None):
+    # Master in, C64 taste and dither first, CPC out; the master rides
+    # along as the de-grey yardstick (pair averages, reference only).
+    refs = [[tuple((a + b) // 2 for a, b in zip(row[x], row[x + 1]))
+             for x in range(0, len(row), 2)] for row in rows]
+    return _cpc_from_c64(_convert_c64(rows, salient), refs,
+                         _forced_cells(salient))
 
 
 # The 128 colors an Atari color register can hold apart: 16 hues x 8
@@ -1819,7 +1911,41 @@ def _c64_indices(c64):
     return out
 
 
-def _a8_from_c64(c64):
+def _degrey(cidx, refs, skip=frozenset()):
+    """The C64's grey ramp is a Colodore idiom: soft greys that its muted
+    palette absorbs (Stefan's observation). A sibling machine re-reads
+    every grey C64 pixel through the MASTER: if the master is chromatic
+    there (the sea's blue shimmer, the rock's brown), the pixel becomes
+    the nearest CHROMATIC Colodore index instead, and only true neutrals
+    stay grey. The inherited dither pattern is untouched, only its color
+    reading changes; without this the CPC ran full of harsh cube grey
+    and the A8 elected grey to whole line-registers (the grey bar)."""
+    chroma = [c for c in range(16)
+              if max(_COLODORE[c]) - min(_COLODORE[c]) >= 32]
+    out = []
+    memo = {}
+    for y, row in enumerate(cidx):
+        orow = []
+        for x, c in enumerate(row):
+            col = _COLODORE[c]
+            # A salient-forced pixel is exempt: the disc's white is
+            # deliberately brighter than the master (the promotion
+            # ruling), and re-reading it through the master undoes it.
+            if (x, y) not in skip and max(col) - min(col) < 32:
+                M = refs[y][x]
+                if max(M) - min(M) >= 32:
+                    key = (c, M)
+                    if key not in memo:
+                        memo[key] = min(
+                            chroma,
+                            key=lambda k: _dist(M, _COLODORE[k]))
+                    c = memo[key]
+            orow.append(c)
+        out.append(orow)
+    return out
+
+
+def _a8_from_c64(c64, refs=None, skip=frozenset()):
     """The A8 solve FROM THE C64 CONVERSION, not from the master (Stefan's
     R4 ruling, the way the 80s actually ported): the C64's cell solver has
     already made every taste decision, the geometry is pixel-identical
@@ -1834,6 +1960,8 @@ def _a8_from_c64(c64):
     through it to the whole family (the inheritance ruling)."""
     w, h = c64["w"], c64["h"]
     cidx = _c64_indices(c64)
+    if refs is not None:
+        cidx = _degrey(cidx, refs, skip)
     gt = _c64_to_gtia()
     grgb = [_gtia_color(b) for b in gt]
 
@@ -1845,7 +1973,12 @@ def _a8_from_c64(c64):
     def dd(a, b):
         sa = max(grgb[a]) - min(grgb[a])
         sb = max(grgb[b]) - min(grgb[b])
-        return _dist(grgb[a], grgb[b]) + 3 * max(0, sa - sb) * sa
+        # Symmetric: losing chroma costs (a dusk purple must not grey),
+        # and GAINING it costs too (the dropped cliff-grey was remapping
+        # to sea-blue, which was numerically nearest and free of penalty;
+        # grey rock goes to black, never to blue: Stefan's stones).
+        return (_dist(grgb[a], grgb[b]) + 3 * max(0, sa - sb) * sa
+                + 3 * max(0, sb - sa) * sb)
 
     dmat = [[dd(a, b) for b in range(16)] for a in range(16)]
 
@@ -1859,7 +1992,20 @@ def _a8_from_c64(c64):
                 hist[c] += 1
         hists.append(hist)
 
+    def seg_cost(hist, picks):
+        return sum(hist[c] * min(dmat[c][a] for a in picks)
+                   for c in range(16) if hist[c])
+
+    lum = lambda c: 2 * grgb[c][0] + 4 * grgb[c][1] + grgb[c][2]
+
     def seg_pick(hist):
+        """A range's four colors: greedy error minimization, then the
+        defenses, INSIDE the pick so the segment optimizer prices them
+        (they ran after the boundaries were fixed once, and the DP
+        merged the sun band into the cliff band without knowing the sun
+        would evict the cliff's brown: Stefan's color split). Bright
+        star and dark anchor claim registers; a defense's victim is a
+        neutral before it is ever a chromatic."""
         picks = []
         pool = [c for c in range(16) if hist[c]]
         while pool and len(picks) < 4:
@@ -1882,11 +2028,33 @@ def _a8_from_c64(c64):
             picks = [0]
         while len(picks) < 4:
             picks.append(picks[-1])
-        return picks
 
-    def seg_cost(hist, picks):
-        return sum(hist[c] * min(dmat[c][a] for a in picks)
-                   for c in range(16) if hist[c])
+        present = [c for c in range(16) if hist[c] >= 8]
+        protected = set()
+
+        def force_in(star):
+            def without(v):
+                trial = [star if p == v else p for p in picks]
+                return seg_cost(hist, trial)
+            victims = set(picks) - protected
+            neutrals = {v for v in victims
+                        if max(grgb[v]) - min(grgb[v]) < 32}
+            pool2 = neutrals if neutrals else victims
+            victim = min(pool2, key=without)
+            return [star if p == victim else p for p in picks]
+
+        if present:
+            star = max(present, key=lum)
+            if star not in picks and lum(star) - max(
+                    lum(p) for p in picks) > 150:
+                picks = force_in(star)
+            if star in picks:
+                protected.add(star)
+            dark = min(present, key=lum)
+            if dark not in picks and min(
+                    lum(p) for p in picks) - lum(dark) > 150:
+                picks = force_in(dark)
+        return picks
 
     # Segments over BLOCKS by dynamic programming, as before but on the
     # cell-row grid: a boundary exists only where it saves more error
@@ -1928,7 +2096,7 @@ def _a8_from_c64(c64):
         for b in range(i, j + 1):
             for c in range(16):
                 merged[c] += hists[b][c]
-        picks = seg_pick(merged)
+        picks = seg_pick(merged)  # defenses included, the DP saw them
         if prev is None:
             regs = sorted(set(picks), key=lambda p: -merged[p])
             while len(regs) < 4:
@@ -1940,6 +2108,10 @@ def _a8_from_c64(c64):
                     0 if perm[k] == prev[k] else dmat[perm[k]][prev[k]]
                     for k in range(4)))
         prev = regs
+        # Dropped colors remap FLAT to their nearest register: an A8-level
+        # dither layer was tried and retired (it speckled the cliff stones;
+        # Stefan's verdict). The A8 inherits the C64's seam dither through
+        # the pixels themselves, and that is the only spice it carries.
         remap = [min(range(4), key=lambda k: dmat[c][regs[k]])
                  for c in range(16)]
         for y in range(i * 8, min(h, (j + 1) * 8)):
@@ -1950,8 +2122,12 @@ def _a8_from_c64(c64):
 
 def _convert_a8(rows, salient=None):
     # Master in, C64 taste first, A8 out. The salient hint rides through
-    # the C64 conversion (its white-moon promotion is the inherited one).
-    return _a8_from_c64(_convert_c64(rows, salient))
+    # the C64 conversion (its white-moon promotion is the inherited one);
+    # the master rides along as the de-grey yardstick.
+    refs = [[tuple((a + b) // 2 for a, b in zip(row[x], row[x + 1]))
+             for x in range(0, len(row), 2)] for row in rows]
+    return _a8_from_c64(_convert_c64(rows, salient), refs,
+                        _forced_cells(salient))
 
 
 _CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,

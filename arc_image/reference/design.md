@@ -193,34 +193,53 @@ Architecture: one shared front half, per-target back halves.
     depth BEFORE pixel mapping (4-bit Amiga, 3-bit ST, 6-bit VGA, 3-bit
     MSX2/Next channels), then map. Unchanged: approved in wave 1, and
     conversion there is near-lossless.
-  - THE 8-BIT FAMILY, by Pixel Polizei's recipes (Markku Reunanen,
-    WTFPL; source kept uncommitted at arc_image/reference/ppolizei/),
-    each machine DIRECT from the master, no intermediate: every pixel
-    maps plainly to the machine's own palette (width halving collapses
-    pairs by agreement, never an average), then frequency-and-locality
-    fixes (C64: background elected by clashing blocks only, a clashing
-    block keeps its three most frequent colors plus background;
-    Spectrum: dominant color sets the cell's bright, top two take the
-    cell; CPC: the sixteen most frequent cube colors are the inks, the
-    pixel-to-cube step carrying R3's chroma-dumping metric at weight 4,
-    because the cube holds no dark purple and plain distance sent every
-    dusk sky to grey). No global optimizers. The doctrine's proof is
-    historical: the well-regarded original Rabenstein 8-bit ports were
-    Dylan Barry's CPC art fed through Pixel Polizei. A ONE-DAY DETOUR
-    is on record and retired: an intermediate "flat base" on the CPC
-    cube greyed every soft master color (the 27-cube has no dark
-    purple), which is the reminder that Polizei converts to each
-    machine directly and so do we.
-  - The C64 CONVERSION IS THE BASE of the deriving 8-bit siblings
-    (Stefan's ruling): the Atari 8-bit consumes it (same 160-wide 2:1
-    geometry; Colodore maps onto GTIA through a frozen injective
-    16-entry table), the C64's 8-line cell rhythm is the segment grid,
-    and a dynamic program allocates the four per-line registers per
-    segment, emitted as the table the display-list interrupt replays.
-    A hand-authored .C64 (the polish loop) is the source of the whole
-    deriving family when present. Per-hue luma refinement is staged
-    behind the plain-mapping gate. Plus/4 and MSX1 decide their source
-    (C64 or direct) at their own machine rounds.
+  - THE C64, by Pixel Polizei's recipe (Markku Reunanen, WTFPL; source
+    kept uncommitted at arc_image/reference/ppolizei/), DIRECT from the
+    master: every pixel maps plainly to Colodore (width halving
+    collapses pairs by agreement, never an average), the background is
+    elected by clashing blocks only, a clashing block keeps its three
+    most frequent colors plus background. Then THE SPICE (the dither
+    ruling, gate-approved on the beach): flat conversion first, then
+    in-cell dither against the master reference, firing ONLY at smooth
+    seams where the master sits in the 0.40..0.50 midband between the
+    cell's two nearest allowed colors, the strip where flat mapping
+    hard-switches sides. Sprinkle at seams, replace color flat
+    everywhere else; hinted discs stay solid. A ONE-DAY DETOUR is on
+    record and retired: an intermediate "flat base" on the CPC cube
+    greyed every soft master color (the 27-cube has no dark purple);
+    Polizei converts each machine from the source and so do we.
+  - THE C64 CONVERSION IS THE BASE of the whole deriving 8-bit family
+    (Stefan's ruling, asked twice), dither included, so nothing is
+    ever dithered twice. THE DE-GREY rides every derivation: the C64's
+    five-grey ramp is a Colodore idiom its muted palette absorbs, so a
+    sibling re-reads each grey C64 pixel through the MASTER's hue
+    (chromatic master, chromatic sibling pixel; true neutrals stay
+    grey; salient-forced discs exempt, their promotion is deliberately
+    anti-master). A hand-authored .C64 (the polish loop) is the source
+    of the family when present (no de-grey then; no master to read).
+  - The CPC derives by RECOLOR: the C64's pixels verbatim, each
+    Colodore color to its nearest cube ink, greys re-read directly in
+    CUBE space (Colodore's sixteen collapsed the grey-partnered dither
+    weave; the cube's in-between shades keep the shimmer alive), the
+    grey-axis ban inside the lookup (a chromatic pixel never lands on
+    mid-grey or white; black stays legal, darkness is achromatic),
+    sixteen most frequent inks, stragglers to nearest kept.
+  - The Atari 8-bit derives by SEGMENT SOLVE: Colodore maps onto GTIA
+    through a frozen injective 16-entry table, the C64's 8-line cell
+    rhythm is the segment grid, and a dynamic program allocates the
+    four per-line registers per segment (the table a display-list
+    interrupt replays). The pick carries the DEFENSES, priced inside
+    the optimizer so boundaries account for them: the brightest real
+    color claims a register when every pick is far darker (the
+    swallowed sun), the darkest anchors likewise (the stones' shadow
+    mass), a defense's victim is a neutral before a chromatic (one
+    grey suffices in four), and the remap metric is symmetric on
+    chroma (losing saturation costs, gaining costs too: grey rock
+    goes to black, never to sea-blue). Dropped colors remap flat; the
+    A8 inherits the C64's dither and adds none (a per-band weave
+    collapses where a strand's color lost its register: the band
+    limit, accepted at the gate). Per-hue luma refinement stays
+    staged. Plus/4 and MSX1 decide their source at their own rounds.
   - Signal class: Apple II via NTSC modeling (the ii-pix lineage), with
     the palette-bit group constraint driving a constraint-aware diffuser
     (wave 4; expected to consume the flat base as well, ruled at its own
