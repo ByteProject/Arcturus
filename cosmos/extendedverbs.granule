@@ -42,6 +42,8 @@ on search
     if any_alter is 1
         if altered is 0
             msg_search_nothing
+        else
+            run_alter
     else
         msg_search_nothing
 
@@ -76,6 +78,8 @@ on throw
     if any_alter is 1
         if altered is 0
             msg_throw
+        else
+            run_alter
     else
         msg_throw
 
@@ -94,6 +98,8 @@ on rub
     if any_alter is 1
         if altered is 0
             msg_rub
+        else
+            run_alter
     else
         msg_rub
 
@@ -112,6 +118,8 @@ on squeeze
     if any_alter is 1
         if altered is 0
             msg_squeeze
+        else
+            run_alter
     else
         msg_squeeze
 
@@ -128,6 +136,8 @@ on tie
     if any_alter is 1
         if altered is 0
             msg_tie
+        else
+            run_alter
     else
         msg_tie
 
@@ -147,6 +157,8 @@ on cut
     if any_alter is 1
         if altered is 0
             msg_cut
+        else
+            run_alter
     else
         msg_cut
 
@@ -166,6 +178,8 @@ on fill
     if any_alter is 1
         if altered is 0
             msg_fill
+        else
+            run_alter
     else
         msg_fill
 
@@ -185,6 +199,8 @@ on burn
     if any_alter is 1
         if altered is 0
             msg_burn
+        else
+            run_alter
     else
         msg_burn
 
@@ -203,6 +219,8 @@ on blow
     if any_alter is 1
         if altered is 0
             msg_blow
+        else
+            run_alter
     else
         msg_blow
 
@@ -219,6 +237,8 @@ on set
     if any_alter is 1
         if altered is 0
             msg_set
+        else
+            run_alter
     else
         msg_set
 
@@ -238,6 +258,8 @@ on empty
     if any_alter is 1
         if altered is 0
             msg_empty
+        else
+            run_alter
     else
         msg_empty
 
@@ -254,6 +276,8 @@ on buy
     if any_alter is 1
         if altered is 0
             msg_buy
+        else
+            run_alter
     else
         msg_buy
 
@@ -269,6 +293,8 @@ on consult
     if any_alter is 1
         if altered is 0
             msg_consult
+        else
+            run_alter
     else
         msg_consult
 
@@ -283,6 +309,8 @@ on dig
     if any_alter is 1
         if altered is 0
             msg_dig
+        else
+            run_alter
     else
         msg_dig
 
@@ -295,6 +323,8 @@ on wave
     if any_alter is 1
         if altered is 0
             msg_wave
+        else
+            run_alter
     else
         msg_wave
 
@@ -307,6 +337,8 @@ on sit
     if any_alter is 1
         if altered is 0
             msg_sit
+        else
+            run_alter
     else
         msg_sit
 
@@ -318,6 +350,8 @@ on stand
     if any_alter is 1
         if altered is 0
             msg_stand
+        else
+            run_alter
     else
         msg_stand
 
@@ -329,6 +363,8 @@ on sleep
     if any_alter is 1
         if altered is 0
             msg_sleep
+        else
+            run_alter
     else
         msg_sleep
 
@@ -341,6 +377,8 @@ on swim
     if any_alter is 1
         if altered is 0
             msg_swim
+        else
+            run_alter
     else
         msg_swim
 
@@ -353,6 +391,8 @@ on swing
     if any_alter is 1
         if altered is 0
             msg_swing
+        else
+            run_alter
     else
         msg_swing
 
@@ -364,6 +404,8 @@ on think
     if any_alter is 1
         if altered is 0
             msg_think
+        else
+            run_alter
     else
         msg_think
 
@@ -375,6 +417,8 @@ on pray
     if any_alter is 1
         if altered is 0
             msg_pray
+        else
+            run_alter
     else
         msg_pray
 
@@ -386,6 +430,8 @@ on shout
     if any_alter is 1
         if altered is 0
             msg_shout
+        else
+            run_alter
     else
         msg_shout
 

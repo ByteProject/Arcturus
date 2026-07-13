@@ -591,6 +591,7 @@ _BUILTIN_GLOBALS = [
     # 1 once a handler spoke this action's report (`alter`); the default's
     # success line then stays silent. Cleared per dispatch.
     "altered",
+    "altered_self",
     # last_here is the room the remembered command ran in, so a replayed
     # scenery-grain quip refuses in another room.
     "last_here",
@@ -995,6 +996,45 @@ def _self_operand(world: wm.World, handler: wm.Handler, layout):
     return Variable(_globals_map(world)["noun"])
 
 
+def _hoist_alters(world, gmap, layout, pool, handler, name):
+    """Every `alter` in this handler becomes its own tiny routine: the
+    statement REGISTERS the replacement report (its packed address lands in
+    the `altered` global) and the library calls it at report time, only if
+    the action succeeds (the field report from Charles Moore Jr.: the old
+    eager print narrated success before validation, and the drunk staggered
+    west into "there is no exit"). `self` is captured at registration into
+    altered_self, so a kind's alter names the right instance at fire time.
+    Handler locals cannot cross into the deferred routine (no closures on
+    the Z-machine); the body reads globals, noun, and self."""
+    from .lower import _walk_contains, _say
+    found = []
+
+    def collect(n):
+        if isinstance(n, ast.Alter):
+            found.append(n)
+        return False  # keep walking; collection wants every site
+
+    for stmt in handler.body:
+        _walk_contains(stmt, collect)
+    extras, amap = [], {}
+    for i, node in enumerate(found):
+        rname = f"{name}_a{i}"
+        aux = Routine(rname, nlocals=0)
+        ctx = Context(world, gmap, layout=layout,
+                      self_value=Variable(gmap["altered_self"]),
+                      string_pool=pool)
+        if node.value is not None:
+            _say(aux, ctx, node.value)
+        else:
+            ctx.prescan(node.body)
+            compile_block(aux, ctx, node.body)
+        aux.op("rtrue")
+        aux.nlocals = ctx.nlocals()
+        extras.append(aux)
+        amap[id(node)] = rname
+    return extras, amap
+
+
 def _compile_handler(world, gmap, layout, pool, handler, name) -> Routine:
     # An owned handler takes its self object as the routine's first argument
     # (the per-object react routine passes it); a free rule takes none and reads
@@ -1010,6 +1050,8 @@ def _compile_handler(world, gmap, layout, pool, handler, name) -> Routine:
         in_handler=True,
         string_pool=pool,
     )
+    extras, amap = _hoist_alters(world, gmap, layout, pool, handler, name)
+    ctx.alter_map = amap
     ctx.prescan(handler.body)
     # A `when` guard: if the condition is false the handler does not apply, so
     # skip the body and pass the action on (return 0).
@@ -1023,7 +1065,7 @@ def _compile_handler(world, gmap, layout, pool, handler, name) -> Routine:
         rt.label(skip)
         rt.op("ret", Const(0))
     rt.nlocals = ctx.nlocals()
-    return rt
+    return [rt] + extras
 
 
 def _compile_block(world, gmap, layout, pool, blk) -> Routine:
@@ -1087,7 +1129,7 @@ def build_routines(world: wm.World, gmap: dict, layout, pool):
             continue  # compiled into main in the no-Cosmos fallback
         name = f"h{n}"
         n += 1
-        routines.append(_compile_handler(world, gmap, layout, pool, handler, name))
+        routines.extend(_compile_handler(world, gmap, layout, pool, handler, name))
         registry.append((handler, name))
 
     return main, routines, registry

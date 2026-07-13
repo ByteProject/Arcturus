@@ -4,12 +4,13 @@
 # https://github.com/ByteProject/Arcturus
 
 """alter (a field request: default mechanics, your wording): a handler
-speaks the action's report itself, one line (`alter "..."`) or an indented
-body for composed wording, then continues; the default runs its full
-mechanics and its success line stays silent. A plain say + continue keeps
-today's stacking (the flavor idiom survives), refusals never honor the
-mark, and a game that never alters compiles byte-identical (the untouched
-ceilings)."""
+REGISTERS the action's report, one line (`alter "..."`) or an indented
+body for composed wording, then continues; the report fires at report
+time, instead of the default line, ONLY when the action succeeds (the
+Charles Moore Jr. timing report: the old eager print narrated success
+before validation). A plain say + continue keeps today's stacking, a
+refused action never fires the registration, and a game that never
+alters compiles byte-identical (the untouched ceilings)."""
 
 import pytest
 
@@ -73,10 +74,14 @@ def test_alter_speaks_and_mechanics_run():
     assert "Down it goes." not in out                # block form suppressed too
 
 
-def test_refusals_never_honor_the_mark():
+def test_refusals_never_fire_the_registration():
+    # The Charles Moore Jr. field report that reshaped alter: the custom
+    # narration REGISTERS and fires only if the action succeeds. A refused
+    # take answers with the refusal alone; the heave never lies. (Attempt
+    # flavor that should print regardless is say's job, not alter's.)
     out = _run(["take altar"])
-    assert "You heave at the altar." in out
-    assert "stays exactly where it is." in out       # the refusal still speaks
+    assert "You heave at the altar." not in out
+    assert "stays exactly where it is." in out       # the refusal speaks alone
     assert "altar" not in _run(["take altar", "i"]).split("carrying")[-1]
 
 
@@ -95,3 +100,31 @@ def test_alter_covers_a_granule_default():
 def test_the_mark_lives_one_action():
     out = _run(["take idol", "drop idol", "take candle"])
     assert "Got it." in out                          # candle's default back
+
+
+def test_no_exit_never_staggers():
+    # The drunk who staggers west into a wall (the report's own example):
+    # a registered alter on GO fires only after a successful move, before
+    # the room description; a refused walk prints the refusal alone.
+    game = (
+        'game\n    title "T"\n    start cell\n'
+        'room cell\n    name "Cell"\n    desc "Bare walls."\n'
+        '    east yard\n'
+        'room yard\n    name "Yard"\n    desc "Open sky."\n'
+        'on go\n'
+        '    alter "You stagger drunkenly onward."\n'
+        '    continue\n'
+    )
+    from arcturus import cosmos as _c
+    story = generate(analyze(_c.combined_program(parse(game))))
+    io = CaptureIO(script=["west", "east"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    west = out.split(">west")[1].split(">")[0]
+    assert "stagger" not in west          # refused: no narration
+    east = out.split(">east")[1]
+    assert "You stagger drunkenly onward." in east
+    assert east.index("stagger") < east.index("Yard")  # before the room

@@ -10,18 +10,20 @@
 // stays silent, because the report is already spoken. Two forms: one
 // line (alter "..."), or `alter block` opening an indented body whose
 // printing collectively IS the report, the computed-property shape, for wording composed by state.
-// Two guardrails, both shown below: a plain say before continue still
-// stacks above the default line (the flavor idiom), and refusals never
-// honor alter, so a failed action answers honestly whatever you
-// narrated. Compile and run:
+// The report is REGISTERED, not printed on the spot: it fires at report
+// time, only if the action succeeds, so a refused take never narrates a
+// success that did not happen. Two guardrails, both shown below: a plain
+// say before continue still prints immediately and regardless (the
+// flavor idiom, the attempt's voice), and a refusal answers alone, your
+// registered line silently discarded. Compile and run:
 //
 //   arcc examples/features/alter.storyarc -o reliquary.z5
 //   frotz reliquary.z5
 //
 // TRY: take flute (one-line alter; no "Got it.") / drop flute (the block
-//      form, worded by where you stand) / take slab (alter, then the
-//      refusal still speaks) / take stub (plain say: flavor plus the
-//      default "Got it.", unchanged)
+//      form, worded by where you stand) / take slab (the registration
+//      never fires: the refusal answers alone) / take stub (plain say:
+//      flavor plus the default "Got it.", unchanged)
 
 game
     title "The Reliquary"
@@ -62,9 +64,10 @@ thing flute in reliquary
             say "."
         continue
 
-// The refusal guardrail: alter speaks, but the slab is fixed, so the
-// take FAILS and the library's refusal still answers. alter never lets
-// you narrate success over a failure.
+// The refusal guardrail: the slab is fixed, so the take FAILS, the
+// registration is discarded unfired, and the refusal answers alone.
+// alter never narrates a success that did not happen; if you want the
+// shoulder-heave to print on the failed attempt too, that is say's job.
 thing slab of supporter in reliquary
     name "stone slab"
     words slab, stone

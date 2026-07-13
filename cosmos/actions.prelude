@@ -117,6 +117,12 @@ on go
     set_here(dest)
     fire_enter
     set_here(parent_of(player))
+    // A registered alter fires on the successful move, before the room
+    // description: "You stagger drunkenly to the west.", then the room.
+    // A refused walk never reaches here, so the stagger never lies.
+    if any_alter is 1
+        if not (altered is 0)
+            run_alter
     arrive
 
 // Visible is not touchable, the open-air case (docs/01, beyond): the
@@ -190,6 +196,8 @@ on take
     if any_alter is 1
         if altered is 0
             msg_taken
+        else
+            run_alter
     else
         msg_taken
 
@@ -213,6 +221,8 @@ on drop
     if any_alter is 1
         if altered is 0
             msg_dropped
+        else
+            run_alter
     else
         msg_dropped
 
@@ -370,6 +380,8 @@ on wear
     if any_alter is 1
         if altered is 0
             msg_worn
+        else
+            run_alter
     else
         msg_worn
 
@@ -385,6 +397,8 @@ on take_off
     if any_alter is 1
         if altered is 0
             msg_removed
+        else
+            run_alter
     else
         msg_removed
 
@@ -470,6 +484,8 @@ on open
         if any_alter is 1
             if altered is 0
                 msg_unlocked
+            else
+                run_alter
         else
             msg_unlocked
     if noun is open
@@ -479,6 +495,8 @@ on open
     if any_alter is 1
         if altered is 0
             msg_opened
+        else
+            run_alter
     else
         msg_opened
     reveal_contents(noun)
@@ -502,6 +520,8 @@ on close
     if any_alter is 1
         if altered is 0
             msg_closed_it
+        else
+            run_alter
     else
         msg_closed_it
 
@@ -543,6 +563,8 @@ on lock
     if any_alter is 1
         if altered is 0
             msg_locked
+        else
+            run_alter
     else
         msg_locked
 
@@ -578,6 +600,8 @@ on unlock
     if any_alter is 1
         if altered is 0
             msg_unlocked
+        else
+            run_alter
     else
         msg_unlocked
 
@@ -597,6 +621,8 @@ on enter
         if any_alter is 1
             if altered is 0
                 msg_done
+            else
+                run_alter
         else
             msg_done
         stop
@@ -609,6 +635,8 @@ on enter
         if any_alter is 1
             if altered is 0
                 msg_done
+            else
+                run_alter
         else
             msg_done
         stop
@@ -626,6 +654,8 @@ on exit
                 if any_alter is 1
                     if altered is 0
                         msg_done
+                    else
+                        run_alter
                 else
                     msg_done
                 stop
@@ -639,6 +669,8 @@ on exit
     if any_alter is 1
         if altered is 0
             msg_done
+        else
+            run_alter
     else
         msg_done
 
