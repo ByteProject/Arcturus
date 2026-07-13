@@ -80,3 +80,25 @@ def test_spanish_asks_natively():
     out = _run(["coge", "examina"], game=SPANISH)
     assert "¿Coge qué?" in out
     assert "¿Examina qué?" in out
+
+
+def test_say_way_speaks_the_direction_word():
+    # The Charles request: print the direction in a custom message. `say
+    # way` (and ${way}) speaks the canonical word, not the property number;
+    # way 0 prints nothing.
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "Bare."\n    north loft\n'
+        'room loft\n    name "Loft"\n    desc "Up."\n    south hall\n'
+        'on go\n'
+        '    say "You head ${way} with purpose."\n'
+        '    continue\n'
+    )
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+    io = CaptureIO(script=["north", "south"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "You head north with purpose." in io.text
+    assert "You head south with purpose." in io.text

@@ -1154,6 +1154,16 @@ def gen_exit_routines(layout) -> list:
         prop.label(f"p{i}")
         prop.op("ret", Const(layout.prop_number[name]))
 
+    dn = Routine("cosmos_dir_name", nlocals=1)  # local 1 = the property number
+    for i, name in enumerate(dirs):
+        dn.op("je", Variable(1), Const(layout.prop_number[name]),
+              branch=(f"d{i}", True))
+    dn.op("rtrue")  # no direction (way 0): print nothing
+    for i, name in enumerate(dirs):
+        dn.label(f"d{i}")
+        dn.op("print", text=name)
+        dn.op("rtrue")
+
     nm = Routine("cosmos_exit_name", nlocals=1)
     for i in range(len(dirs)):
         nm.op("je", Variable(1), Const(i), branch=(f"n{i}", True))
@@ -1162,7 +1172,7 @@ def gen_exit_routines(layout) -> list:
         nm.label(f"n{i}")
         nm.op("print", text=name)
         nm.op("rtrue")
-    return [prop, nm]
+    return [prop, nm, dn]
 
 
 def _topic_objects(world: wm.World):
@@ -1669,9 +1679,9 @@ def _generate(world: wm.World, version: int = 5, stats=None) -> bytes:
     # Emit the exit-enumeration backing routines only if something calls the
     # exit_prop / exit_name intrinsics (the verbose_exits granule). Unsummoned,
     # they are never referenced and never ship.
-    if _references_routine(all_routines, "cosmos_exit_prop") or _references_routine(
-        all_routines, "cosmos_exit_name"
-    ):
+    if any(_references_routine(all_routines, n)
+           for n in ("cosmos_exit_prop", "cosmos_exit_name",
+                     "cosmos_dir_name")):
         all_routines += gen_exit_routines(layout)
 
     # The cosmos_topic_* helpers ship only if a conversation granule calls one
