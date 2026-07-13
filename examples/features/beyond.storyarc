@@ -16,7 +16,8 @@
 //   arcc examples/features/beyond.storyarc -o larder.z5
 //   frotz larder.z5
 //
-// TRY: x jar / take jar (beyond your reach) / ask cook about jar (talk
+// TRY: x jar / take jar (its own why) / take hook (the block form,
+//      worded by state) / ask cook about jar (talk
 //      crosses the gap) / climb stool / take jar (the hand arrives) /
 //      get down
 
@@ -37,11 +38,15 @@ room larder
 
 // One shelf too high: examinable, discussable, and not takeable until
 // the stool changes the geometry.
+// The refusal can carry its WHY (a field request): beyond "..."
+// speaks your line instead of the generic "beyond your reach", and
+// `beyond block` (the hook, below) words it by state, the desc-block
+// shape. A bare `beyond` keeps the pack's message.
 thing jar in larder
     name "honey jar"
     words jar, honey
     desc "Amber and patient. It has outwaited better climbers than you."
-    beyond
+    beyond "One shelf too high. The stool in the corner looks willing."
 
 // The stool is the state change: standing on it brings the jar within
 // reach; stepping down puts it beyond again. `beyond` is an ordinary
@@ -57,6 +62,17 @@ thing stool of supporter in larder
     on exit
         now jar is beyond
         continue
+
+thing hook in larder
+    name "brass hook"
+    words hook, brass
+    desc "Screwed into the rafter, out of everything's reach."
+    beyond block
+        show("The hook is rafter-high")
+        if player in stool
+            say ", and even the stool falls short."
+        else
+            say "."
 
 thing cook of character in larder
     name "cook"
