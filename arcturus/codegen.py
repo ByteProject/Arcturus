@@ -1716,8 +1716,17 @@ def _generate(world: wm.World, version: int = 5, stats=None) -> bytes:
             topics=sum(len(o.topics) for o in world.objects.values())
             + sum(len(k.topics) for k in world.kinds.values()),
             timers=len(world.schedule_index),
-            attributes=len(layout.attr_number) + len(layout.kind_attr),
+            # Genuine object attributes: the author's real budget, the only
+            # thing the 48-attribute ceiling truly bounds. Kinds are shown
+            # separately (below), never folded into this, so a kind is never
+            # mistaken for an attribute ceiling.
+            attributes=len(layout.attr_number),
             attributes_max=objmod._MAX_ATTRIBUTES,
+            # Kinds borrow the attribute slots the real attributes leave free
+            # (attribute-backed, the fast test) and spill to catalog scans
+            # beyond, so kinds are effectively unlimited.
+            kinds_backed=len(layout.kind_attr),
+            kinds_spilled=len(layout.kind_spilled),
             properties=len(layout.prop_number),
             properties_max=objmod._MAX_PROPERTIES,
             globals=len(gmap),

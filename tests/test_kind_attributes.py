@@ -11,10 +11,11 @@ Inform's classes never do. Three tiers:
 - Lever 1: a kind is given a runtime attribute ONLY when the program tests
   `obj is <kind>` somewhere. A kind used only to organize, share handlers or
   properties, or span scenery is compile-time and costs zero attributes.
-- Attribute-backed while the budget (after the real flags) has room, busiest
-  kinds first, so the one-byte test_attr goes to the hot tests.
+- Attribute-backed while the budget (after the real attributes) has room,
+  busiest kinds first, so the one-byte test_attr goes to the hot tests.
 - Catalog spill: the overflow tested kinds become membership scans, so kinds
-  are effectively unlimited and a flag ceiling is the only real ceiling.
+  are effectively unlimited and the count of genuine object attributes is the
+  only real ceiling.
 """
 
 from arcturus import cosmos
@@ -145,18 +146,20 @@ def test_spilled_kind_inheritance():
     assert "BASE" in out                        # egg is-a chick is-a base (spilled)
 
 
-def test_flag_ceiling_names_flags_not_kinds():
-    # 60 genuine boolean flags on one object overflow the 48 attributes. The
-    # error must name flags, never kinds (kinds spill; flags cannot).
-    flags = "".join(f'    flag{i}\n' for i in range(60))
+def test_attribute_ceiling_names_attributes_not_kinds():
+    # 60 genuine boolean attributes on one object overflow the 48-attribute
+    # ceiling. The error must name attributes, never kinds (kinds spill to
+    # catalogs; attributes cannot). ("flag" is avoided as a property name
+    # here: it is a distinct Arcturus feature, a global boolean.)
+    attrs = "".join(f'    bit{i}\n' for i in range(60))
     game = (
         'game\n    title "T"\n    start hall\n'
         'room hall\n    name "Hall"\n    desc "D."\n'
-        f'thing widget in hall\n    name "widget"\n{flags}'
+        f'thing widget in hall\n    name "widget"\n{attrs}'
         'verb "poke"\n    poke noun\n'
-        'on poke\n    if noun is flag0\n        say "set"\n'
+        'on poke\n    if noun is bit0\n        say "set"\n'
     )
     with pytest.raises(ArcError) as exc:
         generate(analyze(cosmos.combined_program(parse(game))))
-    assert "boolean flags" in str(exc.value)
+    assert "more than 48 attributes" in str(exc.value)
     assert "kinds do not count" in str(exc.value).lower()
