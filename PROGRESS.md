@@ -3873,3 +3873,22 @@ carries a dated note; regenerate and commit amalgams at every bump
 and keep the README version table current; memory files under
 ~/.claude carry the standing rulings (b12-charter-and-rulings above
 all; READ arc_image/reference/design.md before any B12 work).
+
+## 2026-07-14: alter without continue draws a compiler note (arcc 0.11.44)
+
+Charles Moore Jr. could not get alter to fire on a camel he boards
+(`on climb, enter` with an alter block, no continue). Not a bug: the
+handler dies at the handler level (the general design), consuming the
+action, so the library's success site never runs and the registered
+report can never fire, nor does the boarding. The deferred timing is
+right; the action simply never succeeds. Reproduced with a porch
+swing (invented), confirmed one `continue` at the handler indent
+fixes it (message + boarding both). Because alter-without-continue is
+ALWAYS dead and fails SILENTLY, Stefan ruled a compile note:
+sema._lint_alter_without_continue walks each handler, and when it
+holds an alter but no continue (the alter's own body skipped, since a
+block is the report's text not handler flow) it names the alter's
+line and the cure. The misplaced-continue error (continue inside the
+block) now guides placement too (ctx.in_alter_block marker). docs/01
+states the continue requirement as a rule. Compiler-only, Cosmos
+unchanged. Suite 872.

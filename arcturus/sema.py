@@ -26,6 +26,7 @@ Cosmos standard library is hardcoded here.
 
 from __future__ import annotations
 
+import dataclasses
 import sys
 from typing import Optional
 
@@ -90,6 +91,7 @@ class Analyzer:
         self._resolve_bodies()
         self._scan_awards()
         self._lint_unread_props()
+        self._lint_alter_without_continue()
         # A summoned abbreviations.granule (B6) is compile-time data, not runtime
         # blocks, so it rides on the program straight through to codegen.
         self.world.abbreviations = getattr(self.program, "abbreviations", None)
@@ -1288,6 +1290,53 @@ class Analyzer:
         if noted > 5:
             print(f"arcc: note: ({noted - 5} more unread properties)",
                   file=sys.stderr)
+
+    def _lint_alter_without_continue(self) -> None:
+        """`alter` REGISTERS a report that the library speaks at the action's
+        success (docs/01). A handler that alters but never `continue`s dies at
+        the handler level, the general handler design: the action is consumed
+        here, the library's success site never runs, and the registered report
+        can never fire. That combination is always a mistake and fails silently
+        (no message, and the action itself does not happen), so say it, as a
+        note, naming the alter's line and the cure. A `continue` inside the
+        alter block does not count: that block is the report's text, not
+        handler flow, so continues are collected from the handler body only,
+        with the alter's own body skipped."""
+        for h in self.world.all_handlers():
+            alter_line = None
+            has_continue = False
+
+            def visit(node):
+                nonlocal alter_line, has_continue
+                if isinstance(node, ast.Alter):
+                    if alter_line is None:
+                        alter_line = node.line
+                    return  # its body is the report, not handler flow
+                if isinstance(node, ast.Continue):
+                    has_continue = True
+                    return
+                if not dataclasses.is_dataclass(node):
+                    return
+                for f in dataclasses.fields(node):
+                    v = getattr(node, f.name)
+                    if isinstance(v, list):
+                        for item in v:
+                            if dataclasses.is_dataclass(item):
+                                visit(item)
+                    elif dataclasses.is_dataclass(v):
+                        visit(v)
+
+            for s in h.body:
+                visit(s)
+            if alter_line is not None and not has_continue:
+                print(
+                    f"arcc: note: line {alter_line}: this handler alters but "
+                    f"never continues, so it consumes the action here and the "
+                    f"altered report can never fire (nor does the action "
+                    f"happen); add `continue` in the handler body, after the "
+                    f"alter, to hand the action to the library",
+                    file=sys.stderr,
+                )
 
 
 def analyze(

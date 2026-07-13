@@ -1892,6 +1892,12 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
         raise LowerError("list properties need the dictionary stage (B4.4)", s.line)
     elif isinstance(s, ast.Continue):
         if not ctx.in_handler:
+            if getattr(ctx, "in_alter_block", False):
+                raise LowerError(
+                    "'continue' cannot go inside an alter block; the block is "
+                    "the report's text, not handler flow. Put `continue` in "
+                    "the handler body, after the alter, one indent out",
+                    s.line)
             raise LowerError("'continue' is only valid in a handler", s.line)
         rt.op("ret", Const(0))  # pass the action to the next handler
         return True
