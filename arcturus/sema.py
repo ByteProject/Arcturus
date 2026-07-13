@@ -692,6 +692,16 @@ class Analyzer:
         w = self.world
         for m in members:
             if isinstance(m, ast.PropertyDecl):
+                if m.name == "beyond" and m.form != ast.PROP_BOOL:
+                    # `beyond "why"` / `beyond block` (the Charles request):
+                    # the attribute plus its own explanation. Split into the
+                    # bool `beyond` and the text `beyond_why` (computed under
+                    # the block form, the desc-block shape); the guard says
+                    # the why instead of the generic msg_beyond.
+                    battr = ast.PropertyDecl(name="beyond", form=ast.PROP_BOOL)
+                    self._unify_property("beyond", prelude.T_BOOL, m.line)
+                    props_out["beyond"] = battr
+                    m.name = "beyond_why"
                 if m.form == ast.PROP_VALUE and m.values:
                     m.values = [self._const_text(v) for v in m.values]
                     # A plain property string is a static Z-string: an ${...}

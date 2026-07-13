@@ -197,6 +197,7 @@ _STD_VALUE_PROPS = {
     # (`appearance block`) words it by state. The room describer checks it
     # first; hidden and concealed still suppress everything.
     "appearance": T_TEXT,
+    "beyond_why": T_TEXT,
     # Article overrides, for the objects derivation cannot reach: `article` is
     # what ${the x} prints ("las" for las tijeras, "el" for el agua), and
     # `indefinite` what ${a x} prints ("unas"; English "some" for mass nouns).
