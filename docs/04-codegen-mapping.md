@@ -121,6 +121,34 @@ once high memory is laid out.
 | `say` an object, `${the obj}` | `print_obj` (article printed literally for now) |
 | `say` a text property | `print_paddr` |
 
+### 6a. Kinds and the attribute budget
+
+A kind is compile-time sugar; the Z-machine has no class concept. The only
+place a kind needs a run-time identity is `obj is <kind>`, which reads a
+per-object attribute bit (an instance carries the attribute of every kind in
+its chain). Spanning, handler-sharing, property inheritance, and `of <kind>`
+declaration are all resolved in the compiler and need no attribute. So the 48
+attribute bits are allocated in strict priority, in `objects.build_layout`:
+
+1. Genuine object attributes (boolean properties) first: these are mutable
+   per-object state and have no other home, so they own the budget.
+2. Membership-tested kinds next, busiest first. `sema` counts every `obj is
+   <kind>` site into `world.kind_tests`; only kinds that appear there are given
+   a slot, and only while slots remain. An untested kind costs nothing.
+3. The overflow tested kinds SPILL. Each spilled kind gets a synthesized extent
+   catalog in the catalog region (`layout.kind_catalog[name]`): the object
+   numbers of its transitive instances, in the same `[count, widest=0, e1..eN]`
+   shape as an author catalog. `obj is <spilled_kind>` then lowers to a
+   `blk_position` membership scan of that catalog (`_kind_test` in `lower.py`),
+   identical in result to `test_attr`, paid only on the cold tail. Because the
+   catalog region lives in dynamic memory it is resident on paging interpreters
+   (Ozmoo), so the scan never triggers a disk read.
+
+The only hard ceiling is therefore 48 genuine attributes; the error names them,
+never kinds. `arcc -s` reports `attributes N/48, kinds M (K spilled to
+catalogs)` from `stats["attributes"]` (real attributes only), `kinds_backed`,
+and `kinds_spilled`, so an author reads the true budget at a glance.
+
 ## 7. The dictionary and input (B4.4)
 
 The dictionary (`arcturus/dictionary.py`) holds every matchable word - verb
