@@ -513,17 +513,31 @@ clear it with `false` (`fixed false`), test it with `is`.
 The standard kinds are set by `of <kind>` and tested with `is <kind>`: `thing`,
 `room`, `container`, `supporter`, `door`, `character`.
 
-A kind is Arcturus sugar, not a Z-machine concept, so **kinds are effectively
-unlimited and cost you nothing until you test one.** A kind is given a runtime
-identity only where the program actually writes `obj is <kind>`; a kind used
-only to organize, share handlers or properties, or span scenery is resolved at
-compile time and consumes no attribute at all. Tested kinds take the fast
-one-byte membership test from the attribute slots your real flags leave free,
-busiest first; when those run out, further tested kinds fall back to a catalog
-membership scan (slightly slower, but only on the cold tail), so you never hit
-a "too many kinds" wall. The only real ceiling is 48 genuine object attributes
-(mutable per-object state), which is the Z-machine v5 limit; `arcc -s` shows
-attributes and kinds separately so you always see your true budget.
+**Kinds are effectively unlimited, and cost you nothing until you test one.**
+A kind is Arcturus sugar, not a Z-machine concept: the Z-machine has no classes,
+only objects, and Arcturus keeps it that way. The Z-machine gives each object 48
+attributes (single-bit true/false slots), and a kind earns one of those slots
+only where your program actually writes `obj is <kind>` and needs to ask at run
+time. A kind used purely to organize, to share handlers or properties, or to
+span scenery is resolved entirely at compile time and consumes no attribute at
+all, so declare as many of those as your world wants.
+
+When you do test a kind, it takes a fast one-byte membership test from the
+attribute slots your genuine object attributes leave free, the busiest-tested
+kinds first. If you test more kinds than those slots can hold, the rest fall
+back automatically to a catalog membership scan: a little slower, but only on
+the least-tested kinds and only on a real machine's cold path (the scan reads
+resident memory, so even an 8-bit target never pages a disk for it). Either way
+the result is identical and you never meet a "too many kinds" wall.
+
+The one real ceiling, then, is the Z-machine's own: 48 genuine object attributes
+(the mutable per-object true/false state you set with `now`). Kinds never count
+against it, so `arcc -s` reports the two separately, for example `attributes
+26/48, kinds 63 (41 spilled to catalogs)`. Read that as: 26 of your 48 real
+attributes are in use (22 free), and all 63 kinds work, 41 of them via the
+catalog scan. If you ever do run out, it is genuinely attributes you are short
+of, not kinds, and the compiler says so. (This is distinct from the `flag`
+feature, which declares a global boolean, not an object attribute.)
 
 ### Standard value properties
 
