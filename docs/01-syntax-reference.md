@@ -1072,7 +1072,7 @@ verb "push", "shove"
     push noun direction
 ```
 
-The direction is not a noun: it rides `way`, the same slot GO uses, so the
+`say way` (or `${way}` in any text) speaks the direction's canonical word, north or aft, so a custom message can name the way taken. The direction is not a noun: it rides `way`, the same slot GO uses, so the
 handler asks `if way is nothing` (declare the bare line too, so a plain SWIM
 can ask "which way?"), compares `if way is south`, or hands the move to the
 walking machinery whole with `perform("go", way)`. A noun slot before it

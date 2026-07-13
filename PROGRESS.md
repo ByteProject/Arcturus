@@ -3778,3 +3778,12 @@ guards test presence via beyond_why_addr (absent property folds to
 nothing, a beyond game without whys pays only the test), and both
 noun and second slots speak it. Only the beyond example's ceiling
 moved, dated. Suite 868.
+
+## 2026-07-13, night: say way speaks the word (arcc 0.11.42)
+
+Charles could not print the direction he had just parsed (way holds a
+property number; way.name is nothing). Now `say way` and ${way} speak
+the direction's canonical word through cosmos_dir_name, a je-chain
+over the live directions keyed by property number, emitted only when
+referenced (the exit_name gating extended); way 0 prints nothing. One
+compiler change, no Cosmos bump, ceilings untouched. Suite 869.

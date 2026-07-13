@@ -28,7 +28,7 @@ certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.11.41 | [build/arcc](build/arcc) |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.11.42 | [build/arcc](build/arcc) |
 | **Cosmos**, the standard library | 0.36.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.0.4 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.10.0 | [build/arcimg](build/arcimg) |

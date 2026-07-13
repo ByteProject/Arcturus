@@ -2224,6 +2224,15 @@ def _say_value(rt, ctx, expr):
             _free(ctx, t)
             return
         # number falls through to the ordinary numeric print below.
+    if isinstance(expr, ast.Name) and expr.ident == "way" \
+            and expr.ident not in ctx.named and "way" in ctx.globals:
+        # `say way` speaks the direction's canonical word ("north", "aft"),
+        # not its property number (the Charles request: print the direction
+        # in a custom message). cosmos_dir_name is a je-chain over the live
+        # directions, emitted only when referenced; way 0 prints nothing.
+        rt.op("call_vn", RoutineRef("cosmos_dir_name"),
+              Variable(ctx.globals["way"]))
+        return
     if isinstance(expr, ast.Name):
         et = getattr(ctx, "catalog_locals", {}).get(expr.ident)
         if et == "text":
