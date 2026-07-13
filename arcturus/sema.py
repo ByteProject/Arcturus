@@ -1178,6 +1178,11 @@ class Analyzer:
                 return
             if right.ident in self.world.kinds:
                 self.world.is_resolutions[id(expr)] = wm.IS_KIND
+                # Count the test site: only membership-tested kinds need a
+                # runtime identity, and the busiest ones earn the scarce
+                # attribute slots (objects.build_layout ranks by this).
+                self.world.kind_tests[right.ident] = (
+                    self.world.kind_tests.get(right.ident, 0) + 1)
                 return
             # A one-parameter block used as a predicate: `lamp is visible`
             # reads as visible(lamp), the way `is` already reads attributes

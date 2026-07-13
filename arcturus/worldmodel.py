@@ -381,6 +381,14 @@ class World:
     computed_text_props: set = field(default_factory=set)
     # Resolution of every `is` test, keyed by the node's identity.
     is_resolutions: dict[int, str] = field(default_factory=dict)
+    # How many `obj is <kind>` test SITES name each kind (static count, not a
+    # runtime count). A kind absent here is never membership-tested, so it
+    # needs no runtime identity at all and costs zero attributes; a kind
+    # present here is attribute-backed while the 48-attribute budget has room,
+    # and catalog-backed (a membership scan) beyond it, the busiest kinds
+    # keeping the one-byte test_attr. So a class never steals an attribute
+    # from a real flag, and kinds are effectively unlimited (docs/01 s5).
+    kind_tests: dict[str, int] = field(default_factory=dict)
     # arc_image (B11): True once any room declares an `arc_image` picture. The id
     # in the slot is the author's own number (the resource slot the interpreter
     # loads as <id>.png), so there is no name manifest; this flag is only the

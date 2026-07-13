@@ -95,6 +95,13 @@ class Layout:
     obj_number: dict[str, int] = field(default_factory=dict)
     attr_number: dict[str, int] = field(default_factory=dict)
     kind_attr: dict[str, int] = field(default_factory=dict)  # kind name -> attribute
+    # Tested kinds that overflowed the attribute budget: their `obj is <kind>`
+    # is a catalog membership scan instead of a test_attr (Step 2). Empty
+    # whenever the flags plus tested kinds fit in 48, which is nearly always.
+    kind_spilled: list = field(default_factory=list)
+    # kind name -> word offset of its synthesized extent catalog (the object
+    # numbers of its transitive instances), for the spilled kinds only.
+    kind_catalog: dict[str, int] = field(default_factory=dict)
     prop_number: dict[str, int] = field(default_factory=dict)
     table: bytearray = field(default_factory=bytearray)
     # (offset within `table`, string id) to patch with a packed string address.
@@ -347,13 +354,35 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
                 layout.has_grains = True
                 break
 
-    # Kinds get attributes too, so `obj is <kind>` lowers to a test_attr: an
-    # object carries the attribute of every kind in its chain (B4.5c).
-    for kname in sorted(world.kinds):
+    # Kind-membership attributes (Lever 1): only kinds the program actually
+    # tests with `obj is <kind>` need a runtime identity. A kind used purely
+    # to organize, share handlers or properties, or span scenery is resolved
+    # at compile time (spanning expands to concrete rooms; handlers weave into
+    # react routines; inheritance merges) and costs ZERO attributes. Tested
+    # kinds take the attribute slots the real flags left free, busiest first
+    # (world.kind_tests ranks them), so the scarce one-byte test_attr goes to
+    # the hot tests. When the 48 budget runs out here, the remaining tested
+    # kinds SPILL to catalog membership (build_kind_spill, below) rather than
+    # erroring: a class never steals a slot from a flag, and running out of
+    # attributes for kinds is not a ceiling. `a` at this point is the flag
+    # count, so the surviving budget is _MAX_ATTRIBUTES - a.
+    tested = sorted(world.kind_tests, key=lambda k: (-world.kind_tests[k], k))
+    for kname in tested:
         if a >= _MAX_ATTRIBUTES:
-            raise _err("more than 48 attributes (properties plus kinds)")
+            break  # the rest spill to catalog membership
         layout.kind_attr[kname] = a
         a += 1
+    layout.kind_spilled = [k for k in tested if k not in layout.kind_attr]
+    if layout.kind_spilled:
+        # Step 1 guard (removed when the catalog spill lands): until the spill
+        # exists, an overflow is still a hard stop, but an HONEST one, naming
+        # flags and kinds separately so the author never mistakes a kind for
+        # a flag ceiling.
+        flags = a - len(layout.kind_attr)
+        raise _err(
+            f"{flags} boolean flags plus {len(tested)} membership-tested "
+            f"kinds exceed the {_MAX_ATTRIBUTES}-attribute limit of a "
+            f"Z-machine v5 story file")
 
     # Catalog word offsets, BEFORE the table is emitted: a property can hold
     # a catalog name (`writing PLAQUE_TEXT`), and _fill_property needs the
