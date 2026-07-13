@@ -102,3 +102,27 @@ def test_say_way_speaks_the_direction_word():
         pass
     assert "You head north with purpose." in io.text
     assert "You head south with purpose." in io.text
+
+
+def test_or_chains_particles_in_grammar():
+    # The Charles request: `put noun in or into noun` on ONE line. The
+    # parser expands the alternatives into sibling grammar lines, so the
+    # matcher never learns a new shape.
+    game = (
+        'game\n    title "T"\n    start shed\n'
+        'room shed\n    name "Shed"\n    desc "A shed."\n'
+        'thing box of container in shed\n    name "box"\n    words box\n    open\n'
+        'thing nail in shed\n    name "nail"\n    words nail\n'
+        'verb "stow"\n'
+        '    stow noun in or into or inside noun\n'
+        'on stow\n'
+        '    say "Stowed."\n'
+    )
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+    io = CaptureIO(script=["stow nail in box", "stow nail into box",
+                           "stow nail inside box"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert io.text.count("Stowed.") == 3

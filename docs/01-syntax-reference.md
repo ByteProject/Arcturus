@@ -1005,7 +1005,10 @@ verb "put"
     put noun on noun
 ```
 
-A grammar line is an action name, then slots and literal words. Slots:
+A grammar line is an action name, then slots and literal words.
+Particle words chain with `or` on one line: `put noun in or into
+noun` accepts both wordings (the parser expands the alternatives
+into sibling lines, so it costs what writing them out costs). Slots:
 `noun` (one in-scope object), `held` (a held object), `multi` (several,
 including "all"), `text` (free text), and `direction` (one direction word,
 below). Bare words such as `in`, `on`, `with` are literal prepositions.
