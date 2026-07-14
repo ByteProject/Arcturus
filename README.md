@@ -82,6 +82,18 @@ interactive fiction, this is a good time to pick it up.
 
 The most significant recent additions and achievements:
 
+- **Kinds without a ceiling.** A kind is Arcturus's class sugar, and it used to
+  spend one of the Z-machine's 48 precious attributes even when you only meant
+  to organize objects or span scenery. Not any more: a kind costs an attribute
+  only where you actually test `obj is <kind>`, so the kinds you use purely to
+  share behavior or distribute scenery are free. Test more kinds than the spare
+  attribute slots hold and the rest fall back automatically to a fast catalog
+  membership scan, built on Arcturus's own list feature rather than a copy of
+  Inform's classes, so you can declare as many kinds as your world wants. The
+  only real ceiling is now the Z-machine's own, 48 genuine object attributes,
+  and `arcc -s` shows attributes and kinds separately so you always read your
+  true budget (`attributes 26/48, kinds 63`). It grew from a large real-world
+  port hitting the old wall, and it is exactly what that port asked for.
 - **Catalogs: list power without the list tax.** `catalog` declares a
   fixed, ordered collection, one value per line (the lines of a letter, a
   roster of suspects, a table of numbers), and the operations read like
@@ -129,15 +141,6 @@ The most significant recent additions and achievements:
   [perform](examples/features/perform.storyarc),
   [appearance](examples/features/appearance.storyarc),
   [components](examples/features/components.storyarc).
-- **A parser that names your typo.** A noun phrase that resolves to nothing
-  no longer runs the action with an empty noun: a real thing that is not
-  here keeps the classic refusal, and a word the story does not know at all
-  is spelled back ("This story doesn't know the word \"sdlfjh\".", worded
-  by each language pack), with OOPS correcting it on the next line. Handlers
-  can finally trust that `noun is nothing` means a bare verb, and the bare
-  verb asks its own question ("Take what?", "Nimm was?", "¿Coge qué?"), while
-  a pronoun with nothing to refer to gets its own answer too. Three
-  situations, three responses, in every language.
 
 
 ## The language
