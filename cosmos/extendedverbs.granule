@@ -31,28 +31,38 @@ on search
         stop
     // A shut, closed, or locked container yields nothing to a search: you
     // cannot see inside a sealed thing (a locked container is not open, so
-    // this one check covers all three). It is a refusal, so it never fires
-    // an alter, per the alter contract; the Schroedinger's-loot flavor is
+    // this one check covers all three). A refusal, so it never fires an
+    // alter, per the alter contract; the Schroedinger's-loot flavor is
     // reserved for exactly this.
     if noun is container
         if noun is not open
             change refused to 1
             msg_search_closed
             stop
-    // ANY other object is searchable, whether it makes sense or not: that is
-    // the story's call, not the verb's. The default reveals nothing new, so
-    // SEARCH never refuses here. There is no built-in "list what it holds":
-    // an open container already shows its contents in the room listing, and
-    // a character's belongings are not in scope, so listing them would name
-    // things the player cannot reach. A real search is the author's: override
-    // `on search` on a specific object to reveal a HIDDEN thing (the idiom:
-    // `now note is not hidden`, the note living in the room so it is reachable
-    // at once), spill an NPC's item out with `move key to here`, or print
-    // whatever the discovery is. A story that altered the report speaks here.
+    // A story that altered the report speaks it here, ahead of the soft
+    // defaults below (the shut container refused above and never reaches
+    // this, per the alter contract).
     if any_alter is 1
         if not (altered is 0)
             run_alter
             stop
+    // A LIVING thing is not a place to rummage: frisking a person is a
+    // social act, not a discovery, so the default is a cheeky rebuff. Not a
+    // refusal (a soft non-event that lets a chained command run on). The
+    // author overrides `on search` for a compliant, unconscious, or dead
+    // NPC; a corpse is not animate, so it falls through to the neutral
+    // default below and an override can turn out its loot.
+    if noun is animate
+        msg_search_animate
+        stop
+    // ANY other object is searchable, sense or not (the story's call): the
+    // default reveals nothing new. There is no built-in "list what it holds"
+    // on purpose (an open container already shows its contents in the room
+    // listing, and a character's belongings are not in scope, so listing
+    // would name things the player cannot reach). A real search is the
+    // author's `on search` override, revealing by making something REACHABLE
+    // (`now note is not hidden` for a note living in the room, or `move key
+    // to here` to spill an NPC's item out), never by naming the untouchable.
     msg_search_nothing
 
 // ---------------------------------------------------------------------------
@@ -432,6 +442,9 @@ on shout
 
 block msg_search_nothing()
     say "Breaking news: Absolutely nothing new to see here."
+
+block msg_search_animate()
+    say "${The noun} gives you a look that says, plainly: whatever it is you are about to try, stop it."
 
 block msg_search_closed()
     say "Schroedinger's loot remains safe, mostly because ${the noun} is completely shut."
