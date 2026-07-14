@@ -117,6 +117,14 @@ on fetch
     if noun is nothing
         say "Fetch what?"
         stop
+    // Purloin pulls the object plainly into your hands, bypassing every
+    // rule. Detach it first: a component moved while still marked stays
+    // "part of" its new holder (part of the player) and vanishes from the
+    // inventory listing (a field report: purloining a component of a
+    // character seemed to do nothing). Clear the mark so it lands as an
+    // ordinary carried thing; the guard folds away without components.
+    if any_components is 1
+        now noun is not component
     move noun to player
     show("Fetched ")
     print_name(noun)

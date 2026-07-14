@@ -3938,3 +3938,16 @@ flag (sema._lint_nautical_land_start, scoped to the shipped granule
 via the dirs_nautical signal). Fires for a land start, silent for The
 Cormorant (ship start) and for an author who sets it in on start.
 Granule comment and docs/05 gained the land-start guidance. Suite 882.
+
+## 2026-07-14: purloin detaches a component (Cosmos 0.36.1)
+
+Charles Moore Jr.: PURLOIN (the debug fetch verb) "doesn't work" on an
+item that is a COMPONENT of a character (a hat, say). Root: fetch did
+`move noun to player` but left the `component` mark set, so the item
+became a component OF THE PLAYER, held in the tree but invisible in
+the inventory listing (a component never lists as contents). It said
+"Fetched X." and then nothing was carried. Fetch now clears the mark
+first (guarded by any_components, so it folds away without
+components), and the object lands as an ordinary carried thing. Plain
+(non-component) fetch unchanged; a game with no components compiles
+identically. Regression test on the VM. Suite 883.

@@ -95,3 +95,28 @@ def test_debug_verbs_on_frotz(tmp_path):
 
     # warp teleports to the rat's room and describes it.
     assert "A damp cellar." in out
+
+
+def test_purloin_detaches_a_component():
+    # A field report (Charles Moore Jr.): purloining a component of a
+    # character seemed to do nothing. It moved to the player but stayed
+    # marked `component`, so it read as part of the player and never listed
+    # in the inventory. Fetch now clears the mark: the object lands as an
+    # ordinary carried thing.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    game = (
+        'game\n    title "T"\n    start cell\nsummon.debug\n'
+        'room cell\n    name "Cell"\n    desc "Bare."\n'
+        'thing guard of character in cell\n    name "guard"\n    words guard\n'
+        'thing cap in guard\n    name "peaked cap"\n    words cap\n    component\n'
+    )
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+    io = CaptureIO(script=["purloin cap", "i"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "Fetched peaked cap." in io.text
+    assert "peaked cap" in io.text.split("carrying")[-1]  # now really carried
