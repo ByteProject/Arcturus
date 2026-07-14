@@ -3982,3 +3982,19 @@ The override reveals by making something REACHABLE (the IF idiom):
 it is takeable, or `now note is not hidden` for a note living in the
 room. docs/05 and the tests updated to the reachability pattern
 (verified: frisk -> take key -> Got it.). Suite 884.
+
+## 2026-07-14: search reads the object; a living thing rebuffs (Cosmos 0.36.5)
+
+The SEARCH design, finished properly after Stefan pulled me back from
+iterating in code (discuss-first). The default now reads the noun: a
+LIVING thing (animate) gets a cheeky social rebuff ("${The noun} gives
+you a look that says, plainly: whatever it is you are about to try,
+stop it."), because frisking a person is a social act, not a
+discovery; a SHUT container keeps its Schroedinger secret; everything
+else gets the neutral "nothing new". A corpse is not animate, so it
+drops past the rebuff to the neutral case and an `on search` override
+turns out its loot. Ordering: shut-container refusal first (no alter),
+then alter, then animate rebuff, then neutral. A real search reveals
+by REACHABILITY (move to room / un-hide a room note), never by naming
+the untouchable. Design and wording pre-approved by Stefan this time.
+Suite 884.

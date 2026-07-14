@@ -76,13 +76,14 @@ def test_unsummoned_verbs_are_unknown_on_frotz(tmp_path):
     assert "don't add up" in out  # the standard unknown-verb reply
 
 
-def test_search_works_on_any_object():
+def test_search_defaults_by_object_type():
     # SEARCH's shape (a field report via Charles Moore Jr.: it only worked on
-    # containers/supporters, not NPCs). Now any object is searchable: a
-    # neutral default everywhere, the Schroedinger flavor for a shut
-    # container, and an `on search` override for a real search. The override
-    # reveals things by making them REACHABLE (moving a hidden key into the
-    # room), not by naming what the player cannot touch.
+    # containers/supporters). Any object is searchable, and the default reads
+    # the object: a living thing gets a social rebuff (frisking a person is
+    # not a discovery), a shut container keeps its secrets, and everything
+    # else gets the neutral cheeky line. A corpse is not animate, so it drops
+    # to the neutral case and an `on search` override turns out its loot,
+    # revealing by making the item REACHABLE.
     from actaea.io import CaptureIO
     from actaea.loader import load
     from actaea.vm import VM
@@ -92,20 +93,22 @@ def test_search_works_on_any_object():
         'thing statue in hall\n    name "statue"\n    words statue\n'
         'thing box of container in hall\n    name "shut box"\n    words shut, box\n'
         'thing guard of character in hall\n    name "guard"\n    words guard\n'
+        'thing corpse in hall\n    name "corpse"\n    words corpse\n'
         '    on search\n'
-        '        move key to here\n'
-        '        say "You frisk the guard and turn out a brass key."\n'
-        'thing key in guard\n    name "brass key"\n    words key, brass\n'
+        '        move coin to here\n'
+        '        say "You go through the coat and find a coin."\n'
+        'thing coin in corpse\n    name "gold coin"\n    words coin, gold\n'
     )
     story = generate(analyze(cosmos.combined_program(parse(game))))
-    io = CaptureIO(script=["search statue", "search box",
-                           "frisk guard", "take key"])
+    io = CaptureIO(script=["search statue", "search box", "frisk guard",
+                           "search corpse", "take coin"])
     try:
         VM(load(story), io).run(max_steps=20_000_000)
     except IndexError:
         pass
     out = io.text
-    assert "nothing new to see here" in out       # a plain object: neutral default
-    assert "Schroedinger" in out                  # a shut container
-    assert "turn out a brass key" in out           # the override reveals
-    assert "Got it." in out.split("take key")[-1]  # the key is now reachable and taken
+    assert "nothing new to see here" in out        # inanimate: neutral default
+    assert "Schroedinger" in out                   # a shut container
+    assert "look that says" in out                 # a living thing: the rebuff
+    assert "find a coin" in out                    # corpse (not animate): override
+    assert "Got it." in out.split("take coin")[-1]  # the coin is reachable and taken
