@@ -3998,3 +3998,16 @@ then alter, then animate rebuff, then neutral. A real search reveals
 by REACHABILITY (move to room / un-hide a room note), never by naming
 the untouchable. Design and wording pre-approved by Stefan this time.
 Suite 884.
+
+## 2026-07-14: move-to-scope seeds the backstage room (arcc 0.12.2)
+
+A mechanical bug found while validating the search-reveal idiom for
+Charles: `move x to scope` failed with "unknown name 'scope'" unless
+some object was declared `in scope`, because the backstage room was
+seeded only by a placement. docs/01 already promised move-to-scope
+worked. Fixed: sema now also seeds the scope room when any
+`move ... to scope` appears in the code (sema._moves_to_scope, a
+generic AST walk). Still zero cost when neither `in scope` nor
+move-to-scope is used (verified: no backstage room seeded). This
+makes move-to-scope the clean frisk reveal (item reachable, not
+listed on the floor). Compiler-only; Cosmos unchanged. Suite 886.
