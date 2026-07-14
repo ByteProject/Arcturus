@@ -29,12 +29,12 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
 CEILINGS = {
-    "features/beyond.storyarc": 16560,  # 2026-07-13 The Larder shows both why forms (string jar, block hook)
-    "features/alter.storyarc": 15980,  # 2026-07-13 alter defers: hoisted report routines + call sites (the Charles timing fix)
-    "features/catalogs.storyarc": 15852,  # 2026-07-12 climb and GO ON board supporters
-    "features/direction-grammar.storyarc": 16040,  # 2026-07-12 climb and GO ON board supporters
-    "features/scenery-contents.storyarc": 15980,  # 2026-07-12 climb and GO ON board supporters
-    "granules/nautical.storyarc": 15708,  # 2026-07-12 climb and GO ON board supporters
+    "features/beyond.storyarc": 16792,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/alter.storyarc": 16216,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/catalogs.storyarc": 16176,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/direction-grammar.storyarc": 16280,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/scenery-contents.storyarc": 16220,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "granules/nautical.storyarc": 16032,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
     # 2026-07-04 (Stefan's ruling, superseding the same day's FULL move):
     # there is NO fullscore verb; SCORE is the one score verb and reports
     # score, max, turns, and rank in one line. Pool labels stay in the
@@ -88,40 +88,40 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 22220,  # 2026-07-12 climb and GO ON board supporters
-    "brass-lantern.storyarc": 16392,  # 2026-07-12 climb and GO ON board supporters
-    "cloak-of-darkness.storyarc": 17432,  # 2026-07-12 climb and GO ON board supporters
-    "ejemplo-espanol.storyarc": 21252,  # 2026-07-12 climb and GO ON board supporters
-    "features/computed-properties.storyarc": 14964,  # 2026-07-12 climb and GO ON board supporters
-    "features/containers.storyarc": 15344,  # 2026-07-12 climb and GO ON board supporters
-    "features/daemons-and-timers.storyarc": 15276,  # 2026-07-12 climb and GO ON board supporters
-    "features/doors-and-locks.storyarc": 14852,  # 2026-07-12 climb and GO ON board supporters
-    "features/appearance.storyarc": 15644,  # 2026-07-12 climb and GO ON board supporters
-    "features/components.storyarc": 15116,  # 2026-07-12 climb and GO ON board supporters
-    "features/perform.storyarc": 15200,  # 2026-07-12 climb and GO ON board supporters
-    "features/grains.storyarc": 15008,  # 2026-07-12 climb and GO ON board supporters
-    "features/grammar.storyarc": 15972,  # 2026-07-12 climb and GO ON board supporters
-    "features/introproperty.storyarc": 16268,  # 2026-07-12 climb and GO ON board supporters
-    "features/kinds-and-inheritance.storyarc": 14812,  # 2026-07-12 climb and GO ON board supporters
-    "features/on-other.storyarc": 14812,  # 2026-07-12 climb and GO ON board supporters
-    "features/zcolor.storyarc": 15184,  # 2026-07-12 climb and GO ON board supporters
-    "features/scoring.storyarc": 17164,  # 2026-07-12 climb and GO ON board supporters
-    "features/spans.storyarc": 15004,  # 2026-07-12 climb and GO ON board supporters
-    "features/vehicles.storyarc": 15608,  # 2026-07-12 climb and GO ON board supporters
-    "granules/ambience.storyarc": 16296,  # 2026-07-12 climb and GO ON board supporters
-    "granules/conversations.storyarc": 16592,  # 2026-07-12 climb and GO ON board supporters
-    "granules/extended-verbs.storyarc": 17676,  # 2026-07-12 climb and GO ON board supporters
-    "granules/infocom-interrogation.storyarc": 17004,  # 2026-07-12 climb and GO ON board supporters
-    "granules/quotes.storyarc": 15184,  # 2026-07-12 climb and GO ON board supporters
-    "granules/take-all.storyarc": 16992,  # 2026-07-12 climb and GO ON board supporters
-    "granules/plurals.storyarc": 15840,  # 2026-07-12 climb and GO ON board supporters
-    "granules/statusline.storyarc": 14920,  # 2026-07-12 climb and GO ON board supporters
-    "granules/verbose-exits.storyarc": 15200,  # 2026-07-12 climb and GO ON board supporters
+    "beispiel-deutsch.storyarc": 22348,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "brass-lantern.storyarc": 16716,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "cloak-of-darkness.storyarc": 17672,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "ejemplo-espanol.storyarc": 21388,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/computed-properties.storyarc": 15288,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/containers.storyarc": 15584,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/daemons-and-timers.storyarc": 15600,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/doors-and-locks.storyarc": 15176,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/appearance.storyarc": 15968,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/components.storyarc": 15440,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/perform.storyarc": 15440,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/grains.storyarc": 15332,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/grammar.storyarc": 16296,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/introproperty.storyarc": 16508,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/kinds-and-inheritance.storyarc": 15136,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/on-other.storyarc": 15136,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/zcolor.storyarc": 15508,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/scoring.storyarc": 17488,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/spans.storyarc": 15328,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/vehicles.storyarc": 15848,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "granules/ambience.storyarc": 16620,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "granules/conversations.storyarc": 16916,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "granules/extended-verbs.storyarc": 17868,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "granules/infocom-interrogation.storyarc": 17328,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "granules/quotes.storyarc": 15508,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "granules/take-all.storyarc": 17232,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "granules/plurals.storyarc": 16164,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "granules/statusline.storyarc": 15244,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "granules/verbose-exits.storyarc": 15524,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 17928  # 2026-07-12 climb and GO ON board supporters
+CLOAK_Z8_CEILING = 18176  # 2026-07-12 climb and GO ON board supporters
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

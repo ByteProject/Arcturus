@@ -544,27 +544,29 @@ on lock
         msg_cant_lock
         stop
     if noun is locked
-        msg_locked
+        msg_already_locked
         stop
     if noun is open
         change refused to 1
         msg_close_first
         stop
-    // A bare LOCK reaches for the lock's own key, but reaching is not
-    // having: the key must actually be carried (the field report: every
-    // lock opened for free when no second was typed). A lockable with no
-    // unseal_with is a keyless bolt and works bare-handed.
+    // The opener (unseal_with) must be HELD to lock it too. A keyless bolt
+    // has no opener to hold, so the player cannot lock it; its locked state
+    // is the story's to set (`now box is locked`).
     if second is nothing
         change second to noun.unseal_with
+    if second is nothing
+        change refused to 1
+        msg_no_key
+        stop
     if second is not noun.unseal_with
         change refused to 1
         msg_wrong_key
         stop
-    if second is not nothing
-        if not (player holds second)
-            change refused to 1
-            msg_no_key
-            stop
+    if not (player holds second)
+        change refused to 1
+        msg_no_key
+        stop
     now noun is locked
     if any_alter is 1
         if altered is 0
@@ -582,26 +584,35 @@ on unlock
     if any_beyond is 1
         if beyond_guard is 1
             stop
+    // Nothing to unlock: the thing has no lock at all, so just open it.
     if noun is not lockable
-        change refused to 1
         msg_cant_unlock
+        perform("open", noun)
         stop
+    // Lockable but already unlocked: unlocking is a no-op, so open it.
     if noun is not locked
-        msg_unlocked
+        msg_not_locked
+        perform("open", noun)
         stop
-    // The mirror of lock's rule: the auto-supplied (or named) key must be
-    // carried, or the answer is honest; keyless locks stay bare-handed.
+    // Locked. It needs its opener (unseal_with), and that opener must be
+    // HELD. A bare UNLOCK reaches for the lock's own opener. A KEYLESS lock
+    // (no unseal_with) has no opener to hold, so it refuses here rather than
+    // springing open for free (the field report); the story opens it itself,
+    // `now box is not locked`, when the crowbar comes down.
     if second is nothing
         change second to noun.unseal_with
+    if second is nothing
+        change refused to 1
+        msg_no_key
+        stop
     if second is not noun.unseal_with
         change refused to 1
         msg_wrong_key
         stop
-    if second is not nothing
-        if not (player holds second)
-            change refused to 1
-            msg_no_key
-            stop
+    if not (player holds second)
+        change refused to 1
+        msg_no_key
+        stop
     now noun is not locked
     if any_alter is 1
         if altered is 0

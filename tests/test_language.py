@@ -158,7 +158,8 @@ def test_german_separable_lock_verbs_on_frotz(tmp_path):
         capture_output=True, text=True, timeout=15,
     ).stdout
     assert out.count("Aufgeschlossen.") == 1  # auf -> unlock
-    assert out.count("Abgeschlossen.") == 2  # ab and zu -> lock
+    assert out.count("Abgeschlossen.") == 1  # ab -> lock (succeeds)
+    assert "Schon abgeschlossen." in out     # zu -> lock too, now already locked
 
 
 def test_non_english_game_skips_the_english_default_abbreviations():

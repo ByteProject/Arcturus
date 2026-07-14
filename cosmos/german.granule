@@ -1388,6 +1388,14 @@ block msg_cant_close()
 block msg_locked()
     say "Abgeschlossen."
 
+// Neu (Cosmos 0.37): abgeschlossen-bereits und nicht-abgeschlossen. Sachlich
+// gehalten; Stefans Feinschliff-Durchgang gibt ihnen den frechen Ton.
+block msg_already_locked()
+    say "Schon abgeschlossen."
+
+block msg_not_locked()
+    say "${The noun} ist gar nicht abgeschlossen; du öffnest ${the:acc noun}."
+
 block msg_cant_lock()
     if any_pluribus is 1
         if noun is pluribus

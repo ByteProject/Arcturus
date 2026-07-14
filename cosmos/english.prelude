@@ -1376,37 +1376,46 @@ block msg_cant_close()
 block msg_locked()
     say "Locked."
 
+// A LOCK on something already locked: distinct from the success line above.
+block msg_already_locked()
+    say "Already locked. Thoroughly. Smugly, even."
+
 block msg_cant_lock()
     if any_pluribus is 1
         if noun is pluribus
-            say "${The noun} don't lock."
+            say "${The noun} don't lock, and show no ambition to start."
             return 0
-    say "${The noun} doesn't lock."
+    say "${The noun} doesn't lock, and shows no ambition to start."
 
 block msg_close_first()
-    say "You'd have to close ${the noun} first."
+    say "You'd have to close ${the noun} first; locking an open thing fools no one."
 
-// Deliberately unnamed: a bare UNLOCK on an undiscovered lock must not
-// spoil which key fits it.
+// Deliberately unnamed: a bare UNLOCK on an undiscovered lock must not spoil
+// what opens it. Mechanism-agnostic: the opener may be a key, a card, a code.
 block msg_no_key()
-    say "You don't have the right key."
+    say "You don't have whatever ${the noun} wants, and looking hopeful isn't helping."
 
 block msg_wrong_key()
     if any_pluribus is 1
-        if second is pluribus
-            say "${The second} don't fit."
+        if noun is pluribus
+            say "${The noun} are entirely unimpressed by ${the second}."
             return 0
-    say "${The second} doesn't fit."
+    say "${The noun} is entirely unimpressed by ${the second}."
 
 block msg_unlocked()
     say "Unlocked."
 
+// A UNLOCK on something with no lock at all: the verb just opens it.
 block msg_cant_unlock()
+    say "Nothing about ${the noun} needs unlocking, so you just open it."
+
+// A UNLOCK on a lockable thing that is already unlocked: open it instead.
+block msg_not_locked()
     if any_pluribus is 1
         if noun is pluribus
-            say "${The noun} don't unlock."
+            say "${The noun} are already unlocked, so you skip the suspense and open them."
             return 0
-    say "${The noun} doesn't unlock."
+    say "${The noun} is already unlocked, so you skip the suspense and open it."
 
 // Operating.
 block msg_no_switch()

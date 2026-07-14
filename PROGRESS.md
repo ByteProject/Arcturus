@@ -4028,3 +4028,26 @@ replacement and "examine him" follows. Verified on the VM (attack ->
 again -> "Doesn't seem sporting"; x him -> the sleeper's desc). DCE'd
 when uncalled (byte-identical). docs/01 section 9 documents it; VSIX
 0.13.4 adds swap to the services list. Suite 888.
+
+## 2026-07-15: lock/unlock is a real state machine now (Cosmos 0.37.0)
+
+Charles Moore Jr.: "you can unlock a lock by not providing a second is
+still there." Root: a lockable+locked thing with NO unseal_with
+unlocked bare-handed (the old "keyless bolt" shortcut). Stefan reframed
+it as a logic problem, not mechanics, and specified the full state
+machine. Built: LOCK/UNLOCK now read the object. UNLOCK: not lockable
+-> just open it; not locked -> open it instead; locked -> needs the
+unseal_with opener HELD, and a keyless lock (no opener) REFUSES (fixes
+the bug; the story springs it with `now x is not locked`, the crowbar
+use case Stefan named). LOCK is the mirror (already-locked, close-first,
+opener-held, keyless-refuses). Messages rewritten in the library's
+cheeky voice AND mechanism-agnostic (a key, a keycard, a code):
+"You don't have whatever ${the noun} wants...", "${The noun} is
+entirely unimpressed by ${the second}.", "Already locked. Thoroughly.
+Smugly, even.", "${The noun} doesn't lock, and shows no ambition to
+start." Two new blocks (msg_already_locked, msg_not_locked) added to
+all three packs (German/Spanish functional, flagged for Stefan's
+idiomatic+cheeky pass). Redirect via perform("open"). Size grew ~284
+bytes/game -- Stefan: the cost is the ADDED MECHANIC that was missing,
+not the words, and it is worth it; 35 ceilings raised, dated. Suite
+891.

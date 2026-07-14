@@ -502,8 +502,8 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `open` | Currently open (a container or door). Set by `open`, cleared by `close`. A closed container hides its contents from scope. |
 | `clear` | A see-through container (a glass jar): its contents are in scope and referable even when closed. An open or `clear` container exposes its contents; a closed opaque one shields them. |
 | `seen` | Set once the player has been shown an object (a content of an open container, something taken or examined). A closed opaque container still lists the contents the player has `seen`, so they are not forgotten when put away; contents never seen stay hidden until the box is opened. Cosmos manages this; you rarely set it. The full container knowledge model is in 02, section 5a. |
-| `lockable` | Can be locked and unlocked with a key (`lock` / `unlock`). |
-| `locked` | Currently locked; blocks `open` until unlocked with the matching key. |
+| `lockable` | Can be locked and unlocked. LOCK / UNLOCK read the object's state: with the object's `unseal_with` opener held, they succeed; without it (or with no opener defined) they refuse ("you don't have whatever it wants"); UNLOCK on a thing that is not `locked`, or not `lockable` at all, simply opens it. |
+| `locked` | Currently locked; blocks `open` until unlocked. A `lockable` + `locked` thing with NO `unseal_with` is a keyless lock the player cannot open by the verb (no opener to hold): the story springs it itself with `now x is not locked` (a chest you pry open with a crowbar). |
 | `scored` | Managed by `scoring` (section 6a): the compiler sets it on every room and takeable thing; write `scored false` to exempt one. Set it by hand only in a game without `scoring` that wants a single classic auto-payer. |
 | `visited` | The room has been entered before (Cosmos sets it on entry). Use it to vary a room's description on return. |
 | `moved` | Set the first time the player takes an object. While clear, the object shows its `intro` text in a room description instead of the plain listing. |
@@ -553,7 +553,7 @@ feature, which declares a global boolean, not an object attribute.)
 | `capacity` | number | How many objects a container or supporter holds. |
 | `article` | text | The definite article, verbatim, when derivation cannot reach it: `article "las"` (las tijeras), `article "el"` (el agua). |
 | `indefinite` | text | The indefinite article, verbatim: `indefinite "unas"`, or an English mass noun with `indefinite "some"` ("You can see some water here."). |
-| `unseal_with` | object | The object (a key) that locks and unlocks this one (for `lockable` things). |
+| `unseal_with` | object | The opener that locks and unlocks this one (for `lockable` things): a key, a keycard, a code object, whatever fits the fiction. It must be HELD to work. Omit it for a keyless lock only the story can spring. |
 | `arc_image` | number | Optional. A room's picture, named by its resource id (`arc_image 8`, or a constant that folds to one). Shown on an aware interpreter, ignored on a standard one. Section 6b. |
 
 `score`, `max_score`, and `turns` are runtime globals, not object properties (02

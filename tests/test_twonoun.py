@@ -83,6 +83,6 @@ def test_open_with_key_unlocks_then_opens_on_frotz(tmp_path):
         input="take key\ntake stone\nopen door with stone\nopen door with key\n",
         capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "doesn't fit" in out  # wrong key: refused, still locked
+    assert "entirely unimpressed" in out  # wrong key: refused, still locked
     assert "Unlocked." in out  # right key: unlocked
     assert "Open." in out  # and then opened, in one command
