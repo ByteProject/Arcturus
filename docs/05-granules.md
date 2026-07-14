@@ -87,11 +87,14 @@ with every synonym, and each default line, is the granule source itself
 
 - RUMMAGING: `search`/`frisk` works on ANY object (whether it makes sense is
   the story's call): the default reveals nothing new, a shut container keeps
-  its secrets, and you override `on search` per object for a real search, a
-  frisked guard, a false bottom, a hidden note. Call `search_contents(noun)`
-  in that override to list what the thing holds (so `on search` /
-  `search_contents(self)` on a character makes a frisk reveal what they
-  carry).
+  its secrets, and you override `on search` per object for a real search.
+  There is no built-in content lister, on purpose: an open container already
+  shows what it holds in the room listing, and a character's belongings are
+  not in scope, so naming them would point at things the player cannot touch.
+  A real search REVEALS by making something reachable, the IF idiom: `on
+  search` on a guard with `move key to here` (the key spills out and is now
+  takeable), or `now note is not hidden` for a note that lives in the room
+  until found.
 - ACTING ON THINGS, futile by default until an object overrides:
   `throw ... at`, `rub` (polish, clean, wipe...), `squeeze`, `tie ... to`,
   `cut`, `fill`, `burn`, `blow`, `set ... to`, `empty`, `buy`, `consult

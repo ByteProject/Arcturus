@@ -5,9 +5,9 @@
 
 """The extendedverbs granule (B5.5b v1): the E-side verbs parse and speak their
 defaults when summoned; SEARCH works on any object with a neutral default the
-author overrides per object (search_contents lists what a thing holds); an
-object overrides a default; ask addresses a living thing. Unsummoned, the verbs
-are unknown. Driven on Frotz."""
+author overrides per object (a real search reveals by making something
+reachable); an object overrides a default; ask addresses a living thing.
+Unsummoned, the verbs are unknown. Driven on Frotz."""
 
 import shutil
 import subprocess
@@ -77,11 +77,12 @@ def test_unsummoned_verbs_are_unknown_on_frotz(tmp_path):
 
 
 def test_search_works_on_any_object():
-    # SEARCH's new shape (a field report via Charles Moore Jr.: it only
-    # worked on containers/supporters, not NPCs). Now any object is
-    # searchable: a neutral default everywhere, the Schroedinger flavor for
-    # a shut container, and an `on search` override (with search_contents)
-    # for a real frisk.
+    # SEARCH's shape (a field report via Charles Moore Jr.: it only worked on
+    # containers/supporters, not NPCs). Now any object is searchable: a
+    # neutral default everywhere, the Schroedinger flavor for a shut
+    # container, and an `on search` override for a real search. The override
+    # reveals things by making them REACHABLE (moving a hidden key into the
+    # room), not by naming what the player cannot touch.
     from actaea.io import CaptureIO
     from actaea.loader import load
     from actaea.vm import VM
@@ -91,19 +92,20 @@ def test_search_works_on_any_object():
         'thing statue in hall\n    name "statue"\n    words statue\n'
         'thing box of container in hall\n    name "shut box"\n    words shut, box\n'
         'thing guard of character in hall\n    name "guard"\n    words guard\n'
-        '    on search\n        search_contents(self)\n'
+        '    on search\n'
+        '        move key to here\n'
+        '        say "You frisk the guard and turn out a brass key."\n'
         'thing key in guard\n    name "brass key"\n    words key, brass\n'
     )
     story = generate(analyze(cosmos.combined_program(parse(game))))
-    io = CaptureIO(script=["search statue", "search box", "frisk guard"])
+    io = CaptureIO(script=["search statue", "search box",
+                           "frisk guard", "take key"])
     try:
         VM(load(story), io).run(max_steps=20_000_000)
     except IndexError:
         pass
     out = io.text
-    # A plain object: the neutral default (SEARCH does not refuse it).
-    assert "nothing new to see here" in out
-    # A shut container: the Schroedinger flavor.
-    assert "Schroedinger" in out
-    # The guard's override frisks: search_contents lists what they carry.
-    assert "You find a brass key." in out
+    assert "nothing new to see here" in out       # a plain object: neutral default
+    assert "Schroedinger" in out                  # a shut container
+    assert "turn out a brass key" in out           # the override reveals
+    assert "Got it." in out.split("take key")[-1]  # the key is now reachable and taken
