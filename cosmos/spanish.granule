@@ -1548,6 +1548,14 @@ block msg_cant_close()
 block msg_locked()
     say "Cierras con llave."
 
+// Nuevo (Cosmos 0.37): ya-cerrado y no-cerrado. Versiones funcionales; el
+// repaso de Stefan les dará el tono guasón (y el género correcto).
+block msg_already_locked()
+    say "Ya está cerrado con llave."
+
+block msg_not_locked()
+    say "${The noun} no está cerrado con llave, así que abres ${the noun}."
+
 block msg_cant_lock()
     if any_pluribus is 1
         if noun is pluribus
