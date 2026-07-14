@@ -100,6 +100,35 @@ class Analyzer:
 
     # -- pass 1: collect ---------------------------------------------------
 
+    def _moves_to_scope(self, nodes) -> bool:
+        """Does any `move ... to scope` appear in the program? A generic
+        dataclass walk over the declarations and their bodies; when found,
+        the backstage scope room is seeded so the name resolves."""
+        found = [False]
+
+        def visit(node):
+            if isinstance(node, ast.Move) and isinstance(
+                node.dest, ast.Name
+            ) and node.dest.ident == "scope":
+                found[0] = True
+                return
+            if not dataclasses.is_dataclass(node):
+                return
+            for f in dataclasses.fields(node):
+                v = getattr(node, f.name)
+                if isinstance(v, list):
+                    for item in v:
+                        if dataclasses.is_dataclass(item):
+                            visit(item)
+                elif dataclasses.is_dataclass(v):
+                    visit(v)
+
+        for n in nodes:
+            if found[0]:
+                break
+            visit(n)
+        return found[0]
+
     def _seen(self, name: str, line: int) -> None:
         if (
             name in self.world.objects
@@ -135,11 +164,16 @@ class Analyzer:
         # Seed the scope room on demand (docs/01 section 5, Stefan's design):
         # `in scope` places an object BACKSTAGE, an invisible room whose
         # contents the parser always has in scope. Nothing is seeded, and
-        # nothing costs a byte, unless some object asks for it.
-        if any(
+        # nothing costs a byte, unless some object asks for it, EITHER by a
+        # `in scope` placement OR by a `move ... to scope` anywhere in the
+        # code (revealing something into scope at run time, the frisk idiom).
+        # A field report: move-to-scope without a placement failed with
+        # "unknown name 'scope'", which was mechanically wrong.
+        needs_scope = any(
             isinstance(d, ast.ObjectDecl) and d.location == "scope"
             for d in self.program.decls
-        ) and "scope" not in w.objects:
+        ) or self._moves_to_scope(self.program.decls)
+        if needs_scope and "scope" not in w.objects:
             w.objects["scope"] = wm.Obj("scope", "room", "room", line=0)
 
         for decl in self.program.decls:

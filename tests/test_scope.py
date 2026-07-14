@@ -110,3 +110,46 @@ def test_scope_and_light_on_frotz(tmp_path):
     assert "dark is_lit: 0" in out
     assert "rock visible in dark: 0" in out
     assert "dark with lit lamp is_lit: 1" in out  # held light source
+
+
+def test_move_to_scope_seeds_the_backstage_room():
+    # A field report: `move x to scope` failed with "unknown name 'scope'"
+    # when nothing was declared `in scope`, because the backstage room was
+    # seeded only by a placement. A move-to-scope now seeds it too, so an
+    # object revealed into scope at run time (the frisk idiom) is reachable.
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    game = (
+        'game\n    title "T"\n    start hall\nsummon.extendedverbs\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing corpse in hall\n    name "corpse"\n    words corpse\n'
+        '    on search\n'
+        '        move locket to scope\n'
+        '        say "You turn out a silver locket."\n'
+        'thing locket in corpse\n    name "silver locket"\n    words locket\n'
+    )
+    world = analyze(cosmos.combined_program(parse(game)))
+    assert "scope" in world.objects        # the move-to-scope seeded it
+    story = generate(world)
+    io = CaptureIO(script=["search corpse", "take locket"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "Got it." in io.text.split("take locket")[-1]  # reachable via scope
+
+
+def test_no_scope_use_seeds_nothing():
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing rock in hall\n    name "rock"\n    words rock\n'
+    )
+    world = analyze(cosmos.combined_program(parse(game)))
+    assert "scope" not in world.objects     # no placement, no move: no backstage
