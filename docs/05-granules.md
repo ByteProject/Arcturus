@@ -85,8 +85,13 @@ The verbs beyond the always-in standard set. The full verb-to-action table
 with every synonym, and each default line, is the granule source itself
 (cosmos/extendedverbs.granule, the editable template); the roster:
 
-- RUMMAGING: `search`/`frisk` (lists what a container or supporter holds;
-  a closed container keeps its secrets).
+- RUMMAGING: `search`/`frisk` works on ANY object (whether it makes sense is
+  the story's call): the default reveals nothing new, a shut container keeps
+  its secrets, and you override `on search` per object for a real search, a
+  frisked guard, a false bottom, a hidden note. Call `search_contents(noun)`
+  in that override to list what the thing holds (so `on search` /
+  `search_contents(self)` on a character makes a frisk reveal what they
+  carry).
 - ACTING ON THINGS, futile by default until an object overrides:
   `throw ... at`, `rub` (polish, clean, wipe...), `squeeze`, `tie ... to`,
   `cut`, `fill`, `burn`, `blow`, `set ... to`, `empty`, `buy`, `consult
