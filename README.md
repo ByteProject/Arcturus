@@ -87,13 +87,15 @@ The most significant recent additions and achievements:
   to organize objects or span scenery. Not any more: a kind costs an attribute
   only where you actually test `obj is <kind>`, so the kinds you use purely to
   share behavior or distribute scenery are free. Test more kinds than the spare
-  attribute slots hold and the rest fall back automatically to a fast catalog
-  membership scan, built on Arcturus's own list feature rather than a copy of
-  Inform's classes, so you can declare as many kinds as your world wants. The
-  only real ceiling is now the Z-machine's own, 48 genuine object attributes,
-  and `arcc -s` shows attributes and kinds separately so you always read your
-  true budget (`attributes 26/48, kinds 63`). It grew from a large real-world
-  port hitting the old wall, and it is exactly what that port asked for.
+  attribute slots hold and the rest fall back automatically to a fast membership
+  scan, built on Arcturus's own catalog feature (what you know as lists in other
+  languages), so you can declare as many kinds as your world wants. This is very
+  efficient on memory and performance on 8-bit hardware compared to Inform's
+  classes. The only real ceiling is now the Z-machine's own, 48 genuine object
+  attributes, and `arcc -s` shows attributes and kinds separately so you always
+  read your true budget (`attributes 26/48, kinds 63`). It grew from a large
+  real-world port hitting the old wall, and it is exactly what that port asked
+  for.
 - **Catalogs: list power without the list tax.** `catalog` declares a
   fixed, ordered collection, one value per line (the lines of a letter, a
   roster of suspects, a table of numbers), and the operations read like
