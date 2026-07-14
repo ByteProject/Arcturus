@@ -2081,6 +2081,10 @@ def _emit_prop_print_or_run(rt, ctx, dot, add_newline):
     rt.op("add", Variable(v), Const(0x8000), store=Variable(biased))
     rt.op("jl", Variable(biased), Variable(ctx.globals["__strings__"]), branch=(run, True))
     ctx.free_temp(biased)
+    # A plain string always prints, so honour the pending paragraph break here.
+    # The block branch does NOT flush: it defers to whatever the block prints (or
+    # doesn't), so a block that opts out leaves no orphan blank line.
+    _flush_par(rt, ctx)
     rt.op("print_paddr", Variable(v))  # at or above the threshold: a plain string
     if add_newline:
         rt.op("new_line")
@@ -2096,12 +2100,18 @@ def _is_computed_text(ctx, expr) -> bool:
 
 
 def _say(rt, ctx, value, newline=True):
-    _flush_par(rt, ctx)
     # A bare `say obj.prop` where prop is a computed text property: print or run it,
-    # letting each branch own its newline (the block prints its own).
+    # letting each branch own its newline (the block prints its own) AND its pending
+    # paragraph flush. The flush is deferred INTO print-or-run: a block that prints
+    # nothing (an `appearance` or `intro` that opts out with `return true` while the
+    # player rides the object) must not flush the pending break, or it leaves a
+    # blank line for text that never came. The block's own say/show/print_name each
+    # flush the break when they actually print, so real output still gets its
+    # paragraph; a silent block leaves the break pending for the next object.
     if _is_computed_text(ctx, value):
         _emit_prop_print_or_run(rt, ctx, value, newline)
         return
+    _flush_par(rt, ctx)
     _emit_say(rt, ctx, value)
     if newline:
         rt.op("new_line")

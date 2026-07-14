@@ -19,6 +19,9 @@ from arcturus import cosmos
 from arcturus.codegen import generate
 from arcturus.parser import parse
 from arcturus.sema import analyze
+from actaea.io import CaptureIO
+from actaea.loader import load
+from actaea.vm import VM
 
 GAME = (
     'game\n    title "A"\n    start shop\n'
@@ -72,3 +75,44 @@ def test_computed_appearance_follows_state(tmp_path):
     assert "The keeper is sweeping the floor." in out   # the opening description
     assert "The keeper glowers at you." in out          # after the state change
     assert "You can see the keeper here." not in out    # never the listing line
+
+
+# A computed appearance that OPTS OUT (prints nothing, e.g. while the player
+# rides the object) must leave no blank line behind it. The reported bug: the
+# paragraph break was flushed before the block ran, so a silent block still
+# emitted the break. Run on the bundled VM so it needs no external interpreter.
+OPT_OUT = (
+    'game\n    title "O"\n    start dune\n'
+    'room dune\n    name "Dune"\n    desc "Heat over the sand."\n'
+    'thing camel in dune\n    name "camel"\n    supporter\n'
+    '    appearance block\n'
+    '        if player is in self\n'
+    '            return true\n'
+    '        else\n'
+    '            say "A bored camel chews his cud here."\n'
+    'thing shell in dune\n    name "shell"\n'
+)
+
+
+def _vm_run(story, cmds):
+    io = CaptureIO(script=list(cmds))
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+def test_silent_appearance_leaves_no_blank_line():
+    story = _build(OPT_OUT)
+    # Off the camel: desc, one blank, the appearance, one blank, the shell.
+    out = _vm_run(story, ["look"]).split(">look")[-1]
+    assert "chews his cud" in out
+    assert "Heat over the sand.\n\nA bored camel" in out
+    assert "\n\n\n" not in out
+    # On the camel: the appearance opts out, so NO orphan blank line sits where
+    # its paragraph would have been. The bug produced "sand.\n\n\nYou can see".
+    out = _vm_run(story, ["enter camel", "look"]).split(">look")[-1]
+    assert "chews his cud" not in out
+    assert "Heat over the sand.\n\nYou can see" in out
+    assert "\n\n\n" not in out

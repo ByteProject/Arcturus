@@ -4051,3 +4051,20 @@ idiomatic+cheeky pass). Redirect via perform("open"). Size grew ~284
 bytes/game -- Stefan: the cost is the ADDED MECHANIC that was missing,
 not the words, and it is worth it; 35 ceilings raised, dated. Suite
 891.
+
+## 2026-07-15: a silent appearance leaves no blank line (arcc 0.12.3)
+
+Charles Moore Jr.: an `appearance` block that opts out (prints nothing
+while the player rides the object) still emitted a blank line in the
+room description. Root: `say obj.<computed>` flushed the pending
+paragraph break BEFORE running the block, so a block that returned
+without printing left an orphan break for text that never came. Fix in
+lower.py: defer the flush INTO print-or-run -- the plain-string branch
+flushes (a string always prints), the block branch does NOT, leaving
+the break pending for the block's own say/show/print_name to flush when
+(and only when) it actually prints. A silent block leaves the break for
+the next object to coalesce, so the paragraph spacing stays correct
+either way. Byte-neutral: the flush moved, it was not added. Covers
+`intro` and every computed-text property, not just `appearance`. New
+VM-harness test (test_silent_appearance_leaves_no_blank_line). Suite
+892.
