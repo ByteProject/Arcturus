@@ -3966,3 +3966,19 @@ DCE'd unless called: `on search` / `search_contents(self)` on a
 character makes a frisk reveal what they carry, which is the original
 request handed back as author control. msg_search_closed reworded-in;
 docs/05 updated. Suite 884.
+
+## 2026-07-14: search_contents removed, search reveals by reachability (Cosmos 0.36.4)
+
+Following the search redesign, Stefan questioned search_contents at
+the root: why list contents at all? For a container it is redundant
+(the room listing already shows "(contains a red apple)" and the
+contents are in scope), and for a character it is incoherent (naming
+items that are not in scope: verified you cannot examine or take the
+guard's key after "You find a brass key"). So the helper had no honest
+use case and is deleted. SEARCH is now: neutral cheeky default,
+Schroedinger for a shut container, author override for anything real.
+The override reveals by making something REACHABLE (the IF idiom):
+`on search / move key to here` spills an NPC's item into the room so
+it is takeable, or `now note is not hidden` for a note living in the
+room. docs/05 and the tests updated to the reachability pattern
+(verified: frisk -> take key -> Got it.). Suite 884.

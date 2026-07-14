@@ -41,34 +41,19 @@ on search
             stop
     // ANY other object is searchable, whether it makes sense or not: that is
     // the story's call, not the verb's. The default reveals nothing new, so
-    // SEARCH never refuses here. Override `on search` on a specific object
-    // for a real search: frisk a guard, expose a false bottom, reveal a
-    // hidden note. To list what something holds, call search_contents(noun)
-    // in that override. A story that altered the report speaks it here.
+    // SEARCH never refuses here. There is no built-in "list what it holds":
+    // an open container already shows its contents in the room listing, and
+    // a character's belongings are not in scope, so listing them would name
+    // things the player cannot reach. A real search is the author's: override
+    // `on search` on a specific object to reveal a HIDDEN thing (the idiom:
+    // `now note is not hidden`, the note living in the room so it is reachable
+    // at once), spill an NPC's item out with `move key to here`, or print
+    // whatever the discovery is. A story that altered the report speaks here.
     if any_alter is 1
         if not (altered is 0)
             run_alter
             stop
     msg_search_nothing
-
-// An author helper for `on search` overrides (docs/05): list what an object
-// holds, or report that it holds nothing of note. `on search` on a guard
-// with `search_contents(self)` makes a frisk reveal what they carry; DCE'd
-// when no override calls it, so it costs nothing by default.
-block search_contents(obj)
-    let n = 0
-    for each x in obj
-        if x is not hidden
-            if n is 0
-                show("You find ")
-            else
-                show(", ")
-            show("${a x}")
-            change n to n + 1
-    if n is 0
-        msg_search_nothing
-    else
-        say "."
 
 // ---------------------------------------------------------------------------
 // Acting on objects (futile by default; an object overrides for real effect).
