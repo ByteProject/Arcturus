@@ -29,25 +29,32 @@ on search
         change refused to 1
         msg_noun_missing
         stop
-    if noun is supporter
-        search_contents(noun)
-        stop
+    // A shut, closed, or locked container yields nothing to a search: you
+    // cannot see inside a sealed thing (a locked container is not open, so
+    // this one check covers all three). It is a refusal, so it never fires
+    // an alter, per the alter contract; the Schroedinger's-loot flavor is
+    // reserved for exactly this.
     if noun is container
         if noun is not open
             change refused to 1
             msg_search_closed
             stop
-        search_contents(noun)
-        stop
+    // ANY other object is searchable, whether it makes sense or not: that is
+    // the story's call, not the verb's. The default reveals nothing new, so
+    // SEARCH never refuses here. Override `on search` on a specific object
+    // for a real search: frisk a guard, expose a false bottom, reveal a
+    // hidden note. To list what something holds, call search_contents(noun)
+    // in that override. A story that altered the report speaks it here.
     if any_alter is 1
-        if altered is 0
-            msg_search_nothing
-        else
+        if not (altered is 0)
             run_alter
-    else
-        msg_search_nothing
+            stop
+    msg_search_nothing
 
-// List what an object holds, or report that it holds nothing of note.
+// An author helper for `on search` overrides (docs/05): list what an object
+// holds, or report that it holds nothing of note. `on search` on a guard
+// with `search_contents(self)` makes a frisk reveal what they carry; DCE'd
+// when no override calls it, so it costs nothing by default.
 block search_contents(obj)
     let n = 0
     for each x in obj
@@ -439,7 +446,7 @@ on shout
 // The wording. Fork the granule to change any of these lines.
 
 block msg_search_nothing()
-    say "Nothing worth the effort turns up."
+    say "A close search reveals nothing you did not already know."
 
 block msg_search_closed()
     say "Schroedinger's loot remains safe, mostly because ${the noun} is completely shut."

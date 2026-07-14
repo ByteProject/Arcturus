@@ -3951,3 +3951,18 @@ first (guarded by any_components, so it folds away without
 components), and the object lands as an ordinary carried thing. Plain
 (non-component) fetch unchanged; a game with no components compiles
 identically. Regression test on the VM. Suite 883.
+
+## 2026-07-14: search works on any object (Cosmos 0.36.2)
+
+Charles Moore Jr.: SEARCH only worked on containers and supporters,
+not NPCs. Stefan's redesign (discussed live): SEARCH works on ANY
+object, sense or not (the story's call). No auto-listing of contents
+anymore; the default is a neutral "A close search reveals nothing you
+did not already know." A shut/closed/locked container keeps the funny
+Schroedinger's-loot message (Stefan liked it, kept for exactly the
+sealed case; a locked container is not open, so one check covers all
+three). The old search_contents block survives as an AUTHOR HELPER,
+DCE'd unless called: `on search` / `search_contents(self)` on a
+character makes a frisk reveal what they carry, which is the original
+request handed back as author control. msg_search_closed reworded-in;
+docs/05 updated. Suite 884.
