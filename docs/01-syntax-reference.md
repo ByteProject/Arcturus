@@ -1025,6 +1025,28 @@ object), `player`, `here` (the current room), `noun` and `second` (the
 matched objects), `nothing`. Cosmos also provides `<obj> is visible` and
 `<obj> is reachable` (scope rules in 02).
 
+Swapping one object for another. When an action replaces a thing with a
+different one, moving the old thing away and a new one in (Bob knocked out
+becomes an Unconscious Bob object), do it with `swap(old, new)`:
+
+```
+on attack
+    say "You punch him and he falls, unconscious."
+    swap(self, unconscious_bob)
+```
+
+`swap` moves `new` into `old`'s exact place in the tree, removes `old`, and
+hands off every live reference the current turn is holding: `noun`, `second`,
+and the pronouns IT / HIM / HER / THEM. That matters because Cosmos remembers
+a command by its resolved objects, not its text: without the hand-off, the
+old thing has left, so AGAIN would replay a noun that is no longer there
+("You see nothing of the sort here.") and a following "hit him" would dangle.
+With `swap`, AGAIN repeats the blow on the unconscious Bob and "examine him"
+finds him, because the turn's bindings moved with the swap. Doing the two
+`move`s by hand works too, but then you must also `change noun to new` (and
+the pronouns) yourself; `swap` is the one call that never forgets. It costs
+nothing in a game that never swaps.
+
 ## 10. Verbs and grammar
 
 A `verb` declaration lists the player's words, then grammar lines:

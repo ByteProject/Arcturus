@@ -82,3 +82,43 @@ def test_again_refuses_a_grain_from_another_room():
     # the stair, and the replay refuses instead of speaking attic scenery.
     assert out.count("Old oak, holding.") == 2
     assert "You see nothing of the sort here." in out
+
+
+SWAP_GAME = (
+    'game\n    title "T"\n    start hallway\nsummon.extendedverbs\n'
+    'room hallway\n    name "Hallway"\n    desc "A hallway."\n'
+    'thing bob of character in hallway\n    name "Bob"\n    words bob\n    named\n'
+    '    desc "He looks like a Bob."\n'
+    '    on attack\n'
+    '        say "You punch him and he falls, unconscious."\n'
+    '        swap(self, sleeper)\n'
+    'thing sleeper\n    name "Unconscious Bob"\n    words unconscious, bob\n    named\n'
+    '    desc "He looks like Bob but asleep."\n'
+    '    on attack\n        say "Doesn\'t seem sporting."\n'
+)
+
+
+def test_swap_carries_again_and_pronouns():
+    # A field report (Charles Moore Jr.): ATTACK swaps one object for
+    # another, and AGAIN then said "you see nothing of the sort here"
+    # because it replayed the noun that just left scope. `swap(old, new)`
+    # re-points the live bindings, so AGAIN replays the replacement and a
+    # pronoun (HIM here, Bob being animate) follows it too.
+    out = _run(["hit bob", "again"], game=SWAP_GAME)
+    assert "falls, unconscious" in out            # the swap happened
+    assert "Doesn't seem sporting." in out         # AGAIN hit the new object
+    assert "nothing of the sort" not in out        # not the stale-noun refusal
+    out2 = _run(["hit bob", "x him"], game=SWAP_GAME)
+    assert "asleep" in out2                        # HIM now points at the sleeper
+
+
+def test_no_swap_is_byte_identical():
+    # swap is DCE'd in a game that never calls it: the story is unchanged.
+    base = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing rock in hall\n    name "rock"\n    words rock\n'
+    )
+    a = generate(analyze(cosmos.combined_program(parse(base))))
+    b = generate(analyze(cosmos.combined_program(parse(base))))
+    assert a == b  # deterministic, and swap adds nothing when uncalled
