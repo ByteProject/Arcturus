@@ -4011,3 +4011,20 @@ generic AST walk). Still zero cost when neither `in scope` nor
 move-to-scope is used (verified: no backstage room seeded). This
 makes move-to-scope the clean frisk reveal (item reachable, not
 listed on the floor). Compiler-only; Cosmos unchanged. Suite 886.
+
+## 2026-07-14: swap() for object replacement, AGAIN follows (Cosmos 0.36.6)
+
+Charles Moore Jr.: AGAIN "squirrely" when an action swaps one object
+for another (attack Bob -> unconscious_bob); AGAIN answered "you see
+nothing of the sort here". Root: AGAIN replays resolved operands (fast,
+NOT Inform re-parse, deliberately), and the handler moved the object
+away without updating `noun`, so last_noun pointed at the departed
+object. Stefan ruled: no parser surgery, stay in the operand model.
+Solution: `swap(old, new)` in core.prelude, moves new into old's place,
+removes old, and re-points every live binding the turn holds (noun,
+second, pronouns it/him/her/them, universal-safe: Spanish leaves
+it/them at nothing so the check no-ops). AGAIN then replays the
+replacement and "examine him" follows. Verified on the VM (attack ->
+again -> "Doesn't seem sporting"; x him -> the sleeper's desc). DCE'd
+when uncalled (byte-identical). docs/01 section 9 documents it; VSIX
+0.13.4 adds swap to the services list. Suite 888.

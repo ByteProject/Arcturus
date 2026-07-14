@@ -32,6 +32,35 @@ block within(obj, outer)
         change p to parent_of(p)
     return 0
 
+// Swap one object out of the world for another IN PLACE (docs/01 section 9):
+// `swap(bob, unconscious_bob)` moves the replacement into bob's exact spot,
+// removes bob, and HANDS OFF every live reference so the command bindings
+// follow the change. Without this, an author who moves an object away mid-
+// action leaves `noun`/`second` (and so AGAIN, which replays them) pointing
+// at the object that just left, and the pronouns (IT, HIM, HER, THEM) too:
+// AGAIN then answers "you see nothing of the sort here" and IT dangles (a
+// field report). The engine re-derives nothing; the author models the change
+// and swap re-points what the turn is holding. Compute the destination before
+// removing old, so the replacement lands where old actually was. DCE'd in a
+// game that never swaps.
+block swap(old, new)
+    if old is new
+        return 0
+    move new to parent_of(old)
+    move old to nothing
+    if noun is old
+        change noun to new
+    if second is old
+        change second to new
+    if pron_it is old
+        change pron_it to new
+    if pron_him is old
+        change pron_him to new
+    if pron_her is old
+        change pron_her to new
+    if pron_them is old
+        change pron_them to new
+
 // The catalog scan (docs/01, catalogs): the 1-based number of the first
 // entry equal to val, or 0 when absent. `position(suspects, butler)` is
 // the author call; `butler in suspects` branches on the same block, so
