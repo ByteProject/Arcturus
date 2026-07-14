@@ -446,7 +446,7 @@ on shout
 // The wording. Fork the granule to change any of these lines.
 
 block msg_search_nothing()
-    say "A close search reveals nothing you did not already know."
+    say "Breaking news: Absolutely nothing new to see here."
 
 block msg_search_closed()
     say "Schroedinger's loot remains safe, mostly because ${the noun} is completely shut."

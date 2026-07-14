@@ -54,7 +54,7 @@ def test_extended_verbs_on_frotz(tmp_path):
         input="search chest\ndig\nthink\nrub pebble\nask guard about pebble\nrub guard\n",
         capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "reveals nothing you did not already know" in out  # search's neutral default
+    assert "nothing new to see here" in out  # search's cheeky neutral default
     assert "The ground keeps its secrets." in out  # an intransitive flavor verb (dig)
     assert "A fine idea. Nothing comes of it." in out  # think
     assert "You give the grey pebble a thorough buffing." in out  # rub default on an object
@@ -102,7 +102,7 @@ def test_search_works_on_any_object():
         pass
     out = io.text
     # A plain object: the neutral default (SEARCH does not refuse it).
-    assert "reveals nothing you did not already know" in out
+    assert "nothing new to see here" in out
     # A shut container: the Schroedinger flavor.
     assert "Schroedinger" in out
     # The guard's override frisks: search_contents lists what they carry.
