@@ -4134,3 +4134,31 @@ all need byte variants); `of byte` on a 1D matrix constrains values to
 examples/features/matrix.storyarc (a botanist's vasculum: a 1D object
 matrix you gather into and a 2D byte planting bed), README What's new
 entry, docs/01 section 4a extended. 7 new tests; suite 919.
+
+## 2026-07-15: Actaea record / replay / check (Actaea 1.1.0)
+
+Multiple adopters (improvmonster, Garry, Ichiro Ota) asked for Inform's
+RECORDING/REPLAY to step through walkthroughs. Stefan's ruling: do it
+"the Actaea way", in the interpreter, not as Cosmos verbs -- it costs
+the story nothing, works on any file, and Arcturus writes the script.
+Three flags over one plain-text file (actaea/session.py, a SessionIO
+wrapper at the io boundary so it wraps any front-end):
+  --record FILE  play, saving commands AND the game's replies as a
+                 readable transcript (> command lines, replies beneath).
+  --replay FILE  run the commands, then hand over the keyboard (skip
+                 ahead); with --headless, run and stop.
+  --check FILE   re-run against the current game and report in PLAIN
+                 words whether it still plays the same, stopping at the
+                 first divergence (state has moved, the rest is noise);
+                 exit 0 matched, 1 diverged, so a build can gate on it.
+Author-friendly per Stefan's steer (these are authors, not shell-diff
+experts): no diff tool, no jargon, the tool names the command and shows
+before/now. Commands are the editable spine, so a hand-added command
+with no recorded reply is run and counted as NEW, never a failure;
+append freely, insert-in-the-middle correctly flags because state
+diverges. --replay IN --record OUT extends a walkthrough. Session modes
+run on the plain console (a debugging activity), not the window. Docs/06
+section 3, and pointers from docs/05 debug + debug.granule for anyone
+hunting Inform-style REPLAY. 10 unit tests; suite 929. Decisions from
+Stefan: flags only, record raw typed lines, no output-stream-4
+conformance.

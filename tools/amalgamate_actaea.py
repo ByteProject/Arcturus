@@ -35,7 +35,8 @@ _PACKAGE = "actaea"
 # __init__ (version and banner, no imports) is executed at bootstrap.
 _MODULES = [
     "errors", "memory", "loader", "decode", "text", "dictionary", "objects",
-    "screen", "quetzal", "io", "vm", "console", "gui", "gui.app", "__main__",
+    "screen", "quetzal", "io", "vm", "session", "console", "gui", "gui.app",
+    "__main__",
 ]
 
 _HEADER = '''#!/usr/bin/env python3

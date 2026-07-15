@@ -12,6 +12,11 @@
 // point of a debug verb. They get there through the reach_unscoped parser seam:
 // when ordinary scope matching fails, the parser asks this granule to try, and it
 // matches the typed word against every object in the game rather than aborting.
+//
+// Looking for Inform's RECORDING / REPLAY to step through a walkthrough? That is
+// not a verb here: it lives in the interpreter, so it costs the story nothing.
+// Actaea records, replays, and checks a session with `actaea --record`,
+// `--replay`, and `--check` (docs/06 section 3).
 
 // The parser seam (library default: nothing). For a debug verb only, match the
 // typed word against every object so the verb can reach out of scope; other verbs
