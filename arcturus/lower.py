@@ -767,15 +767,23 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
                 rt.op("push", Const(0))
         # A nested action must not consume the enclosing handler's alter
         # registration (its success site would fire it): save, clear, call,
-        # restore. Folds away with any_alter.
+        # restore. Folds away with any_alter. The save MUST use a temp local,
+        # not the stack: the operands are already marshalled onto the stack
+        # above, and a `push altered` between them and the call_vs would slide
+        # under the two Variable(STACK) reads, so the action would receive the
+        # saved altered (0) as its noun/direction and lose the real operand.
+        # (The perform-loses-its-noun regression, any_alter only.)
+        asave = None
         if _any_alter(ctx):
             aslot = ctx.globals["altered"]
-            rt.op("push", Variable(aslot))
+            asave = ctx.alloc_temp()
+            rt.op("store", Const(asave), Variable(aslot))
             rt.op("store", Const(aslot), Const(0))
         rt.op("call_vs", RoutineRef("blk_cosmos_perform"), Const(num),
               Variable(STACK), Variable(STACK), store=dest)
-        if _any_alter(ctx):
-            rt.op("pull", Const(ctx.globals["altered"]))
+        if asave is not None:
+            rt.op("store", Const(ctx.globals["altered"]), Variable(asave))
+            ctx.free_temp(asave)
     elif name == "show":
         # show(text): print without a trailing newline (for prompts and for
         # building a sentence around a named object).

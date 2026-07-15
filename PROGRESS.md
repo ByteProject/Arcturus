@@ -4068,3 +4068,21 @@ either way. Byte-neutral: the flush moved, it was not added. Covers
 `intro` and every computed-text property, not just `appearance`. New
 VM-harness test (test_silent_appearance_leaves_no_blank_line). Suite
 892.
+
+## 2026-07-15: perform keeps its noun when the game uses alter (arcc 0.12.4)
+
+Charles Moore Jr.: `perform("enter", noun)` gave "Mount what?" and
+`perform("go", up)` gave "Which way?" -- the nested action lost its
+operand. Root: perform saves the enclosing handler's `altered`
+registration around the nested call so the inner action does not fire
+the outer handler's report. That save used a PUSH onto the stack -- but
+perform had already marshalled its operands onto that same stack, so the
+`push altered` slid under the two Variable(STACK) reads in the call. The
+nested action received the saved altered (0) as its noun/direction and
+the real operand as `second`. Only triggered with an `alter` anywhere in
+the game (any_alter on), which is why the lock redesign's own
+perform("open") calls, and every alter-free game, never saw it. Fix in
+lower.py: save `altered` into a temp local instead of the stack, out of
+the operands' way. Byte-neutral (push/pull -> store/store, same two
+ops), any_alter only. New VM-harness test pairs perform with alter.
+Suite 893.
