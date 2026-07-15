@@ -305,6 +305,7 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
     bundled = granule_sources()
     loaded: dict = {}
     order: list = []
+    chapters: set = set()  # keys whose source is a .storyarc chapter (game rank)
     abbreviations: list = None
     worklist = _summons(game)
     while worklist:
@@ -337,7 +338,8 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
         # shape: a chapter file collided with extendedverbs at granule
         # rank and every override was a duplicate). A .granule stays a
         # granule: above the library, below the game.
-        origin = "game" if srcname.endswith(".storyarc") else "granule"
+        is_chapter = srcname.endswith(".storyarc")
+        origin = "game" if is_chapter else "granule"
         gdecls: list = []
         for d in prog.decls:
             if isinstance(d, (ast.BlockDecl, ast.Handler)):
@@ -345,6 +347,8 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
             gdecls.append(d)
         loaded[key] = gdecls
         order.append(key)
+        if is_chapter:
+            chapters.add(key)
         worklist.extend(_summons(prog))  # a granule may summon further granules
     # The two conversation presentations are views of the same topic model
     # and are mutually exclusive by design: an author settles on one. Match
@@ -356,18 +360,27 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
             "of the same topic model; a game picks exactly one",
             0, filename="<summon>",
         )
-    out: list = []
+    # Two tiers, in rank order: real granules first (above the library, below
+    # the game), then the game's own .storyarc CHAPTERS (game rank, so every
+    # declaration in a chapter, verbs and objects included, not only its blocks
+    # and handlers, overrides a granule regardless of summon order). The main
+    # file the author compiled is appended after both by combined_program, so
+    # it stays the most specific of all.
+    granule_out: list = []
+    chapter_out: list = []
     for key in order:
-        out.extend(loaded[key])
-    return out, abbreviations
+        (chapter_out if key in chapters else granule_out).extend(loaded[key])
+    return granule_out, chapter_out, abbreviations
 
 
 def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Program:
     """Combine the Cosmos library, any summoned granules, and the game into one
     program to analyze and compile. Order encodes precedence: library first
-    (tagged `library`), then granules (tagged `granule`), then the game, so a
-    game block overrides a granule block overrides a library block of the same
-    name (most-specific-wins). lib_dirs and story_dir locate file summons."""
+    (tagged `library`), then granules (tagged `granule`), then the game's own
+    .storyarc chapters, then the main file. So the game overrides a granule
+    overrides the library (most-specific-wins), and this holds for EVERY
+    declaration in a chapter (a verb, an object, a block), not only its blocks
+    and handlers. lib_dirs and story_dir locate file summons."""
     language = _language_choice(game)
     default_prelude = _DEFAULT_LANGUAGE + ".prelude"
     decls: list = []
@@ -402,7 +415,15 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
             if isinstance(d, ast.BlockDecl):
                 d.origin = "library"
             decls.append(d)
-    gdecls, abbreviations = _load_granules(game, lib_dirs, story_dir)
-    decls.extend(gdecls)
+    # library, then granules, then the game: the game's own .storyarc chapters
+    # rank with the main file (chapters first, main last as the most specific),
+    # so a chapter's verb or object overrides a granule's the way its blocks and
+    # handlers already do, whatever order it was summoned in (the modular-game
+    # override, completed: 0.11.35 ranked chapter blocks as game, this ranks
+    # every chapter declaration as game).
+    granule_decls, chapter_decls, abbreviations = _load_granules(
+        game, lib_dirs, story_dir)
+    decls.extend(granule_decls)
+    decls.extend(chapter_decls)
     decls.extend(game.decls)
     return ast.Program(decls, abbreviations=abbreviations)
