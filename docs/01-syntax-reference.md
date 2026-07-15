@@ -2169,7 +2169,7 @@ Section 15 of 02 reconciles each example with the Cosmos model in detail.
 `return`, `global`, `flag`, `counter`, `constant`, `let`, `change`, `to`,
 `now`, `is`, `not`,
 `add`, `remove`, `from`, `move`, `say`, `stop`, `continue`, `finish`, `death`, `alter`, `if`,
-`catalog` (as a declaration head),
+`catalog` and `matrix` (as declaration heads),
 `else`, `while`, `for`, `each`, `switch`, `case`, `and`, `or`, `holds`,
 `when`, `self`, `player`, `here`, `noun`, `second`, `nothing`, `true`,
 `false`, `list`, `summon`, `grains`, `do`, `title`, `headline`, `author`,
