@@ -20,6 +20,9 @@ from arcturus.codegen import generate
 from arcturus.errors import ArcError
 from arcturus.parser import parse
 from arcturus.sema import analyze
+from actaea.io import CaptureIO
+from actaea.loader import load
+from actaea.vm import VM
 
 
 def _build(src):
@@ -113,3 +116,44 @@ def test_perform_unknown_action_is_a_compile_error():
     src = GAME.replace('perform("take", book)', 'perform("teka", book)', 1)
     with pytest.raises(Exception, match="unknown action"):
         _build(src)
+
+
+# perform saves and restores the enclosing handler's alter registration around
+# the nested action. The save must use a temp, not the stack: with an `alter`
+# anywhere in the game (any_alter on), a stack save slid under perform's own
+# marshalled operands, so the nested action received 0 as its noun/direction
+# and lost the real operand -- MOUNT gave "what?" and CLIMB gave "which way?".
+# Run on the bundled VM so it needs no external interpreter.
+ALTER_GAME = (
+    'game\n    title "PA"\n    start yard\n'
+    'room yard\n    name "Yard"\n    desc "Dusty."\n    up loft\n'
+    'room loft\n    name "Loft"\n    desc "Straw."\n    down yard\n'
+    'thing barrel in yard\n    name "barrel"\n    supporter\n'
+    'thing ladder in yard\n    name "ladder"\n    scenery\n'
+    'verb "mount"\n    mount noun\n'
+    'on mount\n    perform("enter", noun)\n'
+    'on climb\n    perform("go", up)\n'
+    # An alter ANYWHERE flips any_alter on for the whole program.
+    'on examine barrel\n    alter\n        say "It gleams."\n    continue\n'
+)
+
+
+def _vm_run(story, cmds):
+    io = CaptureIO(script=list(cmds))
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+def test_perform_keeps_its_noun_with_alter_in_the_game():
+    story = _build(ALTER_GAME)
+    # MOUNT BARREL: perform("enter", noun) must reach enter with noun=barrel.
+    out = _vm_run(story, ["mount barrel"]).split(">mount")[-1]
+    assert "Done." in out
+    assert "what?" not in out.lower()          # not the noun-missing prompt
+    # CLIMB LADDER: perform("go", up) must reach go with the direction intact.
+    out = _vm_run(story, ["climb ladder"]).split(">climb")[-1]
+    assert "Loft" in out and "Straw." in out    # the move actually happened
+    assert "which way" not in out.lower()
