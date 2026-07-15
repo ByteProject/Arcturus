@@ -465,6 +465,12 @@ familiar Inform synonyms:
 parser would normally refuse; the granule teaches the parser to reach them
 through the `reach_unscoped` seam (section 5).
 
+Looking for Inform's RECORDING / REPLAY to step through a walkthrough? That is
+not a game verb in Arcturus; it lives in the interpreter, where it costs the
+story nothing. Actaea records a session, replays it, and checks whether a
+changed game still plays the same, with `actaea --record`, `--replay`, and
+`--check` (docs/06 section 3, "Record, replay, and check").
+
 ### matrix
 
 ```

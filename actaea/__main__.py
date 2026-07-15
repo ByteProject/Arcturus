@@ -113,6 +113,89 @@ def _play_headless(story) -> int:
     return 0
 
 
+def _play_session(story, record_path, replay_path, headless) -> int:
+    """--record and/or --replay: play through the plain console, recording the
+    session and/or feeding a recorded file's commands first. A recording or
+    replay is a debugging activity, so it runs on the plain console (io.py),
+    interactive in a terminal, piped otherwise; the fancy window is not
+    involved. When --replay runs out of commands it hands control to the
+    keyboard, unless --headless asked it to stop at the end."""
+    from .io import ConsoleIO
+    from .session import SessionIO, parse_walkthrough
+    from .vm import VM
+
+    replay_commands = None
+    if replay_path is not None:
+        with open(replay_path, "r", encoding="utf-8") as fh:
+            _intro, turns = parse_walkthrough(fh.read())
+        replay_commands = [cmd for cmd, _reply in turns]
+
+    inner = ConsoleIO()
+    io = SessionIO(inner, record_path=record_path, replay=replay_commands,
+                   stop_at_end=(replay_commands is not None and headless))
+    vm = VM(story, io)
+    try:
+        vm.run()
+    except EOFError:
+        pass  # the script (or a piped stdin) ended; a normal scripted ending
+    except ActaeaError as e:
+        io.close()
+        print(f"\nactaea: {e}", file=sys.stderr)
+        return 3
+    io.close()
+    if record_path is not None:
+        print(f"\nactaea: recorded {io.turn} commands to {record_path}",
+              file=sys.stderr)
+    return 0
+
+
+def _run_check(story, check_path) -> int:
+    """--check: re-run a recorded file's commands against the current game and
+    report whether it still plays the same, in plain words, stopping at the
+    first divergence. Exit 0 when everything matched, 1 when it diverged."""
+    from .io import CaptureIO
+    from .session import SessionIO, parse_walkthrough
+    from .vm import VM
+
+    try:
+        with open(check_path, "r", encoding="utf-8") as fh:
+            intro, turns = parse_walkthrough(fh.read())
+    except OSError as e:
+        print(f"actaea: {e}", file=sys.stderr)
+        return 2
+    if not turns:
+        print(f"actaea: {check_path} has no commands to check", file=sys.stderr)
+        return 2
+
+    report_lines: list[str] = []
+    io = SessionIO(CaptureIO(), check=(intro, turns),
+                   report=report_lines.append)
+    vm = VM(story, io)
+    print(f"Checking {check_path} against the game ... {len(turns)} commands.")
+    try:
+        vm.run()
+    except EOFError:
+        pass
+    except ActaeaError as e:
+        print(f"actaea: the game stopped with an error during check: {e}",
+              file=sys.stderr)
+        return 3
+    io.close()
+
+    if io.diverged:
+        for ln in report_lines:
+            print(ln)
+        return 1
+    new = sum(1 for _cmd, reply in turns if reply is None)
+    if new:
+        print(f"Everything recorded still plays the same. ({new} newly added "
+              f"command(s) had no saved reply to check; re-record to save "
+              f"them.)")
+    else:
+        print("Everything plays the same. Nothing broke.")
+    return 0
+
+
 class _Cli(argparse.ArgumentParser):
     """The house style for every tool-facing output: the banner on top
     (help, usage errors, all of it) and a blank line at the end, so the
@@ -170,6 +253,21 @@ def main(argv=None) -> int:
         "only); defaults to a sibling .arcres pack, then the story's own "
         "directory",
     )
+    ap.add_argument(
+        "--record", metavar="FILE",
+        help="save this session (your commands and the game's replies) to FILE "
+        "as a readable playthrough you can replay or check later",
+    )
+    ap.add_argument(
+        "--replay", metavar="FILE",
+        help="run FILE's commands, then hand you the keyboard to keep playing "
+        "(skip ahead to where you were); with --headless, run and stop",
+    )
+    ap.add_argument(
+        "--check", metavar="FILE",
+        help="re-run a recorded FILE against this game and report, in plain "
+        "words, whether it still plays the same (exit 1 if it diverged)",
+    )
     ap.add_argument("--version", action=_Version, nargs=0,
                     help="show the version banner and exit")
     args = ap.parse_args(argv)
@@ -198,6 +296,16 @@ def main(argv=None) -> int:
             print(_report(story))
             print()
             return 0
+
+        if args.check is not None:
+            if args.record or args.replay:
+                print("actaea: --check runs on its own (not with --record or "
+                      "--replay)", file=sys.stderr)
+                return 2
+            return _run_check(story, args.check)
+
+        if args.record is not None or args.replay is not None:
+            return _play_session(story, args.record, args.replay, args.headless)
 
         if args.headless:
             return _play_headless(story)

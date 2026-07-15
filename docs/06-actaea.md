@@ -131,6 +131,48 @@ numbered PNGs into the `.arcres` file Actaea reads (`arcimg pack`), sizes a
 source to a picture mode (`arcimg prep`), and reports a PNG or a pack
 (`arcimg info`); like the others it leads with its banner.
 
+### Record, replay, and check
+
+If you have met Inform's RECORDING and REPLAY, this is the same idea, done in
+the interpreter instead of the game: it costs the story nothing, works on any
+file, and produces a plain playthrough you can edit and re-run. Three flags
+over one file:
+
+```
+actaea --record walk.txt story.z5    # play, saving the session to walk.txt
+actaea --replay walk.txt story.z5    # replay it, then keep playing
+actaea --check  walk.txt story.z5    # did anything change? (in plain words)
+```
+
+- **`--record FILE`** plays normally and saves the session, your commands AND
+  the game's replies, to FILE. It runs on the plain console (a recording is a
+  debugging activity, so the window is not involved); interactive in a
+  terminal, piped otherwise.
+- **`--replay FILE`** runs the file's commands and then hands you the keyboard
+  to keep playing, the fast "skip ahead to where I was". With `--headless` it
+  runs the commands and stops, for build tools.
+- **`--check FILE`** re-runs the recorded commands against the current game and
+  tells you whether it still plays the same. If nothing changed it says so; if
+  something did, it names the command, shows the reply before and now, and
+  **stops at the first difference**, because once the world's state has moved,
+  every later reply is noise. It exits 0 when everything matched and 1 when it
+  diverged, so a build script can gate on it.
+
+The file is the readable playthrough. Command lines start with `> `; the game's
+reply to each sits under it. The commands are the editable spine, so you can
+add commands by hand: a command you typed in with no recorded reply is run and
+counted as new, never a failure, so the check never scolds you for extending a
+walkthrough. When you are happy with the new tail, record again to save its
+replies. Appending commands at the end is clean; inserting one in the middle
+legitimately changes every reply after it (the game is in a different state),
+so `--check` will flag the insertion point, and you re-record from there.
+
+The typical loop: record a full playthrough once, change your code, run
+`arcc` and then `actaea --check walk.txt story.z5`. In a few seconds it tells
+you, in plain language, whether your change broke the walkthrough. Combine
+`--replay IN --record OUT` to replay an existing walkthrough and record where
+you take it next, extending it without replaying by hand.
+
 ## 4. Saves, undo, transcripts
 
 Saves are Quetzal 1.4, the portable standard: a save written by Actaea

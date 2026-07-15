@@ -30,7 +30,7 @@ certainly already have.
 |-----------|---------|----------|
 | **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.14.0 | [build/arcc](build/arcc) |
 | **Cosmos**, the standard library | 0.38.0 | shipped inside `arcc` |
-| **Actaea**, the reference interpreter | 1.0.4 | [build/actaea](build/actaea) |
+| **Actaea**, the reference interpreter | 1.1.0 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.10.0 | [build/arcimg](build/arcimg) |
 
 Each is one self-contained file: download, `chmod +x`, done. Keeping them
