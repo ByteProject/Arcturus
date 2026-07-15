@@ -1613,11 +1613,14 @@ summon "extensions/lockpicking.granule"  // an explicit file
 
 A MULTI-FILE GAME summons its own chapters the same way: `summon
 rooms.storyarc`, `summon messages.storyarc`, and so on from the main file.
-A summoned `.storyarc` is a CHAPTER of the game, not a module: its blocks
-and handlers rank as GAME in the override chain (05, section 1), so a
-message override in messages.storyarc beats the library's and a summoned
-granule's exactly as if it were written in the main file, in any summon
-order. Only `.granule` files ride at granule rank.
+A summoned `.storyarc` is a CHAPTER of the game, not a module: EVERY
+declaration in it ranks as GAME in the override chain (05, section 1), so a
+message override in messages.storyarc, or a `verb` redefined in
+grammar.storyarc, beats the library's and a summoned granule's exactly as
+if it were written in the main file, in any summon order. The main file
+(the one you hand to `arcc`) is the most specific of all, so it overrides
+its own chapters where they both declare the same thing. Only `.granule`
+files ride at granule rank, below the game.
 
 Text compression is not a summonable feature. The compiler always applies a
 standard abbreviation set, so nothing is required to get it. A story can tune the

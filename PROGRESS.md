@@ -4184,3 +4184,24 @@ listed). Pay-for-use: exit_dest folds to a plain get_prop when the program
 has no computed exit, so a static-exit game is byte-identical (size gate
 green, untouched); __routines__ claims a fixed global slot only, no bytes.
 docs/01, docs/02, docs/04 reconciled. 6 new tests; suite 936.
+
+## 2026-07-15: chapters rank as game for EVERY declaration, verbs included (arcc 0.15.1)
+
+Charles Moore Jr.: a `verb "stand"` redefined in a summoned chapter
+(grammar.storyarc) still gave extendedverbs' "You're already on your
+feet." Root: the 0.11.35 "chapters rank as game" fix tagged only chapter
+BLOCKS and HANDLERS with origin="game" (for the block override lattice);
+it never reordered the decls, so a chapter's VERB still rode at its
+granule-tier summon position, and verb resolution (dictionary last-wins
+by world.verbs ORDER) let a later-summoned granule (extendedverbs) win
+the word. So message overrides worked but verb overrides did not -- the
+same root, two resolution mechanisms, only one fixed. Completed it in
+combined_program: summoned .storyarc chapters now load in the GAME tier
+(library -> granules -> chapters -> main file), so EVERY chapter
+declaration (verbs, objects, kinds, not only blocks/handlers) ranks as
+game and overrides a granule in any summon order; the main file stays
+most specific. Verified on Charles's exact structure (chapter verb,
+extendedverbs summoned after -> "Done." not "feet"). Immediate
+workaround (summon library granules first) no longer needed. docs/01
+s.13, docs/05 s.1, combined_program docstring updated. 1 new multifile
+test; suite 937.

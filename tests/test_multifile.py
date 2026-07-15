@@ -54,3 +54,41 @@ def test_chapter_overrides_library_and_granule(tmp_path):
     assert "The rock is unmoved by affection." in out  # beats extendedverbs
     # And neither default leaked through.
     assert "There's no exit" not in out
+
+
+# A chapter's VERB overrides a granule's verb of the same word, in ANY summon
+# order (the field report: STAND redefined in a chapter still gave the extended
+# verb set's "already on your feet", because a chapter's verb rode at granule
+# rank and a later-summoned extendedverbs won the word). A chapter now ranks as
+# GAME for every declaration, verbs included, not only blocks and handlers.
+VERB_MAIN = (
+    'game\n    title "T"\n    start hall\n'
+    'summon grammar.storyarc\n'          # the chapter, summoned BEFORE ...
+    'summon.extendedverbs\n'             # ... the granule that also defines STAND
+    'room hall\n    name "Hall"\n    desc "A hall."\n'
+    'thing crate in hall\n    name "crate"\n    words crate\n    supporter\n'
+)
+
+VERB_CHAPTER = (
+    'verb "stand"\n'
+    '    stand_on on noun\n'
+    'on stand_on\n'
+    '    if noun is nothing\n'
+    '        say "Stand on what, exactly?"\n'
+    '    else\n'
+    '        perform("enter", noun)\n'
+)
+
+
+def test_chapter_verb_overrides_a_granule_verb_in_any_order(tmp_path):
+    (tmp_path / "grammar.storyarc").write_text(VERB_CHAPTER)
+    story = generate(analyze(cosmos.combined_program(
+        parse(VERB_MAIN, "main.storyarc"), story_dir=str(tmp_path))))
+    io = CaptureIO(script=["stand on crate"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text.split(">stand")[-1]
+    assert "Done." in out                          # the chapter's stand_on ran
+    assert "already on your feet" not in out       # not the extended STAND
