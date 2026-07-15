@@ -354,6 +354,17 @@ Computed (`block`-valued) properties are lowered for text: the property slot hol
 the block routine's packed address, and a read lowers to "print or run": compare
 the stored address against the first string's packed address (the `__strings__`
 global), print it as a string when at or above that line, else call it as the
-block routine, which says its own text. A computed value property (a number or object decided at run time,
-which an exit block would be) is a compile error, since that same read cannot
-distinguish a small value from a routine address.
+block routine, which says its own text.
+
+A general computed value property (a number decided at run time) stays a compile
+error, since that read cannot tell an arbitrary value from a routine address. The
+one exception is a **computed exit** (docs/02 section 11a): a direction property
+that is a block. Its value is a room OBJECT NUMBER, always small, so it never
+collides with the block routine's large packed address. The exit read is
+`exit_dest`, which mirrors "print or run" as "read or run": it compares the stored
+value against the LOWEST routine packed address (the `__routines__` global,
+pre-biased +0x8000 like `__strings__`) and calls it as a block when at or above
+that line, else uses it as the destination. `exit_dest` folds to a plain
+`get_prop` when the program has no computed exit, so a static-exit game is
+byte-identical, and `__routines__` claims a fixed global slot only. Cosmos reads
+every exit through `exit_dest`, in the go handler and the `verbose_exits` scan.

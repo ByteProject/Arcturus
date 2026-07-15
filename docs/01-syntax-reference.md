@@ -542,10 +542,14 @@ choice is invisible.
 Computed properties. A property whose value is a `block` is evaluated by
 running the block when the property is read. The block `say`s its own text;
 reading the property (for example when Cosmos prints a room `desc`) runs the
-block, and whatever it says is what the property prints. This is text only: a
-computed `desc` is the headline use, and a computed value property (a number
-or object decided at run time) is reported as a compile error, because a read
-cannot tell a small value apart from the block's address.
+block, and whatever it says is what the property prints. This is text only,
+with one exception: a computed `desc` is the headline use, and a general
+computed value property (a number decided at run time) is reported as a
+compile error, because a read cannot tell a small value apart from the
+block's address. The exception is a computed EXIT (a direction property that
+is a block; docs/02 section 11a), where the value is a room and so is always
+small enough to distinguish; there the block returns a room to allow the move
+or `nothing` to refuse it.
 
 ```
 room cellar

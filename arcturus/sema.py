@@ -110,6 +110,10 @@ class Analyzer:
         # A summoned abbreviations.granule (B6) is compile-time data, not runtime
         # blocks, so it rides on the program straight through to codegen.
         self.world.abbreviations = getattr(self.program, "abbreviations", None)
+        # The direction property names (the standard set plus any declared), so
+        # codegen may allow a COMPUTED exit (a direction property that is a
+        # block) while a general computed value property stays unsupported.
+        self.world.direction_props = set(self.env.directions)
         return self.world
 
     # -- pass 1: collect ---------------------------------------------------

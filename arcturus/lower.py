@@ -156,6 +156,10 @@ INTRINSICS = frozenset({
     # verbose_exits granule can list a room's live exits. exit_prop/exit_name are
     # backed by routines codegen emits only when these intrinsics are used.
     "exits_count", "exit_prop", "exit_name",
+    # exit_dest(room, dirprop): the destination of a direction, running a
+    # computed exit block if the property holds one (docs/02 section 11a). Folds
+    # to a plain get_prop when the game has no computed exit.
+    "exit_dest",
     # Screen model (v5), for the statusline granule: the upper window, cursor,
     # text style, and the screen width from the header. Each lowers to an opcode,
     # so they cost nothing unless a granule calls them.
@@ -933,6 +937,38 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # in scope). A compile-time constant.
         n = 0 if ctx.layout is None else len(ctx.layout.obj_number)
         _place(rt, Const(n), dest)
+    elif name == "exit_dest":
+        # exit_dest(room, dirprop): the destination of a direction. If the
+        # property holds a computed-exit block (a routine's packed address, at
+        # or above the __routines__ threshold), run it and use the room it
+        # returns; otherwise the stored value IS the destination (a room number,
+        # or nothing). Folds to a plain get_prop when the program has no
+        # computed exit, so an ordinary game is byte-identical.
+        op_obj, t_obj = _operand(rt, ctx, args[0])
+        op_prop, t_prop = _operand(rt, ctx, args[1])
+        if not _any_computed_exit(ctx):
+            rt.op("get_prop", op_obj, op_prop, store=dest)
+            _free(ctx, t_obj)
+            _free(ctx, t_prop)
+        else:
+            v = ctx.alloc_temp()
+            rt.op("get_prop", op_obj, op_prop, store=Variable(v))
+            _free(ctx, t_obj)
+            _free(ctx, t_prop)
+            biased = ctx.alloc_temp()
+            rt.op("add", Variable(v), Const(0x8000), store=Variable(biased))
+            plain = ctx.new_label()
+            done = ctx.new_label()
+            # below the routines threshold: a plain room number (or nothing).
+            rt.op("jl", Variable(biased),
+                  Variable(ctx.globals["__routines__"]), branch=(plain, True))
+            ctx.free_temp(biased)
+            rt.op("call_vs", Variable(v), store=dest)  # a block: run it
+            rt.jump(done)
+            rt.label(plain)
+            _place(rt, Variable(v), dest)
+            rt.label(done)
+            ctx.free_temp(v)
     elif name == "exits_count":
         # exits_count(): how many directions are properties in this program.
         _place(rt, Const(len(exit_directions(ctx.layout))), dest)
@@ -1459,6 +1495,17 @@ def _world_roots(w):
     for kind in w.kinds.values():
         roots += kind.handlers + kind.grains + kind.topics
     return roots
+
+
+def _any_computed_exit(ctx) -> bool:
+    """True if any direction property in the program is a computed block (a
+    computed exit). exit_dest folds to a plain get_prop when this is false, so
+    a game with only static exits pays nothing for the read-or-run machinery."""
+    if ctx.layout is None:
+        return False
+    dirs = getattr(ctx.world, "direction_props", set())
+    return any(pname in dirs for _obj, pname, _is_text, _decl
+               in ctx.layout.computed_props)
 
 
 def _any_alter(ctx) -> int:
