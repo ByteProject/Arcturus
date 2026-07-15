@@ -33,12 +33,13 @@ GAME = (
 )
 
 
-def _spawn(story_path):
+def _spawn(story_path, *extra):
     pid, fd = pty.fork()
     if pid == 0:  # the child becomes the interpreter
         os.environ["TERM"] = "xterm-256color"
         os.execvp(sys.executable,
-                  [sys.executable, "-m", "actaea", "--console", str(story_path)])
+                  [sys.executable, "-m", "actaea", "--console",
+                   *extra, str(story_path)])
     return pid, fd
 
 
@@ -79,3 +80,30 @@ def test_console_plays_with_a_live_status_bar(tmp_path):
     assert "The Long Hall" in plain  # the statusline granule, on the grid
     assert "Got it." in plain
     assert "story has ended" in plain
+
+
+def test_console_record_writes_a_walkthrough(tmp_path):
+    # --record works in the full terminal, not only the plain console: play a
+    # couple of commands through the pty and the session file captures them
+    # with the game's replies.
+    story = tmp_path / "t.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
+    walk = tmp_path / "walk.txt"
+    pid, fd = _spawn(story, "--record", str(walk))
+    try:
+        _drain(fd, 1.5)
+        os.write(fd, b"take coin\r")
+        _drain(fd, 1.0)
+        os.write(fd, b"quit\ry\r")
+        _drain(fd, 1.0)
+        os.write(fd, b" ")
+        _drain(fd, 0.5)
+    finally:
+        os.close(fd)
+        try:
+            os.waitpid(pid, 0)
+        except ChildProcessError:
+            pass
+    text = walk.read_text()
+    assert "> take coin" in text     # the command, recorded from the terminal
+    assert "Got it." in text         # and the game's reply beneath it

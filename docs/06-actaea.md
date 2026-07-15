@@ -145,9 +145,11 @@ actaea --check  walk.txt story.z5    # did anything change? (in plain words)
 ```
 
 - **`--record FILE`** plays normally and saves the session, your commands AND
-  the game's replies, to FILE. It runs on the plain console (a recording is a
-  debugging activity, so the window is not involved); interactive in a
-  terminal, piped otherwise.
+  the game's replies, to FILE. Add `--console` to record from the full
+  terminal (status bar, colours, paging), the way you would normally play;
+  without it, recording runs on the plain console (interactive in a terminal,
+  piped otherwise). `--replay` works the same way, in either. Only `--check`
+  is always headless, since it is a batch comparison with nothing to show.
 - **`--replay FILE`** runs the file's commands and then hands you the keyboard
   to keep playing, the fast "skip ahead to where I was". With `--headless` it
   runs the commands and stops, for build tools.

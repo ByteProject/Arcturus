@@ -90,7 +90,7 @@ class ConsoleApp:
     """The terminal: an upper region painted from the cell grid, a lower
     curses window that scrolls, wraps at word boundaries, and pages."""
 
-    def __init__(self, story, stdscr):
+    def __init__(self, story, stdscr, record_path=None, replay_commands=None):
         self.scr = stdscr
         curses.raw()
         try:
@@ -102,7 +102,16 @@ class ConsoleApp:
         self._next_pair = 1
         self.term_h, self.term_w = stdscr.getmaxyx()
 
-        self.vm = VM(story, CursesIO(self))
+        # --record / --replay in the terminal: wrap the curses io boundary in a
+        # session recorder, exactly as the plain console does, so recording and
+        # replay work identically here with the full screen.
+        io = CursesIO(self)
+        self._session = None
+        if record_path is not None or replay_commands is not None:
+            from .session import SessionIO
+            io = SessionIO(io, record_path=record_path, replay=replay_commands)
+            self._session = io
+        self.vm = VM(story, io)
         self.vm.screen.on_change = self._grid_changed
         self._grid_dirty = False
         self._split = 0
@@ -438,9 +447,13 @@ class ConsoleApp:
         try:
             self.vm.run()
         except (EOFError, KeyboardInterrupt):
+            if self._session is not None:
+                self._session.close()
             return
         except ActaeaError as e:
             self.write(f"\n[actaea: {e}]\n")
+        if self._session is not None:
+            self._session.close()
         # The story quit: hold the final screen (some games print their
         # closing text immediately before @quit; it must be readable).
         self._emit_line(newline=False)
@@ -450,7 +463,7 @@ class ConsoleApp:
         self.lower.getch()
 
 
-def play(story, title: str = "") -> None:
+def play(story, title: str = "", record_path=None, replay_commands=None) -> None:
     locale.setlocale(locale.LC_ALL, "")  # accents render as themselves
     # Name the terminal tab/window after the story for the session, then
     # give the old name back on the way out: push the current title on
@@ -461,7 +474,8 @@ def play(story, title: str = "") -> None:
     sys.stdout.write(f"\x1b[22;0t\x1b]0;{label}\x07")
     sys.stdout.flush()
     try:
-        curses.wrapper(lambda scr: ConsoleApp(story, scr).run())
+        curses.wrapper(lambda scr: ConsoleApp(
+            story, scr, record_path, replay_commands).run())
     finally:
         sys.stdout.write("\x1b[23;0t")
         sys.stdout.flush()
