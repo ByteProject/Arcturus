@@ -616,6 +616,13 @@ _BUILTIN_GLOBALS = [
     # global is pre-biased here, the property value gets +0x8000 at the compare
     # (see lower._emit_prop_print_or_run).
     "__strings__",
+    # __routines__ is the LOWEST packed routine address, pre-biased +0x8000 like
+    # __strings__. A computed EXIT (a direction property that is a block) stores
+    # the block routine's packed address, at or above this; a plain exit stores a
+    # small room object number, below it. exit_dest compares against this to
+    # "read or run" (docs/02 section 11a). It claims a fixed global slot only, and
+    # exit_dest folds to a plain get_prop when the game has no computed exit.
+    "__routines__",
     # The base font colour (zcolor.font), which say.<colour> restores to.
     # Seeded to 1 (the interpreter default) in build_story.
     "__zcfont__",
@@ -892,6 +899,15 @@ def build_story(
             globals_addr + (gmap["__strings__"] - 16) * 2,
             (strings_start_packed + 0x8000) & 0xFFFF,
         )
+        # The routines threshold (computed exits, exit_dest): the lowest packed
+        # routine address, pre-biased the same way. A stored value at or above
+        # it is a block routine to run; below it is a plain room number.
+        if packed_routines:
+            routines_start_packed = min(packed_routines.values())
+            sf.set_word(
+                globals_addr + (gmap["__routines__"] - 16) * 2,
+                (routines_start_packed + 0x8000) & 0xFFFF,
+            )
         # The base font colour starts as the interpreter default (1), so a
         # say.<colour> before any zcolor.font still restores sanely.
         sf.set_word(globals_addr + (gmap["__zcfont__"] - 16) * 2, 1)
@@ -1430,13 +1446,17 @@ def gen_computed_prop_routines(world: wm.World, layout, gmap: dict, pool) -> lis
     value. The property table stores each routine's packed address (objects.py)."""
     routines = []
     for objname, pname, is_text, decl in layout.computed_props:
-        if not is_text:
+        if not is_text and pname not in world.direction_props:
             # A read of a value property cannot tell a routine address from a plain
-            # value, so only text properties (which store a string address, always
-            # above the routine range) can be computed for now.
+            # value, so a general computed value property is unsupported. The one
+            # exception is a computed EXIT (a direction property that is a block):
+            # its value is a room object NUMBER, always small, so an exit read can
+            # tell it from the block routine's large packed address (exit_dest,
+            # docs/02 section 11a).
             raise CodegenError(
-                f"computed property '{pname}' must be a text property; a computed "
-                f"value property is not supported yet",
+                f"computed property '{pname}' must be a text property, or a "
+                f"direction (a computed exit); a general computed value "
+                f"property is not supported",
                 getattr(decl, "line", None),
             )
         owner_num = layout.obj_number.get(objname, 0)

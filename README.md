@@ -28,8 +28,8 @@ certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.14.0 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 0.38.0 | shipped inside `arcc` |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.15.0 | [build/arcc](build/arcc) |
+| **Cosmos**, the standard library | 0.39.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.1.0 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.10.0 | [build/arcimg](build/arcimg) |
 

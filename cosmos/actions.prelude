@@ -89,7 +89,10 @@ on go
         change refused to 1
         msg_no_direction
         stop
-    let dest = here.(way)
+    // A computed exit (a direction property that is a block) is run here to
+    // get its destination; a static exit reads straight through. exit_dest
+    // folds to a plain property read in a game with no computed exit.
+    let dest = exit_dest(here, way)
     if dest is nothing
         change refused to 1
         msg_cant_go

@@ -4162,3 +4162,25 @@ section 3, and pointers from docs/05 debug + debug.granule for anyone
 hunting Inform-style REPLAY. 10 unit tests; suite 929. Decisions from
 Stefan: flags only, record raw typed lines, no output-stream-4
 conformance.
+
+## 2026-07-15: computed exits, the documented feature made real (arcc 0.15.0, Cosmos 0.39.0)
+
+An adopter hit `error: computed value property is not supported yet` on a
+computed exit (`north block / if portcullis is open / return inner_hall /
+return nothing`) that docs/02 section 11a documents with a worked example.
+docs/04 flatly contradicted docs/02, calling it a compile error. Stefan's
+call: implement it, directions only. A general computed value property
+stays unsupported (a read cannot tell an arbitrary value from a routine
+address), but a computed EXIT is the safe case: a destination is a room
+OBJECT NUMBER (small), so it never collides with the block routine's large
+packed address. Built: codegen relaxes the raise for direction props and
+generates the value-returning routine; a new __routines__ threshold global
+(the lowest packed routine address, pre-biased +0x8000 like __strings__);
+an exit_dest(room, dirprop) intrinsic that mirrors "print or run" as "read
+or run" -- compare against __routines__, call the block if at/above, else
+use the value. Cosmos reads every exit through exit_dest now (the go
+handler and the verbose_exits scan, so a blocked computed exit is not
+listed). Pay-for-use: exit_dest folds to a plain get_prop when the program
+has no computed exit, so a static-exit game is byte-identical (size gate
+green, untouched); __routines__ claims a fixed global slot only, no bytes.
+docs/01, docs/02, docs/04 reconciled. 6 new tests; suite 936.

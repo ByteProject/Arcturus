@@ -40,7 +40,7 @@ block msg_cant_go()
     let i = 0
     while i < n
         let p = exit_prop(i)
-        if here.(p) is not nothing
+        if exit_dest(here, p) is not nothing
             change total to total + 1
         change i to i + 1
     if total is 0
@@ -52,7 +52,7 @@ block msg_cant_go()
     change i to 0
     while i < n
         let q = exit_prop(i)
-        if here.(q) is not nothing
+        if exit_dest(here, q) is not nothing
             if shown is not 0
                 if shown is total - 1
                     show(" or ")

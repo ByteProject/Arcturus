@@ -369,6 +369,11 @@ class World:
     # Player-facing direction word -> standard direction property name, from the
     # language layer's `direction` declarations (docs/01). Localized by a pack.
     directions: dict[str, str] = field(default_factory=dict)
+    # Every direction PROPERTY name (the standard set plus any declared), set
+    # at the end of analysis. Codegen allows a computed exit (a direction
+    # property that is a block) using this; a general computed value property
+    # stays unsupported.
+    direction_props: set = field(default_factory=set)
     # Player-facing verb-particle word -> canonical particle name ("on"/"off"),
     # from the language layer's `particle` declarations. English "on"/"off", German
     # "an"/"ein"/"aus"/"ab"; the parser combines a base verb with the particle

@@ -11,7 +11,7 @@ Arcturus itself and is compiled together with the author's program; the
 compiler hardcodes nothing about it, including its version.
 """
 
-__version__ = "0.14.0"
+__version__ = "0.15.0"
 
 # The build fingerprint. __version__ names the intended release and only moves
 # on a bump, so two amalgams built from different source between bumps carry
