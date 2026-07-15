@@ -113,6 +113,26 @@ def _play_headless(story) -> int:
     return 0
 
 
+def _play_terminal_session(story, title, record_path, replay_path) -> bool:
+    """--console with --record / --replay: the curses terminal, wrapped in the
+    same session recorder. Returns False (to fall back to the plain console)
+    when there is no terminal or no curses."""
+    if not sys.stdin.isatty():
+        return False
+    try:
+        from .console import play
+        from .session import parse_walkthrough
+    except ImportError:
+        return False
+    replay_commands = None
+    if replay_path is not None:
+        with open(replay_path, "r", encoding="utf-8") as fh:
+            _intro, turns = parse_walkthrough(fh.read())
+        replay_commands = [cmd for cmd, _reply in turns]
+    play(story, title, record_path=record_path, replay_commands=replay_commands)
+    return True
+
+
 def _play_session(story, record_path, replay_path, headless) -> int:
     """--record and/or --replay: play through the plain console, recording the
     session and/or feeding a recorded file's commands first. A recording or
@@ -305,6 +325,15 @@ def main(argv=None) -> int:
             return _run_check(story, args.check)
 
         if args.record is not None or args.replay is not None:
+            # In the terminal (--console): record and replay with the full
+            # screen. Otherwise the plain console (piped, or a bare terminal).
+            if args.console and not args.headless:
+                if _play_terminal_session(
+                        story, os.path.basename(args.story),
+                        args.record, args.replay):
+                    return 0
+                print("actaea: no terminal for --console here; recording on "
+                      "the plain console", file=sys.stderr)
             return _play_session(story, args.record, args.replay, args.headless)
 
         if args.headless:
