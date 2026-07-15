@@ -199,6 +199,8 @@ class Parser:
             return self.parse_ranks()
         if t.kind == T.NAME and t.value == "catalog":
             return self.parse_catalog()
+        if t.kind == T.NAME and t.value == "matrix":
+            return self.parse_matrix()
         if t.kind == T.NAME and t.value in ("flag", "counter"):
             return self.parse_flag_counter()
         if t.value == "player" and t.kind in (T.NAME, T.KW):
@@ -943,6 +945,44 @@ class Parser:
             raise self._error(f"catalog '{name}' is empty", None)
         return ast.CatalogDecl(name, values, line)
 
+    def parse_matrix(self) -> ast.MatrixDecl:
+        # matrix <name> capacity <N> [of object|byte] [checked], then optional
+        # indented seed values (one per line, <= capacity). Numeric only, so a
+        # seed is a number or an object name, never a string.
+        line = self.cur.line
+        self.advance()  # the leading `matrix`
+        name = self.expect_name("a matrix name").value
+        if not (self.cur.kind == T.NAME and self.cur.value == "capacity"):
+            raise self._error(
+                "a matrix needs a capacity: matrix " + name + " capacity <N>", None)
+        self.advance()  # `capacity`
+        cap_tok = self.expect(T.NUMBER, "the matrix capacity, a positive number")
+        capacity = cap_tok.value
+        cell = "number"
+        if self._at_word("of"):
+            self.advance()  # `of`
+            kind = self.expect_name("the cell kind: object or byte").value
+            if kind not in ("object", "byte", "number"):
+                raise self._error(
+                    f"a matrix cell is object, byte, or number, not '{kind}'", None)
+            cell = kind
+        checked = False
+        if self._at_word("checked"):
+            self.advance()
+            checked = True
+        self.expect_newline()
+        seed: list[ast.Expr] = []
+        if self.check(T.INDENT):
+            self.advance()
+            while not self.check(T.DEDENT):
+                if self.check(T.NEWLINE):
+                    self.advance()
+                    continue
+                seed.append(self.parse_expr())
+                self.expect_newline()
+            self.expect(T.DEDENT)
+        return ast.MatrixDecl(name, line, cell, capacity, checked, seed)
+
     def parse_global(self) -> ast.GlobalDecl:
         line = self.cur.line
         self.expect_kw("global")
@@ -1003,6 +1043,13 @@ class Parser:
                 return self._parse_say(lead=True)
             if t.value == "award" and self._at(1).kind == T.NUMBER:
                 return self._parse_award()
+            if t.value in ("clear", "load"):
+                mop = self._try_matrix_op()
+                if mop is not None:
+                    return mop
+            # append / insert as statements flow through the expression path
+            # (they are also expressions, so `if append x to m is 0` works);
+            # `remove` is a keyword handled in _parse_remove.
             nxt = self._at(1)
             if nxt.kind == T.OP and nxt.value in ("++", "--"):
                 line = t.line
@@ -1012,6 +1059,125 @@ class Parser:
                 return ast.Bump(name, delta, line)
             return self._parse_expr_statement()
         raise self._error(f"expected a statement, got {self._describe(t)}")
+
+    def _at_word(self, word: str) -> bool:
+        # True when the cursor is a given word, whether it lexed as a plain
+        # name or as a reserved keyword (to / from / of / into / at are the
+        # small particles the matrix grammar leans on, and some are keywords).
+        return self.cur.value == word and self.cur.kind in (T.NAME, T.KW)
+
+    def _accept_word(self, word: str) -> bool:
+        # A grammar particle (name or keyword), e.g. `swapping` after a matrix
+        # remove: consume it if present.
+        if self._at_word(word):
+            self.advance()
+            return True
+        return False
+
+    def _try_matrix_op(self):
+        # The matrix statements that are NOT expressions: clear and load
+        # (summon.matrix). append / insert / remove are expressions (see
+        # _parse_matrix_expr), so they carry a success value; clear and load
+        # do not. Each commits only on a full pattern match and otherwise
+        # backtracks, so a same-named block call is untouched.
+        start = self.i
+        op = self.cur.value
+        line = self.cur.line
+        try:
+            if op == "clear":
+                self.advance()
+                if not self.check(T.NAME):
+                    self.i = start
+                    return None
+                name = self.advance().value
+                self.expect_newline()
+                return ast.MatrixOp("clear", name, line=line)
+            if op == "load":
+                # load <name> from <name>
+                self.advance()
+                if not self.check(T.NAME):
+                    self.i = start
+                    return None
+                name = self.advance().value
+                if not self._at_word("from"):
+                    self.i = start
+                    return None
+                self.advance()  # `from`
+                source = self.expect_name("a catalog name after 'from'").value
+                self.expect_newline()
+                return ast.MatrixOp("load", name, value=ast.Name(source, line), line=line)
+        except ArcError:
+            self.i = start
+            return None
+        return None
+
+    def _matrix_remove_tail(self, line):
+        # The shared tail of a matrix remove, `remove` already consumed, no
+        # newline handling (the caller owns statement vs expression framing):
+        #   remove entry(m, i) [swapping]   -> by index
+        #   remove <expr> from <matrix> [swapping]   -> by value
+        # A `from` target that is a property dot (chest.synonyms) is NOT a
+        # matrix but the list-property feature, so it stays an ast.Remove.
+        first = self.parse_expr()
+        if (isinstance(first, ast.Call) and first.name == "entry"
+                and len(first.args) == 2
+                and isinstance(first.args[0], ast.Name)):
+            swapping = self._accept_word("swapping")
+            return ast.MatrixOp(
+                "remove", first.args[0].ident, index=first.args[1],
+                swapping=swapping, line=line)
+        self.expect_kw("from")
+        target = self.parse_postfix()
+        swapping = self._accept_word("swapping")
+        if isinstance(target, ast.Name):
+            return ast.MatrixOp(
+                "remove", target.ident, value=first,
+                swapping=swapping, line=line)
+        return ast.Remove(first, target, line, swapping)
+
+    def _parse_matrix_expr(self):
+        # append / insert / remove as EXPRESSIONS returning a success value
+        # (1, or 0 when a matrix is full / a removed value is absent), so
+        # `if append clue to clues is 0` reads. Backtracks when the pattern
+        # does not match, so a call to a block of the same name is untouched.
+        start = self.i
+        op = self.cur.value
+        line = self.cur.line
+        try:
+            if op == "append":
+                self.advance()
+                value = self.parse_expr()
+                if not self._at_word("to"):
+                    self.i = start
+                    return None
+                self.advance()  # `to`
+                name = self.expect_name("a matrix name after 'to'").value
+                return ast.MatrixOp("append", name, value=value, line=line)
+            if op == "insert":
+                self.advance()
+                value = self.parse_expr()
+                if not self._at_word("into"):
+                    self.i = start
+                    return None
+                self.advance()  # `into`
+                name = self.expect_name("a matrix name after 'into'").value
+                if not self._at_word("at"):
+                    self.i = start
+                    return None
+                self.advance()  # `at`
+                index = self.parse_expr()
+                return ast.MatrixOp("insert", name, value=value, index=index, line=line)
+            if op == "remove":
+                self.advance()
+                node = self._matrix_remove_tail(line)
+                if not isinstance(node, ast.MatrixOp):
+                    self.i = start
+                    return None
+                return node
+        except ArcError:
+            self.i = start
+            return None
+        return None
 
     def _parse_award(self) -> ast.Award:
         # `award 5` / `award 10 for door_solved "outsmarting the door"`:
@@ -1106,14 +1272,16 @@ class Parser:
         self.expect_newline()
         return ast.Add(value, target, line)
 
-    def _parse_remove(self) -> ast.Remove:
+    def _parse_remove(self) -> ast.Stmt:
+        # The statement form of `remove` (a reserved keyword). Shares its tail
+        # with the expression form: `remove x from chest.synonyms` is the
+        # list-property feature (ast.Remove); `remove x from m` / `remove
+        # entry(m, i)` are matrix mutators (ast.MatrixOp).
         line = self.cur.line
         self.expect_kw("remove")
-        value = self.parse_expr()
-        self.expect_kw("from")
-        target = self.parse_postfix()
+        node = self._matrix_remove_tail(line)
         self.expect_newline()
-        return ast.Remove(value, target, line)
+        return node
 
     def _parse_say(self, lead=False) -> ast.Say:
         line = self.cur.line
@@ -1492,6 +1660,13 @@ class Parser:
 
     def _parse_primary(self) -> ast.Expr:
         t = self.cur
+        # append / insert / remove as expressions (summon.matrix). Backtracks
+        # cleanly when the pattern does not fit, so a block call of the same
+        # name (append(x)) still resolves as an ordinary call below.
+        if (t.kind == T.NAME and t.value in ("append", "insert")) or t.is_kw("remove"):
+            mop = self._parse_matrix_expr()
+            if mop is not None:
+                return mop
         if t.kind == T.NUMBER:
             self.advance()
             return ast.Number(t.value, t.line)

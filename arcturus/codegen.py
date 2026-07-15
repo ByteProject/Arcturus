@@ -878,9 +878,9 @@ def build_story(
         # The scheduling table base, so after/every can reach it at run time.
         sf.set_word(globals_addr + (gmap["__timers__"] - 16) * 2, timers_addr)
         # The catalog region's byte address (docs/01, catalogs); zero, and
-        # never read, in a game with neither author catalogs nor a spilled
-        # kind (whose extent catalog lives in the same region).
-        if layout.catalogs or layout.kind_catalog:
+        # never read, in a game with no author catalogs, no spilled kind, and
+        # no matrix (all three share this region and read through this base).
+        if layout.catalogs or layout.kind_catalog or layout.matrices:
             sf.set_word(
                 globals_addr + (gmap["__catalogs__"] - 16) * 2,
                 objects_addr + layout.catalog_region_off,
@@ -1729,6 +1729,11 @@ def _generate(world: wm.World, version: int = 5, stats=None) -> bytes:
             kinds_spilled=len(layout.kind_spilled),
             properties=len(layout.prop_number),
             properties_max=objmod._MAX_PROPERTIES,
+            # Matrices (summon.matrix): count, and the dynamic-memory bytes
+            # they reserve (header + capacity cells, words in Phase 1). Zero
+            # in a game that summons none.
+            matrices=len(world.matrices),
+            matrix_bytes=sum((2 + m.capacity) * 2 for m in world.matrices.values()),
             globals=len(gmap),
             globals_max=_GLOBALS_BYTES // 2,
             verbs=len(world.verbs),

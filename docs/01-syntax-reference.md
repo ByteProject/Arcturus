@@ -203,12 +203,80 @@ catalog value is one. Underneath: a static
 table in dynamic memory, so `calculate` on a named catalog folds to a
 constant at compile time, `entry` and `last` are a single memory read,
 `change entry` a single write, and there is no heap and no allocator
-anywhere (the Dialog trap, deliberately refused: the list features that
-would need one, append/reverse/collect, are the ones left out). A game
-that declares no catalog is byte-identical. The interpolation rule matches
-plain property strings: a catalog string is static, so `${...}` inside one
-is a compile error. `calculate`, `entry`, `last`, `dice`, and `position`
-are library-owned names.
+anywhere (the Dialog trap, deliberately refused: a catalog never grows or
+shrinks). A game that declares no catalog is byte-identical. The
+interpolation rule matches plain property strings: a catalog string is
+static, so `${...}` inside one is a compile error. `calculate`, `entry`,
+`last`, `dice`, and `position` are library-owned names. When you genuinely
+need a collection whose length changes as the game plays, that is a
+`matrix` (next), not a catalog.
+
+### 4a. matrix: a catalog you can grow (summon.matrix)
+
+Before reaching for a matrix, be sure you need one. A **catalog** is what
+you want almost always: fixed data you read, index (`entry`), iterate (`for
+each`), test (`in`, `position`), even rewrite in place (`change entry`). It
+is near-free on 8-bit hardware because it is static tables and single
+opcodes. Reach for a matrix only when a catalog cannot give you one of two
+things: a collection whose **length changes at runtime** (you grow or
+shrink it), or a two-dimensional **table** (Phase 2). Hibernated 2,
+Rabenstein, and Ghosts never needed one; many whole games port with lists
+alone. A matrix is a specialized tool, and it carries a real cost, dynamic
+memory that rides in every save frame, that a catalog largely avoids. If
+you are not doing one of those two things, stop, and use a catalog.
+
+A matrix is the mutable sibling of a catalog, and a strictly summoned
+feature: without `summon.matrix` the syntax is inert and it contributes
+zero bytes. Declare one with a capacity (its reserved maximum), optionally a
+cell kind and a bounds mode, and optional seed values:
+
+```
+summon.matrix
+
+matrix clues capacity 12               // up to 12 cells, starts empty
+matrix suspects capacity 8 of object   // cells hold object references
+matrix counters capacity 20 of byte    // 0..255 cells
+matrix primes capacity 6               // seeded, length starts at 3
+    2
+    3
+    5
+```
+
+Cells are numeric only: `number` (a word, the default), `object` (a word
+holding an object reference; `for each` types the item as an object), or
+`byte` (0..255). A matrix never holds text; for words, keep a catalog and
+store an index into it. The reads are exactly a catalog's, but the count is
+the LIVE length: `calculate(m)` is the current length, `entry(m, i)` the
+i-th (1-based), `last(m)`, `dice(m)`, `position(m, v)`, `v in m`, and `for
+each x in m`. `change entry(m, i) to v` rewrites a cell in place.
+
+The mutators are what a catalog lacks. `append v to m` grows the length by
+one, returning 1 or 0 when the matrix is full, so the policy is yours:
+
+```
+if append clue to clues is 0
+    say "Your notebook is full."
+```
+
+`remove entry(m, i)` removes by index and `remove v from m` by value, both
+order-preserving (the tail shifts down); add `swapping` for an O(1)
+remove that moves the last entry into the hole instead, unordered. `insert
+v into m at i` shifts the tail up and inserts. `clear m` empties it.
+`append`, `insert`, and `remove` are also expressions returning the same
+success value, so any of them reads in an `if`.
+
+`load m from cat` copies a catalog's values into the matrix as its new
+contents (the compiler checks the catalog fits the capacity). This is the
+bridge between the two: keep canonical data as a cheap catalog, and snapshot
+it into a matrix only where you actually mutate it.
+
+A computed index that is a literal is bounds-checked at compile time
+(against the capacity); a computed index that is a variable is trusted at
+runtime and fast, the same contract catalogs keep. Underneath, a matrix
+shares the catalog region and reads through the same base; its header holds
+the live count and the capacity, and every mutator is a short routine in the
+editable `cosmos/matrix.granule`, so there is still no heap and no
+allocator. `arcc -s` reports matrices and the dynamic bytes they reserve.
 
 ## 5. The world model
 

@@ -201,6 +201,7 @@ class Remove(Stmt):
     value: Expr
     target: Expr
     line: int = 0
+    swapping: bool = False  # matrix remove ... swapping: O(1) swap-with-last
 
 
 @dataclass
@@ -538,6 +539,37 @@ class CatalogDecl:
 
     name: str
     values: list[Expr] = field(default_factory=list)
+    line: int = 0
+
+
+@dataclass
+class MatrixDecl:
+    """matrix <name> capacity <N> [of object|byte] [checked]: the mutable
+    sibling of a catalog (Stefan's naming). A capacity-bounded sequence in
+    dynamic memory whose LENGTH changes at runtime (append/remove), sharing a
+    catalog's region, base, and read verbs (entry, calculate, last, for each).
+    Numeric only (number/object/byte), never text. Strictly a summoned granule
+    feature: unusable without summon.matrix, and zero bytes when un-summoned."""
+
+    name: str
+    line: int = 0
+    cell: str = "number"          # "number" | "object" | "byte"
+    capacity: int = 0             # 1D reserved slots (Phase 1)
+    checked: bool = False         # runtime bounds guard on computed indices
+    seed: list[Expr] = field(default_factory=list)   # initial values (<= capacity)
+
+
+@dataclass
+class MatrixOp:
+    """A matrix mutator statement: append / remove / insert / clear / load.
+    The target names the matrix; value/index/mode carry the operands. Lowers
+    to a call into the editable cosmos/matrix.granule blocks."""
+
+    op: str                       # "append" | "remove" | "insert" | "clear" | "load"
+    target: str                   # the matrix name
+    value: Expr | None = None     # appended/inserted/removed value, or source catalog for load
+    index: Expr | None = None     # remove-by-index / insert-at index
+    swapping: bool = False        # remove ... swapping: O(1) swap-with-last
     line: int = 0
 
 

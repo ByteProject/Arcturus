@@ -363,8 +363,10 @@ def _is_leaf(ctx: Context, expr) -> bool:
         c = ctx.world.constants.get(expr.ident)
         if c is not None:
             return _is_leaf(ctx, c.value)
-        if ctx.layout is not None and expr.ident in ctx.layout.catalogs:
-            return True  # a catalog name is its word offset, a constant
+        if ctx.layout is not None and (
+                expr.ident in ctx.layout.catalogs
+                or expr.ident in ctx.layout.matrices):
+            return True  # a catalog/matrix name is its word offset, a constant
         return (
             expr.ident in ctx.named
             or expr.ident in ctx.globals
@@ -391,6 +393,8 @@ def _leaf_operand(ctx: Context, expr):
             return _leaf_operand(ctx, c.value)
         if ctx.layout is not None and expr.ident in ctx.layout.catalogs:
             return Const(ctx.layout.catalogs[expr.ident])
+        if ctx.layout is not None and expr.ident in ctx.layout.matrices:
+            return Const(ctx.layout.matrices[expr.ident])
         if expr.ident in ctx.named or expr.ident in ctx.globals:
             return Variable(ctx.resolve_var(expr.ident, expr.line))
         if ctx.is_object_name(expr.ident):
@@ -440,6 +444,12 @@ def eval_expr(rt: Routine, ctx: Context, expr, dest=None) -> None:
 
     if isinstance(expr, (ast.IsTest, ast.Logic)):
         _materialize_bool(rt, ctx, expr, dest)
+        return
+
+    if isinstance(expr, ast.MatrixOp):
+        # append / insert / remove used as a value: the success flag (1, or 0
+        # when full / absent) lands in dest.
+        _matrix_op(rt, ctx, expr, dest)
         return
 
     if isinstance(expr, ast.Unary):
@@ -598,9 +608,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
     elif name == "catalogs_base":
         _place(rt, _catalog_base(ctx), dest)
     elif name == "calculate":
-        # calculate(cat): the entry count. A named catalog folds to a constant.
+        # calculate(cat): the entry count. A named catalog folds to a constant;
+        # a matrix's count is the LIVE length, so it always reads at runtime.
         off = _catalog_off(ctx, args[0])
-        if off is not None:
+        if _is_matrix(ctx, args[0]):
+            rt.op("loadw", _catalog_base(ctx), Const(off), store=dest)
+        elif off is not None:
             _place(rt, Const(len(ctx.world.catalogs[args[0].ident].values)), dest)
         else:
             op, t = _operand(rt, ctx, args[0])
@@ -612,11 +625,22 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         off = _catalog_off(ctx, args[0])
         if off is not None and isinstance(args[1], ast.Number):
             i = args[1].value
-            n = len(ctx.world.catalogs[args[0].ident].values)
-            if not 1 <= i <= n:
-                raise LowerError(
-                    f"entry({args[0].ident}, {i}): the catalog has {n} "
-                    f"entries (1..{n})", call.line)
+            # A literal index is bounds-checked at compile time: against the
+            # matrix CAPACITY (its reserved slots), or the catalog's fixed
+            # count. A matrix cell within capacity but past the live count
+            # reads a reserved zero, never adjacent memory.
+            cap = _matrix_cap(ctx, args[0])
+            if cap is not None:
+                if not 1 <= i <= cap:
+                    raise LowerError(
+                        f"entry({args[0].ident}, {i}): the matrix capacity is "
+                        f"{cap} (1..{cap})", call.line)
+            else:
+                n = len(ctx.world.catalogs[args[0].ident].values)
+                if not 1 <= i <= n:
+                    raise LowerError(
+                        f"entry({args[0].ident}, {i}): the catalog has {n} "
+                        f"entries (1..{n})", call.line)
             rt.op("loadw", _catalog_base(ctx), Const(off + 1 + i), store=dest)
         elif off is not None:
             op, t = _operand(rt, ctx, args[1])
@@ -638,7 +662,14 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
             _free(ctx, ti)
     elif name == "last":
         off = _catalog_off(ctx, args[0])
-        if off is not None:
+        if _is_matrix(ctx, args[0]):
+            # The last LIVE entry: idx = count + off + 1, count read at runtime.
+            idx = ctx.alloc_temp()
+            rt.op("loadw", _catalog_base(ctx), Const(off), store=Variable(idx))
+            rt.op("add", Variable(idx), Const(off + 1), store=Variable(idx))
+            rt.op("loadw", _catalog_base(ctx), Variable(idx), store=dest)
+            ctx.free_temp(idx)
+        elif off is not None:
             n = len(ctx.world.catalogs[args[0].ident].values)
             rt.op("loadw", _catalog_base(ctx), Const(off + 1 + n), store=dest)
         else:
@@ -654,7 +685,13 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # dice(cat): one entry at random (1..count rides random's contract).
         off = _catalog_off(ctx, args[0])
         idx = ctx.alloc_temp()
-        if off is not None:
+        if _is_matrix(ctx, args[0]):
+            # Random over the LIVE count, read at runtime.
+            rt.op("loadw", _catalog_base(ctx), Const(off), store=Variable(idx))
+            rt.op("random", Variable(idx), store=Variable(idx))
+            rt.op("add", Variable(idx), Const(off + 1), store=Variable(idx))
+            rt.op("loadw", _catalog_base(ctx), Variable(idx), store=dest)
+        elif off is not None:
             n = len(ctx.world.catalogs[args[0].ident].values)
             rt.op("random", Const(n), store=Variable(idx))
             rt.op("add", Variable(idx), Const(off + 1), store=Variable(idx))
@@ -1316,25 +1353,49 @@ def _distribute_is_list(ctx, expr):
 
 
 def _catalog_off(ctx, expr):
-    """The word offset of a named catalog from the region base, or None. A
-    catalog name IS this small constant at runtime, which is how a catalog
-    passes to a block: the offset travels as an ordinary value, and entry /
-    calculate read through the __catalogs__ base wherever it lands."""
+    """The word offset of a named catalog (or matrix) from the region base, or
+    None. A catalog/matrix name IS this small constant at runtime, which is how
+    one passes to a block: the offset travels as an ordinary value, and entry /
+    calculate read through the __catalogs__ base wherever it lands. Matrices
+    share the region, so their offsets resolve here too."""
     if isinstance(expr, ast.Name) and ctx.layout is not None:
-        return ctx.layout.catalogs.get(expr.ident)
+        off = ctx.layout.catalogs.get(expr.ident)
+        if off is not None:
+            return off
+        return ctx.layout.matrices.get(expr.ident)
+    return None
+
+
+def _is_matrix(ctx, expr):
+    """True when expr names a matrix, whose `count` is the LIVE length (read at
+    runtime) rather than a compile-time constant like a catalog's."""
+    return (isinstance(expr, ast.Name)
+            and expr.ident in ctx.world.matrices)
+
+
+def _matrix_cap(ctx, expr):
+    """A named matrix's reserved capacity (the compile-time bound for a literal
+    index), or None."""
+    if isinstance(expr, ast.Name):
+        mx = ctx.world.matrices.get(expr.ident)
+        if mx is not None:
+            return mx.capacity
     return None
 
 
 def _catalog_etype(ctx, expr):
-    """The element type (text/number/object) when expr names a catalog, or,
-    for a call that reads one (entry/last/dice), the type of what it reads.
-    None when unknowable at compile time (a catalog passed as a parameter)."""
+    """The element type (text/number/object) when expr names a catalog or a
+    matrix, or, for a call that reads one (entry/last/dice), the type of what
+    it reads. None when unknowable at compile time (passed as a parameter)."""
     if isinstance(expr, ast.Call) and expr.name in ("entry", "last", "dice") and expr.args:
         return _catalog_etype(ctx, expr.args[0])
     if isinstance(expr, ast.Name):
         c = ctx.world.catalogs.get(expr.ident)
         if c is not None:
             return c.etype
+        mx = ctx.world.matrices.get(expr.ident)
+        if mx is not None:
+            return mx.etype
     return None
 
 
@@ -1761,6 +1822,9 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
     the block knows the following statements cannot be reached."""
     if isinstance(s, ast.Let):
         eval_expr(rt, ctx, s.value, Variable(ctx.resolve_var(s.name, s.line)))
+    elif isinstance(s, ast.MatrixOp):
+        # A mutator as a statement: run it and discard the success flag.
+        _matrix_op(rt, ctx, s, None)
     elif isinstance(s, ast.Award):
         _award(rt, ctx, s)
     elif isinstance(s, ast.Bump):
@@ -1929,6 +1993,77 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
     return False  # the statement falls through to whatever follows
 
 
+def _matrix_op(rt, ctx, s, dest):
+    """Lower a matrix mutator (append / insert / remove / clear / load). Each
+    resolves the target's region offset and capacity to compile-time constants
+    and calls the matching cosmos/matrix.granule block; clear is a bare storew
+    of the count. dest (a Variable) receives the block's success flag, or is
+    None when the result is discarded (a statement)."""
+    name = s.target
+    off = ctx.layout.matrices.get(name) if ctx.layout is not None else None
+    mx = ctx.world.matrices.get(name)
+    if off is None or mx is None:
+        raise LowerError(
+            f"'{name}' is not a matrix (append / remove / insert / clear / "
+            f"load need a matrix; declare one with summon.matrix)", s.line)
+    base = _catalog_base(ctx)
+    if s.op == "clear":
+        # count := 0; the cells are simply left as dead spare.
+        rt.op("storew", base, Const(off), Const(0))
+        if dest is not None:
+            _place(rt, Const(0), dest)
+        return
+    swap = Const(1 if s.swapping else 0)
+    if s.op == "append":
+        vop, tv = _operand(rt, ctx, s.value)
+        _matrix_call(rt, ctx, "blk_matrix_append",
+                     [Const(off), vop], dest)
+        _free(ctx, tv)
+    elif s.op == "insert":
+        iop, ti = _operand(rt, ctx, s.index)
+        vop, tv = _operand(rt, ctx, s.value)
+        _matrix_call(rt, ctx, "blk_matrix_insert",
+                     [Const(off), iop, vop], dest)
+        _free(ctx, tv)
+        _free(ctx, ti)
+    elif s.op == "remove":
+        if s.index is not None:
+            iop, ti = _operand(rt, ctx, s.index)
+            _matrix_call(rt, ctx, "blk_matrix_remove_at",
+                         [Const(off), iop, swap], dest)
+            _free(ctx, ti)
+        else:
+            vop, tv = _operand(rt, ctx, s.value)
+            _matrix_call(rt, ctx, "blk_matrix_remove_val",
+                         [Const(off), vop, swap], dest)
+            _free(ctx, tv)
+    elif s.op == "load":
+        src = ctx.layout.catalogs.get(s.value.ident) if ctx.layout is not None else None
+        if src is None:
+            raise LowerError(
+                f"load {name} from {s.value.ident}: '{s.value.ident}' is not a "
+                f"catalog", s.line)
+        cat = ctx.world.catalogs.get(s.value.ident)
+        if cat is not None and len(cat.values) > mx.capacity:
+            raise LowerError(
+                f"load {name} from {s.value.ident}: the catalog has "
+                f"{len(cat.values)} entries but the matrix capacity is "
+                f"{mx.capacity}", s.line)
+        _matrix_call(rt, ctx, "blk_matrix_load",
+                     [Const(off), Const(src)], dest)
+    else:
+        raise LowerError(f"unknown matrix op '{s.op}'", s.line)
+
+
+def _matrix_call(rt, ctx, routine, args, dest):
+    """Call a matrix.granule block, storing its return in dest, or discarding
+    it (call_vn) when dest is None."""
+    if dest is None:
+        rt.op("call_vn", RoutineRef(routine), *args)
+    else:
+        rt.op("call_vs", RoutineRef(routine), *args, store=dest)
+
+
 def _change_entry(rt, ctx, s: ast.Change) -> bool:
     """change entry(cat, i) to v: rewrite one catalog entry in place, a
     single storew (the tables live in dynamic memory; no heap anywhere).
@@ -1953,11 +2088,18 @@ def _change_entry(rt, ctx, s: ast.Change) -> bool:
         valop, tv = _operand(rt, ctx, s.value)
     if off is not None and isinstance(t.args[1], ast.Number):
         i = t.args[1].value
-        n = len(ctx.world.catalogs[t.args[0].ident].values)
-        if not 1 <= i <= n:
-            raise LowerError(
-                f"entry({t.args[0].ident}, {i}): the catalog has {n} "
-                f"entries (1..{n})", s.line)
+        cap = _matrix_cap(ctx, t.args[0])
+        if cap is not None:
+            if not 1 <= i <= cap:
+                raise LowerError(
+                    f"entry({t.args[0].ident}, {i}): the matrix capacity is "
+                    f"{cap} (1..{cap})", s.line)
+        else:
+            n = len(ctx.world.catalogs[t.args[0].ident].values)
+            if not 1 <= i <= n:
+                raise LowerError(
+                    f"entry({t.args[0].ident}, {i}): the catalog has {n} "
+                    f"entries (1..{n})", s.line)
         rt.op("storew", _catalog_base(ctx), Const(off + 1 + i), valop)
     else:
         opc, tc = _operand(rt, ctx, t.args[0])
@@ -2562,30 +2704,44 @@ def _for_each(rt, ctx, s: ast.ForEach):
         raise LowerError("list iteration is not supported yet", s.line)
     off = _catalog_off(ctx, s.source)
     if off is not None:
-        # for each x in <catalog>: an indexed walk, 1..count, four
+        # for each x in <catalog or matrix>: an indexed walk, 1..count, four
         # instructions of loop plus the read. x carries the element type so
-        # `say x` prints text and objects correctly inside the body.
-        cat = ctx.world.catalogs[s.source.ident]
+        # `say x` prints text and objects correctly inside the body. A
+        # catalog's count is a compile-time constant; a matrix's is the LIVE
+        # length, so the bound is read into a temp once before the loop.
+        mx = ctx.world.matrices.get(s.source.ident)
+        etype = mx.etype if mx is not None else ctx.world.catalogs[s.source.ident].etype
         xslot = ctx.resolve_var(s.var, s.line)
         i = ctx.alloc_temp()
         rt.op("store", Const(i), Const(1))
+        bound = None
+        if mx is not None:
+            bound = ctx.alloc_temp()
+            rt.op("loadw", _catalog_base(ctx), Const(off), store=Variable(bound))
         top = ctx.new_label()
         done = ctx.new_label()
         rt.label(top)
-        rt.op("jg", Variable(i), Const(len(cat.values)), branch=(done, True))
+        if bound is not None:
+            rt.op("jg", Variable(i), Variable(bound), branch=(done, True))
+        else:
+            rt.op("jg", Variable(i),
+                  Const(len(ctx.world.catalogs[s.source.ident].values)),
+                  branch=(done, True))
         idx = ctx.alloc_temp()
         rt.op("add", Variable(i), Const(off + 1), store=Variable(idx))
         rt.op("loadw", _catalog_base(ctx), Variable(idx), store=Variable(xslot))
         ctx.free_temp(idx)
         if not hasattr(ctx, "catalog_locals"):
             ctx.catalog_locals = {}
-        ctx.catalog_locals[s.var] = cat.etype
+        ctx.catalog_locals[s.var] = etype
         for stmt in s.body:
             compile_stmt(rt, ctx, stmt)
         ctx.catalog_locals.pop(s.var, None)
         rt.op("inc", Const(i))
         rt.jump(top)
         rt.label(done)
+        if bound is not None:
+            ctx.free_temp(bound)
         ctx.free_temp(i)
         return
     xslot = ctx.resolve_var(s.var, s.line)

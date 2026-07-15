@@ -4086,3 +4086,29 @@ lower.py: save `altered` into a temp local instead of the stack, out of
 the operands' way. Byte-neutral (push/pull -> store/store, same two
 ops), any_alter only. New VM-harness test pairs perform with alter.
 Suite 893.
+
+## 2026-07-15: matrix Phase 1, the mutable sibling of catalog (arcc 0.13.0, Cosmos 0.38.0)
+
+Charles Moore Jr. asked for a mutable, indexable array (the Inform
+array he reaches for). Stefan's design: a NEW summoned feature named
+`matrix`, catalog's mutable sibling, kept strictly out of the base
+language (summon.matrix required, zero bytes un-summoned); docs lead
+with "you almost always want a catalog, not this." Phase 1 (1D, the
+whole of Charles's request) shipped: declaration `matrix m capacity N
+[of object|byte] [checked]` with optional seed values; reads reuse the
+catalog verbs unchanged (entry, calculate, last, dice, position, in,
+for each) with the count read at runtime as the LIVE length; mutators
+append / remove (order-preserving shift AND O(1) swapping) / insert /
+clear / load-from-catalog, which are also expressions returning a
+success flag (`if append clue to clues is 0`). A matrix shares the
+catalog region and base, header [count, capacity, cells] (the unused
+catalog `widest` word repurposed to the capacity so every granule call
+stays within the Z-machine's 3-argument limit); the mutator logic lives
+in editable cosmos/matrix.granule (peek_word/poke_word, no heap, no
+allocator), overridable by same-named block. Numeric only (number /
+object / byte), never text; text stays a catalog's job. Pay-for-use
+proven: un-summoned games are byte-identical. `arcc -s` reports
+matrices and their dynamic bytes. 18 new tests; suite 911. DEFERRED to
+Phase 2 (with the 2D table work, which shares the layout machinery):
+true byte PACKING, so `of byte` currently range-checks 0..255 and is
+correct but still word-backed (no memory halving yet).

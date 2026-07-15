@@ -375,7 +375,9 @@ def _stats_report(stats: dict, version: int) -> str:
         f"  code      {stats['routines']} routines, {stats['code_bytes']} bytes "
         f"of z-code (inline text included)",
         f"  memory    {stats['readable_bytes']}/{stats['readable_max']} bytes "
-        f"readable",
+        f"readable"
+        + (f"; {stats['matrices']} matrices, {stats['matrix_bytes']} dynamic bytes"
+           if stats.get('matrices') else ""),
         f"  story     {stats['story_bytes']}/{stats['story_max']} bytes "
         f"(z{version}); {free} free",
     ])
