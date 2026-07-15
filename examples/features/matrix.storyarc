@@ -1,0 +1,135 @@
+// matrix.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the matrix (docs/01 section 4a): the mutable sibling of a
+// catalog, a summoned feature. A catalog is fixed; a matrix you append to and
+// remove from at runtime, and it also comes in a two-dimensional table form.
+// Reach for one only when a collection truly grows or shrinks as the game
+// plays, or when you want a grid; for everything else a catalog is smaller and
+// faster. Here: a 1D matrix of objects (the specimens you collect, which grows
+// as you gather and has a real capacity) and a 2D byte grid (a planting bed you
+// sow and survey). Compile and run:
+//
+//   arcc examples/features/matrix.storyarc -o matrix.z5
+//   frotz matrix.z5
+//
+// TRY: gather fern / gather orchid / gather thistle (the satchel fills) / gather
+//      moss (refused, it is full) / journal (for each over the matrix) / release
+//      fern (remove by value) / plant / survey (a 2D table read back row by row)
+
+game
+    title "The Vasculum"
+    headline "A matrix showcase"
+    author "Stefan Vogt"
+    start meadow
+
+summon.matrix
+summon.statusline
+
+// The satchel: up to three specimens, collected as you go. An object matrix, so
+// `for each` hands back the specimen objects themselves, and the fourth gather
+// is refused until you release one.
+matrix satchel capacity 3 of object
+
+// The planting bed: a 3 by 3 grid, one byte per cell (0 empty, else a seed
+// code). A fixed table, so no length, just cells you write and read.
+matrix bed 3 by 3 of byte
+
+room meadow
+    name "Alpine Meadow"
+    desc "Wildflowers nod in the thin bright air. A greenhouse stands to the
+          north. Loose specimens grow within reach: a fern, an orchid, a
+          thistle, and a cushion of moss."
+    north greenhouse
+
+thing fern in meadow
+    name "lady fern"
+    words fern, lady
+thing orchid in meadow
+    name "spotted orchid"
+    words orchid, spotted
+thing thistle in meadow
+    name "melancholy thistle"
+    words thistle
+thing moss in meadow
+    name "cushion of moss"
+    words moss, cushion
+
+room greenhouse
+    name "Greenhouse"
+    desc "Glass panes hold the mountain's chill at bay. A raised bed of nine
+          squares waits for planting."
+    south meadow
+
+// GATHER: append the specimen to the satchel. Membership keeps a duplicate out;
+// the capacity keeps the satchel honest, and append tells us when it is full.
+verb "gather", "collect"
+    gather noun
+
+on gather
+    if noun is nothing
+        say "Gather what?"
+        stop
+    if noun is not fern and noun is not orchid and noun is not thistle and noun is not moss
+        say "That is not a specimen worth pressing."
+        stop
+    if noun in satchel
+        say "You already have ${the noun} in the vasculum."
+        stop
+    if append noun to satchel is 0
+        say "The vasculum is full. You will have to release something first."
+        stop
+    say "Pressed: ${the noun}. The vasculum holds ${calculate(satchel)} now."
+
+// RELEASE: remove a specimen by value (order-preserving). The action is named
+// `discard` because `release` is a reserved word; the player still types
+// RELEASE or FREE.
+verb "release", "free"
+    discard noun
+
+on discard
+    if noun is nothing
+        say "Release what?"
+        stop
+    if remove noun from satchel is 0
+        say "That is not in the vasculum."
+        stop
+    say "You set ${the noun} loose. ${calculate(satchel)} specimens remain."
+
+// JOURNAL: iterate the live entries. `for each` over a matrix walks exactly the
+// current length, so an empty satchel lists nothing.
+verb "journal", "specimens", "inventory"
+    journal
+
+on journal
+    if calculate(satchel) is 0
+        say "The vasculum is empty."
+        stop
+    say "The vasculum holds:"
+    for each specimen in satchel
+        say "  - ${the specimen}"
+
+// PLANT: write a small pattern into the 2D bed with change entry(row, col).
+verb "plant", "sow"
+    plant
+
+on plant
+    change entry(bed, 1, 1) to 1
+    change entry(bed, 2, 2) to 2
+    change entry(bed, 3, 3) to 3
+    change entry(bed, 1, 3) to 4
+    say "You press seeds into the corners and the heart of the bed."
+
+// SURVEY: read the grid back, cell by cell, using rows/columns and entry(r, c).
+verb "survey", "examine bed"
+    survey
+
+on survey
+    say "The bed, row by row:"
+    let r = 1
+    while r <= rows(bed)
+        say "  row ${r}: ${entry(bed, r, 1)} ${entry(bed, r, 2)} ${entry(bed, r, 3)}"
+        change r to r + 1
+    say "(0 is bare soil; a number is a sown seed.)"

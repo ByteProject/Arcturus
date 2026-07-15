@@ -1733,7 +1733,11 @@ def _generate(world: wm.World, version: int = 5, stats=None) -> bytes:
             # they reserve (header + capacity cells, words in Phase 1). Zero
             # in a game that summons none.
             matrices=len(world.matrices),
-            matrix_bytes=sum((2 + m.capacity) * 2 for m in world.matrices.values()),
+            matrix_bytes=sum(
+                (m.rows * m.cols + 1) // 2 * 2 if (m.is_2d and m.cell == "byte")
+                else m.rows * m.cols * 2 if m.is_2d
+                else (2 + m.capacity) * 2
+                for m in world.matrices.values()),
             globals=len(gmap),
             globals_max=_GLOBALS_BYTES // 2,
             verbs=len(world.verbs),

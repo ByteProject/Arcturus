@@ -554,9 +554,14 @@ class MatrixDecl:
     name: str
     line: int = 0
     cell: str = "number"          # "number" | "object" | "byte"
-    capacity: int = 0             # 1D reserved slots (Phase 1)
+    capacity: int = 0             # 1D reserved slots
     checked: bool = False         # runtime bounds guard on computed indices
-    seed: list[Expr] = field(default_factory=list)   # initial values (<= capacity)
+    seed: list[Expr] = field(default_factory=list)   # 1D initial values (<= capacity)
+    # 2D form (matrix m R by C): a fixed grid, rows > 0 marks it. cols is the
+    # row width; seed_rows are optional `row a, b, c` lines (each cols wide).
+    rows: int = 0
+    cols: int = 0
+    seed_rows: list = field(default_factory=list)    # list[list[Expr]]
 
 
 @dataclass

@@ -264,36 +264,68 @@ class Analyzer:
                 )
             elif isinstance(decl, ast.MatrixDecl):
                 self._seen(decl.name, decl.line)
-                if decl.capacity < 1:
-                    raise self._error(
-                        f"matrix '{decl.name}': capacity must be at least 1",
-                        decl.line)
-                if len(decl.seed) > decl.capacity:
-                    raise self._error(
-                        f"matrix '{decl.name}': {len(decl.seed)} seed values "
-                        f"exceed the capacity of {decl.capacity}",
-                        decl.line)
-                seed = [self._const_text(v) for v in decl.seed]
-                for v in seed:
-                    if decl.cell == "object":
+
+                def _check_val(v, mname=decl.name, cell=decl.cell, ln=decl.line):
+                    # A matrix cell value: an object name for object cells, else
+                    # a number (matrices are numeric, never text).
+                    if cell == "object":
                         if not isinstance(v, ast.Name):
                             raise self._error(
-                                f"matrix '{decl.name}' holds objects; a seed "
-                                f"value must be an object name", decl.line)
-                    else:  # number or byte
+                                f"matrix '{mname}' holds objects; a value must "
+                                f"be an object name", ln)
+                    else:
                         if not isinstance(v, ast.Number):
                             raise self._error(
-                                f"matrix '{decl.name}' holds numbers; a seed "
-                                f"value must be a number (matrices are numeric, "
-                                f"never text: use a catalog for words)",
-                                decl.line)
-                        if decl.cell == "byte" and not 0 <= v.value <= 255:
+                                f"matrix '{mname}' holds numbers; a value must "
+                                f"be a number (matrices are numeric, never "
+                                f"text: use a catalog for words)", ln)
+                        if cell == "byte" and not 0 <= v.value <= 255:
                             raise self._error(
-                                f"matrix '{decl.name}' is of byte; {v.value} is "
-                                f"outside 0..255", decl.line)
-                w.matrices[decl.name] = wm.Matrix(
-                    decl.name, decl.cell, decl.capacity, seed,
-                    decl.checked, decl.line)
+                                f"matrix '{mname}' is of byte; {v.value} is "
+                                f"outside 0..255", ln)
+
+                if decl.rows > 0:  # 2D grid
+                    if decl.cols < 1:
+                        raise self._error(
+                            f"matrix '{decl.name}': a 2D matrix needs at least "
+                            f"one column", decl.line)
+                    if decl.cell == "object":
+                        raise self._error(
+                            f"matrix '{decl.name}': a 2D matrix holds numbers "
+                            f"or bytes, not objects", decl.line)
+                    if len(decl.seed_rows) > decl.rows:
+                        raise self._error(
+                            f"matrix '{decl.name}': {len(decl.seed_rows)} seed "
+                            f"rows exceed the {decl.rows} rows", decl.line)
+                    seed_rows = []
+                    for r in decl.seed_rows:
+                        if len(r) != decl.cols:
+                            raise self._error(
+                                f"matrix '{decl.name}': a seed row has {len(r)} "
+                                f"values but the matrix has {decl.cols} columns",
+                                decl.line)
+                        row = [self._const_text(v) for v in r]
+                        for v in row:
+                            _check_val(v)
+                        seed_rows.append(row)
+                    w.matrices[decl.name] = wm.Matrix(
+                        decl.name, decl.cell, 0, [], decl.checked, decl.line,
+                        rows=decl.rows, cols=decl.cols, seed_rows=seed_rows)
+                else:  # 1D sequence
+                    if decl.capacity < 1:
+                        raise self._error(
+                            f"matrix '{decl.name}': capacity must be at least 1",
+                            decl.line)
+                    if len(decl.seed) > decl.capacity:
+                        raise self._error(
+                            f"matrix '{decl.name}': {len(decl.seed)} seed values "
+                            f"exceed the capacity of {decl.capacity}", decl.line)
+                    seed = [self._const_text(v) for v in decl.seed]
+                    for v in seed:
+                        _check_val(v)
+                    w.matrices[decl.name] = wm.Matrix(
+                        decl.name, decl.cell, decl.capacity, seed,
+                        decl.checked, decl.line)
             elif isinstance(decl, ast.VerbDecl):
                 grammar = [wm.GrammarLine(g.action, g.items, g.reverse) for g in decl.grammar]
                 w.verbs.append(wm.Verb(decl.words, grammar, decl.line))

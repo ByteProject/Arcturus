@@ -28,7 +28,7 @@ certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.13.0 | [build/arcc](build/arcc) |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.14.0 | [build/arcc](build/arcc) |
 | **Cosmos**, the standard library | 0.38.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.0.4 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.10.0 | [build/arcimg](build/arcimg) |
@@ -107,6 +107,20 @@ The most significant recent additions and achievements:
   fast on a C64; a game that declares no catalog pays zero bytes. The
   quote box draws a whole letter from one with one call
   ([worked example](examples/features/catalogs.storyarc)).
+- **Matrices: a catalog you can grow, and tables Inform makes you hand-roll.**
+  When a collection genuinely changes length as the game plays, `summon.matrix`
+  gives you its mutable sibling: `append` and `remove` (order-preserving, or an
+  O(1) `swapping`) and `insert`, all bounds-safe, with the same reads you
+  already know (`entry`, `calculate`, `for each`, `in`). And a matrix comes in
+  a two-dimensional form, `matrix bed 3 by 3`, a real declared table you index
+  by `entry(m, row, col)`, with `of byte` packing a large grid one cell per byte
+  (half the memory, so a 16x16 map costs 256 bytes) and compile-time bounds
+  checks Inform's raw arrays never had. It stays out of the base language, a
+  summoned feature that costs zero bytes unused; the mutators live in editable
+  Cosmos, and underneath there is still no heap, only the same static region a
+  catalog uses. Most games never need it (Hibernated 2, Rabenstein, and Ghosts
+  never did) and the docs say so plainly, but when you want the trusty array, it
+  is here ([worked example](examples/features/matrix.storyarc)).
 - **SWIM SOUTH parses, and TRANSCRIPT records.** A grammar line can end in a
   `direction` slot (`push noun direction`, `swim direction`), so PUSH CRATE
   WEST and SWIM SOUTH reach their handlers with the direction riding `way`,

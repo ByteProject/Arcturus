@@ -945,19 +945,8 @@ class Parser:
             raise self._error(f"catalog '{name}' is empty", None)
         return ast.CatalogDecl(name, values, line)
 
-    def parse_matrix(self) -> ast.MatrixDecl:
-        # matrix <name> capacity <N> [of object|byte] [checked], then optional
-        # indented seed values (one per line, <= capacity). Numeric only, so a
-        # seed is a number or an object name, never a string.
-        line = self.cur.line
-        self.advance()  # the leading `matrix`
-        name = self.expect_name("a matrix name").value
-        if not (self.cur.kind == T.NAME and self.cur.value == "capacity"):
-            raise self._error(
-                "a matrix needs a capacity: matrix " + name + " capacity <N>", None)
-        self.advance()  # `capacity`
-        cap_tok = self.expect(T.NUMBER, "the matrix capacity, a positive number")
-        capacity = cap_tok.value
+    def _parse_matrix_cell_and_checked(self):
+        # The shared `[of object|byte] [checked]` tail of a matrix head.
         cell = "number"
         if self._at_word("of"):
             self.advance()  # `of`
@@ -970,18 +959,69 @@ class Parser:
         if self._at_word("checked"):
             self.advance()
             checked = True
-        self.expect_newline()
-        seed: list[ast.Expr] = []
-        if self.check(T.INDENT):
-            self.advance()
-            while not self.check(T.DEDENT):
-                if self.check(T.NEWLINE):
-                    self.advance()
-                    continue
-                seed.append(self.parse_expr())
-                self.expect_newline()
-            self.expect(T.DEDENT)
-        return ast.MatrixDecl(name, line, cell, capacity, checked, seed)
+        return cell, checked
+
+    def parse_matrix(self) -> ast.MatrixDecl:
+        # Two forms:
+        #   matrix <name> capacity <N> [of ...] [checked]   - 1D, growable
+        #     then optional indented seed values, one per line (<= capacity).
+        #   matrix <name> <R> by <C> [of byte] [checked]     - 2D, a fixed grid
+        #     then optional indented `row a, b, c` lines (each C wide).
+        # Numeric only, so a value is a number or (1D object cells) a name.
+        line = self.cur.line
+        self.advance()  # the leading `matrix`
+        name = self.expect_name("a matrix name").value
+        if self._at_word("capacity"):
+            self.advance()  # `capacity`
+            capacity = self.expect(
+                T.NUMBER, "the matrix capacity, a positive number").value
+            cell, checked = self._parse_matrix_cell_and_checked()
+            self.expect_newline()
+            seed: list[ast.Expr] = []
+            if self.check(T.INDENT):
+                self.advance()
+                while not self.check(T.DEDENT):
+                    if self.check(T.NEWLINE):
+                        self.advance()
+                        continue
+                    seed.append(self.parse_expr())
+                    self.expect_newline()
+                self.expect(T.DEDENT)
+            return ast.MatrixDecl(name, line, cell, capacity, checked, seed)
+        if self.check(T.NUMBER):
+            rows = self.advance().value
+            if not self._at_word("by"):
+                raise self._error(
+                    "a 2D matrix reads <rows> by <cols>: matrix " + name
+                    + f" {rows} by <C>", None)
+            self.advance()  # `by`
+            cols = self.expect(T.NUMBER, "the column count after 'by'").value
+            cell, checked = self._parse_matrix_cell_and_checked()
+            self.expect_newline()
+            seed_rows: list = []
+            if self.check(T.INDENT):
+                self.advance()
+                while not self.check(T.DEDENT):
+                    if self.check(T.NEWLINE):
+                        self.advance()
+                        continue
+                    if not self._at_word("row"):
+                        raise self._error(
+                            "a 2D matrix seeds one 'row a, b, c' per line", None)
+                    self.advance()  # `row`
+                    values = [self.parse_expr()]
+                    while self.check_op(","):
+                        self.advance()
+                        values.append(self.parse_expr())
+                    self.expect_newline()
+                    seed_rows.append(values)
+                self.expect(T.DEDENT)
+            return ast.MatrixDecl(
+                name, line, cell, 0, checked, [],
+                rows=rows, cols=cols, seed_rows=seed_rows)
+        raise self._error(
+            "a matrix needs a capacity (matrix " + name + " capacity <N>) or "
+            "dimensions (matrix " + name + " <R> by <C>)", None)
 
     def parse_global(self) -> ast.GlobalDecl:
         line = self.cur.line
@@ -1209,12 +1249,13 @@ class Parser:
         line = self.cur.line
         self.expect_kw("change")
         target = self.parse_postfix()
-        # change entry(cat, i) to v rewrites one catalog entry in place
-        # (docs/01, catalogs); any other call is not an lvalue.
+        # change entry(cat, i) to v rewrites one catalog/matrix entry in place;
+        # change entry(m, r, c) to v writes a 2D matrix cell. Any other call is
+        # not an lvalue.
         entry_target = (
             isinstance(target, ast.Call)
             and target.name == "entry"
-            and len(target.args) == 2
+            and len(target.args) in (2, 3)
         )
         if not entry_target and not isinstance(
             target, (ast.Name, ast.Dot, ast.DynDot)

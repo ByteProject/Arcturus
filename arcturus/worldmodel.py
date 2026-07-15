@@ -188,6 +188,15 @@ class Matrix:
     seed: list = field(default_factory=list)  # ast.Expr initial values (<= capacity)
     checked: bool = False
     line: int = 0
+    # 2D grid form: rows > 0 marks it. A fixed R x C table with no mutable
+    # length (no header): entry(m, r, c) reads a cell, rows/columns the dims.
+    rows: int = 0
+    cols: int = 0
+    seed_rows: list = field(default_factory=list)  # list[list[ast.Expr]]
+
+    @property
+    def is_2d(self) -> bool:
+        return self.rows > 0
 
     @property
     def etype(self) -> str:
