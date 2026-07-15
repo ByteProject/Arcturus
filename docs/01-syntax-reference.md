@@ -278,6 +278,31 @@ the live count and the capacity, and every mutator is a short routine in the
 editable `cosmos/matrix.granule`, so there is still no heap and no
 allocator. `arcc -s` reports matrices and the dynamic bytes they reserve.
 
+**Two dimensions: a table.** A matrix declared with dimensions instead of a
+capacity is a fixed R by C grid, a table you index by (row, column):
+
+```
+matrix costs 3 by 3            // 9 word cells, all live
+    row 2, 4, 6               // optional seed rows, each C wide
+    row 1, 3, 5
+    row 0, 0, 9
+
+matrix terrain 16 by 16 of byte   // 256 cells packed one per byte
+```
+
+`entry(m, r, c)` reads a cell and `change entry(m, r, c) to v` writes one,
+both indices 1-based; `rows(m)` and `columns(m)` are the dimensions
+(constants). A 2D matrix has a fixed shape, so it has no length and no
+mutators, only cell access. `of byte` packs a 2D grid one cell per byte,
+half the memory of word cells, which is what makes a large lookup table (a
+tile map, a distance table) affordable on 8-bit hardware; `of object` is not
+a 2D cell kind. There is no header at all: the grid is `R*C` cells laid
+row-major, and `entry(m, r, c)` is a single `loadw` (or `loadb` for a byte
+grid) at `off + (r-1)*C + (c-1)`, so the whole table is exactly its cells and
+nothing more. (For 1D matrices, `of byte` currently constrains values to
+0..255 but is word-backed; the packing that halves memory applies to 2D
+grids, where a large table actually needs it.)
+
 ## 5. The world model
 
 Two built-in categories introduce objects: `room` for locations, `thing` for

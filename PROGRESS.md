@@ -4112,3 +4112,25 @@ matrices and their dynamic bytes. 18 new tests; suite 911. DEFERRED to
 Phase 2 (with the 2D table work, which shares the layout machinery):
 true byte PACKING, so `of byte` currently range-checks 0..255 and is
 correct but still word-backed (no memory halving yet).
+
+## 2026-07-15: matrix Phase 2, two-dimensional tables + byte packing (arcc 0.14.0)
+
+The 2D form and the worked example, on top of Phase 1. `matrix m R by
+C` is a fixed grid (a table), no length and no mutators, only cell
+access: entry(m, r, c) reads and change entry(m, r, c) to v writes,
+rows(m) / columns(m) give the dimensions, all compile-time constants;
+literal indices are bounds-checked against the shape. A 2D grid is flat
+R*C cells row-major with NO header (dimensions fold as constants), so
+the table is exactly its cells: entry lowers to one loadw at off +
+(r-1)*C + (c-1). `of byte` packs a 2D grid one cell per byte (loadb/
+storeb at byte offset off*2 + ...), half the memory, so a 16x16 map is
+256 bytes not 512 -- the case where packing actually earns its
+complexity. This is the thing Inform makes you hand-roll (arr-->(y*w+x),
+no shape, no bounds safety); here it is a declared, checked construct.
+Byte packing on 1D matrices is deliberately NOT done (poor cost/benefit
+-- 1D arrays are small and carry mutators/position/for-each that would
+all need byte variants); `of byte` on a 1D matrix constrains values to
+0..255 and stays word-backed, documented as such. Worked example
+examples/features/matrix.storyarc (a botanist's vasculum: a 1D object
+matrix you gather into and a 2D byte planting bed), README What's new
+entry, docs/01 section 4a extended. 7 new tests; suite 919.

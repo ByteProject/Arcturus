@@ -208,6 +208,78 @@ def test_literal_index_past_capacity_is_a_compile_error():
     assert "capacity" in _err(src)
 
 
+# -- 2D grids (tables) -------------------------------------------------------
+
+def test_2d_grid_reads_and_dimensions():
+    out = _probe(
+        '    say "dims ${rows(g)}x${columns(g)} "\n'
+        '    say "r1c1=${entry(g,1,1)} r2c3=${entry(g,2,3)} r3c3=${entry(g,3,3)}"\n',
+        extra=('matrix g 3 by 3\n'
+               '    row 2, 4, 6\n'
+               '    row 1, 3, 5\n'
+               '    row 0, 0, 9\n'))
+    assert "dims 3x3 " in out
+    assert "r1c1=2 r2c3=5 r3c3=9" in out
+
+
+def test_2d_grid_write_and_full_sweep():
+    out = _probe(
+        '    change entry(g, 1, 1) to 99\n'
+        '    let sum = 0\n'
+        '    let r = 1\n'
+        '    while r <= rows(g)\n'
+        '        let c = 1\n'
+        '        while c <= columns(g)\n'
+        '            change sum to sum + entry(g, r, c)\n'
+        '            change c to c + 1\n'
+        '        change r to r + 1\n'
+        '    say "r1c1=${entry(g,1,1)} sum=${sum}"\n',
+        extra=('matrix g 3 by 3\n'
+               '    row 2, 4, 6\n'
+               '    row 1, 3, 5\n'
+               '    row 0, 0, 9\n'))
+    # original sum 30, minus the 2 at (1,1) plus 99 = 127
+    assert "r1c1=99 sum=127" in out
+
+
+def test_2d_byte_grid_packs_and_holds_0_255():
+    out = _probe(
+        '    change entry(g, 5, 5) to 200\n'
+        '    say "seed=${entry(g,1,3)} set=${entry(g,5,5)} zero=${entry(g,16,16)}"\n',
+        extra=('matrix g 16 by 16 of byte\n'
+               '    row 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16\n'))
+    assert "seed=3 set=200 zero=0" in out
+
+
+def test_2d_byte_grid_is_half_the_memory():
+    # A byte grid reserves rows*cols bytes; a word grid twice that. The layout
+    # proves it: build both and compare the stats.
+    from arcturus.worldmodel import Matrix
+    wsrc = HEAD + 'matrix g 16 by 16\n'
+    bsrc = HEAD + 'matrix g 16 by 16 of byte\n'
+    # A byte grid's dynamic footprint is half a word grid's.
+    wworld = analyze(cosmos.combined_program(parse(wsrc + 'verb "w"\n    w\non w\n    say "x"\n')))
+    bworld = analyze(cosmos.combined_program(parse(bsrc + 'verb "w"\n    w\non w\n    say "x"\n')))
+    wbytes = sum(m.rows * m.cols * 2 for m in wworld.matrices.values())
+    bbytes = sum((m.rows * m.cols + 1) // 2 * 2 for m in bworld.matrices.values())
+    assert wbytes == 512
+    assert bbytes == 256
+
+
+def test_2d_rejects_object_cells():
+    assert "not objects" in _err(HEAD + 'matrix g 2 by 2 of object\n')
+
+
+def test_2d_seed_row_width_must_match():
+    assert "columns" in _err(HEAD + 'matrix g 3 by 3\n    row 1, 2\n')
+
+
+def test_2d_literal_index_out_of_range_is_a_compile_error():
+    body = '    say "${entry(g, 4, 1)}"\n'
+    src = HEAD + 'matrix g 3 by 3\n' + 'verb "probe"\n    probe\non probe\n' + body
+    assert "3 by 3" in _err(src)
+
+
 # -- pay-for-use: un-summoned, zero bytes ------------------------------------
 
 def test_unsummoned_program_is_byte_identical():

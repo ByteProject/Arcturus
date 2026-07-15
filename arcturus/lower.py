@@ -137,6 +137,8 @@ INTRINSICS = frozenset({
     # to constants when the catalog is named in place; catalogs_base exposes
     # the base to Cosmos (the position block, the quote box).
     "calculate", "entry", "last", "dice", "catalogs_base",
+    # rows / columns: a 2D matrix's dimensions (compile-time constants).
+    "rows", "columns",
     # run_alter: fire the registered alter report (Cosmos-internal): call
     # the routine whose packed address sits in `altered`, then consume it.
     "run_alter",
@@ -607,6 +609,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _free(ctx, t)
     elif name == "catalogs_base":
         _place(rt, _catalog_base(ctx), dest)
+    elif name in ("rows", "columns"):
+        # rows(m) / columns(m): a 2D matrix's dimensions, compile-time constants.
+        mx = ctx.world.matrices.get(args[0].ident) if isinstance(args[0], ast.Name) else None
+        if mx is None or not mx.is_2d:
+            raise LowerError(f"{name}(m) needs a 2D matrix", call.line)
+        _place(rt, Const(mx.rows if name == "rows" else mx.cols), dest)
     elif name == "calculate":
         # calculate(cat): the entry count. A named catalog folds to a constant;
         # a matrix's count is the LIVE length, so it always reads at runtime.
@@ -619,6 +627,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
             op, t = _operand(rt, ctx, args[0])
             rt.op("loadw", _catalog_base(ctx), op, store=dest)
             _free(ctx, t)
+    elif name == "entry" and len(args) == 3:
+        # entry(m, r, c): a 2D matrix cell, both indices 1-based. A flat grid,
+        # no header, row-major, so cell (r, c) sits at word off + (r-1)*C + (c-1).
+        _matrix_cell_addr(rt, ctx, args, store=dest)
     elif name == "entry":
         # entry(cat, i): the i-th entry, 1-based. Layout per catalog:
         # [count, widest, e1..eN], so entry i sits at word off+1+i.
@@ -2055,6 +2067,49 @@ def _matrix_op(rt, ctx, s, dest):
         raise LowerError(f"unknown matrix op '{s.op}'", s.line)
 
 
+def _matrix_2d_index(rt, ctx, margs):
+    """The flat cell index of a 2D matrix cell entry(m, r, c), a folded constant
+    when r and c are literals, else computed. Word cells give a WORD index (for
+    loadw/storew): off + (r-1)*C + (c-1). Byte cells give a BYTE index (for
+    loadb/storeb): off*2 + (r-1)*C + (c-1), since the grid starts at word `off`
+    = byte 2*off and packs one cell per byte. Returns (index_operand,
+    temp_or_None, is_byte)."""
+    mexpr, rexpr, cexpr = margs
+    mx = ctx.world.matrices.get(mexpr.ident) if isinstance(mexpr, ast.Name) else None
+    if mx is None or not mx.is_2d:
+        raise LowerError(
+            "entry(m, r, c) needs a 2D matrix (matrix m R by C)", mexpr.line)
+    off = ctx.layout.matrices[mexpr.ident]
+    cols = mx.cols
+    is_byte = mx.cell == "byte"
+    base_off = off * 2 if is_byte else off
+    if isinstance(rexpr, ast.Number) and isinstance(cexpr, ast.Number):
+        r, c = rexpr.value, cexpr.value
+        if not (1 <= r <= mx.rows and 1 <= c <= cols):
+            raise LowerError(
+                f"entry({mexpr.ident}, {r}, {c}): the matrix is {mx.rows} by "
+                f"{cols}", mexpr.line)
+        return Const(base_off + (r - 1) * cols + (c - 1)), None, is_byte
+    # idx = r*cols + c + (base_off - cols - 1)
+    idx = ctx.alloc_temp()
+    rop, tr = _operand(rt, ctx, rexpr)
+    rt.op("mul", rop, Const(cols), store=Variable(idx))
+    _free(ctx, tr)
+    cop, tc = _operand(rt, ctx, cexpr)
+    rt.op("add", Variable(idx), cop, store=Variable(idx))
+    _free(ctx, tc)
+    rt.op("add", Variable(idx), Const(base_off - cols - 1), store=Variable(idx))
+    return Variable(idx), idx, is_byte
+
+
+def _matrix_cell_addr(rt, ctx, args, store):
+    """Read a 2D matrix cell entry(m, r, c) into store."""
+    idx, t, is_byte = _matrix_2d_index(rt, ctx, args)
+    rt.op("loadb" if is_byte else "loadw", _catalog_base(ctx), idx, store=store)
+    if t is not None:
+        ctx.free_temp(t)
+
+
 def _matrix_call(rt, ctx, routine, args, dest):
     """Call a matrix.granule block, storing its return in dest, or discarding
     it (call_vn) when dest is None."""
@@ -2069,6 +2124,16 @@ def _change_entry(rt, ctx, s: ast.Change) -> bool:
     single storew (the tables live in dynamic memory; no heap anywhere).
     The value must match the catalog's element type when both are known."""
     t = s.target
+    if isinstance(t, ast.Call) and t.name == "entry" and len(t.args) == 3:
+        # change entry(m, r, c) to v: write a 2D matrix cell (storeb for a byte
+        # grid, storew otherwise).
+        valop, tv = _operand(rt, ctx, s.value)
+        idx, ti, is_byte = _matrix_2d_index(rt, ctx, t.args)
+        rt.op("storeb" if is_byte else "storew", _catalog_base(ctx), idx, valop)
+        if ti is not None:
+            ctx.free_temp(ti)
+        _free(ctx, tv)
+        return True
     if not (isinstance(t, ast.Call) and t.name == "entry" and len(t.args) == 2):
         return False
     off = _catalog_off(ctx, t.args[0])

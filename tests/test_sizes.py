@@ -32,6 +32,7 @@ CEILINGS = {
     "features/beyond.storyarc": 16792,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
     "features/alter.storyarc": 16216,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
     "features/catalogs.storyarc": 16176,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/matrix.storyarc": 16540,  # 2026-07-15 matrix Phase 1-2: the mutable sibling of catalog (summon.matrix), 1D + 2D showcase
     "features/direction-grammar.storyarc": 16280,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
     "features/scenery-contents.storyarc": 16220,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
     "granules/nautical.storyarc": 16032,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks

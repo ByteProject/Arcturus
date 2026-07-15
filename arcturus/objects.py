@@ -415,7 +415,14 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
     # append grows the live count into the spare slots at runtime.
     for mname, mx in world.matrices.items():
         layout.matrices[mname] = woff
-        woff += 2 + mx.capacity
+        if mx.is_2d and mx.cell == "byte":
+            # A byte-packed grid: rows*cols bytes, rounded up to whole words so
+            # the next table stays word-aligned. Half the memory of word cells.
+            woff += (mx.rows * mx.cols + 1) // 2
+        elif mx.is_2d:
+            woff += mx.rows * mx.cols          # a flat word grid, no header
+        else:
+            woff += 2 + mx.capacity            # [count, capacity, cells]
 
     _emit_table(world, layout)
     # The catalog region (docs/01, catalogs): every declared catalog laid
@@ -464,6 +471,24 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
     # the 2D work, so `of byte` here range-checks to 0..255 without yet halving
     # memory.
     for mname, mx in world.matrices.items():
+        if mx.is_2d:
+            # A 2D grid: rows * cols cells row-major, no header (the dimensions
+            # are compile-time constants and every cell is live). Seed rows
+            # fill from the top; the rest are zeros. Byte cells pack one per
+            # byte (padded to a whole word); other cells are words.
+            seeded = []
+            for row in mx.seed_rows:
+                seeded.extend(v.value for v in row)
+            total = mx.rows * mx.cols
+            if mx.cell == "byte":
+                for k in range(total):
+                    layout.table.append((seeded[k] if k < len(seeded) else 0) & 0xFF)
+                if total % 2:  # pad to a whole word
+                    layout.table.append(0)
+            else:
+                for k in range(total):
+                    _append_word(layout.table, (seeded[k] if k < len(seeded) else 0) & 0xFFFF)
+            continue
         _append_word(layout.table, len(mx.seed))
         _append_word(layout.table, mx.capacity)
         for v in mx.seed:
