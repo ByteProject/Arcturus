@@ -173,6 +173,30 @@ class Catalog:
 
 
 @dataclass
+class Matrix:
+    """A matrix: the mutable sibling of a catalog (summon.matrix). A
+    capacity-bounded sequence in dynamic memory whose length changes at
+    runtime. It shares a catalog's region, base global, and [count, widest,
+    cells] header (widest 0, count = the LIVE length), reserving `capacity`
+    cells, so every read verb (entry, calculate, last, for each, position) is
+    the catalog machinery unchanged; only the mutators and the layout are new.
+    Numeric only: cell is number (word), object (word), or byte (0..255)."""
+
+    name: str
+    cell: str  # "number" | "object" | "byte"
+    capacity: int
+    seed: list = field(default_factory=list)  # ast.Expr initial values (<= capacity)
+    checked: bool = False
+    line: int = 0
+
+    @property
+    def etype(self) -> str:
+        # The element type in catalog terms, so shared read code types the
+        # value: object cells read as objects, number/byte cells as numbers.
+        return "object" if self.cell == "object" else "number"
+
+
+@dataclass
 class Obj:
     name: str
     category: str  # "room" or "thing"
@@ -324,6 +348,9 @@ class World:
     meta_actions: set = field(default_factory=set)
     # catalog declarations, in declaration order (the layout is deterministic).
     catalogs: dict = field(default_factory=dict)
+    # matrix declarations (summon.matrix), in declaration order. Empty unless
+    # the granule is summoned; everything gated on it folds to nothing.
+    matrices: dict = field(default_factory=dict)
     start_room: Optional[str] = None
     kinds: dict[str, Kind] = field(default_factory=dict)
     objects: dict[str, Obj] = field(default_factory=dict)

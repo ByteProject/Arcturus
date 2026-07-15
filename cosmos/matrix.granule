@@ -1,0 +1,101 @@
+// matrix.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// An opt-in feature: summon it with `summon.matrix`. A matrix is the mutable
+// sibling of a catalog. A catalog is fixed data you read many ways (entry,
+// calculate, last, for each, membership); a matrix is the same, made
+// mutable-in-LENGTH: you append and remove and insert at runtime. Reach for
+// one only when a collection genuinely grows or shrinks as the game plays, or
+// when you want a two-dimensional table. For almost everything else a catalog
+// is smaller and faster on 8-bit hardware; prefer it.
+//
+// A matrix shares the catalog region, its __catalogs__ base, and the header
+// shape [count, capacity, cells]. It is a catalog's [count, widest] with the
+// never-used widest word holding the CAPACITY instead, so count is the LIVE
+// length (mutable) and capacity is the reserved bound. Every catalog READ
+// verb already works on a matrix unchanged; only these MUTATORS and the
+// declaration are new. They live here, in editable Arcturus, not baked into
+// the compiler: override a block by declaring one of the same name.
+//
+// Each block takes the matrix as a runtime word offset `m` into the region
+// (the compiler passes the constant at the call site). A cell at 1-based
+// index i sits at word m + 1 + i; the count is at m and the capacity at m + 1.
+// Everything is peek_word / poke_word against catalogs_base, exactly like the
+// shared `position` scan, so there is no heap and no per-operation library:
+// each mutator is a short routine, and any it does not use is dead-code
+// eliminated. Calls carry at most three operands (the Z-machine call limit),
+// which is why the capacity rides the header rather than an argument.
+
+// append v: grow the length by one, writing v into the first free cell.
+// Returns 1, or 0 when the matrix is already full (the author's to test:
+// `if append v to m is 0`).
+block matrix_append(m, v)
+    let n = peek_word(catalogs_base, m)
+    if n >= peek_word(catalogs_base, m + 1)
+        return 0
+    poke_word(catalogs_base, m + 2 + n, v)
+    poke_word(catalogs_base, m, n + 1)
+    return 1
+
+// remove the entry at 1-based index i. Order-preserving by default (shift the
+// tail down); `swap` moves the last entry into the hole instead, O(1) but
+// unordered. Returns 1, or 0 when i is out of range.
+block matrix_remove_at(m, i, swap)
+    let n = peek_word(catalogs_base, m)
+    if i < 1
+        return 0
+    if i > n
+        return 0
+    if swap is 1
+        poke_word(catalogs_base, m + 1 + i, peek_word(catalogs_base, m + 1 + n))
+    else
+        let j = i
+        while j < n
+            poke_word(catalogs_base, m + 1 + j, peek_word(catalogs_base, m + 2 + j))
+            change j to j + 1
+    poke_word(catalogs_base, m, n - 1)
+    return 1
+
+// remove the first entry equal to v (by value). Returns 1, or 0 when v is not
+// present. Shares the `position` scan with catalogs.
+block matrix_remove_val(m, v, swap)
+    let i = position(m, v)
+    if i is 0
+        return 0
+    return matrix_remove_at(m, i, swap)
+
+// insert v so it becomes the new entry at 1-based index i, shifting the tail
+// up. Returns 1, or 0 when the matrix is full or i is out of range (1..n+1).
+block matrix_insert(m, i, v)
+    let n = peek_word(catalogs_base, m)
+    if n >= peek_word(catalogs_base, m + 1)
+        return 0
+    if i < 1
+        return 0
+    if i > n + 1
+        return 0
+    let j = n
+    while j >= i
+        poke_word(catalogs_base, m + 2 + j, peek_word(catalogs_base, m + 1 + j))
+        change j to j - 1
+    poke_word(catalogs_base, m + 1 + i, v)
+    poke_word(catalogs_base, m, n + 1)
+    return 1
+
+// load a catalog's values into the matrix as its new contents, replacing what
+// was there. The count becomes the catalog's, clamped to the matrix capacity
+// (the compiler checks the fit for a named catalog, so the clamp is a runtime
+// backstop). Returns how many entries were copied.
+block matrix_load(m, src)
+    let cap = peek_word(catalogs_base, m + 1)
+    let n = peek_word(catalogs_base, src)
+    if n > cap
+        change n to cap
+    let i = 1
+    while i <= n
+        poke_word(catalogs_base, m + 1 + i, peek_word(catalogs_base, src + 1 + i))
+        change i to i + 1
+    poke_word(catalogs_base, m, n)
+    return n

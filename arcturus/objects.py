@@ -163,6 +163,11 @@ class Layout:
     # byte offset within the table. __catalogs__ = objects_addr + region_off.
     catalogs: dict = field(default_factory=dict)
     catalog_region_off: int = 0
+    # matrix name -> word offset from the SAME region's start (matrices share
+    # the catalog region, base, and [count, widest, cells] header). The only
+    # differences from a catalog are the reserved spare cells (capacity beyond
+    # the seed) and that `count` is the live, mutable length.
+    matrices: dict = field(default_factory=dict)
     # True if any object is of the `door` kind. The go handler guards its door
     # detour (open/lock check, step to the far side) with `any_doors()`, so a game
     # with no doors folds it away and pays nothing.
@@ -405,6 +410,12 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
     for kname in layout.kind_spilled:
         layout.kind_catalog[kname] = woff
         woff += 2 + len(kind_extents[kname])
+    # Matrices continue in the same region after the catalogs and kind extents.
+    # A matrix reserves its full CAPACITY of cells (not just the seed), because
+    # append grows the live count into the spare slots at runtime.
+    for mname, mx in world.matrices.items():
+        layout.matrices[mname] = woff
+        woff += 2 + mx.capacity
 
     _emit_table(world, layout)
     # The catalog region (docs/01, catalogs): every declared catalog laid
@@ -441,6 +452,27 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
         _append_word(layout.table, 0)
         for num in members:
             _append_word(layout.table, num)
+    # Matrices: [count=live length, capacity, seed..., spare zeros]. The header
+    # is a catalog's [count, widest] with the never-used-for-a-matrix `widest`
+    # word repurposed to hold the CAPACITY: the mutators read it there so a
+    # call carries at most three operands (the Z-machine call limit), and it is
+    # genuinely useful at runtime. Every catalog read verb still works because
+    # none reads the widest value, only the offsets around it. `count` starts
+    # at the seed length and is mutated in place by append/remove; spare cells
+    # up to capacity are zeros for append to grow into. Phase 1 backs every
+    # cell (number, object, byte alike) with a word; byte packing lands with
+    # the 2D work, so `of byte` here range-checks to 0..255 without yet halving
+    # memory.
+    for mname, mx in world.matrices.items():
+        _append_word(layout.table, len(mx.seed))
+        _append_word(layout.table, mx.capacity)
+        for v in mx.seed:
+            if mx.cell == "object":
+                _append_word(layout.table, layout.obj_number.get(v.ident, 0))
+            else:  # number or byte
+                _append_word(layout.table, v.value & 0xFFFF)
+        for _ in range(mx.capacity - len(mx.seed)):
+            _append_word(layout.table, 0)
     return layout
 
 

@@ -465,6 +465,31 @@ familiar Inform synonyms:
 parser would normally refuse; the granule teaches the parser to reach them
 through the `reach_unscoped` seam (section 5).
 
+### matrix
+
+```
+summon.matrix
+```
+
+The mutable sibling of a catalog: a capacity-bounded, numeric sequence whose
+LENGTH changes at runtime. A catalog is fixed data; a matrix you `append` to,
+`remove` from, and `insert` into. Reach for one only when a collection truly
+grows or shrinks as the game plays; for everything else a catalog is smaller
+and faster (docs/01 section 4a has the full "do you need this?" guidance and
+the syntax). The declaration and reads are compiler sugar, but the mutators
+themselves live here, in editable Arcturus, so you can override any of them by
+declaring a block of the same name:
+
+- `matrix_append(m, v)`, `matrix_insert(m, i, v)` - grow, with a full check.
+- `matrix_remove_at(m, i, swap)`, `matrix_remove_val(m, v, swap)` - shrink,
+  order-preserving or O(1) swap-with-last.
+- `matrix_load(m, src)` - copy a catalog's values in as the new contents.
+
+A matrix shares the catalog region and base, so its cells are peek_word /
+poke_word against `catalogs_base` at word `m + 1 + i`, the count at `m` and the
+capacity at `m + 1`. There is no heap and no allocator; a game that does not
+summon matrix contributes zero bytes.
+
 ## 4. Forking a granule
 
 To change a granule, take a copy and edit it.

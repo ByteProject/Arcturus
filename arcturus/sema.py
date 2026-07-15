@@ -83,6 +83,20 @@ class Analyzer:
                             f"object",
                             cat.line,
                         )
+        # Matrix is strictly a summoned feature: a declaration is inert without
+        # summon.matrix, and object-cell seeds must name real objects (checked
+        # here, after every object is collected).
+        if self.world.matrices and not self._has_summon("matrix"):
+            first = next(iter(self.world.matrices.values()))
+            raise self._error(
+                "a matrix needs the granule: add summon.matrix", first.line)
+        for mx in self.world.matrices.values():
+            if mx.cell == "object":
+                for v in mx.seed:
+                    if v.ident not in self.world.objects:
+                        raise self._error(
+                            f"matrix '{mx.name}': '{v.ident}' is not an object",
+                            mx.line)
         self._build_properties()
         # After the members are collected: the automatic scored bits need
         # the real attributes (fixed blocks a thing, `scored false` opts
@@ -137,8 +151,17 @@ class Analyzer:
             or name in self.world.constants
             or name in self.world.blocks
             or name in self.world.catalogs
+            or name in self.world.matrices
         ):
             raise self._error(f"duplicate declaration of '{name}'", line)
+
+    def _has_summon(self, target: str) -> bool:
+        # Was a feature summoned (summon.<target>)? Used to gate features that
+        # are inert without their granule, e.g. summon.matrix.
+        return any(
+            s.form == "feature" and s.target == target
+            for s in self.world.summons
+        )
 
     def _collect(self) -> None:
         w = self.world
@@ -239,6 +262,38 @@ class Analyzer:
                 w.catalogs[decl.name] = wm.Catalog(
                     decl.name, etype, values, decl.line
                 )
+            elif isinstance(decl, ast.MatrixDecl):
+                self._seen(decl.name, decl.line)
+                if decl.capacity < 1:
+                    raise self._error(
+                        f"matrix '{decl.name}': capacity must be at least 1",
+                        decl.line)
+                if len(decl.seed) > decl.capacity:
+                    raise self._error(
+                        f"matrix '{decl.name}': {len(decl.seed)} seed values "
+                        f"exceed the capacity of {decl.capacity}",
+                        decl.line)
+                seed = [self._const_text(v) for v in decl.seed]
+                for v in seed:
+                    if decl.cell == "object":
+                        if not isinstance(v, ast.Name):
+                            raise self._error(
+                                f"matrix '{decl.name}' holds objects; a seed "
+                                f"value must be an object name", decl.line)
+                    else:  # number or byte
+                        if not isinstance(v, ast.Number):
+                            raise self._error(
+                                f"matrix '{decl.name}' holds numbers; a seed "
+                                f"value must be a number (matrices are numeric, "
+                                f"never text: use a catalog for words)",
+                                decl.line)
+                        if decl.cell == "byte" and not 0 <= v.value <= 255:
+                            raise self._error(
+                                f"matrix '{decl.name}' is of byte; {v.value} is "
+                                f"outside 0..255", decl.line)
+                w.matrices[decl.name] = wm.Matrix(
+                    decl.name, decl.cell, decl.capacity, seed,
+                    decl.checked, decl.line)
             elif isinstance(decl, ast.VerbDecl):
                 grammar = [wm.GrammarLine(g.action, g.items, g.reverse) for g in decl.grammar]
                 w.verbs.append(wm.Verb(decl.words, grammar, decl.line))
@@ -1241,6 +1296,7 @@ class Analyzer:
             or name in w.constants
             or name in w.blocks
             or name in w.catalogs
+            or name in w.matrices
             or name in self.env.builtins
             or self.env.is_direction(name)
         ):

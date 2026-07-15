@@ -157,8 +157,8 @@
           }
         },
         {
-          "comment": "catalog <name>: the declaration head and the catalog's name.",
-          "match": "^\\s*(catalog|ranks)\\s+([A-Za-z][A-Za-z0-9_]*)?",
+          "comment": "catalog/matrix <name>: the declaration head and its name.",
+          "match": "^\\s*(catalog|matrix|ranks)\\s+([A-Za-z][A-Za-z0-9_]*)?",
           "captures": {
             "1": {
               "name": "keyword.declaration.storyarc"
@@ -292,7 +292,7 @@
       "patterns": [
         {
           "name": "keyword.control.storyarc",
-          "match": "\\b(if|else|while|for|each|switch|case|when|return|stop|continue|finish|death|alter|do|on|after|every)\\b"
+          "match": "\\b(if|else|while|for|each|switch|case|when|return|stop|continue|finish|death|alter|do|on|after|every|append|insert|clear|load|swapping|capacity|checked)\\b"
         },
         {
           "name": "keyword.other.statement.storyarc",
