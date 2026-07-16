@@ -17,6 +17,33 @@ Python and depends only on the standard library, so it runs anywhere Python
 does, with nothing to install. The standard library, **Cosmos**, is written in
 Arcturus itself and ships as editable source rather than a black box.
 
+Arcturus compiles to highly optimized Z-code that performs well on classic
+8-bit hardware, and at the same time carries advanced features that Inform 6
+and ZIL never had, the kind otherwise known only from modern systems like
+Dialog and Inform 7: self-varying prose, computed exits, a knowledge model
+for containers, kinds without a practical ceiling, a conversation model.
+This is possible because the compiler is multi-pass rather than one-pass (a
+structural advantage over the Inform 6 compiler): it sees the whole program,
+folds unused features away at compile time, and applies strict dead-code
+elimination, so every build is trimmed to exactly what the game uses. The
+same modularity runs through the library: optional features are granules a
+game summons, present only where wanted, costing nothing where not.
+
+Arcturus games can carry **images** in z5 and z8 story files while staying
+fully standard-compliant. The trick is honest: pictures ride an extension
+opcode in the range a conformant interpreter must simply ignore, and the
+story only draws after an interpreter raises a capability flag that
+picture-aware interpreters alone set, so the same file plays as pure text
+on Frotz or any classic interpreter, and shows its art where art is
+understood. **Actaea**, the project's own interpreter, fully supports
+Z-machine version 5 and 8 games with images today, and a dedicated set of
+interpreters for retro systems with arc_image support is in the making.
+
+The parser is language agnostic: grammar and wording live in a language
+granule (English, German, and Spanish ship with the compiler), and authors
+can eject that granule and adapt it to their own tone and needs, or their
+own language, without touching the parser's machinery.
+
 The name is a star, Arcturus, and the narrative arc every story is built on.
 
 ## Quickstart
@@ -28,8 +55,8 @@ certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.16.0 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 0.41.0 | shipped inside `arcc` |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.0.0 | [build/arcc](build/arcc) |
+| **Cosmos**, the standard library | 1.0.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.1.0 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.10.0 | [build/arcimg](build/arcimg) |
 
@@ -96,17 +123,6 @@ The most significant recent additions and achievements:
   read your true budget (`attributes 26/48, kinds 63`). It grew from a large
   real-world port hitting the old wall, and it is exactly what that port asked
   for.
-- **Catalogs: list power without the list tax.** `catalog` declares a
-  fixed, ordered collection, one value per line (the lines of a letter, a
-  roster of suspects, a table of numbers), and the operations read like
-  prose: `calculate` for how many, `entry(x, 3)` for the third, `last`,
-  `dice` for one at random, `position` for where something sits, plain
-  `in` for membership, `for each` to iterate, and `change entry(...) to`
-  rewriting one entry in place. Underneath there is no heap and no
-  runtime library, only static tables and single opcodes, so it runs
-  fast on a C64; a game that declares no catalog pays zero bytes. The
-  quote box draws a whole letter from one with one call
-  ([worked example](examples/features/catalogs.storyarc)).
 - **Matrices: a catalog you can grow, and tables Inform makes you hand-roll.**
   When a collection genuinely changes length as the game plays, `summon.matrix`
   gives you its mutable sibling: `append` and `remove` (order-preserving, or an
@@ -134,18 +150,6 @@ The most significant recent additions and achievements:
   alter report, each_turn, a message override. Underneath it is a load, a
   store, and a jump chain in native Z-machine operations, a handful of
   instructions per site; a game that never varies is byte-identical.
-- **SWIM SOUTH parses, and TRANSCRIPT records.** A grammar line can end in a
-  `direction` slot (`push noun direction`, `swim direction`), so PUSH CRATE
-  WEST and SWIM SOUTH reach their handlers with the direction riding `way`,
-  the same slot GO uses; hand the move to the walking machinery whole with
-  `perform("go", way)`. And every game now answers the classic TRANSCRIPT /
-  SCRIPT and TRANSCRIPT OFF / UNSCRIPT, honestly: the library reads the
-  interpreter's own flag back, so a cancelled file prompt never claims a
-  recording. Worded natively in all three languages (MITSCHRIFT AN,
-  TRANSCRIPCION), and the English meta words (SAVE, UNDO, SCORE, TRANSCRIPT
-  and their kin) answer in every pack, so the session is never hostage to a
-  guessed translation. See
-  [examples/features/direction-grammar.storyarc](examples/features/direction-grammar.storyarc).
 - **arc_image reaches the retro machines.** The same numbered pictures a
   modern build shows now convert to the 8-bit and 16-bit machines' own
   formats: paint ONE master per scene, and `arcimg convert` derives the
@@ -200,8 +204,9 @@ the compiler itself works:
   Arcturus constructs map to Z-machine opcodes and the story-file image, plus the
   size levers (dead-code elimination and abbreviation text compression).
 
-A fuller wiki will follow as the project matures. For a taste, the two worked
-games live under [examples/](examples/) - the Brass Lantern and the classic
+The documentation above is the complete reference; everything the language
+does is specified there. For a taste, the two worked games live under
+[examples/](examples/) - the Brass Lantern and the classic
 Cloak of Darkness. Small teaching showcases sit alongside them:
 [examples/features/](examples/features/) isolates core-language features (the
 container knowledge model, computed properties, kinds and inheritance, doors
