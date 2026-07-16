@@ -151,10 +151,22 @@ def _react_handlers(world: wm.World, obj: wm.Obj, actions: dict):
 def _other_handlers(world: wm.World, obj: wm.Obj):
     """The object's `on other` catch-all handlers, own and inherited: the least
     specific handlers, run when no specific handler consumed the action, before it
-    climbs to the room or the Cosmos default (docs/01 section 12)."""
+    climbs to the room or the Cosmos default (docs/01 section 12). Main band
+    only: `on after other` is the AFTER band's catch-all (below), never this
+    one (the field bug: it rode here and fired during the main dispatch,
+    before the action's own report and on refused actions too)."""
     return [
         h for h in _resolved_handlers(world, obj)
-        if "other" in h.events and not h.pattern
+        if "other" in h.events and not h.pattern and not h.after
+    ]
+
+
+def _after_other_handlers(world: wm.World, obj: wm.Obj):
+    """The object's `on after other` handlers: the after pass's catch-all, run
+    for any completed action the object has no specific `on after` for."""
+    return [
+        h for h in _resolved_handlers(world, obj)
+        if "other" in h.events and not h.pattern and h.after
     ]
 
 
@@ -162,7 +174,9 @@ def _react_objects(world: wm.World, actions: dict) -> set:
     return {
         name
         for name, obj in world.objects.items()
-        if _react_handlers(world, obj, actions) or _other_handlers(world, obj)
+        if _react_handlers(world, obj, actions)
+        or _other_handlers(world, obj)
+        or _after_other_handlers(world, obj)
     }
 
 
@@ -178,7 +192,9 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
     for objname, obj in world.objects.items():
         pairs = _react_handlers(world, obj, actions)
         others = [(hname[id(h)], h) for h in _other_handlers(world, obj)]
-        if not pairs and not others:
+        after_others = [(hname[id(h)], h)
+                        for h in _after_other_handlers(world, obj)]
+        if not pairs and not others and not after_others:
             continue
         groups: dict = {}
         for action, h in pairs:
@@ -190,7 +206,9 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
         # object's category picks the semantic; room kinds and thing kinds
         # follow their instances here.
         events = wm.EVENT_NAMES if obj.category == "room" else wm.EVENT_NAMES - {"enter"}
-        out.append(_gen_react(objname, groups, actions, layout, gmap, others, afloor, dirnames, events))
+        out.append(_gen_react(
+            objname, groups, actions, layout, gmap, others, afloor, dirnames,
+            events, after_others=after_others, mfloor=wm.meta_floor(world)))
     # react_free and grain_dispatch are always present (even empty) so the turn
     # loop and dispatcher can call them unconditionally.
     out.append(gen_react_free(world, actions, registry, layout, gmap))
@@ -202,12 +220,25 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
     # call site) away, so games without `on after` pay nothing.
     withafter = wm.actions_with_after(world)
     if withafter:
+        # `on after other` gives the map a FALLBACK: any world action without
+        # a specific after takes the synthetic after:other, so the after pass
+        # runs for it and the react routines' after-band catch-all answers.
+        # Only world actions: the metas (at and past meta_floor) never take an
+        # after pass, exactly as they never meet the plain catch-all.
+        specifics = [n for n in withafter if n != "other"]
         amap = Routine("after_map", nlocals=1)
-        for name in withafter:
+        for name in specifics:
             lbl = "yes_" + name
             amap.op("je", Variable(1), Const(actions[name]), branch=(lbl, True))
-        amap.op("ret", Const(0))
-        for name in withafter:
+        if "other" in withafter:
+            amap.op("jl", Variable(1), Const(wm.meta_floor(world)),
+                    branch=("yes_other", True))
+            amap.op("ret", Const(0))
+            amap.label("yes_other")
+            amap.op("ret", Const(actions[wm.after_key("other")]))
+        else:
+            amap.op("ret", Const(0))
+        for name in specifics:
             amap.label("yes_" + name)
             amap.op("ret", Const(actions[wm.after_key(name)]))
         out.append(amap)
@@ -303,12 +334,25 @@ def _free_react_handlers(world: wm.World, actions: dict):
 
 def _free_other_handlers(world: wm.World):
     """Free-standing `on other` rules: a global catch-all fired last, for any
-    action nothing more specific consumed; ordered like the specific rules."""
+    action nothing more specific consumed; ordered like the specific rules.
+    Main band only; `on after other` is the after band's (below)."""
     ranked = sorted(
         world.free_handlers,
         key=lambda h: _ORIGIN_RANK.get(getattr(h, "origin", None), 0),
     )
-    return [h for h in ranked if "other" in h.events and not h.pattern]
+    return [h for h in ranked
+            if "other" in h.events and not h.pattern and not h.after]
+
+
+def _free_after_other_handlers(world: wm.World):
+    """Free-standing `on after other` rules: the after pass's global
+    catch-all, for any completed action with no specific `on after` here."""
+    ranked = sorted(
+        world.free_handlers,
+        key=lambda h: _ORIGIN_RANK.get(getattr(h, "origin", None), 0),
+    )
+    return [h for h in ranked
+            if "other" in h.events and not h.pattern and h.after]
 
 
 def gen_react_free(world: wm.World, actions: dict, registry, layout=None, gmap=None) -> Routine:
@@ -326,6 +370,8 @@ def gen_react_free(world: wm.World, actions: dict, registry, layout=None, gmap=N
         if id(h) in hname:
             groups.setdefault(action, []).append((hname[id(h)], h))
     others = [(hname[id(h)], h) for h in _free_other_handlers(world) if id(h) in hname]
+    after_others = [(hname[id(h)], h)
+                    for h in _free_after_other_handlers(world) if id(h) in hname]
     afloor = wm.after_floor(world) if wm.actions_with_after(world) else None
     dirnames = frozenset(world.directions.values())
     # Free `on enter` rules are the ENTER verb (the Cosmos default action, and
@@ -335,10 +381,11 @@ def gen_react_free(world: wm.World, actions: dict, registry, layout=None, gmap=N
     return _gen_react(
         "free", groups, actions, layout, gmap, others, afloor, dirnames,
         wm.EVENT_NAMES - {"enter"},
+        after_others=after_others, mfloor=wm.meta_floor(world),
     )
 
 
-def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None, others=None, afloor=None, dirnames=frozenset(), event_names=wm.EVENT_NAMES) -> Routine:
+def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None, others=None, afloor=None, dirnames=frozenset(), event_names=wm.EVENT_NAMES, after_others=None, mfloor=None) -> Routine:
     """react_<obj>(action): switch on the action number; for each action run the
     object's handler routine(s) in order, returning 1 as soon as one consumes the
     action (returns 1). The `on other` catch-all runs only for actions the
@@ -347,11 +394,15 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
     guard failed. A specific handler that ran and continued climbs to the kind,
     the room, and the defaults; it never falls into the object's own catch-all
     (docs/01 section 12). Local 2 tracks whether a guarded handler ran.
-    `afloor` is the first synthetic after action number: the catch-all also
-    skips those, since the after pass is bookkeeping, not a player action
-    (passed only when the program has after handlers, so games without them
-    pay nothing)."""
+    `afloor` is the first synthetic after action number: the plain catch-all
+    skips everything at or past it, since the after pass is bookkeeping, not
+    a player action (passed only when the program has after handlers, so
+    games without them pay nothing). `after_others` are the `on after other`
+    handlers, the AFTER band's own catch-all: they run only for a synthetic
+    after number (afloor <= action < mfloor) that no specific `on after`
+    group matched, mirroring the plain catch-all's shadowing exactly."""
     others = others or []
+    after_others = after_others or []
     rt = Routine("react_" + objname, nlocals=2)  # 1 = action, 2 = a guard ran
     # An owned handler is called with this react routine's own object as its self
     # argument (docs/01 section 9). react_free has no object; its handlers are
@@ -427,19 +478,35 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
             rt.op("jz", Variable(2), branch=("__other__", True))
         rt.jump("__climb__")  # addressed but deferred: climb, skip the catch-all
     rt.label("__other__")
-    if others:
+    if others or after_others:
         # `on other` is a catch-all for the player's verbs, not for the life-cycle
         # events the loop fires (start, enter, each_turn); skip it for those.
         for ev in _EVENT_NAMES:
             if ev in actions:
                 rt.op("je", Variable(1), Const(actions[ev]), branch=("__climb__", True))
-        # Nor for the dispatcher's after pass: a synthetic after action the
-        # object has no `on after` for climbs silently past the catch-all.
+        # The bands: main actions below afloor, the synthetic after numbers in
+        # [afloor, mfloor), the metas at and past mfloor. The plain catch-all
+        # answers only the main band; `on after other` answers only the after
+        # band (the field bug: it rode the plain list and fired during the
+        # main dispatch, before the report and on refused actions); the metas
+        # climb silently past both.
         if afloor is not None:
-            rt.op("jl", Variable(1), Const(afloor), branch=("__climb__", False))
+            if after_others:
+                rt.op("jl", Variable(1), Const(afloor), branch=("__mainother__", True))
+                rt.op("jl", Variable(1), Const(mfloor), branch=("__afterother__", True))
+                rt.jump("__climb__")
+                rt.label("__mainother__")
+            else:
+                rt.op("jl", Variable(1), Const(afloor), branch=("__climb__", False))
         for hn, h in others:
             rt.op("call_vs", RoutineRef(hn), *self_args(h), store=Variable(STACK))
             rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
+        if after_others:
+            rt.jump("__climb__")
+            rt.label("__afterother__")
+            for hn, h in after_others:
+                rt.op("call_vs", RoutineRef(hn), *self_args(h), store=Variable(STACK))
+                rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
     rt.label("__climb__")
     rt.op("ret", Const(0))  # nothing consumed it: let it climb the chain
     rt.label("__handled__")

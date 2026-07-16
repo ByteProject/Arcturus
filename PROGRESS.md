@@ -4263,3 +4263,29 @@ example + richer handler docs (after the upcoming handler bug), and the
 enclosure receiver ("the more Arcturus way", own design round; note the
 second-noun receiver already exists in dispatch and needs docs/02
 verification).
+
+## 2026-07-16: on after other joins the after band (arcc 0.15.3)
+
+Charles Moore Jr.'s handler bug: `on after other` pasted next to `on
+after go` fired DURING the main dispatch -- before the action's own
+report ("AFTER OTHER" then "Got it."), on refused actions (south with
+no exit), and never in the actual after pass. Root: the react-routine
+builder grouped specific `on after <verb>` handlers under their
+synthetic after numbers, but the catch-all collectors
+(_other_handlers/_free_other_handlers) took ANY handler with "other" in
+its events without checking h.after, so `on after other` rode the PLAIN
+catch-all list, main band. Fixed as the mirror it should be: the plain
+`on other` answers only the main band, `on after other` is the after
+band's own catch-all (afloor <= action < meta_floor) inside the react
+routines; after_map gains a fallback so any world action WITHOUT a
+specific after takes the synthetic after:other (metas excluded -- the
+main loop's after site is not meta-gated and relies on the map
+returning 0). Shadowing mirrors the main pass: a specific `on after go`
+silences the catch-all for go; refusals silence everything (the
+existing refused gate). Codegen only, no Cosmos changes; games without
+`on after other` are byte-identical (no ceilings moved). docs/01
+handler section and docs/02 s.9 step 6 rewritten (docs previously said
+`on other` never answers the after pass, which implied the after
+catch-all did not exist; now it does, properly). 7 new tests; suite
+956. NEXT per Stefan: the dedicated handlers example + richer handler
+docs now unblocked.

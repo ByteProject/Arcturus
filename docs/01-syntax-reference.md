@@ -1526,10 +1526,14 @@ its after handlers run. Only a REFUSED turn silences them.
 
 Within the after pass, handlers resolve exactly like the main ones: most
 specific first, and `continue` passes to the next (the kind's after, the
-room's, a free-standing one). An `on other` catch-all never answers the
-after pass; it is for the player's verbs, not for bookkeeping. In a game
-with no `on after` anywhere the whole machinery folds away at compile time
-and costs nothing.
+room's, a free-standing one). The two catch-alls keep to their own bands:
+`on other` never answers the after pass (it is for the player's verbs, not
+for bookkeeping), and `on after other` is the after pass's OWN catch-all,
+firing after any completed action that has no specific `on after` here, and
+shadowed by one that does, exactly as `on other` is shadowed in the main
+pass. Refusals and the out-of-world verbs (SCORE, SAVE) never reach it. In
+a game with no `on after` anywhere the whole machinery folds away at
+compile time and costs nothing.
 
 `on other` is the catch-all handler: it fires for any action on the object
 that no specific `on <verb>` handler caught. It is the object's own default,
