@@ -151,7 +151,7 @@ def test_perform_keeps_its_noun_with_alter_in_the_game():
     story = _build(ALTER_GAME)
     # MOUNT BARREL: perform("enter", noun) must reach enter with noun=barrel.
     out = _vm_run(story, ["mount barrel"]).split(">mount")[-1]
-    assert "Done." in out
+    assert "You get on" in out    # perform reached enter with noun=barrel
     assert "what?" not in out.lower()          # not the noun-missing prompt
     # CLIMB LADDER: perform("go", up) must reach go with the direction intact.
     out = _vm_run(story, ["climb ladder"]).split(">climb")[-1]

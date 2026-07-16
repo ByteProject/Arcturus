@@ -1158,6 +1158,20 @@ block msg_already_there()
 block msg_not_inside()
     say "You aren't inside anything to leave."
 
+// Boarding and leaving, worded by the world model: on a supporter, in a
+// container (the choice is made in board_report / leave_report).
+block msg_get_on()
+    say "You get on ${the noun}."
+
+block msg_get_in()
+    say "You get into ${the noun}."
+
+block msg_get_off()
+    say "You get off ${the noun}."
+
+block msg_get_out()
+    say "You get out of ${the noun}."
+
 block msg_cant_climb()
     if any_pluribus is 1
         if noun is pluribus
