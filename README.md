@@ -66,6 +66,81 @@ language, with two complete worked games) and, when you want to play or debug,
 the [Actaea guide](docs/06-actaea.md). The full documentation index is
 [below](#the-language).
 
+## The language
+
+The authoritative language definition is the syntax reference, which is enough
+to start writing Arcturus today:
+
+- [docs/01-syntax-reference.md](docs/01-syntax-reference.md): the language.
+  Grammar, every construct, and two complete worked example games.
+- [docs/02-cosmos-and-parser.md](docs/02-cosmos-and-parser.md): the runtime.
+  The Cosmos library, the parser, the action pipeline, scope, light, and the
+  turn loop.
+- [docs/05-granules.md](docs/05-granules.md): the summonable granules. How to
+  summon them, how to fork one, and how to write your own.
+- [docs/06-actaea.md](docs/06-actaea.md): Actaea, the reference interpreter.
+  The three ways to play, the tools, saves and transcripts, and conformance.
+- [docs/07-arc-image.md](docs/07-arc-image.md): pictures in your story. The
+  master art, the `arcimg` workflow from PNG to every machine, and what plays
+  where today.
+
+For the curious who want to see under the hood, two further documents cover how
+the compiler itself works:
+
+- [docs/03-compiler-pipeline.md](docs/03-compiler-pipeline.md): the compiler.
+  The pass pipeline, the command-line interface, how Cosmos is bundled and
+  overridden, the single-file distribution, and the version model.
+- [docs/04-codegen-mapping.md](docs/04-codegen-mapping.md): the backend. How
+  Arcturus constructs map to Z-machine opcodes and the story-file image, plus the
+  size levers (dead-code elimination and abbreviation text compression).
+
+The documentation above is the complete reference; everything the language
+does is specified there. For a taste, the two worked games live under
+[examples/](examples/) - the Brass Lantern and the classic
+Cloak of Darkness. Small teaching showcases sit alongside them:
+[examples/features/](examples/features/) isolates core-language features (the
+container knowledge model, computed properties, kinds and inheritance, doors
+and locks, multi-room scenery with `spans`, the `intro` first-look property,
+grains, positional grammar, the object catch-all, daemons and timers,
+Z-machine colours with the self-restoring coloured say, and the player object
+with its standard self-words, pronouns, and Spanish clitic forms), and
+[examples/granules/](examples/granules/) shows the summonable granules (the
+Infocom-style and menu-driven conversation systems, the status line, verbose
+exits, the extended verbs, the nautical directions, and the quote box).
+
+## File extensions
+
+Arcturus uses three source extensions, named after the star:
+
+- **`.storyarc`** is a *story*: an author's game, the program you compile.
+- **`.prelude`** is a *core Cosmos library file*. The library is the prelude
+  loaded before your story; the standard library is editable Arcturus source you
+  can read and override.
+- **`.granule`** is a *summoned module*: anything brought in with `summon`,
+  whether a third-party extension or an optional Cosmos feature or language pack
+  (it loads only when summoned). Granules are the convection cells that tile the
+  Sun's photosphere; since Arcturus is a star, a summoned module is a granule on
+  its surface.
+
+## Output
+
+Arcturus emits conformant Z-machine **version 5** story files by default. Pass
+**`--zversion 8`** for a version 8 target for large, modern-only releases (the
+same code generation, a larger 512KB story-file ceiling).
+
+## What's new
+
+Arcturus is in active, healthy development, and the core is solid enough to
+build real games on today. The three pieces of the toolchain - the **compiler**,
+the **Cosmos** standard library, and the **Actaea** reference interpreter - are
+all in stable shape and work together as a real pipeline: write a game, compile
+it, and play it, start to finish. You will still meet the occasional bug (please
+report it), but this is no longer use-at-your-own-risk territory. If you write
+interactive fiction, this is a good time to pick it up.
+
+The most significant recent additions and achievements are kept in
+[WHATSNEW.md](WHATSNEW.md).
+
 ## Philosophy
 
 Arcturus is built for one thing and built for it well: writing modern adventure
@@ -138,147 +213,6 @@ understood: no Blorb, no separate build. **Actaea**, the project's own
 interpreter, plays version 5 and 8 games with images today, and a dedicated
 set of interpreters for retro systems with arc_image support is in the
 making.
-
-## What's new
-
-Arcturus is in active, healthy development, and the core is solid enough to
-build real games on today. The three pieces of the toolchain - the **compiler**,
-the **Cosmos** standard library, and the **Actaea** reference interpreter - are
-all in stable shape and work together as a real pipeline: write a game, compile
-it, and play it, start to finish. You will still meet the occasional bug (please
-report it), but this is no longer use-at-your-own-risk territory. If you write
-interactive fiction, this is a good time to pick it up.
-
-The most significant recent additions and achievements:
-
-- **Kinds without a ceiling.** A kind is Arcturus's class sugar, and it used to
-  spend one of the Z-machine's 48 precious attributes even when you only meant
-  to organize objects or span scenery. Not any more: a kind costs an attribute
-  only where you actually test `obj is <kind>`, so the kinds you use purely to
-  share behavior or distribute scenery are free. Test more kinds than the spare
-  attribute slots hold and the rest fall back automatically to a fast membership
-  scan, built on Arcturus's own catalog feature (what you know as lists in other
-  languages), so you can declare as many kinds as your world wants. This is very
-  efficient on memory and performance on 8-bit hardware compared to Inform's
-  classes. The only real ceiling is now the Z-machine's own, 48 genuine object
-  attributes, and `arcc -s` shows attributes and kinds separately so you always
-  read your true budget (`attributes 26/48, kinds 63`). It grew from a large
-  real-world port hitting the old wall, and it is exactly what that port asked
-  for.
-- **Matrices: a catalog you can grow, and tables Inform makes you hand-roll.**
-  When a collection genuinely changes length as the game plays, `summon.matrix`
-  gives you its mutable sibling: `append` and `remove` (order-preserving, or an
-  O(1) `swapping`) and `insert`, all bounds-safe, with the same reads you
-  already know (`entry`, `calculate`, `for each`, `in`). And a matrix comes in
-  a two-dimensional form, `matrix bed 3 by 3`, a real declared table you index
-  by `entry(m, row, col)`, with `of byte` packing a large grid one cell per byte
-  (half the memory, so a 16x16 map costs 256 bytes) and compile-time bounds
-  checks Inform's raw arrays never had. It stays out of the base language, a
-  summoned feature that costs zero bytes unused; the mutators live in editable
-  Cosmos, and underneath there is still no heap, only the same static region a
-  catalog uses. Most games never need it (Hibernated 2, Rabenstein, and Ghosts
-  never did) and the docs say so plainly, but when you want the trusty array, it
-  is here ([worked example](examples/features/matrix.storyarc)).
-- **vary: prose that varies by itself.** The feature authors of Inform 7 and
-  Dialog name among their favorites (`[one of]`, `(select)`), in Arcturus's
-  own readable form: `vary loop` followed by your variant lines speaks a
-  different one each time, and the policy word picks how - `sequence`
-  (advance once, stick on the last: room descriptions), `loop` (round-robin),
-  `mutate` (random, never the same twice running), `dice` (the honest roll).
-  Each site keeps one invisible word of state the compiler allocates -
-  correct across save, undo, and restart, never named by you - and a bare
-  string line is a whole variant, so the common case has zero ceremony. It
-  plugs in anywhere prose is made: a computed description, any handler, an
-  alter report, each_turn, a message override. Underneath it is a load, a
-  store, and a jump chain in native Z-machine operations, a handful of
-  instructions per site; a game that never varies is byte-identical.
-- **arc_image reaches the retro machines.** The same numbered pictures a
-  modern build shows now convert to the 8-bit and 16-bit machines' own
-  formats: paint ONE master per scene, and `arcimg convert` derives the
-  native version for the Commodore 64, ZX Spectrum +3, Amstrad CPC, Amiga,
-  Atari ST, and DOS, resolving each machine's palette and color-cell
-  constraints, with PNG previews to judge without an emulator, an author
-  hint that keeps a moon or sun visible on the narrowest palettes, and a
-  polish loop that round-trips Spectrum art through any .scr editor.
-  Reference loaders are proven on real emulators for four machines so far,
-  and the interpreter blueprints ship with the toolkit
-  ([docs/07-arc-image.md](docs/07-arc-image.md) for authors).
-- **`perform` and `appearance`: the classic bridges, grown from the field.**
-  `perform("take", book)` runs any action as part of the current turn,
-  refusals, messages, and after-phase included, with the action name checked
-  at compile time (Inform's `<<take book>>`, Dialog's `(try ...)`); the
-  `appearance` property is the paragraph an object always owns in a room
-  description ("The keeper is trimming the wick."), worded by state when
-  computed, beside `intro`'s until-first-taken rule. Both came from early
-  adopters porting real games, and both cost nothing in a game that never
-  uses them; component objects (a lever that is `component` of its machine)
-  arrived the same way. Worked examples:
-  [perform](examples/features/perform.storyarc),
-  [appearance](examples/features/appearance.storyarc),
-  [components](examples/features/components.storyarc).
-
-
-## The language
-
-The authoritative language definition is the syntax reference, which is enough
-to start writing Arcturus today:
-
-- [docs/01-syntax-reference.md](docs/01-syntax-reference.md): the language.
-  Grammar, every construct, and two complete worked example games.
-- [docs/02-cosmos-and-parser.md](docs/02-cosmos-and-parser.md): the runtime.
-  The Cosmos library, the parser, the action pipeline, scope, light, and the
-  turn loop.
-- [docs/05-granules.md](docs/05-granules.md): the summonable granules. How to
-  summon them, how to fork one, and how to write your own.
-- [docs/06-actaea.md](docs/06-actaea.md): Actaea, the reference interpreter.
-  The three ways to play, the tools, saves and transcripts, and conformance.
-- [docs/07-arc-image.md](docs/07-arc-image.md): pictures in your story. The
-  master art, the `arcimg` workflow from PNG to every machine, and what plays
-  where today.
-
-For the curious who want to see under the hood, two further documents cover how
-the compiler itself works:
-
-- [docs/03-compiler-pipeline.md](docs/03-compiler-pipeline.md): the compiler.
-  The pass pipeline, the command-line interface, how Cosmos is bundled and
-  overridden, the single-file distribution, and the version model.
-- [docs/04-codegen-mapping.md](docs/04-codegen-mapping.md): the backend. How
-  Arcturus constructs map to Z-machine opcodes and the story-file image, plus the
-  size levers (dead-code elimination and abbreviation text compression).
-
-The documentation above is the complete reference; everything the language
-does is specified there. For a taste, the two worked games live under
-[examples/](examples/) - the Brass Lantern and the classic
-Cloak of Darkness. Small teaching showcases sit alongside them:
-[examples/features/](examples/features/) isolates core-language features (the
-container knowledge model, computed properties, kinds and inheritance, doors
-and locks, multi-room scenery with `spans`, the `intro` first-look property,
-grains, positional grammar, the object catch-all, daemons and timers,
-Z-machine colours with the self-restoring coloured say, and the player object
-with its standard self-words, pronouns, and Spanish clitic forms), and
-[examples/granules/](examples/granules/) shows the summonable granules (the
-Infocom-style and menu-driven conversation systems, the status line, verbose
-exits, the extended verbs, the nautical directions, and the quote box).
-
-## File extensions
-
-Arcturus uses three source extensions, named after the star:
-
-- **`.storyarc`** is a *story*: an author's game, the program you compile.
-- **`.prelude`** is a *core Cosmos library file*. The library is the prelude
-  loaded before your story; the standard library is editable Arcturus source you
-  can read and override.
-- **`.granule`** is a *summoned module*: anything brought in with `summon`,
-  whether a third-party extension or an optional Cosmos feature or language pack
-  (it loads only when summoned). Granules are the convection cells that tile the
-  Sun's photosphere; since Arcturus is a star, a summoned module is a granule on
-  its surface.
-
-## Output
-
-Arcturus emits conformant Z-machine **version 5** story files by default. Pass
-**`--zversion 8`** for a version 8 target for large, modern-only releases (the
-same code generation, a larger 512KB story-file ceiling).
 
 ## Getting started
 
