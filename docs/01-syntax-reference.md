@@ -910,6 +910,26 @@ player typed), and no extra turn passes: it is one turn's work. Where
 about the how); `perform` is for when you want the verb's whole voice.
 Costs nothing in a game that never calls it.
 
+One trap, named plainly: perform re-enters the WHOLE chain, the calling
+handler included. An `on burn` that calls `perform("burn", ...)` unguarded
+dispatches straight back into itself, forever (the interpreter dies at the
+prompt). To run your checks and then let the default happen, the chain's
+own word is `continue`, not perform:
+
+```
+on burn
+    if second is nothing
+        say "You need something to light it with."
+        change refused to 1
+        stop
+    continue                  // the default burn takes it from here
+```
+
+perform inside a handler is for OTHER actions (a redirect, like climb
+boarding via enter), or for re-dispatching the same action past a `when`
+guard or operand pattern the re-entry will fail. The compiler notes the
+unguarded self-perform shape at compile time.
+
 `add ... to ...` and `remove ... from ...` operate on list properties only:
 
 ```

@@ -107,6 +107,7 @@ class Analyzer:
         self._lint_unread_props()
         self._lint_alter_without_continue()
         self._lint_nautical_land_start()
+        self._lint_self_perform()
         # A summoned abbreviations.granule (B6) is compile-time data, not runtime
         # blocks, so it rides on the program straight through to codegen.
         self.world.abbreviations = getattr(self.program, "abbreviations", None)
@@ -1499,6 +1500,58 @@ class Analyzer:
         if noted > 5:
             print(f"arcc: note: ({noted - 5} more unread properties)",
                   file=sys.stderr)
+
+    def _lint_self_perform(self) -> None:
+        """perform re-enters the WHOLE handler chain, the calling handler
+        included: an UNGUARDED `on burn` that performs "burn" dispatches back
+        into itself forever (the field symptom: the interpreter dies at the
+        prompt). A `when` guard or an operand pattern exempts the handler,
+        because the re-entry can fail it and fall through, the legitimate
+        re-dispatch shape; the unguarded shape is always a loop, so note it
+        and name the cure (`continue` reaches the default without
+        re-dispatching). An `on after <verb>` performing its own verb loops
+        the same way (the perform's own after pass re-enters it)."""
+        for h in self.world.all_handlers():
+            if h.when is not None or h.pattern:
+                continue  # the re-entry can fail the guard: legitimate
+            events = set(h.events)
+            hit = [None]  # (line, event) of the first self-perform found
+
+            def visit(node):
+                if (isinstance(node, ast.Call) and node.name == "perform"
+                        and node.args
+                        and isinstance(node.args[0], ast.StringLit)):
+                    text = "".join(
+                        p.text for p in node.args[0].parts
+                        if isinstance(p, ast.StringText)
+                    )
+                    if text in events and hit[0] is None:
+                        hit[0] = (getattr(node, "line", h.line), text)
+                    return
+                if not dataclasses.is_dataclass(node):
+                    return
+                for f in dataclasses.fields(node):
+                    v = getattr(node, f.name)
+                    if isinstance(v, list):
+                        for item in v:
+                            if dataclasses.is_dataclass(item):
+                                visit(item)
+                    elif dataclasses.is_dataclass(v):
+                        visit(v)
+
+            for s in h.body:
+                visit(s)
+            if hit[0] is not None:
+                line, ev = hit[0]
+                print(
+                    f"arcc: note: line {line}: 'on {ev}' performs its own "
+                    f"action; perform re-enters the whole handler chain, "
+                    f"this handler included, so an unguarded self-perform "
+                    f"never returns. End with `continue` to reach the "
+                    f"default instead, or add a `when` guard (or an operand "
+                    f"pattern) the re-entry fails.",
+                    file=sys.stderr,
+                )
 
     def _lint_alter_without_continue(self) -> None:
         """`alter` REGISTERS a report that the library speaks at the action's
