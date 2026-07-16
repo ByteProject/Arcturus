@@ -168,6 +168,10 @@ class Layout:
     # differences from a catalog are the reserved spare cells (capacity beyond
     # the seed) and that `count` is the live, mutable length.
     matrices: dict = field(default_factory=dict)
+    # The word offset of the vary sites' state words (docs/01, Output and
+    # text), at the end of the same region; a Vary node's stamped slot indexes
+    # from here.
+    vary_off: int = 0
     # True if any object is of the `door` kind. The go handler guards its door
     # detour (open/lock check, step to the far side) with `any_doors()`, so a game
     # with no doors folds it away and pays nothing.
@@ -429,6 +433,12 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
             woff += mx.rows * mx.cols          # a flat word grid, no header
         else:
             woff += 2 + mx.capacity            # [count, capacity, cells]
+    # The vary sites' state words close the region: one word per stateful
+    # site (sequence/loop's counter, mutate's last pick), zero-initialized,
+    # indexed by the slot sema stamped on each Vary node. Ordinary dynamic
+    # memory, so a site's progress rides saves and undo like everything else.
+    layout.vary_off = woff
+    woff += getattr(world, "vary_slots", 0)
 
     _emit_table(world, layout)
     # The catalog region (docs/01, catalogs): every declared catalog laid
@@ -504,6 +514,10 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
                 _append_word(layout.table, v.value & 0xFFFF)
         for _ in range(mx.capacity - len(mx.seed)):
             _append_word(layout.table, 0)
+    # The vary state words, zeroed: fresh sites start at their first variant
+    # (sequence/loop count from 0; mutate's 0 means "no last pick yet").
+    for _ in range(getattr(world, "vary_slots", 0)):
+        _append_word(layout.table, 0)
     return layout
 
 

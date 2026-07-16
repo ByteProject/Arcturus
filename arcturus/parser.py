@@ -1087,6 +1087,12 @@ class Parser:
                 mop = self._try_matrix_op()
                 if mop is not None:
                     return mop
+            # vary <policy>: the prose-variation statement (docs/01, Output
+            # and text). Committed only when a policy word follows, so a
+            # block named vary still calls.
+            if (t.value == "vary" and self._at(1).kind == T.NAME
+                    and self._at(1).value in _VARY_POLICIES):
+                return self._parse_vary()
             # append / insert as statements flow through the expression path
             # (they are also expressions, so `if append x to m is 0` works);
             # `remove` is a keyword handled in _parse_remove.
@@ -1218,6 +1224,58 @@ class Parser:
             self.i = start
             return None
         return None
+
+    def _parse_vary(self) -> ast.Vary:
+        # vary <policy>, then one or more variant segments. Within a segment a
+        # bare string line is its OWN variant (an implicit say, the text-first
+        # form); an `or` line at the vary's level opens a statement-group
+        # variant. Strings and statements do not mix within one segment: the
+        # error names the cure. Policies: sequence, loop, mutate, dice.
+        line = self.cur.line
+        self.advance()  # `vary`
+        policy = self.advance().value  # validated by the dispatch guard
+        self.expect_newline()
+        variants: list = []
+        while True:
+            self.expect(T.INDENT, "an indented variant body under vary")
+            seg_strings = 0
+            seg_stmts: list = []
+            while not self.check(T.DEDENT):
+                if self.check(T.NEWLINE):
+                    self.advance()
+                    continue
+                if self.check(T.STRING) and self._at(1).kind == T.NEWLINE:
+                    if seg_stmts:
+                        raise self._error(
+                            "a bare string cannot join a statement variant; "
+                            "each bare string stands alone, and statements "
+                            "live after an `or` line")
+                    tok = self.advance()
+                    variants.append([ast.Say(self._build_string(tok), tok.line)])
+                    seg_strings += 1
+                    self.expect_newline()
+                    continue
+                if seg_strings:
+                    raise self._error(
+                        "statements need their own variant: open it with an "
+                        "`or` line (bare string lines each stand alone)")
+                seg_stmts.append(self.parse_statement())
+            self.expect(T.DEDENT)
+            if seg_stmts:
+                variants.append(seg_stmts)
+            elif seg_strings == 0:
+                raise self._error("an empty vary variant", None)
+            # An `or` at the vary's own level opens the next variant group.
+            if self.cur.is_kw("or") and self._at(1).kind == T.NEWLINE:
+                self.advance()  # `or`
+                self.advance()  # its newline
+                continue
+            break
+        if len(variants) < 2:
+            raise self._error(
+                f"vary {policy} has one variant; variation needs at least "
+                f"two", None)
+        return ast.Vary(policy, variants, line)
 
     def _parse_award(self) -> ast.Award:
         # `award 5` / `award 10 for door_solved "outsmarting the door"`:
@@ -1811,6 +1869,11 @@ class Parser:
 
 # Statement keyword -> the bound method that parses it. Built after the class
 # so the methods exist.
+# The vary policies (docs/01, Output and text): sequence advances once and
+# sticks on the last, loop wraps round-robin, mutate is random without an
+# immediate repeat, dice is the honest roll (the catalogs' random, same word).
+_VARY_POLICIES = ("sequence", "loop", "mutate", "dice")
+
 _STMT_KEYWORDS = {
     "let": Parser._parse_let,
     "change": Parser._parse_change,

@@ -378,6 +378,10 @@ class World:
     # fold must survive for a game that only sets beyond at runtime (the
     # player-beyond mount) and never declares it on an object.
     sets_beyond: bool = False
+    # How many vary sites need a state word (sequence/loop/mutate; dice keeps
+    # none). Slots are stamped on the Vary nodes in sema, in source order, and
+    # the words live at the end of the catalog region (objects.build_layout).
+    vary_slots: int = 0
     # Player-facing verb-particle word -> canonical particle name ("on"/"off"),
     # from the language layer's `particle` declarations. English "on"/"off", German
     # "an"/"ein"/"aus"/"ab"; the parser combines a base verb with the particle

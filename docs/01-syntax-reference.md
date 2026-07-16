@@ -1905,6 +1905,91 @@ charm, and answers to `ask esme about charm` or `about relic`.
 
 ## 16. Output and text
 
+### vary: prose that varies by itself
+
+The second time a player reads an identical idle line, the game feels dead,
+and the classic fix, a counter global and an if-chain per site, is so
+tedious nobody does it consistently. `vary` is the fix done right: speak
+one of several variants, the site keeping its own INVISIBLE state, one word
+the compiler allocates, correct across save, undo, and restart, never named
+by the author. The policy word says how the site moves on:
+
+```
+vary sequence        // advance once, then stick on the last: room descs
+    "A raven lands on the gibbet."
+    "The raven picks at something."
+    "The raven is still there."
+
+vary loop            // round-robin, A B C A B C: background machinery
+
+vary mutate          // random, never the same twice running: the default
+                     // for flavor (footsteps, weather)
+
+vary dice            // the honest roll, repeats allowed (the catalogs'
+                     // dice, same word): coin flips, static noise
+```
+
+Each bare string line is its own variant, an implicit say: the text IS the
+content (the form catalogs taught). A variant that needs to DO something
+opens with an `or` line at the vary's level and holds ordinary statements;
+the forms mix freely:
+
+```
+vary loop
+    "A tap drips."
+    "A fly circles the sink."
+or
+    say "The fridge shudders once, alarmingly."
+    now fridge is suspect
+```
+
+vary is a statement, and in Arcturus all dynamic prose flows through
+statement contexts, so it plugs in anywhere text is made, tied to nothing:
+
+```
+room cellar
+    desc block                       // computed properties: desc,
+        vary sequence                // appearance, intro, beyond block
+            "Stairs descend into a dark that feels inhabited."
+            "The cellar again. The dark has not warmed to you."
+
+thing bell in chapel
+    on push                          // any handler: on X, on after X, on other
+        vary loop
+            "The bell tolls, deep and bronze."
+            "The toll again, felt in the teeth this time."
+
+    on take
+        alter                        // an alter report body is statements too
+            vary mutate
+                "You lift the bell free."
+                "The bell comes away with a last sulky clank."
+        continue
+
+on each_turn when here is marsh      // daemons, free rules
+    vary mutate
+        "Something plops into unseen water."
+        "A dragonfly stitches past."
+
+block msg_cant_go()                  // library message overrides
+    vary loop
+        "No road that way."
+        "Still no road that way."
+```
+
+Conversation reply bodies and grain inline bodies are statement contexts
+too. The two places it cannot go, both by nature: inside a quoted string
+(mid-sentence variation is not supported), and static data (a one-line
+`desc "..."`, a catalog entry); the block form of any property is the
+upgrade path, as in the cellar above.
+
+Underneath: one word of dynamic memory per stateful site (dice keeps
+none), a single load and store, and the same jump chain a `switch`
+compiles to; a handful of instructions per site, native Z-machine
+operations, no library involved. A game that never varies is
+byte-identical. Each site is independent, and the state rides ordinary
+dynamic memory, so narrative continuity survives saves and undo for free.
+
 A string is written in double quotes and may span physical lines; runs of
 whitespace, including line breaks, collapse to a single space, so
 continuation lines may be indented:
@@ -2294,7 +2379,8 @@ Section 15 of 02 reconciles each example with the Cosmos model in detail.
 `return`, `global`, `flag`, `counter`, `constant`, `let`, `change`, `to`,
 `now`, `is`, `not`,
 `add`, `remove`, `from`, `move`, `say`, `stop`, `continue`, `finish`, `death`, `alter`, `if`,
-`catalog` and `matrix` (as declaration heads),
+`catalog` and `matrix` (as declaration heads), `vary` (as a statement head,
+before a policy word: sequence, loop, mutate, dice),
 `else`, `while`, `for`, `each`, `switch`, `case`, `and`, `or`, `holds`,
 `when`, `self`, `player`, `here`, `noun`, `second`, `nothing`, `true`,
 `false`, `list`, `summon`, `grains`, `do`, `title`, `headline`, `author`,

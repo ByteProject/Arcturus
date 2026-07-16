@@ -4370,3 +4370,32 @@ a declared constant -- folding through the leaf read, so `switch d /
 case north` reads like `if d is north` (the maze shape); a variable
 case stays an error with a clear message. docs/01 switch + matrix
 sections updated. 3 new tests; suite 964.
+
+## 2026-07-16: vary, prose that varies by itself (arcc 0.16.0)
+
+Charles Moore Jr.'s "would die for" feature: Dialog's (select) / I7's
+[one of], the per-site text variation both systems count among their
+best design. Stefan's rulings: keyword `vary`; policies renamed to his
+scheme -- `sequence` (advance once, stick on the last), `loop`
+(round-robin), `mutate` (random, never twice running), `dice` (the
+honest roll, the catalogs' word for real random); text-first with
+statements allowed; the A+B surface (each bare string line is its OWN
+variant, an implicit say -- the catalog-taught form -- and an `or` line
+at the vary's level opens a statement-group variant; the two mix, and
+mixing WITHIN a segment errors with the cure named). It is a statement,
+and all dynamic prose in Arcturus flows through statement contexts, so
+it plugs in anywhere text is made: desc/appearance/intro blocks, any
+handler, alter report bodies, each_turn, msg overrides, reply bodies --
+the documentation carries all of these as worked context examples
+(Stefan: solid gold, save them). Implementation: parser (contextual
+head, claimed only before a policy word; a block named vary still
+calls); sema stamps each stateful site a slot; the state words close
+the catalog region (one word per site, dice keeps none), so save/undo/
+restart correctness is free; lowering per policy is a loadw/storew plus
+the switch je-chain, native z-ops, no library -- the efficiency answer
+to the I7/Dialog bloat concern, and a game that never varies is
+byte-identical automatically (no fold even needed; ceilings untouched).
+mutate avoids immediate repeats by shifting one place on a re-roll
+collision (uniform over the others, branch-cheap). docs/01 section 16
+(the vary subsection with the context examples), Appendix A, README
+What's new, VSCode highlighting. 10 new tests; suite 974.
