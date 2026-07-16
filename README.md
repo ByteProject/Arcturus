@@ -168,11 +168,18 @@ opposite pole: elegant, minimal, and deeply abstract, a rule-based language
 closer to logic programming than to storytelling, and many authors find
 that abstraction a wall. Inform 6 and ZIL are honest programming languages
 of their decades, C-shaped and Lisp-shaped, with the world model largely
-built by hand. Arcturus sits deliberately between the poles: structured
-English on a line-and-indent skeleton. It reads aloud like sentences and
-compiles like a program. There is one shape to learn, declarations describe
-the world and handlers carry behavior, so you always know what to type
-next, and a stranger can open a game's source and follow the story.
+built by hand. Arcturus sits deliberately between the poles, and it never
+pretends to be English: it is unmistakably a programming language, kept so
+lean that it reads. Every construct is one keyword-led line shape on an
+indent skeleton: `thing lantern in hallway` declares, `on take lantern`
+handles, `north cellar` connects, `vary loop` varies. Because each thing
+has exactly one way to be written, you always know what to type next and
+the compiler never surprises you, which is the predictability Inform 7's
+prose trades away; and because the shapes name the world directly (rooms,
+things, kinds, verbs), there is nothing to translate through, which is the
+abstraction Dialog charges for. A stranger can open a game's source and
+follow the story, and what they are reading is a program that is plain
+about being one.
 
 **One mechanism where others need many.** Behavior is handlers: an action
 walks from the acted-on object to the recipient, the room, the free rules,
