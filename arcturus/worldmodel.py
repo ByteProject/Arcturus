@@ -374,6 +374,10 @@ class World:
     # property that is a block) using this; a general computed value property
     # stays unsupported.
     direction_props: set = field(default_factory=set)
+    # True when a `now ... is beyond` statement exists anywhere: the any_beyond
+    # fold must survive for a game that only sets beyond at runtime (the
+    # player-beyond mount) and never declares it on an object.
+    sets_beyond: bool = False
     # Player-facing verb-particle word -> canonical particle name ("on"/"off"),
     # from the language layer's `particle` declarations. English "on"/"off", German
     # "an"/"ein"/"aus"/"ab"; the parser combines a base verb with the particle

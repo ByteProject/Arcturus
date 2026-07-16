@@ -315,13 +315,19 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
                 layout.has_pluribus = True
                 break
 
-    # Does any object resolve to `beyond`? Same folding role as the others.
+    # Does any object resolve to `beyond`? Same folding role as the others. A
+    # runtime `now ... is beyond` also counts (world.sets_beyond): the
+    # player-beyond mount declares beyond on nothing and still needs the touch
+    # guards compiled in.
     if "beyond" in layout.attr_number:
-        for name in world.objects:
-            decl = _effective_props(world, world.objects[name]).get("beyond")
-            if decl is not None and _bool_value(decl):
-                layout.has_beyond = True
-                break
+        if getattr(world, "sets_beyond", False):
+            layout.has_beyond = True
+        else:
+            for name in world.objects:
+                decl = _effective_props(world, world.objects[name]).get("beyond")
+                if decl is not None and _bool_value(decl):
+                    layout.has_beyond = True
+                    break
 
     # The live directions (see the Layout field): worded, or used as an exit.
     worded = set(world.directions.values())

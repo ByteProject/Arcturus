@@ -135,26 +135,72 @@ on go
 // a beyond thing is deliberately not guarded: the arm reaches where the
 // hand cannot. Both guards fold away in a game where everything is within
 // arm's length (any_beyond).
+//
+// The property points BOTH ways: `now player is beyond` puts the PLAYER out
+// of everything's reach instead, the mounted-on-a-horse case (a field
+// request; Dialog needs scope surgery for this, Inform has nothing). While
+// the player is beyond, only the arm's bubble stays touchable: themself,
+// what they hold or wear, and the thing they are on or in with everything it
+// carries. Mount: `now player is beyond`; dismount: `now player is not
+// beyond`. Un-nested it collapses to self and held alone (hands bound, tied
+// to a chair). The refusal speaks player.beyond_why when the story set one
+// (change player.beyond_why to "..."; back to nothing reverts), else the
+// pack's msg_beyond.
+
+// Is obj within the beyond player's arm bubble? Its parent chain passing the
+// player (held, worn, carried inside something held) or the player's own
+// enclosure (the horse, and the saddlebag riding it) says yes.
+block at_hand(obj)
+    if obj is player
+        return 1
+    let seat = parent_of(player)
+    if seat is here
+        change seat to nothing
+    let p = obj
+    while p is not nothing
+        if p is player
+            return 1
+        if seat is not nothing
+            if p is seat
+                return 1
+        change p to parent_of(p)
+    return 0
+
+// The shared refusal: obj is out of reach, say why. The player's own why (a
+// runtime-settable text: `change player.beyond_why to "..."`, back to nothing
+// to revert) wins over the object's, which wins over the pack's default;
+// refused either way. The player test is on the VALUE, so an unset or
+// reverted why falls through to the defaults (a property read without the
+// slot answers nothing, never halts; only the write needs the slot, which
+// sema allocates for any game that writes it).
+block beyond_refuse(obj)
+    change refused to 1
+    if player is beyond
+        if not (player.beyond_why is nothing)
+            say player.beyond_why
+            return 1
+    if not (beyond_why_addr(obj) is nothing)
+        say obj.beyond_why
+    else
+        msg_beyond(obj)
+    return 1
+
 block beyond_guard()
     if any_beyond is 1
         if noun is beyond
-            change refused to 1
-            if not (beyond_why_addr(noun) is nothing)
-                say noun.beyond_why
-            else
-                msg_beyond(noun)
-            return 1
+            return beyond_refuse(noun)
+        if player is beyond
+            if at_hand(noun) is 0
+                return beyond_refuse(noun)
     return 0
 
 block beyond_guard_second()
     if any_beyond is 1
         if second is beyond
-            change refused to 1
-            if not (beyond_why_addr(second) is nothing)
-                say second.beyond_why
-            else
-                msg_beyond(second)
-            return 1
+            return beyond_refuse(second)
+        if player is beyond
+            if at_hand(second) is 0
+                return beyond_refuse(second)
     return 0
 
 on take
@@ -420,7 +466,12 @@ on put
         change refused to 1
         msg_put_where
         stop
+    // PUT moves the noun without a hold check, so it needs the noun guard
+    // too: a beyond chandelier must not ride into a sack, and a beyond
+    // player must not fish things off the ground into the saddlebag.
     if any_beyond is 1
+        if beyond_guard is 1
+            stop
         if beyond_guard_second is 1
             stop
     if second is supporter
@@ -449,6 +500,12 @@ on insert
         change refused to 1
         msg_put_where
         stop
+    // The same mover as put: both guards, same reason.
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
+        if beyond_guard_second is 1
+            stop
     if second is container
         if second is open
             move noun to second
