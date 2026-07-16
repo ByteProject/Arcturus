@@ -18,15 +18,25 @@ does, with nothing to install. The standard library, **Cosmos**, is written in
 Arcturus itself and ships as editable source rather than a black box.
 
 Arcturus compiles to highly optimized Z-code that performs well on classic
-8-bit hardware, and at the same time brings authoring comforts to the
-platform that Inform 6 and ZIL do not offer, the kind known from modern
-systems like Dialog and Inform 7: self-varying prose (`vary`), a knowledge
-model for containers, reach modeling with the `beyond` property, invisible
-per-site state the compiler manages for you. The compiler is multi-pass
-rather than one-pass, a structural advantage over the Inform 6 compiler: it
-sees the whole program, folds unused features away at compile time, and
-applies strict dead-code elimination, so a build carries only what the game
-actually uses.
+8-bit hardware, and at the same time modernizes the platform's authoring.
+Some of its comforts the platform otherwise knows only from modern systems:
+self-varying prose (`vary`, with every site's state managed invisibly by
+the compiler) as Inform 7 and Dialog have it, or reach modeling (the
+`beyond` property), a concept otherwise found in Dialog alone. And some
+exist in no other system at all: the knowledge model for containers, where
+the game tracks what the player has actually SEEN and words itself
+accordingly, or catalogs, ordered tables with list power and not a byte of
+heap behind them.
+
+The compiler itself is a structural advantage over the whole ZIL and Inform
+lineage: arcc is a whole-program, multi-pass compiler. It sees game and
+library at once, folds unused features away at compile time, and applies
+strict dead-code elimination, so a build carries only what the game
+actually uses, provably, byte for byte. ZILCH, Inform 6, and ZILF compile
+what they are given, and Inform 7 emits through the Inform 6 compiler,
+inheriting the same shape. Dialog's compiler optimizes globally, but the
+language rides a runtime engine inside every story file; arcc emits direct
+Z-machine operations with no runtime layer at all.
 
 Arcturus games can carry **images** in z5 and z8 story files while staying
 fully standard-compliant. The trick is honest: pictures ride an extension
