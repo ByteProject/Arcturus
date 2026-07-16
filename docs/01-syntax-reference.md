@@ -244,11 +244,32 @@ matrix primes capacity 6               // seeded, length starts at 3
 
 Cells are numeric only: `number` (a word, the default), `object` (a word
 holding an object reference; `for each` types the item as an object), or
-`byte` (0..255). A matrix never holds text; for words, keep a catalog and
-store an index into it. The reads are exactly a catalog's, but the count is
-the LIVE length: `calculate(m)` is the current length, `entry(m, i)` the
-i-th (1-based), `last(m)`, `dice(m)`, `position(m, v)`, `v in m`, and `for
-each x in m`. `change entry(m, i) to v` rewrites a cell in place.
+`byte` (0..255). DIRECTIONS are numbers too (a direction is its property),
+so a route or a patrol stores them directly: `append north to route`, and a
+read compares (`if d is north`) or switches (`switch d / case north`)
+without any packing. A matrix never holds text; for words, keep a catalog
+and store an index into it. The reads are exactly a catalog's, but the
+count is the LIVE length: `calculate(m)` is the current length, `entry(m,
+i)` the i-th (1-based), `last(m)`, `dice(m)`, `position(m, v)`, `v in m`,
+and `for each x in m`. `change entry(m, i) to v` rewrites a cell in place.
+
+Like a catalog, a matrix passes to a block as an ordinary value, and
+`calculate`, `entry`, `last`, and `dice` all work on the parameter inside.
+`for each` is the one read that needs the matrix NAMED IN PLACE: over a
+block parameter the compiler cannot tell a matrix from an object, and the
+loop would walk the object tree instead (on an interpreter that checks,
+that surfaces as a warning about object 0). Inside a block, walk a matrix
+parameter by index; every shared helper wants this shape anyway:
+
+```
+block read_route(m)
+    let n = calculate(m)
+    let i = 1
+    while i <= n
+        let d = entry(m, i)
+        ...                       // switch d / case north / ...
+        change i to i + 1
+```
 
 The mutators are what a catalog lacks. `append v to m` grows the length by
 one, returning 1 or 0 when the matrix is full, so the policy is yours:
@@ -1037,8 +1058,11 @@ for each x in bucket
 Moving OTHER objects out of the same parent inside the body remains the
 author's own risk, as it has been on every Z-machine library.
 
-`switch`, on a number or a string, with no fall-through; a `case` may list
-several values, and `else` is the default:
+`switch`, on any value, with no fall-through; a `case` may list several
+values, and `else` is the default. A case is a compile-time value: a
+number, a string, a direction, an object, or a declared constant, so a
+stored direction switches as naturally as it compares (`switch d / case
+north`, the maze-route shape):
 
 ```
 switch reply

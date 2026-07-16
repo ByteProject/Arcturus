@@ -4350,3 +4350,23 @@ since the re-entry can fail those (the legitimate re-dispatch), and an
 re-enters the same way). Cross-action performs (unlock's open, climb's
 enter) stay silent. docs/01's perform section names the trap with the
 continue recipe. 4 new tests; suite 961.
+
+## 2026-07-16: directions in matrices ride free; switch takes any value (arcc 0.15.5)
+
+Charles Moore Jr., building maze routes and NPC patrols: thought
+directions could not go into a matrix, then hit "@get_child called with
+object 0" iterating one. Three findings. (1) Directions in matrices
+ALREADY WORK (a direction is its property number, an ordinary cell):
+append north to route, compare with `if d is north`. Documented now.
+(2) The real crash: `for each d in m` where m is a BLOCK PARAMETER falls
+through to object-tree iteration (a local cannot be told from an object
+at compile time, same documented named-in-place rule catalogs carry) --
+the matrix docs did not restate it. Documented, with the recipe:
+calculate/entry/last/dice all work on a parameter (the shared header
+makes the runtime-offset paths correct), so a helper walks by index.
+(3) Fixed for real: switch cases accepted only literal numbers and
+strings; now a case is any compile-time value -- a direction, an object,
+a declared constant -- folding through the leaf read, so `switch d /
+case north` reads like `if d is north` (the maze shape); a variable
+case stays an error with a clear message. docs/01 switch + matrix
+sections updated. 3 new tests; suite 964.

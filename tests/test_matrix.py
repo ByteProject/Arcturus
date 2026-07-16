@@ -280,6 +280,65 @@ def test_2d_literal_index_out_of_range_is_a_compile_error():
     assert "3 by 3" in _err(src)
 
 
+# -- directions as cells, and the parameter recipe (a field case) ------------
+
+def test_directions_store_and_iterate():
+    # A direction is its property number, an ordinary matrix cell: a maze
+    # route or a patrol path appends and reads directions directly.
+    out = _probe(
+        '    append north to m\n'
+        '    append east to m\n'
+        '    for each d in m\n'
+        '        if d is north\n'
+        '            show("N")\n'
+        '        if d is east\n'
+        '            show("E")\n'
+        '    say " len=${calculate(m)}"\n',
+        extra='matrix m capacity 4\n')
+    assert "NE len=2" in out
+
+
+def test_directions_switch_as_cases():
+    # switch on a stored direction: a case is any compile-time value, so
+    # `case north` folds like `if d is north` (the maze-route shape).
+    out = _probe(
+        '    append up to m\n'
+        '    let d = entry(m, 1)\n'
+        '    switch d\n'
+        '        case north\n'
+        '            say "N"\n'
+        '        case up\n'
+        '            say "U"\n'
+        '        else\n'
+        '            say "?"\n',
+        extra='matrix m capacity 4\n')
+    assert "U" in out.split(">probe")[-1]
+
+
+def test_matrix_parameter_walks_by_index():
+    # A matrix passes to a block as its offset; calculate/entry work on the
+    # parameter, so a shared helper walks it by index. (`for each` needs the
+    # matrix named in place; over a parameter it would walk the object tree,
+    # the field bug.)
+    src = HEAD + (
+        'matrix route capacity 4\n    2\n    5\n'
+        'matrix patrol capacity 4\n    7\n'
+        'block total(m)\n'
+        '    let n = calculate(m)\n'
+        '    let s = 0\n'
+        '    let i = 1\n'
+        '    while i <= n\n'
+        '        change s to s + entry(m, i)\n'
+        '        change i to i + 1\n'
+        '    return s\n'
+        'verb "probe"\n    probe\n'
+        'on probe\n'
+        '    say "r=${total(route)} p=${total(patrol)}"\n'
+    )
+    out = _run(_build(src), ["probe"])
+    assert "r=7 p=7" in out
+
+
 # -- pay-for-use: un-summoned, zero bytes ------------------------------------
 
 def test_unsummoned_program_is_byte_identical():

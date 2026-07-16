@@ -28,7 +28,7 @@ import sys
 from . import ast
 from . import storyfile
 from . import worldmodel as wm
-from .assembler import Const, Routine, Variable, RoutineRef, StringRef, STACK
+from .assembler import Const, Routine, Variable, RoutineRef, StringRef, STACK, VAR
 from .errors import ArcError
 from .objects import REACT_PROP
 from .prelude import _DIRECTIONS, _ZCOLOURS
@@ -2905,12 +2905,29 @@ def _switch(rt, ctx, s: ast.Switch):
         body_l = ctx.new_label()
         nxt = ctx.new_label()
         for v in case.values:
-            if not isinstance(v, ast.Number):
+            # A case is any compile-time value: a number, a direction (its
+            # property number), an object, or a constant. They all fold to
+            # constants through the leaf read, so `switch d / case north`
+            # reads as naturally as `if d is north` (a maze route or a
+            # patrol's next move, the field shape). Strings would need the
+            # dictionary.
+            op = None
+            if isinstance(v, ast.Number):
+                op = Const(v.value)
+            elif _is_leaf(ctx, v):
+                cand = _leaf_operand(ctx, v)
+                # A constant operand only (SMALL/LARGE, no fixup riding it):
+                # a local or global leaf is not a compile-time case value.
+                if cand.kind != VAR and cand.routine is None and cand.string is None:
+                    op = cand
+            if op is None:
                 raise LowerError(
-                    "string switches need the dictionary (B4.4)",
+                    "a case must be a compile-time value: a number, a "
+                    "direction, an object, or a constant (string cases need "
+                    "the dictionary)",
                     getattr(v, "line", s.line),
                 )
-            rt.op("je", Variable(t), Const(v.value), branch=(body_l, True))
+            rt.op("je", Variable(t), op, branch=(body_l, True))
         rt.jump(nxt)
         rt.label(body_l)
         compile_block(rt, ctx, case.body)
