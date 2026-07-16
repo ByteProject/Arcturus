@@ -4420,3 +4420,17 @@ interpreters are in the making; the language-agnostic parser with
 ejectable language granules. What's new trimmed to the agreed five
 (catalogs and SWIM/TRANSCRIPT retired; kinds, matrices, vary,
 arc_image-retro, perform+appearance stay). Suite 974 at 1.0.0.
+
+## 2026-07-17: put and insert honor alter, the receiver's report speaks (Cosmos 1.0.1)
+
+Charles Moore Jr.: "any_alter() doesn't seem to be reaching a SECOND
+I've added an alter block to." Root: PUT and INSERT were the only
+success paths in the library whose report sites lacked the alter dance
+-- three bare msg_done sites (put-on-supporter, put-in-container,
+insert-in-container). A receiver's handler (on put noun in self, the
+second-noun dispatch) registered its report and continued; the default
+put succeeded and spoke msg_done over it. All three sites now carry
+`if any_alter is 1 / if altered is 0 / msg_done / else run_alter`,
+folded behind any_alter as everywhere: games without alter are
+byte-identical (only the alter example's ceiling moved, +40, dated).
+2 new tests (receiver container, supporter); suite 977.

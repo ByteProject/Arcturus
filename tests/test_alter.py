@@ -160,3 +160,51 @@ def test_alter_with_continue_stays_quiet(capsys):
     )
     analyze(cosmos.combined_program(parse(game)))
     assert "alters but never continues" not in capsys.readouterr().err
+
+
+# PUT and INSERT were the only success paths without the alter dance (a field
+# report: an alter on the SECOND, the receiving container, registered and then
+# msg_done spoke over it). The receiver's report must fire on success.
+def test_alter_on_the_receiving_container_fires_for_put():
+    game = (
+        'game\n    title "T"\n    start shrine\n'
+        'room shrine\n    name "Shrine"\n    desc "Quiet."\n'
+        'thing coin in shrine\n    name "coin"\n    words coin\n'
+        'thing bowl of container in shrine\n    name "offering bowl"\n'
+        '    words bowl, offering\n    open\n    fixed\n'
+        '    on put noun in self\n'
+        '        alter "The coin rings against the brass."\n'
+        '        continue\n'
+    )
+    from arcturus import cosmos as _c
+    story = generate(analyze(_c.combined_program(parse(game))))
+    io = CaptureIO(script=["take coin", "put coin in bowl", "look"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text.split(">put")[-1]
+    assert "The coin rings against the brass." in out
+    assert "Done." not in out.split("\n\n")[0]   # the report replaced msg_done
+
+
+def test_alter_on_a_supporter_fires_for_put_on():
+    game = (
+        'game\n    title "T"\n    start shrine\n'
+        'room shrine\n    name "Shrine"\n    desc "Quiet."\n'
+        'thing candle in shrine\n    name "candle"\n    words candle\n'
+        'thing altar of supporter in shrine\n    name "altar"\n    words altar\n'
+        '    fixed\n'
+        '    on put noun in self\n'
+        '        alter "The candle takes its place among the wax ghosts."\n'
+        '        continue\n'
+    )
+    from arcturus import cosmos as _c
+    story = generate(analyze(_c.combined_program(parse(game))))
+    io = CaptureIO(script=["take candle", "put candle on altar"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text.split(">put")[-1]
+    assert "wax ghosts" in out

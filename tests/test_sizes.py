@@ -30,7 +30,7 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
 CEILINGS = {
     "features/beyond.storyarc": 17744,  # 2026-07-16 player-beyond: the property points both ways; the example gains the delivery-yard vignette
-    "features/alter.storyarc": 16340,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/alter.storyarc": 16380,  # 2026-07-17 put/insert success sites gain the alter dance (any_alter-folded; only alter games pay)
     "features/catalogs.storyarc": 16332,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
     "features/matrix.storyarc": 16696,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
     "features/direction-grammar.storyarc": 16436,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
