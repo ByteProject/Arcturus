@@ -61,6 +61,16 @@ not.
   standard verb words and grammar, and every message shown to the player). A
   translation is a fork of this file alone; `arcc --eject-language` writes it out
   (section 8, docs/05).
+
+  **Your game's voice.** The default messages carry one deliberate voice:
+  quick, dry, a little amused. That is a feature, not an accident, and it is
+  meant to be REPLACED as much as enjoyed: for a real game with its own
+  register (a horror piece, a period drama), the intended first move is
+  `arcc --eject-language`, which writes the whole voice as one file beside
+  your story; fork it and every line is yours. Overriding a single `msg_`
+  block is the other tool, for when the stock tone suits you and a few lines
+  need adjusting. Both are ordinary Arcturus source; neither touches the
+  parser.
 - `actions.prelude` holds the **standard action handlers**, the behaviour behind
   each verb. It is language-agnostic: no words, no wording, only logic that works
   on the normalized slots the parser fills (`noun`, `second`, `way`, the action),
