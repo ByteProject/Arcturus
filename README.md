@@ -18,16 +18,15 @@ does, with nothing to install. The standard library, **Cosmos**, is written in
 Arcturus itself and ships as editable source rather than a black box.
 
 Arcturus compiles to highly optimized Z-code that performs well on classic
-8-bit hardware, and at the same time carries advanced features that Inform 6
-and ZIL never had, the kind otherwise known only from modern systems like
-Dialog and Inform 7: self-varying prose, computed exits, a knowledge model
-for containers, kinds without a practical ceiling, a conversation model.
-This is possible because the compiler is multi-pass rather than one-pass (a
-structural advantage over the Inform 6 compiler): it sees the whole program,
-folds unused features away at compile time, and applies strict dead-code
-elimination, so every build is trimmed to exactly what the game uses. The
-same modularity runs through the library: optional features are granules a
-game summons, present only where wanted, costing nothing where not.
+8-bit hardware, and at the same time brings authoring comforts to the
+platform that Inform 6 and ZIL do not offer, the kind known from modern
+systems like Dialog and Inform 7: self-varying prose (`vary`), a knowledge
+model for containers, reach modeling with the `beyond` property, invisible
+per-site state the compiler manages for you. The compiler is multi-pass
+rather than one-pass, a structural advantage over the Inform 6 compiler: it
+sees the whole program, folds unused features away at compile time, and
+applies strict dead-code elimination, so a build carries only what the game
+actually uses.
 
 Arcturus games can carry **images** in z5 and z8 story files while staying
 fully standard-compliant. The trick is honest: pictures ride an extension
@@ -94,8 +93,7 @@ it, override any behavior, and reshape it to your game rather than work around a
 black box. Optional and specialized features are granules you summon, present only
 where a game wants them and costing nothing where it does not. And because
 Arcturus owns its whole pipeline (the compiler, the library, and the interpreter),
-it can be this expressive and still compile small, with whole-program optimization
-trimming every build to exactly what the game uses.
+it can be this expressive and still compile small.
 
 ## What's new
 
