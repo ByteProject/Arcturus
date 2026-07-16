@@ -1,0 +1,141 @@
+// handlers.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for handlers (docs/01 section 12), the heart of Arcturus
+// behavior. One mechanism covers what other systems split across rulebooks
+// and daemons: a handler lives on an object, a kind, a room, or free at file
+// level, and an action walks that chain most specific first - the noun, the
+// SECOND object (a gift's recipient answers for itself), the room, the free
+// rules, and last the library default. Ending a handler consumes the action;
+// `continue` passes it up the chain; `on after` runs once the action has
+// really happened; `on other` and `on after other` are the catch-alls of
+// their two phases. Compile and run:
+//
+//   arcc examples/features/handlers.storyarc -o clockmaker.z5
+//   frotz clockmaker.z5
+//
+// TRY: listen to regulator (an instance handler that CONTINUES to its kind's)
+//      / listen to carriage clock (the kind default alone) / take carriage
+//      clock (a `when` guard refuses while unpaid) / push regulator (an
+//      object's on-other catch-all) / north (the room guards its exit) /
+//      give coin to clockmaker (the RECIPIENT's own handler answers) / take
+//      carriage clock / north (both now allowed) / sing (a free rule) /
+//      south (watch the after handlers speak after every completed action)
+
+game
+    title "The Clockmaker"
+    headline "A handlers showcase"
+    author "Stefan Vogt"
+    start shop
+
+summon.statusline
+
+// A kind handler is every instance's default: each clock in the game
+// answers LISTEN with this unless it says otherwise.
+kind clock
+    on listen
+        say "Tick. Tock. The patient arithmetic of brass."
+
+room shop
+    name "The Tick-Tock Emporium"
+    desc "Clocks cover every wall, disagreeing politely about the minute.
+          The clockmaker works at his bench, and a doorway leads north into
+          the workshop."
+    north workshop
+
+    // A room handler sees any action performed in it. This one guards its
+    // own exit: `on go north` with a `when` guard fires only while the
+    // condition holds, and otherwise the chain falls through to the normal
+    // move. `stop` inside the body consumes the action: no movement.
+    on go north when clockmaker is not paid
+        change refused to 1
+        say "The clockmaker clears his throat, one eyebrow aimed at the
+             doorway. Customers pay before they wander."
+        stop
+
+    // `on after other`: the after phase's catch-all. It runs AFTER any
+    // completed action in this room that has no specific `on after` of its
+    // own; a refused action never triggers it.
+    on after other
+        say "The clockmaker watches you over his spectacles, pretending
+             not to."
+
+room workshop
+    name "Workshop"
+    desc "Half-built clocks sleep under dust sheets. The shop is south."
+    south shop
+
+    // A life-cycle event, not a verb: `on enter` on a ROOM fires when the
+    // player arrives (walking continues; every hook runs).
+    on enter
+        say "The workshop smells of oil and patience."
+
+thing regulator of clock in shop
+    name "wall regulator"
+    words regulator, wall
+    desc "The shop's master clock, bolted to the wall."
+    fixed
+
+    // An instance handler overrides its kind's. Ending with `continue`
+    // passes the action UP the chain, so the kind's listen runs too: both
+    // lines print, the chain made audible.
+    on listen
+        say "The regulator's tick is a shade slower than your heartbeat."
+        continue
+
+    // `on other`: the object's own catch-all, for any verb it has no
+    // specific handler for. Examine keeps its default; push, pull, attack
+    // and friends all land here.
+    on other
+        say "The regulator is bolted to the wall, and bolted to its
+             dignity."
+
+thing carriage of clock in shop
+    name "carriage clock"
+    words carriage, clock
+    desc "A travelling clock with a brass handle, priced at exactly one
+          coin."
+
+    // A `when` guard on an ordinary verb: while the condition holds this
+    // handler answers (and consumes); once it fails, the chain falls
+    // through to the library's default take. A handler that REFUSES marks
+    // the turn refused, which is what keeps the after phase silent: without
+    // that line, `on after take` below would speak over this refusal.
+    on take when clockmaker is not paid
+        change refused to 1
+        say "The clockmaker's eyes never leave you. One coin, first."
+        stop
+
+    // `on after take` fires once the take has REALLY happened: the guard
+    // above no longer holds, the default take ran, and then this speaks.
+    on after take
+        say "The carriage clock ticks against your palm, keeping your
+             pulse now."
+
+thing coin in shop
+    name "silver coin"
+    words coin, silver
+    desc "One honest coin."
+
+thing clockmaker of character in shop
+    name "clockmaker"
+    words clockmaker, maker
+    desc "He has the stillness of a man who thinks in escapements."
+    paid false
+
+    // The SECOND object answers too: for a two-noun action the recipient's
+    // handlers run right after the noun's, so a character decides for
+    // itself what it accepts. GIVE COIN TO CLOCKMAKER lands here, on the
+    // clockmaker, with the coin as `noun`.
+    on give coin
+        move coin to self
+        now self is paid
+        say "He weighs the coin once and makes it disappear. \"The
+             carriage clock, then. And the workshop is open to you.\""
+
+// A free-standing rule: no owner, file level, part of the same chain (after
+// the room, before the library default). This one answers SING anywhere.
+on sing
+    say "Every clock in the room loses a beat, then forgives you."
