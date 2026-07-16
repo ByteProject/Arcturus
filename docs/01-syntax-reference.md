@@ -1091,6 +1091,20 @@ object) used with `is` is a compile-time clash to rename.
 
 Logic: `and`, `or`, `not`, short-circuiting.
 Property read with the dot, chainable: `ruby.value`, `hallway.north.name`.
+The name after the dot is fixed at compile time; to read a property CHOSEN
+AT RUN TIME, parenthesize an expression that yields it: `here.(way)` reads
+the exit in the direction the player chose. (A bare `here.way` does not
+work, and the reason teaches the form: it would look up a property
+literally named "way", and no such property exists. `way` is the global
+holding the chosen direction, a direction IS its property, and the
+parentheses say "evaluate this, then read the property it names".) The form
+takes any property-valued expression, so a block can receive a direction as
+a parameter and probe it: `if here.(dir) is nothing`. For the common
+question behind all this, WHICH ROOM LIES THAT WAY, there is also the total
+form `exit_dest(here, way)`: it reads the exit and, when a computed exit
+block stands there (02, section 11a), runs it and returns the room it
+allows, folding to the plain read in a game with no computed exit. Prefer
+it when your game computes exits; otherwise the two are the same read.
 An `is` comparison distributes over `or` when the extra operands are bare
 values: `if way is aft or north` means `way is aft or way is north`, and
 chains extend it (`aft or north or up`). The negated form means NEITHER:
@@ -1604,8 +1618,10 @@ and ends with `continue` climbs to the kind, the room, and the defaults; it
 does not fall into the same object's `on other`, so `on look / continue`
 reads as "pass look through untouched". Inside a `go` handler, `way` holds
 the chosen direction and a bare direction name is comparable against it
-(`if way is not north`), for rules that treat one direction differently.
-The full dispatch chain is defined in 02, section 9.
+(`if way is not north`), for rules that treat one direction differently;
+`here.(way)` reads the exit that direction names, the room the move would
+reach (section 9, the run-time property read). The full dispatch chain is
+defined in 02, section 9.
 
 Free-standing rules. A handler at file level belongs to no object: it joins
 the chain after the rooms and before the library defaults, so it is the
