@@ -1378,9 +1378,32 @@ are entry points the engine fires.
 
 ## 12. Handlers and events
 
-A handler runs when its event fires. Handlers live inside an object or kind
-body, where `self` is that object, or as free-standing top-level rules naming
-their object.
+Handlers are the heart of Arcturus behavior. Everything a game DOES beyond
+the library defaults - a door that argues, a character that accepts one gift
+and refuses another, a room that guards its own exit - is a handler, and it
+is ONE mechanism, not a collection of special cases: the same `on` syntax,
+the same resolution, wherever it lives.
+
+A handler lives in four places, and together they form the dispatch chain.
+When an action fires, Cosmos walks the chain most specific first, and the
+first handler that consumes the action ends the walk:
+
+1. The NOUN's handlers: the acted-on object's own `on take`, then its
+   kind's, up the kind chain.
+2. The SECOND object's handlers, for a two-noun action: the recipient of a
+   give, the container of a put, answers for itself right after the noun
+   (see "The second object answers too", below).
+3. The ROOM's handlers: the room the player is in, then its room kind's.
+4. The free-standing rules, at file level, and last of all the library's
+   own default for the verb.
+
+Ending a handler consumes the action; `continue` declines it and the walk
+resumes where it left off, so a handler can add its lines and still let the
+normal thing happen. `on after <verb>` is the same chain again, run once
+the action has really completed. That is the whole model; the rest of this
+section is its vocabulary. A complete worked game exercising every form is
+[examples/features/handlers.storyarc](../examples/features/handlers.storyarc),
+and the precise ordering is 02, section 9.
 
 Action handlers match a verb and its objects:
 
@@ -1435,6 +1458,28 @@ thing haystack of container in farm
 In a kind body `self` means each instance, so every barrel of a kind guards
 its own number. A free-standing rule has no enclosure and names its object
 instead; writing `self` there is a compile error that says so.
+
+The second object answers too. For a two-noun action, the SECOND object's
+handlers run right after the noun's: the recipient of a give or show, the
+container of a put, decides for itself what it accepts. So a character's
+acceptance logic lives on the character, written once, with the given thing
+as `noun`:
+
+```
+thing clockmaker of character in shop
+    ...
+    on give coin            // GIVE COIN TO CLOCKMAKER lands here
+        move coin to self
+        now self is paid
+        say "He makes the coin disappear."
+```
+
+The handler sits on the clockmaker, not on the coin and not free-floating:
+whoever is offered something answers for it. An unpatterned `on give` on a
+character catches every gift; the pattern narrows it to the coin, and a
+`when` guard narrows it by state. What the recipient does not consume falls
+through to the noun's own handlers' verdicts and the library default (a
+character politely declines by default).
 
 One handler may answer several verbs at once, by listing the verbs separated
 by commas, so a shared response is written once:
@@ -1561,6 +1606,15 @@ reads as "pass look through untouched". Inside a `go` handler, `way` holds
 the chosen direction and a bare direction name is comparable against it
 (`if way is not north`), for rules that treat one direction differently.
 The full dispatch chain is defined in 02, section 9.
+
+Free-standing rules. A handler at file level belongs to no object: it joins
+the chain after the rooms and before the library defaults, so it is the
+game-wide layer, the place for behavior that is about the STORY rather than
+any one thing. `on sing / say "Every clock loses a beat."` answers SING
+anywhere; add a `when` guard and it becomes a scene rule, awake only while
+its condition holds. A free rule consumes and continues like any other, and
+a free `on <verb>` is also how a story overrides a library default wholesale
+(the library's own defaults are just the last free rules in the chain).
 
 Life-cycle events. Besides the action events named by verbs, Cosmos fires three
 events as the game runs, handled with the same `on` syntax:

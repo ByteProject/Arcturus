@@ -4289,3 +4289,27 @@ handler section and docs/02 s.9 step 6 rewritten (docs previously said
 catch-all did not exist; now it does, properly). 7 new tests; suite
 956. NEXT per Stefan: the dedicated handlers example + richer handler
 docs now unblocked.
+
+## 2026-07-16: handlers presented as the heart, not a byproduct
+
+Stefan's directive after the after-other fix: handlers are Arcturus's
+real strength (the general feedback) and were documented too thin, with
+no dedicated example. Two deliverables. (1) docs/01 section 12 rebuilt
+around the mental model: a new opening that leads with the DISPATCH
+CHAIN (noun -> second/recipient -> room -> free rules -> library
+default, continue as the thread) instead of diving into header syntax;
+a new "The second object answers too" subsection finally documenting
+the recipient dispatch in the language reference (it existed since the
+recipient work and was only in docs/02 s.9); a free-standing-rules
+paragraph (the game-wide layer, scene rules via when, overriding
+library defaults). (2) examples/features/handlers.storyarc, "The
+Clockmaker": a fresh two-room scene exercising every form in one
+playthrough - kind default, instance override with continue (the chain
+made audible: both listen lines print), when-guarded take and go with
+proper `change refused to 1` (the example itself first forgot it and
+on after take spoke over the refusal - kept as a teaching comment),
+object on-other, room on-after-other (the freshly fixed catch-all,
+watching over spectacles), recipient on give coin, specific on after
+take shadowing the catch-all, a free on sing, and the on enter arrival
+event. Verified end to end on the VM; in the size gate (16536). Suite
+957. No compiler or Cosmos change, no version bump.
