@@ -4331,3 +4331,22 @@ folds to the plain read otherwise -- previously only in docs/04, now
 author-facing in 01 s.9 and 02 s.11a, with a pointer from the handler
 section where `way` is introduced. Verified both claims compile-side
 and play-side before writing them. Docs only; no version bump.
+
+## 2026-07-16: the self-perform loop, named at compile time (arcc 0.15.4)
+
+Charles Moore Jr.: perform("burn", noun, second) "just dies with a
+command prompt". Two-noun perform itself is fine (tested; his earlier
+alter-clobber was the last real perform bug). The reproduction: his
+`on burn` CALLS perform("burn", ...) expecting the library default, the
+Inform <<burn>> mental model -- but perform is by design the FULL
+pipeline, this handler included, so the unguarded self-perform
+dispatches back into itself forever (3M steps in the VM harness; a real
+interpreter hangs or dies to the prompt, his symptom). The Arcturus
+word for "my checks ran, now do the normal thing" is `continue`. Added
+_lint_self_perform: a compile note on the unguarded shape (no when, no
+operand pattern) naming the cure; a `when` guard or pattern exempts it,
+since the re-entry can fail those (the legitimate re-dispatch), and an
+`on after <verb>` performing its own verb notes too (its after pass
+re-enters the same way). Cross-action performs (unlock's open, climb's
+enter) stay silent. docs/01's perform section names the trap with the
+continue recipe. 4 new tests; suite 961.
