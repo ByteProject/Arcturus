@@ -4399,3 +4399,24 @@ mutate avoids immediate repeats by shifting one place on a re-roll
 collision (uniform over the others, branch-cheap). docs/01 section 16
 (the vary subsection with the context examples), Appendix A, README
 What's new, VSCode highlighting. 10 new tests; suite 974.
+
+## 2026-07-16: the 1.x era (arcc 1.0.0, Cosmos 1.0.0, VSIX 1.0.0)
+
+Stefan's ruling with the vary announcement: the language has matured
+into 1.x. arcc 0.16.0 -> 1.0.0, Cosmos 0.41.0 -> 1.0.0; the VSCode
+extension, stuck at 0.13.4 through every language addition, rebuilt as
+arcturus-1.0.0.vsix (manifest + package bumped, the current grammar
+with vary/matrix/sequence/mutate/loop inside). README reshaped for the
+era: the wiki promise removed (the docs ARE the documentation); the
+intro now states the positioning plainly -- highly optimized Z-code for
+classic 8-bit hardware WITH the advanced features Inform 6 and ZIL
+never had (self-varying prose, computed exits, container knowledge,
+kinds without a practical ceiling), possible because the compiler is
+multi-pass with whole-program folding and strict DCE; standard-
+compliant images in z5/z8 with the honest trick explained (ignored
+extension opcode + capability flag only picture-aware interpreters
+raise); Actaea plays v5/v8 with images today and retro arc_image
+interpreters are in the making; the language-agnostic parser with
+ejectable language granules. What's new trimmed to the agreed five
+(catalogs and SWIM/TRANSCRIPT retired; kinds, matrices, vary,
+arc_image-retro, perform+appearance stay). Suite 974 at 1.0.0.
