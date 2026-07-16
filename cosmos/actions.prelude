@@ -625,6 +625,31 @@ on unlock
     else
         msg_unlocked
 
+// The success report for boarding (enter) and leaving (exit). The WORLD-MODEL
+// choice, on a supporter versus in a container, is made here; the WORDING lives
+// in the language layer (msg_get_on / msg_get_in / msg_get_off / msg_get_out).
+// An `alter` report the object registered fires instead of the default, exactly
+// as the other action reports do. `noun` is the thing boarded or left.
+block board_report()
+    if any_alter is 1
+        if altered is not 0
+            run_alter
+            return 0
+    if noun is supporter
+        msg_get_on
+    else
+        msg_get_in
+
+block leave_report()
+    if any_alter is 1
+        if altered is not 0
+            run_alter
+            return 0
+    if noun is supporter
+        msg_get_off
+    else
+        msg_get_out
+
 on enter
     if noun is nothing
         change refused to 1
@@ -638,13 +663,7 @@ on enter
         stop
     if noun is supporter
         move player to noun
-        if any_alter is 1
-            if altered is 0
-                msg_done
-            else
-                run_alter
-        else
-            msg_done
+        board_report
         stop
     if noun is container
         if noun is not open
@@ -652,13 +671,7 @@ on enter
             msg_cant_enter
             stop
         move player to noun
-        if any_alter is 1
-            if altered is 0
-                msg_done
-            else
-                run_alter
-        else
-            msg_done
+        board_report
         stop
     change refused to 1
     msg_cant_enter
@@ -666,18 +679,14 @@ on enter
 on exit
     // With a noun (the author's `exit noun` grammar, or GET OUT OF X): leave
     // that thing in particular, refusing when the player is not in it. The
-    // check folds away with nothing to be inside (any_enterable).
+    // noun path folds away with nothing to be inside (any_enterable); the bare
+    // path below is the catch-all and stays, because a supporter set as an
+    // attribute or at runtime is not seen by that compile-time estimate.
     if any_enterable is 1
         if noun is not nothing
             if player in noun
                 move player to parent_of(noun)
-                if any_alter is 1
-                    if altered is 0
-                        msg_done
-                    else
-                        run_alter
-                else
-                    msg_done
+                leave_report
                 stop
             change refused to 1
             msg_not_in_that
@@ -685,14 +694,13 @@ on exit
     if player is in here
         msg_not_inside
         stop
+    // A bare EXIT: leave whatever the player is on or in. Capture it before the
+    // move so the report can name it (get off the stool / out of the box);
+    // `noun` was nothing, so point it at the thing left.
+    let left = parent_of(player)
     move player to here
-    if any_alter is 1
-        if altered is 0
-            msg_done
-        else
-            run_alter
-    else
-        msg_done
+    change noun to left
+    leave_report
 
 on give
     if noun is nothing

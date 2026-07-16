@@ -4205,3 +4205,24 @@ extendedverbs summoned after -> "Done." not "feet"). Immediate
 workaround (summon library granules first) no longer needed. docs/01
 s.13, docs/05 s.1, combined_program docstring updated. 1 new multifile
 test; suite 937.
+
+## 2026-07-16: enter/exit report on/in vs off/out (Cosmos 0.40.0)
+
+Field request (via Charles): the flat "Done." on a successful ENTER/EXIT
+said the same for a supporter and a container. Now the report is worded
+by the world model: get ON a supporter / get INTO a container, get OFF a
+supporter / get OUT OF a container; both directions, since a game that
+says "get off the stool" but only "Done." on the way up reads lopsided
+(Stefan: do both, plain wording, movement messages were never cheeky).
+The world-model choice (supporter vs container) is made in agnostic
+board_report / leave_report (actions.prelude); the wording is four new
+language-layer blocks (msg_get_on / msg_get_in / msg_get_off /
+msg_get_out) in all three packs (German with cases: auf/in Akkusativ,
+von/aus Dativ; Spanish flagged for Pablo on the de+el contraction). The
+bare EXIT captures the thing left before the move and points noun at it
+so the report can name it. NOT gated on any_enterable: that estimate is
+kind-only and misses supporter/container set as a bare attribute or at
+runtime, so gating it (my first cut) broke boarding those; the report
+blocks are always compiled instead, ~156 bytes/game, all ceilings
+raised with a dated note. 4 new tests + updated get-idioms/perform/
+multifile assertions; suite 941.

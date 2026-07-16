@@ -1244,6 +1244,20 @@ block msg_already_there()
 block msg_not_inside()
     say "No estás dentro de nada."
 
+// Subir/bajar (soporte) y meterse/salir (contenedor), de board_report /
+// leave_report. (Para revisión de Pablo: la contracción de+el = del.)
+block msg_get_on()
+    say "Te subes a ${the noun}."
+
+block msg_get_in()
+    say "Te metes en ${the noun}."
+
+block msg_get_off()
+    say "Te bajas de ${the noun}."
+
+block msg_get_out()
+    say "Sales de ${the noun}."
+
 block msg_cant_climb()
     if any_pluribus is 1
         if noun is pluribus

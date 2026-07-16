@@ -66,12 +66,12 @@ def test_get_in_and_into_are_enter():
 
 def test_get_on_is_enter():
     # A supporter: boarding it is the default enter.
-    assert "Done." in _reply(["get on cart"])
+    assert "You get on" in _reply(["get on cart"])
 
 
 def test_get_out_of_and_get_off_are_exit():
-    assert "Done." in _reply(["get in box", "get out of box"])
-    assert "Done." in _reply(["get on cart", "get off cart"])
+    assert "You get out of" in _reply(["get in box", "get out of box"])
+    assert "You get off" in _reply(["get on cart", "get off cart"])
 
 
 def test_bare_get_up_and_down_walk():
@@ -94,8 +94,8 @@ def test_bare_get_out_while_nested_is_exit():
     # getting off it, never a walk (the adopter's crate answered "There's
     # no exit in that direction"). Un-nested, the walk stays a walk (the
     # test above covers it).
-    assert "Done." in _reply(["get in box", "get out"])
-    assert "Done." in _reply(["get on cart", "get up"])
+    assert "You get out of" in _reply(["get in box", "get out"])
+    assert "You get off" in _reply(["get on cart", "get up"])
 
 
 def test_exit_with_a_noun_respects_it():
@@ -123,7 +123,8 @@ def test_exit_with_a_noun_respects_it():
     ).stdout
     assert "You aren't in that." in out          # not in it yet; and lamp
     assert out.count("You aren't in that.") == 2
-    assert out.count("Done.") == 2               # get in + the real leave
+    assert "You get into the box." in out        # get in box
+    assert "You get out of the box." in out      # the real leave
 
 
 def test_drop_lands_where_the_player_is():

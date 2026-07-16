@@ -1184,6 +1184,20 @@ block msg_already_there()
 block msg_not_inside()
     say "Du bist in nichts, aus dem du aussteigen könntest."
 
+// Auf-/Einsteigen und Ab-/Aussteigen (board_report / leave_report). auf/in mit
+// Bewegung fordern den Akkusativ, von/aus den Dativ. (Zur Durchsicht: Stefan.)
+block msg_get_on()
+    say "Du steigst auf ${the:acc noun}."
+
+block msg_get_in()
+    say "Du steigst in ${the:acc noun}."
+
+block msg_get_off()
+    say "Du steigst von ${the:dat noun} herunter."
+
+block msg_get_out()
+    say "Du steigst aus ${the:dat noun}."
+
 block msg_cant_climb()
     if any_pluribus is 1
         say "${The noun} ${is noun} nicht zum Klettern geeignet."

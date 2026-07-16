@@ -29,13 +29,13 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
 CEILINGS = {
-    "features/beyond.storyarc": 16792,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/alter.storyarc": 16216,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/catalogs.storyarc": 16176,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/matrix.storyarc": 16540,  # 2026-07-15 matrix Phase 1-2: the mutable sibling of catalog (summon.matrix), 1D + 2D showcase
-    "features/direction-grammar.storyarc": 16280,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/scenery-contents.storyarc": 16220,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "granules/nautical.storyarc": 16032,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "features/beyond.storyarc": 16948,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/alter.storyarc": 16340,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/catalogs.storyarc": 16332,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/matrix.storyarc": 16696,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/direction-grammar.storyarc": 16436,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/scenery-contents.storyarc": 16376,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "granules/nautical.storyarc": 16188,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
     # 2026-07-04 (Stefan's ruling, superseding the same day's FULL move):
     # there is NO fullscore verb; SCORE is the one score verb and reports
     # score, max, turns, and rank in one line. Pool labels stay in the
@@ -89,40 +89,40 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 22348,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "brass-lantern.storyarc": 16716,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "cloak-of-darkness.storyarc": 17672,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "ejemplo-espanol.storyarc": 21388,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/computed-properties.storyarc": 15288,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/containers.storyarc": 15584,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/daemons-and-timers.storyarc": 15600,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/doors-and-locks.storyarc": 15176,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/appearance.storyarc": 15968,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/components.storyarc": 15440,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/perform.storyarc": 15440,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/grains.storyarc": 15332,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/grammar.storyarc": 16296,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/introproperty.storyarc": 16508,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/kinds-and-inheritance.storyarc": 15136,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/on-other.storyarc": 15136,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/zcolor.storyarc": 15508,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/scoring.storyarc": 17488,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/spans.storyarc": 15328,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "features/vehicles.storyarc": 15848,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "granules/ambience.storyarc": 16620,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "granules/conversations.storyarc": 16916,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "granules/extended-verbs.storyarc": 17868,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "granules/infocom-interrogation.storyarc": 17328,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "granules/quotes.storyarc": 15508,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "granules/take-all.storyarc": 17232,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "granules/plurals.storyarc": 16164,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "granules/statusline.storyarc": 15244,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
-    "granules/verbose-exits.storyarc": 15524,  # 2026-07-15 lock/unlock redesign: wittier mechanism-agnostic messages + 2 new blocks
+    "beispiel-deutsch.storyarc": 22536,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "brass-lantern.storyarc": 16872,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "cloak-of-darkness.storyarc": 17828,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "ejemplo-espanol.storyarc": 21552,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/computed-properties.storyarc": 15444,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/containers.storyarc": 15740,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/daemons-and-timers.storyarc": 15756,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/doors-and-locks.storyarc": 15332,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/appearance.storyarc": 16124,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/components.storyarc": 15596,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/perform.storyarc": 15596,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/grains.storyarc": 15488,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/grammar.storyarc": 16452,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/introproperty.storyarc": 16664,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/kinds-and-inheritance.storyarc": 15292,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/on-other.storyarc": 15292,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/zcolor.storyarc": 15664,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/scoring.storyarc": 17644,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/spans.storyarc": 15484,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/vehicles.storyarc": 16004,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "granules/ambience.storyarc": 16776,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "granules/conversations.storyarc": 17072,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "granules/extended-verbs.storyarc": 18024,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "granules/infocom-interrogation.storyarc": 17484,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "granules/quotes.storyarc": 15664,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "granules/take-all.storyarc": 17388,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "granules/plurals.storyarc": 16320,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "granules/statusline.storyarc": 15400,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "granules/verbose-exits.storyarc": 15680,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 18176  # 2026-07-12 climb and GO ON board supporters
+CLOAK_Z8_CEILING = 18360  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

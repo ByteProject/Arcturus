@@ -90,5 +90,5 @@ def test_chapter_verb_overrides_a_granule_verb_in_any_order(tmp_path):
     except IndexError:
         pass
     out = io.text.split(">stand")[-1]
-    assert "Done." in out                          # the chapter's stand_on ran
+    assert "You get on" in out                     # the chapter's stand_on ran
     assert "already on your feet" not in out       # not the extended STAND
