@@ -28,7 +28,7 @@ certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.15.5 | [build/arcc](build/arcc) |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 0.16.0 | [build/arcc](build/arcc) |
 | **Cosmos**, the standard library | 0.41.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.1.0 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.10.0 | [build/arcimg](build/arcimg) |
@@ -121,6 +121,19 @@ The most significant recent additions and achievements:
   catalog uses. Most games never need it (Hibernated 2, Rabenstein, and Ghosts
   never did) and the docs say so plainly, but when you want the trusty array, it
   is here ([worked example](examples/features/matrix.storyarc)).
+- **vary: prose that varies by itself.** The feature authors of Inform 7 and
+  Dialog name among their favorites (`[one of]`, `(select)`), in Arcturus's
+  own readable form: `vary loop` followed by your variant lines speaks a
+  different one each time, and the policy word picks how - `sequence`
+  (advance once, stick on the last: room descriptions), `loop` (round-robin),
+  `mutate` (random, never the same twice running), `dice` (the honest roll).
+  Each site keeps one invisible word of state the compiler allocates -
+  correct across save, undo, and restart, never named by you - and a bare
+  string line is a whole variant, so the common case has zero ceremony. It
+  plugs in anywhere prose is made: a computed description, any handler, an
+  alter report, each_turn, a message override. Underneath it is a load, a
+  store, and a jump chain in native Z-machine operations, a handful of
+  instructions per site; a game that never varies is byte-identical.
 - **SWIM SOUTH parses, and TRANSCRIPT records.** A grammar line can end in a
   `direction` slot (`push noun direction`, `swim direction`), so PUSH CRATE
   WEST and SWIM SOUTH reach their handlers with the direction riding `way`,

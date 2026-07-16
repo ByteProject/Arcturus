@@ -952,9 +952,11 @@ def build_story(
         # The scheduling table base, so after/every can reach it at run time.
         sf.set_word(globals_addr + (gmap["__timers__"] - 16) * 2, timers_addr)
         # The catalog region's byte address (docs/01, catalogs); zero, and
-        # never read, in a game with no author catalogs, no spilled kind, and
-        # no matrix (all three share this region and read through this base).
-        if layout.catalogs or layout.kind_catalog or layout.matrices:
+        # never read, in a game with no author catalogs, no spilled kind, no
+        # matrix, and no stateful vary site (all of which share this region
+        # and read through this base).
+        if (layout.catalogs or layout.kind_catalog or layout.matrices
+                or getattr(world, "vary_slots", 0)):
             sf.set_word(
                 globals_addr + (gmap["__catalogs__"] - 16) * 2,
                 objects_addr + layout.catalog_region_off,

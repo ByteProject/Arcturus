@@ -565,6 +565,22 @@ class MatrixDecl:
 
 
 @dataclass
+class Vary(Stmt):
+    """vary <policy>: speak (or run) one of several variants, the site keeping
+    its own invisible state (docs/01, Output and text). Policies: sequence
+    (advance once, stick on the last), loop (round-robin), mutate (random,
+    never twice in a row), dice (honest random, repeats allowed). A variant is
+    a bare string line (an implicit say) or an `or`-opened statement group.
+    `slot` is the site's state word in the catalog region, stamped in sema;
+    None for dice, which needs no state."""
+
+    policy: str
+    variants: list = field(default_factory=list)  # list[list[Stmt]]
+    line: int = 0
+    slot: int | None = None
+
+
+@dataclass
 class MatrixOp:
     """A matrix mutator statement: append / remove / insert / clear / load.
     The target names the matrix; value/index/mode carry the operands. Lowers

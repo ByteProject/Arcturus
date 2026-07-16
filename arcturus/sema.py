@@ -1225,6 +1225,16 @@ class Analyzer:
         elif isinstance(s, ast.While):
             self._check_condition(s.cond, locals_, s.line)
             self._check_body(s.body, locals_)
+        elif isinstance(s, ast.Vary):
+            # Stamp the site's state slot: one word in the catalog region for
+            # a stateful policy (sequence/loop hold a counter, mutate the last
+            # pick); dice rolls fresh every time and carries nothing. Stamped
+            # once (a body is only checked once, but be safe on reentry).
+            if s.policy != "dice" and s.slot is None:
+                s.slot = self.world.vary_slots
+                self.world.vary_slots += 1
+            for variant in s.variants:
+                self._check_body(variant, locals_)
         elif isinstance(s, ast.ForEach):
             self._check_expr(s.source, locals_)
             inner = set(locals_)

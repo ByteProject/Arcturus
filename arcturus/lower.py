@@ -1884,6 +1884,8 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
     elif isinstance(s, ast.MatrixOp):
         # A mutator as a statement: run it and discard the success flag.
         _matrix_op(rt, ctx, s, None)
+    elif isinstance(s, ast.Vary):
+        _vary(rt, ctx, s)
     elif isinstance(s, ast.Award):
         _award(rt, ctx, s)
     elif isinstance(s, ast.Bump):
@@ -2050,6 +2052,78 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
     else:
         raise LowerError("unsupported statement in B4.2", getattr(s, "line", 0))
     return False  # the statement falls through to whatever follows
+
+
+def _vary(rt, ctx, s: ast.Vary):
+    """vary <policy> (docs/01, Output and text): run ONE of the variants, the
+    site keeping a single word of invisible state in the catalog region (its
+    slot was stamped in sema; dice keeps none). The state is ordinary dynamic
+    memory, so a site's progress rides saves, undo, and restart for free.
+    Policies: sequence advances once and sticks on the last; loop wraps;
+    mutate rolls 1..n and shifts by one on an immediate repeat (never the
+    same twice running); dice is the honest roll. The dispatch is the same
+    je-chain a switch compiles to; per site this is a handful of
+    instructions and one loadw/storew, nothing more."""
+    n = len(s.variants)
+    base = _catalog_base(ctx)
+    off = None
+    if s.slot is not None:
+        if ctx.layout is None:
+            raise LowerError("vary needs the story layout", s.line)
+        off = ctx.layout.vary_off + s.slot
+    end = ctx.new_label()
+    labels = [ctx.new_label() for _ in range(n)]
+    k = ctx.alloc_temp()
+    if s.policy == "sequence":
+        # k = the counter; advance it until the last variant, then stick.
+        rt.op("loadw", base, Const(off), store=Variable(k))
+        stick = ctx.new_label()
+        rt.op("jg", Variable(k), Const(n - 2), branch=(stick, True))
+        tmp = ctx.alloc_temp()
+        rt.op("add", Variable(k), Const(1), store=Variable(tmp))
+        rt.op("storew", base, Const(off), Variable(tmp))
+        ctx.free_temp(tmp)
+        rt.label(stick)
+    elif s.policy == "loop":
+        # k = the counter; the stored successor wraps round-robin.
+        rt.op("loadw", base, Const(off), store=Variable(k))
+        tmp = ctx.alloc_temp()
+        rt.op("add", Variable(k), Const(1), store=Variable(tmp))
+        wrapped = ctx.new_label()
+        rt.op("jl", Variable(tmp), Const(n), branch=(wrapped, True))
+        rt.op("store", Const(tmp), Const(0))
+        rt.label(wrapped)
+        rt.op("storew", base, Const(off), Variable(tmp))
+        ctx.free_temp(tmp)
+    elif s.policy == "mutate":
+        # The state is the LAST pick, 1-based (0 = none yet). Roll 1..n; on
+        # an immediate repeat shift one place round the circle, so the line
+        # is never the same twice running and every other variant stays
+        # equally likely.
+        last = ctx.alloc_temp()
+        rt.op("loadw", base, Const(off), store=Variable(last))
+        rt.op("random", Const(n), store=Variable(k))
+        fresh = ctx.new_label()
+        rt.op("je", Variable(k), Variable(last), branch=(fresh, False))
+        rt.op("mod", Variable(k), Const(n), store=Variable(k))
+        rt.op("add", Variable(k), Const(1), store=Variable(k))
+        rt.label(fresh)
+        rt.op("storew", base, Const(off), Variable(k))
+        rt.op("sub", Variable(k), Const(1), store=Variable(k))
+        ctx.free_temp(last)
+    else:  # dice: the honest roll, stateless
+        rt.op("random", Const(n), store=Variable(k))
+        rt.op("sub", Variable(k), Const(1), store=Variable(k))
+    for i in range(n - 1):
+        rt.op("je", Variable(k), Const(i), branch=(labels[i], True))
+    rt.jump(labels[n - 1])
+    ctx.free_temp(k)
+    for i, variant in enumerate(s.variants):
+        rt.label(labels[i])
+        transferred = compile_block(rt, ctx, variant)
+        if i != n - 1 and not transferred:
+            rt.jump(end)
+    rt.label(end)
 
 
 def _matrix_op(rt, ctx, s, dest):
