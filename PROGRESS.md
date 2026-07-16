@@ -4313,3 +4313,21 @@ watching over spectacles), recipient on give coin, specific on after
 take shadowing the catch-all, a free on sing, and the on enter arrival
 event. Verified end to end on the VM; in the size gate (16536). Suite
 957. No compiler or Cosmos change, no version bump.
+
+## 2026-07-16: the run-time property read documented (here.(way))
+
+Charles Moore Jr.'s documentation request: he lost time discovering
+that `here.way` does not work while `here.(way)` does, for the common
+"which room lies that way" test. He was right that it was undocumented:
+the form appeared exactly once in docs/01, inside a block example,
+never explained. Now docs/01 section 9 teaches it next to the plain dot
+read: the dot's name is fixed at compile time, the parenthesized form
+evaluates an expression and reads the property it names, and the reason
+`here.way` fails is part of the lesson (it would look up a property
+literally named "way"; the error says "cannot read property 'way' as a
+value"). The recipe also points at the TOTAL form, exit_dest(here,
+way), which runs a computed exit's block when one stands there and
+folds to the plain read otherwise -- previously only in docs/04, now
+author-facing in 01 s.9 and 02 s.11a, with a pointer from the handler
+section where `way` is introduced. Verified both claims compile-side
+and play-side before writing them. Docs only; no version bump.

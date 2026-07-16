@@ -836,6 +836,11 @@ specific to least, with no per-room boilerplate required:
    Because Cosmos reads every live direction to list exits (see
    `verbose_exits` in section 14), direction blocks must be free of side
    effects: reading an exit may happen more than once per turn.
+
+   A story reads an exit the same total way Cosmos does, with
+   `exit_dest(room, direction)`: it returns the destination, running a
+   computed exit's block when one stands there, and folds to a plain
+   property read (`here.(way)`, 01 section 9) in a game with none.
 3. A per-direction override: `on go <direction>` runs custom logic or a custom
    message for one direction, as the Cloak of Darkness foyer does for north.
    Ending the handler consumes the action; `continue` falls through to the
