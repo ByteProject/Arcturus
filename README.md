@@ -19,34 +19,12 @@ Arcturus itself and ships as editable source rather than a black box.
 
 Arcturus compiles to highly optimized Z-code that performs well on classic
 8-bit hardware, and at the same time modernizes the platform's authoring.
-Some of its comforts the platform otherwise knows only from modern systems:
-self-varying prose (`vary`, with every site's state managed invisibly by
-the compiler) as Inform 7 and Dialog have it, or reach modeling (the
-`beyond` property), a concept otherwise found in Dialog alone. And some
-exist in no other system at all: the knowledge model for containers, where
-the game tracks what the player has actually SEEN and words itself
-accordingly, or catalogs, ordered tables with list power and not a byte of
-heap behind them.
-
-The compiler itself is a structural advantage over the whole ZIL and Inform
-lineage: arcc is a whole-program, multi-pass compiler. It sees game and
-library at once, folds unused features away at compile time, and applies
-strict dead-code elimination, so a build carries only what the game
-actually uses, provably, byte for byte. ZILCH, Inform 6, and ZILF compile
-what they are given, and Inform 7 emits through the Inform 6 compiler,
-inheriting the same shape. Dialog's compiler optimizes globally, but the
-language rides a runtime engine inside every story file; arcc emits direct
-Z-machine operations with no runtime layer at all.
+Some of its comforts the platform otherwise knows only from modern systems
+such as Dialog and Inform 7.
 
 Arcturus games can carry **images** in z5 and z8 story files while staying
-fully standard-compliant. The trick is honest: pictures ride an extension
-opcode in the range a conformant interpreter must simply ignore, and the
-story only draws after an interpreter raises a capability flag that
-picture-aware interpreters alone set, so the same file plays as pure text
-on Frotz or any classic interpreter, and shows its art where art is
-understood. **Actaea**, the project's own interpreter, fully supports
-Z-machine version 5 and 8 games with images today, and a dedicated set of
-interpreters for retro systems with arc_image support is in the making.
+fully standard-compliant; how that works, and what plays them, is in the
+comparison below.
 
 The parser is language agnostic: grammar and wording live in a language
 granule (English, German, and Spanish ship with the compiler), and authors
@@ -104,6 +82,62 @@ black box. Optional and specialized features are granules you summon, present on
 where a game wants them and costing nothing where it does not. And because
 Arcturus owns its whole pipeline (the compiler, the library, and the interpreter),
 it can be this expressive and still compile small.
+
+## Comparison with other Z-machine languages and compilers
+
+**The syntax finds the sweet spot.** Inform 7 reads like English, and
+therefore does not read like a programming language: beautiful on the page,
+but the author has to discover which sentences the compiler will accept,
+and a large program hides its structure inside prose. Dialog is the
+opposite pole: elegant, minimal, and deeply abstract, a rule-based language
+closer to logic programming than to storytelling, and many authors find
+that abstraction a wall. Inform 6 and ZIL are honest programming languages
+of their decades, C-shaped and Lisp-shaped, with the world model largely
+built by hand. Arcturus sits deliberately between the poles: structured
+English on a line-and-indent skeleton. It reads aloud like sentences and
+compiles like a program. There is one shape to learn, declarations describe
+the world and handlers carry behavior, so you always know what to type
+next, and a stranger can open a game's source and follow the story.
+
+**One mechanism where others need many.** Behavior is handlers: an action
+walks from the acted-on object to the recipient, the room, the free rules,
+and last the library default, most specific first. Ending a handler
+consumes the action, `continue` passes it on, and `on after` runs once it
+has really happened. That single chain expresses what elsewhere takes
+instead-rules, before- and after-rulebooks, daemons, and life routines.
+
+**Much of it exists in no other system.** The container knowledge model:
+the game tracks what the player has actually SEEN and words itself
+accordingly. Grains: scenery words and quips with no objects behind them,
+whole regions of set dressing at zero object cost. Auto-scoring: mark a
+thing `scored` and the library pays its points exactly once, while the
+compiler sums `max_score` for you at compile time. Catalogs: ordered tables
+with list power and not a byte of heap behind them. Self-varying prose
+(`vary`) and reach modeling (`beyond`) round it out, the first shared with
+Inform 7 and Dialog, the second otherwise Dialog's alone. And where the
+classic libraries are monoliths you subtract from, Arcturus features arrive
+only when summoned: no status line unless you ask for one, and what you do
+not summon is simply not in the file.
+
+**The compiler is a structural advantage over the whole ZIL and Inform
+lineage.** arcc is a whole-program, multi-pass compiler: it sees game and
+library at once, folds unused features away at compile time, and applies
+strict dead-code elimination, so a build carries only what the game
+actually uses, provably, byte for byte. ZILCH, Inform 6, and ZILF compile
+what they are given, and Inform 7 emits through the Inform 6 compiler,
+inheriting the same shape. Dialog's compiler optimizes globally, but the
+language rides a runtime engine inside every story file; arcc emits direct
+Z-machine operations with no runtime layer at all.
+
+**Images, fully standard.** Arcturus pictures ride an extension opcode in
+the range a conformant interpreter must simply ignore, and a story only
+draws after an interpreter raises a capability flag that picture-aware
+interpreters alone set. So the same z5 or z8 file plays as pure text on
+Frotz or any classic interpreter, and shows its art where art is
+understood: no Blorb, no separate build. **Actaea**, the project's own
+interpreter, plays version 5 and 8 games with images today, and a dedicated
+set of interpreters for retro systems with arc_image support is in the
+making.
 
 ## What's new
 
