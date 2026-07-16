@@ -701,7 +701,10 @@ handler consumed as its own effect (the instead case) still completed; a
 scenery grain's quip is flavor, not a world action, so a grain turn takes no
 after pass. An after handler may `continue` like any other, passing to the
 next in specificity order; an object's `on other` never answers the after
-pass. In a game with no `on after` anywhere the entire phase folds away at
+pass, and `on after other` is the after pass's own catch-all: it fires
+after any completed world action with no specific `on after` here, is
+shadowed by one that exists, and never answers a refusal or an out-of-world
+verb. In a game with no `on after` anywhere the entire phase folds away at
 compile time and costs nothing.
 
 This is leaner than Inform's rulebooks: one ordered chain, an explicit
