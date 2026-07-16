@@ -477,13 +477,25 @@ on put
     if second is supporter
         move noun to second
         now noun is not worn
-        msg_done
+        if any_alter is 1
+            if altered is 0
+                msg_done
+            else
+                run_alter
+        else
+            msg_done
         stop
     if second is container
         if second is open
             move noun to second
             now noun is not worn
-            msg_done
+            if any_alter is 1
+                if altered is 0
+                    msg_done
+                else
+                    run_alter
+            else
+                msg_done
             stop
         change refused to 1
         msg_closed
@@ -510,7 +522,13 @@ on insert
         if second is open
             move noun to second
             now noun is not worn
-            msg_done
+            if any_alter is 1
+                if altered is 0
+                    msg_done
+                else
+                    run_alter
+            else
+                msg_done
             stop
         change refused to 1
         msg_closed
