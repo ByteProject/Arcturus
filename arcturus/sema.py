@@ -114,6 +114,11 @@ class Analyzer:
         # codegen may allow a COMPUTED exit (a direction property that is a
         # block) while a general computed value property stays unsupported.
         self.world.direction_props = set(self.env.directions)
+        # Does any `now ... is beyond` appear? The any_beyond fold must flip for
+        # a game that never DECLARES beyond on an object but sets it at runtime
+        # (the player-beyond mount: `now player is beyond` and nothing else), or
+        # the touch guards would fold away and the bit would set silently.
+        self.world.sets_beyond = self._sets_attr("beyond")
         return self.world
 
     # -- pass 1: collect ---------------------------------------------------
@@ -142,6 +147,65 @@ class Analyzer:
                     visit(v)
 
         for n in nodes:
+            if found[0]:
+                break
+            visit(n)
+        return found[0]
+
+    def _changes_prop_of(self, objname: str, prop: str) -> bool:
+        """Does any `change <objname>.<prop> to ...` appear in the program?
+        The same generic walk; used to auto-allocate a runtime-written
+        property slot (player.beyond_why) so the write cannot halt."""
+        found = [False]
+
+        def visit(node):
+            if (isinstance(node, ast.Change)
+                    and isinstance(node.target, ast.Dot)
+                    and isinstance(node.target.obj, ast.Name)
+                    and node.target.obj.ident == objname
+                    and node.target.prop == prop):
+                found[0] = True
+                return
+            if not dataclasses.is_dataclass(node):
+                return
+            for f in dataclasses.fields(node):
+                v = getattr(node, f.name)
+                if isinstance(v, list):
+                    for item in v:
+                        if dataclasses.is_dataclass(item):
+                            visit(item)
+                elif dataclasses.is_dataclass(v):
+                    visit(v)
+
+        for n in self.program.decls:
+            if found[0]:
+                break
+            visit(n)
+        return found[0]
+
+    def _sets_attr(self, attr: str) -> bool:
+        """Does any `now ... is <attr>` (setting, not clearing) appear in the
+        program? The same generic walk as _moves_to_scope; used to flip a
+        compile-time any_X fold for an attribute that is only ever set at
+        runtime, never declared."""
+        found = [False]
+
+        def visit(node):
+            if isinstance(node, ast.Now) and node.prop == attr and not node.negated:
+                found[0] = True
+                return
+            if not dataclasses.is_dataclass(node):
+                return
+            for f in dataclasses.fields(node):
+                v = getattr(node, f.name)
+                if isinstance(v, list):
+                    for item in v:
+                        if dataclasses.is_dataclass(item):
+                            visit(item)
+                elif dataclasses.is_dataclass(v):
+                    visit(v)
+
+        for n in self.program.decls:
             if found[0]:
                 break
             visit(n)
@@ -757,6 +821,19 @@ class Analyzer:
                     prior.values = list(prior.values) + list(m.values)
                 else:
                     player.props[m.name] = m
+            # `change player.beyond_why to "..."` (the player-beyond refusal's
+            # custom wording, docs/01 beyond) allocates the slot invisibly: a
+            # property must exist at compile time to be writable at runtime,
+            # and demanding a declaration first would be a trap (the put_prop
+            # halt). It starts as nothing, so the pack default speaks until
+            # the story sets a line. One slot on the player, only in a game
+            # that writes it.
+            if "beyond_why" not in player.props:
+                if self._changes_prop_of("player", "beyond_why"):
+                    self._unify_property("beyond_why", prelude.T_TEXT, 0)
+                    player.props["beyond_why"] = ast.PropertyDecl(
+                        "beyond_why", ast.PROP_VALUE, [ast.Nothing()]
+                    )
 
         # Game property declarations on kinds and objects.
         for kind in w.kinds.values():

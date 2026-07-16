@@ -4226,3 +4226,40 @@ runtime, so gating it (my first cut) broke boarding those; the report
 blocks are always compiled instead, ~156 bytes/game, all ceilings
 raised with a dated note. 4 new tests + updated get-idioms/perform/
 multifile assertions; suite 941.
+
+## 2026-07-16: beyond points both ways, the player-beyond mount (arcc 0.15.2, Cosmos 0.41.0)
+
+Charles: mounted on a horse, TAKE KEY on the ground should refuse with
+"You can't reach that from the horse"; no place to hang a handler (room
+moves with the mount, the horse is not consulted, per-object is absurd,
+in_scope is a 1/0 predicate that cannot veto with a message). Stefan's
+ruling: NOT a reach-seam hook and NOT a receiver -- the Arcturus way is
+the beyond property pointing the other way. `now player is beyond` puts
+the PLAYER out of everything's reach; only the arm's bubble stays
+touchable: self, held, and the enclosure with everything it carries
+(at_hand walks the parent chain past player or parent_of(player)).
+Un-nested it collapses to self+held (hands bound, free). Sight and
+speech cross as object-beyond already ruled; EXIT is never gated, so
+dismount always works. Author surface: `on after enter mare / now
+player is beyond`, mirror on after exit (the after phase, or the flag
+blocks its own mount -- the before-phase trap is documented). The
+refusal speaks player.beyond_why, runtime-settable per Stefan's spec:
+`change player.beyond_why to "..."` wins, `to nothing` reverts to the
+pack's msg_beyond; sema allocates the player's slot invisibly for any
+game that writes it (a put_prop on a missing property HALTS the
+Z-machine, so requiring a declaration first was a trap). The any_beyond
+fold now also flips on a runtime `now ... is beyond` (sets_beyond scan)
+so a game that declares beyond nowhere still compiles the guards. Bonus
+fix both directions: PUT and INSERT move their noun without a hold
+check and had no noun guard, so a beyond chandelier could ride into a
+sack and a mounted player could fish the ground into the saddlebag;
+both now carry beyond_guard + beyond_guard_second, folded as ever. No
+pack work needed (msg_beyond reused; agnostic blocks in actions).
+docs/01 beyond entry extended; beyond.storyarc gains the delivery-yard
+vignette (cart seat, strongbox, horseshoe). Only the beyond example's
+ceiling moved (+796 incl. the new scene), every other game untouched:
+the fold proven. 8 new tests; suite 949. PARKED per Stefan: handlers
+example + richer handler docs (after the upcoming handler bug), and the
+enclosure receiver ("the more Arcturus way", own design round; note the
+second-noun receiver already exists in dispatch and needs docs/02
+verification).

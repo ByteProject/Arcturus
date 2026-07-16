@@ -19,7 +19,10 @@
 // TRY: x jar / take jar (its own why) / take hook (the block form,
 //      worded by state) / ask cook about jar (talk
 //      crosses the gap) / climb stool / take jar (the hand arrives) /
-//      get down
+//      get down / north / climb seat (the property points the OTHER way:
+//      now the PLAYER is beyond) / take horseshoe (the runtime why) /
+//      x horseshoe (sight still crosses) / take ledger (the seat and its
+//      cargo stay at hand) / get down / take horseshoe
 
 game
     title "The Larder"
@@ -34,7 +37,9 @@ room larder
     name "Larder"
     desc "Shelves climb to the rafters. The honey jar sits one shelf too
           high, the way honey always does. A stool waits in the corner,
-          and the cook watches you from the doorway."
+          and the cook watches you from the doorway. The delivery yard
+          lies north."
+    north yard
 
 // One shelf too high: examinable, discussable, and not takeable until
 // the stool changes the geometry.
@@ -81,3 +86,47 @@ thing cook of character in larder
     topic jar "the honey jar" words jar, honey
         you "Could you get the honey down for me?"
         reply "Stool's in the corner. My knees retired years ago."
+
+// The property points BOTH ways: `now player is beyond` puts the PLAYER out
+// of everything's reach instead, the mounted case. From the cart's high seat
+// only the arm's bubble stays touchable: yourself, what you hold, and the
+// seat with everything it carries (the strongbox, the ledger inside). The
+// yard below is suddenly one step too far, while sight still crosses and
+// EXIT always works. Set it in the AFTER phase, once the boarding really
+// happened; the refusal speaks player.beyond_why, settable at runtime, and
+// `change player.beyond_why to nothing` reverts to the pack's line.
+room yard
+    name "Delivery Yard"
+    desc "The cook's cart stands mid-yard, its bench seat absurdly high.
+          A horseshoe lies in the mud. The larder is south."
+    south larder
+
+thing seat of supporter in yard
+    name "cart seat"
+    words seat, cart, bench
+    desc "A plank bench a full fathom up. Deliveries wait for no ladder."
+    fixed
+    on after enter
+        now player is beyond
+        change player.beyond_why to "Not from up here. The yard is a
+                                     dismount away."
+    on after exit
+        now player is not beyond
+        change player.beyond_why to nothing
+
+thing strongbox of container in seat
+    name "strongbox"
+    words strongbox, box
+    desc "Bolted beside the seat, lid thrown back."
+    open
+    fixed
+
+thing ledger in strongbox
+    name "delivery ledger"
+    words ledger, delivery
+    desc "Sums, signatures, and one suspicious honey entry."
+
+thing horseshoe in yard
+    name "horseshoe"
+    words horseshoe, shoe
+    desc "Cast iron, freshly cast off."
