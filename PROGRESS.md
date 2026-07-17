@@ -4523,3 +4523,26 @@ test now covers arc_image/probes/ so probe assets can never drift from
 the guarantee again. docs/08 C.6 verification note updated; design 8b
 records the lesson: the window guarantee is only as good as its
 enforcement surface. Suite 984.
+
+## 2026-07-17 (later): current-pipeline assets, the Mac is the conversion home
+
+Stefan caught the deeper staleness: the probe assets were not just
+2176-packed, they were OLD CONVERSIONS from a retired pipeline; the
+byte-exact loader proof said nothing about conversion currency, so an
+eyeball pass would have judged outdated art. Root cause chased to the
+environment: Pillow existed on the Mac historically but vanished when
+Homebrew moved python3 from 3.13 to 3.14 (site-packages do not
+migrate), which also explains the leftover python@3.13. Fixed: Pillow
+12.3.0 installed for 3.14 (user site), python@3.13 removed (zero
+dependents), and, checked at Stefan's request: Pillow was NEVER
+installed on the orb Debian machine; FictionTools' environment is
+clean (the instruction held). The beach pair was regenerated natively
+on the Mac with arcimg 1.12.0: the fresh mode-12 render is
+PIXEL-IDENTICAL to the approved previews/stress/beach-CPC.png ground
+truth; the fresh mode-9 differs in composition from the old band9
+preview (today's prep shows more scene, the old crop more sky),
+Stefan's aesthetic gate at the emulator. CPC + ZX3 + C64 probe pairs
+all regenerated; CPC and ZX3 probes reassembled (C64's needs acme,
+absent here; flagged for its wave, its .prg still embeds old art).
+Live: ZEsarUX CPC 464, fresh probe injected, byte-exact again
+(PIXEL-EXACT bitmap + palette), left running for Stefan's eyes.
