@@ -75,13 +75,13 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.10.0"
+__version__ = "1.11.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = 'da4a1f1'
+__build__ = '224be0a'
 
 
 def build_id() -> str:
@@ -265,9 +265,17 @@ class _Zx0Block:
         self.chain = chain
 
 
-def _zx0_optimize(data):
+def _zx0_optimize(data, offset_cap=None):
+    """The optimal parse. offset_cap bounds every match offset (default: the
+    quick-mode window). A SMALL cap (256) is the write-only-video mode: the
+    stream stays standard ZX0, but a decoder then needs read access to only
+    the last 256 output bytes, one page-aligned ring buffer in main RAM,
+    which is what a machine whose video memory cannot be read back (a
+    TRS-80's port-addressed graphics board, an Agon's serial VDP) wants."""
+    if offset_cap is None:
+        offset_cap = _ZX0_MAX_OFFSET
     n = len(data)
-    max_offset = min(max(1, n - 1), _ZX0_MAX_OFFSET)
+    max_offset = min(max(1, n - 1), offset_cap)
     last_literal = [None] * (max_offset + 1)
     last_match = [None] * (max_offset + 1)
     optimal = [None] * n
@@ -278,7 +286,7 @@ def _zx0_optimize(data):
     last_match[1] = _Zx0Block(-1, -1, 1, None)
     for index in range(n):
         best_length_size = 2
-        mo = min(max(index, 1), _ZX0_MAX_OFFSET)
+        mo = min(max(index, 1), max_offset)
         for offset in range(1, mo + 1):
             if index != 0 and index >= offset and data[index] == data[index - offset]:
                 ll = last_literal[offset]
@@ -327,9 +335,10 @@ def _zx0_optimize(data):
     return optimal[n - 1]
 
 
-def zx0_compress(data: bytes) -> bytes:
+def zx0_compress(data: bytes, offset_cap=None) -> bytes:
     """Optimal ZX0 (forward, inverted gamma). Empty input compresses to the
-    bare end marker."""
+    bare end marker. offset_cap bounds the match window (see _zx0_optimize):
+    the windowed mode for write-only video memory."""
     if not data:
         return b""  # ZX0 has no empty-stream form; the container convention
     out = bytearray()
@@ -366,7 +375,7 @@ def zx0_compress(data: bytes) -> bytes:
 
     if data:
         # Un-reverse the optimal chain.
-        optimal = _zx0_optimize(data)
+        optimal = _zx0_optimize(data, offset_cap)
         prev = None
         while optimal is not None:
             nxt = optimal.chain
@@ -851,16 +860,32 @@ def lzsa2_decompress(blob: bytes) -> bytes:
 
 # Codecs (header byte 14): 0 = the RLE scheme above, 1 = ZX0 (the 8-bit cell
 # targets and the default), 2 = LZSA2 (the 16-bit targets; see the ruling
-# note above). Each target chapter in docs/08 mandates exactly one codec, so
-# a real interpreter carries exactly one decoder.
+# note above), 3 = ZX0W, ZX0 with every match offset capped at 256 bytes.
+# ZX0W's BITSTREAM is standard ZX0 (any dzx0 decodes it unchanged; a loader
+# may treat 3 as 1); the codec id is the CONTRACT that offsets never exceed
+# 256, so a machine whose video memory cannot be read back (a TRS-80 Model
+# 4's port-addressed graphics board, an Agon's serial VDP) can decode with
+# one page-aligned ring buffer in main RAM instead of a full staging band:
+# H fixed, INC L wraps the ring for free. Each target chapter in docs/08
+# mandates exactly one codec, so a real interpreter carries exactly one
+# decoder.
 CODEC_RLE = 0
 CODEC_ZX0 = 1
 CODEC_LZSA2 = 2
+CODEC_ZX0W = 3
+
+ZX0W_WINDOW = 256  # one Z80 page: the ring a write-only-video decoder keeps
+
+
+def zx0w_compress(data: bytes) -> bytes:
+    return zx0_compress(data, offset_cap=ZX0W_WINDOW)
+
 
 _CODECS = {
     CODEC_RLE: (rle_encode, rle_decode),
     CODEC_ZX0: (zx0_compress, zx0_decompress),
     CODEC_LZSA2: (lzsa2_compress, lzsa2_decompress),
+    CODEC_ZX0W: (zx0w_compress, zx0_decompress),
 }
 
 
@@ -3334,7 +3359,8 @@ def cmd_info(args) -> int:
     return 0
 
 
-_CODEC_NAMES = {"rle": CODEC_RLE, "zx0": CODEC_ZX0, "lzsa2": CODEC_LZSA2}
+_CODEC_NAMES = {"rle": CODEC_RLE, "zx0": CODEC_ZX0, "lzsa2": CODEC_LZSA2,
+                "zx0w": CODEC_ZX0W}
 
 
 def _is_hand_authored(dest):
