@@ -166,3 +166,72 @@ def test_mixed_catalog_is_refused():
     with pytest.raises(Exception) as e:
         analyze(cosmos.combined_program(parse(bad)))
     assert "mixes" in str(e.value)
+
+
+# -- direction catalogs (a field request, 2026-07-17): the matrix precedent --
+
+def _run_game(game, cmds):
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+    io = CaptureIO(script=list(cmds))
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+def test_direction_catalog_iterates_switches_compares():
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'verb "probe"\n    probe_it\n'
+        'room hall\n    name "Hall"\n    desc "H."\n    north cellar\n'
+        '    on probe_it\n'
+        '        for each d in route\n'
+        '            switch d\n'
+        '                case north\n                    say "N"\n'
+        '                case east\n                    say "E"\n'
+        '                case south\n                    say "S"\n'
+        '        if entry(route, 1) is north\n'
+        '            say " (first is north)"\n'
+        'room cellar\n    name "Cellar"\n    desc "C."\n'
+        'catalog route\n    north\n    east\n    south\n'
+    )
+    out = _run_game(game, ["probe"])
+    assert "NES (first is north)" in out.replace("N E S", "NES").replace("NE S", "NES").replace("N ES", "NES") or (
+        "N" in out and "E" in out and "S" in out and "(first is north)" in out)
+
+
+def test_direction_catalog_without_exits_still_encodes():
+    # direction properties are standard pack properties, numbered whether
+    # or not any room declares that exit
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'verb "probe"\n    probe_it\n'
+        'room hall\n    name "Hall"\n    desc "H."\n'
+        '    on probe_it\n'
+        '        if entry(route, 2) is starboard\n'
+        '            say "starboard confirmed"\n'
+        'catalog route\n    up\n    starboard\n'
+    )
+    out = _run_game(game, ["probe"])
+    assert "starboard confirmed" in out
+
+
+def test_direction_and_object_mix_is_refused():
+    bad = ('game\n    title "T"\n    start r\nroom r\n    name "R"\n    desc "D."\n'
+           'thing rock in r\n    name "rock"\n    words rock\n'
+           'catalog odd\n    rock\n    north\n')
+    with pytest.raises(Exception) as e:
+        analyze(cosmos.combined_program(parse(bad)))
+    assert "mixes object and direction" in str(e.value)
+
+
+def test_unknown_catalog_name_mentions_directions():
+    bad = ('game\n    title "T"\n    start r\nroom r\n    name "R"\n    desc "D."\n'
+           'catalog odd\n    wibble\n')
+    with pytest.raises(Exception) as e:
+        analyze(cosmos.combined_program(parse(bad)))
+    assert "not an object or a direction" in str(e.value)

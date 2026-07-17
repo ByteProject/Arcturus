@@ -465,6 +465,11 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
                 _append_word(layout.table, 0)
             elif cat.etype == "number":
                 _append_word(layout.table, v.value & 0xFFFF)
+            elif cat.etype == "direction":
+                # a direction cell is its property number (the matrix
+                # precedent); direction properties are standard pack
+                # properties, so the number always exists
+                _append_word(layout.table, layout.prop_number.get(v.ident, 0))
             else:
                 _append_word(layout.table, layout.obj_number.get(v.ident, 0))
     # The spilled kinds' extent catalogs, same [count, widest, e1..eN] shape,
