@@ -131,6 +131,21 @@ def _resolved_handlers(world: wm.World, obj: wm.Obj):
     return handlers
 
 
+def _owner_bands(world: wm.World, obj: wm.Obj):
+    """The object's handlers grouped by OWNER, nearest first: [instance,
+    kind, kind's kind, ...]. Each band is a list of handlers. The react
+    routine runs band by band, and each band's `on other` catch-all sits at
+    the END of ITS OWN band: the object's default runs before the action
+    climbs to the kind (docs/01 section 12, the contract a field report
+    held us to), and a kind's default before the next kind up."""
+    bands = [list(obj.handlers)]
+    for kindname in obj.chain:
+        kind = world.kinds.get(kindname)
+        if kind is not None and kind.handlers:
+            bands.append(list(kind.handlers))
+    return [b for b in bands if b]
+
+
 def _react_handlers(world: wm.World, obj: wm.Obj, actions: dict):
     """The object's dispatchable handlers, own and inherited, as (action,
     handler): verb actions, the life-cycle events the loop fires here (enter,
@@ -191,14 +206,10 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
     out = []
     for objname, obj in world.objects.items():
         pairs = _react_handlers(world, obj, actions)
-        others = [(hname[id(h)], h) for h in _other_handlers(world, obj)]
-        after_others = [(hname[id(h)], h)
-                        for h in _after_other_handlers(world, obj)]
-        if not pairs and not others and not after_others:
+        flat_others = _other_handlers(world, obj)
+        flat_after = _after_other_handlers(world, obj)
+        if not pairs and not flat_others and not flat_after:
             continue
-        groups: dict = {}
-        for action, h in pairs:
-            groups.setdefault(action, []).append((hname[id(h)], h))
         # `enter` is two things sharing one name: on a ROOM it is the arrival
         # event (fire_enter runs every hook and ignores the results), on a
         # THING it is the ENTER verb, an ordinary consumable action (a scenery
@@ -206,9 +217,33 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
         # object's category picks the semantic; room kinds and thing kinds
         # follow their instances here.
         events = wm.EVENT_NAMES if obj.category == "room" else wm.EVENT_NAMES - {"enter"}
+        # OWNER BANDS (docs/01 section 12): the object's own handlers with
+        # its own `on other` at their tail, then each kind's the same way,
+        # nearest first. Life-cycle events stay a single merged step (every
+        # hook fires, own and inherited; results are ignored), so they are
+        # split out of the bands here.
+        bands = []
+        for owner_handlers in _owner_bands(world, obj):
+            band_groups: dict = {}
+            for h in owner_handlers:
+                for ev in h.events:
+                    if ev in actions and ev != "other" and (
+                            wm.after_key(ev) if h.after else ev) not in events:
+                        key = wm.after_key(ev) if h.after else ev
+                        band_groups.setdefault(key, []).append((hname[id(h)], h))
+            band_others = [(hname[id(h)], h) for h in owner_handlers
+                           if "other" in h.events and not h.pattern and not h.after]
+            band_after = [(hname[id(h)], h) for h in owner_handlers
+                          if "other" in h.events and not h.pattern and h.after]
+            if band_groups or band_others or band_after:
+                bands.append((band_groups, band_others, band_after))
+        event_groups: dict = {}
+        for action, h in pairs:
+            if action in events:
+                event_groups.setdefault(action, []).append((hname[id(h)], h))
         out.append(_gen_react(
-            objname, groups, actions, layout, gmap, others, afloor, dirnames,
-            events, after_others=after_others, mfloor=wm.meta_floor(world)))
+            objname, bands, actions, layout, gmap, afloor, dirnames,
+            events, mfloor=wm.meta_floor(world), event_groups=event_groups))
     # react_free and grain_dispatch are always present (even empty) so the turn
     # loop and dispatcher can call them unconditionally.
     out.append(gen_react_free(world, actions, registry, layout, gmap))
@@ -378,36 +413,37 @@ def gen_react_free(world: wm.World, actions: dict, registry, layout=None, gmap=N
     # any game rule over it), never the room-arrival event: fire_enter calls
     # only the room's own react. So the verb semantics apply here too, and the
     # most specific consuming rule wins like any other verb.
+    event_groups = {a: hs for a, hs in groups.items()
+                    if a in (wm.EVENT_NAMES - {"enter"})}
+    main_groups = {a: hs for a, hs in groups.items() if a not in event_groups}
     return _gen_react(
-        "free", groups, actions, layout, gmap, others, afloor, dirnames,
-        wm.EVENT_NAMES - {"enter"},
-        after_others=after_others, mfloor=wm.meta_floor(world),
+        "free", [(main_groups, others, after_others)], actions, layout, gmap,
+        afloor, dirnames, wm.EVENT_NAMES - {"enter"},
+        mfloor=wm.meta_floor(world), event_groups=event_groups,
     )
 
 
-def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None, others=None, afloor=None, dirnames=frozenset(), event_names=wm.EVENT_NAMES, after_others=None, mfloor=None) -> Routine:
-    """react_<obj>(action): switch on the action number; for each action run the
-    object's handler routine(s) in order, returning 1 as soon as one consumes the
-    action (returns 1). The `on other` catch-all runs only for actions the
-    object does not otherwise ADDRESS: when no specific handler matched at all,
-    or when the only matches were direction-guarded (`on go north`) and the
-    guard failed. A specific handler that ran and continued climbs to the kind,
-    the room, and the defaults; it never falls into the object's own catch-all
-    (docs/01 section 12). Local 2 tracks whether a guarded handler ran.
-    `afloor` is the first synthetic after action number: the plain catch-all
-    skips everything at or past it, since the after pass is bookkeeping, not
-    a player action (passed only when the program has after handlers, so
-    games without them pay nothing). `after_others` are the `on after other`
-    handlers, the AFTER band's own catch-all: they run only for a synthetic
-    after number (afloor <= action < mfloor) that no specific `on after`
-    group matched, mirroring the plain catch-all's shadowing exactly."""
-    others = others or []
-    after_others = after_others or []
+def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None, afloor=None, dirnames=frozenset(), event_names=wm.EVENT_NAMES, mfloor=None, event_groups=None) -> Routine:
+    """react_<obj>(action), OWNER-BANDED (docs/01 section 12): the object's
+    own handlers form band 0 with its own `on other` at the band's tail, then
+    each kind's handlers band by band up the chain, each with ITS `on other`
+    at its own tail. The object's default therefore runs BEFORE the action
+    climbs to the kind (the field bug this rewrite fixed: a kind's specific
+    verb pierced the instance's catch-all), and a kind's default before the
+    next kind up. Within a band the rules are unchanged: specific handlers
+    run in order, one that consumes (returns 1) ends the dispatch, one that
+    continues falls onward; a band whose specifics ADDRESSED the action (ran
+    and continued, or exists unguarded) skips its own catch-all and falls to
+    the next band; a band that never addressed it runs its catch-all first.
+    Life-cycle events (start, enter, each_turn) are not banded: every hook
+    fires, own and inherited, results ignored, exactly as before. The
+    `afloor`/`mfloor` banding also holds per band: a plain catch-all answers
+    only main actions, `on after other` only the synthetic after numbers,
+    metas climb silently."""
+    event_groups = event_groups or {}
     rt = Routine("react_" + objname, nlocals=2)  # 1 = action, 2 = a guard ran
-    # An owned handler is called with this react routine's own object as its self
-    # argument (docs/01 section 9). react_free has no object; its handlers are
-    # free rules (no owner), so they are called with no argument and read the
-    # noun. The handler h decides: owned -> pass the object, free -> pass nothing.
+    # An owned handler is called with this react routine's own object as its
+    # self argument (docs/01 section 9); free rules are called with none.
     self_num = layout.obj_number.get(objname) if layout is not None else None
 
     def self_args(h):
@@ -415,98 +451,114 @@ def _gen_react(objname: str, groups: dict, actions: dict, layout=None, gmap=None
             return (Const(self_num),)
         return ()
 
-    run_label = {}
-    for i, action in enumerate(groups):
-        run_label[action] = f"run{i}"
-        rt.op("je", Variable(1), Const(actions[action]), branch=(run_label[action], True))
-    rt.jump("__other__")  # no specific action matched: fall to the on-other catch-all
+    # -- life-cycle events: one merged step, every hook fires ---------------
+    ev_label = {}
+    for i, action in enumerate(event_groups):
+        ev_label[action] = f"ev{i}"
+        rt.op("je", Variable(1), Const(actions[action]), branch=(ev_label[action], True))
+    ev_bodies = list(event_groups.items())
+
+    # -- the bands ----------------------------------------------------------
     skip_n = 0
-    for action, handlers in groups.items():
-        rt.label(run_label[action])
-        if action in event_names:
-            # Life-cycle pulses (start, enter, each_turn) are not player
-            # actions to be consumed. Every registered hook fires, exactly
-            # as the per-object turn sweep fires each object's handler
-            # independently and ignores its result. So call them all and
-            # discard the return: a bare `on each_turn` never silences
-            # another daemon, and a granule pulse (the ambience sweep) and
-            # the game's own each_turn coexist. There are no operand
-            # patterns or `on other` for a life-cycle event, so this is the
-            # whole story for these actions.
+    nb = len(bands)
+
+    def band_label(k):
+        return "__climb__" if k >= nb else f"band{k}"
+
+    first = True
+    for k, (groups, others, after_others) in enumerate(bands):
+        if not first:
+            rt.label(f"band{k}")
+        first = False
+        nxt = band_label(k + 1)
+        run_label = {}
+        for i, action in enumerate(groups):
+            run_label[action] = f"b{k}run{i}"
+            rt.op("je", Variable(1), Const(actions[action]),
+                  branch=(run_label[action], True))
+        rt.jump(f"b{k}other")  # nothing specific here: this band's catch-all
+        for action, handlers in groups.items():
+            rt.label(run_label[action])
+            plans = [_guard_plan(h, layout, gmap, dirnames, self_num)
+                     for _, h in handlers]
+            all_guarded = all(p is not None for p in plans)
+            if all_guarded:
+                rt.op("store", Const(2), Const(0))
+            for (hn, h), plan in zip(handlers, plans):
+                if plan is not None:
+                    skip = f"skipg{skip_n}"
+                    skip_n += 1
+                    for gvar, values in plan:
+                        chunks = [values[i:i + 3] for i in range(0, len(values), 3)]
+                        if len(chunks) == 1:
+                            rt.op("je", Variable(gmap[gvar]),
+                                  *[Const(v) for v in chunks[0]],
+                                  branch=(skip, False))
+                        else:
+                            ok = f"gok{skip_n}_{gvar}"
+                            for c in chunks:
+                                rt.op("je", Variable(gmap[gvar]),
+                                      *[Const(v) for v in c], branch=(ok, True))
+                            rt.jump(skip)
+                            rt.label(ok)
+                    if all_guarded:
+                        rt.op("store", Const(2), _CONST_ONE)
+                    rt.op("call_vs", RoutineRef(hn), *self_args(h), store=Variable(STACK))
+                    rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
+                    rt.label(skip)
+                else:
+                    rt.op("call_vs", RoutineRef(hn), *self_args(h), store=Variable(STACK))
+                    rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
+            if all_guarded:
+                # Every match was guarded: if none ran, this band never
+                # addressed the action, so its catch-all still gets a turn.
+                rt.op("jz", Variable(2), branch=(f"b{k}other", True))
+            rt.jump(nxt)  # addressed but deferred: fall to the next band
+        if k == nb - 1:
+            # life-cycle event bodies sit in the last band's body region so
+            # the final catch-all section can fall straight into __climb__
+            for action, handlers in ev_bodies:
+                rt.label(ev_label[action])
+                for hn, h in handlers:
+                    rt.op("call_vn", RoutineRef(hn), *self_args(h))
+                rt.jump("__climb__")
+        rt.label(f"b{k}other")
+        if others or after_others:
+            # The catch-alls answer the player's verbs, never the life-cycle
+            # events the loop fires (start, enter, each_turn).
+            for ev in _EVENT_NAMES:
+                if ev in actions:
+                    rt.op("je", Variable(1), Const(actions[ev]), branch=(nxt, True))
+            if afloor is not None:
+                if after_others:
+                    rt.op("jl", Variable(1), Const(afloor), branch=(f"b{k}mo", True))
+                    rt.op("jl", Variable(1), Const(mfloor), branch=(f"b{k}ao", True))
+                    rt.jump(nxt)
+                    rt.label(f"b{k}mo")
+                else:
+                    rt.op("jl", Variable(1), Const(afloor), branch=(nxt, False))
+            for hn, h in others:
+                rt.op("call_vs", RoutineRef(hn), *self_args(h), store=Variable(STACK))
+                rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
+            if after_others:
+                rt.jump(nxt)
+                rt.label(f"b{k}ao")
+                for hn, h in after_others:
+                    rt.op("call_vs", RoutineRef(hn), *self_args(h), store=Variable(STACK))
+                    rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
+        if nxt != "__climb__":
+            rt.jump(nxt)
+        else:
+            # the last band falls through to __climb__; event bodies were
+            # already emitted just before its catch-all section
+            pass
+    if not bands:
+        rt.jump("__climb__")
+        for action, handlers in ev_bodies:
+            rt.label(ev_label[action])
             for hn, h in handlers:
                 rt.op("call_vn", RoutineRef(hn), *self_args(h))
             rt.jump("__climb__")
-            continue
-        plans = [_guard_plan(h, layout, gmap, dirnames, self_num)
-                 for _, h in handlers]
-        all_guarded = all(p is not None for p in plans)
-        if all_guarded:
-            rt.op("store", Const(2), Const(0))
-        for (hn, h), plan in zip(handlers, plans):
-            if plan is not None:
-                # Run this handler only when every guarded global (way for a
-                # direction, noun/second for an operand pattern) matches one
-                # of its values; otherwise fall through to the next handler.
-                skip = f"skipg{skip_n}"
-                skip_n += 1
-                for gvar, values in plan:
-                    # je branches when the first operand equals ANY other (up
-                    # to three per instruction); `or` lists chain je's.
-                    chunks = [values[i:i + 3] for i in range(0, len(values), 3)]
-                    if len(chunks) == 1:
-                        rt.op("je", Variable(gmap[gvar]),
-                              *[Const(v) for v in chunks[0]],
-                              branch=(skip, False))
-                    else:
-                        ok = f"gok{skip_n}_{gvar}"
-                        for c in chunks:
-                            rt.op("je", Variable(gmap[gvar]),
-                                  *[Const(v) for v in c], branch=(ok, True))
-                        rt.jump(skip)
-                        rt.label(ok)
-                if all_guarded:
-                    rt.op("store", Const(2), _CONST_ONE)
-                rt.op("call_vs", RoutineRef(hn), *self_args(h), store=Variable(STACK))
-                rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
-                rt.label(skip)
-            else:
-                rt.op("call_vs", RoutineRef(hn), *self_args(h), store=Variable(STACK))
-                rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
-        if all_guarded:
-            # Every match was guarded: if none ran, the object never
-            # addressed this action, so the catch-all still gets its turn.
-            rt.op("jz", Variable(2), branch=("__other__", True))
-        rt.jump("__climb__")  # addressed but deferred: climb, skip the catch-all
-    rt.label("__other__")
-    if others or after_others:
-        # `on other` is a catch-all for the player's verbs, not for the life-cycle
-        # events the loop fires (start, enter, each_turn); skip it for those.
-        for ev in _EVENT_NAMES:
-            if ev in actions:
-                rt.op("je", Variable(1), Const(actions[ev]), branch=("__climb__", True))
-        # The bands: main actions below afloor, the synthetic after numbers in
-        # [afloor, mfloor), the metas at and past mfloor. The plain catch-all
-        # answers only the main band; `on after other` answers only the after
-        # band (the field bug: it rode the plain list and fired during the
-        # main dispatch, before the report and on refused actions); the metas
-        # climb silently past both.
-        if afloor is not None:
-            if after_others:
-                rt.op("jl", Variable(1), Const(afloor), branch=("__mainother__", True))
-                rt.op("jl", Variable(1), Const(mfloor), branch=("__afterother__", True))
-                rt.jump("__climb__")
-                rt.label("__mainother__")
-            else:
-                rt.op("jl", Variable(1), Const(afloor), branch=("__climb__", False))
-        for hn, h in others:
-            rt.op("call_vs", RoutineRef(hn), *self_args(h), store=Variable(STACK))
-            rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
-        if after_others:
-            rt.jump("__climb__")
-            rt.label("__afterother__")
-            for hn, h in after_others:
-                rt.op("call_vs", RoutineRef(hn), *self_args(h), store=Variable(STACK))
-                rt.op("je", Variable(STACK), _CONST_ONE, branch=("__handled__", True))
     rt.label("__climb__")
     rt.op("ret", Const(0))  # nothing consumed it: let it climb the chain
     rt.label("__handled__")

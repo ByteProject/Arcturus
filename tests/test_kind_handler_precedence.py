@@ -127,3 +127,34 @@ def test_instance_beats_spilled_kind():
         pass
     assert "The instance answers." in io.text
     assert "Filler 05." in io.text      # kind handlers still fire for plain instances
+
+
+def test_instance_catch_all_beats_kind_specific():
+    # The field bug (Charles Moore Jr., 2026-07-17): a kind's specific verb
+    # handler pierced the instance's `on other`. Both docs mandate the
+    # banded order (01 s12: the object's default runs before the action
+    # climbs to the kind; 02 s9: own other above the kind chain).
+    game = _HEAD + (
+        'kind troll_kind of character\n'
+        '    on push, pull, touch\n        say "The kind brushes you off."\n'
+        'thing gruff of troll_kind in yard\n'
+        '    name "Gruff"\n    words gruff\n'
+        '    on examine\n        continue\n'
+        '    on other\n        say "The instance catch-all fires."\n'
+    )
+    out = _run(game, ["push gruff", "touch gruff"])
+    assert out.count("The instance catch-all fires.") == 2
+    assert "The kind brushes you off." not in out
+
+
+def test_instance_catch_all_continue_falls_to_the_kind():
+    game = _HEAD + (
+        'kind troll_kind of character\n'
+        '    on push\n        say "The kind takes over."\n'
+        'thing meek of troll_kind in yard\n'
+        '    name "Meek"\n    words meek\n'
+        '    on other\n        say "(instance notes it)"\n        continue\n'
+    )
+    out = _run(game, ["push meek"])
+    assert "(instance notes it)" in out
+    assert "The kind takes over." in out

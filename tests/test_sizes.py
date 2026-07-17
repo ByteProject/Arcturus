@@ -101,10 +101,10 @@ CEILINGS = {
     "features/components.storyarc": 15596,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
     "features/perform.storyarc": 15596,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
     "features/grains.storyarc": 15488,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/handlers.storyarc": 16536,  # 2026-07-16 new: the handlers showcase (the clockmaker), the dispatch chain end to end
+    "features/handlers.storyarc": 16544,  # 2026-07-17 owner-banded react: the instance catch-all beats kind specifics (+8, kind-handler games only)
     "features/grammar.storyarc": 16452,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
     "features/introproperty.storyarc": 16664,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/kinds-and-inheritance.storyarc": 15292,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/kinds-and-inheritance.storyarc": 15304,  # 2026-07-17 owner-banded react: the instance catch-all beats kind specifics (+12, kind-handler games only)
     "features/on-other.storyarc": 15292,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
     "features/zcolor.storyarc": 15664,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
     "features/scoring.storyarc": 17644,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
