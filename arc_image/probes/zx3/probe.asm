@@ -269,9 +269,9 @@ zx0ring:
         ASSERT (zx0ring & $7FF) == 0
 
 image9:
-        incbin "90.ZX3"
+        incbin "9.ZX3"
 image12:
-        incbin "100.ZX3"
+        incbin "12.ZX3"
 
         SAVESNA "probe.sna", start
         SAVEBIN "probe.bin", start, $ - start   ; the raw image, for the

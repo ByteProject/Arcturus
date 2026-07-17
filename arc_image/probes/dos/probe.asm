@@ -270,6 +270,6 @@ lzsa2_decompress:
 palbuf: times 768 db 0
 
 image9:
-        incbin "90.DOS"
+        incbin "9.DOS"
 image12:
-        incbin "100.DOS"
+        incbin "12.DOS"

@@ -4580,3 +4580,23 @@ Also opened: the ZX3 solver re-gate (the +3 art IS the approved art,
 but the Spectrum kept its R3 solver when the Polizei family was
 rebuilt; rework pending Stefan's call). Regression test on the crop;
 suite 985.
+
+## 2026-07-17 (night IV): the test pair is 9 and 12; Spectrum parked for Plus/4
+
+Stefan's rulings. The standard test assets are named for the band
+modes they carry: 9.<TAG> (infocom, 72 rows) and 12.<TAG> (DAAD, 96
+rows), header ids matching; the undocumented 90/100 block convention
+is retired. Regenerated for all seven targets and EVERY probe rebuilt
+with the renamed assets: CPC + ZX3 (sjasmplus, sims pixel-exact
+unchanged), C64 (acme on the Debian, its intended home), DOS (nasm),
+AST (Eris's vasm), AMI (build_adf via the same vasm); stress-out
+refreshed (A8 derived from the fresh C64 pair; medieval keeps 101
+pending a naming ruling). docs/08 renamed throughout with a change-log
+entry. And the Spectrum direction is settled as a ruling: the ZX3
+SOLVER rework is parked until Plus/4 lands as a target, Plus/4 goes
+HIRES (Stefan confirmed the historical Rabenstein Spectrum art was
+100% based on the Plus/4 versions: near-mono dithered form, few
+deliberate accents, dark/bright pairs of one colour for highlights),
+C64 stays 160-wide multicolor (a hires experiment noted as an itch),
+and looks are PREDEFINED per machine, never an author option (the
+Rick Rubin principle). Suite 985.

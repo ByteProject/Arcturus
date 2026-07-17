@@ -507,6 +507,30 @@ The ruling, in three parts:
   was rebuilt; a rework onto the current architecture is a pending
   work item, Stefan's call. Next: C64 with the 6502 ring decoder.
 
+  RULINGS OF THE SAME EVENING (Stefan, 2026-07-17):
+  - TEST PAIR IDS ARE THE MODE NUMBERS: 9.<TAG> (infocom, 72 rows) and
+    12.<TAG> (DAAD, 96 rows), coherent with arc_mode; the 90/100 block
+    convention is retired, headers match, every probe rebuilt (CPC+ZX3
+    via sjasmplus, C64 via the Debian acme, DOS via nasm, AST/AMI via
+    Eris's vasm). The medieval stress image keeps id 101 pending a
+    naming ruling.
+  - SPECTRUM PARKED, PLUS/4 FIRST: the ZX3 probe stands (ring loader
+    verified); the SOLVER rework waits until the Plus/4 target lands,
+    and Plus/4 goes HIRES. Stefan confirmed from the originals that the
+    historical Rabenstein Spectrum art was 100% based on the Plus/4
+    versions: near-monochrome dithered form (one dominant ink per
+    region) with FEW deliberate color accents (a sky zone, a moon),
+    plus dark/bright pairs of one colour for highlighting, which the
+    Spectrum can do. That is the conversion philosophy for both
+    machines; a full-palette quantize is what makes the current ZX3
+    output clash. Plus/4 in hires also preserves its uniqueness (the
+    121-color luma palette) instead of underselling it as a C64 look.
+  - C64 HIRES ITCH: worth an experiment sometime; the feeling is C64
+    stays 160-wide multicolor. Open, not settled.
+  - PREDEFINED OVER CHOICE: one look per machine, ruled by the design,
+    never an author-facing option ("the listener doesn't know what he
+    wants": the Rick Rubin principle). No dual-mode flavor switches.
+
   ZX2 EVALUATED AND DECLINED (same day, Stefan; raised by Shawn
   Sijnstra). ZX2 (Saukas's small-file ZX0 sibling: flat one-byte
   offsets, a 256-byte window by construction, a ~40-byte decoder) was

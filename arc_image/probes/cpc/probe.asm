@@ -335,8 +335,8 @@ zx0ring:
         ASSERT (zx0ring & $7FF) == 0
 
 image9:
-        incbin "90.CPC"
+        incbin "9.CPC"
 image12:
-        incbin "100.CPC"
+        incbin "12.CPC"
 
         SAVEBIN "probe.bin", start, $ - start
