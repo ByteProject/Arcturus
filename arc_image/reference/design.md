@@ -444,12 +444,24 @@ The ruling, in three parts:
   are flagged where the work lands). The 16-bit targets keep their
   staged LZSA2 chapters: RAM is not scarce there.
 
-  STATUS 2026-07-17: the ruling and the format contract are landed
-  (arcimg window guarantee, tests, docs/08 part B, this record). The
-  probe rebuilds and their reference decoders are the open work; a first
-  Z80 ring decoder was drafted and pulled unshipped when review found the
-  end-marker and reservoir-refill bugs a re-plumb invites, confirming the
-  hazard note above. The correct decoders land WITH the probes, verified.
+  STATUS 2026-07-17 (evening): CPC DONE up to the emulator pass. The
+  ring decoder exists (arc_image/probes/dzx0r_z80.asm, ~110 bytes, the
+  smallest possible delta on dzx0_standard: only the LDIR copy paths
+  re-plumbed, gamma/offsets/end-marker verbatim) and is EXECUTED against
+  the corpus by a strict mini-Z80 core in tests/test_dzx0r.py: real
+  CPC/C64/ZX3 sections, the offset-exactly-2048 aliasing edge,
+  overlapping run fills, long literals, tiny inputs, all byte-identical
+  to zx0_decompress. (A first draft written from memory was pulled when
+  review found end-marker and reservoir bugs; the delta-on-proven-code
+  approach plus the executable harness is what made the second one
+  trustworthy.) The CPC probe is rebuilt on it: no staging band, emit
+  vectored per section (screen sub-block walker with the rows*10 hop,
+  or the 17-byte palette/register buffers), 2K-aligned ring asserted at
+  assembly. The committed codec-1 corpus (C64, CPC, ZX3, A8: 39 of 84
+  files) was repacked under the 2048 guarantee and a corpus-contract
+  test now ring-decodes every committed file in the suite. Pending:
+  Stefan's ZEsarUX pass on the rebuilt probe (ZRCP injection route),
+  then the ZX3 probe, then C64 with the 6502 ring decoder.
 
   ZX2 EVALUATED AND DECLINED (same day, Stefan; raised by Shawn
   Sijnstra). ZX2 (Saukas's small-file ZX0 sibling: flat one-byte

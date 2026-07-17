@@ -4479,3 +4479,27 @@ dzx0 invites, so the correct decoders land WITH the probes, emulator-
 verified (Stefan's pass). Tests rewritten around the guarantee: packed
 streams fit a 2K ring (instrumented ring decoder), an uncapped stream
 provably does not, container round-trip. Suite 979.
+
+## 2026-07-17 (evening): the CPC ring probe, dzx0r machine-verified (R5 build 1)
+
+The first ring-architecture probe is built. dzx0r_z80.asm (~110 bytes)
+is the ring decoder: the smallest possible delta on dzx0_standard (only
+the two LDIR copy paths re-plumbed into ring+emit byte loops; the Elias
+gamma reader, negative-offset bookkeeping, and end-marker detection
+carried verbatim, because the pulled first draft proved those are what
+a rewrite gets wrong). It is EXECUTED, not reviewed: tests/test_dzx0r.py
+assembles it with sjasmplus (skipped if absent) and runs it on a strict
+mini-Z80 core (exactly the decoder's opcode set, raises on anything
+else) against real CPC/C64/ZX3 corpus sections and the synthetic edges
+(offset exactly 2048, overlapping runs, long literals, tiny inputs),
+byte-identical to zx0_decompress throughout. The CPC probe is rebuilt
+on it: staging band deleted, emit vectored per section (screen
+sub-block walker with the rows*10 block hop; 17-byte buffers for
+palette/registers), ring 2K-aligned and asserted at assembly;
+probe.bin + probe.sna regenerated. The committed codec-1 corpus was
+repacked under the 2048 guarantee (39 of 84 files changed; C64/CPC/ZX3
+/A8) and a corpus-contract test ring-decodes every committed file
+forever after. docs/08: part B points at dzx0r as the ring reference,
+C.6 is the ring loader chapter (64K posture: ring + 17 bytes, source
+streamable). Suite 984. Pending: Stefan's ZEsarUX pass (ZRCP route),
+then ZX3, then C64 + the 6502 ring decoder.

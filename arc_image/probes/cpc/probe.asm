@@ -1,4 +1,4 @@
-; probe.asm - the Amstrad CPC arc_image probe (B12 R3, arc_image/reference/design.md section 6)
+; probe.asm - the Amstrad CPC arc_image probe (B12 R5, arc_image/reference/design.md sections 6 and 8b)
 ; part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 ; Copyright (c) 2026, Stefan Vogt.
 ;
@@ -10,16 +10,24 @@
 ;   python3 build_sna.py         (wraps it into probe.sna, a v1 snapshot)
 ;
 ; and run in ZEsarUX (CPC 464/6128). The codec is ZX0 (codec 1, docs/08
-; part B); the decompressor is Einar Saukas & Urusergi's 68-byte standard
-; routine, carried verbatim (../dzx0_z80.asm).
+; part B) under the 2048-byte window guarantee, and THIS PROBE IS THE RING
+; LOADER (R5, 2026-07-17): decode goes straight to the screen through a
+; per-byte emit, back-references come out of a 2K ring in main RAM, and
+; the old 7680-byte staging band is gone. The decode working set is the
+; ring plus the ~110-byte decoder (../dzx0r_z80.asm, machine-verified
+; against the corpus in tests/test_dzx0r.py); that is the 64K posture the
+; CPC 464 aim demands, since a real interpreter also holds the Z-machine
+; and the story. A machine with RAM to spare may still stage with the
+; classic ../dzx0_z80.asm; both read the identical stream.
 ;
 ; The CPC payload (arc_image/reference/design.md section 10):
 ;   type 1  bitmap    Mode 0 bytes in SUB-BLOCK order: the screen's eight
 ;                     0x800 blocks each hold every 8th raster line, and
 ;                     the band's rows land contiguously at each block's
-;                     START, so the loader is eight straight copies of
-;                     height*10 bytes from the staged stream to
-;                     $C000 + s*$800. No other math exists.
+;                     START. The ring loader emits linearly into block 0
+;                     until rows*10 bytes have landed, hops to the next
+;                     block base ($C000 + s*$800), and so on: the emit is
+;                     a write, a counter, and a hop. No other math exists.
 ;   type 5  palette   16 ink indices in the 27-cube, r*9+g*3+b with
 ;                     levels 0..2; the loader maps them to gate-array
 ;                     hardware colors with the 27-byte table below and
@@ -111,25 +119,26 @@ draw:   push hl
         ld a, (hl)
         cp 1
         jr nz, .notbmp
-        ld hl, (cur)            ; bitmap: staging, then eight block copies
-        ld de, staging
-        call dzx0_standard
-        call blocks
+        call scrinit            ; bitmap: aim emit at the screen sub-blocks
+        ld hl, (cur)
+        call dzx0r              ; and decode STRAIGHT to the screen
         jr .adv
 .notbmp:
         cp 5
         jr nz, .notpal
-        ld hl, (cur)            ; palette: decode 16 firmware inks
-        ld de, palbuf
-        call dzx0_standard
+        ld hl, palbuf           ; palette: aim emit at the 16-byte buffer
+        call bufinit
+        ld hl, (cur)
+        call dzx0r
         call setpens
         jr .adv
 .notpal:
         cp 7
         jr nz, .adv
-        ld hl, (cur)            ; registers: one byte, the border ink
-        ld de, regbuf
-        call dzx0_standard
+        ld hl, regbuf           ; registers: one byte, the border ink
+        call bufinit
+        ld hl, (cur)
+        call dzx0r
         ld a, (regbuf)
         call hw                 ; cube index -> hardware color
         ld bc, $7F10            ; select the border
@@ -156,9 +165,17 @@ draw:   push hl
         djnz .each
         ret
 
-; eight copies of rows*10 bytes each: block s of the screen holds every
-; 8th raster line, and the band fills each block's start
-blocks: ld a, (rows)            ; hl = rows * 10, computed once
+; ---- the emit vector: dzx0r calls `emit`, the probe redirects it ---------
+
+emit:   jp 0                    ; operand patched by scrinit/bufinit
+
+; ---- screen emit: linear within a sub-block, hop every rows*10 bytes ------
+
+; block s of the screen holds every 8th raster line, and the band's rows
+; fill each block's start: emit walks block 0 for rows*10 bytes, hops to
+; $C000 + s*$800, and repeats. Preserves BC/DE/HL (the dzx0r contract).
+scrinit:
+        ld a, (rows)            ; blkn = rows * 10, computed once
         ld l, a
         ld h, 0
         add hl, hl              ; *2
@@ -168,23 +185,53 @@ blocks: ld a, (rows)            ; hl = rows * 10, computed once
         pop bc
         add hl, bc              ; *10
         ld (blkn), hl
-        ld hl, staging
-        ld de, $C000
-        ld a, 8
-.blk:   push af
-        push de
-        ld bc, (blkn)
-        ldir                    ; one block's band rows (hl walks the stage)
-        pop de
-        ld a, d                 ; next block: de += $800
-        add a, 8
-        ld d, a
-        pop af
-        dec a
-        jr nz, .blk
+        ld (blkcnt), hl
+        ld hl, $C000
+        ld (scrptr), hl
+        ld (blkbase), hl
+        ld hl, emit_scr
+        ld (emit+1), hl
         ret
 
-blkn:   dw 0
+emit_scr:
+        push hl
+        ld hl, (scrptr)
+        ld (hl), a              ; the byte lands on the screen
+        inc hl
+        ld (scrptr), hl
+        ld hl, (blkcnt)         ; count down this block's share
+        dec hl
+        ld (blkcnt), hl
+        ld a, h
+        or l
+        jr nz, .done
+        ld hl, (blkbase)        ; block done: hop to the next $800 base
+        ld a, h
+        add a, 8
+        ld h, a
+        ld (blkbase), hl
+        ld (scrptr), hl
+        ld hl, (blkn)
+        ld (blkcnt), hl
+.done:  pop hl
+        ret
+
+; ---- buffer emit: plain store-and-advance (palette, registers) -----------
+
+bufinit:                        ; HL = destination buffer
+        ld (bufptr), hl
+        ld hl, emit_buf
+        ld (emit+1), hl
+        ret
+
+emit_buf:
+        push hl
+        ld hl, (bufptr)
+        ld (hl), a
+        inc hl
+        ld (bufptr), hl
+        pop hl
+        ret
 
 ; program pens 0-15 from the decoded firmware inks
 setpens:
@@ -271,11 +318,21 @@ cur:    dw 0
 rows:   db 0
 palbuf: ds 16
 regbuf: db 0
+scrptr: dw 0
+blkbase: dw 0
+blkcnt: dw 0
+blkn:   dw 0
+bufptr: dw 0
 
-        include "../dzx0_z80.asm"
+        include "../dzx0r_z80.asm"
 
-staging:
-        ds 7680                 ; the largest band bitmap (96 rows x 80)
+; the 2K history ring (the whole decode working set; the staging band of
+; the R3 probe is gone). 2K-aligned so the low 11 address bits are the
+; ring index; the ASSERT keeps a careless edit from breaking that.
+        align 2048
+zx0ring:
+        ds 2048
+        ASSERT (zx0ring & $7FF) == 0
 
 image9:
         incbin "90.CPC"
