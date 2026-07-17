@@ -127,8 +127,12 @@ their exact meaning, is per target (part C); two rules hold everywhere:
 THE CODEC (header byte 14): 0 = RLE, 1 = ZX0, 2 = LZSA2. Every target
 chapter in part C mandates exactly ONE codec, so a real interpreter
 carries exactly one decoder; reading the codec byte and refusing
-anything else is honest behavior. The assignment (both rulings
-2026-07-08, the bake-off and the speed amendment in arc_image/reference/design.md):
+anything else is honest behavior. (A short-lived codec 3 was reserved
+and retired unreleased on 2026-07-17; its purpose, a bounded lookback
+window, became a guarantee on codec 1 itself, see the window guarantee
+below. No file ever carried codec 3.) The assignment (rulings
+2026-07-08, the bake-off and the speed amendment, and 2026-07-17, the
+window guarantee, all in arc_image/reference/design.md):
 
 - ZX0 (Einar Saukas) for the 8-bit cell targets (C64, Spectrum +3, CPC,
   and the rest of the small-machine family). Best ratio of the field,
@@ -151,9 +155,42 @@ byte, then gamma length-minus-one whose FIRST bit rides bit 0 of that
 LSB byte: the backtrack trick every decoder must honor). After literals
 the next bit chooses repeat (0) or new offset (1); after any copy it
 chooses literals (0) or new offset (1). offset = MSB*128 - (LSB >> 1);
-decompression is a plain byte loop with one 2176-byte-max lookback into
-its own output, no window buffer needed since sections decompress whole
-into their destination.
+decompression is a plain byte loop that reads back into its own output.
+
+THE WINDOW GUARANTEE (ruled 2026-07-17; the number every retro loader
+depends on). arcimg packs every codec-1 stream so that NO match offset
+exceeds 2048 bytes. This is a hard promise of the format, not a hint: on
+the corpus it costs nothing (the packed sizes are byte-identical to the
+older unbounded quick window on C64, CPC, and Spectrum alike), and in
+exchange a decoder never has to reach further back than 2048 bytes of
+its own output. Two memory models satisfy the format, and a target
+chapter in part C names which one it uses:
+
+- STAGING (the plentiful-RAM model, the 16-bit chapters and any 8-bit
+  machine with room to spare). Decompress a whole section into a
+  contiguous buffer with a published dzx0, then blit the buffer to the
+  screen. Fastest (block moves), simplest, and it wants source + a full
+  band resident at once.
+- RING (the tight-RAM and write-only-video model, the 8-bit cell
+  chapters). Keep a single 2048-byte ring in main RAM holding the last
+  2048 output bytes; decode one byte at a time, writing each to the ring
+  AND straight out to the screen, and serve every back-reference from
+  the ring. The window guarantee is what makes this sufficient: 2048
+  bytes of history is all a codec-1 stream can ask for. The compressed
+  source is read strictly forward, so it may itself be streamed from
+  disk in sector bites. This is the model for a machine that cannot
+  afford a staging band beside a running Z-machine (a 64K profile), and
+  the ONLY model for a machine whose video memory cannot be read back at
+  all (a port-addressed graphics board, a serial VDP): the per-byte
+  screen write is the one platform-specific step. Cost is per-byte emits
+  instead of block moves, paid once per room entry.
+
+Both models decode the identical bitstream; a ring loader and a staging
+loader reading the same .arc file produce the same pixels. The published
+Z80 and 6502 dzx0 routines implement the staging model as written; the
+ring model is a re-plumbing of the same decode (each output byte teed to
+a 2K ring and an emit step) and its reference decoders land with the
+cell-target chapters as those probes are built.
 
 THE RLE SCHEME (codec 0; control byte c):
 
@@ -610,6 +647,14 @@ the PPI/AY row scan (the probe's anykey is the reference).
 
 ## Change log
 
+- 2026-07-17 (the window guarantee): codec-1 streams are packed with no
+  match offset beyond 2048 bytes, at zero measured cost on the corpus,
+  and part B now specifies the two decode memory models (staging and
+  ring). The ring model retires the both-copies-resident assumption for
+  the 8-bit cell targets: a 2K ring plus a per-byte emit to the native
+  screen replaces the staging band, which also serves machines whose
+  video memory cannot be read back. Cell-target chapters migrate as
+  their probes are rebuilt; reference ring decoders land with them.
 - 2026-07-08: first cut: the contract, the format, the DOS chapter
   (verified), the ST chapter (provisional), the Amiga layout facts.
 - 2026-07-08 (later): the ST chapter verified in Hatari, both modes, with

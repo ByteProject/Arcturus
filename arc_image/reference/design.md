@@ -400,44 +400,56 @@ playground for all of it is the repo's `arc_image/` directory (the
 Rabenstein working set: the masters under `arc_image/rabenstein/images/`,
 per-target conversions landing beside them).
 
-## 8b. Proposal: ZX0W, the one-page-ring codec (2026-07-17, pending Stefan)
+## 8b. Ruled: the 2048 window and the ring decode architecture (R5, 2026-07-17, Stefan)
 
-Grown from Shawn Sijnstra's TRS-80 Model 4 and Agon work, and it answers a
-design debt of our own probes. The problem, twice over:
+Grown from Shawn Sijnstra's TRS-80 Model 4 and Agon work, which exposed a
+design debt of our own: EVERY LZ decoder copies from previously
+decompressed OUTPUT, and the R2/R3 probes dodge that by staging, keeping
+the compressed source AND a full uncompressed band (7680 bytes) in RAM at
+once. Unshippable on a 64K machine that is also running the Z-machine
+interpreter and the story; impossible outright where video memory cannot
+be read back (a port-addressed graphics board, a serial VDP).
 
-- A machine whose video memory cannot be READ BACK cannot run a normal
-  LZ decoder into the screen: ZX0/LZSA2/Exomizer all copy from previously
-  decompressed OUTPUT. The TRS-80's graphics board is port-addressed
-  (reads are a slow address-programming dance); the Agon's VDP is a
-  serial pipe (no reads at all).
-- Our own probes stage instead: compressed source AND a full uncompressed
-  band (7680 bytes) both live in RAM during decode. Affordable on 128K,
-  a real problem on a 64K machine that is also running the Z-machine
-  interpreter and the story.
+The ruling, in three parts:
 
-The proposal: codec 3, ZX0W. The BITSTREAM is standard ZX0 (any dzx0
-decodes it; a loader may treat codec 3 as codec 1). The codec id is a
-CONTRACT: every match offset is <= 256. A decoder then needs read access
-to only the last 256 output bytes, one page-aligned ring in main RAM (H
-fixed, INC L wraps free on Z80), and can write each emitted byte STRAIGHT
-to the screen through a per-row address mapper: port-addressed, serial,
-or interleaved (CPC, C64) alike. The staging band disappears entirely;
-the decode footprint becomes compressed source + 256 bytes + a small
-decoder. The cost is per-byte emits instead of LDIR block moves, once per
-room entry.
+- CODEC 1 CARRIES A WINDOW GUARANTEE: arcimg packs every ZX0 stream with
+  offsets capped at 2048. Measured on the corpus this is FREE, byte-
+  identical per-picture averages against the old 2176 quick window on
+  C64, CPC, and ZX3 alike (1024 would cost CPC 3.5%, 512 costs it 17.7%;
+  2048 costs nothing anywhere). Streams stay standard ZX0, decodable by
+  every published dzx0. A short-lived codec 3 ("ZX0W", window 256) is
+  retired unreleased: ratio is the budget that matters (disk space is
+  finite; +22% on CPC was unacceptable), and the ring idea lives better
+  as a guarantee on the one codec.
+- THE RING DECODE ARCHITECTURE replaces staging on the whole 8-bit
+  family: a 2K-aligned ring in main RAM holds the last 2048 output bytes
+  (the window, exactly), every emitted byte goes straight to the screen
+  through a per-target write path (the CPC's sub-block runs, a port, a
+  serial pipe), and back-references read the ring. The compressed source
+  streams linearly (sector-sized bites; it never needs to be resident
+  whole). Decode footprint: 2K ring + IO buffer + a ~150-byte decoder,
+  against the old source + 7680-byte band. The cost is per-byte emits
+  instead of LDIR runs, once per room entry.
+- THE PROBES ARE REBUILT ON THE RING (the pending work, CPC first: the
+  machine where the interleave and the 64K profile meet). Each 8-bit
+  cell probe re-plumbs decode into a 2K ring plus a per-byte emit to the
+  native screen, no staging band, and is verified pixel-exact against
+  its staged predecessor in the same emulator (Stefan's pass, the
+  R2/R3 hand-off). The Z80 ring reference decoder (dzx0r_z80.asm) comes
+  out of the CPC rebuild and the 6502 ring decoder out of the C64
+  rebuild; both are transcriptions of the byte-verified Python reference
+  (_ring_decompress in tests/test_arcimg.py), and neither is trusted
+  until it decodes real streams on the emulator, because ZX0's reservoir
+  and end-marker handling do not survive a naive re-plumb (the hazards
+  are flagged where the work lands). The 16-bit targets keep their
+  staged LZSA2 chapters: RAM is not scarce there.
 
-Measured on the corpus (sections recompressed, totals):
-
-- C64 (1bpp-dominant): zx0w-256 = 104.6% of full-window ZX0; RLE = 127%.
-- CPC (4bpp): zx0w-256 = 121.9% of full-window ZX0; RLE = 171.5%.
-
-So on TRS-80-shaped data (1bpp, 80-byte pitch) the ring costs ~5%; even
-on the richest corpus it beats RLE by ~30%. arcimg carries it as
-`--codec zx0w` (implemented, tested: a ring decoder limited to 256
-readable bytes round-trips the corpus shapes; plain ZX0 provably does
-not fit the ring). Pending Stefan's ruling: per-target codec mandates
-(TRS-80 and Agon chapters when they exist; whether the 64K profiles of
-existing targets move to ZX0W to retire their staging bands).
+  STATUS 2026-07-17: the ruling and the format contract are landed
+  (arcimg window guarantee, tests, docs/08 part B, this record). The
+  probe rebuilds and their reference decoders are the open work; a first
+  Z80 ring decoder was drafted and pulled unshipped when review found the
+  end-marker and reservoir-refill bugs a re-plumb invites, confirming the
+  hazard note above. The correct decoders land WITH the probes, verified.
 
 ## 8a. Amendments (R4, 2026-07-13, Stefan)
 

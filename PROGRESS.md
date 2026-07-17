@@ -4458,3 +4458,24 @@ REFUSES plain zx0 (the counter-proof); codec registered end to end.
 Design record 8b written as a proposal pending Stefan's ruling on
 per-target mandates (TRS-80/Agon chapters; whether 64K profiles of
 existing targets retire their staging bands). Suite 980.
+
+## 2026-07-17: the window guarantee ruled, codec 3 retired (arcimg 1.12.0, R5)
+
+Stefan's ruling after the curve measurement: W=2048 is FREE (byte-
+identical per-picture averages vs the old 2176 quick window on C64,
+CPC, and ZX3; 1024 would cost CPC 3.5%, 512 costs 17.7%). So codec 1
+itself now carries the guarantee: arcimg packs every ZX0 stream with
+offsets capped at 2048 (_ZX0_MAX_OFFSET), and codec 3 ("ZX0W", 256) is
+retired unreleased; ratio is the budget that matters and the ring idea
+lives better as a guarantee on the one codec. docs/08 part B rewritten:
+the window contract plus the TWO decode memory models (staging for the
+RAM-rich, ring for 64K profiles and write-only video: 2K ring + per-
+byte emit straight to the native screen, streamed source, no staging
+band). Design record 8b is the R5 ruling with an honest status: the
+probe rebuilds (CPC first) and the reference ring decoders are the
+open work; a first Z80 ring decoder draft was pulled unshipped when
+review found the end-marker and reservoir bugs a naive re-plumb of
+dzx0 invites, so the correct decoders land WITH the probes, emulator-
+verified (Stefan's pass). Tests rewritten around the guarantee: packed
+streams fit a 2K ring (instrumented ring decoder), an uncapped stream
+provably does not, container round-trip. Suite 979.

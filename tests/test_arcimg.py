@@ -154,14 +154,14 @@ def test_crop_to_ratio_is_pure_geometry():
     assert wide.cropped == (160, 0, 480, 96)
 
 
-# -- ZX0W (codec 3): the write-only-video window ------------------------------
+# -- The codec-1 window guarantee (docs/08 part B; ruled 2026-07-17) ----------
 
-def _ring_decompress(blob, window=256):
-    """The real zx0_decompress, re-plumbed the way a write-only-video machine
-    must run it: output goes to a screen the decoder never reads, and every
-    back-reference is served from a ring holding only the last `window`
-    output bytes. Asserts no offset exceeds the ring: the proof that one
-    page of RAM suffices to decode a ZX0W stream."""
+def _ring_decompress(blob, window=2048):
+    """The real zx0_decompress, re-plumbed the way a ring-architecture
+    machine runs it: output goes to a screen the decoder never reads, and
+    every back-reference is served from a ring holding only the last
+    `window` output bytes. Asserts no offset exceeds the ring: the proof
+    that a 2K ring suffices for every stream arcimg packs."""
     screen = bytearray()
     ring = bytearray(window)
     wpos = 0
@@ -198,7 +198,7 @@ def _ring_decompress(blob, window=256):
     def emit(b):
         nonlocal wpos
         screen.append(b)          # the write-only screen
-        ring[wpos % window] = b   # the one readable page
+        ring[wpos % window] = b   # the one readable region
         wpos += 1
 
     def emit_ref():
@@ -227,44 +227,41 @@ def _ring_decompress(blob, window=256):
             state = "new" if read_bit() else "lit"
 
 
-def test_zx0w_round_trips_and_fits_the_ring():
+def test_packed_streams_fit_the_2k_ring():
     import random
     rnd = random.Random(7)
-    # Bitmap-like data: strong row correlation at pitch 80 (a TRS-80 band).
-    pitch, rows = 80, 24
-    data = bytearray(rnd.randrange(256) for _ in range(pitch))
-    for r in range(1, rows):
-        row = bytearray(data[(r - 1) * pitch:r * pitch])
-        for _ in range(8):  # sparse changes per row
-            row[rnd.randrange(pitch)] = rnd.randrange(256)
-        data += row
-    raw = bytes(data)
-    packed = arcimg.zx0w_compress(raw)
-    # 1. The bitstream IS zx0: the standard decoder reads it unchanged.
-    assert arcimg.zx0_decompress(packed) == raw
-    # 2. A ring decoder with only 256 readable bytes reproduces it too.
-    assert _ring_decompress(packed, 256) == raw
-
-
-def test_plain_zx0_can_exceed_the_ring():
-    # The counter-proof: data whose only matches sit far apart compresses
-    # with big offsets under plain ZX0, and the ring decoder refuses it.
-    block = bytes(range(256)) + bytes(range(255, -1, -1))
-    raw = block + b"\x00" * 700 + block
+    # Bitmap-like data with matches WELL beyond 2048 available: repeated
+    # blocks 3000 bytes apart. The packer must keep every offset <= 2048.
+    block = bytes(rnd.randrange(256) for _ in range(600))
+    raw = block + bytes(rnd.randrange(256) for _ in range(2400)) + block
     packed = arcimg.zx0_compress(raw)
+    assert arcimg.zx0_decompress(packed) == raw       # standard decode
+    assert _ring_decompress(packed, 2048) == raw      # the 2K ring decode
+
+
+def test_an_uncapped_stream_would_not_fit():
+    # The counter-proof that the guarantee is doing work: the same data
+    # packed with a larger window carries a far offset the ring refuses.
+    import random
+    rnd = random.Random(7)
+    block = bytes(rnd.randrange(256) for _ in range(600))
+    raw = block + bytes(rnd.randrange(256) for _ in range(2400)) + block
+    packed = arcimg.zx0_compress(raw, offset_cap=8192)
     assert arcimg.zx0_decompress(packed) == raw
     try:
-        _ring_decompress(packed, 256)
+        _ring_decompress(packed, 2048)
     except AssertionError:
         pass  # expected: an offset beyond the ring
     else:
-        raise AssertionError("plain zx0 unexpectedly fit the 256 ring")
+        raise AssertionError("uncapped stream unexpectedly fit the 2K ring")
 
 
-def test_zx0w_is_a_registered_codec():
-    raw = bytes(range(256)) * 4
-    blob = arcimg.write_arc(1, 0, 64, 16, 5, [(1, 0, raw)],
-                            codec=arcimg.CODEC_ZX0W)
+def test_arc_sections_ring_decode():
+    # End to end through the container: a written .arc's sections decode
+    # under the ring exactly as under the standard decoder.
+    raw = bytes(range(256)) * 12
+    blob = arcimg.write_arc(6, 9, 160, 96, 3, [(1, 0, raw)],
+                            codec=arcimg.CODEC_ZX0)
     head, sections = arcimg.read_arc(blob)
-    assert head["codec"] == arcimg.CODEC_ZX0W
+    assert head["codec"] == arcimg.CODEC_ZX0
     assert sections[0][2] == raw

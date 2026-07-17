@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.11.0"
+__version__ = "1.12.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -242,9 +242,15 @@ SEC_REGS = 7       # a handful of global hardware values
 # (2026-07-08) after the corpus bake-off: within a few percent of Exomizer
 # with the smallest decompressors in the business (~70 bytes of Z80).
 
-_ZX0_MAX_OFFSET = 2176  # the quick-mode window: 0-2% larger output on the
-# corpus than the full 32640 window, an order of magnitude faster to pack
-# (measured per target in arc_image/reference/design.md); loaders are unaffected either way
+_ZX0_MAX_OFFSET = 2048  # THE SPEC'D WINDOW (docs/08 part B; ruled 2026-07-17):
+# every codec-1 stream arcimg packs carries no back-reference beyond 2048
+# bytes, at ZERO measured cost on the corpus (byte-identical per-picture
+# averages against the old 2176 quick window; 0-2% against the full 32640).
+# The number is the CONTRACT that makes the ring decode architecture work:
+# a decoder needs read access to only the last 2048 output bytes, one
+# 2K-aligned ring in main RAM, so it can emit straight to screen memory
+# (interleaved, port-addressed, or serial alike) with no staging band.
+# Any published dzx0 also decodes these streams unchanged.
 
 
 def _zx0_gamma_bits(value):
@@ -859,33 +865,21 @@ def lzsa2_decompress(blob: bytes) -> bytes:
 
 
 # Codecs (header byte 14): 0 = the RLE scheme above, 1 = ZX0 (the 8-bit cell
-# targets and the default), 2 = LZSA2 (the 16-bit targets; see the ruling
-# note above), 3 = ZX0W, ZX0 with every match offset capped at 256 bytes.
-# ZX0W's BITSTREAM is standard ZX0 (any dzx0 decodes it unchanged; a loader
-# may treat 3 as 1); the codec id is the CONTRACT that offsets never exceed
-# 256, so a machine whose video memory cannot be read back (a TRS-80 Model
-# 4's port-addressed graphics board, an Agon's serial VDP) can decode with
-# one page-aligned ring buffer in main RAM instead of a full staging band:
-# H fixed, INC L wraps the ring for free. Each target chapter in docs/08
-# mandates exactly one codec, so a real interpreter carries exactly one
-# decoder.
+# targets and the default; every stream carries the 2048-byte window
+# guarantee, see _ZX0_MAX_OFFSET above), 2 = LZSA2 (the 16-bit targets; see
+# the ruling note above). A short-lived codec 3 ("ZX0W", a 256-byte window)
+# was retired unreleased on 2026-07-17: the ruling folded its ring idea into
+# codec 1 itself as the window guarantee, at zero ratio cost, so one codec
+# per target chapter stands. Each target chapter in docs/08 mandates exactly
+# one codec, so a real interpreter carries exactly one decoder.
 CODEC_RLE = 0
 CODEC_ZX0 = 1
 CODEC_LZSA2 = 2
-CODEC_ZX0W = 3
-
-ZX0W_WINDOW = 256  # one Z80 page: the ring a write-only-video decoder keeps
-
-
-def zx0w_compress(data: bytes) -> bytes:
-    return zx0_compress(data, offset_cap=ZX0W_WINDOW)
-
 
 _CODECS = {
     CODEC_RLE: (rle_encode, rle_decode),
     CODEC_ZX0: (zx0_compress, zx0_decompress),
     CODEC_LZSA2: (lzsa2_compress, lzsa2_decompress),
-    CODEC_ZX0W: (zx0w_compress, zx0_decompress),
 }
 
 
@@ -3359,8 +3353,7 @@ def cmd_info(args) -> int:
     return 0
 
 
-_CODEC_NAMES = {"rle": CODEC_RLE, "zx0": CODEC_ZX0, "lzsa2": CODEC_LZSA2,
-                "zx0w": CODEC_ZX0W}
+_CODEC_NAMES = {"rle": CODEC_RLE, "zx0": CODEC_ZX0, "lzsa2": CODEC_LZSA2}
 
 
 def _is_hand_authored(dest):
