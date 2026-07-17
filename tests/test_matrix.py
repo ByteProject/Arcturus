@@ -350,3 +350,49 @@ def test_unsummoned_program_is_byte_identical():
     a = _build(plain)
     b = _build(plain)  # deterministic build
     assert a == b
+
+
+def test_matrix_of_direction_says_words():
+    # `matrix patrol capacity 4 of direction`: seeds and appends are
+    # direction names, and say speaks the word, the catalog symmetry.
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'summon.matrix\n'
+        'matrix patrol capacity 4 of direction\n'
+        'verb "probe"\n    probe_it\n'
+        'room hall\n    name "Hall"\n    desc "H."\n    north cellar\n'
+        '    on probe_it\n'
+        '        append north to patrol\n'
+        '        append east to patrol\n'
+        '        for each p in patrol\n'
+        '            say "${p} "\n'
+        'room cellar\n    name "Cellar"\n    desc "C."\n'
+    )
+    from arcturus import cosmos as _c
+    from arcturus.codegen import generate as _g
+    from arcturus.sema import analyze as _a
+    from arcturus.parser import parse as _p
+    story = _g(_a(_c.combined_program(_p(game))))
+    io = CaptureIO(script=["probe"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "north east" in " ".join(io.text.split())
+
+
+def test_matrix_of_direction_refuses_a_non_direction_seed():
+    import pytest as _pt
+    bad = (
+        'game\n    title "T"\n    start hall\n'
+        'summon.matrix\n'
+        'matrix patrol capacity 4 of direction\n'
+        '    wibble\n'
+        'room hall\n    name "Hall"\n    desc "H."\n'
+    )
+    from arcturus import cosmos as _c
+    from arcturus.sema import analyze as _a
+    from arcturus.parser import parse as _p
+    with _pt.raises(Exception) as e:
+        _a(_c.combined_program(_p(bad)))
+    assert "not a direction" in str(e.value)

@@ -4712,3 +4712,19 @@ kept the old byte shape for single-band objects: only the two
 kind-handler examples moved (+8, +12; dated), every other ceiling
 byte-identical. 2 new tests (the exact field shape; catch-all continue
 falls to the kind); suite 1003 with the whole precedence matrix green.
+
+## 2026-07-18: directions say their words (arcc 1.2.0)
+
+Charles Moore Jr.'s encore after direction catalogs landed: he could
+store directions but not print their names. The answer was symmetry
+already in the language: an object entry says its NAME, so a direction
+entry now says its WORD, the same voice as `say way`, through the
+cosmos_dir_name backing routine that already existed (emitted only
+when referenced: unaffected games byte-identical, every ceiling
+unchanged). `say "${entry(route, 1)}"` speaks north; the for-each loop
+variable speaks it too. And the matrix joins fully: `matrix patrol
+capacity 4 of direction` is the mutable route, seeds and appends by
+direction name, cells validated ("'wibble' is not a direction"), say
+speaking the word, the catalog symmetry complete on both the static
+and mutable sides. docs/01 updated (including retracting the
+hours-old "compare it, do not say it" note). 3 new tests; suite 1006.

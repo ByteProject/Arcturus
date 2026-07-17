@@ -197,9 +197,10 @@ A catalog of DIRECTIONS holds a fixed route the way a matrix holds a
 mutable one: each entry is the direction's property number, an ordinary
 cell, so `for each d in route` with `switch d / case north` walks a maze
 solution or a patrol path, and `exit_dest(here, entry(route, 1))` asks
-where the first leg leads. (Printing such an entry shows the number, as
-with a matrix; compare it with `is north`, do not say it.) An object
-name always wins over a direction name, as everywhere.
+where the first leg leads. Saying such an entry speaks the direction's
+canonical word, the same voice as `say way`: `say "${entry(route, 1)}"`
+prints north (objects print their names, directions their words). An
+object name always wins over a direction name, as everywhere.
 
 ```
 catalog escape_route
@@ -267,6 +268,10 @@ and store an index into it. The reads are exactly a catalog's, but the
 count is the LIVE length: `calculate(m)` is the current length, `entry(m,
 i)` the i-th (1-based), `last(m)`, `dice(m)`, `position(m, v)`, `v in m`,
 and `for each x in m`. `change entry(m, i) to v` rewrites a cell in place.
+
+A matrix `of direction` is the mutable route: seeds and appends are
+direction names, each cell the direction's property number, and saying
+a cell speaks the word, exactly as a direction catalog does.
 
 Mind the count (a field report): entries LIVE only up to the count.
 `change entry` rewrites a cell but never grows the matrix, so on a fresh

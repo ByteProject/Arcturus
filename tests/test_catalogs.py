@@ -235,3 +235,23 @@ def test_unknown_catalog_name_mentions_directions():
     with pytest.raises(Exception) as e:
         analyze(cosmos.combined_program(parse(bad)))
     assert "not an object or a direction" in str(e.value)
+
+
+def test_direction_entries_say_their_words():
+    # `say ${entry(route, 1)}` speaks "north", the same voice as `say way`
+    # and the object-catalog symmetry (objects print names, directions
+    # print words). The follow-up to the field request that added
+    # direction catalogs.
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'verb "probe"\n    probe_it\n'
+        'room hall\n    name "Hall"\n    desc "H."\n    north cellar\n'
+        '    on probe_it\n'
+        '        for each d in route\n'
+        '            say "${d} "\n'
+        '        say "/ ${entry(route, 1)} first"\n'
+        'room cellar\n    name "Cellar"\n    desc "C."\n'
+        'catalog route\n    north\n    east\n    up\n'
+    )
+    out = _run_game(game, ["probe"])
+    assert "north east up / north first" in " ".join(out.split())

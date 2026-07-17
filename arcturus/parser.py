@@ -950,10 +950,11 @@ class Parser:
         cell = "number"
         if self._at_word("of"):
             self.advance()  # `of`
-            kind = self.expect_name("the cell kind: object or byte").value
-            if kind not in ("object", "byte", "number"):
+            kind = self.expect_name("the cell kind: object, byte, or direction").value
+            if kind not in ("object", "byte", "number", "direction"):
                 raise self._error(
-                    f"a matrix cell is object, byte, or number, not '{kind}'", None)
+                    f"a matrix cell is object, byte, number, or direction, "
+                    f"not '{kind}'", None)
             cell = kind
         checked = False
         if self._at_word("checked"):
