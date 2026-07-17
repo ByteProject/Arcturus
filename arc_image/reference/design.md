@@ -601,7 +601,9 @@ The ruling, in three parts:
   the board manual, or trs80gp's author): if the real board holds
   /WAIT in that window, real iron never drops and the emulation quirk
   is cosmetic; if not, interpreters must pace writes. Documented in
-  C.7, not guessed.
+  C.7, not guessed. STEFAN'S VISUAL VERDICT (2026-07-18): "it looks
+  brilliant"; the TRSM4 art gate is passed, only the /WAIT question
+  stays open with Shawn.
 
   ZX2 EVALUATED AND DECLINED (same day, Stefan; raised by Shawn
   Sijnstra). ZX2 (Saukas's small-file ZX0 sibling: flat one-byte
