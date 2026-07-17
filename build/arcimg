@@ -75,13 +75,13 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.12.0"
+__version__ = "1.12.1"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = '2c39aba'
+__build__ = 'fc8f794'
 
 
 def build_id() -> str:
@@ -199,19 +199,24 @@ def _ensure_pillow():
 
 
 def _crop_to_ratio(img, tw: int, th: int):
-    """Centre-crop an image to the target aspect ratio (so a resize afterwards
-    never squashes it), keeping as much of the picture as the ratio allows."""
+    """Crop an image to the target aspect ratio (so a resize afterwards never
+    squashes it), keeping as much of the picture as the ratio allows.
+
+    Width trims are centred. Height trims anchor at the TOP (ruled
+    2026-07-17): the two band modes think in interpreter lines, so the mode-9
+    version of a mode-12 master is the SAME image ending at 72 rows, never a
+    recomposition. A band-shaped master (already the target width) therefore
+    passes through prep as an identity top-crop, pixel for pixel."""
     w, h = img.size
     target = tw / th
     cur = w / h
-    if cur > target:                 # too wide: trim the sides
+    if cur > target:                 # too wide: trim the sides, centred
         new_w = max(1, round(h * target))
         x = (w - new_w) // 2
         return img.crop((x, 0, x + new_w, h))
-    if cur < target:                 # too tall: trim top and bottom
+    if cur < target:                 # too tall: keep the top rows
         new_h = max(1, round(w / target))
-        y = (h - new_h) // 2
-        return img.crop((0, y, w, y + new_h))
+        return img.crop((0, 0, w, new_h))
     return img
 
 

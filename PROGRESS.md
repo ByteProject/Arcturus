@@ -4561,3 +4561,22 @@ and attribute file, mode 9 and mode 12. docs/08 C.5 rewritten as the
 ring chapter (verification note, sections, MEMORY: 2K ring, source
 streamable) plus the change-log entry; design 8b updated. Suite 984.
 Next: C64 with the 6502 ring decoder (acme via the orb Debian).
+
+## 2026-07-17 (night III): the band modes are lines, prep crops from the top (arcimg 1.12.1)
+
+Stefan's eyeball on the +3 caught it: the two band shapes read as
+different pictures. Root: prep's _crop_to_ratio centre-anchored its
+height trim, so a mode-9 prep of the 320x96 master dropped 12 rows top
+AND bottom, recomposing the image. The doctrine, now ruled and coded:
+band modes think in interpreter lines; mode 9 of a mode-12 master is
+the SAME image ending at 72 rows, a top-anchored identity crop (width
+trims stay centred; rescale only for foreign-shaped sources). The
+proof of the circle: the regenerated 90 renders are pixel-identical to
+the ORIGINAL approved band9-ZX3 and band9-CPC previews, so every probe
+asset is once again exactly a corpus-gate image. All three probe pairs
+regenerated; CPC + ZX3 reassembled and re-verified (sims pixel-exact,
++3 live byte-exact both modes); C64 probe.prg rebuilt via Debian acme.
+Also opened: the ZX3 solver re-gate (the +3 art IS the approved art,
+but the Spectrum kept its R3 solver when the Polizei family was
+rebuilt; rework pending Stefan's call). Regression test on the crop;
+suite 985.
