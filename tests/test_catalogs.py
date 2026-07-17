@@ -255,3 +255,20 @@ def test_direction_entries_say_their_words():
     )
     out = _run_game(game, ["probe"])
     assert "north east up / north first" in " ".join(out.split())
+
+
+def test_expired_let_error_teaches_the_shape():
+    import pytest as _pt
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'verb "probe"\n    probe_it\n'
+        'room hall\n    name "Hall"\n    desc "H."\n'
+        '    on probe_it\n'
+        '        if here is hall\n            let z = 4\n'
+        '        else\n            let z = 5\n'
+        '        say "${z}"\n'
+    )
+    with _pt.raises(Exception) as e:
+        analyze(cosmos.combined_program(parse(game)))
+    assert "ended with that block" in str(e.value)
+    assert "change z to" in str(e.value)

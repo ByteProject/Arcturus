@@ -396,3 +396,31 @@ def test_matrix_of_direction_refuses_a_non_direction_seed():
     with _pt.raises(Exception) as e:
         _a(_c.combined_program(_p(bad)))
     assert "not a direction" in str(e.value)
+
+
+def test_global_initialized_with_a_matrix_aliases_it():
+    # The field bug: a catalog or matrix name in a global initializer fell
+    # through SILENTLY and the global stayed 0, aliasing the region's
+    # first occupant. With two matrices the wrong one answered.
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'summon.matrix\n'
+        'matrix bmat capacity 4\nmatrix cmat capacity 4\n'
+        'global a = cmat\n'
+        'verb "probe"\n    probe_it\n'
+        'room hall\n    name "Hall"\n    desc "H."\n'
+        '    on probe_it\n'
+        '        append 7 to bmat\n        append 5 to cmat\n'
+        '        say "b=${entry(bmat,1)} viaA=${entry(a,1)}"\n'
+    )
+    from arcturus import cosmos as _c
+    from arcturus.codegen import generate as _g
+    from arcturus.sema import analyze as _a
+    from arcturus.parser import parse as _p
+    story = _g(_a(_c.combined_program(_p(game))))
+    io = CaptureIO(script=["probe"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "b=7 viaA=5" in io.text

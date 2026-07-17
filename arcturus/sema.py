@@ -45,6 +45,7 @@ class Analyzer:
     ) -> None:
         self.program = program
         self.env = env if env is not None else prelude.standard_environment()
+        self._expired_lets: set = set()
         self.filename = filename
         self.world = wm.World()
         # Every property name the story's code READS (a dot access, or the
@@ -1205,9 +1206,14 @@ class Analyzer:
     # -- statements --------------------------------------------------------
 
     def _check_body(self, stmts, locals_: set) -> None:
+        # A nested body's lets die with it: remember them so a later
+        # unknown-name error can teach the scoping instead of shrugging.
+        outer = locals_
         locals_ = set(locals_)
         for s in stmts:
             self._check_stmt(s, locals_)
+        for name in locals_ - outer:
+            self._expired_lets.add(name)
 
     def _check_stmt(self, s, locals_: set) -> None:
         if isinstance(s, ast.Let):
@@ -1471,6 +1477,14 @@ class Analyzer:
                 "unknown name 'direction': the chosen direction rides `way` "
                 "(if way is north, if way is aft); `direction` is the "
                 "declaration keyword and the grammar slot",
+                line,
+            )
+        if name in getattr(self, "_expired_lets", ()):
+            raise self._error(
+                f"unknown name '{name}': it was declared with `let` inside a "
+                f"nested block (an if branch, a loop body) and ended with "
+                f"that block. Declare it before the block (`let {name} = 0`) "
+                f"and use `change {name} to ...` inside the branches",
                 line,
             )
         raise self._error(f"unknown name '{name}'", line)

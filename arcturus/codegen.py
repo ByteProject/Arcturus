@@ -28,6 +28,7 @@ from . import dictionary
 from . import objects as objmod
 from . import storyfile
 from . import worldmodel as wm
+from .prelude import _DIRECTIONS as _PRELUDE_DIRECTIONS
 from . import zstring
 from .assembler import Const, Routine, RoutineRef, STACK, Variable, link
 from .errors import ArcError
@@ -1047,6 +1048,18 @@ def build_story(
                 val = 0
             elif layout is not None and v.ident in layout.obj_number:
                 val = layout.obj_number[v.ident]
+            elif layout is not None and v.ident in layout.catalogs:
+                # a catalog reference: its region word offset, the same
+                # value the name means in any expression (the field bug:
+                # this fell through silently and the global aliased the
+                # region's FIRST occupant through a zero)
+                val = layout.catalogs[v.ident]
+            elif layout is not None and v.ident in layout.matrices:
+                val = layout.matrices[v.ident]
+            elif layout is not None and v.ident in layout.prop_number \
+                    and v.ident in _PRELUDE_DIRECTIONS:
+                # a direction: its property number, as everywhere
+                val = layout.prop_number[v.ident]
         if val:
             sf.set_word(globals_addr + (gmap[gname] - 16) * 2, val)
     if layout is not None and layout.ambience_off >= 0:
