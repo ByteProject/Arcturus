@@ -451,6 +451,21 @@ The ruling, in three parts:
   end-marker and reservoir-refill bugs a re-plumb invites, confirming the
   hazard note above. The correct decoders land WITH the probes, verified.
 
+  ZX2 EVALUATED AND DECLINED (same day, Stefan; raised by Shawn
+  Sijnstra). ZX2 (Saukas's small-file ZX0 sibling: flat one-byte
+  offsets, a 256-byte window by construction, a ~40-byte decoder) was
+  measured under a cost model (our optimal parser with ZX2's bit
+  prices) against the ruled ZX0-2048 on the corpus: C64 100.9%, ZX3
+  98.8%, CPC 113.8%. The cheap offsets recover nearly everything the
+  small window loses on shallow-history data, but the CPC's mode-0
+  pictures genuinely use deep history and pay ~520 bytes per picture,
+  which is disqualifying; the ~1% ZX3 win does not buy a second 8-bit
+  codec in arcimg and the spec. ZX0-2048 stays family-wide: genuinely
+  the best at no cost. (ZX2's -y option, capping block lengths to
+  shave 2 decoder bytes, was also examined: it trades ratio for
+  decoder size, the wrong direction for a disk-budgeted format, and
+  touches lengths, not the offset window that decides ring RAM.)
+
 ## 8a. Amendments (R4, 2026-07-13, Stefan)
 
 - THE POLIZEI ARCHITECTURE (section 4) supersedes the per-machine
