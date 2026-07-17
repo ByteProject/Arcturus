@@ -201,8 +201,13 @@ class Matrix:
     @property
     def etype(self) -> str:
         # The element type in catalog terms, so shared read code types the
-        # value: object cells read as objects, number/byte cells as numbers.
-        return "object" if self.cell == "object" else "number"
+        # value: object cells read as objects, direction cells as directions
+        # (say speaks the word), number/byte cells as numbers.
+        if self.cell == "object":
+            return "object"
+        if self.cell == "direction":
+            return "direction"
+        return "number"
 
 
 @dataclass

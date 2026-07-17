@@ -116,6 +116,14 @@ class Analyzer:
                         raise self._error(
                             f"matrix '{mx.name}': '{v.ident}' is not an object",
                             mx.line)
+            elif mx.cell == "direction":
+                for v in mx.seed:
+                    if getattr(v, "ident", None) is not None \
+                            and v.ident not in prelude._DIRECTIONS:
+                        raise self._error(
+                            f"matrix '{mx.name}': '{v.ident}' is not a "
+                            f"direction",
+                            mx.line)
         self._build_properties()
         # After the members are collected: the automatic scored bits need
         # the real attributes (fixed blocks a thing, `scored false` opts
@@ -354,13 +362,22 @@ class Analyzer:
                 self._seen(decl.name, decl.line)
 
                 def _check_val(v, mname=decl.name, cell=decl.cell, ln=decl.line):
-                    # A matrix cell value: an object name for object cells, else
-                    # a number (matrices are numeric, never text).
+                    # A matrix cell value: an object name for object cells, a
+                    # direction name for direction cells, else a number
+                    # (matrices are numeric, never text).
                     if cell == "object":
                         if not isinstance(v, ast.Name):
                             raise self._error(
                                 f"matrix '{mname}' holds objects; a value must "
                                 f"be an object name", ln)
+                    elif cell == "direction":
+                        if not isinstance(v, ast.Name) \
+                                or v.ident not in prelude._DIRECTIONS:
+                            got = getattr(v, "ident", None) or getattr(
+                                v, "value", "?")
+                            raise self._error(
+                                f"matrix '{mname}' holds directions; "
+                                f"'{got}' is not a direction", ln)
                     else:
                         if not isinstance(v, ast.Number):
                             raise self._error(

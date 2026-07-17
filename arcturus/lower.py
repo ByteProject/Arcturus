@@ -2586,6 +2586,13 @@ def _say_value(rt, ctx, expr):
             rt.op("print_obj", op)
             _free(ctx, t)
             return
+        if et == "direction":
+            # a direction cell says its canonical word ("north"), the same
+            # voice as `say way`; cosmos_dir_name emits only when referenced
+            op, t = _operand(rt, ctx, expr)
+            rt.op("call_vn", RoutineRef("cosmos_dir_name"), op)
+            _free(ctx, t)
+            return
         # number falls through to the ordinary numeric print below.
     if isinstance(expr, ast.Name) and expr.ident == "way" \
             and expr.ident not in ctx.named and "way" in ctx.globals:
@@ -2606,6 +2613,11 @@ def _say_value(rt, ctx, expr):
         if et == "object":
             op, t = _operand(rt, ctx, expr)
             rt.op("print_obj", op)
+            _free(ctx, t)
+            return
+        if et == "direction":
+            op, t = _operand(rt, ctx, expr)
+            rt.op("call_vn", RoutineRef("cosmos_dir_name"), op)
             _free(ctx, t)
             return
     if _is_object_expr(ctx, expr):
