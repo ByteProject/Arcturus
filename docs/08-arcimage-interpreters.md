@@ -515,14 +515,18 @@ section. The decoder's zero page is $F8-$FC plus the walk's $02-$07.
 
 ### C.5 ZX Spectrum +3 (target id 9, tag ZX3, files `<id>.ZX3`)
 
-Verified: ZEsarUX, Spectrum +3 (ROM 4.1), both modes, 2026-07-10, via
-the machine-exact injection route below; the scatter algorithm was also
-validated in Python against the true ULA addresses for both band modes
-before assembly.
+Verified (ring loader): ZEsarUX, Spectrum +3 (ROM 4.1), both modes,
+2026-07-17, via the machine-exact injection route below, byte-exact:
+the frozen machine's bitmap and attribute file were read back over ZRCP
+and compared against the expected decodes, pixel-exact for both images.
+The probe is also executed end to end on a mini-Z80 with scripted keys
+before any emulator pass, and the decoder against the corpus on every
+test run (tests/test_dzx0r.py). (The staged R3 loader was verified the
+same way on 2026-07-10.)
 
 Probe: [arc_image/probes/zx3/](../arc_image/probes/zx3/), source
-`probe.asm` with the shared decoder
-[arc_image/probes/dzx0_z80.asm](../arc_image/probes/dzx0_z80.asm) and
+`probe.asm` with the ring decoder
+[arc_image/probes/dzx0r_z80.asm](../arc_image/probes/dzx0r_z80.asm) and
 the embedded test assets. Build: `sjasmplus probe.asm` (emits both
 probe.sna, the 128K snapshot, and probe.bin, the raw image).
 
@@ -531,22 +535,29 @@ bitmap at $4000 in the interleaved thirds, the attribute file at $5800.
 The band is the top 72 or 96 pixel rows (9 or 12 attribute rows); below
 it everything stays paper black, the interpreter's text area.
 
-CODEC. ZX0 (part B). The decompressor is Einar Saukas & Urusergi's
-68-byte "standard" routine, carried verbatim (BSD 3-Clause); HL =
-source, DE = destination. Reuse it; do not write your own.
+CODEC. ZX0 (part B) under the 2048 window guarantee, decoded by the
+RING model: dzx0r_z80.asm with a 2K ring, no staging buffer, each byte
+emitted straight to the ULA screen. Reuse the decoder; do not write
+your own. (A RAM-rich setup may still stage with the classic dzx0; the
+stream is identical.)
 
 SECTIONS, in file order:
 
 - bitmap (type 1): the band's 32-byte pixel rows in ASCENDING ULA
-  ADDRESS order (third, line-in-char, char-row). Decode to a staging
-  buffer, then a triple loop writes rows to $4000 + T*$800 + L*$100 +
-  R*$20. A PARTIAL third (the band's tail) spans only rows/8 char-rows:
-  bound R per third from the header's height, never assume 8. (The
-  probe's scatter is thirty lines; take it.)
+  ADDRESS order (third, line-in-char, char-row). That order is linear
+  runs with hops, which is exactly what the ring loader's screen emit
+  implements: within one line-in-char the destination walks rmax*32
+  contiguous bytes (rmax = this third's char-row bound, height/8 capped
+  at 8), then hops one $100 page to the next line, and after 8 lines
+  hops to the next $800 third. A write, a countdown, and a hop (the
+  probe's emit_scr plus thirdinit; take them). A PARTIAL third (the
+  band's tail) spans only rows/8 char-rows: bound the run per third
+  from the header's height, never assume 8.
 - attributes (type 4): one byte per cell, row-major, contiguous: decode
-  STRAIGHT to $5800. Mind the number: type 4 is SEC_ATTR; type 2 is the
-  C64's color matrix, and the probe's first build checked 2 and painted
-  a perfect picture in black on black.
+  STRAIGHT to $5800 through the plain buffer emit. Mind the number:
+  type 4 is SEC_ATTR; type 2 is the C64's color matrix, and the probe's
+  first build checked 2 and painted a perfect picture in black on
+  black.
 
 Z-COLOURS. The fixed 15 carry every Z-machine colour. The interpreter's
 text lives in the attribute rows below the band; the art's attributes
@@ -572,9 +583,10 @@ LESSONS THE PROBE PAID FOR (beyond the type-4 one above):
 ASSETS. `<id>.ZX3` beside the story. The standard test pair: 90.ZX3
 (mode 9), 100.ZX3 (mode 12).
 
-MEMORY. One staging buffer of 3072 bytes (the largest band bitmap);
-attributes decode in place. The decoder uses no memory beyond its 68
-bytes of code.
+MEMORY. The 2K ring: the entire decode working set (the R3 staging
+buffer of 3072 bytes is retired); attributes decode straight to the
+attribute file. The compressed section is read strictly forward, so it
+may be streamed from disc in sector bites rather than held whole.
 
 ### C.6 Amstrad CPC (target id 6, tag CPC, files `<id>.CPC`)
 
@@ -677,6 +689,13 @@ reference).
 
 ## Change log
 
+- 2026-07-17 (the ZX3 ring probe, verified): C.5 joins the ring model.
+  The staging buffer is gone; the ULA's third/line/char-row interleave
+  turns out to be the ring loader's natural shape (linear runs with two
+  levels of hop), and attributes stream straight to $5800. Verified
+  byte-exact on ZEsarUX (+3 ROM 4.1, both modes, frozen bitmap and
+  attribute file read back and compared). MEMORY (C.5) now reads: the
+  2K ring, source streamable.
 - 2026-07-17 (the CPC ring probe, verified): C.6 is the first ring
   chapter proven end to end. The ring decoder dzx0r_z80.asm landed
   beside the classic dzx0 (part B), the CPC probe dropped its staging
