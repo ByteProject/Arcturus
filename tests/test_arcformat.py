@@ -167,15 +167,17 @@ def test_the_golden_corpus_is_in_place():
 
 
 def test_the_ledger_is_complete():
-    # Fourteen targets, ids 1..14, each with the geometry arc_image/reference/design.md records.
-    assert len(arcimg.TARGETS) == 14
+    # Fifteen targets, ids 1..15: the family fourteen plus TRSM4 (the
+    # first external-interpreter target, ruled 2026-07-17), each with
+    # the geometry arc_image/reference/design.md records.
+    assert len(arcimg.TARGETS) == 15
     ids = sorted(t.id for t in arcimg.TARGETS.values())
-    assert ids == list(range(1, 15))
+    assert ids == list(range(1, 16))
     widths = {t.tag: t.width for t in arcimg.TARGETS.values()}
     assert widths == {
         "AMI": 320, "AST": 320, "DOS": 320, "C64": 160, "P4": 320,
         "CPC": 160, "MS1": 256, "MS2": 256, "ZX3": 256, "A8": 160,
-        "AP2": 280, "NXT": 320, "M65": 320, "VDC": 640,
+        "AP2": 280, "NXT": 320, "M65": 320, "VDC": 640, "TRSM4": 640,
     }
 
 

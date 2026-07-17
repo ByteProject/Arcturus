@@ -79,6 +79,7 @@ The ledger (band cost is uncompressed, 9-row / 12-row; RLE applies on top):
 | Apple II | HGR (DHGR variant) | 280x72/96 | 6 artifact colors, 7px groups (DHGR: 16) | 2.9K / 3.8K | 8K hires page | planned |
 | ZX Spectrum Next | Layer 2, 320-wide | 320x72/96 | 256 of 512 (RGB333), free pixels | full layer 80K | banked RAM | planned |
 | MEGA65 | VIC-IV FCM, H320 | 320x72/96 | 255 of 16M, free pixels | 24.5K / 32.6K | chip RAM | planned |
+| TRS-80 M4 | hi-res board 640x240 | 640x72/96 (1:2 px) | 1bpp monochrome | 5.8K / 7.7K | port-addressed | external (Sijnstra) |
 
 Reading the ledger, the targets fall into three conversion classes:
 
@@ -535,6 +536,18 @@ The ruling, in three parts:
   - PREDEFINED OVER CHOICE: one look per machine, ruled by the design,
     never an author-facing option ("the listener doesn't know what he
     wants": the Rick Rubin principle). No dual-mode flavor switches.
+
+  TRSM4 RULED IN (same day): the TRS-80 Model 4 is target id 15, tag
+  TRSM4, the first target whose interpreter lives OUTSIDE the family
+  (Shawn Sijnstra's engine). Stefan's ruling: do not conflate arc_image
+  targets with the interpreter family; the target, blueprints, and
+  assets are first-class, the interpreter is externally maintained, and
+  as an author he will use it anyway. Geometry: the master doubles
+  horizontally to 640 (the board's half-width pixels restore aspect AND
+  double the dither grid, the whole budget of a mono target); one
+  bitmap section, bit 7 leftmost; ring model mandatory (port-addressed
+  memory, no read-back). Conversion: luminance, percentile contrast
+  stretch, Bayer at the 640 grid. Chapter C.7.
 
   C64 RING PROBE (same day, completing the 8-bit cell trio): the 6502
   ring decoder is a CLEAN TRANSCRIPTION of the reference state machine

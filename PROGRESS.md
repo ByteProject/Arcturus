@@ -4622,3 +4622,21 @@ with matrix and color RAM byte-exact over the remote monitor and both
 images approved on screen by Stefan. docs/08 C.4 is the ring chapter
 (codec, layout rule, MEMORY: 2K ring, source streamable) with its
 change-log entry. Suite 989. The ring family: CPC, ZX3, C64, done.
+
+## 2026-07-17 (night VI): TRSM4, the fifteenth target (arcimg 1.13.0)
+
+Shawn Sijnstra's request, Stefan's rulings: tag TRSM4, target id 15,
+and the target is FIRST-CLASS arc_image even though its interpreter
+lives outside the family (do not conflate the two; the target,
+blueprints, and assets are ours, the Model 4 engine is Shawn's).
+Geometry: the 320-wide master doubles horizontally to 640x72/96
+because the hi-res board's 640x240 pixels are half as wide as tall,
+so the doubling restores aspect AND doubles the dither grid, the
+whole quality budget of a monochrome target. Conversion: luminance,
+percentile-anchored contrast stretch (the difference between gray
+mush and a blazing sun on the beach test), Bayer at the full 640
+grid. One bitmap section, 80 bytes/row, bit 7 leftmost (Shawn's
+spec), ring-decoded; on this machine the ring is the ONLY model
+(port-addressed memory, no read-back). docs/08 chapter C.7; ledger
+row; full corpus (21) + stress pair converted; contract test covers
+arc_image/trsm4. Suite 992.
