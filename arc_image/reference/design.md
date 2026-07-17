@@ -536,6 +536,26 @@ The ruling, in three parts:
     never an author-facing option ("the listener doesn't know what he
     wants": the Rick Rubin principle). No dual-mode flavor switches.
 
+  C64 RING PROBE (same day, completing the 8-bit cell trio): the 6502
+  ring decoder is a CLEAN TRANSCRIPTION of the reference state machine
+  (~230 bytes), not a bitfire re-plumb: bitfire's self-modifying speed
+  structure is welded to a readable linear destination. Machine-verified
+  like its Z80 twin (tests/test_dzx0r6502.py, assembled via the Debian
+  acme, executed on a strict mini-6502 against the corpus and the
+  edges; ALL FOUR passed first run). The probe's one emit is a linear
+  store (every C64 section is contiguous native memory). Two lessons
+  banked: (1) THE LAYOUT RULE: the bitmap decodes into $2000-$3FFF, so
+  the ring build's embedded images moved to $4000 after the first build
+  let the bitmap decode overwrite its own yet-undecoded color stream
+  (the full-probe simulation caught it: correct stream pointers, then
+  zp sprayed by a runaway decode of overwritten data); (2) VICE's
+  autostart leaves the RUN keystrokes in the KERNAL buffer, blowing
+  through GETIN waitkeys: clear $C6 or expect the probe to fast-cycle.
+  Verified: full-probe sim byte-exact on all four native regions, both
+  images; live on VICE x64sc with matrix and color RAM byte-exact over
+  the remote monitor and BOTH IMAGES APPROVED ON SCREEN by Stefan
+  (2026-07-17). The ring family: CPC, ZX3, C64, all verified.
+
   ZX2 EVALUATED AND DECLINED (same day, Stefan; raised by Shawn
   Sijnstra). ZX2 (Saukas's small-file ZX0 sibling: flat one-byte
   offsets, a 256-byte window by construction, a ~40-byte decoder) was

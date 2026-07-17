@@ -4600,3 +4600,25 @@ deliberate accents, dark/bright pairs of one colour for highlights),
 C64 stays 160-wide multicolor (a hires experiment noted as an itch),
 and looks are PREDEFINED per machine, never an author option (the
 Rick Rubin principle). Suite 985.
+
+## 2026-07-17 (night V): the C64 ring probe, the 8-bit cell trio complete
+
+The third and last ring probe of the trio. dzx0r_6502.asm is a clean
+transcription of the reference state machine (~230 bytes), NOT a
+bitfire re-plumb (bitfire's self-modifying speed structure is welded
+to a readable linear destination); machine-verified like its Z80 twin:
+tests/test_dzx0r6502.py assembles it via the Debian acme (skips when
+orb is unreachable) and executes it on a strict mini-6502 against
+corpus sections and the edges; all four tests passed FIRST RUN. The
+probe's one emit is a linear store, since every C64 section is
+contiguous native memory. Two lessons banked in docs/08 C.4 and the
+design record: the LAYOUT RULE (the bitmap decodes into $2000-$3FFF,
+so the embedded images park at $4000; the first build let the bitmap
+overwrite its own yet-undecoded color stream, caught by the full-probe
+simulation), and VICE's autostart RUN keystrokes lingering in the
+KERNAL buffer (clear $C6). Verified: the full-probe sim byte-exact on
+bitmap+matrix+colram+background for both images; live on VICE x64sc
+with matrix and color RAM byte-exact over the remote monitor and both
+images approved on screen by Stefan. docs/08 C.4 is the ring chapter
+(codec, layout rule, MEMORY: 2K ring, source streamable) with its
+change-log entry. Suite 989. The ring family: CPC, ZX3, C64, done.
