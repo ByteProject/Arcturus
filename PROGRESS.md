@@ -4692,3 +4692,23 @@ live up to the count; append, a declaration seed, or load create
 them. Verified the behavior first: the write lands in the
 pre-allocated cell, the count stays 0, so count-driven reads see an
 empty matrix. 4 new catalog tests; suite 1001.
+
+## 2026-07-17 (night X): the instance catch-all beats kind specifics (arcc 1.1.1)
+
+Charles Moore Jr.'s snippet cracked the "kind beats thing" mystery: his
+instance handler was `on other`, the catch-all, and the kind's specific
+verb pierced it. BOTH documents already mandated the opposite (docs/01
+s12: the object's default runs before the action climbs to the kind;
+docs/02 s9: own `on other` above the kind chain, each level's specific
+before that level's other), so this was a pure code bug under the
+charter rule that the document wins. The react dispatcher is now
+OWNER-BANDED: band 0 = the object's own handlers with its own catch-all
+at the band's tail, then each kind's band the same way, nearest first;
+within a band the old rules hold exactly (specifics first, consumed
+ends, continued falls onward, a band that addressed the action skips
+its own catch-all), and the afloor/mfloor after-band logic holds per
+band. Life-cycle events stay a single merged fire-all step. Emission
+kept the old byte shape for single-band objects: only the two
+kind-handler examples moved (+8, +12; dated), every other ceiling
+byte-identical. 2 new tests (the exact field shape; catch-all continue
+falls to the kind); suite 1003 with the whole precedence matrix green.
