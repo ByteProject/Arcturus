@@ -582,6 +582,9 @@ Verified (ring loader): ZEsarUX, CPC 464, both modes, 2026-07-17, via
 the ZRCP injection route, and byte-exact rather than by eye: the frozen
 machine's screen blocks and palette buffer were read back over ZRCP and
 compared against the expected decodes, pixel-exact for both images.
+The embedded test pair is the current-pipeline beach conversion (its
+mode-12 render is pixel-identical to the approved stress preview), art
+gate passed by Stefan the same day.
 (ZEsarUX has NO CPC snapshot support: its .sna reader is Spectrum-only
 and answers "corrupt file"; the crafted v1 snapshot the build also
 emits is for the WinAPE family. The staged R3 loader was verified the
@@ -674,6 +677,15 @@ reference).
 
 ## Change log
 
+- 2026-07-17 (the CPC ring probe, verified): C.6 is the first ring
+  chapter proven end to end. The ring decoder dzx0r_z80.asm landed
+  beside the classic dzx0 (part B), the CPC probe dropped its staging
+  band for the 2K ring with per-section emit vectors, and verification
+  was byte-exact on ZEsarUX (CPC 464, both modes, frozen screen and
+  palette read back over ZRCP and compared). The probe's test pair was
+  regenerated with the current conversion pipeline and art-approved.
+  MEMORY (C.6) now reads: 2K ring + 17 bytes, no staging, source
+  streamable.
 - 2026-07-17 (the window guarantee): codec-1 streams are packed with no
   match offset beyond 2048 bytes, at zero measured cost on the corpus,
   and part B now specifies the two decode memory models (staging and
