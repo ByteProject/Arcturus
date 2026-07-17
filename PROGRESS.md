@@ -4658,3 +4658,18 @@ Verified per the agreed division: the full-probe simulation with a
 port model of the board (Shawn's spec) shows both images BYTE-EXACT
 in modeled graphics RAM with the below-band area clean; the screen
 itself is Stefan's eyes. docs/08 C.7 carries the probe section.
+
+## 2026-07-17 (night VIII): TRSM4 probe calibrated on trs80gp, one open question
+
+Stefan's eyes caught the first build's shear; the deep-test authority
+passed to the harness (his ruling: sim + his eyes, screenshots only
+when he spots errors). The option register was calibrated by VRAM
+readback (-ig): bit7 = write-clock axis (the shear was Y-stepping),
+bit2/bit3 = X/Y direction, bit6 = addressing-mode switch, 4-5 inert;
+CTRL=$83. Result: image 12 BYTE-EXACT in the emulator's VRAM on every
+run; image 9 byte-exact except EXACTLY ONE dropped write (row 0 col
+14), boot-phase-locked, surviving DI, real speed, input-auto-turbo
+off, and every option bit; the CMD loader cleared by round-trip
+parse. The verdict needs hardware truth (does the real board hold
+/WAIT in the video fetch window?): asked of Shawn, documented in C.7
+and the design record rather than guessed. The probe ships.
