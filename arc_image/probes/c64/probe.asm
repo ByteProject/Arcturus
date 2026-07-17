@@ -9,10 +9,15 @@
 ;   acme -f cbm -o probe.prg probe.asm
 ;
 ; and run in VICE (x64sc, autostart). The codec is ZX0 (codec 1, the
-; 8-bit cell targets' codec, docs/08 part B); the decompressor is Tobias
-; Bindhammer's bitfire routine for the standard v2 stream, carried
-; verbatim (dzx0_6502.asm beside this file). Everything else is
-; section-table walking.
+; 8-bit cell targets' codec, docs/08 part B) under the 2048-byte window
+; guarantee, and THIS PROBE IS THE RING LOADER (R5): the decompressor is
+; dzx0r_6502.asm beside this file (machine-verified against the corpus in
+; tests/test_dzx0r6502.py), decoding straight to the native destinations
+; through a per-byte emit with a 2K ring in main RAM as its only working
+; memory. No staging exists; every .arc section is contiguous in native
+; order, so the emit is one linear store-and-advance. (The staged bitfire
+; decoder, dzx0_6502.asm, stays beside it as the plentiful-RAM
+; alternative; both read the identical stream.)
 ;
 ; .arc recap (arc_image/reference/design.md section 10, all words BIG-endian): 16-byte header
 ; (magic "ARCI", version, target, mode, section count, width, height, id,
@@ -27,22 +32,26 @@
 ; The band occupies the top 9 or 12 cell rows; everything below stays
 ; cleared (color 0 on black), where a real interpreter draws its text.
 ;
-; Zero page: the decoder owns $f8-$fc ($f8/$f9 the destination, set by
-; the caller). The walk uses $02-$07, free while BASIC is dormant.
+; Zero page: the decoder owns $08-$12 (dzx0r_6502.asm); the walk uses
+; $02-$07 and the emit cursor $13/$14, all free while BASIC is dormant.
 
 !cpu 6510
 
-lz_dst  = $f8           ; the decoder's destination pointer (its zp base)
 src     = $02           ; zp pointer to the .arc
 tbl     = $04           ; zp pointer to the current table entry
 cur     = $06           ; the current compressed stream
+pdst    = $13           ; the emit cursor (linear store-and-advance)
 cnt     = $57           ; sections left (a spare BASIC work cell)
 
         * = $0801
         ; 10 SYS 2061
         !byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$31,$00,$00,$00
 
-start:  jsr cls
+start:  lda #<lemit             ; point the decoder's emit vector at the
+        sta zr_emit+1           ; linear store, once
+        lda #>lemit
+        sta zr_emit+2
+        jsr cls
         lda #<image9
         sta src+0
         lda #>image9
@@ -78,16 +87,16 @@ waitkey:
 cls:    lda #$00
         sta $d020
         sta $d021
-        sta lz_dst+0
-        lda #$20                ; wipe $2000-$3fff with the decoder's own
-        sta lz_dst+1            ; pointer as the cursor
+        sta pdst+0
+        lda #$20                ; wipe $2000-$3fff, the emit cursor as
+        sta pdst+1              ; the wipe cursor
         ldy #$00
         tya
--       sta (lz_dst),y
+-       sta (pdst),y
         iny
         bne -
-        inc lz_dst+1
-        ldx lz_dst+1
+        inc pdst+1
+        ldx pdst+1
         cpx #$40
         bne -
 -       sta $0400,y             ; matrix and color RAM, page by page
@@ -164,10 +173,10 @@ draw:   ldy #0                  ; sanity: the magic "ARCI"
         jmp .next
 +       cmp #7
         bne .next
-        lda #<regbuf            ; registers -> staging, then $d021
-        sta lz_dst+0
+        lda #<regbuf            ; registers -> one byte, then $d021
+        sta pdst+0
         lda #>regbuf
-        sta lz_dst+1
+        sta pdst+1
         jsr unpack
         lda regbuf
         sta $d021
@@ -190,19 +199,39 @@ draw:   ldy #0                  ; sanity: the magic "ARCI"
 +       dec cnt
         jmp .each
 
-; depack the stream at (cur) to page Y (a page-aligned destination)
+; depack the stream at (cur), emitting to page Y (a page-aligned start)
 unpack_page:
         lda #$00
-        sta lz_dst+0
-        sty lz_dst+1
-unpack: ldx cur+0               ; the decoder: src in X/A, dst preloaded
-        lda cur+1
-                                ; and falls straight into it; its rts
-                                ; returns to unpack's caller
-!source "dzx0_6502.asm"
+        sta pdst+0
+        sty pdst+1
+unpack: ldx cur+0               ; the ring decoder: src in X/A, output
+        lda cur+1               ; through the emit vector
+        jmp dzx0r               ; its rts returns to unpack's caller
+
+; the one emit the C64 needs: every section is contiguous native memory
+lemit:  ldy #0
+        sta (pdst),y
+        inc pdst+0
+        bne +
+        inc pdst+1
++       rts
+
+!source "dzx0r_6502.asm"
+
+        !align 2047, 0
+zx0ring: !fill 2048, 0
 
 regbuf: !byte 0
 
+; THE LAYOUT RULE the ring build must honor: the VIC bitmap lives at
+; $2000-$3FFF, and the bitmap section DECODES INTO IT, so nothing the
+; probe still needs may sit there. The ring pushed this build past the
+; old size, so the embedded images park at $4000, above the canvas (the
+; loader zero-fills the gap; a .prg may be large, a probe does not care).
+; The first ring build learned this the hard way: images at $1801-$2C36
+; let the bitmap decode overwrite its OWN yet-undecoded sections.
+!if * > $2000 { !error "code+ring must stay below the $2000 bitmap" }
+        !fill $4000 - *, 0
 image9:
         !bin "9.C64"
 image12:

@@ -455,13 +455,18 @@ constraint. The facts:
 
 ### C.4 Commodore 64 (target id 4, tag C64, files `<id>.C64`)
 
-Verified: VICE x64sc, both modes, 2026-07-09; the decode path was also
-proven byte-exact against the packer's sections through VICE's remote
-monitor before the visual pass.
+Verified (ring loader): VICE x64sc, both modes, 2026-07-17. The full
+probe is executed end to end on a mini-6502 with a scripted keypress
+before any emulator pass (bitmap, matrix, color RAM, and background
+byte-exact for both images), the decoder against the corpus on every
+test run (tests/test_dzx0r6502.py), and the live pass confirmed matrix
+and color RAM byte-exact through the remote monitor with both images
+approved on screen by Stefan. (The staged R3 loader was verified
+2026-07-09.)
 
 Probe: [arc_image/probes/c64/](../arc_image/probes/c64/), source
-`probe.asm` with the decoder `dzx0_6502.asm` beside it and the embedded
-test assets 9.C64 and 12.C64. Build (ACME):
+`probe.asm` with the ring decoder `dzx0r_6502.asm` beside it and the
+embedded test assets 9.C64 and 12.C64. Build (ACME):
 `acme -f cbm -o probe.prg probe.asm`.
 
 VIDEO. Multicolor bitmap mode: $D011 = $3B, $D016 = $D8, $D018 = $18
@@ -470,13 +475,24 @@ VIDEO. Multicolor bitmap mode: $D011 = $3B, $D016 = $D8, $D018 = $18
 colors (matrix high nibble = pixel code 1, low nibble = code 2, color
 RAM = code 3) plus one global background (code 0, $D021).
 
-CODEC. ZX0 (part B), the standard v2 stream. Do not write the
-decompressor: Tobias Bindhammer's bitfire routine decodes it as
-published (BSD 3-Clause, carried verbatim as `dzx0_6502.asm` with one
-documented adaptation: the caller preloads the destination in the
-zero-page pointer instead of a hardwired address). Entry: X = source
-lo, A = source hi; it owns zero page $F8-$FC. Each stream ends at its
-own end marker, so the loader never counts output bytes.
+CODEC. ZX0 (part B) under the 2048 window guarantee, decoded by the
+RING model: `dzx0r_6502.asm`, a clean transcription of the reference
+state machine (about 230 bytes, machine-verified), with a 2K-aligned
+ring as its only working memory and a single JMP vector as the emit.
+Every C64 section is contiguous in native order, so the one emit the
+machine needs is a linear store-and-advance. Entry: X = source lo, A =
+source hi; it owns zero page $08-$12. Each stream ends at its own end
+marker, so the loader never counts output bytes. (A RAM-rich setup may
+still stage with the bitfire routine, `dzx0_6502.asm`, kept beside it;
+the stream is identical.)
+
+THE LAYOUT RULE the ring build must honor: the bitmap section DECODES
+INTO $2000-$3FFF, so nothing the loader still needs may sit there. The
+probe parks its embedded images at $4000, above the canvas; the first
+ring build placed them across $2000 and watched the bitmap decode
+overwrite its own yet-undecoded color stream. An interpreter loading
+sections from disk has no such hazard (the compressed data arrives in
+buffers it controls), but any embedded-asset arrangement does.
 
 SECTIONS, in file order, every payload already in native memory order:
 
@@ -510,9 +526,13 @@ band instead.
 ASSETS. `<id>.C64` beside the story. The standard test pair: 9.C64
 (mode 9), 12.C64 (mode 12).
 
-MEMORY. Bitmap and matrix decode into the VIC bank, color RAM into
-$D800: no staging buffers at all beyond one byte for the register
-section. The decoder's zero page is $F8-$FC plus the walk's $02-$07.
+MEMORY. The 2K ring: the entire decode working set (this machine never
+staged, but the R3 build used a decoder that reads back its own output,
+which the ring retires). Bitmap and matrix emit into the VIC bank,
+color RAM into $D800, one byte for the register section. Zero page:
+$08-$12 for the decoder, $02-$07 and $13/$14 for the walk and emit.
+The compressed source is read strictly forward, so it may be streamed
+from disk in sector bites rather than held whole.
 
 ### C.5 ZX Spectrum +3 (target id 9, tag ZX3, files `<id>.ZX3`)
 
@@ -690,6 +710,16 @@ reference).
 
 ## Change log
 
+- 2026-07-17 (the C64 ring probe, verified): C.4 joins the ring model,
+  completing the 8-bit cell trio. The 6502 ring decoder dzx0r_6502.asm
+  lands beside the staged bitfire routine (a clean transcription of the
+  reference state machine, not a bitfire re-plumb: that decoder's
+  self-modifying speed structure is tied to a readable linear
+  destination). Every C64 section is contiguous native memory, so the
+  probe's one emit is a linear store; the layout rule (nothing needed
+  may live under the $2000 bitmap canvas) is documented after the first
+  build broke it. MEMORY (C.4) now reads: the 2K ring, source
+  streamable.
 - 2026-07-17 (the test pair is 9 and 12): the standard test assets are
   renamed for coherence with the band modes they carry: `9.<TAG>` is
   the mode-9 image (infocom, 72 rows), `12.<TAG>` the mode-12 image
