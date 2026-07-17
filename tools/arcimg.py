@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.12.1"
+__version__ = "1.13.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -2154,9 +2154,39 @@ def _convert_a8(rows, salient=None):
                         _forced_cells(salient))
 
 
+def _convert_trsm4(rows, salient=None):
+    """Master to TRS-80 Model 4 mono: luminance, 2x horizontal (the hi-res
+    board's 640x240 pixels are half as wide as tall, so the doubling both
+    restores the aspect and doubles the dither grid), ordered dither at
+    the full 640 resolution: the whole quality budget of a monochrome
+    target is its halftone."""
+    h = len(rows)
+    lumas = [[(299 * r + 587 * g + 114 * b) / 255000.0 for r, g, b in row]
+             for row in rows]
+    # Contrast stretch before the halftone: a mono image lives on its
+    # tonal range, and a master that never quite reaches black or white
+    # would dither to gray mush. Percentile-anchored so single outlier
+    # pixels cannot flatten the whole picture.
+    flat = sorted(v for row in lumas for v in row)
+    lo = flat[len(flat) * 2 // 100]
+    hi = flat[len(flat) * 98 // 100]
+    span = (hi - lo) or 1.0
+    pixels = []
+    for y in range(h):
+        row = []
+        for mx in range(320):
+            luma = min(1.0, max(0.0, (lumas[y][mx] - lo) / span))
+            for sub in range(2):
+                x = mx * 2 + sub
+                t = (_BAYER8[y & 7][x & 7] + 0.5) / 64.0
+                row.append(1 if luma > t else 0)
+        pixels.append(row)
+    return {"w": 640, "h": h, "pixels": pixels}
+
+
 _CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,
                "C64": _convert_c64, "ZX3": _convert_zx3, "CPC": _convert_cpc,
-               "A8": _convert_a8}
+               "A8": _convert_a8, "TRSM4": _convert_trsm4}
 
 
 # -- the Spectrum polish round-trip (.scr in and out) ---------------------------
@@ -3227,6 +3257,39 @@ def encode_native(tag: str, mode: int, image_id: int, native,
     return write_arc(t.id, mode, native["w"], native["h"], image_id,
                      t.pack(native), t.codec if codec is None else codec,
                      hand)
+
+
+# ---- TRSM4: the TRS-80 Model 4 hi-res board, 1bpp monochrome ------------------
+#
+# The first target whose INTERPRETER lives outside the family (Shawn
+# Sijnstra's Model 4 engine; ruled 2026-07-17: the target itself is
+# first-class arc_image regardless). One section: the bitmap, 80 bytes a
+# row, bit 7 leftmost (Shawn's spec: 132 lights x....x..), decoded by the
+# ring model like every codec-1 target.
+
+@_target(15, "TRSM4", 640)
+class _Trsm4:
+    @staticmethod
+    def pack(native):
+        return [(SEC_BITMAP, 0,
+                 _pack_1bpp(native["pixels"], native["w"], native["h"]))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        return {"w": w, "h": h, "pixels": _unpack_1bpp(s[SEC_BITMAP], w, h)}
+
+    @staticmethod
+    def render(native, w, h):
+        on, off = (232, 232, 232), (16, 16, 16)
+        return [[on if native["pixels"][y][x] else off for x in range(w)]
+                for y in range(h)]
+
+    @staticmethod
+    def pattern(w, h):
+        return {"w": w, "h": h,
+                "pixels": [[1 if ((x ^ y) & 8) else 0 for x in range(w)]
+                           for y in range(h)]}
 
 
 def decode_arc(blob: bytes):

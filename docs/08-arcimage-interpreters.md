@@ -708,8 +708,62 @@ streamed from disc in sector bites rather than held whole. The keyboard
 is read through the PPI/AY row scan (the probe's anykey is the
 reference).
 
+### C.7 TRS-80 Model 4 (target id 15, tag TRSM4, files `<id>.TRSM4`)
+
+The first target whose interpreter lives outside the family: Shawn
+Sijnstra builds and maintains the Model 4 engine. The TARGET is
+first-class arc_image regardless (ruled 2026-07-17): arcimg converts,
+packs, and renders it like any other, this chapter is its blueprint,
+and the test assets ship with the family. Format-level verification
+runs in the test suite (the ring decoders decode every committed
+TRSM4 stream byte-exactly); machine verification belongs to the
+external interpreter.
+
+VIDEO. The hi-res board: 640x240 1bpp on a 4:3 screen, so pixels are
+half as wide as tall. The band is 640x72 (mode 9) or 640x96 (mode 12):
+the 320-wide master doubles horizontally, which restores the aspect
+AND doubles the dither grid; a monochrome target's whole quality
+budget is its halftone, so the doubling is not an upscale but a
+resolution purchase. Text is 80x24 in an 8x10 font; the band's 72/96
+pixel rows sit above the text area (the 8-pixel row contract of part A
+governs band SIZE; how the 10-pixel font rows flow below it is the
+interpreter's screen model).
+
+CODEC. ZX0 (part B) under the 2048 window guarantee, decoded by the
+RING model; on this machine the ring is not an option but the ONLY
+model, since the board's memory is port-addressed and cannot be read
+back. dzx0r_z80.asm is the reference; the emit is a port write.
+
+SECTIONS: one.
+
+- bitmap (type 1): 80 bytes per row, top to bottom, bit 7 the LEFTMOST
+  pixel (132 lights x....x..), 5760 bytes in mode 9, 7680 in mode 12.
+  No palette, no attributes, no registers: monochrome is monochrome.
+
+CONVERSION (the arcimg side, for the record): luminance, a
+percentile-anchored contrast stretch (a mono image lives on its tonal
+range), then ordered Bayer dither at the full 640 grid.
+
+Z-COLOURS. None. A game's colour requests degrade to nothing, per the
+part A contract; the interpreter renders its text in the machine's one
+ink.
+
+ASSETS. `<id>.TRSM4` beside the story (the interpreter's own disk
+layout may rename; the .arc header id is authoritative). The standard
+test pair: 9.TRSM4, 12.TRSM4.
+
+MEMORY. The 2K ring: the entire decode working set. The compressed
+source is read strictly forward and may be streamed from disk in
+sector bites.
+
 ## Change log
 
+- 2026-07-17 (TRSM4, the first external-interpreter target): target id
+  15, the TRS-80 Model 4 hi-res board, 640x72/96 1bpp, one bitmap
+  section, ring-decoded (the board cannot read back its memory, so the
+  ring model is the only model). Requested and implemented by Shawn
+  Sijnstra on the interpreter side; the target, blueprints, and assets
+  are family. Chapter C.7.
 - 2026-07-17 (the C64 ring probe, verified): C.4 joins the ring model,
   completing the 8-bit cell trio. The 6502 ring decoder dzx0r_6502.asm
   lands beside the staged bitfire routine (a clean transcription of the
