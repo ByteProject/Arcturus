@@ -400,6 +400,45 @@ playground for all of it is the repo's `arc_image/` directory (the
 Rabenstein working set: the masters under `arc_image/rabenstein/images/`,
 per-target conversions landing beside them).
 
+## 8b. Proposal: ZX0W, the one-page-ring codec (2026-07-17, pending Stefan)
+
+Grown from Shawn Sijnstra's TRS-80 Model 4 and Agon work, and it answers a
+design debt of our own probes. The problem, twice over:
+
+- A machine whose video memory cannot be READ BACK cannot run a normal
+  LZ decoder into the screen: ZX0/LZSA2/Exomizer all copy from previously
+  decompressed OUTPUT. The TRS-80's graphics board is port-addressed
+  (reads are a slow address-programming dance); the Agon's VDP is a
+  serial pipe (no reads at all).
+- Our own probes stage instead: compressed source AND a full uncompressed
+  band (7680 bytes) both live in RAM during decode. Affordable on 128K,
+  a real problem on a 64K machine that is also running the Z-machine
+  interpreter and the story.
+
+The proposal: codec 3, ZX0W. The BITSTREAM is standard ZX0 (any dzx0
+decodes it; a loader may treat codec 3 as codec 1). The codec id is a
+CONTRACT: every match offset is <= 256. A decoder then needs read access
+to only the last 256 output bytes, one page-aligned ring in main RAM (H
+fixed, INC L wraps free on Z80), and can write each emitted byte STRAIGHT
+to the screen through a per-row address mapper: port-addressed, serial,
+or interleaved (CPC, C64) alike. The staging band disappears entirely;
+the decode footprint becomes compressed source + 256 bytes + a small
+decoder. The cost is per-byte emits instead of LDIR block moves, once per
+room entry.
+
+Measured on the corpus (sections recompressed, totals):
+
+- C64 (1bpp-dominant): zx0w-256 = 104.6% of full-window ZX0; RLE = 127%.
+- CPC (4bpp): zx0w-256 = 121.9% of full-window ZX0; RLE = 171.5%.
+
+So on TRS-80-shaped data (1bpp, 80-byte pitch) the ring costs ~5%; even
+on the richest corpus it beats RLE by ~30%. arcimg carries it as
+`--codec zx0w` (implemented, tested: a ring decoder limited to 256
+readable bytes round-trips the corpus shapes; plain ZX0 provably does
+not fit the ring). Pending Stefan's ruling: per-target codec mandates
+(TRS-80 and Agon chapters when they exist; whether the 64K profiles of
+existing targets move to ZX0W to retire their staging bands).
+
 ## 8a. Amendments (R4, 2026-07-13, Stefan)
 
 - THE POLIZEI ARCHITECTURE (section 4) supersedes the per-machine

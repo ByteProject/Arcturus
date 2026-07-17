@@ -4434,3 +4434,27 @@ put succeeded and spoke msg_done over it. All three sites now carry
 folded behind any_alter as everywhere: games without alter are
 byte-identical (only the alter example's ceiling moved, +40, dated).
 2 new tests (receiver container, supporter); suite 977.
+
+## 2026-07-17: ZX0W, the one-page-ring codec (arcimg 1.11.0; proposal 8b)
+
+Shawn Sijnstra's field problem, and our own design debt in one: LZ
+decoders copy from previously decompressed OUTPUT, which fails where
+video memory cannot be read back (TRS-80 Model 4's port-addressed
+board, Agon's serial VDP), and our existing probes dodge it by staging
+-- compressed source AND the full 7680-byte band both in RAM, which a
+64K machine running the interpreter cannot afford (Stefan's deeper
+point). Implemented: codec 3 ZX0W -- a standard ZX0 bitstream whose
+match offsets are CAPPED at 256 by the packer (zx0_compress gained an
+offset_cap; zx0w selectable as --codec zx0w). The codec id is the
+contract that one page-aligned ring in main RAM suffices: emits go
+straight to the screen through a per-row address mapper (port, serial,
+or interleaved alike) and back-references read the ring; the staging
+band disappears on every machine, decode footprint = source + 256
+bytes + decoder. Corpus-measured: 104.6% of full-window ZX0 on the C64
+sections (1bpp, the TRS-80 shape), 121.9% on the 4bpp CPC sections;
+RLE is 127%/171.5%. Tests: a ring decoder limited to 256 readable
+bytes (a faithful port of our dzx0) round-trips zx0w output and
+REFUSES plain zx0 (the counter-proof); codec registered end to end.
+Design record 8b written as a proposal pending Stefan's ruling on
+per-target mandates (TRS-80/Agon chapters; whether 64K profiles of
+existing targets retire their staging bands). Suite 980.

@@ -152,3 +152,119 @@ def test_crop_to_ratio_is_pure_geometry():
     arcimg._crop_to_ratio(wide, 320, 96)
     # target 10:3 -> keep height 96, width 320, centred: x from (640-320)/2.
     assert wide.cropped == (160, 0, 480, 96)
+
+
+# -- ZX0W (codec 3): the write-only-video window ------------------------------
+
+def _ring_decompress(blob, window=256):
+    """The real zx0_decompress, re-plumbed the way a write-only-video machine
+    must run it: output goes to a screen the decoder never reads, and every
+    back-reference is served from a ring holding only the last `window`
+    output bytes. Asserts no offset exceeds the ring: the proof that one
+    page of RAM suffices to decode a ZX0W stream."""
+    screen = bytearray()
+    ring = bytearray(window)
+    wpos = 0
+    pos = 0
+    mask = 0
+    bitv = 0
+    back = False
+    last_byte = 0
+    last_offset = 1
+
+    def read_byte():
+        nonlocal pos, last_byte
+        last_byte = blob[pos]
+        pos += 1
+        return last_byte
+
+    def read_bit():
+        nonlocal mask, bitv, back
+        if back:
+            back = False
+            return last_byte & 1
+        mask >>= 1
+        if mask == 0:
+            mask = 128
+            bitv = read_byte()
+        return 1 if bitv & mask else 0
+
+    def gamma(inv):
+        v = 1
+        while not read_bit():
+            v = (v << 1) | (read_bit() ^ inv)
+        return v
+
+    def emit(b):
+        nonlocal wpos
+        screen.append(b)          # the write-only screen
+        ring[wpos % window] = b   # the one readable page
+        wpos += 1
+
+    def emit_ref():
+        assert last_offset <= window, (
+            f"offset {last_offset} exceeds the {window}-byte ring")
+        emit(ring[(wpos - last_offset) % window])
+
+    state = "lit"
+    while True:
+        if state == "lit":
+            for _ in range(gamma(0)):
+                emit(read_byte())
+            state = "new" if read_bit() else "last"
+        elif state == "last":
+            for _ in range(gamma(0)):
+                emit_ref()
+            state = "new" if read_bit() else "lit"
+        else:
+            v = gamma(1)
+            if v == 256:
+                return bytes(screen)
+            last_offset = v * 128 - (read_byte() >> 1)
+            back = True
+            for _ in range(gamma(0) + 1):
+                emit_ref()
+            state = "new" if read_bit() else "lit"
+
+
+def test_zx0w_round_trips_and_fits_the_ring():
+    import random
+    rnd = random.Random(7)
+    # Bitmap-like data: strong row correlation at pitch 80 (a TRS-80 band).
+    pitch, rows = 80, 24
+    data = bytearray(rnd.randrange(256) for _ in range(pitch))
+    for r in range(1, rows):
+        row = bytearray(data[(r - 1) * pitch:r * pitch])
+        for _ in range(8):  # sparse changes per row
+            row[rnd.randrange(pitch)] = rnd.randrange(256)
+        data += row
+    raw = bytes(data)
+    packed = arcimg.zx0w_compress(raw)
+    # 1. The bitstream IS zx0: the standard decoder reads it unchanged.
+    assert arcimg.zx0_decompress(packed) == raw
+    # 2. A ring decoder with only 256 readable bytes reproduces it too.
+    assert _ring_decompress(packed, 256) == raw
+
+
+def test_plain_zx0_can_exceed_the_ring():
+    # The counter-proof: data whose only matches sit far apart compresses
+    # with big offsets under plain ZX0, and the ring decoder refuses it.
+    block = bytes(range(256)) + bytes(range(255, -1, -1))
+    raw = block + b"\x00" * 700 + block
+    packed = arcimg.zx0_compress(raw)
+    assert arcimg.zx0_decompress(packed) == raw
+    try:
+        _ring_decompress(packed, 256)
+    except AssertionError:
+        pass  # expected: an offset beyond the ring
+    else:
+        raise AssertionError("plain zx0 unexpectedly fit the 256 ring")
+
+
+def test_zx0w_is_a_registered_codec():
+    raw = bytes(range(256)) * 4
+    blob = arcimg.write_arc(1, 0, 64, 16, 5, [(1, 0, raw)],
+                            codec=arcimg.CODEC_ZX0W)
+    head, sections = arcimg.read_arc(blob)
+    assert head["codec"] == arcimg.CODEC_ZX0W
+    assert sections[0][2] == raw
