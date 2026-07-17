@@ -4673,3 +4673,22 @@ off, and every option bit; the CMD loader cleared by round-trip
 parse. The verdict needs hardware truth (does the real board hold
 /WAIT in the video fetch window?): asked of Shawn, documented in C.7
 and the design record rather than guessed. The probe ships.
+
+## 2026-07-17 (night IX): direction catalogs; the matrix count documented (arcc 1.1.0)
+
+Charles Moore Jr.'s pair. (1) A catalog now holds DIRECTIONS: each
+entry is the direction's property number, the matrix precedent (a
+fixed maze route or patrol path beside the matrix's mutable one);
+`for each d in route / switch d / case north` and `entry`-comparisons
+work unchanged, story names win over direction names as everywhere,
+mixing objects and directions is refused, and the unknown-name error
+now says "not an object or a direction". Direction properties are
+standard pack properties, numbered whether or not any room declares
+that exit, so the encoding is total. Zero cost to games without one
+(sema classification + a cell-writer branch; every ceiling
+unchanged). (2) The matrix count semantics are documented in docs/01
+4a after his report: change entry rewrites but never grows; entries
+live up to the count; append, a declaration seed, or load create
+them. Verified the behavior first: the write lands in the
+pre-allocated cell, the count stays 0, so count-driven reads see an
+empty matrix. 4 new catalog tests; suite 1001.

@@ -73,16 +73,35 @@ class Analyzer:
                 obj.category = "room"
         self._resolve_kinds()
         # Catalog object entries must name real objects (checked here, after
-        # every object is collected, so declaration order never matters).
+        # every object is collected, so declaration order never matters). A
+        # name that is no object but IS a direction reclassifies the catalog
+        # as a DIRECTION catalog: each cell is the direction's property
+        # number, the matrix precedent (a maze route, a patrol path), read
+        # with the same verbs and compared with `if d is north`. Story names
+        # win as everywhere: an object named north stays an object entry.
         for cat in self.world.catalogs.values():
             if cat.etype == "object":
-                for v in cat.values:
-                    if v.ident not in self.world.objects:
-                        raise self._error(
-                            f"catalog '{cat.name}': '{v.ident}' is not an "
-                            f"object",
-                            cat.line,
-                        )
+                objs = [v for v in cat.values if v.ident in self.world.objects]
+                dirs = [v for v in cat.values
+                        if v.ident not in self.world.objects
+                        and v.ident in prelude._DIRECTIONS]
+                unknown = [v for v in cat.values
+                           if v.ident not in self.world.objects
+                           and v.ident not in prelude._DIRECTIONS]
+                if unknown:
+                    raise self._error(
+                        f"catalog '{cat.name}': '{unknown[0].ident}' is not "
+                        f"an object or a direction",
+                        cat.line,
+                    )
+                if dirs and objs:
+                    raise self._error(
+                        f"catalog '{cat.name}' mixes object and direction "
+                        f"entries; a catalog holds one type of value",
+                        cat.line,
+                    )
+                if dirs:
+                    cat.etype = "direction"
         # Matrix is strictly a summoned feature: a declaration is inert without
         # summon.matrix, and object-cell seeds must name real objects (checked
         # here, after every object is collected).

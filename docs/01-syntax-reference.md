@@ -164,8 +164,8 @@ the same constant interpolates as usual.
 
 A CATALOG is a fixed, ordered collection declared once, like a star
 catalog: one value per indented line, one TYPE of value per catalog
-(strings, numbers, or objects), the compiler counting so no size is ever
-written:
+(strings, numbers, objects, or directions), the compiler counting so no
+size is ever written:
 
 ```
 catalog last_letter
@@ -191,6 +191,21 @@ position(suspects, butler)       // an entry's number, or 0 when absent
 if butler in suspects            // membership: the `in` you already know
 for each line in last_letter     // iterate in order; say line prints right
 change entry(verdicts, 2) to "guilty"   // rewrite ONE entry in place
+```
+
+A catalog of DIRECTIONS holds a fixed route the way a matrix holds a
+mutable one: each entry is the direction's property number, an ordinary
+cell, so `for each d in route` with `switch d / case north` walks a maze
+solution or a patrol path, and `exit_dest(here, entry(route, 1))` asks
+where the first leg leads. (Printing such an entry shows the number, as
+with a matrix; compare it with `is north`, do not say it.) An object
+name always wins over a direction name, as everywhere.
+
+```
+catalog escape_route
+    north
+    east
+    up
 ```
 
 A catalog passes to a block as an ordinary value (`quote_catalog(letter)`,
@@ -252,6 +267,14 @@ and store an index into it. The reads are exactly a catalog's, but the
 count is the LIVE length: `calculate(m)` is the current length, `entry(m,
 i)` the i-th (1-based), `last(m)`, `dice(m)`, `position(m, v)`, `v in m`,
 and `for each x in m`. `change entry(m, i) to v` rewrites a cell in place.
+
+Mind the count (a field report): entries LIVE only up to the count.
+`change entry` rewrites a cell but never grows the matrix, so on a fresh
+matrix the write lands in a cell the count does not yet cover, and
+`calculate`, `for each`, and friends still see an empty matrix. Create
+entries first: `append`, or a seed on the declaration line, or `load m
+from zeros` (a catalog of zeros) to prefill; then `change entry`
+mutates them.
 
 Like a catalog, a matrix passes to a block as an ordinary value, and
 `calculate`, `entry`, `last`, and `dice` all work on the parameter inside.
