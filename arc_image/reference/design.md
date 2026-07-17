@@ -470,8 +470,19 @@ The ruling, in three parts:
   window guarantee is only as good as its enforcement surface: the
   contract test now covers arc_image/probes/ too, and the full probe is
   additionally executed end to end (mini-Z80, scripted keypress) in the
-  session harness before any emulator pass. Next: the ZX3 probe, then
-  C64 with the 6502 ring decoder.
+  session harness before any emulator pass. A SECOND lesson followed
+  the same day: byte-exact proves the LOADER, not the ART. The probe
+  pairs were also old CONVERSIONS from a retired pipeline; they were
+  regenerated natively on the Mac with current arcimg (Pillow restored
+  after a Homebrew python upgrade had silently eaten it; the orb Debian
+  checked and clean, Pillow never installed there), the fresh mode-12
+  render pixel-identical to the approved previews/stress ground truth.
+  ART GATE PASSED (Stefan, 2026-07-17): "The CPC art is good now",
+  including today's mode-9 crop (more scene than the retired band9
+  preview's sky-heavy crop). The C64 probe.prg was reassembled with
+  current art via ACME from ~/FictionTools on the orb Debian machine,
+  its intended home. Next: the ZX3 probe, then C64 with the 6502 ring
+  decoder.
 
   ZX2 EVALUATED AND DECLINED (same day, Stefan; raised by Shawn
   Sijnstra). ZX2 (Saukas's small-file ZX0 sibling: flat one-byte
