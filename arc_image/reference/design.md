@@ -489,7 +489,23 @@ The ruling, in three parts:
   live pass byte-exact on ZEsarUX (+3 ROM 4.1, both modes). One session
   lesson banked: ZEsarUX's send-keys-ascii takes TIME as its first
   argument; `send-keys-ascii 32` sends a 32 ms nothing, `send-keys-ascii
-  300 32` presses space. Next: C64 with the 6502 ring decoder.
+  300 32` presses space. A RULING followed the eyeball (Stefan,
+  2026-07-17): the band modes think in INTERPRETER LINES, so the mode-9
+  prep of a mode-12 master is the SAME image ending at 72 rows, a
+  top-anchored identity crop, never a recomposition and never a
+  rescale. prep's _crop_to_ratio was centre-anchored on height (my
+  regenerated 90s dropped 12 rows top AND bottom, which is why the two
+  band shapes read as different pictures on the +3); now the height
+  trim anchors at the top (width trims stay centred), arcimg 1.12.1,
+  with a regression test. The proof of the circle: every fresh 90
+  render is now pixel-identical to the ORIGINAL approved band9-*
+  previews (ZX3 and CPC checked exactly), so the probe pairs are once
+  again precisely the corpus-gate images. Also opened by the same
+  eyeball: the ZX3 SOLVER RE-GATE. The +3 art on screen is exactly
+  what the corpus gate approved, but Stefan finds the clashes awful on
+  re-view, and the Spectrum kept its R3 solver when the Polizei family
+  was rebuilt; a rework onto the current architecture is a pending
+  work item, Stefan's call. Next: C64 with the 6502 ring decoder.
 
   ZX2 EVALUATED AND DECLINED (same day, Stefan; raised by Shawn
   Sijnstra). ZX2 (Saukas's small-file ZX0 sibling: flat one-byte

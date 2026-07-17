@@ -307,3 +307,23 @@ def test_committed_corpus_honors_the_window_guarantee():
                     f"{root}/{name} section {i} violates the 2048 window")
                 checked += 1
     assert checked >= 80
+
+
+def test_prep_mode9_is_the_top_crop_of_the_mode12_master():
+    # The band modes think in interpreter lines (ruled 2026-07-17): a mode-9
+    # prep of a 320x96 master is the SAME image ending at 72 rows, never a
+    # recomposition. Requires Pillow (skip like the other imaging tests).
+    try:
+        from PIL import Image
+    except ImportError:
+        import pytest as _pt
+        _pt.skip("Pillow not installed")
+    img = Image.new("RGB", (320, 96))
+    px = img.load()
+    for y in range(96):
+        for x in range(0, 320, 7):
+            px[x, y] = ((x * 3) % 256, (y * 5) % 256, (x + y) % 256)
+    cropped = arcimg._crop_to_ratio(img, 320, 72)
+    assert cropped.size == (320, 72)
+    from PIL import ImageChops
+    assert ImageChops.difference(cropped, img.crop((0, 0, 320, 72))).getbbox() is None
