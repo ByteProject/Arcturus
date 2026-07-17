@@ -187,10 +187,18 @@ chapter in part C names which one it uses:
 
 Both models decode the identical bitstream; a ring loader and a staging
 loader reading the same .arc file produce the same pixels. The published
-Z80 and 6502 dzx0 routines implement the staging model as written; the
-ring model is a re-plumbing of the same decode (each output byte teed to
-a 2K ring and an emit step) and its reference decoders land with the
-cell-target chapters as those probes are built.
+Z80 and 6502 dzx0 routines implement the staging model as written. The
+ring model's Z80 reference is
+[arc_image/probes/dzx0r_z80.asm](../arc_image/probes/dzx0r_z80.asm):
+about 110 bytes, built as the smallest possible delta on the standard
+dzx0 (only the two LDIR copy paths are re-plumbed; the Elias gamma
+reader, the negative-offset bookkeeping, and the end-marker detection
+are carried verbatim), with a single platform-supplied `emit` routine as
+the only port point. It is executed instruction-by-instruction against
+the corpus in the test suite (tests/test_dzx0r.py), so a port starts
+from decoder logic that is already proven; the CPC chapter (C.6) is the
+reference ring loader built on it. The 6502 ring reference lands with
+the C64 probe rebuild.
 
 THE RLE SCHEME (codec 0; control byte c):
 
@@ -570,15 +578,18 @@ bytes of code.
 
 ### C.6 Amstrad CPC (target id 6, tag CPC, files `<id>.CPC`)
 
-Verified: ZEsarUX, CPC 6128, both modes, 2026-07-10, via the ZRCP
-injection route (ZEsarUX has NO CPC snapshot support: its .sna reader is
-Spectrum-only and answers "corrupt file"; the crafted v1 snapshot the
-build also emits is for the WinAPE family). The block-copy algorithm was
-validated in Python against the true screen layout before assembly.
+Verified (staged loader): ZEsarUX, CPC 6128, both modes, 2026-07-10, via
+the ZRCP injection route (ZEsarUX has NO CPC snapshot support: its .sna
+reader is Spectrum-only and answers "corrupt file"; the crafted v1
+snapshot the build also emits is for the WinAPE family). The block-copy
+algorithm was validated in Python against the true screen layout before
+assembly. RING LOADER (the R5 rebuild below): decoder machine-verified
+against the corpus (tests/test_dzx0r.py); emulator re-verification of
+the rebuilt probe pending.
 
 Probe: [arc_image/probes/cpc/](../arc_image/probes/cpc/), source
-`probe.asm` with the shared decoder
-[arc_image/probes/dzx0_z80.asm](../arc_image/probes/dzx0_z80.asm) and
+`probe.asm` with the ring decoder
+[arc_image/probes/dzx0r_z80.asm](../arc_image/probes/dzx0r_z80.asm) and
 `build_sna.py` (a hand-built v1 snapshot, pure Python). Build:
 `sjasmplus probe.asm` then `python3 build_sna.py`.
 
@@ -589,15 +600,25 @@ firmware-scrolled machine has a nonzero display offset in R12/R13 and
 the picture wraps and shifts. Clear the full 16K before the first draw:
 whatever was on screen shows through the sub-band area otherwise.
 
-CODEC. ZX0 (part B), the same 68-byte shared decoder as the Spectrum.
+CODEC. ZX0 (part B) under the 2048 window guarantee, decoded by the RING
+model: this chapter is the reference ring loader (R5, 2026-07-17). The
+decoder is dzx0r_z80.asm, about 110 bytes, and its whole working memory
+is one 2K-aligned ring; each decoded byte goes to the ring and out
+through an `emit` the probe points at the screen writer or a buffer
+writer per section. No staging band exists. This is the 64K posture the
+CPC 464 aim requires: an interpreter holds the Z-machine, the story, the
+compressed section, and 2K, nothing more. (A 6128-class setup with RAM
+to spare may still stage with the classic dzx0_z80.asm; the stream is
+identical either way.)
 
 SECTIONS, in file order:
 
 - bitmap (type 1): Mode 0 bytes in SUB-BLOCK order. The screen's eight
   $800 blocks each hold every 8th raster line, and the band's rows land
-  contiguously at each block's START: the loader is eight straight
-  copies of height*10 bytes from the staged stream to $C000 + s*$800.
-  No other math exists.
+  contiguously at each block's START: the ring loader's screen emit
+  writes linearly into block 0 until height*10 bytes have landed, hops
+  to the next block base ($C000 + s*$800), and repeats. A write, a
+  counter, and a hop; no other math exists.
 - palette (type 5): 16 ink indices IN THE 27-CUBE, r*9+g*3+b with gun
   levels 0..2. This is NOT the firmware's ink numbering: the cube is
   RGB-ordered, the firmware order is luminance-grouped, and a loader
@@ -641,9 +662,12 @@ this construction.
 ASSETS. `<id>.CPC` beside the story. The standard test pair: 90.CPC
 (mode 9), 100.CPC (mode 12).
 
-MEMORY. One staging buffer of 7680 bytes (the largest band bitmap);
-palette and registers stage in 17 bytes. The keyboard is read through
-the PPI/AY row scan (the probe's anykey is the reference).
+MEMORY. The 2K ring plus 17 bytes of palette/register buffers: the
+entire decode working set (the R3 probe's 7680-byte staging band is
+retired). The compressed section is read strictly forward, so it may be
+streamed from disc in sector bites rather than held whole. The keyboard
+is read through the PPI/AY row scan (the probe's anykey is the
+reference).
 
 ## Change log
 

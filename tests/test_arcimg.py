@@ -265,3 +265,43 @@ def test_arc_sections_ring_decode():
     head, sections = arcimg.read_arc(blob)
     assert head["codec"] == arcimg.CODEC_ZX0
     assert sections[0][2] == raw
+
+
+def test_committed_corpus_honors_the_window_guarantee():
+    # Every codec-1 .arc file in the repo must ring-decode: the shipped
+    # corpus IS the contract. A file packed by an older arcimg (2176-era)
+    # fails here and wants a repack.
+    import struct
+    roots = ("arc_image/c64", "arc_image/cpc", "arc_image/zx3", "arc_image/a8")
+    base = os.path.join(os.path.dirname(__file__), "..")
+    checked = 0
+    for root in roots:
+        d = os.path.join(base, root)
+        if not os.path.isdir(d):
+            continue
+        for name in sorted(os.listdir(d)):
+            p = os.path.join(d, name)
+            if not os.path.isfile(p):
+                continue
+            with open(p, "rb") as f:
+                blob = f.read()
+            try:
+                head, sections = arcimg.read_arc(blob)
+            except ValueError:
+                continue
+            if head["codec"] != arcimg.CODEC_ZX0:
+                continue
+            # walk the raw streams (read_arc already decoded; re-derive them)
+            count = blob[7]
+            pos = 16 + 6 * count
+            tp = 16
+            for i in range(count):
+                stype, flags, ulen, clen = struct.unpack(
+                    ">BBHH", blob[tp:tp + 6])
+                tp += 6
+                stream = blob[pos:pos + clen]
+                pos += clen
+                assert _ring_decompress(stream, 2048) == sections[i][2], (
+                    f"{root}/{name} section {i} violates the 2048 window")
+                checked += 1
+    assert checked >= 80
