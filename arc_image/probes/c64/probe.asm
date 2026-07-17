@@ -204,6 +204,6 @@ unpack: ldx cur+0               ; the decoder: src in X/A, dst preloaded
 regbuf: !byte 0
 
 image9:
-        !bin "90.C64"
+        !bin "9.C64"
 image12:
-        !bin "100.C64"
+        !bin "12.C64"

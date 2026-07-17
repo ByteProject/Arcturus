@@ -162,7 +162,7 @@ palbuf: ds.w    32
 
         even
 image9:
-        incbin  "90.AMI"
+        incbin  "9.AMI"
         even                            ; the ST lesson: align every image
 image12:
-        incbin  "100.AMI"
+        incbin  "12.AMI"

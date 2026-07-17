@@ -23,7 +23,8 @@ The handover package for a target is:
 - this document (part A, part B, and the target's chapter in part C);
 - `arc_image/probes/<target>/` : a working reference loader for the machine,
   commented against this spec, plus its build command;
-- the standard test assets, `90.<TAG>` (mode 9) and `100.<TAG>` (mode 12),
+- the standard test assets, `9.<TAG>` (mode 9) and `12.<TAG>` (mode 12), named for the band
+  modes themselves (the ids in the headers match),
   the same picture in both band shapes;
 - the `arcimg` standalone tool: `arcimg render X.arc -o X.png` produces the
   ground-truth PNG any correct loader must match on screen, and `arcimg
@@ -301,7 +302,7 @@ codec 2026-07-09.
 
 Probe: [arc_image/probes/dos/](../arc_image/probes/dos/), source
 `probe.asm` (the LZSA2 decompressor carried verbatim), the embedded test
-assets 90.DOS and 100.DOS, and the built PROBE.COM. Build:
+assets 9.DOS and 12.DOS, and the built PROBE.COM. Build:
 `nasm -f bin probe.asm -o PROBE.COM`.
 
 VIDEO. VGA/MCGA mode 13h, 320x200, 256 colors, chunky (one byte per pixel,
@@ -347,8 +348,8 @@ never are; a mode change between draws is the one case, and re-entering
 mode 13h clears the screen anyway).
 
 ASSETS. `<id>.DOS` beside the story file (8.3-safe by construction: the id
-is decimal, at most five digits). The standard test pair: 90.DOS (mode 9),
-100.DOS (mode 12).
+is decimal, at most five digits). The standard test pair: 9.DOS (mode 9),
+12.DOS (mode 12).
 
 MEMORY. Both the bitmap and the palette decode into VRAM and ports; the
 loader needs no buffer beyond the 768-byte palette staging (and even that
@@ -360,7 +361,7 @@ Verified: Hatari, both modes, 2026-07-08; re-verified with the LZSA2
 codec 2026-07-09.
 
 Probe: [arc_image/probes/ast/](../arc_image/probes/ast/), source
-`probe.s` with the embedded test assets 90.AST and 100.AST. Build:
+`probe.s` with the embedded test assets 9.AST and 12.AST. Build:
 `vasmm68k_mot -Ftos -o PROBE.PRG probe.s`.
 
 CODEC. LZSA2 (part B). The decompressor is the shared 68000 routine
@@ -413,8 +414,8 @@ LOADER RECIPE: verify magic; walk the table; palette section to
 Setpalette, bitmap section decoded to Physbase(). The probe is ~90
 lines of 68k including the TOS scaffolding.
 
-ASSETS. `<id>.AST` beside the story (GEMDOS 8.3-safe). Test pair: 90.AST,
-100.AST.
+ASSETS. `<id>.AST` beside the story (GEMDOS 8.3-safe). Test pair: 9.AST,
+12.AST.
 
 ### C.3 Amiga (target id 1, tag AMI, files `<id>.AMI`)
 
@@ -460,7 +461,7 @@ monitor before the visual pass.
 
 Probe: [arc_image/probes/c64/](../arc_image/probes/c64/), source
 `probe.asm` with the decoder `dzx0_6502.asm` beside it and the embedded
-test assets 90.C64 and 100.C64. Build (ACME):
+test assets 9.C64 and 12.C64. Build (ACME):
 `acme -f cbm -o probe.prg probe.asm`.
 
 VIDEO. Multicolor bitmap mode: $D011 = $3B, $D016 = $D8, $D018 = $18
@@ -506,8 +507,8 @@ instructions around the decoder. The probe waits on KERNAL GETIN
 between the two images; a real interpreter draws its text below the
 band instead.
 
-ASSETS. `<id>.C64` beside the story. The standard test pair: 90.C64
-(mode 9), 100.C64 (mode 12).
+ASSETS. `<id>.C64` beside the story. The standard test pair: 9.C64
+(mode 9), 12.C64 (mode 12).
 
 MEMORY. Bitmap and matrix decode into the VIC bank, color RAM into
 $D800: no staging buffers at all beyond one byte for the register
@@ -580,8 +581,8 @@ LESSONS THE PROBE PAID FOR (beyond the type-4 one above):
 - A probe should loop its pictures (9, 12, 9, ...): a bare Spectrum has
   no OS to return to, and a final freeze reads as a crash.
 
-ASSETS. `<id>.ZX3` beside the story. The standard test pair: 90.ZX3
-(mode 9), 100.ZX3 (mode 12).
+ASSETS. `<id>.ZX3` beside the story. The standard test pair: 9.ZX3
+(mode 9), 12.ZX3 (mode 12).
 
 MEMORY. The 2K ring: the entire decode working set (the R3 staging
 buffer of 3072 bytes is retired); attributes decode straight to the
@@ -677,8 +678,8 @@ interpreter makes that area its own. This is the CPC's equivalent of
 the Amiga chapter's copper clause; DAAD's CPC games shipped exactly
 this construction.
 
-ASSETS. `<id>.CPC` beside the story. The standard test pair: 90.CPC
-(mode 9), 100.CPC (mode 12).
+ASSETS. `<id>.CPC` beside the story. The standard test pair: 9.CPC
+(mode 9), 12.CPC (mode 12).
 
 MEMORY. The 2K ring plus 17 bytes of palette/register buffers: the
 entire decode working set (the R3 probe's 7680-byte staging band is
@@ -689,6 +690,12 @@ reference).
 
 ## Change log
 
+- 2026-07-17 (the test pair is 9 and 12): the standard test assets are
+  renamed for coherence with the band modes they carry: `9.<TAG>` is
+  the mode-9 image (infocom, 72 rows), `12.<TAG>` the mode-12 image
+  (DAAD, 96 rows); the header ids match. The former 90/100 ids were an
+  undocumented convention and are gone; every probe was rebuilt with
+  the renamed assets.
 - 2026-07-17 (the ZX3 ring probe, verified): C.5 joins the ring model.
   The staging buffer is gone; the ULA's third/line/char-row interleave
   turns out to be the ring loader's natural shape (linear runs with two
