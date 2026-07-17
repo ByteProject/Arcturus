@@ -272,7 +272,9 @@ def test_committed_corpus_honors_the_window_guarantee():
     # corpus IS the contract. A file packed by an older arcimg (2176-era)
     # fails here and wants a repack.
     import struct
-    roots = ("arc_image/c64", "arc_image/cpc", "arc_image/zx3", "arc_image/a8")
+    roots = ("arc_image/c64", "arc_image/cpc", "arc_image/zx3", "arc_image/a8",
+             "arc_image/probes/c64", "arc_image/probes/cpc",
+             "arc_image/probes/zx3")
     base = os.path.join(os.path.dirname(__file__), "..")
     checked = 0
     for root in roots:

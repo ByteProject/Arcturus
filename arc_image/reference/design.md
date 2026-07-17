@@ -459,9 +459,19 @@ The ruling, in three parts:
   or the 17-byte palette/register buffers), 2K-aligned ring asserted at
   assembly. The committed codec-1 corpus (C64, CPC, ZX3, A8: 39 of 84
   files) was repacked under the 2048 guarantee and a corpus-contract
-  test now ring-decodes every committed file in the suite. Pending:
-  Stefan's ZEsarUX pass on the rebuilt probe (ZRCP injection route),
-  then the ZX3 probe, then C64 with the 6502 ring decoder.
+  test now ring-decodes every committed file in the suite. VERIFIED:
+  ZEsarUX CPC 464, both modes, 2026-07-17, byte-exact (frozen screen
+  blocks and palette read back over ZRCP and compared, not eyeballed).
+  A lesson banked on the way: the first live run showed a handful of
+  corrupt bytes per late block, and the cause was NOT the decoder; the
+  probe's embedded test images sat in arc_image/probes/ and had missed
+  the corpus repack, so they still carried 2176-era offsets (2096 and
+  2172, exactly in the forbidden gap) that alias in a 2048 ring. The
+  window guarantee is only as good as its enforcement surface: the
+  contract test now covers arc_image/probes/ too, and the full probe is
+  additionally executed end to end (mini-Z80, scripted keypress) in the
+  session harness before any emulator pass. Next: the ZX3 probe, then
+  C64 with the 6502 ring decoder.
 
   ZX2 EVALUATED AND DECLINED (same day, Stefan; raised by Shawn
   Sijnstra). ZX2 (Saukas's small-file ZX0 sibling: flat one-byte

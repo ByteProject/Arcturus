@@ -4503,3 +4503,23 @@ forever after. docs/08: part B points at dzx0r as the ring reference,
 C.6 is the ring loader chapter (64K posture: ring + 17 bytes, source
 streamable). Suite 984. Pending: Stefan's ZEsarUX pass (ZRCP route),
 then ZX3, then C64 + the 6502 ring decoder.
+
+## 2026-07-17 (night): CPC ring probe VERIFIED on ZEsarUX, byte-exact (R5)
+
+Live verification, and a near-miss caught by Stefan's question. The
+first ZEsarUX run showed a handful of corrupt bytes in late screen
+blocks; the deterministic reproduction (the mini-Z80 now runs the WHOLE
+probe end to end with stubbed I/O and a scripted keypress) confirmed it
+was not the decoder: the probe's embedded test images live in
+arc_image/probes/ and had MISSED the corpus repack ("did you recreate
+the corpus or is this still using the old image?" - exactly that). They
+still carried 2176-era offsets (2096, 2172: precisely the forbidden
+gap) which alias in a 2048 ring. Probe assets repacked (+3 bytes each),
+probe reassembled, and verified byte-exact: ZEsarUX CPC 464, ZRCP
+injection, frozen screen blocks and palette buffer read back and
+compared against the expected decodes; PIXEL-EXACT for both images
+(mode 9 and mode 12, keypress cycling confirmed live). The contract
+test now covers arc_image/probes/ so probe assets can never drift from
+the guarantee again. docs/08 C.6 verification note updated; design 8b
+records the lesson: the window guarantee is only as good as its
+enforcement surface. Suite 984.
