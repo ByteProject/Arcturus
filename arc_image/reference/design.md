@@ -523,8 +523,13 @@ The ruling, in three parts:
     plus dark/bright pairs of one colour for highlighting, which the
     Spectrum can do. That is the conversion philosophy for both
     machines; a full-palette quantize is what makes the current ZX3
-    output clash. Plus/4 in hires also preserves its uniqueness (the
-    121-color luma palette) instead of underselling it as a C64 look.
+    output clash, and a C64-class base cannot fix it: the 160-wide
+    multicolor rendering lacks the PIXEL DENSITY that lets a
+    few-colours Spectrum stand out; the Spectrum's strength with a
+    restrained palette IS its 256-wide hires detail, which only a
+    hires base supplies. Plus/4 in hires also preserves its own
+    uniqueness (the 121-color luma palette) instead of underselling it
+    as a C64 look.
   - C64 HIRES ITCH: worth an experiment sometime; the feeling is C64
     stays 160-wide multicolor. Open, not settled.
   - PREDEFINED OVER CHOICE: one look per machine, ruled by the design,
