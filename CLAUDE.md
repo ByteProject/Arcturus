@@ -66,6 +66,12 @@ pyproject.toml
 
 - Compile: `arcc examples/brass-lantern.storyarc -o build/brass-lantern.z5`
   (z5 by default; `--zversion 8` for version 8).
+- arcimg image conversion needs Pillow ON THE MAC (`python3 -m pip install
+  --user --break-system-packages pillow`); a Homebrew python upgrade wipes
+  keg-installed packages, so if `import PIL` fails after an upgrade,
+  reinstall to the user site. ACME (the C64 probe assembler) runs on the
+  orb Debian machine from ~/FictionTools, its intended home; never install
+  packages or tools in either environment without telling Stefan.
 - Test: `pytest`.
 - Verify a built story on a reference interpreter (Frotz or Bocfel); the same
   file must also run on Ceres for the 8-bit target.
