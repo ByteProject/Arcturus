@@ -586,6 +586,23 @@ The ruling, in three parts:
   below-band clean; the visual pass is Stefan's (the agreed division:
   the sim carries byte-exact, his eyes carry the screen).
 
+  THE $83 CALIBRATION (same evening, by VRAM readback loops against
+  trs80gp 2.5.7, run unwatched after Stefan spotted the first build's
+  shear): the option register decodes as bit7 = write-clock axis (1=X,
+  0=Y: the shear was the clock stepping Y), bit2 = X direction, bit3 =
+  Y direction, bit6 = an addressing-mode switch (breaks the layout),
+  bits 4-5 inert, bit0 assumed enable (never isolated: all candidates
+  were odd). CTRL=$83 ships. ONE RESIDUAL: the emulated board drops
+  EXACTLY ONE write (image 9, row 0, col 14, value EF) when the CPU
+  collides with a specific video fetch window; boot-phase-locked and
+  fully reproducible; survives DI, real speed, -iatx, and every option
+  bit; the CMD loader was cleared by round-trip parse; image 12 is
+  byte-exact every run. Verdict deferred to hardware truth (Shawn, or
+  the board manual, or trs80gp's author): if the real board holds
+  /WAIT in that window, real iron never drops and the emulation quirk
+  is cosmetic; if not, interpreters must pace writes. Documented in
+  C.7, not guessed.
+
   ZX2 EVALUATED AND DECLINED (same day, Stefan; raised by Shawn
   Sijnstra). ZX2 (Saukas's small-file ZX0 sibling: flat one-byte
   offsets, a 256-byte window by construction, a ~40-byte decoder) was

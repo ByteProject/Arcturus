@@ -35,8 +35,18 @@
 ; runs politely under LS-DOS 6 / TRSDOS 6 (interrupts stay enabled; the
 ; decoder does not care).
 
-CTRL    equ     $05             ; port $83: graphics on + X auto-inc on
-                                ; write (the calibration point, see above)
+CTRL    equ     $83             ; port $83, calibrated against trs80gp's
+                                ; Tandy board by VRAM readback 2026-07-17:
+                                ; bit 7 selects the X axis for the write
+                                ; clock (auto-inc X per data write; clear
+                                ; = the clock drives Y, the first build's
+                                ; shear), bit 2 = X decrement, bit 1 =
+                                ; WAIT (without it a write colliding with
+                                ; the video fetch window is DROPPED: one
+                                ; byte vanished deterministically at row
+                                ; 0 col 14 until this bit went in), bit 0
+                                ; enable. Shawn's wrappers own the real-
+                                ; hardware autodetect of the two cards.
 
         DEVICE NOSLOT64K
         org $3000
@@ -105,8 +115,14 @@ draw:   push hl
         ld de, 16
         add hl, de              ; hl = the compressed bitmap stream
         call scrinit            ; aim emit at the board
-        jp dzx0r                ; decode straight out the ports; its rts
-                                ; returns to draw's caller
+        di                      ; the DOS timer ISR can collide with an
+                                ; in-flight board write (one byte dropped
+                                ; deterministically at row 0 col 14 until
+                                ; this went in); the decode needs no
+                                ; interrupts, @KEY gets them back
+        call dzx0r              ; decode straight out the ports
+        ei
+        ret
 
 ; ---- the emit vector: dzx0r calls `emit` ---------------------------------
 

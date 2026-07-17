@@ -728,10 +728,18 @@ display). The full probe is executed end to end on a mini-Z80 with a
 port model of the board (X/Y/data, X auto-inc on write, no Y wrap) and
 a scripted keystroke: both images byte-exact in the modeled graphics
 RAM, the area below the band clean. One hardware assumption is a
-single equate (CTRL, the port $83 option byte: graphics on plus X
-auto-inc on write); real interpreters autodetect and configure the two
-card models, and if another emulator or real iron shows a dark screen,
-that equate is the knob.
+single equate (CTRL, the port $83 option byte), CALIBRATED against
+trs80gp's Tandy board by VRAM readback: bit 7 selects the X axis for
+the write clock (clear = the clock steps Y instead), bit 2 reverses X,
+bit 3 reverses Y, bit 6 changes the addressing mode (avoid), bits 4-5
+inert in this emulation; the probe ships $83. ONE OPEN HARDWARE
+QUESTION, for the interpreter author: with $83 the emulated board
+drops exactly one write when the CPU hits a specific video fetch
+window (a single byte of the first image, boot-phase-locked and
+reproducible; no option bit prevents it). Whether the real board
+holds /WAIT automatically in that window, or exposes a ready bit to
+poll, decides whether interpreters must pace their writes; the probe
+documents rather than guesses.
 
 VIDEO. The hi-res board: 640x240 1bpp on a 4:3 screen, so pixels are
 half as wide as tall. The band is 640x72 (mode 9) or 640x96 (mode 12):
