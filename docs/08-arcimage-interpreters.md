@@ -578,14 +578,17 @@ bytes of code.
 
 ### C.6 Amstrad CPC (target id 6, tag CPC, files `<id>.CPC`)
 
-Verified (staged loader): ZEsarUX, CPC 6128, both modes, 2026-07-10, via
-the ZRCP injection route (ZEsarUX has NO CPC snapshot support: its .sna
-reader is Spectrum-only and answers "corrupt file"; the crafted v1
-snapshot the build also emits is for the WinAPE family). The block-copy
-algorithm was validated in Python against the true screen layout before
-assembly. RING LOADER (the R5 rebuild below): decoder machine-verified
-against the corpus (tests/test_dzx0r.py); emulator re-verification of
-the rebuilt probe pending.
+Verified (ring loader): ZEsarUX, CPC 464, both modes, 2026-07-17, via
+the ZRCP injection route, and byte-exact rather than by eye: the frozen
+machine's screen blocks and palette buffer were read back over ZRCP and
+compared against the expected decodes, pixel-exact for both images.
+(ZEsarUX has NO CPC snapshot support: its .sna reader is Spectrum-only
+and answers "corrupt file"; the crafted v1 snapshot the build also
+emits is for the WinAPE family. The staged R3 loader was verified the
+same way on a 6128, 2026-07-10.) The decoder is additionally executed
+against the corpus on every test run (tests/test_dzx0r.py), and the
+probe end to end on a mini-Z80 with scripted keys before the emulator
+ever saw it.
 
 Probe: [arc_image/probes/cpc/](../arc_image/probes/cpc/), source
 `probe.asm` with the ring decoder
