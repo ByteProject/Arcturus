@@ -902,7 +902,11 @@ example, with its `.arcres` and heavily commented source, is in
 Statements appear inside `on` handlers, `block` bodies, and computed
 properties.
 
-`let` introduces a local: `let n = 0`.
+`let` introduces a local: `let n = 0`. A local lives to the end of the
+BLOCK that declared it: a `let` inside an if branch or a loop body ends
+with that branch. To set a value differently per branch, declare it
+before the if (`let z = 0`) and `change z to ...` inside the branches
+(the compile error teaches this shape when it sees the pattern).
 
 `change ... to ...` is the universal setter, for a local, a global, or a
 property:

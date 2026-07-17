@@ -4728,3 +4728,18 @@ direction name, cells validated ("'wibble' is not a direction"), say
 speaking the word, the catalog symmetry complete on both the static
 and mutable sides. docs/01 updated (including retracting the
 hours-old "compare it, do not say it" note). 3 new tests; suite 1006.
+
+## 2026-07-18 (later): globals alias matrices truly; the let error teaches (arcc 1.2.1)
+
+Charles Moore Jr.'s pair. (1) A REAL BUG: a catalog or matrix name in
+a global initializer fell through the seeding SILENTLY, the global
+stayed 0, and 0 aliased the region's FIRST occupant, so with two
+matrices the wrong one answered (his exact "entry(A,1) does not equal
+entry(B,1)"). Global initializers now resolve catalog and matrix
+names to their region word offsets (the same value the name means in
+any expression) and direction names to their property numbers. (2)
+`let` is block-scoped by design: a let inside an if branch ends with
+the branch, which is correct and stays; what changed is the error,
+which now teaches the shape ("declare it before the block, change it
+inside the branches") when the unknown name was an expired let, and
+docs/01 states the scoping beside let itself. 2 new tests; suite 1008.
