@@ -4546,3 +4546,18 @@ all regenerated; CPC and ZX3 probes reassembled (C64's needs acme,
 absent here; flagged for its wave, its .prg still embeds old art).
 Live: ZEsarUX CPC 464, fresh probe injected, byte-exact again
 (PIXEL-EXACT bitmap + palette), left running for Stefan's eyes.
+
+## 2026-07-17 (night II): the ZX3 ring probe, verified byte-exact (R5)
+
+The second ring probe, and the pattern is now routine: the ULA's
+third/line/char-row interleave is exactly a ring loader's shape
+(linear rmax*32 runs, a $100 page hop per line-in-char, an $800 hop
+per third; attributes straight to $5800 through the buffer emit). The
+3072-byte staging buffer is gone; decode working set = the 2K ring.
+The full-probe simulation (mini-Z80, scripted keypress, ULA oracle in
+Python) was PIXEL-EXACT first try; the live pass on ZEsarUX (+3 ROM
+4.1, machine-exact ZRCP injection) byte-exact for both images, bitmap
+and attribute file, mode 9 and mode 12. docs/08 C.5 rewritten as the
+ring chapter (verification note, sections, MEMORY: 2K ring, source
+streamable) plus the change-log entry; design 8b updated. Suite 984.
+Next: C64 with the 6502 ring decoder (acme via the orb Debian).

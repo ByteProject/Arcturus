@@ -481,8 +481,15 @@ The ruling, in three parts:
   including today's mode-9 crop (more scene than the retired band9
   preview's sky-heavy crop). The C64 probe.prg was reassembled with
   current art via ACME from ~/FictionTools on the orb Debian machine,
-  its intended home. Next: the ZX3 probe, then C64 with the 6502 ring
-  decoder.
+  its intended home. ZX3 FOLLOWED the same day: the ULA interleave is
+  the ring loader's natural shape (linear runs, a page hop per line, a
+  third hop per 8 lines; attributes stream straight to $5800), the
+  probe's 3072-byte staging buffer retired, the full-probe simulation
+  pixel-exact FIRST TRY (the executable-proof pattern pays), and the
+  live pass byte-exact on ZEsarUX (+3 ROM 4.1, both modes). One session
+  lesson banked: ZEsarUX's send-keys-ascii takes TIME as its first
+  argument; `send-keys-ascii 32` sends a 32 ms nothing, `send-keys-ascii
+  300 32` presses space. Next: C64 with the 6502 ring decoder.
 
   ZX2 EVALUATED AND DECLINED (same day, Stefan; raised by Shawn
   Sijnstra). ZX2 (Saukas's small-file ZX0 sibling: flat one-byte
