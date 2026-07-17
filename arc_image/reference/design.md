@@ -569,6 +569,23 @@ The ruling, in three parts:
   the remote monitor and BOTH IMAGES APPROVED ON SCREEN by Stefan
   (2026-07-17). The ring family: CPC, ZX3, C64, all verified.
 
+  TRSM4 PROBE (same day, closing Stefan's "half-way" challenge): the
+  doctrine is PROVEN blueprint, external interpreter or not, so the
+  fifteenth target got its probe: a /CMD for LS-DOS 6 (build_cmd.py,
+  the build_sna manner), dzx0r_z80.asm carried UNCHANGED with emit as
+  a port write, the first target where the ring is the only possible
+  model. trs80gp 2.5.7 installed to /Applications (Stefan's go-ahead);
+  launch line trs80gp -m4 -gt -vs (Tandy board, sharp display; the
+  plain launch Stefan tried defaults to Model 3 with CRT blur). The
+  port 131 option byte is undocumented in trs80gp's manual and the
+  48k.ca demos do not touch the board, so it ships as the CTRL equate
+  (graphics on + X auto-inc on write, the one calibration knob),
+  confirmation asked of Shawn. Verified: the full-probe simulation
+  with a port model of the board (Shawn's spec: X/Y/data, auto-inc X
+  on write, no Y wrap), both images byte-exact in modeled GRAM,
+  below-band clean; the visual pass is Stefan's (the agreed division:
+  the sim carries byte-exact, his eyes carry the screen).
+
   ZX2 EVALUATED AND DECLINED (same day, Stefan; raised by Shawn
   Sijnstra). ZX2 (Saukas's small-file ZX0 sibling: flat one-byte
   offsets, a 256-byte window by construction, a ~40-byte decoder) was

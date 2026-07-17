@@ -4640,3 +4640,21 @@ spec), ring-decoded; on this machine the ring is the ONLY model
 (port-addressed memory, no read-back). docs/08 chapter C.7; ledger
 row; full corpus (21) + stress pair converted; contract test covers
 arc_image/trsm4. Suite 992.
+
+## 2026-07-17 (night VII): the TRSM4 probe, whole-way (no half measures)
+
+Stefan's challenge stood: the doctrine is PROVEN blueprint, external
+interpreter or not. The fifteenth target got its probe: a /CMD load
+module for LS-DOS 6 (build_cmd.py), dzx0r_z80.asm carried UNCHANGED
+with the emit as a port write plus a column counter and row
+re-address; the first target where the ring model is the ONLY model
+(port-addressed board, no read-back), which is fitting, since this is
+the machine the whole architecture was built for. trs80gp 2.5.7
+installed (launch: trs80gp -m4 -gt -vs probe.cmd; the bare launch
+defaults to Model 3 with CRT blur). The port 131 option byte is
+undocumented in the emulator manual, so it ships as the one CTRL
+equate (graphics on + X auto-inc on write), Shawn asked to confirm.
+Verified per the agreed division: the full-probe simulation with a
+port model of the board (Shawn's spec) shows both images BYTE-EXACT
+in modeled graphics RAM with the below-band area clean; the screen
+itself is Stefan's eyes. docs/08 C.7 carries the probe section.

@@ -714,10 +714,24 @@ The first target whose interpreter lives outside the family: Shawn
 Sijnstra builds and maintains the Model 4 engine. The TARGET is
 first-class arc_image regardless (ruled 2026-07-17): arcimg converts,
 packs, and renders it like any other, this chapter is its blueprint,
-and the test assets ship with the family. Format-level verification
-runs in the test suite (the ring decoders decode every committed
-TRSM4 stream byte-exactly); machine verification belongs to the
-external interpreter.
+and the test assets ship with the family.
+
+Probe: [arc_image/probes/trsm4/](../arc_image/probes/trsm4/), source
+`probe.asm` with the ring decoder
+[arc_image/probes/dzx0r_z80.asm](../arc_image/probes/dzx0r_z80.asm)
+carried unchanged (THIS is the machine the ring model was built for:
+the board cannot be read back, so the ring is the only model) and
+`build_cmd.py` (a /CMD load module, pure Python). Build: `sjasmplus
+probe.asm` then `python3 build_cmd.py probe.bin probe.cmd 3000`; run:
+`trs80gp -m4 -gt -vs probe.cmd` (Model 4, Tandy hi-res board, sharp
+display). The full probe is executed end to end on a mini-Z80 with a
+port model of the board (X/Y/data, X auto-inc on write, no Y wrap) and
+a scripted keystroke: both images byte-exact in the modeled graphics
+RAM, the area below the band clean. One hardware assumption is a
+single equate (CTRL, the port $83 option byte: graphics on plus X
+auto-inc on write); real interpreters autodetect and configure the two
+card models, and if another emulator or real iron shows a dark screen,
+that equate is the knob.
 
 VIDEO. The hi-res board: 640x240 1bpp on a 4:3 screen, so pixels are
 half as wide as tall. The band is 640x72 (mode 9) or 640x96 (mode 12):
