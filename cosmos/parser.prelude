@@ -161,6 +161,19 @@ block phrase_score(obj, lo, hi)
 // boundaries without disturbing the real parse. Folds away with the reverse
 // grammar it serves (no give/show reverse line, no caller, DCE drops it).
 block probe_noun(lo, hi)
+    // A single-word phrase may be a typed pronoun ("give him the coin", the
+    // field report): probe it like any noun, resolving to the remembered
+    // referent when one is bound and in scope. An unbound pronoun returns
+    // nothing here, so the fall-through path faults it honestly (5).
+    if hi - lo is 1
+        let d = word_dict(lo)
+        if d is not nothing
+            if peek_byte(d + 6) is 4
+                let ref = pronoun_slot(peek_byte(d + 7))
+                if ref is not nothing
+                    if in_scope(ref)
+                        return ref
+                return nothing
     let best = nothing
     let best_score = 0
     let tied = 0
