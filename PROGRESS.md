@@ -4910,3 +4910,22 @@ its resource lookup; the wrapper execs the bundle binary); Pillow on
 the Mac python 3.14 user site; sjasmplus ~/.local/bin; nasm brew; vasm
 in Eris/tools/bin; acme on the orb Debian. Emulators: always ask
 before new ones.
+
+## 2026-07-18: locals carry the direction type (arcc 1.3.2)
+
+Charles's follow-up on direction values: `let d = north` then
+`say "${d}"` still printed the property number. The typed-say machinery
+existed (for-each variables over a direction catalog already speak the
+word); locals assigned by `let` and `change` did not feed it. Under
+Stefan's standing support mandate this is a bug against the shipped
+model ("directions are values everywhere", his approved wording), not a
+design question: fixed by assignment dataflow on locals, in statement
+order. Assigning a value with a known element type (a direction
+literal, an entry/last/dice read from a typed catalog or matrix,
+another typed local, `way`) tags the local so say speaks it in its own
+voice; assigning a plain number or anything unknowable clears the tag.
+Covers the `let d = 0` + `change d to entry(...)` shape our own
+teaching error steers authors to. Text and object entries read into a
+local gained the same voice for free. Games without typed locals stay
+byte-identical (ceilings untouched). docs/01 updated in the same
+commit; suite 1016.

@@ -200,7 +200,11 @@ solution or a patrol path, and `exit_dest(here, entry(route, 1))` asks
 where the first leg leads. Saying such an entry speaks the direction's
 canonical word, the same voice as `say way`: `say "${entry(route, 1)}"`
 prints north (objects print their names, directions their words). An
-object name always wins over a direction name, as everywhere.
+object name always wins over a direction name, as everywhere. A local
+carries the type with the value: after `let d = north`, or a
+`change d to entry(route, 2)` into a local declared earlier, `say "${d}"`
+speaks the word; assign the local a plain number and it prints digits
+again. The same flow carries text and object entries read into a local.
 
 ```
 catalog escape_route
