@@ -5018,3 +5018,18 @@ dir_name. `say "${dir_name(d)}"` speaks any direction value at
 runtime through the same routine `say way` uses; it prints in place
 and is refused as a value with a teaching error. Emitted only when
 referenced. docs/01 documents the boundary and the ask. Suite 1026.
+
+## 2026-07-18: the reversed dative takes pronouns (Cosmos 1.2.4)
+
+Charles's report: GIVE COIN TO HIM worked, GIVE HIM COIN did not (and
+GIVE HER COIN worse). Diagnosed against invented content: the reverse
+probe scores only vocabulary words, so a typed pronoun never counted
+as a noun phrase, the split never happened, and the whole-phrase
+matcher's pronoun short-circuit then swallowed "him brooch" wholesale
+(the pronoun's referent bound BOTH slots and the gift was dropped).
+Fixed in the shared skeleton, one branch in probe_noun: a one-word
+phrase that is a pronoun resolves to its remembered referent, so
+English and German heal together; an unbound pronoun now faults
+honestly ("say what you mean") instead of misbinding. The branch
+ships wherever the reverse grammar does (all English games), so the
+ceilings moved a few bytes each, noted. Suite 1027.

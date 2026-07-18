@@ -408,3 +408,43 @@ def test_spanish_clitic_pronouns_on_frotz(tmp_path):
     assert "Ya tienes el libro." in out
     # cogelos with no group: an unbound clitic is the pronoun fault.
     assert "Tendrás que decir a qué te refieres." in out
+
+
+def test_reversed_dative_takes_pronouns():
+    # The field report: GIVE HIM COIN / GIVE HER COIN in reversed order. A
+    # typed pronoun is a one-word noun phrase, so the reverse probe resolves
+    # it to the remembered referent; the classic forward order keeps working;
+    # an unbound pronoun faults honestly instead of mis-binding the phrase.
+    game = (
+        'game\n    title "D"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing coin in hall\n    name "coin"\n    words coin\n'
+        'thing brooch in hall\n    name "brooch"\n    words brooch\n'
+        'thing bob of character in hall\n    name "Bob"\n    words bob\n    named\n'
+        '    on give\n        say "Bob pockets ${the noun}."\n'
+        'thing marta of character in hall\n    name "Marta"\n    words marta\n'
+        '    named\n    feminine\n'
+        '    on give\n        say "Marta pockets ${the noun}."\n'
+    )
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+
+    def play(cmds):
+        story = load(generate(analyze(cosmos.combined_program(parse(game)))))
+        io = CaptureIO(script=cmds + ["quit", "y"])
+        VM(story, io).run(max_steps=5_000_000)
+        return io.text
+
+    # HIM after Bob is named; the gift is the coin, not Bob himself.
+    out = play(["examine bob", "give him coin"])
+    assert "Bob pockets the coin." in out
+
+    # HER after Marta is named.
+    out = play(["examine marta", "give her brooch"])
+    assert "Marta pockets the brooch." in out
+
+    # An unbound pronoun does not silently swallow the phrase.
+    out = play(["give him coin"])
+    assert "Bob pockets" not in out
+    assert "say what you mean" in out
