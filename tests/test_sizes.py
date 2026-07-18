@@ -29,13 +29,13 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
 CEILINGS = {
-    "features/beyond.storyarc": 17796,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/alter.storyarc": 16436,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/catalogs.storyarc": 16388,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/matrix.storyarc": 16752,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/direction-grammar.storyarc": 16492,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/scenery-contents.storyarc": 16432,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "granules/nautical.storyarc": 16240,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/beyond.storyarc": 17804,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/alter.storyarc": 16440,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/catalogs.storyarc": 16392,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/matrix.storyarc": 16756,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/direction-grammar.storyarc": 16496,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/scenery-contents.storyarc": 16436,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "granules/nautical.storyarc": 16244,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
     # 2026-07-04 (Stefan's ruling, superseding the same day's FULL move):
     # there is NO fullscore verb; SCORE is the one score verb and reports
     # score, max, turns, and rank in one line. Pool labels stay in the
@@ -89,41 +89,41 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 22604,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "brass-lantern.storyarc": 16912,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "cloak-of-darkness.storyarc": 17884,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "ejemplo-espanol.storyarc": 21620,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/computed-properties.storyarc": 15484,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/containers.storyarc": 15784,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/daemons-and-timers.storyarc": 15796,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/doors-and-locks.storyarc": 15372,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/appearance.storyarc": 16176,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/components.storyarc": 15648,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/perform.storyarc": 15648,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/grains.storyarc": 15528,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/handlers.storyarc": 16600,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/grammar.storyarc": 16492,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/introproperty.storyarc": 16720,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/kinds-and-inheritance.storyarc": 15348,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/on-other.storyarc": 15336,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/zcolor.storyarc": 15716,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/scoring.storyarc": 17700,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/spans.storyarc": 15524,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "features/vehicles.storyarc": 16056,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "granules/ambience.storyarc": 16828,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "granules/conversations.storyarc": 17128,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "granules/extended-verbs.storyarc": 18064,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "granules/infocom-interrogation.storyarc": 17524,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "granules/quotes.storyarc": 15720,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "granules/take-all.storyarc": 17444,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "granules/plurals.storyarc": 16376,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "granules/statusline.storyarc": 15452,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
-    "granules/verbose-exits.storyarc": 15720,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "beispiel-deutsch.storyarc": 22608,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "brass-lantern.storyarc": 16916,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "cloak-of-darkness.storyarc": 17888,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "ejemplo-espanol.storyarc": 21624,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/computed-properties.storyarc": 15488,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/containers.storyarc": 15788,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/daemons-and-timers.storyarc": 15800,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/doors-and-locks.storyarc": 15376,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/appearance.storyarc": 16180,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/components.storyarc": 15652,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/perform.storyarc": 15652,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/grains.storyarc": 15532,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/handlers.storyarc": 16604,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/grammar.storyarc": 16496,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/introproperty.storyarc": 16724,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/kinds-and-inheritance.storyarc": 15352,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/on-other.storyarc": 15340,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/zcolor.storyarc": 15720,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/scoring.storyarc": 17704,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/spans.storyarc": 15528,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/vehicles.storyarc": 16060,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "granules/ambience.storyarc": 16832,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "granules/conversations.storyarc": 17132,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "granules/extended-verbs.storyarc": 18068,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "granules/infocom-interrogation.storyarc": 17528,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "granules/quotes.storyarc": 15724,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "granules/take-all.storyarc": 17448,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "granules/plurals.storyarc": 16380,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "granules/statusline.storyarc": 15456,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "granules/verbose-exits.storyarc": 15724,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 18424  # 2026-07-18 the cave rule (is_lit guard on examine)
+CLOAK_Z8_CEILING = 18432  # 2026-07-18 clear containers skip the open reveal
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
