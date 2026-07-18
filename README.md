@@ -128,7 +128,7 @@ Arcturus emits conformant Z-machine **version 5** story files by default. Pass
 **`--zversion 8`** for a version 8 target for large, modern-only releases (the
 same code generation, a larger 512KB story-file ceiling).
 
-## What's new
+## What's new, and where Arcturus is heading
 
 Arcturus is in active, healthy development, and the core is solid enough to
 build real games on today. The three pieces of the toolchain - the **compiler**,
@@ -138,8 +138,8 @@ it, and play it, start to finish. You will still meet the occasional bug (please
 report it), but this is no longer use-at-your-own-risk territory. If you write
 interactive fiction, this is a good time to pick it up.
 
-The most significant recent additions and achievements are kept in
-[WHATSNEW.md](WHATSNEW.md).
+The most significant recent additions and achievements, together with the
+feature roadmap, are kept in [WHATSNEW.md](WHATSNEW.md).
 
 ## Philosophy
 

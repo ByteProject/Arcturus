@@ -1,71 +1,83 @@
-# What's new in Arcturus
+# What's new in Arcturus, and the feature roadmap
 
 The most significant recent additions and achievements, newest work
 first. The five most recent entries are kept here; history beyond that
-lives in the commit log.
+lives in the commit log. The feature roadmap follows below.
 
-- **Kinds without a ceiling.** A kind is Arcturus's class sugar, and it used to
-  spend one of the Z-machine's 48 precious attributes even when you only meant
-  to organize objects or span scenery. Not any more: a kind costs an attribute
-  only where you actually test `obj is <kind>`, so the kinds you use purely to
-  share behavior or distribute scenery are free. Test more kinds than the spare
-  attribute slots hold and the rest fall back automatically to a fast membership
-  scan, built on Arcturus's own catalog feature (what you know as lists in other
-  languages), so you can declare as many kinds as your world wants. This is very
-  efficient on memory and performance on 8-bit hardware compared to Inform's
-  classes. The only real ceiling is now the Z-machine's own, 48 genuine object
-  attributes, and `arcc -s` shows attributes and kinds separately so you always
-  read your true budget (`attributes 26/48, kinds 63`). It grew from a large
-  real-world port hitting the old wall, and it is exactly what that port asked
-  for.
-- **Matrices: a catalog you can grow, and tables Inform makes you hand-roll.**
-  When a collection genuinely changes length as the game plays, `summon.matrix`
-  gives you its mutable sibling: `append` and `remove` (order-preserving, or an
-  O(1) `swapping`) and `insert`, all bounds-safe, with the same reads you
-  already know (`entry`, `calculate`, `for each`, `in`). And a matrix comes in
-  a two-dimensional form, `matrix bed 3 by 3`, a real declared table you index
-  by `entry(m, row, col)`, with `of byte` packing a large grid one cell per byte
-  (half the memory, so a 16x16 map costs 256 bytes) and compile-time bounds
-  checks Inform's raw arrays never had. It stays out of the base language, a
-  summoned feature that costs zero bytes unused; the mutators live in editable
-  Cosmos, and underneath there is still no heap, only the same static region a
-  catalog uses. Most games never need it (Hibernated 2, Rabenstein, and Ghosts
-  never did) and the docs say so plainly, but when you want the trusty array, it
-  is here ([worked example](examples/features/matrix.storyarc)).
-- **vary: prose that varies by itself.** The feature authors of Inform 7 and
-  Dialog name among their favorites (`[one of]`, `(select)`), in Arcturus's
-  own readable form: `vary loop` followed by your variant lines speaks a
-  different one each time, and the policy word picks how - `sequence`
-  (advance once, stick on the last: room descriptions), `loop` (round-robin),
-  `mutate` (random, never the same twice running), `dice` (the honest roll).
-  Each site keeps one invisible word of state the compiler allocates -
-  correct across save, undo, and restart, never named by you - and a bare
-  string line is a whole variant, so the common case has zero ceremony. It
-  plugs in anywhere prose is made: a computed description, any handler, an
-  alter report, each_turn, a message override. Underneath it is a load, a
-  store, and a jump chain in native Z-machine operations, a handful of
-  instructions per site; a game that never varies is byte-identical.
-- **arc_image reaches the retro machines.** The same numbered pictures a
-  modern build shows now convert to the 8-bit and 16-bit machines' own
-  formats: paint ONE master per scene, and `arcimg convert` derives the
-  native version for the Commodore 64, ZX Spectrum +3, Amstrad CPC, Amiga,
-  Atari ST, and DOS, resolving each machine's palette and color-cell
-  constraints, with PNG previews to judge without an emulator, an author
-  hint that keeps a moon or sun visible on the narrowest palettes, and a
-  polish loop that round-trips Spectrum art through any .scr editor.
-  Reference loaders are proven on real emulators for four machines so far,
-  and the interpreter blueprints ship with the toolkit
-  ([docs/07-arc-image.md](docs/07-arc-image.md) for authors).
-- **`perform` and `appearance`: the classic bridges, grown from the field.**
-  `perform("take", book)` runs any action as part of the current turn,
-  refusals, messages, and after-phase included, with the action name checked
-  at compile time (Inform's `<<take book>>`, Dialog's `(try ...)`); the
-  `appearance` property is the paragraph an object always owns in a room
-  description ("The keeper is trimming the wick."), worded by state when
-  computed, beside `intro`'s until-first-taken rule. Both came from early
-  adopters porting real games, and both cost nothing in a game that never
-  uses them; component objects (a lever that is `component` of its machine)
-  arrived the same way. Worked examples:
-  [perform](examples/features/perform.storyarc),
-  [appearance](examples/features/appearance.storyarc),
-  [components](examples/features/components.storyarc).
+## What's new
+
+- **Darkness done right.** Arcturus now follows the modern darkness model:
+  in the dark you can still feel what you carry, so INVENTORY lists your
+  possessions, but seeing detail needs light, so EXAMINE and READ refuse
+  with the too-dark message, and the two can never disagree because read
+  maps onto examine. Coming from Inform 6, PunyInform, or Dialog this is
+  a behavior change worth reading up on (docs/02, section 6); Inform 7
+  behaves the same way, and its darkness rules translate almost 1:1 into
+  a single Arcturus handler header: `on inventory when is_lit is false`.
+- **Directions are values everywhere.** A catalog holds a fixed route
+  (`catalog escape_route` with `north / east / up` lines), a matrix `of
+  direction` holds a mutable one (a patrol path that grows), and saying
+  any direction value speaks its word: `say "${entry(route, 1)}"` prints
+  north, exactly as an object entry prints its name. Comparisons
+  (`is north`), switch cases, iteration, and `exit_dest` all work on
+  them, and a global can alias a whole catalog or matrix by name.
+- **The dispatch chain, hardened.** An object's `on other` catch-all now
+  outranks its kind's specific handlers, exactly as both reference
+  documents always specified: the react dispatcher runs owner by owner,
+  each owner's specific handlers before its own catch-all, the instance
+  before its kinds. And blocks may now have EMPTY bodies: a named seam
+  another layer overrides, free until claimed, which is how the status
+  bar learned to rise before `on start` prints its first word.
+- **The ring decode architecture.** Every retro picture stream now
+  carries a hard guarantee: no compression back-reference reaches beyond
+  2048 bytes, at zero measured cost on the corpus. In exchange, a
+  loader needs only a 2K ring in main RAM and can decode straight to the
+  screen, byte by byte, with no staging buffer at all: the memory
+  posture a 64K machine running a Z-machine interpreter actually has.
+  The Commodore 64, ZX Spectrum +3, and Amstrad CPC reference loaders
+  are rebuilt on it and verified byte-exact against emulator memory,
+  and the two reference decoders (Z80 and 6502) are executed against
+  the whole corpus in the test suite on every run.
+- **A fifteenth target: TRS-80 Model 4.** The first arc_image target
+  whose interpreter lives outside our family, requested and built for by
+  the community. The hi-res board is 640x240 monochrome, so the
+  converter buys quality with resolution: the master doubles
+  horizontally, a contrast stretch anchors the tonal range, and ordered
+  dithering runs at the full 640 grid. One bitmap section, ring-decoded
+  through three ports; the whole 21-picture corpus ships converted, and
+  the reference probe is verified against emulated video memory.
+
+## Feature roadmap
+
+Considered and coming, in no particular order; each lands the Arcturus
+way, designed on its own terms, pay-for-use as always.
+
+- **Inference (implicit actions).** Open a closed container before
+  looking inside it, open the door before walking through: the game
+  infers the obvious preparatory action instead of refusing and making
+  the player type it. The exact Arcturus shape is decided when we reach
+  it.
+- **Pathfinding.** One shortest-path engine over the room graph with two
+  consumers: player travel (`GO TO <a visited room>`, `FIND <object>`)
+  and actor movement, an NPC walking toward a goal one step per turn.
+- **An NPC engine.** A summoned granule for living characters: define an
+  NPC's movement (patrol routes, pathfinding toward goals), what they
+  do and say as they go, where they operate, whether they can open
+  doors, and a measure of intelligence in how they act. Builds on the
+  pathfinding engine above.
+- **Light topology.** Doors and openings that block or pass light, so a
+  lit room can spill light through an open doorway and a closed door can
+  seal it off.
+- **Darkness furniture.** Darkness as a referable thing (EXAMINE
+  DARKNESS answers), EXITS refusing without light, and the status bar
+  showing darkness instead of the room name, because naming an unseen
+  room is a spoiler.
+- **LOOK \<direction\>.** "look north" describes what lies that way.
+- **The verbs overhaul.** Retire the all-or-nothing extended verbset:
+  opt into individual documented verbs with a one-liner, each with its
+  grammar documented; let authors ADD to a verb's grammar or REPLACE it
+  wholesale. With that foundation in place, the verb breadth grows
+  (taste, tie, throw at, push things between rooms, and friends).
+- **Question preservation.** A disambiguation question survives an
+  interposed command: asked "which coin?", the player may take inventory
+  first and then answer.
