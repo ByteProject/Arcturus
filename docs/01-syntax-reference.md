@@ -205,6 +205,10 @@ carries the type with the value: after `let d = north`, or a
 `change d to entry(route, 2)` into a local declared earlier, `say "${d}"`
 speaks the word; assign the local a plain number and it prints digits
 again. The same flow carries text and object entries read into a local.
+That knowledge ends at a block parameter (a parameter is just a value, the
+same boundary `for each` has): inside a shared helper, ask for the word
+explicitly with `dir_name`, which speaks any direction value at runtime:
+`say "${dir_name(entry(m, i))}"`. It prints in place and is not a value.
 
 ```
 catalog escape_route

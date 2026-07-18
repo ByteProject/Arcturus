@@ -87,6 +87,10 @@ INTRINSICS = frozenset({
     # logic on it, so an ambience game without a once-block stays
     # byte-identical.
     "any_ambience_once",
+    # dir_name(d) speaks a direction value's canonical word in place, at
+    # runtime: the explicit ask for when static typing cannot see the type
+    # (a value read through a block parameter). Print-only, like say way.
+    "dir_name",
     # The turn loop fires life-cycle events: run_free runs the free rules for an
     # action, and ev_* name the event action numbers (start, enter, each_turn).
     # tick_timers counts down the after/every schedule once per turn.
@@ -1220,6 +1224,24 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # the grammar-table matcher and the packs' tabled-verb branches fold
         # away in a game whose verbs all fit the flag model.
         _place(rt, Const(_any_tables(ctx)), dest)
+    elif name == "dir_name":
+        # dir_name(d): speak the direction's word at runtime, wherever the
+        # value came from (the answer to static typing ending at a block
+        # parameter). It PRINTS; it is not a value.
+        if len(args) != 1:
+            raise LowerError(
+                "dir_name takes exactly one value: the direction to speak",
+                call.line,
+            )
+        if dest is not None:
+            raise LowerError(
+                "dir_name speaks the word in place (say \"${dir_name(d)}\"); "
+                "it does not return a value",
+                call.line,
+            )
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("call_vn", RoutineRef("cosmos_dir_name"), op)
+        _free(ctx, t)
     elif name == "any_ambience_once":
         # any_ambience_once(): 1 if any ambience block is the shuffled deal
         # (bare `once`), so the granule's deal path folds away otherwise.
@@ -2665,6 +2687,14 @@ def _say_threshold(rt, ctx, expr):
 
 
 def _say_value(rt, ctx, expr):
+    # dir_name(d): the explicit runtime speak, for values whose direction
+    # type static inference cannot see (read through a block parameter).
+    if isinstance(expr, ast.Call) and expr.name == "dir_name" \
+            and expr.name not in ctx.world.blocks and len(expr.args) == 1:
+        op, t = _operand(rt, ctx, expr.args[0])
+        rt.op("call_vn", RoutineRef("cosmos_dir_name"), op)
+        _free(ctx, t)
+        return
     # A catalog read (entry/last/dice) prints by the catalog's element type:
     # text as the packed string, an object as its short name, a number as
     # digits. A catalog that arrived as a parameter is unknowable here, so

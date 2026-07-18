@@ -5004,3 +5004,17 @@ RULED (Stefan): automatic local spill goes on the feature roadmap as a
 later milestone, flagged in WHATSNEW.md; docs/01 now states what the
 compiler really does and points at the roadmap. His note for the
 record: 15 is a lot, but someone will hit it sooner or later.
+
+## 2026-07-18: dir_name, the explicit speak (arcc 1.3.6)
+
+Charles's follow-up: his shared helper read a route through a block
+parameter, and there static typing genuinely ends (a parameter is just
+a value; the compiler cannot know it holds a direction matrix, the
+same boundary for-each has always had). Discussed the three options
+with Stefan: a runtime speak function, parameter type annotations
+(rejected: breaks "parameters are values and need no annotation"), or
+ruling it a documented boundary. RULED (Stefan): the function, named
+dir_name. `say "${dir_name(d)}"` speaks any direction value at
+runtime through the same routine `say way` uses; it prints in place
+and is refused as a value with a teaching error. Emitted only when
+referenced. docs/01 documents the boundary and the ask. Suite 1026.

@@ -314,3 +314,40 @@ def test_text_local_says_its_text():
     )
     out = _run_game(game, ["probe"])
     assert "The garden waits." in out
+
+def test_dir_name_speaks_through_a_parameter():
+    # dir_name(d): the explicit runtime speak for the shared-helper shape,
+    # where static typing ends at the block parameter (the field report:
+    # "read_directions(m) still gives numbers").
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'verb "probe"\n    probe_it\n'
+        'room hall\n    name "Hall"\n    desc "H."\n    north cellar\n'
+        '    on probe_it\n'
+        '        read_route(route)\n'
+        'room cellar\n    name "Cellar"\n    desc "C."\n'
+        'catalog route\n    north\n    east\n    up\n'
+        'block read_route(m)\n'
+        '    let n = calculate(m)\n'
+        '    let i = 1\n'
+        '    while i <= n\n'
+        '        say "${dir_name(entry(m, i))} "\n'
+        '        change i to i + 1\n'
+    )
+    out = _run_game(game, ["probe"])
+    assert "north east up" in " ".join(out.split())
+
+
+def test_dir_name_is_not_a_value():
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "H."\n    north cellar\n'
+        'room cellar\n    name "Cellar"\n    desc "C."\n'
+        'on start\n'
+        '    let x = dir_name(north)\n'
+        '    say "${x}"\n'
+    )
+    import pytest as _pt
+    with _pt.raises(Exception) as e:
+        generate(analyze(cosmos.combined_program(parse(game))))
+    assert "does not return a value" in str(e.value)
