@@ -4,7 +4,17 @@ A living log of where the project stands, maintained as work proceeds. The
 authoritative plan is `docs/00-roadmap.md` (milestones B0 to B13); this file
 tracks status against it and records decisions made during implementation.
 
-Last updated: 2026-07-03.
+How this project is governed, so the log reads in context: every design,
+naming, wording, and scope decision in Arcturus is made by Stefan Vogt.
+AI is used as the implementing engineer under those rulings, on a standing
+mandate for the adopter support queue (diagnose against invented content,
+fix, test, ship) and on explicit instruction for everything else; design
+questions end in a discussion and wait for Stefan's ruling before a line
+of code moves. Entries below record both the rulings, in Stefan's voice
+where possible, and the engineering that followed them. Where an entry
+names a decision, it is his.
+
+Last updated: 2026-07-18.
 
 Model handover: `HANDOVER.md` (repo root) is a holistic orientation written at
 the switch to Anthropic's Fable model, with an assessment task to run before B8.
