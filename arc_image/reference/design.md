@@ -610,7 +610,15 @@ The ruling, in three parts:
   upstream with a byte-exact repro (offset 14 of the -ig dump reads 00
   where the decode wrote EF; deterministic; synthetic fills at every
   write spacing do NOT trigger it, so the trigger is the probe's exact
-  boot-phase alignment). C.7 closed accordingly.
+  boot-phase alignment). C.7 closed accordingly. RULED (Stefan, same
+  day): the probe stays PURE, no workaround and no louder warning. His
+  reasoning, adopted: an interpreter decodes at arbitrary player-driven
+  moments, not at a fixed boot phase, so the emulator flaw is at worst
+  a rare invisible byte in trs80gp only; a double-decode would exist
+  solely to green our own forensic tooling against a known-buggy
+  emulator version, which is verification theater. The probe renders
+  picture-perfectly; the one measurable byte belongs to the upstream
+  bug report, where it now lives.
 
   ZX2 EVALUATED AND DECLINED (same day, Stefan; raised by Shawn
   Sijnstra). ZX2 (Saukas's small-file ZX0 sibling: flat one-byte
