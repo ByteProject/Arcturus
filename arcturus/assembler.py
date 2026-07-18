@@ -123,6 +123,13 @@ _OPCODES = {
     # conversations granule for press-a-number menu selection.
     "read_char": ("VAR", 0x16, True, False, False),
     "call_vn": ("VAR", 0x19, False, False, False),
+    # The long-call pair (v4+): the only opcodes in the instruction set with a
+    # DOUBLE types byte, so a call can carry the routine plus up to SEVEN
+    # arguments (the Z-machine's own ceiling; a plain call_vs/call_vn types
+    # byte holds only the routine plus three). Emitted only when a block call
+    # actually has more than three arguments, so smaller games are unchanged.
+    "call_vs2": ("VAR2", 0x0C, True, False, False),
+    "call_vn2": ("VAR2", 0x1A, False, False, False),
     "print_num": ("VAR", 0x06, False, False, False),
     "print_char": ("VAR", 0x05, False, False, False),
     "push": ("VAR", 0x08, False, False, False),
@@ -261,6 +268,12 @@ class Routine:
         if form == "VAR":
             # Variable form, true VAR opcode: 111xxxxx = 0xE0 | opcode number.
             return self._encode_var(0xE0 | code, operands)
+        if form == "VAR2":
+            # The double-types-byte form (S 4.4.3.1), call_vs2/call_vn2 only:
+            # the VAR opcode byte, then TWO types bytes for up to eight
+            # operands, then the operands.
+            return self._encode_var_form(bytes([0xE0 | code]), operands,
+                                         type_bytes=2)
         if form == "EXT":
             # Extended form (v5+): the byte 0xBE, then the EXT opcode number, then
             # a VAR-style types byte and operands. Used for save/restore and the
@@ -292,17 +305,21 @@ class Routine:
         # Variable form: the opcode byte, then a types byte and operands.
         return self._encode_var_form(bytes([opbyte]), operands)
 
-    def _encode_var_form(self, prefix: bytes, operands: list[Operand]) -> bytes:
-        # `prefix` is the leading opcode byte(s) (one for VAR, two for EXT). Then a
-        # types byte gives the type of each of up to four operands in two-bit
-        # fields (high field first), 11 marking an omitted operand, then the
-        # operands themselves.
+    def _encode_var_form(self, prefix: bytes, operands: list[Operand],
+                         type_bytes: int = 1) -> bytes:
+        # `prefix` is the leading opcode byte(s) (one for VAR, two for EXT).
+        # Then the types byte(s): each gives the type of up to four operands
+        # in two-bit fields (high field first), 11 marking an omitted operand,
+        # then the operands themselves. type_bytes is 2 only for the VAR2
+        # long-call pair (call_vs2/call_vn2), which carries up to eight.
         out = bytearray(prefix)
-        types = 0
-        for i in range(4):
-            kind = operands[i].kind if i < len(operands) else OMITTED
-            types |= kind << ((3 - i) * 2)
-        out.append(types)
+        for b in range(type_bytes):
+            types = 0
+            for i in range(4):
+                slot = b * 4 + i
+                kind = operands[slot].kind if slot < len(operands) else OMITTED
+                types |= kind << ((3 - i) * 2)
+            out.append(types)
         base = len(out)  # operands begin after the opcode and types bytes
         for i, op in enumerate(operands):
             # A call target or string address is not known yet: record where its

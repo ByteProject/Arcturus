@@ -1114,6 +1114,16 @@ class Analyzer:
         for h in w.free_handlers:
             self._check_handler(h)
         for blk in w.blocks.values():
+            if len(blk.params) > 7:
+                # A Z-machine call fills at most 7 locals (even the long-call
+                # pair), so an eighth parameter could never receive a value.
+                raise self._error(
+                    f"block '{blk.name}' declares {len(blk.params)} "
+                    f"parameters, but a block takes at most 7 (the "
+                    f"Z-machine's own call ceiling); group some into a "
+                    f"catalog or a matrix, or split the block",
+                    blk.line,
+                )
             self._check_body(blk.body, set(blk.params))
         # Attached grains and game start.
         for decl in self.program.decls:
