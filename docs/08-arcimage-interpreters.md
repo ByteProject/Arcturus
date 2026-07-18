@@ -732,14 +732,17 @@ single equate (CTRL, the port $83 option byte), CALIBRATED against
 trs80gp's Tandy board by VRAM readback: bit 7 selects the X axis for
 the write clock (clear = the clock steps Y instead), bit 2 reverses X,
 bit 3 reverses Y, bit 6 changes the addressing mode (avoid), bits 4-5
-inert in this emulation; the probe ships $83. ONE OPEN HARDWARE
-QUESTION, for the interpreter author: with $83 the emulated board
-drops exactly one write when the CPU hits a specific video fetch
-window (a single byte of the first image, boot-phase-locked and
-reproducible; no option bit prevents it). Whether the real board
-holds /WAIT automatically in that window, or exposes a ready bit to
-poll, decides whether interpreters must pace their writes; the probe
-documents rather than guesses.
+inert in this emulation; the probe ships $83. THE HARDWARE QUESTION,
+ANSWERED (via Shawn Sijnstra and trs80gp's author, 2026-07-18): the
+real Tandy boards NEVER drop a write; they insert wait states on
+video memory access (1 to 4 per access, sometimes more), and with
+wait states disabled a conflict shows as white hash on screen, never
+as a lost byte. Interpreters therefore need NO write pacing. The
+single dropped write our verification caught (one byte of the first
+image, boot-phase-locked, reproducible) is a trs80gp emulation bug,
+reported upstream with a byte-exact repro; synthetic fills at every
+write spacing do not trigger it, only the probe's full boot sequence
+does.
 
 VIDEO. The hi-res board: 640x240 1bpp on a 4:3 screen, so pixels are
 half as wide as tall. The band is 640x72 (mode 9) or 640x96 (mode 12):
