@@ -4994,3 +4994,13 @@ declaring eight). The long call is emitted only when a call actually
 exceeds three arguments, so every existing game is byte-identical
 (the untouched ceilings prove it). docs/01 states the ceiling. Suite
 1024.
+
+## 2026-07-18: the 15-locals doc discrepancy, ruled onto the roadmap
+
+Flagged under the doc-wins rule: docs/01 claimed the compiler spills
+excess locals to the stack, but the compiler actually refuses a block
+over 15 locals with a teaching error (spill was deferred long ago).
+RULED (Stefan): automatic local spill goes on the feature roadmap as a
+later milestone, flagged in WHATSNEW.md; docs/01 now states what the
+compiler really does and points at the roadmap. His note for the
+record: 15 is a lot, but someone will hit it sooner or later.

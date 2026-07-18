@@ -89,3 +89,9 @@ way, designed on its own terms, pay-for-use as always.
   first and then answer. In the same breath: likelihood hints, letting a
   verb or object mark an interpretation as unlikely so disambiguation
   picks well before it has to ask at all.
+- **Local spill.** A Z-machine routine holds at most 15 locals, parameters
+  and `let`s together; today the compiler refuses an over-full block with a
+  clear error and the cure (move part of the work into a helper block).
+  Spilling the excess to the stack automatically would lift the ceiling
+  without the author ever noticing. Fifteen is a lot, but someone will hit
+  it sooner or later.

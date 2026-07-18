@@ -1454,8 +1454,11 @@ and need no type annotation. A block takes at most SEVEN parameters, and a
 call passes at most seven values: the Z-machine's own call ceiling, which
 the compiler enforces with a clear error either way; a bigger payload
 travels as a catalog or a matrix, passed as one value. Recursion is
-allowed, bounded by the Z-machine stack. The 15-locals limit per Z-machine routine is managed by the compiler,
-which spills to the stack as needed.
+allowed, bounded by the Z-machine stack. A Z-machine routine holds at most
+15 locals, parameters and `let`s together; the compiler refuses an
+over-full block with a clear error and the cure (move part of the work
+into a helper block). Automatic stack spill, lifting that ceiling
+invisibly, is on the feature roadmap (WHATSNEW.md).
 
 PARENTHESES ONLY WHERE THEY EARN THEIR KEEP: a block (or intrinsic) that
 takes no values is called by its bare name, in statement position
