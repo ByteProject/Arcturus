@@ -7,7 +7,7 @@
 // action as part of the current turn, exactly as the player's own command
 // would dispatch it, refusals, messages, and after phase included. The
 // action name is checked at compile time; a direction rides the way slot
-// (go reads way, never noun); the return value is 1 unless the action
+// (go reads way, never noun); the return value is true unless the action
 // refused. Compile and run:
 //
 //   arcc examples/features/perform.storyarc -o perform.z5
@@ -47,11 +47,11 @@ verb "pack"
 
 on pack
     let got = 0
-    if perform("take", satchel) is 1
+    if perform("take", satchel) is true
         change got to got + 1
-    if perform("take", ledger) is 1
+    if perform("take", ledger) is true
         change got to got + 1
-    if got is 0
+    if got is false
         say "Everything is already packed."
 
 // FLEE is a real move: perform("go", in) walks the player through the

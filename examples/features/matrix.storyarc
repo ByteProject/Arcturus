@@ -78,7 +78,7 @@ on gather
     if noun in satchel
         say "You already have ${the noun} in the vasculum."
         stop
-    if append noun to satchel is 0
+    if append noun to satchel is false
         say "The vasculum is full. You will have to release something first."
         stop
     say "Pressed: ${the noun}. The vasculum holds ${calculate(satchel)} now."
@@ -93,7 +93,7 @@ on discard
     if noun is nothing
         say "Release what?"
         stop
-    if remove noun from satchel is 0
+    if remove noun from satchel is false
         say "That is not in the vasculum."
         stop
     say "You set ${the noun} loose. ${calculate(satchel)} specimens remain."
