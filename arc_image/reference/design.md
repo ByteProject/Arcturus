@@ -602,8 +602,15 @@ The ruling, in three parts:
   /WAIT in that window, real iron never drops and the emulation quirk
   is cosmetic; if not, interpreters must pace writes. Documented in
   C.7, not guessed. STEFAN'S VISUAL VERDICT (2026-07-18): "it looks
-  brilliant"; the TRSM4 art gate is passed, only the /WAIT question
-  stays open with Shawn.
+  brilliant"; the TRSM4 art gate is passed. THE /WAIT QUESTION IS
+  ANSWERED (same day, via Shawn and trs80gp's author): real Tandy
+  boards never drop writes, they insert wait states (1-4 per access;
+  wait-off shows conflicts as white hash, never loss). No interpreter
+  pacing needed; the single drop is a trs80gp emulation bug, reported
+  upstream with a byte-exact repro (offset 14 of the -ig dump reads 00
+  where the decode wrote EF; deterministic; synthetic fills at every
+  write spacing do NOT trigger it, so the trigger is the probe's exact
+  boot-phase alignment). C.7 closed accordingly.
 
   ZX2 EVALUATED AND DECLINED (same day, Stefan; raised by Shawn
   Sijnstra). ZX2 (Saukas's small-file ZX0 sibling: flat one-byte
