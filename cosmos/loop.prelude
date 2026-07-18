@@ -488,13 +488,20 @@ block describe_room()
     if hide_title is 1
         change hide_title to 0
     else
+        // The location title prints bold, the classic library presentation;
+        // the nested suffix ("in the chair") stays roman. An interpreter
+        // without styles ignores set_style, so nothing changes on paper.
         if any_enterable is 1
+            set_style(2)
             print_name(here)
+            set_style(0)
             if parent_of(player) is not here
                 line_nested(parent_of(player))
             new_line
         else
+            set_style(2)
             say here
+            set_style(0)
     if desc_addr(here) is not nothing
         say here.desc
     let listed = 0

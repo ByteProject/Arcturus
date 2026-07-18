@@ -62,3 +62,18 @@ def test_game_calls_cosmos_block_on_frotz(tmp_path):
         capture_output=True, text=True, timeout=15,
     ).stdout
     assert "ready:" in out and "1" in out  # cosmos_ready() returned 1
+
+def test_banner_and_room_title_print_bold():
+    # Stefan's polish ruling (2026-07-18): the banner's title line and the
+    # location title print bold (set_text_style 2, back to roman with 0),
+    # the classic library presentation. An interpreter without styles must
+    # ignore the opcode, so headless text is unchanged; here we assert the
+    # opcode pairs are in the image at all. VAR:0x11 with one small
+    # constant encodes as F1 7F <style>.
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "H."\n'
+    )
+    img = generate(analyze(cosmos.combined_program(parse(game))))
+    assert img.count(b"\xF1\x7F\x02") >= 2  # banner title + room header
+    assert img.count(b"\xF1\x7F\x00") >= 2  # and both return to roman

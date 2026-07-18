@@ -4929,3 +4929,18 @@ teaching error steers authors to. Text and object entries read into a
 local gained the same voice for free. Games without typed locals stay
 byte-identical (ceilings untouched). docs/01 updated in the same
 commit; suite 1016.
+
+## 2026-07-18: bold banner and location titles (arcc 1.3.3, Cosmos 1.2.2)
+
+Stefan's polish ruling, from comparing his announcement screenshots
+against Jigsaw running in Actaea: classic library output prints the
+game's title and the location headers in bold, Cosmos did not, and on
+a style-capable interpreter that reads as less polished. Ruled scope,
+his words: the banner title and the location title, nothing else. The
+banner title bolds in the compiler's banner emitter (both the Cosmos
+path and the bare fallback); the location title bolds in
+describe_room's two header paths, with the nested "(in the chair)"
+suffix staying roman. set_text_style is v5 core and an interpreter
+without styles must ignore it, so text-only output is unchanged
+everywhere. Four style ops, +16 to +20 bytes per game; all 38 ceilings
+raised with the dated note in the same commit. Suite 1017.

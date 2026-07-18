@@ -661,13 +661,26 @@ def _emit_banner(main: Routine, world: wm.World) -> None:
     main.op("store", Const(slot), Const(0))
     main.label("bnr_nopar")
     if "line_by" not in world.blocks:
-        main.op("print", text=banner_text(world))
+        # The bare build styles its title too: set_text_style is v5 core and
+        # an unable interpreter must simply ignore it, so this costs nothing
+        # anywhere and reads bold where bold exists.
+        title, headline, author, line3 = _banner_parts(world)
+        line2 = f"{headline or 'An Interactive Fiction'} by {author}"
+        main.op("print", text="\n")
+        main.op("set_text_style", Const(2))
+        main.op("print", text=f"{title}\n")
+        main.op("set_text_style", Const(0))
+        main.op("print", text=f"{line2}\n{line3}\n")
         return
     # No leading blank: at game start the banner sits directly under the
     # status bar (where Inform leaves a stray line), and a mid-game banner
     # gets its space from the pending break the preceding prose marked.
+    # The title prints bold, the classic library presentation (Stefan's
+    # polish ruling): style up, the one line, style roman again.
     title, headline, author, line3 = _banner_parts(world)
+    main.op("set_text_style", Const(2))
     main.op("print", text=f"{title}\n")
+    main.op("set_text_style", Const(0))
     if headline is not None:
         main.op("print", text=headline)
     elif "banner_headline" in world.blocks:
