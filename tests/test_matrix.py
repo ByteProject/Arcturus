@@ -424,3 +424,41 @@ def test_global_initialized_with_a_matrix_aliases_it():
     except IndexError:
         pass
     assert "b=7 viaA=5" in io.text
+
+
+def test_direction_matrix_seed_compiles_and_runs():
+    # The field crash (Charles Moore Jr., 2026-07-18): a seeded
+    # `matrix ... of direction` hit the number branch in the seed writer,
+    # which did .value on a Name: AttributeError with no line number. The
+    # full scenario: seed, dice from a direction catalog, change entry,
+    # for-each speaking the words.
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'summon.matrix\n'
+        'catalog valid_dirs\n    north\n    south\n    east\n    west\n'
+        'matrix to_barge capacity 5 of direction\n'
+        '    north\n    north\n    north\n    north\n    north\n'
+        'verb "probe"\n    probe_it\n'
+        'room hall\n    name "Hall"\n    desc "H."\n'
+        '    on probe_it\n'
+        '        let x = 1\n        let d = 0\n'
+        '        while x < 6\n'
+        '            change d to dice(valid_dirs)\n'
+        '            change entry(to_barge, x) to d\n'
+        '            change x to x + 1\n'
+        '        for each w in to_barge\n'
+        '            say "${w} "\n'
+    )
+    from arcturus import cosmos as _c
+    from arcturus.codegen import generate as _g
+    from arcturus.sema import analyze as _a
+    from arcturus.parser import parse as _p
+    story = _g(_a(_c.combined_program(_p(game))))
+    io = CaptureIO(script=["probe"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    words = [w for w in io.text.split(">probe")[-1].split()
+             if w in ("north", "south", "east", "west")]
+    assert len(words) == 5

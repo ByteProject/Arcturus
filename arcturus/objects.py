@@ -515,6 +515,11 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
         for v in mx.seed:
             if mx.cell == "object":
                 _append_word(layout.table, layout.obj_number.get(v.ident, 0))
+            elif mx.cell == "direction":
+                # a direction seed is its property number, exactly as a
+                # direction catalog entry (the field crash: this branch was
+                # missing and the number path did .value on a Name)
+                _append_word(layout.table, layout.prop_number.get(v.ident, 0))
             else:  # number or byte
                 _append_word(layout.table, v.value & 0xFFFF)
         for _ in range(mx.capacity - len(mx.seed)):
