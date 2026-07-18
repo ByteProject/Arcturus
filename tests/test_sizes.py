@@ -29,13 +29,13 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
 CEILINGS = {
-    "features/beyond.storyarc": 17744,  # 2026-07-16 player-beyond: the property points both ways; the example gains the delivery-yard vignette
-    "features/alter.storyarc": 16380,  # 2026-07-17 put/insert success sites gain the alter dance (any_alter-folded; only alter games pay)
-    "features/catalogs.storyarc": 16332,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/matrix.storyarc": 16696,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/direction-grammar.storyarc": 16436,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/scenery-contents.storyarc": 16376,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "granules/nautical.storyarc": 16188,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "features/beyond.storyarc": 17748,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/alter.storyarc": 16388,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/catalogs.storyarc": 16340,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/matrix.storyarc": 16704,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/direction-grammar.storyarc": 16444,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/scenery-contents.storyarc": 16384,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "granules/nautical.storyarc": 16192,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
     # 2026-07-04 (Stefan's ruling, superseding the same day's FULL move):
     # there is NO fullscore verb; SCORE is the one score verb and reports
     # score, max, turns, and rank in one line. Pool labels stay in the
@@ -89,41 +89,41 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 22536,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "brass-lantern.storyarc": 16872,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "cloak-of-darkness.storyarc": 17828,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "ejemplo-espanol.storyarc": 21552,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/computed-properties.storyarc": 15444,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/containers.storyarc": 15740,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/daemons-and-timers.storyarc": 15756,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/doors-and-locks.storyarc": 15332,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/appearance.storyarc": 16124,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/components.storyarc": 15596,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/perform.storyarc": 15596,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/grains.storyarc": 15488,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/handlers.storyarc": 16544,  # 2026-07-17 owner-banded react: the instance catch-all beats kind specifics (+8, kind-handler games only)
-    "features/grammar.storyarc": 16452,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/introproperty.storyarc": 16664,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/kinds-and-inheritance.storyarc": 15304,  # 2026-07-17 owner-banded react: the instance catch-all beats kind specifics (+12, kind-handler games only)
-    "features/on-other.storyarc": 15292,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/zcolor.storyarc": 15664,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/scoring.storyarc": 17644,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/spans.storyarc": 15484,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "features/vehicles.storyarc": 16004,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "granules/ambience.storyarc": 16776,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "granules/conversations.storyarc": 17072,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "granules/extended-verbs.storyarc": 18024,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "granules/infocom-interrogation.storyarc": 17484,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "granules/quotes.storyarc": 15664,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "granules/take-all.storyarc": 17388,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "granules/plurals.storyarc": 16320,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "granules/statusline.storyarc": 15400,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
-    "granules/verbose-exits.storyarc": 15680,  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+    "beispiel-deutsch.storyarc": 22544,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "brass-lantern.storyarc": 16864,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "cloak-of-darkness.storyarc": 17836,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "ejemplo-espanol.storyarc": 21556,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/computed-properties.storyarc": 15436,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/containers.storyarc": 15736,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/daemons-and-timers.storyarc": 15748,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/doors-and-locks.storyarc": 15324,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/appearance.storyarc": 16128,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/components.storyarc": 15600,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/perform.storyarc": 15600,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/grains.storyarc": 15480,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/handlers.storyarc": 16552,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/grammar.storyarc": 16444,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/introproperty.storyarc": 16672,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/kinds-and-inheritance.storyarc": 15300,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/on-other.storyarc": 15288,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/zcolor.storyarc": 15668,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/scoring.storyarc": 17652,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/spans.storyarc": 15476,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/vehicles.storyarc": 16008,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "granules/ambience.storyarc": 16780,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "granules/conversations.storyarc": 17080,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "granules/extended-verbs.storyarc": 18016,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "granules/infocom-interrogation.storyarc": 17476,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "granules/quotes.storyarc": 15672,  # 2026-07-18 screen_ready: the bar goes up before on-start text (statusline games only)
+    "granules/take-all.storyarc": 17396,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "granules/plurals.storyarc": 16328,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "granules/statusline.storyarc": 15404,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "granules/verbose-exits.storyarc": 15672,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 18360  # 2026-07-16 enter/exit report get on/in/off/out (4 msgs + 2 report blocks)
+CLOAK_Z8_CEILING = 18376  # 2026-07-18 screen_ready: the bar before on-start text (statusline games only)
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

@@ -2019,6 +2019,20 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
     elif isinstance(s, ast.Switch):
         _switch(rt, ctx, s)
     elif isinstance(s, ast.ExprStmt):
+        # A statement-call to a block whose FINAL body is empty emits
+        # nothing at all (overrides are already resolved, so the body is
+        # the winning one). This is what makes an overridable seam free:
+        # a stub like screen_ready costs zero in a game that never
+        # overrides it, and the granule that does pays alone.
+        if isinstance(s.expr, ast.Call) and not s.expr.args \
+                and s.expr.name in ctx.world.blocks \
+                and not ctx.world.blocks[s.expr.name].body:
+            return
+        if isinstance(s.expr, ast.Name) \
+                and s.expr.ident in ctx.world.blocks \
+                and not ctx.world.blocks[s.expr.ident].params \
+                and not ctx.world.blocks[s.expr.ident].body:
+            return
         # A discarded expression: store its value into a scratch local and free
         # it. (We cannot "pull" into the stack to drop a value: `pull` with a
         # variable operand is an indirect store and would pop twice.)
@@ -2603,6 +2617,21 @@ def _say_value(rt, ctx, expr):
         rt.op("call_vn", RoutineRef("cosmos_dir_name"),
               Variable(ctx.globals["way"]))
         return
+    if isinstance(expr, ast.Name) and expr.ident in _DIRECTIONS \
+            and expr.ident not in ctx.named \
+            and expr.ident not in ctx.globals \
+            and not ctx.is_object_name(expr.ident) \
+            and expr.ident not in ctx.world.blocks \
+            and (ctx.layout is None or (
+                expr.ident not in ctx.layout.catalogs
+                and expr.ident not in ctx.layout.matrices)):
+        # a BARE direction literal says its word too (`say north`, say
+        # "${north}"): the same voice, resolved last so story names win,
+        # exactly the _leaf_operand order
+        p = ctx.prop_number(expr.ident)
+        if p is not None:
+            rt.op("call_vn", RoutineRef("cosmos_dir_name"), Const(p))
+            return
     if isinstance(expr, ast.Name):
         et = getattr(ctx, "catalog_locals", {}).get(expr.ident)
         if et == "text":

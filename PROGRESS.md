@@ -4743,3 +4743,26 @@ the branch, which is correct and stays; what changed is the error,
 which now teaches the shape ("declare it before the block, change it
 inside the branches") when the unknown name was an expired let, and
 docs/01 states the scoping beside let itself. 2 new tests; suite 1008.
+
+## 2026-07-18 (later II): bare directions speak; the bar rises before start
+   (arcc 1.3.0, Cosmos 1.1.0)
+
+Charles Moore Jr.'s late-night pair. (1) `say north` and say
+"${north}" as BARE literals now speak the word (his on-start case):
+the same cosmos_dir_name voice, resolved last so story names win,
+mirroring _leaf_operand exactly. His other likely case documented in
+the reply: a plain matrix stays numeric; `of direction` types it. (2)
+The statusline start overlap was real: the bar split at the FIRST
+PROMPT, so any `on start` text landed on row 1 and the split painted
+over it. The fix grew a language feature: blocks may have EMPTY
+bodies (seams), and a statement-call to a block whose final body is
+empty emits NOTHING, making seams free. The loop gained
+`screen_ready` (empty seam, called before ev_start); the statusline
+granule claims it with draw_status, so its window is up before the
+first word. The old protective new_line before the banner then became
+a visible blank and was REMOVED outright: `say` already leaves a
+pending paragraph break, so start text separates from the banner
+automatically and a silent start puts the title directly under the
+bar (the sugar layout test agrees). Statusline games pay +12 for the
+early bar; everyone else is byte-identical (the fold at work), and
+all ceilings were retightened to actuals. Suite 1008.

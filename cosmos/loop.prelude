@@ -159,11 +159,19 @@ block game_over()
         if handled is 0
             msg_game_over_unknown
 
+// The screen-establishment seam: a granule that owns screen furniture (the
+// status bar) overrides this to put its windows up BEFORE `on start` prints
+// a word, so the first line of start text is never painted under a later
+// split. The default is empty and a statement-call to an empty block emits
+// nothing: games without such a granule pay zero bytes for the seam.
+block screen_ready()
+
 block run_game()
     move player to here
     // The start room is visited by definition (and never scores: you did
     // not earn arriving where you begin).
     now here is visited
+    screen_ready
     // `on start` runs FIRST (Inform's Initialise order): the game sets up its
     // world and its screen (colours, which erase the screen to repaint it)
     // before anything is drawn. THEN the library prints the banner, onto the
@@ -171,12 +179,11 @@ block run_game()
     // `on start` no longer erases the banner out from under itself.
     run_free(ev_start)
     if auto_banner is 1
-        // One newline before the banner: it steps the title down to row 2 so a
-        // summoned status bar (which splits and paints row 1 at the first
-        // prompt) does not overwrite it, and it separates any text `on start`
-        // printed above from the banner. This is the placement the compiler
-        // used before the banner moved into the loop.
-        new_line
+        // No explicit break here: if `on start` printed text, its own say
+        // left a pending paragraph break that the banner's first print
+        // flushes into one separating blank; on a silent start the screen
+        // is fresh (the status bar, when summoned, is already up via
+        // screen_ready) and the title sits directly under the bar.
         print_banner
     // Separate the banner (and any text `on start` printed above it) from the
     // opening room description: one blank line, collapsed with describe_room's.

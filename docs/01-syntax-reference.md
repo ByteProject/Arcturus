@@ -902,6 +902,11 @@ example, with its `.arcres` and heavily commented source, is in
 Statements appear inside `on` handlers, `block` bodies, and computed
 properties.
 
+A block may have an EMPTY body: it is a seam, a named point another layer
+overrides (the statusline granule claims `screen_ready` to raise its bar
+before `on start` prints). A statement-call to a block whose final body
+is empty emits no code at all, so an unclaimed seam costs zero bytes.
+
 `let` introduces a local: `let n = 0`. A local lives to the end of the
 BLOCK that declared it: a `let` inside an if branch or a loop body ends
 with that branch. To set a value differently per branch, declare it
