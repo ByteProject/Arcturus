@@ -4781,3 +4781,16 @@ one free rule, `on inventory when is_lit is 0`, documented in docs/02
 section 6 with Stefan's own wording as the example, and pinned in the
 tests. Every game pays a few bytes for the guard (ceilings
 retightened, dated); 4 new tests; suite 1012.
+
+## 2026-07-18 (later IV): direction matrix seeds compile (arcc 1.3.1)
+
+Charles Moore Jr.'s report, and Stefan called the category in advance:
+an incomplete implementation surfacing as the next field report. The
+matrix SEED writer never learned the direction cell kind (the catalog
+writer did, the say paths did, sema's validation did): a seeded
+`matrix ... of direction` fell into the number branch, which did
+.value on a Name and crashed raw with no line number. One branch added
+(a direction seed is its property number, as everywhere); his full
+scenario (seed, dice from a direction catalog, change entry, for-each
+speaking the words) is the regression test. A raw Python traceback
+from arcc is always our bug, never the author's. Suite 1013.
