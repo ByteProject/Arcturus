@@ -303,7 +303,7 @@ The mutators are what a catalog lacks. `append v to m` grows the length by
 one, returning 1 or 0 when the matrix is full, so the policy is yours:
 
 ```
-if append clue to clues is 0
+if append clue to clues is false
     say "Your notebook is full."
 ```
 
@@ -957,7 +957,7 @@ and messages included (Inform's `<<take book>>`, Dialog's `(try ...)`):
 perform("take", book)         // the full TAKE, "Got it." and all
 perform("go", west)           // a real move; a direction rides the way slot
 perform("give", coin, bob)    // two nouns
-if perform("open", chest) is 0
+if perform("open", chest) is false
     say "The chest defies you."   // 0 means the action refused
 ```
 
