@@ -4944,3 +4944,38 @@ suffix staying roman. set_text_style is v5 core and an interpreter
 without styles must ignore it, so text-only output is unchanged
 everywhere. Four style ops, +16 to +20 bytes per game; all 38 ceilings
 raised with the dated note in the same commit. Suite 1017.
+
+## 2026-07-18: the ambience deck, and the cadence calibrated (arcc 1.3.4, Cosmos 1.2.3)
+
+Stefan caught both, from his own screenshot sessions of the H2 port.
+First: Vlad's random flavor events repeated, where his original design
+(one central NPC logic over per-room message properties in the
+PunyInform H2) fires each event once per room visit, then goes quiet
+until the player returns. The ambience granule had no such mode, and a
+bare `once` on a random block even parsed and was silently dropped.
+Discussed first, at his instruction; options weighed included building
+on `vary` (rejected: vary has no such mode either, deliberately, since
+a room description may never print nothing, and vary cannot own
+cadence). RULED (Stefan): ambience is its own thing and gets the
+sibling mode; `once` is the mode word; re-arm on re-entry, matching
+his original; the five-deep cross-room history is not needed. Bare
+`once` now deals the lines like a shuffled deck: each fires once in
+random order, then silence; out of play re-deals. One word in the
+header fixes all 26 Vlad blocks in the H2 port. Capped at 15 lines
+(the fired-lines bitmask is one word; sema teaches the cure). The
+whole deal path folds away behind any_ambience_once: every other
+example is byte-identical, verified by the untouched ceilings.
+
+Second: "about 7 turns" fired every 4. The breathing countdown from N
+fires uniformly across 1..N, average (N+1)/2, half the promised rate.
+RULED (Stefan): "if the author defines every 7 turns and it actually
+fires every 4 turns then this is considered a bug." The countdown now
+seeds at 2N-1, same breathing feel, true average N; measured 7.5 over
+80 firings against the old 3.9.
+
+Found along the way: a block call with four arguments compiles to
+garbage (the assembler has no call_vn2, so the arity cap is three, and
+nothing enforces it); noted for a compile-time arity check. docs/05
+and the ambience showcase (a new boathouse room deals a once-deck)
+updated in the same commit; the VSIX already highlights `once`, no
+rebuild needed. Suite 1021.

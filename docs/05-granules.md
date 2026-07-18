@@ -368,10 +368,19 @@ it comes last):
 - bare `ambience`: ABOUT the `ambience_rate` dial (default 8), random order,
   never the same line twice running.
 - `about N turns`: living odds. Each silent turn shortens them, a fired line
-  resets them, so the room breathes instead of ticking.
+  resets them, so the room breathes instead of ticking. The firing time
+  spreads evenly around the rate, so "about 7" truly averages one line
+  every 7 turns.
 - `every N turns`: the strict metronome.
 - `in order`: the lines play as written, then cycle; `in order once` falls
   silent after the last, for scene-setting that quietly exhausts itself.
+- bare `once`: the shuffled deal. Each line fires once, in random order,
+  then the block falls quiet; when the block drops out of play (the player
+  leaves the room, the thing leaves scope) the deck re-deals, so a
+  revisited room starts fresh. The way an NPC companion comments on a
+  location: every remark lands exactly once per visit, and none repeats
+  while you stand there. A `once` deck holds at most 15 lines (the
+  compiler checks, and says so).
 - `when <cond>`: gates the whole block live, like a topic guard.
 
 A line is a string, or `do <block>` for a computed one, and each line may

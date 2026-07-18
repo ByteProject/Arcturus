@@ -164,3 +164,93 @@ def test_multiple_free_each_turn_rules_all_fire(tmp_path):
     out = _play(tmp_path, src, "wait\nwait\n")
     assert out.count("ALPHA") == 2
     assert out.count("BETA") == 2
+
+# -- the dealt deck (bare `once`, Stefan's ruling of 2026-07-18) -------------
+
+ONCE_GAME = (
+    "summon.ambience\n"
+    'game\n    title "A"\n    start hall\n'
+    'room hall\n    name "Hall"\n    desc "A hall."\n'
+    "    north yard\n"
+    "    ambience about 2 turns once\n"
+    '        "A raven croaks."\n'
+    '        "The wind gusts."\n'
+    '        "A shutter bangs."\n'
+    'room yard\n    name "Yard"\n    desc "A yard."\n    south hall\n'
+)
+
+ONCE_LINES = ("A raven croaks.", "The wind gusts.", "A shutter bangs.")
+
+
+def _run_seeded(story, cmds, seed):
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    io = CaptureIO(script=list(cmds))
+    vm = VM(load(story), io)
+    vm.rng.seed(seed)
+    try:
+        vm.run(max_steps=200_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+def test_once_deals_each_line_once_then_redeal():
+    # Bare `once` is the shuffled deal (the H2 Vlad model): each line fires
+    # exactly once per visit, the block then falls silent, and going out of
+    # play re-deals the deck for the next visit.
+    story = generate(analyze(cosmos.combined_program(parse(ONCE_GAME))))
+    for seed in (7, 99, 1234):
+        text = _run_seeded(story, ["wait"] * 30 + ["north", "south"] + ["wait"] * 30, seed)
+        first, second = text.split("Yard", 1)
+        for part in (first, second):
+            for line in ONCE_LINES:
+                assert part.count(line) == 1, (seed, line, part.count(line))
+
+
+def test_once_deck_folds_away_without_a_once_block():
+    # An ambience game with no bare-`once` block carries none of the deal
+    # machinery: the any_ambience_once fold drops the branches and DCE
+    # reclaims the helper routines.
+    import arcturus.codegen as cg
+    generate(analyze(cosmos.combined_program(parse(GAME))))
+    live = {n for n in cg._LAST_LIVE_ROUTINES if n.startswith("blk_amb_")}
+    assert "blk_amb_deal" not in live
+    assert "blk_amb_deck_done" not in live
+    assert "blk_amb_redeal" not in live
+
+
+def test_once_deck_caps_at_fifteen_lines():
+    # The fired-lines bitmask is one word, so sema refuses a 16-line deck
+    # with the cure in the message.
+    lines = "".join(f'        "Line {i} of far too many."\n' for i in range(16))
+    game = (
+        "summon.ambience\n"
+        'game\n    title "A"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        "    ambience about 2 turns once\n" + lines
+    )
+    with pytest.raises(ArcError) as e:
+        analyze(cosmos.combined_program(parse(game)))
+    assert "at most 15 lines" in str(e.value)
+    assert "in order once" in str(e.value)
+
+
+def test_about_cadence_averages_its_rate():
+    # The calibration (Stefan's bug ruling: "about 7" firing every 4 turns):
+    # the breathing countdown seeds at 2N-1, so the firing time is uniform
+    # over 1..2N-1 with a true average of N. Seeded, so deterministic; the
+    # band is generous to stay robust across RNG implementations.
+    game = (
+        "summon.ambience\n"
+        'game\n    title "A"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        "    ambience about 7 turns\n"
+        '        "Tick."\n'
+        '        "Tock."\n'
+    )
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+    text = _run_seeded(story, ["wait"] * 600, 42)
+    fires = text.count("Tick.") + text.count("Tock.")
+    assert 60 <= fires <= 110, fires  # mean interval ~5.5 to ~10, target 7

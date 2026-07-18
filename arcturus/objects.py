@@ -639,9 +639,10 @@ def _emit_ambience_tables(world, layout) -> None:
     last two words are the driver's state (cadence odds and the last line).
 
       +0 owner object   +2 is_room        +4 mode (0 about, 1 every,
-      +6 rate (0: dial) +8 line count        2 in order, 3 in order once)
-      +10 block guard   +12 play routine  +14 line guards (each packed, 0 none)
-      +16 odds state    +18 last state
+      +6 rate (0: dial) +8 line count        2 in order, 3 in order once,
+      +10 block guard   +12 play routine     4 once: shuffled deal)
+      +14 line guards (each packed, 0 none)
+      +16 odds state    +18 last state (mode 4: the fired-lines bitmask)
 
     The routine addresses arrive by the same fixups the topic tables use."""
     blocks = [
@@ -664,6 +665,12 @@ def _emit_ambience_tables(world, layout) -> None:
         mode = mode_num[amb.mode]
         if amb.mode == "order" and amb.once:
             mode = 3
+        elif amb.once:
+            # Bare `once`: the shuffled deal (Stefan's ruling, the H2 Vlad
+            # model): each line fires once in random order, then the block
+            # falls silent; out of play re-deals the deck. Word +18 is the
+            # fired-lines bitmask, which is why sema caps these at 15 lines.
+            mode = 4
         _put_word(table, rec + 4, mode)
         _put_word(table, rec + 6, amb.rate or 0)
         _put_word(table, rec + 8, len(amb.lines))

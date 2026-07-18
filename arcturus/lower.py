@@ -82,6 +82,11 @@ INTRINSICS = frozenset({
     # guard on it, so a game whose verbs all fit the flag model folds the whole
     # table path away and its story file is byte-identical.
     "any_tables",
+    # any_ambience_once is the compile-time shuffled-deal flag (1 if any
+    # ambience block uses bare `once`): the granule's pulse guards its deal
+    # logic on it, so an ambience game without a once-block stays
+    # byte-identical.
+    "any_ambience_once",
     # The turn loop fires life-cycle events: run_free runs the free rules for an
     # action, and ev_* name the event action numbers (start, enter, each_turn).
     # tick_timers counts down the after/every schedule once per turn.
@@ -1203,6 +1208,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # the grammar-table matcher and the packs' tabled-verb branches fold
         # away in a game whose verbs all fit the flag model.
         _place(rt, Const(_any_tables(ctx)), dest)
+    elif name == "any_ambience_once":
+        # any_ambience_once(): 1 if any ambience block is the shuffled deal
+        # (bare `once`), so the granule's deal path folds away otherwise.
+        _place(rt, Const(_any_ambience_once(ctx)), dest)
     elif name == "any_grains":
         # any_grains(): the compile-time grains flag (1 or 0), so find_scenery
         # folds its chain walker away in a game with no grains.
@@ -1600,6 +1609,16 @@ def _any_tables(ctx) -> int:
     a table (worldmodel.needs_table), else 0. The matcher and the packs' tabled
     branches guard on this, so the whole path folds away when no verb tables."""
     return 1 if any(wm.needs_table(v) for v in ctx.world.verbs) else 0
+
+
+def _any_ambience_once(ctx) -> int:
+    """The compile-time shuffled-deal flag: 1 if any ambience block uses bare
+    `once` (mode 4, the dealt deck), else 0. The granule's pulse guards its
+    deal branches on this, so ambience games without one fold them away."""
+    return 1 if any(
+        a.once and a.mode != "order"
+        for o in ctx.world.objects.values() for a in o.ambiences
+    ) else 0
 
 
 def _any_images(ctx) -> int:
@@ -2840,6 +2859,8 @@ def _static_value(ctx, expr):
         return _any_tables(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_images":
         return _any_images(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_ambience_once":
+        return _any_ambience_once(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "arc_mode":
         return _arc_mode(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "auto_banner":

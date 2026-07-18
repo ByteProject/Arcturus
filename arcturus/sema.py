@@ -1011,6 +1011,14 @@ class Analyzer:
                         "an ambience block needs the granule: add summon.ambience",
                         m.line,
                     )
+                if m.once and m.mode != "order" and len(m.lines) > 15:
+                    # The shuffled deal tracks fired lines in one word.
+                    raise self._error(
+                        f"a `once` ambience block holds at most 15 lines "
+                        f"(this one has {len(m.lines)}); split it into two "
+                        f"blocks, or use `in order once`",
+                        m.line,
+                    )
                 w.objects[owner].ambiences.append(m)
             elif isinstance(m, ast.TopicDecl):
                 if on_kind:

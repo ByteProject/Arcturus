@@ -6,15 +6,19 @@
 // THE LAST FERRY. A small showcase for the ambience granule
 // (summon.ambience, docs/05). The jetty breathes on living odds (each quiet
 // turn shortens them); the waiting room recites its lines IN ORDER ONCE and
-// then falls silent; the harbour cat is a thing-mounted block that follows
-// her wherever she is in scope, gated live on her mood. WAKE CAT turns the
-// dial: `change ambience_rate to 3` makes the whole stage chattier.
+// then falls silent; the boathouse deals its lines like a shuffled deck
+// (bare ONCE: each fires once per visit, then quiet, and leaving re-deals);
+// the harbour cat is a thing-mounted block that follows her wherever she is
+// in scope, gated live on her mood. WAKE CAT turns the dial:
+// `change ambience_rate to 3` makes the whole stage chattier.
 //
 //   arcc examples/granules/ambience.storyarc -o ferry.z5
 //   frotz ferry.z5
 //
 // Try: WAIT a while on the jetty. GO NORTH and wait: three lines, in order,
-// once. PET CAT, then wait, and the purring begins.
+// once. GO SOUTH twice and wait: four observations in random order, each
+// exactly once, then silence; leave and come back and the deck is fresh.
+// PET CAT, then wait, and the purring begins.
 
 summon.ambience
 summon.statusline
@@ -31,8 +35,10 @@ room jetty
     name "The Jetty"
     desc "Salt-bleached boards over black water. The ferry is late; the
           ferry is always late. A waiting room stands north, its door ajar,
-          and the harbour cat has claimed the mooring post."
+          the old boathouse leans south, and the harbour cat has claimed
+          the mooring post."
     north waiting_room
+    south boathouse
 
     ambience about 6 turns
         "A wave slaps the pilings, twice, then thinks better of it."
@@ -52,6 +58,21 @@ room waiting_room
         "The stove ticks, remembering heat."
         "Fog reaches the timetable and softens every departure on it."
         do last_light
+
+room boathouse
+    name "The Boathouse"
+    desc "Rope, tar, and a rowing boat that has forgotten water. The
+          jetty is back north."
+    north jetty
+
+    // The shuffled deal (bare `once`): each line fires once, in random
+    // order, then the boathouse holds its tongue. Step out and back in
+    // and the deck re-deals: fresh observations, once each, every visit.
+    ambience about 4 turns once
+        "Dust hangs in the light like it pays rent."
+        "The rowing boat's name is painted out. Twice."
+        "A coil of rope has fused into a single sculpture of itself."
+        "Something small relocates behind the paint tins, unhurried."
 
 thing cat in jetty
     name "harbour cat"
