@@ -59,7 +59,7 @@ def test_light_restores_examine():
 
 def test_strict_darkness_recipe_overrides_inventory():
     game = _DARK + (
-        'on inventory when is_lit is 0\n'
+        'on inventory when is_lit is false\n'
         '    say "It is far too dark to rummage through your belongings."\n'
         '    stop\n'
     )
