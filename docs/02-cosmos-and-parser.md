@@ -294,11 +294,26 @@ pitch dark, and you can see nothing." Movement is still allowed unless a room
 blocks it. Because light is computed, authors rarely set it by hand; a game
 that needs special behavior overrides at the room, as the Cloak bar does.
 
-THE CAVE RULE (the field convention, shared with Inform and Dialog): in
-darkness the player can still feel what they carry, so INVENTORY lists it,
-but they cannot SEE detail, so EXAMINE (and READ, which maps onto examine)
-refuse with the too-dark message. A game that wants stricter darkness
-overrides inventory with one free rule:
+If you are coming from systems like Inform 6, PunyInform or Dialog, read
+this section carefully because Arcturus behaves differently to what you
+are used to.
+
+Arcturus adapts to the so-called IF "Cave Rule", which is a more modern
+approach to how the player can interact with darkness. The rule itself:
+While the parser allows the player to list the items they are carrying,
+they generally cannot examine or interact with those items if the action
+requires visibility. The interactive fiction logic here is that a person
+in pitch blackness can still feel the shape and weight of the items in
+their hands well enough to count them, but they cannot see visual details
+like text or color.
+
+Arcturus is analog to Inform 7 in that context. What this means: by
+default the player is allowed to list the inventory (the cave rule), but
+they generally cannot EXAMINE or interact with those items if the action
+requires visibility (e.g. READ). For those that want to be more
+restrictive: in Inform 7 you can create a simple rule if you want to
+prevent the player from listing the inventory in darkness. This
+translates almost 1:1 to the Arcturus handler syntax:
 
 ```
 on inventory when is_lit is false
