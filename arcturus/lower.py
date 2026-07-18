@@ -587,12 +587,24 @@ def _call(rt, ctx, expr: ast.Call, dest):
         return
     if expr.name not in ctx.world.blocks:
         raise LowerError(f"call to unknown block '{expr.name}'", expr.line)
+    if len(expr.args) > 7:
+        # The Z-machine's own ceiling: even the long-call pair carries only
+        # the routine plus seven arguments.
+        raise LowerError(
+            f"a block call carries at most 7 arguments (the Z-machine's own "
+            f"ceiling); this call to '{expr.name}' passes {len(expr.args)}. "
+            f"Group some into a catalog or a matrix, or split the block",
+            expr.line,
+        )
     # Push arguments right-first so they pop in order behind the routine address.
     for arg in reversed(expr.args):
         eval_expr(rt, ctx, arg, Variable(STACK))
     operands = [RoutineRef("blk_" + expr.name)]
     operands += [Variable(STACK)] * len(expr.args)
-    rt.op("call_vs", *operands, store=dest)
+    # Up to three arguments ride the ordinary call's single types byte; four
+    # to seven need the double-types-byte long call (call_vs2).
+    rt.op("call_vs" if len(expr.args) <= 3 else "call_vs2",
+          *operands, store=dest)
 
 
 def _intrinsic(rt, ctx, call: ast.Call, dest):

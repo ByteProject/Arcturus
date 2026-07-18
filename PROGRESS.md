@@ -4979,3 +4979,18 @@ nothing enforces it); noted for a compile-time arity check. docs/05
 and the ambience showcase (a new boathouse room deals a once-deck)
 updated in the same commit; the VSIX already highlights `once`, no
 rebuild needed. Suite 1021.
+
+## 2026-07-18: block calls up to seven arguments (arcc 1.3.5)
+
+The follow-up to yesterday's find, on Stefan's explicit go after the
+design question was settled in discussion: the three-argument cap on
+block calls was an accident of implementation (the assembler lacked
+the long-call pair), not a Z-machine limit, and it was unenforced, so
+a fourth argument compiled to garbage silently. Now call_vs2 (the
+instruction set's only double-types-byte encoding) carries four to
+seven arguments; seven is the Z-machine's own ceiling and both sides
+of it are enforced with teaching errors (a call with eight, a block
+declaring eight). The long call is emitted only when a call actually
+exceeds three arguments, so every existing game is byte-identical
+(the untouched ceilings prove it). docs/01 states the ceiling. Suite
+1024.

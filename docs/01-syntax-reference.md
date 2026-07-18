@@ -1450,8 +1450,11 @@ block describe_exit(dir)
 ```
 
 Calling: `points_for(ruby)`, `describe_exit(north)`. Parameters are values
-and need no type annotation. Recursion is allowed, bounded by the Z-machine
-stack. The 15-locals limit per Z-machine routine is managed by the compiler,
+and need no type annotation. A block takes at most SEVEN parameters, and a
+call passes at most seven values: the Z-machine's own call ceiling, which
+the compiler enforces with a clear error either way; a bigger payload
+travels as a catalog or a matrix, passed as one value. Recursion is
+allowed, bounded by the Z-machine stack. The 15-locals limit per Z-machine routine is managed by the compiler,
 which spills to the stack as needed.
 
 PARENTHESES ONLY WHERE THEY EARN THEIR KEEP: a block (or intrinsic) that
