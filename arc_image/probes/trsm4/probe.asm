@@ -34,6 +34,16 @@
 ; top to bottom. The keypress wait uses the DOS @KEY service so the probe
 ; runs politely under LS-DOS 6 / TRSDOS 6 (interrupts stay enabled; the
 ; decoder does not care).
+;
+; A NOTE FOR THE RECORD: while creating this probe we discovered an
+; emulation bug in trs80gp (version 2.5.7): one data-port write, landing
+; at a specific boot-relative cycle, is silently dropped instead of being
+; delayed by the board's wait states (real Tandy boards never lose a
+; write; they stall the CPU). The effect here is a single byte of the
+; first image, 8 pixels of 460,800, invisible on screen, and an
+; interpreter decoding at arbitrary player-driven moments will likely
+; never show it at all. Reported to the trs80gp developers with a
+; byte-exact reproduction; this probe is correct as written.
 
 CTRL    equ     $83             ; port $83, calibrated against trs80gp's
                                 ; Tandy board by VRAM readback 2026-07-17:
