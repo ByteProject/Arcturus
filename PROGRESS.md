@@ -4805,6 +4805,59 @@ fixed at once; opaque containers keep the reveal. Regression test
 covers both kinds; ceilings retightened (one attribute test on the
 open path). Suite 1014.
 
+## 2026-07-18: the rulings-and-documents day (the entries that nearly slipped)
+
+A batch of decisions and document work that PROGRESS missed while the
+feature entries were being written; consolidated here, Stefan's catch.
+
+- THE TRSM4 /WAIT QUESTION, ANSWERED (via Shawn and trs80gp's author):
+  real Tandy boards never drop writes, they insert wait states, so
+  interpreters need NO pacing; the single dropped byte in verification
+  is a trs80gp 2.5.7 emulation bug, reported upstream with a
+  byte-exact repro. RULED: the probe stays PURE, no workaround (an
+  interpreter decodes at arbitrary moments, so the boot-phase-locked
+  flaw is emulator-only); a provenance note sits in the probe source.
+  Stefan's visual verdict: "it looks brilliant"; TRSM4 fully closed.
+- THE DARKNESS SECTION IN STEFAN'S OWN WORDING (docs/02): addresses
+  readers from Inform 6/PunyInform/Dialog directly, explains the cave
+  rule before naming it, names Inform 7 as the analog. The comparative
+  claims were VERIFIED from the Dialog standard library source: Dialog
+  checks light for READ but not for EXAMINE (its own comment confirms
+  look-relations are its only visibility refusal), so only Inform 7
+  matches our behavior, and ours is the more coherent since read maps
+  onto examine.
+- READABILITY RULINGS: author-facing docs and examples compare flags
+  with `is true` / `is false` (perform results, append/remove
+  results); genuine numbers (counts) stay numeric; Cosmos internals
+  keep bare numbers by explicit ruling.
+- WHATSNEW.md BECAME "WHAT'S NEW + FEATURE ROADMAP": five refreshed
+  entries (darkness, directions as values, the hardened dispatch
+  chain, the ring architecture, TRSM4) and nine ruled roadmap items
+  (inference, pathfinding with player travel and NPC movement as one
+  engine's consumers, the NPC engine granule, light topology, darkness
+  furniture, LOOK <direction>, the verbs overhaul with per-verb
+  requirements / two-noun lists / DROP ALL / maybe CONSULT, question
+  preservation with likelihood hints). Dropped by ruling: fungibles,
+  NPC commanding, VERBOSE/BRIEF. Verified gap recorded: "put coin and
+  nail in box" fails today; single-noun lists work.
+- THE CLEAR/OPAQUE RULING, for the permanent record: Stefan's intended
+  container design was INVERSE polarity (contents visible by default,
+  authors declare `opaque` to hide, a deliberate departure from
+  Inform/Dialog); an earlier session implemented `clear` with classic
+  polarity without asking. RULED 2026-07-18: it STAYS as implemented,
+  permanently, because five or six real adopters will not be made to
+  rewrite every container. The word "opaque" in comments and docs is
+  prose for the default state, not an attribute; no future work may
+  rename or flip this. The container KNOWLEDGE model (seen-memory
+  through closed boxes, listing through glass) remains the area's
+  differentiator.
+- A CLIENT DATA-LOSS INCIDENT cost Stefan half an hour of roadmap
+  commentary (an accidental paste swallowed the input and the chat
+  panel truncated at 50,000 characters before anything was persisted;
+  full forensics done, nothing recoverable). His opening "I have a
+  good idea" was never recovered; ask him. The roadmap verdicts were
+  re-given in shorthand and are folded in above.
+
 ## 2026-07-18: CHECKPOINT before compaction
 
 State: HEAD f79b874, all committed, suite 1014 green. arcc 1.3.1,
