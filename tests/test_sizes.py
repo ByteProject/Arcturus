@@ -29,13 +29,13 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
 CEILINGS = {
-    "features/beyond.storyarc": 17804,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/alter.storyarc": 16440,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/catalogs.storyarc": 16392,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/matrix.storyarc": 16756,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/direction-grammar.storyarc": 16496,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/scenery-contents.storyarc": 16436,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "granules/nautical.storyarc": 16244,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "features/beyond.storyarc": 17824,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/alter.storyarc": 16456,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/catalogs.storyarc": 16408,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/matrix.storyarc": 16772,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/direction-grammar.storyarc": 16512,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/scenery-contents.storyarc": 16452,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "granules/nautical.storyarc": 16264,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
     # 2026-07-04 (Stefan's ruling, superseding the same day's FULL move):
     # there is NO fullscore verb; SCORE is the one score verb and reports
     # score, max, turns, and rank in one line. Pool labels stay in the
@@ -89,41 +89,41 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 22608,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "brass-lantern.storyarc": 16916,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "cloak-of-darkness.storyarc": 17888,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "ejemplo-espanol.storyarc": 21624,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/computed-properties.storyarc": 15488,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/containers.storyarc": 15788,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/daemons-and-timers.storyarc": 15800,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/doors-and-locks.storyarc": 15376,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/appearance.storyarc": 16180,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/components.storyarc": 15652,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/perform.storyarc": 15652,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/grains.storyarc": 15532,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/handlers.storyarc": 16604,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/grammar.storyarc": 16496,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/introproperty.storyarc": 16724,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/kinds-and-inheritance.storyarc": 15352,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/on-other.storyarc": 15340,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/zcolor.storyarc": 15720,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/scoring.storyarc": 17704,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/spans.storyarc": 15528,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "features/vehicles.storyarc": 16060,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "granules/ambience.storyarc": 16832,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "granules/conversations.storyarc": 17132,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "granules/extended-verbs.storyarc": 18068,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "granules/infocom-interrogation.storyarc": 17528,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "granules/quotes.storyarc": 15724,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "granules/take-all.storyarc": 17448,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "granules/plurals.storyarc": 16380,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "granules/statusline.storyarc": 15456,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
-    "granules/verbose-exits.storyarc": 15724,  # 2026-07-18 clear containers skip the open reveal (one attribute test)
+    "beispiel-deutsch.storyarc": 22624,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "brass-lantern.storyarc": 16932,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "cloak-of-darkness.storyarc": 17904,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "ejemplo-espanol.storyarc": 21644,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/computed-properties.storyarc": 15508,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/containers.storyarc": 15804,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/daemons-and-timers.storyarc": 15820,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/doors-and-locks.storyarc": 15396,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/appearance.storyarc": 16196,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/components.storyarc": 15672,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/perform.storyarc": 15672,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/grains.storyarc": 15552,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/handlers.storyarc": 16624,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/grammar.storyarc": 16516,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/introproperty.storyarc": 16740,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/kinds-and-inheritance.storyarc": 15368,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/on-other.storyarc": 15356,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/zcolor.storyarc": 15740,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/scoring.storyarc": 17720,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/spans.storyarc": 15548,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "features/vehicles.storyarc": 16076,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "granules/ambience.storyarc": 16852,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "granules/conversations.storyarc": 17148,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "granules/extended-verbs.storyarc": 18088,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "granules/infocom-interrogation.storyarc": 17548,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "granules/quotes.storyarc": 15744,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "granules/take-all.storyarc": 17464,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "granules/plurals.storyarc": 16396,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "granules/statusline.storyarc": 15476,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "granules/verbose-exits.storyarc": 15744,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 18432  # 2026-07-18 clear containers skip the open reveal
+CLOAK_Z8_CEILING = 18448  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
