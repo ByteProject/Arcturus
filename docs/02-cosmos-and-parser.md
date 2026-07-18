@@ -294,6 +294,18 @@ pitch dark, and you can see nothing." Movement is still allowed unless a room
 blocks it. Because light is computed, authors rarely set it by hand; a game
 that needs special behavior overrides at the room, as the Cloak bar does.
 
+THE CAVE RULE (the field convention, shared with Inform and Dialog): in
+darkness the player can still feel what they carry, so INVENTORY lists it,
+but they cannot SEE detail, so EXAMINE (and READ, which maps onto examine)
+refuse with the too-dark message. A game that wants stricter darkness
+overrides inventory with one free rule:
+
+```
+on inventory when is_lit is 0
+    say "It is far too dark to rummage through your belongings."
+    stop
+```
+
 ## 7. The turn loop
 
 Each turn Cosmos runs:
