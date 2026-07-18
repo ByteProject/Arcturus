@@ -29,13 +29,13 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
 CEILINGS = {
-    "features/beyond.storyarc": 17748,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/alter.storyarc": 16388,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/catalogs.storyarc": 16340,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/matrix.storyarc": 16704,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/direction-grammar.storyarc": 16444,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/scenery-contents.storyarc": 16384,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "granules/nautical.storyarc": 16192,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "features/beyond.storyarc": 17796,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/alter.storyarc": 16436,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/catalogs.storyarc": 16388,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/matrix.storyarc": 16752,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/direction-grammar.storyarc": 16492,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/scenery-contents.storyarc": 16432,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "granules/nautical.storyarc": 16240,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
     # 2026-07-04 (Stefan's ruling, superseding the same day's FULL move):
     # there is NO fullscore verb; SCORE is the one score verb and reports
     # score, max, turns, and rank in one line. Pool labels stay in the
@@ -89,41 +89,41 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 22544,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "brass-lantern.storyarc": 16864,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "cloak-of-darkness.storyarc": 17836,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "ejemplo-espanol.storyarc": 21556,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/computed-properties.storyarc": 15436,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/containers.storyarc": 15736,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/daemons-and-timers.storyarc": 15748,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/doors-and-locks.storyarc": 15324,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/appearance.storyarc": 16128,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/components.storyarc": 15600,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/perform.storyarc": 15600,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/grains.storyarc": 15480,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/handlers.storyarc": 16552,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/grammar.storyarc": 16444,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/introproperty.storyarc": 16672,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/kinds-and-inheritance.storyarc": 15300,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/on-other.storyarc": 15288,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/zcolor.storyarc": 15668,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/scoring.storyarc": 17652,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/spans.storyarc": 15476,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "features/vehicles.storyarc": 16008,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "granules/ambience.storyarc": 16780,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "granules/conversations.storyarc": 17080,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "granules/extended-verbs.storyarc": 18016,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "granules/infocom-interrogation.storyarc": 17476,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "granules/quotes.storyarc": 15672,  # 2026-07-18 screen_ready: the bar goes up before on-start text (statusline games only)
-    "granules/take-all.storyarc": 17396,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "granules/plurals.storyarc": 16328,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "granules/statusline.storyarc": 15404,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
-    "granules/verbose-exits.storyarc": 15672,  # 2026-07-18 screen_ready seam + banner break owned by the paragraph system
+    "beispiel-deutsch.storyarc": 22604,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "brass-lantern.storyarc": 16912,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "cloak-of-darkness.storyarc": 17884,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "ejemplo-espanol.storyarc": 21620,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/computed-properties.storyarc": 15484,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/containers.storyarc": 15784,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/daemons-and-timers.storyarc": 15796,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/doors-and-locks.storyarc": 15372,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/appearance.storyarc": 16176,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/components.storyarc": 15648,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/perform.storyarc": 15648,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/grains.storyarc": 15528,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/handlers.storyarc": 16600,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/grammar.storyarc": 16492,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/introproperty.storyarc": 16720,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/kinds-and-inheritance.storyarc": 15348,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/on-other.storyarc": 15336,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/zcolor.storyarc": 15716,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/scoring.storyarc": 17700,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/spans.storyarc": 15524,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "features/vehicles.storyarc": 16056,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "granules/ambience.storyarc": 16828,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "granules/conversations.storyarc": 17128,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "granules/extended-verbs.storyarc": 18064,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "granules/infocom-interrogation.storyarc": 17524,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "granules/quotes.storyarc": 15720,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "granules/take-all.storyarc": 17444,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "granules/plurals.storyarc": 16376,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "granules/statusline.storyarc": 15452,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
+    "granules/verbose-exits.storyarc": 15720,  # 2026-07-18 the cave rule: examine/read refuse in darkness (is_lit guard)
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 18376  # 2026-07-18 screen_ready: the bar before on-start text (statusline games only)
+CLOAK_Z8_CEILING = 18424  # 2026-07-18 the cave rule (is_lit guard on examine)
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

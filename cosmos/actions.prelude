@@ -286,6 +286,15 @@ on examine
         change refused to 1
         msg_noun_missing
         stop
+    // The cave rule (the field convention Inform and Dialog share): in
+    // darkness you can feel what you carry well enough to count it, but
+    // you cannot SEE detail, so examine (and read, which maps onto it)
+    // refuses without light while inventory keeps working. A game that
+    // wants stricter darkness overrides inventory with its own rule.
+    if is_lit is 0
+        change refused to 1
+        msg_too_dark
+        stop
     now noun is seen
     if desc_addr(noun) is nothing
         // Examining yourself gets its own line: the generic "nothing special"

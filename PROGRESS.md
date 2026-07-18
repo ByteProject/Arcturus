@@ -4766,3 +4766,18 @@ automatically and a silent start puts the title directly under the
 bar (the sugar layout test agrees). Statusline games pay +12 for the
 early bar; everyone else is byte-identical (the fold at work), and
 all ceilings were retightened to actuals. Suite 1008.
+
+## 2026-07-18 (later III): the cave rule (Cosmos 1.2.0)
+
+Charles Moore Jr. noticed examine and read lacked light checks; Stefan
+researched the field convention (Inform 6/7, PunyInform, Dialog all
+agree) and ruled the Inform 7 way: INVENTORY works in darkness (you
+can feel what you carry well enough to count it), EXAMINE refuses
+without light, and READ follows examine for free since the verb maps
+onto it. One guard in the examine default (is_lit, the existing scope
+block; msg_too_dark, the existing message in all three language
+packs). Author flexibility needs no new option: stricter darkness is
+one free rule, `on inventory when is_lit is 0`, documented in docs/02
+section 6 with Stefan's own wording as the example, and pinned in the
+tests. Every game pays a few bytes for the guard (ceilings
+retightened, dated); 4 new tests; suite 1012.
