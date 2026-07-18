@@ -34,6 +34,12 @@ block prompt()
     par
     show(">")
 
+// Put the window up before `on start` prints a word (the screen seam in the
+// loop): without this, start text lands on row 1 and the first split paints
+// the bar over it (a field report: the opening line hidden under the bar).
+block screen_ready()
+    draw_status
+
 // Set up the one-row upper window and paint the bar into it. The painting itself
 // is status_bar (below), so the conversations menu can reuse it at the top of its
 // own taller window; this block owns only the window plumbing.

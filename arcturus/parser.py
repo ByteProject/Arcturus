@@ -1055,6 +1055,12 @@ class Parser:
                 params.append(self.expect_name("a parameter name").value)
         self.expect_op(")")
         self.expect_newline()
+        # A block may have NO body: it is a seam, a named point another layer
+        # overrides (the statusline's screen_ready). A statement-call to a
+        # block whose final body is empty emits nothing, so an unclaimed seam
+        # costs zero bytes.
+        if self.cur.kind != T.INDENT:
+            return ast.BlockDecl(name, params, [], line)
         body = self.parse_stmt_block()
         return ast.BlockDecl(name, params, body, line)
 
