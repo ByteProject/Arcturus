@@ -85,6 +85,34 @@ unchanged, text-only. The contract:
    pictures must never change what a game's colour requests mean, and
    colour requests must never repaint a picture.
 
+## The modern desktop (the .arcres path)
+
+A modern interpreter needs Part A and this section, nothing else:
+everything from Part B on (the .arc container, the codecs, the per-target
+chapters) is the retro machines' business. On the desktop there is no
+container and no codec: the pictures ship as the master PNGs themselves.
+
+RESOURCES. Beside the story file sits one pack, `<story-basename>.arcres`
+(mygame.z5, mygame.arcres): a plain zip archive holding the numbered
+pictures, `<id>.png` (picture 8 is 8.png), each already in its band
+shape (320x72 for mode 9, 320x96 for mode 12). Open it with any zip
+reader; there is no manifest, the names are the index. A loose directory
+of the same numbered PNGs beside the story is the DEBUGGING fallback and
+works too (Actaea checks the pack first, then the story's directory);
+released games ship the pack.
+
+RENDERING. The band per Part A: the picture above, the whole text screen
+model below. Integer-scale the 320-wide art to your window (2x, 3x, ...)
+so pixels stay crisp; the band height in your pixels is mode x 8 art
+rows times your scale factor. draw_image with an id you cannot resolve:
+ignore silently and play on.
+
+REFERENCE IMPLEMENTATION. Actaea's window front-end is the working
+desktop loader this section was written from: `actaea/vm.py` (the opcode
+and the capability bit), `actaea/screen.py` (the band in the screen
+model), `actaea/gui/` (the rendering). The whole path is a few dozen
+lines; the protocol was designed so that it stays that way.
+
 ## Part B: the .arc file format, version 1
 
 One file per image id per target. Everything is BIG-ENDIAN. All offsets in
@@ -283,34 +311,6 @@ Z80 versions ship with ZX0 itself; 6502 and Z80 versions land in the
 probes with wave 2's chapters).
 
 ## Part C: the targets
-
-### C.0 Modern desktop (the .arcres path)
-
-A modern interpreter needs Part A and this section; Parts B and C.1
-onward are the retro machines' native formats and can be skipped
-entirely. On the desktop there is no .arc container and no codec: the
-pictures ship as the master PNGs themselves.
-
-RESOURCES. Beside the story file sits one pack, `<story-basename>.arcres`
-(mygame.z5, mygame.arcres): a plain zip archive holding the numbered
-pictures, `<id>.png` (picture 8 is 8.png), each already in its band
-shape (320x72 for mode 9, 320x96 for mode 12). Open it with any zip
-reader; there is no manifest, the names are the index. A loose directory
-of the same numbered PNGs beside the story is the DEBUGGING fallback and
-works too (Actaea checks the pack first, then the story's directory);
-released games ship the pack.
-
-RENDERING. The band per Part A: the picture above, the whole text screen
-model below. Integer-scale the 320-wide art to your window (2x, 3x, ...)
-so pixels stay crisp; the band height in your pixels is mode x 8 art
-rows times your scale factor. draw_image with an id you cannot resolve:
-ignore silently and play on.
-
-REFERENCE IMPLEMENTATION. Actaea's window front-end is the working
-desktop loader this section was written from: `actaea/vm.py` (the opcode
-and the capability bit), `actaea/screen.py` (the band in the screen
-model), `actaea/gui/` (the rendering). The whole path is a few dozen
-lines; the protocol was designed so that it stays that way.
 
 Each chapter gives the target id and tag, the video setup, the sections and
 their native layouts, the loader recipe (against the probe source), the
@@ -811,11 +811,12 @@ sector bites.
 
 ## Change log
 
-- 2026-07-19 (C.0, the modern desktop): the .arcres path gets its own
-  chapter, consolidating what a desktop interpreter needs (Part A plus
-  the pack: a zip of numbered band-shaped PNGs beside the story) so a
-  modern terp author never has to read the retro codec chapters.
-  Prompted by interpreter-author questions on the announcement thread.
+- 2026-07-19 (the modern desktop): the .arcres path gets its own chapter,
+  placed directly after Part A and before the retro container, so a
+  desktop terp author reads the contract, the pack (a zip of numbered
+  band-shaped PNGs beside the story), and stops; the retro codec
+  chapters are explicitly not their reading. Prompted by
+  interpreter-author questions on the announcement thread.
 - 2026-07-17 (TRSM4, the first external-interpreter target): target id
   15, the TRS-80 Model 4 hi-res board, 640x72/96 1bpp, one bitmap
   section, ring-decoded (the board cannot read back its memory, so the
