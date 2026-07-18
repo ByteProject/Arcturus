@@ -272,3 +272,45 @@ def test_expired_let_error_teaches_the_shape():
         analyze(cosmos.combined_program(parse(game)))
     assert "ended with that block" in str(e.value)
     assert "change z to" in str(e.value)
+
+def test_direction_locals_say_their_words():
+    # The typed-local dataflow (the field report "let d = north still says a
+    # number"): assigning a value with a known element type tags the local,
+    # so say speaks it in that voice; assigning a plain number clears the tag.
+    # Covers the let-literal, the local-to-local copy, the entry() read into
+    # a pre-declared local (the shape the expired-let teaching error steers
+    # to), and the clear.
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'verb "probe"\n    probe_it\n'
+        'room hall\n    name "Hall"\n    desc "H."\n    north cellar\n'
+        '    on probe_it\n'
+        '        let d = north\n'
+        '        say "${d} "\n'
+        '        let e = d\n'
+        '        say "${e} "\n'
+        '        change d to entry(route, 2)\n'
+        '        say "${d} "\n'
+        '        change d to 7\n'
+        '        say "${d}"\n'
+        'room cellar\n    name "Cellar"\n    desc "C."\n'
+        'catalog route\n    north\n    east\n    up\n'
+    )
+    out = _run_game(game, ["probe"])
+    assert "north north east 7" in " ".join(out.split())
+
+
+def test_text_local_says_its_text():
+    # The same dataflow carries a text catalog's entries: a local loaded from
+    # entry() prints the string, not its packed address.
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'verb "probe"\n    probe_it\n'
+        'room hall\n    name "Hall"\n    desc "H."\n'
+        '    on probe_it\n'
+        '        let t = entry(mottos, 1)\n'
+        '        say "${t}"\n'
+        'catalog mottos\n    "The garden waits."\n    "The gate forgets."\n'
+    )
+    out = _run_game(game, ["probe"])
+    assert "The garden waits." in out

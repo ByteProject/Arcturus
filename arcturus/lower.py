@@ -1447,6 +1447,58 @@ def _catalog_etype(ctx, expr):
     return None
 
 
+def _is_direction_literal(ctx, name: str) -> bool:
+    """Is this bare name a direction literal here? Resolved last, exactly as
+    the say path resolves it, so story names (a local, a global, an object,
+    a block, a catalog) always win over the compass word."""
+    return (name in _DIRECTIONS
+            and name not in ctx.named
+            and name not in ctx.globals
+            and not ctx.is_object_name(name)
+            and name not in ctx.world.blocks
+            and (ctx.layout is None or (
+                name not in ctx.layout.catalogs
+                and name not in ctx.layout.matrices))
+            and ctx.prop_number(name) is not None)
+
+
+def _static_etype(ctx, expr):
+    """The statically known element type of an expression on the right of a
+    `let` or `change` (text/object/direction/number), or None when unknowable
+    at compile time. What a local is assigned decides how `say` speaks it."""
+    et = _catalog_etype(ctx, expr)
+    if et is not None:
+        return et
+    if isinstance(expr, ast.Name):
+        et = getattr(ctx, "catalog_locals", {}).get(expr.ident)
+        if et is not None:
+            return et
+        if expr.ident == "way" and expr.ident not in ctx.named \
+                and "way" in ctx.globals:
+            return "direction"
+        if _is_direction_literal(ctx, expr.ident):
+            return "direction"
+    return None
+
+
+def _note_local_etype(ctx, name: str, value) -> None:
+    """Assignment dataflow for locals, in statement order: assigning a value
+    with a known element type tags the local, so `say d` after `let d = north`
+    (or `change d to entry(route, 2)`) speaks the value in its own voice, the
+    same rule the for-each variable already follows. Assigning anything
+    unknowable, or a plain number, clears the tag: back to digits. Locals
+    only; a global keeps its own printing rules."""
+    if name not in ctx.named:
+        return
+    et = _static_etype(ctx, value)
+    if not hasattr(ctx, "catalog_locals"):
+        ctx.catalog_locals = {}
+    if et is not None and et != "number":
+        ctx.catalog_locals[name] = et
+    else:
+        ctx.catalog_locals.pop(name, None)
+
+
 def _catalog_base(ctx):
     return Variable(ctx.globals["__catalogs__"])
 
@@ -1881,6 +1933,7 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
     the block knows the following statements cannot be reached."""
     if isinstance(s, ast.Let):
         eval_expr(rt, ctx, s.value, Variable(ctx.resolve_var(s.name, s.line)))
+        _note_local_etype(ctx, s.name, s.value)
     elif isinstance(s, ast.MatrixOp):
         # A mutator as a statement: run it and discard the success flag.
         _matrix_op(rt, ctx, s, None)
@@ -2320,6 +2373,7 @@ def _change(rt, ctx, s: ast.Change):
         return
     if isinstance(s.target, ast.Name):
         eval_expr(rt, ctx, s.value, Variable(ctx.resolve_var(s.target.ident, s.line)))
+        _note_local_etype(ctx, s.target.ident, s.value)
         return
     if isinstance(s.target, ast.Dot):
         pnum = ctx.prop_number(s.target.prop)
@@ -2617,21 +2671,13 @@ def _say_value(rt, ctx, expr):
         rt.op("call_vn", RoutineRef("cosmos_dir_name"),
               Variable(ctx.globals["way"]))
         return
-    if isinstance(expr, ast.Name) and expr.ident in _DIRECTIONS \
-            and expr.ident not in ctx.named \
-            and expr.ident not in ctx.globals \
-            and not ctx.is_object_name(expr.ident) \
-            and expr.ident not in ctx.world.blocks \
-            and (ctx.layout is None or (
-                expr.ident not in ctx.layout.catalogs
-                and expr.ident not in ctx.layout.matrices)):
+    if isinstance(expr, ast.Name) and _is_direction_literal(ctx, expr.ident):
         # a BARE direction literal says its word too (`say north`, say
         # "${north}"): the same voice, resolved last so story names win,
         # exactly the _leaf_operand order
-        p = ctx.prop_number(expr.ident)
-        if p is not None:
-            rt.op("call_vn", RoutineRef("cosmos_dir_name"), Const(p))
-            return
+        rt.op("call_vn", RoutineRef("cosmos_dir_name"),
+              Const(ctx.prop_number(expr.ident)))
+        return
     if isinstance(expr, ast.Name):
         et = getattr(ctx, "catalog_locals", {}).get(expr.ident)
         if et == "text":
