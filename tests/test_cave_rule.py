@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The cave rule (the field convention Inform and Dialog share, ruled
+"""The cave rule (the modern darkness approach, analog to Inform 7; ruled
 2026-07-18): in darkness the player can feel what they carry, so
 INVENTORY works, but they cannot SEE detail, so EXAMINE (and READ, which
 maps onto it) refuse without light. A game that wants stricter darkness
