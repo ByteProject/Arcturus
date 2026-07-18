@@ -301,7 +301,7 @@ refuse with the too-dark message. A game that wants stricter darkness
 overrides inventory with one free rule:
 
 ```
-on inventory when is_lit is 0
+on inventory when is_lit is false
     say "It is far too dark to rummage through your belongings."
     stop
 ```
