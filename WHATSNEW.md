@@ -76,8 +76,16 @@ way, designed on its own terms, pay-for-use as always.
 - **The verbs overhaul.** Retire the all-or-nothing extended verbset:
   opt into individual documented verbs with a one-liner, each with its
   grammar documented; let authors ADD to a verb's grammar or REPLACE it
-  wholesale. With that foundation in place, the verb breadth grows
-  (taste, tie, throw at, push things between rooms, and friends).
+  wholesale. In its scope besides the breadth (taste, tie, throw at,
+  push things between rooms, and friends): declarative per-verb
+  requirements (whether a verb needs its noun reachable or merely
+  visible), noun lists in two-noun actions ("put coin and nail in box";
+  today lists work in single-noun actions only), DROP ALL as the one
+  all-form worth having (taking all stays a deliberate granule, putting
+  all has no case), and maybe CONSULT <object> ABOUT <topic>, which
+  ties into the topic machinery we already have.
 - **Question preservation.** A disambiguation question survives an
   interposed command: asked "which coin?", the player may take inventory
-  first and then answer.
+  first and then answer. In the same breath: likelihood hints, letting a
+  verb or object mark an interpretation as unlikely so disambiguation
+  picks well before it has to ask at all.
