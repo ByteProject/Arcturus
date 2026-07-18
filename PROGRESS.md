@@ -4794,3 +4794,13 @@ writer did, the say paths did, sema's validation did): a seeded
 scenario (seed, dice from a direction catalog, change entry, for-each
 speaking the words) is the regression test. A raw Python traceback
 from arcc is always our bug, never the author's. Suite 1013.
+
+## 2026-07-18 (later V): clear containers reveal nothing on open (Cosmos 1.2.1)
+
+Charles Moore Jr.: opening a CLEAR container fired "Inside you find",
+announcing contents that were never hidden (the knowledge model lists
+through the glass, docs/02 5a). One language-agnostic guard at the
+call site (`if noun is not clear`), so all three language packs are
+fixed at once; opaque containers keep the reveal. Regression test
+covers both kinds; ceilings retightened (one attribute test on the
+open path). Suite 1014.

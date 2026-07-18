@@ -593,7 +593,12 @@ on open
             run_alter
     else
         msg_opened
-    reveal_contents(noun)
+    // A clear container never hides its contents (the knowledge model
+    // lists through the glass), so opening one reveals nothing: the
+    // "Inside you find" line is for opaque containers only (a field
+    // report: the reveal fired on a glass jar).
+    if noun is not clear
+        reveal_contents(noun)
 
 on close
     if noun is nothing
