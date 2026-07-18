@@ -4804,3 +4804,46 @@ call site (`if noun is not clear`), so all three language packs are
 fixed at once; opaque containers keep the reveal. Regression test
 covers both kinds; ceilings retightened (one attribute test on the
 open path). Suite 1014.
+
+## 2026-07-18: CHECKPOINT before compaction
+
+State: HEAD f79b874, all committed, suite 1014 green. arcc 1.3.1,
+Cosmos 1.2.1, Actaea 1.1.0, arcimg 1.13.0, VSIX 1.0.0. Amalgams and
+README table current. WHATSNEW.md is "What's new + feature roadmap"
+(5 fresh entries, 9 ruled roadmap items).
+
+Next, in Stefan's ruled order:
+1. THE INTFICTION ANNOUNCEMENT POST, co-written WITH Stefan (never
+   draft-and-ship). Showcases set aside: the cave-rule inventory
+   recipe (I7's rule as one handler header), read/examine darkness
+   coherence (verified: Dialog checks light for READ but not EXAMINE;
+   only I7 matches us), the public feature roadmap, 15 retro picture
+   targets from one master. Only VERIFIED comparative claims; his
+   voice; ask his shape (length, venue section, loudness) first.
+   Stefan's lost message opened with "I have a good idea": the idea
+   was never recovered from the truncation accident; ask him.
+2. PLUS/4 WAVE (R4): hires TED bitmap, 320 wide; conversion philosophy
+   ruled: near-monochrome dithered form, few colour accents,
+   dark/bright pairs (the Rabenstein lineage). arcimg target P4 (id 5)
+   is registered but has NO converter yet (_CONVERTERS lacks "P4").
+   Probe: 6502, acme on the orb Debian (~/FictionTools/acme),
+   dzx0r_6502 machine-verified, ring model, VICE xplus4 to verify.
+   Plus/4 unblocks the ZX3 solver rework (parked) and the MSX1 base
+   ruling (Stefan decides at MSX1 start).
+3. Then MSX1 and A8 probes to close R4 (atari800/openMSX: ask Stefan
+   before installing or launching any emulator).
+
+Open externals: trs80gp dropped-write bug reported upstream via Shawn
+(byte-exact repro delivered); TRSM4 complete, probe stays pure
+(ruled). Expected Charles report: noun-AND-noun lists in two-noun
+actions ("put coin and nail in box" fails; verified gap, roadmapped
+under the verbs overhaul).
+
+Parked: roadmap implementation (until the sea is calmer); the
+enclosure receiver design discussion.
+
+Environment: trs80gp wrapper at ~/.local/bin/trs80gp (a symlink breaks
+its resource lookup; the wrapper execs the bundle binary); Pillow on
+the Mac python 3.14 user site; sjasmplus ~/.local/bin; nasm brew; vasm
+in Eris/tools/bin; acme on the orb Debian. Emulators: always ask
+before new ones.
