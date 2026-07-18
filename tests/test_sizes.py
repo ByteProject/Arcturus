@@ -110,7 +110,7 @@ CEILINGS = {
     "features/scoring.storyarc": 17720,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
     "features/spans.storyarc": 15548,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
     "features/vehicles.storyarc": 16076,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
-    "granules/ambience.storyarc": 16852,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "granules/ambience.storyarc": 17516,  # 2026-07-18 the once deck + about-N calibration + the boathouse showcase room
     "granules/conversations.storyarc": 17148,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
     "granules/extended-verbs.storyarc": 18088,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
     "granules/infocom-interrogation.storyarc": 17548,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
