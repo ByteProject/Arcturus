@@ -171,3 +171,25 @@ def test_search_leaves_components_alone():
     out = io.text
     assert "nothing new to see here" in out
     assert "You find" not in out
+
+
+def test_sit_is_standard_and_means_enter():
+    # SIT/REST moved to the standard set mapped onto enter (the field
+    # request: SIT ON X is common IF currency). No granule needed; the
+    # particle machinery swallows ON/IN like GET ON always did.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "H."\n'
+        'thing chair of supporter in hall\n    name "chair"\n    words chair\n'
+    )
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+    io = CaptureIO(script=["sit on chair", "exit", "rest on chair"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert io.text.count("You get on the chair.") == 2
+    assert "You get off the chair." in io.text

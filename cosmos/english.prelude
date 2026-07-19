@@ -676,6 +676,13 @@ verb "unlock"
 verb "enter", "board"
     enter noun
 
+// SIT ON the chair, SIT IN the tub: sitting is boarding (the field
+// request; every classic library reads it this way), so the verb maps
+// straight onto enter and the particle machinery swallows the ON/IN the
+// way GET ON already does. A bare SIT asks for its noun.
+verb "sit", "rest"
+    enter noun
+
 verb "exit", "leave"
     exit
 

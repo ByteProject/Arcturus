@@ -5133,3 +5133,16 @@ report, and a dynamic target is unprovable. RULED (Stefan): narrow
 it, so it does not fire for him but keeps its purpose. The note now
 exempts exactly the provably-safe shape and still speaks for the rest.
 Suite 1035.
+
+## 2026-07-19: SIT is standard, and it means enter (Cosmos 1.2.8)
+
+Charles's request, Stefan's go ("he is right with this one"): SIT was
+an extendedverbs stub while SIT ON X is everyday IF currency. Now
+`sit`/`rest` live in the standard English set mapped straight onto
+enter: SIT ON THE CHAIR boards it, SIT IN THE TUB climbs in (the
+particle machinery swallows ON/IN the way GET ON always did), a bare
+SIT asks for its noun, and a non-enterable refuses through enter's
+ordinary path. The granule's stub and message retired. The byte pitch,
+per the standing rule: +16 to +20 per game for two dictionary words
+and a grammar row; extendedverbs games get 64 back from the retired
+stub, ceilings moved both ways with the note. Suite 1036.

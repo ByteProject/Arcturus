@@ -107,8 +107,9 @@ with every synonym, and each default line, is the granule source itself
   `throw ... at`, `rub` (polish, clean, wipe...), `squeeze`, `tie ... to`,
   `cut`, `fill`, `burn`, `blow`, `set ... to`, `empty`, `buy`, `consult
   ... about`.
-- BODY AND IDLE: `dig`, `wave`, `sit`, `stand`, `sleep`, `swim`, `swing`,
-  `think`, `pray`, `shout`.
+- BODY AND IDLE: `dig`, `wave`, `stand`, `sleep`, `swim`, `swing`,
+  `think`, `pray`, `shout`. (`sit`/`rest` are STANDARD verbs meaning
+  enter: SIT ON THE CHAIR boards it in every game, no summon needed.)
 
 (Conversation is not this granule's business: ask/tell/answer are STANDARD
 verbs, and the two topic presentations are their own granules, conversations
