@@ -64,10 +64,16 @@ class VM:
     until quit (or a fault). The only paths out are the io object and the
     memory it mutates."""
 
-    def __init__(self, story, io):
+    def __init__(self, story, io, seed=None):
+        # seed: --seed N. A fixed starting point for the random generator, so
+        # a session is reproducible end to end (paired with --replay/--check
+        # this makes walkthroughs of games with random flavor deterministic).
+        # None (the default) seeds from the OS as always. Restart re-applies
+        # it, so a reproducible session survives a RESTART too.
         self.story = story
         self.mem = story.memory
         self.io = io
+        self._seed = seed
         self.pc = story.header.initial_pc
         self.globals_addr = story.header.globals_
         self.objects = ObjectTable(self.mem, story.header.objects)
@@ -77,7 +83,7 @@ class VM:
         # runs in a base pseudo-frame that nothing ever returns from.
         self.frames = [Frame(return_pc=0, store=None, locals_=[], argc=0)]
         self.halted = False
-        self.rng = _random.Random()
+        self.rng = _random.Random(seed)
         # In-memory undo: a stack of (dynamic memory, frames, pc, store var)
         # snapshots. save_undo pushes one and yields 1; restore_undo pops,
         # rewinds, and makes that save_undo yield 2 instead (S 15). The
@@ -863,6 +869,10 @@ class VM:
         self.stream3 = []
         self.screen_on = True
         self.font = 1
+        if self._seed is not None:
+            # A seeded session stays reproducible across RESTART: the
+            # generator rewinds with the machine.
+            self.rng.seed(self._seed)
         self.screen.set_style(0)
         self.screen.set_colour(1, 1)
         self.screen.erase_window(-1)  # unsplit and clear, back to the boot screen

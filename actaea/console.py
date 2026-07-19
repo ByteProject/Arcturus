@@ -90,7 +90,8 @@ class ConsoleApp:
     """The terminal: an upper region painted from the cell grid, a lower
     curses window that scrolls, wraps at word boundaries, and pages."""
 
-    def __init__(self, story, stdscr, record_path=None, replay_commands=None):
+    def __init__(self, story, stdscr, record_path=None, replay_commands=None,
+                 seed=None):
         self.scr = stdscr
         curses.raw()
         try:
@@ -111,7 +112,7 @@ class ConsoleApp:
             from .session import SessionIO
             io = SessionIO(io, record_path=record_path, replay=replay_commands)
             self._session = io
-        self.vm = VM(story, io)
+        self.vm = VM(story, io, seed=seed)
         self.vm.screen.on_change = self._grid_changed
         self._grid_dirty = False
         self._split = 0
@@ -463,7 +464,8 @@ class ConsoleApp:
         self.lower.getch()
 
 
-def play(story, title: str = "", record_path=None, replay_commands=None) -> None:
+def play(story, title: str = "", record_path=None, replay_commands=None,
+         seed=None) -> None:
     locale.setlocale(locale.LC_ALL, "")  # accents render as themselves
     # Name the terminal tab/window after the story for the session, then
     # give the old name back on the way out: push the current title on
@@ -475,7 +477,7 @@ def play(story, title: str = "", record_path=None, replay_commands=None) -> None
     sys.stdout.flush()
     try:
         curses.wrapper(lambda scr: ConsoleApp(
-            story, scr, record_path, replay_commands).run())
+            story, scr, record_path, replay_commands, seed).run())
     finally:
         sys.stdout.write("\x1b[23;0t")
         sys.stdout.flush()

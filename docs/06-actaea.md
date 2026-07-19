@@ -169,6 +169,18 @@ replies. Appending commands at the end is clean; inserting one in the middle
 legitimately changes every reply after it (the game is in a different state),
 so `--check` will flag the insertion point, and you re-record from there.
 
+Games with random flavor (dice, shuffled ambience, `vary mutate`) are the
+one thing record and check cannot pin down on their own: the commands
+replay identically, the dice do not. **`--seed N`** closes that gap. It
+seeds the interpreter's random generator with N at boot, so a session is
+reproducible end to end, and RESTART rewinds the generator with the
+machine, so even a restarted run replays the same. It works in every mode
+(window, console, headless) and pairs naturally with the three flags
+above: `--record --seed 7` today, `--check --seed 7` after every change,
+and the walkthrough of a random game becomes as deterministic as a quiet
+one. The seed is never implied: without the flag, every session rolls
+fresh, `--check` included.
+
 The typical loop: record a full playthrough once, change your code, run
 `arcc` and then `actaea --check walk.txt story.z5`. In a few seconds it tells
 you, in plain language, whether your change broke the walkthrough. Combine
