@@ -1577,12 +1577,25 @@ def gen_topic_helpers(layout) -> list:
     retire.op("storeb", Variable(3), Const(9), Variable(STACK))
     retire.op("rtrue")
 
-    return [count, recrt, label, vis, run, match, retire]
+    # cosmos_topic_idle(person, i): 1 if topic i is the ask/tell fallback (the
+    # IDLE flag bit), else 0. infocom_talking runs the first visible idle topic
+    # when no worded topic matched; the menu presentation skips idle topics.
+    idle = Routine("cosmos_topic_idle", nlocals=3)  # 1=person,2=i,3=rec
+    idle.op("call_vs", RoutineRef("cosmos_topic_rec"), Variable(1), Variable(2), store=Variable(3))
+    idle.op("loadb", Variable(3), Const(8), store=Variable(STACK))  # flags byte
+    idle.op("and", Variable(STACK), Const(objmod.TOPIC_IDLE), store=Variable(STACK))
+    idle.op("jz", Variable(STACK), branch=("no", True))
+    idle.op("rtrue")
+    idle.label("no")
+    idle.op("rfalse")
+
+    return [count, recrt, label, vis, run, match, retire, idle]
 
 
 _TOPIC_HELPER_NAMES = (
     "cosmos_topics_count", "cosmos_topic_label", "cosmos_topic_visible",
     "cosmos_topic_run", "cosmos_topic_matches", "cosmos_topic_retire",
+    "cosmos_topic_idle",
 )
 
 

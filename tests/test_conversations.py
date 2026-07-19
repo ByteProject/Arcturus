@@ -210,3 +210,89 @@ def test_ask_about_an_unknown_subject_hits_the_flat_default():
     out = _ask_headless(CAPTAIN, ["ask captain about nonsense"])
     assert "I am Captain Jack." not in out
     assert "She is the finest afloat." not in out
+
+
+# -- the idle fallback topic (per-NPC default answer; Stefan's ruling) -------
+
+IDLE_GAME = (
+    'game\n    title "I"\n    start deck\nsummon.infocom_talking\n'
+    'room deck\n    name "Deck"\n    desc "A deck."\n'
+    'thing captain of character in deck\n    name "old captain"\n'
+    '    words captain, old\n'
+    '    topic ship "the ship" words ship, vessel\n'
+    '        you "Tell me of the ship."\n'
+    '        reply "She is the finest afloat."\n'
+    '    topic shrug "his mood" idle\n'
+    '        reply "The captain says nothing useful."\n'
+)
+
+
+def test_idle_answers_ask_and_tell_when_no_topic_matches():
+    out = _ask_headless(IDLE_GAME, ["ask captain about weather",
+                                    "tell captain about storms"])
+    assert out.count("The captain says nothing useful.") == 2
+    # A worded topic still wins over the idle.
+    out2 = _ask_headless(IDLE_GAME, ["ask captain about ship"])
+    assert "She is the finest afloat." in out2
+    assert "says nothing useful" not in out2
+
+
+def test_idle_once_answers_then_yields_to_the_flat_default():
+    game = (
+        'game\n    title "I"\n    start deck\nsummon.infocom_talking\n'
+        'room deck\n    name "Deck"\n    desc "A deck."\n'
+        'thing captain of character in deck\n    name "old captain"\n'
+        '    words captain\n'
+        '    topic done "x" idle once\n'
+        '        reply "That is all on unfamiliar matters."\n'
+    )
+    out = _ask_headless(game, ["ask captain about x", "ask captain about y"])
+    assert out.count("That is all on unfamiliar matters.") == 1
+    assert "stays mum" in out.split("about y")[-1]
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_idle_topic_is_invisible_to_the_menu(tmp_path):
+    # Stefan's point: a default is meaningless in the menu presentation, so an
+    # idle topic is never listed there. The menu (an upper-window draw) shows
+    # only the worded topics; driven on Frotz, like the other menu tests.
+    game = (
+        'game\n    title "M"\n    start hall\nsummon.conversations\n'
+        'room hall\n    name "Hall"\n    desc "H."\n'
+        'thing pat of character in hall\n    name "Pat"\n    named\n    words pat\n'
+        '    topic weather "the weather" words weather\n'
+        '        reply "Could be worse."\n'
+        '    topic shrug "his mood" idle\n'
+        '        reply "Never shown in a menu."\n'
+    )
+    story = tmp_path / "im.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(game)))))
+    out = subprocess.run(
+        [_frotz(), "-p", str(story)],
+        input="talk to pat\n0\nquit\ny\n",
+        capture_output=True, text=True, timeout=15,
+    ).stdout
+    assert "1. the weather" in out
+    assert "his mood" not in out
+    assert "Never shown in a menu." not in out
+
+
+def test_idle_with_words_is_refused():
+    from arcturus.errors import ArcError
+    game = (
+        'game\n    title "I"\n    start hall\nsummon.infocom_talking\n'
+        'room hall\n    name "Hall"\n    desc "H."\n'
+        'thing bob of character in hall\n    name "Bob"\n    words bob\n'
+        '    topic oops "x" idle words weather\n'
+        '        reply "x"\n'
+    )
+    with pytest.raises(ArcError, match="takes no `words`"):
+        analyze(cosmos.combined_program(parse(game)))
+
+
+def test_no_idle_topic_leaves_the_helper_unemitted():
+    # Pay-for-use: a conversation game with no idle topic never references
+    # cosmos_topic_idle, so it is dead-code-eliminated (byte-identical).
+    import arcturus.codegen as cg
+    generate(analyze(cosmos.combined_program(parse(GAME))))
+    assert "cosmos_topic_idle" not in cg._LAST_LIVE_ROUTINES

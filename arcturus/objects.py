@@ -48,13 +48,15 @@ _SPECIAL = {"name"}
 #   +2 menu label      (2, packed)  the string shown in the conversations menu
 #   +4 when-guard      (2, packed)  visibility test routine, 0 if no `when`
 #   +6 match words     (2)          address of this topic's word sub-array, 0 none
-#   +8 flags           (1)          static: bit0 ONCE, bit1 HIDDEN at start
+#   +8 flags           (1)          static: bit0 ONCE, bit1 HIDDEN, bit2 IDLE
 #   +9 state           (1)          mutable: bit0 RETIRED, bit1 HIDDEN now
 # The granules read the table through the cosmos_topic_* backing routines, so
 # this byte layout lives only here and in codegen (which emits those routines).
 TOPIC_REC = 10
 TOPIC_ONCE = 0x01  # flags byte: retire this topic after it runs once
 TOPIC_HIDDEN = 0x02  # flags/state byte: out of view (initial flag and live state)
+TOPIC_IDLE = 0x04  # flags byte: the ask/tell fallback (no words; runs when
+                   # nothing else matched). The menu presentation ignores it.
 TOPIC_RETIRED = 0x01  # state byte: a `once` topic that has already run
 
 
@@ -713,7 +715,9 @@ def _emit_topic_tables(world, layout, topic_sites: dict) -> None:
             layout.string_fixups.append((rec + 2, sid))
             # +8 flags: ONCE and the initial HIDDEN bit (static); +9 state begins
             # as the live mirror of HIDDEN so a hidden topic starts out of view.
-            flags = (TOPIC_ONCE if topic.once else 0) | (TOPIC_HIDDEN if topic.hidden else 0)
+            flags = ((TOPIC_ONCE if topic.once else 0)
+                     | (TOPIC_HIDDEN if topic.hidden else 0)
+                     | (TOPIC_IDLE if getattr(topic, "idle", False) else 0))
             table[rec + 8] = flags
             table[rec + 9] = TOPIC_HIDDEN if topic.hidden else 0
             word_ptr_sites.append((rec + 6, topic.words))

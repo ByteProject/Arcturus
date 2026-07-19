@@ -89,10 +89,10 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 22704,  # 2026-07-18 the reversed dative takes pronouns (give him coin; the probe's pronoun branch)
+    "beispiel-deutsch.storyarc": 22724,  # 2026-07-20 idle fallback topic: the menu's idle-skip wrapper (menu games only; +20; ask/tell and non-conversation games byte-identical)
     "brass-lantern.storyarc": 17060,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "cloak-of-darkness.storyarc": 18032,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "ejemplo-espanol.storyarc": 21644,  # 2026-07-18 bold banner and location titles (Stefan's polish ruling; four style ops)
+    "ejemplo-espanol.storyarc": 21664,  # 2026-07-20 idle fallback topic: the menu's idle-skip wrapper (menu games only; +20; ask/tell and non-conversation games byte-identical)
     "features/computed-properties.storyarc": 15636,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "features/containers.storyarc": 15932,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "features/daemons-and-timers.storyarc": 15948,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
@@ -111,7 +111,7 @@ CEILINGS = {
     "features/spans.storyarc": 15672,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "features/vehicles.storyarc": 16204,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "granules/ambience.storyarc": 17644,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "granules/conversations.storyarc": 17272,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
+    "granules/conversations.storyarc": 17292,  # 2026-07-20 idle fallback topic: the menu's idle-skip wrapper (menu games only; +20; ask/tell and non-conversation games byte-identical)
     "granules/extended-verbs.storyarc": 18352,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "granules/infocom-interrogation.storyarc": 17744,  # 2026-07-19 ask/tell scans the subject phrase, not the listener (the first-topic bug; +68 the separator scan)
     "granules/quotes.storyarc": 15872,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)

@@ -464,6 +464,8 @@ class TopicDecl:
     when: Optional[Expr] = None
     once: bool = False
     hidden: bool = False
+    idle: bool = False  # the ask/tell fallback: runs when no worded topic
+                        # matched (docs/05); the menu ignores it entirely
     body: list[Stmt] = field(default_factory=list)
     line: int = 0
 

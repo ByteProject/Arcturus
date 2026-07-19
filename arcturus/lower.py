@@ -87,6 +87,10 @@ INTRINSICS = frozenset({
     # logic on it, so an ambience game without a once-block stays
     # byte-identical.
     "any_ambience_once",
+    # any_topic_idle is the compile-time flag (1 if any topic is `idle`, the
+    # ask/tell fallback), so both conversation granules fold their idle-topic
+    # handling away in a game that declares none: byte-identical.
+    "any_topic_idle",
     # dir_name(d) speaks a direction value's canonical word in place, at
     # runtime: the explicit ask for when static typing cannot see the type
     # (a value read through a block parameter). Print-only, like say way.
@@ -202,7 +206,7 @@ INTRINSICS = frozenset({
     # topic once it has been picked). Each calls a cosmos_topic_* backing routine
     # codegen emits only when one of these is used.
     "topics_count", "topic_visible", "topic_label", "topic_matches", "topic_run",
-    "topic_retire",
+    "topic_retire", "topic_idle",
 })
 
 _ARITH = {"+": "add", "-": "sub", "*": "mul", "/": "div", "mod": "mod"}
@@ -1249,6 +1253,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         op, t = _operand(rt, ctx, args[0])
         rt.op("call_vn", RoutineRef("cosmos_dir_name"), op)
         _free(ctx, t)
+    elif name == "any_topic_idle":
+        # any_topic_idle(): 1 if any topic is `idle`, so the granules' idle
+        # handling folds away otherwise (and cosmos_topic_idle is then DCE'd).
+        _place(rt, Const(_any_topic_idle(ctx)), dest)
     elif name == "any_ambience_once":
         # any_ambience_once(): 1 if any ambience block is the shuffled deal
         # (bare `once`), so the granule's deal path folds away otherwise.
@@ -1372,6 +1380,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("call_vn", RoutineRef("cosmos_topic_run"),
               Variable(STACK), Variable(STACK))
         _place(rt, Const(0), dest)
+    elif name == "topic_idle":
+        # topic_idle(person, i): 1 if topic i is the ask/tell fallback (`idle`).
+        eval_expr(rt, ctx, args[1], Variable(STACK))
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("call_vs", RoutineRef("cosmos_topic_idle"),
+              Variable(STACK), Variable(STACK), store=dest)
     elif name == "topic_retire":
         # topic_retire(person, i): retire topic i now, so the menu drops it once
         # it has been picked (the ask/tell path does not call this, so typed
@@ -1650,6 +1664,21 @@ def _any_tables(ctx) -> int:
     a table (worldmodel.needs_table), else 0. The matcher and the packs' tabled
     branches guard on this, so the whole path folds away when no verb tables."""
     return 1 if any(wm.needs_table(v) for v in ctx.world.verbs) else 0
+
+
+def _any_topic_idle(ctx) -> int:
+    """The compile-time idle-topic flag: 1 if any topic anywhere is `idle`
+    (the ask/tell fallback), else 0. Both conversation granules guard their
+    idle handling on it, so a game with no idle topic folds it all away."""
+    for o in ctx.world.objects.values():
+        for t in getattr(o, "topics", []):
+            if getattr(t, "idle", False):
+                return 1
+    for k in ctx.world.kinds.values():
+        for t in getattr(k, "topics", []):
+            if getattr(t, "idle", False):
+                return 1
+    return 0
 
 
 def _any_ambience_once(ctx) -> int:
@@ -2910,6 +2939,8 @@ def _static_value(ctx, expr):
         return _any_images(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_ambience_once":
         return _any_ambience_once(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_topic_idle":
+        return _any_topic_idle(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "arc_mode":
         return _arc_mode(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "auto_banner":
