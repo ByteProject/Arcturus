@@ -88,18 +88,21 @@ The verbs beyond the always-in standard set. The full verb-to-action table
 with every synonym, and each default line, is the granule source itself
 (cosmos/extendedverbs.granule, the editable template); the roster:
 
-- RUMMAGING: `search`/`frisk` works on ANY object (whether it makes sense is
-  the story's call), and the default reads the object: a LIVING thing gets a
-  social rebuff (frisking a person is not a discovery), a SHUT container keeps
-  its secrets, and everything else gets a neutral "nothing new". There is no
-  built-in content lister, on purpose: an open container already shows what it
-  holds in the room listing, and a character's belongings are not in scope, so
-  naming them would point at things the player cannot touch. A real search
-  REVEALS by making something reachable, the IF idiom: override `on search` on
-  the object with `now note is not hidden` (the note living in the room until
-  found) or `move key to here` (an NPC's item spilled out and now takeable). A
-  corpse is not `animate`, so it drops past the rebuff to the neutral case and
-  such an override turns out its loot.
+- RUMMAGING: `search`/`frisk` works on ANY object, and the rule is: search
+  tells you what is there, and makes findable what wasn't. A LIVING thing
+  gets a social rebuff (frisking a person is not a discovery), a SHUT
+  container keeps its secrets, and everything else searches for real: the
+  contents are listed ("You find a wallet and a knife."), marked seen, and,
+  for a plain thing that cannot be looked into (a knocked-out guard, a
+  haystack), spilled to the room so they are truly takeable; an open
+  container or supporter only lists, its contents being reachable already.
+  So the whole authoring recipe for a lootable body is: clear `animate` on
+  the knockout and put the loot inside; nothing else. `alter` on the object
+  rewords the report while the mechanics run regardless. Things you marked
+  `hidden` stay yours to reveal. And the engine is public: `search_yields(self)`
+  from an instance `on search` runs the success path where the default
+  declines, the compliant frisk of a still-animate character being the
+  canonical case.
 - ACTING ON THINGS, futile by default until an object overrides:
   `throw ... at`, `rub` (polish, clean, wipe...), `squeeze`, `tie ... to`,
   `cut`, `fill`, `burn`, `blow`, `set ... to`, `empty`, `buy`, `consult

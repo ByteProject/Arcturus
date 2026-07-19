@@ -54,7 +54,7 @@ def test_extended_verbs_on_frotz(tmp_path):
         input="search chest\ndig\nthink\nrub pebble\nask guard about pebble\nrub guard\n",
         capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "nothing new to see here" in out  # search's cheeky neutral default
+    assert "You find a gold coin." in out  # search lists an open container's contents
     assert "The ground keeps its secrets." in out  # an intransitive flavor verb (dig)
     assert "A fine idea. Nothing comes of it." in out  # think
     assert "You give the grey pebble a thorough buffing." in out  # rub default on an object
@@ -77,13 +77,14 @@ def test_unsummoned_verbs_are_unknown_on_frotz(tmp_path):
 
 
 def test_search_defaults_by_object_type():
-    # SEARCH's shape (a field report via Charles Moore Jr.: it only worked on
-    # containers/supporters). Any object is searchable, and the default reads
-    # the object: a living thing gets a social rebuff (frisking a person is
-    # not a discovery), a shut container keeps its secrets, and everything
-    # else gets the neutral cheeky line. A corpse is not animate, so it drops
-    # to the neutral case and an `on search` override turns out its loot,
-    # revealing by making the item REACHABLE.
+    # SEARCH's shape (two field reports via Charles Moore Jr., and Stefan's
+    # ruling of 2026-07-19): search tells you what is there, and makes
+    # findable what wasn't. A living thing gets the social rebuff, a shut
+    # container keeps its secrets, an empty thing gets the neutral line, an
+    # open container LISTS its contents, and a plain thing's authored cache
+    # is listed, marked seen, and spilled to the room so it is truly
+    # takeable. search_yields is the same engine public, for the compliant
+    # frisk of a still-animate character.
     from actaea.io import CaptureIO
     from actaea.loader import load
     from actaea.vm import VM
@@ -94,21 +95,53 @@ def test_search_defaults_by_object_type():
         'thing box of container in hall\n    name "shut box"\n    words shut, box\n'
         'thing guard of character in hall\n    name "guard"\n    words guard\n'
         'thing corpse in hall\n    name "corpse"\n    words corpse\n'
-        '    on search\n'
-        '        move coin to here\n'
-        '        say "You go through the coat and find a coin."\n'
         'thing coin in corpse\n    name "gold coin"\n    words coin, gold\n'
+        'thing warden of character in hall\n    name "warden"\n    words warden\n'
+        '    on search\n'
+        '        search_yields(self)\n'
+        'thing pass in warden\n    name "stamped pass"\n    words pass, stamped\n'
     )
     story = generate(analyze(cosmos.combined_program(parse(game))))
     io = CaptureIO(script=["search statue", "search box", "frisk guard",
-                           "search corpse", "take coin"])
+                           "search corpse", "take coin",
+                           "search warden", "take pass",
+                           "search corpse"])
     try:
         VM(load(story), io).run(max_steps=20_000_000)
     except IndexError:
         pass
     out = io.text
-    assert "nothing new to see here" in out        # inanimate: neutral default
+    assert "nothing new to see here" in out        # empty thing: neutral line
     assert "Schroedinger" in out                   # a shut container
     assert "look that says" in out                 # a living thing: the rebuff
-    assert "find a coin" in out                    # corpse (not animate): override
-    assert "Got it." in out.split("take coin")[-1]  # the coin is reachable and taken
+    assert "You find a gold coin." in out          # the cache lists itself
+    assert "Got it." in out.split("take coin")[-1]  # ... and is truly takeable
+    assert "You find a stamped pass." in out       # search_yields on an animate
+    assert "Got it." in out.split("take pass")[-1]
+    # The emptied corpse searches clean the second time.
+    assert "nothing new to see here" in out.split("search corpse")[-1]
+
+
+def test_search_alter_rewords_but_the_loot_still_lands():
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    game = (
+        'game\n    title "T"\n    start hall\nsummon.extendedverbs\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing corpse in hall\n    name "corpse"\n    words corpse\n'
+        '    on search\n'
+        '        alter "A quick professional pat-down."\n'
+        '        continue\n'
+        'thing coin in corpse\n    name "gold coin"\n    words coin, gold\n'
+    )
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+    io = CaptureIO(script=["search corpse", "take coin"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert "A quick professional pat-down." in out
+    assert "You find" not in out                   # the default report stayed silent
+    assert "Got it." in out.split("take coin")[-1]  # the mechanics ran anyway

@@ -5059,3 +5059,24 @@ the pairing with record/replay/check: a walkthrough of a game with
 random flavor (dice, shuffled ambience) becomes deterministic, which
 the check workflow could not promise before. docs/06 covers it beside
 the record loop; suite 1031.
+
+## 2026-07-19: search searches for real (Cosmos 1.2.5)
+
+Charles's report: a lootable knocked-out guard took a hand-rolled
+listing loop, near-verbatim the library's own reveal idiom, and (as
+the diagnosis showed) his version even left the loot unreachable,
+since scope never descends into a plain thing. Discussed at length at
+Stefan's direction: helper vs default vs both, the alter integration
+he called out as the point ("the author has no control over the
+response" killed the helper-only shape), the blast radius (revised
+down: only authors can seed contents into plain things, so every
+yield is a staged cache), and the animate gate as the consciousness
+model. RULED (Stefan): the default searches for real. Search tells
+you what is there and makes findable what wasn't: living rebuffs,
+sealed refuses, open containers and supporters list, and a plain
+thing's cache lists, marks seen, and spills to the floor; alter
+rewords while the mechanics run; the engine is public as
+search_yields(self) for the compliant frisk of a still-animate
+character. The granule's header finally matches its behavior (it had
+promised listing since B5.5b and never did it). One ceiling moved
+(the extended-verbs showcase); everything else untouched. Suite 1032.
