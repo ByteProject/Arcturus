@@ -65,12 +65,27 @@ unchanged, text-only. The contract:
    - An unknown id, a missing or unreadable asset: IGNORE the call silently
      and play on. A picture is presentation, never game state.
 
-3. THE BAND. The picture occupies the top of the screen; the interpreter's
-   text screen model (including the Z-machine upper window and status line)
-   lives strictly below it. Both modes must work. The band persists across
-   turns until the next draw_image call replaces or clears it; the story's
-   library already deduplicates (a re-LOOK issues no draw), so the
-   interpreter needs no redraw caching of its own.
+3. THE BAND. On a fixed-screen interpreter (the retro machines, and any
+   modern one that models the classic Z-machine screen) the picture
+   occupies the top of the screen; the interpreter's text screen model
+   (including the Z-machine upper window and status line) lives strictly
+   below it. Both modes must work. The band persists across turns until the
+   next draw_image call replaces or clears it; the story's library already
+   deduplicates (a re-LOOK issues no draw), so the interpreter needs no
+   redraw caching of its own.
+
+   PRESENTATION IS THE MODERN INTERPRETER'S OWN. The band is the contract
+   only where a fixed screen makes it one. A modern interpreter, free of
+   the cell grid, may present the picture however suits it: a transcript
+   that scrolls the picture inline with the prose (the storybook flow, with
+   earlier scenes still visible above), a resizable panel, a fade between
+   scenes. What every presentation must preserve is the meaning: the mode's
+   aspect (mode x 8 rows over the platform width; a modern terp may scale
+   freely but not distort), the picture belonging to the moment it was
+   drawn, and clear (id 0) taking the current picture down. How and where it
+   sits on screen is the author's discretion. This latitude is deliberate:
+   the same draw_image stream drives a pinned band on an 8-bit and a
+   flowing gallery in a browser, and both are conformant.
 
 4. DEGRADATION. A text-only interpreter needs NOTHING: bit unset, opcode
    never reached, and a decoded-anyway EXT:0x80 skipped per the Standard.
@@ -114,10 +129,15 @@ released games ship a pack. Master resolution: any size at the band's
 aspect ratio (40:9 mode 9, 10:3 mode 12); 320-wide is the reference,
 not a ceiling, and the interpreter scales to its band.
 
-RENDERING. The band per Part A: the picture above, the whole text screen
-model below. Integer-scale the 320-wide art to your window (2x, 3x, ...)
-so pixels stay crisp; the band height in your pixels is mode x 8 art
-rows times your scale factor. draw_image with an id you cannot resolve:
+RENDERING. Present the picture however suits your interpreter (Part A,
+point 3: on a modern terp the fixed band is a default, not a mandate).
+Actaea pins it as a band above the text; another interpreter scrolls it
+inline with the transcript, storybook-style, and that is equally
+conformant. What to keep: the mode's aspect (mode x 8 rows over the
+width, scaled freely but not distorted), the picture tied to the moment
+it was drawn, and id 0 clearing it. Pixel art scales crispest on integer
+factors, so a nearest-neighbour or integer zoom keeps it sharp; a
+smooth scale is your call. draw_image with an id you cannot resolve:
 ignore silently and play on.
 
 REFERENCE IMPLEMENTATION. Actaea's window front-end is the working
@@ -824,6 +844,14 @@ sector bites.
 
 ## Change log
 
+- 2026-07-19 (presentation latitude): Part A point 3 now makes the fixed
+  top-of-screen band the contract only for fixed-screen interpreters; a
+  modern interpreter may present the picture however suits it (a
+  transcript that scrolls pictures inline, a resizable panel), preserving
+  only the mode aspect, the picture's moment, and clear. Prompted by
+  auraes's inline-scrolling z5 interpreter on the announcement thread;
+  Stefan ruled presentation on modern systems the interpreter author's
+  discretion.
 - 2026-07-19 (Blorb): the modern chapter gains the second envelope, on
   the interpreter community's ask: arcimg writes .blorb (pictures as
   Pict N) and .zblorb (story embedded as Exec 0) alongside .arcres,
