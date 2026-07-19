@@ -5170,3 +5170,24 @@ door GET ON uses. Same player surface, byte cost back to the two
 dictionary words and a grammar row. The lesson stands in the log:
 the size gate is part of the done-test, not an after-the-fact chore.
 Suite 1037, all green this time.
+
+## 2026-07-19: Blorb, on the community's ask (arcimg 1.14.0, Actaea 1.3.0)
+
+The announcement thread produced interpreter authors willing to
+implement arc_image, Chris Spiegel (Bocfel) among them, on one
+condition: Blorb as the resource container. Stefan ruled the shape:
+`pack --blorb` writes a pictures-only .blorb, `pack --zblorb STORY`
+writes the merged single file (the story as a parameter, arcimg's
+first), `.arcres` stays the default, and, his condition in turn,
+Actaea itself must read both, "that's the only way". Done end to end:
+the Blorb writer in arcimg (IFF FORM/IFRS, RIdx first, picture id N =
+Pict N with the master PNG bytes verbatim, the story as Exec 0 in a
+ZCOD chunk), and Actaea opens a .zblorb as the story and serves its
+pictures from it, resolves a sibling .blorb after .arcres, and the
+GUI reads Pict resources beside the zip path. Blorb has no filenames
+inside, resources ARE numbers, so the arc_image model maps with zero
+translation; nothing about the opcode, the flag, the band, or the
+dedup changes. Also ruled: master resolution is flexible at the band
+aspect (40:9 / 10:3); 320 is the reference the retro conversions
+derive from, not a ceiling, and Actaea's rational scaler already
+handled it. docs/06, 07, and 08 updated together. Suite 1039.

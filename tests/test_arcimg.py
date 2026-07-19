@@ -328,3 +328,67 @@ def test_prep_mode9_is_the_top_crop_of_the_mode12_master():
     assert cropped.size == (320, 72)
     from PIL import ImageChops
     assert ImageChops.difference(cropped, img.crop((0, 0, 320, 72))).getbbox() is None
+
+
+# -- Blorb output (the interpreter-community ask; Stefan's go 2026-07-19) ----
+
+def test_blorb_pack_structure(tmp_path):
+    # pack --blorb: an IFF FORM/IFRS with RIdx first, Pict N = arc_image id
+    # N, PNG payloads verbatim; --zblorb STORY adds the story as Exec 0 in
+    # a ZCOD chunk. Parsed here independently of the writer.
+    ai = arcimg
+    art = tmp_path / "art"
+    art.mkdir()
+    _make_png(str(art / "8.png"), 320, 72)
+    _make_png(str(art / "9.png"), 640, 144)   # a 2x master: same aspect, legal
+    story = tmp_path / "s.z5"
+    story.write_bytes(bytes([5]) + bytes(99))
+    entries = {8: str(art / "8.png"), 9: str(art / "9.png")}
+
+    for story_path in (None, str(story)):
+        blob = ai.build_blorb(entries, story_path)
+        assert blob[:4] == b"FORM" and blob[8:12] == b"IFRS"
+        assert blob[12:16] == b"RIdx"
+        (count,) = struct.unpack(">I", blob[20:24])
+        assert count == (3 if story_path else 2)
+        seen = {}
+        for i in range(count):
+            off = 24 + i * 12
+            usage = blob[off:off + 4]
+            num, start = struct.unpack(">II", blob[off + 4:off + 12])
+            ctype = blob[start:start + 4]
+            (clen,) = struct.unpack(">I", blob[start + 4:start + 8])
+            seen[(usage, num)] = (ctype, blob[start + 8:start + 8 + clen])
+        assert seen[(b"Pict", 8)][0] == b"PNG "
+        assert seen[(b"Pict", 8)][1] == open(entries[8], "rb").read()
+        assert seen[(b"Pict", 9)][1] == open(entries[9], "rb").read()
+        if story_path:
+            ctype, payload = seen[(b"Exec", 0)]
+            assert ctype == b"ZCOD" and payload[0] == 5
+
+
+def test_actaea_reads_the_blorb_back(tmp_path):
+    # The other end of the contract: Actaea loads the story out of a
+    # .zblorb and serves Pict N; a missing picture degrades to None.
+    ai = arcimg
+    from actaea.loader import load_file, blorb_picture, blorb_story
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    art = tmp_path / "art"
+    art.mkdir()
+    _make_png(str(art / "3.png"), 320, 96)
+    game = ('game\n    title "B"\n    start hall\n'
+            'room hall\n    name "Hall"\n    desc "H."\n')
+    story = tmp_path / "b.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(game)))))
+    zb = tmp_path / "b.zblorb"
+    zb.write_bytes(ai.build_blorb({3: str(art / "3.png")}, str(story)))
+
+    s = load_file(str(zb))
+    assert s.header.version == 5
+    assert blorb_story(zb.read_bytes()) == story.read_bytes()
+    png = blorb_picture(str(zb), 3)
+    assert png is not None and png[:8] == b"\x89PNG\r\n\x1a\n"
+    assert blorb_picture(str(zb), 44) is None

@@ -495,9 +495,18 @@ class ActaeaApp:
             except tk.TclError:
                 return None
         if self._images_zip:
+            # The pack is an .arcres (a zip of <id>.png) or a Blorb
+            # (.blorb/.zblorb: Pict resources, resource number = the id).
+            # Same numbered model, two envelopes.
             try:
-                with zipfile.ZipFile(self._images_zip) as z:
-                    data = z.read(fname)
+                if zipfile.is_zipfile(self._images_zip):
+                    with zipfile.ZipFile(self._images_zip) as z:
+                        data = z.read(fname)
+                else:
+                    from ..loader import blorb_picture
+                    data = blorb_picture(self._images_zip, image_id)
+                    if data is None:
+                        return None
                 # tkinter reads PNG bytes through the base64 `data` option.
                 return tk.PhotoImage(data=base64.b64encode(data).decode("ascii"))
             except (OSError, KeyError, zipfile.BadZipFile, tk.TclError):

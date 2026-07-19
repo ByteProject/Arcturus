@@ -22,7 +22,10 @@ Copyright (c) 2026, Stefan Vogt | https://github.com/ByteProject/Arcturus
 
 Actaea ships two ways, identical in behavior:
 
-- The package: `python3 -m actaea story.z5` from the repository root.
+- The package: `python3 -m actaea story.z5` from the repository root. The
+  story argument may also be a `.zblorb` (a Blorb with the story embedded,
+  the pack `arcimg pack --zblorb` writes): Actaea plays the story out of
+  it and serves its pictures from the same file.
 - The standalone: one self-contained file, `build/actaea`, produced by
   `python3 tools/amalgamate_actaea.py`. Copy it anywhere and run
   `python3 actaea story.z5` (or `./actaea story.z5`); no installation, no
@@ -78,7 +81,7 @@ first loading the picture, the same way a retro interpreter must. The console an
 support, so the same story plays there as pure text. Actaea finds the
 pictures next to the story: `--images DIR` points at a directory of numbered
 PNGs (`8.png` is picture id 8, the debug path), and with no flag it reads a
-sibling `.arcres` pack (the zip `arcimg` builds), then the story's own
+sibling `.arcres` pack (the zip `arcimg` builds) or `.blorb`, then the story's own
 directory. There is no name manifest; the id is the file. This is the modern
 half; retro rendering is B12.
 

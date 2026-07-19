@@ -92,14 +92,27 @@ everything from Part B on (the .arc container, the codecs, the per-target
 chapters) is the retro machines' business. On the desktop there is no
 container and no codec: the pictures ship as the master PNGs themselves.
 
-RESOURCES. Beside the story file sits one pack, `<story-basename>.arcres`
-(mygame.z5, mygame.arcres): a plain zip archive holding the numbered
-pictures, `<id>.png` (picture 8 is 8.png), each already in its band
-shape (320x72 for mode 9, 320x96 for mode 12). Open it with any zip
-reader; there is no manifest, the names are the index. A loose directory
-of the same numbered PNGs beside the story is the DEBUGGING fallback and
-works too (Actaea checks the pack first, then the story's directory);
-released games ship the pack.
+RESOURCES, two envelopes, one model. Beside the story file sits a pack
+of the numbered master PNGs, and the picture id in the opcode is the
+resource number in the pack, nothing else:
+
+- `.arcres` (mygame.z5, mygame.arcres): a plain zip holding `<id>.png`
+  (picture 8 is 8.png). No manifest; the names are the index.
+- Blorb: the same pictures as `Pict` resources (picture 8 is Pict 8,
+  a `PNG ` chunk holding the master bytes verbatim). `mygame.blorb`
+  accompanies a separate story file; `mygame.zblorb` embeds the story
+  itself as Exec 0 (a `ZCOD` chunk), the single-file shape the
+  Gargoyle family opens directly. arcimg writes both (`pack --blorb`,
+  `pack --zblorb STORY`).
+
+An interpreter that already speaks Blorb needs nothing new: resource
+number = arc_image id, and the mode still arrives in the opcode. One
+that speaks neither can pick the zip, which is the smaller parse. A
+loose directory of numbered PNGs beside the story is the DEBUGGING
+fallback (Actaea checks pack first, then the story's directory);
+released games ship a pack. Master resolution: any size at the band's
+aspect ratio (40:9 mode 9, 10:3 mode 12); 320-wide is the reference,
+not a ceiling, and the interpreter scales to its band.
 
 RENDERING. The band per Part A: the picture above, the whole text screen
 model below. Integer-scale the 320-wide art to your window (2x, 3x, ...)
@@ -811,6 +824,12 @@ sector bites.
 
 ## Change log
 
+- 2026-07-19 (Blorb): the modern chapter gains the second envelope, on
+  the interpreter community's ask: arcimg writes .blorb (pictures as
+  Pict N) and .zblorb (story embedded as Exec 0) alongside .arcres,
+  same numbering everywhere; Actaea opens both. Master resolution
+  ruled flexible at the band aspect (320 is the reference, not a
+  ceiling).
 - 2026-07-19 (the modern desktop): the .arcres path gets its own chapter,
   placed directly after Part A and before the retro container, so a
   desktop terp author reads the contract, the pack (a zip of numbered
