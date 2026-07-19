@@ -5155,3 +5155,18 @@ is its own grammar row with the literal word), STAND ON THE STOOL
 boards it like SIT ON, and standing on solid ground gets exit's
 ordinary "you aren't inside anything". The granule's stand stub and
 message retired; ceilings moved both ways with the note. Suite 1037.
+
+## 2026-07-19: STAND redone on the flag model (the doctrine catch)
+
+The first STAND landed with literal-word grammar lines, which are
+lossy for the flag model: the whole positional matcher tabled into
+EVERY game (~700 bytes each), the exact breach the grammar-table
+tests pin, and the suite said so while the commit went in anyway; the
+ceilings were even raised over the failure. Caught on the next run
+and redone properly: one flag-model line (`exit noun`; the noun slot
+carries the particle form and lets STAND UP's direction ride `way`,
+which exit ignores) plus exit+on in compound(), the same particle
+door GET ON uses. Same player surface, byte cost back to the two
+dictionary words and a grammar row. The lesson stands in the log:
+the size gate is part of the done-test, not an after-the-fact chore.
+Suite 1037, all green this time.

@@ -88,6 +88,11 @@ block compound(base, particle)
             return action_id("take_off")
         if particle is 1
             return action_id("enter")
+    if base is action_id("exit")
+        // STAND ON THE STOOL boards it (the sit/stand pair): exit + the
+        // on particle is an enter, like GET ON and GO ON.
+        if particle is 1
+            return action_id("enter")
     if base is action_id("transcript")
         if particle is 1
             return action_id("transcript")
@@ -684,12 +689,13 @@ verb "sit", "rest"
     enter noun
 
 // STAND is the other half of the pair (Stefan's go, same day): bare
-// STAND (and STAND UP) leaves whatever you sit in or on, through exit's
-// ordinary path, and STAND ON THE STOOL boards it like SIT ON does.
+// STAND (and STAND UP: the direction word rides `way`, which exit
+// ignores) leaves whatever you sit in or on, and STAND ON THE STOOL
+// boards it, the exit+on particle in compound() below, the same door
+// GET ON came through. One flag-model line: the noun slot is there for
+// the particle form and for the way ride, never tabled.
 verb "stand"
-    exit
-    exit up
-    enter on noun
+    exit noun
 
 verb "exit", "leave"
     exit
