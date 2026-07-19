@@ -683,6 +683,14 @@ verb "enter", "board"
 verb "sit", "rest"
     enter noun
 
+// STAND is the other half of the pair (Stefan's go, same day): bare
+// STAND (and STAND UP) leaves whatever you sit in or on, through exit's
+// ordinary path, and STAND ON THE STOOL boards it like SIT ON does.
+verb "stand"
+    exit
+    exit up
+    enter on noun
+
 verb "exit", "leave"
     exit
 

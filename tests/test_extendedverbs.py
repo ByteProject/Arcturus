@@ -193,3 +193,28 @@ def test_sit_is_standard_and_means_enter():
         pass
     assert io.text.count("You get on the chair.") == 2
     assert "You get off the chair." in io.text
+
+
+def test_stand_is_standard_exit_and_boarding():
+    # STAND completes the pair (Stefan's go): bare STAND and STAND UP leave
+    # the seat through exit's ordinary path; STAND ON X boards it like SIT
+    # ON; standing on solid ground gets exit's normal refusal.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "H."\n'
+        'thing stool of supporter in hall\n    name "stool"\n    words stool\n'
+    )
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+    io = CaptureIO(script=["stand on stool", "stand up", "sit on stool",
+                           "stand", "stand"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert out.count("You get on the stool.") == 2
+    assert out.count("You get off the stool.") == 2
+    assert "aren't inside anything" in out
