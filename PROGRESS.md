@@ -5033,3 +5033,17 @@ English and German heal together; an unbound pronoun now faults
 honestly ("say what you mean") instead of misbinding. The branch
 ships wherever the reverse grammar does (all English games), so the
 ceilings moved a few bytes each, noted. Suite 1027.
+
+## 2026-07-19: clear_screen puts the furniture back (arcc 1.3.7)
+
+Charles's report: with the status bar summoned, the first line of his
+intro still hid under the bar. The screen_ready seam was working as
+built (verified in order on dfrotz and fizmo), but his game, like H2's
+own prelude, CLEARS the screen in `on start`, and erase_window -1
+unsplits: the bar died with the split, the intro printed from row 1,
+and the first prompt's bar redraw painted over it. Stefan pointed the
+diagnosis at the intro shape. Fixed in the clear_screen lowering: after
+the erase, the compiler re-runs the screen_ready seam, so whatever
+granule owns the screen furniture puts it back before the next word
+prints; emitted only when the seam has an owner, so a bar-less game is
+byte-identical (asserted in the test). H2 rebuilt; suite 1029.

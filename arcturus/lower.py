@@ -1075,13 +1075,20 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _free(ctx, t)
     elif name == "clear_screen":
         # clear_screen(): wipe the whole screen (erase_window -1, which also
-        # unsplits) and drop any pending paragraph break with it; the status
-        # bar, if summoned, repaints at the next prompt. H2 clears after its
-        # prelude and between acts.
+        # unsplits) and drop any pending paragraph break with it. Then put
+        # the screen furniture straight back: the erase killed the split, so
+        # without an immediate screen_ready the next prints start on row 1
+        # and the prompt's bar redraw paints OVER the first line (the field
+        # report: the opening line hidden under the bar in a game that
+        # clears before its intro). The seam call is emitted only when a
+        # granule claimed it; a bar-less game is byte-identical.
         rt.op("erase_window", Const(-1))
         slot = ctx.globals.get("par_pending")
         if slot is not None:
             rt.op("store", Const(slot), Const(0))
+        blk = ctx.world.blocks.get("screen_ready")
+        if blk is not None and blk.body:
+            rt.op("call_vn", RoutineRef("blk_screen_ready"))
         _place(rt, Const(0), dest)
     elif name == "erase_window":
         # erase_window(n): clear window n (1 = upper) so the menu repaints clean;
