@@ -5086,3 +5086,13 @@ promised listing since B5.5b and never did it). One ceiling moved
 The engine's public name, Stefan's call before anything shipped to an
 adopter: search_yields becomes search_loot, granule, tests, and docs
 in one sweep.
+
+## 2026-07-19: the touch interpreter, parked far out (Stefan's direction)
+
+Recorded in docs/00 beyond the lettered milestones, deliberately
+unscheduled: a second interpreter beside Actaea for touch and
+point-and-click play of Z-machine games, on the Mac, any regular
+computer, iPad, iPhone, and Android. In the design record rather than
+the feature roadmap because it concerns the toolchain's future, not
+the language; nothing about it starts until the current milestones
+are long done.
