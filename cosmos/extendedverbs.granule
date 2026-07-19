@@ -72,7 +72,7 @@ on search
 block search_loot(holder)
     let total = 0
     for each x in holder
-        if x is not hidden
+        if search_lootable(x) is 1
             change total to total + 1
     if total is 0
         msg_search_nothing
@@ -86,7 +86,7 @@ block search_loot(holder)
     msg_search_found
     let shown = 0
     for each x in holder
-        if x is not hidden
+        if search_lootable(x) is 1
             if shown is not 0
                 if shown is total - 1
                     msg_list_and
@@ -109,9 +109,21 @@ block search_sweep(holder)
     if holder is supporter
         return 0
     for each x in holder
-        if x is not hidden
+        if search_lootable(x) is 1
             move x to here
     return 0
+
+// What counts as findable loot: not `hidden` (the author's own reveals
+// stay theirs) and not `component` (an attached part, the pirate's scar
+// or a sewn-on pocket, is part of the body, not something a search can
+// carry off; the field report had a component listed and then answering
+// "that's part of the room" after the yield moved it).
+block search_lootable(x)
+    if x is hidden
+        return 0
+    if x is component
+        return 0
+    return 1
 
 // ---------------------------------------------------------------------------
 // Acting on objects (futile by default; an object overrides for real effect).

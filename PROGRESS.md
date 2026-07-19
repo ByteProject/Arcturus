@@ -5105,3 +5105,16 @@ codebase for every screen, no store between the game and the player,
 and the single self-contained file ethos carries over (interpreter,
 story, and art bundled into one). The idea itself came as feedback
 from the German IF forum; the scheduling stays far out.
+
+## 2026-07-19: search leaves components alone (Cosmos 1.2.7)
+
+Charles's follow-up exposed two things. His actual symptom (the
+default still speaking the nothing-line over a stocked body) does not
+reproduce on the current build, handler-continue shape and all: he is
+running a pre-1.2.5 toolchain, and since arcc --update serves GitHub
+main, the fix reaches him only once the day's commits are pushed. But
+his `component` experiment caught a real bug in the new engine: a
+component was listed as loot and yielded to the room, where it
+answered "that's part of the Dock" on take. A component is an
+attached part, not loot; search now neither lists nor moves one (the
+search_lootable filter: not hidden, not component). Suite 1033.

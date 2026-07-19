@@ -145,3 +145,29 @@ def test_search_alter_rewords_but_the_loot_still_lands():
     assert "A quick professional pat-down." in out
     assert "You find" not in out                   # the default report stayed silent
     assert "Got it." in out.split("take coin")[-1]  # the mechanics ran anyway
+
+
+def test_search_leaves_components_alone():
+    # A `component` is an attached part, not loot (the field report: a
+    # component was listed, yielded to the room, and then answered "that's
+    # part of the Dock" on take). Search neither lists nor moves it; a body
+    # whose only content is a component searches clean.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    game = (
+        'game\n    title "T"\n    start hall\nsummon.extendedverbs\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing sleeper in hall\n    name "sleeper"\n    words sleeper\n'
+        'thing scar in sleeper\n    name "long scar"\n    words scar, long\n'
+        '    component\n'
+    )
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+    io = CaptureIO(script=["search sleeper", "take scar"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert "nothing new to see here" in out
+    assert "You find" not in out
