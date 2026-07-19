@@ -49,6 +49,20 @@ block converse(person)
                 topic_run(person, i)
                 return 1
         change i to i + 1
+    // No worded topic matched. If the person has an `idle` topic in view,
+    // run it as the fallback (the per-NPC default answer): the first visible
+    // one, so a `when` guard can vary it by scene. An idle topic carries no
+    // words, so the pass above never runs it. The whole block folds away in a
+    // game with no idle topic (any_topic_idle), which then speaks the flat
+    // msg_ask/msg_tell default as before.
+    if any_topic_idle is 1
+        let j = 0
+        while j < count
+            if topic_visible(person, j)
+                if topic_idle(person, j) is 1
+                    topic_run(person, j)
+                    return 1
+            change j to j + 1
     return 0
 
 // Did the player type a word this topic answers to (one of its match

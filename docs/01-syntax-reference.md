@@ -1867,6 +1867,7 @@ A topic is declared in the person's body:
 
 ```
 topic <subject> "<label>" [words a, b, ...] [when <cond>] [once] [hidden]
+topic <subject> "<label>" idle [when <cond>] [once]
     <body>
 ```
 
@@ -1883,6 +1884,15 @@ The header parts, with the modifiers in any order:
 - `once` makes the topic one-shot: after it runs, the player cannot raise it
   again. Code can still bring it back with `reveal` (below).
 - `hidden` starts the topic out of view, until a `reveal` brings it in.
+- `idle` makes the topic the ask/tell fallback: it answers when the player asks
+  or tells about something no other topic matched, the person's default reply
+  instead of the flat library line. It takes no `words` (it matches on "nothing
+  else did"), and it is otherwise an ordinary topic: it carries a full exchange,
+  and `once` (a one-time "that is all I know") and `when` (a scene-dependent
+  brush-off) work on it. A person may have several; the first in view answers.
+  Idle topics belong to the ask/tell presentation only; the conversations menu
+  ignores them (a menu has no unmatched-subject case), so one declared in a
+  menu game is silently unused.
 
 By default a topic is repeatable and never leaves on its own: the player can
 raise it as often as they like. Nothing is needed to keep a topic around; every

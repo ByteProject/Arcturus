@@ -5231,3 +5231,25 @@ most-specific-wins), but there is no clean PER-NPC default nor a
 wildcard/fallback topic. That is a design question, not a bug, and
 waits for a ruling (a fallback topic, a per-person default hook, or
 "the global reskin is enough").
+
+## 2026-07-20: the idle topic, a per-NPC conversation default (arcc 1.3.9, Cosmos 1.2.11)
+
+Discussed with Stefan before building (his two awareness points settled
+first: the subject-fix did not touch the menu, verified on Frotz; and a
+default is meaningless in the menu, so it must be ask/tell-only). RULED:
+NPCs need a per-person default answer; keyword `idle`; one idle serves
+both ASK and TELL; it is an ordinary topic in every way but the match.
+Built: `topic <id> "<label>" idle` marks the ask/tell fallback (no
+words, matches on "nothing else did"); infocom_talking runs the first
+visible idle topic when no worded topic matched, in place of the flat
+msg_ask/msg_tell; `once` gives a one-time "that is all I know", `when`
+a scene-dependent brush-off; several allowed, first in view wins. The
+conversations menu ignores idle topics entirely (Stefan's point 2): a
+new menu_visible seam skips them, so one declared in a menu game is
+inert. Sema refuses `idle` + `words` (contradictory) with the cure. New
+TOPIC_IDLE flag bit, cosmos_topic_idle helper, topic_idle intrinsic,
+any_topic_idle compile-time fold. Pay-for-use: the idle machinery DCEs
+away with no idle topic (ask/tell and non-conversation games
+byte-identical, confirmed); menu games pay +20 for the menu_visible
+seam, ceilings noted. docs/01, docs/05, the VSIX (idle keyword, 1.0.1)
+all updated. Suite 1047.

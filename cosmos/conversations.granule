@@ -68,6 +68,17 @@ block run_talk(person)
 // around the resize, keeps a shrinking menu from leaving a stale line behind: the
 // first clears the old (possibly taller) window, the second the new one. Single
 // keypress selection caps the list at nine, so a tenth topic waits for a discard.
+// A topic the menu should list: in view, and not an `idle` fallback (idle
+// topics belong to the ask/tell presentation and are invisible here, docs/05).
+// The idle test folds away in a game with no idle topic (any_topic_idle).
+block menu_visible(person, i)
+    if topic_visible(person, i) is 0
+        return 0
+    if any_topic_idle is 1
+        if topic_idle(person, i) is 1
+            return 0
+    return 1
+
 block draw_menu(person, count)
     // HOLD the pending paragraph break across the menu draw: it belongs to the
     // lower window's next text, and the menu's prints must not consume it.
@@ -92,7 +103,7 @@ block draw_menu(person, count)
     let i = 0
     let n = 0
     while i < topics_count(person)
-        if topic_visible(person, i)
+        if menu_visible(person, i)
             if n < count
                 change n to n + 1
                 set_cursor(top + 1 + n, 2)
@@ -140,7 +151,7 @@ block count_visible(person)
     let i = 0
     let n = 0
     while i < topics_count(person)
-        if topic_visible(person, i)
+        if menu_visible(person, i)
             change n to n + 1
         change i to i + 1
     return n
@@ -151,7 +162,7 @@ block run_pick(person, pick)
     let i = 0
     let n = 0
     while i < topics_count(person)
-        if topic_visible(person, i)
+        if menu_visible(person, i)
             change n to n + 1
             if n is pick
                 topic_run(person, i)

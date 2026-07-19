@@ -1021,6 +1021,15 @@ class Analyzer:
                     )
                 w.objects[owner].ambiences.append(m)
             elif isinstance(m, ast.TopicDecl):
+                if m.idle and m.words:
+                    # An idle topic answers when NOTHING else matched, so it
+                    # cannot also carry subject words: the two are contradictory.
+                    raise self._error(
+                        f"topic '{m.subject}' is `idle` (the ask/tell fallback) "
+                        f"and so takes no `words`: it answers when no worded "
+                        f"topic matched. Drop the words, or drop `idle`",
+                        m.line,
+                    )
                 if on_kind:
                     w.kinds[owner].topics.append(m)
                 else:

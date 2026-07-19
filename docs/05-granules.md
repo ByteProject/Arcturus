@@ -138,9 +138,20 @@ whose `words` match a typed subject word and is in view, runs it, and falls
 back to its own flat "stays mum" default when nothing matches (those richer
 defaults live here alone; every other game answers ask/tell with the one
 talk brush-off). `tell`
-shares the same path. There is no topic list anywhere: discovery is play,
+shares the same path. Only the SUBJECT phrase is matched, the words after
+the about/for; the person's own name (the listener) is not, so a topic whose
+words happen to include the character's name does not fire for every ask.
+There is no topic list anywhere: discovery is play,
 the Infocom way, and TALK TO stays the flat brush-off a person can override
 to nudge the player toward the two verbs that matter.
+
+For a per-person default answer, give the person an `idle` topic (01 section
+15): it answers when the player asks or tells about a subject no other topic
+matched, in place of the flat library line. It is an ordinary topic with a
+full exchange, `once` and `when` and all, that matches on "nothing else did"
+rather than on words; several are allowed, and the first in view answers.
+This is the ask/tell counterpart of the flat default; the conversations menu
+has no unmatched case and ignores idle topics entirely.
 
 With no list to exhaust, a plain topic here is REPEATABLE: the player may raise
 it again and again (asking about the weather twice answers twice), and `once` is
@@ -314,6 +325,9 @@ thing wirtin of character in inn
   lighthouse"): that is the line the player sees, numbered, in the list.
 - `words` are only for ask/tell (`ask innkeeper about tower`); the menu does
   not need them, players pick by number.
+- `idle` topics are only for ask/tell (the per-person default answer); the
+  menu has no unmatched-subject case, so it never lists or runs one. An idle
+  topic declared in a menu game is simply inert.
 - VISIBILITY is live, three ways (01 section 15 explains when to use which):
   a `when` guard follows the story state by itself; `hidden` topics enter
   view when another topic's body (or any handler) runs `reveal <subject>`;

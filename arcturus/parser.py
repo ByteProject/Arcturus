@@ -429,6 +429,7 @@ class Parser:
         when = None
         once = False
         hidden = False
+        idle = False
         # Modifiers in any order until the end of the header line.
         while not self.check(T.NEWLINE):
             if self.check_kw("when"):
@@ -446,14 +447,17 @@ class Parser:
             elif self.check(T.NAME) and self.cur.value == "hidden":
                 self.advance()
                 hidden = True
+            elif self.check(T.NAME) and self.cur.value == "idle":
+                self.advance()
+                idle = True
             else:
                 raise self._error(
-                    "expected 'words', 'when', 'once', or 'hidden' in the topic "
-                    f"header, got {self._describe(self.cur)}"
+                    "expected 'words', 'when', 'once', 'hidden', or 'idle' in "
+                    f"the topic header, got {self._describe(self.cur)}"
                 )
         self.expect_newline()
         body = self.parse_stmt_block()
-        return ast.TopicDecl(subject, label, words, when, once, hidden, body, line)
+        return ast.TopicDecl(subject, label, words, when, once, hidden, idle, body, line)
 
     def parse_property(self) -> ast.PropertyDecl:
         # `in` (the direction property) is also the containment keyword, so
