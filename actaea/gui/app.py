@@ -144,7 +144,8 @@ class ActaeaApp:
     """The window: a Text widget with a scrollbar, inline input, and the
     run loop driving the VM through GuiIO."""
 
-    def __init__(self, story, title: str, images_dir=None, images_zip=None):
+    def __init__(self, story, title: str, images_dir=None, images_zip=None,
+                 seed=None):
         self.root = tk.Tk()
         self.root.title(f"{title} - Actaea")
         # arc_image (B11): an arc_image id IS the resource slot, so a picture the
@@ -272,7 +273,7 @@ class ActaeaApp:
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
         self.text.focus_set()
 
-        self.vm = VM(story, GuiIO(self))
+        self.vm = VM(story, GuiIO(self), seed=seed)
         self.vm.screen.on_change = self._grid_changed
         self._build_menu()
 
@@ -933,5 +934,5 @@ class ActaeaApp:
                 self.append_story(f"\n[actaea: {e}]\n")
 
 
-def play(story, title: str, images_dir=None, images_zip=None) -> None:
-    ActaeaApp(story, title, images_dir, images_zip).run()
+def play(story, title: str, images_dir=None, images_zip=None, seed=None) -> None:
+    ActaeaApp(story, title, images_dir, images_zip, seed).run()

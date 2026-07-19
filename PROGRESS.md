@@ -5047,3 +5047,15 @@ the erase, the compiler re-runs the screen_ready seam, so whatever
 granule owns the screen furniture puts it back before the next word
 prints; emitted only when the seam has an owner, so a bar-less game is
 byte-identical (asserted in the test). H2 rebuilt; suite 1029.
+
+## 2026-07-19: --seed, the reproducible session (Actaea 1.2.0)
+
+Charles asked whether Actaea can start with a fixed random seed. It
+could not; discussed, and Stefan ruled: build it, and the seed stays
+EXPLICIT everywhere (--check does not imply one). --seed N seeds the
+generator at boot in every front end, and RESTART rewinds it with the
+machine, so a session replays identically end to end. The real win is
+the pairing with record/replay/check: a walkthrough of a game with
+random flavor (dice, shuffled ambience) becomes deterministic, which
+the check workflow could not promise before. docs/06 covers it beside
+the record loop; suite 1031.

@@ -76,31 +76,31 @@ def _resolve_images(story_path: str, images_arg):
     return os.path.dirname(os.path.abspath(story_path)), None
 
 
-def _play_window(story, title: str, images_dir=None, images_zip=None) -> bool:
+def _play_window(story, title: str, images_dir=None, images_zip=None, seed=None) -> bool:
     try:
         from .gui.app import play
     except ImportError:
         return False  # no tkinter on this Python
-    play(story, title, images_dir, images_zip)
+    play(story, title, images_dir, images_zip, seed=seed)
     return True
 
 
-def _play_terminal(story, title: str) -> bool:
+def _play_terminal(story, title: str, seed=None) -> bool:
     if not sys.stdin.isatty():
         return False  # curses needs a real terminal
     try:
         from .console import play
     except ImportError:
         return False  # no curses on this platform (native Windows)
-    play(story, title)
+    play(story, title, seed=seed)
     return True
 
 
-def _play_headless(story) -> int:
+def _play_headless(story, seed=None) -> int:
     from .io import ConsoleIO
     from .vm import VM
 
-    vm = VM(story, ConsoleIO())
+    vm = VM(story, ConsoleIO(), seed=seed)
     try:
         vm.run()
     except EOFError:
@@ -113,7 +113,7 @@ def _play_headless(story) -> int:
     return 0
 
 
-def _play_terminal_session(story, title, record_path, replay_path) -> bool:
+def _play_terminal_session(story, title, record_path, replay_path, seed=None) -> bool:
     """--console with --record / --replay: the curses terminal, wrapped in the
     same session recorder. Returns False (to fall back to the plain console)
     when there is no terminal or no curses."""
@@ -129,11 +129,12 @@ def _play_terminal_session(story, title, record_path, replay_path) -> bool:
         with open(replay_path, "r", encoding="utf-8") as fh:
             _intro, turns = parse_walkthrough(fh.read())
         replay_commands = [cmd for cmd, _reply in turns]
-    play(story, title, record_path=record_path, replay_commands=replay_commands)
+    play(story, title, record_path=record_path, replay_commands=replay_commands,
+         seed=seed)
     return True
 
 
-def _play_session(story, record_path, replay_path, headless) -> int:
+def _play_session(story, record_path, replay_path, headless, seed=None) -> int:
     """--record and/or --replay: play through the plain console, recording the
     session and/or feeding a recorded file's commands first. A recording or
     replay is a debugging activity, so it runs on the plain console (io.py),
@@ -153,7 +154,7 @@ def _play_session(story, record_path, replay_path, headless) -> int:
     inner = ConsoleIO()
     io = SessionIO(inner, record_path=record_path, replay=replay_commands,
                    stop_at_end=(replay_commands is not None and headless))
-    vm = VM(story, io)
+    vm = VM(story, io, seed=seed)
     try:
         vm.run()
     except EOFError:
@@ -169,7 +170,7 @@ def _play_session(story, record_path, replay_path, headless) -> int:
     return 0
 
 
-def _run_check(story, check_path) -> int:
+def _run_check(story, check_path, seed=None) -> int:
     """--check: re-run a recorded file's commands against the current game and
     report whether it still plays the same, in plain words, stopping at the
     first divergence. Exit 0 when everything matched, 1 when it diverged."""
@@ -190,7 +191,7 @@ def _run_check(story, check_path) -> int:
     report_lines: list[str] = []
     io = SessionIO(CaptureIO(), check=(intro, turns),
                    report=report_lines.append)
-    vm = VM(story, io)
+    vm = VM(story, io, seed=seed)
     print(f"Checking {check_path} against the game ... {len(turns)} commands.")
     try:
         vm.run()
@@ -288,6 +289,14 @@ def main(argv=None) -> int:
         help="re-run a recorded FILE against this game and report, in plain "
         "words, whether it still plays the same (exit 1 if it diverged)",
     )
+    ap.add_argument(
+        "--seed", type=int, metavar="N",
+        help="seed the random generator with N for a reproducible session "
+        "(dice, shuffled ambience; restart rewinds the generator too). "
+        "Pairs with --record/--replay/--check to make walkthroughs of "
+        "games with random flavor deterministic; never implied, always "
+        "explicit",
+    )
     ap.add_argument("--version", action=_Version, nargs=0,
                     help="show the version banner and exit")
     args = ap.parse_args(argv)
@@ -322,7 +331,7 @@ def main(argv=None) -> int:
                 print("actaea: --check runs on its own (not with --record or "
                       "--replay)", file=sys.stderr)
                 return 2
-            return _run_check(story, args.check)
+            return _run_check(story, args.check, seed=args.seed)
 
         if args.record is not None or args.replay is not None:
             # In the terminal (--console): record and replay with the full
@@ -330,21 +339,21 @@ def main(argv=None) -> int:
             if args.console and not args.headless:
                 if _play_terminal_session(
                         story, os.path.basename(args.story),
-                        args.record, args.replay):
+                        args.record, args.replay, seed=args.seed):
                     return 0
                 print("actaea: no terminal for --console here; recording on "
                       "the plain console", file=sys.stderr)
-            return _play_session(story, args.record, args.replay, args.headless)
+            return _play_session(story, args.record, args.replay, args.headless, seed=args.seed)
 
         if args.headless:
-            return _play_headless(story)
+            return _play_headless(story, seed=args.seed)
 
         if args.console:
-            if _play_terminal(story, os.path.basename(args.story)):
+            if _play_terminal(story, os.path.basename(args.story), seed=args.seed):
                 return 0
             print("actaea: no terminal for --console here; "
                   "playing headless", file=sys.stderr)
-            return _play_headless(story)
+            return _play_headless(story, seed=args.seed)
 
         # arc_image resources for the window (the terminal and headless modes
         # cannot show pictures, so they ignore them).
@@ -355,11 +364,11 @@ def main(argv=None) -> int:
         # screen-like exists at all.
         if sys.stdin.isatty():
             if _play_window(story, os.path.basename(args.story),
-                            images_dir, images_zip):
+                            images_dir, images_zip, seed=args.seed):
                 return 0
-            if _play_terminal(story, os.path.basename(args.story)):
+            if _play_terminal(story, os.path.basename(args.story), seed=args.seed):
                 return 0
-        return _play_headless(story)
+        return _play_headless(story, seed=args.seed)
     except BrokenPipeError:
         return _pipe_closed()
 
