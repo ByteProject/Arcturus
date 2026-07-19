@@ -7,8 +7,10 @@
 // flavor and idle verbs beyond the always-in standard set (docs/verb-set.md,
 // the E column) - search, throw, dig, rub, pray, and their kin. Most just
 // speak a default an object can override (most-specific-wins), exactly like
-// the standard sensory verbs; search lists what a container or supporter
-// holds. Conversation is NOT here: ask/tell/answer are standard verbs, and
+// the standard sensory verbs; search is the real one: it lists what the
+// target holds, marks it seen, and spills a plain thing's cache into the
+// room so the findings are truly takeable (living people rebuff, sealed
+// containers refuse). Conversation is NOT here: ask/tell/answer are standard verbs, and
 // the two conversation presentations are their own granules (conversations,
 // infocom_talking; docs/05).
 //
@@ -39,31 +41,77 @@ on search
             change refused to 1
             msg_search_closed
             stop
-    // A story that altered the report speaks it here, ahead of the soft
-    // defaults below (the shut container refused above and never reaches
-    // this, per the alter contract).
-    if any_alter is 1
-        if not (altered is 0)
-            run_alter
-            stop
     // A LIVING thing is not a place to rummage: frisking a person is a
     // social act, not a discovery, so the default is a cheeky rebuff. Not a
     // refusal (a soft non-event that lets a chained command run on). The
-    // author overrides `on search` for a compliant, unconscious, or dead
-    // NPC; a corpse is not animate, so it falls through to the neutral
-    // default below and an override can turn out its loot.
+    // author who wants a compliant frisk (or clears `animate` on a
+    // knockout) gets the success path: an instance `on search` calling
+    // search_yields(self) for the former, and the default itself once the
+    // attribute is gone for the latter.
     if noun is animate
         msg_search_animate
         stop
-    // ANY other object is searchable, sense or not (the story's call): the
-    // default reveals nothing new. There is no built-in "list what it holds"
-    // on purpose (an open container already shows its contents in the room
-    // listing, and a character's belongings are not in scope, so listing
-    // would name things the player cannot reach). A real search is the
-    // author's `on search` override, revealing by making something REACHABLE
-    // (`now note is not hidden` for a note living in the room, or `move key
-    // to here` to spill an NPC's item out), never by naming the untouchable.
-    msg_search_nothing
+    // Everything else searches for real (Stefan's ruling, 2026-07-19, the
+    // field report of the hand-rolled body search): search tells you what
+    // is there, and makes findable what wasn't. The engine below lists the
+    // contents, marks them seen, and spills a plain thing's cache to the
+    // floor; open containers and supporters only list (their contents are
+    // already reachable). An `alter` on the object rewords the report; the
+    // mechanics run regardless.
+    search_yields(noun)
+
+// The search engine, public on purpose: an author calls it from an
+// instance `on search` to run the success path where the default declines
+// (the compliant prisoner who is still animate). Lists the holder's
+// direct contents ("You find a wallet and a knife."), marks each seen,
+// and makes them reachable: a plain thing's cache moves to the room; an
+// open container's or supporter's contents stay where they already are
+// reachable. Things the author marked `hidden` stay the author's to
+// reveal. Returns the count (0: nothing was there, and the nothing line
+// has spoken).
+block search_yields(holder)
+    let total = 0
+    for each x in holder
+        if x is not hidden
+            change total to total + 1
+    if total is 0
+        msg_search_nothing
+        return 0
+    // An altered report replaces the wording, never the mechanics.
+    if any_alter is 1
+        if not (altered is 0)
+            search_sweep(holder)
+            run_alter
+            return total
+    msg_search_found
+    let shown = 0
+    for each x in holder
+        if x is not hidden
+            if shown is not 0
+                if shown is total - 1
+                    msg_list_and
+                else
+                    msg_list_comma
+            show("${a x}")
+            now x is seen
+            change shown to shown + 1
+    say "."
+    search_sweep(holder)
+    return total
+
+// Make the findings reachable: a plain thing cannot be looked into, so
+// its cache spills to the room; container and supporter contents already
+// live in scope. The move runs after the listing (the loop above must
+// walk the holder while everything is still inside).
+block search_sweep(holder)
+    if holder is container
+        return 0
+    if holder is supporter
+        return 0
+    for each x in holder
+        if x is not hidden
+            move x to here
+    return 0
 
 // ---------------------------------------------------------------------------
 // Acting on objects (futile by default; an object overrides for real effect).
@@ -442,6 +490,15 @@ on shout
 
 block msg_search_nothing()
     say "Breaking news: Absolutely nothing new to see here."
+
+block msg_search_found()
+    show("You find ")
+
+block msg_list_and()
+    show(" and ")
+
+block msg_list_comma()
+    show(", ")
 
 block msg_search_animate()
     say "${The noun} gives you a look that says, plainly: whatever it is you are about to try, stop it."
