@@ -5096,3 +5096,12 @@ computer, iPad, iPhone, and Android. In the design record rather than
 the feature roadmap because it concerns the toolchain's future, not
 the language; nothing about it starts until the current milestones
 are long done.
+
+## 2026-07-19: the touch interpreter rides web technology (Stefan's ruling)
+
+The parked second interpreter gains its one settled decision: web
+technology, the broader term ruled deliberately, not native apps. One
+codebase for every screen, no store between the game and the player,
+and the single self-contained file ethos carries over (interpreter,
+story, and art bundled into one). The idea itself came as feedback
+from the German IF forum; the scheduling stays far out.

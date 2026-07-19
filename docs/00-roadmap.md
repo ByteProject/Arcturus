@@ -283,7 +283,11 @@ built for touch and point-and-click play of Z-machine games, on the Mac
 and any regular computer, and on iPad, iPhone, and Android. Actaea stays
 the reference and the keyboard home; this one reimagines how a parser
 game is PLAYED, not what it is, and nothing about it starts until the
-current milestones are long done.
+current milestones are long done. The technology direction is ruled:
+web technology, not native apps, so one codebase reaches every screen,
+installs without any store, and can bundle interpreter, story, and art
+into a single self-contained file, the project's distribution ethos on
+a new platform.
 
 ## 8. Status
 
