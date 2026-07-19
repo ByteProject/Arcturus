@@ -1589,11 +1589,40 @@ class Analyzer:
         and name the cure (`continue` reaches the default without
         re-dispatching). An `on after <verb>` performing its own verb loops
         the same way (the perform's own after pass re-enters it)."""
-        for h in self.world.all_handlers():
+        # Handlers with their owner: a THING instance's handlers run only
+        # when its own object is the one acted on, so a same-action perform
+        # aimed at an explicit DIFFERENT object can never re-enter them (the
+        # field pushback: redirecting an action onto another object is the
+        # common legitimate shape, narrowed out of the note by Stefan's
+        # ruling). A kind's, a room's, or a free handler runs for any noun,
+        # so its self-perform loops regardless of target: those keep the
+        # note, as do dynamic targets nobody can prove at compile time.
+        owned = []
+        for name, obj in self.world.objects.items():
+            inst = None if obj.category == "room" else name
+            owned += [(h, inst) for h in obj.handlers]
+        for kind in self.world.kinds.values():
+            owned += [(h, None) for h in kind.handlers]
+        owned += [(h, None) for h in self.world.free_handlers]
+        for h, owner in owned:
             if h.when is not None or h.pattern:
                 continue  # the re-entry can fail the guard: legitimate
             events = set(h.events)
             hit = [None]  # (line, event) of the first self-perform found
+
+            def redirects_elsewhere(node):
+                # Provably safe: instance-owned, and every performed operand
+                # is an explicit object that is not this instance (nor self).
+                if owner is None or len(node.args) < 2:
+                    return False
+                for a in node.args[1:]:
+                    if not isinstance(a, ast.Name):
+                        return False
+                    if a.ident == "self" or a.ident == owner:
+                        return False
+                    if a.ident not in self.world.objects:
+                        return False
+                return True
 
             def visit(node):
                 if (isinstance(node, ast.Call) and node.name == "perform"
@@ -1603,7 +1632,8 @@ class Analyzer:
                         p.text for p in node.args[0].parts
                         if isinstance(p, ast.StringText)
                     )
-                    if text in events and hit[0] is None:
+                    if text in events and hit[0] is None \
+                            and not redirects_elsewhere(node):
                         hit[0] = (getattr(node, "line", h.line), text)
                     return
                 if not dataclasses.is_dataclass(node):

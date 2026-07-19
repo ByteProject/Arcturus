@@ -5118,3 +5118,18 @@ component was listed as loot and yielded to the room, where it
 answered "that's part of the Dock" on take. A component is an
 attached part, not loot; search now neither lists nor moves one (the
 search_lootable filter: not hidden, not component). Suite 1033.
+
+## 2026-07-19: the self-perform note, narrowed (arcc 1.3.8)
+
+Charles pushed back on the perform re-entry note: redirecting an
+action onto another object is his everyday shape and the note nagged
+it. Analyzed and presented; he was half right. An INSTANCE handler
+re-performing its own action at an explicit different object can
+never re-enter itself (it only runs when its own object is the one
+acted on), so the note there was spurious; but the same code in a
+kind, room, or free handler loops for real (those run for any noun),
+which is the shape behind the original dead-at-the-prompt field
+report, and a dynamic target is unprovable. RULED (Stefan): narrow
+it, so it does not fire for him but keeps its purpose. The note now
+exempts exactly the provably-safe shape and still speaks for the rest.
+Suite 1035.
