@@ -112,7 +112,7 @@ CEILINGS = {
     "features/vehicles.storyarc": 16156,  # 2026-07-18 the reversed dative takes pronouns (give him coin; the probe's pronoun branch)
     "granules/ambience.storyarc": 17596,  # 2026-07-18 the reversed dative takes pronouns (give him coin; the probe's pronoun branch)
     "granules/conversations.storyarc": 17228,  # 2026-07-18 the reversed dative takes pronouns (give him coin; the probe's pronoun branch)
-    "granules/extended-verbs.storyarc": 18408,  # 2026-07-19 search searches for real (the yield engine; Stefan\'s ruling)
+    "granules/extended-verbs.storyarc": 18448,  # 2026-07-19 search leaves components alone (the lootable filter)
     "granules/infocom-interrogation.storyarc": 17628,  # 2026-07-18 the reversed dative takes pronouns (give him coin; the probe's pronoun branch)
     "granules/quotes.storyarc": 15824,  # 2026-07-18 the reversed dative takes pronouns (give him coin; the probe's pronoun branch)
     "granules/take-all.storyarc": 17544,  # 2026-07-18 the reversed dative takes pronouns (give him coin; the probe's pronoun branch)
