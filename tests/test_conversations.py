@@ -158,3 +158,55 @@ def test_ask_tell_in_a_menu_only_game(tmp_path):
     # itself: ask opens the menu, tell hints at TALK TO.
     src = BOTH.replace("summon.extendedverbs\n", "")
     _menu_owns_ask_tell(tmp_path, src, "menuonly.z5")
+
+
+def _ask_headless(game, cmds):
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+    io = CaptureIO(script=list(cmds) + ["quit", "y"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+# The infocom-style ask/tell routes each subject to its own topic, and a
+# topic whose match-words overlap the NPC's own name no longer fires for
+# every ask (the field report via Charles Moore Jr.: "the first topic's
+# response no matter what I ask"). Only the SUBJECT phrase, the words after
+# the about/for separator, is scanned; the listener's name before it is not.
+CAPTAIN = (
+    'game\n    title "C"\n    start deck\nsummon.infocom_talking\n'
+    'room deck\n    name "Deck"\n    desc "A deck."\n'
+    'thing captain of character in deck\n    name "old captain"\n'
+    '    words captain, old, jack\n'
+    '    topic person "himself" words captain, jack\n'
+    '        you "Tell me about yourself."\n'
+    '        reply "I am Captain Jack."\n'
+    '    topic ship "the ship" words ship, vessel\n'
+    '        you "Tell me of the ship."\n'
+    '        reply "She is the finest afloat."\n'
+)
+
+
+def test_ask_routes_to_the_named_subject_not_the_first_topic():
+    out = _ask_headless(CAPTAIN, ["ask captain about ship"])
+    assert "She is the finest afloat." in out
+    assert "I am Captain Jack." not in out
+
+
+def test_ask_about_the_npc_name_still_reaches_its_topic():
+    # ASK JACK ABOUT JACK: the second "jack" is the subject, so the self
+    # topic answers. This is why the fix scans by position (after the
+    # separator) rather than skipping the person's whole vocabulary.
+    out = _ask_headless(CAPTAIN, ["ask captain about jack"])
+    assert "I am Captain Jack." in out
+
+
+def test_ask_about_an_unknown_subject_hits_the_flat_default():
+    out = _ask_headless(CAPTAIN, ["ask captain about nonsense"])
+    assert "I am Captain Jack." not in out
+    assert "She is the finest afloat." not in out

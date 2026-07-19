@@ -5209,3 +5209,25 @@ match. Rationale for the log: presentation pluralism is what drew
 three interpreters in a week; the same draw_image stream must be free
 to drive a pinned band on an 8-bit and a flowing gallery in a browser.
 Docs only, no code.
+
+## 2026-07-19: infocom ask/tell scans the subject, not the listener (Cosmos 1.2.10)
+
+Charles: the Infocom-style conversation was "badly broken", the first
+topic's response no matter what he asked. Reproduced against invented
+content: subject_typed scanned EVERY typed word, the NPC's own name
+included, so a topic whose match-words overlapped the character's name
+(a "tell me about yourself" topic with the name as a word, the common
+case) fired for every ASK, and the first such topic always won. Fixed:
+scan only the subject phrase, the words after the about/for separator
+(is_separator, cross-language); the listener's name sits before it and
+is no longer scanned. Chose the positional split over skipping the
+person's whole vocabulary precisely so ASK JACK ABOUT JACK still
+reaches the self topic (the second "jack" is the subject). +68 bytes
+on the two games that summon the granule, ceilings noted. Suite 1042.
+
+Charles's ORIGINAL question, the per-NPC fall-through default, is left
+for Stefan: a game-wide custom default works today (redefine msg_ask,
+most-specific-wins), but there is no clean PER-NPC default nor a
+wildcard/fallback topic. That is a design question, not a bug, and
+waits for a ruling (a fallback topic, a per-person default hook, or
+"the global reskin is enough").

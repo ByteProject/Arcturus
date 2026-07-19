@@ -29,7 +29,7 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
 CEILINGS = {
-    "features/beyond.storyarc": 17952,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
+    "features/beyond.storyarc": 18020,  # 2026-07-19 ask/tell scans the subject phrase, not the listener (the first-topic bug; +68 the separator scan)
     "features/alter.storyarc": 16584,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "features/catalogs.storyarc": 16536,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "features/matrix.storyarc": 16900,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
@@ -113,7 +113,7 @@ CEILINGS = {
     "granules/ambience.storyarc": 17644,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "granules/conversations.storyarc": 17272,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "granules/extended-verbs.storyarc": 18352,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "granules/infocom-interrogation.storyarc": 17676,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
+    "granules/infocom-interrogation.storyarc": 17744,  # 2026-07-19 ask/tell scans the subject phrase, not the listener (the first-topic bug; +68 the separator scan)
     "granules/quotes.storyarc": 15872,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "granules/take-all.storyarc": 17592,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "granules/plurals.storyarc": 16524,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
