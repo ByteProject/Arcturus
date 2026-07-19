@@ -99,7 +99,7 @@ with every synonym, and each default line, is the granule source itself
   So the whole authoring recipe for a lootable body is: clear `animate` on
   the knockout and put the loot inside; nothing else. `alter` on the object
   rewords the report while the mechanics run regardless. Things you marked
-  `hidden` stay yours to reveal. And the engine is public: `search_yields(self)`
+  `hidden` stay yours to reveal. And the engine is public: `search_loot(self)`
   from an instance `on search` runs the success path where the default
   declines, the compliant frisk of a still-animate character being the
   canonical case.

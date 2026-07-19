@@ -46,7 +46,7 @@ on search
     // refusal (a soft non-event that lets a chained command run on). The
     // author who wants a compliant frisk (or clears `animate` on a
     // knockout) gets the success path: an instance `on search` calling
-    // search_yields(self) for the former, and the default itself once the
+    // search_loot(self) for the former, and the default itself once the
     // attribute is gone for the latter.
     if noun is animate
         msg_search_animate
@@ -58,7 +58,7 @@ on search
     // floor; open containers and supporters only list (their contents are
     // already reachable). An `alter` on the object rewords the report; the
     // mechanics run regardless.
-    search_yields(noun)
+    search_loot(noun)
 
 // The search engine, public on purpose: an author calls it from an
 // instance `on search` to run the success path where the default declines
@@ -69,7 +69,7 @@ on search
 // reachable. Things the author marked `hidden` stay the author's to
 // reveal. Returns the count (0: nothing was there, and the nothing line
 // has spoken).
-block search_yields(holder)
+block search_loot(holder)
     let total = 0
     for each x in holder
         if x is not hidden

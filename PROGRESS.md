@@ -5080,3 +5080,9 @@ search_yields(self) for the compliant frisk of a still-animate
 character. The granule's header finally matches its behavior (it had
 promised listing since B5.5b and never did it). One ceiling moved
 (the extended-verbs showcase); everything else untouched. Suite 1032.
+
+## 2026-07-19: search_loot (Cosmos 1.2.6)
+
+The engine's public name, Stefan's call before anything shipped to an
+adopter: search_yields becomes search_loot, granule, tests, and docs
+in one sweep.

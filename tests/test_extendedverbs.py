@@ -83,7 +83,7 @@ def test_search_defaults_by_object_type():
     # container keeps its secrets, an empty thing gets the neutral line, an
     # open container LISTS its contents, and a plain thing's authored cache
     # is listed, marked seen, and spilled to the room so it is truly
-    # takeable. search_yields is the same engine public, for the compliant
+    # takeable. search_loot is the same engine public, for the compliant
     # frisk of a still-animate character.
     from actaea.io import CaptureIO
     from actaea.loader import load
@@ -98,7 +98,7 @@ def test_search_defaults_by_object_type():
         'thing coin in corpse\n    name "gold coin"\n    words coin, gold\n'
         'thing warden of character in hall\n    name "warden"\n    words warden\n'
         '    on search\n'
-        '        search_yields(self)\n'
+        '        search_loot(self)\n'
         'thing pass in warden\n    name "stamped pass"\n    words pass, stamped\n'
     )
     story = generate(analyze(cosmos.combined_program(parse(game))))
@@ -116,7 +116,7 @@ def test_search_defaults_by_object_type():
     assert "look that says" in out                 # a living thing: the rebuff
     assert "You find a gold coin." in out          # the cache lists itself
     assert "Got it." in out.split("take coin")[-1]  # ... and is truly takeable
-    assert "You find a stamped pass." in out       # search_yields on an animate
+    assert "You find a stamped pass." in out       # search_loot on an animate
     assert "Got it." in out.split("take pass")[-1]
     # The emptied corpse searches clean the second time.
     assert "nothing new to see here" in out.split("search corpse")[-1]
