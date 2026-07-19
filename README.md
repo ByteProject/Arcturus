@@ -43,7 +43,7 @@ certainly already have.
 | Component | Version | Download |
 |-----------|---------|----------|
 | **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.3.8 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 1.2.8 | shipped inside `arcc` |
+| **Cosmos**, the standard library | 1.2.9 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.2.0 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.13.0 | [build/arcimg](build/arcimg) |
 

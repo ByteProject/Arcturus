@@ -5146,3 +5146,12 @@ ordinary path. The granule's stub and message retired. The byte pitch,
 per the standing rule: +16 to +20 per game for two dictionary words
 and a grammar row; extendedverbs games get 64 back from the retired
 stub, ceilings moved both ways with the note. Suite 1036.
+
+## 2026-07-19: STAND completes the pair (Cosmos 1.2.9)
+
+Stefan's go on the flagged symmetry: STAND joins SIT in the standard
+set, riding exit. Bare STAND and STAND UP leave the seat (the UP line
+is its own grammar row with the literal word), STAND ON THE STOOL
+boards it like SIT ON, and standing on solid ground gets exit's
+ordinary "you aren't inside anything". The granule's stand stub and
+message retired; ceilings moved both ways with the note. Suite 1037.

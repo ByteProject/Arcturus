@@ -391,19 +391,6 @@ on wave
         msg_wave
 
 
-verb "stand"
-    stand
-
-on stand
-    if any_alter is 1
-        if altered is 0
-            msg_stand
-        else
-            run_alter
-    else
-        msg_stand
-
-
 verb "sleep", "nap", "doze"
     sleep
 
@@ -546,9 +533,6 @@ block msg_dig()
 block msg_wave()
     say "You wave. The room declines to wave back."
 
-
-block msg_stand()
-    say "You're already on your feet."
 
 block msg_sleep()
     say "You consider curling up into a ball and ignoring the plot, but your sense of duty rudely keeps you awake."
