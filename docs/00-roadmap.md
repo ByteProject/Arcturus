@@ -277,6 +277,14 @@ done-test.
   it exercises the `arc_image` graphics path end to end (its art is ready for
   the retro targets) and ships as a worked example game.
 
+Beyond the lettered milestones, far out and deliberately unscheduled
+(Stefan's direction, 2026-07-19): a SECOND interpreter beside Actaea,
+built for touch and point-and-click play of Z-machine games, on the Mac
+and any regular computer, and on iPad, iPhone, and Android. Actaea stays
+the reference and the keyboard home; this one reimagines how a parser
+game is PLAYED, not what it is, and nothing about it starts until the
+current milestones are long done.
+
 ## 8. Status
 
 The design tracks (A0 to A2) are complete. Implementation stands at the end of
