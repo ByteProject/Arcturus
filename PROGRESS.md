@@ -5191,3 +5191,21 @@ dedup changes. Also ruled: master resolution is flexible at the band
 aspect (40:9 / 10:3); 320 is the reference the retro conversions
 derive from, not a ceiling, and Actaea's rational scaler already
 handled it. docs/06, 07, and 08 updated together. Suite 1039.
+
+## 2026-07-19: presentation latitude for modern interpreters (Stefan's ruling)
+
+auraes (a French developer already rendering arc_image in his own z5
+interpreter, pictures flowing INLINE with the transcript rather than
+in a fixed band) surfaced a contract question: the interpreter book's
+Part A pinned the band to the top of the screen, so his lovely
+storybook-flow presentation was, as written, non-conformant. RULED
+(Stefan): the fixed band is the contract only for fixed-screen
+interpreters; presentation on modern systems is the interpreter
+author's discretion. Part A point 3 rewritten to permit
+transcript-flow and other modern presentations, holding only the
+invariants (mode aspect, the picture tied to its moment, id 0
+clears); the C.0 modern chapter's RENDERING note and the change log
+match. Rationale for the log: presentation pluralism is what drew
+three interpreters in a week; the same draw_image stream must be free
+to drive a pinned band on an 8-bit and a flowing gallery in a browser.
+Docs only, no code.
