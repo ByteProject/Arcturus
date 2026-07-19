@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.13.0"
+__version__ = "1.14.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -3367,23 +3367,90 @@ def _collect_numbered(sources):
     return entries
 
 
+def _mode_aspect(dims) -> bool:
+    """True when width:height matches a band mode's aspect at ANY scale:
+    320x72 is 40:9 (mode 9) and 320x96 is 10:3 (mode 12). High-resolution
+    masters are welcome (interpreters scale; 320 is the reference
+    resolution, not a ceiling), as long as the shape is a band shape."""
+    w, h = dims
+    return w * 9 == h * 40 or w * 3 == h * 10
+
+
+def build_blorb(entries: dict, story_path=None) -> bytes:
+    """A Blorb (IFF FORM/IFRS) holding the numbered pictures as 'Pict'
+    resources, resource number = the arc_image id, each a 'PNG ' chunk with
+    the master bytes verbatim. With story_path, the story rides along as
+    Exec 0 in a 'ZCOD' chunk: the .zblorb shape Gargoyle-family
+    interpreters open directly. Blorb has no filenames inside; resources
+    ARE numbers, which is exactly the arc_image model, so draw_image id N
+    maps to Pict N with no translation anywhere."""
+    chunks = []  # (chunk type, payload, usage, resource number)
+    if story_path is not None:
+        with open(story_path, "rb") as fh:
+            chunks.append((b"ZCOD", fh.read(), b"Exec", 0))
+    for iid in sorted(entries):
+        with open(entries[iid], "rb") as fh:
+            chunks.append((b"PNG ", fh.read(), b"Pict", iid))
+    n = len(chunks)
+    ridx_len = 4 + n * 12
+    # Offsets are absolute file positions of each resource chunk's type
+    # field: the 12-byte FORM header, then the RIdx chunk (8 + payload,
+    # padded to even), then the resources in file order.
+    pos = 12 + 8 + ridx_len + (ridx_len & 1)
+    index = bytearray(struct.pack(">I", n))
+    body = bytearray()
+    for ctype, data, usage, num in chunks:
+        index += usage + struct.pack(">II", num, pos)
+        body += ctype + struct.pack(">I", len(data)) + data
+        if len(data) & 1:
+            body += b"\0"
+        pos += 8 + len(data) + (len(data) & 1)
+    inner = (b"IFRS" + b"RIdx" + struct.pack(">I", ridx_len) + bytes(index)
+             + (b"\0" if ridx_len & 1 else b"") + bytes(body))
+    return b"FORM" + struct.pack(">I", len(inner)) + inner
+
+
 def cmd_pack(args) -> int:
     entries = _collect_numbered(args.sources)
     if not entries:
         print("arcimg: no <number>.png files to pack", file=sys.stderr)
         return 2
 
-    # Validate every entry is a real PNG, and note any that are not a standard
-    # mode size (allowed, but usually a mistake worth flagging).
+    # Validate every entry is a real PNG. Any size at a band mode's aspect
+    # ratio is fine (high-resolution masters scale on the interpreter side);
+    # a shape that matches no mode gets a note (allowed, usually a mistake).
     for iid in sorted(entries):
         dims = _png_size(entries[iid])
         if dims is None:
             print(f"arcimg: {entries[iid]} is not a valid PNG", file=sys.stderr)
             return 2
-        if _mode_of(dims) is None:
+        if _mode_of(dims) is None and not _mode_aspect(dims):
             print(f"arcimg: note: {os.path.basename(entries[iid])} is "
-                  f"{dims[0]}x{dims[1]}, not a standard mode size "
-                  f"({_modes_str()})")
+                  f"{dims[0]}x{dims[1]}, neither a standard mode size "
+                  f"({_modes_str()}) nor a band aspect (40:9 or 10:3)")
+
+    zstory = getattr(args, "zblorb", None)
+    if zstory is not None:
+        if not os.path.isfile(zstory):
+            print(f"arcimg: no story file {zstory}", file=sys.stderr)
+            return 2
+        with open(zstory, "rb") as fh:
+            v = fh.read(1)
+        if not v or v[0] not in (5, 8):
+            print(f"arcimg: {zstory} is not a z5/z8 story file",
+                  file=sys.stderr)
+            return 2
+    if zstory is not None or getattr(args, "blorb", False):
+        try:
+            with open(args.out, "wb") as fh:
+                fh.write(build_blorb(entries, zstory))
+        except OSError as exc:
+            print(f"arcimg: cannot write {args.out}: {exc}", file=sys.stderr)
+            return 2
+        ids = ", ".join(str(i) for i in sorted(entries))
+        kind = "zblorb (story + pictures)" if zstory else "blorb (pictures)"
+        print(f"arcimg: wrote {args.out}, {kind}: {ids}")
+        return 0
 
     try:
         with zipfile.ZipFile(args.out, "w", zipfile.ZIP_DEFLATED) as z:
@@ -3654,11 +3721,19 @@ def build_parser() -> argparse.ArgumentParser:
     sub = ap.add_subparsers(dest="command")
 
     p_pack = sub.add_parser(
-        "pack", help="zip numbered PNGs into an .arcres pack")
+        "pack", help="pack numbered PNGs: .arcres (default), or Blorb")
     p_pack.add_argument("sources", nargs="+",
                         help="directories and/or <number>.png files")
     p_pack.add_argument("-o", "--out", required=True,
-                        help="the .arcres pack to write")
+                        help="the pack to write (.arcres, .blorb, .zblorb)")
+    packfmt = p_pack.add_mutually_exclusive_group()
+    packfmt.add_argument("--blorb", action="store_true",
+                         help="write a Blorb of the pictures (Pict N = "
+                         "arc_image id N) instead of an .arcres zip")
+    packfmt.add_argument("--zblorb", metavar="STORY",
+                         help="write a Blorb with STORY (.z5/.z8) embedded "
+                         "as Exec 0 plus the pictures: one file that "
+                         "Blorb-aware interpreters open directly")
     p_pack.set_defaults(func=cmd_pack)
 
     p_prep = sub.add_parser(

@@ -70,9 +70,20 @@ def _resolve_images(story_path: str, images_arg):
     pack; else the story's own directory (the loose debug default)."""
     if images_arg:
         return images_arg, None
+    # A .zblorb serves its own pictures (Pict N inside the same file).
+    try:
+        from .loader import is_blorb
+        with open(story_path, "rb") as fh:
+            if is_blorb(fh.read(12)):
+                return None, story_path
+    except OSError:
+        pass
     pack = os.path.splitext(story_path)[0] + ".arcres"
     if os.path.isfile(pack):
         return None, pack
+    blb = os.path.splitext(story_path)[0] + ".blorb"
+    if os.path.isfile(blb):
+        return None, blb
     return os.path.dirname(os.path.abspath(story_path)), None
 
 

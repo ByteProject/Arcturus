@@ -51,7 +51,28 @@ arcimg pack art/ -o mygame.arcres
 
 zips the numbered PNGs into one `.arcres` beside the z5. Actaea's window
 shows the pictures; Actaea's console and pipe modes, and every other
-standard interpreter, play the same file text-only. During development
+standard interpreter, play the same file text-only.
+
+For the wider interpreter ecosystem the same pack ships as a Blorb, the
+IF world's standard resource container, with the identical numbering
+(picture id N is Blorb resource Pict N; Blorb has no filenames, only
+numbers, which is exactly the arc_image model):
+
+```
+arcimg pack art/ --blorb -o mygame.blorb        pictures only, beside the z5
+arcimg pack art/ --zblorb mygame.z5 -o mygame.zblorb   story + pictures, ONE file
+```
+
+The `.zblorb` is the shape Blorb-aware interpreters (the Gargoyle
+family, and Actaea itself) open directly: your whole game, art
+included, in a single file. Actaea plays all of it: a `.zblorb` opened
+as the story, or a sibling `.arcres` or `.blorb` found next to a plain
+`.z5`/`.z8`.
+
+Masters need not be 320 wide: any resolution at the band's aspect ratio
+(40:9 for mode 9, 10:3 for mode 12) packs and displays, and interpreters
+scale it to their band. 320 is the reference resolution the retro
+conversions derive from, not a ceiling for the modern packs. During development
 you can skip the pack and point Actaea at the directory:
 `actaea game.z5 --images art/`.
 
@@ -113,6 +134,8 @@ and a later interpreter picks the same files up.
 
 ```
 arcimg pack SOURCES... -o game.arcres      the modern pack
+arcimg pack ... --blorb -o game.blorb      the same pictures as a Blorb
+arcimg pack ... --zblorb game.z5 -o game.zblorb   story + pictures in one Blorb
 arcimg prep SOURCE --id N --mode MODE      size and number a source
 arcimg info SOURCE                         a PNG's size / a pack's contents
 arcimg convert SOURCES... --target TAG     derive a machine's native art

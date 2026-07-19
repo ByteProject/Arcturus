@@ -126,6 +126,69 @@ def load(data: bytes, name: str = "story") -> Story:
     return Story(header, Memory(data, scale))
 
 
+def is_blorb(data: bytes) -> bool:
+    """A Blorb resource file: IFF FORM of type IFRS (the .zblorb/.blorb
+    shapes arcimg packs and the Gargoyle family opens)."""
+    return len(data) >= 12 and data[:4] == b"FORM" and data[8:12] == b"IFRS"
+
+
+def blorb_resources(data: bytes):
+    """The Blorb resource index as {(usage, number): (start, length)} where
+    start addresses the chunk's PAYLOAD. Tolerant of anything beyond what
+    Actaea consumes (Exec 0 and Pict N); a malformed index raises
+    StoryFormatError with the reason."""
+    if not is_blorb(data):
+        raise StoryFormatError("not a Blorb file")
+    if data[12:16] != b"RIdx":
+        raise StoryFormatError("Blorb: the resource index is not first")
+    def word32(off):
+        return (data[off] << 24) | (data[off+1] << 16) | (data[off+2] << 8) | data[off+3]
+    count = word32(20)
+    out = {}
+    for i in range(count):
+        off = 24 + i * 12
+        usage = data[off:off+4]
+        number = word32(off + 4)
+        start = word32(off + 8)
+        if start + 8 > len(data):
+            raise StoryFormatError("Blorb: resource offset beyond the file")
+        length = word32(start + 4)
+        out[(usage, number)] = (start + 8, length)
+    return out
+
+
+def blorb_story(data: bytes) -> bytes:
+    """The embedded story (Exec 0, a ZCOD chunk) of a .zblorb."""
+    res = blorb_resources(data)
+    hit = res.get((b"Exec", 0))
+    if hit is None:
+        raise StoryFormatError(
+            "this Blorb holds no story (no Exec 0 resource); it is a "
+            "resource-only .blorb that accompanies a separate story file"
+        )
+    start, length = hit
+    return data[start:start + length]
+
+
+def blorb_picture(path: str, number: int):
+    """Picture `number` (a Pict resource, PNG bytes) from a Blorb file, or
+    None on any miss: absent resource, unreadable file, not a Blorb. The
+    forgiving shape the picture band wants (a missing picture degrades to
+    an empty band, never a crash)."""
+    try:
+        with open(path, "rb") as f:
+            data = f.read()
+        start, length = blorb_resources(data)[(b"Pict", number)]
+        return data[start:start + length]
+    except (OSError, KeyError, StoryFormatError):
+        return None
+
+
 def load_file(path: str) -> Story:
     with open(path, "rb") as f:
-        return load(f.read(), name=path)
+        data = f.read()
+    if is_blorb(data):
+        # A .zblorb: the story rides inside as Exec 0. Pictures stay in the
+        # file; the front end reads them back out via blorb_picture.
+        return load(blorb_story(data), name=path)
+    return load(data, name=path)
