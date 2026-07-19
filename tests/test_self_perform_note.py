@@ -75,3 +75,42 @@ def test_after_self_perform_gets_the_note(capsys):
     )
     err = _notes(src, capsys)
     assert "performs its own action" in err
+
+
+def test_instance_redirect_to_another_object_is_quiet(capsys):
+    # The narrowing (Stefan's ruling, 2026-07-19, the field pushback): an
+    # INSTANCE handler redirecting its own action at an explicit different
+    # object can never re-enter itself, so the note stays silent. The risky
+    # shapes keep it: a room or free handler (runs for any noun), an
+    # explicit self, and a dynamic target nobody can prove.
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'verb "zap"\n    zap noun\n'
+        'room hall\n    name "Hall"\n    desc "H."\n'
+        'thing wand in hall\n    name "wand"\n    words wand\n'
+        '    on zap\n'
+        '        perform("zap", idol)\n'
+        '        stop\n'
+        'thing idol in hall\n    name "idol"\n    words idol\n'
+    )
+    analyze(cosmos.combined_program(parse(game)))
+    assert "performs its own" not in capsys.readouterr().err
+
+
+def test_room_and_dynamic_self_performs_still_note(capsys):
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'verb "zap"\n    zap noun\n'
+        'room hall\n    name "Hall"\n    desc "H."\n'
+        '    on zap\n'
+        '        perform("zap", idol)\n'
+        '        stop\n'
+        'thing idol in hall\n    name "idol"\n    words idol\n'
+        'thing orb in hall\n    name "orb"\n    words orb\n'
+        '    on zap\n'
+        '        perform("zap", noun)\n'
+        '        stop\n'
+    )
+    analyze(cosmos.combined_program(parse(game)))
+    err = capsys.readouterr().err
+    assert err.count("performs its own") == 2
