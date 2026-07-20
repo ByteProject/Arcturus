@@ -142,8 +142,7 @@ picture band:
     promise: an interpreter may treat it as a plain story file and need
     not reserve a band or raise the capability bit for it. This is a
     guarantee interpreters may rely on, so that the question "does this
-    game use arc_image" is decidable up front rather than speculative
-    (the shape Chris Spiegel asked for, ruled 2026-07-20).
+    game use arc_image" is decidable up front rather than speculative.
 
 Two things this does NOT change. The chunk is a Blorb packaging rule
 only: a plain `.z5`/`.z8` beside a loose `.arcres` or an images
@@ -876,17 +875,14 @@ sector bites.
   top-of-screen band the contract only for fixed-screen interpreters; a
   modern interpreter may present the picture however suits it (a
   transcript that scrolls pictures inline, a resizable panel), preserving
-  only the mode aspect, the picture's moment, and clear. Prompted by
-  auraes's inline-scrolling z5 interpreter on the announcement thread;
-  Stefan ruled presentation on modern systems the interpreter author's
-  discretion.
+  only the mode aspect, the picture's moment, and clear. Presentation on
+  modern systems is the interpreter author's discretion.
 - 2026-07-20 (the ARCI declaration chunk): every Blorb arcimg writes now
   carries a two-byte `ARCI` chunk (extension version, band mode), and its
   absence is a defined state: a Blorb without it promises no arc_image
-  graphics. Chris Spiegel (Bocfel) asked for the mandatory form so the
-  question is decidable before execution rather than speculative;
-  Stefan ruled it mandatory in Blorb, while the bare story-plus-pack path
-  and the runtime contract are untouched.
+  graphics, so the question is decidable before execution rather than
+  speculative. Mandatory in Blorb; the bare story-plus-pack path and the
+  runtime contract are untouched.
 - 2026-07-19 (Blorb): the modern chapter gains the second envelope, on
   the interpreter community's ask: arcimg writes .blorb (pictures as
   Pict N) and .zblorb (story embedded as Exec 0) alongside .arcres,
