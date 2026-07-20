@@ -159,11 +159,11 @@ picture band:
     +0  1  extension version (currently 1)
     +1  1  band mode: 9, 12, or 0 = not declared
 
-    ABSENCE IS MEANINGFUL. A Blorb with no ARCI chunk makes NO arc_image
-    promise: an interpreter may treat it as a plain story file and need
-    not reserve a band or raise the capability bit for it. This is a
-    guarantee interpreters may rely on, so that the question "does this
-    game use arc_image" is decidable up front rather than speculative.
+    If the chunk is missing, the game does not use arc_image. You can
+    count on that: treat the file as an ordinary story, and do not
+    reserve room for a picture or raise the capability bit. It is there
+    so you can answer "does this game want pictures?" by looking, rather
+    than by supporting them just in case.
 
 Two things the chunk does not change. It is a rule about Blorbs only, so
 a plain `.z5` or `.z8` sitting beside an `.arcres` or an images directory
