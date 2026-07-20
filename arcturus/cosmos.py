@@ -131,7 +131,9 @@ def _resolve_language(language: str, lib_dirs, story_dir):
         path = os.path.join(root, fname)
         if os.path.isfile(path):
             with open(path, "r", encoding="utf-8") as fh:
-                return fh.read(), os.path.abspath(path)
+                text = fh.read()
+            fork_note(fname, text, path)
+            return text, os.path.abspath(path)
     bundled = granule_sources()
     if fname in bundled:
         return bundled[fname], fname
@@ -214,7 +216,117 @@ def write_abbreviations_granule(path: str, abbrevs: list, story_name: str) -> No
 
 def _read_granule(path):
     with open(path, "r", encoding="utf-8") as fh:
-        return "file:" + os.path.abspath(path), fh.read(), os.path.basename(path)
+        text = fh.read()
+    fork_note(os.path.basename(path), text, path)
+    return "file:" + os.path.abspath(path), text, os.path.basename(path)
+
+
+# ---------------------------------------------------------------------------
+# The fork stamp: telling an aged fork from a current one.
+#
+# A forked library file wins over the bundled copy, silently and forever, so a
+# fork taken today keeps compiling long after the file it was taken from has
+# moved on (the field report: a search fork three releases old, whose author
+# read it, believed it, and reported the library as broken). The cure is a
+# stamp written into every file arcc hands out.
+#
+# What the stamp records is deliberately NOT just a version number. Comparing
+# versions would cry "outdated" at a fork of a file that has not changed since,
+# which is most forks most of the time, and a warning that cries wolf gets
+# ignored. So the stamp carries the FINGERPRINT of the pristine source the fork
+# was taken from, and the check compares that against the fingerprint of the
+# bundled copy now. Same fingerprint, the base has not moved, say nothing,
+# whatever the version numbers are. Different fingerprint, the file genuinely
+# changed underneath the fork, and only then does the note fire. No false
+# positives by construction. The version rides along for humans to read.
+#
+# Deleting the stamp line opts out silently, which is fair for a fork that has
+# diverged past caring.
+_STAMP_RE = None
+
+
+def _stamp_re():
+    global _STAMP_RE
+    if _STAMP_RE is None:
+        import re
+        _STAMP_RE = re.compile(
+            r"^//\s*cosmos\s+([0-9][0-9.]*)\s+base\s+([0-9a-f]{6,})\s*$")
+    return _STAMP_RE
+
+
+def base_fingerprint(src: str) -> str:
+    """The short fingerprint of a pristine library source. Content-addressed, so
+    it is stable across releases that do not touch the file."""
+    import hashlib
+    return hashlib.sha256(src.encode("utf-8")).hexdigest()[:12]
+
+
+def stamp_source(src: str) -> str:
+    """Prefix a library source with its fork stamp, for writing to disk."""
+    return (f"// cosmos {COSMOS_VERSION} base {base_fingerprint(src)}\n"
+            f"{src}")
+
+
+def read_stamp(text: str):
+    """The (version, fingerprint) a forked file records, or None when it carries
+    no stamp. Only the head of the file is scanned: the stamp is written as the
+    first line, and a few lines of tolerance costs nothing if someone tidies."""
+    for line in text.splitlines()[:8]:
+        m = _stamp_re().match(line.strip())
+        if m:
+            return m.group(1), m.group(2)
+    return None
+
+
+def fork_status(fname: str, text: str):
+    """Classify one shadowing library file against the bundled copy of the same
+    name: "current" (the base has not moved), "moved" (it has), "unstamped" (no
+    stamp to compare), or None when nothing bundled goes by that name, which
+    makes it the author's own granule rather than a fork of ours. Returns
+    (status, stamped_version, bundled_version)."""
+    bundled = granule_sources().get(fname)
+    if bundled is None:
+        bundled = prelude_sources().get(fname)
+    if bundled is None:
+        return None, None, None
+    stamp = read_stamp(text)
+    if stamp is None:
+        return "unstamped", None, COSMOS_VERSION
+    version, fingerprint = stamp
+    if fingerprint == base_fingerprint(bundled):
+        return "current", version, COSMOS_VERSION
+    return "moved", version, COSMOS_VERSION
+
+
+# Files already reported this run, so a granule summoned twice speaks once.
+_FORK_NOTED: set = set()
+
+
+def fork_note(fname: str, text: str, path: str) -> None:
+    """Say something when a fork's base has moved on, and only then."""
+    status, was, now = fork_status(fname, text)
+    if status in (None, "current"):
+        return
+    key = os.path.abspath(path)
+    if key in _FORK_NOTED:
+        return
+    _FORK_NOTED.add(key)
+    stem = fname.rsplit(".", 1)[0]
+    if status == "moved":
+        print(
+            f"arcc: note: {path} was forked from Cosmos {was} and the bundled "
+            f"{fname} has changed since (now {now}). Diff it against a fresh "
+            f"`arcc --eject-granule {stem}` to see what your fork is missing.",
+            file=sys.stderr,
+        )
+    else:
+        print(
+            f"arcc: note: {path} shadows the bundled {fname} but carries no "
+            f"fork stamp, so arcc cannot tell whether it has aged. Re-eject it "
+            f"with `arcc --eject-granule {stem}` and re-apply your edits to "
+            f"establish one.",
+            file=sys.stderr,
+        )
 
 
 def _resolve_summon(s: ast.Summon, bundled: dict, lib_dirs, story_dir):

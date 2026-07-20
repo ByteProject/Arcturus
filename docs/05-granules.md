@@ -102,7 +102,13 @@ with every synonym, and each default line, is the granule source itself
   `hidden` stay yours to reveal. And the engine is public: `search_loot(self)`
   from an instance `on search` runs the success path where the default
   declines, the compliant frisk of a still-animate character being the
-  canonical case.
+  canonical case. One thing to know about the rebuff: it wins over your
+  wording. A living character refuses before any report is reached, so an
+  `alter` followed by `continue` never speaks on someone who is still
+  `animate`. That is deliberate, since a conscious person should almost
+  always refuse to be frisked. When you do want the exception, call
+  `search_loot(self)` instead of continuing: it runs the success path and
+  speaks your alter with it.
 - ACTING ON THINGS, futile by default until an object overrides:
   `throw ... at`, `rub` (polish, clean, wipe...), `squeeze`, `tie ... to`,
   `cut`, `fill`, `burn`, `blow`, `set ... to`, `empty`, `buy`, `consult
@@ -577,6 +583,13 @@ To change a granule, take a copy and edit it.
   only be forked this way: there is no single-prelude eject (except
   `--eject-language` for translation, section 6) - to hack a prelude you extract
   the whole library and point `-L` at it.
+
+Every file arcc writes out starts with a fork stamp, `// cosmos 1.2.14 base
+a06f30acb367`, and it is worth leaving in place. It lets the compiler tell you
+when the file you forked has changed in a later release, which is the one thing
+a fork cannot notice on its own; a fork of a file that has not changed says
+nothing, however old the stamp reads, so it never nags. `arcc --library-status`
+audits a directory of forks at once. The mechanism is docs/03 section 5a.
 
 ## 5. Writing your own granule
 

@@ -42,7 +42,7 @@ certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.3.14 | [build/arcc](build/arcc) |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.3.15 | [build/arcc](build/arcc) |
 | **Cosmos**, the standard library | 1.2.14 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.3.1 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.14.1 | [build/arcimg](build/arcimg) |
@@ -277,6 +277,7 @@ python3 build/arcc --eject-granule statusline  # write one granule here, to fork
 python3 build/arcc --eject-language .           # write english.prelude (the messages)
 python3 build/arcc --extract-library /abs/cosmos   # write the whole library out to edit
 python3 build/arcc -L /abs/cosmos game.storyarc    # compile against your edited copy
+python3 build/arcc --library-status .              # how current are the forks here?
 ```
 
 `--eject-granule` pulls a single granule out to fork one feature; summon your
@@ -289,6 +290,13 @@ single standard message you need not extract anything: redefine its block (for
 example `block msg_jump()`) in your own story and it overrides the library's. A
 granule's own blocks are not overridable that way - you fork the granule;
 [docs/05](docs/05-granules.md) covers the model.
+
+Every file written out carries a fork stamp on its first line. A fork wins over
+the bundled copy for as long as it sits there, so the stamp is how the compiler
+can tell you that the file you forked has moved on in a later release. It
+compares the source your fork came from, not version numbers, so a fork of a
+file that has not changed stays silent however old it reads and however much you
+edited it. `--library-status` audits a whole directory of forks at once.
 
 ### Run from the package (for development)
 
