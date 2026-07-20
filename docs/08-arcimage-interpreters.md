@@ -129,6 +129,34 @@ released games ship a pack. Master resolution: any size at the band's
 aspect ratio (40:9 mode 9, 10:3 mode 12); 320-wide is the reference,
 not a ceiling, and the interpreter scales to its band.
 
+THE DECLARATION CHUNK, and it is MANDATORY in a Blorb. Every Blorb
+carrying arc_image art also carries an `ARCI` chunk, so an interpreter
+knows before executing a single instruction whether this game wants a
+picture band:
+
+    'ARCI'  length 2
+    +0  1  extension version (currently 1)
+    +1  1  band mode: 9, 12, or 0 = not declared
+
+    ABSENCE IS MEANINGFUL. A Blorb with no ARCI chunk makes NO arc_image
+    promise: an interpreter may treat it as a plain story file and need
+    not reserve a band or raise the capability bit for it. This is a
+    guarantee interpreters may rely on, so that the question "does this
+    game use arc_image" is decidable up front rather than speculative
+    (the shape Chris Spiegel asked for, ruled 2026-07-20).
+
+Two things this does NOT change. The chunk is a Blorb packaging rule
+only: a plain `.z5`/`.z8` beside a loose `.arcres` or an images
+directory involves no Blorb and needs nothing new, so Part A alone
+remains the whole runtime contract. And the chunk is never a second
+source of truth for the band: the mode operand of each `draw_image`
+call stays authoritative (part A, point 2), so a declared 0, or a game
+that ever varied its mode, still renders correctly. The declaration is
+advance notice, not instruction.
+
+`arcimg` writes the chunk into every Blorb it produces, so an author
+never has to think about it.
+
 RENDERING. Present the picture however suits your interpreter (Part A,
 point 3: on a modern terp the fixed band is a default, not a mandate).
 Actaea pins it as a band above the text; another interpreter scrolls it
@@ -852,6 +880,13 @@ sector bites.
   auraes's inline-scrolling z5 interpreter on the announcement thread;
   Stefan ruled presentation on modern systems the interpreter author's
   discretion.
+- 2026-07-20 (the ARCI declaration chunk): every Blorb arcimg writes now
+  carries a two-byte `ARCI` chunk (extension version, band mode), and its
+  absence is a defined state: a Blorb without it promises no arc_image
+  graphics. Chris Spiegel (Bocfel) asked for the mandatory form so the
+  question is decidable before execution rather than speculative;
+  Stefan ruled it mandatory in Blorb, while the bare story-plus-pack path
+  and the runtime contract are untouched.
 - 2026-07-19 (Blorb): the modern chapter gains the second envelope, on
   the interpreter community's ask: arcimg writes .blorb (pictures as
   Pict N) and .zblorb (story embedded as Exec 0) alongside .arcres,

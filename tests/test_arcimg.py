@@ -392,3 +392,56 @@ def test_actaea_reads_the_blorb_back(tmp_path):
     png = blorb_picture(str(zb), 3)
     assert png is not None and png[:8] == b"\x89PNG\r\n\x1a\n"
     assert blorb_picture(str(zb), 44) is None
+
+
+def test_blorb_carries_the_mandatory_arci_chunk(tmp_path):
+    # Ruled mandatory (Chris Spiegel's ask, 2026-07-20): every Blorb arcimg
+    # writes declares the extension up front, so an interpreter can decide
+    # before running whether to reserve a picture band. Absence is the
+    # defined "no arc_image promise" state, so arcimg must never omit it.
+    ai = arcimg
+    art = tmp_path / "art"
+    art.mkdir()
+    _make_png(str(art / "1.png"), 320, 96)
+    _make_png(str(art / "2.png"), 320, 96)
+    story = tmp_path / "s.z5"
+    story.write_bytes(bytes([5]) + bytes(99))
+    entries = {1: str(art / "1.png"), 2: str(art / "2.png")}
+
+    for story_path in (None, str(story)):
+        blob = ai.build_blorb(entries, story_path)
+        # Walk the top-level chunks; ARCI must be there, before the resources.
+        pos, seen = 12, []
+        while pos + 8 <= len(blob):
+            ctype = blob[pos:pos + 4]
+            (ln,) = struct.unpack(">I", blob[pos + 4:pos + 8])
+            seen.append(ctype)
+            if ctype == b"ARCI":
+                assert blob[pos + 8] == ai.ARCI_VERSION
+                assert blob[pos + 9] == 12  # 320x96 is the daad band, 12 rows
+            pos += 8 + ln + (ln & 1)
+        assert b"ARCI" in seen
+        assert seen.index(b"RIdx") < seen.index(b"ARCI") < seen.index(b"PNG ")
+
+        # The chunk sits ahead of the resources, so every RIdx offset must
+        # still land exactly on a resource chunk header. This is the one
+        # place a careless edit corrupts every pointer silently.
+        (n,) = struct.unpack(">I", blob[20:24])
+        for i in range(n):
+            off = 24 + i * 12
+            _usage = blob[off:off + 4]
+            _num, start = struct.unpack(">II", blob[off + 4:off + 12])
+            assert blob[start:start + 4] in (b"PNG ", b"ZCOD")
+
+
+def test_actaea_reads_the_arc_image_declaration(tmp_path):
+    # The other end: Actaea can read the declaration, and reports None for a
+    # Blorb without one (the meaningful-absence rule).
+    ai = arcimg
+    from actaea.loader import blorb_arc_image
+    art = tmp_path / "art"
+    art.mkdir()
+    _make_png(str(art / "3.png"), 320, 72)
+    blob = ai.build_blorb({3: str(art / "3.png")})
+    assert blorb_arc_image(blob) == (ai.ARCI_VERSION, 9)  # 320x72 is mode 9
+    assert blorb_arc_image(b"not a blorb at all") is None

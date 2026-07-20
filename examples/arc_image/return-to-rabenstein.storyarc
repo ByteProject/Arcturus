@@ -1,0 +1,106 @@
+// The Return to Rabenstein Demo: arc_image shipped in a Blorb.
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// ============================================================================
+// WHAT THIS IS
+// ============================================================================
+// The companion to rabenstein.storyarc. That demo ships its pictures in an
+// .arcres pack; this one ships the very same kind of art in a BLORB, the IF
+// world's standard resource container, because that is the envelope the
+// wider interpreter ecosystem already knows how to open.
+//
+// The story source is no different. Nothing about arc_image changes with the
+// container: a room still carries `arc_image <id>`, the id is still the
+// resource slot, and the compiled .z5 is still a plain conformant story file
+// that plays as pure text anywhere the pictures are not understood. Only the
+// packaging differs.
+//
+// ============================================================================
+// THE PICTURES: THE BLORB
+// ============================================================================
+// Blorb has no filenames inside it. Resources are addressed by usage and
+// NUMBER, which is exactly the arc_image model, so picture id 3 is simply
+// Blorb resource `Pict 3`. Nothing is translated at either end.
+//
+// Two shapes, both built by arcimg:
+//
+//     arcimg pack art/ --blorb -o return-to-rabenstein.blorb
+//         the pictures alone, sitting beside the story file
+//
+//     arcimg pack art/ --zblorb return-to-rabenstein.z5 -o return-to-rabenstein.zblorb
+//         the story embedded too, so the whole game is ONE file
+//
+// This example ships the first form: return-to-rabenstein.blorb beside the
+// .z5. Actaea finds it automatically by name, exactly as it finds an .arcres.
+//
+// Every Blorb arcimg writes also carries a small `ARCI` declaration chunk
+// naming the extension version and the band mode. That lets an interpreter
+// know it should reserve a picture band BEFORE it executes a single
+// instruction, instead of discovering it when the first picture is drawn.
+// A Blorb without that chunk promises no arc_image graphics at all.
+//
+// ============================================================================
+// RUNNING IT
+// ============================================================================
+//     arcc return-to-rabenstein.storyarc -o return-to-rabenstein.z5
+//     actaea return-to-rabenstein.z5
+//
+// And as always, the same .z5 plays as plain text on Frotz, and in Actaea's
+// --console and --headless modes: the pictures are simply absent there.
+
+game
+    title "The Return to Rabenstein"
+    headline "An arc_image Blorb demonstration"
+    author "Stefan Vogt"
+    start village
+
+// DAAD mode (320x96, the upper half), the shape this art is drawn for.
+constant arc_mode = 12
+
+constant scene_village = 2
+constant scene_hall = 3
+constant scene_stairs = 5
+constant scene_chamber = 7
+
+summon.statusline
+
+on start
+    zcolor.font white
+    zcolor.background black
+    zcolor.statusline red
+    zcolor.input red
+
+room village
+    name "Village Lane"
+    desc "Snow lies deep between the timbered houses, and one window still burns
+         yellow against the dark. The church tower stands off to the east, and
+         the inn door is open to the north."
+    arc_image scene_village
+    north hall
+
+room hall
+    name "The Great Hall"
+    desc "Candles gutter in a chandelier above a long table set for no one. The
+         room is warm, and far too quiet. Stairs lead up, and the lane is back
+         south."
+    arc_image scene_hall
+    south village
+    up stairs
+
+room stairs
+    name "The Landing"
+    desc "Cold stone underfoot, and an arched doorway that has lost its door.
+         The hall lies below, and a chamber opens to the north."
+    arc_image scene_stairs
+    down hall
+    north chamber
+
+room chamber
+    name "The Chamber"
+    desc "A narrow bed beneath a window, and moonlight lying across it like a
+         second blanket. Whoever slept here left in a hurry. The landing is
+         back south."
+    arc_image scene_chamber
+    south stairs

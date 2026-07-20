@@ -76,8 +76,11 @@ conversions derive from, not a ceiling for the modern packs. During development
 you can skip the pack and point Actaea at the directory:
 `actaea game.z5 --images art/`.
 
-The worked example is [examples/arc_image/](../examples/arc_image/):
-`rabenstein.storyarc`, its art pack, and the built z5.
+The worked examples are in [examples/arc_image/](../examples/arc_image/),
+one per container, same story shape either way:
+`rabenstein.storyarc` ships its art in an `.arcres` pack, and
+`return-to-rabenstein.storyarc` ships four scenes in a `.blorb`. Each
+comes with its pack and its built z5.
 
 ## 3. Converting for the retro machines
 

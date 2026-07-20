@@ -5253,3 +5253,32 @@ away with no idle topic (ask/tell and non-conversation games
 byte-identical, confirmed); menu games pay +20 for the menu_visible
 seam, ceilings noted. docs/01, docs/05, the VSIX (idle keyword, 1.0.1)
 all updated. Suite 1047.
+
+## 2026-07-20: the ARCI declaration chunk, mandatory in Blorb (arcimg 1.14.1, Actaea 1.3.1)
+
+Chris Spiegel (Bocfel) asked for the Blorb declaration chunk to be
+MANDATORY rather than optional: with it optional, absence tells an
+interpreter nothing and it must support arc_image speculatively for
+every game; mandatory makes "does this game want a picture band" a
+decidable question before a single instruction runs. I had advised
+optional an hour earlier and revised: the scope is narrow (a Blorb
+packaging rule, not a runtime one), arcimg is the only packer so it
+always writes it, and the burden on authors is zero. RULED (Stefan):
+mandatory, implement it.
+
+Built: every Blorb arcimg writes carries `ARCI` (2 bytes: extension
+version, band mode 9/12, or 0 when the art declares none). The chunk
+sits between RIdx and the resources, so its size folds into the
+absolute resource offsets, the one place a slip corrupts every pointer
+silently; a test parses the Blorb back and asserts every RIdx offset
+still lands on a real chunk header. Actaea reads it (blorb_arc_image).
+Written into docs/08 with the part that matters most: ABSENCE IS
+MEANINGFUL, a Blorb without the chunk promises no arc_image graphics,
+and that is a guarantee interpreters may rely on. Part A and the bare
+z5-plus-pack path are untouched, and the chunk is never a second source
+of truth: the mode operand stays authoritative per call.
+
+Also: THE RETURN TO RABENSTEIN, a second arc_image demo shipping four
+scenes in a .blorb (the first ships an .arcres), so both containers
+have a worked example and the Blorb path is exercised end to end in
+Actaea. Suite 1049.
