@@ -5389,3 +5389,41 @@ which is deliberate (a topic is one SUBJECT, and both verbs raise it).
 No redesign needed, because yesterday's `action` already distinguishes
 them from inside the body: `if action is tell`. Documented in docs/05
 with the example. Suite 1060.
+
+## 2026-07-20: shared conversation subjects (arcc 1.3.13, VSIX 1.0.2)
+
+Charles's authoring complaint: several NPCs answer about the same thing,
+and each needed its own topic with its own copy of the vocabulary, which
+is both repetitive to write and duplicated in the story file. Dialog
+declares NPC-agnostic topics; Inform has a topic grammar token. Stefan
+ruled the Arcturus shape and the name (`subject`), and said yes to all
+three open questions: a subject may carry a default reply, a character
+may override the label, and (for ask_for, when it lands) operands
+normalise.
+
+Built: `subject <id> "<label>" words a, b` at file level, with an
+optional indented body as the DEFAULT exchange. A character writes
+`topic <id>` and supplies only its reply; it inherits the words and the
+label, may override the label, may take the default by writing no body,
+and keeps its own once/when/hidden/idle and reveal state, because the
+subject supplies vocabulary and wording, never behaviour. Sema refuses a
+subject-naming topic that redeclares `words` (edit the subject), and
+still requires a label on a topic that names no subject.
+
+The byte payoff is real and general: identical match-word lists are now
+emitted ONCE and every record points at the shared array, so a cast of
+five discussing one villain carries five records and one vocabulary. It
+paid for the feature outright, no ceiling moved. docs/01 and docs/05
+document it; the VSIX highlights `subject`. Suite 1066.
+
+STILL OPEN for Charles: ASK NPC FOR X. Three attempts tonight
+(particle role, tabled verb, minimal grammar) each proved insufficient,
+and the third showed why: the positional matcher cannot express "and
+then free text I should not resolve", so a tabled ask falls back to a
+greedy one-noun match and asks "which do you mean". The real missing
+piece is a TOPIC SLOT in grammar lines (Inform's topic token), which
+also gives ask_for both a noun line and a topic line and so removes the
+scope problem. That is the next milestone and the first stone of the
+verbs overhaul. Stefan's note for the record: he called grammar the
+biggest issue from the outset, and the three cheap attempts were
+patchwork that should not have been tried first.

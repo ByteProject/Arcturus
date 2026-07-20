@@ -135,6 +135,7 @@ class Analyzer:
         self._lint_unread_props()
         self._lint_alter_without_continue()
         self._lint_nautical_land_start()
+        self._resolve_subjects()
         self._lint_self_perform()
         self._lint_grain_word_split()
         # A summoned abbreviations.granule (B6) is compile-time data, not runtime
@@ -323,6 +324,16 @@ class Analyzer:
                     decl=decl,
                     line=decl.line,
                 )
+            elif isinstance(decl, ast.SubjectDecl):
+                if decl.name in w.subjects:
+                    raise self._error(
+                        f"subject '{decl.name}' is declared twice", decl.line)
+                if not decl.words:
+                    raise self._error(
+                        f"subject '{decl.name}' needs `words`: they are what "
+                        f"the whole cast matches when the player raises it",
+                        decl.line)
+                w.subjects[decl.name] = decl
             elif isinstance(decl, ast.CatalogDecl):
                 self._seen(decl.name, decl.line)
                 values = [self._const_text(v) for v in decl.values]
@@ -1689,6 +1700,46 @@ class Analyzer:
                     f"pattern) the re-entry fails.",
                     file=sys.stderr,
                 )
+
+    def _resolve_subjects(self) -> None:
+        """Tie every `topic <id>` that names a declared SUBJECT to it: the
+        topic inherits the subject's match words, its label unless it wrote
+        one of its own, and its default exchange unless it wrote a body. A
+        topic that names no subject must carry its own label, as before."""
+        w = self.world
+        owners = [(n, o.topics) for n, o in w.objects.items()]
+        owners += [(n, k.topics) for n, k in w.kinds.items()]
+        for owner, topics in owners:
+            for t in topics:
+                subj = w.subjects.get(t.subject)
+                if subj is None:
+                    if t.label is None:
+                        raise self._error(
+                            f"topic '{t.subject}' needs a label (the line the "
+                            f"conversations menu shows), or must name a "
+                            f"`subject` declared elsewhere to inherit one",
+                            t.line,
+                        )
+                    continue
+                if t.words:
+                    raise self._error(
+                        f"topic '{t.subject}' names a subject, which already "
+                        f"owns the match words; drop the `words` here (edit "
+                        f"the subject to change them for the whole cast)",
+                        t.line,
+                    )
+                t.words = list(subj.words)
+                if t.label is None:
+                    t.label = subj.label
+                if not t.body and not t.idle:
+                    if not subj.body:
+                        raise self._error(
+                            f"topic '{t.subject}' has no body and subject "
+                            f"'{t.subject}' declares no default exchange: "
+                            f"give one of them something to say",
+                            t.line,
+                        )
+                    t.body = list(subj.body)
 
     def _lint_grain_word_split(self) -> None:
         """A word answers with ONE grain, so splitting a word across two grain

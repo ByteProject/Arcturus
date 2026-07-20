@@ -145,6 +145,11 @@ There is no topic list anywhere: discovery is play,
 the Infocom way, and TALK TO stays the flat brush-off a person can override
 to nudge the player toward the two verbs that matter.
 
+Several characters who answer about the same thing share one `subject`
+declaration (01 section 15): it owns the match words and the label, each
+character writes only its reply, and the vocabulary is stored once no matter
+how large the cast.
+
 One topic serves both ASK and TELL, because a topic is one SUBJECT and the
 two verbs raise the same subject. When the exchange should differ, branch on
 `action` inside the body (01 section 12), which is also how a topic tells a

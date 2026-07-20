@@ -81,8 +81,8 @@
           }
         },
         {
-          "comment": "A topic declaration on a person: topic <id> \"label\" ...",
-          "match": "^\\s*(topic)\\s+([A-Za-z][A-Za-z0-9_]*)",
+          "comment": "A topic on a person, or a shared subject at file level: topic/subject <id> \"label\" ...",
+          "match": "^\\s*(topic|subject)\\s+([A-Za-z][A-Za-z0-9_]*)",
           "captures": {
             "1": {
               "name": "keyword.declaration.storyarc"

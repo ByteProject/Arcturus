@@ -332,3 +332,87 @@ def test_ask_and_tell_can_answer_differently():
     out = _ask_headless(game, ["ask lady about vase", "tell lady about vase"])
     assert "The vase was my mother's." in out
     assert "I know all about that vase." in out
+
+
+# -- shared subjects (Stefan's ruling; the field report of five NPCs each
+# repeating one villain's vocabulary) ---------------------------------------
+
+SUBJECT_GAME = (
+    'game\n    title "S"\n    start square\nsummon.infocom_talking\n'
+    'subject cowboy "the evil cowboy" words cowboy, buckaroo, mean\n'
+    '    reply "Nobody here likes to talk about him."\n'
+    'room square\n    name "Square"\n    desc "Dust."\n'
+    'thing pope of character in square\n    name "Pope Leo"\n'
+    '    words pope\n    named\n'
+    '    topic cowboy\n        reply "I think he\'s swell."\n'
+    'thing sheriff of character in square\n    name "sheriff"\n'
+    '    words sheriff\n'
+    '    topic cowboy once\n        reply "I\'ll see him hang."\n'
+    'thing bard of character in square\n    name "bard"\n    words bard\n'
+    '    topic cowboy "that dreadful man"\n'
+    '        reply "I wrote a song about him."\n'
+    'thing drunk of character in square\n    name "drunk"\n    words drunk\n'
+    '    topic cowboy\n'
+)
+
+
+def test_one_subject_serves_the_whole_cast():
+    # Each character answers in its own voice, and every synonym the SUBJECT
+    # declares works for all of them: adding a word is one edit, not five.
+    out = _ask_headless(SUBJECT_GAME, [
+        "ask pope about cowboy", "ask sheriff about buckaroo",
+        "ask bard about mean"])
+    assert "I think he's swell." in out
+    assert "I'll see him hang." in out
+    assert "I wrote a song about him." in out
+
+
+def test_a_topic_without_a_body_takes_the_subjects_default():
+    out = _ask_headless(SUBJECT_GAME, ["ask drunk about cowboy"])
+    assert "Nobody here likes to talk about him." in out
+
+
+def test_a_character_keeps_its_own_modifiers_and_label():
+    # `once` is per character: the sheriff answers once and then falls silent,
+    # while the pope keeps answering.
+    out = _ask_headless(SUBJECT_GAME, [
+        "ask sheriff about cowboy", "ask sheriff about cowboy",
+        "ask pope about cowboy"])
+    assert out.count("I'll see him hang.") == 1
+    assert "I think he's swell." in out
+
+
+def test_the_shared_vocabulary_is_emitted_once():
+    # The byte payoff: identical match-word lists collapse to one array that
+    # every record points at, so a big cast costs records, not vocabularies.
+    story = generate(analyze(cosmos.combined_program(parse(SUBJECT_GAME))))
+    lone = SUBJECT_GAME.replace(
+        'thing sheriff of character in square\n    name "sheriff"\n'
+        '    words sheriff\n'
+        '    topic cowboy once\n        reply "I\'ll see him hang."\n', '')
+    smaller = generate(analyze(cosmos.combined_program(parse(lone))))
+    # Dropping a whole character saves a record and its routine, but NOT a
+    # second copy of the words: the four-character build is not four
+    # vocabularies bigger.
+    assert len(story) - len(smaller) < 120
+
+
+def test_a_topic_naming_no_subject_still_needs_a_label():
+    from arcturus.errors import ArcError
+    game = (
+        'game\n    title "S"\n    start hall\nsummon.infocom_talking\n'
+        'room hall\n    name "Hall"\n    desc "H."\n'
+        'thing bob of character in hall\n    name "Bob"\n    words bob\n'
+        '    topic weather\n        reply "Wet."\n'
+    )
+    with pytest.raises(ArcError, match="needs a label"):
+        analyze(cosmos.combined_program(parse(game)))
+
+
+def test_a_topic_naming_a_subject_may_not_redeclare_words():
+    from arcturus.errors import ArcError
+    game = SUBJECT_GAME.replace(
+        '    topic cowboy\n        reply "I think he\'s swell."\n',
+        '    topic cowboy words rustler\n        reply "Swell."\n')
+    with pytest.raises(ArcError, match="already owns the match words"):
+        analyze(cosmos.combined_program(parse(game)))

@@ -1915,6 +1915,42 @@ The two are mutually exclusive by the compiler: a game summons exactly one,
 and switching presentations later is a one-line change. How they are
 presented is defined in 02; this section defines the construct.
 
+### Shared subjects
+
+When several characters can be asked about the same thing, declare the
+SUBJECT once at file level and let each of them supply only their answer.
+The subject owns the match words and the menu label, so adding a synonym
+later is one edit rather than one per character, and the vocabulary is
+stored once in the story file however large the cast:
+
+```
+subject cowboy "the evil cowboy" words cowboy, buckaroo, mean
+    reply "Nobody around here likes to talk about him."
+
+thing pope of character in rome
+    topic cowboy
+        reply "I think he's swell."
+
+thing sheriff of character in town
+    topic cowboy once
+        reply "I'll see him hang."
+
+thing bard of character in inn
+    topic cowboy "that dreadful man"
+        reply "I wrote a song about him."
+
+thing drunk of character in tavern
+    topic cowboy
+```
+
+The subject's own indented body, if it has one, is the DEFAULT exchange: the
+drunk above writes no body and answers with it. A character may override the
+label (the bard) and keeps its own modifiers (`once`, `when`, `hidden`,
+`idle`) and its own `reveal`/`hide` state, because the subject supplies
+vocabulary and wording, never behaviour. A topic that names a subject must
+not declare `words` of its own; edit the subject instead. A topic that names
+no subject carries its own label, as always.
+
 A topic is declared in the person's body:
 
 ```

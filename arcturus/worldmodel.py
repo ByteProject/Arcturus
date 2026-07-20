@@ -361,6 +361,10 @@ class World:
     # Actions of verbs declared `meta` (see meta_actions above).
     meta_actions: set = field(default_factory=set)
     # catalog declarations, in declaration order (the layout is deterministic).
+    # Conversation subjects declared at file level (docs/01 section 15): id ->
+    # SubjectDecl. A character's `topic <id>` naming one inherits its words and
+    # label, and the word array is emitted once for the whole cast.
+    subjects: dict = field(default_factory=dict)
     catalogs: dict = field(default_factory=dict)
     # matrix declarations (summon.matrix), in declaration order. Empty unless
     # the granule is summoned; everything gated on it folds to nothing.

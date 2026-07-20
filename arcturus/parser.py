@@ -197,6 +197,8 @@ class Parser:
             return self.parse_noise()
         if t.kind == T.NAME and t.value == "ranks":
             return self.parse_ranks()
+        if t.kind == T.NAME and t.value == "subject":
+            return self.parse_subject()
         if t.kind == T.NAME and t.value == "catalog":
             return self.parse_catalog()
         if t.kind == T.NAME and t.value == "matrix":
@@ -420,11 +422,44 @@ class Parser:
             return ast.Name(t.value, t.line)
         raise self._error(f"a vocabulary word, got {self._describe(t)}")
 
+    def parse_subject(self) -> ast.SubjectDecl:
+        # `subject <id> "<label>" words a, b` plus an optional indented body,
+        # the default exchange for characters that reference it without one
+        # (docs/01 section 15). A subject is declared once at file level and
+        # named by any character's `topic <id>`; the vocabulary and the label
+        # live here, so adding a synonym is one edit for the whole cast.
+        line = self.cur.line
+        self.advance()  # the leading `subject`
+        name = self.expect_name("a subject id").value
+        label = self.parse_expr()
+        words: list[str] = []
+        while not self.check(T.NEWLINE):
+            if self.check(T.NAME) and self.cur.value == "words":
+                self.advance()
+                words.append(self.expect_name("a subject match word").value)
+                while self.check_op(","):
+                    self.advance()
+                    words.append(self.expect_name("a subject match word").value)
+            else:
+                raise self._error(
+                    "expected 'words' in the subject header, got "
+                    f"{self._describe(self.cur)}"
+                )
+        self.expect_newline()
+        body: list = []
+        if self.check(T.INDENT):
+            body = self.parse_stmt_block()
+        return ast.SubjectDecl(name, label, words, body, line)
+
     def parse_topic(self) -> ast.TopicDecl:
         line = self.cur.line
         self.expect_kw("topic")
         subject = self.expect_name("a topic id").value
-        label = self.parse_expr()  # the menu label string
+        # The label is optional: a topic that names a SUBJECT inherits the
+        # subject's wording, and only writes its own to override it.
+        label = None
+        if self.check(T.STRING):
+            label = self.parse_expr()
         words: list[str] = []
         when = None
         once = False
@@ -456,7 +491,11 @@ class Parser:
                     f"the topic header, got {self._describe(self.cur)}"
                 )
         self.expect_newline()
-        body = self.parse_stmt_block()
+        # The body is optional: a topic naming a SUBJECT may take the
+        # subject's default exchange instead of writing one.
+        body: list = []
+        if self.check(T.INDENT):
+            body = self.parse_stmt_block()
         return ast.TopicDecl(subject, label, words, when, once, hidden, idle, body, line)
 
     def parse_property(self) -> ast.PropertyDecl:

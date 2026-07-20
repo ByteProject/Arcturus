@@ -453,13 +453,26 @@ class GrainsBlock:
 
 
 @dataclass
+class SubjectDecl:
+    """A conversation subject declared once at file level and shared by every
+    character that raises it (docs/01 section 15): the match words and the
+    menu label live here, and `body` is the optional default exchange for a
+    character whose `topic` names it without writing one."""
+    name: str
+    label: Expr
+    words: list[str] = field(default_factory=list)
+    body: list[Stmt] = field(default_factory=list)
+    line: int = 0
+
+
+@dataclass
 class TopicDecl:
     # A conversation topic on a person (docs/02 section 14). `subject` is the id
     # (used by reveal/hide); `label` is the menu line; `words` are the ask/tell
     # match words (empty for conversations-only). `when` guards visibility, `once`
     # retires after use, `hidden` starts it out of view. The body is the exchange.
     subject: str
-    label: Expr
+    label: Optional[Expr]
     words: list[str] = field(default_factory=list)
     when: Optional[Expr] = None
     once: bool = False
