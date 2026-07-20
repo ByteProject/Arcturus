@@ -150,11 +150,10 @@ size works as long as it keeps the band's aspect (40:9 for mode 9, 10:3
 for mode 12), and you scale it to your band. 320 is simply the
 resolution the retro conversions are derived from, not a limit.
 
-THE DECLARATION CHUNK. arcimg adds one to every Blorb it writes. It tells
-you three things about the game before you run it: that it uses arc_image
-at all (the chunk being there is the identifier), which version of the
-extension it was built against, and the band geometry, which is either 9
-lines (320x72 pixels) or 12 lines (320x96 pixels).
+THE DECLARATION CHUNK. arcimg adds one to every Blorb it writes. It says
+that this Blorb holds pictures for arc_image, and gives the version of the
+extension they were made for and the band geometry: 9 lines (320x72
+pixels) or 12 lines (320x96 pixels).
 
     'ARCI'  length 2
     +0  1  extension version (currently 1)
