@@ -174,7 +174,10 @@ def test_every_example_is_ceiling_tracked():
     import re as _re
     src = open(os.path.abspath(__file__)).read()
     tracked = set(_re.findall(r'"([^"]+\.storyarc)"', src))
-    excluded = {"arc_image/rabenstein.storyarc"}
+    # The two arc_image showcases stay untracked: their size is dominated by
+    # the art pipeline they demonstrate, not by library codegen.
+    excluded = {"arc_image/rabenstein.storyarc",
+                "arc_image/return-to-rabenstein.storyarc"}
     root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "examples")
     on_disk = set()
     for r, _, files in os.walk(root):

@@ -75,13 +75,13 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.14.0"
+__version__ = "1.14.1"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = '5ca2711'
+__build__ = 'c846efc'
 
 
 def build_id() -> str:
@@ -3376,6 +3376,29 @@ def _mode_aspect(dims) -> bool:
     return w * 9 == h * 40 or w * 3 == h * 10
 
 
+# The arc_image declaration chunk carried by every Blorb arcimg writes
+# (docs/08). Chris Spiegel's request, ruled mandatory: an interpreter reads
+# it before running a byte and knows up front whether to reserve a picture
+# band, and its ABSENCE is meaningful (this Blorb promises no arc_image
+# graphics). Two bytes: the extension version, and the band mode (9 or 12,
+# or 0 when the art declares none, in which case the opcode operand governs
+# as always).
+ARCI_CHUNK = b"ARCI"
+ARCI_VERSION = 1
+
+
+def _declared_mode(entries: dict) -> int:
+    """The band mode to declare in the ARCI chunk: the first picture whose
+    shape matches a standard mode. 0 when none does, meaning "not declared,
+    read the opcode operand" (Part A keeps the operand authoritative, so a
+    game that ever mixed modes still renders correctly)."""
+    for iid in sorted(entries):
+        name = _mode_of(_png_size(entries[iid]))
+        if name is not None:
+            return MODES[name][1] // 8  # the band in text rows: 9 or 12
+    return 0
+
+
 def build_blorb(entries: dict, story_path=None) -> bytes:
     """A Blorb (IFF FORM/IFRS) holding the numbered pictures as 'Pict'
     resources, resource number = the arc_image id, each a 'PNG ' chunk with
@@ -3383,7 +3406,11 @@ def build_blorb(entries: dict, story_path=None) -> bytes:
     Exec 0 in a 'ZCOD' chunk: the .zblorb shape Gargoyle-family
     interpreters open directly. Blorb has no filenames inside; resources
     ARE numbers, which is exactly the arc_image model, so draw_image id N
-    maps to Pict N with no translation anywhere."""
+    maps to Pict N with no translation anywhere.
+
+    Every Blorb written here carries the ARCI declaration chunk (above),
+    which is mandatory by ruling: a Blorb without it makes no arc_image
+    promise."""
     chunks = []  # (chunk type, payload, usage, resource number)
     if story_path is not None:
         with open(story_path, "rb") as fh:
@@ -3393,10 +3420,16 @@ def build_blorb(entries: dict, story_path=None) -> bytes:
             chunks.append((b"PNG ", fh.read(), b"Pict", iid))
     n = len(chunks)
     ridx_len = 4 + n * 12
+    # The declaration chunk sits between the index and the resources. Its
+    # whole size counts into the resource offsets below: RIdx entries are
+    # ABSOLUTE file positions, so anything inserted ahead of the resources
+    # must be in this sum or every pointer is silently wrong.
+    arci = ARCI_CHUNK + struct.pack(">I", 2) + bytes(
+        (ARCI_VERSION, _declared_mode(entries)))
     # Offsets are absolute file positions of each resource chunk's type
-    # field: the 12-byte FORM header, then the RIdx chunk (8 + payload,
-    # padded to even), then the resources in file order.
-    pos = 12 + 8 + ridx_len + (ridx_len & 1)
+    # field: the 12-byte FORM header, the RIdx chunk (8 + payload, padded to
+    # even), the ARCI chunk, then the resources in file order.
+    pos = 12 + 8 + ridx_len + (ridx_len & 1) + len(arci)
     index = bytearray(struct.pack(">I", n))
     body = bytearray()
     for ctype, data, usage, num in chunks:
@@ -3406,7 +3439,7 @@ def build_blorb(entries: dict, story_path=None) -> bytes:
             body += b"\0"
         pos += 8 + len(data) + (len(data) & 1)
     inner = (b"IFRS" + b"RIdx" + struct.pack(">I", ridx_len) + bytes(index)
-             + (b"\0" if ridx_len & 1 else b"") + bytes(body))
+             + (b"\0" if ridx_len & 1 else b"") + arci + bytes(body))
     return b"FORM" + struct.pack(">I", len(inner)) + inner
 
 

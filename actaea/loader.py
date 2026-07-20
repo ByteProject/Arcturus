@@ -170,6 +170,25 @@ def blorb_story(data: bytes) -> bytes:
     return data[start:start + length]
 
 
+def blorb_arc_image(data: bytes):
+    """The arc_image declaration a Blorb carries (docs/08): (version, mode),
+    or None when the chunk is absent. Absence is MEANINGFUL: a Blorb without
+    it promises no arc_image graphics, so an interpreter may skip reserving a
+    picture band for it. mode is 9 or 12, or 0 when the pack declared none
+    (the draw_image operand governs either way)."""
+    if not is_blorb(data):
+        return None
+    pos = 12
+    while pos + 8 <= len(data):
+        ctype = data[pos:pos + 4]
+        length = ((data[pos + 4] << 24) | (data[pos + 5] << 16)
+                  | (data[pos + 6] << 8) | data[pos + 7])
+        if ctype == b"ARCI" and length >= 2:
+            return (data[pos + 8], data[pos + 9])
+        pos += 8 + length + (length & 1)
+    return None
+
+
 def blorb_picture(path: str, number: int):
     """Picture `number` (a Pict resource, PNG bytes) from a Blorb file, or
     None on any miss: absent resource, unreadable file, not a Blorb. The
