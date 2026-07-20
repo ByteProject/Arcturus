@@ -150,17 +150,18 @@ size works as long as it keeps the band's aspect (40:9 for mode 9, 10:3
 for mode 12), and you scale it to your band. 320 is simply the
 resolution the retro conversions are derived from, not a limit.
 
-THE DECLARATION CHUNK. Every Blorb holding arc_image art carries an
-`ARCI` chunk as well, and it is required. It tells you the game wants
-pictures before you have run a line of it:
+THE DECLARATION CHUNK. arcimg adds one to every Blorb it writes. It tells
+you three things about the game before you run it: that it uses arc_image
+at all (the chunk being there is the identifier), which version of the
+extension it was built against, and the band geometry, which is either 9
+lines (320x72 pixels) or 12 lines (320x96 pixels).
 
     'ARCI'  length 2
     +0  1  extension version (currently 1)
     +1  1  band mode: 9, 12, or 0 = not declared
 
-No chunk means no pictures, and you can rely on that. Play such a file as
-an ordinary story: no band, and leave the capability bit alone. It saves
-you supporting pictures on the off chance for every game you open.
+A Blorb without this chunk does not use arc_image, so play it as an
+ordinary story file: no band, and leave the capability bit alone.
 
 Two things the chunk does not change. It is a rule about Blorbs only, so
 a plain `.z5` or `.z8` sitting beside an `.arcres` or an images directory
