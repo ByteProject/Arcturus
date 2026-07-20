@@ -40,15 +40,33 @@ block answer_to(person)
 // visible topic answers to (in declaration order) lets ask and tell share one
 // path: a topic matches on its subject words, not on which verb reached it.
 // Returns 1 if a topic ran, so the seam knows whether to speak the default.
+// The topic this person last answered, 1-based (0: none). AGAIN restores a
+// command's resolved operands, not the words the player typed, and a
+// topic's subject lives in those words: on a replay the scan below finds
+// nothing, so the turn would fall to the default. Remembering the answer
+// makes AGAIN repeat the exchange, exactly as retyping it would.
+global last_topic = 0
+
 block converse(person)
+    let prev = last_topic
+    change last_topic to 0
     let count = topics_count(person)
     let i = 0
     while i < count
         if topic_visible(person, i)
             if subject_typed(person, i)
+                change last_topic to i + 1
                 topic_run(person, i)
                 return 1
         change i to i + 1
+    // A replay: the words say "again", so answer what this person answered
+    // last time. Cleared above when the last exchange matched nothing, so a
+    // stale topic can never be replayed onto a different person.
+    if replaying is 1
+        if prev is not 0
+            change last_topic to prev
+            topic_run(person, prev - 1)
+            return 1
     // No worded topic matched. If the person has an `idle` topic in view,
     // run it as the fallback (the per-NPC default answer): the first visible
     // one, so a `when` guard can vary it by scene. An idle topic carries no

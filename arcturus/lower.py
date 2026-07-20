@@ -96,6 +96,10 @@ INTRINSICS = frozenset({
     # grain body that answers several verbs. any_action_read is the
     # compile-time flag that folds the bookkeeping away when no code asks.
     "action", "any_action_read",
+    # any_topics is the compile-time conversation flag (1 if anything declares
+    # a `topic`). The turn loop guards its replay bookkeeping on it, so a game
+    # with no conversation carries none of it.
+    "any_topics",
     # dir_name(d) speaks a direction value's canonical word in place, at
     # runtime: the explicit ask for when static typing cannot see the type
     # (a value read through a block parameter). Print-only, like say way.
@@ -1270,6 +1274,9 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
                 call.line,
             )
         _place(rt, Variable(slot), dest)
+    elif name == "any_topics":
+        # any_topics(): 1 if any object or kind declares a topic.
+        _place(rt, Const(_any_topics(ctx)), dest)
     elif name == "any_action_read":
         # any_action_read(): 1 if any code reads `action`, so the dispatcher's
         # one-store bookkeeping folds away in a game that never asks.
@@ -1717,6 +1724,19 @@ def _any_action_read(ctx) -> int:
     bodies += [h.body for h in w.free_handlers]
     for body in bodies:
         if body and _reads_action(body):
+            return 1
+    return 0
+
+
+def _any_topics(ctx) -> int:
+    """The compile-time conversation flag: 1 if anything declares a `topic`.
+    The loop's AGAIN replay bookkeeping guards on it (a topic's subject lives
+    in the typed words, so a replay needs to know), and folds away without."""
+    for o in ctx.world.objects.values():
+        if getattr(o, "topics", None):
+            return 1
+    for k in ctx.world.kinds.values():
+        if getattr(k, "topics", None):
             return 1
     return 0
 
@@ -3017,6 +3037,8 @@ def _static_value(ctx, expr):
         return _any_topic_idle(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_action_read":
         return _any_action_read(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_topics":
+        return _any_topics(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "arc_mode":
         return _arc_mode(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "auto_banner":

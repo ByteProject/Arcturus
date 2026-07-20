@@ -145,6 +145,21 @@ There is no topic list anywhere: discovery is play,
 the Infocom way, and TALK TO stays the flat brush-off a person can override
 to nudge the player toward the two verbs that matter.
 
+One topic serves both ASK and TELL, because a topic is one SUBJECT and the
+two verbs raise the same subject. When the exchange should differ, branch on
+`action` inside the body (01 section 12), which is also how a topic tells a
+question from a statement:
+
+```
+    topic vase "the vase" words vase
+        if action is tell
+            reply "I know all about that vase, thank you."
+        else
+            reply "The vase was my mother's."
+```
+
+AGAIN repeats the last exchange, as retyping it would.
+
 For a per-person default answer, give the person an `idle` topic (01 section
 15): it answers when the player asks or tells about a subject no other topic
 matched, in place of the flat library line. It is an ordinary topic with a

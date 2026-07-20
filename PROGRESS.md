@@ -5363,3 +5363,29 @@ This is now the sanctioned answer for the case that started it: keep
 the one grain line with all its verbs and branch on `action` inside.
 docs/01 documents it in both places an author meets it, the grains
 chapter and `on other`. Suite 1057.
+
+## 2026-07-20: AGAIN replays a conversation topic (arcc 1.3.12, Cosmos 1.2.13)
+
+Two reports from Charles, one bug and one that answered itself.
+
+THE BUG: "ask NPC about topic" worked, and an immediate AGAIN gave the
+flat default. Root cause: AGAIN replays a command by restoring its
+RESOLVED operands (act, noun, second, way, grain) and re-dispatching,
+but never the typed words, and a topic's subject lives in the words,
+not in noun/second. So the replay scanned "again", found no subject,
+and fell through. Fixed by treating the topic as the operand it is: the
+granule remembers what a person last answered and repeats it on a
+replay, with a new core `replaying` flag saying that the words must not
+be trusted this turn. The memory clears whenever an exchange matches
+nothing, so a stale topic can never be replayed, nor fired at a
+different person. Guarded by a new any_topics fold, so a game without
+conversation is byte-identical (Cloak unchanged at 18032); the five
+conversation examples pay it.
+
+ASK vs TELL: Charles is right that they are different encounters, and
+Stefan's guess that TELL was a synonym for TALK was not the cause;
+TELL is its own verb and action, but both route to the same topic body,
+which is deliberate (a topic is one SUBJECT, and both verbs raise it).
+No redesign needed, because yesterday's `action` already distinguishes
+them from inside the body: `if action is tell`. Documented in docs/05
+with the example. Suite 1060.
