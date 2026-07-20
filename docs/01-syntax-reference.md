@@ -1848,7 +1848,21 @@ the hallway and again in the cellar, each with its own response. The word gets
 one dictionary entry, which points at a chain of (grain, owner) pairs, and the
 parser answers with the grain whose owner is in scope. When several grains of
 the same word are in scope at once (rare: a room and something the player
-carries), the first declared wins. For one piece of scenery genuinely visible
+carries), the first declared wins.
+
+Within one owner, though, a word belongs to a single grain line. All the
+verbs that word answers go on that one line, and they share its response:
+
+```
+    grains
+        examine, touch "junk" say "Sticky, and useless."
+```
+
+Splitting them across two lines does not give you two answers. The first
+grain for the word answers whatever verb is typed, so the second line never
+runs, and the compiler says so rather than leaving you to find out in play.
+When the answers genuinely need to differ per verb, that is an object's job,
+not a grain's: a `scenery` thing with its own `on examine` and `on touch`. For one piece of scenery genuinely visible
 from several rooms, a `scenery` thing with `spans` (section 5) is still the
 better tool: one object, one description, one identity.
 
