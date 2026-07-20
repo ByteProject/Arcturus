@@ -19,12 +19,13 @@ lives in the commit log. The feature roadmap follows below.
   them into an object, because what you ask about is usually not a thing
   you can point at. That slot is the first real piece of the grammar work
   to come.
-- **Pictures travel as Blorb.** Beside the `.arcres` pack, `arcimg` now
-  writes plain Blorb for the pictures and `.zblorb` with the story
-  embedded, one file holding a whole illustrated game. The mapping cost
-  nothing, because a picture id and a Blorb resource number are the same
-  idea. Actaea reads both, since asking other interpreters to support a
-  shared container while ignoring theirs would be poor manners, and every
+- **Pictures travel as Blorb.** Blorb is the container the interpreter
+  world already knows, so supporting it removes a step for anyone adding
+  arc_image to an existing interpreter. Beside the `.arcres` pack, which
+  stays exactly as it is, `arcimg` now writes plain Blorb for the pictures
+  and `.zblorb` with the story embedded, one file holding a whole
+  illustrated game. The mapping cost nothing, because a picture id and a
+  Blorb resource number are the same idea. Actaea reads both, and every
   Blorb declares up front whether a game wants a picture band, so an
   interpreter can decide before it runs a single instruction.
 - **Knowing what was tried.** `action` reads the action a turn is running,
