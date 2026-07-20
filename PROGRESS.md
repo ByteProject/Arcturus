@@ -5309,3 +5309,30 @@ narrating us: the ZEsarUX CPC snapshot caveat, and the TRS-80 write-pacing
 answer (restated as advice instead of a dated Q&A). Nothing technical was
 changed, only how it reads. docs/01 lost its "(a field report)" aside for
 the same reason. Suite 1049.
+
+## 2026-07-20: a word answers with one grain, and the compiler says so (arcc 1.3.10)
+
+Forum report: two grain lines for the same word in one room, `examine
+"junk"` then `touch "junk"`, with TOUCH falling through to the scenery
+default. Reproduced: find_scenery returns the first grain whose owner is
+in scope without consulting the action, so the examine grain answers
+everything and the second line is dead.
+
+Stefan's call, and he was right to push back on my first framing: that
+form was never documented. The documented shape is one line carrying all
+the verbs (`examine, touch "junk" say ...`), and the moment the answers
+must differ per verb the author has described an object, not cheap
+scenery, so a `scenery` thing with its own handlers is the tool. Grains
+keep their shape; the parser's noun-resolution path stays untouched.
+
+What was indefensible was the SILENCE, and that is fixed: a second grain
+line for a word already claimed by the same owner now gets a compile
+note naming both cures. Cross-room reuse (the documented case) stays
+quiet, as does the one-line multi-verb form. docs/01 states the rule
+where an author meets it. Suite 1052.
+
+OPEN, for Stefan: there is no way to read the CURRENT action in author
+code (action_id("take") gives the number, but nothing to compare it
+against; `on other` has the same blind spot). He asked whether Arcturus
+has Inform's `if (action == ##take)`. It does not. Proposal put to him,
+not built.

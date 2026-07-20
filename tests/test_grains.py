@@ -82,3 +82,46 @@ def test_same_grain_word_in_two_rooms_on_frotz(tmp_path):
     ).stdout
     assert "It rings high among the vaults." in out  # the nave's grain
     assert "It dies against the packed earth." in out  # the crypt's own answer
+
+
+def test_a_word_split_across_two_grain_lines_is_noted(capsys):
+    # A word answers with ONE grain, so a second line for the same word on the
+    # same owner is dead code: the first grain answers whatever verb is typed
+    # and the later line never runs. Silent until a field report caught it
+    # (examine "junk" on one line, touch "junk" on the next). The note names
+    # both cures.
+    game = (
+        'game\n    title "T"\n    start lab\n'
+        'room lab\n    name "Lab"\n    desc "A lab."\n'
+        '    grains\n'
+        '        examine "junk" say "It\'s useless."\n'
+        '        touch "junk" say "It\'s sticky."\n'
+    )
+    analyze(cosmos.combined_program(parse(game)))
+    err = capsys.readouterr().err
+    assert "already answers" in err
+    assert "one line" in err
+
+
+def test_the_documented_multi_verb_line_is_quiet(capsys):
+    game = (
+        'game\n    title "T"\n    start lab\n'
+        'room lab\n    name "Lab"\n    desc "A lab."\n'
+        '    grains\n'
+        '        examine, touch "junk" say "Sticky and useless."\n'
+    )
+    analyze(cosmos.combined_program(parse(game)))
+    assert "already answers" not in capsys.readouterr().err
+
+
+def test_the_same_word_in_two_rooms_is_quiet(capsys):
+    # The documented reuse: one word, different rooms, different answers.
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "H."\n    north cellar\n'
+        '    grains\n        examine "steps" say "Worn smooth."\n'
+        'room cellar\n    name "Cellar"\n    desc "C."\n    south hall\n'
+        '    grains\n        examine "steps" say "Slick with damp."\n'
+    )
+    analyze(cosmos.combined_program(parse(game)))
+    assert "already answers" not in capsys.readouterr().err

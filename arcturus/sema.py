@@ -136,6 +136,7 @@ class Analyzer:
         self._lint_alter_without_continue()
         self._lint_nautical_land_start()
         self._lint_self_perform()
+        self._lint_grain_word_split()
         # A summoned abbreviations.granule (B6) is compile-time data, not runtime
         # blocks, so it rides on the program straight through to codegen.
         self.world.abbreviations = getattr(self.program, "abbreviations", None)
@@ -1669,6 +1670,37 @@ class Analyzer:
                     f"pattern) the re-entry fails.",
                     file=sys.stderr,
                 )
+
+    def _lint_grain_word_split(self) -> None:
+        """A word answers with ONE grain, so splitting a word across two grain
+        lines on the same owner leaves the later line dead: the parser finds
+        the first grain for the word and that one answers, whatever verb was
+        typed. Silent until now (a field report: `examine "junk"` on one line
+        and `touch "junk"` on the next, with touch falling through to the
+        scenery default). Note it and name both cures."""
+        owners = {}
+        for name, obj in self.world.objects.items():
+            owners[name] = obj.grains
+        for kname, kind in self.world.kinds.items():
+            owners.setdefault(kname, []).extend(kind.grains)
+        for owner, grains in owners.items():
+            seen = {}  # word -> the line that first claimed it
+            for g in grains:
+                for w in g.words:
+                    key = w.lower()
+                    if key in seen and seen[key] != g.line:
+                        print(
+                            f"arcc: note: line {g.line}: '{owner}' already "
+                            f"answers \"{w}\" with the grain on line "
+                            f"{seen[key]}, and a word answers with ONE grain, "
+                            f"so this line never runs. Put the verbs on one "
+                            f"line (examine, touch \"{w}\" say ...), or use a "
+                            f"`scenery` thing with its own handlers if the "
+                            f"answers differ per verb.",
+                            file=sys.stderr,
+                        )
+                    else:
+                        seen.setdefault(key, g.line)
 
     def _lint_alter_without_continue(self) -> None:
         """`alter` REGISTERS a report that the library speaks at the action's
