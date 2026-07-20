@@ -144,6 +144,9 @@ Options:
   exit (section 5).
 - `--eject-granule NAME`: write a single bundled granule (for example
   `statusline`) into the current directory for forking, then exit (section 5).
+- `--library-status [DIR]`: list the forked Cosmos files in DIR (default: the
+  current directory), each marked current, aged, or unstamped, then exit
+  (section 5a).
 - `--make-abbreviations`: compute a tuned abbreviation set for the story (and the
   granules it summons) and write `abbreviations.granule` beside it, then exit. The
   standard set is always applied without this; summon the written file by name
@@ -192,6 +195,39 @@ A story summons a granule in one of three forms (docs/05, section 2):
 prefers a copy in the story directory or a `-L` directory and otherwise falls
 back to the bundled one with a notice; `summon "path"` is an explicit file with
 no fallback.
+
+## 5a. The fork stamp
+
+A fork wins over the bundled copy, silently and for as long as it sits there.
+That is the point of a forkable library, but it has a failure mode: the file a
+fork was taken from keeps improving, and the fork does not, and nothing says so.
+A fork left alone long enough becomes a report that the library is broken.
+
+So every file arcc writes out carries a stamp on its first line:
+
+    // cosmos 1.2.14 base a06f30acb367
+
+The version is for a human to read. The fingerprint is what the compiler uses:
+it identifies the pristine source the fork was taken from. When a fork shadows a
+bundled file, arcc fingerprints its own copy of that file and compares. Equal
+means the base has not moved since the fork was taken, so nothing is said,
+however old the version reads and however heavily the fork has been edited.
+Different means the file genuinely changed underneath the fork, and only then
+does a note appear, naming the file, both versions, and the command that writes
+a fresh copy to diff against.
+
+Comparing fingerprints rather than version numbers is the whole design. A
+version comparison would call a fork of an untouched file outdated, which is
+most forks most of the time, and a warning that fires on healthy code teaches
+authors to ignore it.
+
+A fork with no stamp (taken before stamps existed, or tidied away) cannot be
+compared, so it gets one softer note saying its age is unknown. Deleting the
+stamp line is therefore also how an author opts out.
+
+`--library-status [DIR]` audits a directory of forks in one go, marking each
+current, AGED, or unstamped. Files with no bundled counterpart are the author's
+own granules and are not listed.
 
 ## 6. The intrinsic bridge
 

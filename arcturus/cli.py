@@ -159,6 +159,15 @@ def _build_argparser() -> argparse.ArgumentParser:
         "directory for forking, then exit. Edit it and summon it by name.",
     )
     ap.add_argument(
+        "--library-status",
+        nargs="?",
+        const=".",
+        metavar="DIR",
+        help="list the forked Cosmos files in DIR (default: the current directory), "
+        "each marked current, aged (the bundled copy has changed since the fork was "
+        "taken), or unstamped, then exit.",
+    )
+    ap.add_argument(
         "--make-abbreviations",
         action="store_true",
         help="compute a tuned abbreviation set for the story (and the granules it "
@@ -228,8 +237,10 @@ def _write_library_files(target_dir: str, names) -> int:
         return 2
     os.makedirs(target_dir, exist_ok=True)
     for name in names:
+        # Stamped on the way out, so a fork can later be told from an aged fork
+        # (cosmos.stamp_source).
         with open(os.path.join(target_dir, name), "w", encoding="utf-8") as fh:
-            fh.write(sources[name])
+            fh.write(cosmos_lib.stamp_source(sources[name]))
     return 0
 
 
@@ -256,7 +267,7 @@ def _eject_granule(name: str) -> int:
         return 2
     src = granules[fname]
     with open(fname, "w", encoding="utf-8") as fh:
-        fh.write(src)
+        fh.write(cosmos_lib.stamp_source(src))
     # A language pack is selected with summon.language, not a plain summon, so its
     # notice must say so.
     code = cosmos_lib._language_marker(parse(src, fname).decls)
@@ -268,6 +279,53 @@ def _eject_granule(name: str) -> int:
         )
     else:
         print(f"arcc: wrote {fname} (edit it, then summon it by name: summon {fname})")
+    return 0
+
+
+def _library_status(target_dir: str) -> int:
+    """Audit one directory of forked Cosmos files. Each is classified against the
+    bundled copy of the same name, so an author can see at a glance which forks
+    have aged past their base and which are still level with it."""
+    if not os.path.isdir(target_dir):
+        print(f"arcc: error: no such directory: {target_dir}", file=sys.stderr)
+        return 2
+    names = sorted(
+        n for n in os.listdir(target_dir)
+        if n.endswith(".granule") or n.endswith(".prelude")
+    )
+    rows = []
+    for name in names:
+        path = os.path.join(target_dir, name)
+        try:
+            with open(path, "r", encoding="utf-8") as fh:
+                text = fh.read()
+        except OSError:
+            continue
+        status, was, now = cosmos_lib.fork_status(name, text)
+        if status is None:
+            # Not a fork of ours at all: the author's own granule.
+            continue
+        rows.append((name, status, was, now))
+    if not rows:
+        print(f"arcc: no forked Cosmos files in {target_dir}/ "
+              f"(bundled Cosmos {cosmos_lib.COSMOS_VERSION})")
+        return 0
+    width = max(len(n) for n, _, _, _ in rows)
+    print(f"Forked Cosmos files in {target_dir}/ "
+          f"(bundled Cosmos {cosmos_lib.COSMOS_VERSION}):")
+    aged = 0
+    for name, status, was, now in rows:
+        if status == "current":
+            note = f"current (forked at {was}, base unchanged since)"
+        elif status == "moved":
+            note = f"AGED (forked at {was}, the bundled file has changed since)"
+            aged += 1
+        else:
+            note = "unstamped (forked before stamps; age unknown)"
+        print(f"  {name.ljust(width)}  {note}")
+    if aged:
+        print(f"\nDiff an aged fork against a fresh copy to see what it is "
+              f"missing:\n  arcc --eject-granule NAME")
     return 0
 
 
@@ -409,6 +467,7 @@ def main(argv: list[str] | None = None) -> int:
         args.extract_library is not None
         or args.eject_language is not None
         or args.eject_granule is not None
+        or args.library_status is not None
     )
     if not args.source and not utility:
         if not getattr(args, "quiet", False):
@@ -427,6 +486,11 @@ def main(argv: list[str] | None = None) -> int:
         return rc
     if args.eject_language is not None:
         rc = _eject_language(args.eject_language)
+        if rc == 0:
+            print()
+        return rc
+    if args.library_status is not None:
+        rc = _library_status(args.library_status)
         if rc == 0:
             print()
         return rc

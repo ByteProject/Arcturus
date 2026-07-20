@@ -5470,3 +5470,42 @@ flag model are untouched.
 
 Charles's list is closed but for NPC commands, which Stefan parked with
 the NPC engine. Suite 1066.
+
+## 2026-07-21: a fork cannot see that it has aged
+
+Field report, Charles Moore Jr.: SEARCH still does nothing, with the
+handler pasted as proof. The handler was real, and it was Cosmos
+0.36.5, three releases behind. He had forked extendedverbs.granule
+weeks earlier, a fork always beats the bundled copy, and so every
+improvement since had landed in a file his compiler never opened. He
+found it himself an hour later ("forgot i forked extendedverbs").
+
+The support answer took two tries and the first one was wrong. I sent
+him `alter` + `continue` for frisking an NPC without running it; on a
+character who is still `animate` the library refuses first and the
+alter is never spoken, so he got a rebuff and concluded the feature did
+not exist. The suite did not catch it because both halves are tested,
+each in its own game, and their crossing was not. The rule that follows
+from that: anything recommended to an author becomes a test in the same
+commit, and no snippet ships without the transcript that produced it.
+
+RULED (Stefan): the living-character rebuff stays as it is, and wins
+over an author's alter. Searching a conscious person should almost
+always fail, so the default is right to speak; the compliant frisk is
+the exception and `search_loot(self)` is how you ask for it. Pinned by
+test, and stated in docs/05 rather than fixed in code.
+
+RULED (Stefan): forks get a staleness warning, but never a false one.
+His objection killed the obvious design: compare version numbers and
+you call a fork of an unchanged file outdated, which is most forks most
+of the time, and a warning that fires on healthy code gets ignored. So
+every file arcc writes out carries the FINGERPRINT of the source it
+came from, and the check compares that against the bundled copy now.
+Base unchanged, silence, however old the stamp reads and however
+heavily the fork was edited. Base moved, one note naming both versions
+and the command to diff against. Unstamped forks get a softer note;
+deleting the stamp line opts out. `--library-status` audits a directory
+at once.
+
+The gap was ours, not his. We shipped hackability as a headline feature
+and gave forks no way to age. Suite 1079.
