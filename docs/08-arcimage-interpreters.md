@@ -1,51 +1,56 @@
 # arc_image for interpreter authors: the contract, the format, the loaders
 
-This is the implementer's book for arc_image, Arcturus's optional picture
-band. It is written to be sufficient ALONE: an interpreter author (or a
-fresh working session inside an interpreter's own repository) implements a
-target from this document, the reference probe source, and the test assets,
-without ever opening the Arcturus repository. The design record behind it is
-arc_image/reference/design.md; nothing there is required reading.
+This is the implementer's guide to arc_image, the optional picture band in
+Arcturus games. Everything you need to support it is here: this document,
+a working reference loader for your machine, and the test pictures. You
+should not need to read the Arcturus source at all.
 
-The pipeline, in one paragraph, because the first question every
-implementer asks is what is authored and what is derived: the author
-paints ONE MASTER PNG per picture (320x72 or 320x96; nobody ever edits a
-.arc). The `arcimg` tool derives each machine's native version from that
-master as `<id>.<TAG>` (8.C64, 8.CPC, ...), each a small .arc container
-whose payload is already in the machine's own memory order. An
-interpreter loads only its own tag's files and never converts anything;
-the modern path (Actaea) ships the PNGs themselves in an .arcres zip
-instead. Masters are the single source; .arc files are per-machine
-DELIVERY, regenerated at build time.
+First, where the art comes from, since that is what everyone asks. The
+author paints one master picture per scene, a PNG at 320x72 or 320x96.
+Everything else is generated from it by the `arcimg` tool, and nobody ever
+edits the generated files by hand:
 
-The handover package for a target is:
+- For the retro machines, arcimg writes one small `.arc` file per picture
+  per machine (`8.C64`, `8.CPC`, and so on). The pixels inside are already
+  in that machine's own memory order, so your loader unpacks bytes and
+  never converts anything.
+- For modern systems there is no conversion at all. The master PNGs are
+  simply packed, either into an `.arcres` file or into a Blorb.
 
-- this document (part A, part B, and the target's chapter in part C);
-- `arc_image/probes/<target>/` : a working reference loader for the machine,
-  commented against this spec, plus its build command;
-- the standard test assets, `9.<TAG>` (mode 9) and `12.<TAG>` (mode 12), named for the band
-  modes themselves (the ids in the headers match),
-  the same picture in both band shapes;
-- the `arcimg` standalone tool: `arcimg render X.arc -o X.png` produces the
-  ground-truth PNG any correct loader must match on screen, and `arcimg
-  convert` produces fresh assets from band-shaped master PNGs.
+So the masters are the single source, and the files you read are delivery
+copies that get rebuilt whenever the art changes.
+
+What you get when you take on a machine:
+
+- this document: part A, part B, and your machine's chapter in part C;
+- `arc_image/probes/<target>/`, a working reference loader for that
+  machine, commented against this spec, with its build command;
+- the two test pictures, `9.<TAG>` and `12.<TAG>`, the same scene in both
+  band shapes (they are named after the modes, and the ids inside match);
+- the `arcimg` tool itself. `arcimg render X.arc -o X.png` turns any `.arc`
+  back into a PNG, so you can see exactly what your loader should be
+  putting on screen, and `arcimg convert` makes fresh assets from master
+  PNGs.
 
 ## Part A: the interpreter contract
 
-arc_image adds a PICTURE BAND to a conformant Z-machine version 5/8
-interpreter: a picture across the top of the screen, the text area (status
-line included) below it. A story that uses pictures remains a conformant
-story file; an interpreter that knows nothing of arc_image plays it
-unchanged, text-only. The contract:
+arc_image adds a picture band to a conformant Z-machine version 5 or 8
+interpreter: a picture across the top of the screen, with the text area
+and status line below it. A game that uses pictures is still an ordinary
+story file, and an interpreter that knows nothing about arc_image plays
+it unchanged as text. Here is the whole contract.
 
-1. CAPABILITY. If and only if the interpreter can show pictures, it sets
-   Flags 1 bit 1 (the Standard's "picture displaying available" bit) at
-   boot, and re-stamps it after restart and restore (the Z-machine rewrites
-   the header on both). A text-only build leaves the bit alone. The story's
-   library reads this bit at run time and never issues a draw when it is
-   clear, so the draw opcode is structurally unreachable on unaware
-   interpreters; and even if it were reached, unknown EXT opcodes are to be
-   skipped (Standard 1.1 section 14.2).
+1. CAPABILITY. If your interpreter can show pictures, set Flags 1 bit 1
+   (the Standard's "picture displaying available" bit) at boot, and set
+   it again after restart and restore, since the Z-machine rewrites the
+   header on both. A text-only build simply leaves the bit alone.
+
+   The game reads that bit while it runs and never draws when it is
+   clear, so on an interpreter that does not advertise pictures the draw
+   opcode is never even reached. And if it somehow were, the Standard
+   says unknown EXT opcodes are to be skipped (1.1, section 14.2). So
+   there are two layers of safety here, and you get the outer one for
+   free by doing nothing.
 
 2. THE OPCODE. EXT:0x80 (extended opcode 128, in the range the Standard
    reserves for private use), named `draw_image`, two operands, no store, no
@@ -56,12 +61,23 @@ unchanged, text-only. The contract:
    - `image-id` is the resource slot: the picture to show is the asset
      numbered image-id for this platform (the file naming is per target,
      part C). id 0 means CLEAR the band.
-   - `mode` is 9 or 12 and is AUTHORITATIVE for the band height: the band is
-     mode x 8 pixel rows of the machine's own pixels (72 or 96 on every
-     shipped target). The interpreter sizes its screen layout from the mode
-     operand alone; it never measures a picture to lay out the screen. A
-     game keeps one mode throughout in practice, but the interpreter honors
-     the operand each call.
+   - `mode` tells you how tall the band is, and it is the authority on
+     that. There are two, named after where they come from:
+
+         mode 9    Arthur mode    9 text rows, 72 pixels tall
+         mode 12   DAAD mode     12 text rows, 96 pixels tall
+
+     Infocom's Arthur put its pictures in the shallower band across the
+     top third of the screen; the DAAD games used the deeper one across
+     the upper half. The band is always the mode times 8 pixel rows, in
+     the machine's own pixels, which is why both numbers land on whole
+     text rows and the text below always sits flush.
+
+     Size your screen from this operand alone. Never measure a picture to
+     decide your layout: on an 8-bit machine you have to lay out the
+     screen, and often your memory, before a picture is anywhere near
+     loaded. In practice a game keeps one mode from beginning to end, but
+     honour the operand on every call rather than assuming.
    - An unknown id, a missing or unreadable asset: IGNORE the call silently
      and play on. A picture is presentation, never game state.
 
@@ -74,22 +90,21 @@ unchanged, text-only. The contract:
    deduplicates (a re-LOOK issues no draw), so the interpreter needs no
    redraw caching of its own.
 
-   PRESENTATION IS THE MODERN INTERPRETER'S OWN. The band is the contract
-   only where a fixed screen makes it one. A modern interpreter, free of
-   the cell grid, may present the picture however suits it: a transcript
-   that scrolls the picture inline with the prose (the storybook flow, with
-   earlier scenes still visible above), a resizable panel, a fade between
-   scenes. What every presentation must preserve is the meaning: the mode's
-   aspect (mode x 8 rows over the platform width; a modern terp may scale
-   freely but not distort), the picture belonging to the moment it was
-   drawn, and clear (id 0) taking the current picture down. How and where it
-   sits on screen is the author's discretion. This latitude is deliberate:
-   the same draw_image stream drives a pinned band on an 8-bit and a
-   flowing gallery in a browser, and both are conformant.
+   ON A MODERN INTERPRETER, PRESENTATION IS YOURS. The fixed band is only
+   binding where a fixed screen makes it so. If you are not tied to a cell
+   grid, show the picture however suits your interpreter: scrolled inline
+   with the prose so earlier scenes stay visible above, in a resizable
+   panel, faded between scenes. Keep three things and the rest is up to
+   you. Hold the mode's aspect (mode x 8 rows across the width; scale as
+   much as you like, just do not stretch it out of shape). Keep each
+   picture tied to the moment it was drawn. And let id 0 take the current
+   picture down. That freedom is on purpose, so the same stream of
+   draw_image calls can drive a pinned band on an 8-bit machine and a
+   flowing gallery in a browser, both of them correct.
 
-4. DEGRADATION. A text-only interpreter needs NOTHING: bit unset, opcode
-   never reached, and a decoded-anyway EXT:0x80 skipped per the Standard.
-   This is verified behavior, not aspiration: the same story file must play
+4. DEGRADATION. A text-only interpreter needs to do nothing at all: the
+   bit stays clear, the opcode is never reached, and even if it somehow
+   were, the Standard says to skip it. The same story file plays
    identically on a picture build and a text build, pictures aside.
 
 5. Z-MACHINE COLOURS. The band's palette belongs to the ART and is never
@@ -100,16 +115,17 @@ unchanged, text-only. The contract:
    pictures must never change what a game's colour requests mean, and
    colour requests must never repaint a picture.
 
-## The modern desktop (the .arcres path)
+## The modern desktop (the .arcres and .blorb path)
 
-A modern interpreter needs Part A and this section, nothing else:
-everything from Part B on (the .arc container, the codecs, the per-target
-chapters) is the retro machines' business. On the desktop there is no
-container and no codec: the pictures ship as the master PNGs themselves.
+If you are writing a modern interpreter, Part A and this section are all
+you need. Everything from Part B onwards, the `.arc` container and the
+codecs and the per-machine chapters, is the retro machines' business, and
+you can skip it entirely. On the desktop there is nothing to decode: the
+pictures are the master PNGs, exactly as the author painted them.
 
-RESOURCES, two envelopes, one model. Beside the story file sits a pack
-of the numbered master PNGs, and the picture id in the opcode is the
-resource number in the pack, nothing else:
+THE PACKS. Beside the story file sits a pack of numbered PNGs, and the
+picture id in the opcode is simply the number in that pack. Two shapes,
+same idea:
 
 - `.arcres` (mygame.z5, mygame.arcres): a plain zip holding `<id>.png`
   (picture 8 is 8.png). No manifest; the names are the index.
@@ -120,14 +136,19 @@ resource number in the pack, nothing else:
   Gargoyle family opens directly. arcimg writes both (`pack --blorb`,
   `pack --zblorb STORY`).
 
-An interpreter that already speaks Blorb needs nothing new: resource
-number = arc_image id, and the mode still arrives in the opcode. One
-that speaks neither can pick the zip, which is the smaller parse. A
-loose directory of numbered PNGs beside the story is the DEBUGGING
-fallback (Actaea checks pack first, then the story's directory);
-released games ship a pack. Master resolution: any size at the band's
-aspect ratio (40:9 mode 9, 10:3 mode 12); 320-wide is the reference,
-not a ceiling, and the interpreter scales to its band.
+If you already read Blorb, there is nothing new to learn: the resource
+number is the arc_image id, and the mode still comes from the opcode. If
+you read neither format, the zip is the smaller job.
+
+A loose directory of numbered PNGs beside the story also works, but that
+is for debugging while writing a game; released games ship a pack.
+Actaea looks for a pack first and falls back to the story's own
+directory.
+
+One note on picture size. The masters do not have to be 320 wide. Any
+size works as long as it keeps the band's aspect (40:9 for mode 9, 10:3
+for mode 12), and you scale it to your band. 320 is simply the
+resolution the retro conversions are derived from, not a limit.
 
 THE DECLARATION CHUNK, and it is MANDATORY in a Blorb. Every Blorb
 carrying arc_image art also carries an `ARCI` chunk, so an interpreter
@@ -144,17 +165,16 @@ picture band:
     guarantee interpreters may rely on, so that the question "does this
     game use arc_image" is decidable up front rather than speculative.
 
-Two things this does NOT change. The chunk is a Blorb packaging rule
-only: a plain `.z5`/`.z8` beside a loose `.arcres` or an images
-directory involves no Blorb and needs nothing new, so Part A alone
-remains the whole runtime contract. And the chunk is never a second
-source of truth for the band: the mode operand of each `draw_image`
-call stays authoritative (part A, point 2), so a declared 0, or a game
-that ever varied its mode, still renders correctly. The declaration is
-advance notice, not instruction.
+Two things the chunk does not change. It is a rule about Blorbs only, so
+a plain `.z5` or `.z8` sitting beside an `.arcres` or an images directory
+involves no Blorb at all and needs nothing extra; Part A on its own is
+still the whole runtime contract. And it never overrides the opcode: the
+mode operand on each `draw_image` call remains the authority, so a
+declared 0, or a game that changes mode along the way, still renders
+correctly. Think of the chunk as advance notice, not as an instruction.
 
-`arcimg` writes the chunk into every Blorb it produces, so an author
-never has to think about it.
+`arcimg` writes it into every Blorb it produces, so authors never have to
+think about it.
 
 RENDERING. Present the picture however suits your interpreter (Part A,
 point 3: on a modern terp the fixed band is a default, not a mandate).
@@ -213,15 +233,13 @@ their exact meaning, is per target (part C); two rules hold everywhere:
 - Palette payloads are in the machine's NATIVE hardware encoding and are
   written to the hardware verbatim.
 
-THE CODEC (header byte 14): 0 = RLE, 1 = ZX0, 2 = LZSA2. Every target
-chapter in part C mandates exactly ONE codec, so a real interpreter
-carries exactly one decoder; reading the codec byte and refusing
-anything else is honest behavior. (A short-lived codec 3 was reserved
-and retired unreleased on 2026-07-17; its purpose, a bounded lookback
-window, became a guarantee on codec 1 itself, see the window guarantee
-below. No file ever carried codec 3.) The assignment (rulings
-2026-07-08, the bake-off and the speed amendment, and 2026-07-17, the
-window guarantee, all in arc_image/reference/design.md):
+THE CODEC (header byte 14): 0 = RLE, 1 = ZX0, 2 = LZSA2. Each machine's
+chapter names exactly one codec, so a real interpreter only ever carries
+one decoder. Reading the codec byte and refusing anything else is
+perfectly good behaviour. (Codec 3 does not exist: it was reserved
+briefly and dropped before any file used it, because what it was for, a
+bounded lookback window, became a guarantee on codec 1 instead.) Which
+machine gets which, and why:
 
 - ZX0 (Einar Saukas) for the 8-bit cell targets (C64, Spectrum +3, CPC,
   and the rest of the small-machine family). Best ratio of the field,
@@ -246,14 +264,15 @@ the next bit chooses repeat (0) or new offset (1); after any copy it
 chooses literals (0) or new offset (1). offset = MSB*128 - (LSB >> 1);
 decompression is a plain byte loop that reads back into its own output.
 
-THE WINDOW GUARANTEE (ruled 2026-07-17; the number every retro loader
-depends on). arcimg packs every codec-1 stream so that NO match offset
-exceeds 2048 bytes. This is a hard promise of the format, not a hint: on
-the corpus it costs nothing (the packed sizes are byte-identical to the
-older unbounded quick window on C64, CPC, and Spectrum alike), and in
-exchange a decoder never has to reach further back than 2048 bytes of
-its own output. Two memory models satisfy the format, and a target
-chapter in part C names which one it uses:
+THE WINDOW GUARANTEE, the number every retro loader depends on. arcimg
+packs every codec-1 stream so that no match offset ever exceeds 2048
+bytes. You can rely on that absolutely: it is part of the format, not a
+tendency. It costs nothing in practice, since the packed sizes come out
+byte-identical to an unbounded window on C64, CPC, and Spectrum alike,
+and in return your decoder never has to reach further back than 2048
+bytes of what it has already written. That single promise is what makes
+the second memory model below possible. Two models satisfy the format,
+and each machine's chapter says which one it uses:
 
 - STAGING (the plentiful-RAM model, the 16-bit chapters and any 8-bit
   machine with room to spare). Decompress a whole section into a
@@ -372,21 +391,18 @@ probes with wave 2's chapters).
 
 ## Part C: the targets
 
-Each chapter gives the target id and tag, the video setup, the sections and
-their native layouts, the loader recipe (against the probe source), the
-asset naming, and the verified-on line. Chapters appear as their probes are
-proven; the ledger of all fourteen planned targets is arc_image/reference/design.md section 2.
+Each chapter covers one machine: its target id and tag, the video setup,
+the sections and how they are laid out in that machine's memory, the
+loader recipe, and the asset naming. A machine gets a chapter once its
+reference loader works; the others are still on the roadmap.
 
-The probe directory linked in each chapter is PART OF THE HANDOVER, not an
-appendix: it carries the working reference loader this chapter was written
-from (source, embedded test assets, the built binary, and any build
-script). Read the two side by side; where prose and probe could ever
-disagree, the probe is the machine-checked half.
+Read each chapter next to its probe. The probe directory is part of the
+package, not an appendix: it holds the working loader the chapter was
+written from, with its test assets, its built binary, and its build
+script. Where the prose and the probe could ever disagree, believe the
+probe, since that one is machine-checked.
 
 ### C.1 DOS (target id 3, tag DOS, files `<id>.DOS`)
-
-Verified: DOSBox-X, both modes, 2026-07-08; re-verified with the LZSA2
-codec 2026-07-09.
 
 Probe: [arc_image/probes/dos/](../arc_image/probes/dos/), source
 `probe.asm` (the LZSA2 decompressor carried verbatim), the embedded test
@@ -444,9 +460,6 @@ loader needs no buffer beyond the 768-byte palette staging (and even that
 can stream). Conventional-memory cost: effectively zero.
 
 ### C.2 Atari ST (target id 2, tag AST, files `<id>.AST`)
-
-Verified: Hatari, both modes, 2026-07-08; re-verified with the LZSA2
-codec 2026-07-09.
 
 Probe: [arc_image/probes/ast/](../arc_image/probes/ast/), source
 `probe.s` with the embedded test assets 9.AST and 12.AST. Build:
@@ -507,9 +520,6 @@ ASSETS. `<id>.AST` beside the story (GEMDOS 8.3-safe). Test pair: 9.AST,
 
 ### C.3 Amiga (target id 1, tag AMI, files `<id>.AMI`)
 
-Verified: FS-UAE (A500, Kickstart 1.3), both modes, 2026-07-08;
-re-verified with the LZSA2 codec 2026-07-09.
-
 Probe: [arc_image/probes/ami/](../arc_image/probes/ami/), sources
 `boot.s` and `payload.s` with the embedded test assets. Build:
 `python3 build_adf.py` assembles both with vasm and lays the bootable
@@ -542,15 +552,6 @@ constraint. The facts:
   dark paper) and entry 31 a guaranteed-readable light ink.
 
 ### C.4 Commodore 64 (target id 4, tag C64, files `<id>.C64`)
-
-Verified (ring loader): VICE x64sc, both modes, 2026-07-17. The full
-probe is executed end to end on a mini-6502 with a scripted keypress
-before any emulator pass (bitmap, matrix, color RAM, and background
-byte-exact for both images), the decoder against the corpus on every
-test run (tests/test_dzx0r6502.py), and the live pass confirmed matrix
-and color RAM byte-exact through the remote monitor with both images
-approved on screen by Stefan. (The staged R3 loader was verified
-2026-07-09.)
 
 Probe: [arc_image/probes/c64/](../arc_image/probes/c64/), source
 `probe.asm` with the ring decoder `dzx0r_6502.asm` beside it and the
@@ -624,15 +625,6 @@ from disk in sector bites rather than held whole.
 
 ### C.5 ZX Spectrum +3 (target id 9, tag ZX3, files `<id>.ZX3`)
 
-Verified (ring loader): ZEsarUX, Spectrum +3 (ROM 4.1), both modes,
-2026-07-17, via the machine-exact injection route below, byte-exact:
-the frozen machine's bitmap and attribute file were read back over ZRCP
-and compared against the expected decodes, pixel-exact for both images.
-The probe is also executed end to end on a mini-Z80 with scripted keys
-before any emulator pass, and the decoder against the corpus on every
-test run (tests/test_dzx0r.py). (The staged R3 loader was verified the
-same way on 2026-07-10.)
-
 Probe: [arc_image/probes/zx3/](../arc_image/probes/zx3/), source
 `probe.asm` with the ring decoder
 [arc_image/probes/dzx0r_z80.asm](../arc_image/probes/dzx0r_z80.asm) and
@@ -699,20 +691,9 @@ may be streamed from disc in sector bites rather than held whole.
 
 ### C.6 Amstrad CPC (target id 6, tag CPC, files `<id>.CPC`)
 
-Verified (ring loader): ZEsarUX, CPC 464, both modes, 2026-07-17, via
-the ZRCP injection route, and byte-exact rather than by eye: the frozen
-machine's screen blocks and palette buffer were read back over ZRCP and
-compared against the expected decodes, pixel-exact for both images.
-The embedded test pair is the current-pipeline beach conversion (its
-mode-12 render is pixel-identical to the approved stress preview), art
-gate passed by Stefan the same day.
-(ZEsarUX has NO CPC snapshot support: its .sna reader is Spectrum-only
-and answers "corrupt file"; the crafted v1 snapshot the build also
-emits is for the WinAPE family. The staged R3 loader was verified the
-same way on a 6128, 2026-07-10.) The decoder is additionally executed
-against the corpus on every test run (tests/test_dzx0r.py), and the
-probe end to end on a mini-Z80 with scripted keys before the emulator
-ever saw it.
+One tooling note before you start: ZEsarUX cannot load a CPC snapshot.
+Its .sna reader is Spectrum-only and will tell you the file is corrupt.
+The v1 snapshot the build emits is for the WinAPE family instead.
 
 Probe: [arc_image/probes/cpc/](../arc_image/probes/cpc/), source
 `probe.asm` with the ring decoder
@@ -728,7 +709,7 @@ the picture wraps and shifts. Clear the full 16K before the first draw:
 whatever was on screen shows through the sub-band area otherwise.
 
 CODEC. ZX0 (part B) under the 2048 window guarantee, decoded by the RING
-model: this chapter is the reference ring loader (R5, 2026-07-17). The
+model: this chapter is the reference ring loader. The
 decoder is dzx0r_z80.asm, about 110 bytes, and its whole working memory
 is one 2K-aligned ring; each decoded byte goes to the ring and out
 through an `emit` the probe points at the screen writer or a buffer
@@ -800,7 +781,7 @@ reference).
 
 The first target whose interpreter lives outside the family: Shawn
 Sijnstra builds and maintains the Model 4 engine. The TARGET is
-first-class arc_image regardless (ruled 2026-07-17): arcimg converts,
+first-class arc_image regardless: arcimg converts,
 packs, and renders it like any other, this chapter is its blueprint,
 and the test assets ship with the family.
 
@@ -820,17 +801,13 @@ single equate (CTRL, the port $83 option byte), CALIBRATED against
 trs80gp's Tandy board by VRAM readback: bit 7 selects the X axis for
 the write clock (clear = the clock steps Y instead), bit 2 reverses X,
 bit 3 reverses Y, bit 6 changes the addressing mode (avoid), bits 4-5
-inert in this emulation; the probe ships $83. THE HARDWARE QUESTION,
-ANSWERED (via Shawn Sijnstra and trs80gp's author, 2026-07-18): the
-real Tandy boards NEVER drop a write; they insert wait states on
-video memory access (1 to 4 per access, sometimes more), and with
-wait states disabled a conflict shows as white hash on screen, never
-as a lost byte. Interpreters therefore need NO write pacing. The
-single dropped write our verification caught (one byte of the first
-image, boot-phase-locked, reproducible) is a trs80gp emulation bug,
-reported upstream with a byte-exact repro; synthetic fills at every
-write spacing do not trigger it, only the probe's full boot sequence
-does.
+inert in this emulation; the probe ships $83. ON WRITE PACING: you do not need any. Real Tandy boards never drop a
+write. They insert wait states on video memory access, one to four per
+access and sometimes more, and with wait states disabled a conflict
+shows up as white hash on screen rather than as a lost byte. If you see
+a single byte go missing under trs80gp, that is an emulator bug (found
+while building this probe and reported upstream), not something your
+loader needs to work around.
 
 VIDEO. The hi-res board: 640x240 1bpp on a 4:3 screen, so pixels are
 half as wide as tall. The band is 640x72 (mode 9) or 640x96 (mode 12):
@@ -868,118 +845,3 @@ test pair: 9.TRSM4, 12.TRSM4.
 MEMORY. The 2K ring: the entire decode working set. The compressed
 source is read strictly forward and may be streamed from disk in
 sector bites.
-
-## Change log
-
-- 2026-07-19 (presentation latitude): Part A point 3 now makes the fixed
-  top-of-screen band the contract only for fixed-screen interpreters; a
-  modern interpreter may present the picture however suits it (a
-  transcript that scrolls pictures inline, a resizable panel), preserving
-  only the mode aspect, the picture's moment, and clear. Presentation on
-  modern systems is the interpreter author's discretion.
-- 2026-07-20 (the ARCI declaration chunk): every Blorb arcimg writes now
-  carries a two-byte `ARCI` chunk (extension version, band mode), and its
-  absence is a defined state: a Blorb without it promises no arc_image
-  graphics, so the question is decidable before execution rather than
-  speculative. Mandatory in Blorb; the bare story-plus-pack path and the
-  runtime contract are untouched.
-- 2026-07-19 (Blorb): the modern chapter gains the second envelope, on
-  the interpreter community's ask: arcimg writes .blorb (pictures as
-  Pict N) and .zblorb (story embedded as Exec 0) alongside .arcres,
-  same numbering everywhere; Actaea opens both. Master resolution
-  ruled flexible at the band aspect (320 is the reference, not a
-  ceiling).
-- 2026-07-19 (the modern desktop): the .arcres path gets its own chapter,
-  placed directly after Part A and before the retro container, so a
-  desktop terp author reads the contract, the pack (a zip of numbered
-  band-shaped PNGs beside the story), and stops; the retro codec
-  chapters are explicitly not their reading. Prompted by
-  interpreter-author questions on the announcement thread.
-- 2026-07-17 (TRSM4, the first external-interpreter target): target id
-  15, the TRS-80 Model 4 hi-res board, 640x72/96 1bpp, one bitmap
-  section, ring-decoded (the board cannot read back its memory, so the
-  ring model is the only model). Requested and implemented by Shawn
-  Sijnstra on the interpreter side; the target, blueprints, and assets
-  are family. Chapter C.7.
-- 2026-07-17 (the C64 ring probe, verified): C.4 joins the ring model,
-  completing the 8-bit cell trio. The 6502 ring decoder dzx0r_6502.asm
-  lands beside the staged bitfire routine (a clean transcription of the
-  reference state machine, not a bitfire re-plumb: that decoder's
-  self-modifying speed structure is tied to a readable linear
-  destination). Every C64 section is contiguous native memory, so the
-  probe's one emit is a linear store; the layout rule (nothing needed
-  may live under the $2000 bitmap canvas) is documented after the first
-  build broke it. MEMORY (C.4) now reads: the 2K ring, source
-  streamable.
-- 2026-07-17 (the test pair is 9 and 12): the standard test assets are
-  renamed for coherence with the band modes they carry: `9.<TAG>` is
-  the mode-9 image (infocom, 72 rows), `12.<TAG>` the mode-12 image
-  (DAAD, 96 rows); the header ids match. The former 90/100 ids were an
-  undocumented convention and are gone; every probe was rebuilt with
-  the renamed assets.
-- 2026-07-17 (the ZX3 ring probe, verified): C.5 joins the ring model.
-  The staging buffer is gone; the ULA's third/line/char-row interleave
-  turns out to be the ring loader's natural shape (linear runs with two
-  levels of hop), and attributes stream straight to $5800. Verified
-  byte-exact on ZEsarUX (+3 ROM 4.1, both modes, frozen bitmap and
-  attribute file read back and compared). MEMORY (C.5) now reads: the
-  2K ring, source streamable.
-- 2026-07-17 (the CPC ring probe, verified): C.6 is the first ring
-  chapter proven end to end. The ring decoder dzx0r_z80.asm landed
-  beside the classic dzx0 (part B), the CPC probe dropped its staging
-  band for the 2K ring with per-section emit vectors, and verification
-  was byte-exact on ZEsarUX (CPC 464, both modes, frozen screen and
-  palette read back over ZRCP and compared). The probe's test pair was
-  regenerated with the current conversion pipeline and art-approved.
-  MEMORY (C.6) now reads: 2K ring + 17 bytes, no staging, source
-  streamable.
-- 2026-07-17 (the window guarantee): codec-1 streams are packed with no
-  match offset beyond 2048 bytes, at zero measured cost on the corpus,
-  and part B now specifies the two decode memory models (staging and
-  ring). The ring model retires the both-copies-resident assumption for
-  the 8-bit cell targets: a 2K ring plus a per-byte emit to the native
-  screen replaces the staging band, which also serves machines whose
-  video memory cannot be read back. Cell-target chapters migrate as
-  their probes are rebuilt; reference ring decoders land with them.
-- 2026-07-08: first cut: the contract, the format, the DOS chapter
-  (verified), the ST chapter (provisional), the Amiga layout facts.
-- 2026-07-08 (later): the ST chapter verified in Hatari, both modes, with
-  the odd-length alignment lesson recorded.
-- 2026-07-08 (later still): the Amiga chapter verified in FS-UAE, both
-  modes; the Z-machine colours clause (part A.5) and the per-target
-  colour answers; the AMI text contract (sorted palette) after the
-  brown-to-pink background finding; wave 1 complete.
-- 2026-07-08 (the codec rulings): header byte 14 grows codec 2, LZSA2,
-  mandated for the 16-bit trio (and later MS2, NXT, M65); ZX0 stays the
-  8-bit cell targets' codec. Part B carries both one-paragraph specs;
-  arcimg's zx0_decompress and lzsa2_decompress are the executable ones.
-  The wave-1 probes still speak RLE against pre-ruling assets; their
-  LZSA2 rebuild (8086 and 68000 decoders adapted from the lzsa
-  repository) is the next probe step and re-verification.
-- 2026-07-09: the DOS probe rebuilt on LZSA2 (Marty's 8088 decompressor
-  carried verbatim, zlib license) and re-verified in DOSBox-X, both
-  modes; chapter C.1 updated probe-after-probe. The ST and Amiga
-  rebuilds follow with the 68000 decompressor, written from part B's
-  spec (the lzsa repository has no 68000 routine); their chapters and
-  the change log record it when their probes are re-verified.
-- 2026-07-09 (later): the shared 68000 LZSA2 decompressor
-  (arc_image/probes/lzsa2_68k.s) written from the part B spec and
-  proven byte-exact under vamos (real AST and AMI sections, both
-  packers, plus a corruption control); the ST probe rebuilt on it and
-  re-verified in Hatari, both modes. C.2 updated probe-after-probe.
-- 2026-07-09 (later still): the Amiga probe rebuilt on the shared
-  routine and re-verified in FS-UAE, both modes; C.3 updated. THE
-  WAVE-1 BACKPORT IS COMPLETE: all three 16-bit probes decode LZSA2
-  against current assets, and every chapter's codec matches its files.
-- 2026-07-09 (evening): the C64 probe (the first cell-class target):
-  ZX0 via the bitfire 6502 decoder carried verbatim, proven byte-exact
-  through VICE's remote monitor in warp before the visual pass, then
-  verified by Stefan in x64sc, both modes. Chapter C.4.
-- 2026-07-10: the Spectrum +3 probe, verified by Stefan in ZEsarUX on
-  the +3 itself (the ZRCP injection route; snapshots switch machines).
-  Chapter C.5 with the stack, machine, and type-4 lessons.
-- 2026-07-10 (later): the CPC probe, verified by Stefan in ZEsarUX on
-  the 6128 (ZRCP; ZEsarUX has no CPC snapshot support). Chapter C.6
-  with the cube-vs-firmware ink trap, the CRTC-ownership and
-  clear-first lessons, and the split-screen clause. R3'S PROBE ROW IS
-  COMPLETE: six machines, six proven blueprints.
