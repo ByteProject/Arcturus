@@ -2,7 +2,7 @@
   "name": "arcturus",
   "displayName": "Arcturus",
   "description": "The official syntax highlighter for the Arcturus programming language for Infocom's Z-machine.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "ByteProject",
   "icon": "icon.png",
   "author": {

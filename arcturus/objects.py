@@ -691,6 +691,12 @@ def _emit_topic_tables(world, layout, topic_sites: dict) -> None:
     the menu label (string_fixups), and the words sub-array pointer
     (prop_pointers, made absolute against the object-table base). See TOPIC_REC."""
     table = layout.table
+    # Identical match-word lists are emitted ONCE and shared by every record
+    # that names them. That is the payoff of a `subject`: five characters
+    # discussing one villain carry five records but a single vocabulary.
+    # Keyed by the words themselves, so any topics that happen to agree share
+    # too, whether or not they came from a subject.
+    shared_words: dict = {}
     for name, prop_site in topic_sites.items():
         topics = world.objects[name].topics
         table_off = len(table)
@@ -726,7 +732,13 @@ def _emit_topic_tables(world, layout, topic_sites: dict) -> None:
         for ptr_site, words in word_ptr_sites:
             if not words:
                 continue
+            key = tuple(w.lower() for w in words)
+            hit = shared_words.get(key)
+            if hit is not None:
+                layout.prop_pointers.append((ptr_site, hit))
+                continue
             sub_off = len(table)
+            shared_words[key] = sub_off
             layout.prop_pointers.append((ptr_site, sub_off))
             table += bytes(2)
             _put_word(table, sub_off, len(words))
