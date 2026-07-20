@@ -159,8 +159,9 @@ pixels) or 12 lines (320x96 pixels).
     +0  1  extension version (currently 1)
     +1  1  band mode: 9, 12, or 0 = not declared
 
-A Blorb without this chunk does not use arc_image, so play it as an
-ordinary story file: no band, and leave the capability bit alone.
+A Blorb without this chunk holds no arc_image pictures, so treat it as
+the ordinary Blorb it is and play it the way you always have: no band,
+and leave the capability bit alone.
 
 Two things the chunk does not change. It is a rule about Blorbs only, so
 a plain `.z5` or `.z8` sitting beside an `.arcres` or an images directory
@@ -169,9 +170,6 @@ still the whole runtime contract. And it never overrides the opcode: the
 mode operand on each `draw_image` call remains the authority, so a
 declared 0, or a game that changes mode along the way, still renders
 correctly. Think of the chunk as advance notice, not as an instruction.
-
-`arcimg` writes it into every Blorb it produces, so authors never have to
-think about it.
 
 RENDERING. Present the picture however suits your interpreter (Part A,
 point 3: on a modern terp the fixed band is a default, not a mandate).
