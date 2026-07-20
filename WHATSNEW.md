@@ -6,46 +6,46 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
-- **Darkness done right.** Arcturus now follows the modern darkness model:
-  in the dark you can still feel what you carry, so INVENTORY lists your
-  possessions, but seeing detail needs light, so EXAMINE and READ refuse
-  with the too-dark message, and the two can never disagree because read
-  maps onto examine. Coming from Inform 6, PunyInform, or Dialog this is
-  a behavior change worth reading up on (docs/02, section 6); Inform 7
-  behaves the same way, and its darkness rules translate almost 1:1 into
-  a single Arcturus handler header: `on inventory when is_lit is false`.
-- **Directions are values everywhere.** A catalog holds a fixed route
-  (`catalog escape_route` with `north / east / up` lines), a matrix `of
-  direction` holds a mutable one (a patrol path that grows), and saying
-  any direction value speaks its word: `say "${entry(route, 1)}"` prints
-  north, exactly as an object entry prints its name. Comparisons
-  (`is north`), switch cases, iteration, and `exit_dest` all work on
-  them, and a global can alias a whole catalog or matrix by name.
-- **The dispatch chain, hardened.** An object's `on other` catch-all now
-  outranks its kind's specific handlers, exactly as both reference
-  documents always specified: the react dispatcher runs owner by owner,
-  each owner's specific handlers before its own catch-all, the instance
-  before its kinds. And blocks may now have EMPTY bodies: a named seam
-  another layer overrides, free until claimed, which is how the status
-  bar learned to rise before `on start` prints its first word.
-- **The ring decode architecture.** Every retro picture stream now
-  carries a hard guarantee: no compression back-reference reaches beyond
-  2048 bytes, at zero measured cost on the corpus. In exchange, a
-  loader needs only a 2K ring in main RAM and can decode straight to the
-  screen, byte by byte, with no staging buffer at all: the memory
-  posture a 64K machine running a Z-machine interpreter actually has.
-  The Commodore 64, ZX Spectrum +3, and Amstrad CPC reference loaders
-  are rebuilt on it and verified byte-exact against emulator memory,
-  and the two reference decoders (Z80 and 6502) are executed against
-  the whole corpus in the test suite on every run.
-- **A fifteenth target: TRS-80 Model 4.** The first arc_image target
-  whose interpreter lives outside our family, requested and built for by
-  the community. The hi-res board is 640x240 monochrome, so the
-  converter buys quality with resolution: the master doubles
-  horizontally, a contrast stretch anchors the tonal range, and ordered
-  dithering runs at the full 640 grid. One bitmap section, ring-decoded
-  through three ports; the whole 21-picture corpus ships converted, and
-  the reference probe is verified against emulated video memory.
+- **Conversations, rebuilt.** The five ways to address a character are now
+  five different things. ASK ABOUT and TELL ABOUT reach a character's
+  topics, and one topic can answer each differently; ASK FOR is its own
+  act at last, a request rather than a question; GIVE and SHOW stay
+  ordinary actions on the thing in your hand. Characters that discuss the
+  same matter share one `subject` declaration, so the words a player might
+  type live in one place for the whole cast instead of being copied per
+  character, and an `idle` topic gives a character its own default answer
+  when nothing else fits. Underneath all this sits a new `text` grammar
+  slot, which absorbs the words of a subject without trying to resolve
+  them into an object, because what you ask about is usually not a thing
+  you can point at. That slot is the first real piece of the grammar work
+  to come.
+- **Pictures travel as Blorb.** Beside the `.arcres` pack, `arcimg` now
+  writes plain Blorb for the pictures and `.zblorb` with the story
+  embedded, one file holding a whole illustrated game. The mapping cost
+  nothing, because a picture id and a Blorb resource number are the same
+  idea. Actaea reads both, since asking other interpreters to support a
+  shared container while ignoring theirs would be poor manners, and every
+  Blorb declares up front whether a game wants a picture band, so an
+  interpreter can decide before it runs a single instruction.
+- **Knowing what was tried.** `action` reads the action a turn is running,
+  and compares against a plain action name: `if action is touch`. It earns
+  its keep in the two places that answer many verbs at once, an object's
+  `on other` catch-all, which could never say what you had attempted, and
+  a grain that answers several verbs and wants a different line for each.
+- **Search that actually searches.** SEARCH used to shrug at everything.
+  Now it tells you what is there and makes findable what was not: living
+  people still rebuff you, sealed containers still refuse, open ones list
+  what they hold, and a knocked-out guard's pockets give up their contents
+  onto the floor where you can pick them up. The whole recipe for a
+  lootable body is to clear `animate` and put the loot inside.
+- **The ring decode architecture.** Every retro picture stream carries a
+  hard guarantee: no compression back-reference reaches beyond 2048 bytes,
+  at zero measured cost on the corpus. In exchange a loader needs only a
+  2K ring in main RAM and can decode straight to the screen, byte by byte,
+  with no staging buffer at all, which is the memory posture a 64K machine
+  running a Z-machine interpreter actually has. The Commodore 64, ZX
+  Spectrum +3, Amstrad CPC, and TRS-80 Model 4 loaders are all built on
+  it, verified byte-exact against emulator memory.
 
 ## Feature roadmap
 
@@ -80,10 +80,9 @@ way, designed on its own terms, pay-for-use as always.
   push things between rooms, and friends): declarative per-verb
   requirements (whether a verb needs its noun reachable or merely
   visible), noun lists in two-noun actions ("put coin and nail in box";
-  today lists work in single-noun actions only), DROP ALL as the one
-  all-form worth having (taking all stays a deliberate granule, putting
-  all has no case), and maybe CONSULT <object> ABOUT <topic>, which
-  ties into the topic machinery we already have.
+  today lists work in single-noun actions only), and maybe CONSULT
+  \<object\> ABOUT \<topic\>, which ties into the topic machinery we
+  already have.
 - **Question preservation.** A disambiguation question survives an
   interposed command: asked "which coin?", the player may take inventory
   first and then answer. In the same breath: likelihood hints, letting a
