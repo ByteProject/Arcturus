@@ -1915,6 +1915,24 @@ The two are mutually exclusive by the compiler: a game summons exactly one,
 and switching presentations later is a one-line change. How they are
 presented is defined in 02; this section defines the construct.
 
+### The five ways to address a character
+
+Arcturus separates them, because they are different acts:
+
+| | reaches |
+|---|---|
+| `ask <person> about <subject>` | the person's topics |
+| `tell <person> about <subject>` | the same topics (`action is tell` to differ) |
+| `ask <person> for <subject>` | the same topics (`action is ask_for`) |
+| `give <thing> to <person>` | the person's `on give` |
+| `show <thing> to <person>` | the person's `on show` |
+
+The first three name a SUBJECT, which is words rather than an object (you
+ask about the old mine, and you ask for a drink the barkeeper has and you
+do not), so they run through topics. The last two name a real object you
+are holding, so they are ordinary two-noun actions. Commanding a character
+outright is a separate matter and belongs to the NPC engine.
+
 ### Shared subjects
 
 When several characters can be asked about the same thing, declare the

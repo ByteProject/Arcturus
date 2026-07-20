@@ -84,6 +84,9 @@ block parse()
 // call, or the re-tokenized tail of a chained line when chain_next re-enters.
 block parse_line()
     change parse_fault to 0
+    // No subject text until a grammar line's text slot absorbs some.
+    change topic_lo to 0
+    change topic_hi to 0
     change shut_in to nothing
     if word_count is 0
         return 0
@@ -301,13 +304,23 @@ block try_line(line, n)
                         change edge to dir_scan(p, n)
                         if edge is 0
                             return 0
-                change slots to slots + 1
-                if slots is 1
-                    change s1lo to p
-                    change s1hi to edge
+                if t is 4
+                    // A TEXT slot: the words are a SUBJECT, not an object, so
+                    // they are absorbed and handed on as a range rather than
+                    // resolved (ASK BARKEEPER ABOUT THE OLD MINE names no
+                    // object at all). The conversation layer reads the range.
+                    // Written straight to globals: this routine already sits
+                    // at the Z-machine's 15-local ceiling.
+                    change topic_lo to p
+                    change topic_hi to edge
                 else
-                    change s2lo to p
-                    change s2hi to edge
+                    change slots to slots + 1
+                    if slots is 1
+                        change s1lo to p
+                        change s1hi to edge
+                    else
+                        change s2lo to p
+                        change s2hi to edge
                 change p to edge
                 change tok to tok + 1
         change t to peek_byte(tok)

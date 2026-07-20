@@ -29,13 +29,13 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
 CEILINGS = {
-    "features/beyond.storyarc": 18064,  # 2026-07-20 AGAIN replays a conversation topic (the replay flag; conversation games only)
-    "features/alter.storyarc": 16584,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/catalogs.storyarc": 16536,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/matrix.storyarc": 16900,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/direction-grammar.storyarc": 16640,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/scenery-contents.storyarc": 16580,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "granules/nautical.storyarc": 16388,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
+    "features/beyond.storyarc": 18920,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/alter.storyarc": 17412,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/catalogs.storyarc": 17364,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/matrix.storyarc": 17728,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/direction-grammar.storyarc": 16768,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/scenery-contents.storyarc": 17408,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "granules/nautical.storyarc": 17220,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
     # 2026-07-04 (Stefan's ruling, superseding the same day's FULL move):
     # there is NO fullscore verb; SCORE is the one score verb and reports
     # score, max, turns, and rank in one line. Pool labels stay in the
@@ -89,41 +89,41 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 22728,  # 2026-07-20 AGAIN replays a conversation topic (the replay flag; conversation games only)
-    "brass-lantern.storyarc": 17060,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "cloak-of-darkness.storyarc": 18032,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "ejemplo-espanol.storyarc": 21668,  # 2026-07-20 AGAIN replays a conversation topic (the replay flag; conversation games only)
-    "features/computed-properties.storyarc": 15636,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/containers.storyarc": 15932,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/daemons-and-timers.storyarc": 15948,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/doors-and-locks.storyarc": 15524,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/appearance.storyarc": 16320,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/components.storyarc": 15800,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/perform.storyarc": 15800,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/grains.storyarc": 15680,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/handlers.storyarc": 16752,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/grammar.storyarc": 16644,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/introproperty.storyarc": 16868,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/kinds-and-inheritance.storyarc": 15496,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/on-other.storyarc": 15484,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/zcolor.storyarc": 15868,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/scoring.storyarc": 17848,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/spans.storyarc": 15672,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "features/vehicles.storyarc": 16204,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "granules/ambience.storyarc": 17644,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "granules/conversations.storyarc": 17300,  # 2026-07-20 AGAIN replays a conversation topic (the replay flag; conversation games only)
-    "granules/extended-verbs.storyarc": 18352,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "granules/infocom-interrogation.storyarc": 17792,  # 2026-07-20 AGAIN replays a conversation topic (the replay flag; conversation games only)
-    "granules/quotes.storyarc": 15872,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "granules/take-all.storyarc": 17592,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "granules/plurals.storyarc": 16524,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "granules/statusline.storyarc": 15600,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "granules/verbose-exits.storyarc": 15868,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
+    "beispiel-deutsch.storyarc": 22828,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "brass-lantern.storyarc": 17888,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "cloak-of-darkness.storyarc": 18860,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "ejemplo-espanol.storyarc": 21764,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/computed-properties.storyarc": 16464,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/containers.storyarc": 16760,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/daemons-and-timers.storyarc": 16780,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/doors-and-locks.storyarc": 16352,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/appearance.storyarc": 17152,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/components.storyarc": 16628,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/perform.storyarc": 16628,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/grains.storyarc": 16508,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/handlers.storyarc": 17580,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/grammar.storyarc": 16772,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/introproperty.storyarc": 17696,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/kinds-and-inheritance.storyarc": 16328,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/on-other.storyarc": 16312,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/zcolor.storyarc": 16700,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/scoring.storyarc": 18680,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/spans.storyarc": 16504,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/vehicles.storyarc": 17036,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "granules/ambience.storyarc": 18472,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "granules/conversations.storyarc": 18132,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "granules/extended-verbs.storyarc": 19184,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "granules/infocom-interrogation.storyarc": 18648,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "granules/quotes.storyarc": 16704,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "granules/take-all.storyarc": 18420,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "granules/plurals.storyarc": 17360,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "granules/statusline.storyarc": 16432,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "granules/verbose-exits.storyarc": 16700,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 18584  # 2026-07-20 AGAIN replays a conversation topic (the replay flag; conversation games only)
+CLOAK_Z8_CEILING = 19424  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

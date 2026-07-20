@@ -154,23 +154,29 @@ def _world(game):
     return analyze(cosmos.combined_program(parse(game)))
 
 
-def test_shipped_packs_have_no_tabled_verb():
-    # The zero-cost proof: every standard verb in every language pack fits the
-    # flag model, so no story pays for the matcher unless its own grammar asks
-    # for it (the size ceilings pin the byte side of this).
-    for example in (
-        "examples/cloak-of-darkness.storyarc",
-        "examples/beispiel-deutsch.storyarc",
-        "examples/ejemplo-espanol.storyarc",
-    ):
+def test_only_ask_tables_among_the_shipped_verbs():
+    # ONE standard verb rides the table, deliberately: English ASK. ASK
+    # <person> ABOUT <subject> and ASK <person> FOR <thing> are different acts
+    # chosen by wording, which a single per-verb action byte cannot express,
+    # and both name a SUBJECT rather than an object (a `text` slot), which the
+    # flag model cannot express either. Every other verb in every pack still
+    # fits the flag model. German and Spanish are untouched here: their packs
+    # phrase a request with their own verb, so they table nothing.
+    expected = {
+        "examples/cloak-of-darkness.storyarc": {"ask"},
+        "examples/beispiel-deutsch.storyarc": set(),
+        "examples/ejemplo-espanol.storyarc": set(),
+    }
+    for example, want in expected.items():
         with open(example, encoding="utf-8") as fh:
-            assert wm.tabled_verbs(_world(fh.read())) == [], example
+            got = {v.words[0] for v in wm.tabled_verbs(_world(fh.read()))}
+        assert got == want, example
 
 
 def test_needs_table_rule():
     w = _world(GAME)
     tabled = {v.words[0] for v in wm.tabled_verbs(w)}
-    assert tabled == {"dig", "peek"}
+    assert tabled == {"dig", "peek", "ask"}  # ask: see the note above
     # look (leading AT on a one-noun verb) and switch (particle-decided
     # actions, identical shapes) stay on the flag path.
     for verb in w.verbs:

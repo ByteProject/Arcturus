@@ -732,6 +732,8 @@ _BUILTIN_GLOBALS = [
     # so anything reading the raw input at dispatch time (a topic's subject)
     # knows to answer what it answered last time instead.
     "replaying",
+    # The word range a `text` grammar slot absorbed (a conversation subject).
+    "topic_lo", "topic_hi",
     # oops_ready flags that the previous command had an unrecognized word;
     # oops_word is that word's parse-buffer index, for "oops" to correct.
     "oops_ready", "oops_word",

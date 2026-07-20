@@ -416,3 +416,59 @@ def test_a_topic_naming_a_subject_may_not_redeclare_words():
         '    topic cowboy words rustler\n        reply "Swell."\n')
     with pytest.raises(ArcError, match="already owns the match words"):
         analyze(cosmos.combined_program(parse(game)))
+
+
+# -- ASK FOR: a request, distinct from a question (the text slot) ------------
+
+REQUEST_GAME = (
+    'game\n    title "R"\n    start bar\nsummon.infocom_talking\n'
+    'subject beer "the beer" words beer, pint, drink\n'
+    'room bar\n    name "Bar"\n    desc "A bar."\n'
+    'thing keeper of character in bar\n    name "barkeeper"\n'
+    '    words keeper\n'
+    '    topic beer\n'
+    '        if action is ask_for\n'
+    '            reply "One pint, coming up."\n'
+    '        else\n'
+    '            reply "Finest in the county."\n'
+)
+
+
+def test_ask_for_is_its_own_act():
+    # The field report: ASK NPC FOR X used to be routed to ASK NPC ABOUT X.
+    # The wording now selects the action, and a topic tells them apart.
+    out = _ask_headless(REQUEST_GAME, ["ask keeper about beer",
+                                       "ask keeper for pint"])
+    assert "Finest in the county." in out
+    assert "One pint, coming up." in out
+
+
+def test_a_request_reaches_the_subject_by_any_synonym():
+    out = _ask_headless(REQUEST_GAME, ["ask keeper for drink"])
+    assert "One pint, coming up." in out
+
+
+def test_an_unanswered_request_falls_to_the_flat_default():
+    out = _ask_headless(REQUEST_GAME, ["ask keeper for elephant"])
+    assert "nothing like that for you" in out
+
+
+def test_the_subject_text_excludes_the_listener():
+    # The `text` slot hands over only the words after about/for, so a topic
+    # whose words include the character's own name is not fired by naming him.
+    game = (
+        'game\n    title "R"\n    start deck\nsummon.infocom_talking\n'
+        'room deck\n    name "Deck"\n    desc "A deck."\n'
+        'thing captain of character in deck\n    name "old captain"\n'
+        '    words captain, jack\n'
+        '    topic person "himself" words captain, jack\n'
+        '        reply "I am Captain Jack."\n'
+        '    topic ship "the ship" words ship\n'
+        '        reply "She is the finest afloat."\n'
+    )
+    out = _ask_headless(game, ["ask captain about ship"])
+    assert "She is the finest afloat." in out
+    assert "I am Captain Jack." not in out
+    # ...and asking about him by name still reaches the self topic.
+    out2 = _ask_headless(game, ["ask captain about jack"])
+    assert "I am Captain Jack." in out2

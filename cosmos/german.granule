@@ -1317,6 +1317,13 @@ block msg_closed()
 block msg_to_whom()
     say "Wem?"
 
+block msg_ask_for()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} haben nichts dergleichen für dich."
+            return 0
+    say "${The noun} hat nichts dergleichen für dich."
+
 block msg_give()
     if any_pluribus is 1
         if second is pluribus
