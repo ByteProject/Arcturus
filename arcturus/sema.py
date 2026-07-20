@@ -1477,8 +1477,27 @@ class Analyzer:
             if blk is not None and len(blk.params) == 1:
                 self.world.is_resolutions[id(expr)] = wm.IS_PREDICATE
                 return
+        # `if action is touch`: against `action`, a bare name reads as the
+        # ACTION of that name, the sugar directions already have with `way`.
+        # Resolved last, so a local, global, object, or kind of the same name
+        # still wins; only then does the action vocabulary get a look.
+        if isinstance(right, ast.Name) and self._names_the_action(expr.left, locals_) \
+                and right.ident not in locals_ \
+                and right.ident not in self.world.globals \
+                and right.ident not in self.world.objects \
+                and right.ident in wm.action_numbers(self.world):
+            self.world.is_resolutions[id(expr)] = wm.IS_EQUALITY
+            return
         self.world.is_resolutions[id(expr)] = wm.IS_EQUALITY
         self._check_expr(right, locals_)
+
+    def _names_the_action(self, left, locals_: set) -> bool:
+        """Is this the `action` intrinsic rather than something of that name?"""
+        if not isinstance(left, ast.Name) or left.ident != "action":
+            return False
+        return ("action" not in locals_
+                and "action" not in self.world.globals
+                and "action" not in self.world.objects)
 
     def _resolve_name(self, name: str, locals_: set, line: int) -> None:
         w = self.world

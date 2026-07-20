@@ -1706,7 +1706,26 @@ thing statue
         say "The statue suffers your attentions in silence."
 ```
 
-Here examine has its own reply and every other verb falls to `on other`. The
+Here examine has its own reply and every other verb falls to `on other`.
+
+Because `on other` answers many verbs at once, it often wants to know which
+one arrived. `action` reads the action the turn is running, and compares
+against a bare action name:
+
+```
+    on other
+        if action is push
+            say "The statue rocks on its plinth, then settles."
+        else
+            say "The statue suffers your attentions in silence."
+```
+
+That is the same sugar `way` has for directions, and it resolves last, so a
+name of your own always wins over the action vocabulary. `action` is
+available wherever a turn is being dispatched, including grain bodies
+(section 14).
+
+The
 name `other` always means "anything not otherwise matched": as a verb here, and
 as the fallback direction in `on go other` (02). A specific handler that runs
 and ends with `continue` climbs to the kind, the room, and the defaults; it
@@ -1861,8 +1880,27 @@ verbs that word answers go on that one line, and they share its response:
 Splitting them across two lines does not give you two answers. The first
 grain for the word answers whatever verb is typed, so the second line never
 runs, and the compiler says so rather than leaving you to find out in play.
-When the answers genuinely need to differ per verb, that is an object's job,
-not a grain's: a `scenery` thing with its own `on examine` and `on touch`. For one piece of scenery genuinely visible
+
+When the answers should differ per verb, keep the one line and branch on
+`action`, which reads the action the turn is running:
+
+```
+    grains
+        examine, touch, smell "junk"
+            if action is touch
+                say "Sticky, and you regret it."
+            else
+                say "A heap of laboratory junk."
+```
+
+`action` works anywhere a turn is being dispatched, and it earns its keep
+most in the two places that answer many verbs at once: a grain like this
+one, and an object's `on other` catch-all, which can finally tell what was
+tried. Compare it against a bare action name (`action is touch`), the same
+sugar `way` has for directions; a name of your own always wins, so an object
+called `touch` still means the object. For an answer that differs in more
+than wording, a `scenery` thing with its own `on examine` and `on touch` is
+still the clearer tool. For one piece of scenery genuinely visible
 from several rooms, a `scenery` thing with `spans` (section 5) is still the
 better tool: one object, one description, one identity.
 

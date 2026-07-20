@@ -13,7 +13,15 @@
 // free-standing rules and the Cosmos default verbs (react_free). Each link may
 // consume the action (return 1); the first that does ends the walk.
 
+// What `action` reads: the action this turn is running. The dispatcher is
+// the one place every action passes through, so one store here serves
+// handlers, grains, and any block they call. Folds away (any_action_read)
+// in a game whose code never asks, so it costs nothing unused.
+global cur_action = 0
+
 block dispatch(action)
+    if any_action_read is 1
+        change cur_action to action
     // A handler that alters speaks the report; the mark lives for one
     // action. Folds away in a game that never alters.
     if any_alter is 1

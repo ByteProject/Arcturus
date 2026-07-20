@@ -91,6 +91,11 @@ INTRINSICS = frozenset({
     # ask/tell fallback), so both conversation granules fold their idle-topic
     # handling away in a game that declares none: byte-identical.
     "any_topic_idle",
+    # `action` reads the action being dispatched this turn, so a catch-all can
+    # tell what was tried: `if action is touch` in an `on other`, or in a
+    # grain body that answers several verbs. any_action_read is the
+    # compile-time flag that folds the bookkeeping away when no code asks.
+    "action", "any_action_read",
     # dir_name(d) speaks a direction value's canonical word in place, at
     # runtime: the explicit ask for when static typing cannot see the type
     # (a value read through a block parameter). Print-only, like say way.
@@ -1253,6 +1258,22 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         op, t = _operand(rt, ctx, args[0])
         rt.op("call_vn", RoutineRef("cosmos_dir_name"), op)
         _free(ctx, t)
+    elif name == "action":
+        # action: the action being dispatched this turn, read from the global
+        # the dispatcher sets. Compares against a bare action name through the
+        # sugar in the is-test lowering (`if action is touch`).
+        slot = ctx.globals.get("cur_action")
+        if slot is None:
+            raise LowerError(
+                "`action` needs the Cosmos dispatcher (it reads the action "
+                "the turn is running); it is unavailable in a bare build",
+                call.line,
+            )
+        _place(rt, Variable(slot), dest)
+    elif name == "any_action_read":
+        # any_action_read(): 1 if any code reads `action`, so the dispatcher's
+        # one-store bookkeeping folds away in a game that never asks.
+        _place(rt, Const(_any_action_read(ctx)), dest)
     elif name == "any_topic_idle":
         # any_topic_idle(): 1 if any topic is `idle`, so the granules' idle
         # handling folds away otherwise (and cosmos_topic_idle is then DCE'd).
@@ -1666,6 +1687,40 @@ def _any_tables(ctx) -> int:
     return 1 if any(wm.needs_table(v) for v in ctx.world.verbs) else 0
 
 
+def _reads_action(body) -> bool:
+    """Does this body read `action` (the intrinsic, not a same-named local)?"""
+    def names_it(n):
+        return ((isinstance(n, ast.Name) and n.ident == "action")
+                or (isinstance(n, ast.Call) and n.name == "action"))
+    return any(_walk_contains(s, names_it) for s in body)
+
+
+def _any_action_read(ctx) -> int:
+    """The compile-time flag behind `action`: 1 when any handler, block, grain,
+    or topic body reads it. A block whose OWN parameter is named `action` (the
+    dispatcher itself) is skipped, since the name means the parameter there."""
+    w = ctx.world
+    for blk in w.blocks.values():
+        if "action" in getattr(blk, "params", ()):
+            continue
+        if _reads_action(blk.body):
+            return 1
+    bodies = []
+    for obj in w.objects.values():
+        bodies += [h.body for h in obj.handlers]
+        bodies += [g.body for g in getattr(obj, "grains", [])]
+        bodies += [t.body for t in getattr(obj, "topics", [])]
+    for kind in w.kinds.values():
+        bodies += [h.body for h in kind.handlers]
+        bodies += [g.body for g in getattr(kind, "grains", [])]
+        bodies += [t.body for t in getattr(kind, "topics", [])]
+    bodies += [h.body for h in w.free_handlers]
+    for body in bodies:
+        if body and _reads_action(body):
+            return 1
+    return 0
+
+
 def _any_topic_idle(ctx) -> int:
     """The compile-time idle-topic flag: 1 if any topic anywhere is `idle`
     (the ask/tell fallback), else 0. Both conversation granules guard their
@@ -1840,6 +1895,25 @@ def _emit_test(rt, ctx, expr, label, on_true):
             rt.op("jz", Variable(STACK), branch=(label, not t))
             return
         t = not on_true if expr.negated else on_true
+        # `if action is touch`: against the action, a bare name reads as the
+        # ACTION of that name, the same sugar `if way is north` gives
+        # directions. Resolved last, so a story's own name still wins.
+        right = expr.right
+        left_is_action = (
+            (isinstance(expr.left, ast.Name) and expr.left.ident == "action"
+             and "action" not in ctx.named)
+            or (isinstance(expr.left, ast.Call) and expr.left.name == "action"
+                and not expr.left.args))
+        if left_is_action and isinstance(right, ast.Name) \
+                and right.ident not in ctx.named \
+                and right.ident not in ctx.globals \
+                and not ctx.is_object_name(right.ident) \
+                and "cur_action" in ctx.globals:
+            num = wm.action_numbers(ctx.world).get(right.ident)
+            if num is not None:
+                rt.op("je", Variable(ctx.globals["cur_action"]), Const(num),
+                      branch=(label, t))
+                return
         opa, opb, tmp = _two_operands(rt, ctx, expr.left, expr.right)
         rt.op("je", opa, opb, branch=(label, t))
         if tmp is not None:
@@ -2941,6 +3015,8 @@ def _static_value(ctx, expr):
         return _any_ambience_once(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_topic_idle":
         return _any_topic_idle(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_action_read":
+        return _any_action_read(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "arc_mode":
         return _arc_mode(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "auto_banner":
