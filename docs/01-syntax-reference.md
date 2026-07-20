@@ -281,7 +281,7 @@ A matrix `of direction` is the mutable route: seeds and appends are
 direction names, each cell the direction's property number, and saying
 a cell speaks the word, exactly as a direction catalog does.
 
-Mind the count (a field report): entries LIVE only up to the count.
+Mind the count: entries LIVE only up to the count.
 `change entry` rewrites a cell but never grows the matrix, so on a fresh
 matrix the write lands in a cell the count does not yet cover, and
 `calculate`, `for each`, and friends still see an empty matrix. Create

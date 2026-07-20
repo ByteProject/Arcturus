@@ -5282,3 +5282,30 @@ Also: THE RETURN TO RABENSTEIN, a second arc_image demo shipping four
 scenes in a .blorb (the first ships an .arcres), so both containers
 have a worked example and the Blorb path is exercised end to end in
 Actaea. Suite 1049.
+
+## 2026-07-20: the interpreter book overhauled (Stefan's review)
+
+Stefan reviewed docs/08 as an outside implementer would read it and
+called it complicated and inhuman in places. Overhauled on his list:
+the opening rewritten in plain language (the design-record pointer
+dropped as irrelevant to an implementer, and the modern path now
+correctly says .arcres AND .blorb, not just the zip); the modes given
+the explanation they deserved (mode 9 is Arthur mode, 9 rows and 72
+pixels; mode 12 is DAAD mode, 12 rows and 96, with where the names come
+from and why both land on whole text rows); the modern chapter retitled
+".arcres and .blorb path"; and the stiff constructions he pointed at
+("a hard promise of the format, not a hint", "verified behavior, not
+aspiration", "produces the ground-truth PNG") rewritten as things a
+person would say.
+
+Also his ruling on dates: a spec is not a log. Every "Verified: <emulator>,
+both modes, <date>" line is gone from the target chapters, along with the
+dated rulings scattered through Part B and C; a machine simply has a
+chapter once its reference loader works, and the rest are on the roadmap.
+The whole 113-line change log went with them: it was project history in a
+document handed to outside implementers, and it lives in PROGRESS and git
+where it belongs. Kept, because they help an implementer rather than
+narrating us: the ZEsarUX CPC snapshot caveat, and the TRS-80 write-pacing
+answer (restated as advice instead of a dated Q&A). Nothing technical was
+changed, only how it reads. docs/01 lost its "(a field report)" aside for
+the same reason. Suite 1049.
