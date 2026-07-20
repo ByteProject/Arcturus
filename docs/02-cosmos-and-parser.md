@@ -623,6 +623,12 @@ MODEL takes over for a verb whose grammar the flags cannot express:
   noun` next to `look_behind behind noun`: one verb word, and the wording
   picks the action, where the flag model has a single action byte).
 
+ONE STANDARD VERB rides the table: English ASK. `ask noun about text` and
+`ask_for noun for text` are different acts chosen by wording, and both name
+a SUBJECT rather than an object, which is the `text` slot below. So an
+English game carries the matcher; German and Spanish phrase a request with
+a verb of their own (BITTE, PIDE) and table nothing.
+
 Lines that differ in action but not in shape (`switch_on noun` next to
 `switch_off noun`) stay on the flag model: no positional match could tell
 them apart, and the particle machinery already does.
@@ -642,7 +648,15 @@ The matcher (`grammar_match` / `try_line`, in the agnostic skeleton) walks
 the typed words against each line and the first line that fits wins. A
 literal token must BE the typed word at its position; a slot absorbs the
 words up to the line's next literal, or to the end; the whole command must be
-consumed. On a fit the line's action is taken and the slots resolve through
+consumed.
+
+A `text` slot is the exception to resolution: it absorbs its words the same
+way, but they are never matched against objects. The range is handed on
+(`topic_lo`, `topic_hi`) for the conversation layer to match against topics,
+because what it names is a SUBJECT: you ask ABOUT the old mine, which is no
+object at all, and you ask FOR a drink the barkeeper has and you do not, so
+neither could be resolved against scope. A pack still on the flag model
+finds the subject itself, at the first separator, so both models work. On a fit the line's action is taken and the slots resolve through
 the same scoring matcher as everything else, with the same faults: a tie asks
 "which do you mean", a named-but-unresolved noun on a two-slot line is
 rejected, a one-slot miss falls through to grains and the honest can't-see,
