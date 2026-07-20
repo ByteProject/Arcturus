@@ -147,6 +147,40 @@ def test_search_alter_rewords_but_the_loot_still_lands():
     assert "Got it." in out.split("take coin")[-1]  # the mechanics ran anyway
 
 
+def test_search_rebuff_beats_an_alter_on_a_living_character():
+    # A living character's rebuff wins over an author's alter, and does so on
+    # purpose (Stefan's ruling, 2026-07-21): a conscious person should almost
+    # always refuse to be frisked, so the default speaks and the alter stays
+    # unspoken. `continue` therefore does NOT reword a search on someone who
+    # is still `animate`; the way past the rebuff is search_loot(self), which
+    # runs the success path and honours the alter (the test above). Pinned
+    # here because the two halves each pass in isolation and their crossing
+    # does not, which is how a wrong recipe reached an adopter.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    game = (
+        'game\n    title "T"\n    start hall\nsummon.extendedverbs\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing sentry of character in hall\n    name "sentry"\n    words sentry\n'
+        '    on search\n'
+        '        alter "His coat gives up a leather wallet."\n'
+        '        continue\n'
+        'thing wallet in sentry\n    name "leather wallet"\n    words wallet, leather\n'
+    )
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+    io = CaptureIO(script=["search sentry", "take wallet"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert "look that says" in out                  # the rebuff spoke
+    assert "leather wallet" not in out.split("take wallet")[0]  # the alter did not
+    # ... and no loot moved: the wallet is still out of reach.
+    assert "Got it." not in out.split("take wallet")[-1]
+
+
 def test_search_leaves_components_alone():
     # A `component` is an attached part, not loot (the field report: a
     # component was listed, yielded to the room, and then answered "that's
