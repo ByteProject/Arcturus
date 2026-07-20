@@ -125,3 +125,105 @@ def test_the_same_word_in_two_rooms_is_quiet(capsys):
     )
     analyze(cosmos.combined_program(parse(game)))
     assert "already answers" not in capsys.readouterr().err
+
+
+def _play(game, cmds):
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+    io = CaptureIO(script=list(cmds) + ["quit", "y"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+ACTION_GAME = (
+    'game\n    title "T"\n    start lab\nsummon.extendedverbs\n'
+    'room lab\n    name "Lab"\n    desc "A lab."\n'
+    '    grains\n'
+    '        touch, burn, examine "junk"\n'
+    '            if action is touch\n'
+    '                say "Sticky."\n'
+    '            else\n'
+    '                if action is burn\n'
+    '                    say "It smoulders."\n'
+    '                else\n'
+    '                    say "Just junk."\n'
+    'thing idol in lab\n    name "idol"\n    words idol\n'
+    '    on other\n'
+    '        if action is push\n'
+    '            say "It rocks."\n'
+    '        else\n'
+    '            say "Nothing happens."\n'
+)
+
+
+def test_action_lets_one_grain_answer_each_verb():
+    # `action` reads the action being dispatched, with the bare-name sugar
+    # (`if action is touch`), so a grain that lists several verbs can answer
+    # each one differently: the shape a forum report reached for with an
+    # undocumented second grain line.
+    out = _play(ACTION_GAME, ["touch junk", "burn junk", "examine junk"])
+    assert "Sticky." in out
+    assert "It smoulders." in out
+    assert "Just junk." in out
+
+
+def test_action_works_in_an_on_other_catch_all():
+    out = _play(ACTION_GAME, ["push idol", "pull idol"])
+    assert "It rocks." in out
+    assert "Nothing happens." in out
+
+
+def test_action_survives_command_chaining():
+    # Each chained command is its own turn, so the dispatcher restamps it.
+    out = _play(ACTION_GAME, ["touch junk then burn junk"])
+    assert "Sticky." in out
+    assert "It smoulders." in out
+
+
+def test_the_action_bookkeeping_folds_away_when_unread():
+    # Pay-for-use: the dispatcher's one store is guarded by any_action_read,
+    # which must fold to 0 for a game whose code never asks, so the feature
+    # costs such a game nothing at all.
+    from arcturus.lower import _any_action_read, Context
+    from arcturus.codegen import _globals_map
+    plain = (
+        'game\n    title "T"\n    start lab\n'
+        'room lab\n    name "Lab"\n    desc "A lab."\n'
+        'thing idol in lab\n    name "idol"\n    words idol\n'
+        '    on other\n        say "Nothing happens."\n'
+    )
+    w = analyze(cosmos.combined_program(parse(plain)))
+    ctx = Context(w, _globals_map(w))
+    assert _any_action_read(ctx) == 0
+
+    reader = plain.replace(
+        '        say "Nothing happens."\n',
+        '        if action is push\n            say "Pushed."\n'
+        '        else\n            say "Nothing happens."\n')
+    w2 = analyze(cosmos.combined_program(parse(reader)))
+    ctx2 = Context(w2, _globals_map(w2))
+    assert _any_action_read(ctx2) == 1
+
+
+def test_a_story_name_still_wins_over_the_action_sugar():
+    # Resolved last: an object called `touch` keeps the name.
+    game = (
+        'game\n    title "T"\n    start lab\n'
+        'room lab\n    name "Lab"\n    desc "A lab."\n'
+        'thing touch in lab\n    name "touchstone"\n    words touchstone\n'
+        'thing idol in lab\n    name "idol"\n    words idol\n'
+        '    on other\n'
+        '        if action is touch\n'
+        '            say "same object"\n'
+        '        else\n'
+        '            say "other"\n'
+    )
+    # Compiles: `touch` resolves to the OBJECT, an ordinary equality, not the
+    # action sugar. (The comparison is then object-vs-action, always false,
+    # but it is the author's own name winning, which is the rule.)
+    generate(analyze(cosmos.combined_program(parse(game))))

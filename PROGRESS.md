@@ -5336,3 +5336,30 @@ code (action_id("take") gives the number, but nothing to compare it
 against; `on other` has the same blind spot). He asked whether Arcturus
 has Inform's `if (action == ##take)`. It does not. Proposal put to him,
 not built.
+
+## 2026-07-20: `action`, and the bare-name sugar (arcc 1.3.11, Cosmos 1.2.12)
+
+Stefan's go, after the grains thread turned up the real gap. A forum
+reader wanted per-verb answers from one grain and reached for an
+undocumented second grain line; another offered `let act = resolve_verb`
+inside the body, which works but reaches into an internal parser block
+and is not something to spread as an idiom. Underneath both was a
+genuine hole: author code had no way to read the action being
+dispatched. `action_id("touch")` gave a number with nothing to compare
+it against, and `on other` had the same blind spot, answering a dozen
+verbs unable to name one.
+
+Built: `action` reads the action the turn is running, and Stefan's
+syntactic sugar compares it against a bare action name, `if action is
+touch`, the same shape `way` has for directions. Resolved last, so a
+story's own name still wins (an object called `touch` keeps the name).
+The dispatcher is the one place every action passes, so one store there
+serves handlers, grains, and any block they call, and it survives
+command chaining because each chained command is its own dispatch.
+Pay-for-use holds: any_action_read folds the store away when nothing
+reads it, and Cloak of Darkness compiles byte-identical at 18032.
+
+This is now the sanctioned answer for the case that started it: keep
+the one grain line with all its verbs and branch on `action` inside.
+docs/01 documents it in both places an author meets it, the grains
+chapter and `on other`. Suite 1057.
