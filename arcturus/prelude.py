@@ -315,6 +315,11 @@ _BUILTINS = {
     "last_way": T_NUMBER,
     "last_grain": T_NUMBER,
     "last_here": T_OBJECT,
+    # 1 while AGAIN is replaying a command. AGAIN restores the RESOLVED
+    # operands rather than the typed words, so anything that reads the raw
+    # input at dispatch time (the conversation topics: their subject lives in
+    # the words, not in noun/second) needs to know it must not look there.
+    "replaying": T_NUMBER,
     # 1 when the ending was a `death`; game_over offers UNDO only then.
     "died": T_NUMBER,
     # The catalog region's byte address, seeded at build (docs/01, catalogs).

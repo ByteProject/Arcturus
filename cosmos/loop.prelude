@@ -292,6 +292,11 @@ block cosmos_perform(act, obj, other)
 // resumed here via restore_undo, meaning the previous turn is being taken back.
 block run_turn(act)
     change meta_turn to 0
+    // Fresh turn: not a replay until the AGAIN branch below says so. The
+    // whole replay flag folds away in a game with no conversation topics,
+    // the only thing that reads the typed words at dispatch time.
+    if any_topics is 1
+        change replaying to 0
     // The named object is known but shut inside a closed container: tell the
     // player to open it rather than carrying out the action on something sealed.
     if shut_in is not nothing
@@ -340,7 +345,13 @@ block run_turn(act)
                     msg_cant_see
                     return 0
         // Replay the previous command by restoring its resolved operands, then
-        // fall through to dispatch it exactly as a fresh turn.
+        // fall through to dispatch it exactly as a fresh turn. `replaying`
+        // says so for the rest of the turn: the typed words are still
+        // "again", so anything that reads them at dispatch time (a topic's
+        // subject lives in the words, not in noun/second) must fall back to
+        // what it answered last time instead of scanning them.
+        if any_topics is 1
+            change replaying to 1
         change act to last_act
         change noun to last_noun
         change second to last_second

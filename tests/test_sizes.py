@@ -29,7 +29,7 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
 CEILINGS = {
-    "features/beyond.storyarc": 18020,  # 2026-07-19 ask/tell scans the subject phrase, not the listener (the first-topic bug; +68 the separator scan)
+    "features/beyond.storyarc": 18064,  # 2026-07-20 AGAIN replays a conversation topic (the replay flag; conversation games only)
     "features/alter.storyarc": 16584,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "features/catalogs.storyarc": 16536,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "features/matrix.storyarc": 16900,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
@@ -89,10 +89,10 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 22724,  # 2026-07-20 idle fallback topic: the menu's idle-skip wrapper (menu games only; +20; ask/tell and non-conversation games byte-identical)
+    "beispiel-deutsch.storyarc": 22728,  # 2026-07-20 AGAIN replays a conversation topic (the replay flag; conversation games only)
     "brass-lantern.storyarc": 17060,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "cloak-of-darkness.storyarc": 18032,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "ejemplo-espanol.storyarc": 21664,  # 2026-07-20 idle fallback topic: the menu's idle-skip wrapper (menu games only; +20; ask/tell and non-conversation games byte-identical)
+    "ejemplo-espanol.storyarc": 21668,  # 2026-07-20 AGAIN replays a conversation topic (the replay flag; conversation games only)
     "features/computed-properties.storyarc": 15636,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "features/containers.storyarc": 15932,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "features/daemons-and-timers.storyarc": 15948,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
@@ -111,9 +111,9 @@ CEILINGS = {
     "features/spans.storyarc": 15672,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "features/vehicles.storyarc": 16204,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "granules/ambience.storyarc": 17644,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "granules/conversations.storyarc": 17292,  # 2026-07-20 idle fallback topic: the menu's idle-skip wrapper (menu games only; +20; ask/tell and non-conversation games byte-identical)
+    "granules/conversations.storyarc": 17300,  # 2026-07-20 AGAIN replays a conversation topic (the replay flag; conversation games only)
     "granules/extended-verbs.storyarc": 18352,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
-    "granules/infocom-interrogation.storyarc": 17744,  # 2026-07-19 ask/tell scans the subject phrase, not the listener (the first-topic bug; +68 the separator scan)
+    "granules/infocom-interrogation.storyarc": 17792,  # 2026-07-20 AGAIN replays a conversation topic (the replay flag; conversation games only)
     "granules/quotes.storyarc": 15872,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "granules/take-all.storyarc": 17592,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
     "granules/plurals.storyarc": 16524,  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
@@ -123,7 +123,7 @@ CEILINGS = {
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 18584  # 2026-07-19 STAND flag-model redo (exit noun + the exit+on particle; the tabled shape was a doctrine breach)
+CLOAK_Z8_CEILING = 18584  # 2026-07-20 AGAIN replays a conversation topic (the replay flag; conversation games only)
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

@@ -296,3 +296,39 @@ def test_no_idle_topic_leaves_the_helper_unemitted():
     import arcturus.codegen as cg
     generate(analyze(cosmos.combined_program(parse(GAME))))
     assert "cosmos_topic_idle" not in cg._LAST_LIVE_ROUTINES
+
+
+def test_again_repeats_a_conversation_topic():
+    # AGAIN restores a command's resolved operands, not the words the player
+    # typed, and a topic's subject lives in those words: the replay used to
+    # find no subject and fall to the flat default (the field report). The
+    # granule now remembers what the person answered and repeats it.
+    out = _ask_headless(CAPTAIN, ["ask captain about ship", "again", "again"])
+    assert out.count("She is the finest afloat.") == 3
+
+
+def test_again_does_not_replay_a_stale_topic():
+    # An exchange that matched nothing clears the memory, so a later AGAIN
+    # cannot resurrect an older topic (or fire one person's topic at another).
+    out = _ask_headless(CAPTAIN, ["ask captain about ship",
+                                  "ask captain about nonsense", "again"])
+    assert out.count("She is the finest afloat.") == 1
+
+
+def test_ask_and_tell_can_answer_differently():
+    # One topic serves both verbs (it is one subject), and `action`
+    # distinguishes them when the exchange should differ.
+    game = (
+        'game\n    title "T"\n    start deck\nsummon.infocom_talking\n'
+        'room deck\n    name "Deck"\n    desc "A deck."\n'
+        'thing lady of character in deck\n    name "Mrs. Loudbottom"\n'
+        '    words lady\n    named\n'
+        '    topic vase "the vase" words vase\n'
+        '        if action is tell\n'
+        '            reply "I know all about that vase."\n'
+        '        else\n'
+        '            reply "The vase was my mother\'s."\n'
+    )
+    out = _ask_headless(game, ["ask lady about vase", "tell lady about vase"])
+    assert "The vase was my mother's." in out
+    assert "I know all about that vase." in out

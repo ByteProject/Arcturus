@@ -728,6 +728,10 @@ _BUILTIN_GLOBALS = [
     # last_here is the room the remembered command ran in, so a replayed
     # scenery-grain quip refuses in another room.
     "last_here",
+    # 1 while AGAIN replays: it restores resolved operands, not typed words,
+    # so anything reading the raw input at dispatch time (a topic's subject)
+    # knows to answer what it answered last time instead.
+    "replaying",
     # oops_ready flags that the previous command had an unrecognized word;
     # oops_word is that word's parse-buffer index, for "oops" to correct.
     "oops_ready", "oops_word",
