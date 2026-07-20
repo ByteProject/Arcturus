@@ -752,10 +752,17 @@ verb "read"
 verb "talk", "greet"
     talk noun
 
+// ASK <person> ABOUT <subject> and ASK <person> FOR <thing> are different
+// acts, and in both the thing named is a SUBJECT rather than an object: you
+// ask about the old mine, and you ask for a drink the barkeeper has and you
+// do not, so neither can be resolved against what is in scope. Both take a
+// `text` slot, and the wording selects the action, which one action byte
+// cannot express: this is the one standard verb that rides the positional
+// grammar table (docs/02 section 8c), and the reason the table exists.
 verb "ask", "interrogate", "query"
     ask noun
-    ask noun about
-    ask noun for
+    ask noun about text
+    ask_for noun for text
 
 verb "tell", "inform"
     tell noun
@@ -1321,6 +1328,13 @@ block msg_give()
             say "${The second} don't want ${the noun}. Outrageous."
             return 0
     say "${The second} doesn't want ${the noun}. Outrageous."
+
+block msg_ask_for()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} have nothing like that for you."
+            return 0
+    say "${The noun} has nothing like that for you."
 
 block msg_show()
     if any_pluribus is 1

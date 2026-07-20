@@ -811,6 +811,14 @@ on give
     change refused to 1
     msg_give
 
+// ASK <person> FOR <thing>: a request. The person is the noun (the thing
+// asked for is subject text, matched by the conversation layer), so a
+// character answers with its own `on ask_for`, or with a topic branching on
+// `action is ask_for`. The default is a polite nothing-doing.
+on ask_for
+    if convo_guard is 1
+        ask_for_to(noun)
+
 on show
     if noun is nothing
         change refused to 1
@@ -982,6 +990,14 @@ on answer
 
 block ask_to(person)
     talk_to(person)
+
+// ASK <person> FOR <thing>: the request seam. The default is a flat
+// nothing-doing; a conversation granule overrides it to try the person's
+// topics first, so a request can be answered by the same subject machinery
+// that answers a question (branching on `action is ask_for`).
+block ask_for_to(person)
+    change refused to 1
+    msg_ask_for
 
 block tell_to(person)
     talk_to(person)

@@ -1406,6 +1406,13 @@ block msg_closed()
 block msg_to_whom()
     say "¿A quién?"
 
+block msg_ask_for()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} no tienen nada de eso para ti."
+            return 0
+    say "${The noun} no tiene nada de eso para ti."
+
 block msg_give()
     if any_pluribus is 1
         if second is pluribus

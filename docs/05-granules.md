@@ -150,6 +150,11 @@ declaration (01 section 15): it owns the match words and the label, each
 character writes only its reply, and the vocabulary is stored once no matter
 how large the cast.
 
+ASK <person> FOR <thing> reaches the same topics: a request names a subject
+just as a question does, and the topic tells them apart with `action is
+ask_for` (so one topic can answer "what about the beer?" and "may I have a
+beer?" differently). Nothing matching falls to the flat request default.
+
 One topic serves both ASK and TELL, because a topic is one SUBJECT and the
 two verbs raise the same subject. When the exchange should differ, branch on
 `action` inside the body (01 section 12), which is also how a topic tells a

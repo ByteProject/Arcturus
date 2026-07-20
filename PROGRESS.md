@@ -5427,3 +5427,46 @@ scope problem. That is the next milestone and the first stone of the
 verbs overhaul. Stefan's note for the record: he called grammar the
 biggest issue from the outset, and the three cheap attempts were
 patchwork that should not have been tried first.
+
+## 2026-07-20: the text slot, and ASK FOR (arcc 1.3.14, Cosmos 1.2.14)
+
+The last of Charles's five, done the way Stefan said to do it from the
+start: at the grammar, not around it. Three earlier attempts tonight
+(a particle role, a tabled verb with two noun slots, a minimal grammar
+tweak) each failed, and the third showed why: the positional matcher
+consumed every typed word, so `ask noun about` could not account for
+its trailing subject and fell back to a greedy one-noun match ("which
+do you mean, the honey jar or the keeper?"). The missing piece was
+never the action split; it was a way to say AND THEN WORDS I MUST NOT
+RESOLVE.
+
+Built: the `text` grammar slot, which absorbs words and hands them on
+as a range (topic_lo/topic_hi) instead of matching them against
+objects. The slot code already existed in the emitter, unimplemented in
+the matcher. English ask now reads:
+
+    ask noun
+    ask noun about text
+    ask_for noun for text
+
+so the wording selects the act, and both subjects are text, which is
+what they always were: you ask ABOUT the old mine, and you ask FOR a
+drink the barkeeper has and you do not, so neither can be resolved
+against scope. That also dissolves the scope problem that made the
+object-binding designs unworkable. Requests route through the same
+topics via a new ask_for_to seam, and a topic tells question from
+request with `action is ask_for`.
+
+RULED (Stefan): spend the bytes, grammar correctness outranks the
+ceiling. English games pay +828 for the matcher and the ask table, and
+Cloak is 18860 against PunyInform's ~28K, so the margin he cited holds.
+German and Spanish pay ~100: they phrase a request with their own verb
+(BITTE, PIDE) and table nothing. ASK is now the one standard verb on
+the table, recorded in the doctrine test that used to assert none was.
+
+The conversation layer reads the range when a text slot supplied one
+and keeps the old separator scan otherwise, so the packs still on the
+flag model are untouched.
+
+Charles's list is closed but for NPC commands, which Stefan parked with
+the NPC engine. Suite 1066.

@@ -255,6 +255,10 @@ _STD_ACTIONS = {
     "inventory", "go", "enter", "exit", "open", "close", "lock", "unlock",
     "switch_on", "switch_off", "push", "pull", "turn", "give", "show", "talk",
     "wait", "again", "insert",
+    # ASK <person> FOR <thing>: a request, distinct from asking ABOUT a
+    # subject. English selects it by wording (the ask verb's grammar table);
+    # other packs may give it a verb of their own.
+    "ask_for",
     # The rest of the standard verb set (docs/02 section 9). These exist as verbs
     # in the language layer, but the names must be known here too, so a handler
     # (`on touch`) or a grain line (`touch "stone"`) checks out even when a
@@ -320,6 +324,12 @@ _BUILTINS = {
     # input at dispatch time (the conversation topics: their subject lives in
     # the words, not in noun/second) needs to know it must not look there.
     "replaying": T_NUMBER,
+    # The word range a grammar line's `text` slot absorbed: the SUBJECT of a
+    # conversation (ASK X ABOUT <subject>, ASK X FOR <subject>). Words, not an
+    # object, so the parser hands on the range and the conversation layer
+    # matches it against topics. 0/0 when the command carried no text slot.
+    "topic_lo": T_NUMBER,
+    "topic_hi": T_NUMBER,
     # 1 when the ending was a `death`; game_over offers UNDO only then.
     "died": T_NUMBER,
     # The catalog region's byte address, seeded at build (docs/01, catalogs).
