@@ -6,14 +6,16 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
-- **The screen the game is actually on.** Actaea told every game it was
-  running on an 80-column screen, whatever screen it was really running on,
-  so a status bar in a wider terminal stopped at column 80 and left a notch
-  beyond it. The terminal front-end now reports its true width and height,
-  a resize reaches the game with the next thing it draws, and the bar
-  reaches the edge at any size. This matters beyond one interpreter: a
-  status bar is written once and has to fit a 40-column home computer and a
-  132-column terminal alike, so what it spans has to be the truth.
+- **A terminal that keeps its screen.** Two things went wrong when you
+  resized Actaea's terminal window. The game was never told the screen had
+  changed, so a status bar stayed at whatever width it started with, and
+  everything already printed vanished, trickling back only as you kept
+  playing. Both are fixed: the game is told the terminal's real size, at
+  startup and after every resize, and the console now keeps its own record
+  of what the story printed and repaints from it, re-wrapped to the new
+  width. A screen the story cleared on purpose stays cleared. This matters
+  more than it sounds, because a status bar is written once and has to fit
+  a 40-column home computer and a 132-column terminal alike.
 - **Conversations, rebuilt.** The five ways to address a character are now
   five different things. ASK ABOUT and TELL ABOUT reach a character's
   topics, and one topic can answer each differently; ASK FOR is its own
@@ -41,6 +43,7 @@ lives in the commit log. The feature roadmap follows below.
   its keep in the two places that answer many verbs at once, an object's
   `on other` catch-all, which could never say what you had attempted, and
   a grain that answers several verbs and wants a different line for each.
+
 - **Search that actually searches.** SEARCH used to shrug at everything.
   Now it tells you what is there and makes findable what was not: living
   people still rebuff you, sealed containers still refuse, open ones list
