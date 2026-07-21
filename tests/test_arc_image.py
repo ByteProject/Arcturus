@@ -340,3 +340,54 @@ def test_always_lit_game_never_carries_the_dark_branch():
     assert w.uses_darkness is False
     dark = analyze(cosmos.combined_program(parse(DARK_GAME)))
     assert dark.uses_darkness is True
+
+
+def test_restore_brings_back_the_saved_picture(tmp_path):
+    # Stefan's question on the door recipe: open the door (picture 4), SAVE,
+    # close it again (3), RESTORE. The property is dynamic memory so the open
+    # door rides in the save file, and the restore path clears and repaints
+    # from the restored state: the band ends on the open-door picture.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+
+    src = (
+        'game\n    title "Door"\n    start gatehouse\n'
+        'constant door_shut = 3\n'
+        'constant door_open = 4\n'
+        'room gatehouse\n    name "Gatehouse"\n    desc "A door."\n'
+        '    arc_image door_shut\n'
+        'thing studded_door in gatehouse\n    name "studded door"\n'
+        '    words door, studded\n    fixed\n'
+        '    on open\n        change gatehouse.arc_image to door_open\n'
+        '        say "The door grinds open."\n'
+        '    on close\n        change gatehouse.arc_image to door_shut\n'
+        '        say "It thuds shut."\n'
+    )
+    save_file = str(tmp_path / "door.qzl")
+
+    class PicIO(CaptureIO):
+        supports_pictures = True
+
+        def save_path(self, default):
+            return save_file
+
+        def restore_path(self, default):
+            return save_file
+
+    io = PicIO(script=["open door", "save", "close door", "restore"])
+    vm = VM(load(_compile(src)), io)
+    calls = []
+    orig = vm.screen.set_image
+
+    def spy(i, m):
+        calls.append((i, m))
+        orig(i, m)
+
+    vm.screen.set_image = spy
+    try:
+        vm.run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert calls == [(0, 9), (3, 9), (4, 9), (3, 9), (0, 9), (4, 9)]
+    assert vm.screen.image == (4, 9)
