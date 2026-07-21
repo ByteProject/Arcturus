@@ -191,3 +191,75 @@ def test_the_status_bar_spans_the_whole_terminal(tmp_path):
                 os.waitpid(pid, 0)
             except ChildProcessError:
                 pass
+
+
+def test_text_survives_a_resize_and_re_wraps(tmp_path):
+    # A curses window holds no history, so a resize used to leave the screen
+    # blank until play scrolled text back in ("everything disappears, and it
+    # comes back from the bottom as I type"). The console keeps a scrollback of
+    # logical lines and repaints from it, re-wrapping to the new width.
+    story = tmp_path / "t.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
+    pid, fd = _spawn(story)
+    try:
+        _set_size(fd, 80, 30)
+        before = _drain(fd, 1.8).decode("utf-8", "replace")
+        assert "The Long Hall" in re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", before)
+        # Widen: the story text must be back on screen without a keypress.
+        _set_size(fd, 120, 30)
+        after = _drain(fd, 1.5).decode("utf-8", "replace")
+        plain = re.sub(r"\x1b\[[0-9;]*[A-Za-z]|\x1b[()][AB0]|\x1b[=>]", "", after)
+        assert "An Interactive Fiction" in plain, plain[:400]
+        # Narrow: the same text arrives again, wrapped to the smaller width, so
+        # no repainted line can be longer than the screen.
+        _set_size(fd, 50, 30)
+        narrow = _drain(fd, 1.5).decode("utf-8", "replace")
+        plain = re.sub(r"\x1b\[[0-9;]*[A-Za-z]|\x1b[()][AB0]|\x1b[=>]", "",
+                       narrow)
+        assert "Interactive Fiction" in plain, narrow[:400]
+        # Re-wrapped, not merely reprinted: the release line is 60 characters
+        # and cannot survive intact on a 50-column screen.
+        assert "Arcturus 1.3 / Cosmos 1.2" not in plain, plain[:400]
+        os.write(fd, b"quit\ry\r")
+        _drain(fd, 0.8)
+        os.write(fd, b" ")
+        _drain(fd, 0.4)
+    finally:
+        os.close(fd)
+        try:
+            os.waitpid(pid, 0)
+        except ChildProcessError:
+            pass
+
+
+def test_a_cleared_screen_stays_cleared_across_a_resize(tmp_path):
+    # The story erased the screen on purpose, so a resize must not bring the
+    # old text back out of the scrollback.
+    src = (
+        'game\n    title "Wipe"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'verb "wipe"\n    wipe\n'
+        'on wipe\n    clear_screen()\n    say "Wiped."\n'
+    )
+    story = tmp_path / "w.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(src)))))
+    pid, fd = _spawn(story)
+    try:
+        _set_size(fd, 80, 30)
+        _drain(fd, 1.5)
+        os.write(fd, b"wipe\r")
+        _drain(fd, 1.2)
+        _set_size(fd, 110, 30)
+        after = _drain(fd, 1.5).decode("utf-8", "replace")
+        plain = re.sub(r"\x1b\[[0-9;]*[A-Za-z]|\x1b[()][AB0]|\x1b[=>]", "", after)
+        assert "Interactive Fiction" not in plain, plain[:300]
+        os.write(fd, b"quit\ry\r")
+        _drain(fd, 0.8)
+        os.write(fd, b" ")
+        _drain(fd, 0.4)
+    finally:
+        os.close(fd)
+        try:
+            os.waitpid(pid, 0)
+        except ChildProcessError:
+            pass

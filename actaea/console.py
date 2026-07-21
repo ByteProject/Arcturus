@@ -132,6 +132,19 @@ class ConsoleApp:
         # The word-wrap buffer: the unfinished output line as (char, attr)
         # pairs, broken at spaces when it outgrows the width.
         self._pending: list = []
+        # The scrollback: what the lower window has been told to show, kept as
+        # LOGICAL lines (unwrapped, as the game wrote them) of (char, attr).
+        # A curses window holds no history, so without this a resize had
+        # nothing to repaint with and the screen simply went blank until the
+        # next command scrolled text back in (the field report). Logical rather
+        # than wrapped, so a resize re-wraps to the new width instead of
+        # preserving the old one's breaks.
+        self._scroll: list = []       # completed lines, oldest first
+        self._logical: list = []      # the line being written now
+        # Bounded: a screenful is all a repaint can use, and a long session
+        # must not grow this without limit. Generous enough that any terminal's
+        # worth of text survives a resize.
+        self._scroll_max = 400
         # [MORE] paging: lines scrolled since the player last had a say.
         self._since_input = 0
 
@@ -184,11 +197,18 @@ class ConsoleApp:
         self.term_h, self.term_w = self.scr.getmaxyx()
         self.scr.erase()
         self._make_lower(min(self._split, self.term_h - 1))
+        # The new window is blank, so put the story text back, re-wrapped to
+        # the new width. Without this the screen empties on every resize and
+        # fills again only as play continues (the field report).
+        self._repaint_lower()
         # Tell the game, by way of the header (S 11.1). v5 has no resize
         # interrupt, so nothing repaints this instant; the game reads the new
         # width when it next draws its status bar, one command later.
         self.vm.screen_resized()
         self._grid_dirty = True
+        # Put it on the physical screen now: a resize can happen while the
+        # game is blocked waiting for input, with nothing else due to refresh.
+        self._refresh()
 
     # -- colours and styles ------------------------------------------------------
 
@@ -281,7 +301,9 @@ class ConsoleApp:
         for ch in text:
             if ch == "\n":
                 self._emit_line(newline=True)
+                self._close_logical()
                 continue
+            self._logical.append((ch, attr))
             self._pending.append((ch, attr))
             if len(self._pending) >= width:
                 # Break at the last space; a spaceless line breaks hard.
@@ -314,6 +336,76 @@ class ConsoleApp:
             self._since_input += 1
             self._maybe_page()
 
+    def _close_logical(self) -> None:
+        """End the logical line: the game printed a real newline. A wrap does
+        NOT come through here, which is the point: a wrapped line is one
+        logical line and re-wraps freely when the screen changes width."""
+        self._scroll.append(self._logical)
+        self._logical = []
+        if len(self._scroll) > self._scroll_max:
+            del self._scroll[: len(self._scroll) - self._scroll_max]
+
+    @staticmethod
+    def _wrap(line: list, width: int) -> list:
+        """One logical line as the screen rows it occupies, broken at spaces
+        the way write() breaks them (a spaceless run breaks hard)."""
+        if not line:
+            return [[]]
+        rows = []
+        row: list = []
+        for cell in line:
+            row.append(cell)
+            if len(row) >= width:
+                brk = next((i for i in range(len(row) - 1, -1, -1)
+                            if row[i][0] == " "), None)
+                if brk is None:
+                    rows.append(row)
+                    row = []
+                else:
+                    rows.append(row[:brk])
+                    row = row[brk + 1:]
+        rows.append(row)
+        return rows
+
+    def _repaint_lower(self) -> None:
+        """Redraw the lower window from the scrollback, wrapped to the current
+        width. Called after a resize, where curses has handed us a blank
+        window and the text would otherwise be lost."""
+        h, _ = self.lower.getmaxyx()
+        width = max(1, self.term_w - 1)
+        # The line in progress, minus the part still sitting in the wrap buffer
+        # (that has not reached the screen yet and will be emitted normally).
+        emitted = len(self._logical) - len(self._pending)
+        rows: list = []
+        for line in self._scroll:
+            rows.extend(self._wrap(line, width))
+        if emitted > 0:
+            rows.extend(self._wrap(self._logical[:emitted], width))
+        # Text sits at the BOTTOM after a scroll, so keep the newest rows.
+        if len(rows) > h:
+            rows = rows[-h:]
+        self.lower.erase()
+        self.lower.move(0, 0)
+        for i, row in enumerate(rows):
+            for ch, attr in row:
+                try:
+                    self.lower.addstr(ch, attr)
+                except curses.error:
+                    pass
+            if i < len(rows) - 1:
+                try:
+                    self.lower.addstr("\n")
+                except curses.error:
+                    pass
+        # curses still believes the pre-resize screen is on the terminal, so a
+        # plain refresh would send nothing for cells whose contents "match".
+        # Repaint from truth, exactly as the split change does. NOTE: no
+        # noutrefresh here. It would clear the window's touched-line flags, and
+        # the refresh that follows (after the grid, which repaints stdscr and
+        # therefore blanks this region) would then copy nothing back, leaving
+        # the screen empty. The caller refreshes, last, and wins.
+        self.lower.redrawwin()
+
     def _maybe_page(self) -> None:
         page = self.lower.getmaxyx()[0] - 1
         if page > 1 and self._since_input >= page:
@@ -330,6 +422,10 @@ class ConsoleApp:
 
     def erase_lower(self) -> None:
         self._pending = []
+        # The game cleared the screen, so the history is gone with it: a resize
+        # afterwards must not bring back text the story deliberately erased.
+        self._scroll = []
+        self._logical = []
         # The background FIRST, then the erase: curses fills a cleared
         # window with its background attribute, so this order is what makes
         # the whole screen take the game's colour (the terminal counterpart
@@ -390,8 +486,12 @@ class ConsoleApp:
                     self._refresh()
                     continue
                 if key == curses.KEY_RESIZE:
+                    # The repaint inside _resized puts the story text and the
+                    # prompt back; the typed line is not in the scrollback yet
+                    # (it becomes part of it on Enter), so it is redrawn here,
+                    # wherever the prompt now ends.
                     self._resized()
-                    origin = (self.lower.getmaxyx()[0] - 1, 0)
+                    origin = self.lower.getyx()
                     self._redraw_input(origin, buffer, attr)
                     self._refresh()
                     continue
@@ -405,6 +505,11 @@ class ConsoleApp:
                         continue
                 if key in ("\n", "\r"):
                     self.lower.addstr("\n")
+                    # The line the player typed joins the scrollback, after the
+                    # prompt it was typed against, so a later resize repaints
+                    # the exchange the way it happened.
+                    self._logical.extend((ch, attr) for ch in buffer)
+                    self._close_logical()
                     self._since_input = 0
                     return "".join(buffer), 13
                 if key in ("\x7f", "\b", "\x08"):

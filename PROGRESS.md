@@ -5552,3 +5552,33 @@ case that would have shown it next.
 The last column is now painted too (curses refuses a plain write to the
 final cell, so it is inserted instead), which is what the notch in the
 screenshot was. Suite 1086.
+
+## 2026-07-21: the terminal keeps its screen
+
+The second half of the same field report: resizing Actaea's terminal
+emptied the screen, and the text trickled back only as play continued.
+A curses window holds no history, so the resize handler built a fresh
+blank window and there was nothing to repaint from.
+
+The console now keeps its own scrollback: what the story printed, as
+LOGICAL lines (unwrapped, with attributes), bounded at 400 lines. A
+resize re-wraps that to the new width and repaints. Widen and the text
+is simply still there; narrow and it re-flows, verified by watching a
+60-character banner line break in two on a 50-column screen. A screen
+the story cleared on purpose stays cleared: the erase drops the history
+with it.
+
+Two curses traps cost real time, both worth recording. A repaint while
+the game is blocked on input needs its own refresh, since nothing else
+is due to draw. And the repaint must NOT refresh the window itself:
+that clears the touched-line flags, so the refresh that follows (after
+the grid repaints stdscr, blanking the region) copies nothing back and
+the screen stays empty. The window held the right text the whole time
+while the terminal showed none of it.
+
+Method note: every measurement in both halves of this fix was taken by
+reading the actual screen through a small terminal emulator over a pty,
+never by reasoning about the code. The first three attempts at the
+repaint all looked right in the source and all left the screen blank.
+
+Suite 1088.

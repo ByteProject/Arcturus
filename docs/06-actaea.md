@@ -110,6 +110,11 @@ means the next command; version 5 has no way for an interpreter to interrupt
 a game mid-turn to announce a resize, so one turn's delay is how every v5
 interpreter behaves.
 
+Resizing keeps what is on screen. The terminal itself holds no history, so
+the console keeps its own record of what the story has printed and repaints
+from it, re-wrapped to the new width; text no longer vanishes and trickles
+back as you play. A screen the story deliberately cleared stays cleared.
+
 Native Windows has no stdlib curses; there, --console degrades to the
 headless pipe with a note (WSL plays fine).
 
