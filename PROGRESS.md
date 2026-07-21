@@ -5509,3 +5509,16 @@ at once.
 
 The gap was ours, not his. We shipped hackability as a headline feature
 and gave forks no way to age. Suite 1079.
+
+The suite went parallel the same day: 1079 tests in 141s serially, 25 to
+30s across the cores of a MacBook Pro. Almost every test compiles a whole
+game against the library (117ms each, 300 of them), so the work is
+CPU-bound and independent, which is the ideal shape for it. The tkinter
+and curses tests are pinned to one worker, since two front-ends
+contending for a display is how a test stops failing and starts hanging.
+
+RULED (Stefan): the console tests stay inside the parallel run. Under
+xdist they warn that forkpty in a threaded worker can deadlock; splitting
+them into a serial pass would remove that risk and cost 9 seconds, a
+third of the win, for something that has warned but never fired. If it
+ever bites, the split is a two-minute change.
