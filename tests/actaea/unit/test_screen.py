@@ -304,3 +304,27 @@ def test_an_absurd_size_is_clamped_to_the_header_s_range():
     vm = VM(_story(), io)
     assert vm.mem.byte(0x21) == 255
     assert vm.mem.byte(0x20) == 1
+
+
+def test_the_bar_names_darkness_not_the_room():
+    # Stefan's ruling (2026-07-21): naming an unseen room in the status bar is
+    # a spoiler, so in the dark the bar says the language layer's darkness
+    # line instead. Back in the light, the room name returns.
+    game = (
+        'game\n    title "D"\n    start yard\nsummon.statusline\n'
+        'room yard\n    name "Sunny Yard"\n    desc "A yard."\n    north cellar\n'
+        'room cellar\n    name "Secret Cellar"\n    desc "A cellar."\n'
+        '    lit false\n    south yard\n'
+    )
+    def bar_after(script):
+        vm = VM(_story(game), CaptureIO(script=script))
+        try:
+            vm.run(max_steps=20_000_000)
+        except IndexError:
+            pass
+        return "".join(c.char for c in vm.screen.grid[0])
+    dark = bar_after(["north"])
+    assert "In the dark" in dark
+    assert "Secret Cellar" not in dark
+    back = bar_after(["north", "south"])
+    assert "Sunny Yard" in back

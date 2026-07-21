@@ -2,7 +2,8 @@
 
 How to put pictures in an Arcturus game: authoring the art, the `arcimg`
 tool, what plays where today, and what is coming. This is the author's
-book. The language surface (the `arc_image` property, `arc_mode`, the
+book. The language surface (the `arc_image` property, `arc_mode`, changing
+a room's picture at runtime, the darkness picture `arc_image_dark`, the
 conformance guarantee) is specified in 01 section 6b; how interpreters
 display the pictures is 08 (you never need it to ship a game); the design
 record behind the conversion machinery lives with the working set in

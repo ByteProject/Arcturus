@@ -954,6 +954,11 @@ block line_nested(obj)
     art_the(obj, 0)
     show(")")
 
+// El lado izquierdo de la barra a oscuras: nombrar la sala que no se ve
+// destriparía la sorpresa, así que la barra nombra la oscuridad.
+block line_dark_status()
+    show("A oscuras")
+
 block banner_headline()
     show("Una aventura conversacional")
 

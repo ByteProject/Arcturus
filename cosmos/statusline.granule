@@ -97,12 +97,25 @@ block status_bar()
         show(" ")
         change i to i + 1
     // Left: the current room, with the nested location when the player is
-    // in or on something ("Crypt (on the altar)"), like the title line.
+    // in or on something ("Crypt (on the altar)"), like the title line. In a
+    // DARK room the bar names the darkness instead (line_dark_status, the
+    // language layer's wording): naming an unseen room is a spoiler. The lit
+    // arm is duplicated in the else on purpose, so a game where darkness
+    // cannot happen (any_dark folds to 0) keeps exactly the old code.
     set_cursor(1, 2)
-    print_name(here)
-    if any_enterable is 1
-        if parent_of(player) is not here
-            line_nested(parent_of(player))
+    if any_dark is 1
+        if is_lit is 0
+            line_dark_status
+        else
+            print_name(here)
+            if any_enterable is 1
+                if parent_of(player) is not here
+                    line_nested(parent_of(player))
+    else
+        print_name(here)
+        if any_enterable is 1
+            if parent_of(player) is not here
+                line_nested(parent_of(player))
     // Right, right-aligned: measure the text (status_digits, since the digit
     // counts vary) and start that many columns in from the edge.
     // Right, right-aligned: the score and moves, painted by the language layer

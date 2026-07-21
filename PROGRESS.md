@@ -5636,3 +5636,61 @@ file carries enough state that any session picks the work up cold, and
 when a hand-over does happen, a checkpoint is written on request. The
 rulings recorded here bind whoever reads them, which was always the
 point.
+
+## 2026-07-21: darkness gets a picture, and the contract gets its fixed-screen rules
+
+The first fixed-screen implementation of arc_image is in progress
+outside the family (Shawn Sijnstra's TRS-80 Model 4 engine), and his
+questions found the places Part A had only ever been exercised by a
+resizable window. Meanwhile Gargoyle has shipped arc_image on the
+modern side and further maintainers have committed: the spec is now a
+semi-standard with living implementations, which reframed everything
+below as either contract (binds the ecosystem) or Cosmos (binds us).
+
+RULED (Stefan), contract, all additive, ARCI version stays 1: on a
+fixed screen a clear (id 0) blanks the band and KEEPS the layout, the
+band never collapses mid-game; the band appears at the first non-zero
+draw, and the interpreter re-bases then, scrolling the already-printed
+banner down rather than covering it, no advance declaration needed or
+provided; and the operand widths are stated plainly (id is a word by
+format, mode fits a byte). Written into docs/08 Part A. Policy ruled
+with it: docs/08 is a normative spec now, changes are additive and
+dated, and anything a shipped interpreter could notice bumps the ARCI
+version byte.
+
+RULED (Stefan), Cosmos: darkness is a scene too. A game with pictures
+and reachable darkness must declare `constant arc_image_dark = <id>`
+(Stefan's name), the picture the band shows in the dark; the compiler
+refuses to build without it. This replaced the auto-clear design and
+killed a real bug: describe_room used to return at the dark gate
+before the draw, leaving the previous room's picture hanging over the
+darkness. "Black with two red eyes" is the canonical example.
+
+Conditional images (a field question from Garry, the door that shows
+open or closed): no new syntax at all. `arc_image` was already an
+ordinary value property, so `change gatehouse.arc_image to door_open`
+was the whole feature; what was missing was the repaint moment, and
+the turn loop now re-checks the wanted picture at end of turn, so the
+band follows the scene live instead of waiting for a LOOK. Computed
+arc_image blocks were declined (assignment covers the need), as was
+author-controlled band placement (presentation is the interpreter's).
+
+The rewind family was quietly wrong and is now honest: UNDO, RESTORE,
+and RESTART all rewind shown_image without touching the physical band,
+so the dedup could strand a stale picture. Each path now clears and
+repaints from truth.
+
+Stefan's bonus ruling: the status bar stops naming a room the player
+cannot see. In the dark it says "In the dark" (Im Dunkeln / A oscuras,
+each pack's own idiomatic line), behind the same any_dark fold, +40
+bytes only in games where darkness is reachable.
+
+The size gate earned its keep again, before the commit this time: the
+first build grew 25 always-lit examples by 60 bytes each, because
+any_dark was missing from the static-fold whitelist and the guard
+compiled as a runtime test. The gate refused, the fold landed, and the
+always-lit examples came back byte-identical; only Cloak (z5 and z8)
+and beispiel-deutsch grew their +40, which IS the feature. Ceilings
+raised with dated notes in the same commit.
+
+arcc 1.3.16, Cosmos 1.2.15. Suite 1097.

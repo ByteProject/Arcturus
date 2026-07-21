@@ -171,6 +171,12 @@ block run_game()
     // The start room is visited by definition (and never scores: you did
     // not earn arriving where you begin).
     now here is visited
+    // At first boot this clear is a no-op (no band exists before the first
+    // real draw); after a RESTART it is the difference between a fresh game
+    // and the dead game's picture hanging over it, since restart rewinds
+    // memory (shown_image included) without touching the screen.
+    if any_images is 1
+        image_reset
     screen_ready
     // `on start` runs FIRST (Inform's Initialise order): the game sets up its
     // world and its screen (colours, which erase the screen to repaint it)
@@ -368,6 +374,10 @@ block run_turn(act)
             change all_go to 0
         if any_plurals is 1
             change plural_go to 0
+        // The rewound shown_image describes a screen the undo never touched
+        // (the undone turn may have drawn): forget and repaint from truth.
+        if any_images is 1
+            image_reset
         msg_undone
         par
         describe_room
@@ -453,6 +463,13 @@ block fire_turn()
     run_free(ev_each_turn)
     par
     tick_timers
+    // The picture follows the scene LIVE: a turn that changed the room's
+    // arc_image (the door swings open, the drawbridge falls) or its light
+    // repaints the band now, not on the next LOOK, because a picture lagging
+    // its own scene reads as a bug in a way stale prose does not. The dedup
+    // in draw_room_image makes the quiet turn cost one property read.
+    if any_images is 1
+        draw_room_image
 
 // Fire the `on each_turn` of every object within `holder` that the player can see
 // into it, recursing into supporters and open or clear containers the same way
@@ -480,9 +497,27 @@ block fire_object_turns(holder)
 block draw_room_image()
     if pictures_available is 1
         let id = image_of(here)
+        // Darkness is a scene too (Stefan's rule): in the dark the band shows
+        // the game's darkness picture (arc_image_dark, which sema insists on
+        // when darkness is reachable), never a stale leftover from the last
+        // lit room. The whole branch folds away in an always-lit game.
+        if any_dark is 1
+            if is_lit is 0
+                change id to arc_image_dark
         if id is not shown_image
             draw_image(id, arc_mode)
             change shown_image to id
+
+// Force the next draw: the physical band may hold a picture the CURRENT world
+// state never drew, because memory moved without the screen moving (a restore,
+// an undo, a restart, each rewinds shown_image while the interpreter's band
+// keeps showing what it showed). Clear the band, forget, and let the caller's
+// describe_room paint the right picture; a clear before any picture was ever
+// drawn is a no-op by contract, so the boot call costs nothing visible.
+block image_reset()
+    if pictures_available is 1
+        draw_image(0, arc_mode)
+        change shown_image to 0
 
 // Describe the current room: its name, its description, and what it contains.
 // The title line adds where the player stands when nested inside or on
@@ -491,11 +526,14 @@ block draw_room_image()
 // with nothing to climb into (any_enterable).
 block describe_room()
     par
+    // The picture draws BEFORE the darkness gate: a dark room shows its
+    // darkness picture over the darkness message, not the previous room's
+    // scene (draw_room_image chooses the dark id itself).
+    if any_images is 1
+        draw_room_image
     if is_lit is 0
         msg_dark_room
         return
-    if any_images is 1
-        draw_room_image
     if hide_title is 1
         change hide_title to 0
     else

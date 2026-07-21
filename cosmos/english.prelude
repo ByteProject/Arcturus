@@ -893,6 +893,12 @@ block line_nested(obj)
     art_the(obj, 0)
     show(")")
 
+// The status bar's left side in a dark room: naming an unseen room is a
+// spoiler, so the bar says darkness instead. Folded away entirely in a game
+// where darkness cannot happen (any_dark).
+block line_dark_status()
+    show("In the dark")
+
 block banner_headline()
     show("An Interactive Fiction")
 

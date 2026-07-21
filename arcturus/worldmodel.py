@@ -453,6 +453,10 @@ class World:
     # pay-for-use gate, letting any_images fold the whole picture path away in a
     # game with no pictures.
     uses_images: bool = False
+    # True when darkness is reachable: a room resolving `lit` false at compile
+    # time, or a `now ... is not lit` anywhere. Feeds the any_dark fold, and
+    # with uses_images the rule that an images game declares arc_image_dark.
+    uses_darkness: bool = False
 
     def all_handlers(self):
         for obj in self.objects.values():
