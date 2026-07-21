@@ -5582,3 +5582,49 @@ never by reasoning about the code. The first three attempts at the
 repaint all looked right in the source and all left the screen blank.
 
 Suite 1088.
+
+## 2026-07-21: two assistants, one record
+
+DECIDED (Stefan): from today the project is worked with two models rather
+than one. Fable takes the hardest problems, the ones it was built for;
+Opus takes the general run of the work, of which today is a fair sample
+(an interpreter bug from a field report, diagnosed, fixed, tested,
+documented, shipped). The arrangement is permanent rather than an
+experiment with a deadline, which is what makes it worth building a
+method around instead of improvising per session.
+
+What that changes here: this file is now the hand-off. It was already
+the place where rulings live, and it now has to carry enough state that
+either assistant can pick the work up cold. So every session ends with
+where the tree stands, what shipped, what was ruled, and what is open,
+in the same commit as the work. Anything that only lives in one
+assistant's head, or in one assistant's private notes, does not count as
+recorded.
+
+The reason it matters beyond convenience: the whole point of this log is
+to show that the decisions in Arcturus are Stefan's. Two assistants make
+that MORE important, not less. A ruling recorded here is a ruling
+whichever model was in the room when it was made, and neither of them
+gets to quietly re-decide something the other was told.
+
+Checkpoint at this entry. HEAD on main, tree clean, suite 1088 green in
+about 30 seconds (the suite went parallel today). arcc 1.3.15, Cosmos
+1.2.14, Actaea 1.3.3, arcimg 1.14.1, VSIX 1.0.2; both standalones
+regenerated and the README version table current.
+
+Shipped today: the fork stamp (arcc tells a forked library file when its
+base has moved on, comparing the file rather than version numbers, plus
+--library-status); the living-character rebuff pinned by test and
+documented; Actaea reporting its real screen size and following a
+resize; the terminal keeping its screen across a resize; the test suite
+parallelised.
+
+Open: NPC commands, parked with the NPC engine on pathfinding. The verbs
+overhaul, of which the text slot is the first piece. The Plus/4 wave
+(R4) and the MSX1 and A8 probes. Actaea does not run Beyond Zork, known
+and ruled not serious.
+
+Dropped today (Stefan): arc_image in the terminal. Half-block cells are
+the only rendering that works in every terminal, and a debugging view
+that shows a different picture from the one the artist painted is worse
+than none. The window stays the one front-end that shows pictures.
