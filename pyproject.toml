@@ -17,7 +17,10 @@ dependencies = []
 [project.optional-dependencies]
 # Development-only tooling. pytest is the test runner; it is never required to
 # run the compiler itself.
-dev = ["pytest>=7.0"]
+# pytest-xdist spreads the suite across cores: the tests are independent and
+# CPU-bound (each compiles a whole game), so a full run is minutes serially and
+# tens of seconds in parallel.
+dev = ["pytest>=7.0", "pytest-xdist>=3.0"]
 
 [project.scripts]
 arcturus = "arcturus.cli:main"
@@ -28,3 +31,7 @@ packages = ["arcturus"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Parallel by default. `-n auto` uses every core; `--dist loadgroup` honours the
+# xdist_group markers tests/conftest.py puts on the display-bound front-end
+# tests, keeping those on one worker. To debug serially: `pytest -n 0`.
+addopts = "-n auto --dist loadgroup"
