@@ -102,6 +102,14 @@ terminal tab is titled after the story for the session and gets its old
 name back on exit (the terminal's title stack; terminals without one
 keep the story title, as before).
 
+The game is told the terminal's real size, so anything it draws across the
+screen crosses the whole screen: a status bar in a 103-column window is 103
+columns wide, and in a 40-column one it is 40. Resize the window and the new
+size reaches the game with the next thing it draws, which for a status bar
+means the next command; version 5 has no way for an interpreter to interrupt
+a game mid-turn to announce a resize, so one turn's delay is how every v5
+interpreter behaves.
+
 Native Windows has no stdlib curses; there, --console degrades to the
 headless pipe with a note (WSL plays fine).
 

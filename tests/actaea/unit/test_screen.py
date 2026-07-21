@@ -232,3 +232,75 @@ def test_zcolor_game_drives_the_model():
     assert "It glitters." in vm.io.text
     # flags1 claims colour, so the library's colour path was live.
     assert vm.mem.byte(0x01) & 0x01
+
+
+# --- the screen size the game is told about -------------------------------
+#
+# Header 0x21/0x20 must be the front-end's real screen, not a constant (S 11.1).
+# Actaea answered 80 columns whatever the terminal was, which is how a status bar
+# in a 103-column window came to stop at column 80 (the field report). The io
+# boundary now carries the size, and a front-end that can be resized re-stamps
+# it through VM.screen_resized().
+
+class _SizedIO(CaptureIO):
+    def __init__(self, cols=80, lines=255):
+        super().__init__()
+        self.size = (cols, lines)
+
+    def screen_size(self):
+        return self.size
+
+
+def _story(src='game\n    title "T"\n    start hall\n'
+                'room hall\n    name "Hall"\n    desc "A hall."\n'):
+    return load(generate(analyze(cosmos.combined_program(parse(src)))))
+
+
+def test_the_header_carries_the_front_end_s_size():
+    io = _SizedIO(cols=103, lines=30)
+    vm = VM(_story(), io)
+    assert vm.mem.byte(0x21) == 103      # width in characters
+    assert vm.mem.byte(0x20) == 30       # height in lines
+    assert vm.mem.word(0x22) == 103      # width in units (one unit per cell)
+    assert vm.mem.word(0x24) == 30
+    assert vm.screen.cols == 103         # ... and the grid is that wide
+
+
+def test_a_pipe_still_reports_eighty_by_infinite():
+    # The default in io.IOSystem: nothing scrolls in a pipe, so 255 lines is
+    # the standard's "infinite" and the honest answer.
+    vm = VM(_story(), CaptureIO())
+    assert vm.mem.byte(0x21) == 80
+    assert vm.mem.byte(0x20) == 255
+
+
+def test_a_resize_restamps_the_header_and_widens_the_grid():
+    io = _SizedIO(cols=80, lines=24)
+    vm = VM(_story(), io)
+    vm.screen.split(1)
+    assert len(vm.screen.grid[0]) == 80
+    io.size = (120, 45)
+    vm.screen_resized()
+    assert vm.mem.byte(0x21) == 120
+    assert vm.mem.byte(0x20) == 45
+    assert vm.screen.cols == 120
+    assert len(vm.screen.grid[0]) == 120   # the row grew with the screen
+
+
+def test_a_narrower_screen_clips_the_grid_rows():
+    io = _SizedIO(cols=120, lines=40)
+    vm = VM(_story(), io)
+    vm.screen.split(1)
+    io.size = (60, 40)
+    vm.screen_resized()
+    assert vm.screen.cols == 60
+    assert len(vm.screen.grid[0]) == 60
+
+
+def test_an_absurd_size_is_clamped_to_the_header_s_range():
+    # The header holds one byte each, so a 400-column terminal reports 255 and
+    # a zero-sized one reports 1, rather than writing rubbish into the header.
+    io = _SizedIO(cols=400, lines=0)
+    vm = VM(_story(), io)
+    assert vm.mem.byte(0x21) == 255
+    assert vm.mem.byte(0x20) == 1

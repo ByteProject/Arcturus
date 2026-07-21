@@ -159,6 +159,27 @@ class ScreenModel:
         elif bg == -2:
             self.bg = DEFAULT_COLOUR
 
+    # -- the screen's own size ---------------------------------------------------
+
+    def set_width(self, cols: int) -> None:
+        """The screen got wider or narrower (a resized terminal). Existing rows
+        keep what they hold and gain blank cells or lose their right-hand end,
+        so a bar already on screen survives until the game repaints it, which it
+        does on the next turn."""
+        cols = max(1, int(cols))
+        if cols == self.cols:
+            return
+        for row in self.grid:
+            if cols > len(row):
+                row.extend(Cell() for _ in range(cols - len(row)))
+            else:
+                del row[cols:]
+        self.cols = cols
+        r, c = self.cursor
+        if c > cols:
+            self.cursor = (r, cols)
+        self._changed()
+
     # -- the split and the windows ----------------------------------------------
 
     def split(self, lines: int) -> None:
