@@ -5628,3 +5628,11 @@ Dropped today (Stefan): arc_image in the terminal. Half-block cells are
 the only rendering that works in every terminal, and a debugging view
 that shows a different picture from the one the artist painted is worse
 than none. The window stays the one front-end that shows pictures.
+
+DECIDED (Stefan), later the same day and superseding the entry above:
+one assistant works the project by default after all, not two. What
+survives from the co-assistant plan is the discipline it forced: this
+file carries enough state that any session picks the work up cold, and
+when a hand-over does happen, a checkpoint is written on request. The
+rulings recorded here bind whoever reads them, which was always the
+point.
