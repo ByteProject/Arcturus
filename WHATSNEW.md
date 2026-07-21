@@ -6,6 +6,19 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **The picture follows the scene, and darkness is a scene too.** A
+  room's picture is no longer fixed at compile time: `arc_image` is an
+  ordinary property, so opening the door can swap the gatehouse picture
+  for the open one, and the band repaints the same turn, no LOOK needed.
+  And a game with both pictures and darkness now declares `arc_image_dark`,
+  the picture the band shows in the dark; the compiler refuses to build
+  without it, because the alternative was the previous room's picture
+  hanging over a room you cannot see. The band also repaints honestly
+  after UNDO, RESTORE, and RESTART, which used to be able to strand a
+  picture the rewound world never drew. In the same spirit the status bar
+  stops naming an unseen room, saying "In the dark" instead (the German
+  and Spanish packs carry their own idiomatic lines). None of this costs
+  a byte in a game without pictures, or an always-lit game its bar bytes.
 - **A terminal that keeps its screen.** Two things went wrong when you
   resized Actaea's terminal window. The game was never told the screen had
   changed, so a status bar stayed at whatever width it started with, and
@@ -44,13 +57,6 @@ lives in the commit log. The feature roadmap follows below.
   `on other` catch-all, which could never say what you had attempted, and
   a grain that answers several verbs and wants a different line for each.
 
-- **Search that actually searches.** SEARCH used to shrug at everything.
-  Now it tells you what is there and makes findable what was not: living
-  people still rebuff you, sealed containers still refuse, open ones list
-  what they hold, and a knocked-out guard's pockets give up their contents
-  onto the floor where you can pick them up. The whole recipe for a
-  lootable body is to clear `animate` and put the loot inside.
-
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus
@@ -73,9 +79,9 @@ way, designed on its own terms, pay-for-use as always.
   lit room can spill light through an open doorway and a closed door can
   seal it off.
 - **Darkness furniture.** Darkness as a referable thing (EXAMINE
-  DARKNESS answers), EXITS refusing without light, and the status bar
-  showing darkness instead of the room name, because naming an unseen
-  room is a spoiler.
+  DARKNESS answers) and EXITS refusing without light. (The status bar
+  already shows darkness instead of the room name; the rest of the
+  furniture is still to come.)
 - **LOOK \<direction\>.** "look north" describes what lies that way.
 - **The verbs overhaul.** Retire the all-or-nothing extended verbset:
   opt into individual documented verbs with a one-liner, each with its

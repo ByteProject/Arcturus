@@ -221,3 +221,122 @@ def test_interpreter_resolves_dir_then_pack(tmp_path):
     # An explicit --images directory always wins over the pack.
     d, z = _resolve_images(story, "/some/dir")
     assert d == "/some/dir" and z is None
+
+
+# --- darkness and the live band (arc_image_dark; Stefan's rulings 2026-07-21) --
+
+DARK_GAME = (
+    'game\n    title "Dark"\n    author "T"\n    start yard\n'
+    'constant arc_mode = 12\n'
+    'constant arc_image_dark = 7\n'
+    'room yard\n    name "Yard"\n    desc "A yard."\n'
+    '    arc_image 1\n    north cellar\n'
+    'room cellar\n    name "Cellar"\n    desc "A cellar."\n'
+    '    lit false\n    arc_image 2\n    south yard\n'
+    'thing lantern in yard\n    name "lantern"\n    words lantern\n    lit\n'
+)
+
+
+def _spy_run(src, script):
+    """Compile, run with a picture-capable pipe, and return the draw stream:
+    every (id, mode) the game sent, in order. This is the exact traffic an
+    interpreter sees, so the tests below assert on the wire, not on internals."""
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+
+    class PicIO(CaptureIO):
+        supports_pictures = True
+
+    io = PicIO(script=list(script))
+    vm = VM(load(_compile(src)), io)
+    calls = []
+    orig = vm.screen.set_image
+
+    def spy(i, m):
+        calls.append((i, m))
+        orig(i, m)
+
+    vm.screen.set_image = spy
+    try:
+        vm.run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return calls, vm, io
+
+
+def test_darkness_with_images_requires_a_dark_picture():
+    from arcturus.errors import ArcError
+    src = DARK_GAME.replace('constant arc_image_dark = 7\n', '')
+    with pytest.raises(ArcError, match="arc_image_dark"):
+        analyze(cosmos.combined_program(parse(src)))
+
+
+def test_runtime_lit_clearing_also_requires_the_dark_picture():
+    from arcturus.errors import ArcError
+    src = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "x"\n    arc_image 1\n'
+        'verb "douse"\n    douse\n'
+        'on douse\n    now hall is not lit\n    say "Dark now."\n'
+    )
+    with pytest.raises(ArcError, match="arc_image_dark"):
+        analyze(cosmos.combined_program(parse(src)))
+
+
+def test_arc_image_dark_zero_is_rejected():
+    from arcturus.errors import ArcError
+    src = DARK_GAME.replace('arc_image_dark = 7', 'arc_image_dark = 0')
+    with pytest.raises(ArcError, match="arc_image_dark"):
+        analyze(cosmos.combined_program(parse(src)))
+
+
+def test_darkness_draws_the_dark_picture_and_light_restores_the_scene():
+    # The full walk: boot reset, the yard, the dark cellar showing the DARK
+    # picture (not the cellar's own, not the yard's stale one), the yard again,
+    # then the cellar WITH the lantern showing its real picture.
+    calls, _, _ = _spy_run(
+        DARK_GAME, ["north", "south", "take lantern", "north"])
+    assert calls == [(0, 12), (1, 12), (7, 12), (1, 12), (2, 12)]
+
+
+def test_look_never_redraws():
+    calls, _, _ = _spy_run(DARK_GAME, ["look", "look", "look"])
+    assert calls == [(0, 12), (1, 12)]  # boot reset + one draw, three LOOKs free
+
+
+def test_a_changed_image_repaints_the_same_turn():
+    # Garry's door: the author moves the room's picture and the band follows
+    # at the END OF THAT TURN, no LOOK needed. The room declares an initial
+    # arc_image (the property write needs the slot to exist).
+    src = (
+        'game\n    title "Cond"\n    start hall\n'
+        'constant closed_img = 1\n'
+        'constant open_img = 2\n'
+        'room hall\n    name "Hall"\n    desc "A door is here."\n'
+        '    arc_image closed_img\n'
+        'thing door_thing in hall\n    name "carved door"\n    words door, carved\n'
+        '    on open\n'
+        '        change hall.arc_image to open_img\n'
+        '        say "The door swings wide."\n'
+    )
+    calls, _, io = _spy_run(src, ["open door"])
+    assert calls == [(0, 9), (1, 9), (2, 9)]
+    assert "swings wide" in io.text
+
+
+def test_undo_repaints_the_band_from_truth():
+    # The undone turn drew the cellar's dark picture; memory rewinds to the
+    # yard but the physical band would keep showing the dark one. The undo
+    # path clears and repaints: ... dark (7), then undo -> clear (0) + yard (1).
+    calls, _, io = _spy_run(DARK_GAME, ["north", "undo"])
+    if "undo" not in io.text.lower():
+        pytest.skip("interpreter without undo")
+    assert calls == [(0, 12), (1, 12), (7, 12), (0, 12), (1, 12)]
+
+
+def test_always_lit_game_never_carries_the_dark_branch():
+    w = analyze(cosmos.combined_program(parse(IMG)))
+    assert w.uses_darkness is False
+    dark = analyze(cosmos.combined_program(parse(DARK_GAME)))
+    assert dark.uses_darkness is True

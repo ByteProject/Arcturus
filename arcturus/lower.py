@@ -208,7 +208,11 @@ INTRINSICS = frozenset({
     # text-only interpreter); draw_image draws or clears the picture band;
     # arc_mode is the game's picture mode (band height in text rows, 9 or 12),
     # the default when the game does not set `constant arc_mode`.
+    # arc_image_dark is the darkness picture (the game's constant, 0 when
+    # undeclared); any_dark folds the darkness branch of the draw path away in
+    # a game where darkness cannot happen.
     "any_images", "image_of", "pictures_available", "draw_image", "arc_mode",
+    "arc_image_dark", "any_dark",
     # Conversation topics, for the ask/tell and menu granules: how many a person
     # has, whether topic i is in view, printing its menu label, matching a subject
     # word against it, running its body, and retiring it (so the menu drops a
@@ -1303,6 +1307,18 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # draw_image so the interpreter sizes the band from the mode, not the
         # picture.
         _place(rt, Const(_arc_mode(ctx)), dest)
+    elif name == "arc_image_dark":
+        # arc_image_dark(): the darkness picture's id as a folded constant.
+        # Reached only when the game declares no `constant arc_image_dark`
+        # (a declared constant shadows the intrinsic by ordinary name
+        # resolution, the arc_mode manner); 0 then means "clear the band in
+        # the dark", the fallback for a game the darkness check let through.
+        _place(rt, Const(0), dest)
+    elif name == "any_dark":
+        # any_dark(): 1 when darkness can happen in this game (a room without
+        # `lit`, or a statement that clears `lit` at run time), else 0, so the
+        # darkness branch of the draw path folds away in an always-lit game.
+        _place(rt, Const(_any_dark(ctx)), dest)
     elif name == "auto_banner":
         # auto_banner(): 1 unless `banner false`, so the turn loop prints the
         # banner itself after `on start` (a folded constant, like any_X).
@@ -1771,6 +1787,14 @@ def _any_images(ctx) -> int:
     describe_room guards its picture draw on this so the whole image path folds
     away in a game with no pictures (byte-identical to one that never had them)."""
     return 1 if ctx.world.uses_images else 0
+
+
+def _any_dark(ctx) -> int:
+    """The compile-time darkness flag: 1 when darkness is reachable, else 0.
+    Sema computes it (a room without `lit`, or any statement clearing `lit`),
+    so the darkness branch of draw_room_image folds away in an always-lit
+    game and an images game without darkness pays nothing for the rule."""
+    return 1 if ctx.world.uses_darkness else 0
 
 
 def _arc_mode(ctx) -> int:
@@ -3031,6 +3055,10 @@ def _static_value(ctx, expr):
         return _any_tables(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_images":
         return _any_images(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_dark":
+        return _any_dark(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "arc_image_dark":
+        return 0  # reached only when the game declares no constant (see _intrinsic)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_ambience_once":
         return _any_ambience_once(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_topic_idle":

@@ -332,8 +332,12 @@ on save
     if r is 2
         // Arriving here means a RESTORE just landed. The saved state may date
         // from the middle of a chained line, its tail still queued; the queue
-        // dies with the rewind, exactly like undo.
+        // dies with the rewind, exactly like undo. The restored shown_image
+        // describes the screen as of the SAVE, not the screen in front of the
+        // player now: forget and repaint from truth.
         change chain_pos to 0
+        if any_images is 1
+            image_reset
         par
         describe_room
         stop

@@ -908,6 +908,11 @@ block line_nested(obj)
     art_the(obj, 0, 2)
     show(")")
 
+// Die linke Seite der Statusleiste im Dunkeln: der Raumname würde verraten,
+// was man nicht sehen kann, also nennt die Leiste die Dunkelheit selbst.
+block line_dark_status()
+    show("Im Dunkeln")
+
 block banner_headline()
     show("Ein Textadventure")
 

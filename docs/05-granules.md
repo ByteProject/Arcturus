@@ -215,6 +215,13 @@ count (`Moves: n`), never a permanent "Score: 0". The fold decides at
 compile time, so neither game pays for the other's bar. It coexists with the conversations menu: when both are summoned the
 bar sits pinned above the topic list.
 
+In the dark the bar does not name the room, because naming an unseen room
+is a spoiler: it shows the language layer's darkness line instead ("In the
+dark"; the German and Spanish packs carry their own wording). The whole
+branch folds away in a game where darkness cannot happen, which the
+compiler knows exactly (a room with `lit false`, or a handler clearing
+`lit`, is what makes it possible).
+
 ### quotes
 
 ```

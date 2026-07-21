@@ -80,6 +80,13 @@ it unchanged as text. Here is the whole contract.
      honour the operand on every call rather than assuming.
    - An unknown id, a missing or unreadable asset: IGNORE the call silently
      and play on. A picture is presentation, never game state.
+   - OPERAND WIDTHS. Both operands are ordinary Z-machine operands: the
+     instruction stream encodes each as a small constant, a large
+     constant, or a variable, and after decoding both are 16-bit values.
+     Decode them generically and the widths never concern you. For your
+     own tables: the image id is a WORD by format (the .arc header stores
+     it as one, part B), so do not build byte-wide id tables; the mode
+     fits a byte by design, and its values are 9 and 12.
 
 3. THE BAND. On a fixed-screen interpreter (the retro machines, and any
    modern one that models the classic Z-machine screen) the picture
@@ -89,6 +96,30 @@ it unchanged as text. Here is the whole contract.
    next draw_image call replaces or clears it; the story's library already
    deduplicates (a re-LOOK issues no draw), so the interpreter needs no
    redraw caching of its own.
+
+   THE FIRST DRAW RE-BASES THE SCREEN. The band appears at the first
+   draw_image whose id is not 0, and by then there is already text on
+   the screen: a game prints its banner before it describes the first
+   room, and that first description issues the first draw. Do not paint
+   over that text. Scroll what is on screen down by the band's height,
+   move your text screen's origin below the band, and update the
+   header's screen-height field to the rows that remain, exactly as you
+   would for any screen change. This happens once per session; there is
+   always room (a banner is a few lines on a screen of twenty and more),
+   and nothing later is at risk, since the status line repaints every
+   turn. No advance declaration exists or is needed: the first real
+   draw_image IS the declaration. (A clear that arrives before any
+   picture was ever shown reserves nothing and is a no-op.)
+
+   CLEARING KEEPS THE LAYOUT. On a fixed screen, id 0 takes the picture
+   down but the band stays reserved: a blank strip in the background
+   colour, the text area below keeping its size. The band never
+   collapses mid-game. Clears happen in ordinary play (a room without a
+   picture in a game whose other rooms have them), and re-flowing the
+   whole text screen on each one would be churn on exactly the machines
+   that can least afford it. Note that the library sends the game's real
+   mode even on a clear call, so a clear still tells you the band's
+   shape.
 
    ON A MODERN INTERPRETER, PRESENTATION IS YOURS. The fixed band is only
    binding where a fixed screen makes it so. If you are not tied to a cell

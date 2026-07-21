@@ -150,7 +150,59 @@ class Analyzer:
         # (the player-beyond mount: `now player is beyond` and nothing else), or
         # the touch guards would fold away and the bit would set silently.
         self.world.sets_beyond = self._sets_attr("beyond")
+        # Darkness reachability (arc_image_dark, B11): darkness can happen when
+        # any room resolves `lit` to false at compile time (its own `lit false`
+        # or an inherited kind default), or when any statement clears `lit` at
+        # runtime. any_dark folds the draw path's darkness branch away when it
+        # cannot happen; when it can, an images game must declare the picture
+        # the band shows in the dark (Stefan's rule: darkness is a scene too,
+        # so it gets a picture, never a stale leftover from the last lit room).
+        dark_room = self._first_dark_room()
+        self.world.uses_darkness = (
+            dark_room is not None or self._sets_attr("lit", negated=True)
+        )
+        if (
+            self.world.uses_images
+            and self.world.uses_darkness
+            and "arc_image_dark" not in self.world.constants
+        ):
+            where = (
+                f"room '{dark_room.name}' can be dark"
+                if dark_room is not None
+                else "a handler clears `lit` at runtime"
+            )
+            raise self._error(
+                f"this game has pictures and darkness ({where}). Darkness is "
+                f"a scene too, so give it one: declare `constant "
+                f"arc_image_dark = <id>` with the picture the band shows in "
+                f"the dark",
+                dark_room.line if dark_room is not None else 0,
+            )
         return self.world
+
+    def _first_dark_room(self):
+        """The first room whose `lit` resolves false at compile time: its own
+        override, or the nearest kind in its chain that says `lit false` (the
+        room kind itself defaults lit, so an untouched room is never dark)."""
+        for obj in self.world.objects.values():
+            if obj.category != "room" or obj.name == "scope":
+                continue
+            decl = obj.props.get("lit")
+            if decl is None:
+                for kname in obj.chain:
+                    kind = self.world.kinds.get(kname)
+                    if kind is not None and "lit" in kind.props:
+                        decl = kind.props["lit"]
+                        break
+            if (
+                decl is not None
+                and decl.form == ast.PROP_VALUE
+                and decl.values
+                and isinstance(decl.values[0], ast.Bool)
+                and decl.values[0].value is False
+            ):
+                return obj
+        return None
 
     # -- pass 1: collect ---------------------------------------------------
 
@@ -214,15 +266,18 @@ class Analyzer:
             visit(n)
         return found[0]
 
-    def _sets_attr(self, attr: str) -> bool:
-        """Does any `now ... is <attr>` (setting, not clearing) appear in the
-        program? The same generic walk as _moves_to_scope; used to flip a
-        compile-time any_X fold for an attribute that is only ever set at
-        runtime, never declared."""
+    def _sets_attr(self, attr: str, negated: bool = False) -> bool:
+        """Does any `now ... is <attr>` (or, with negated=True, `now ... is
+        not <attr>`) appear in the program? The same generic walk as
+        _moves_to_scope; used to flip a compile-time any_X fold for an
+        attribute state that is only ever reached at runtime, never declared
+        (set for beyond; cleared for lit, where clearing is what makes
+        darkness reachable in an otherwise lit game)."""
         found = [False]
 
         def visit(node):
-            if isinstance(node, ast.Now) and node.prop == attr and not node.negated:
+            if isinstance(node, ast.Now) and node.prop == attr \
+                    and node.negated == negated:
                 found[0] = True
                 return
             if not dataclasses.is_dataclass(node):
@@ -536,6 +591,18 @@ class Analyzer:
                     raise self._error(
                         "arc_mode must be 9 (Infocom mode, 320x72) or 12 "
                         "(DAAD mode, 320x96)",
+                        decl.line,
+                    )
+                # arc_image_dark is the darkness picture: a real resource id,
+                # bounded exactly like a room's arc_image (0 is the clear code,
+                # so it cannot be a picture).
+                if decl.name == "arc_image_dark" and not (
+                    isinstance(decl.value, ast.Number)
+                    and 1 <= decl.value.value <= 0xFFFF
+                ):
+                    raise self._error(
+                        "arc_image_dark must be a picture id, 1 to 65535 "
+                        "(the picture the band shows in the dark)",
                         decl.line,
                     )
                 w.constants[decl.name] = wm.Constant(

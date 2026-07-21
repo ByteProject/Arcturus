@@ -856,6 +856,48 @@ room with no `arc_image` clears the band, so the picture always matches the
 room. Re-looking in the same room does not redraw (it would make a retro target
 re-decompress its art for nothing).
 
+THE PICTURE FOLLOWS THE SCENE. `arc_image` is an ordinary value property,
+so a handler can move it, and the band repaints at the end of that same
+turn, no LOOK needed:
+
+```
+constant door_shut = 3
+constant door_open = 4
+
+room gatehouse
+    name "Gatehouse"
+    desc "A studded door bars the way north."
+    arc_image door_shut
+
+thing studded_door in gatehouse
+    name "studded door"
+    words door, studded
+    fixed
+    on open
+        change gatehouse.arc_image to door_open
+        say "The door grinds open."
+```
+
+The room must declare an initial `arc_image` for the slot to exist; after
+that, what you set is what the band shows. (Behind the scenes the library
+checks one property per turn and only draws on a change, so a quiet turn
+costs a comparison and a noisy one costs one draw.)
+
+DARKNESS IS A SCENE TOO. In a game where darkness can happen (a room with
+`lit false`, or a handler that clears `lit`), an images game must declare
+the picture the band shows in the dark, and the compiler refuses to build
+without it:
+
+```
+constant arc_image_dark = 7    // the band in the dark: id 7
+```
+
+The band then never shows a stale picture over a dark room: walk into the
+dark and the darkness picture appears, restore the light and the room's
+own picture returns. What the darkness picture depicts is yours; black
+with two red eyes has been suggested. A game with no darkness anywhere
+never declares it and pays nothing.
+
 Art is authored once as PNGs in one of two shapes, each a whole number of
 8-pixel text rows tall so the status bar sits flush under the band:
 
