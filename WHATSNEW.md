@@ -6,6 +6,14 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **The screen the game is actually on.** Actaea told every game it was
+  running on an 80-column screen, whatever screen it was really running on,
+  so a status bar in a wider terminal stopped at column 80 and left a notch
+  beyond it. The terminal front-end now reports its true width and height,
+  a resize reaches the game with the next thing it draws, and the bar
+  reaches the edge at any size. This matters beyond one interpreter: a
+  status bar is written once and has to fit a 40-column home computer and a
+  132-column terminal alike, so what it spans has to be the truth.
 - **Conversations, rebuilt.** The five ways to address a character are now
   five different things. ASK ABOUT and TELL ABOUT reach a character's
   topics, and one topic can answer each differently; ASK FOR is its own
@@ -39,14 +47,6 @@ lives in the commit log. The feature roadmap follows below.
   what they hold, and a knocked-out guard's pockets give up their contents
   onto the floor where you can pick them up. The whole recipe for a
   lootable body is to clear `animate` and put the loot inside.
-- **The ring decode architecture.** Every retro picture stream carries a
-  hard guarantee: no compression back-reference reaches beyond 2048 bytes,
-  at zero measured cost on the corpus. In exchange a loader needs only a
-  2K ring in main RAM and can decode straight to the screen, byte by byte,
-  with no staging buffer at all, which is the memory posture a 64K machine
-  running a Z-machine interpreter actually has. The Commodore 64, ZX
-  Spectrum +3, Amstrad CPC, and TRS-80 Model 4 loaders are all built on
-  it, verified byte-exact against emulator memory.
 
 ## Feature roadmap
 

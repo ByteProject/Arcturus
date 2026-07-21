@@ -62,6 +62,12 @@ class CursesIO(IOSystem):
     def __init__(self, app: "ConsoleApp"):
         self.app = app
 
+    def screen_size(self):
+        """The terminal's real size, so a game that spans the screen spans THIS
+        screen: a status bar in a 103-column window is 103 columns wide, not the
+        80 the interpreter used to claim (the field report)."""
+        return self.app.term_w, self.app.term_h
+
     def print_text(self, text: str) -> None:
         self.app.write(text)
 
@@ -178,6 +184,10 @@ class ConsoleApp:
         self.term_h, self.term_w = self.scr.getmaxyx()
         self.scr.erase()
         self._make_lower(min(self._split, self.term_h - 1))
+        # Tell the game, by way of the header (S 11.1). v5 has no resize
+        # interrupt, so nothing repaints this instant; the game reads the new
+        # width when it next draws its status bar, one command later.
+        self.vm.screen_resized()
         self._grid_dirty = True
 
     # -- colours and styles ------------------------------------------------------
@@ -225,23 +235,33 @@ class ConsoleApp:
         self._grid_dirty = False
         model = self.vm.screen
         paper = self._paper
+        last = self.term_w - 1
         for r in range(min(self._split, model.rows)):
             row = model.grid[r]
-            for c in range(min(self.term_w - 1, model.cols)):
+            for c in range(min(self.term_w, model.cols)):
                 cell = row[c]
                 # A cell still wearing the default background sits on the
                 # game's paper, exactly as in the window front-end.
                 bg = cell.bg if cell.bg != 1 else paper
+                attr = self._attr(cell.style, cell.fg, bg)
                 try:
-                    self.scr.addstr(r, c, cell.char,
-                                    self._attr(cell.style, cell.fg, bg))
+                    if c == last:
+                        # The final column: addstr would advance the cursor off
+                        # the row and curses refuses, so the last cell is
+                        # INSERTED instead. Without this the bar stops one
+                        # column short of the edge, which shows as a notch in
+                        # the corner (the field report's screenshot).
+                        self.scr.insstr(r, c, cell.char, attr)
+                    else:
+                        self.scr.addstr(r, c, cell.char, attr)
                 except curses.error:
                     pass  # the terminal edge: curses objects, harmlessly
-            if self.term_w - 1 > model.cols:
-                # The strip right of the 80-column grid: paper, not a hole.
+            if self.term_w > model.cols:
+                # A grid narrower than the terminal (a game that fixed its own
+                # width): the strip beside it is paper, not a hole.
                 try:
                     self.scr.addstr(r, model.cols,
-                                    " " * (self.term_w - 1 - model.cols),
+                                    " " * (last - model.cols),
                                     self._pair(-1, self._cc(paper)))
                 except curses.error:
                     pass

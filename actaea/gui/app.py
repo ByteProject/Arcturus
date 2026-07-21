@@ -97,6 +97,12 @@ class GuiIO(IOSystem):
     def __init__(self, app: "ActaeaApp"):
         self.app = app
 
+    def screen_size(self):
+        """The window IS an 80-cell screen by construction (the geometry above
+        sizes it to exactly 80 cells), so 80 columns is the truth here, not a
+        default. The height is the chosen number of text rows."""
+        return 80, max(1, int(self.app._rows_var.get()))
+
     def print_text(self, text: str) -> None:
         self.app.append_story(text)
 

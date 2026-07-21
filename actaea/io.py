@@ -38,6 +38,19 @@ class IOSystem:
     # draw and the story plays text-only.
     supports_pictures = False
 
+    def screen_size(self):
+        """The real screen, as (columns, lines), for the header bytes 0x21 and
+        0x20 (S 11.1). A game reads those to lay out anything that spans the
+        screen, a status bar above all, so a front-end that misreports its size
+        gets a bar that stops short of the edge (the field report from a
+        103-column terminal, where the interpreter claimed 80).
+
+        The default is the pipe's: 80 columns, and 255 lines, which the standard
+        reserves for "infinite" and is the honest answer where nothing scrolls.
+        A front-end with a real screen overrides this, and calls
+        VM.screen_resized() whenever that screen changes size."""
+        return 80, 255
+
     def print_text(self, text: str) -> None:
         """Story text for the current window, already decoded to str.
         Buffering/word-wrap policy is the screen model's job (M7/M8); until

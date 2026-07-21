@@ -160,10 +160,7 @@ class VM:
         m.set_byte(0x01, flags1)
         m.set_byte(0x1E, 0)      # interpreter number: unspecified
         m.set_byte(0x1F, ord("A"))  # interpreter version: A for Actaea
-        m.set_byte(0x20, 255)    # screen height in lines: 255 = "infinite"
-        m.set_byte(0x21, 80)     # screen width in characters
-        m.set_word(0x22, 80)     # screen width in units
-        m.set_word(0x24, 255)    # screen height in units
+        self._stamp_screen_size(m)
         m.set_byte(0x26, 1)      # font width in units (v5 order)
         m.set_byte(0x27, 1)      # font height in units
         # Actaea's own screen is black on white paper (Stefan's ruling,
@@ -173,6 +170,28 @@ class VM:
         m.set_byte(0x2C, 9)      # default background: white
         m.set_byte(0x2D, 2)      # default foreground: black
         m.set_word(0x32, 0x0101)  # Standard revision 1.1
+
+    def _stamp_screen_size(self, m=None) -> None:
+        """Write the front-end's real screen size into the header (S 11.1), and
+        keep the cell grid the same width. Since the font is one unit per cell
+        (0x26/0x27 below), the character counts and the unit counts are the same
+        numbers."""
+        m = self.mem if m is None else m
+        cols, lines = self.io.screen_size()
+        cols = max(1, min(255, int(cols)))
+        lines = max(1, min(255, int(lines)))
+        m.set_byte(0x20, lines)   # screen height in lines (255 = "infinite")
+        m.set_byte(0x21, cols)    # screen width in characters
+        m.set_word(0x22, cols)    # screen width in units
+        m.set_word(0x24, lines)   # screen height in units
+        self.screen.set_width(cols)
+
+    def screen_resized(self) -> None:
+        """The front-end's screen changed size. Re-stamp the header so the next
+        thing the game paints uses the new width; a game repaints its status bar
+        each turn, so the bar follows the window one command later, which is how
+        every v5 interpreter behaves (v5 has no resize interrupt)."""
+        self._stamp_screen_size()
 
     # -- variables ----------------------------------------------------------
 

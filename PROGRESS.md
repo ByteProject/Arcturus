@@ -5522,3 +5522,33 @@ xdist they warn that forkpty in a threaded worker can deadlock; splitting
 them into a serial pass would remove that risk and cost 9 seconds, a
 third of the win, for something that has warned but never fired. If it
 ever bites, the split is a two-minute change.
+
+## 2026-07-21: the screen a game is told it has
+
+Field report, Charles Moore Jr.: in Actaea's terminal mode the status bar
+stops short of the right edge, with a notch in the corner, and a resize
+scrambles the screen. Screenshot attached, 103 columns wide, bar 80.
+
+Actaea was stamping 80 into the header's screen-width byte at boot,
+regardless of the screen it actually had, and never touching it again.
+Every game that lays anything across the screen reads that byte, so the
+bar was correct code drawing on a lie. Cosmos was not at fault: its bar
+reads the width on every paint and always did.
+
+The io boundary now carries the screen size, each front-end answering for
+itself: the terminal its real geometry, the window its 80 cells (that
+window IS an 80-cell screen by construction, so 80 is the truth there,
+not a default), the pipe 80 by "infinite". A resize re-stamps the header
+and resizes the cell grid, keeping what the rows already hold. Verified
+by asking a game what it sees: 103x30 before a resize, 120x45 after,
+and the bar measured full width at 60, 103 and 120 columns.
+
+RULED (Stefan): adapt upward as well as downward. A status bar is written
+once and has to fit a 40-column home computer and a 132-column terminal
+alike, and an interpreter that under-reports its screen breaks the wide
+end of that range silently. He named the Amstrad PCW under Vezza as the
+case that would have shown it next.
+
+The last column is now painted too (curses refuses a plain write to the
+final cell, so it is inserted instead), which is what the notch in the
+screenshot was. Suite 1086.
