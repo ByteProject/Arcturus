@@ -584,12 +584,48 @@ To change a granule, take a copy and edit it.
   `--eject-language` for translation, section 6) - to hack a prelude you extract
   the whole library and point `-L` at it.
 
-Every file arcc writes out starts with a fork stamp, `// cosmos 1.2.14 base
-a06f30acb367`, and it is worth leaving in place. It lets the compiler tell you
-when the file you forked has changed in a later release, which is the one thing
-a fork cannot notice on its own; a fork of a file that has not changed says
-nothing, however old the stamp reads, so it never nags. `arcc --library-status`
-audits a directory of forks at once. The mechanism is docs/03 section 5a.
+### Keeping a fork current
+
+A fork wins over the bundled copy for as long as it sits beside your story.
+That is the point of it, and it has one consequence worth knowing before you
+take your first one: the file you copied keeps improving in later releases, and
+your copy does not. A fork left alone long enough is a version of Cosmos from
+whenever you took it, and nothing about compiling makes that visible.
+
+So every file arcc writes out starts with a stamp:
+
+```
+// cosmos 1.2.14 base a06f30acb367
+```
+
+Leave it in place. The version is for you to read; the fingerprint identifies
+the source your fork came from, and the compiler compares it against its own
+copy of that file. If the file has not changed since, nothing is said, however
+old the stamp reads and however heavily you have edited your copy. If it has
+changed, one note tells you, on every compile until you deal with it:
+
+```
+arcc: note: extendedverbs.granule was forked from Cosmos 0.36.5 and the
+bundled extendedverbs.granule has changed since (now 1.2.14). Diff it against
+a fresh `arcc --eject-granule extendedverbs` to see what your fork is missing.
+```
+
+That is the whole recipe for catching up: eject a fresh copy somewhere else,
+diff it against yours, and move over what you want. Then re-stamp by taking the
+new copy and re-applying your edits to it, so the next release can tell you the
+same thing again.
+
+```
+arcc --library-status            // every fork here: current, AGED, unstamped
+arcc --library-status /abs/cosmos
+```
+
+Two notes on the edges. A fork you took before stamps existed carries none, so
+it gets a milder note saying its age cannot be told; re-eject to establish one.
+And a granule of your own, with no bundled file of the same name, is not a fork
+of anything and is never mentioned. Deleting the stamp line opts out entirely,
+which is fair once a fork has diverged past caring, but you lose the warning
+with it.
 
 ## 5. Writing your own granule
 
@@ -629,7 +665,9 @@ english.prelude, saved as a granule whose blocks override the English ones (a
 granule overriding the prelude, section 1). Start from `arcc --eject-language`,
 translate, and ship the result. The pack may replace the parser's grammar logic
 too, not only its wording, since an inflected language parses differently (02,
-section 8).
+section 8). An ejected language file carries the same fork stamp as any other
+library file, so a pack that predates a change to the English layer is told so
+rather than quietly missing a message.
 
 ## 7. The tuned abbreviation set
 
