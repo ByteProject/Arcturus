@@ -270,11 +270,24 @@ promise and the outcome, where it belongs. A free-standing `on take` rule
 is not consulted by the certain path; a game that gates all taking through
 free rules should not summon this.
 
+Doors and containers get the same courtesy. A closed, UNLOCKED door on
+the walk opens itself, "(opening the oak door first)", and the walk goes
+on; naming a thing you KNOW is inside a closed, unlocked container opens
+the container and the command continues, and the two chain: GIVE PEARL TO
+BOB with the pearl visible in a sealed clear jar runs "(opening the clear
+jar first)", "(taking the pearl first)", and then the give. The same
+probe rule governs every step (open_probe is the default open's own guard
+chain), locked things stay honest refusals, since unlocking is a decision
+where opening is mechanics, and the knowledge model draws the other line:
+contents you have never seen cannot even be named, so nothing is ever
+conjured. A container or door with its own `on open` handler gets
+promise-then-run, the same residue as the take.
+
 Off unless summoned, deliberately: implicit actions are a matter of taste.
 The repaired take is silent (the bookkeeping runs, the points pay, no "Got
-it."), one UNDO takes back the whole exchange, and the parenthetical's
-wording is the language layer's `line_foresight_take`, so each pack speaks
-its own idiom.
+it."), one UNDO takes back the whole exchange, and the parentheticals'
+wording is the language layer's (`line_foresight_take`,
+`line_foresight_open`), so each pack speaks its own idiom.
 
 ### quotes
 

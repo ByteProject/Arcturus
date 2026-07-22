@@ -1344,6 +1344,9 @@ block msg_not_holding_second()
 block line_foresight_take()
     say "(nimmst zuerst ${the:acc noun})"
 
+block line_foresight_open(obj)
+    say "(öffnest zuerst ${the:acc obj})"
+
 block msg_done()
     say "Erledigt."
 

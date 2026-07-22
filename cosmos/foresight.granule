@@ -60,6 +60,17 @@ block requires_failed_carried(obj)
     // No author code anywhere near: the probe decides, and its word is
     // final in both directions.
     let why = take_probe(obj)
+    if why is 4
+        // The blocker is a closed clear container the player can see into:
+        // open it if the promise holds, then ask the probe again. This is
+        // the chained repair: "(opening the jar first) (taking the coin
+        // first)" and then the command the player actually typed.
+        let got = foresight_open(reach_blocker(obj))
+        if got is 1
+            change why to take_probe(obj)
+        if got is 2
+            change refused to 1
+            return 1
     if why is not 0
         speak_take_refusal(obj, why)
         return 1
@@ -70,3 +81,75 @@ block requires_failed_carried(obj)
     par
     gain(obj)
     return 0
+
+// ==========================================================================
+// The second act: doors and containers (Stefan's go, 2026-07-22). The same
+// promise discipline, one rung up: a closed, UNLOCKED thing between the
+// player and what they asked for is opened for them, with the parenthetical
+// only when the open is certain (open_probe, the default open's own guard
+// chain). Locked stays an honest refusal: unlocking is a decision, opening
+// is mechanics. The knowledge model already draws the other line: contents
+// never seen cannot even be named, so nothing here ever conjures.
+// ==========================================================================
+
+// Open obj on the player's behalf. Returns 1 opened, 0 not attempted (the
+// probe refused; nothing printed, the caller speaks its own refusal), or 2
+// attempted through author code and refused (their message spoke; the
+// caller adds nothing).
+block foresight_open(obj)
+    let risky = 0
+    if handler_of(obj) is not nothing
+        change risky to 1
+    if handler_of(here) is not nothing
+        change risky to 1
+    if risky is 1
+        // Author code owns this open: promise-then-run, the honest residue.
+        line_foresight_open(obj)
+        par
+        let ok = perform("open", obj)
+        if obj is open
+            return 1
+        return 2
+    if open_probe(obj) is not 0
+        return 0
+    line_foresight_open(obj)
+    par
+    now obj is open
+    // Opening reveals: the contents are seen now (silently; the repair
+    // prints no listing, the player asked for something else).
+    for each x in obj
+        if x is not hidden
+            now x is seen
+    return 1
+
+// The container repair: the named thing is KNOWN but sealed in shut_in.
+// Open the container and let the typed command continue as if the player
+// had done it themselves; anything unrepairable falls back to the default's
+// honest "open it first".
+block shut_in_refused()
+    let c = shut_in
+    change shut_in to nothing
+    let got = foresight_open(c)
+    if got is 1
+        return 0
+    if got is 2
+        change refused to 1
+        return 1
+    change shut_in to c
+    change meta_turn to 1
+    change refused to 1
+    msg_open_first
+    return 1
+
+// The door repair: a closed, unlocked door on the walk opens and the walk
+// continues; the locked case never reaches this seam.
+block door_shut_refused(d)
+    let got = foresight_open(d)
+    if got is 1
+        return 0
+    if got is 2
+        change refused to 1
+        return 1
+    change refused to 1
+    msg_door_shut(d)
+    return 1

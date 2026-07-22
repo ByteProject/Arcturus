@@ -6093,3 +6093,35 @@ single-root GUI test, alongside an assertion that the compiled game
 hands the read the new 120.
 
 arcc 1.3.26, Actaea 1.3.4, Cosmos unchanged. Suite 1160.
+
+## 2026-07-22: foresight's second act
+
+Stefan's question ("will it also open doors and containers?") turned
+out to be the design, already half-built by machinery that predates
+the granule: the shut_in path knew "named but sealed away" and the
+knowledge model already refused contents never seen. RULED (Stefan):
+it has to be part of the granule, unlocked things only, and it is.
+
+Three seams now, one discipline. The container repair: naming a KNOWN
+thing in a closed, unlocked container opens it, "(opening the oak
+chest first)", and the typed command continues; the contents become
+seen silently, no listing, because the player asked for something
+else. The door repair: a closed, unlocked door opens on the walk and
+the walk goes on; the way back needs nothing, the door stays open.
+The chain: GIVE PEARL TO BOB with the pearl behind glass runs open,
+take, give, three promises deep, each step asked of open_probe first,
+the default open's own factored guard chain (the take_probe
+discipline, applied again). Locked stays an honest refusal in every
+seam: unlocking is a decision, opening is mechanics. Author `on open`
+handlers get promise-then-run, the residue, with a tri-state so their
+refusal is never doubled by ours.
+
+Found while testing, worth a line: the two-sided door idiom is `of
+door in hall, yard`, both rooms in the placement; my first test
+declared spans and walked through the door into the room it started
+in. The example knew better than I did.
+
+The seams cost every game 44 to 68 bytes (two small refusal blocks
+and open_probe); the repairs cost only summoners. Suite 1167.
+
+arcc 1.3.27, Cosmos 1.2.23.
