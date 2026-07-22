@@ -948,6 +948,45 @@ on push
     if any_beyond is 1
         if beyond_guard is 1
             stop
+    // PUSH THE CRATE NORTH (the verbs overhaul, phase 6): a `shiftable`
+    // thing rolls through the exit and the player follows, doors respected,
+    // the same arrival a walk gets. The whole path folds away in a game
+    // where nothing is shiftable; a direction on anything else answers
+    // that it will not shift, and a bare push keeps the flat default.
+    if any_shiftable is 1
+        if way is not nothing
+            if noun is not shiftable
+                change refused to 1
+                msg_wont_shift
+                stop
+            let dest = exit_dest(here, way)
+            if dest is nothing
+                change refused to 1
+                msg_cant_go
+                stop
+            if any_doors is 1
+                if dest is door
+                    if dest is locked
+                        change refused to 1
+                        msg_door_locked(dest)
+                        stop
+                    if dest is not open
+                        change refused to 1
+                        msg_door_shut(dest)
+                        stop
+                    change dest to door_other_side(dest)
+                    if dest is nothing
+                        change refused to 1
+                        msg_cant_go
+                        stop
+            move noun to dest
+            msg_shifted
+            move player to dest
+            set_here(dest)
+            fire_enter
+            set_here(parent_of(player))
+            arrive
+            stop
     change refused to 1
     msg_no_effect
 

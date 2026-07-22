@@ -216,7 +216,7 @@ INTRINSICS = frozenset({
     # undeclared); any_dark folds the darkness branch of the draw path away in
     # a game where darkness cannot happen.
     "any_images", "image_of", "pictures_available", "draw_image", "arc_mode",
-    "arc_image_dark", "any_dark",
+    "arc_image_dark", "any_dark", "any_shiftable",
     # Conversation topics, for the ask/tell and menu granules: how many a person
     # has, whether topic i is in view, printing its menu label, matching a subject
     # word against it, running its body, and retiring it (so the menu drops a
@@ -1329,6 +1329,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # resolution, the arc_mode manner); 0 then means "clear the band in
         # the dark", the fallback for a game the darkness check let through.
         _place(rt, Const(0), dest)
+    elif name == "any_shiftable":
+        # any_shiftable(): 1 if anything can be pushed between rooms, so the
+        # push-travel path folds away otherwise.
+        _place(rt, Const(1 if (ctx.layout is not None and ctx.layout.has_shiftable) else 0), dest)
     elif name == "any_dark":
         # any_dark(): 1 when darkness can happen in this game (a room without
         # `lit`, or a statement that clears `lit` at run time), else 0, so the
@@ -3091,6 +3095,8 @@ def _static_value(ctx, expr):
         return _any_images(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_dark":
         return _any_dark(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_shiftable":
+        return 1 if (ctx.layout is not None and ctx.layout.has_shiftable) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_requires":
         return 1 if ctx.world.requirements else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name in _REQ_BIT_NAMES:

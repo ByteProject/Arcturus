@@ -142,6 +142,12 @@ block remap_action(act)
             return action_id("examine")
     if act is action_id("take")
         if way is not nothing
+            // PICK UP THE LAMP, GET UP THE COIN: an up-direction with a noun
+            // is the everyday take phrasing, never a boarding (climbing goes
+            // through CLIMB and GET ON).
+            if way is up
+                if noun is not nothing
+                    return action_id("take")
             if noun is nothing
                 // A bare GET OUT / GET UP / GET DOWN while inside or on
                 // something means getting off it (exit), not a walk: GET
@@ -558,7 +564,7 @@ direction down      "down", "d"
 direction in        "in", "into"
 direction out       "out"
 
-verb "take", "get", "carry"
+verb "take", "get", "carry", "pick"
     take noun
 
 verb "drop"
@@ -770,6 +776,11 @@ verb "attack", "hit", "break", "kill", "fight", "smash"
 verb "kiss", "hug", "embrace"
     kiss noun
 
+// PUSH THE CRATE NORTH: a `shiftable` thing rolls through the exit with
+// you (the travel lives in the push handler, actions.prelude). No grammar
+// line carries the direction: `way` binds from anywhere in the command and
+// the matcher ignores the known direction word in the phrase, so push
+// stays on the flag model and ASK remains the one tabled standard verb.
 verb "push", "press", "shove"
     push noun
 
@@ -1342,6 +1353,12 @@ block msg_dropped()
             say "Down they go."
             return 0
     say "Down it goes."
+
+block msg_wont_shift()
+    say "${The noun} is not going anywhere that way."
+
+block msg_shifted()
+    say "You put your shoulder to ${the noun} and shove it along."
 
 block msg_yes()
     say "A firm yes, to no question anyone asked."

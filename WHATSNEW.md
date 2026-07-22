@@ -6,6 +6,13 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Push the crate north.** A thing marked `shiftable` (Stefan's word)
+  rolls through the exit with you: doors respected, the same arrival a
+  walk gets, and the crate is there when the room is described. Anything
+  unmarked answers that it will not shift; games with nothing shiftable
+  pay nothing. PICK UP THE LAMP arrived in the same pass, the everyday
+  take phrasing in all three languages, and it never mistakes itself for
+  boarding something.
 - **Noun lists reach the two-noun verbs.** "put coin and nail in box"
   now does what it says: the box is bound once, each item runs as its
   own full turn reported by name ("gold coin: Done."), the list stops at
@@ -43,19 +50,6 @@ lives in the commit log. The feature roadmap follows below.
   even compiled. This is the
   foundation the coming foresight granule repairs failures on, "(taking
   the pebble first)", instead of refusing.
-- **The picture follows the scene, and darkness is a scene too.** A
-  room's picture is no longer fixed at compile time: `arc_image` is an
-  ordinary property, so opening the door can swap the gatehouse picture
-  for the open one, and the band repaints the same turn, no LOOK needed.
-  And a game with both pictures and darkness now declares `arc_image_dark`,
-  the picture the band shows in the dark; the compiler refuses to build
-  without it, because the alternative was the previous room's picture
-  hanging over a room you cannot see. The band also repaints honestly
-  after UNDO, RESTORE, and RESTART, which used to be able to strand a
-  picture the rewound world never drew. In the same spirit the status bar
-  stops naming an unseen room, saying "In the dark" instead (the German
-  and Spanish packs carry their own idiomatic lines). None of this costs
-  a byte in a game without pictures, or an always-lit game its bar bytes.
 
 ## Feature roadmap
 
@@ -81,9 +75,9 @@ way, designed on its own terms, pay-for-use as always.
 - **The verbs overhaul** (underway; the `text` grammar slot, the verb
   contract, foresight, verbs by the slice, enhance/redefine, noun lists
   in two-noun actions, CONSULT ABOUT, typed YES/NO, and LIGHT have
-  landed; doors and containers join foresight's repairs when travel
-  meets them). Still to come: pushing things between rooms, and the
-  final word-roster rulings.
+  landed, and shiftable now pushes things between rooms; doors and
+  containers join foresight's repairs when travel meets them). Still
+  open: the last word-roster rulings (notify, version, profanity).
 - **Question preservation.** A disambiguation question survives an
   interposed command: asked "which coin?", the player may take inventory
   first and then answer. In the same breath: likelihood hints, letting a

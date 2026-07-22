@@ -145,6 +145,9 @@ _STD_BOOL_PROPS = [
     # player gains the stool. Static faraway decoration needs no object at
     # all: that is a grain's job (docs/01 section 14).
     "beyond",
+    # Pushable between rooms (PUSH CRATE NORTH): the thing rolls through the
+    # exit with the player. Stefan's name (2026-07-22), the -able family.
+    "shiftable",
 ]
 
 # The three German definite articles, written as bare object declarations to state
