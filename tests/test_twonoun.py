@@ -86,3 +86,72 @@ def test_open_with_key_unlocks_then_opens_on_frotz(tmp_path):
     assert "entirely unimpressed" in out  # wrong key: refused, still locked
     assert "Unlocked." in out  # right key: unlocked
     assert "Open." in out  # and then opened, in one command
+
+
+# --- unknown words can no longer dissolve into a noun phrase ----------------
+#
+# The field report (improvmonster, 2026-07-22): GIVE MERCHANT THE XYZZYPLUGH
+# resolved to noun = merchant and the garbage vanished, so an `on give,show`
+# override fired on gibberish. The scoring matcher tolerates KNOWN words an
+# object does not carry (articles, a stray adjective), but a word the
+# dictionary has never heard of now faults the phrase (parse_fault 4, the
+# word named), in every position: the trailing reversed-dative slot was the
+# one that leaked. The idiom fillers this exposed ("of"; takeall's "from")
+# are declared noise words now, not tolerated garbage.
+
+GIVE_GAME = (
+    'game\n    title "G"\n    start plaza\n'
+    'room plaza\n    name "Plaza"\n    desc "A plaza."\n'
+    'thing merchant in plaza\n    name "merchant"\n    words merchant\n'
+    '    animate\n'
+    '    on give,show\n'
+    '        say "He is not interested in ${the noun}."\n'
+    'thing pebble in plaza\n    name "pebble"\n    words pebble\n'
+    'thing coin in plaza\n    name "gold coin"\n    words gold, coin\n'
+)
+
+
+def _replies(src, cmds):
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    io = CaptureIO(script=list(cmds))
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+def test_trailing_unknown_word_is_reported_not_swallowed():
+    out = _replies(GIVE_GAME, ["give merchant the xyzzyplugh"])
+    assert 'know the word "xyzzyplugh"' in out
+    assert "not interested" not in out
+
+
+def test_unknown_word_still_reported_before_the_preposition():
+    out = _replies(GIVE_GAME, ["give xyzzyplugh to merchant"])
+    assert 'know the word "xyzzyplugh"' in out
+
+
+def test_reversed_dative_still_resolves():
+    out = _replies(GIVE_GAME, ["give merchant coin"])
+    assert "not interested in the gold coin" in out
+
+
+def test_articles_still_dilute_a_phrase():
+    out = _replies(GIVE_GAME, ["give the pebble to merchant"])
+    assert "not interested in the pebble" in out
+
+
+def test_get_out_of_survives_the_stricter_matcher():
+    # "of" is a declared noise word now; the idiom must keep working.
+    src = (
+        'game\n    title "B"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing crate in hall\n    name "packing crate"\n    words crate, packing\n'
+        '    container\n    open\n    fixed\n'
+    )
+    out = _replies(src, ["get in crate", "get out of crate"])
+    assert "You get out of the packing crate" in out or "out of" in out.lower()

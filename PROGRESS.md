@@ -5694,3 +5694,65 @@ and beispiel-deutsch grew their +40, which IS the feature. Ceilings
 raised with dated notes in the same commit.
 
 arcc 1.3.16, Cosmos 1.2.15. Suite 1097.
+
+## 2026-07-22: the verbs and grammar overhaul begins; phase 1, the honest matcher
+
+The overhaul moved forward on the roadmap on the strength of the week's
+field reports, and the design was settled in discussion before a line
+was written. DECIDED (Stefan), the shape of the whole thing:
+
+- Validation becomes declarative: verbs state what they need
+  (`requires noun carried`, `requires second animate`, Stefan's
+  spellings), compiled onto the ACTION so the language packs inherit
+  them, enforced BEFORE dispatch so an author's `on give,show` override
+  owns the response and can never again accidentally own the holding
+  check (the field report: a handler firing on gibberish and on gifts
+  the player did not hold).
+- Inference is renamed FORESIGHT (Stefan's pick over initiative,
+  courtesy, obliging) and is a summonable granule, off by default,
+  Stefan's own taste included in the reasoning. Its design kills the
+  Inform blemish he named: a side-effect-free probe, factored FROM the
+  take's own guard chain so the two can never drift, decides whether
+  the repair can realistically succeed BEFORE the parenthetical prints.
+  "(taking the sun first) The sun is beyond your reach." cannot happen
+  here: the sun case prints the plain refusal and no promise. The
+  irreducible residue, an author's own `on take` in the path, falls
+  back to print-then-run, and that boundary is a theorem (the outcome
+  of author code is unknowable without running it), not a shortcut.
+- `requires` failures stay library-owned, no author hook: foresight is
+  about to turn the failure path into a repair path, and handing
+  authors the old failure semantics would break under it.
+- Pay-per-verb via summon selection: `summon.extendedverbs squeeze,
+  burn, search` takes exactly those verb families (a family is one verb
+  and its synonyms, never a cluster), the bare form keeps meaning all
+  of it, and the same selection works on a fork (`summon
+  extendedverbs.granule squeeze, burn, search`). Scoped to
+  extendedverbs first, deliberately: Stefan wants forks of the one
+  canonical verb library, which the fork stamp watches, not a dozen
+  bespoke verb granules.
+- Grammar surgery: `enhance verb` appends lines and synonyms,
+  `redefine verb` replaces wholesale and says so out loud.
+- `carried` covers worn (one word, one meaning; a strict in-hand word
+  can be added the day someone asks, and GIVE CLOAK while wearing it is
+  future foresight food: "(taking off the cloak first)").
+- Phases: 1 the matcher bug below, 2 requires, 3 foresight, 4 summon
+  selection, 5 enhance/redefine, 6 breadth (noun lists in two-noun
+  actions, CONSULT ABOUT, the new verbs). Each with its own done-test
+  and size gate.
+
+Phase 1 shipped. The field report's mechanism: the scoring matcher
+crowned the best-scoring object even when the phrase held a word the
+dictionary never heard of, so GIVE MERCHANT THE XYZZYPLUGH resolved to
+the merchant and the garbage vanished (the same word before a
+preposition was already caught; the trailing reversed-dative slot
+leaked). match_phrase now refuses a phrase with a genuinely unknown
+word, naming it, in every position. Two idioms had been leaning on the
+tolerance: TAKE ALL FROM (takeall's "from") and GET OUT OF ("of"),
+neither word in any dictionary. They are declared noise words now,
+"of" in the English layer, "from" in the takeall granule that needs it
+(pay-for-use, to retire when the breadth phase makes it a real
+separator). Known-word dilution (articles, a stray adjective) is
+untouched. Every game pays 24 to 36 bytes for the check; ceilings
+raised with the dated note.
+
+arcc 1.3.17, Cosmos 1.2.16. Suite 1103.

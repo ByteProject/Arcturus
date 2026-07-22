@@ -620,8 +620,12 @@ chain ",", "and", "then"
 
 // The noise words: the articles and fillers the parser knows but ignores.
 // Known is the point: a noun-list segment may contain them ("take lamp and
-// the box"), while a genuinely unknown word refuses the borrow (8b).
-noise "the", "a", "an", "some", "my"
+// the box"), while a genuinely unknown word refuses the borrow (8b). "of"
+// is the idioms' filler (GET OUT OF, CLIMB ON TOP OF): known, so a phrase
+// carrying it stays whole, and ignored, so it never names anything. The
+// matcher no longer dissolves UNKNOWN words (the give field report), so
+// every filler an idiom leans on must be declared here.
+noise "the", "a", "an", "some", "my", "of"
 
 // The pronouns (docs/02 section 8a): "it" for the last thing, "him"/"her" for
 // the last character, by its gender. The words map to canonical roles; the
