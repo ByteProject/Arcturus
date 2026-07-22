@@ -344,14 +344,36 @@ on buy
         msg_buy
 
 
+// CONSULT THE TOME ABOUT THE MINE: the subject rides a `text` slot (the ASK
+// machinery), so it is words, never an object, and the tome's own inline
+// `topic` declarations answer it. Topics parse on ANY object, and the shared
+// core scanner (subject_typed, loop.prelude) matches the typed subject
+// against them, so a reference book works with either conversation granule
+// summoned or neither. No topic matching (or no ABOUT at all) falls to the
+// granule's own messages; an alter rewords the miss as usual.
 verb "consult", "reference"
-    consult noun about noun
+    consult noun
+    consult noun about text
 
 on consult
     if noun is nothing
         change refused to 1
         msg_noun_missing
         stop
+    // Nothing after ABOUT (or no ABOUT at all): ask what to look up.
+    if topic_hi is 0
+        change refused to 1
+        msg_consult_what
+        stop
+    if any_topics is 1
+        let count = topics_count(noun)
+        let i = 0
+        while i < count
+            if topic_visible(noun, i)
+                if subject_typed(noun, i)
+                    topic_run(noun, i)
+                    stop
+            change i to i + 1
     if any_alter is 1
         if altered is 0
             msg_consult
@@ -526,6 +548,9 @@ block msg_buy()
 
 block msg_consult()
     say "${The noun} has nothing to say on the matter."
+
+block msg_consult_what()
+    say "Consult ${the noun} about what?"
 
 block msg_dig()
     say "The ground keeps its secrets."

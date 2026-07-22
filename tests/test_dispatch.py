@@ -14,6 +14,7 @@ import pytest
 from arcturus import assembler as a
 from arcturus import cosmos
 from arcturus.codegen import (
+    gen_topic_helpers,
     StringPool,
     _action_numbers,
     _globals_map,
@@ -61,7 +62,8 @@ def _dispatch_story(nouns):
     entry = a.Routine("__entry__", entry=True)
     entry.op("call_vn", a.RoutineRef("__main__"))
     entry.op("quit")
-    return build_story(world, entry, [drive] + routines + react + [gen_schedule_tick(world, gmap)], layout=layout, string_pool=pool)
+    return build_story(world, entry, [drive] + routines + react + [gen_schedule_tick(world, gmap)]
+                       + gen_topic_helpers(layout), layout=layout, string_pool=pool)
 
 
 def test_dispatch_story_compiles():

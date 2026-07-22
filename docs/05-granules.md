@@ -123,8 +123,14 @@ with every synonym, and each default line, is the granule source itself
   speaks your alter with it.
 - ACTING ON THINGS, futile by default until an object overrides:
   `throw ... at`, `rub` (polish, clean, wipe...), `squeeze`, `tie ... to`,
-  `cut`, `fill`, `burn`, `blow`, `set ... to`, `empty`, `buy`, `consult
-  ... about`.
+  `cut`, `fill`, `burn`, `blow`, `set ... to`, `empty`, `buy`.
+- CONSULT ... ABOUT, the reference-book verb, and no longer futile: the
+  subject rides a `text` slot (the ASK machinery), and the object's own
+  inline `topic` declarations answer it. Topics parse on any object, so a
+  gazetteer, a logbook, or a terminal answers CONSULT THE TOME ABOUT THE
+  MINE with its matching topic, with either conversation granule summoned
+  or neither. No match: "has nothing to say on the matter"; no subject:
+  "Consult it about what?"; both granule-owned messages, reskinnable.
 - BODY AND IDLE: `dig`, `wave`, `sleep`, `swim`, `swing`, `think`,
   `pray`, `shout`. (`sit`/`rest` and `stand` are STANDARD verbs riding
   enter and exit: SIT ON THE CHAIR boards it, STAND or STAND UP leaves

@@ -157,6 +157,46 @@ block run_noun_list(act)
                         change running to 1
     return 0
 
+// Did the player type a word this topic answers to? CORE, not a granule
+// block, because two features share it: the infocom_talking presentation
+// (ASK X ABOUT Y) and extendedverbs' CONSULT (consult the tome about the
+// mine). Only the SUBJECT phrase is scanned: a grammar line with a `text`
+// slot handed it over as a word range (topic_lo/topic_hi); a pack still on
+// the flag model finds the separator boundary itself. Scanning by position,
+// not by skipping the listener's vocabulary, keeps ASK JACK ABOUT JACK
+// working (the second "jack" is the subject; the ASK CAPTAIN ABOUT SHIP
+// field report is why position, never vocabulary, draws the line). DCE
+// drops it in a game with neither feature.
+block subject_typed(person, i)
+    let n = word_count
+    // A grammar line with a `text` slot handed the subject over as a word
+    // range (English ASK/TELL): use it exactly. A pack still on the flag
+    // model finds the boundary itself, the separator that splits listener
+    // from subject.
+    let b = 0
+    if topic_hi > topic_lo
+        change b to topic_lo - 1
+        change n to topic_hi
+    else
+        let w = 1
+        while w < n
+            if b is 0
+                let d = word_dict(w)
+                if d is not nothing
+                    if is_separator(d)
+                        change b to w
+            change w to w + 1
+        if b is 0
+            return 0
+    let s = b + 1
+    while s < n
+        let target = word_dict(s)
+        if target is not nothing
+            if topic_matches(person, i, target)
+                return 1
+        change s to s + 1
+    return 0
+
 // The post-mortem, after a finish banner: the final score, then the
 // classic prompt until the player picks a way out. The answer words are
 // whatever the language pack declared for the restart/restore/quit verbs,

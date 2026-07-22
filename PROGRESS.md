@@ -5909,3 +5909,37 @@ Core grammar with no fold to hide behind, since put/give/show are
 standard. Presented to Stefan for blessing with the phase.
 
 arcc 1.3.22, Cosmos 1.2.19. Suite 1141.
+
+## 2026-07-22: phase 6 continues; the reference book and the typed answer
+
+RULED (Stefan) on the breadth roster: LIGHT in (the lamp-game phrasing,
+a switch_on synonym); typed YES/NO in (a real request from Ghosts of
+Blackwood Manor: a game asks, `on yes` / `on no` with a `when` guard
+answers, flat classic flavor untended, and never meta, because
+answering is speech); WAKE out; VERBOSE/BRIEF/SUPERBRIEF out ("always
+gives me Inform vibes"); FULLSCORE stays out per the standing ruling.
+The +604 noun-list ceiling was blessed with the margin named out loud:
+Cloak compiles to 19.6K against PunyInform's 28K after the whole
+overhaul.
+
+CONSULT landed as approved: `consult noun about text` on the consult
+family, the subject riding the ASK text slot, answered by the OBJECT'S
+own inline topics. Topics were already legal on any object (the parse
+gate was a myth; only my test's syntax was wrong), so the compiler
+needed one honest change: a text slot forces the grammar table, since
+the flag model cannot absorb a subject. The scanner (subject_typed)
+moved from the infocom_talking granule to core so consult and the
+ask/tell presentation share one path that can never drift; DCE drops
+it in games with neither. A reference book works with either
+conversation granule summoned or neither, pinned by test.
+
+All three languages carry the new words and lines natively (ja/nein,
+sí/no, zünde/entzünde an, prender), my wordings, awaiting Stefan's
+native pass. +160 to +228 per game (the YES/NO handlers are
+data-rooted, so they are real bytes); ceilings dated.
+
+Still open in phase 6: the pushable attribute's name (vectorable vs
+shiftable, Chef's question pending), and rulings on pick up, notify,
+version, and the profanity responses.
+
+arcc 1.3.23, Cosmos 1.2.20. Suite 1149.

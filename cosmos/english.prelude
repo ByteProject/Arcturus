@@ -620,7 +620,10 @@ verb "xyzzy"
 verb "inventory", "i", "inv"
     inventory
 
-verb "switch"
+// LIGHT THE TORCH, LIGHT THE CANDLE: light is a switch_on synonym (the
+// lamp-game phrasing; extinguishing already has douse-free wording through
+// switch off and turn off).
+verb "switch", "light"
     switch_on noun
     switch_off noun
 
@@ -737,6 +740,15 @@ verb "touch", "feel", "pat"
 
 verb "smell", "sniff"
     smell noun
+
+// Typed answers: a game that ASKS something reads them with an `on yes` /
+// `on no` handler and a `when` guard (the Blackwood request); untended they
+// get the classic flavor. Meta stays out: answering is in-world speech.
+verb "yes", "affirmative"
+    yes
+
+verb "no", "negative"
+    no
 
 verb "taste", "lick"
     taste noun
@@ -1330,6 +1342,12 @@ block msg_dropped()
             say "Down they go."
             return 0
     say "Down it goes."
+
+block msg_yes()
+    say "A firm yes, to no question anyone asked."
+
+block msg_no()
+    say "Noted, though nothing was on the table."
 
 block msg_not_holding()
     say "You aren't carrying ${the noun}."

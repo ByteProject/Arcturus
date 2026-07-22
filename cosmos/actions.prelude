@@ -344,6 +344,15 @@ on score
     change meta_turn to 1
     msg_score
 
+// Typed YES and NO: in-world speech, not meta, so a game reads them with
+// `on yes` / `on no` (a `when` guard scopes the question); untended they
+// get the flat flavor line.
+on yes
+    msg_yes
+
+on no
+    msg_no
+
 on restart
     change meta_turn to 1
     msg_confirm_restart

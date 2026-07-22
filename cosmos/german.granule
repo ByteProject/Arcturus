@@ -543,11 +543,20 @@ verb "xyzzy"
 verb "inventar", "i", "inv"
     inventory
 
+// Getippte Antworten: ein Spiel, das fragt, liest sie mit `on yes` / `on no`.
+verb "ja", "jawohl"
+    yes
+
+verb "nein"
+    no
+
 // Ein- und ausschalten. Das Grundverb "schalt(e)" trägt eine Partikel danach oder
 // davor: "schalt die Lampe an", "schalt die Lampe ein", und (grammatisch schief,
 // aber in Textadventures üblich) "schalt an Lampe", "schalt ein Lampe". Die
 // zusammengeschriebenen Formen decken "einschalten Lampe" mit ab.
-verb "schalt", "schalte"
+// ZÜNDE DIE KERZE AN, ENTZÜNDE DIE FACKEL: anzünden ist das deutsche
+// "light"; die Partikel (an) macht daraus switch_on wie bei schalte ... an.
+verb "schalt", "schalte", "zünde", "zuende", "entzünde", "entzuende"
     switch_on noun
     switch_off noun
 
@@ -1296,6 +1305,12 @@ block msg_dropped()
             say "."
             return 0
     say "Fallen gelassen."
+
+block msg_yes()
+    say "Ein klares Ja, nur hat niemand gefragt."
+
+block msg_no()
+    say "Verstanden, auch wenn nichts zur Debatte stand."
 
 block msg_not_holding()
     say "Du hast ${the:acc noun} nicht bei dir."
