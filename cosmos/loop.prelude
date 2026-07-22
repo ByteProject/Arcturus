@@ -112,6 +112,51 @@ block sweep_one(obj, act)
     change last_grain to grain
     return 0
 
+// Run a noun LIST through a two-noun action ("put coin and nail in box"):
+// the second is already bound, the list's word range waits in
+// list_pos..list_end, and each item is a full turn through sweep_one (the
+// takeall manner: "gold coin: Done."), stopping at the first refusal, the
+// chain rule. An item that names nothing in scope refuses the same way.
+block run_noun_list(act)
+    let pos = list_pos
+    let end = list_end
+    change list_pos to 0
+    while pos < end
+        // The item runs up to the next chain word (or the list's end).
+        let cut = pos
+        let stop_at = end
+        while cut < end
+            let d = word_dict(cut)
+            if d is not nothing
+                if peek_byte(d + 6) is 2
+                    change stop_at to cut
+                    change cut to end
+            if cut is not end
+                change cut to cut + 1
+        if stop_at > pos
+            let obj = match_phrase(pos, stop_at, 0)
+            if parse_fault is not 0
+                change refused to 1
+            if obj is nothing
+                change refused to 1
+                msg_cant_see
+                return 0
+            sweep_one(obj, act)
+            if refused is not 0
+                return 0
+        change pos to stop_at + 1
+        // Skip a run of chain words (", and").
+        let running = 1
+        while running is 1
+            change running to 0
+            if pos < end
+                let r2 = word_dict(pos)
+                if r2 is not nothing
+                    if peek_byte(r2 + 6) is 2
+                        change pos to pos + 1
+                        change running to 1
+    return 0
+
 // The post-mortem, after a finish banner: the final score, then the
 // classic prompt until the player picks a way out. The answer words are
 // whatever the language pack declared for the restart/restore/quit verbs,
@@ -443,6 +488,7 @@ block run_turn(act)
         // carry a pending sweep hand-off; taking a turn back must not
         // replay either. Each guard folds away without its granule.
         change chain_pos to 0
+        change list_pos to 0
         if any_allwords is 1
             change all_go to 0
         if any_plurals is 1
@@ -469,6 +515,11 @@ block run_turn(act)
             change plural_go to 0
             run_plural(act, w)
             return 0
+    // A noun list in a two-noun command ("put coin and nail in box"): the
+    // second is bound, the items run one by one, each a full turn.
+    if list_pos is not 0
+        run_noun_list(act)
+        return 0
     // The verb contract, BEFORE dispatch (the verbs overhaul, phase 2): a
     // turn whose operands fail what the action requires is refused here,
     // library-owned, and no handler ever sees it. perform() does not pass

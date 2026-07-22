@@ -422,6 +422,26 @@ block resolve_two_nouns()
                 change sp to sp + 1
     if b is 0
         change b to n
+    // A chain word INSIDE the first slot is a noun LIST ("put coin and nail
+    // in box"; chain_split left it here because the separator lies beyond).
+    // Bind the second now, hand the list range to the loop's runner, and
+    // leave the noun empty: every item runs as its own full turn.
+    let c = 1
+    while c < b
+        let cd = word_dict(c)
+        if cd is not nothing
+            if peek_byte(cd + 6) is 2
+                if b < n
+                    change second to match_phrase(b + 1, n, 0)
+                    if parse_fault is not 0
+                        return 1
+                    if second is nothing
+                        change parse_fault to noun_fault(b + 1, n)
+                        return 1
+                change list_pos to 1
+                change list_end to b
+                return 1
+        change c to c + 1
     change noun to match_phrase(1, b, 0)
     if parse_fault is not 0
         return 1
