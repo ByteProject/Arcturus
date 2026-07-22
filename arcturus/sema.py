@@ -180,6 +180,28 @@ class Analyzer:
             )
         return self.world
 
+    # The requirement bit per (slot, kind): the packed word requires_map
+    # returns, read arithmetically by the loop's check (docs/02 section 9).
+    _REQUIRE_BITS = {
+        ("noun", "carried"): 1,
+        ("noun", "animate"): 2,
+        ("second", "carried"): 4,
+        ("second", "animate"): 8,
+    }
+
+    def _add_requirement(self, action: str, r: "ast.RequiresDecl") -> None:
+        bit = self._REQUIRE_BITS.get((r.slot, r.kind))
+        if bit is None:
+            kinds = sorted({k for _, k in self._REQUIRE_BITS})
+            raise self._error(
+                f"requires knows {', '.join(kinds)}; '{r.kind}' is not one "
+                f"of them (slot '{r.slot}')",
+                r.line,
+            )
+        self.world.requirements[action] = (
+            self.world.requirements.get(action, 0) | bit
+        )
+
     def _first_dark_room(self):
         """The first room whose `lit` resolves false at compile time: its own
         override, or the nearest kind in its chain that says `lit false` (the
@@ -507,6 +529,13 @@ class Analyzer:
                 if decl.meta:
                     for g in decl.grammar:
                         w.meta_actions.add(g.action)
+                # In-body `requires noun carried` binds to this verb's own
+                # actions (the sugar form; the top-level form names one).
+                for r in decl.requirements:
+                    for act in {g.action for g in decl.grammar}:
+                        self._add_requirement(act, r)
+            elif isinstance(decl, ast.RequiresDecl):
+                self._add_requirement(decl.action, decl)
             elif isinstance(decl, ast.DirectionDecl):
                 if not self.env.is_direction(decl.prop):
                     raise self._error(

@@ -533,6 +533,20 @@ class GrammarLine:
 
 
 @dataclass
+class RequiresDecl:
+    """A declarative verb requirement (the verbs overhaul, phase 2):
+    `requires give noun carried` at top level (action named, the agnostic
+    form actions.prelude uses so language packs inherit), or `requires noun
+    carried` inside a verb body (action None, bound to the verb's own
+    actions by sema)."""
+
+    action: Optional[str]
+    slot: str  # "noun" or "second"
+    kind: str  # "carried" or "animate"
+    line: int = 0
+
+
+@dataclass
 class VerbDecl:
     words: list[str]
     grammar: list[GrammarLine]
@@ -542,6 +556,7 @@ class VerbDecl:
     # room handler (an `on other` included) ever sees them; the same band
     # score/save/quit live in, opened to declaration.
     meta: bool = False
+    requirements: list = field(default_factory=list)  # in-body RequiresDecl
 
 
 @dataclass

@@ -83,7 +83,13 @@ block sweep_one(obj, act)
     print_name(obj)
     show(": ")
     change noun to obj
-    dispatch(act)
+    // The verb contract holds inside a sweep too (each item is a full turn);
+    // take and drop declare nothing today, so this is one no-op call per item.
+    let vetoed = 0
+    if any_requires is 1
+        change vetoed to check_requires(act)
+    if vetoed is 0
+        dispatch(act)
     // Each swept item is a full turn, so it takes the after pass too
     // (docs/02 s.9 step 6; folds away without an `on after` in the game).
     if any_after is 1
@@ -292,6 +298,59 @@ block cosmos_perform(act, obj, other)
     change refused to sr
     return ok
 
+// The declarative verb contract (the verbs overhaul, phase 2): enforce what
+// this action requires of its operands BEFORE any handler runs, so an object's
+// override owns the response and never the validation. The bits come from
+// requires_map (compiler-emitted, per action, from the `requires`
+// declarations); empty slots pass through, their asks belong to the handlers
+// ("Give what?"). Read arithmetically, low bit first (the source language has
+// no bitwise operators; the ambience deck's manner). Returns 1 on a refusal,
+// message already spoken.
+block check_requires(act)
+    let r = requires_of(act)
+    if r is 0
+        return 0
+    // Each branch is doubly guarded: the per-bit fold (req_*, compile time:
+    // does ANY action declare this bit?) and the mask (run time: does THIS
+    // action?). A game whose verbs never use a bit never compiles its branch,
+    // and the second-slot message drops with its branch.
+    let h = r / 2
+    if req_noun_carried is 1
+        if r - h - h is 1
+            if noun is not nothing
+                if parent_of(noun) is not player
+                    change refused to 1
+                    msg_not_holding
+                    return 1
+    change r to h
+    change h to r / 2
+    if req_noun_animate is 1
+        if r - h - h is 1
+            if noun is not nothing
+                if noun is not animate
+                    change refused to 1
+                    msg_only_animate
+                    return 1
+    change r to h
+    change h to r / 2
+    if req_second_carried is 1
+        if r - h - h is 1
+            if second is not nothing
+                if parent_of(second) is not player
+                    change refused to 1
+                    msg_not_holding_second
+                    return 1
+    change r to h
+    change h to r / 2
+    if req_second_animate is 1
+        if r - h - h is 1
+            if second is not nothing
+                if second is not animate
+                    change refused to 1
+                    msg_only_animate
+                    return 1
+    return 0
+
 // Carry out one understood command. Undo is handled here, not through dispatch:
 // every other command first takes an undo checkpoint (save_undo), so that a later
 // undo rewinds to just before it. When save_undo returns 2 the machine has just
@@ -395,6 +454,13 @@ block run_turn(act)
             let w = plural_go
             change plural_go to 0
             run_plural(act, w)
+            return 0
+    // The verb contract, BEFORE dispatch (the verbs overhaul, phase 2): a
+    // turn whose operands fail what the action requires is refused here,
+    // library-owned, and no handler ever sees it. perform() does not pass
+    // through this: an author performing an action means it.
+    if any_requires is 1
+        if check_requires(act) is 1
             return 0
     dispatch(act)
     // The after phase: the action ran; if nothing refused it, the `on after`

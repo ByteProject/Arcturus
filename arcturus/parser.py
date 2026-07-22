@@ -185,6 +185,8 @@ class Parser:
             return self.parse_handler()
         if t.kind == T.NAME and t.value == "direction":
             return self.parse_direction()
+        if t.kind == T.NAME and t.value == "requires":
+            return self.parse_requires()
         if t.kind == T.NAME and t.value == "particle":
             return self.parse_particle()
         if t.kind == T.NAME and t.value == "pronoun":
@@ -753,13 +755,49 @@ class Parser:
         self.expect_newline()
         self.expect(T.INDENT, "an indented grammar body")
         grammar: list[ast.GrammarLine] = []
+        requirements: list[ast.RequiresDecl] = []
         while not self.check(T.DEDENT):
             if self.check(T.NEWLINE):
                 self.advance()
                 continue
+            # `requires noun carried` inside the body: the sugar form, bound
+            # to this verb's own actions by sema. `requires` is reserved as a
+            # line opener here; an action named requires needs the top-level
+            # form.
+            if self.check(T.NAME) and self.cur.value == "requires":
+                r = self.parse_requires(action="")
+                r.action = None
+                requirements.append(r)
+                continue
             grammar.extend(self._parse_grammar_line())
         self.expect(T.DEDENT)
-        return ast.VerbDecl(words, grammar, line, meta)
+        return ast.VerbDecl(words, grammar, line, meta, requirements)
+
+    def parse_requires(self, action=None) -> ast.RequiresDecl:
+        # The declarative verb contract (the verbs overhaul, phase 2).
+        # Top level: `requires give noun carried` names the action, the
+        # language-agnostic form actions.prelude uses. Inside a verb body the
+        # caller passes a placeholder action to skip the name and clears it,
+        # so sema binds the line to the verb's own actions instead.
+        line = self.cur.line
+        self.advance()  # the leading `requires`
+        if action is None:
+            action = self.expect_name("an action name").value
+        # The slot words are keywords elsewhere (noun the grammar slot,
+        # second the builtin global), so accept either token kind.
+        if self.cur.is_kw("noun") or self.cur.is_kw("second"):
+            slot = self.cur.value
+            self.advance()
+        elif self.cur.kind == T.NAME and self.cur.value in ("noun", "second"):
+            slot = self.cur.value
+            self.advance()
+        else:
+            raise self._error(
+                "requires names a slot: `requires <action> noun carried` or "
+                "`... second animate`")
+        kind = self.expect_name("a requirement (carried, animate)").value
+        self.expect_newline()
+        return ast.RequiresDecl(action, slot, kind, line)
 
     def parse_language_decl(self) -> ast.LanguageDecl:
         # `language "spanish"`: the self-identifying marker of a language pack.

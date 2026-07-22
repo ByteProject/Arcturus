@@ -1314,6 +1314,11 @@ block msg_dropped()
 block msg_not_holding()
     say "You aren't carrying ${the noun}."
 
+// The requires check's second-slot twin (a two-noun verb whose SECOND must
+// be carried); the noun-slot failures speak msg_not_holding above.
+block msg_not_holding_second()
+    say "You aren't carrying ${the second}."
+
 block msg_done()
     say "Done."
 

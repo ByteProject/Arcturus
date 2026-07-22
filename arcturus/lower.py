@@ -192,7 +192,11 @@ INTRINSICS = frozenset({
     # The dispatcher's after phase (docs/02 section 9 step 6): whether any
     # `on after` handler exists (folds the phase away when not), and the
     # action -> synthetic-after-action map behind it.
-    "any_after", "after_of",
+    "any_after", "after_of", "any_requires", "requires_of",
+    # Per-bit requirement folds, so check_requires compiles only the branches
+    # some action actually declares (library-internal, like any_topic_idle).
+    "req_noun_carried", "req_noun_animate", "req_second_carried",
+    "req_second_animate",
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr", "article_addr", "indefinite_addr", "tag_addr",
@@ -802,6 +806,17 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         op, t = _operand(rt, ctx, args[0])
         rt.op("call_vs", RoutineRef("react_free"), op, store=dest)
         _free(ctx, t)
+    elif name == "requires_of":
+        # requires_of(action): the packed requirement bits the action declares
+        # (requires_map, emitted by codegen). Reached only when any_requires
+        # folded true, so the routine is guaranteed to exist.
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("call_vs", RoutineRef("requires_map"), op, store=dest)
+        _free(ctx, t)
+    elif name == "any_requires":
+        _place(rt, Const(1 if ctx.world.requirements else 0), dest)
+    elif name in _REQ_BIT_NAMES:
+        _place(rt, Const(_req_bit(ctx, name)), dest)
     elif name == "after_of":
         # after_of(action): the action's synthetic after number, 0 when it has
         # no after handlers (after_map, emitted by codegen). Reached only when
@@ -1787,6 +1802,25 @@ def _any_images(ctx) -> int:
     describe_room guards its picture draw on this so the whole image path folds
     away in a game with no pictures (byte-identical to one that never had them)."""
     return 1 if ctx.world.uses_images else 0
+
+
+_REQ_BIT_NAMES = {
+    "req_noun_carried": 1,
+    "req_noun_animate": 2,
+    "req_second_carried": 4,
+    "req_second_animate": 8,
+}
+
+
+def _req_bit(ctx, name: str) -> int:
+    """1 when any action declares this requirement bit, else 0: the union of
+    the requirement masks, split per bit, so check_requires compiles only the
+    branches the game's verbs can ever hit (and the second-slot message is
+    dropped with its branch in a game nothing declares it for)."""
+    union = 0
+    for mask in ctx.world.requirements.values():
+        union |= mask
+    return 1 if union & _REQ_BIT_NAMES[name] else 0
 
 
 def _any_dark(ctx) -> int:
@@ -3057,6 +3091,10 @@ def _static_value(ctx, expr):
         return _any_images(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_dark":
         return _any_dark(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_requires":
+        return 1 if ctx.world.requirements else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name in _REQ_BIT_NAMES:
+        return _req_bit(ctx, expr.name)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "arc_image_dark":
         return 0  # reached only when the game declares no constant (see _intrinsic)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_ambience_once":

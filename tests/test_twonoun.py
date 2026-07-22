@@ -136,12 +136,12 @@ def test_unknown_word_still_reported_before_the_preposition():
 
 
 def test_reversed_dative_still_resolves():
-    out = _replies(GIVE_GAME, ["give merchant coin"])
+    out = _replies(GIVE_GAME, ["take coin", "give merchant coin"])
     assert "not interested in the gold coin" in out
 
 
 def test_articles_still_dilute_a_phrase():
-    out = _replies(GIVE_GAME, ["give the pebble to merchant"])
+    out = _replies(GIVE_GAME, ["take the pebble", "give the pebble to merchant"])
     assert "not interested in the pebble" in out
 
 

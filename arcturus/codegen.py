@@ -254,6 +254,28 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
     # fire once the real one completed unrefused. Emitted only when an after
     # handler exists; without one, any_after folds the phase (and the only
     # call site) away, so games without `on after` pay nothing.
+    # requires_map(action) backs the requires_of intrinsic (the verbs
+    # overhaul, phase 2): the loop asks it what an action requires of its
+    # operands (a packed word of requirement bits) BEFORE dispatch, so an
+    # object's handler override owns only the response, never the contract.
+    # Emitted only when some verb declares requirements; any_requires folds
+    # the check (and this routine's only call site) away otherwise.
+    if world.requirements:
+        rmap = Routine("requires_map", nlocals=1)
+        items = sorted(world.requirements.items())
+        for name, _mask in items:
+            if name not in actions:
+                continue
+            rmap.op("je", Variable(1), Const(actions[name]),
+                    branch=("req_" + name, True))
+        rmap.op("ret", Const(0))
+        for name, mask in items:
+            if name not in actions:
+                continue
+            rmap.label("req_" + name)
+            rmap.op("ret", Const(mask))
+        out.append(rmap)
+
     withafter = wm.actions_with_after(world)
     if withafter:
         # `on after other` gives the map a FALLBACK: any world action without

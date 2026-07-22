@@ -284,7 +284,7 @@ def test_reversed_dative_give_both_orders():
     # GIVE COIN TO BOB (forward) and GIVE BOB THE COIN (reversed) both reach
     # Bob's `on give` with noun = the coin, not an ambiguity question.
     for cmd in ("give coin to bob", "give bob the coin", "give bob coin"):
-        out = _dative_play([cmd])
+        out = _dative_play(["take coin", cmd])
         at = out.index(">" + cmd)
         window = out[at:at + 160]
         assert "Bob pockets the coin." in window, cmd
@@ -437,11 +437,11 @@ def test_reversed_dative_takes_pronouns():
         return io.text
 
     # HIM after Bob is named; the gift is the coin, not Bob himself.
-    out = play(["examine bob", "give him coin"])
+    out = play(["take coin", "examine bob", "give him coin"])
     assert "Bob pockets the coin." in out
 
     # HER after Marta is named.
-    out = play(["examine marta", "give her brooch"])
+    out = play(["take brooch", "examine marta", "give her brooch"])
     assert "Marta pockets the brooch." in out
 
     # An unbound pronoun does not silently swallow the phrase.

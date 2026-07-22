@@ -796,6 +796,19 @@ on exit
     change noun to left
     leave_report
 
+// The declarative verb contract (the verbs overhaul, phase 2): what GIVE and
+// SHOW require of their operands, stated on the ACTION so every language pack
+// inherits it, enforced by the loop BEFORE dispatch. An object's `on give,show`
+// override therefore owns the response and never the validation: it fires only
+// on turns whose operands satisfy these lines (the field report: a custom
+// handler answering for gifts the player did not hold). The old inline animate
+// checks below moved here; `carried` is new, and honest: giving what you do
+// not have was never a turn that should reach anyone's handler.
+requires give noun carried
+requires give second animate
+requires show noun carried
+requires show second animate
+
 on give
     if noun is nothing
         change refused to 1
@@ -804,10 +817,6 @@ on give
     if second is nothing
         change refused to 1
         msg_to_whom
-        stop
-    if second is not animate
-        change refused to 1
-        msg_only_animate
         stop
     if any_beyond is 1
         if beyond_guard_second is 1
@@ -831,10 +840,6 @@ on show
     if second is nothing
         change refused to 1
         msg_to_whom
-        stop
-    if second is not animate
-        change refused to 1
-        msg_only_animate
         stop
     change refused to 1
     msg_show
