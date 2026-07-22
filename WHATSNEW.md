@@ -79,12 +79,11 @@ way, designed on its own terms, pay-for-use as always.
   furniture is still to come.)
 - **LOOK \<direction\>.** "look north" describes what lies that way.
 - **The verbs overhaul** (underway; the `text` grammar slot, the verb
-  contract, foresight, verbs by the slice, enhance/redefine, and noun
-  lists in two-noun actions have landed; doors and containers join the
-  repairs when travel meets them). Still to come: maybe CONSULT
-  \<object\> ABOUT \<topic\>, which ties into the topic machinery we
-  already have; and the breadth (taste, tie, throw at, push things
-  between rooms, and friends).
+  contract, foresight, verbs by the slice, enhance/redefine, noun lists
+  in two-noun actions, CONSULT ABOUT, typed YES/NO, and LIGHT have
+  landed; doors and containers join foresight's repairs when travel
+  meets them). Still to come: pushing things between rooms, and the
+  final word-roster rulings.
 - **Question preservation.** A disambiguation question survives an
   interposed command: asked "which coin?", the player may take inventory
   first and then answer. In the same breath: likelihood hints, letting a
