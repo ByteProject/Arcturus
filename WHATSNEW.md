@@ -86,10 +86,10 @@ way, designed on its own terms, pay-for-use as always.
   already shows darkness instead of the room name; the rest of the
   furniture is still to come.)
 - **LOOK \<direction\>.** "look north" describes what lies that way.
-- **The verbs overhaul** (underway; the `text` grammar slot and the verb
-  contract and foresight have landed; doors and containers join the
-  repairs when travel meets them). Still to come: pay-per-verb selection on the extended verbset (`summon.extendedverbs
-  squeeze, burn, search`); `enhance verb` and `redefine verb` for adding
+- **The verbs overhaul** (underway; the `text` grammar slot, the verb
+  contract, foresight, and verbs by the slice have landed; doors and
+  containers join the repairs when travel meets them). Still to come:
+  `enhance verb` and `redefine verb` for adding
   to or replacing a verb's grammar out loud; noun lists in two-noun
   actions ("put coin and nail in box"; today lists work in single-noun
   actions only); maybe CONSULT \<object\> ABOUT \<topic\>, which ties
