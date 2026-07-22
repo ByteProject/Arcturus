@@ -468,6 +468,7 @@ class World:
     # carried, 8 second animate). Emitted as requires_map; enforced by the
     # loop BEFORE dispatch, so a handler override owns only the response.
     requirements: dict = field(default_factory=dict)
+    sets_shiftable: bool = False
 
     def all_handlers(self):
         for obj in self.objects.values():

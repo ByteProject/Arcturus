@@ -5943,3 +5943,35 @@ shiftable, Stefan's answer pending), and rulings on pick up, notify,
 version, and the profanity responses.
 
 arcc 1.3.23, Cosmos 1.2.20. Suite 1149.
+
+## 2026-07-22: shiftable, and the everyday take
+
+RULED (Stefan): the attribute is `shiftable` (the -able family argument
+carried), PICK UP is in, and notify/profanity wait on plain-language
+explanations before he rules (version still pending with them).
+
+PUSH THE CRATE NORTH is live: a shiftable thing rolls through the exit
+with the player, doors respected, the same arrival a walk gets, the
+whole path folding away in games with nothing shiftable. The first cut
+put `push noun direction` into the standard grammar and the size gate
+plus the doctrine test caught what that really meant: a direction slot
+always tables its verb, so the positional matcher (~740 bytes) landed
+in every English game, ASK stopped being the one tabled standard verb,
+and the tabled push stole a game's own "shove" redeclaration out of
+the dictionary. The line was unnecessary all along: `way` binds from
+anywhere in the command and the matcher ignores a known direction word
+in the phrase, so push stays on the flag model and the doctrine holds.
+The lesson mirrors the STAND breach from the other direction: this
+time the gate did its job BEFORE the commit.
+
+PICK UP THE LAMP and PICK THE LAMP UP are the everyday take now, with
+one remap rule keeping them off the boarding path (an up-direction
+with a noun is a take, never an enter; climbing still goes through
+CLIMB and GET ON). German picked up heb/hebe (aufheben), Spanish
+recoger/recoge, both riding their own particle machinery.
+
++12 to +24 per game. VSCode grammar knows shiftable (sources at 1.0.3;
+no vsce on this machine, so the .vsix rebuild is Stefan's or a tooled
+session's).
+
+arcc 1.3.24, Cosmos 1.2.21. Suite 1155.

@@ -485,7 +485,9 @@ direction down      "runter", "hinunter", "hinab", "abwaerts", "abwärts", "unte
 direction in        "rein", "hinein"
 direction out       "hinaus", "heraus"
 
-verb "nimm", "nehmen", "nimmt", "hol", "hole", "schnapp"
+// HEB DIE LAMPE AUF: aufheben ist das deutsche pick up; die Partikel
+// (auf) läuft leer auf nimm hinaus, genau richtig.
+verb "nimm", "nehmen", "nimmt", "hol", "hole", "schnapp", "heb", "hebe"
     take noun
 
 verb "wirf", "fallenlassen", "wegwerfen", "weglegen"
@@ -1305,6 +1307,12 @@ block msg_dropped()
             say "."
             return 0
     say "Fallen gelassen."
+
+block msg_wont_shift()
+    say "${The noun} bewegt sich so nicht vom Fleck."
+
+block msg_shifted()
+    say "Du stemmst dich gegen ${the:acc noun} und schiebst."
 
 block msg_yes()
     say "Ein klares Ja, nur hat niemand gefragt."

@@ -154,6 +154,9 @@ class Layout:
     # objects folds the checks away and dead-code elimination drops the spans
     # blocks, so it pays nothing for the feature.
     has_spans: bool = False
+    # True if any object resolves `shiftable` (or a runtime `now ... is
+    # shiftable` exists): the push-travel path folds on it (any_shiftable).
+    has_shiftable: bool = False
     # The directions ALIVE in this game, in canonical order: those with player
     # words declared (the pack's compass set; nautical when its granule is
     # summoned) or written as an exit on some room. The exits_count /
@@ -333,6 +336,16 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
                 decl = _effective_props(world, world.objects[name]).get("beyond")
                 if decl is not None and _bool_value(decl):
                     layout.has_beyond = True
+                    break
+
+    if "shiftable" in layout.attr_number:
+        if getattr(world, "sets_shiftable", False):
+            layout.has_shiftable = True
+        else:
+            for name in world.objects:
+                decl = _effective_props(world, world.objects[name]).get("shiftable")
+                if decl is not None and _bool_value(decl):
+                    layout.has_shiftable = True
                     break
 
     # The live directions (see the Layout field): worded, or used as an exit.

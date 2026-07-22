@@ -650,6 +650,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `feminine` | Grammatical gender. Drives the Spanish articles and agreement (la lampara, Cogida), the German article (declared there with `die`, which sets this), and the English "her" pronoun on a character. Spanish derives it from a head noun ending in -a or a reliably feminine suffix; declare it where spelling cannot reveal it (la llave; an English Ruth). Masculine is the unmarked default. |
 | `neutral` | The third German gender, declared there with `das` (das Buch, "es"). English and Spanish never read it. |
 | `beyond` | Visible but not touchable: in scope and examinable (a chandelier overhead, a jar one shelf too high), while every touching action refuses ("${The noun} is beyond your reach.", msg_beyond, overridable). Conversation crosses the gap (an animate beyond person still answers ASK), and throwing AT a beyond thing stays legal: the arm reaches where the hand cannot. It is STATE: `now jar is not beyond` when the stool is gained. The refusal can carry the WHY (a field request): `beyond "Without the ladder, the top shelf might as well be the moon."` speaks your line instead of the generic one, and `beyond block` opens a computed body (the desc-block shape) for wording by state; a bare `beyond` keeps the pack's message. The property points BOTH ways: `now player is beyond` puts the PLAYER out of everything's reach instead, the mounted-on-a-horse case. While the player is beyond, only the arm's bubble stays touchable: themself, what they hold, and the thing they are on or in with everything it carries (the mare, her saddlebag, the apple inside); un-nested it collapses to self and held alone (hands bound, tied to a chair). Sight and speech cross the gap exactly as above, and EXIT is never blocked, so dismounting always works. Set it in the after phase, once the boarding has really happened: `on after enter mare / now player is beyond`, and `on after exit mare / now player is not beyond`. The player's refusal can carry its own why, settable at RUNTIME: `change player.beyond_why to "You can't reach that from up here."` speaks your line, `change player.beyond_why to nothing` reverts to the pack default (the slot is allocated automatically for any game that writes it). Static faraway decoration needs no object at all, that is a grain's job (section 14); beyond is for distance that matters to the model. Costs nothing unused. Worked example: [examples/features/beyond.storyarc](../examples/features/beyond.storyarc). |
+| `shiftable` | The thing can be pushed through an exit, the player following (PUSH CRATE NORTH). Section 10. |
 | `pluribus` | Grammatical number: ONE object that is grammatically plural (the scissors, the boots; e pluribus unum, many speaking through one). The articles read it ("some scissors"; German's bare indefinite plural and die/die/den/der by case; Spanish los/las, unos/unas), `${is x}` agrees (is/are, ist/sind, está/están), and the core messages conjugate ("The scissors stay exactly where they are."). NOT the plurals granule, whose group words sweep several distinct singular objects ("take coins"). Costs nothing in a game that never sets it. |
 | `switchable` | Marks a thing the `switch` verb targets, but the effect is the author's: unlike `openable` or `edible`, there is no built-in on/off behavior (the library has no way to know what turning a thing on should do), so give the object `on switch_on` and `on switch_off` handlers. Without them, switching it is refused (`msg_no_switch`). The attribute itself only advertises intent. |
 | `openable` | Can be opened and closed; the `open` / `close` verbs apply. |
@@ -1478,6 +1479,33 @@ translated game (`east puerta`), while the player types the localized word
 code uses (`thing`, `room`, `openable`, the direction properties, the grain
 actions in section 14) are English; only what the player reads and types is
 localized.
+
+### Pushing things between rooms (shiftable)
+
+A thing marked `shiftable` can be pushed through an exit, and the player
+goes with it:
+
+```
+thing barrel in dock
+    name "tar barrel"
+    words barrel, tar
+    shiftable
+```
+
+```
+> push barrel north
+You put your shoulder to the tar barrel and shove it along.
+
+Warehouse
+...
+You can see a tar barrel here.
+```
+
+Doors are respected exactly as walking respects them, an exit that is not
+there refuses the same way, anything unmarked answers that it will not
+shift, and a bare PUSH keeps its flat default. PICK UP arrived in the same
+pass: PICK UP THE LAMP and PICK THE LAMP UP are the everyday take, in all
+three languages (aufheben, recoger).
 
 ### Typed answers, and lighting things
 

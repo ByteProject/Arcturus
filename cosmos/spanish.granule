@@ -626,7 +626,8 @@ direction down      "abajo", "baja", "bajar", "ab"
 direction in        "dentro"
 direction out       "fuera"
 
-verb "coger", "coge", "tomar", "toma", "agarrar", "agarra"
+// RECOGE LA LÁMPARA: recoger es el pick up español.
+verb "coger", "coge", "tomar", "toma", "agarrar", "agarra", "recoger", "recoge"
     take noun
 
 verb "dejar", "deja", "soltar", "suelta"
@@ -1386,6 +1387,12 @@ block msg_dropped()
             say "."
             return 0
     say "Al suelo."
+
+block msg_wont_shift()
+    say "${The noun} no va a moverse por ahí."
+
+block msg_shifted()
+    say "Apoyas el hombro en ${the noun} y empujas."
 
 block msg_yes()
     say "Un sí rotundo, aunque nadie preguntó nada."
