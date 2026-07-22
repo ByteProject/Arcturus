@@ -6154,3 +6154,40 @@ the probe (acme on the orb, VICE xplus4 for verification) waits on
 his verdict and his emulator answer.
 
 arcimg 1.15.0. Suite 1169.
+
+## 2026-07-23: training on the originals; the palette truth
+
+Stefan's verdict on the first P4 renders split them: the hunter's
+lodge genuinely good, the night path not, too much colour in the
+trees, and he pointed at the training data: the original Plus/4 hires
+PRGs from the Rabenstein source (Botticelli layout at $7800,
+luminance, colour, bitmap, cell-interleaved, the top 96 rows the
+band, confirmed by the repo's own sc2daad build script). The renders
+also go to arc_image/preview/ from now on, his call.
+
+Decoding the originals settled two truths at once. First, THE PALETTE
+TABLE WAS WRONG: the preview-grade _TED_HUES had hues pointing the
+wrong way (hue 14 rendered green; his sky is violet). The table now
+follows the documented TED hue order, calibrated by eye against his
+own screenshot, still preview-grade until the wave-3 addendum
+freezes measured values. Second, THE MEASURED RULE: scene 8 is 94%
+achromatic with exactly one colour family (the sky, hues 13/14 at
+lumas 5-7), but the corpus median runs 35-60% achromatic with five
+to nine hues; 8 is the extreme, as Stefan said himself. His reduction
+is scene-dependent judgment, not one threshold.
+
+Tonight's rule search, honestly reported: luminance-weighted chroma
+(a dark violet tree reads black to the artist) fixed the trees but
+not the bright lavender clearing; peak-relative and Otsu splits each
+fix scene 8 and over-grey the colour-rich scenes. No single statistic
+learned his eye, and the next step is the honest one: a per-cell
+calibration harness, every master against its original's measured
+hue map, scoring candidate rules by cell-level agreement with the
+artist. The interim converter ships the corrected palette order, the
+luminance weighting, and the achromatic base with a permissive cell
+rule: the lodge holds, the night path is still too colourful, and
+the harness is the named next step. These P4 reductions later seed
+the Spectrum solver rework, per the lineage ruling, so the training
+pays twice.
+
+arcimg 1.15.0 (interim). Suite 1169.
