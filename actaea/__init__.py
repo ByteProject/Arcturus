@@ -16,7 +16,7 @@ I/O interface, and a tkinter front-end that implements that interface. The
 core never imports tkinter; conformance (CZECH, Praxix) runs through the
 console harness in __main__."""
 
-__version__ = "1.3.3"
+__version__ = "1.3.4"
 
 # The build fingerprint. __version__ names the intended release; __build__ is a
 # short content hash the amalgamator bakes into build/actaea, so two standalones

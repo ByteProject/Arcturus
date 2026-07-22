@@ -888,7 +888,23 @@ class ActaeaApp:
                 self._terminator = code
                 self._line_ready.set(True)
                 return "break"
-            return None  # arrows and the rest keep their editing meaning
+            # The caret never leaves the input line (the field report: arrow
+            # keys walked it up into the transcript). Page keys scroll the
+            # VIEW only; Home means the start of the INPUT; Left stops at
+            # the prompt. Up and Down do nothing until they mean history.
+            if event.keysym in ("Up", "Down"):
+                return "break"
+            if event.keysym in ("Prior", "Next"):
+                self.text.yview_scroll(
+                    -1 if event.keysym == "Prior" else 1, "pages")
+                return "break"
+            if event.keysym == "Home":
+                self.text.mark_set("insert", "input_start")
+                return "break"
+            if event.keysym == "Left" and self.text.compare(
+                    "insert", "<=", "input_start"):
+                return "break"
+            return None  # Right, End and friends keep their meaning
         if self.text.compare("insert", "<", "input_start"):
             self.text.mark_set("insert", "end-1c")
         # Typing pulls the view back to the prompt (the player may have

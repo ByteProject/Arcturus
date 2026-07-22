@@ -80,6 +80,24 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
 
     script = ["look", "quit", "y"]
     band = []
+    caret_checks = []
+
+    def check_caret_discipline():
+        # The caret never leaves the input line (the 2026-07-22 field
+        # report: arrow keys walked it into the transcript). Driven through
+        # the handlers directly, the deterministic route.
+        import types
+        ev = lambda keysym: types.SimpleNamespace(keysym=keysym, char="")
+        caret_checks.append(("up", app._on_key(ev("Up")) == "break"))
+        caret_checks.append(("down", app._on_key(ev("Down")) == "break"))
+        app._on_key(ev("Home"))
+        caret_checks.append(
+            ("home", app.text.compare("insert", "==", "input_start")))
+        caret_checks.append(("left-at-start",
+                             app._on_key(ev("Left")) == "break"))
+        # The compiled game declares the roomier buffers (the 60-character
+        # wall of the same field report): the read hands the GUI 120.
+        caret_checks.append(("buffer", app._max_len == 120))
 
     def pump():
         if app.vm.halted or app._closed:
@@ -88,6 +106,8 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
         if app._reading_line:
             app.root.update_idletasks()
             band.append(app._image_canvas.winfo_reqheight())
+            if not caret_checks:
+                check_caret_discipline()
             if script:
                 app.text.insert("end-1c", script.pop(0))
                 app._on_return(None)
@@ -100,6 +120,7 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
 
     out = app.text.get("1.0", "end")
     assert app.vm.halted, "the story never reached its quit"
+    assert caret_checks and all(ok for _, ok in caret_checks), caret_checks
     assert "Window Probe" in out
     assert "Observation Deck" in out
     assert out.count("Stars wheel past.") >= 2  # the boot look and the typed one
