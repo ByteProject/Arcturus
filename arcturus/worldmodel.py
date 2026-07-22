@@ -295,6 +295,12 @@ def needs_table(verb: Verb) -> bool:
                 if isinstance(it, ast.Slot):
                     break
                 return True  # a literal before any slot
+    # A text slot exists only in the table: the flag model resolves nouns and
+    # has no way to absorb a subject range (consult noun about text).
+    for line in verb.grammar:
+        for it in line.items:
+            if isinstance(it, ast.Slot) and it.kind == "text":
+                return True
     actions = {line.action for line in verb.grammar}
     shapes = {line_shape(line) for line in verb.grammar}
     return len(actions) > 1 and len(shapes) > 1

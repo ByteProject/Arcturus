@@ -701,11 +701,19 @@ verb "xyzzy"
 verb "inventario", "i", "inv"
     inventory
 
-verb "encender", "enciende"
+// ENCIENDE LA ANTORCHA: prender es sinónimo natural de encender.
+verb "encender", "enciende", "prender", "prende"
     switch_on noun
 
 verb "apagar", "apaga"
     switch_off noun
+
+// Respuestas escritas: un juego que pregunta las lee con `on yes` / `on no`.
+verb "sí", "si", "afirmativo"
+    yes
+
+verb "no", "negativo"
+    no
 
 verb "ponerse", "ponte", "vestir", "viste"
     wear noun
@@ -1378,6 +1386,12 @@ block msg_dropped()
             say "."
             return 0
     say "Al suelo."
+
+block msg_yes()
+    say "Un sí rotundo, aunque nadie preguntó nada."
+
+block msg_no()
+    say "Entendido, aunque nada estaba en cuestión."
 
 block msg_not_holding()
     say "No llevas ${the noun}."

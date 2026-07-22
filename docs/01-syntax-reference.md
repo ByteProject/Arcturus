@@ -1479,6 +1479,16 @@ code uses (`thing`, `room`, `openable`, the direction properties, the grain
 actions in section 14) are English; only what the player reads and types is
 localized.
 
+### Typed answers, and lighting things
+
+YES and NO are ordinary in-world actions: a game that asks the player
+something reads the reply with `on yes` / `on no` (a `when` guard scopes
+the question to its moment), and untended they get a flat flavor line.
+They are never meta: answering is speech, and it happens in the story.
+LIGHT is a switch_on synonym (LIGHT THE TORCH, LIGHT THE CANDLE), so
+lamp-game phrasing works everywhere the switch does; the packs carry
+their own words for all of these (ja/nein, sí/no, zünde an, prender).
+
 ### Noun lists
 
 A two-noun command takes a list in its first slot: the second is bound

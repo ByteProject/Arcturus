@@ -14,6 +14,7 @@ import pytest
 from arcturus import assembler as a
 from arcturus import cosmos
 from arcturus.codegen import (
+    gen_topic_helpers,
     StringPool,
     _action_numbers,
     _globals_map,
@@ -66,7 +67,8 @@ def _parse_story():
     entry = a.Routine("__entry__", entry=True)
     entry.op("call_vn", a.RoutineRef("__main__"))
     entry.op("quit")
-    story = build_story(world, entry, [drive] + routines + react + [gen_schedule_tick(world, gmap)], layout=layout, string_pool=pool)
+    story = build_story(world, entry, [drive] + routines + react + [gen_schedule_tick(world, gmap)]
+                       + gen_topic_helpers(layout), layout=layout, string_pool=pool)
     return story, actions
 
 
