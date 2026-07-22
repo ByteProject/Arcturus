@@ -407,6 +407,54 @@ def _resolve_summon(s: ast.Summon, bundled: dict, lib_dirs, story_dir):
     raise ArcError(f"summon: cannot find granule '{rel}'", s.line, filename="<summon>")
 
 
+def _select_families(decls, selection, srcname, line):
+    """The verb selection (the verbs overhaul, phase 4): keep only the named
+    verb FAMILIES of a granule, where a family is one verb declaration and
+    its synonyms, named by its action (`summon.extendedverbs squeeze, burn,
+    search`). What goes: the unselected verb declarations (their words never
+    enter the dictionary, their grammar never compiles, the real byte win)
+    and the free handlers that answered only unselected actions. What stays:
+    everything else; a dropped verb's messages and helpers become
+    unreferenced and DCE sweeps them. Stefan's design (2026-07-22): one
+    canonical verb library that forks carry whole and stories take slices
+    of, not a landscape of bespoke verb granules."""
+    families: set = set()
+    for d in decls:
+        if isinstance(d, ast.VerbDecl):
+            for g in d.grammar:
+                families.add(g.action)
+    if not families:
+        raise ArcError(
+            f"summon: a selection names verb families, and '{srcname}' "
+            f"declares no verbs", line, filename="<summon>",
+        )
+    unknown = [w for w in selection if w not in families]
+    if unknown:
+        raise ArcError(
+            f"summon: '{srcname}' has no verb family '{unknown[0]}' "
+            f"(it offers: {', '.join(sorted(families))})",
+            line, filename="<summon>",
+        )
+    chosen = set(selection)
+    out: list = []
+    for d in decls:
+        if isinstance(d, ast.VerbDecl):
+            if not any(g.action in chosen for g in d.grammar):
+                continue
+        elif isinstance(d, ast.Handler):
+            # A top-level handler in a granule file is a free rule (object
+            # handlers live inside their object's declaration).
+            kept = [e for e in d.events if e in chosen or e not in families]
+            if not kept:
+                continue
+            d.events = kept
+        elif isinstance(d, ast.RequiresDecl):
+            if d.action in families and d.action not in chosen:
+                continue
+        out.append(d)
+    return out
+
+
 def _load_granules(game: ast.Program, lib_dirs, story_dir):
     """Resolve and parse every granule the game summons (transitively, since a
     granule may summon another), each loaded once. Granule blocks are tagged
@@ -430,6 +478,9 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
             abbreviations = extract_abbreviations(src, srcname)
             continue
         prog = parse(src, srcname)
+        if s.selection:
+            prog = ast.Program(
+                _select_families(prog.decls, s.selection, srcname, s.line))
         # A language pack must be selected with summon.language (which replaces
         # english.prelude); a plain summon would leave English baked in, so reject
         # it with a clear pointer rather than build a broken bilingual story.

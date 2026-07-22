@@ -5834,3 +5834,23 @@ Apfel)", Spanish "(primero coges la manzana)"; the pack wordings are
 mine and await Stefan's native pass.
 
 arcc 1.3.19, Cosmos 1.2.18. Suite 1119.
+
+## 2026-07-22: phase 4, verbs by the slice
+
+Summon selection is live, exactly as Stefan drew it: the bare
+summon.extendedverbs keeps meaning everything (no adopter's game
+changes), a selection takes named families only, and the same slice
+works on a fork. A family is one verb and its synonyms, per the
+ruling: search brings "frisk", never dig. The filter runs at load
+(the unselected verbs' words never reach the dictionary, which is the
+byte win DCE alone could never deliver), an unknown name errors with
+the granule's actual offer, and a selection on a verbless granule is
+refused with the reason. Three families of the full set: 1888 bytes
+saved on the spot.
+
+Selection is a loader feature, so Cosmos itself did not change and no
+game that ignores it moved a byte: the suite's size gate stayed green
+through the whole phase, the first phase of the overhaul that cost
+nothing.
+
+arcc 1.3.20, Cosmos 1.2.18 unchanged. Suite 1126.

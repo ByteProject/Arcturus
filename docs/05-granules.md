@@ -81,10 +81,22 @@ is deliberate and unambiguous.
 ### extendedverbs
 
 ```
-summon.extendedverbs
+summon.extendedverbs                         // every verb in the set
+summon.extendedverbs squeeze, burn, search   // exactly these families
+summon extendedverbs.granule squeeze, burn   // the same slice of your fork
 ```
 
-The verbs beyond the always-in standard set. The full verb-to-action table
+The verbs beyond the always-in standard set, taken whole or by the slice.
+A SELECTION names verb families, where a family is one verb declaration
+and its synonyms, named by its action: `search` brings "frisk" along,
+because they are one action with two wordings, and it never brings `dig`
+as a neighbour. You pay only for what you take: an unselected verb's words
+never enter the dictionary, its grammar never compiles, its handlers are
+dropped at load, and its messages sweep out with them. A name the granule
+does not offer is a compile error that lists what it does. The bare form
+keeps meaning all of it, so no existing game changes, and the same
+selection works on a fork, which is the intended shape: one canonical verb
+library that forks carry whole and stories slice. The full verb-to-action table
 with every synonym, and each default line, is the granule source itself
 (cosmos/extendedverbs.granule, the editable template); the roster:
 

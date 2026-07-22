@@ -1864,6 +1864,8 @@ in where the granule is found; the resolution rules and the fork workflow are in
 summon.statusline                        // the bundled feature, always
 summon statusline.granule                // your copy if present, else bundled
 summon "extensions/lockpicking.granule"  // an explicit file
+summon.extendedverbs squeeze, burn       // a granule that declares verbs,
+                                         // sliced to these families (05)
 ```
 
 - The dotted form (`summon.statusline`) always uses the copy that ships inside

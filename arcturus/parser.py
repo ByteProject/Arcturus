@@ -322,13 +322,16 @@ class Parser:
             arg = None
             if self.check(T.STRING):
                 arg = self._plain_text(self.advance())
+            sel = self._parse_selection()
             self.expect_newline()
-            return ast.Summon(feature, form="feature", arg=arg, line=line)
+            return ast.Summon(feature, form="feature", arg=arg, line=line,
+                              selection=sel)
         # summon "x.granule" - the quoted path form (an explicit file).
         if self.check(T.STRING):
             target = self._plain_text(self.advance())
+            sel = self._parse_selection()
             self.expect_newline()
-            return ast.Summon(target, form="path", line=line)
+            return ast.Summon(target, form="path", line=line, selection=sel)
         # summon statusline.granule - the bareword filename form. Reassemble the
         # dotted name (statusline + . + granule) the lexer split into tokens.
         if self.check(T.NAME):
@@ -336,12 +339,32 @@ class Parser:
             while self.check_op("."):
                 self.advance()
                 parts.append(self.expect_name("a granule filename").value)
+            sel = self._parse_selection()
             self.expect_newline()
-            return ast.Summon(".".join(parts), form="name", line=line)
+            return ast.Summon(".".join(parts), form="name", line=line,
+                              selection=sel)
         raise self._error(
             "expected a feature name, a granule filename, or a quoted path after "
             "'summon'"
         )
+
+    def _parse_selection(self) -> list:
+        """The optional verb selection after a summon target: a comma list of
+        family names (`summon.extendedverbs squeeze, burn, search`). A family
+        is named by its action; the loader validates against what the granule
+        actually declares."""
+        sel: list = []
+        while self.check(T.NAME) or self.cur.kind == T.KW:
+            if self.cur.kind == T.KW and not self.check(T.NAME):
+                # A keyword-shaped family name would be exotic; accept plain
+                # names only, and stop at anything else.
+                break
+            sel.append(self.advance().value)
+            if self.check_op(","):
+                self.advance()
+                continue
+            break
+        return sel
 
     # -- object and kind ---------------------------------------------------
 
