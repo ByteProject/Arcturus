@@ -45,7 +45,7 @@ certainly already have.
 | **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.3.27 | [build/arcc](build/arcc) |
 | **Cosmos**, the standard library | 1.2.23 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.3.4 | [build/actaea](build/actaea) |
-| **arcimg**, the arc_image tool (optional, for graphics) | 1.14.1 | [build/arcimg](build/arcimg) |
+| **arcimg**, the arc_image tool (optional, for graphics) | 1.15.0 | [build/arcimg](build/arcimg) |
 
 Each is one self-contained file: download, `chmod +x`, done. Keeping them
 current is one command: `arcc --update` refreshes all three in place (the

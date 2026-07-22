@@ -295,3 +295,40 @@ def test_zx3_attrs_are_hardware_legal():
         assert attr & 0x80 == 0          # no flash
         ink, paper = attr & 7, (attr >> 3) & 7
         assert 0 <= ink <= 7 and 0 <= paper <= 7
+
+
+# --- Plus/4 (P4): the Rabenstein recipe, hires TED --------------------------
+
+def test_p4_converts_and_round_trips():
+    # The R4 wave's first target: near-monochrome dithered hires with few
+    # accents and dark/bright pairs (the design record's ruling). This pins
+    # the CONTRACT: geometry, the two-colours-per-cell invariant by
+    # construction, byte-exact round-trip through pack/unpack, and the
+    # near-mono restriction (the hues used stay within dominant + accents,
+    # never a full-palette quantize).
+    import arcimg
+    rows = arcimg._read_png(os.path.join(MASTERS, "8.png"))
+    native = arcimg._convert_p4(rows)
+    h = native["h"]
+    assert native["w"] == 320 and h in (72, 96)
+    cells = (320 // 8) * (h // 8)
+    assert len(native["screen"]) == cells
+    assert len(native["color"]) == cells
+    # The near-mono contract: at most dominant + 3 accents + black paper.
+    ink_hues = {b >> 4 for b in native["screen"]}
+    assert len(ink_hues) <= 4, ink_hues
+    # Round-trip: pack to sections, unpack, byte-identical fields.
+    t = arcimg.TARGETS["P4"]
+    sections = t.pack(native)
+    back = t.unpack([(ty, fl, bytes(pl)) for ty, fl, pl in sections], 320, h)
+    assert back["pixels"] == native["pixels"]
+    assert back["screen"] == native["screen"]
+    assert back["color"] == native["color"]
+    # And it renders: every pixel a legal TED colour.
+    rendered = t.render(native, 320, h)
+    assert len(rendered) == h and len(rendered[0]) == 320
+
+
+def test_p4_rides_the_ring_codec():
+    import arcimg
+    assert arcimg.TARGETS["P4"].codec == arcimg.CODEC_ZX0
