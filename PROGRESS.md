@@ -6068,3 +6068,28 @@ the minute he compiles. The README now points at Actaea and the repo
 properly. The full cycle is verified again on the rethemed game: path,
 lodge, dark card, lit cellar, dark, lit, home; zero draws without the
 capability bit.
+
+
+## 2026-07-22: room to type, and a caret that stays home
+
+Two field reports from Stefan's own German session, both fixed at the
+source. The input wall was ours, not Actaea's: the compiler allocated a
+60-character text buffer and a 12-word parse buffer, sizes from before
+chained lines and noun lists made long commands ordinary, and his
+three-command German chain died mid-word at exactly 60. The buffers are
+120 characters and 24 words now (their oops and disambiguation shadows
+grown with them, +216 dynamic bytes per game), and the exact chain from
+the screenshot runs whole: oeffne die truhe dann nimm den
+bronzeschluessel dann schliesse die tuer mit dem bronzeschluessel auf,
+95 characters, three actions, one line. The interpreter always honored
+whatever the game declared; the game now declares enough.
+
+The wandering caret WAS Actaea's: the GUI let arrow keys walk the
+insertion point up into the transcript. The caret is disciplined now:
+Up and Down do nothing (until they mean history one day), page keys
+scroll the view without moving the caret, Home means the start of the
+input, Left stops at the prompt. Driven through the handlers in the
+single-root GUI test, alongside an assertion that the compiled game
+hands the read the new 120.
+
+arcc 1.3.26, Actaea 1.3.4, Cosmos unchanged. Suite 1160.

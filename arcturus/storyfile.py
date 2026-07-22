@@ -38,19 +38,24 @@ HEADER_SIZE = 64
 # [max-words, count, (dict-addr, length, position) x max-words].
 GLOBALS_BYTES = 240 * 2
 TEXT_BUFFER_ADDR = HEADER_SIZE + GLOBALS_BYTES  # 544
-TEXT_BUFFER_MAX = 60
+# 120 characters and 24 words: chained lines and noun lists made long
+# commands ordinary, and the field report was a German chain dying at the
+# old 60-character wall mid-word ("nimm den bronzeschluessel dann schliesse
+# die tuer mit dem bronz", 2026-07-22). The interpreter honors whatever the
+# game declares here, so the game must declare enough.
+TEXT_BUFFER_MAX = 120
 TEXT_BUFFER_BYTES = 2 + TEXT_BUFFER_MAX
-PARSE_BUFFER_ADDR = TEXT_BUFFER_ADDR + TEXT_BUFFER_BYTES  # 606
-PARSE_BUFFER_MAX = 12
+PARSE_BUFFER_ADDR = TEXT_BUFFER_ADDR + TEXT_BUFFER_BYTES
+PARSE_BUFFER_MAX = 24
 PARSE_BUFFER_BYTES = 2 + PARSE_BUFFER_MAX * 4
 # A backup of the parse buffer, kept so "oops" can patch the previous command's
 # offending word and re-resolve it without re-reading the line.
-OOPS_PARSE_ADDR = PARSE_BUFFER_ADDR + PARSE_BUFFER_BYTES  # 656
+OOPS_PARSE_ADDR = PARSE_BUFFER_ADDR + PARSE_BUFFER_BYTES
 OOPS_PARSE_BYTES = PARSE_BUFFER_BYTES
 # A backup of the text buffer, kept so the disambiguation ask ("Which do you
 # mean, ...?") can read the player's answer through the one shared text buffer
 # and then weave it back into the saved command (docs/02 section 8).
-ASK_TEXT_ADDR = OOPS_PARSE_ADDR + OOPS_PARSE_BYTES  # 706
+ASK_TEXT_ADDR = OOPS_PARSE_ADDR + OOPS_PARSE_BYTES
 ASK_TEXT_BYTES = TEXT_BUFFER_BYTES
 
 # File-length scale by version: the stored length is the real length divided by
