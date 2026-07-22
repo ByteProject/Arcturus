@@ -6052,3 +6052,9 @@ contract's second safety layer) kept dfrotz clean. Bracketed, rebuilt,
 both streams verified: the full picture cycle with the bit set, zero
 draws without it. The spec's two-layer design just proved itself in
 its first external client, and the header now warns the next reader.
+
+(And one methodology lesson under it: the "still failing" middle run
+was the test harness reusing one loaded story across both VMs, so the
+first run's capability bit rode into the second through shared memory.
+Fresh story per run, both streams clean: the full cycle with the bit,
+zero draws without it. Two real lessons from one gift.)
