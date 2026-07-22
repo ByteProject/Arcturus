@@ -6041,3 +6041,14 @@ quiet point of the whole exercise.
 
 The directory (arc_image/puny/) is gitignored by Stefan's choice: this
 is a gift in a drawer, not yet a public artifact.
+
+Postscript, same evening: the belt-and-braces check earned its keep.
+The text-interpreter verification (zero draws expected with the
+capability bit clear) caught the classic Inform 6 precedence trap in
+the extension's guard: `(0->1) & 2 ~= 0` binds as `& (2 ~= 0)` and
+tests the COLOURS bit, so the guard passed on any colour-capable text
+interpreter and only the Standard's ignore-unknown-EXT rule (the
+contract's second safety layer) kept dfrotz clean. Bracketed, rebuilt,
+both streams verified: the full picture cycle with the bit set, zero
+draws without it. The spec's two-layer design just proved itself in
+its first external client, and the header now warns the next reader.
