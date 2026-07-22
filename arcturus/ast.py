@@ -381,6 +381,11 @@ class Summon:
     form: str = "feature"
     arg: Optional[str] = None  # the optional string argument of a feature
     line: int = 0
+    # The verb selection (the verbs overhaul, phase 4): `summon.extendedverbs
+    # squeeze, burn, search` takes only those verb families (a family is one
+    # verb declaration and its synonyms, named by its action) from a granule
+    # that declares verbs. Empty means everything, the bare form unchanged.
+    selection: list = field(default_factory=list)
 
 
 # Property declaration forms (docs/01 section 6).
