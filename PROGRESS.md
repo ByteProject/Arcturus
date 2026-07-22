@@ -6058,3 +6058,13 @@ was the test harness reusing one loaded story across both VMs, so the
 first run's capability bit rode into the second through shared memory.
 Fresh story per run, both streams clean: the full cycle with the bit,
 zero draws without it. Two real lessons from one gift.)
+
+The drawer got fuller the same evening, per Stefan: the demo is now The
+Puny Demo of Rabenstein, wearing the real art (masters 8, the night
+path; 14, the hunter's lodge; 17, the shelved cellar; and a plain black
+darkness card as 21, his call: darkness gets a card, not a collapse),
+packed as an .arcres by arcimg so Fredrik can see the band in Actaea
+the minute he compiles. The README now points at Actaea and the repo
+properly. The full cycle is verified again on the rethemed game: path,
+lodge, dark card, lit cellar, dark, lit, home; zero draws without the
+capability bit.
