@@ -1,0 +1,72 @@
+// foresight.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// summon.foresight: the game does the obvious preparatory step for you.
+// GIVE APPLE TO STACY with the apple at your feet becomes
+//
+//     (taking the apple first)
+//     You give the apple to Stacy.
+//
+// built on the verb contract (docs/01 section 10a): a `requires noun carried`
+// failure is repaired with an implicit take instead of refused. Off unless
+// summoned, by design and by taste: some authors want no such help, and a
+// game that never summons this pays nothing for it.
+//
+// THE PROBE RULE, the whole point of this granule. The parenthetical is a
+// promise, so it prints only when the promise is certain. take_probe
+// (actions.prelude) is the default take's OWN guard chain, factored so this
+// granule and the take can never drift apart: if the probe refuses, the
+// take's own refusal speaks PLAIN, no promise first.
+//
+//     > give sun to stacy
+//     The sun is beyond your reach.
+//
+// never "(taking the sun first)" followed by disappointment. The one place
+// the promise can still break is an object (or room) with its own take
+// handler: author code's outcome is unknowable without running it, so those
+// objects get promise-then-run, the narrow honest residue. A free-standing
+// `on take` rule is not consulted by the certain path at all; a game that
+// gates ALL taking through free rules should not summon this granule.
+//
+// This granule holds ONLY logic: the parenthetical's wording is the language
+// layer's line_foresight_take, so packs carry their own idiom.
+
+block requires_failed_carried(obj)
+    // Author code in the take's path: the fallback. Promise, then run the
+    // real pipeline; the handler's own prose (an allowed take's flavor, a
+    // refusal's reason) lands between the promise and the outcome, which is
+    // exactly where it belongs.
+    let risky = 0
+    if handler_of(obj) is not nothing
+        change risky to 1
+    if handler_of(here) is not nothing
+        change risky to 1
+    if risky is 1
+        line_foresight_take
+        par
+        let ok = perform("take", obj)
+        if ok is 0
+            change refused to 1
+            return 1
+        if parent_of(obj) is not player
+            // The handler consumed the take without moving anything: the
+            // contract still fails, honestly.
+            change refused to 1
+            msg_not_holding
+            return 1
+        return 0
+    // No author code anywhere near: the probe decides, and its word is
+    // final in both directions.
+    let why = take_probe(obj)
+    if why is not 0
+        speak_take_refusal(obj, why)
+        return 1
+    // The promise we can keep: say it, then do exactly what the default
+    // take's success path does (gain: the score, moved, seen bookkeeping),
+    // silently. The player asked for the give; "Got it." is not an answer.
+    line_foresight_take
+    par
+    gain(obj)
+    return 0

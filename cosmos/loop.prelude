@@ -319,9 +319,12 @@ block check_requires(act)
         if r - h - h is 1
             if noun is not nothing
                 if parent_of(noun) is not player
-                    change refused to 1
-                    msg_not_holding
-                    return 1
+                    // The repair seam: the default refuses; summon.foresight
+                    // overrides this block to try the implicit take first
+                    // ("(taking the pebble first)"), probe-guarded so it
+                    // never promises what the take cannot deliver.
+                    if requires_failed_carried(noun) is 1
+                        return 1
     change r to h
     change h to r / 2
     if req_noun_animate is 1
@@ -350,6 +353,17 @@ block check_requires(act)
                     msg_only_animate
                     return 1
     return 0
+
+// The carried-requirement failure, the foresight seam: the default refuses
+// with the library line. summon.foresight redefines this block with the
+// repair (docs/05): probe first, promise only what the default take will
+// certainly do, fall back to promise-then-run only where author code makes
+// the outcome unknowable. Returns 1 refused (message spoken), 0 repaired
+// (the object is now carried and the turn goes on).
+block requires_failed_carried(obj)
+    change refused to 1
+    msg_not_holding
+    return 1
 
 // Carry out one understood command. Undo is handled here, not through dispatch:
 // every other command first takes an undo checkpoint (save_undo), so that a later

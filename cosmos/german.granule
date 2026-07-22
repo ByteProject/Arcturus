@@ -1303,6 +1303,9 @@ block msg_not_holding()
 block msg_not_holding_second()
     say "Du hast ${the:acc second} nicht bei dir."
 
+block line_foresight_take()
+    say "(nimmst zuerst ${the:acc noun})"
+
 block msg_done()
     say "Erledigt."
 
