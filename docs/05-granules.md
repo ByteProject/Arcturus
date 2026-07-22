@@ -132,7 +132,10 @@ with every synonym, and each default line, is the granule source itself
   or neither. No match: "has nothing to say on the matter"; no subject:
   "Consult it about what?"; both granule-owned messages, reskinnable.
 - BODY AND IDLE: `dig`, `wave`, `sleep`, `swim`, `swing`, `think`,
-  `pray`, `shout`. (`sit`/`rest` and `stand` are STANDARD verbs riding
+  `pray`, `shout`. And `swear`, the oldest Easter egg in the medium: a
+  player who curses gets a dry line back instead of "unknown word"
+  (reskin msg_swear for your own tone; select it or leave it out like
+  any family). (`sit`/`rest` and `stand` are STANDARD verbs riding
   enter and exit: SIT ON THE CHAIR boards it, STAND or STAND UP leaves
   it, STAND ON THE STOOL boards too, in every game, no summon needed.)
 

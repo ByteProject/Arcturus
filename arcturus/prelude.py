@@ -358,6 +358,12 @@ _BUILTINS = {
     # The second is bound once; each item then runs as a full turn.
     "list_pos": T_NUMBER,
     "list_end": T_NUMBER,
+    # Score notification (the NOTIFY verb; docs/01): off by default, the
+    # author flips it in `on start` (change notify to true) and the player
+    # verb toggles it; the whole feature compiles only when the game writes
+    # this global somewhere. last_score is the turn loop's comparison point.
+    "notify": T_NUMBER,
+    "last_score": T_NUMBER,
     # The ambience table base (summon.ambience), library-internal.
     "__ambience__": T_NUMBER,
     # Set for the opening room description when a status bar already names

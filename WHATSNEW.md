@@ -6,6 +6,15 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **The session verbs, and a wink.** VERSION prints the banner mid-game,
+  the bug-report command, always in. NOTIFY brings the classic
+  "[Your score has just gone up by 5.]" bracket line: off by default, the
+  author enables it in `on start`, the player toggles it, and the two are
+  coupled, enabling the feature anywhere brings the verb along, while a
+  game that never touches it has no lines, no verb, and not even the
+  dictionary word. And the oldest Easter egg in the medium finally
+  answers: a player who curses gets a dry line back, selectable as the
+  `swear` family.
 - **Push the crate north.** A thing marked `shiftable` (Stefan's word)
   rolls through the exit with you: doors respected, the same arrival a
   walk gets, and the crate is there when the room is described. Anything
@@ -37,19 +46,6 @@ lives in the commit log. The feature roadmap follows below.
   every Inform player knows. Off unless summoned, because implicit
   actions are a matter of taste; the whole exchange is one UNDO; and each
   language pack speaks its own parenthetical.
-- **Verbs got a contract.** A verb now states what it requires of its
-  operands, `requires noun carried`, `requires second animate`, and the
-  library enforces it before any handler runs. The field report behind it
-  was an `on give,show` override that answered for gibberish and for gifts
-  the player did not hold, because overriding the response used to mean
-  accidentally overriding the validation too. No longer: GIVE and SHOW
-  declare a carried gift and an animate recipient, your handler fires only
-  on turns that make sense, and your code does not change. Requirements
-  live on the action, so German and Spanish games inherit them without a
-  word, and requirement kinds no verb in the game uses are not
-  even compiled. This is the
-  foundation the coming foresight granule repairs failures on, "(taking
-  the pebble first)", instead of refusing.
 
 ## Feature roadmap
 
@@ -75,9 +71,10 @@ way, designed on its own terms, pay-for-use as always.
 - **The verbs overhaul** (underway; the `text` grammar slot, the verb
   contract, foresight, verbs by the slice, enhance/redefine, noun lists
   in two-noun actions, CONSULT ABOUT, typed YES/NO, and LIGHT have
-  landed, and shiftable now pushes things between rooms; doors and
-  containers join foresight's repairs when travel meets them). Still
-  open: the last word-roster rulings (notify, version, profanity).
+  landed, shiftable pushes things between rooms, and the session verbs
+  (VERSION, the coupled NOTIFY, the swear family) closed the roster;
+  doors and containers join foresight's repairs when travel meets
+  them). The overhaul's phases are complete.
 - **Question preservation.** A disambiguation question survives an
   interposed command: asked "which coin?", the player may take inventory
   first and then answer. In the same breath: likelihood hints, letting a

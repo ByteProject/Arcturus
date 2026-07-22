@@ -634,6 +634,16 @@ block fire_turn()
     run_free(ev_each_turn)
     par
     tick_timers
+    // Score notification (the coupled NOTIFY rule): when the author enabled
+    // it and the score moved this turn, say so in the classic bracket line.
+    // One compare per turn, and the whole watch folds away in a game that
+    // never writes `notify`.
+    if any_notify is 1
+        if notify is not 0
+            if score is not last_score
+                par
+                msg_notify_line(score - last_score)
+        change last_score to score
     // The picture follows the scene LIVE: a turn that changed the room's
     // arc_image (the door swings open, the drawbridge falls) or its light
     // repaints the band now, not on the next LOOK, because a picture lagging
