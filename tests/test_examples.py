@@ -53,8 +53,10 @@ def objects(prog):
 
 def test_brass_lantern_parses_cleanly():
     prog = load("brass-lantern.storyarc")
-    # game, on start, 2 rooms, 4 things, 1 verb = 9 declarations.
-    assert len(prog.decls) == 9
+    # game, on start, 2 rooms, 4 things = 8 declarations (the pull verb the
+    # example once declared joined the standard set and the relic was removed
+    # when `redefine`/`enhance` made stated intent the norm, 2026-07-22).
+    assert len(prog.decls) == 8
     assert isinstance(prog.decls[0], ast.GameBlock)
 
     objs = objects(prog)
@@ -86,8 +88,9 @@ def test_brass_lantern_parses_cleanly():
 
 def test_cloak_of_darkness_parses_cleanly():
     prog = load("cloak-of-darkness.storyarc")
-    # game, summon.statusline, global, on start, 4 rooms, 3 things, 2 verbs = 12.
-    assert len(prog.decls) == 12
+    # game, summon.statusline, global, on start, 4 rooms, 3 things, 1 verb =
+    # 11 (the read relic went when the standard set took read over).
+    assert len(prog.decls) == 11
     assert any(isinstance(d, ast.GlobalDecl) and d.name == "disturbed" for d in prog.decls)
 
     objs = objects(prog)

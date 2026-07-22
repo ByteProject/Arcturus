@@ -78,7 +78,9 @@ thing doctor of character in parlor
     name "doctor"
     words doctor
 
-verb "read"
+// READ means something else in this game (the standard read is an examine);
+// `redefine verb` replaces the family whole and says so.
+redefine verb "read"
     read_it noun
 
 on read_it

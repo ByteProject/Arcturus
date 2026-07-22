@@ -81,12 +81,11 @@ on dig
     say "You sink ${the second} into the sand and turn over a neat, dark
          spadeful. Very satisfying."
 
-// Wording that picks the action: the same LOOK the player already knows, with
-// two lines whose leading word routes to two new actions.
-verb "look", "l"
-    look
-    look noun
-    look at noun
+// Wording that picks the action: the same LOOK the player already knows,
+// grown two lines whose leading word routes to two new actions. `enhance
+// verb` says exactly that: the standard family keeps everything it had
+// (LOOK, LOOK <noun>, LOOK AT), and these lines join it.
+enhance verb "look"
     look_under under noun
     look_behind behind noun
 

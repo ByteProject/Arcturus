@@ -202,6 +202,18 @@ class Analyzer:
             self.world.requirements.get(action, 0) | bit
         )
 
+    def _find_verb(self, word: str, line: int, what: str):
+        """The existing verb owning this word, latest declaration first (the
+        most specific one is the one an author means to touch)."""
+        for verb in reversed(self.world.verbs):
+            if word in verb.words:
+                return verb
+        raise self._error(
+            f'{what} verb: no verb "{word}" exists yet; declare it with '
+            f"`verb` first",
+            line,
+        )
+
     def _first_dark_room(self):
         """The first room whose `lit` resolves false at compile time: its own
         override, or the nearest kind in its chain that says `lit false` (the
@@ -523,7 +535,53 @@ class Analyzer:
                         decl.checked, decl.line)
             elif isinstance(decl, ast.VerbDecl):
                 grammar = [wm.GrammarLine(g.action, g.items, g.reverse) for g in decl.grammar]
-                w.verbs.append(wm.Verb(decl.words, grammar, decl.line))
+                if decl.mode == "enhance":
+                    # `enhance verb "take", "snatch"`: append to the existing
+                    # verb, new grammar lines and new synonym words alike; the
+                    # anchor is the first word, which must already be a verb.
+                    target = self._find_verb(decl.words[0], decl.line, "enhance")
+                    for word in decl.words:
+                        if word not in target.words:
+                            target.words.append(word)
+                    target.grammar.extend(grammar)
+                    bind_to = {g.action for g in target.grammar}
+                elif decl.mode == "redefine":
+                    # `redefine verb "give"`: replace the existing verb WHOLE,
+                    # words included, and say so out loud. The old synonyms go
+                    # with it (the silent per-word shadowing this replaces
+                    # left them pointing at the old grammar). The action's
+                    # requirements are contract, not wording, and stand until
+                    # a requires line changes them.
+                    if not grammar:
+                        raise self._error(
+                            "redefine verb replaces the grammar, so it needs "
+                            "grammar lines (enhance verb adds without them)",
+                            decl.line,
+                        )
+                    target = self._find_verb(decl.words[0], decl.line, "redefine")
+                    target.words = list(decl.words)
+                    target.grammar = grammar
+                    bind_to = {g.action for g in grammar}
+                else:
+                    # A plain redeclaration of an existing verb word shadows
+                    # word by word, silently and confusingly (the old verb's
+                    # OTHER synonyms keep their old meaning). Say so, and name
+                    # the forms that state intent.
+                    owner = None
+                    for existing in w.verbs:
+                        if any(word in existing.words for word in decl.words):
+                            owner = existing
+                            break
+                    if owner is not None:
+                        print(
+                            f"arcc: note: verb \"{decl.words[0]}\" already "
+                            f"exists; this declaration shadows it word by "
+                            f"word. `redefine verb` replaces it whole and "
+                            f"says so; `enhance verb` adds to it.",
+                            file=sys.stderr,
+                        )
+                    w.verbs.append(wm.Verb(decl.words, grammar, decl.line))
+                    bind_to = {g.action for g in decl.grammar}
                 # `verb ... meta`: its actions join the out-of-world band
                 # (dispatched past every object handler, `on other` included).
                 if decl.meta:
@@ -532,7 +590,7 @@ class Analyzer:
                 # In-body `requires noun carried` binds to this verb's own
                 # actions (the sugar form; the top-level form names one).
                 for r in decl.requirements:
-                    for act in {g.action for g in decl.grammar}:
+                    for act in bind_to:
                         self._add_requirement(act, r)
             elif isinstance(decl, ast.RequiresDecl):
                 self._add_requirement(decl.action, decl)

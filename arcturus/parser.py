@@ -187,6 +187,10 @@ class Parser:
             return self.parse_direction()
         if t.kind == T.NAME and t.value == "requires":
             return self.parse_requires()
+        if t.kind == T.NAME and t.value in ("enhance", "redefine") \
+                and self._at(1).is_kw("verb"):
+            mode = self.advance().value  # the leading enhance/redefine
+            return self.parse_verb(mode=mode)
         if t.kind == T.NAME and t.value == "particle":
             return self.parse_particle()
         if t.kind == T.NAME and t.value == "pronoun":
@@ -760,7 +764,7 @@ class Parser:
 
     # -- verbs -------------------------------------------------------------
 
-    def parse_verb(self) -> ast.VerbDecl:
+    def parse_verb(self, mode: str = "declare") -> ast.VerbDecl:
         line = self.cur.line
         self.expect_kw("verb")
         words = [self._plain_text(self.expect(T.STRING, "a verb word"))]
@@ -776,6 +780,10 @@ class Parser:
             self.advance()
             meta = True
         self.expect_newline()
+        # `enhance verb "take", "snatch"` may carry no body at all (synonyms
+        # alone); a declaring verb always states its grammar.
+        if mode != "declare" and not self.check(T.INDENT):
+            return ast.VerbDecl(words, [], line, meta, [], mode)
         self.expect(T.INDENT, "an indented grammar body")
         grammar: list[ast.GrammarLine] = []
         requirements: list[ast.RequiresDecl] = []
@@ -794,7 +802,11 @@ class Parser:
                 continue
             grammar.extend(self._parse_grammar_line())
         self.expect(T.DEDENT)
-        return ast.VerbDecl(words, grammar, line, meta, requirements)
+        if mode != "declare" and meta:
+            raise self._error(
+                "meta rides the declaring verb; enhance and redefine leave "
+                "a verb's meta standing as declared")
+        return ast.VerbDecl(words, grammar, line, meta, requirements, mode)
 
     def parse_requires(self, action=None) -> ast.RequiresDecl:
         # The declarative verb contract (the verbs overhaul, phase 2).

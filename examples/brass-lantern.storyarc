@@ -104,5 +104,3 @@ thing ruby in cellar
         finish "*** You carry the blood ruby home in ${turns} turns ***"
 
 
-verb "pull", "yank"
-    pull noun

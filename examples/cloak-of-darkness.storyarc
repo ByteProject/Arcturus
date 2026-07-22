@@ -129,8 +129,5 @@ thing message in bar
             death "*** You have lost ***"
         stop
 
-verb "read"
-    examine noun
-
 verb "hang"
     put noun on noun

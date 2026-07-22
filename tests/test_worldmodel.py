@@ -45,8 +45,9 @@ def test_brass_lantern_ir():
     # The direction is wired as a property value on the room.
     assert "north" in w.objects["hallway"].props
 
-    # The added verb maps to the pull action.
-    assert any("pull" == g.action for v in w.verbs for g in v.grammar)
+    # The example declares no verbs of its own anymore: pull is standard,
+    # and the relic declaration was removed (2026-07-22).
+    assert not any("pull" == g.action for v in w.verbs for g in v.grammar)
 
     # Every is-test in the game is a boolean property test.
     assert set(w.is_resolutions.values()) == {wm.IS_PROPERTY}
@@ -77,9 +78,10 @@ def test_cloak_of_darkness_ir():
     assert any("go" in h.events for h in foyer.handlers)
     assert not foyer.grains
 
-    # read -> examine and hang -> put are bound as verb actions.
+    # hang -> put is bound as a verb action (read is the standard set's now;
+    # the example's relic went when redefine/enhance landed, 2026-07-22).
     actions = {g.action for v in w.verbs for g in v.grammar}
-    assert {"examine", "put"} <= actions
+    assert "put" in actions
 
     # The bar light tests resolve as boolean property tests; the dark-go
     # handler's `way is not north` is a plain equality.

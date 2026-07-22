@@ -5854,3 +5854,32 @@ through the whole phase, the first phase of the overhaul that cost
 nothing.
 
 arcc 1.3.20, Cosmos 1.2.18 unchanged. Suite 1126.
+
+## 2026-07-22: phase 5, grammar surgery said out loud
+
+enhance verb and redefine verb are live, Stefan's spellings. Enhance
+appends lines and synonyms to an existing family (a body is optional
+when only synonyms join); redefine replaces the family whole, and a
+synonym the redefinition does not restate leaves the dictionary, which
+the old way never managed: a plain redeclaration shadows word by word
+and quietly leaves the family's OTHER synonyms on the old grammar
+("give" redeclared, "feed" still meaning the old thing). That trap is
+now a compile note naming both honest forms; the plain form still
+works, unchanged, for the code that exists.
+
+The action's contract survives a redefine on purpose: requires lives on
+the action and is wording-independent, so replacing GIVE's grammar does
+not shed the carried/animate rules, pinned by test.
+
+Converting the shipped examples turned up their own history: brass
+lantern's pull and cloak's read were declared before those verbs joined
+the standard set, and had been silently shadowing identical standard
+declarations ever since. The relics were deleted; the grammar showcase
+now teaches `enhance verb "look"` (its look_under/look_behind lines
+join the standard LOOK instead of restating it), direction-grammar
+enhances push (press survives now, where the shadow had orphaned it),
+catalogs redefines read, and the matrix example redefines the whole
+inventory family onto its journal so I, INV, and INVENTORY finally
+agree with each other.
+
+arcc 1.3.21, Cosmos unchanged. Suite 1134.

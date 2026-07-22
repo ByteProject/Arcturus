@@ -64,9 +64,10 @@ on swim
     perform("go", way)
 
 // PUSH LOG <direction>: the direction word bounds the noun phrase, so the
-// noun is the log and `way` is where it should go.
-verb "push", "shove", "roll"
-    push noun
+// noun is the log and `way` is where it should go. `enhance verb` grows the
+// STANDARD push family: press and shove ride along unchanged, roll joins as
+// a synonym, and the direction line is new.
+enhance verb "push", "roll"
     push noun direction
 
 on push
