@@ -2184,8 +2184,155 @@ def _convert_trsm4(rows, salient=None):
     return {"w": 640, "h": h, "pixels": pixels}
 
 
+
+def _convert_p4(rows, salient=None):
+    # Hires TED by THE RABENSTEIN RECIPE (Stefan's ruling, the R3 wave of the
+    # design record): near-monochrome dithered FORM, one dominant ink per
+    # region, FEW deliberate colour accents (a sky zone, a moon), and
+    # dark/bright pairs of one colour per cell. Hires on purpose: the
+    # 121-colour luma ladder is the Plus/4's own voice, and 320-wide pixel
+    # density is what lets a restrained palette carry detail; a full-palette
+    # quantize is exactly what this look forbids. The Spectrum solver rework
+    # inherits this philosophy (the historical Spectrum Rabenstein art was
+    # traced from the Plus/4 versions).
+    h, w = len(rows), len(rows[0])
+
+    # Per-pixel luminance and TED-hue classification (the inverse of
+    # _ted_color's chroma model: v rides red, u rides blue).
+    lum = [[0.299 * r + 0.587 * g + 0.114 * b for (r, g, b) in row]
+           for row in rows]
+    hue_of = [[0] * w for _ in range(h)]
+    sat_of = [[0.0] * w for _ in range(h)]
+    hues = list(_TED_HUES.items())
+    for y in range(h):
+        for x in range(w):
+            r, g, b = rows[y][x]
+            yy = lum[y][x]
+            v = (r - yy) / 90.0
+            u = (b - yy) / 110.0
+            sat = (u * u + v * v) ** 0.5
+            sat_of[y][x] = sat
+            if sat < 0.10:
+                hue_of[y][x] = 1  # the grey ladder
+                continue
+            best, bd = 1, 1e9
+            for hcode, (hu, hv) in hues:
+                if hcode == 1:
+                    continue
+                d = (u - hu) ** 2 + (v - hv) ** 2
+                if d < bd:
+                    best, bd = hcode, d
+            hue_of[y][x] = best
+
+    # The dominant hue and the few accents: a saturation-weighted vote.
+    votes: dict = {}
+    total = 0.0
+    for y in range(h):
+        for x in range(w):
+            if hue_of[y][x] != 1:
+                votes[hue_of[y][x]] = votes.get(hue_of[y][x], 0.0) + sat_of[y][x]
+                total += sat_of[y][x]
+    if votes and total > 0:
+        dom = max(votes, key=votes.get)
+        accents = [hc for hc, m in sorted(votes.items(), key=lambda kv: -kv[1])
+                   if hc != dom and m / total >= 0.08][:3]
+    else:
+        dom, accents = 1, []
+    allowed = [dom] + accents
+
+    forced = set()
+    force_cells: dict = {}
+    if salient:
+        for x, y in salient:
+            forced.add((x, y))
+            k = (x // 8, y // 8)
+            force_cells[k] = force_cells.get(k, 0) + 1
+
+    ladder = _TED_LUMA
+    cells_x, cells_y = w // 8, h // 8
+    # Pass one: each cell's hue vote (the strongest ALLOWED hue by saturated
+    # mass, the restriction that makes the form near-monochrome) and how
+    # committed the vote is.
+    cell_hue = [[dom] * cells_x for _ in range(cells_y)]
+    cell_mass = [[0.0] * cells_x for _ in range(cells_y)]
+    for cy in range(cells_y):
+        for cx in range(cells_x):
+            mass: dict = {}
+            for yy in range(8):
+                for xx in range(8):
+                    px, py = cx * 8 + xx, cy * 8 + yy
+                    hc = hue_of[py][px]
+                    if hc in allowed and hc != 1:
+                        mass[hc] = mass.get(hc, 0.0) + sat_of[py][px]
+            if mass:
+                hue = max(mass, key=mass.get)
+                cell_hue[cy][cx] = hue
+                cell_mass[cy][cx] = mass[hue]
+    # Pass two, cohesion: a weakly-committed cell adopts its neighbourhood's
+    # majority, which is what turns hue flicker into REGIONS (one dominant
+    # ink per region, the ruling's own words). Strong votes stand: a moon
+    # keeps its accent even surrounded by sky.
+    smoothed = [row[:] for row in cell_hue]
+    for cy in range(cells_y):
+        for cx in range(cells_x):
+            votes: dict = {}
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    ny, nx = cy + dy, cx + dx
+                    if 0 <= ny < cells_y and 0 <= nx < cells_x:
+                        votes[cell_hue[ny][nx]] = votes.get(cell_hue[ny][nx], 0) + 1
+            top = max(votes, key=votes.get)
+            if top != cell_hue[cy][cx] and votes[top] >= 5 \
+                    and cell_mass[cy][cx] < 2.0:
+                smoothed[cy][cx] = top
+    cell_hue = smoothed
+
+    pixels = [[0] * w for _ in range(h)]
+    screen = []
+    color = []
+    for cy in range(cells_y):
+        for cx in range(cells_x):
+            lums = []
+            for yy in range(8):
+                for xx in range(8):
+                    px, py = cx * 8 + xx, cy * 8 + yy
+                    lums.append(lum[py][px])
+            hue = cell_hue[cy][cx]
+            # The dark/bright pair: the cell's tonal spread quantized to the
+            # ladder. A very dark floor drops to TED black (hue 0 paper), the
+            # night look the lineage is built on.
+            lums.sort()
+            lo = lums[len(lums) // 10]
+            hi = lums[(len(lums) * 9) // 10]
+            paper = min(range(8), key=lambda i: abs(ladder[i] - lo))
+            ink = min(range(8), key=lambda i: abs(ladder[i] - hi))
+            if ink <= paper:
+                ink = min(7, paper + 1)
+            paper_hue = hue
+            if lo < ladder[0] * 0.75:
+                paper_hue = 0  # true black under the dither
+            if force_cells.get((cx, cy), 0) >= 2:
+                ink = 7  # the disc stays bright, the R3 ruling's manner
+            ink_y = ladder[ink]
+            paper_y = ladder[paper] if paper_hue != 0 else 0.0
+            span = max(1.0, ink_y - paper_y)
+            for yy in range(8):
+                for xx in range(8):
+                    px, py = cx * 8 + xx, cy * 8 + yy
+                    if (px, py) in forced:
+                        pixels[py][px] = 1
+                        continue
+                    t = (lum[py][px] - paper_y) / span
+                    pixels[py][px] = 1 if t > (_BAYER8[py & 7][px & 7] + 0.5) / 64.0 else 0
+            screen.append((hue << 4) | paper_hue)
+            color.append((ink << 4) | paper)
+    return {"w": w, "h": h, "pixels": pixels, "screen": screen,
+            "color": color, "regs": [0]}
+
+
 _CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,
                "C64": _convert_c64, "ZX3": _convert_zx3, "CPC": _convert_cpc,
+               "P4": _convert_p4,
                "A8": _convert_a8, "TRSM4": _convert_trsm4}
 
 

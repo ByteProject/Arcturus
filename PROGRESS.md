@@ -6125,3 +6125,32 @@ The seams cost every game 44 to 68 bytes (two small refusal blocks
 and open_probe); the repairs cost only summoners. Suite 1167.
 
 arcc 1.3.27, Cosmos 1.2.23.
+
+## 2026-07-23: the probes resume; the Plus/4 converter
+
+R4 begins where the checkpoint left it. The P4 target's pack, unpack,
+render, and pattern had been sitting ready since the wave was ruled;
+what was missing was the conversion intelligence, which is the
+milestone. _convert_p4 implements the Rabenstein recipe as ruled:
+hires TED, near-monochrome dithered form built from a per-pixel
+TED-hue classification and a saturation-weighted vote (one dominant
+hue, at most three accents past it, the sky-and-moon allowance), a
+dark/bright luma pair per cell quantized onto the TED ladder with a
+true-black paper drop for night floors, ordered dither between the
+pair, and a cohesion pass that lets weakly-committed cells adopt
+their neighbourhood's hue, turning flicker into regions ("one
+dominant ink per region", the ruling's own words). The salient disc
+stays bright, the R3 manner.
+
+Whole corpus converts (21 of 21); the contract tests pin geometry,
+the two-colours-per-cell invariant, the near-mono hue cap, and a
+byte-exact pack/unpack round-trip; P4 rides ZX0 with the ring
+guarantee like the rest of the 8-bit family. The night-lineage
+renders (masters 8, 14, 17) carry the look; the daylight stress
+master stays patchier, and per the predefined-over-choice ruling that
+is the recipe working, not failing: the look IS the night lineage.
+The renders now go to Stefan, whose eyes are the done-test for art;
+the probe (acme on the orb, VICE xplus4 for verification) waits on
+his verdict and his emulator answer.
+
+arcimg 1.15.0. Suite 1169.
