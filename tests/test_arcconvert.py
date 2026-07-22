@@ -314,9 +314,12 @@ def test_p4_converts_and_round_trips():
     cells = (320 // 8) * (h // 8)
     assert len(native["screen"]) == cells
     assert len(native["color"]) == cells
-    # The near-mono contract: at most dominant + 3 accents + black paper.
+    # The reduction contract, recalibrated against the Rabenstein originals
+    # (the R4 training set): the grey ladder plus at most six accent hues,
+    # never a full-palette quantize (the corpus median scene uses five to
+    # nine hues; scene 8, the extreme, uses two).
     ink_hues = {b >> 4 for b in native["screen"]}
-    assert len(ink_hues) <= 4, ink_hues
+    assert len(ink_hues - {0, 1}) <= 6, ink_hues
     # Round-trip: pack to sections, unpack, byte-identical fields.
     t = arcimg.TARGETS["P4"]
     sections = t.pack(native)

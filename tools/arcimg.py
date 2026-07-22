@@ -989,12 +989,18 @@ _TMS9918 = [
 # Plus/4 (TED): 16 hues x 8 luma. A serviceable approximation for previews;
 # the wave-3 addendum freezes measured values (YAPE/plus4emu tables).
 _TED_LUMA = [22, 40, 53, 66, 90, 122, 168, 226]
-_TED_HUES = {  # hue -> (u, v) chroma direction, roughly; 0 is grey
-    1: (0.0, 0.0), 2: (0.28, 0.35), 3: (-0.28, -0.35), 4: (0.36, -0.22),
-    5: (-0.36, 0.22), 6: (-0.12, 0.44), 7: (0.12, -0.44), 8: (0.42, 0.12),
-    9: (0.38, -0.05), 10: (0.20, -0.40), 11: (-0.42, 0.10),
-    12: (-0.30, 0.35), 13: (0.05, 0.45), 14: (-0.44, -0.10),
-    15: (-0.20, 0.42),
+_TED_HUES = {  # hue -> (u, v) chroma direction in the DOCUMENTED TED hue
+    # order (0 black, 1 grey, 2 red, 3 cyan, 4 purple, 5 green, 6 blue,
+    # 7 yellow, 8 orange, 9 brown, 10 yellow-green, 11 pink, 12 blue-green,
+    # 13 light blue, 14 dark blue, 15 light green). The first table had
+    # several hues pointing the wrong way (hue 14 rendered GREEN; the
+    # Rabenstein originals proved it violet, the R4 calibration). Still
+    # preview-grade until the wave-3 addendum freezes measured values.
+    1: (0.0, 0.0), 2: (-0.10, 0.36), 3: (0.18, -0.30), 4: (0.34, 0.26),
+    5: (-0.28, -0.28), 6: (0.42, -0.08), 7: (-0.34, 0.10),
+    8: (-0.20, 0.32), 9: (-0.24, 0.20), 10: (-0.34, -0.10),
+    11: (0.10, 0.34), 12: (0.06, -0.34), 13: (0.30, -0.18),
+    14: (0.44, 0.06), 15: (-0.26, -0.22),
 }
 
 def _ted_color(hue: int, luma: int):
@@ -2211,7 +2217,12 @@ def _convert_p4(rows, salient=None):
             v = (r - yy) / 90.0
             u = (b - yy) / 110.0
             sat = (u * u + v * v) ** 0.5
-            sat_of[y][x] = sat
+            # Chroma WEIGHT is saturation at brightness: a dark violet tree
+            # reads as black to the artist's eye (the 8.prg calibration:
+            # his sky, bright and saturated, is the only colour in a scene
+            # whose darks all carry a tint). This one weighting is what
+            # makes scene reduction follow the artist across the corpus.
+            sat_of[y][x] = sat * (yy / 255.0)
             if sat < 0.10:
                 hue_of[y][x] = 1  # the grey ladder
                 continue
@@ -2224,7 +2235,11 @@ def _convert_p4(rows, salient=None):
                     best, bd = hcode, d
             hue_of[y][x] = best
 
-    # The dominant hue and the few accents: a saturation-weighted vote.
+    # The accents: a saturation-weighted vote, and NOTHING is dominant. The
+    # measured truth of the originals (8.prg: 94% of the band achromatic,
+    # colour only in the sky zone and the moon) rules the base ACHROMATIC:
+    # black and the grey ladder carry the form, and at most a few hues are
+    # allowed in at all, where the master is genuinely saturated.
     votes: dict = {}
     total = 0.0
     for y in range(h):
@@ -2232,13 +2247,12 @@ def _convert_p4(rows, salient=None):
             if hue_of[y][x] != 1:
                 votes[hue_of[y][x]] = votes.get(hue_of[y][x], 0.0) + sat_of[y][x]
                 total += sat_of[y][x]
+    accents = []
     if votes and total > 0:
-        dom = max(votes, key=votes.get)
         accents = [hc for hc, m in sorted(votes.items(), key=lambda kv: -kv[1])
-                   if hc != dom and m / total >= 0.08][:3]
-    else:
-        dom, accents = 1, []
-    allowed = [dom] + accents
+                   if m / total >= 0.05][:6]
+    dom = 1
+    allowed = accents
 
     forced = set()
     force_cells: dict = {}
@@ -2266,8 +2280,12 @@ def _convert_p4(rows, salient=None):
                         mass[hc] = mass.get(hc, 0.0) + sat_of[py][px]
             if mass:
                 hue = max(mass, key=mass.get)
-                cell_hue[cy][cx] = hue
-                cell_mass[cy][cx] = mass[hue]
+                # A cell earns its colour: an accent hue only where the
+                # master is strongly and broadly saturated in it (the sky
+                # zone, the moon); everything else stays on the grey ladder.
+                if mass[hue] >= 1.6:
+                    cell_hue[cy][cx] = hue
+                    cell_mass[cy][cx] = mass[hue]
     # Pass two, cohesion: a weakly-committed cell adopts its neighbourhood's
     # majority, which is what turns hue flicker into REGIONS (one dominant
     # ink per region, the ruling's own words). Strong votes stand: a moon
