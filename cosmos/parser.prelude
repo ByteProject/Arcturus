@@ -565,6 +565,17 @@ block match_phrase(lo, hi, plural_ok)
             return which_tiebreak(tie_want)
         change parse_fault to 3
         return nothing
+    // A winner with an UNKNOWN word in its phrase is no winner: the scoring
+    // tolerates known words an object does not carry (articles, a stray
+    // adjective), but a word the dictionary has never heard of must be
+    // reported, never dissolved into the best-scoring object. Without this,
+    // GIVE MERCHANT THE XYZZYPLUGH resolved to the merchant and the garbage
+    // vanished (the field report); the same word before a preposition was
+    // already caught, so this closes the trailing position to match.
+    change unknown_at to first_unknown(lo, hi)
+    if unknown_at is not 0
+        change parse_fault to 4
+        return nothing
     return best
 
 // The first noun phrase after the verb, through the scoring matcher: from the

@@ -23,6 +23,13 @@
 // the dictionary and hands any command carrying one to run_all below.
 all "all", "everything"
 
+// "from" is this granule's filler ("take all from the chest"): declared as
+// noise so the source phrase stays whole and resolvable now that the matcher
+// refuses genuinely unknown words. Pay-for-use: only a takeall game carries
+// it. The verbs overhaul's breadth phase will graduate "from" to a real
+// separator on TAKE's own grammar; this line retires then.
+noise "from"
+
 // The expander the turn loop hands an all-command to (the run_all stub in
 // loop.prelude). take sweeps the room, or the named source ("take all from
 // the chest"); drop sweeps the hands, keeping what is worn. Any other verb
