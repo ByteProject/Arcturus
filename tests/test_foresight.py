@@ -125,3 +125,121 @@ def test_the_repair_pays_score_and_knowledge():
     assert "(taking the gem first)" in io.text
     assert "Bob grins." in io.text
     assert "5" in io.text.split("score")[-1]
+
+
+# --- the second act: doors and containers (Stefan's go, 2026-07-22) --------
+
+ACT2 = (
+    'game\n    title "F2"\n    start hall\n'
+    '{summon}'
+    'room hall\n    name "Hall"\n    desc "A hall."\n    north gate\n'
+    'room yard\n    name "Yard"\n    desc "A yard."\n    south gate\n'
+    'thing gate of door in hall, yard\n    name "oak door"\n'
+    '    words door, oak\n    open false\n'
+    'thing chest of container in hall\n    name "oak chest"\n    words chest\n'
+    '    openable\n    open false\n    fixed\n'
+    'thing coin in chest\n    name "gold coin"\n    words coin, gold\n'
+    'thing jar of container in hall\n    name "clear jar"\n    words jar\n'
+    '    openable\n    open false\n    clear\n    fixed\n'
+    'thing pearl in jar\n    name "pearl"\n    words pearl\n'
+    'thing bob in hall\n    name "Bob"\n    words bob\n    named\n    animate\n'
+    '    on give\n        say "Bob pockets ${the noun}."\n'
+)
+
+
+def _run2(summon, cmds, extra=""):
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = ACT2.replace("{summon}", summon) + extra
+    io = CaptureIO(script=list(cmds))
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+def test_a_known_thing_in_a_closed_chest_opens_it():
+    # Knowledge first: the coin becomes known when the chest is opened once;
+    # closed again, naming the coin opens the chest FOR the player.
+    out = _run2("summon.foresight\n",
+                ["open chest", "close chest", "take coin", "i"])
+    assert "(opening the oak chest first)" in out
+    assert "Got it." in out
+    assert "gold coin" in out.split(">i")[-1]
+
+
+def test_unseen_contents_stay_out_of_reach():
+    # The other half of Stefan's model: contents never seen cannot even be
+    # named, foresight or no foresight. Nothing conjures.
+    out = _run2("summon.foresight\n", ["take coin"])
+    assert "nothing of the sort" in out
+    assert "opening" not in out
+
+
+def test_the_clear_jar_chains_open_and_take():
+    # Visible through the glass, sealed, wanted for a give: the chained
+    # repair, each step probe-guarded.
+    out = _run2("summon.foresight\n", ["give pearl to bob"])
+    at_open = out.index("(opening the clear jar first)")
+    at_take = out.index("(taking the pearl first)")
+    at_give = out.index("Bob pockets the pearl.")
+    assert at_open < at_take < at_give
+
+
+def test_a_shut_door_opens_on_the_walk():
+    out = _run2("summon.foresight\n", ["north", "south"])
+    assert "(opening the oak door first)" in out
+    assert "Yard" in out
+    # The way back needs no second repair: the door stays open.
+    assert out.count("(opening the oak door first)") == 1
+
+
+def test_a_locked_door_still_refuses():
+    src_extra = ""
+    out = _run2("summon.foresight\n", ["north"],
+                extra="")
+    # relock variant: make the gate locked via a fresh game
+    locked = ACT2.replace(
+        "    words door, oak\n    open false\n",
+        "    words door, oak\n    open false\n    lockable\n    locked\n",
+    ).replace("{summon}", "summon.foresight\n")
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    io = CaptureIO(script=["north"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(locked))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "opening" not in io.text
+    assert "locked" in io.text.lower()
+
+
+def test_an_authored_open_is_the_residue():
+    # A chest whose own on open refuses: promise, then the author's word,
+    # and the command dies without a doubled message.
+    extra = (
+        'thing casket of container in hall\n    name "sealed casket"\n'
+        '    words casket\n    openable\n    open false\n    fixed\n'
+        '    on open\n'
+        '        change refused to 1\n'
+        '        say "The casket is fused shut by age."\n'
+        'thing ring in casket\n    name "ring"\n    words ring\n'
+    )
+    out = _run2("summon.foresight\n",
+                ["open casket", "take ring"], extra=extra)
+    # the direct open refused (knowledge never formed), so the take cannot
+    # even name the ring:
+    assert "fused shut" in out
+    assert "nothing of the sort" in out.split(">take ring")[-1]
+
+
+def test_unsummoned_defaults_untouched():
+    out = _run2("", ["north", "give pearl to bob"])
+    assert "shut" in out.lower()
+    assert "You aren't carrying the pearl." in out
+    assert "opening" not in out

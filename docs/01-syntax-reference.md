@@ -1615,7 +1615,8 @@ none costs nothing, and requirement kinds no verb in the game uses are not
 even compiled. The summonable foresight granule (docs/05) builds on this
 same declaration: a repairable failure, the carried gift you merely have
 not picked up yet, becomes "(taking the pebble first)" instead of a
-refusal, and only when the take is certain to succeed.
+refusal, and only when the take is certain to succeed; closed doors and
+containers join the repairs the same way (docs/05).
 
 ## 11. Blocks
 

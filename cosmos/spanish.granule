@@ -1424,6 +1424,9 @@ block msg_not_holding_second()
 block line_foresight_take()
     say "(primero coges ${the noun})"
 
+block line_foresight_open(obj)
+    say "(primero abres ${the obj})"
+
 block msg_done()
     say "Hecho."
 

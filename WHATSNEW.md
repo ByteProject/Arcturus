@@ -6,6 +6,15 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Foresight's second act.** Doors and containers join the repairs: a
+  closed, unlocked door opens itself on the walk, and naming a thing you
+  know is inside a closed container opens the container and carries on,
+  chaining when it must: "(opening the clear jar first)", "(taking the
+  pearl first)", then the give you actually typed. The same promise rule
+  holds at every step, locked things stay honest refusals, and contents
+  you have never seen cannot even be named. In the same release the
+  input buffers doubled (long chained commands stopped dying mid-word)
+  and Actaea's caret learned to stay on the input line.
 - **The session verbs, and a wink.** VERSION prints the banner mid-game,
   the bug-report command, always in. NOTIFY brings the classic
   "[Your score has just gone up by 5.]" bracket line: off by default, the
@@ -37,15 +46,6 @@ lives in the commit log. The feature roadmap follows below.
   say what they mean. The shipped examples now use them, and two relic
   declarations from before their verbs joined the standard set simply
   went away.
-- **Foresight.** `summon.foresight` and the game does the obvious step
-  for you: GIVE APPLE TO STACY with the apple at your feet prints
-  "(taking the apple first)" and gets on with it. The parenthetical is a
-  promise, and it only prints when the promise is certain: the repair
-  asks the take's own guard chain first, so an unreachable thing refuses
-  plainly instead of promising and then failing, the little embarrassment
-  every Inform player knows. Off unless summoned, because implicit
-  actions are a matter of taste; the whole exchange is one UNDO; and each
-  language pack speaks its own parenthetical.
 
 ## Feature roadmap
 
@@ -71,10 +71,10 @@ way, designed on its own terms, pay-for-use as always.
 - **The verbs overhaul** (underway; the `text` grammar slot, the verb
   contract, foresight, verbs by the slice, enhance/redefine, noun lists
   in two-noun actions, CONSULT ABOUT, typed YES/NO, and LIGHT have
-  landed, shiftable pushes things between rooms, and the session verbs
-  (VERSION, the coupled NOTIFY, the swear family) closed the roster;
-  doors and containers join foresight's repairs when travel meets
-  them). The overhaul's phases are complete.
+  landed, shiftable pushes things between rooms, the session verbs
+  (VERSION, the coupled NOTIFY, the swear family) closed the roster,
+  and doors and containers joined foresight's repairs). The overhaul
+  is complete.
 - **Question preservation.** A disambiguation question survives an
   interposed command: asked "which coin?", the player may take inventory
   first and then answer. In the same breath: likelihood hints, letting a

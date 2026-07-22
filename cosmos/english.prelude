@@ -1397,6 +1397,9 @@ block msg_not_holding_second()
 block line_foresight_take()
     say "(taking ${the noun} first)"
 
+block line_foresight_open(obj)
+    say "(opening ${the obj} first)"
+
 block msg_done()
     say "Done."
 

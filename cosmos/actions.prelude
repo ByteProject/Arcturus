@@ -108,9 +108,11 @@ on go
                 msg_door_locked(dest)
                 stop
             if dest is not open
-                change refused to 1
-                msg_door_shut(dest)
-                stop
+                // The door half of the foresight seam: the default refuses;
+                // the granule's override opens an unlocked door and lets the
+                // walk continue ("(opening the oak door first)").
+                if door_shut_refused(dest) is 1
+                    stop
             change dest to door_other_side(dest)
             if dest is nothing
                 change refused to 1
@@ -352,6 +354,14 @@ on yes
 
 on no
     msg_no
+
+// The shut-door refusal's default (docs/05, foresight): refuse and stop.
+// Returns 1 refused (message spoken), 0 repaired (the door is open now and
+// the walk goes on).
+block door_shut_refused(d)
+    change refused to 1
+    msg_door_shut(d)
+    return 1
 
 on version
     change meta_turn to 1
@@ -600,6 +610,21 @@ on insert
     change refused to 1
     msg_cant_put
 
+// Why the DEFAULT open would refuse this object, or 0 when it would
+// succeed: 1 not openable, 2 locked, 3 already open. THE ONE GUARD CHAIN,
+// the take_probe discipline: the open handler refuses through this, and
+// foresight's open repair asks the same probe before promising, so the
+// two can never drift. (The open-with-key flow stays in the handler; a
+// repair never borrows the outer command's second.)
+block open_probe(obj)
+    if obj is not openable
+        return 1
+    if obj is locked
+        return 2
+    if obj is open
+        return 3
+    return 0
+
 on open
     if noun is nothing
         change refused to 1
@@ -608,7 +633,7 @@ on open
     if any_beyond is 1
         if beyond_guard is 1
             stop
-    if noun is not openable
+    if open_probe(noun) is 1
         change refused to 1
         msg_cant_open
         stop
