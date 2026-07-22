@@ -1385,6 +1385,9 @@ block msg_not_holding()
 block msg_not_holding_second()
     say "No llevas ${the second}."
 
+block line_foresight_take()
+    say "(primero coges ${the noun})"
+
 block msg_done()
     say "Hecho."
 

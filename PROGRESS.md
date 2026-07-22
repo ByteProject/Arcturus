@@ -5798,3 +5798,39 @@ second character, since a give to a ring is no longer a turn any
 catch-all will ever see. That is the contract working.
 
 arcc 1.3.18, Cosmos 1.2.17. Suite 1112.
+
+## 2026-07-22: phase 3, foresight
+
+The granule is live: summon.foresight repairs a failed carried
+requirement with an implicit take. The probe rule held all the way to
+code, and the sun case now reads exactly as ruled:
+
+    > give sun to stacy
+    The sun is beyond your reach.
+
+No promise, no disappointment. The certain path (no author take
+handler on the object or the room) probes first and only then prints
+"(taking the apple first)", running the take's own bookkeeping (gain:
+score, moved, seen) silently, because the player asked for the give,
+not for a "Got it.". The residue is exactly as designed: an object
+with its own take handler gets promise-then-run, and the author's
+prose lands between the promise and the outcome. A free-standing `on
+take` rule is not consulted by the certain path, documented in the
+granule and docs/05; a game gating all taking through free rules
+should not summon this.
+
+The no-drift ruling has a price tag, and it is the honest one: the
+default take now refuses THROUGH the probe (take_probe +
+speak_take_refusal in actions.prelude, one guard chain, used by the
+handler and the repair alike), so every game carries the factored
+routines, +152 to +328 (mostly +244), foresight summoned or not. The
+alternative was a granule that duplicates the take's guards and
+drifts, which the design forbids. The granule itself costs only its
+summoners. Ceilings raised with the dated note.
+
+The parenthetical is the language layer's line_foresight_take:
+English "(taking the apple first)", German "(nimmst zuerst den
+Apfel)", Spanish "(primero coges la manzana)"; the pack wordings are
+mine and await Stefan's native pass.
+
+arcc 1.3.19, Cosmos 1.2.18. Suite 1119.

@@ -6,6 +6,15 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Foresight.** `summon.foresight` and the game does the obvious step
+  for you: GIVE APPLE TO STACY with the apple at your feet prints
+  "(taking the apple first)" and gets on with it. The parenthetical is a
+  promise, and it only prints when the promise is certain: the repair
+  asks the take's own guard chain first, so an unreachable thing refuses
+  plainly instead of promising and then failing, the little embarrassment
+  every Inform player knows. Off unless summoned, because implicit
+  actions are a matter of taste; the whole exchange is one UNDO; and each
+  language pack speaks its own parenthetical.
 - **Verbs got a contract.** A verb now states what it requires of its
   operands, `requires noun carried`, `requires second animate`, and the
   library enforces it before any handler runs. The field report behind it
@@ -55,15 +64,6 @@ lives in the commit log. The feature roadmap follows below.
   them into an object, because what you ask about is usually not a thing
   you can point at. That slot is the first real piece of the grammar work
   to come.
-- **Pictures travel as Blorb.** Blorb is the container the interpreter
-  world already knows, so supporting it removes a step for anyone adding
-  arc_image to an existing interpreter. Beside the `.arcres` pack, which
-  stays exactly as it is, `arcimg` now writes plain Blorb for the pictures
-  and `.zblorb` with the story embedded, one file holding a whole
-  illustrated game. The mapping cost nothing, because a picture id and a
-  Blorb resource number are the same idea. Actaea reads both, and every
-  Blorb declares up front whether a game wants a picture band, so an
-  interpreter can decide before it runs a single instruction.
 
 ## Feature roadmap
 
@@ -87,11 +87,8 @@ way, designed on its own terms, pay-for-use as always.
   furniture is still to come.)
 - **LOOK \<direction\>.** "look north" describes what lies that way.
 - **The verbs overhaul** (underway; the `text` grammar slot and the verb
-  contract have landed). Still to come: foresight, the summonable
-  implicit-action granule ("(taking the pebble first)") built on the
-  contract, with a probe that never promises what it cannot deliver
-  (doors and containers join the repairs when travel meets it);
-  pay-per-verb selection on the extended verbset (`summon.extendedverbs
+  contract and foresight have landed; doors and containers join the
+  repairs when travel meets them). Still to come: pay-per-verb selection on the extended verbset (`summon.extendedverbs
   squeeze, burn, search`); `enhance verb` and `redefine verb` for adding
   to or replacing a verb's grammar out loud; noun lists in two-noun
   actions ("put coin and nail in box"; today lists work in single-noun

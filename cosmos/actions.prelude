@@ -185,13 +185,21 @@ block beyond_refuse(obj)
         msg_beyond(obj)
     return 1
 
-block beyond_guard()
+// The pure half of the beyond guard: is obj out of reach, yes or no, no
+// message. The guards below speak through beyond_refuse; the take probe
+// (foresight's contract with the truth) asks this without side effects.
+block beyond_blocked(obj)
     if any_beyond is 1
-        if noun is beyond
-            return beyond_refuse(noun)
+        if obj is beyond
+            return 1
         if player is beyond
-            if at_hand(noun) is 0
-                return beyond_refuse(noun)
+            if at_hand(obj) is 0
+                return 1
+    return 0
+
+block beyond_guard()
+    if beyond_blocked(noun) is 1
+        return beyond_refuse(noun)
     return 0
 
 block beyond_guard_second()
@@ -203,46 +211,63 @@ block beyond_guard_second()
                 return beyond_refuse(second)
     return 0
 
+// Why the DEFAULT take would refuse this object, as a reason code, or 0 when
+// it would succeed. THE ONE GUARD CHAIN: the take handler itself refuses
+// through this probe, and foresight's repair asks the same probe before it
+// promises anything, so the two can never drift apart (the design ruling).
+// Side-effect-free; speak_take_refusal turns a code into the exact message
+// the take always gave, in the exact order the guards always ran.
+block take_probe(obj)
+    if any_beyond is 1
+        if beyond_blocked(obj) is 1
+            return 1
+    if obj is player
+        return 2
+    if any_components is 1
+        if obj is component
+            return 3
+    if reach_blocker(obj) is not nothing
+        return 4
+    if obj is scenery
+        return 5
+    if obj is fixed
+        return 6
+    if obj is animate
+        return 7
+    return 0
+
+block speak_take_refusal(obj, why)
+    change refused to 1
+    if why is 1
+        let b = beyond_refuse(obj)
+        return 0
+    if why is 2
+        msg_take_self
+        return 0
+    if why is 3
+        msg_part_of
+        return 0
+    if why is 4
+        change shut_in to reach_blocker(obj)
+        msg_open_first
+        return 0
+    if why is 5
+        msg_scenery
+        return 0
+    if why is 6
+        msg_fixed
+        return 0
+    msg_animate_refuses
+    return 0
+
 on take
     if noun is nothing
         change refused to 1
         msg_noun_missing
         stop
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
-    // Taking yourself comes before every other refusal: the player is animate
-    // and would otherwise get the "has other ideas" meant for characters.
-    if noun is player
-        change refused to 1
-        msg_take_self
-        stop
-    // A component stays part of its whole: the lever does not come off the
-    // machine. Folds away in a game with no components (any_components).
-    if any_components is 1
-        if noun is component
-            change refused to 1
-            msg_part_of
-            stop
-    // Visible is not touchable: a coin in a CLOSED clear jar is in scope
-    // (the glass shows it) but the hand does not pass; answer "open it
-    // first" (the same message the parser's shut_in path uses).
-    if reach_blocker(noun) is not nothing
-        change refused to 1
-        change shut_in to reach_blocker(noun)
-        msg_open_first
-        stop
-    if noun is scenery
-        change refused to 1
-        msg_scenery
-        stop
-    if noun is fixed
-        change refused to 1
-        msg_fixed
-        stop
-    if noun is animate
-        change refused to 1
-        msg_animate_refuses
+    let why = take_probe(noun)
+    if why is not 0
+        speak_take_refusal(noun, why)
         stop
     if player holds noun
         msg_have_it

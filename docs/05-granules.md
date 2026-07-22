@@ -222,6 +222,39 @@ branch folds away in a game where darkness cannot happen, which the
 compiler knows exactly (a room with `lit false`, or a handler clearing
 `lit`, is what makes it possible).
 
+### foresight
+
+```
+summon.foresight
+```
+
+The game does the obvious preparatory step for you. GIVE APPLE TO STACY
+with the apple at your feet becomes:
+
+```
+(taking the apple first)
+You give the apple to Stacy.
+```
+
+Built on the verb contract (docs/01 section 10a): a failed `requires noun
+carried` is repaired with an implicit take instead of refused. The
+parenthetical is a PROMISE, and it prints only when the promise is certain:
+the repair asks the default take's own factored guard chain (take_probe)
+first, so an unreachable or fixed thing refuses plainly, with the take's
+own line and no promise before it. "(taking the sun first) The sun is
+beyond your reach." does not happen here. The one residue is an object or
+room with its own take handler, whose outcome no probe can know without
+running it: those get promise-then-run, author prose landing between the
+promise and the outcome, where it belongs. A free-standing `on take` rule
+is not consulted by the certain path; a game that gates all taking through
+free rules should not summon this.
+
+Off unless summoned, deliberately: implicit actions are a matter of taste.
+The repaired take is silent (the bookkeeping runs, the points pay, no "Got
+it."), one UNDO takes back the whole exchange, and the parenthetical's
+wording is the language layer's `line_foresight_take`, so each pack speaks
+its own idiom.
+
 ### quotes
 
 ```

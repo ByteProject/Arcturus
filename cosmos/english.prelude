@@ -1319,6 +1319,11 @@ block msg_not_holding()
 block msg_not_holding_second()
     say "You aren't carrying ${the second}."
 
+// Foresight's parenthetical (summon.foresight): the promise before the
+// implicit take. Costs nothing unsummoned (only the granule calls it).
+block line_foresight_take()
+    say "(taking ${the noun} first)"
+
 block msg_done()
     say "Done."
 

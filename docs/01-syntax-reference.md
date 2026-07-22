@@ -1510,10 +1510,10 @@ requires sacrifice noun carried
 
 Requirements compile onto the action into one table; a verb that declares
 none costs nothing, and requirement kinds no verb in the game uses are not
-even compiled. The summonable foresight granule (docs/05, when it lands)
-builds on this same declaration: a repairable failure, the carried gift you
-merely have not picked up yet, becomes "(taking the pebble first)" instead
-of a refusal.
+even compiled. The summonable foresight granule (docs/05) builds on this
+same declaration: a repairable failure, the carried gift you merely have
+not picked up yet, becomes "(taking the pebble first)" instead of a
+refusal, and only when the take is certain to succeed.
 
 ## 11. Blocks
 
