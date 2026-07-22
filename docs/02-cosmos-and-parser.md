@@ -698,8 +698,16 @@ lines) are 01 section 10.
 
 ## 9. The action pipeline
 
-An action carries its verb, `noun`, and optional `second`. Cosmos dispatches
-it as one chain of handlers, most specific first:
+An action carries its verb, `noun`, and optional `second`. Before the chain
+runs at all, the VERB CONTRACT is enforced: what the action `requires` of
+its operands (a carried noun, an animate recipient; 01 section 10a). A turn
+whose operands fail the contract is refused by the library, message spoken,
+and no handler of any kind sees it, which is the point: an object's
+override owns the response to a valid turn, never the validation. Empty
+slots pass through, their asks belong to the handlers ("Give what?"), and
+`perform` bypasses the contract entirely, since an author performing an
+action means it. Then Cosmos dispatches the action as one chain of
+handlers, most specific first:
 
 0. (between 1 and 2) for a two-noun action, the `second` object's handlers:
    the RECIPIENT of a give or show, the container of a put, answers for

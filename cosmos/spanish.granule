@@ -1382,6 +1382,9 @@ block msg_dropped()
 block msg_not_holding()
     say "No llevas ${the noun}."
 
+block msg_not_holding_second()
+    say "No llevas ${the second}."
+
 block msg_done()
     say "Hecho."
 

@@ -457,6 +457,11 @@ class World:
     # time, or a `now ... is not lit` anywhere. Feeds the any_dark fold, and
     # with uses_images the rule that an images game declares arc_image_dark.
     uses_darkness: bool = False
+    # The declarative verb contract (the verbs overhaul, phase 2): action name
+    # -> packed requirement bits (1 noun carried, 2 noun animate, 4 second
+    # carried, 8 second animate). Emitted as requires_map; enforced by the
+    # loop BEFORE dispatch, so a handler override owns only the response.
+    requirements: dict = field(default_factory=dict)
 
     def all_handlers(self):
         for obj in self.objects.values():

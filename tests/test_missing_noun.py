@@ -67,6 +67,25 @@ def test_garbage_recipient_faults():
 
 
 def test_valid_two_noun_still_dispatches_to_the_recipient():
-    assert "GIVE the coin." in _run("give coin to bob")
-    assert "SHOW the coin." in _run("show coin to bob")
+    # The coin starts in the room and the contract requires a carried gift
+    # (requires give noun carried, phase 2), so take it first. _run scripts
+    # one command per entry; the helper splits on the last prompt.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    story = load(generate(analyze(cosmos.combined_program(parse(GAME)))))
+    io = CaptureIO(script=["take coin", "give coin to bob"])
+    try:
+        VM(story, io).run(max_steps=5_000_000)
+    except IndexError:
+        pass
+    assert "GIVE the coin." in io.text
+    io = CaptureIO(script=["take coin", "show coin to bob"])
+    try:
+        VM(story, io).run(max_steps=5_000_000)
+    except IndexError:
+        pass
+    assert "SHOW the coin." in io.text
+    # PUT declares no requirement (its default handler asks its own
+    # questions), so the original single-command shape still holds.
     assert "PUT the coin." in _run("put coin in box")

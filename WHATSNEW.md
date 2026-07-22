@@ -6,6 +6,19 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Verbs got a contract.** A verb now states what it requires of its
+  operands, `requires noun carried`, `requires second animate`, and the
+  library enforces it before any handler runs. The field report behind it
+  was an `on give,show` override that answered for gibberish and for gifts
+  the player did not hold, because overriding the response used to mean
+  accidentally overriding the validation too. No longer: GIVE and SHOW
+  declare a carried gift and an animate recipient, your handler fires only
+  on turns that make sense, and your code does not change. Requirements
+  live on the action, so German and Spanish games inherit them without a
+  word, and requirement kinds no verb in the game uses are not
+  even compiled. This is the
+  foundation the coming foresight granule repairs failures on, "(taking
+  the pebble first)", instead of refusing.
 - **The picture follows the scene, and darkness is a scene too.** A
   room's picture is no longer fixed at compile time: `arc_image` is an
   ordinary property, so opening the door can swap the gatehouse picture
@@ -51,22 +64,12 @@ lives in the commit log. The feature roadmap follows below.
   Blorb resource number are the same idea. Actaea reads both, and every
   Blorb declares up front whether a game wants a picture band, so an
   interpreter can decide before it runs a single instruction.
-- **Knowing what was tried.** `action` reads the action a turn is running,
-  and compares against a plain action name: `if action is touch`. It earns
-  its keep in the two places that answer many verbs at once, an object's
-  `on other` catch-all, which could never say what you had attempted, and
-  a grain that answers several verbs and wants a different line for each.
 
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus
 way, designed on its own terms, pay-for-use as always.
 
-- **Inference (implicit actions).** Open a closed container before
-  looking inside it, open the door before walking through: the game
-  infers the obvious preparatory action instead of refusing and making
-  the player type it. The exact Arcturus shape is decided when we reach
-  it.
 - **Pathfinding.** One shortest-path engine over the room graph with two
   consumers: player travel (`GO TO <a visited room>`, `FIND <object>`)
   and actor movement, an NPC walking toward a goal one step per turn.
@@ -83,16 +86,18 @@ way, designed on its own terms, pay-for-use as always.
   already shows darkness instead of the room name; the rest of the
   furniture is still to come.)
 - **LOOK \<direction\>.** "look north" describes what lies that way.
-- **The verbs overhaul.** Retire the all-or-nothing extended verbset:
-  opt into individual documented verbs with a one-liner, each with its
-  grammar documented; let authors ADD to a verb's grammar or REPLACE it
-  wholesale. In its scope besides the breadth (taste, tie, throw at,
-  push things between rooms, and friends): declarative per-verb
-  requirements (whether a verb needs its noun reachable or merely
-  visible), noun lists in two-noun actions ("put coin and nail in box";
-  today lists work in single-noun actions only), and maybe CONSULT
-  \<object\> ABOUT \<topic\>, which ties into the topic machinery we
-  already have.
+- **The verbs overhaul** (underway; the `text` grammar slot and the verb
+  contract have landed). Still to come: foresight, the summonable
+  implicit-action granule ("(taking the pebble first)") built on the
+  contract, with a probe that never promises what it cannot deliver
+  (doors and containers join the repairs when travel meets it);
+  pay-per-verb selection on the extended verbset (`summon.extendedverbs
+  squeeze, burn, search`); `enhance verb` and `redefine verb` for adding
+  to or replacing a verb's grammar out loud; noun lists in two-noun
+  actions ("put coin and nail in box"; today lists work in single-noun
+  actions only); maybe CONSULT \<object\> ABOUT \<topic\>, which ties
+  into the topic machinery we already have; and the breadth (taste, tie,
+  throw at, push things between rooms, and friends).
 - **Question preservation.** A disambiguation question survives an
   interposed command: asked "which coin?", the player may take inventory
   first and then answer. In the same breath: likelihood hints, letting a

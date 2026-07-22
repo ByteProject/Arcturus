@@ -1479,6 +1479,42 @@ code uses (`thing`, `room`, `openable`, the direction properties, the grain
 actions in section 14) are English; only what the player reads and types is
 localized.
 
+## 10a. The verb contract (requires)
+
+A verb can state what it requires of its operands, and the library enforces
+it before any handler runs:
+
+```
+verb "sacrifice"
+    sacrifice noun
+    requires noun carried
+```
+
+Two requirement words exist: `carried` (the object is on your person, worn
+included) and `animate`. Each applies to `noun` or `second`. The standard
+GIVE and SHOW declare a carried noun and an animate second, which is why an
+object's `on give` override answers real offers and never gibberish, unheld
+gifts, or donations to furniture: a turn that fails the contract is refused
+by the library, with its own message, and no handler sees it. Empty slots
+pass through, so a handler still asks its own "Give what?"; `perform`
+bypasses the contract, since an author performing an action means it.
+
+The in-body form above binds to the verb's own actions. The free-standing
+form names the action, which is how requirements stay language-neutral
+(actions.prelude declares the standard ones this way; a language pack
+redeclares a verb's words and grammar, never its contract):
+
+```
+requires sacrifice noun carried
+```
+
+Requirements compile onto the action into one table; a verb that declares
+none costs nothing, and requirement kinds no verb in the game uses are not
+even compiled. The summonable foresight granule (docs/05, when it lands)
+builds on this same declaration: a repairable failure, the carried gift you
+merely have not picked up yet, becomes "(taking the pebble first)" instead
+of a refusal.
+
 ## 11. Blocks
 
 A block is a named routine. It takes arguments, may `return` a value, and is

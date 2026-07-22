@@ -46,12 +46,13 @@ GAME = (
     "    on put ruby in chest\n"
     '        say "The chest glows around the ruby."\n'
     'thing ring in hall\n    name "ring"\n    words ring\n'
-    'thing idol in hall\n    name "idol"\n    words idol\n'
+    'thing idol in player\n    name "idol"\n    words idol\n'
     "    on give idol or ring to keeper\n"
     '        say "The keeper accepts the offering."\n'
     "    on other\n"
     '        say "The idol radiates disapproval."\n'
     'thing keeper of character in hall\n    name "keeper"\n    words keeper\n'
+    'thing monk of character in hall\n    name "monk"\n    words monk\n'
 )
 
 
@@ -76,9 +77,12 @@ def test_pattern_mismatch_falls_to_the_default(tmp_path):
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_or_alternatives_share_one_handler(tmp_path):
+    # The idol starts held: its catch-all consumes TAKE (it could never be
+    # picked up in play), and the verb contract now vetoes giving what is
+    # not carried before any handler runs (requires give noun carried).
     out = _play(
         tmp_path, GAME,
-        "take idol\ngive idol to keeper\ntake ring\ngive ring to keeper\n",
+        "give idol to keeper\ntake ring\ngive ring to keeper\n",
     )
     # The idol's handler names both alternatives; it owns the idol's give
     # and, via the noun slot... the ring is NOT the idol's noun, so only
@@ -94,7 +98,11 @@ def test_failed_guard_still_reaches_on_other(tmp_path):
     # the give, and the catch-all gets its turn (the all-guarded rule, the
     # same behavior the direction guards always had). It ends without
     # continue, so it consumes each action.
-    out = _play(tmp_path, GAME, "take idol\npush idol\ngive idol to ring\n")
+    # GIVE IDOL TO MONK, not TO RING as this test once read: the verb
+    # contract now refuses an inanimate recipient before any handler runs,
+    # so a failed-guard turn must be a VALID turn to reach the catch-all.
+    # The monk is animate and the idol is carried; only the guard fails.
+    out = _play(tmp_path, GAME, "take idol\npush idol\ngive idol to monk\n")
     assert out.count("radiates disapproval") == 3
     assert "Got it." not in out  # the catch-all consumed the take too
 

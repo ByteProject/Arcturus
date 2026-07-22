@@ -5756,3 +5756,45 @@ untouched. Every game pays 24 to 36 bytes for the check; ceilings
 raised with the dated note.
 
 arcc 1.3.17, Cosmos 1.2.16. Suite 1103.
+
+## 2026-07-22: phase 2, the verb contract
+
+(improvmonster of the phase 1 report is Charles Moore Jr., for the
+record: one field reporter, two channels.)
+
+`requires` is live. A verb states what it demands of its operands, the
+declaration compiles onto the ACTION (requires_map, the after_map
+manner), and the loop enforces it BEFORE dispatch: a failing turn is
+refused with the library's own line and no handler of any kind sees
+it. Two forms, per the design: free-standing `requires give noun
+carried` (language-agnostic, what actions.prelude uses, so the packs
+inherit contracts they never mention) and the in-body sugar `requires
+noun carried` bound to the declaring verb's actions. Two kinds ship,
+carried (worn included, per the ruling) and animate; the encoding has
+room for the rest. Empty slots pass through to the handlers' own asks;
+perform bypasses the contract entirely, an author performing an action
+means it.
+
+GIVE and SHOW declare a carried noun and an animate second. The
+carried requirement is NEW validation, not relocation: the old default
+handlers never checked holding at all, which is why Charles's override
+answered for unheld gifts. The animate checks moved out of the
+handlers into the contract. Charles's battery, all six shapes,
+verified end to end; his handler now fires exactly on valid turns and
+his code did not change.
+
+Cost, measured and then earned honestly: the first cut was +204 to
++228 per game, because check_requires compiled all four requirement
+branches whether or not any verb declared them. Per-bit folds (req_*,
+the any_X discipline applied inside one routine) halved it: +104 to
++128 in every game, the price of give/show carrying a contract, and a
+requirement kind no verb declares now costs nothing, its message
+included. Ceilings raised with the dated note.
+
+Seven pre-contract tests gave things away without holding them; each
+was updated to hold the gift first, preserving its original intent,
+and one (the failed-guard catch-all) now proves its point through a
+second character, since a give to a ring is no longer a turn any
+catch-all will ever see. That is the contract working.
+
+arcc 1.3.18, Cosmos 1.2.17. Suite 1112.

@@ -1300,6 +1300,9 @@ block msg_dropped()
 block msg_not_holding()
     say "Du hast ${the:acc noun} nicht bei dir."
 
+block msg_not_holding_second()
+    say "Du hast ${the:acc second} nicht bei dir."
+
 block msg_done()
     say "Erledigt."
 
