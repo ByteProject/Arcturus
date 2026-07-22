@@ -6,6 +6,15 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Grammar surgery, said out loud.** `enhance verb "look"` grows the
+  standard LOOK with your new lines and keeps everything it had;
+  `redefine verb "read"` replaces a family whole, words included. The old
+  way, redeclaring the verb, shadowed it word by word and quietly left
+  the other synonyms on the old grammar; it still compiles, but the
+  compiler now tells you what it is doing and names the two forms that
+  say what they mean. The shipped examples now use them, and two relic
+  declarations from before their verbs joined the standard set simply
+  went away.
 - **Foresight.** `summon.foresight` and the game does the obvious step
   for you: GIVE APPLE TO STACY with the apple at your feet prints
   "(taking the apple first)" and gets on with it. The parenthetical is a
@@ -51,19 +60,6 @@ lives in the commit log. The feature roadmap follows below.
   width. A screen the story cleared on purpose stays cleared. This matters
   more than it sounds, because a status bar is written once and has to fit
   a 40-column home computer and a 132-column terminal alike.
-- **Conversations, rebuilt.** The five ways to address a character are now
-  five different things. ASK ABOUT and TELL ABOUT reach a character's
-  topics, and one topic can answer each differently; ASK FOR is its own
-  act at last, a request rather than a question; GIVE and SHOW stay
-  ordinary actions on the thing in your hand. Characters that discuss the
-  same matter share one `subject` declaration, so the words a player might
-  type live in one place for the whole cast instead of being copied per
-  character, and an `idle` topic gives a character its own default answer
-  when nothing else fits. Underneath all this sits a new `text` grammar
-  slot, which absorbs the words of a subject without trying to resolve
-  them into an object, because what you ask about is usually not a thing
-  you can point at. That slot is the first real piece of the grammar work
-  to come.
 
 ## Feature roadmap
 
@@ -87,10 +83,9 @@ way, designed on its own terms, pay-for-use as always.
   furniture is still to come.)
 - **LOOK \<direction\>.** "look north" describes what lies that way.
 - **The verbs overhaul** (underway; the `text` grammar slot, the verb
-  contract, foresight, and verbs by the slice have landed; doors and
-  containers join the repairs when travel meets them). Still to come:
-  `enhance verb` and `redefine verb` for adding
-  to or replacing a verb's grammar out loud; noun lists in two-noun
+  contract, foresight, verbs by the slice, and enhance/redefine have
+  landed; doors and containers join the repairs when travel meets them).
+  Still to come: noun lists in two-noun
   actions ("put coin and nail in box"; today lists work in single-noun
   actions only); maybe CONSULT \<object\> ABOUT \<topic\>, which ties
   into the topic machinery we already have; and the breadth (taste, tie,

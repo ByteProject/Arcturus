@@ -1479,6 +1479,35 @@ code uses (`thing`, `room`, `openable`, the direction properties, the grain
 actions in section 14) are English; only what the player reads and types is
 localized.
 
+### Growing and replacing verbs (enhance, redefine)
+
+An existing verb, standard or your own, is grown or replaced with intent
+stated out loud:
+
+```
+enhance verb "look"              // the family keeps everything it had
+    look_under under noun        // ...and these lines join it
+
+enhance verb "push", "roll"      // roll joins as a synonym
+    push noun direction          // and pushing gains a direction line
+
+redefine verb "read"             // the family is replaced WHOLE:
+    read_it noun                 // new grammar, and only the words
+                                 // restated here survive
+```
+
+`enhance` appends: new grammar lines, new synonym words, or both (a body is
+optional when only synonyms join). `redefine` replaces the family whole,
+so a synonym the redefinition does not restate is gone from the dictionary;
+the action's contract (`requires`, 10a) is wording-independent and stands.
+Both anchor on the first quoted word, which must already be a verb; there
+is nothing to enhance or redefine otherwise, and the compiler says so.
+
+A plain redeclaration of an existing verb word still compiles, shadowing
+word by word as it always did, but the compiler now notes what that means
+(the family's other synonyms keep their old grammar) and names these two
+forms, which say what they do.
+
 ## 10a. The verb contract (requires)
 
 A verb can state what it requires of its operands, and the library enforces

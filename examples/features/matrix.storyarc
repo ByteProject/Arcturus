@@ -100,7 +100,9 @@ on discard
 
 // JOURNAL: iterate the live entries. `for each` over a matrix walks exactly the
 // current length, so an empty satchel lists nothing.
-verb "journal", "specimens", "inventory"
+// The journal IS this game's inventory: redefine takes the standard family
+// whole (I and INV included), so every inventory word answers the same way.
+redefine verb "inventory", "i", "inv", "journal", "specimens"
     journal
 
 on journal

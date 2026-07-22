@@ -562,6 +562,10 @@ class VerbDecl:
     # score/save/quit live in, opened to declaration.
     meta: bool = False
     requirements: list = field(default_factory=list)  # in-body RequiresDecl
+    # "declare" (plain verb), "enhance" (append lines and synonyms to an
+    # existing verb), or "redefine" (replace it whole, words included, and
+    # say so out loud). The verbs overhaul, phase 5; Stefan's spellings.
+    mode: str = "declare"
 
 
 @dataclass
