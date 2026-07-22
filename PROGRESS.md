@@ -6010,3 +6010,34 @@ repairs when travel meets them, and CONSULT-adjacent niceties as field
 reports arrive.
 
 arcc 1.3.25, Cosmos 1.2.22. Suite 1160.
+
+## 2026-07-22: the gesture; arc_image for PunyInform
+
+DECIDED (Stefan): with Fredrik Ramsberg committed to arc_image in
+Ozmoo, something should travel the other way, and the something is an
+official PunyInform library extension, written by Stefan in Fredrik's
+own ext_* idiom and offered with no strings: whether it ever ships in
+PunyInform is HIS decision, the gesture is the point ("he has it in
+the drawer then"). It also serves the standard the way the fork stamp
+and the normative docs/08 do: the spread is coming regardless, so the
+author of the spec writes the reference client, and the provenance
+paragraph sits in the header of the file everyone will copy from.
+
+ext_arc_image.h is ~140 lines in the Puny voice: `arc_image N` on a
+room, ArcImageUpdate() wired into NewRoom and LookRoutine, the dedup
+the spec PROMISES interpreters built in and documented as
+non-optional, ARC_IMAGE_DARK for darkness (our own darkness ruling
+offered as practice, not contract), ArcImageReset for the undo/restore
+staleness we fixed in Cosmos, and a v3 build that compiles to stubs so
+one source serves every Puny target, warning-free both ways.
+
+Verified the way everything is verified now: the demo game compiled
+with pi6, its draw stream spied instruction-level through Actaea's VM
+as the picture-aware interpreter (room picture, dark picture in the
+unlit cellar, the cellar's own with the lamp lit, dedup on re-LOOK),
+and dfrotz proving the text-only degradation. arcimg packs a Puny
+game's pictures without caring who compiled the z-code, which is the
+quiet point of the whole exercise.
+
+The directory (arc_image/puny/) is gitignored by Stefan's choice: this
+is a gift in a drawer, not yet a public artifact.
