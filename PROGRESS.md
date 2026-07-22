@@ -5939,7 +5939,7 @@ native pass. +160 to +228 per game (the YES/NO handlers are
 data-rooted, so they are real bytes); ceilings dated.
 
 Still open in phase 6: the pushable attribute's name (vectorable vs
-shiftable, Chef's question pending), and rulings on pick up, notify,
+shiftable, Stefan's answer pending), and rulings on pick up, notify,
 version, and the profanity responses.
 
 arcc 1.3.23, Cosmos 1.2.20. Suite 1149.
