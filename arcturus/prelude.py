@@ -350,6 +350,11 @@ _BUILTINS = {
     # the full typed length chain_next restores before re-tokenizing.
     "chain_pos": T_NUMBER,
     "chain_max": T_NUMBER,
+    # A noun LIST in a two-noun command ("put coin and nail in box"),
+    # library-internal: the word range of the list still to run (0 = none).
+    # The second is bound once; each item then runs as a full turn.
+    "list_pos": T_NUMBER,
+    "list_end": T_NUMBER,
     # The ambience table base (summon.ambience), library-internal.
     "__ambience__": T_NUMBER,
     # Set for the opening room description when a status bar already names

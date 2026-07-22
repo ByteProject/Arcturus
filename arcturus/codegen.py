@@ -811,6 +811,9 @@ _BUILTIN_GLOBALS = [
     # chain_max is the full typed length chain_next restores before it
     # re-tokenizes the tail.
     "refused", "chain_pos", "chain_max",
+    # A noun list in a two-noun command ("put coin and nail in box"): the word
+    # range of the items still to run (0 when none; the second stays bound).
+    "list_pos", "list_end",
     # The disambiguation ask (docs/02 section 8): the tied phrase's word range
     # and winning score, and the offset where an answer weaves back in.
     "ask_lo", "ask_hi", "ask_score", "ask_at",

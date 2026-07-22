@@ -1479,6 +1479,23 @@ code uses (`thing`, `room`, `openable`, the direction properties, the grain
 actions in section 14) are English; only what the player reads and types is
 localized.
 
+### Noun lists
+
+A two-noun command takes a list in its first slot: the second is bound
+once, and each item runs as its own full turn, reported by name and
+stopped at the first refusal, exactly as a chained line stops:
+
+```
+> put coin and nail in box
+gold coin: Done.
+rusty nail: Done.
+```
+
+The "and" chains instead, as it always did, when a verb follows it ("take
+gem and put coin in box") or when the verb takes one noun ("take gem and
+coin", the verb borrow). The verb contract guards every item: "give coin
+and gem to bob" stops at the gem you are not carrying.
+
 ### Growing and replacing verbs (enhance, redefine)
 
 An existing verb, standard or your own, is grown or replaced with intent

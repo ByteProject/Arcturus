@@ -6,6 +6,12 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Noun lists reach the two-noun verbs.** "put coin and nail in box"
+  now does what it says: the box is bound once, each item runs as its
+  own full turn reported by name ("gold coin: Done."), the list stops at
+  the first refusal like any chained line, and the verb contract guards
+  every item. The "and" still chains when a verb follows it, and
+  single-noun lists ride the chain's verb borrow untouched.
 - **Grammar surgery, said out loud.** `enhance verb "look"` grows the
   standard LOOK with your new lines and keeps everything it had;
   `redefine verb "read"` replaces a family whole, words included. The old
@@ -50,16 +56,6 @@ lives in the commit log. The feature roadmap follows below.
   stops naming an unseen room, saying "In the dark" instead (the German
   and Spanish packs carry their own idiomatic lines). None of this costs
   a byte in a game without pictures, or an always-lit game its bar bytes.
-- **A terminal that keeps its screen.** Two things went wrong when you
-  resized Actaea's terminal window. The game was never told the screen had
-  changed, so a status bar stayed at whatever width it started with, and
-  everything already printed vanished, trickling back only as you kept
-  playing. Both are fixed: the game is told the terminal's real size, at
-  startup and after every resize, and the console now keeps its own record
-  of what the story printed and repaints from it, re-wrapped to the new
-  width. A screen the story cleared on purpose stays cleared. This matters
-  more than it sounds, because a status bar is written once and has to fit
-  a 40-column home computer and a 132-column terminal alike.
 
 ## Feature roadmap
 
@@ -83,13 +79,12 @@ way, designed on its own terms, pay-for-use as always.
   furniture is still to come.)
 - **LOOK \<direction\>.** "look north" describes what lies that way.
 - **The verbs overhaul** (underway; the `text` grammar slot, the verb
-  contract, foresight, verbs by the slice, and enhance/redefine have
-  landed; doors and containers join the repairs when travel meets them).
-  Still to come: noun lists in two-noun
-  actions ("put coin and nail in box"; today lists work in single-noun
-  actions only); maybe CONSULT \<object\> ABOUT \<topic\>, which ties
-  into the topic machinery we already have; and the breadth (taste, tie,
-  throw at, push things between rooms, and friends).
+  contract, foresight, verbs by the slice, enhance/redefine, and noun
+  lists in two-noun actions have landed; doors and containers join the
+  repairs when travel meets them). Still to come: maybe CONSULT
+  \<object\> ABOUT \<topic\>, which ties into the topic machinery we
+  already have; and the breadth (taste, tie, throw at, push things
+  between rooms, and friends).
 - **Question preservation.** A disambiguation question survives an
   interposed command: asked "which coin?", the player may take inventory
   first and then answer. In the same breath: likelihood hints, letting a

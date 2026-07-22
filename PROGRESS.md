@@ -5883,3 +5883,29 @@ inventory family onto its journal so I, INV, and INVENTORY finally
 agree with each other.
 
 arcc 1.3.21, Cosmos unchanged. Suite 1134.
+
+## 2026-07-22: phase 6 begins; noun lists in two-noun actions
+
+"put coin and nail in box" works, the way the roadmap bullet always
+promised. The mechanism honors every convention already in the house:
+the second binds once, each listed item runs as its own FULL TURN
+through sweep_one (the takeall report style, "gold coin: Done."), the
+list stops at the first refusal exactly as a chained line does, and
+the verb contract guards every item ("give coin and gem to bob" stops
+at the gem you are not carrying).
+
+The disambiguation between list and chain is the part worth recording:
+an "and" inside a two-noun verb's first slot is a LIST exactly when no
+verb follows it and the separator still lies ahead; a verb after the
+"and" chains ("take gem and put coin in box"), a one-noun verb chains
+with the borrow as before, and an "and" after the separator was always
+the chain's business. Single-noun lists are untouched.
+
+The price is the largest single line-item of the overhaul after the
+ask table: +508 to +636 per game (mostly +604), measured and broken
+down honestly: the list-aware splitter (+188), the runner and
+sweep_one now living in every game (+312), the resolve hook (+104).
+Core grammar with no fold to hide behind, since put/give/show are
+standard. Presented to Stefan for blessing with the phase.
+
+arcc 1.3.22, Cosmos 1.2.19. Suite 1141.
