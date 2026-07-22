@@ -545,6 +545,12 @@ verb "xyzzy"
 verb "inventar", "i", "inv"
     inventory
 
+verb "version" meta
+    version
+
+verb "notify", "punktemeldung" meta
+    notify
+
 // Getippte Antworten: ein Spiel, das fragt, liest sie mit `on yes` / `on no`.
 verb "ja", "jawohl"
     yes
@@ -1307,6 +1313,15 @@ block msg_dropped()
             say "."
             return 0
     say "Fallen gelassen."
+
+block msg_notify_line(n)
+    say "[Deine Punktzahl ist gerade um ${n} gestiegen.]"
+
+block msg_notify_on()
+    say "[Punktemeldung ist an.]"
+
+block msg_notify_off()
+    say "[Punktemeldung ist aus.]"
 
 block msg_wont_shift()
     say "${The noun} bewegt sich so nicht vom Fleck."

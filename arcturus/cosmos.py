@@ -42,7 +42,7 @@ _DEFAULT_LANGUAGE = "english"
 # The Cosmos library version. It is independent of the compiler version: the
 # bundled library can move ahead of (or behind) arcc, and since the embedded
 # library is not visible on disk, the banner reports it alongside arcc's version.
-COSMOS_VERSION = "1.2.21"
+COSMOS_VERSION = "1.2.22"
 
 # Set by the amalgamated build to a dict of {filename: source}.
 _EMBEDDED = None
@@ -536,6 +536,36 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
     return granule_out, chapter_out, abbreviations
 
 
+def _writes_notify(decls) -> bool:
+    """Does any statement in these declarations write the `notify` global?
+    The whole notification feature (the bracket line, the NOTIFY verb, its
+    handler) compiles only then, per the ruling: enabling it in `on start`
+    brings the verb along automatically, and a game that never touches it
+    pays nothing and knows no such verb."""
+    import dataclasses
+    found = [False]
+
+    def visit(node):
+        if isinstance(node, ast.Change) and isinstance(node.target, ast.Name) \
+                and node.target.ident == "notify":
+            found[0] = True
+            return
+        if not dataclasses.is_dataclass(node):
+            return
+        for f in dataclasses.fields(node):
+            v = getattr(node, f.name)
+            if isinstance(v, list):
+                for item in v:
+                    if dataclasses.is_dataclass(item):
+                        visit(item)
+            elif dataclasses.is_dataclass(v):
+                visit(v)
+
+    for d in decls:
+        visit(d)
+    return found[0]
+
+
 def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Program:
     """Combine the Cosmos library, any summoned granules, and the game into one
     program to analyze and compile. Order encodes precedence: library first
@@ -589,4 +619,17 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
     decls.extend(granule_decls)
     decls.extend(chapter_decls)
     decls.extend(game.decls)
-    return ast.Program(decls, abbreviations=abbreviations)
+    # Score notification is coupled, per the ruling: a game that writes the
+    # `notify` global anywhere gets the NOTIFY verb and the machinery; one
+    # that never does gets neither, and the verb word does not even exist.
+    uses_notify = _writes_notify(game.decls) or _writes_notify(chapter_decls)
+    if not uses_notify:
+        decls = [
+            d for d in decls
+            if not (isinstance(d, ast.VerbDecl)
+                    and any(g.action == "notify" for g in d.grammar))
+            and not (isinstance(d, ast.Handler) and d.events == ["notify"])
+        ]
+    out = ast.Program(decls, abbreviations=abbreviations)
+    out.uses_notify = uses_notify
+    return out

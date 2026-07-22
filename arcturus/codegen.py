@@ -814,6 +814,8 @@ _BUILTIN_GLOBALS = [
     # A noun list in a two-noun command ("put coin and nail in box"): the word
     # range of the items still to run (0 when none; the second stays bound).
     "list_pos", "list_end",
+    # Score notification: the player-facing toggle and the loop's last look.
+    "notify", "last_score",
     # The disambiguation ask (docs/02 section 8): the tied phrase's word range
     # and winning score, and the offset where an answer weaves back in.
     "ask_lo", "ask_hi", "ask_score", "ask_at",

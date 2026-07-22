@@ -151,6 +151,7 @@ class Analyzer:
         # the touch guards would fold away and the bit would set silently.
         self.world.sets_beyond = self._sets_attr("beyond")
         self.world.sets_shiftable = self._sets_attr("shiftable")
+        self.world.uses_notify = getattr(self.program, "uses_notify", False)
         # Darkness reachability (arc_image_dark, B11): darkness can happen when
         # any room resolves `lit` to false at compile time (its own `lit false`
         # or an inherited kind default), or when any statement clears `lit` at

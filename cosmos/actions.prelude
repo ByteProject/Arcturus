@@ -353,6 +353,22 @@ on yes
 on no
     msg_no
 
+on version
+    change meta_turn to 1
+    print_banner
+
+// The player's side of the coupled notify rule: the verb only exists when
+// the author enabled the feature somewhere, so this handler compiles (or
+// not) with it.
+on notify
+    change meta_turn to 1
+    if notify is 0
+        change notify to 1
+        msg_notify_on
+    else
+        change notify to 0
+        msg_notify_off
+
 on restart
     change meta_turn to 1
     msg_confirm_restart

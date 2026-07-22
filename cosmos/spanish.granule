@@ -702,6 +702,12 @@ verb "xyzzy"
 verb "inventario", "i", "inv"
     inventory
 
+verb "version", "versión" meta
+    version
+
+verb "notify", "notificar", "notifica" meta
+    notify
+
 // ENCIENDE LA ANTORCHA: prender es sinónimo natural de encender.
 verb "encender", "enciende", "prender", "prende"
     switch_on noun
@@ -1387,6 +1393,15 @@ block msg_dropped()
             say "."
             return 0
     say "Al suelo."
+
+block msg_notify_line(n)
+    say "[Tu puntuación acaba de subir ${n} puntos.]"
+
+block msg_notify_on()
+    say "[Aviso de puntuación activado.]"
+
+block msg_notify_off()
+    say "[Aviso de puntuación desactivado.]"
 
 block msg_wont_shift()
     say "${The noun} no va a moverse por ahí."

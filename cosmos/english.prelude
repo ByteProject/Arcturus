@@ -626,6 +626,15 @@ verb "xyzzy"
 verb "inventory", "i", "inv"
     inventory
 
+// The session verbs: VERSION prints the banner (a player's bug report says
+// which build they have); NOTIFY toggles score notification and exists only
+// in a game whose author enabled the feature (the coupled rule, docs/01).
+verb "version" meta
+    version
+
+verb "notify" meta
+    notify
+
 // LIGHT THE TORCH, LIGHT THE CANDLE: light is a switch_on synonym (the
 // lamp-game phrasing; extinguishing already has douse-free wording through
 // switch off and turn off).
@@ -1353,6 +1362,15 @@ block msg_dropped()
             say "Down they go."
             return 0
     say "Down it goes."
+
+block msg_notify_line(n)
+    say "[Your score has just gone up by ${n}.]"
+
+block msg_notify_on()
+    say "[Score notification is on.]"
+
+block msg_notify_off()
+    say "[Score notification is off.]"
 
 block msg_wont_shift()
     say "${The noun} is not going anywhere that way."

@@ -5975,3 +5975,38 @@ no vsce on this machine, so the .vsix rebuild is Stefan's or a tooled
 session's).
 
 arcc 1.3.24, Cosmos 1.2.21. Suite 1155.
+
+## 2026-07-22: the roster closes; the verbs overhaul's phases are complete
+
+RULED (Stefan): notify in, with the coupling he designed on the spot:
+off by default, the author enables it (change notify to true, usually
+in on start), and enabling it ANYWHERE brings the player verb along
+automatically, never independently. The implementation honors that to
+the letter: a game that never writes the global has no bracket lines,
+no NOTIFY verb, no handler, and no dictionary word, checked by test.
+The watch is one compare per turn at the loop's tail, which catches
+every score change from any source (award sites and gain alike) in one
+place. VERSION in, the no-brainer, always available: the bug-report
+verb. The profanity responses in, the `swear` family in extendedverbs,
+one dry reskinnable line. ABOUT clarified as documentation's example
+of an author-declared meta verb, not a standard verb; a standard
+ABOUT-with-banner-default is one ruling away if ever wanted.
+
+The .vsix is rebuilt by tools/build_vsix.py (no vsce needed; the tool
+was there all along): editors/vscode/arcturus-1.0.3.vsix, shiftable
+highlighted, the 1.0.2 package retired.
+
++12 to +20 for VERSION in every game (one grower is the notify-enabled
+scoring example... there is none yet; the +160 outlier is the German
+example, which carries the new pack verbs). All three languages carry
+notify and version words and lines, my wordings, native pass pending.
+
+With this the six phases Stefan drew on 2026-07-22 are all landed:
+the honest matcher, the verb contract, foresight, verbs by the slice,
+enhance/redefine, and the breadth (noun lists, CONSULT, YES/NO, LIGHT,
+PICK UP, shiftable, the session verbs). What remains on the overhaul's
+horizon lives in the roadmap: doors and containers joining foresight's
+repairs when travel meets them, and CONSULT-adjacent niceties as field
+reports arrive.
+
+arcc 1.3.25, Cosmos 1.2.22. Suite 1160.

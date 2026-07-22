@@ -1480,6 +1480,24 @@ code uses (`thing`, `room`, `openable`, the direction properties, the grain
 actions in section 14) are English; only what the player reads and types is
 localized.
 
+### Score notification (notify), and VERSION
+
+Score changes are silent by default. A game that wants the classic
+bracket line enables it, usually at the start:
+
+```
+on start
+    change notify to true
+```
+
+From then on a score change announces itself at the end of the turn,
+"[Your score has just gone up by 5.]", and the player verb NOTIFY toggles
+it. The two are coupled on purpose: enabling the feature anywhere brings
+the verb along automatically, and a game that never writes `notify` has
+no bracket lines, no verb, and pays nothing, the word is not even in its
+dictionary. VERSION, by contrast, is always in: it prints the banner
+mid-game, which is how a player tells you which build their bug lives in.
+
 ### Pushing things between rooms (shiftable)
 
 A thing marked `shiftable` can be pushed through an exit, and the player

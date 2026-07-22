@@ -385,6 +385,21 @@ on consult
 // ---------------------------------------------------------------------------
 // Body and idle actions (intransitive; they just speak).
 
+// The oldest Easter egg in the medium: a player who curses gets a dry line
+// back instead of "unknown word". In-world (it consumes a turn), one
+// message, reskinnable; select it as the `swear` family.
+verb "damn", "hell", "shit", "fuck", "crap", "bugger"
+    swear
+
+on swear
+    if any_alter is 1
+        if altered is 0
+            msg_swear
+        else
+            run_alter
+    else
+        msg_swear
+
 verb "dig", "excavate"
     dig
     dig noun
@@ -551,6 +566,9 @@ block msg_consult()
 
 block msg_consult_what()
     say "Consult ${the noun} about what?"
+
+block msg_swear()
+    say "Colorful. The story declines to transcribe it."
 
 block msg_dig()
     say "The ground keeps its secrets."
