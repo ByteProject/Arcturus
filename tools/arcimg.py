@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.18.1"
+__version__ = "1.19.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -2271,12 +2271,18 @@ def _map_pixels_diffusion(rows, palette):
                     continue
                 cands.append(i2)
             if not cands:
+                # No tint-compatible entry exists for this pixel: pick
+                # deterministically by the SOURCE (never the error-laden
+                # accumulator, which flickered magenta into 2's sky) and
+                # drop the residual; dithering between wrong hues is
+                # noise, not blending.
                 cands = [i2 for i2 in range(len(palette))
                          if abs(plum[i2] - src_l) <= 40.0]
-            if not cands:
-                i = _nearest(cc, palette)
-            else:
-                i = min(cands, key=lambda k: _dist(cc, palette[k]))
+                if not cands:
+                    cands = range(len(palette))
+                idx[y][x] = min(cands, key=lambda k: _dist(s, palette[k]))
+                continue
+            i = min(cands, key=lambda k: _dist(cc, palette[k]))
             idx[y][x] = i
             if _dist(s, palette[i]) < 900:
                 continue
@@ -2301,26 +2307,62 @@ def _reduce_master(rows, n):
     One gamut hop per machine, never two, and every port is visibly a
     sibling: the family coherence of his own Photoshop cascade (Amiga ->
     ST -> CPC -> C64) without the generational loss of chaining files."""
-    free = _kmeans_polish(rows, _median_cut(rows, n))
+    hist = {}
+    total = 0
+    for row in rows:
+        for c in row:
+            hist[c] = hist.get(c, 0) + 1
+            total += 1
+    # THE SEEDS (the corpus-2 lesson): the master's own dominant paints
+    # keep their EXACT colours. K-means drifted a flat green sky and a
+    # teal halo into one centroid that matched neither, and the sky
+    # spent the rest of the pipeline homeless. A colour holding at
+    # least a hundredth of the picture is a paint, not a blend; paints
+    # are seeded verbatim and no polish may move them. The remaining
+    # slots stay adaptive (median cut + polish over the residue) for
+    # soft-painted masters whose gradients need centroids.
+    seeds = [c for c, cnt in sorted(hist.items(), key=lambda kv: -kv[1])
+             if cnt >= total // 100][:max(4, n - 4)]
+    rest = n - len(seeds)
+    extra = []
+    if rest > 0:
+        seedset = set(seeds)
+        residue = [r for r in ([c for c in row if c not in seedset]
+                               for row in rows) if r]
+        if residue:
+            extra = _kmeans_polish(residue, _median_cut(residue, rest))
+    free = seeds + [c for c in extra if c not in set(seeds)]
     free = _protect_extremes(rows, free, lambda c: c)
     return free, _map_pixels_diffusion(rows, free)
 
 
-def _express(free, usage_order, machine, merge_far=4):
+def _express(free, usage_order, machine, merge_far=2.5):
     """Express free palette entries in a machine palette, one to one
     while a close colour is available. When forcing distinctness would
     push an entry far from its free colour (two violets fighting over
-    one machine violet), it MERGES into the taken entry instead of
-    inventing a loud hue the source never had."""
+    one machine violet, two sun-golds over one yellow-white), it MERGES
+    into the taken entry instead of inventing a loud hue the source
+    never had. The metric carries THE GREY-AXIS RULE, the old CPC
+    recipe's wisdom relearned on the beach's water: a chromatic entry
+    never lands on mid-grey or white (black stays legal, darkness is
+    achromatic), and losing saturation costs, so a light-blue shimmer
+    expresses as the machine's nearest BLUE, not its grey."""
+    def _exp_dist(f, m):
+        sf = max(f) - min(f)
+        sm = max(m) - min(m)
+        if sf >= 32 and sm == 0 and m != (0, 0, 0):
+            return 1 << 30
+        return _dist(f, m) + 4 * max(0, sf - sm) * sf
+
     expr = [None] * len(free)
     taken = set()
     for i in usage_order:
         ranked = sorted(range(len(machine)),
-                        key=lambda k: _dist(free[i], machine[k]))
+                        key=lambda k: _exp_dist(free[i], machine[k]))
         best = ranked[0]
         pick = next((k for k in ranked if k not in taken), best)
-        if _dist(free[i], machine[pick]) > merge_far * max(
-                1, _dist(free[i], machine[best])):
+        if _exp_dist(free[i], machine[pick]) > merge_far * max(
+                1, _exp_dist(free[i], machine[best])):
             pick = best
         taken.add(pick)
         expr[i] = pick
