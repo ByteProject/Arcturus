@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.15.0"
+__version__ = "1.15.1"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -2193,8 +2193,10 @@ def _convert_trsm4(rows, salient=None):
 
 def _convert_p4(rows, salient=None):
     # Hires TED by THE RABENSTEIN RECIPE (Stefan's ruling, the R3 wave of the
-    # design record): near-monochrome dithered FORM, one dominant ink per
-    # region, FEW deliberate colour accents (a sky zone, a moon), and
+    # design record): near-monochrome FLAT form (no dithering; the originals
+    # are flat art, and dither broke the statue's arm and the sky, Stefan's
+    # verdict 2026-07-23), one dominant ink per region, FEW deliberate
+    # colour accents (a sky zone, a moon), and
     # dark/bright pairs of one colour per cell. Hires on purpose: the
     # 121-colour luma ladder is the Plus/4's own voice, and 320-wide pixel
     # density is what lets a restrained palette carry detail; a full-palette
@@ -2302,8 +2304,20 @@ def _convert_p4(rows, salient=None):
          if cell_mass[cy][cx] > 0.0),
         reverse=True)
     allowance = int(cells_x * cells_y * budget_frac)
-    for i, (_, cy, cx) in enumerate(ranked):
-        if i >= allowance:
+    # The relative floor: colour must EARN its place against the scene's
+    # own strongest chroma. A night forest whose trees carry a faint
+    # uniform tint keeps colour only in its truly saturated zone (the sky
+    # and the moon, the 8.prg lesson: the artist greyed every tree), while
+    # a scene of genuinely coloured things keeps them all. Capped so a
+    # very saturated scene does not strip its own midtones.
+    if ranked:
+        p90 = ranked[max(0, len(ranked) // 10 - 1)][0] if len(ranked) >= 10 \
+            else ranked[0][0]
+        floor_rel = min(0.30 * p90, 4.0)
+    else:
+        floor_rel = 0.0
+    for i, (m, cy, cx) in enumerate(ranked):
+        if i >= allowance or m < floor_rel:
             cell_hue[cy][cx] = dom
             cell_mass[cy][cx] = 0.0
     # Colour comes in ZONES, never speckles (Stefan's construction rule: no
@@ -2331,6 +2345,49 @@ def _convert_p4(rows, salient=None):
         for cy, cx in cull:
             cell_hue[cy][cx] = dom
             cell_mass[cy][cx] = 0.0
+    # One dominant ink per REGION, taken literally (the 12 clash, Stefan's
+    # verdict 2026-07-23: a tree silhouette three cell-rows tall wearing
+    # three different hues, and a foreground flickering cell by cell). The
+    # artist's own Plus/4 originals paint whole zones in ONE hue: purple
+    # mountains, one green for every tree, grey for stone. A zone is a
+    # hue AND luminance band, so each coloured cell adopts the strongest
+    # hue among its 5x5 neighbours of SIMILAR brightness, iterated so a
+    # band converges on itself without bleeding into the band above it.
+    # The luminance gate is also the accent guard: a moon or a lit window
+    # is brighter than everything around it, votes alone, and stays.
+    cell_lum = [[0.0] * cells_x for _ in range(cells_y)]
+    for cy in range(cells_y):
+        for cx in range(cells_x):
+            s = 0.0
+            for yy in range(8):
+                for xx in range(8):
+                    s += lum[cy * 8 + yy][cx * 8 + xx]
+            cell_lum[cy][cx] = s / 64.0
+    for _it in range(3):
+        nxt = [row[:] for row in cell_hue]
+        changed = False
+        for cy in range(cells_y):
+            for cx in range(cells_x):
+                if cell_hue[cy][cx] == dom:
+                    continue
+                zone: dict = {}
+                for dy in (-2, -1, 0, 1, 2):
+                    for dx in (-2, -1, 0, 1, 2):
+                        ny, nx = cy + dy, cx + dx
+                        if 0 <= ny < cells_y and 0 <= nx < cells_x \
+                                and cell_hue[ny][nx] != dom \
+                                and abs(cell_lum[ny][nx]
+                                        - cell_lum[cy][cx]) < 50.0:
+                            hc = cell_hue[ny][nx]
+                            zone[hc] = zone.get(hc, 0.0) \
+                                + max(cell_mass[ny][nx], 0.2)
+                top = max(zone, key=zone.get)
+                if top != cell_hue[cy][cx]:
+                    nxt[cy][cx] = top
+                    changed = True
+        cell_hue = nxt
+        if not changed:
+            break
     # Pass two, cohesion: a weakly-committed cell adopts its neighbourhood's
     # majority, which is what turns hue flicker into REGIONS (one dominant
     # ink per region, the ruling's own words). Strong votes stand: a moon
@@ -2373,20 +2430,23 @@ def _convert_p4(rows, salient=None):
                 ink = min(7, paper + 1)
             paper_hue = hue
             if lo < ladder[0] * 0.75:
-                paper_hue = 0  # true black under the dither
+                paper_hue = 0  # true black paper, the night look
             if force_cells.get((cx, cy), 0) >= 2:
                 ink = 7  # the disc stays bright, the R3 ruling's manner
             ink_y = ladder[ink]
             paper_y = ladder[paper] if paper_hue != 0 else 0.0
-            span = max(1.0, ink_y - paper_y)
+            # Flat mapping, never dithered: each pixel takes whichever of
+            # the cell's two lumas it is nearer to. The originals are flat
+            # art; Bayer here broke smooth skies and clean silhouettes into
+            # checkerboard (Stefan's verdict, 2026-07-23).
+            mid = (paper_y + ink_y) / 2.0
             for yy in range(8):
                 for xx in range(8):
                     px, py = cx * 8 + xx, cy * 8 + yy
                     if (px, py) in forced:
                         pixels[py][px] = 1
                         continue
-                    t = (lum[py][px] - paper_y) / span
-                    pixels[py][px] = 1 if t > (_BAYER8[py & 7][px & 7] + 0.5) / 64.0 else 0
+                    pixels[py][px] = 1 if lum[py][px] > mid else 0
             screen.append((hue << 4) | paper_hue)
             color.append((ink << 4) | paper)
     return {"w": w, "h": h, "pixels": pixels, "screen": screen,
