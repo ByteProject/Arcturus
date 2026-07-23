@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.17.0"
+__version__ = "1.17.1"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -2258,52 +2258,46 @@ def _convert_p4(rows, salient=None):
     def snap_ted(c):
         return ted_rgb[_nearest(c, ted_rgb)]
 
-    # One adaptive palette for the whole image, drawn from the TED's 121.
-    # NOT median cut: the Rabenstein masters are already-reduced flat art,
-    # and averaging their few extreme colours makes mud (the violet-tree
-    # lesson of the first diffusion build). The ZX3 doctrine applies:
-    # downsample plainly. The palette is the master's own most-used
-    # colours, snapped to the machine, rare paint diffusing into them.
-    hist = {}
-    for row in rows:
-        for c in row:
-            hist[c] = hist.get(c, 0) + 1
-    raw = sorted(hist, key=hist.get, reverse=True)[:12]
-    raw = _protect_extremes(rows, raw, snap_ted)
-    pal_rgb = []
-    pal_hl = []
-    seen = set()
-    for c in raw:
-        ti = _nearest(c, ted_rgb)
-        if ti in seen:
-            continue
-        seen.add(ti)
-        pal_rgb.append(ted_rgb[ti])
-        pal_hl.append(ted_hl[ti])
-    # The near-mono contract holds at the palette: at most six chromatic
-    # hues; entries of the weakest hues re-snap into the kept ones.
-    mass = {}
-    for row in rows:
-        for c in row:
-            hue = pal_hl[_nearest(c, pal_rgb)][0]
-            if hue > 1:
-                mass[hue] = mass.get(hue, 0) + 1
-    kept = set(sorted(mass, key=mass.get, reverse=True)[:6]) | {0, 1}
-    if set(hl[0] for hl in pal_hl) - kept:
-        legal = [i for i in range(len(ted_rgb)) if ted_hl[i][0] in kept]
-        merged_rgb, merged_hl, seen = [], [], set()
-        for c in pal_rgb:
-            ti = min(legal, key=lambda k: _dist(c, ted_rgb[k]))
-            if ti in seen:
+    # One adaptive palette in FREE colour space first (the Photoshop
+    # step exactly, verified against PIL's own adaptive+diffusion on
+    # these masters), diffusion against it, and only THEN the machine:
+    # each palette entry re-expressed as its own DISTINCT TED colour,
+    # the way Stefan's CPC file re-expresses the ST palette one to one.
+    # Snapping before diffusion was the mud-and-flatness lesson: TED's
+    # pastel gamut collapses distinct master colours into shared
+    # entries, and the detail dies before the dither can carry it.
+    free = _kmeans_polish(rows, _median_cut(rows, 8))
+    free = _protect_extremes(rows, free, lambda c: c)
+    idx = _map_pixels_diffusion(rows, free)
+    usage = {}
+    for row in idx:
+        for i in row:
+            usage[i] = usage.get(i, 0) + 1
+    order = sorted(range(len(free)), key=lambda i: -usage.get(i, 0))
+    pal_rgb = [None] * len(free)
+    pal_hl = [None] * len(free)
+    taken = set()
+    hues_used = set()
+    for i in order:
+        ranked = sorted(range(len(ted_rgb)),
+                        key=lambda k: _dist(free[i], ted_rgb[k]))
+        pick = None
+        for k in ranked:
+            if k in taken:
                 continue
-            seen.add(ti)
-            merged_rgb.append(ted_rgb[ti])
-            merged_hl.append(ted_hl[ti])
-        pal_rgb, pal_hl = merged_rgb, merged_hl
-
-    # Diffuse the whole master against the palette: the one dither, the
-    # same texture everywhere, exactly as the reference cascade works.
-    idx = _map_pixels_diffusion(rows, pal_rgb)
+            hue = ted_hl[k][0]
+            # the near-mono contract: at most six chromatic hues
+            if hue > 1 and hue not in hues_used and len(hues_used) >= 6:
+                continue
+            pick = k
+            break
+        if pick is None:
+            pick = next(k for k in ranked if k not in taken)
+        taken.add(pick)
+        if ted_hl[pick][0] > 1:
+            hues_used.add(ted_hl[pick][0])
+        pal_rgb[i] = ted_rgb[pick]
+        pal_hl[i] = ted_hl[pick]
 
     # Per cell, the legal TED pair that best preserves the dithered
     # image. Candidates in the ZX3 solver's manner: the two most frequent
