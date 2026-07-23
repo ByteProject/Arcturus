@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.19.0"
+__version__ = "1.19.1"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -2231,22 +2231,25 @@ def _map_pixels_diffusion(rows, palette):
     dithering stays available to the other targets (_map_pixels); this
     mapper is the diffusion counterpart.
 
-    Three guards, all Stefan's catches on prototype and corpus renders,
-    all FIREFLY diseases of plain Floyd-Steinberg:
-    - the luminance window: a pixel may only take palette entries within
-      40 luma of its source, so accumulated error can never tip a bright
-      sky pixel to a dark entry (dark dots over the moon) or the reverse;
-    - the chroma window: an entry whose tint pulls AGAINST the source's
-      tint is excluded even at the right brightness (purple dots in a
-      teal sky, the corpus-2 catch; the corpus-10 purple drift), while
-      same-family blends, blue into cyan, stay legal;
-    - the deadzone: when the source already sits close to the chosen
-      colour the residual is DROPPED, not diffused, so near-flat fields
-      stay flat instead of collecting sparse speckles (the 12 glow),
-      while true transitions carry a large error and dither fully.
+    Three guards, all Stefan's catches, all firefly diseases of plain
+    Floyd-Steinberg, plus one fail-safe. (A locally-gated variant was
+    tried 2026-07-23 and withdrawn the same hour: it wrecked scenes the
+    global guards had carried to his jackpot verdict. The record stands
+    in PROGRESS; the guards are global, as the jackpot corpus proves.)
+    - the luminance window: no entry beyond 40 luma of the source;
+    - the chroma window: no entry whose tint pulls against the source
+      (same-family blends stay legal);
+    - the deadzone: a source already close to its colour drops the
+      residual, so near-flat fields stay flat while true transitions
+      dither fully;
+    - the fail-safe: a pixel with NO compatible entry picks by SOURCE,
+      never the error-laden accumulator, and drops the residual (the
+      magenta flicker of corpus 2).
     """
     h, w = len(rows), len(rows[0])
     plum = [0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2] for p in palette]
+    slum = [[0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2] for c in row]
+            for row in rows]
     buf = [[[float(v) for v in c] for c in row] for row in rows]
     idx = [[0] * w for _ in range(h)]
     for y in range(h):
@@ -2259,7 +2262,7 @@ def _map_pixels_diffusion(rows, palette):
                   min(255.0, max(0.0, c[1])),
                   min(255.0, max(0.0, c[2])))
             s = rows[y][x]
-            src_l = 0.299 * s[0] + 0.587 * s[1] + 0.114 * s[2]
+            src_l = slum[y][x]
             su, sv = s[2] - src_l, s[0] - src_l
             cands = []
             for i2 in range(len(palette)):
@@ -2271,11 +2274,6 @@ def _map_pixels_diffusion(rows, palette):
                     continue
                 cands.append(i2)
             if not cands:
-                # No tint-compatible entry exists for this pixel: pick
-                # deterministically by the SOURCE (never the error-laden
-                # accumulator, which flickered magenta into 2's sky) and
-                # drop the residual; dithering between wrong hues is
-                # noise, not blending.
                 cands = [i2 for i2 in range(len(palette))
                          if abs(plum[i2] - src_l) <= 40.0]
                 if not cands:
@@ -2307,31 +2305,11 @@ def _reduce_master(rows, n):
     One gamut hop per machine, never two, and every port is visibly a
     sibling: the family coherence of his own Photoshop cascade (Amiga ->
     ST -> CPC -> C64) without the generational loss of chaining files."""
-    hist = {}
-    total = 0
-    for row in rows:
-        for c in row:
-            hist[c] = hist.get(c, 0) + 1
-            total += 1
-    # THE SEEDS (the corpus-2 lesson): the master's own dominant paints
-    # keep their EXACT colours. K-means drifted a flat green sky and a
-    # teal halo into one centroid that matched neither, and the sky
-    # spent the rest of the pipeline homeless. A colour holding at
-    # least a hundredth of the picture is a paint, not a blend; paints
-    # are seeded verbatim and no polish may move them. The remaining
-    # slots stay adaptive (median cut + polish over the residue) for
-    # soft-painted masters whose gradients need centroids.
-    seeds = [c for c, cnt in sorted(hist.items(), key=lambda kv: -kv[1])
-             if cnt >= total // 100][:max(4, n - 4)]
-    rest = n - len(seeds)
-    extra = []
-    if rest > 0:
-        seedset = set(seeds)
-        residue = [r for r in ([c for c in row if c not in seedset]
-                               for row in rows) if r]
-        if residue:
-            extra = _kmeans_polish(residue, _median_cut(residue, rest))
-    free = seeds + [c for c in extra if c not in set(seeds)]
+    # The palette is adaptive, never seeded: exact-paint seeding was
+    # tried (2026-07-23) and starved the gradients of their in-between
+    # slots; church windows flattened, water lost its shimmer, and the
+    # detail Stefan prizes died. The jackpot corpus rode this build.
+    free = _kmeans_polish(rows, _median_cut(rows, n))
     free = _protect_extremes(rows, free, lambda c: c)
     return free, _map_pixels_diffusion(rows, free)
 
