@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.16.0"
+__version__ = "1.16.1"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -2370,6 +2370,27 @@ def _convert_p4(rows, salient=None):
         else:
             break
 
+    # Near-white speaks with one voice (Stefan's verdict on the pilot:
+    # massive bluish blocks sitting in 12's yellow glow "like a bug").
+    # Two touching regions that are both very bright and both barely
+    # tinted are the same white sky to the eye; at cell granularity
+    # their pale rivalry renders as rectangular blocks, so they merge,
+    # and the glow keeps the tint of the larger.
+    while True:
+        cand = [(a, b) for a, b in adjacency()
+                if a in regs and b in regs
+                and regs[a]["mlum"] >= 175.0 and regs[b]["mlum"] >= 175.0
+                and (lambda ua, va: (ua * ua + va * va) ** 0.5 < 0.15)(
+                    *raw_uv(regs[a]))
+                and (lambda ub, vb: (ub * ub + vb * vb) ** 0.5 < 0.15)(
+                    *raw_uv(regs[b]))]
+        if not cand:
+            break
+        a, b = cand[0]
+        big, small = (a, b) if len(regs[a]["cells"]) >= \
+            len(regs[b]["cells"]) else (b, a)
+        merge(big, small)
+
     # One colour and a shadow per region. The colour is the region's
     # chroma-mass hue (grey ladder when the mass is weak); the shadow is
     # black when the region's dark pole is truly dark, else the same
@@ -2461,6 +2482,34 @@ def _convert_p4(rows, salient=None):
             cell = sorted(lum[cy * 8 + yy][cx * 8 + xx]
                           for yy in range(8) for xx in range(8))
             lo, hi = cell[6], cell[57]
+            # The cell's own tint evidence, split at its median: the mean
+            # chroma direction of its bright pixels and of its dark ones.
+            # The pole picker matches DIRECTION of tint as well as
+            # brightness, so a sky-region cell stranded in the yellow
+            # glow follows its own yellow lean to the glow's legal colour
+            # instead of stamping a blue block there (Stefan's 12 bug).
+            med = cell[32]
+            bu = bv = bw = du = dv = dw = 0.0
+            for yy in range(8):
+                for xx in range(8):
+                    rr, gg, bb = rows[cy * 8 + yy][cx * 8 + xx]
+                    Y = lum[cy * 8 + yy][cx * 8 + xx]
+                    v = (rr - Y) / 90.0
+                    u = (bb - Y) / 110.0
+                    sat = (u * u + v * v) ** 0.5
+                    if sat < 0.10:
+                        continue
+                    wgt = sat * (Y / 255.0)
+                    if Y >= med:
+                        bu += u * wgt
+                        bv += v * wgt
+                        bw += wgt
+                    else:
+                        du += u * wgt
+                        dv += v * wgt
+                        dw += wgt
+            bright_uv = (bu / bw, bv / bw) if bw > 0.3 else None
+            dark_uv = (du / dw, dv / dw) if dw > 0.3 else None
             # the legal candidates: own pair first (preferred on ties),
             # then the neighbours' pairs, then black
             cands = [(hue, ink_l), (pap_h, pap_l)]
@@ -2475,16 +2524,27 @@ def _convert_p4(rows, salient=None):
             def luma_of(c):
                 return 0.0 if c[0] == 0 else ladder[c[1]]
 
-            def pick(pole):
+            def pick(pole, side_uv):
                 best, bd = cands[0], 1e9
                 for i, c in enumerate(cands):
                     d = abs(luma_of(c) - pole) + i * 0.01
+                    if side_uv is not None:
+                        su, sv = side_uv
+                        smag = (su * su + sv * sv) ** 0.5
+                        if smag >= 0.15:
+                            if c[0] > 1:
+                                hu, hv = _TED_HUES[c[0]]
+                                hmag = (hu * hu + hv * hv) ** 0.5 or 1.0
+                                cos = (su * hu + sv * hv) / (smag * hmag)
+                                d += 45.0 * (1.0 - cos)
+                            else:
+                                d += 20.0 * min(1.0, smag / 0.8)
                     if d < bd:
                         best, bd = c, d
                 return best
 
-            ink_c = (hue, 7) if accent[cy][cx] else pick(hi)
-            pap_c = pick(lo)
+            ink_c = (hue, 7) if accent[cy][cx] else pick(hi, bright_uv)
+            pap_c = pick(lo, dark_uv)
             if ink_c == pap_c:
                 ink_c = (hue, ink_l)
                 pap_c = (pap_h, pap_l)
@@ -2510,7 +2570,17 @@ def _convert_p4(rows, salient=None):
                                 lmin = l2
                             elif l2 > lmax:
                                 lmax = l2
-                    if lmax - lmin >= 20.0:
+                    # An EDGE is not texture (Stefan's verdict on the
+                    # pilot: dither ate the moon's rim and the ladder's
+                    # rails). A pixel already close to one of the cell's
+                    # two tones maps flat, always, so the meeting line of
+                    # two flat things stays crisp; only a genuine midtone
+                    # inside a busy area dithers.
+                    if t <= 0.30:
+                        bright = False
+                    elif t >= 0.70:
+                        bright = True
+                    elif lmax - lmin >= 20.0:
                         bright = t > (_BAYER8[py & 7][px & 7] + 0.5) / 64.0
                     else:
                         bright = t > 0.5
