@@ -162,6 +162,32 @@ def test_cpc_inks_are_in_the_cube():
     assert all(0 <= i <= 26 for i in native["palette"])
 
 
+# THE CPC IS FROZEN (Stefan's ruling, 2026-07-23: "WE ARE NOT TOUCHING
+# CPC AGAIN"). The corpus at arcimg 1.19.1 is his approved "genuinely
+# perfect" build; these digests pin its exact output bytes on
+# representative scenes. If ANY refactor of the shared pipeline
+# (_reduce_master, _map_pixels_diffusion, _express, _convert_cpc)
+# changes a digest, this test fails and the change must instead go
+# into a target-private variant. That is the mechanism behind the
+# ruling that expression policy is per target: the CPC keeps the exact
+# path it was approved with.
+_CPC_GOLDEN = {
+    "2.png": "acf280f35b1a1b43",
+    "8.png": "39f75b8ea04d3602",
+    "10.png": "7eb55b0c34e9600e",
+    "12.png": "1de995d5b46d1290",
+}
+
+
+@pytest.mark.parametrize("name", sorted(_CPC_GOLDEN))
+def test_cpc_output_is_frozen(name):
+    import hashlib
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, name), "CPC")
+    t = arcimg.TARGETS["CPC"]
+    blob = b"".join(bytes(pl) for _ty, _fl, pl in t.pack(native))
+    assert hashlib.sha256(blob).hexdigest()[:16] == _CPC_GOLDEN[name]
+
+
 # -- wave 3: the Atari 8-bit per-line solver ------------------------------------
 
 @pytest.mark.parametrize("name", SAMPLE)
