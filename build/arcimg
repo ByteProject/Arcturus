@@ -75,13 +75,13 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.16.1"
+__version__ = "1.17.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = '7facbe2'
+__build__ = '54404c2'
 
 
 def build_id() -> str:
@@ -2191,402 +2191,186 @@ def _convert_trsm4(rows, salient=None):
 
 
 
+def _map_pixels_diffusion(rows, palette):
+    """Master pixels to palette indices by Floyd-Steinberg error diffusion,
+    serpentine scan. THE PHOTOSHOP MANNER (Stefan's reboot ruling,
+    2026-07-23, studied on his own Ghosts of Blackwood Manor cascade,
+    Amiga -> ST -> CPC -> C64, machine-generated and untouched by hand):
+    one small palette for the whole image and diffusion everywhere. On
+    smooth gradients this lays the sparse, evenly drifting dots of his
+    reference skies; where the palette matches the paint it goes honestly
+    flat; and it never draws the Bayer crosses he ruled out. Ordered
+    dithering stays available to the other targets (_map_pixels); this
+    mapper is the diffusion counterpart."""
+    h, w = len(rows), len(rows[0])
+    buf = [[[float(v) for v in c] for c in row] for row in rows]
+    idx = [[0] * w for _ in range(h)]
+    for y in range(h):
+        serp = y & 1
+        xs = range(w - 1, -1, -1) if serp else range(w)
+        step = -1 if serp else 1
+        for x in xs:
+            c = buf[y][x]
+            cc = (min(255.0, max(0.0, c[0])),
+                  min(255.0, max(0.0, c[1])),
+                  min(255.0, max(0.0, c[2])))
+            i = _nearest(cc, palette)
+            idx[y][x] = i
+            pr, pg, pb = palette[i]
+            er, eg, eb = c[0] - pr, c[1] - pg, c[2] - pb
+            for dx, dy, wt in ((step, 0, 7), (-step, 1, 3),
+                               (0, 1, 5), (step, 1, 1)):
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < w and 0 <= ny < h:
+                    t = buf[ny][nx]
+                    t[0] += er * wt / 16.0
+                    t[1] += eg * wt / 16.0
+                    t[2] += eb * wt / 16.0
+    return idx
+
+
 def _convert_p4(rows, salient=None):
-    # THE REGION MODEL (Stefan's ruling, 2026-07-23, piloted here on the
-    # Plus/4 before it goes back over the R3 targets): colour is decided
-    # per REGION, never per cell. The per-cell quantize was the root flaw:
-    # each cell rounded the master independently, a smooth sky came out in
-    # five hues, and every disagreement between neighbours was a clash
-    # that infected what it touched. Here the picture is first segmented
-    # into a handful of zones (the number you would name aloud describing
-    # it), each zone commits to ONE colour and a shadow colour and sticks
-    # with it, and anything beyond a zone's pair must pass the spill test:
-    # an accent is admitted only where it shares the zone's shadow, so it
-    # cannot clash with any neighbour by construction. The moon needs no
-    # hint under this model; a bright disc on a dark pair survives because
-    # the sky is two colours, not five. Dither serves the pair (texture
-    # and darkening where the master is busy), never bridges cells.
-    # `salient` is accepted for signature compatibility and ignored: the
-    # pilot's aim is that salience emerges from the model, not a sidecar.
+    # Hires TED, THE PHOTOSHOP MANNER (Stefan's reboot ruling, 2026-07-23,
+    # after the region-model pilot failed his eye). The working recipe is
+    # the one his own Ghosts of Blackwood Manor conversions prove: choose
+    # ONE small adaptive palette for the whole image, expressed in the
+    # machine's own colours; error-diffuse the entire master against it
+    # (dither is the universal medium, not a rationed effect; no Bayer
+    # crosses); THEN, and only then, resolve the hardware constraint per
+    # cell, each 8x8 choosing the legal pair that best preserves the
+    # dithered image (the ZX3 solver's manner: frequency candidates plus
+    # the pivot pair). Global palette consistency means neighbouring
+    # cells cannot invent clashes, and the brightest cluster is protected
+    # into the palette (_protect_extremes), which is what keeps the moon
+    # without any hint. `salient` is accepted and ignored.
     h, w = len(rows), len(rows[0])
     ladder = _TED_LUMA
+
+    # The machine's voice: the full TED colour set, black plus fifteen
+    # hues on the eight-step luminance ladder.
+    ted_rgb = [(0, 0, 0)]
+    ted_hl = [(0, 0)]
+    for hue in range(1, 16):
+        for lu in range(8):
+            ted_rgb.append(_ted_color(hue, lu))
+            ted_hl.append((hue, lu))
+
+    def snap_ted(c):
+        return ted_rgb[_nearest(c, ted_rgb)]
+
+    # One adaptive palette for the whole image, drawn from the TED's 121.
+    # NOT median cut: the Rabenstein masters are already-reduced flat art,
+    # and averaging their few extreme colours makes mud (the violet-tree
+    # lesson of the first diffusion build). The ZX3 doctrine applies:
+    # downsample plainly. The palette is the master's own most-used
+    # colours, snapped to the machine, rare paint diffusing into them.
+    hist = {}
+    for row in rows:
+        for c in row:
+            hist[c] = hist.get(c, 0) + 1
+    raw = sorted(hist, key=hist.get, reverse=True)[:12]
+    raw = _protect_extremes(rows, raw, snap_ted)
+    pal_rgb = []
+    pal_hl = []
+    seen = set()
+    for c in raw:
+        ti = _nearest(c, ted_rgb)
+        if ti in seen:
+            continue
+        seen.add(ti)
+        pal_rgb.append(ted_rgb[ti])
+        pal_hl.append(ted_hl[ti])
+    # The near-mono contract holds at the palette: at most six chromatic
+    # hues; entries of the weakest hues re-snap into the kept ones.
+    mass = {}
+    for row in rows:
+        for c in row:
+            hue = pal_hl[_nearest(c, pal_rgb)][0]
+            if hue > 1:
+                mass[hue] = mass.get(hue, 0) + 1
+    kept = set(sorted(mass, key=mass.get, reverse=True)[:6]) | {0, 1}
+    if set(hl[0] for hl in pal_hl) - kept:
+        legal = [i for i in range(len(ted_rgb)) if ted_hl[i][0] in kept]
+        merged_rgb, merged_hl, seen = [], [], set()
+        for c in pal_rgb:
+            ti = min(legal, key=lambda k: _dist(c, ted_rgb[k]))
+            if ti in seen:
+                continue
+            seen.add(ti)
+            merged_rgb.append(ted_rgb[ti])
+            merged_hl.append(ted_hl[ti])
+        pal_rgb, pal_hl = merged_rgb, merged_hl
+
+    # Diffuse the whole master against the palette: the one dither, the
+    # same texture everywhere, exactly as the reference cascade works.
+    idx = _map_pixels_diffusion(rows, pal_rgb)
+
+    # Per cell, the legal TED pair that best preserves the dithered
+    # image. Candidates in the ZX3 solver's manner: the two most frequent
+    # palette entries, the leader against black, and the pivot pair from
+    # the cell's own tonal structure. Score against the master's pixels;
+    # assign each pixel by its DIFFUSED colour, so the dither survives
+    # the constraint.
     cells_x, cells_y = w // 8, h // 8
-    hue_uv = [(hc, uv) for hc, uv in _TED_HUES.items() if hc > 1]
-
-    lum = [[0.299 * r + 0.587 * g + 0.114 * b for (r, g, b) in row]
-           for row in rows]
-
-    # Per-cell aggregates: mean luminance and the chroma-mass vector
-    # (saturation at brightness, the 8.prg calibration: a dark tint reads
-    # as black to the artist's eye, so weight chroma by how lit it is).
-    cl_lum = [[0.0] * cells_x for _ in range(cells_y)]
-    cl_u = [[0.0] * cells_x for _ in range(cells_y)]
-    cl_v = [[0.0] * cells_x for _ in range(cells_y)]
-    cl_w = [[0.0] * cells_x for _ in range(cells_y)]
-    for cy in range(cells_y):
-        for cx in range(cells_x):
-            s = uu = vv = ww = 0.0
-            for yy in range(8):
-                for xx in range(8):
-                    r, g, b = rows[cy * 8 + yy][cx * 8 + xx]
-                    Y = lum[cy * 8 + yy][cx * 8 + xx]
-                    s += Y
-                    v = (r - Y) / 90.0
-                    u = (b - Y) / 110.0
-                    sat = (u * u + v * v) ** 0.5
-                    if sat >= 0.10:
-                        wgt = sat * (Y / 255.0)
-                        uu += u * wgt
-                        vv += v * wgt
-                        ww += wgt
-            cl_lum[cy][cx] = s / 64.0
-            cl_u[cy][cx], cl_v[cy][cx], cl_w[cy][cx] = uu, vv, ww
-
-    # Initial labels: black cells stand apart; the rest classify by a
-    # scene-relative brightness band and a hue family (grey when the
-    # cell's chroma mass is weak). These labels only SEED the regions;
-    # the merge below is what makes zones out of them.
-    vis = sorted(cl_lum[cy][cx] for cy in range(cells_y)
-                 for cx in range(cells_x) if cl_lum[cy][cx] >= 10.0)
-    p33 = vis[len(vis) // 3] if vis else 0.0
-    p66 = vis[(2 * len(vis)) // 3] if vis else 0.0
-
-    def cell_label(cy, cx):
-        ml = cl_lum[cy][cx]
-        if ml < 10.0:
-            return (-1, 0)
-        band = 0 if ml < p33 else (1 if ml < p66 else 2)
-        if cl_w[cy][cx] >= 1.6:
-            cu = cl_u[cy][cx] / cl_w[cy][cx]
-            cv = cl_v[cy][cx] / cl_w[cy][cx]
-            fam = min(hue_uv, key=lambda t: (cu - t[1][0]) ** 2
-                      + (cv - t[1][1]) ** 2)[0]
-        else:
-            fam = 1
-        return (band, fam)
-
-    labels = [[cell_label(cy, cx) for cx in range(cells_x)]
-              for cy in range(cells_y)]
-
-    # Connected components over equal labels (4-neighbour) seed regions.
-    rid = [[-1] * cells_x for _ in range(cells_y)]
-    regions = []          # rid -> list of (cy, cx)
-    for cy in range(cells_y):
-        for cx in range(cells_x):
-            if rid[cy][cx] >= 0:
-                continue
-            r = len(regions)
-            comp = [(cy, cx)]
-            rid[cy][cx] = r
-            head = 0
-            while head < len(comp):
-                qy, qx = comp[head]
-                head += 1
-                for ny, nx in ((qy - 1, qx), (qy + 1, qx),
-                               (qy, qx - 1), (qy, qx + 1)):
-                    if 0 <= ny < cells_y and 0 <= nx < cells_x \
-                            and rid[ny][nx] < 0 \
-                            and labels[ny][nx] == labels[qy][qx]:
-                        rid[ny][nx] = len(regions)
-                        comp.append((ny, nx))
-            regions.append(comp)
-
-    # Region feature summary, refreshed as regions merge.
-    def summarize(cells):
-        n = len(cells)
-        ml = sum(cl_lum[cy][cx] for cy, cx in cells) / n
-        uu = sum(cl_u[cy][cx] for cy, cx in cells)
-        vv = sum(cl_v[cy][cx] for cy, cx in cells)
-        ww = sum(cl_w[cy][cx] for cy, cx in cells)
-        black = all(cl_lum[cy][cx] < 10.0 for cy, cx in cells)
-        return {"cells": cells, "mlum": ml, "u": uu, "v": vv, "w": ww,
-                "black": black}
-
-    regs = {i: summarize(c) for i, c in enumerate(regions)}
-
-    def reg_uv(r):
-        if r["w"] < 1.0 or r["w"] / len(r["cells"]) < 0.8:
-            return (0.0, 0.0)
-        return (r["u"] / r["w"], r["v"] / r["w"])
-
-    def raw_uv(r):
-        # For the merge DISTANCE the gate stays open: a pastel ridge has a
-        # faint but real hue, and greying it here is what let the violet
-        # mountains sink into the trees.
-        if r["w"] < 0.2:
-            return (0.0, 0.0)
-        return (r["u"] / r["w"], r["v"] / r["w"])
-
-    def distance(a, b):
-        # Brightness apart keeps zones apart; chroma apart keeps a green
-        # canopy out of a violet sky. Black regions never merge upward.
-        if a["black"] != b["black"]:
-            return 9e9
-        ua, va = raw_uv(a)
-        ub, vb = raw_uv(b)
-        duv = ((ua - ub) ** 2 + (va - vb) ** 2) ** 0.5
-        return abs(a["mlum"] - b["mlum"]) / 60.0 + 6.0 * duv
-
-    def adjacency():
-        pairs = set()
-        for cy in range(cells_y):
-            for cx in range(cells_x):
-                a = rid[cy][cx]
-                for ny, nx in ((cy + 1, cx), (cy, cx + 1)):
-                    if 0 <= ny < cells_y and 0 <= nx < cells_x:
-                        b = rid[ny][nx]
-                        if a != b:
-                            pairs.add((min(a, b), max(a, b)))
-        return pairs
-
-    def merge(a, b):
-        for cy, cx in regs[b]["cells"]:
-            rid[cy][cx] = a
-        regs[a] = summarize(regs[a]["cells"] + regs[b]["cells"])
-        del regs[b]
-
-    # Absorb fragments: a region under 4 cells joins its nearest
-    # neighbour, so no stray cell keeps a private colour opinion.
-    changed = True
-    while changed:
-        changed = False
-        for a, b in sorted(adjacency()):
-            if a not in regs or b not in regs:
-                continue
-            small, big = (a, b) if len(regs[a]["cells"]) < 4 else (b, a)
-            if len(regs[small]["cells"]) < 4:
-                merge(big, small)
-                changed = True
-    # Collapse near-identical neighbours (the five-hue sky becomes one
-    # region here), then enforce the zone count a describer would use.
-    while True:
-        pairs = [(distance(regs[a], regs[b]), a, b)
-                 for a, b in adjacency() if a in regs and b in regs]
-        if not pairs:
-            break
-        d, a, b = min(pairs)
-        if d < 0.55 or len(regs) > 10:
-            merge(a, b)
-        else:
-            break
-
-    # Near-white speaks with one voice (Stefan's verdict on the pilot:
-    # massive bluish blocks sitting in 12's yellow glow "like a bug").
-    # Two touching regions that are both very bright and both barely
-    # tinted are the same white sky to the eye; at cell granularity
-    # their pale rivalry renders as rectangular blocks, so they merge,
-    # and the glow keeps the tint of the larger.
-    while True:
-        cand = [(a, b) for a, b in adjacency()
-                if a in regs and b in regs
-                and regs[a]["mlum"] >= 175.0 and regs[b]["mlum"] >= 175.0
-                and (lambda ua, va: (ua * ua + va * va) ** 0.5 < 0.15)(
-                    *raw_uv(regs[a]))
-                and (lambda ub, vb: (ub * ub + vb * vb) ** 0.5 < 0.15)(
-                    *raw_uv(regs[b]))]
-        if not cand:
-            break
-        a, b = cand[0]
-        big, small = (a, b) if len(regs[a]["cells"]) >= \
-            len(regs[b]["cells"]) else (b, a)
-        merge(big, small)
-
-    # One colour and a shadow per region. The colour is the region's
-    # chroma-mass hue (grey ladder when the mass is weak); the shadow is
-    # black when the region's dark pole is truly dark, else the same
-    # colour lower on the ladder. At most six chromatic regions keep
-    # their hue (the near-mono contract); the weakest go grey.
-    order = sorted(regs, key=lambda r: -regs[r]["w"])
-    chromatic = set()
-    for r in order:
-        ru, rv = reg_uv(regs[r])
-        if (ru * ru + rv * rv) ** 0.5 >= 0.08 and len(chromatic) < 6:
-            chromatic.add(r)
-    pair = {}
-    for r, reg in regs.items():
-        if reg["black"]:
-            pair[r] = (0, 0, 0, 0)
-            continue
-        plums = sorted(lum[cy * 8 + yy][cx * 8 + xx]
-                       for cy, cx in reg["cells"]
-                       for yy in range(8) for xx in range(8))
-        dark = plums[len(plums) // 10]
-        body = plums[(len(plums) * 7) // 10]
-        if r in chromatic:
-            ru, rv = reg_uv(reg)
-            hue = min(hue_uv, key=lambda t: (ru - t[1][0]) ** 2
-                      + (rv - t[1][1]) ** 2)[0]
-        else:
-            hue = 1
-        ink_l = min(range(8), key=lambda i: abs(ladder[i] - body))
-        if dark < 14.0:
-            pap_h, pap_l = 0, 0
-        else:
-            pap_h = hue
-            pap_l = min(range(8), key=lambda i: abs(ladder[i] - dark))
-            if ink_l <= pap_l:
-                ink_l = min(7, pap_l + 1)
-        pair[r] = (hue, ink_l, pap_h, pap_l)
-        reg["body"] = body
-
-    # The accents, under the spill test: cells far brighter than their
-    # region's body (a moon, a lit window, white cloud crowns) take the
-    # region's colour at full brightness while KEEPING the region's
-    # shadow, so no neighbouring cell can ever show a clash edge. If too
-    # much of a region qualifies it is not an accent but the region's own
-    # brightness, and the region simply keeps its pair.
-    accent = [[False] * cells_x for _ in range(cells_y)]
-    for r, reg in regs.items():
-        if reg["black"]:
-            continue
-        body = reg.get("body", 255.0)
-        cand = []
-        for cy, cx in reg["cells"]:
-            cell = sorted(lum[cy * 8 + yy][cx * 8 + xx]
-                          for yy in range(8) for xx in range(8))
-            top = cell[57]
-            # solid: a quarter of the cell rides near the top, so a moon
-            # or a window qualifies and a few lit twigs do not
-            solid = sum(1 for l in cell if l >= top - 30.0) >= 16
-            if solid and top > body + 45.0                     and top > ladder[pair[r][1]] + 25.0:
-                cand.append((cy, cx))
-        if 0 < len(cand) <= max(4, len(reg["cells"]) // 5):
-            for cy, cx in cand:
-                accent[cy][cx] = True
-
-    # Render: every cell wears its region's pair (brightened ink on the
-    # accent cells), flat where the master is smooth, dithered where it
-    # is busy (texture and darkening, the artist's own use of dither).
-    # Render with BOUNDARY PAIRS (the Pixel Polizei rule at generation
-    # time): a cell may only wear colours that are already legal around
-    # it - its own region's pair, an adjacent region's pair, or black.
-    # An interior cell naturally picks its own pair. A cell where a thin
-    # dark feature crosses a bright zone (the statue against the sky)
-    # keeps the zone's colour for its bright pole and borrows the dark
-    # pole from the neighbour region or black, which is exactly how the
-    # artist paints a silhouette: two regions sharing one cell, and
-    # never a new colour that could clash with anything beside it.
     pixels = [[0] * w for _ in range(h)]
     screen = []
     color = []
+    black_rgb = (0, 0, 0)
     for cy in range(cells_y):
         for cx in range(cells_x):
-            r = rid[cy][cx]
-            hue, ink_l, pap_h, pap_l = pair[r]
-            if regs[r]["black"] and all(
-                    lum[cy * 8 + yy][cx * 8 + xx] < 12.0
-                    for yy in range(8) for xx in range(8)):
-                screen.append(0)
-                color.append(0)
-                continue
-            cell = sorted(lum[cy * 8 + yy][cx * 8 + xx]
-                          for yy in range(8) for xx in range(8))
-            lo, hi = cell[6], cell[57]
-            # The cell's own tint evidence, split at its median: the mean
-            # chroma direction of its bright pixels and of its dark ones.
-            # The pole picker matches DIRECTION of tint as well as
-            # brightness, so a sky-region cell stranded in the yellow
-            # glow follows its own yellow lean to the glow's legal colour
-            # instead of stamping a blue block there (Stefan's 12 bug).
-            med = cell[32]
-            bu = bv = bw = du = dv = dw = 0.0
-            for yy in range(8):
-                for xx in range(8):
-                    rr, gg, bb = rows[cy * 8 + yy][cx * 8 + xx]
-                    Y = lum[cy * 8 + yy][cx * 8 + xx]
-                    v = (rr - Y) / 90.0
-                    u = (bb - Y) / 110.0
-                    sat = (u * u + v * v) ** 0.5
-                    if sat < 0.10:
-                        continue
-                    wgt = sat * (Y / 255.0)
-                    if Y >= med:
-                        bu += u * wgt
-                        bv += v * wgt
-                        bw += wgt
-                    else:
-                        du += u * wgt
-                        dv += v * wgt
-                        dw += wgt
-            bright_uv = (bu / bw, bv / bw) if bw > 0.3 else None
-            dark_uv = (du / dw, dv / dw) if dw > 0.3 else None
-            # the legal candidates: own pair first (preferred on ties),
-            # then the neighbours' pairs, then black
-            cands = [(hue, ink_l), (pap_h, pap_l)]
-            for ny, nx in ((cy - 1, cx), (cy + 1, cx),
-                           (cy, cx - 1), (cy, cx + 1)):
-                if 0 <= ny < cells_y and 0 <= nx < cells_x                         and rid[ny][nx] != r:
-                    nh, nil, nph, npl = pair[rid[ny][nx]]
-                    cands.append((nh, nil))
-                    cands.append((nph, npl))
-            cands.append((0, 0))
-
-            def luma_of(c):
-                return 0.0 if c[0] == 0 else ladder[c[1]]
-
-            def pick(pole, side_uv):
-                best, bd = cands[0], 1e9
-                for i, c in enumerate(cands):
-                    d = abs(luma_of(c) - pole) + i * 0.01
-                    if side_uv is not None:
-                        su, sv = side_uv
-                        smag = (su * su + sv * sv) ** 0.5
-                        if smag >= 0.15:
-                            if c[0] > 1:
-                                hu, hv = _TED_HUES[c[0]]
-                                hmag = (hu * hu + hv * hv) ** 0.5 or 1.0
-                                cos = (su * hu + sv * hv) / (smag * hmag)
-                                d += 45.0 * (1.0 - cos)
-                            else:
-                                d += 20.0 * min(1.0, smag / 0.8)
-                    if d < bd:
-                        best, bd = c, d
-                return best
-
-            ink_c = (hue, 7) if accent[cy][cx] else pick(hi, bright_uv)
-            pap_c = pick(lo, dark_uv)
-            if ink_c == pap_c:
-                ink_c = (hue, ink_l)
-                pap_c = (pap_h, pap_l)
-                if ink_c == pap_c:
-                    pap_c = (0, 0)
-            iy, py_ = luma_of(ink_c), luma_of(pap_c)
-            bright_is_ink = iy >= py_
-            lo_y, hi_y = (py_, iy) if bright_is_ink else (iy, py_)
-            span = max(1.0, hi_y - lo_y)
+            hist = {}
+            cell = []
             for yy in range(8):
                 for xx in range(8):
                     px, py = cx * 8 + xx, cy * 8 + yy
-                    t = (lum[py][px] - lo_y) / span
-                    lmin = lmax = lum[py][px]
-                    for ny in (py - 1, py, py + 1):
-                        if ny < 0 or ny >= h:
-                            continue
-                        for nx in (px - 1, px, px + 1):
-                            if nx < 0 or nx >= w:
-                                continue
-                            l2 = lum[ny][nx]
-                            if l2 < lmin:
-                                lmin = l2
-                            elif l2 > lmax:
-                                lmax = l2
-                    # An EDGE is not texture (Stefan's verdict on the
-                    # pilot: dither ate the moon's rim and the ladder's
-                    # rails). A pixel already close to one of the cell's
-                    # two tones maps flat, always, so the meeting line of
-                    # two flat things stays crisp; only a genuine midtone
-                    # inside a busy area dithers.
-                    if t <= 0.30:
-                        bright = False
-                    elif t >= 0.70:
-                        bright = True
-                    elif lmax - lmin >= 20.0:
-                        bright = t > (_BAYER8[py & 7][px & 7] + 0.5) / 64.0
-                    else:
-                        bright = t > 0.5
-                    pixels[py][px] = 1 if bright == bright_is_ink else 0
-            screen.append((ink_c[0] << 4) | pap_c[0])
-            color.append((ink_c[1] << 4) | pap_c[1])
+                    i = idx[py][px]
+                    hist[i] = hist.get(i, 0) + 1
+                    cell.append((rows[py][px], i, px, py))
+            top = sorted(hist, key=hist.get, reverse=True)
+            a = top[0]
+            b = top[1] if len(top) > 1 else top[0]
+            cands = {(a, b), (a, a)}
+            # the pivot pair: split the cell at its median luminance,
+            # average each side, snap each average into the palette
+            lums = sorted((0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2], c)
+                          for c, _i, _x, _y in cell)
+            piv = lums[len(lums) // 2][0]
+            losd = [c for l, c in lums if l <= piv]
+            hisd = [c for l, c in lums if l > piv] or losd
+            avg = lambda g: tuple(sum(v[k] for v in g) / len(g)
+                                  for k in range(3))
+            cands.add((_nearest(avg(hisd), pal_rgb),
+                       _nearest(avg(losd), pal_rgb)))
+            best = None
+            for ca, cb in cands:
+                err = 0
+                for c, _i, _x, _y in cell:
+                    err += min(_dist(c, pal_rgb[ca]), _dist(c, pal_rgb[cb]))
+                if best is None or err < best[0]:
+                    best = (err, ca, cb)
+            _e, ca, cb = best
+            # ink is the brighter of the pair; a one-colour cell rides on
+            # black paper
+            la = 0.299 * pal_rgb[ca][0] + 0.587 * pal_rgb[ca][1] \
+                + 0.114 * pal_rgb[ca][2]
+            lb = 0.299 * pal_rgb[cb][0] + 0.587 * pal_rgb[cb][1] \
+                + 0.114 * pal_rgb[cb][2]
+            if ca == cb:
+                ink_i, pap_i = ca, None
+            elif la >= lb:
+                ink_i, pap_i = ca, cb
+            else:
+                ink_i, pap_i = cb, ca
+            ink_rgb = pal_rgb[ink_i]
+            pap_rgb = pal_rgb[pap_i] if pap_i is not None else black_rgb
+            for c, i, px, py in cell:
+                dc = pal_rgb[i]
+                pixels[py][px] = 1 if _dist(dc, ink_rgb) \
+                    <= _dist(dc, pap_rgb) else 0
+            ih, il = pal_hl[ink_i]
+            ph, pl = pal_hl[pap_i] if pap_i is not None else (0, 0)
+            screen.append((ih << 4) | ph)
+            color.append((il << 4) | pl)
     return {"w": w, "h": h, "pixels": pixels, "screen": screen,
             "color": color, "regs": [0]}
 
