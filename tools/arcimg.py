@@ -2253,6 +2253,14 @@ def _convert_p4(rows, salient=None):
                    if m / total >= 0.05][:6]
     dom = 1
     allowed = accents
+    # THE COLOUR BUDGET (Stefan's ruling, 2026-07-23): how many cells may
+    # take colour at all scales with the scene's own brightness, measured
+    # over its lit pixels, so a night scene spends colour on a few strong
+    # zones and a lit scene keeps the lodge's richness. Within the budget,
+    # colour goes to the strongest-chroma cells first: less is more, ranked.
+    lit = [l for row in lum for l in row if l > 8]
+    mean_lit = (sum(lit) / len(lit)) if lit else 0.0
+    budget_frac = max(0.08, min(0.60, mean_lit / 200.0))
 
     forced = set()
     force_cells: dict = {}
@@ -2280,12 +2288,49 @@ def _convert_p4(rows, salient=None):
                         mass[hc] = mass.get(hc, 0.0) + sat_of[py][px]
             if mass:
                 hue = max(mass, key=mass.get)
-                # A cell earns its colour: an accent hue only where the
-                # master is strongly and broadly saturated in it (the sky
-                # zone, the moon); everything else stays on the grey ladder.
+                # A cell earns its colour: never below the floor, and even
+                # then only within the scene's ranked budget (below).
                 if mass[hue] >= 1.6:
                     cell_hue[cy][cx] = hue
                     cell_mass[cy][cx] = mass[hue]
+    # Spend the budget: keep the strongest-chroma cells coloured, grey the
+    # rest. Ranking is what makes a night sky survive while a tinted
+    # night floor does not: the sky outranks it.
+    ranked = sorted(
+        ((cell_mass[cy][cx], cy, cx)
+         for cy in range(cells_y) for cx in range(cells_x)
+         if cell_mass[cy][cx] > 0.0),
+        reverse=True)
+    allowance = int(cells_x * cells_y * budget_frac)
+    for i, (_, cy, cx) in enumerate(ranked):
+        if i >= allowance:
+            cell_hue[cy][cx] = dom
+            cell_mass[cy][cx] = 0.0
+    # Colour comes in ZONES, never speckles (Stefan's construction rule: no
+    # clashes, subtle accents in larger monochromatic forms): a coloured
+    # cell with fewer than two coloured neighbours goes grey. Two passes,
+    # so a thin chain collapses rather than surviving off its own tail.
+    for _sweep in range(2):
+        cull = []
+        for cy in range(cells_y):
+            for cx in range(cells_x):
+                if cell_hue[cy][cx] == dom or cell_mass[cy][cx] <= 0.0:
+                    continue
+                n = 0
+                for dy in (-1, 0, 1):
+                    for dx in (-1, 0, 1):
+                        if dy == 0 and dx == 0:
+                            continue
+                        ny, nx = cy + dy, cx + dx
+                        if 0 <= ny < cells_y and 0 <= nx < cells_x \
+                                and cell_mass[ny][nx] > 0.0 \
+                                and cell_hue[ny][nx] != dom:
+                            n += 1
+                if n < 2:
+                    cull.append((cy, cx))
+        for cy, cx in cull:
+            cell_hue[cy][cx] = dom
+            cell_mass[cy][cx] = 0.0
     # Pass two, cohesion: a weakly-committed cell adopts its neighbourhood's
     # majority, which is what turns hue flicker into REGIONS (one dominant
     # ink per region, the ruling's own words). Strong votes stand: a moon

@@ -6191,3 +6191,37 @@ the Spectrum solver rework, per the lineage ruling, so the training
 pays twice.
 
 arcimg 1.15.0 (interim). Suite 1169.
+
+
+## 2026-07-23: the colour budget
+
+Stefan corrected my reading of the training data before it went
+wrong: the greenish sky in the master IS the conversion target; his
+violet was artistic freedom, and a tool must not chase freedom. The
+renderer fix stands (his own PRGs and screenshot prove the documented
+TED hue order), but the originals now train STRUCTURE, not hue: no
+clashes, subtle dark tones inside larger monochromatic forms, and
+less colour is more. Fredrik's full-bitmap call for Ozmoo needed no
+reply, his curiosity only; for the record the contract blesses it by
+design, and Ozmoo's disk-paging architecture makes a raster split
+unworkable there anyway.
+
+RULED (Stefan): the colour budget. Implemented as: the scene's
+lit-pixel brightness sets how many cells may take colour at all
+(night spends colour on a few strong zones, a lit scene keeps the
+lodge richness he praised); within the budget, colour goes to the
+strongest-chroma cells first, ranked, which is less-is-more made
+mechanical; and colour comes in ZONES, never speckles: a coloured
+cell without two coloured neighbours goes grey, two sweeps, so thin
+chains collapse. The floor, the luminance-weighted chroma, and the
+cohesion pass stand beneath it.
+
+Measured against his originals: 8 at 76% achromatic (his 94, the
+extreme he named as such), 17 at 89 (his 61), 14 at 70 (his 42), 12
+at 41 (his 48). The renders in arc_image/preview/ (gitignored, his
+chosen spot) carry the look: the grey forest with the greenish sky
+on 8, the lodge still warm, the garden calmed. His eyes are the
+done-test; the numbers only steer.
+
+Suite 1169; converter behavior only, no version bump until his
+verdict ships it.
