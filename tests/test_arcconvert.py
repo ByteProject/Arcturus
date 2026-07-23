@@ -260,15 +260,44 @@ def _disc_master(tmp_path):
     return str(p)
 
 
+def _disc_separation(rendered):
+    """Mean colour inside the fixture disc vs its surrounding ring."""
+    inside, ring = [], []
+    for y, row in enumerate(rendered):
+        for x, c in enumerate(row):
+            d2 = (x - 160) ** 2 + (y - 32) ** 2
+            if d2 <= 100:
+                inside.append(c)
+            elif 400 <= d2 <= 784:
+                ring.append(c)
+    mean = lambda px: tuple(sum(c[k] for c in px) / len(px)
+                            for k in range(3))
+    return arcimg._dist(mean(inside), mean(ring))
+
+
 def test_hint_promotes_the_disc_to_white(tmp_path):
+    # The ZX3 keeps the R3 hint promotion until its own rework round.
     path = _disc_master(tmp_path)
-    for tag in ("C64", "ZX3"):
-        _mode, native = arcimg.convert_master(path, tag)
-        t = arcimg.TARGETS[tag]
-        rendered = t.render(native, native["w"], native["h"])
-        whites = sum(1 for row in rendered for c in row
-                     if c[0] > 200 and c[1] > 200 and c[2] > 200)
-        assert whites > 100, tag
+    _mode, native = arcimg.convert_master(path, "ZX3")
+    rendered = arcimg.TARGETS["ZX3"].render(native, native["w"],
+                                            native["h"])
+    whites = sum(1 for row in rendered for c in row
+                 if c[0] > 200 and c[1] > 200 and c[2] > 200)
+    assert whites > 100
+
+
+def test_c64_disc_survives_without_a_hint(tmp_path):
+    # The diffusion doctrine (Stefan's reboot, 2026-07-23): the C64 does
+    # not consult the hint sidecar; salience lives in the intermediate
+    # (_protect_extremes guarantees the brightest cluster an entry). The
+    # invariant is DISTINCTNESS, not forced white: the disc must render
+    # apart from its sky. Measured separation on the fixture is ~85000
+    # _dist units; the floor leaves a wide margin.
+    path = _disc_master(tmp_path)
+    _mode, native = arcimg.convert_master(path, "C64")
+    rendered = arcimg.TARGETS["C64"].render(native, native["w"],
+                                            native["h"])
+    assert _disc_separation(rendered) > 20000
 
 
 def test_a8_hand_polished_c64_is_the_source(tmp_path):
@@ -289,16 +318,15 @@ def test_a8_hand_polished_c64_is_the_source(tmp_path):
     assert set(native["lines"]) <= set(arcimg._c64_to_gtia())
 
 
-def test_a8_hint_promotes_the_disc_to_full_luminance(tmp_path):
-    # The A8 promotion keeps the disc's HUE (128 colors allow it) but lifts
-    # it to full GTIA luminance: the disc must stand apart from the sky it
-    # glows out of.
+def test_a8_disc_survives_through_the_c64(tmp_path):
+    # The A8 derives from the C64 and inherits the diffusion doctrine:
+    # no hint, the disc stands apart from its sky by distinctness
+    # (measured ~72000 on the fixture).
     path = _disc_master(tmp_path)
     _mode, native = arcimg.convert_master(path, "A8")
-    rendered = arcimg.TARGETS["A8"].render(native, native["w"], native["h"])
-    bright = sum(1 for row in rendered for c in row
-                 if 2 * c[0] + 4 * c[1] + c[2] > 1300)
-    assert bright > 300
+    rendered = arcimg.TARGETS["A8"].render(native, native["w"],
+                                           native["h"])
+    assert _disc_separation(rendered) > 20000
 
 
 def test_no_hint_no_change(tmp_path):
