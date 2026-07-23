@@ -241,6 +241,25 @@ Architecture: one shared front half, per-target back halves.
     collapses where a strand's color lost its register: the band
     limit, accepted at the gate). Per-hue luma refinement stays
     staged. Plus/4 and MSX1 decide their source at their own rounds.
+  - DOCTRINE CHANGE, 2026-07-23 (Stefan's reboot ruling, studied on his
+    own Ghosts of Blackwood Manor Photoshop cascade): conversion moves
+    to THE SHARED REDUCTION INTERMEDIATE. One free-space adaptive
+    palette and one Floyd-Steinberg diffusion map per picture
+    (_reduce_master; the diffusion carries the luminance window and the
+    error deadzone, both firefly guards from his C64 prototype review),
+    and every target EXPRESSES that intermediate in its own colours
+    (one-to-one while a close colour is free, merging rather than
+    inventing a loud hue), then solves its own constraint. One gamut
+    hop per machine, never two. Executed so far: the CPC (first
+    expression, no cell constraint, the family look his eye reviews),
+    the P4 hires build that seeded the pipeline. Ruled to follow, in
+    order: the C64 (cell solve on the intermediate; the A8 keeps
+    deriving from it), the Plus/4 REBUILT AS MULTICOLOUR (his ruling:
+    hires abandoned; the C64 logic with TED colours), MSX1, and the
+    Spectrum LAST, deriving from MSX1 (nearest palette kin, milder
+    strip constraint first). The paragraphs above describe the
+    superseded per-target recipes and stay as the historical record;
+    the Bayer/ordered dither of the 16-bit trio is untouched.
   - Signal class: Apple II via NTSC modeling (the ii-pix lineage), with
     the palette-bit group constraint driving a constraint-aware diffuser
     (wave 4; expected to consume the flat base as well, ruled at its own

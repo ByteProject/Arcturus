@@ -75,13 +75,13 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.17.1"
+__version__ = "1.18.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = 'b822976'
+__build__ = 'bd82918'
 
 
 def build_id() -> str:
@@ -1874,12 +1874,40 @@ def _cpc_from_c64(c64, refs=None, skip=frozenset()):
 
 
 def _convert_cpc(rows, salient=None):
-    # Master in, C64 taste and dither first, CPC out; the master rides
-    # along as the de-grey yardstick (pair averages, reference only).
-    refs = [[tuple((a + b) // 2 for a, b in zip(row[x], row[x + 1]))
+    # THE FIRST EXPRESSION OF THE SHARED INTERMEDIATE (Stefan's ruling,
+    # 2026-07-23, reversing the old C64-first derivation): CPC mode 0 is
+    # the one 8-bit target with no cell constraint, sixteen free inks
+    # per pixel, so it renders the reduction pure: what his eye approves
+    # here is the family's shared look, and every machine after adds
+    # exactly one new variable, its own constraint. Salience is handled
+    # by the intermediate itself (_protect_extremes); the hint sidecar
+    # is not consulted.
+    half = [[tuple((a + b) // 2 for a, b in zip(row[x], row[x + 1]))
              for x in range(0, len(row), 2)] for row in rows]
-    return _cpc_from_c64(_convert_c64(rows, salient), refs,
-                         _forced_cells(salient))
+    h, w = len(half), len(half[0])
+    lv = (0, 0x80, 0xFF)
+    cube = [(lv[r], lv[g], lv[b])
+            for r in range(3) for g in range(3) for b in range(3)]
+    free, idx = _reduce_master(half, 16)
+    expr = _express(free, _usage_order(idx, len(free)), cube)
+    # ink slots: distinct cube colours in usage order, stragglers merge
+    inks = []
+    slot = {}
+    for i in _usage_order(idx, len(free)):
+        k = expr[i]
+        if k not in slot:
+            if len(inks) < 16:
+                slot[k] = len(inks)
+                inks.append(k)
+            else:
+                slot[k] = slot[min(
+                    slot, key=lambda q: _dist(cube[k], cube[q]))]
+    pixels = [[slot[expr[idx[y][x]]] for x in range(w)] for y in range(h)]
+    pal = list(inks)
+    while len(pal) < 16:
+        pal.append(0)  # unused slots; a duplicate ink is legal hardware
+    return {"w": w, "h": h, "pixels": pixels, "palette": pal,
+            "regs": [0]}
 
 
 # The 128 colors an Atari color register can hold apart: 16 hues x 8
@@ -2201,8 +2229,20 @@ def _map_pixels_diffusion(rows, palette):
     reference skies; where the palette matches the paint it goes honestly
     flat; and it never draws the Bayer crosses he ruled out. Ordered
     dithering stays available to the other targets (_map_pixels); this
-    mapper is the diffusion counterpart."""
+    mapper is the diffusion counterpart.
+
+    Two guards, both Stefan's catches on the C64 prototype renders,
+    both FIREFLY diseases of plain Floyd-Steinberg:
+    - the luminance window: a pixel may only take palette entries within
+      40 luma of its source, so accumulated error can never tip a bright
+      sky pixel to a dark entry (dark dots over the moon) or the reverse;
+    - the deadzone: when the source already sits close to the chosen
+      colour the residual is DROPPED, not diffused, so near-flat fields
+      stay flat instead of collecting sparse speckles (the 12 glow),
+      while true transitions carry a large error and dither fully.
+    """
     h, w = len(rows), len(rows[0])
+    plum = [0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2] for p in palette]
     buf = [[[float(v) for v in c] for c in row] for row in rows]
     idx = [[0] * w for _ in range(h)]
     for y in range(h):
@@ -2214,8 +2254,17 @@ def _map_pixels_diffusion(rows, palette):
             cc = (min(255.0, max(0.0, c[0])),
                   min(255.0, max(0.0, c[1])),
                   min(255.0, max(0.0, c[2])))
-            i = _nearest(cc, palette)
+            s = rows[y][x]
+            src_l = 0.299 * s[0] + 0.587 * s[1] + 0.114 * s[2]
+            cands = [i for i in range(len(palette))
+                     if abs(plum[i] - src_l) <= 40.0]
+            if not cands:
+                i = _nearest(cc, palette)
+            else:
+                i = min(cands, key=lambda k: _dist(cc, palette[k]))
             idx[y][x] = i
+            if _dist(s, palette[i]) < 900:
+                continue
             pr, pg, pb = palette[i]
             er, eg, eb = c[0] - pr, c[1] - pg, c[2] - pb
             for dx, dy, wt in ((step, 0, 7), (-step, 1, 3),
@@ -2227,6 +2276,48 @@ def _map_pixels_diffusion(rows, palette):
                     t[1] += eg * wt / 16.0
                     t[2] += eb * wt / 16.0
     return idx
+
+
+def _reduce_master(rows, n):
+    """THE SHARED REDUCTION INTERMEDIATE (Stefan's ruling, 2026-07-23):
+    one adaptive free-space palette and one diffused index map per
+    picture, computed once; every retro target EXPRESSES this same
+    intermediate in its own colours and then solves its own constraint.
+    One gamut hop per machine, never two, and every port is visibly a
+    sibling: the family coherence of his own Photoshop cascade (Amiga ->
+    ST -> CPC -> C64) without the generational loss of chaining files."""
+    free = _kmeans_polish(rows, _median_cut(rows, n))
+    free = _protect_extremes(rows, free, lambda c: c)
+    return free, _map_pixels_diffusion(rows, free)
+
+
+def _express(free, usage_order, machine, merge_far=4):
+    """Express free palette entries in a machine palette, one to one
+    while a close colour is available. When forcing distinctness would
+    push an entry far from its free colour (two violets fighting over
+    one machine violet), it MERGES into the taken entry instead of
+    inventing a loud hue the source never had."""
+    expr = [None] * len(free)
+    taken = set()
+    for i in usage_order:
+        ranked = sorted(range(len(machine)),
+                        key=lambda k: _dist(free[i], machine[k]))
+        best = ranked[0]
+        pick = next((k for k in ranked if k not in taken), best)
+        if _dist(free[i], machine[pick]) > merge_far * max(
+                1, _dist(free[i], machine[best])):
+            pick = best
+        taken.add(pick)
+        expr[i] = pick
+    return expr
+
+
+def _usage_order(idx, n):
+    usage = {}
+    for row in idx:
+        for i in row:
+            usage[i] = usage.get(i, 0) + 1
+    return sorted(range(n), key=lambda i: -usage.get(i, 0))
 
 
 def _convert_p4(rows, salient=None):
