@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.18.0"
+__version__ = "1.18.1"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -2231,11 +2231,15 @@ def _map_pixels_diffusion(rows, palette):
     dithering stays available to the other targets (_map_pixels); this
     mapper is the diffusion counterpart.
 
-    Two guards, both Stefan's catches on the C64 prototype renders,
-    both FIREFLY diseases of plain Floyd-Steinberg:
+    Three guards, all Stefan's catches on prototype and corpus renders,
+    all FIREFLY diseases of plain Floyd-Steinberg:
     - the luminance window: a pixel may only take palette entries within
       40 luma of its source, so accumulated error can never tip a bright
       sky pixel to a dark entry (dark dots over the moon) or the reverse;
+    - the chroma window: an entry whose tint pulls AGAINST the source's
+      tint is excluded even at the right brightness (purple dots in a
+      teal sky, the corpus-2 catch; the corpus-10 purple drift), while
+      same-family blends, blue into cyan, stay legal;
     - the deadzone: when the source already sits close to the chosen
       colour the residual is DROPPED, not diffused, so near-flat fields
       stay flat instead of collecting sparse speckles (the 12 glow),
@@ -2256,8 +2260,19 @@ def _map_pixels_diffusion(rows, palette):
                   min(255.0, max(0.0, c[2])))
             s = rows[y][x]
             src_l = 0.299 * s[0] + 0.587 * s[1] + 0.114 * s[2]
-            cands = [i for i in range(len(palette))
-                     if abs(plum[i] - src_l) <= 40.0]
+            su, sv = s[2] - src_l, s[0] - src_l
+            cands = []
+            for i2 in range(len(palette)):
+                if abs(plum[i2] - src_l) > 40.0:
+                    continue
+                p2 = palette[i2]
+                pu, pv = p2[2] - plum[i2], p2[0] - plum[i2]
+                if abs(pu - su) > 70.0 or abs(pv - sv) > 70.0:
+                    continue
+                cands.append(i2)
+            if not cands:
+                cands = [i2 for i2 in range(len(palette))
+                         if abs(plum[i2] - src_l) <= 40.0]
             if not cands:
                 i = _nearest(cc, palette)
             else:
