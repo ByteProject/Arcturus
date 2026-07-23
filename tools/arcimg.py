@@ -4063,7 +4063,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_targets.set_defaults(func=cmd_targets)
 
     p_conv = sub.add_parser(
-        "convert", help="convert band-shaped masters to a retro target")
+        "convert", help="convert band-shaped masters to a retro target",
+        epilog="A master with a bright celestial disc (a moon, a sun) may "
+               "carry a hint sidecar beside it, 8.hint next to 8.png, one "
+               "line of JSON: {\"salient\": [[cx, cy, r]]} naming the disc "
+               "in pixel coordinates. Every target then keeps the disc "
+               "visible on palettes that would otherwise lose it.")
     p_conv.add_argument("sources", nargs="+",
                         help="directories and/or <number>.png masters")
     p_conv.add_argument("--target", required=True,
