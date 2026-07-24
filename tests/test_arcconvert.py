@@ -188,6 +188,27 @@ def test_cpc_output_is_frozen(name):
     assert hashlib.sha256(blob).hexdigest()[:16] == _CPC_GOLDEN[name]
 
 
+# The C64 derives from the frozen CPC (Stefan's ruling, 2026-07-24:
+# "the derived route without any alteration was already it", the
+# corpus "genuinely all good, we cracked it"). Same freeze mechanism:
+# these digests pin the approved derivation.
+_C64_GOLDEN = {
+    "2.png": "340bee30bfa683c3",
+    "8.png": "ce4cd87434dc94e2",
+    "10.png": "e6cc5a5e431c9458",
+    "12.png": "480ab54dc63b9c17",
+}
+
+
+@pytest.mark.parametrize("name", sorted(_C64_GOLDEN))
+def test_c64_output_is_frozen(name):
+    import hashlib
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, name), "C64")
+    t = arcimg.TARGETS["C64"]
+    blob = b"".join(bytes(pl) for _ty, _fl, pl in t.pack(native))
+    assert hashlib.sha256(blob).hexdigest()[:16] == _C64_GOLDEN[name]
+
+
 # -- wave 3: the Atari 8-bit per-line solver ------------------------------------
 
 @pytest.mark.parametrize("name", SAMPLE)

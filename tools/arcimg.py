@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.20.0"
+__version__ = "1.21.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -1517,107 +1517,55 @@ def _spice(M, argb, x, y, smooth=True):
     return i2 if _BAYER8[y & 7][x & 7] / 64.0 < t else i1
 
 
-def _c64_diffuse(rows, palette):
-    """The C64's private diffusion, transplanted verbatim from the
-    scratch prototype Stefan approved outright ("brilliant and
-    perfect"): Floyd-Steinberg serpentine with the luminance window
-    (40) and the deadzone (900), and deliberately NO chroma window;
-    the approved render predates it and reproducing that render
-    exactly is the specification (his instruction, 2026-07-23). The
-    shared mapper stays untouched for the frozen CPC."""
-    h, w = len(rows), len(rows[0])
-    plum = [0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2] for p in palette]
-    buf = [[[float(v) for v in c] for c in row] for row in rows]
-    idx = [[0] * w for _ in range(h)]
-    for y in range(h):
-        serp = y & 1
-        xs = range(w - 1, -1, -1) if serp else range(w)
-        step = -1 if serp else 1
-        for x in xs:
-            c = buf[y][x]
-            cc = (min(255.0, max(0.0, c[0])),
-                  min(255.0, max(0.0, c[1])),
-                  min(255.0, max(0.0, c[2])))
-            s = rows[y][x]
-            src_l = 0.299 * s[0] + 0.587 * s[1] + 0.114 * s[2]
-            cands = [i for i in range(len(palette))
-                     if abs(plum[i] - src_l) <= 40.0]
-            if not cands:
-                cands = range(len(palette))
-            i = min(cands, key=lambda k: _dist(cc, palette[k]))
-            idx[y][x] = i
-            if _dist(s, palette[i]) < 900:
-                continue
-            pr, pg, pb = palette[i]
-            er, eg, eb = c[0] - pr, c[1] - pg, c[2] - pb
-            for dx, dy, wt in ((step, 0, 7), (-step, 1, 3),
-                               (0, 1, 5), (step, 1, 1)):
-                nx, ny = x + dx, y + dy
-                if 0 <= nx < w and 0 <= ny < h:
-                    t = buf[ny][nx]
-                    t[0] += er * wt / 16.0
-                    t[1] += eg * wt / 16.0
-                    t[2] += eb * wt / 16.0
-    return idx
-
-
-def _c64_express(free, usage_order):
-    """The C64's private expression, also verbatim from the approved
-    prototype: one-to-one into Colodore while a close colour is free,
-    merge at 4x, and no grey-axis rule; Colodore is a designed palette
-    whose greys are art (the night trees), so the plain metric decides.
-    Per-target expression policy is Stefan's ruling of 2026-07-23."""
-    expr = [None] * len(free)
-    taken = set()
-    for i in usage_order:
-        ranked = sorted(range(16),
-                        key=lambda k: _dist(free[i], _COLODORE[k]))
-        best = ranked[0]
-        pick = next((k for k in ranked if k not in taken), best)
-        if _dist(free[i], _COLODORE[pick]) > 4 * max(
-                1, _dist(free[i], _COLODORE[best])):
-            pick = best
-        taken.add(pick)
-        expr[i] = pick
-    return expr
-
-
-def _convert_c64(rows, salient=None):
-    # THE DIFFUSION PIPELINE (Stefan's reboot of 2026-07-23), the exact
-    # configuration of the scratch prototype he approved outright: the
-    # eight-entry free-space intermediate (restraint against Colodore's
-    # sixteen), private diffusion and expression above, the Polizei
-    # background vote among clashing cells, and the multicolour cell
-    # solve last. Salience lives in the intermediate (_protect_extremes);
-    # the hint sidecar is not consulted. The Polizei-recipe converter
-    # this replaces served from wave 2 to the reboot and remains in git
-    # history; the A8 keeps deriving from this conversion.
-    half = [[tuple((a + b) // 2 for a, b in zip(row[x], row[x + 1]))
-             for x in range(0, len(row), 2)] for row in rows]
-    h, w = len(half), len(half[0])
-    free = _kmeans_polish(half, _median_cut(half, 8))
-    free = _protect_extremes(half, free, lambda c: c)
-    idx = _c64_diffuse(half, free)
+def _c64_from_cpc(cpc):
+    """THE C64 DERIVES FROM THE FROZEN CPC (Stefan's ruling, 2026-07-24:
+    "the derived route without any alteration was already it"; the whole
+    from-CPC corpus judged genuinely all good, "we cracked it"). The
+    frozen, golden-pinned CPC conversion is the family's reduction; the
+    C64 adds exactly two things: each CPC ink claims its own Colodore
+    colour (injective, usage-ordered, plain metric; a hue-preference
+    variant was tried the same day and withdrawn, it broke approved
+    scenes, the record is in PROGRESS), and the multicolour cell solve.
+    This is Stefan's own Photoshop cascade, ST to CPC to C64, made
+    permanent machinery; the A8 keeps deriving from the C64 below."""
+    pixels, pal = cpc["pixels"], cpc["palette"]
+    h, w = cpc["h"], cpc["w"]
+    inks_rgb = [_cpc_color(p % 27) for p in pal]
     usage = {}
-    for row in idx:
+    for row in pixels:
         for i in row:
             usage[i] = usage.get(i, 0) + 1
-    order = sorted(range(len(free)), key=lambda i: -usage.get(i, 0))
-    expr = _c64_express(free, order)
-    # background: the most frequent colour among clashing cells only
+    order = sorted(range(len(inks_rgb)), key=lambda i: -usage.get(i, 0))
+    to_c64 = [0] * len(inks_rgb)
+    taken = set()
+    for i in order:
+        ranked = sorted(range(16),
+                        key=lambda k: _dist(inks_rgb[i], _COLODORE[k]))
+        pick = next((k for k in ranked if k not in taken), ranked[0])
+        taken.add(pick)
+        to_c64[i] = pick
+    grid = [[to_c64[pixels[y][x]] for x in range(w)] for y in range(h)]
+    # the Polizei background vote among clashing cells
     clash = {}
     for cy in range(h // 8):
         for cx in range(w // 4):
             seen = {}
             for yy in range(8):
                 for xx in range(4):
-                    c = expr[idx[cy * 8 + yy][cx * 4 + xx]]
+                    c = grid[cy * 8 + yy][cx * 4 + xx]
                     seen[c] = seen.get(c, 0) + 1
             if len(seen) > 4:
                 for c, n in seen.items():
                     clash[c] = clash.get(c, 0) + n
-    bg = max(clash, key=clash.get) if clash else expr[order[0]]
-    pixels = [[0] * w for _ in range(h)]
+    if clash:
+        bg = max(clash, key=clash.get)
+    else:
+        allc = {}
+        for row in grid:
+            for c in row:
+                allc[c] = allc.get(c, 0) + 1
+        bg = max(allc, key=allc.get)
+    pixels_out = [[0] * w for _ in range(h)]
     screen = []
     color = []
     for cy in range(h // 8):
@@ -1625,23 +1573,31 @@ def _convert_c64(rows, salient=None):
             hist = {}
             for yy in range(8):
                 for xx in range(4):
-                    c = expr[idx[cy * 8 + yy][cx * 4 + xx]]
+                    c = grid[cy * 8 + yy][cx * 4 + xx]
                     if c != bg:
                         hist[c] = hist.get(c, 0) + 1
             freec = sorted(hist, key=hist.get, reverse=True)[:3]
             allowed = [bg] + freec
             for yy in range(8):
                 for xx in range(4):
-                    c = expr[idx[cy * 8 + yy][cx * 4 + xx]]
+                    c = grid[cy * 8 + yy][cx * 4 + xx]
                     if c not in allowed:
                         c = min(allowed, key=lambda k: _dist(
                             _COLODORE[c], _COLODORE[k]))
-                    pixels[cy * 8 + yy][cx * 4 + xx] = allowed.index(c)
+                    pixels_out[cy * 8 + yy][cx * 4 + xx] = allowed.index(c)
             freec += [bg] * (3 - len(freec))
             screen.append((freec[0] << 4) | freec[1])
             color.append(freec[2])
-    return {"w": w, "h": h, "pixels": pixels, "screen": screen,
+    return {"w": w, "h": h, "pixels": pixels_out, "screen": screen,
             "color": color, "regs": [bg]}
+
+
+def _convert_c64(rows, salient=None):
+    # The C64 is a child of the frozen CPC: convert to the CPC first
+    # (frozen, golden-pinned, Stefan's "genuinely perfect"), derive from
+    # that. One reduction, expressed down the family, exactly as his
+    # 80s ports derived from each other.
+    return _c64_from_cpc(_convert_cpc(rows, salient))
 
 
 def _dist_luma(a, b, w=20):

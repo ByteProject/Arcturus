@@ -251,13 +251,16 @@ Architecture: one shared front half, per-target back halves.
     (one-to-one while a close colour is free, merging rather than
     inventing a loud hue), then solves its own constraint. One gamut
     hop per machine, never two. Executed so far: the CPC (first
-    expression, no cell constraint, the family look his eye reviews),
-    the P4 hires build that seeded the pipeline. Ruled to follow, in
-    order: the C64 (cell solve on the intermediate; the A8 keeps
-    deriving from it), the Plus/4 REBUILT AS MULTICOLOUR (his ruling:
-    hires abandoned; the C64 logic with TED colours), MSX1, and the
-    Spectrum LAST, deriving from MSX1 (nearest palette kin, milder
-    strip constraint first). The paragraphs above describe the
+    expression, no cell constraint; his verdict "genuinely perfect",
+    FROZEN 2026-07-23 with golden digests, never to be touched), and
+    the C64, which after a direct-pipeline round now DERIVES FROM THE
+    FROZEN CPC (Stefan's ruling 2026-07-24, the from-CPC corpus
+    "genuinely all good, we cracked it": injective usage-ordered
+    Colodore recolour, plain metric, then the multicolour cell solve;
+    also golden-pinned). Ruled to follow: the Plus/4 REBUILT AS
+    MULTICOLOUR (hires abandoned; the C64 logic with TED colours),
+    MSX1, and the Spectrum LAST, deriving from MSX1 (nearest palette
+    kin, milder strip constraint first). The paragraphs above describe the
     superseded per-target recipes and stay as the historical record;
     the Bayer/ordered dither of the 16-bit trio is untouched.
   - Signal class: Apple II via NTSC modeling (the ii-pix lineage), with
