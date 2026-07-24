@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.23.0"
+__version__ = "1.24.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -2224,10 +2224,39 @@ def _a8_combo_score(strip, combo_rgb, protected):
             blocks[x * 8 // len(row)] += e
     score = total + 4 * max(blocks)
     for col, weight in protected:
-        d = min(_dist_luma(col, k) for k in combo_rgb)
+        best = min(combo_rgb, key=lambda k: _dist_luma(col, k))
+        d = _dist_luma(col, best)
+        # TINT LOYALTY in the housing test (the fourth appearance of
+        # the grey-axis lesson, 2026-07-24): a chromatic cluster is NOT
+        # housed by a grey of equal brightness. Without this the
+        # beach's blue sea sat 3832 "close" to grey under the luma
+        # metric, inside the 4000 home radius, and the water greyed;
+        # the same blindness was the corpus-wide missing-details bug
+        # Stefan called out three times.
+        if max(col) - min(col) >= 18 and max(best) - min(best) < 18:
+            d *= 3
         if d > 4000:
             score += d * weight // 4
     return score
+
+
+def _a8_snap(c):
+    """Tint-loyal snap into the GTIA wheel (calibrated on the beach
+    master, 2026-07-24: cliffs measure warm at spread 24, true neutrals
+    9-13, so the boundary sits at 18). A source with a real tint may
+    only snap to a chromatic entry on its own side of the wheel: warm
+    stays warm, cool stays cool, and only true neutrals may be grey.
+    Stefan's calling: the master's cliffs are sand-warm brown, never
+    grey, and my thresholds at 30 were blind to soft chroma."""
+    spread = max(c) - min(c)
+    if spread < 18:
+        return min(range(len(_GTIA_RGB)),
+                   key=lambda k: _dist(c, _GTIA_RGB[k]))
+    warm = c[0] > c[2]
+    cands = [k for k in range(len(_GTIA_RGB))
+             if (_GTIA128[k] >> 4) != 0
+             and ((_GTIA_RGB[k][0] > _GTIA_RGB[k][2]) == warm)]
+    return min(cands, key=lambda k: _dist(c, _GTIA_RGB[k]))
 
 
 def _convert_a8(rows, salient=None):
@@ -2255,9 +2284,7 @@ def _convert_a8(rows, salient=None):
              for x in range(0, len(row), 2)] for row in rows]
     h, w = len(half), len(half[0])
 
-    def snap(c):
-        return min(range(len(_GTIA_RGB)),
-                   key=lambda k: _dist(c, _GTIA_RGB[k]))
+    snap = _a8_snap
 
     palettes = []
     prev = None
@@ -2301,6 +2328,39 @@ def _convert_a8(rows, salient=None):
                 break
         while len(best) < 4:
             best.append(0)
+        # THE CANVAS TAKES ITS USERS' TINT (Stefan's proposal,
+        # 2026-07-24, after four gate rounds proved the pixel stage was
+        # the wrong place: the Kopie build was right everywhere except
+        # its grey canvas). For each mid-grey register, gather the strip
+        # pixels that would land on it; if they are mostly tinted one
+        # way, the register BECOMES their tint-loyal colour: a sea
+        # canvas turns light blue, near-neutrals sit on it comfortably,
+        # and no pixel gate exists to speckle a sky. True black and
+        # bright white canvases stay; chromatic entries stay.
+        pal4 = [_GTIA_RGB[k] for k in best]
+        for slot in range(4):
+            e = pal4[slot]
+            el = 0.299 * e[0] + 0.587 * e[1] + 0.114 * e[2]
+            if max(e) - min(e) >= 18 or el < 30.0:
+                continue
+            users = []
+            for srow in strip:
+                for c in srow:
+                    if min(range(4), key=lambda k: _dist(c, pal4[k])) \
+                            == slot:
+                        users.append(c)
+            if len(users) < 80:
+                continue
+            n = len(users)
+            mc = tuple(sum(c[k] for c in users) / n for k in range(3))
+            ml2 = 0.299 * mc[0] + 0.587 * mc[1] + 0.114 * mc[2]
+            mmag = ((mc[2] - ml2) ** 2 + (mc[0] - ml2) ** 2) ** 0.5
+            if mmag < 12.0:
+                continue
+            k2 = _a8_snap(tuple(round(v) for v in mc))
+            if k2 not in best:
+                best[slot] = k2
+                pal4[slot] = _GTIA_RGB[k2]
         palettes.append(best)
         prev = best
 

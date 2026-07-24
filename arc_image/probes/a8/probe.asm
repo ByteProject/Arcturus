@@ -132,8 +132,11 @@ draw:   lda #0                  ; wipe the bitmap: BMP..BMP+$0EFF
         bne -
         inc pdst+1
         ldx pdst+1
-        cpx #>BMP + $0f
-        bne -
+        cpx #(>BMP) + $0f       ; parenthesized: acme's > binds LOW, and
+        bne -                   ; the unbracketed form wiped all of RAM
+                                ; through POKEY (Stefan heard it: minutes
+                                ; of "disk stress" was the runaway loop
+                                ; strafing $D2xx)
         ldx #47                 ; zero the compacted segment table
         lda #0
 -       sta segtab,x

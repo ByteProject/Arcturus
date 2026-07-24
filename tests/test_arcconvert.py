@@ -212,11 +212,15 @@ def test_c64_output_is_frozen(name):
 # The A8 converts direct from the master (Stefan's ruling and corpus
 # approval, 2026-07-24: "nothing regressed. A8 is approved."). Same
 # freeze mechanism as its siblings.
+# Re-pinned 2026-07-24 after the corpus reopened and closed on
+# Stefan's verdict ("We leave it as is. It's genuinely good"): the
+# tint-loyal housing and snap, and the canvas rule (the canvas takes
+# its users' tint, his design), joined the approved build.
 _A8_GOLDEN = {
-    "2.png": "5d8d33ae3bdd1da4",
-    "8.png": "e8affa1326140b0e",
-    "10.png": "0cae209613996796",
-    "12.png": "8fa4033bc7efeb65",
+    "2.png": "ef54885c5b281a3e",
+    "8.png": "8b2e1fb98131247b",
+    "10.png": "b4ea4b8338ed7ae8",
+    "12.png": "01c9f2488da0a929",
 }
 
 
