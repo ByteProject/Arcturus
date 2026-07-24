@@ -38,11 +38,14 @@
 ; SIZE :  about 230 bytes.
 ; ----------------------------------------------------------------------
 
-zr_src   = $08          ; source pointer (2)
-zr_bits  = $0a          ; the bit reservoir, sentinel-armed
-zr_noff  = $0b          ; last offset, NEGATIVE 16-bit form (2)
-zr_len   = $0d          ; gamma value / run counter (2)
-zr_wp    = $0f          ; ring write pointer, absolute (2)
+; The cells default to the C64's free BASIC-dormant block; a platform
+; whose OS owns that page (the A8: DOSVEC, POKMSK live there) defines
+; its own cells BEFORE !source-ing this file.
+!ifdef zr_src {} else { zr_src  = $08 }  ; source pointer (2)
+!ifdef zr_bits {} else { zr_bits = $0a } ; the bit reservoir, sentinel-armed
+!ifdef zr_noff {} else { zr_noff = $0b } ; last offset, NEGATIVE 16-bit (2)
+!ifdef zr_len {} else { zr_len  = $0d }  ; gamma value / run counter (2)
+!ifdef zr_wp {} else { zr_wp   = $0f }   ; ring write pointer, absolute (2)
 zr_rp    = $11          ; ring read pointer for matches, absolute (2)
 
 RINGMASK = 7            ; high-byte index bits of a 2K ring
