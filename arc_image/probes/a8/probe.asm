@@ -26,15 +26,16 @@
 ;                       pixel %00 = COLBK, %01 = COLPF0, %10 = COLPF1,
 ;                       %11 = COLPF2, exactly the table's byte order.
 ; Segment 0 loads through the OS shadows (the VBLANK handler restores
-; them every frame); a deferred VBI resets the chain cursor, and the
-; DLI on the last line of each segment loads the next segment's four
-; registers. A 72-line image simply leaves segments 9-11 black: the
+; them every frame); the DLI on the last line of each segment loads
+; the next segment's four registers, and the last fire rewinds the
+; chain cursor itself (no VBI, no shared state, no race). A 72-line image simply leaves segments 9-11 black: the
 ; bitmap is cleared and the compacted table is zeroed before every draw.
 
 !cpu 6502
 
 ; ---- OS equates ----------------------------------------------------------------
 WSYNC   = $d40a
+VCOUNT  = $d40b
 NMIEN   = $d40e
 COLBK   = $d01a
 COLPF0  = $d016
@@ -47,6 +48,7 @@ COLOR1  = $02c5         ; shadow: PF1
 COLOR2  = $02c6         ; shadow: PF2
 COLOR4  = $02c8         ; shadow: BAK
 CH      = $02fc
+ATRACT  = $4d
 SETVBV  = $e45c
 XITBV   = $e462
 
@@ -57,6 +59,10 @@ cur     = $d8           ; the current compressed stream
 pdst    = $da           ; the emit cursor (linear store-and-advance)
 cnt     = $dc           ; sections left
 segidx  = $dd           ; the DLI chain's segment cursor
+next_bak = $de          ; the NEXT segment's four registers, staged by
+next_pf0 = $df          ; the previous fire: the time-critical path is
+next_pf1 = $e9          ; three loads and a WSYNC, and the bookkeeping
+next_pf2 = $ea          ; runs after the stores where timing is free
 
 zr_src  = $e0           ; the ring decoder's cells (see dzx0r_6502.asm)
 zr_bits = $e2
@@ -84,15 +90,20 @@ start:  lda #<lemit             ; the decoder's emit vector: linear store
         sta VDSLST
         lda #>dli
         sta VDSLST+1
-        ldy #<vbi               ; deferred VBI: resets the DLI cursor
-        ldx #>vbi
-        lda #7
-        jsr SETVBV
         lda #<dlist             ; our display list, via the OS shadow
         sta SDLSTL
         lda #>dlist
         sta SDLSTL+1
-        lda #$c0                ; VBI + DLI
+        lda #0                  ; harmless until the first draw
+        sta next_bak
+        sta next_pf0
+        sta next_pf1
+        sta next_pf2
+        ldy #<vbi               ; OUR deferred VBI replaces the OS
+        ldx #>vbi               ; stage entirely: its late colour-
+        lda #7                  ; shadow copy painted segment 0 into
+        jsr SETVBV              ; the display at a varying scanline,
+        lda #$c0                ; Stefan's flickering dashed line
         sta NMIEN
 
         lda #<image9
@@ -112,9 +123,11 @@ start:  lda #<lemit             ; the decoder's emit vector: linear store
 waitkey:
         lda #$ff
         sta CH
--       lda CH
-        cmp #$ff
-        beq -
+-       lda #0                  ; pet the attract timer: the OS colour-
+        sta ATRACT              ; cycles the SHADOW registers after
+        lda CH                  ; minutes of no input, and the shadows
+        cmp #$ff                ; drive exactly segment 0: the top
+        beq -                   ; band's flicker under Stefan's eye
         lda #$ff
         sta CH
         rts
@@ -258,35 +271,82 @@ shadows:
         sta COLOR1
         lda segtab+3
         sta COLOR2
+-       lda VCOUNT              ; SEED ONLY IN THE VERTICAL BLANK: a
+        cmp #$7d                ; mid-frame seed lands at a random beam
+        bcc -                   ; position and displaces the chain for
+        lda segtab+0            ; that display (the two screens showed
+        sta next_bak            ; different phases; the toggling states
+        lda segtab+1            ; of the whole session were this)
+        sta next_pf0
+        lda segtab+2
+        sta next_pf1
+        lda segtab+3
+        sta next_pf2
         rts
 
 ; ---- interrupts -----------------------------------------------------------------
-; deferred VBI: the chain cursor rests at segment 0 every frame
+; the minimal deferred VBI: pet attract, exit; no OS stage-2, no
+; shadow copy, no mid-display writes
 vbi:    lda #0
-        sta segidx
+        sta ATRACT
         jmp XITBV
 
 ; DLI, on the last line of segment s: load segment s+1's four registers
-dli:    pha
-        txa
+; The store sequence is staged so every register write lands inside
+; the horizontal blank: the first build stored four times from an
+; indexed table after WSYNC and the last write fell into the visible
+; line, drawing Stefan's thin stripes. Now PF1/PF2 stage in zero page
+; and Y carries PF0 before the wait; after WSYNC the four stores take
+; 22 cycles, all inside the blank.
+; SELF-LOCATING CHAIN (the software cursor kept losing phase: seeded
+; mid-frame it displaced the palettes and flickered). Each fire reads
+; the beam position instead: VCOUNT at a fire on boundary row seg*8+7
+; (bitmap row 0 at scanline 32) sits near 20+4*seg, so seg derives
+; from hardware and this fire stages the palette for the fire after
+; it: consume seg+1 (staged by the previous fire), stage seg+2, and
+; the last boundary stages segment 1 for the next frame's first fire.
+dli:    pha                     ; A alone: the pre-wait path must be
+        lda next_bak            ; MINIMAL. The old prologue (three
+        sta WSYNC               ; saves, three loads: 33 cycles) rode
+        sta COLBK               ; the DMA-starved line to the WSYNC
+        lda next_pf0            ; edge; the last fire tipped past it
+        sta COLPF0              ; and painted its boundary a line
+        lda next_pf1            ; late. Verdict-probe proven: entry on
+        sta COLPF1              ; time, stores late. Ten cycles to the
+        lda next_pf2            ; wait, always; the stores stream out
+        sta COLPF2              ; through the blank, done before the
+        txa                     ; new line's pixels. The bookkeeping
+        pha                     ; saves happen at leisure, after.
+        tya
         pha
-        inc segidx
-        lda segidx
-        cmp #12
-        bcs +                   ; safety: never index past the table
-        asl
+        lda VCOUNT              ; which fire was that? hardware truth
+        cmp #18                 ; below the bitmap: the top-blank fire
+        bcs +                   ; (applied segment 0), so stage 1
+        lda #1
+        bne ++
++       sec
+        sbc #18
+        lsr
+        lsr                     ; (VCOUNT-18)/4 = the segment just ended
+        clc
+        adc #2                  ; stage seg+2 for the next fire; the
+        cmp #12                 ; last boundary stages segment 0 for
+        bcc ++                  ; the top-blank fire of the next frame
+        lda #0
+++      asl
         asl
         tax
         lda segtab+0,x
-        sta WSYNC
-        sta COLBK
+        sta next_bak
         lda segtab+1,x
-        sta COLPF0
+        sta next_pf0
         lda segtab+2,x
-        sta COLPF1
+        sta next_pf1
         lda segtab+3,x
-        sta COLPF2
-+       pla
+        sta next_pf2
+        pla
+        tay
+        pla
         tax
         pla
         rti
@@ -294,7 +354,9 @@ dli:    pha
 ; ---- the display list: 96 mode-E lines, DLI on each segment's last line --------
 ; segment 0: the LMS line + 6 plain + 1 DLI line; segments 1-10: 7 plain
 ; + 1 DLI line; segment 11: 8 plain (no DLI below the band).
-dlist:  !byte $70, $70, $70     ; 24 blank lines
+dlist:  !byte $70, $70, $f0     ; 24 blank lines; the third carries a
+                                ; DLI so segment 0 is applied by the
+                                ; chain itself, never by shadows
         !byte $4e               ; mode E + LMS
         !word BMP
         !fill 6, $0e
