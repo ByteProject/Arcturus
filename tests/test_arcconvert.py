@@ -212,15 +212,17 @@ def test_c64_output_is_frozen(name):
 # The A8 converts direct from the master (Stefan's ruling and corpus
 # approval, 2026-07-24: "nothing regressed. A8 is approved."). Same
 # freeze mechanism as its siblings.
-# Re-pinned 2026-07-24 after the corpus reopened and closed on
-# Stefan's verdict ("We leave it as is. It's genuinely good"): the
-# tint-loyal housing and snap, and the canvas rule (the canvas takes
-# its users' tint, his design), joined the approved build.
+# Re-pinned 2026-07-24 (arcimg 1.25.0): the GTIA wheel mirror lands,
+# proven on Altirra's metal by the A8 probe (gold rendered blue before
+# it; hue 5 the fixed point). The mirror permutes the same fifteen hue
+# angles, so the renders stayed pixel-identical to the approved corpus
+# (preview PNGs byte-identical across the re-pin); only the native
+# bytes re-encode for real hardware.
 _A8_GOLDEN = {
-    "2.png": "ef54885c5b281a3e",
-    "8.png": "8b2e1fb98131247b",
-    "10.png": "b4ea4b8338ed7ae8",
-    "12.png": "01c9f2488da0a929",
+    "2.png": "3bf66cbb5b4d6ab3",
+    "8.png": "d6c1d1c8d0a5eb37",
+    "10.png": "ed47446fe72073d5",
+    "12.png": "82f4b7567177860a",
 }
 
 

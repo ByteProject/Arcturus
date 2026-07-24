@@ -75,13 +75,13 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.24.0"
+__version__ = "1.25.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = 'f4bf8f9'
+__build__ = '7fdb438'
 
 
 def build_id() -> str:
@@ -1027,7 +1027,16 @@ def _gtia_color(hl: int):
     if hue == 0:
         c = max(0, min(255, y))
         return (c, c, c)
-    angle = math.radians((hue - 1) * 24 - 58)
+    # THE WHEEL MIRROR, proven on Altirra's metal by the A8 probe
+    # (2026-07-24): GTIA's hue numbering runs the OPPOSITE way around
+    # the colour circle from the original model here, mirrored about
+    # hue 5. Four probe points confirmed it (gold rendered blue before
+    # the fix; hue 5 is the fixed point). The mirror is a pure
+    # permutation of the same fifteen angles, so the RGB set the
+    # optimizer chooses from is unchanged: renders stay pixel-identical
+    # to the approved corpus, only the native bytes re-encode.
+    mirrored = (10 - hue) % 15
+    angle = math.radians((mirrored - 1) * 24 - 58)
     u, v = 0.21 * math.cos(angle), 0.21 * math.sin(angle)
     r = y + 292 * v
     g = y - 100 * u - 149 * v
