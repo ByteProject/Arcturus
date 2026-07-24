@@ -75,13 +75,13 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.22.0"
+__version__ = "1.23.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = '29317b7'
+__build__ = '22f903e'
 
 
 def build_id() -> str:
@@ -2176,14 +2176,188 @@ def _a8_from_c64(c64, refs=None, skip=frozenset()):
     return {"w": w, "h": h, "pixels": pixels, "lines": lines}
 
 
+def _a8_seg_analysis(rows):
+    """One strip's colour truth for the A8 (APPROVED by Stefan's corpus
+    verdict, 2026-07-24, after the day's whole arc): six candidate
+    centroids with masses; the protections the optimizer may not trade
+    away (the darkest anchor, the big clusters); THE MOON RULE (the
+    brightest cluster is a hard member, never priced); and the two
+    CANVASES: a strip whose shadow tenth is truly dark carries black,
+    a strip whose bright tenth is truly bright carries white."""
+    cents = _kmeans_polish(rows, _median_cut(rows, 6))
+    mass = [0] * len(cents)
+    for row in rows:
+        for c in row:
+            i = min(range(len(cents)), key=lambda k: _dist(c, cents[k]))
+            mass[i] += 1
+    bright = max((c for row in rows for c in row),
+                 key=lambda c: 2 * c[0] + 4 * c[1] + c[2])
+    bmass = sum(1 for row in rows for c in row if _dist(c, bright) < 1600)
+    protected = []
+    forced = bright if bmass >= 10 else None
+    dark = min((c for row in rows for c in row),
+               key=lambda c: 2 * c[0] + 4 * c[1] + c[2])
+    dmass = sum(1 for row in rows for c in row if _dist(c, dark) < 1600)
+    if dmass >= 40:
+        protected.append((dark, dmass * 2))
+    lums = sorted(0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
+                  for row in rows for c in row)
+    force_black = lums[len(lums) // 10] < 25.0
+    force_white = lums[(9 * len(lums)) // 10] > 215.0
+    for i, c in enumerate(cents):
+        if mass[i] >= 120:
+            protected.append((tuple(c), mass[i]))
+    return cents, protected, forced, force_black, force_white
+
+
+def _a8_combo_score(strip, combo_rgb, protected):
+    """Region-balanced, protection-priced, luminance-dominant: the total
+    error, plus the worst 20-column block (a palette may not sacrifice
+    one side of the row to the other), plus a heavy price for any
+    protected cluster left without a home."""
+    total = 0
+    blocks = [0] * 8
+    for row in strip:
+        for x, c in enumerate(row):
+            e = min(_dist_luma(c, k) for k in combo_rgb)
+            total += e
+            blocks[x * 8 // len(row)] += e
+    score = total + 4 * max(blocks)
+    for col, weight in protected:
+        d = min(_dist_luma(col, k) for k in combo_rgb)
+        if d > 4000:
+            score += d * weight // 4
+    return score
+
+
 def _convert_a8(rows, salient=None):
-    # Master in, C64 taste first, A8 out. The salient hint rides through
-    # the C64 conversion (its white-moon promotion is the inherited one);
-    # the master rides along as the de-grey yardstick.
-    refs = [[tuple((a + b) // 2 for a, b in zip(row[x], row[x + 1]))
+    # THE A8 CONVERTS DIRECT FROM THE MASTER, as the per-line-palette
+    # machine it is (Stefan's ruling and corpus approval, 2026-07-24;
+    # every derivation route failed his eye first: C64 heritage, flat
+    # base, and the Plus/4 both ways). Each 8-line segment picks its own
+    # four GTIA colours from its own strip of the master; continuity
+    # between neighbours is a price, never a law (the line table replays
+    # all four registers); guarded diffusion flows across the band with
+    # tint loyalty (the chroma window: dark purple dithers toward purple
+    # and black, never blue) and a tighter deadzone in the dark, so
+    # blanket folds texture instead of flattening. A gentle lift (12
+    # percent at black, fading to nothing at white) carries his "force
+    # luminance slightly more". Salience emerges from the moon rule;
+    # the hint sidecar is not consulted.
+    from itertools import combinations
+
+    def lift(c):
+        y = 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
+        f = 1.0 + 0.12 * (1.0 - y / 255.0)
+        return tuple(min(255, round(v * f)) for v in c)
+
+    half = [[lift(tuple((a + b) // 2 for a, b in zip(row[x], row[x + 1])))
              for x in range(0, len(row), 2)] for row in rows]
-    return _a8_from_c64(_convert_c64(rows, salient), refs,
-                        _forced_cells(salient))
+    h, w = len(half), len(half[0])
+
+    def snap(c):
+        return min(range(len(_GTIA_RGB)),
+                   key=lambda k: _dist(c, _GTIA_RGB[k]))
+
+    palettes = []
+    prev = None
+    for s in range(h // 8):
+        strip = half[s * 8:(s + 1) * 8]
+        cents, protected, forced, f_black, f_white = _a8_seg_analysis(strip)
+        must = snap(forced) if forced is not None else None
+        fresh = []
+        for c in cents:
+            k = snap(c)
+            if k not in fresh:
+                fresh.append(k)
+        for col, _wt in protected:
+            k = snap(col)
+            if k not in fresh:
+                fresh.append(k)
+        pool = fresh if prev is None else list(dict.fromkeys(prev + fresh))
+        if must is not None and must not in pool:
+            pool.append(must)
+        if f_black and 0 not in pool:
+            pool.append(0)
+        if f_white and 7 not in pool:
+            pool.append(7)
+        best, bd = None, None
+        for hard in (True, False):     # drop the canvases before failing
+            for combo in combinations(pool, min(4, len(pool))):
+                if hard:
+                    if must is not None and must not in combo:
+                        continue
+                    if f_black and 0 not in combo:
+                        continue
+                    if f_white and 7 not in combo:
+                        continue
+                sc = _a8_combo_score(strip, [_GTIA_RGB[k] for k in combo],
+                                     protected)
+                if prev is not None:
+                    sc += (4 - len(set(combo) & set(prev))) * 250000
+                if bd is None or sc < bd:
+                    best, bd = list(combo), sc
+            if best is not None:
+                break
+        while len(best) < 4:
+            best.append(0)
+        palettes.append(best)
+        prev = best
+
+    buf = [[[float(v) for v in c] for c in row] for row in half]
+    codes = [[0] * w for _ in range(h)]
+    for y in range(h):
+        pal = palettes[y // 8]
+        prgb = [_GTIA_RGB[k] for k in pal]
+        plum = [0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2] for p in prgb]
+        serp = y & 1
+        xs = range(w - 1, -1, -1) if serp else range(w)
+        step = -1 if serp else 1
+        for x in xs:
+            c = buf[y][x]
+            cc = (min(255.0, max(0.0, c[0])),
+                  min(255.0, max(0.0, c[1])),
+                  min(255.0, max(0.0, c[2])))
+            sx = half[y][x]
+            src_l = 0.299 * sx[0] + 0.587 * sx[1] + 0.114 * sx[2]
+            su, sv = sx[2] - src_l, sx[0] - src_l
+            cands = []
+            for i2 in range(4):
+                if abs(plum[i2] - src_l) > 40.0:
+                    continue
+                p2 = prgb[i2]
+                pu, pv = p2[2] - plum[i2], p2[0] - plum[i2]
+                if abs(pu - su) > 70.0 or abs(pv - sv) > 70.0:
+                    continue
+                cands.append(i2)
+            if not cands:
+                cands = [i2 for i2 in range(4)
+                         if abs(plum[i2] - src_l) <= 40.0]
+            if not cands:
+                codes[y][x] = min(range(4),
+                                  key=lambda k: _dist(sx, prgb[k]))
+                continue
+            i = min(cands, key=lambda k: _dist(cc, prgb[k]))
+            codes[y][x] = i
+            dz = 300.0 if src_l < 60.0 else 900.0
+            if _dist(sx, prgb[i]) < dz:
+                continue
+            pr, pg, pb = prgb[i]
+            er, eg, eb = c[0] - pr, c[1] - pg, c[2] - pb
+            for dx, dy, wt in ((step, 0, 7), (-step, 1, 3),
+                               (0, 1, 5), (step, 1, 1)):
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < w and 0 <= ny < h:
+                    t = buf[ny][nx]
+                    t[0] += er * wt / 16.0
+                    t[1] += eg * wt / 16.0
+                    t[2] += eb * wt / 16.0
+
+    lines = []
+    for y in range(h):
+        pal = palettes[y // 8]
+        lines += [_GTIA128[k] for k in pal]
+    return {"w": w, "h": h, "pixels": codes, "lines": lines}
 
 
 def _convert_trsm4(rows, salient=None):
@@ -3833,14 +4007,11 @@ def _convert_job(job):
     reach it. Returns (iid, dest, size, mode) or an error string."""
     iid, path, tag, dest, preview, codec, c64src = job
     try:
-        if c64src is not None:
-            # The inherited route: decode the author's .C64 and solve the
-            # A8 from it; the mode rides the .C64 header.
-            with open(c64src, "rb") as f:
-                _tag, mode, _iid, c64 = decode_arc(f.read())
-            native = _a8_from_c64(c64)
-        else:
-            mode, native = convert_master(path, tag)
+        # c64src is accepted for call compatibility and ignored: the A8
+        # converts DIRECT from the master (Stefan's ruling and corpus
+        # approval, 2026-07-24); the hand-polish loop for the A8 is a
+        # hand-authored .A8, like every other target.
+        mode, native = convert_master(path, tag)
         blob = encode_native(tag, mode, iid, native, codec)
     except (ValueError, RuntimeError) as exc:
         return f"{path}: {exc}"

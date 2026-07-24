@@ -209,6 +209,26 @@ def test_c64_output_is_frozen(name):
     assert hashlib.sha256(blob).hexdigest()[:16] == _C64_GOLDEN[name]
 
 
+# The A8 converts direct from the master (Stefan's ruling and corpus
+# approval, 2026-07-24: "nothing regressed. A8 is approved."). Same
+# freeze mechanism as its siblings.
+_A8_GOLDEN = {
+    "2.png": "5d8d33ae3bdd1da4",
+    "8.png": "e8affa1326140b0e",
+    "10.png": "0cae209613996796",
+    "12.png": "8fa4033bc7efeb65",
+}
+
+
+@pytest.mark.parametrize("name", sorted(_A8_GOLDEN))
+def test_a8_output_is_frozen(name):
+    import hashlib
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, name), "A8")
+    t = arcimg.TARGETS["A8"]
+    blob = b"".join(bytes(pl) for _ty, _fl, pl in t.pack(native))
+    assert hashlib.sha256(blob).hexdigest()[:16] == _A8_GOLDEN[name]
+
+
 # -- wave 3: the Atari 8-bit per-line solver ------------------------------------
 
 @pytest.mark.parametrize("name", SAMPLE)
@@ -232,18 +252,21 @@ def test_a8_respects_the_hardware():
     assert all(0 <= p <= 3 for row in native["pixels"] for p in row)
 
 
-def test_a8_inherits_the_c64_taste():
-    # The R4 ruling: the A8 derives from the C64 conversion (the 80s port
-    # route), so every register byte it ever emits is one of the sixteen
-    # Colodore-mapped GTIA bytes, and the mapping is injective (red and
-    # orange must not merge; a fire keeps its shading).
-    gt = arcimg._c64_to_gtia()
-    assert len(set(gt)) == 16
-    allowed = set(gt)
+def test_a8_registers_are_honest_gtia():
+    # The A8 converts DIRECT from the master (Stefan's ruling and corpus
+    # approval, 2026-07-24; the C64-inheritance doctrine is retired).
+    # Every register byte is a real GTIA colour (even luminance bit,
+    # GTIA does not decode bit 0), and the table holds one palette per
+    # 8-line segment, replayed per line.
     for name in (ALL[0], "8.png"):
         _mode, native = arcimg.convert_master(os.path.join(MASTERS, name),
                                               "A8")
-        assert set(native["lines"]) <= allowed, name
+        assert all(b & 1 == 0 for b in native["lines"]), name
+        lines = native["lines"]
+        for y in range(native["h"]):
+            seg = (y // 8) * 8
+            assert lines[y * 4:(y + 1) * 4] == \
+                lines[seg * 4:seg * 4 + 4], name
 
 
 def test_a8_line_table_is_quiet():
@@ -321,33 +344,35 @@ def test_c64_disc_survives_without_a_hint(tmp_path):
     assert _disc_separation(rendered) > 20000
 
 
-def test_a8_hand_polished_c64_is_the_source(tmp_path):
-    # Hand-polish inheritance (Stefan's ruling): a hand-authored .C64 is
-    # the source of the whole 8-bit family's taste, so the A8 job derives
-    # from it, mode included, instead of reconverting the master.
+def test_a8_ignores_a_hand_c64(tmp_path):
+    # Retired doctrine, pinned in the negative: the A8 converts direct
+    # from the master (2026-07-24) and a hand-authored .C64 no longer
+    # shapes it; the job accepts the argument for compatibility and
+    # produces the same bytes as the plain conversion.
     path = os.path.join(MASTERS, ALL[0])
     mode, c64 = arcimg.convert_master(path, "C64")
     hand = tmp_path / f"{ALL[0].split('.')[0]}.C64"
     hand.write_bytes(arcimg.encode_native("C64", mode, 0, c64, hand=True))
-    assert arcimg._is_hand_authored(str(hand))
     dest = tmp_path / "0.A8"
     res = arcimg._convert_job((0, path, "A8", str(dest), None, None,
                                str(hand)))
     assert not isinstance(res, str), res
-    tag2, mode2, _iid, native = arcimg.decode_arc(dest.read_bytes())
-    assert (tag2, mode2) == ("A8", mode)
-    assert set(native["lines"]) <= set(arcimg._c64_to_gtia())
+    _t, _m, _i, native = arcimg.decode_arc(dest.read_bytes())
+    _mode2, direct = arcimg.convert_master(path, "A8")
+    assert native == direct
 
 
-def test_a8_disc_survives_through_the_c64(tmp_path):
-    # The A8 derives from the C64 and inherits the diffusion doctrine:
-    # no hint, the disc stands apart from its sky by distinctness
-    # (measured ~72000 on the fixture).
+def test_a8_disc_survives(tmp_path):
+    # Direct doctrine: no hint, the moon rule gives the strip's
+    # brightest cluster a hard register, and the disc renders apart
+    # from its sky (measured ~15900 on the fixture; disc and sky are
+    # cyan cousins and the GTIA gamut compresses them, so the floor
+    # sits at 10000).
     path = _disc_master(tmp_path)
     _mode, native = arcimg.convert_master(path, "A8")
     rendered = arcimg.TARGETS["A8"].render(native, native["w"],
                                            native["h"])
-    assert _disc_separation(rendered) > 20000
+    assert _disc_separation(rendered) > 10000
 
 
 def test_no_hint_no_change(tmp_path):

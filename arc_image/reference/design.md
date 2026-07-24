@@ -260,7 +260,14 @@ Architecture: one shared front half, per-target back halves.
     also golden-pinned). Ruled to follow: the Plus/4 REBUILT AS
     MULTICOLOUR (hires abandoned; the C64 logic with TED colours),
     MSX1, and the Spectrum LAST, deriving from MSX1 (nearest palette
-    kin, milder strip constraint first). The paragraphs above describe the
+    kin, milder strip constraint first). The A8 executed 2026-07-24
+    OUTSIDE the derivation tree after every inherited route failed
+    Stefan's eye: it converts DIRECT from the master as the per-line-
+    palette machine it is (per-segment adaptive GTIA palettes with the
+    moon rule, the two canvases, the darkest anchor, region-balanced
+    luma-dominant scoring, continuity as price, tint-loyal guarded
+    diffusion, the gentle lift). The C64-inheritance and hand-.C64
+    clauses for the A8 are retired; corpus approved and golden-pinned. The paragraphs above describe the
     superseded per-target recipes and stay as the historical record;
     the Bayer/ordered dither of the 16-bit trio is untouched.
   - Signal class: Apple II via NTSC modeling (the ii-pix lineage), with
