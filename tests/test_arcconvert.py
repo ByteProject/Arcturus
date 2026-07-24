@@ -372,39 +372,34 @@ def test_zx3_attrs_are_hardware_legal():
         assert 0 <= ink <= 7 and 0 <= paper <= 7
 
 
-# --- Plus/4 (P4): the Rabenstein recipe, hires TED --------------------------
+# --- Plus/4 (P4): multicolour, a child of the frozen CPC -------------------
 
 def test_p4_converts_and_round_trips():
-    # The R4 wave's first target: near-monochrome dithered hires with few
-    # accents and dark/bright pairs (the design record's ruling). This pins
-    # the CONTRACT: geometry, the two-colours-per-cell invariant by
-    # construction, byte-exact round-trip through pack/unpack, and the
-    # near-mono restriction (the hues used stay within dominant + accents,
-    # never a full-palette quantize).
+    # TED MULTICOLOUR (Stefan's rulings: hires abandoned 2026-07-23;
+    # the family derives downhill from the frozen CPC, 2026-07-24).
+    # The contract: 160 fat pixels, 2-bit codes, per 4x8 cell two
+    # private colours plus the two global registers, byte-exact
+    # round-trip through pack/unpack, and every rendered pixel a legal
+    # TED colour.
     import arcimg
     rows = arcimg._read_png(os.path.join(MASTERS, "8.png"))
     native = arcimg._convert_p4(rows)
     h = native["h"]
-    assert native["w"] == 320 and h in (72, 96)
-    cells = (320 // 8) * (h // 8)
+    assert native["w"] == 160 and h in (72, 96)
+    cells = (160 // 4) * (h // 8)
     assert len(native["screen"]) == cells
     assert len(native["color"]) == cells
-    # The reduction contract, recalibrated against the Rabenstein originals
-    # (the R4 training set): the grey ladder plus at most six accent hues,
-    # never a full-palette quantize (the corpus median scene uses five to
-    # nine hues; scene 8, the extreme, uses two).
-    ink_hues = {b >> 4 for b in native["screen"]}
-    assert len(ink_hues - {0, 1}) <= 6, ink_hues
-    # Round-trip: pack to sections, unpack, byte-identical fields.
+    assert len(native["regs"]) == 2
+    assert all(0 <= p <= 3 for row in native["pixels"] for p in row)
     t = arcimg.TARGETS["P4"]
     sections = t.pack(native)
-    back = t.unpack([(ty, fl, bytes(pl)) for ty, fl, pl in sections], 320, h)
+    back = t.unpack([(ty, fl, bytes(pl)) for ty, fl, pl in sections], 160, h)
     assert back["pixels"] == native["pixels"]
     assert back["screen"] == native["screen"]
     assert back["color"] == native["color"]
-    # And it renders: every pixel a legal TED colour.
-    rendered = t.render(native, 320, h)
-    assert len(rendered) == h and len(rendered[0]) == 320
+    assert back["regs"] == native["regs"]
+    rendered = t.render(native, 160, h)
+    assert len(rendered) == h and len(rendered[0]) == 320  # 2:1 doubled
 
 
 def test_p4_rides_the_ring_codec():

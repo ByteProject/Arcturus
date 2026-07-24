@@ -175,7 +175,7 @@ def test_the_ledger_is_complete():
     assert ids == list(range(1, 16))
     widths = {t.tag: t.width for t in arcimg.TARGETS.values()}
     assert widths == {
-        "AMI": 320, "AST": 320, "DOS": 320, "C64": 160, "P4": 320,
+        "AMI": 320, "AST": 320, "DOS": 320, "C64": 160, "P4": 160,
         "CPC": 160, "MS1": 256, "MS2": 256, "ZX3": 256, "A8": 160,
         "AP2": 280, "NXT": 320, "M65": 320, "VDC": 640, "TRSM4": 640,
     }

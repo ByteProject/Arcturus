@@ -75,13 +75,13 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.21.0"
+__version__ = "1.22.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = '1e579e7'
+__build__ = '29317b7'
 
 
 def build_id() -> str:
@@ -2353,144 +2353,96 @@ def _usage_order(idx, n):
     return sorted(range(n), key=lambda i: -usage.get(i, 0))
 
 
-def _convert_p4(rows, salient=None):
-    # Hires TED, THE PHOTOSHOP MANNER (Stefan's reboot ruling, 2026-07-23,
-    # after the region-model pilot failed his eye). The working recipe is
-    # the one his own Ghosts of Blackwood Manor conversions prove: choose
-    # ONE small adaptive palette for the whole image, expressed in the
-    # machine's own colours; error-diffuse the entire master against it
-    # (dither is the universal medium, not a rationed effect; no Bayer
-    # crosses); THEN, and only then, resolve the hardware constraint per
-    # cell, each 8x8 choosing the legal pair that best preserves the
-    # dithered image (the ZX3 solver's manner: frequency candidates plus
-    # the pivot pair). Global palette consistency means neighbouring
-    # cells cannot invent clashes, and the brightest cluster is protected
-    # into the palette (_protect_extremes), which is what keeps the moon
-    # without any hint. `salient` is accepted and ignored.
-    h, w = len(rows), len(rows[0])
-    ladder = _TED_LUMA
-
-    # The machine's voice: the full TED colour set, black plus fifteen
-    # hues on the eight-step luminance ladder.
+def _p4_from_cpc(cpc):
+    """THE PLUS/4 DERIVES FROM THE FROZEN CPC, IN MULTICOLOUR (Stefan's
+    rulings: 2026-07-23, hires abandoned for multicolour once the C64
+    logic cracked it; 2026-07-24, the family derives downhill from the
+    frozen CPC). TED multicolour: 160 fat pixels, per 4x8 cell TWO
+    private colours plus TWO global registers (one richer than the
+    C64's single background), everything from the TED's own 121. Each
+    CPC ink claims its own TED colour, injective and usage-ordered;
+    121 slots leave room for all sixteen, so nothing ever merges."""
+    pixels, pal = cpc["pixels"], cpc["palette"]
+    h, w = cpc["h"], cpc["w"]
+    inks_rgb = [_cpc_color(p % 27) for p in pal]
     ted_rgb = [(0, 0, 0)]
     ted_hl = [(0, 0)]
     for hue in range(1, 16):
         for lu in range(8):
             ted_rgb.append(_ted_color(hue, lu))
             ted_hl.append((hue, lu))
-
-    def snap_ted(c):
-        return ted_rgb[_nearest(c, ted_rgb)]
-
-    # One adaptive palette in FREE colour space first (the Photoshop
-    # step exactly, verified against PIL's own adaptive+diffusion on
-    # these masters), diffusion against it, and only THEN the machine:
-    # each palette entry re-expressed as its own DISTINCT TED colour,
-    # the way Stefan's CPC file re-expresses the ST palette one to one.
-    # Snapping before diffusion was the mud-and-flatness lesson: TED's
-    # pastel gamut collapses distinct master colours into shared
-    # entries, and the detail dies before the dither can carry it.
-    free = _kmeans_polish(rows, _median_cut(rows, 8))
-    free = _protect_extremes(rows, free, lambda c: c)
-    idx = _map_pixels_diffusion(rows, free)
     usage = {}
-    for row in idx:
+    for row in pixels:
         for i in row:
             usage[i] = usage.get(i, 0) + 1
-    order = sorted(range(len(free)), key=lambda i: -usage.get(i, 0))
-    pal_rgb = [None] * len(free)
-    pal_hl = [None] * len(free)
+    order = sorted(range(len(inks_rgb)), key=lambda i: -usage.get(i, 0))
+    to_ted = [0] * len(inks_rgb)
     taken = set()
-    hues_used = set()
     for i in order:
         ranked = sorted(range(len(ted_rgb)),
-                        key=lambda k: _dist(free[i], ted_rgb[k]))
-        pick = None
-        for k in ranked:
-            if k in taken:
-                continue
-            hue = ted_hl[k][0]
-            # the near-mono contract: at most six chromatic hues
-            if hue > 1 and hue not in hues_used and len(hues_used) >= 6:
-                continue
-            pick = k
-            break
-        if pick is None:
-            pick = next(k for k in ranked if k not in taken)
+                        key=lambda k: _dist(inks_rgb[i], ted_rgb[k]))
+        pick = next((k for k in ranked if k not in taken), ranked[0])
         taken.add(pick)
-        if ted_hl[pick][0] > 1:
-            hues_used.add(ted_hl[pick][0])
-        pal_rgb[i] = ted_rgb[pick]
-        pal_hl[i] = ted_hl[pick]
-
-    # Per cell, the legal TED pair that best preserves the dithered
-    # image. Candidates in the ZX3 solver's manner: the two most frequent
-    # palette entries, the leader against black, and the pivot pair from
-    # the cell's own tonal structure. Score against the master's pixels;
-    # assign each pixel by its DIFFUSED colour, so the dither survives
-    # the constraint.
-    cells_x, cells_y = w // 8, h // 8
-    pixels = [[0] * w for _ in range(h)]
+        to_ted[i] = pick
+    grid = [[to_ted[pixels[y][x]] for x in range(w)] for y in range(h)]
+    # the two global registers: the Polizei clash vote elects both
+    clash = {}
+    for cy in range(h // 8):
+        for cx in range(w // 4):
+            seen = {}
+            for yy in range(8):
+                for xx in range(4):
+                    c = grid[cy * 8 + yy][cx * 4 + xx]
+                    seen[c] = seen.get(c, 0) + 1
+            if len(seen) > 4:
+                for c, n in seen.items():
+                    clash[c] = clash.get(c, 0) + n
+    ranked_regs = sorted(clash, key=clash.get, reverse=True)
+    if not ranked_regs:
+        allc = {}
+        for row in grid:
+            for c in row:
+                allc[c] = allc.get(c, 0) + 1
+        ranked_regs = sorted(allc, key=allc.get, reverse=True)
+    bg = ranked_regs[0]
+    aux = ranked_regs[1] if len(ranked_regs) > 1 else bg
+    pixels_out = [[0] * w for _ in range(h)]
     screen = []
     color = []
-    black_rgb = (0, 0, 0)
-    for cy in range(cells_y):
-        for cx in range(cells_x):
+    for cy in range(h // 8):
+        for cx in range(w // 4):
             hist = {}
-            cell = []
             for yy in range(8):
-                for xx in range(8):
-                    px, py = cx * 8 + xx, cy * 8 + yy
-                    i = idx[py][px]
-                    hist[i] = hist.get(i, 0) + 1
-                    cell.append((rows[py][px], i, px, py))
-            top = sorted(hist, key=hist.get, reverse=True)
-            a = top[0]
-            b = top[1] if len(top) > 1 else top[0]
-            cands = {(a, b), (a, a)}
-            # the pivot pair: split the cell at its median luminance,
-            # average each side, snap each average into the palette
-            lums = sorted((0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2], c)
-                          for c, _i, _x, _y in cell)
-            piv = lums[len(lums) // 2][0]
-            losd = [c for l, c in lums if l <= piv]
-            hisd = [c for l, c in lums if l > piv] or losd
-            avg = lambda g: tuple(sum(v[k] for v in g) / len(g)
-                                  for k in range(3))
-            cands.add((_nearest(avg(hisd), pal_rgb),
-                       _nearest(avg(losd), pal_rgb)))
-            best = None
-            for ca, cb in cands:
-                err = 0
-                for c, _i, _x, _y in cell:
-                    err += min(_dist(c, pal_rgb[ca]), _dist(c, pal_rgb[cb]))
-                if best is None or err < best[0]:
-                    best = (err, ca, cb)
-            _e, ca, cb = best
-            # ink is the brighter of the pair; a one-colour cell rides on
-            # black paper
-            la = 0.299 * pal_rgb[ca][0] + 0.587 * pal_rgb[ca][1] \
-                + 0.114 * pal_rgb[ca][2]
-            lb = 0.299 * pal_rgb[cb][0] + 0.587 * pal_rgb[cb][1] \
-                + 0.114 * pal_rgb[cb][2]
-            if ca == cb:
-                ink_i, pap_i = ca, None
-            elif la >= lb:
-                ink_i, pap_i = ca, cb
-            else:
-                ink_i, pap_i = cb, ca
-            ink_rgb = pal_rgb[ink_i]
-            pap_rgb = pal_rgb[pap_i] if pap_i is not None else black_rgb
-            for c, i, px, py in cell:
-                dc = pal_rgb[i]
-                pixels[py][px] = 1 if _dist(dc, ink_rgb) \
-                    <= _dist(dc, pap_rgb) else 0
-            ih, il = pal_hl[ink_i]
-            ph, pl = pal_hl[pap_i] if pap_i is not None else (0, 0)
-            screen.append((ih << 4) | ph)
-            color.append((il << 4) | pl)
-    return {"w": w, "h": h, "pixels": pixels, "screen": screen,
-            "color": color, "regs": [0]}
+                for xx in range(4):
+                    c = grid[cy * 8 + yy][cx * 4 + xx]
+                    if c != bg and c != aux:
+                        hist[c] = hist.get(c, 0) + 1
+            priv = sorted(hist, key=hist.get, reverse=True)[:2]
+            legal = [bg] + priv + [aux]
+            while len(legal) < 4:
+                legal.insert(1, bg)
+            for yy in range(8):
+                for xx in range(4):
+                    c = grid[cy * 8 + yy][cx * 4 + xx]
+                    if c not in legal:
+                        c = min(legal, key=lambda k: _dist(
+                            ted_rgb[c], ted_rgb[k]))
+                    pixels_out[cy * 8 + yy][cx * 4 + xx] = legal.index(c)
+            ha, la = ted_hl[legal[1]]
+            hb, lb = ted_hl[legal[2]]
+            screen.append((ha << 4) | hb)
+            color.append((la << 4) | lb)
+    bh, bl = ted_hl[bg]
+    ah, al = ted_hl[aux]
+    return {"w": w, "h": h, "pixels": pixels_out, "screen": screen,
+            "color": color, "regs": [(bh << 4) | bl, (ah << 4) | al]}
+
+
+def _convert_p4(rows, salient=None):
+    # The Plus/4 is a child of the frozen CPC, like the C64: one family
+    # reduction, expressed downhill. The hires diffusion build that
+    # seeded the pipeline lives in git history.
+    return _p4_from_cpc(_convert_cpc(rows, salient))
 
 
 _CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,
@@ -3044,52 +2996,70 @@ class _C64:
 
 # ---- P4: TED hires + color matrix + luminance matrix --------------------------
 
-@_target(5, "P4", 320)
+@_target(5, "P4", 160)
 class _P4:
+    # TED MULTICOLOUR (Stefan's ruling: hires abandoned 2026-07-23).
+    # 160 fat pixels, 2-bit codes per pixel: %00 the background register,
+    # %01/%10 the cell's two private colours (hue matrix high/low nibble,
+    # luminance matrix likewise), %11 the second global register. The two
+    # register bytes travel as (hue << 4) | luma each.
     @staticmethod
     def pack(native):
-        return [(SEC_BITMAP, 0, _cells_bitmap(native["pixels"], native["w"], native["h"], 1)),
+        return [(SEC_BITMAP, 0, _cells_bitmap(native["pixels"], native["w"], native["h"], 2)),
                 (SEC_SCREEN, 0, bytes(native["screen"])),
                 (SEC_COLOR, 0, bytes(native["color"])),
-                (SEC_REGS, 0, bytes(native.get("regs", [])))]
+                (SEC_REGS, 0, bytes(native["regs"]))]
 
     @staticmethod
     def unpack(sections, w, h):
         s = _sections_by_type(sections)
         return {"w": w, "h": h,
-                "pixels": _un_cells_bitmap(s[SEC_BITMAP], w, h, 1),
+                "pixels": _un_cells_bitmap(s[SEC_BITMAP], w, h, 2),
                 "screen": list(s[SEC_SCREEN]), "color": list(s[SEC_COLOR]),
-                "regs": list(s.get(SEC_REGS, b""))}
+                "regs": list(s[SEC_REGS])}
 
     @staticmethod
     def render(native, w, h):
-        cells_x = w // 8
+        cells_x = w // 4
+
+        def reg_rgb(b):
+            hue, luma = (b >> 4) & 15, b & 7
+            return (0, 0, 0) if hue == 0 else _ted_color(hue, luma)
+
+        bg = reg_rgb(native["regs"][0])
+        aux = reg_rgb(native["regs"][1])
         rows = []
         for y in range(h):
             row = []
             for x in range(w):
-                cell = (y // 8) * cells_x + (x // 8)
-                bit = native["pixels"][y][x]
-                hues = native["screen"][cell]
-                lumas = native["color"][cell]
-                if bit:
-                    hue, luma = (hues >> 4) & 15, (lumas >> 4) & 7
+                cell = (y // 8) * cells_x + (x // 4)
+                code = native["pixels"][y][x]
+                if code == 0:
+                    rgb = bg
+                elif code == 3:
+                    rgb = aux
                 else:
-                    hue, luma = hues & 15, lumas & 7
-                row.append(_ted_color(hue, luma))
+                    hues = native["screen"][cell]
+                    lumas = native["color"][cell]
+                    if code == 1:
+                        hue, luma = (hues >> 4) & 15, (lumas >> 4) & 7
+                    else:
+                        hue, luma = hues & 15, lumas & 7
+                    rgb = (0, 0, 0) if hue == 0 else _ted_color(hue, luma)
+                row.append(rgb)
+                row.append(rgb)  # 2:1 wide pixels render doubled
             rows.append(row)
         return rows
 
     @staticmethod
     def pattern(w, h):
-        cells_x, cells_y = w // 8, h // 8
-        pixels = [[1 if (x + y) % 3 == 0 else 0 for x in range(w)]
-                  for y in range(h)]
+        cells_x, cells_y = w // 4, h // 8
+        pixels = [[(x + y) % 4 for x in range(w)] for y in range(h)]
         screen = [((c % 15) + 1) << 4 | ((c * 5) % 15 + 1)
                   for c in range(cells_x * cells_y)]
-        color = [((c % 8) << 4) | ((7 - c % 8)) for c in range(cells_x * cells_y)]
+        color = [((c % 8) << 4) | (7 - c % 8) for c in range(cells_x * cells_y)]
         return {"w": w, "h": h, "pixels": pixels, "screen": screen,
-                "color": color, "regs": []}
+                "color": color, "regs": [(1 << 4) | 3, (5 << 4) | 6]}
 
 
 # ---- CPC: Mode 0 with the bit shuffle, sub-block row order --------------------
