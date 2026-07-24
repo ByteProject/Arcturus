@@ -871,3 +871,105 @@ test pair: 9.TRSM4, 12.TRSM4.
 MEMORY. The 2K ring: the entire decode working set. The compressed
 source is read strictly forward and may be streamed from disk in
 sector bites.
+
+### C.8 Atari 8-bit (target id 10, tag A8, files `<id>.A8`)
+
+Probe: [arc_image/probes/a8/](../arc_image/probes/a8/), source
+`probe.asm` with the shared ring decoder
+`../c64/dzx0r_6502.asm` and the embedded test pair 9.A8 and 12.A8.
+Build (ACME): `acme -f plain -o probe.xex probe.asm` (the XEX header
+is part of the source, six bytes ahead of the load). Verified end to
+end on Altirra (XL, PAL).
+
+VIDEO. ANTIC mode E: 160 wide pixels, 2 bits each, one scan line per
+row; the band is the top 72 or 96 rows. The display list is the whole
+screen model: three blank-line groups (the third with its DLI bit
+set), an LMS row pointing at the bitmap, then plain mode-E rows with
+the LAST row of every 8-line segment flagged $8E, and a JVB. Pixel
+codes read the four GTIA registers: %00 COLBK, %01 COLPF0, %10
+COLPF1, %11 COLPF2. The line table gives every scan line its four
+register bytes; the values repeat within each 8-line segment, so the
+loader compacts them to one four-byte palette per segment and replays
+the palettes with a DLI chain. A GTIA register byte is
+(hue << 4) | luma with the luma bit 0 clear; the bytes in the file
+are hardware truth and go to the registers unmodified. (The hue
+CIRCLE runs opposite to most RGB models of it, mirrored about hue 5;
+arcimg 1.25.0 encodes for the hardware, probe-proven, so an
+interpreter needs no correction. An emulator-side RGB model is the
+only place the mirror exists.)
+
+THE DLI DISCIPLINE, every clause paid for on the metal:
+
+- The pre-WSYNC path is a register save and ONE load: pha, load the
+  staged background, sta WSYNC. Nothing else. A mode-E line leaves
+  the CPU roughly every other cycle, and a 33-cycle prologue rode
+  that starvation to the WSYNC deadline at cycle 105: fires 0-9
+  squeaked in and the last fire tipped past it, painting its boundary
+  one row late, stably. The verdict probe measured it on VCOUNT:
+  entry on time, stores a scan line late. Ten cycles to the wait,
+  always.
+- The stores stream out AFTER the release, through the horizontal
+  blank and the next line's DMA-free head: COLBK from the held
+  register, then load/store pairs for the three playfields, done
+  before the first visible pixel.
+- The chain is SELF-LOCATING: after the stores, read VCOUNT and
+  compute the segment just ended ((VCOUNT - 18) >> 2 on the PAL
+  geometry with the band at the top); stage the NEXT segment's four
+  bytes into zero page for the following fire. The top-blank fire
+  (VCOUNT below the band) applies segment 0 and stages segment 1;
+  the last boundary stages segment 0 for the next frame. No frame
+  counter, no shared cursor, no race.
+- The seed of the chain is written ONLY in the vertical blank. A
+  mid-frame seed lands at a random beam position and displaces the
+  chain for that whole display.
+- The OS deferred vertical-blank stage is REPLACED (SETVBV, deferred
+  vector to a minimal handler: pet ATRACT, XITBV). The stock stage-2
+  copies its colour shadows into the hardware registers late enough
+  to land mid-display, which repaints segment 0's rows with shadow
+  values: the flickering top band. Petting ATRACT (also in the key
+  wait) keeps the OS attract cycling from ever touching the colours.
+
+CODEC. ZX0 (part B) under the 2048 window guarantee, decoded by the
+same ring model as the C64 chapter, ONE relocation deep: the
+decoder's default zero-page cells $08-$12 are OS state here (DOSVEC,
+POKMSK among them), so the probe assigns the cells into the floating
+point scratch at $D4-$EA via the decoder's !ifdef seam before
+inclusion. A loader that clobbers the interrupt mask while running a
+DLI chain is lying to itself.
+
+THE LAYOUT RULE. The bitmap decodes into its 4K home ($9000 in the
+probe; any 4K-clean base) and is wiped before every draw; embedded
+assets live BELOW it. And one assembler trap that cost a session its
+calm: acme's `>` binds tighter than `+`, so the wipe bound must be
+written `#(>BMP) + $0f`; the unbracketed form wiped 64K of address
+space through the POKEY registers, audibly.
+
+SECTIONS, in file order, every payload already in native order:
+
+- bitmap (type 1): linear rows, 40 bytes each, 4 pixels per byte,
+  2880 bytes in mode 9, 3840 in mode 12. Decode straight to the
+  bitmap base.
+- line table (type 6): 4 GTIA bytes per scan line (288 / 384 bytes),
+  repeating within each 8-line segment. Decode to a buffer, compact
+  to the per-segment palette table (48 bytes), arm segment 0.
+
+Z-COLOURS. The interpreter's text lives below the band in an ANTIC
+text mode: the display list simply switches mode after the band's
+rows, which is this machine's native gift; no raster split needs
+building because the DL IS the split. The band's DLI chain never
+fires below the band, so text colours own the registers there.
+
+LOADER RECIPE (the probe's shape): wipe the bitmap and the palette
+table; verify the magic; walk the section table once, dispatching
+each type and advancing by the compressed lengths; compact the line
+table; seed the chain in the vertical blank; enable the DLI. The
+whole loader is small enough that the DLI discipline above is most
+of the thinking.
+
+ASSETS. `<id>.A8` beside the story. The standard test pair: 9.A8
+(mode 9), 12.A8 (mode 12), both picture 8 of the corpus.
+
+MEMORY. The 2K ring (2K-aligned); the decoded line-table buffer (384
+bytes) and the 48-byte segment table; zero page for the decoder and
+the walk. The compressed source is read strictly forward and may be
+streamed from disk in sector bites.
