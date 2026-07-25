@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.25.0"
+__version__ = "1.26.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -986,33 +986,36 @@ _TMS9918 = [
     (0xFF, 0xFF, 0xFF),
 ]
 
-# Plus/4 (TED): 16 hues x 8 luma. A serviceable approximation for previews;
-# the wave-3 addendum freezes measured values (YAPE/plus4emu tables).
-_TED_LUMA = [22, 40, 53, 66, 90, 122, 168, 226]
-_TED_HUES = {  # hue -> (u, v) chroma direction in the DOCUMENTED TED hue
-    # order (0 black, 1 grey, 2 red, 3 cyan, 4 purple, 5 green, 6 blue,
-    # 7 yellow, 8 orange, 9 brown, 10 yellow-green, 11 pink, 12 blue-green,
-    # 13 light blue, 14 dark blue, 15 light green). The first table had
-    # several hues pointing the wrong way (hue 14 rendered GREEN; the
-    # Rabenstein originals proved it violet, the R4 calibration). Still
-    # preview-grade until the wave-3 addendum freezes measured values.
-    1: (0.0, 0.0), 2: (-0.10, 0.36), 3: (0.18, -0.30), 4: (0.34, 0.26),
-    5: (-0.28, -0.28), 6: (0.42, -0.08), 7: (-0.34, 0.10),
-    8: (-0.20, 0.32), 9: (-0.24, 0.20), 10: (-0.34, -0.10),
-    11: (0.10, 0.34), 12: (0.06, -0.34), 13: (0.30, -0.18),
-    14: (0.44, 0.06), 15: (-0.26, -0.22),
-}
+# Plus/4 (TED): THE MEASURED PALETTE (the P4 palette staircase on
+# xplus4, Stefan's screenshot, 2026-07-25). The formula model this
+# table retires was preview-grade by its own comment and wrong three
+# ways, all probe-proven: the hue axis sat one nibble off (hardware
+# nibble 0 is black PLUS the grey ladder, chromatics start at 1: the
+# 121 count is 15x8 + black + 7 greys), saturation ran at a third of
+# hardware, and the luma ladder topped out low. Every value below is
+# sampled from the emulator's screen, the GTIA-wheel playbook. Real
+# CRT measurement may refine it later; the semantics are frozen.
+_TED_MEASURED = (
+    ((0, 0, 0), (48, 48, 48), (64, 64, 64), (80, 80, 80), (120, 120, 120), (144, 144, 144), (192, 192, 192), (255, 255, 255)),
+    ((94, 7, 0), (110, 23, 16), (126, 39, 32), (142, 55, 48), (182, 95, 88), (206, 119, 112), (254, 167, 160), (255, 231, 224)),
+    ((0, 57, 64), (0, 73, 80), (2, 89, 96), (18, 105, 112), (58, 145, 152), (82, 169, 176), (130, 217, 224), (194, 255, 255)),
+    ((86, 0, 108), (102, 6, 124), (118, 22, 140), (134, 38, 156), (174, 78, 196), (198, 102, 220), (246, 150, 255), (255, 214, 255)),
+    ((0, 74, 0), (0, 90, 0), (10, 106, 0), (26, 122, 4), (66, 162, 44), (90, 186, 68), (138, 234, 116), (202, 255, 180)),
+    ((21, 10, 174), (37, 26, 190), (53, 42, 206), (69, 58, 222), (109, 98, 255), (133, 122, 255), (181, 170, 255), (245, 234, 255)),
+    ((43, 54, 0), (59, 70, 0), (75, 86, 0), (91, 102, 0), (131, 142, 0), (155, 166, 2), (203, 214, 50), (255, 255, 114)),
+    ((85, 21, 0), (101, 37, 0), (117, 53, 0), (133, 69, 0), (173, 109, 38), (197, 133, 62), (245, 181, 110), (255, 246, 174)),
+    ((85, 21, 0), (101, 37, 0), (117, 53, 0), (133, 69, 0), (173, 109, 38), (197, 133, 62), (245, 181, 110), (255, 246, 174)),
+    ((66, 38, 0), (82, 54, 0), (98, 70, 0), (114, 86, 0), (154, 126, 0), (178, 150, 22), (226, 198, 70), (255, 255, 134)),
+    ((18, 67, 0), (34, 83, 0), (50, 99, 0), (66, 115, 0), (106, 155, 0), (130, 179, 4), (178, 227, 52), (242, 255, 116)),
+    ((95, 0, 56), (111, 11, 72), (127, 27, 88), (143, 43, 104), (183, 83, 144), (207, 107, 168), (255, 155, 216), (255, 219, 255)),
+    ((0, 69, 8), (0, 85, 24), (1, 101, 40), (17, 117, 56), (57, 157, 96), (81, 181, 120), (129, 229, 168), (193, 255, 232)),
+    ((0, 26, 154), (14, 42, 170), (30, 58, 186), (46, 74, 202), (86, 114, 242), (110, 138, 255), (158, 186, 255), (222, 250, 255)),
+    ((46, 0, 172), (62, 13, 188), (78, 29, 204), (94, 45, 220), (134, 85, 255), (158, 109, 255), (206, 157, 255), (255, 221, 255)),
+    ((0, 74, 0), (11, 90, 0), (27, 106, 0), (43, 122, 0), (83, 162, 3), (107, 186, 27), (155, 234, 75), (219, 255, 139)),
+)
 
 def _ted_color(hue: int, luma: int):
-    if hue == 0:
-        return (0, 0, 0)
-    y = _TED_LUMA[luma & 7]
-    u, v = _TED_HUES.get(hue & 15, (0.0, 0.0))
-    r = y + 90 * v
-    g = y - 30 * u - 46 * v
-    b = y + 110 * u
-    clamp = lambda c: max(0, min(255, int(round(c))))
-    return (clamp(r), clamp(g), clamp(b))
+    return _TED_MEASURED[hue & 15][luma & 7]
 
 # Atari 8-bit (GTIA hue<<4|luma): the common NTSC approximation; the R4
 # addendum freezes a table measured from the probe emulator. Saturation
@@ -2597,23 +2600,34 @@ def _usage_order(idx, n):
 
 
 def _p4_from_cpc(cpc):
-    """THE PLUS/4 DERIVES FROM THE FROZEN CPC, IN MULTICOLOUR (Stefan's
-    rulings: 2026-07-23, hires abandoned for multicolour once the C64
-    logic cracked it; 2026-07-24, the family derives downhill from the
-    frozen CPC). TED multicolour: 160 fat pixels, per 4x8 cell TWO
-    private colours plus TWO global registers (one richer than the
-    C64's single background), everything from the TED's own 121. Each
-    CPC ink claims its own TED colour, injective and usage-ordered;
-    121 slots leave room for all sixteen, so nothing ever merges."""
+    """THE PLUS/4 DERIVES FROM THE FROZEN CPC, IN MULTICOLOUR, JUDGED IN
+    THE MEASURED PALETTE (Stefan's approval, 2026-07-25, "Finally."):
+    TED multicolour, 160 fat pixels, per 4x8 cell TWO private colours
+    plus TWO clash-voted global registers, everything from the TED's
+    own 128 (the grey ladder included: hardware truth). Each CPC ink
+    claims its own TED colour, injective and usage-ordered. The cell
+    solve is the night's earned machinery:
+
+    - SEED-AND-GROW free election: a cell whose frequency pair is
+      demonstrably bankrupt (optimal error under 0.55 of it, gain over
+      4000) seeds an upgrade that grows to neighbours at a relaxed
+      threshold (0.85 / 1500), so a jewel (image 8's pond reflection)
+      upgrades as one organic region instead of a lone square;
+    - COHERENCE RELAXATION elsewhere: a cell adopts a pair two or more
+      neighbours use when it costs at most 12 percent more, so smooth
+      regions (the moon dome) share pairs and dither flows across cell
+      borders instead of cutting rectangles."""
+    from itertools import combinations
     pixels, pal = cpc["pixels"], cpc["palette"]
     h, w = cpc["h"], cpc["w"]
     inks_rgb = [_cpc_color(p % 27) for p in pal]
-    ted_rgb = [(0, 0, 0)]
-    ted_hl = [(0, 0)]
-    for hue in range(1, 16):
+    ted_rgb = []
+    ted_hl = []
+    for hue in range(16):
         for lu in range(8):
             ted_rgb.append(_ted_color(hue, lu))
             ted_hl.append((hue, lu))
+    cells_x, cells_y = w // 4, h // 8
     usage = {}
     for row in pixels:
         for i in row:
@@ -2628,53 +2642,132 @@ def _p4_from_cpc(cpc):
         taken.add(pick)
         to_ted[i] = pick
     grid = [[to_ted[pixels[y][x]] for x in range(w)] for y in range(h)]
-    # the two global registers: the Polizei clash vote elects both
-    clash = {}
-    for cy in range(h // 8):
-        for cx in range(w // 4):
-            seen = {}
-            for yy in range(8):
-                for xx in range(4):
-                    c = grid[cy * 8 + yy][cx * 4 + xx]
-                    seen[c] = seen.get(c, 0) + 1
-            if len(seen) > 4:
-                for c, n in seen.items():
-                    clash[c] = clash.get(c, 0) + n
-    ranked_regs = sorted(clash, key=clash.get, reverse=True)
-    if not ranked_regs:
+
+    # the two global registers: the Polizei clash vote elects both,
+    # in measured space (a register byte means what the hardware shows)
+    def _clash_vote(exclude):
+        hist = {}
+        for cy in range(cells_y):
+            for cx in range(cells_x):
+                seen = {}
+                for yy in range(8):
+                    for xx in range(4):
+                        c = grid[cy * 8 + yy][cx * 4 + xx]
+                        seen[c] = seen.get(c, 0) + 1
+                if len([k for k in seen if k not in exclude]) > 2:
+                    for k, n in seen.items():
+                        if k not in exclude:
+                            hist[k] = hist.get(k, 0) + n
+        return max(hist, key=hist.get) if hist else None
+    bg = _clash_vote(set())
+    if bg is None:
         allc = {}
         for row in grid:
             for c in row:
                 allc[c] = allc.get(c, 0) + 1
-        ranked_regs = sorted(allc, key=allc.get, reverse=True)
-    bg = ranked_regs[0]
-    aux = ranked_regs[1] if len(ranked_regs) > 1 else bg
+        bg = max(allc, key=allc.get)
+    aux = _clash_vote({bg})
+    if aux is None:
+        aux = bg
+    bg_rgb, aux_rgb = ted_rgb[bg], ted_rgb[aux]
+
+    cells = []
+    for cy in range(cells_y):
+        for cx in range(cells_x):
+            idxs = [pixels[cy * 8 + yy][cx * 4 + xx]
+                    for yy in range(8) for xx in range(4)]
+            src_px = [inks_rgb[i] for i in idxs]
+            cnt = {}
+            for i in idxs:
+                cnt[to_ted[i]] = cnt.get(to_ted[i], 0) + 1
+            freq = [k for k, _n in sorted(cnt.items(),
+                                          key=lambda kv: -kv[1])
+                    if ted_rgb[k] != bg_rgb and ted_rgb[k] != aux_rgb][:2]
+            while len(freq) < 2:
+                freq.append(freq[0] if freq else 0)
+            cells.append({"src": src_px, "pair": tuple(sorted(freq))})
+
+    def cell_err(i, pair):
+        quad = [bg_rgb, aux_rgb, ted_rgb[pair[0]], ted_rgb[pair[1]]]
+        return sum(min(_dist(c, q) for q in quad) for c in cells[i]["src"])
+
+    for i, c in enumerate(cells):
+        c["e_freq"] = cell_err(i, c["pair"])
+        pool = []
+        for s in set(c["src"]):
+            rk = sorted(range(len(ted_rgb)),
+                        key=lambda k: _dist(s, ted_rgb[k]))
+            for k in rk[:3]:
+                if k not in pool:
+                    pool.append(k)
+        best, bd = c["pair"], c["e_freq"]
+        for a, b in combinations(pool, 2):
+            e = cell_err(i, (a, b))
+            if e < bd:
+                best, bd = tuple(sorted((a, b))), e
+        c["opt"], c["e_opt"] = best, bd
+
+    up = [c["e_opt"] < 0.55 * c["e_freq"] and
+          c["e_freq"] - c["e_opt"] > 4000 for c in cells]
+    changed = True
+    while changed:
+        changed = False
+        for i, c in enumerate(cells):
+            if up[i]:
+                continue
+            cy, cx = divmod(i, cells_x)
+            neigh = [(cy + dy) * cells_x + (cx + dx)
+                     for dy, dx in ((0, 1), (0, -1), (1, 0), (-1, 0))
+                     if 0 <= cy + dy < cells_y and 0 <= cx + dx < cells_x]
+            if any(up[nb] for nb in neigh) and \
+                    c["e_opt"] < 0.85 * c["e_freq"] and \
+                    c["e_freq"] - c["e_opt"] > 1500:
+                up[i] = True
+                changed = True
+    for i, c in enumerate(cells):
+        if up[i]:
+            c["pair"] = c["opt"]
+
+    sweeps = 0
+    moved = 1
+    while moved and sweeps < 6:
+        moved = 0
+        sweeps += 1
+        for i, c in enumerate(cells):
+            if up[i]:
+                continue
+            cy, cx = divmod(i, cells_x)
+            neigh = [(cy + dy) * cells_x + (cx + dx)
+                     for dy, dx in ((0, 1), (0, -1), (1, 0), (-1, 0))
+                     if 0 <= cy + dy < cells_y and 0 <= cx + dx < cells_x]
+            npairs = {}
+            for nb in neigh:
+                pr = cells[nb]["pair"]
+                npairs[pr] = npairs.get(pr, 0) + 1
+            cur_e = cell_err(i, c["pair"])
+            for pr, votes in sorted(npairs.items(), key=lambda kv: -kv[1]):
+                if pr == c["pair"] or votes < 2:
+                    continue
+                if cell_err(i, pr) <= cur_e * 1.12:
+                    c["pair"] = pr
+                    moved += 1
+                    break
+
     pixels_out = [[0] * w for _ in range(h)]
     screen = []
     color = []
-    for cy in range(h // 8):
-        for cx in range(w // 4):
-            hist = {}
-            for yy in range(8):
-                for xx in range(4):
-                    c = grid[cy * 8 + yy][cx * 4 + xx]
-                    if c != bg and c != aux:
-                        hist[c] = hist.get(c, 0) + 1
-            priv = sorted(hist, key=hist.get, reverse=True)[:2]
-            legal = [bg] + priv + [aux]
-            while len(legal) < 4:
-                legal.insert(1, bg)
-            for yy in range(8):
-                for xx in range(4):
-                    c = grid[cy * 8 + yy][cx * 4 + xx]
-                    if c not in legal:
-                        c = min(legal, key=lambda k: _dist(
-                            ted_rgb[c], ted_rgb[k]))
-                    pixels_out[cy * 8 + yy][cx * 4 + xx] = legal.index(c)
-            ha, la = ted_hl[legal[1]]
-            hb, lb = ted_hl[legal[2]]
-            screen.append((ha << 4) | hb)
-            color.append((la << 4) | lb)
+    for i, c in enumerate(cells):
+        cy, cx = divmod(i, cells_x)
+        a, b = c["pair"]
+        quad = [bg_rgb, ted_rgb[a], ted_rgb[b], aux_rgb]
+        for i2, s in enumerate(c["src"]):
+            yy, xx = divmod(i2, 4)
+            pixels_out[cy * 8 + yy][cx * 4 + xx] = min(
+                range(4), key=lambda q: _dist(s, quad[q]))
+        ha, la = ted_hl[a]
+        hb, lb = ted_hl[b]
+        screen.append((ha << 4) | hb)
+        color.append((la << 4) | lb)
     bh, bl = ted_hl[bg]
     ah, al = ted_hl[aux]
     return {"w": w, "h": h, "pixels": pixels_out, "screen": screen,
@@ -3267,7 +3360,7 @@ class _P4:
 
         def reg_rgb(b):
             hue, luma = (b >> 4) & 15, b & 7
-            return (0, 0, 0) if hue == 0 else _ted_color(hue, luma)
+            return _ted_color(hue, luma)
 
         bg = reg_rgb(native["regs"][0])
         aux = reg_rgb(native["regs"][1])
@@ -3288,7 +3381,7 @@ class _P4:
                         hue, luma = (hues >> 4) & 15, (lumas >> 4) & 7
                     else:
                         hue, luma = hues & 15, lumas & 7
-                    rgb = (0, 0, 0) if hue == 0 else _ted_color(hue, luma)
+                    rgb = _ted_color(hue, luma)
                 row.append(rgb)
                 row.append(rgb)  # 2:1 wide pixels render doubled
             rows.append(row)

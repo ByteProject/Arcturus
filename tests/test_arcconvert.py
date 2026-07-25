@@ -405,6 +405,30 @@ def test_zx3_attrs_are_hardware_legal():
 
 # --- Plus/4 (P4): multicolour, a child of the frozen CPC -------------------
 
+# The P4 corpus frozen 2026-07-25, second pin the same day: the
+# measured TED palette (the xplus4 staircase screenshot; hue 0 is the
+# grey ladder, chromatics start at 1, hardware saturation) and the
+# approved cell solve (seed-and-grow election plus coherence
+# relaxation) land together as arcimg 1.26.0. Stefan: "Finally.
+# Approved." Production output pixel-identical to the approval set,
+# 21/21.
+_P4_GOLDEN = {
+    "2.png": "406f217aaadc0481",
+    "8.png": "465b9f7ccf2f70f9",
+    "10.png": "ad3b517587364534",
+    "12.png": "30e02926cfef5417",
+}
+
+
+@pytest.mark.parametrize("name", sorted(_P4_GOLDEN))
+def test_p4_output_is_frozen(name):
+    import hashlib
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, name), "P4")
+    t = arcimg.TARGETS["P4"]
+    blob = b"".join(bytes(pl) for _ty, _fl, pl in t.pack(native))
+    assert hashlib.sha256(blob).hexdigest()[:16] == _P4_GOLDEN[name]
+
+
 def test_p4_converts_and_round_trips():
     # TED MULTICOLOUR (Stefan's rulings: hires abandoned 2026-07-23;
     # the family derives downhill from the frozen CPC, 2026-07-24).
