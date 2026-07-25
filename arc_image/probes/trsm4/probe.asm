@@ -108,8 +108,14 @@ draw:   push hl
         ld a, (ix+1)
         cp 'R'
         ret nz
-        ld a, (ix+11)           ; height low byte (72 or 96)
-        ld (rows), a
+        ; NOTE deliberately NOT read here: the loader needs no height.
+        ; The ZX0 stream carries its own end marker (that is why one
+        ; code path decodes both 5760- and 7680-byte bitmaps), and the
+        ; probe pre-clears all 240 rows. An interpreter reads the
+        ; header height (bytes 10-11, big-endian) for its SCREEN MODEL:
+        ; where the band ends and its text begins. (A stored-but-unused
+        ; height byte sat here until Shawn Sijnstra asked what it was
+        ; for; a blueprint should not make its readers ask that.)
         ; the one data stream: base + 16 + count*6 (count is 1 here, but
         ; walk it honestly like every probe)
         ld e, (ix+7)
@@ -169,7 +175,6 @@ emit_scr:
         ld (colsleft), a
         ret
 
-rows:     db 0
 row:      db 0
 colsleft: db 0
 
