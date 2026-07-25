@@ -1,0 +1,85 @@
+// enhance-redefine.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for growing and replacing verbs (docs/01 section 10):
+// `enhance verb` appends to an existing family, new grammar lines, new
+// synonym words, or both, and everything the family had stays. `redefine
+// verb` replaces the family WHOLE: new grammar, and only the words
+// restated survive in the dictionary. Both anchor on a word that must
+// already be a verb, and both say what they do, which is the point: a
+// plain redeclaration merely shadows word by word, and the compiler
+// notes as much. Compile and run:
+//
+//   arcc examples/features/enhance-redefine.storyarc -o enhance.z5
+//   frotz enhance.z5
+//
+// Try, in order:
+//   look                    the family's old grammar still works
+//   look under bed          ...and the enhanced line joins it
+//   push trunk              plain push, as ever
+//   roll trunk              `roll` joined push's family as a synonym
+//   wave lantern            the redefined grammar: a noun is wanted now
+//   brandish wand           the redefinition's new synonym rides along
+
+game
+    title  "The Boarding House"
+    headline "An enhance-redefine showcase"
+    author "Stefan Vogt"
+    start  bedroom
+
+summon.statusline
+
+enhance verb "look"
+    look_under under noun
+
+enhance verb "push", "roll"
+
+// The verb being replaced must exist first: this one is the story's
+// own, declared plainly, then replaced whole a line later, which is
+// exactly the shape a fork of someone else's granule verb takes.
+verb "wave"
+    wave_bare
+
+redefine verb "wave", "brandish"
+    wave_thing noun
+
+room bedroom
+    name "The Boarding House Room"
+    desc "A narrow bed, a steamer trunk, and last lodger's oddments on
+          the sill."
+
+thing bed in bedroom
+    name "narrow bed"
+    words bed, narrow
+    fixed
+    desc "Iron-framed, sagging with biographies."
+
+    on look_under
+        say "Dust, a bent spoon, and a postcard from someone who never
+             wrote again."
+
+thing trunk in bedroom
+    name "steamer trunk"
+    words trunk, steamer
+    desc "Round-lidded and heavy with travel."
+
+    on push
+        say "The trunk grinds a few inches across the boards."
+
+thing lantern in bedroom
+    name "signal lantern"
+    words lantern, signal
+    desc "A lantern for waving at trains, or at fate."
+
+    on wave_thing
+        say "You wave ${the noun}. Far off, something does not answer."
+
+thing wand in bedroom
+    name "willow wand"
+    words wand, willow
+    desc "A dowser's wand, still faintly opinionated."
+
+    on wave_thing
+        say "The wand tugs, once, toward the floorboards."

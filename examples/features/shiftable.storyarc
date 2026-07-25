@@ -1,0 +1,60 @@
+// shiftable.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for shiftable (docs/01 section 10): a thing marked
+// `shiftable` can be pushed through an exit, and the player goes with
+// it: doors are respected exactly as walking respects them, the arrival
+// is the same a walk gets, and the thing is there when the room is
+// described. Anything unmarked answers that it will not shift, and a
+// game with nothing shiftable pays nothing for any of this. Compile
+// and run:
+//
+//   arcc examples/features/shiftable.storyarc -o shiftable.z5
+//   frotz shiftable.z5
+//
+// Try, in order:
+//   push barrel north     the barrel rolls into the warehouse, you follow
+//   look                  the barrel is here, listed like anything else
+//   push barrel east      no exit that way: refused like a walk would be
+//   push barrel south     back out to the dock, barrel first
+//   push crane north      the crane is not shiftable: it will not budge
+//   push barrel up        onto the ramp? an exit is an exit
+
+game
+    title  "The Tar Barrel"
+    headline "A shiftable showcase"
+    author "Stefan Vogt"
+    start  dock
+
+summon.statusline
+
+room dock
+    name "The Dock"
+    desc "Salt wind and gull argument. A warehouse stands north, and a
+          loading ramp climbs to its roof."
+    north warehouse
+    up ramp
+
+room warehouse
+    name "The Warehouse"
+    desc "Stacked crates and the smell of tar. The dock lies south."
+    south dock
+
+room ramp
+    name "The Loading Ramp"
+    desc "A plank ramp with a view of grey water. The dock is below."
+    down dock
+
+thing barrel in dock
+    name "tar barrel"
+    words barrel, tar
+    shiftable
+    desc "Heavy, but round: the docker's compromise."
+
+thing crane in dock
+    name "loading crane"
+    words crane, loading
+    fixed
+    desc "Bolted through the planking into bedrock, probably."

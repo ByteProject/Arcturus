@@ -1,0 +1,50 @@
+// session-verbs.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the session verbs (docs/01 section 10): VERSION prints
+// the banner mid-game and is ALWAYS in, the bug-reporter's friend.
+// NOTIFY brings the classic score bracket line: off by default, enabled
+// here in `on start`, toggleable by the player, and the two are coupled,
+// enabling the feature anywhere brings the verb along, while a game that
+// never touches `notify` has no lines, no verb, and not even the
+// dictionary word. And the oldest Easter egg in the medium answers: a
+// player who curses gets a dry line back, an extendedverbs family
+// selected as `swear`. Compile and run:
+//
+//   arcc examples/features/session-verbs.storyarc -o session.z5
+//   frotz session.z5
+//
+// Try, in order:
+//   version              the banner, mid-game: which build is this?
+//   take medal           "[Your score has just gone up by 5.]": notify
+//                        was enabled in on start
+//   notify               the player turns the bracket lines off
+//   drop medal           silence (the score still moves; SCORE shows it)
+//   take medal           still silent
+//   notify               back on
+//   damn                 the Easter egg answers, dryly
+
+game
+    title  "The Trophy Room"
+    headline "A session-verbs showcase"
+    author "Stefan Vogt"
+    start  trophyroom
+    scoring
+
+summon.statusline
+summon.extendedverbs swear
+
+on start
+    change notify to true
+
+room trophyroom
+    name "The Trophy Room"
+    desc "Velvet, glass, and one medal nobody dusted."
+
+thing medal in trophyroom
+    name "tin medal"
+    words medal, tin
+    scored
+    desc "Third place, unspecified discipline, deeply loved once."

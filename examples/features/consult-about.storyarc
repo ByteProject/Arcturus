@@ -1,0 +1,55 @@
+// consult-about.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for CONSULT <object> ABOUT <subject>: reference books done
+// the classic way. Topics parse on ANY object, not only on characters,
+// so a gazetteer carries its entries as ordinary `topic` blocks with
+// say-bodies, and the summoned consult verb (an extendedverbs family)
+// reaches them: hits answer, misses get the granule's default, and a
+// bare CONSULT asks what about. No conversation granule is involved;
+// a book is not a person. Compile and run:
+//
+//   arcc examples/features/consult-about.storyarc -o consult.z5
+//   frotz consult.z5
+//
+// Try, in order:
+//   consult gazetteer about the silver lode    a hit, by any of its words
+//   consult book about crane                   another entry, another word
+//   consult book about weather                 a miss: the honest default
+//   consult book                               no subject: it asks
+//   look up mine in gazetteer                  the classic phrasing rides
+//                                              the same grammar
+
+game
+    title  "The Mining Gazetteer"
+    headline "A consult-about showcase"
+    author "Stefan Vogt"
+    start  study
+
+summon.statusline
+summon.extendedverbs consult
+
+room study
+    name "The Study"
+    desc "Lamplight, dust, and one book that knows more than the county
+          clerk."
+
+thing gazetteer in study
+    name "mining gazetteer"
+    words gazetteer, mining, book
+    fixed
+    desc "A fat county gazetteer, spine cracked at the mining chapters."
+
+    topic mine "The Silverlode" words mine, silver, lode
+        say "The Silverlode: worked 1878 to 1902, flooded and abandoned
+             after the pumps failed twice in one winter."
+
+    topic owner "T. Crane" words crane, owner
+        say "T. Crane, owner of record, vanished with the payroll and
+             the second-best mule."
+
+    topic town "Wickham" words wickham, town
+        say "Wickham: pop. 311 and falling, one hotel, two churches,
+             three opinions about the Crane affair."
