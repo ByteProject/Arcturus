@@ -1322,6 +1322,13 @@ class Analyzer:
         for m in members:
             if isinstance(m, ast.PropertyDecl) and m.form == ast.PROP_BLOCK:
                 self._check_body(m.body, set())
+            elif isinstance(m, ast.TopicDecl):
+                # Topic bodies are ordinary statement blocks (docs/01) and
+                # get the ordinary checks; before this branch a `vary` in a
+                # topic never received its state slot and the compiler
+                # crashed on the missing offset (Charles Moore Jr.'s
+                # request surfaced it: varied replies in a topic).
+                self._check_body(m.body, set())
             elif isinstance(m, ast.Handler):
                 self._check_handler(m, owned=True)
             elif isinstance(m, ast.GrainsBlock):

@@ -168,3 +168,34 @@ def test_block_named_vary_still_calls():
     story = _build(src)
     r = _replies(story, ["v"])
     assert r[0] == "the block ran"
+
+
+# -- vary inside a topic body (Charles Moore Jr.'s request, 2026-07-25) -------
+
+def test_vary_replies_in_a_topic():
+    # A topic body is an ordinary statement block, so vary works there,
+    # including reply-framed variants. Before the fix the site never
+    # received its state slot (topic bodies skipped sema's body check)
+    # and the compiler crashed on the missing offset.
+    src = HEAD + (
+        'summon infocom_talking.granule\n'
+        'thing keeper of character in hall\n'
+        '    name "keeper"\n'
+        '    named\n'
+        '    topic bees "the bees" words bees\n'
+        '        vary loop\n'
+        '            reply "They swarmed twice this week."\n'
+        '        or\n'
+        '            reply "Ask the hives, not me."\n'
+    )
+    story = _build(src)
+    io = CaptureIO(script=["ask keeper about bees", "ask keeper about bees",
+                           "ask keeper about bees"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "swarmed twice" in io.text
+    assert "Ask the hives" in io.text
+    # loop wraps: the first line returns on the third ask
+    assert io.text.count("swarmed twice") == 2
