@@ -70,13 +70,6 @@ way, designed on its own terms, pay-for-use as always.
   already shows darkness instead of the room name; the rest of the
   furniture is still to come.)
 - **LOOK \<direction\>.** "look north" describes what lies that way.
-- **The verbs overhaul** (underway; the `text` grammar slot, the verb
-  contract, foresight, verbs by the slice, enhance/redefine, noun lists
-  in two-noun actions, CONSULT ABOUT, typed YES/NO, and LIGHT have
-  landed, shiftable pushes things between rooms, the session verbs
-  (VERSION, the coupled NOTIFY, the swear family) closed the roster,
-  and doors and containers joined foresight's repairs). The overhaul
-  is complete.
 - **Question preservation.** A disambiguation question survives an
   interposed command: asked "which coin?", the player may take inventory
   first and then answer. In the same breath: likelihood hints, letting a
