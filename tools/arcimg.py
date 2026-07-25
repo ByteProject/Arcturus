@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.28.0"
+__version__ = "1.29.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -4343,6 +4343,40 @@ def cmd_targets(args) -> int:
     return 0
 
 
+def cmd_slice9(args) -> int:
+    """Mode 9 as the TOP SLICE of a mode-12 native: same bytes for every
+    shared row BY CONSTRUCTION (Stefan's ruling, 2026-07-25: a mode 9
+    that is a different version of the picture is a quality issue; the
+    P4 probe measured its independently-converted test pair electing
+    the same globals in opposite roles and brighter cell pairs). No
+    second conversion happens, so nothing can diverge."""
+    blob = open(args.source, "rb").read()
+    head, _secs = read_arc(blob)
+    if head["mode"] != 12:
+        print("arcimg: slice9 wants a mode-12 .arc", file=sys.stderr)
+        return 2
+    tag = next(t.tag for t in TARGETS.values() if t.id == head["target"])
+    t = TARGETS[tag]
+    tup = decode_arc(blob)
+    native = next(x for x in tup if isinstance(x, dict) and "pixels" in x)
+    h9 = (head["height"] * 9 + 5) // 12   # 96 -> 72, 200-row family safe
+    out = dict(native)
+    out["h"] = h9
+    out["pixels"] = [row[:] for row in native["pixels"][:h9]]
+    if "screen" in native:
+        cells = (native["w"] // 4) * (h9 // 8)
+        out["screen"] = list(native["screen"][:cells])
+        out["color"] = list(native["color"][:cells])
+    if "lines" in native:
+        out["lines"] = list(native["lines"][:h9 * 4])
+    blob9 = write_arc(head["target"], 9, head["width"], h9,
+                      args.id if args.id is not None else head["id"],
+                      t.pack(out), codec=head["codec"])
+    open(args.out, "wb").write(blob9)
+    print(f"arcimg: wrote {args.out} (mode 9 slice of {args.source})")
+    return 0
+
+
 def cmd_render(args) -> int:
     try:
         with open(args.source, "rb") as f:
@@ -4445,6 +4479,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_conv.add_argument("--serial", action="store_true",
                         help="convert one picture at a time (no worker pool)")
     p_conv.set_defaults(func=cmd_convert)
+
+    p_slice = sub.add_parser(
+        "slice9", help="derive a mode-9 .arc as the top slice of a "
+                       "mode-12 .arc (same picture, same bytes for "
+                       "every shared row)")
+    p_slice.add_argument("source", help="a mode-12 .arc file")
+    p_slice.add_argument("--id", type=int, default=None,
+                         help="picture id for the slice (default: keep)")
+    p_slice.add_argument("-o", "--out", required=True,
+                         help="the mode-9 .arc to write")
+    p_slice.set_defaults(func=cmd_slice9)
 
     p_render = sub.add_parser(
         "render", help="render a .arc image to a PNG preview")

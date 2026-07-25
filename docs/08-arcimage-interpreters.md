@@ -1059,10 +1059,14 @@ bytes last. The attribute truths above are the entire difficulty;
 the loader itself is small.
 
 ASSETS. `<id>.P4` beside the story. The standard test pair: 9.P4
-(mode 9), 12.P4 (mode 12), both picture 8 of the corpus. NOTE: the
-mode-9 file is its OWN conversion of the squashed master and elects
-its own colours; verify each screen against its own render, not
-against the other mode's.
+(mode 9), 12.P4 (mode 12), both picture 8 of the corpus, and the
+mode-9 file is the TOP SLICE of the mode-12 conversion (arcimg
+slice9): registers identical, every shared row and attribute cell
+byte-identical. Stefan's ruling makes it doctrine: a mode 9 that is
+a different version of the picture is a quality issue. The first
+test pair was converted independently and elected the same globals
+in opposite roles with brighter cell pairs; a probe verifying
+against such a pair verifies nothing about consistency.
 
 MEMORY. The 2K ring; zero page for the decoder and the walk; the
 matrices and bitmap in their display homes. The compressed source is
