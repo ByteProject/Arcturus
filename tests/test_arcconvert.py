@@ -405,18 +405,18 @@ def test_zx3_attrs_are_hardware_legal():
 
 # --- Plus/4 (P4): multicolour, a child of the frozen CPC -------------------
 
-# The P4 corpus frozen 2026-07-25, second pin the same day: the
-# measured TED palette (the xplus4 staircase screenshot; hue 0 is the
-# grey ladder, chromatics start at 1, hardware saturation) and the
-# approved cell solve (seed-and-grow election plus coherence
-# relaxation) land together as arcimg 1.26.0. Stefan: "Finally.
-# Approved." Production output pixel-identical to the approval set,
-# 21/21.
+# The P4 corpus frozen 2026-07-25, third pin, the hardware-true one
+# (arcimg 1.28.0): the re-anchored TED table (nibble 0 is black at
+# every luminance; the first staircase measured one column off because
+# black is invisible on black) and the crossed luminance nibble the
+# conventions probe proved on xplus4. Renders 20/21 pixel-identical to
+# the approved corpus (image 19: 16 pixels); the probe then verified
+# mode 9, mode 12, and picture 12 pixel-exact on the emulator.
 _P4_GOLDEN = {
-    "2.png": "406f217aaadc0481",
-    "8.png": "465b9f7ccf2f70f9",
-    "10.png": "ad3b517587364534",
-    "12.png": "30e02926cfef5417",
+    "2.png": "a1b1145f5b2e4008",
+    "8.png": "6ac499a58416f9c3",
+    "10.png": "ab30fa6eadddb134",
+    "12.png": "efc53707d322f3db",
 }
 
 

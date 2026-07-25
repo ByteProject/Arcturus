@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.27.0"
+__version__ = "1.28.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -986,25 +986,25 @@ _TMS9918 = [
     (0xFF, 0xFF, 0xFF),
 ]
 
-# Plus/4 (TED): THE MEASURED PALETTE (the P4 palette staircase on
-# xplus4, Stefan's screenshot, 2026-07-25). The formula model this
-# table retires was preview-grade by its own comment and wrong three
-# ways, all probe-proven: the hue axis sat one nibble off (hardware
-# nibble 0 is black PLUS the grey ladder, chromatics start at 1: the
-# 121 count is 15x8 + black + 7 greys), saturation ran at a third of
-# hardware, and the luma ladder topped out low. Every value below is
-# sampled from the emulator's screen, the GTIA-wheel playbook. Real
-# CRT measurement may refine it later; the semantics are frozen.
+# Plus/4 (TED): THE MEASURED PALETTE, SECOND ANCHORING (the staircase
+# on xplus4, Stefan's screenshots, 2026-07-25 morning). The first
+# measurement was one nibble off: hardware nibble 0 is BLACK AT EVERY
+# LUMINANCE (the TED doc's own law), so its column was invisible
+# against the black canvas and the grid anchored on nibble 1's greys.
+# Stefan's observation broke the case: "the clouds resolve into black
+# instead of white" needs no hue shift, it convicts the greys. True
+# order, the documented one: 0 black, 1 the grey ladder, 2 red, 3
+# cyan, ... 15 light green: 15 ladders x 8 plus black = the 121.
 _TED_MEASURED = (
-    ((0, 0, 0), (48, 48, 48), (64, 64, 64), (80, 80, 80), (120, 120, 120), (144, 144, 144), (192, 192, 192), (255, 255, 255)),
+    ((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)),
+    ((32, 32, 32), (48, 48, 48), (64, 64, 64), (80, 80, 80), (120, 120, 120), (144, 144, 144), (192, 192, 192), (255, 255, 255)),
     ((94, 7, 0), (110, 23, 16), (126, 39, 32), (142, 55, 48), (182, 95, 88), (206, 119, 112), (254, 167, 160), (255, 231, 224)),
     ((0, 57, 64), (0, 73, 80), (2, 89, 96), (18, 105, 112), (58, 145, 152), (82, 169, 176), (130, 217, 224), (194, 255, 255)),
     ((86, 0, 108), (102, 6, 124), (118, 22, 140), (134, 38, 156), (174, 78, 196), (198, 102, 220), (246, 150, 255), (255, 214, 255)),
     ((0, 74, 0), (0, 90, 0), (10, 106, 0), (26, 122, 4), (66, 162, 44), (90, 186, 68), (138, 234, 116), (202, 255, 180)),
     ((21, 10, 174), (37, 26, 190), (53, 42, 206), (69, 58, 222), (109, 98, 255), (133, 122, 255), (181, 170, 255), (245, 234, 255)),
     ((43, 54, 0), (59, 70, 0), (75, 86, 0), (91, 102, 0), (131, 142, 0), (155, 166, 2), (203, 214, 50), (255, 255, 114)),
-    ((85, 21, 0), (101, 37, 0), (117, 53, 0), (133, 69, 0), (173, 109, 38), (197, 133, 62), (245, 181, 110), (255, 246, 174)),
-    ((85, 21, 0), (101, 37, 0), (117, 53, 0), (133, 69, 0), (173, 109, 38), (197, 133, 62), (245, 181, 110), (255, 246, 174)),
+    ((84, 22, 0), (100, 38, 0), (116, 54, 0), (132, 70, 0), (172, 110, 37), (196, 134, 61), (244, 182, 109), (255, 246, 173)),
     ((66, 38, 0), (82, 54, 0), (98, 70, 0), (114, 86, 0), (154, 126, 0), (178, 150, 22), (226, 198, 70), (255, 255, 134)),
     ((18, 67, 0), (34, 83, 0), (50, 99, 0), (66, 115, 0), (106, 155, 0), (130, 179, 4), (178, 227, 52), (242, 255, 116)),
     ((95, 0, 56), (111, 11, 72), (127, 27, 88), (143, 43, 104), (183, 83, 144), (207, 107, 168), (255, 155, 216), (255, 219, 255)),
@@ -2767,7 +2767,10 @@ def _p4_from_cpc(cpc):
         ha, la = ted_hl[a]
         hb, lb = ted_hl[b]
         screen.append((ha << 4) | hb)
-        color.append((la << 4) | lb)
+        # the luminance byte is CROSSED on the metal (the conventions
+        # quadrant probe, 2026-07-25): %01 reads the LOW luma nibble,
+        # %10 the HIGH, while hues read straight
+        color.append((lb << 4) | la)
     bh, bl = ted_hl[bg]
     ah, al = ted_hl[aux]
     return {"w": w, "h": h, "pixels": pixels_out, "screen": screen,
@@ -3378,9 +3381,9 @@ class _P4:
                     hues = native["screen"][cell]
                     lumas = native["color"][cell]
                     if code == 1:
-                        hue, luma = (hues >> 4) & 15, (lumas >> 4) & 7
+                        hue, luma = (hues >> 4) & 15, lumas & 7
                     else:
-                        hue, luma = hues & 15, lumas & 7
+                        hue, luma = hues & 15, (lumas >> 4) & 7
                     rgb = _ted_color(hue, luma)
                 row.append(rgb)
                 row.append(rgb)  # 2:1 wide pixels render doubled

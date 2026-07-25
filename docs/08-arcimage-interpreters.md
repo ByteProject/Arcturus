@@ -976,3 +976,94 @@ MEMORY. The 2K ring (2K-aligned); the decoded line-table buffer (384
 bytes) and the 48-byte segment table; zero page for the decoder and
 the walk. The compressed source is read strictly forward and may be
 streamed from disk in sector bites.
+
+### C.9 Commodore Plus/4 (target id 5, tag P4, files `<id>.P4`)
+
+Probe: [arc_image/probes/p4/](../arc_image/probes/p4/), source
+`probe.asm` with the shared ring decoder `../c64/dzx0r_6502.asm` and
+the embedded test pair 9.P4 and 12.P4 (plus pic12.P4, a second
+picture on the third keypress). Build (ACME):
+`acme -f cbm -o probe.prg probe.asm`; run: `xplus4 -autostart
+probe.prg`. Verified pixel-exact on VICE against the corpus renders,
+all three screens. Two calibration companions live beside it:
+`palette.asm` (the staircase that measured the palette) and the
+conventions quadrant probe (in the session record), which together
+determined everything below that the documentation alone did not.
+
+VIDEO. TED multicolour bitmap: $FF06 = $3B (bitmap, screen on, 25
+rows), $FF07 = $18 (multicolour, 40 columns), bitmap base via $FF12
+(bits 5-3; the probe uses $6000), attribute matrices via $FF14 (bits
+7-3): the LUMINANCE matrix at base+$000, the COLOUR matrix at
+base+$400. 160 wide pixels, 2 bits each; the band is the top 9 or 12
+cell rows. Per 4x8 cell: two private colours plus two global
+registers: pixel %00 reads $FF15, %11 reads $FF16.
+
+THE ATTRIBUTE TRUTHS, all probe-proven on the emulator's metal, none
+of them entirely in the folklore:
+
+- HUES read straight: %01 takes its hue from the colour matrix HIGH
+  nibble, %10 from the LOW.
+- LUMINANCE READS CROSSED: %01 takes its luminance from the
+  luminance matrix LOW nibble, %10 from the HIGH. The .arc color
+  section carries the bytes in hardware order already ((lumaB << 4)
+  | lumaA), so a loader copies both matrices verbatim and must NOT
+  "correct" anything.
+- The global registers want (luma << 4) | hue; the .arc regs section
+  carries (hue << 4) | luma (the family's native order), so the
+  loader swaps nibbles on exactly those two bytes. (The border
+  register's convention is UNVERIFIED; the probe paints it black,
+  where both readings agree.)
+- Hue nibble 0 is BLACK AT EVERY LUMINANCE; the grey ladder is hue
+  1. That is how 121 counts: 15 ladders of 8 plus black. A palette
+  measured off the screen must remember that black on black is
+  invisible: the first staircase anchored one column off and cost a
+  corpus a morning.
+
+CODEC. ZX0 (part B) under the 2048 window guarantee, the same ring
+decoder as the C64 chapter with its default zero page ($08-$12): the
+probe runs under SEI and never returns to BASIC, so the BASIC
+workspace is free. The 2K-aligned ring sits at $0800 (cassette and
+input buffers, likewise free).
+
+THE LAYOUT RULE. Display memory lives ABOVE the program: a PRG
+loading at $1001 with two embedded pictures ends past $2E00, and a
+bitmap at the classic $2000 makes the loader's wipe eat its own
+assets (the probe's first launch: black screen, then a green border
+as the runaway decode strafed the TED registers; the A8 chapter's
+POKEY lesson, transposed). The probe uses bitmap $6000, matrices
+$5800/$5C00.
+
+SECTIONS, in file order, every payload already in native order:
+
+- bitmap (type 1): C64-family cell-ordered rows (per cell row, per
+  cell, eight line bytes), 2880 bytes in mode 9, 3840 in mode 12.
+- screen (type 2): per-cell hue pairs, (hueA << 4) | hueB, for the
+  COLOUR matrix (360 / 480 bytes). Copy verbatim.
+- color (type 3): per-cell luminance pairs IN HARDWARE ORDER,
+  (lumaB << 4) | lumaA, for the LUMINANCE matrix. Copy verbatim.
+- registers (type 7): two bytes, background then aux, each
+  (hue << 4) | luma: nibble-swap each into $FF15 and $FF16.
+
+Z-COLOURS. The interpreter's text lives below the band: either a
+raster split into a TED text mode below the band's rows, or a
+full-screen bitmap with the font rendered in. Text colours share
+only the two global registers with the art; keeping the story
+background equal to the art's background register is the simple
+answer, as on the C64.
+
+LOADER RECIPE (the probe's shape): wipe the bitmap and both
+matrices, blacken the registers; verify the magic; walk the section
+table once, dispatching each type to its native destination and
+advancing by the compressed lengths; nibble-swap the two register
+bytes last. The attribute truths above are the entire difficulty;
+the loader itself is small.
+
+ASSETS. `<id>.P4` beside the story. The standard test pair: 9.P4
+(mode 9), 12.P4 (mode 12), both picture 8 of the corpus. NOTE: the
+mode-9 file is its OWN conversion of the squashed master and elects
+its own colours; verify each screen against its own render, not
+against the other mode's.
+
+MEMORY. The 2K ring; zero page for the decoder and the walk; the
+matrices and bitmap in their display homes. The compressed source is
+read strictly forward and may be streamed from disk in sector bites.
