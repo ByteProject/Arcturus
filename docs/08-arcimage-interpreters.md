@@ -639,7 +639,9 @@ between the two images; a real interpreter draws its text below the
 band instead.
 
 ASSETS. `<id>.C64` beside the story. The standard test pair: 9.C64
-(mode 9), 12.C64 (mode 12).
+(mode 9), 12.C64 (mode 12), the mode-9 file being the TOP SLICE of
+the mode-12 conversion (arcimg slice9; the C.9 doctrine): registers
+and every shared row byte-identical between the two.
 
 MEMORY. The 2K ring: the entire decode working set (this machine never
 staged, but the R3 build used a decoder that reads back its own output,
@@ -970,7 +972,9 @@ whole loader is small enough that the DLI discipline above is most
 of the thinking.
 
 ASSETS. `<id>.A8` beside the story. The standard test pair: 9.A8
-(mode 9), 12.A8 (mode 12), both picture 8 of the corpus.
+(mode 9), 12.A8 (mode 12), both picture 8 of the corpus, the mode-9
+file being the TOP SLICE of the mode-12 conversion (arcimg slice9;
+the C.9 doctrine): line table and every shared row byte-identical.
 
 MEMORY. The 2K ring (2K-aligned); the decoded line-table buffer (384
 bytes) and the 48-byte segment table; zero page for the decoder and
