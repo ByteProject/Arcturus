@@ -1,0 +1,91 @@
+// vary.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for vary (docs/01 section 16): prose that varies by itself.
+// Each vary site keeps one invisible word of state, allocated by the
+// compiler, correct across save, undo, and restart, never named by the
+// author. The policy word says how the site moves on: sequence advances
+// once and sticks on the last, loop goes round-robin, mutate is random
+// but never the same twice running, dice is the honest roll. Compile
+// and run:
+//
+//   arcc examples/features/vary.storyarc -o vary.z5
+//   frotz vary.z5
+//
+// Try, in order:
+//   look                     sequence: the mill described anew
+//   look                     the second line
+//   look                     the third, and every look after: it sticks
+//   push wheel               loop: round-robin, A B C A B C
+//   push wheel               (push it a few more times to see the wrap)
+//   listen                   mutate: random, never twice in a row
+//   listen                   (again and again; no line repeats back to back)
+//   touch flour              dice: the honest roll, repeats allowed
+//   ask ansel about weather  loop again, this time as varied REPLIES in a
+//                            conversation topic: each variant is a reply
+//                            in an `or` group, attributed and quoted
+//   ask ansel about weather  (and again, for the next line round)
+
+game
+    title  "The Patient Mill"
+    headline "A vary showcase"
+    author "Stefan Vogt"
+    start  millroom
+
+summon.statusline
+summon.infocom_talking
+
+room millroom
+    name "The Mill Room"
+    desc block
+        vary sequence
+            "Flour hangs in the air like slow weather. The great wheel turns behind the wall."
+            "The mill room again. The dust has settled on your shoulders as if you belonged here."
+            "The wheel turns, the flour drifts. The mill has stopped noticing you."
+
+    on listen
+        vary mutate
+            "The wheel groans, low and wooden."
+            "Grain hisses somewhere above."
+            "A rope creaks against its pulley."
+            "For one long moment, nothing at all."
+
+thing wheel in millroom
+    name "great wheel"
+    words wheel
+    scenery
+    desc "Oak, iron-shod, older than anyone who complains about it."
+
+    on push
+        vary loop
+            "The wheel absorbs your shove without comment."
+            "You push again. A single spoke clicks, mockingly."
+            "The wheel turns exactly as fast as before."
+
+thing floursack in millroom
+    name "sack of flour"
+    words flour, sack
+    desc "A fat sack, dusted white."
+
+    on touch
+        vary dice
+            "Flour. Flour all the way down."
+            "Your hand finds only warm, soft flour."
+            "A weevil surfaces, considers you, and dives."
+
+thing miller of character in millroom
+    name "Miller Ansel"
+    words miller, ansel
+    named
+    desc "White to the elbows, patient as his wheel."
+
+    topic weather "the weather" words weather, rain
+        you "What do you make of the weather?"
+        vary loop
+            reply "It grinds on, same as the wheel."
+        or
+            reply "Rain coming. The flour knows before I do."
+        or
+            reply "You ask a miller about weather? Ask the sky."

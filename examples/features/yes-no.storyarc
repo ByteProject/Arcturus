@@ -1,0 +1,71 @@
+// yes-no.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for typed answers (docs/01 section 10b): YES and NO are
+// ordinary in-world actions. A game that asks the player something reads
+// the reply with `on yes` / `on no`, and a `when` guard scopes each
+// question to its moment, so several questions can live in one game
+// without ever answering for each other. Untended, YES and NO get a dry
+// flavor line; they are never meta, answering is speech, and it happens
+// in the story. Compile and run:
+//
+//   arcc examples/features/yes-no.storyarc -o yes-no.z5
+//   frotz yes-no.z5
+//
+// Try, in order:
+//   yes                talking to nobody about nothing: the flavor line
+//   ring bell          the innkeeper appears and asks a question
+//   no                 the guarded `on no` answers, and the offer closes
+//   ring bell          ask again
+//   yes                the guarded `on yes` this time: a room is yours
+//   ring bell          the innkeeper has nothing further to ask
+//   yes                back to the flavor line: no question is open
+
+game
+    title  "The Last Room"
+    headline "A yes-no showcase"
+    author "Stefan Vogt"
+    start  taproom
+
+summon.statusline
+
+verb "ring"
+    ring noun
+
+flag asking_room
+flag room_taken
+
+room taproom
+    name "The Taproom"
+    desc "Low beams, a cold hearth, and a brass bell on the counter."
+
+thing bell in taproom
+    name "brass bell"
+    words bell, brass
+    fixed
+    desc "Polished by a thousand impatient palms."
+
+    on ring
+        if room_taken
+            say "The innkeeper looks up. \"Settled in already, no?\""
+            stop
+        change asking_room to true
+        say "The innkeeper surfaces from the cellar, wiping his hands.
+             \"One room left tonight. Will you take it?\""
+
+thing innkeeper of character in taproom
+    name "innkeeper"
+    words innkeeper, keeper
+    desc "A patient man with exactly one room to his name."
+
+on yes when asking_room
+    change asking_room to false
+    change room_taken to true
+    say "\"Good.\" He slides a key across the counter. \"Top of the
+         stairs, mind the third step.\""
+
+on no when asking_room
+    change asking_room to false
+    say "\"Suit yourself.\" The cellar swallows him again."

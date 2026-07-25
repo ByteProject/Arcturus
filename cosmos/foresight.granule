@@ -122,6 +122,17 @@ block foresight_open(obj)
             now x is seen
     return 1
 
+// The sealed-take seam override: a take aimed through closed glass (the
+// clear container, reachable to the eye through ordinary scope) opens the
+// container on the same promise discipline and lets the take continue.
+// The give-chain already repaired this shape; the direct take owed the
+// player the same manners (found by the foresight example, 2026-07-25).
+block take_sealed_refused(obj)
+    change shut_in to reach_blocker(obj)
+    if shut_in_refused is 0
+        return 0
+    return 1
+
 // The container repair: the named thing is KNOWN but sealed in shut_in.
 // Open the container and let the typed command continue as if the player
 // had done it themselves; anything unrepairable falls back to the default's

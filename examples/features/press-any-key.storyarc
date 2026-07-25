@@ -1,0 +1,75 @@
+// press-any-key.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for read_key (docs/01 section 9a): one keypress, no echo, no
+// Enter, backed by the Z-machine's own read_char. As a bare statement it
+// is the classic "press any key" gate; as a value (`let k = read_key`) it
+// returns the key's ZSCII code, so a game can also branch on WHICH key.
+// The conversations menu selects with the same intrinsic. Compile and run:
+//
+//   arcc examples/features/press-any-key.storyarc -o press-any-key.z5
+//   frotz press-any-key.z5
+//
+// Try, in order:
+//   (at the start)     the overture waits for a single key, any key,
+//                      before the first room prints
+//   read plaque        a paced inscription: each key turns the page
+//                      (READ is examine's standard synonym; the handler
+//                      is an ordinary `on examine`)
+//   press panel        read_key as a VALUE: press a letter when asked,
+//                      and the panel knows which one you pressed (PRESS
+//                      rides push's grammar; the handler is `on push`)
+
+game
+    title  "The Anteroom"
+    headline "A read_key showcase"
+    author "Stefan Vogt"
+    start  anteroom
+
+summon.statusline
+
+on start
+    say "Dust settles in a cone of lamplight. Somewhere behind the wall,
+         machinery clears its throat."
+    par
+    say "[Press any key.]"
+    read_key
+
+room anteroom
+    name "The Anteroom"
+    desc "A waiting room for something larger. A bronze plaque and a
+          lettered panel share the far wall."
+
+thing plaque in anteroom
+    name "bronze plaque"
+    words plaque, bronze
+    fixed
+    desc "Three lines of small bronze capitals. Reading them feels like
+          being read to."
+
+    on examine
+        say "THE MACHINE REMEMBERS. [key]"
+        read_key
+        say "THE MACHINE FORGIVES. [key]"
+        read_key
+        say "THE MACHINE IS PATIENT."
+
+thing panel in anteroom
+    name "lettered panel"
+    words panel, lettered
+    fixed
+    desc "Brass keys, A to Z, worn shiny at the vowels."
+
+    on push
+        say "The panel waits for one letter. [press a key]"
+        let k = read_key
+        if k is 97
+            say "A soft chime: the panel approves of A."
+            stop
+        if k is 122
+            say "A long buzz: Z is the one letter it refuses."
+            stop
+        say "A click, a whirr, and your letter (code ${k}) is filed away
+             forever."

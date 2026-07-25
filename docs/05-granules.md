@@ -275,7 +275,10 @@ the walk opens itself, "(opening the oak door first)", and the walk goes
 on; naming a thing you KNOW is inside a closed, unlocked container opens
 the container and the command continues, and the two chain: GIVE PEARL TO
 BOB with the pearl visible in a sealed clear jar runs "(opening the clear
-jar first)", "(taking the pearl first)", and then the give. The same
+jar first)", "(taking the pearl first)", and then the give, and the plain
+TAKE PEARL through the same glass opens the jar just as readily (the
+sealed-take seam; the direct take and the give-chain share one manners
+model). The same
 probe rule governs every step (open_probe is the default open's own guard
 chain), locked things stay honest refusals, since unlocking is a decision
 where opening is mechanics, and the knowledge model draws the other line:

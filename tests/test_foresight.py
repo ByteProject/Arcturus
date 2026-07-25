@@ -243,3 +243,21 @@ def test_unsummoned_defaults_untouched():
     assert "shut" in out.lower()
     assert "You aren't carrying the pearl." in out
     assert "opening" not in out
+
+
+def test_a_clear_closed_container_repairs_the_direct_take():
+    # Reachable to the eye through glass: the direct take opens the case on
+    # the same promise discipline the give-chain always had. Before the
+    # sealed-take seam the direct take refused while GIVE repaired (found
+    # by the foresight example, 2026-07-25).
+    out = _run2("summon.foresight\n", ["take pearl"])
+    assert "(opening the clear jar first)" in out
+    assert "Got it." in out
+
+
+def test_without_foresight_the_clear_take_still_refuses():
+    # The seam's default is the exact old refusal: unsummoned games keep
+    # their manners.
+    out = _run2("", ["take pearl"])
+    assert "have to open" in out
+    assert "opening the clear jar first" not in out

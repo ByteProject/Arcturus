@@ -1,0 +1,100 @@
+// foresight.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for summon.foresight: the game does the obvious preparatory
+// step for you, and says so in the classic parenthetical. Naming a thing
+// at your feet in a command that needs it carried takes it first; a
+// closed, unlocked door opens itself on the walk; naming a thing you KNOW
+// is inside a closed container opens the container and carries on, the
+// steps chaining when they must. The parenthetical is a promise, printed
+// only when the repaired step is certain to succeed: locked stays a plain
+// refusal, out of reach stays out of reach, and contents you have never
+// seen cannot even be named. Off unless summoned; a game without this
+// line pays nothing. Compile and run:
+//
+//   arcc examples/features/foresight.storyarc -o foresight.z5
+//   frotz foresight.z5
+//
+// Try, in order:
+//   give coin to ferryman    (taking the brass coin first) and the fare
+//                            is paid: the coin was at your feet
+//   north                    (first opening the pine door) and you walk
+//                            through in one turn
+//   get sextant              (opening the display case first): the case
+//                            is closed but CLEAR, the sextant plain to
+//                            see, so the repair is certain and chained
+//   south                    back to the jetty
+//   open chest               locked, and foresight NEVER picks locks: a
+//                            plain refusal, no parenthetical promises
+//   get lantern              the lantern sits in the closed, opaque chest:
+//                            never seen, it cannot even be named. The
+//                            knowledge rule, working as designed
+
+game
+    title  "The Ferry Fare"
+    headline "A foresight showcase"
+    author "Stefan Vogt"
+    start  jetty
+
+summon.statusline
+summon.foresight
+
+room jetty
+    name "The Jetty"
+    desc "Weathered boards over grey water. A pine door leads north into the
+          boathouse. The ferryman waits, hand out, endlessly patient."
+    north pinedoor
+
+thing coin in jetty
+    name "brass coin"
+    words coin, brass
+    desc "Fare for one crossing, face worn smooth."
+
+thing ferryman of character in jetty
+    name "ferryman"
+    words ferryman, ferry, man
+    desc "He has seen every excuse and accepts exactly one currency."
+
+    on give coin to self
+        say "He bites the coin, nods, and pockets it. You are paid up."
+
+thing chest of container in jetty
+    name "sea chest"
+    words chest, sea
+    fixed
+    openable
+    open false
+    lockable
+    locked
+    desc "Iron-strapped and shut. The lock has outlived three keys."
+
+thing lantern in chest
+    name "storm lantern"
+    words lantern, storm
+    desc "Brass and salt-glass, waiting out its imprisonment."
+
+thing pinedoor of door in jetty, boathouse
+    name "pine door"
+    words door, pine
+    desc "Pine planks, a thumb latch, no lock at all."
+
+room boathouse
+    name "The Boathouse"
+    desc "Rope, tar, and one glass display case on a plinth."
+    south pinedoor
+
+thing showcase of container in boathouse
+    name "display case"
+    words case, display
+    fixed
+    openable
+    open false
+    clear
+    desc "A glass case on a plinth. The latch is stiff but willing."
+
+thing sextant in showcase
+    name "sextant"
+    words sextant
+    desc "A navigator's sextant, brass arms folded like a sleeping insect."

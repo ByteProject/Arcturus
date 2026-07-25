@@ -262,12 +262,27 @@ block speak_take_refusal(obj, why)
     msg_animate_refuses
     return 0
 
+// The sealed-take seam: the named thing is reachable to the eye but shut
+// inside a closed container (the CLEAR case reaches here through ordinary
+// scope; the opaque seen-memory case repairs earlier, at run_turn's
+// shut_in seam). The default refuses exactly as the plain refusal always
+// did; summon.foresight overrides this block to open the container when
+// the promise is certain and lets the take proceed. Returns 1 refused
+// (message spoken), 0 repaired (probe again and carry on).
+block take_sealed_refused(obj)
+    speak_take_refusal(obj, 4)
+    return 1
+
 on take
     if noun is nothing
         change refused to 1
         msg_noun_missing
         stop
     let why = take_probe(noun)
+    if why is 4
+        if take_sealed_refused(noun) is 1
+            stop
+        change why to take_probe(noun)
     if why is not 0
         speak_take_refusal(noun, why)
         stop
