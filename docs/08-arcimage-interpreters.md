@@ -1014,9 +1014,11 @@ of them entirely in the folklore:
   "correct" anything.
 - The global registers want (luma << 4) | hue; the .arc regs section
   carries (hue << 4) | luma (the family's native order), so the
-  loader swaps nibbles on exactly those two bytes. (The border
-  register's convention is UNVERIFIED; the probe paints it black,
-  where both readings agree.)
+  loader swaps nibbles on exactly those two bytes. The border
+  register $FF19 follows the SAME convention, probe-verified with
+  the display disabled (the whole screen becomes border: three
+  planted values read army green, white, salmon, all decoding as
+  (luma << 4) | hue on the measured table).
 - Hue nibble 0 is BLACK AT EVERY LUMINANCE; the grey ladder is hue
   1. That is how 121 counts: 15 ladders of 8 plus black. A palette
   measured off the screen must remember that black on black is
