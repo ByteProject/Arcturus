@@ -2227,6 +2227,22 @@ The speaker labels and the quotation marks live in overridable library blocks
 (`line_you`, `line_reply`, `line_end`), so a story or a language pack can restyle
 or translate the framing without touching the topics.
 
+Because the body is a statement block, `vary` (section 16) works here like
+anywhere else, and a person whose answer changes on each asking is exactly
+that: reply-framed variants in `or` groups. Bare-string lines between them
+stay stage directions, per the forms above:
+
+```
+    topic cowboy
+        you "What about the cowboy?"
+        vary loop
+            reply "Nobody around here likes to talk about him."
+        or
+            reply "Still asking? Some questions cost more than others."
+        or
+            reply "I have said all I will say."
+```
+
 A worked fragment:
 
 ```
@@ -2295,6 +2311,9 @@ or
 
 vary is a statement, and in Arcturus all dynamic prose flows through
 statement contexts, so it plugs in anywhere text is made, tied to nothing:
+computed descriptions, handlers, grains, and conversation `topic` bodies
+alike (a character whose replies vary is the topic section's own worked
+case, section 15):
 
 ```
 room cellar
