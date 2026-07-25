@@ -181,8 +181,8 @@ zx0ring:
         ASSERT (zx0ring & $7FF) == 0
 
 image9:
-        incbin "9.TRSM4"
+        incbin "ARC9.TR4"
 image12:
-        incbin "12.TRSM4"
+        incbin "ARC12.TR4"
 
         SAVEBIN "probe.bin", start, $ - start

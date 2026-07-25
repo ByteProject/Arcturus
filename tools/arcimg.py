@@ -75,7 +75,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.26.0"
+__version__ = "1.27.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -4150,6 +4150,18 @@ def _is_hand_authored(dest):
     return len(head) == 16 and head[:4] == ARC_MAGIC and head[15] == 1
 
 
+def _native_filename(iid: int, tag: str) -> str:
+    """The on-disk name of a native conversion. Every target ships
+    <id>.<TAG> except the TRS-80 Model 4: TRSDOS caps a suffix at three
+    characters and a filename must begin with a letter (Shawn
+    Sijnstra's report, 2026-07-25), so the Model 4 ships ARC<id>.TR4.
+    The .arc header id stays authoritative either way (part B), so no
+    interpreter or packer logic changes with the name."""
+    if tag == "TRSM4":
+        return f"ARC{iid}.TR4"
+    return f"{iid}.{tag}"
+
+
 def _convert_stale(master, dest, preview):
     """make-style currency: the output stands if it is newer than the
     master, its hint sidecar (if any), and this tool itself."""
@@ -4197,7 +4209,7 @@ def cmd_convert(args) -> int:
     jobs = []
     skipped = 0
     for iid in sorted(entries):
-        dest = os.path.join(args.out, f"{iid}.{tag}")
+        dest = os.path.join(args.out, _native_filename(iid, tag))
         preview = os.path.join(args.preview, f"{iid}-{tag}.png") \
             if args.preview else None
         if _is_hand_authored(dest):

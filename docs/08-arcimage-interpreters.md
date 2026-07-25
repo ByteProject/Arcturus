@@ -864,9 +864,12 @@ Z-COLOURS. None. A game's colour requests degrade to nothing, per the
 part A contract; the interpreter renders its text in the machine's one
 ink.
 
-ASSETS. `<id>.TRSM4` beside the story (the interpreter's own disk
-layout may rename; the .arc header id is authoritative). The standard
-test pair: 9.TRSM4, 12.TRSM4.
+ASSETS. `ARC<id>.TR4` beside the story: TRSDOS caps a suffix at three
+characters and a filename must begin with a letter (Shawn Sijnstra's
+report from the real machine), so this target's files break the
+family's `<id>.<TAG>` convention BY DESIGN. The .arc header id stays
+authoritative, so nothing but the name differs. The standard test
+pair: ARC9.TR4, ARC12.TR4.
 
 MEMORY. The 2K ring: the entire decode working set. The compressed
 source is read strictly forward and may be streamed from disk in
