@@ -3,28 +3,40 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for read_key (docs/01 section 9a): one keypress, no echo, no
-// Enter, backed by the Z-machine's own read_char. As a bare statement it
-// is the classic "press any key" gate; as a value (`let k = read_key`) it
-// returns the key's ZSCII code, so a game can also branch on WHICH key.
-// The conversations menu selects with the same intrinsic. Compile and run:
+// A showcase for waiting on a single keypress, in its three manners:
+//
+// 1. THE PACING GATE, the classic "press any key" between paragraphs
+//    (Hibernated 2 does this after its intro): the library helper
+//    `press_any_key` prints the prompt and waits. The prompt is
+//    msg_press_any_key in the language layer, "[...]" by default:
+//    convenient, understood everywhere, no translation needed, and a
+//    story or a language pack overrides the block to reword it.
+// 2. THE CUSTOM PROMPT, an in-game device asking in its own voice: call
+//    `read_key` directly (one keypress, no echo, no Enter, backed by
+//    the Z-machine's read_char) after saying whatever the scene needs.
+// 3. THE SPECIFIC KEY: `read_key` is also a value returning the key's
+//    ZSCII code, so a device can accept exactly the keys it names,
+//    refuse the rest, and ask again.
+//
+// Compile and run:
 //
 //   arcc examples/features/press-any-key.storyarc -o press-any-key.z5
 //   frotz press-any-key.z5
 //
 // Try, in order:
-//   (at the start)     the overture waits for a single key, any key,
-//                      before the first room prints
-//   read plaque        a paced inscription: each key turns the page
-//                      (READ is examine's standard synonym; the handler
-//                      is an ordinary `on examine`)
-//   press panel        read_key as a VALUE: press a letter when asked,
-//                      and the panel knows which one you pressed (PRESS
-//                      rides push's grammar; the handler is `on push`)
+//   (at the start)     manner 1: the intro pauses on "[...]" until any
+//                      key falls, then the story continues
+//   read plaque        manner 1 again, mid-game: each "[...]" turns the
+//                      page (READ is examine's standard synonym)
+//   press panel        manner 3: the panel names A and B, takes exactly
+//                      those, refuses everything else and asks again
+//                      (PRESS rides push's grammar)
+//   touch globe        manner 2: a custom prompt in the device's own
+//                      voice, any key accepted
 
 game
     title  "The Anteroom"
-    headline "A read_key showcase"
+    headline "A press-any-key showcase"
     author "Stefan Vogt"
     start  anteroom
 
@@ -33,14 +45,13 @@ summon.statusline
 on start
     say "Dust settles in a cone of lamplight. Somewhere behind the wall,
          machinery clears its throat."
-    par
-    say "[Press any key.]"
-    read_key
+    press_any_key
+    say "A door you had not noticed unbolts itself."
 
 room anteroom
     name "The Anteroom"
-    desc "A waiting room for something larger. A bronze plaque and a
-          lettered panel share the far wall."
+    desc "A waiting room for something larger. A bronze plaque, a lettered
+          panel, and a milky glass globe share the far wall."
 
 thing plaque in anteroom
     name "bronze plaque"
@@ -50,26 +61,38 @@ thing plaque in anteroom
           being read to."
 
     on examine
-        say "THE MACHINE REMEMBERS. [key]"
-        read_key
-        say "THE MACHINE FORGIVES. [key]"
-        read_key
+        say "THE MACHINE REMEMBERS."
+        press_any_key
+        say "THE MACHINE FORGIVES."
+        press_any_key
         say "THE MACHINE IS PATIENT."
 
 thing panel in anteroom
     name "lettered panel"
     words panel, lettered
     fixed
-    desc "Brass keys, A to Z, worn shiny at the vowels."
+    desc "Two brass keys, A and B, worn shiny."
 
     on push
-        say "The panel waits for one letter. [press a key]"
-        let k = read_key
+        say "The panel lights two keys: A and B."
+        let k = 0
+        while k is not 97 and k is not 98
+            change k to read_key
+            if k is not 97 and k is not 98
+                say "A flat click. Only A or B will do."
         if k is 97
-            say "A soft chime: the panel approves of A."
-            stop
-        if k is 122
-            say "A long buzz: Z is the one letter it refuses."
-            stop
-        say "A click, a whirr, and your letter (code ${k}) is filed away
-             forever."
+            say "A soft chime: corridors realign somewhere below."
+        else
+            say "A low horn: the lift arrives, empty."
+
+thing globe in anteroom
+    name "glass globe"
+    words globe, glass
+    fixed
+    desc "Milky glass, faintly warm, waiting to be consulted."
+
+    on touch
+        say "The globe clouds over. \"WHEN YOU ARE COMPOSED,\" it prints
+             across its own fog, \"TOUCH ANY KEY.\""
+        read_key
+        say "The fog clears, satisfied with your composure."

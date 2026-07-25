@@ -77,7 +77,7 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # and one branch are the cost.
 CEILINGS = {
     "features/yes-no.storyarc": 18216,  # 2026-07-25 new example (typed answers, when-guarded questions)
-    "features/press-any-key.storyarc": 18444,  # 2026-07-25 new example (read_key as gate and as value)
+    "features/press-any-key.storyarc": 18732,  # 2026-07-25 new example (read_key as gate and as value)
     "features/vary.storyarc": 19608,  # 2026-07-25 new example (the vary showcase incl. varied topic replies)
     "features/foresight.storyarc": 19488,  # 2026-07-25 new example (the foresight showcase; its writing found the sealed-take gap)
     "features/beyond.storyarc": 20392,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing

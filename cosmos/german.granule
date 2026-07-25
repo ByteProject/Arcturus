@@ -1105,6 +1105,9 @@ block msg_beyond(obj)
 block msg_cant_see()
     say "So etwas siehst du hier nicht."
 
+block msg_press_any_key()
+    say "[...]"
+
 block msg_open_first()
     say "Dazu musst du erst ${the:acc shut_in} öffnen."
 

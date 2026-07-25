@@ -1159,6 +1159,9 @@ block msg_beyond(obj)
 block msg_cant_see()
     say "No ves nada de eso por aquí."
 
+block msg_press_any_key()
+    say "[...]"
+
 block msg_open_first()
     say "Antes tendrás que abrir ${the shut_in}."
 

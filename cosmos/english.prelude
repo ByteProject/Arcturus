@@ -1138,6 +1138,9 @@ block msg_beyond(obj)
 block msg_cant_see()
     say "You see nothing of the sort here."
 
+block msg_press_any_key()
+    say "[...]"
+
 block msg_open_first()
     say "You'll have to open ${the shut_in} first."
 

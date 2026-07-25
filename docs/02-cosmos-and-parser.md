@@ -938,6 +938,15 @@ closed container, "${The noun} is closed."; darkness, "It is pitch dark, and
 you can see nothing."; an unhandled push, pull, or turn, "Nothing obvious
 happens."
 
+The pacing gate belongs here too: `press_any_key` (core) prints
+`msg_press_any_key`, waits for exactly one key (no echo, no Enter), and
+returns its ZSCII code for whoever cares which key fell. The prompt
+defaults to "[...]" in every language layer: convenient, understood
+everywhere, translation-free, and overridable like any message block. A
+device that speaks in its own voice calls `read_key` directly instead;
+the worked example (examples/features/press-any-key.storyarc) shows the
+gate, the custom prompt, and the specific-key catch side by side.
+
 ## 13. Naming, articles, daemons, and timers
 
 Naming. `name` is the printed short name; the object identifier is never
