@@ -801,7 +801,7 @@ payload order):
     2   AST  320x72 / 320x96       bitmap, palette
     3   DOS  320x72 / 320x96       bitmap, palette
     4   C64  160x72 / 160x96       bitmap, screen, color, registers
-    5   P4   320x72 / 320x96       bitmap, screen, color, registers
+    5   P4   160x72 / 160x96       bitmap, screen, color, registers
     6   CPC  160x72 / 160x96       bitmap, palette, registers
     7   MS1  256x72 / 256x96       bitmap, color
     8   MS2  256x72 / 256x96       bitmap, palette
@@ -827,10 +827,14 @@ reorders; the full loader detail lives in each wave's addendum):
   of 8 bytes, each byte four 2-bit pixels); screen is one byte per cell
   (the two per-cell color nibbles), row-major cells; color is one byte
   per cell (color RAM nibble); registers is [background $D021].
-- P4: TED hires bitmap in cell order (like the C64 hires layout); screen
-  is the color matrix (two hue nibbles per cell), color is the luminance
-  matrix (two luma nibbles per cell); registers is [$FF15, $FF16] when
-  the image is multicolor, empty for hires.
+- P4: TED multicolour bitmap in cell order (the C64 layout, four 2-bit
+  pixels per byte); screen is the colour matrix (two hue nibbles per
+  cell, %01 reading the high); color is the luminance matrix IN
+  HARDWARE ORDER, which is CROSSED (%01 reads the LOW luma nibble, %10
+  the high; probe-proven 2026-07-25, the R5 addendum); registers is
+  [background, aux] as (hue<<4)|luma, nibble-swapped by the loader into
+  $FF15/$FF16, whose hardware order is (luma<<4)|hue like every TED
+  colour register including the border.
 - CPC: Mode 0 bytes with the hardware pixel-bit shuffle already applied,
   lines in ascending screen-block address order (the eight 0x800
   sub-blocks, band rows only: eight contiguous runs); palette is 16
@@ -1002,3 +1006,26 @@ force or not; delete the file to reconvert. Loaders ignore byte 15.
 The playground carries the outputs (arc_image/ami, ast, dos; previews
 beside them), all regenerable with `arcimg convert` and gitignored as
 derived artifacts; the masters are the tracked truth.
+
+
+## R5 addendum: the Plus/4 made whole (2026-07-25)
+
+The multicolour rebuild (ruled when the C64 diffusion cracked it: "if
+we get C64 right, this will look just as fine on the Plus/4") reached
+its promised form only after the probes measured three truths the
+folklore did not carry. The TED palette was measured twice from the
+emulator staircase: the first anchoring was one nibble off because
+hardware hue 0 is BLACK AT EVERY LUMINANCE and its column is invisible
+on a black canvas (Stefan's "the clouds resolve into black" broke the
+case); the true order is the documented one, greys at nibble 1, and
+the 121 counts as 15 ladders of 8 plus black. The luminance matrix
+reads CROSSED (%01 takes the low nibble); the .arc color section
+carries hardware order since arcimg 1.28.0. Every TED colour register
+speaks (luma<<4)|hue, border included, probe-verified. The cell solve
+is the approved seed-and-grow election with coherence relaxation
+(arcimg 1.26.0), judged in the measured palette. And the SLICE
+DOCTRINE (Stefan's ruling: a mode 9 that is a different version of
+the picture is a quality issue): mode-9 test pairs are top slices of
+their mode-12 conversions (arcimg slice9), byte-identical on every
+shared row, now family-wide. The probe verified pixel-exact on VICE:
+mode 9, mode 12, and picture 12.

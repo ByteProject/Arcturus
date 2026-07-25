@@ -6,6 +6,17 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **The Plus/4 joins the proven machines.** The retro wave's fourth
+  blueprint lands whole: pictures convert with the TED's real measured
+  palette (the emulator itself was the measuring instrument, twice), the
+  file format carries the hardware's own attribute quirks so a loader
+  copies matrices verbatim, and the reference loader displays the test
+  pictures pixel-identical to their previews. The Atari 8-bit's loader
+  was proven the same week, the GTIA colour wheel corrected against the
+  metal, and mode-9 pictures everywhere are now exact top slices of
+  their mode-12 versions: same picture, same colours, by construction.
+  For the TRS-80 Model 4, conversions now ship as `ARC1.TR4` style
+  files, matching what TRSDOS disks can actually hold.
 - **Foresight's second act.** Doors and containers join the repairs: a
   closed, unlocked door opens itself on the walk, and naming a thing you
   know is inside a closed container opens the container and carries on,
@@ -37,15 +48,6 @@ lives in the commit log. The feature roadmap follows below.
   the first refusal like any chained line, and the verb contract guards
   every item. The "and" still chains when a verb follows it, and
   single-noun lists ride the chain's verb borrow untouched.
-- **Grammar surgery, said out loud.** `enhance verb "look"` grows the
-  standard LOOK with your new lines and keeps everything it had;
-  `redefine verb "read"` replaces a family whole, words included. The old
-  way, redeclaring the verb, shadowed it word by word and quietly left
-  the other synonyms on the old grammar; it still compiles, but the
-  compiler now tells you what it is doing and names the two forms that
-  say what they mean. The shipped examples now use them, and two relic
-  declarations from before their verbs joined the standard set simply
-  went away.
 
 ## Feature roadmap
 

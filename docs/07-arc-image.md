@@ -91,7 +91,11 @@ arcimg convert art/ --target C64 -o c64/ --preview previews/
 
 derives each master's native version for a target as `<id>.C64` (or
 `.AMI`, `.AST`, `.DOS`, `.ZX3`, `.CPC`, ...) beside the story, with PNG
-previews so you judge every conversion without an emulator. Pictures
+previews. One machine breaks the pattern by design: the TRS-80 Model 4
+ships `ARC<id>.TR4`, because TRSDOS caps a suffix at three characters
+and wants filenames starting with a letter; the picture id inside the
+file stays authoritative either way. Previews land beside the
+conversions so you judge every one without an emulator. Pictures
 convert in parallel, and only what changed reconverts on the next run.
 
 What the converter does for you, per machine: the right resolution and
@@ -125,7 +129,10 @@ is needed. Everything else is built in.
 | Commodore 64 / C128 | blueprint proven; interpreter support planned |
 | ZX Spectrum +3 | conversion ready; blueprint in progress |
 | Amstrad CPC | conversion ready; planned for Haumea |
-| Plus/4, MSX1/2, Atari 8-bit, Apple II, Spectrum Next, MEGA65, C128 VDC | planned |
+| Commodore Plus/4 | blueprint proven; interpreter support planned |
+| Atari 8-bit | blueprint proven; interpreter support planned |
+| TRS-80 Model 4 | blueprint proven; Shawn Sijnstra's interpreter adopts it |
+| MSX1/2, Apple II, Spectrum Next, MEGA65, C128 VDC | planned |
 
 "Blueprint proven" means the machine's picture loader is designed,
 built, and demonstrated on the real hardware's emulator; the interpreter
@@ -145,6 +152,9 @@ arcimg info SOURCE                         a PNG's size / a pack's contents
 arcimg convert SOURCES... --target TAG     derive a machine's native art
 arcimg targets                             the target list
 arcimg render FILE -o out.png              preview any converted picture
+arcimg slice9 FILE --id N -o out           a mode-9 picture as the top
+                                           slice of a mode-12 conversion
+                                           (same picture, same colours)
 arcimg scr / arcimg unscr                  the Spectrum polish loop
 ```
 
