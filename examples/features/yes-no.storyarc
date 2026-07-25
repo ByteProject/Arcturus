@@ -15,13 +15,13 @@
 //   frotz yes-no.z5
 //
 // Try, in order:
-//   yes                talking to nobody about nothing: the flavor line
-//   ring bell          the innkeeper appears and asks a question
-//   no                 the guarded `on no` answers, and the offer closes
-//   ring bell          ask again
-//   yes                the guarded `on yes` this time: a room is yours
-//   ring bell          the innkeeper has nothing further to ask
-//   yes                back to the flavor line: no question is open
+//   yes                  talking to nobody about nothing: the flavor line
+//   talk to innkeeper    the standard TALK verb; he asks his question
+//   no                   the guarded `on no` answers, the offer closes
+//   talk to innkeeper    ask again
+//   yes                  the guarded `on yes` this time: a room is yours
+//   talk to innkeeper    he has nothing further to ask
+//   yes                  back to the flavor line: no question is open
 
 game
     title  "The Last Room"
@@ -31,34 +31,24 @@ game
 
 summon.statusline
 
-verb "ring"
-    ring noun
-
 flag asking_room
 flag room_taken
 
 room taproom
     name "The Taproom"
-    desc "Low beams, a cold hearth, and a brass bell on the counter."
-
-thing bell in taproom
-    name "brass bell"
-    words bell, brass
-    fixed
-    desc "Polished by a thousand impatient palms."
-
-    on ring
-        if room_taken
-            say "The innkeeper looks up. \"Settled in already, no?\""
-            stop
-        change asking_room to true
-        say "The innkeeper surfaces from the cellar, wiping his hands.
-             \"One room left tonight. Will you take it?\""
+    desc "Low beams, a cold hearth, and an innkeeper polishing the counter."
 
 thing innkeeper of character in taproom
     name "innkeeper"
     words innkeeper, keeper
     desc "A patient man with exactly one room to his name."
+
+    on talk
+        if room_taken
+            say "\"Settled in already, no? Mind the third step.\""
+            stop
+        change asking_room to true
+        say "\"One room left tonight. Will you take it?\""
 
 on yes when asking_room
     change asking_room to false
@@ -68,4 +58,4 @@ on yes when asking_room
 
 on no when asking_room
     change asking_room to false
-    say "\"Suit yourself.\" The cellar swallows him again."
+    say "\"Suit yourself.\" He goes back to his polishing."

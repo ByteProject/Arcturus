@@ -76,7 +76,7 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # example). Unsummoned behavior is the exact old refusal; the seam block
 # and one branch are the cost.
 CEILINGS = {
-    "features/yes-no.storyarc": 18216,  # 2026-07-25 new example (typed answers, when-guarded questions)
+    "features/yes-no.storyarc": 18100,  # 2026-07-25 new example (typed answers, when-guarded questions)
     "features/press-any-key.storyarc": 18732,  # 2026-07-25 new example (read_key as gate and as value)
     "features/vary.storyarc": 19608,  # 2026-07-25 new example (the vary showcase incl. varied topic replies)
     "features/foresight.storyarc": 19488,  # 2026-07-25 new example (the foresight showcase; its writing found the sealed-take gap)
