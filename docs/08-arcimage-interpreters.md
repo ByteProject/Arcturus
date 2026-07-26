@@ -113,24 +113,23 @@ it unchanged as text. Here is the whole contract.
 
    WHAT A CLEAR MEANS IS FIXED; WHAT IT LOOKS LIKE IS YOURS. Id 0 takes
    the current picture down, always. What happens to the SPACE is the
-   interpreter author's discretion (Stefan's ruling, 2026-07-26), and
-   the two natural answers map onto the two kinds of machine. On a
-   fixed screen, keep the band reserved: a blank strip in the
-   background colour, the text area below keeping its size. This is
-   not conservatism but the shape of the hardware: a retro interpreter
-   holds no text backing store, so released rows would sit empty until
-   new prose scrolled into them, and re-flowing the screen on every
-   pictureless room would be churn on exactly the machines that can
-   least afford it. On a modern interpreter, feel free to RELEASE the
-   band instead: give the rows back to the text area, and re-base the
-   band when the next nonzero draw arrives (the first-draw machinery
-   above, run again). Actaea's window does exactly this: enter a
-   pictureless room and the prose takes the whole window; walk on and
-   the band returns. Both presentations are fully conformant, and a
-   game must not assume either. Clears happen in ordinary play (a room
-   without a picture in a game whose other rooms have them). Note that
-   the library sends the game's real mode even on a clear call, so a
-   clear still tells you the band's shape.
+   interpreter author's discretion (Stefan's ruling, 2026-07-26), on
+   every kind of machine. KEEP the band reserved if you like: a blank
+   strip in the background colour, the text area below keeping its
+   size, the layout holding still. Or RELEASE it: give the rows back
+   to the text area, and re-base the band when the next nonzero draw
+   arrives (the first-draw machinery above, run again). Releasing
+   works on a fixed screen too; just know what it looks like there: an
+   interpreter holds no text backing store, so the freed rows start
+   BLANK and fill as new prose scrolls up into them. Nothing already
+   printed reappears; that reveal would need a scrollback the 8-bit
+   machines do not keep. Actaea's window releases: enter a pictureless
+   room and the prose takes the whole window; walk on and the band
+   returns. Both presentations are fully conformant, and a game must
+   not assume either. Clears happen in ordinary play (a room without a
+   picture in a game whose other rooms have them). Note that the
+   library sends the game's real mode even on a clear call, so a clear
+   still tells you the band's shape.
 
    ON A MODERN INTERPRETER, PRESENTATION IS YOURS. The fixed band is only
    binding where a fixed screen makes it so. If you are not tied to a cell
