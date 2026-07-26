@@ -157,6 +157,10 @@ class Layout:
     # True if any object resolves `shiftable` (or a runtime `now ... is
     # shiftable` exists): the push-travel path folds on it (any_shiftable).
     has_shiftable: bool = False
+    # True if any object resolves `restless` (or a runtime `now ... is
+    # restless` exists): the background-performer walk folds on it
+    # (any_restless), and the mute buffer is allocated only then.
+    has_restless: bool = False
     # The directions ALIVE in this game, in canonical order: those with player
     # words declared (the pack's compass set; nautical when its granule is
     # summoned) or written as an exit on some room. The exits_count /
@@ -346,6 +350,16 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
                 decl = _effective_props(world, world.objects[name]).get("shiftable")
                 if decl is not None and _bool_value(decl):
                     layout.has_shiftable = True
+                    break
+
+    if "restless" in layout.attr_number:
+        if getattr(world, "sets_restless", False):
+            layout.has_restless = True
+        else:
+            for name in world.objects:
+                decl = _effective_props(world, world.objects[name]).get("restless")
+                if decl is not None and _bool_value(decl):
+                    layout.has_restless = True
                     break
 
     # The live directions (see the Layout field): worded, or used as an exit.

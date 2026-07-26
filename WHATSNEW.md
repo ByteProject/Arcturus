@@ -6,6 +6,19 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Restless things, and timers that stop.** Stefan's design, one
+  sentence long: work follows the performer's nature, prose follows
+  scope. Mark a character `restless` (or arm it mid-story: `now guard is
+  restless`) and its `on each_turn` fires every turn wherever it is; the
+  thief keeps moving, taking, and scheming offstage, and the system, not
+  the author, decides what you hear: what happens in front of you is
+  spoken, arrivals and departures included, and what happens rooms away
+  is silently discarded. No new concepts, no daemon taxonomy, one
+  attribute. And the schedule became author-managed: a timer stops by
+  the exact statement that armed it (`stop every 5 turns do
+  water_dripping`; the kind and interval must match, so you always stop
+  the timer you mean) and `stop all timers` clears the stage for the
+  next act. Games without any of it stay byte-identical.
 - **Exits are checked at compile time.** A field report from Ichiro
   Ota: a typo'd room name in an exit (`north attic`, no attic declared)
   compiled silently into a runtime "There's no exit in that direction.",
@@ -38,24 +51,6 @@ lives in the commit log. The feature roadmap follows below.
   their mode-12 versions: same picture, same colours, by construction.
   For the TRS-80 Model 4, conversions now ship as `ARC1.TR4` style
   files, matching what TRSDOS disks can actually hold.
-- **Foresight's second act.** Doors and containers join the repairs: a
-  closed, unlocked door opens itself on the walk, and naming a thing you
-  know is inside a closed container opens the container and carries on,
-  chaining when it must: "(opening the clear jar first)", "(taking the
-  pearl first)", then the give you actually typed. The same promise rule
-  holds at every step, locked things stay honest refusals, and contents
-  you have never seen cannot even be named. In the same release the
-  input buffers doubled (long chained commands stopped dying mid-word)
-  and Actaea's caret learned to stay on the input line.
-- **The session verbs, and a wink.** VERSION prints the banner mid-game,
-  the bug-report command, always in. NOTIFY brings the classic
-  "[Your score has just gone up by 5.]" bracket line: off by default, the
-  author enables it in `on start`, the player toggles it, and the two are
-  coupled, enabling the feature anywhere brings the verb along, while a
-  game that never touches it has no lines, no verb, and not even the
-  dictionary word. And the oldest Easter egg in the medium finally
-  answers: a player who curses gets a dry line back, selectable as the
-  `swear` family.
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus

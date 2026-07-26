@@ -101,6 +101,13 @@ INTRINSICS = frozenset({
     # code reads it, so the parser's one-store bookkeeping and the AGAIN and
     # perform() plumbing fold away in a game that never asks.
     "any_verb_read",
+    # any_restless folds the background-performer walk (the restless
+    # attribute): 1 when any object declares restless or a `now ... is
+    # restless` exists. mute_begin/mute_end redirect output to the mute
+    # buffer (z-machine stream 3) and back, discarding what a performer
+    # says while out of scope: work follows the performer's nature, prose
+    # follows scope.
+    "any_restless", "mute_begin", "mute_end", "mute_buf",
     # any_topics is the compile-time conversation flag (1 if anything declares
     # a `topic`). The turn loop guards its replay bookkeeping on it, so a game
     # with no conversation carries none of it.
@@ -1309,6 +1316,27 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_verb_read(): 1 if any author code reads verb_trigger, so the
         # parser's store and the AGAIN/perform plumbing fold away otherwise.
         _place(rt, Const(_any_verb_read(ctx)), dest)
+    elif name == "any_restless":
+        # any_restless(): 1 if any object is (or can become) restless.
+        _place(rt, Const(
+            1 if (ctx.layout is not None and ctx.layout.has_restless) else 0),
+            dest)
+    elif name == "mute_begin":
+        # mute_begin(): select z-machine output stream 3 into the mute
+        # buffer (seeded in __mutebuf__), so everything a background
+        # performer prints while out of scope lands there instead of the
+        # screen. Stream 3 is fully conformant back to the 8-bit terps.
+        rt.op("output_stream", Const(3), Variable(ctx.globals["__mutebuf__"]))
+        _place(rt, Const(0), dest)
+    elif name == "mute_buf":
+        # mute_buf(): the mute buffer's byte address (the __mutebuf__
+        # global), for replay_muted to read the captured text back.
+        _place(rt, Variable(ctx.globals["__mutebuf__"]), dest)
+    elif name == "mute_end":
+        # mute_end(): deselect stream 3 (the -3 as its 16-bit two's
+        # complement); the buffered text is simply discarded.
+        rt.op("output_stream", Const(0xFFFD))
+        _place(rt, Const(0), dest)
     elif name == "any_topic_idle":
         # any_topic_idle(): 1 if any topic is `idle`, so the granules' idle
         # handling folds away otherwise (and cosmos_topic_idle is then DCE'd).
@@ -2497,6 +2525,10 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
         _for_each(rt, ctx, s)
     elif isinstance(s, ast.Schedule):
         _schedule(rt, ctx, s)
+    elif isinstance(s, ast.StopSchedule):
+        _stop_schedule(rt, ctx, s)
+    elif isinstance(s, ast.StopAllTimers):
+        _stop_all_timers(rt, ctx)
     else:
         raise LowerError("unsupported statement in B4.2", getattr(s, "line", 0))
     return False  # the statement falls through to whatever follows
@@ -3249,6 +3281,8 @@ def _static_value(ctx, expr):
         return _any_action_read(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_verb_read":
         return _any_verb_read(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_restless":
+        return 1 if (ctx.layout is not None and ctx.layout.has_restless) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_topics":
         return _any_topics(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "arc_mode":
@@ -3345,9 +3379,12 @@ def _if(rt, ctx, s: ast.If) -> bool:
 
 def _schedule(rt, ctx, s: ast.Schedule):
     """Arm a timer (docs/02 section 13). `after N turns do B` sets B's slot to a
-    countdown of N and a reload of 0 (fires once); `every N turns do B` sets both to
-    N (fires every N turns). The slot is fixed at compile time; the table base is the
-    __timers__ global. Re-running the statement re-arms the same slot from now."""
+    countdown of N and a reload of -N (fires once: schedule_tick treats any
+    reload below 1 as one-shot, and the negated value preserves the ARMED
+    interval so `stop after N turns do B` can match it); `every N turns do B`
+    sets countdown and reload to N (fires every N turns). The slot is fixed at
+    compile time; the table base is the __timers__ global. Re-running the
+    statement re-arms the same slot from now, never a duplicate."""
     slot = ctx.world.schedule_index[s.event]
     tg = ctx.globals["__timers__"]
     t = ctx.alloc_temp()
@@ -3356,8 +3393,51 @@ def _schedule(rt, ctx, s: ast.Schedule):
     if s.every:
         rt.op("storew", Variable(tg), Const(slot * 2 + 1), Variable(t))  # reload = N
     else:
-        rt.op("storew", Variable(tg), Const(slot * 2 + 1), Const(0))  # reload = 0
+        rt.op("sub", Const(0), Variable(t), store=Variable(t))
+        rt.op("storew", Variable(tg), Const(slot * 2 + 1), Variable(t))  # reload = -N
     ctx.free_temp(t)
+
+
+def _stop_schedule(rt, ctx, s: "ast.StopSchedule"):
+    """Disarm the timer the full triple names (docs/02 section 13): the kind
+    and interval must MATCH what is armed in the block's slot (an `every 5`
+    cannot stop an `every 4`, nor an `after 5`), and a triple that is not
+    running is a clean no-op. The reload word carries the armed identity:
+    positive N for every, negated N for a one-shot."""
+    slot = ctx.world.schedule_index.get(s.event)
+    if slot is None:
+        # The block is never armed by any after/every statement: statically
+        # nothing to stop. Say so rather than compiling a silent no-op.
+        print(
+            f"arcc: note: line {s.line}: 'stop ... do {s.event}' stops a "
+            f"timer no after/every statement ever arms; it does nothing",
+            file=sys.stderr,
+        )
+        return
+    tg = ctx.globals["__timers__"]
+    t = ctx.alloc_temp()
+    t2 = ctx.alloc_temp()
+    eval_expr(rt, ctx, s.count, Variable(t))
+    if not s.every:
+        rt.op("sub", Const(0), Variable(t), store=Variable(t))
+    end = ctx.new_label()
+    rt.op("loadw", Variable(tg), Const(slot * 2), store=Variable(t2))
+    rt.op("jz", Variable(t2), branch=(end, True))  # not armed at all
+    rt.op("loadw", Variable(tg), Const(slot * 2 + 1), store=Variable(t2))
+    rt.op("je", Variable(t2), Variable(t), branch=(end, False))  # wrong triple
+    rt.op("storew", Variable(tg), Const(slot * 2), Const(0))  # disarm
+    rt.label(end)
+    ctx.free_temp(t)
+    ctx.free_temp(t2)
+
+
+def _stop_all_timers(rt, ctx):
+    """stop all timers: zero every slot's countdown (the scene break). The
+    reload words may keep their values; a zero countdown never ticks."""
+    n = len(ctx.world.schedule_index)
+    tg = ctx.globals["__timers__"]
+    for i in range(n):
+        rt.op("storew", Variable(tg), Const(i * 2), Const(0))
 
 
 def _is_list_source(ctx, source) -> bool:

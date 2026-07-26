@@ -666,6 +666,11 @@ block fire_turn()
             call_handler(r, ev_each_turn)
     fire_object_turns(here)
     fire_object_turns(player)
+    // The background performers (restless, docs/01): work follows the
+    // performer's nature, prose follows scope. Folds away entirely in a
+    // game with no restless object.
+    if any_restless is 1
+        fire_restless
     par
     run_free(ev_each_turn)
     par
@@ -691,15 +696,77 @@ block fire_turn()
 // Fire the `on each_turn` of every object within `holder` that the player can see
 // into it, recursing into supporters and open or clear containers the same way
 // scope does, so an object's daemon runs exactly while the object is in scope.
+// A restless object is skipped here: the performer walk below owns its firing
+// (once per turn, wherever it is), so nothing ever fires twice. The firing is
+// spelled out in BOTH arms rather than factored into a helper, so the static
+// fold leaves a restless-free game byte-identical to one built before the
+// feature existed.
 block fire_object_turns(holder)
     for each obj in holder
         if obj is not hidden
-            let r = handler_of(obj)
-            if r is not nothing
-                par
-                call_handler(r, ev_each_turn)
+            if any_restless is 1
+                if obj is not restless
+                    let r = handler_of(obj)
+                    if r is not nothing
+                        par
+                        call_handler(r, ev_each_turn)
+            else
+                let r2 = handler_of(obj)
+                if r2 is not nothing
+                    par
+                    call_handler(r2, ev_each_turn)
             if see_into(obj)
                 fire_object_turns(obj)
+
+// The background performers (docs/01, restless): every restless object's
+// `on each_turn` fires EVERY turn, wherever the object is. The firing is
+// always buffered (the mute buffer, z-machine output stream 3), and the
+// buffer is spoken afterward if the performer is in scope at EITHER end
+// of its turn: standing before you, arriving as you watch, or leaving
+// before your eyes are all heard; a turn taken wholly offstage is
+// silence. So the author writes `say` unconditionally and the system
+// decides audibility, arrivals included. The pending paragraph break is
+// saved around the buffered call so a swallowed `par` never leaks a
+// stray blank line. A restless room the player stands in already fired
+// through the room path above, so `here` is skipped. Reached only
+// behind any_restless (compile time).
+block fire_restless()
+    let obj = 1
+    while obj <= object_count
+        if obj is restless
+            if obj is not here
+                let r = handler_of(obj)
+                if r is not nothing
+                    let heard = 0
+                    if in_scope(obj)
+                        change heard to 1
+                    let pp = par_pending
+                    mute_begin
+                    call_handler(r, ev_each_turn)
+                    mute_end
+                    change par_pending to pp
+                    if heard is 0
+                        if in_scope(obj)
+                            change heard to 1
+                    if heard is 1
+                        replay_muted
+        change obj to obj + 1
+
+// Speak what the last buffered firing printed: the mute buffer is a
+// stream-3 table, a length word then the text bytes.
+block replay_muted()
+    let b = mute_buf
+    let n = peek_word(b, 0)
+    if n is not 0
+        par
+        // show_char prints raw and never flushes the pending break; an
+        // empty show does, so the replay gets its blank line like any
+        // spoken pulse.
+        show("")
+        let i = 0
+        while i < n
+            show_char(peek_byte(b + 2 + i))
+            change i to i + 1
 
 // Draw the current room's picture (arc_image, B11), or clear the band when the
 // room has none. Only reached behind `any_images` (compile-time) and only draws

@@ -155,6 +155,7 @@ class Analyzer:
         # the touch guards would fold away and the bit would set silently.
         self.world.sets_beyond = self._sets_attr("beyond")
         self.world.sets_shiftable = self._sets_attr("shiftable")
+        self.world.sets_restless = self._sets_attr("restless")
         self.world.uses_notify = getattr(self.program, "uses_notify", False)
         # Darkness reachability (arc_image_dark, B11): darkness can happen when
         # any room resolves `lit` to false at compile time (its own `lit false`
@@ -1509,6 +1510,16 @@ class Analyzer:
                 raise self._error(
                     f"'{word} ... do {s.event}' names no block '{s.event}'", s.line
                 )
+        elif isinstance(s, ast.StopSchedule):
+            self._check_expr(s.count, locals_)
+            if s.event not in self.world.blocks:
+                word = "every" if s.every else "after"
+                raise self._error(
+                    f"'stop {word} ... do {s.event}' names no block "
+                    f"'{s.event}'", s.line
+                )
+        elif isinstance(s, ast.StopAllTimers):
+            pass
         elif isinstance(s, ast.If):
             for clause in s.clauses:
                 if clause.cond is not None:

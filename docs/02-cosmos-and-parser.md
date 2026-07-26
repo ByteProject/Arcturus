@@ -985,8 +985,28 @@ While the condition holds, the daemon runs; when it stops holding, the daemon
 falls silent, with no explicit start or stop. Scope decides reach: a room's
 each_turn is active while the player is in that room, an object's while the object
 is in scope, and a free-standing each_turn (written at the top level, not inside
-an object) runs every turn. Several each_turn handlers may be live at once; they
-fire the room's first, then the free-standing rules. Every live daemon fires:
+an object) runs every turn.
+
+The exception is a BACKGROUND PERFORMER, an object marked `restless` (01,
+section 6a): its each_turn fires every turn wherever the object is. The
+principle is one sentence: work follows the performer's nature, prose
+follows scope. Every restless firing is buffered (a scratch table,
+Z-machine output stream 3, conformant on every interpreter), and the
+buffer is spoken afterward when the performer is in scope at EITHER end
+of its turn: standing before you, arriving as you watch, or leaving
+before your eyes are all heard, while a turn taken wholly offstage is
+discarded unread. So the author writes `say` unconditionally, arrival
+lines included, and the system decides audibility. Nothing ever fires
+twice (the scope walk skips restless objects; the performer walk owns
+them). `restless` is runtime state: `now thief is restless` arms a
+performer with no declaration anywhere, `now thief is not restless`
+returns it to the ordinary in-scope pulse, and the `when` guard still
+gates each firing. A game with no restless object folds the walk, the
+mute buffer, and the skip away entirely: byte-identical.
+
+Several each_turn handlers may be live at once; they
+fire the room's first, then the in-scope objects', then the restless
+performers', then the free-standing rules. Every live daemon fires:
 each_turn is a pulse, not a player action, so `stop` (or a handler simply
 running to its end) does not silence the sibling daemons the way it consumes a
 verb. This is what lets a game's own `on each_turn` and a granule's pulse (the
@@ -1017,14 +1037,36 @@ on take idol
 The timers count down from the turn loop, right after the each_turn pulse, so a
 scheduled block sees the world as it stands at the end of the turn. Re-running an
 `after` or `every` for the same block re-arms it: the countdown restarts from now
-with the new period, which is how you extend, shorten, or restart a running timer.
-A count of 0 disarms it, so `after 0 turns do temple_collapses` cancels a pending
-collapse. A scheduled block may even schedule itself, arming its next fire with a
-fresh count, for a timer whose period changes over its life.
+with the new period, never a duplicate, which is how you extend, shorten, or
+restart a running timer. A scheduled block may even schedule itself, arming its
+next fire with a fresh count, for a timer whose period changes over its life.
 
-Between them, `on each_turn` and `after`/`every` cover the whole range: a
-condition-gated daemon, a one-shot fuse, and a fixed-period timer, all written in
-ordinary Arcturus with no timer objects and no hand-kept turn counters.
+A timer STOPS by the exact statement that armed it, `stop` in front of the
+arming line:
+
+```
+stop after 4 turns do temple_collapses
+stop every 5 turns do water_dripping
+```
+
+The full triple, kind, interval, and block, is the timer's identity, and it
+must MATCH what is armed: an `every 3` cannot stop an `every 5`, nor an
+`after 5`, and stopping a timer that is not running is a clean no-op (that
+timer is not running, which is what you asked for). The schedule keeps the
+armed interval for exactly this, so a half-burnt fuse still answers to the
+number it was lit with. A `stop ... do` naming a block no arming statement
+ever schedules is flagged with a compile note. And a scene break clears
+everything at once, one-shots and recurring alike:
+
+```
+stop all timers
+```
+
+Between them, `on each_turn` (with `restless` for the background
+performers), `after`/`every`, and their stops cover the whole range: a
+condition-gated daemon, an offstage agenda, a one-shot fuse, a
+fixed-period timer, and the silence after, all written in ordinary
+Arcturus with no timer objects and no hand-kept turn counters.
 
 ## 14. Summonable features
 

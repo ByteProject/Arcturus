@@ -148,6 +148,12 @@ _STD_BOOL_PROPS = [
     # Pushable between rooms (PUSH CRATE NORTH): the thing rolls through the
     # exit with the player. Stefan's name (2026-07-22), the -able family.
     "shiftable",
+    # A background performer (Stefan's name, 2026-07-26): its `on each_turn`
+    # fires EVERY turn wherever the object is, not only in scope, and what
+    # it prints while out of scope is discarded. Work follows the
+    # performer's nature; prose follows scope. STATE, like beyond: declare
+    # it, or arm and disarm at runtime (`now guard is restless`).
+    "restless",
 ]
 
 # The three German definite articles, written as bare object declarations to state
@@ -376,6 +382,10 @@ _BUILTINS = {
     "last_score": T_NUMBER,
     # The ambience table base (summon.ambience), library-internal.
     "__ambience__": T_NUMBER,
+    # The mute buffer's byte address (restless performers): the stream-3
+    # table out-of-scope prose is discarded into. 0 in a game with no
+    # restless object (the buffer is not even allocated). Library-internal.
+    "__mutebuf__": T_NUMBER,
     # Set for the opening room description when a status bar already names
     # the room: describe_room skips its title line once (library-internal).
     "hide_title": T_NUMBER,

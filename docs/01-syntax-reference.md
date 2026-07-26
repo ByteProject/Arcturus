@@ -651,6 +651,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `neutral` | The third German gender, declared there with `das` (das Buch, "es"). English and Spanish never read it. |
 | `beyond` | Visible but not touchable: in scope and examinable (a chandelier overhead, a jar one shelf too high), while every touching action refuses ("${The noun} is beyond your reach.", msg_beyond, overridable). Conversation crosses the gap (an animate beyond person still answers ASK), and throwing AT a beyond thing stays legal: the arm reaches where the hand cannot. It is STATE: `now jar is not beyond` when the stool is gained. The refusal can carry the WHY (a field request): `beyond "Without the ladder, the top shelf might as well be the moon."` speaks your line instead of the generic one, and `beyond block` opens a computed body (the desc-block shape) for wording by state; a bare `beyond` keeps the pack's message. The property points BOTH ways: `now player is beyond` puts the PLAYER out of everything's reach instead, the mounted-on-a-horse case. While the player is beyond, only the arm's bubble stays touchable: themself, what they hold, and the thing they are on or in with everything it carries (the mare, her saddlebag, the apple inside); un-nested it collapses to self and held alone (hands bound, tied to a chair). Sight and speech cross the gap exactly as above, and EXIT is never blocked, so dismounting always works. Set it in the after phase, once the boarding has really happened: `on after enter mare / now player is beyond`, and `on after exit mare / now player is not beyond`. The player's refusal can carry its own why, settable at RUNTIME: `change player.beyond_why to "You can't reach that from up here."` speaks your line, `change player.beyond_why to nothing` reverts to the pack default (the slot is allocated automatically for any game that writes it). Static faraway decoration needs no object at all, that is a grain's job (section 14); beyond is for distance that matters to the model. Costs nothing unused. Worked example: [examples/features/beyond.storyarc](../examples/features/beyond.storyarc). |
 | `shiftable` | The thing can be pushed through an exit, the player following (PUSH CRATE NORTH). Section 10. |
+| `restless` | A background performer: its `on each_turn` fires EVERY turn, wherever the object is, not only in scope. Work follows the performer's nature; prose follows scope: what a restless object prints while out of scope is discarded by the system, so the handler writes its `say` unconditionally and the player hears it exactly when the performer shares their scene: present, arriving, or leaving before their eyes (in scope at either end of its turn); a turn taken wholly offstage is silence. It never fires twice. It is STATE: declare `restless` to be born performing, or arm and disarm at runtime (`now guard is restless`, `now guard is not restless`), with no declaration needed anywhere; a `when` guard on the handler still decides whether an armed performer acts this turn. A game with no restless object pays nothing (the walk, the mute buffer, everything folds away). Section 12; worked example: [examples/features/daemons-and-timers.storyarc](../examples/features/daemons-and-timers.storyarc). |
 | `pluribus` | Grammatical number: ONE object that is grammatically plural (the scissors, the boots; e pluribus unum, many speaking through one). The articles read it ("some scissors"; German's bare indefinite plural and die/die/den/der by case; Spanish los/las, unos/unas), `${is x}` agrees (is/are, ist/sind, está/están), and the core messages conjugate ("The scissors stay exactly where they are."). NOT the plurals granule, whose group words sweep several distinct singular objects ("take coins"). Costs nothing in a game that never sets it. |
 | `switchable` | Marks a thing the `switch` verb targets, but the effect is the author's: unlike `openable` or `edible`, there is no built-in on/off behavior (the library has no way to know what turning a thing on should do), so give the object `on switch_on` and `on switch_off` handlers. Without them, switching it is refused (`msg_no_switch`). The attribute itself only advertises intent. |
 | `openable` | Can be opened and closed; the `open` / `close` verbs apply. |
@@ -2008,9 +2009,23 @@ on each_turn when ruby is hidden
     say "Water ticks against stone."
 ```
 
+An object marked `restless` breaks the scope tether: its `on each_turn`
+fires every turn wherever it is, and what it prints while out of scope is
+discarded by the system, so a wandering character keeps moving, taking,
+and scheming offstage while the player only ever reads the prose of what
+happens in front of them. See the attribute's row in section 6a.
+
 Recurring and delayed behavior beyond every turn uses the `after` and `every`
-scheduling statements (one-shot and repeating timers); daemons and timers together
-are covered in full in 02, section 13.
+scheduling statements (one-shot and repeating timers), and each timer stops
+by the exact statement that armed it, or all at once at a scene break:
+
+```
+every 5 turns do water_dripping
+stop every 5 turns do water_dripping
+stop all timers
+```
+
+Daemons and timers together are covered in full in 02, section 13.
 
 ## 13. Summon
 

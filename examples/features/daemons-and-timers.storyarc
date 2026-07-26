@@ -10,16 +10,33 @@
 //   arcc examples/features/daemons-and-timers.storyarc -o dt.z5
 //   frotz dt.z5
 //
-// Three kinds of scheduled behavior, all here:
+// Four kinds of scheduled behavior, all here:
 //
 // - A TIMER (one-shot). `after 6 turns do candle_gutters` arms a fuse at the
 //   start; six turns in, the candle burns out. WAIT and watch it happen once.
 // - A RECURRING timer. `every 4 turns do clock_chimes` fires again and again, so
 //   the tall clock chimes the quarter every four turns for as long as you play.
+//   And a timer STOPS by the exact statement that armed it: TURN OFF CLOCK
+//   runs `stop every 4 turns do clock_chimes`, and the quarters fall silent.
 // - A DAEMON. The cat's `on each_turn when player holds fish` runs every turn, but
 //   only while its `when` guard holds: TAKE FISH and the cat pads after you each
 //   turn; DROP FISH and it settles back by the hearth. The guard is the on/off
-//   switch, with no explicit start or stop.
+//   switch, with no explicit start or stop. Its reach follows scope: the cat
+//   speaks only where you can see it.
+// - A BACKGROUND PERFORMER. The `restless` apprentice paces between the
+//   workshop and the parlour EVERY turn, wherever you are: work follows the
+//   performer's nature, prose follows scope. Walk to the workshop and wait,
+//   and you meet it coming and going; wait in the parlour and it passes
+//   through your room too, but its offstage steps are taken in silence, no
+//   guard needed, the system mutes what you are not there to see.
+//
+// Try, in order:
+//   wait                     (a few times) the chimes, the candle, the
+//                            apprentice passing through on its rounds
+//   take fish                the cat wakes; drop fish and it settles
+//   turn off clock           the recurring timer stops, mid-story
+//   west, then wait          the apprentice's other room: its rounds never
+//                            paused while you were away
 
 game
     title  "The Clockmaker's Parlour"
@@ -48,8 +65,17 @@ room parlour
     name "The Clockmaker's Parlour"
     desc "A cluttered parlour, ticking with a hundred clocks. A tall case clock
           stands in the corner, a candle burns low on the mantel, and a lean grey
-          cat watches you from the hearth. A dried fish lies on the workbench."
+          cat watches you from the hearth. A dried fish lies on the workbench.
+          The workshop lies west."
     lit true
+    west workshop
+
+room workshop
+    name "The Workshop"
+    desc "Benches of gears, springs, and half-souls of clocks. The parlour
+          lies east."
+    lit true
+    east parlour
 
 thing candle in parlour
     name "wax candle"
@@ -63,6 +89,14 @@ thing clock in parlour
     words clock, tall, pendulum
     scenery
     desc "A tall case clock, its pendulum swinging with a slow, heavy tick."
+
+    // The stop: the exact triple that armed the chime disarms it. An
+    // `every 3` could not stop this `every 4`; the system matches the
+    // timer you mean.
+    on switch_off
+        stop every 4 turns do clock_chimes
+        say "You still the pendulum with one finger. The quarters will
+             pass unannounced now."
 
 thing fish in parlour
     name "dried fish"
@@ -79,3 +113,25 @@ thing cat of character in parlour
 
     on each_turn when player holds fish
         say "The cat pads after you, green eyes fixed on the fish."
+
+// The background performer: `restless` unties its each_turn from scope, so
+// it paces EVERY turn, wherever you are. The prose is written with no
+// guard at all; while the apprentice is out of your sight the system
+// discards it, and the moment it steps into your room you hear it. (An
+// author can also arm one at runtime: `now apprentice is restless`.)
+thing apprentice of character in workshop
+    name "clockwork apprentice"
+    words apprentice, clockwork, automaton
+    restless
+    desc "A brass automaton with a duster in each of its four hands."
+
+    on each_turn
+        if self in workshop
+            move self to parlour
+        else
+            move self to workshop
+        if self in here
+            say "The clockwork apprentice whirs in, dusting everything at
+                 once."
+        else
+            say "The clockwork apprentice whirs away, still dusting."

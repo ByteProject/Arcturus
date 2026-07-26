@@ -308,6 +308,26 @@ class Schedule(Stmt):
 
 
 @dataclass
+class StopSchedule(Stmt):
+    """stop after <n> turns do <event> / stop every <n> turns do <event>: disarm
+    the timer the full triple names (kind, interval, block). The triple must
+    match what is armed; stopping a timer that is not running is a no-op."""
+
+    every: bool
+    count: Expr
+    event: str
+    line: int = 0
+
+
+@dataclass
+class StopAllTimers(Stmt):
+    """stop all timers: clear the whole schedule, one-shots and recurring
+    alike (the scene break)."""
+
+    line: int = 0
+
+
+@dataclass
 class IfClause:
     """One arm of an if/else-if chain. cond is None for the final else."""
 

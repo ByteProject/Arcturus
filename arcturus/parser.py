@@ -1561,9 +1561,31 @@ class Parser:
         self.expect_newline()
         return ast.ZColor(target, colour, line)
 
-    def _parse_stop(self) -> ast.Stop:
+    def _parse_stop(self) -> ast.Stmt:
         line = self.cur.line
         self.expect_kw("stop")
+        # Three forms fork on what follows: bare `stop` ends the handler;
+        # `stop after/every N turns do block` disarms that exact timer;
+        # `stop all timers` clears the whole schedule (the scene break).
+        if self.check_kw("after") or self.check_kw("every"):
+            every = self.cur.is_kw("every")
+            self.advance()
+            count = self.parse_expr()
+            unit = self.expect_name("the word 'turns'")
+            if unit.value != "turns":
+                raise self._error(
+                    "expected 'turns' in a stop-timer statement", unit)
+            self.expect_kw("do")
+            event = self.expect_name("a block name").value
+            self.expect_newline()
+            return ast.StopSchedule(every, count, event, line)
+        if self.cur.kind == T.NAME and self.cur.value == "all":
+            self.advance()
+            unit = self.expect_name("the word 'timers'")
+            if unit.value != "timers":
+                raise self._error("expected 'timers' after 'stop all'", unit)
+            self.expect_newline()
+            return ast.StopAllTimers(line)
         self.expect_newline()
         return ast.Stop(line)
 

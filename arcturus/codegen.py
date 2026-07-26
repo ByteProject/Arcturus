@@ -801,6 +801,8 @@ _BUILTIN_GLOBALS = [
     # The ambience table's base address (summon.ambience), 0 when no block
     # exists; the granule's driver walks it each turn.
     "__ambience__",
+    # The mute buffer's byte address (restless performers, stream 3).
+    "__mutebuf__",
     # The opening-description title skip (a status bar already names the room).
     "hide_title",
     # arc_image (B11): the picture id currently on screen, so describe_room skips
@@ -891,6 +893,14 @@ def build_story(
     # (the turn loop writes it); its base goes in the __timers__ global below.
     n_timers = len(world.schedule_index)
     timers_addr = sf.append(bytes(n_timers * 4)) if n_timers else 0
+
+    # The mute buffer (restless performers): a z-machine stream-3 table, a
+    # length word plus text bytes, in dynamic memory. What a background
+    # performer prints while out of scope lands here and is discarded.
+    # Allocated only when the game has (or can have) a restless object.
+    mutebuf_addr = 0
+    if layout is not None and layout.has_restless:
+        mutebuf_addr = sf.append(bytes(2 + 512))
 
     # Scoring (docs/01): one earned byte per award site and pool, zeroed, in
     # dynamic memory; the base goes in __awards__ below. max_score sums
@@ -1072,6 +1082,10 @@ def build_story(
             sf.set_word(globals_addr + (gmap["player"] - 16) * 2, layout.obj_number["player"])
         # The scheduling table base, so after/every can reach it at run time.
         sf.set_word(globals_addr + (gmap["__timers__"] - 16) * 2, timers_addr)
+        # The mute buffer's address (restless performers); 0 when absent.
+        if mutebuf_addr:
+            sf.set_word(
+                globals_addr + (gmap["__mutebuf__"] - 16) * 2, mutebuf_addr)
         # The catalog region's byte address (docs/01, catalogs); zero, and
         # never read, in a game with no author catalogs, no spilled kind, no
         # matrix, and no stateful vary site (all of which share this region
@@ -1744,7 +1758,10 @@ def gen_schedule_tick(world: wm.World, gmap: dict) -> Routine:
         rt.label(fire)
         rt.op("call_vn", RoutineRef("blk_" + name))
         rt.op("loadw", Variable(tg), Const(2 * i + 1), store=Variable(1))  # reload
-        rt.op("jz", Variable(1), branch=(skip, True))  # one-shot: stays disarmed
+        # A reload below 1 stays disarmed: 0 is never-armed, and a NEGATIVE
+        # value is a one-shot's armed interval, stored negated so a
+        # `stop after N turns do X` can match the number it was armed with.
+        rt.op("jl", Variable(1), _CONST_ONE, branch=(skip, True))
         rt.op("storew", Variable(tg), Const(2 * i), Variable(1))  # recurring: re-arm
         rt.label(skip)
     rt.op("rtrue")
