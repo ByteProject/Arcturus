@@ -150,11 +150,9 @@ on start
     zcolor.statusline red
     zcolor.input red
     // The welcome prints ABOVE the banner (on-start text comes first, the
-    // Infocom teaser order), which both greets the player and gives the
-    // screen a natural break between the status bar and the banner block.
-    // The empty says are the breathing lines: one under the bar, one
-    // before the banner.
-    say ""
+    // Infocom teaser order): it greets the player, and the library's
+    // spacing rule breathes around it (one blank under the bar, one
+    // before the banner).
     say "Welcome. This little night walk shows everything arc_image can
          do: pictures that follow you, a room too plain for one, darkness
          with a scene of its own, and a picture that changes before your
@@ -162,7 +160,6 @@ on start
          the dark finally offers you a bed, SLEEP. Interpreter authors:
          the source file carries the walkthrough, with the expected
          picture at every step."
-    say ""
 
 // SLEEP works only in the bedchamber; this free rule answers elsewhere.
 verb "sleep", "doze", "nap"

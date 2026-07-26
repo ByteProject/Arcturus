@@ -269,18 +269,26 @@ block run_game()
     if any_images is 1
         image_reset
     screen_ready
+    // NOTHING STARTS FLUSH UNDER THE STATUS BAR (Stefan's spacing rule,
+    // 2026-07-27, superseding the July 18 flush-title look): a pending
+    // break here means the first thing printed, an `on start` intro or
+    // the banner itself, arrives one breathing line below the bar. On a
+    // bare screen with no bar the blank leads the transcript, which reads
+    // just as well.
+    par
     // `on start` runs FIRST (Inform's Initialise order): the game sets up its
     // world and its screen (colours, which erase the screen to repaint it)
     // before anything is drawn. THEN the library prints the banner, onto the
     // screen the game just established, so setting zcolor.background in
     // `on start` no longer erases the banner out from under itself.
     run_free(ev_start)
+    // The second half of the spacing rule: a break between the `on start`
+    // text and the banner. par is a flag, not a counter, so on a silent
+    // start the two marks collapse into the one blank under the bar, and
+    // an intro gets exactly one blank on each side. This makes true what
+    // an older comment here only claimed.
+    par
     if auto_banner is 1
-        // No explicit break here: if `on start` printed text, its own say
-        // left a pending paragraph break that the banner's first print
-        // flushes into one separating blank; on a silent start the screen
-        // is fresh (the status bar, when summoned, is already up via
-        // screen_ready) and the title sits directly under the bar.
         print_banner
     // Separate the banner (and any text `on start` printed above it) from the
     // opening room description: one blank line, collapsed with describe_room's.

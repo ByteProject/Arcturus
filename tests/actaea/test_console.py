@@ -177,10 +177,19 @@ def test_the_status_bar_spans_the_whole_terminal(tmp_path):
         try:
             _set_size(fd, cols, 30)
             text = _drain(fd, 1.5).decode("utf-8", "replace")
-            i = text.rfind("\x1b[H")
-            j = text.find("\x1b[2;1H", i if i >= 0 else 0)
-            assert i >= 0 and j > i, f"no row-1 paint at {cols} columns"
-            assert len(esc.sub("", text[i:j])) == cols
+            # A row-1 paint is a home, the bar's characters, then a move to
+            # whatever row the text starts on. That used to be row 2; the
+            # spacing rule (2026-07-27) put a breathing line there, so the
+            # move is row 3 now, and this scan accepts any row-start rather
+            # than hard-coding the layout into an escape code.
+            painted = []
+            for m in re.finditer(r"\x1b\[H", text):
+                nxt = re.search(r"\x1b\[\d+;1H|\x1b\[\d+d", text[m.end():])
+                if nxt:
+                    seg = text[m.end():m.end() + nxt.start()]
+                    painted.append(len(esc.sub("", seg)))
+            assert painted, f"no row-1 paint at {cols} columns"
+            assert cols in painted, f"no full-width bar at {cols}: {painted}"
             os.write(fd, b"quit\ry\r")
             _drain(fd, 0.8)
             os.write(fd, b" ")

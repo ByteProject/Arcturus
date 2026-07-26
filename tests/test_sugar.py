@@ -91,9 +91,11 @@ def test_par_say_leads_with_a_break(tmp_path):
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_banner_sits_under_the_status_bar(tmp_path):
-    # With the statusline, the title is the line after the bar (no stray
-    # blank, unlike Inform); without, the banner opens the screen.
+    # The spacing rule (Stefan, 2026-07-27, superseding the July 18 flush
+    # look): NOTHING starts flush under the status bar. One breathing
+    # line, then the title.
     out = _play(tmp_path, "summon.statusline\n" + GAME, "quit\ny\n")
     lines = out.splitlines()
     bar = next(i for i, l in enumerate(lines) if "Lab" in l and "Moves" in l)
-    assert lines[bar + 1].strip() == "S"
+    assert lines[bar + 1].strip() == ""
+    assert lines[bar + 2].strip() == "S"
