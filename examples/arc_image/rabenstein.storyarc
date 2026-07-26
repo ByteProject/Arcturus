@@ -6,11 +6,13 @@
 // ============================================================================
 // WHAT THIS IS
 // ============================================================================
-// A nine-room walk that exercises EVERYTHING arc_image does, so it doubles as
+// A four-room walk that exercises EVERYTHING arc_image does, so it doubles as
 // the interpreter author's test game: traversal between pictured rooms, a
-// room with no picture (the band must clear), darkness with its own picture,
-// a picture that changes on an event in the same room, and a repeatable
-// day-and-night change. A room carries a picture that an aware interpreter
+// room with no picture (the band must clear), darkness with its own scene,
+// and a picture that changes on an event in the same room, repeatably. One
+// room, the library, carries three of the tests at once: it is dark until
+// light arrives, and its curtains change its picture in place. A room
+// carries a picture that an aware interpreter
 // draws and every standard interpreter ignores, so the compiled story stays a
 // fully conformant Z-machine v5 file. The art is the Amiga/ST scene work from
 // The Curse of Rabenstein, in DAAD mode (320x96).
@@ -23,19 +25,13 @@
 //     command                      the band shows
 //     (start) Forsaken Path        picture 8
 //     NORTH   Churchyard           picture 1
-//     DOWN    Burial Crypt, dark   picture 21 (the all-black darkness scene)
-//     UP, TAKE LANTERN, LIGHT LANTERN
-//     DOWN    Burial Crypt, lit    picture 3  (the crypt revealed)
-//     UP, NORTH  Manor Garden      picture 12
 //     NORTH   Open Lawn            NO picture: the band CLEARS (draw id 0)
-//     EAST    Stable               picture 14
-//     WEST, NORTH  Manor Hall      picture 16
-//     NORTH   Library              picture 17
+//     NORTH   Library, dark        picture 21 (the all-black darkness scene)
+//     SOUTH, SOUTH  Churchyard     0 on the lawn, then 1 again
+//     TAKE LANTERN, LIGHT LANTERN
+//     NORTH, NORTH  Library, lit   0 on the lawn, then 17 (the reveal)
 //     CLOSE CURTAINS               picture 20, the SAME room repaints at once
-//     OPEN CURTAINS                picture 17 again
-//     SOUTH, UP  Bedchamber        picture 7  (night)
-//     SLEEP                        picture 9  (morning, the same room)
-//     SLEEP                        picture 7  (night again: repeatable)
+//     OPEN CURTAINS                picture 17 again (repeatable, both ways)
 //
 // And two things that must NOT happen: LOOK in any room must not reload or
 // flicker the band (the library redraws only when the picture actually
@@ -66,7 +62,7 @@
 // A picture can CHANGE at run time: `change here.arc_image to <id>` in a
 // handler repaints the band the same turn (the library curtains below), and a
 // DARK room shows the picture named by the game-wide constant arc_image_dark
-// instead of its own, because darkness is a scene too (the crypt below, and
+// instead of its own, because darkness is a scene too (the library below, and
 // picture 21 is exactly that: all black).
 //
 // Two picture shapes exist, each a whole number of 8-pixel text rows tall so
@@ -86,10 +82,9 @@
 // plain story file. They travel as an .arcres pack: one file, a zip of the
 // numbered PNGs keyed by id, that the interpreter reads automatically when it
 // sits next to the story. This example ships rabenstein.arcres, which holds
-// pictures 1, 3, 7, 8, 9, 12, 14, 16, 17, 20, and 21. It was built with the
-// arcimg tool:
+// pictures 1, 8, 17, 20, and 21. It was built with the arcimg tool:
 //
-//     arcimg pack 1.png 3.png 7.png ... 21.png -o rabenstein.arcres
+//     arcimg pack 1.png 8.png 17.png 20.png 21.png -o rabenstein.arcres
 //
 // arcimg also prepares art that is not already the right size (cropping and
 // scaling a photo or a wrong-sized image to a mode), and lists a pack:
@@ -123,14 +118,8 @@ constant arc_mode = 12
 // The scenes, one constant per resource slot.
 constant scene_path = 8
 constant scene_church = 1
-constant scene_crypt = 3
-constant scene_garden = 12
-constant scene_stable = 14
-constant scene_hall = 16
 constant scene_library = 17
 constant scene_library_shut = 20
-constant scene_night = 7
-constant scene_morning = 9
 
 // Darkness is a scene too: a dark room shows THIS picture, never a stale
 // leftover from the last lit room. Picture 21 is all black, on every target.
@@ -146,14 +135,6 @@ on start
     zcolor.statusline red
     zcolor.input red
 
-// SLEEP works only where sleeping makes sense; the bedchamber owns it below,
-// and this free rule answers everywhere else.
-verb "sleep", "doze", "nap"
-    sleep
-
-on sleep
-    say "Not here. The night presses too close for rest."
-
 room opening
     name "Forsaken Path"
     desc "You are standing on a path deep in the Black Forest, extending
@@ -165,12 +146,11 @@ room opening
 room church
     name "Churchyard"
     desc "A small stone church stands here, its windows dark and its door
-          ajar. Between the leaning stones, worn steps descend into a crypt.
-          The path leads back south, and a gate opens north onto a garden."
+          ajar. The path leads back south, and a gate opens north onto the
+          manor lawn."
     arc_image scene_church
     south opening
-    north garden
-    down crypt
+    north lawn
 
 thing lantern in church
     name "storm lantern"
@@ -187,61 +167,27 @@ thing lantern in church
         now self is not lit
         say "The flame gutters out, and the dark leans in."
 
-// The darkness test: without light, the room is dark and the band shows
-// arc_image_dark (the all-black 21). Bring the lit lantern and the room's own
-// picture appears.
-room crypt
-    name "Burial Crypt"
-    desc "Low vaults of cold stone. The lords of Rabenstein sleep here in
-          carved tombs, under a chandelier no hand has lit for a century.
-          The steps lead back up."
-    arc_image scene_crypt
-    lit false
-    up church
-
-room garden
-    name "Manor Garden"
-    desc "A walled garden gone half wild, watched by a statue with lichen
-          for a face. The churchyard lies south; the lawn opens north."
-    arc_image scene_garden
-    south church
-    north lawn
-
 // The clear test: this room has NO arc_image, so an aware interpreter must
 // clear the band (the draw of id 0) the moment you arrive.
 room lawn
     name "Open Lawn"
     desc "A stretch of open lawn under the night sky, too dark and too plain
-          for any picture at all. The garden lies south, the manor hall
-          north, and a stable stands to the east."
-    south garden
-    north hall
-    east stable
-
-room stable
-    name "Stable"
-    desc "Antlers over the beams, a ladder to the hayloft, and the warm
-          smell of horses long gone. The lawn lies back west."
-    arc_image scene_stable
-    west lawn
-
-room hall
-    name "Manor Hall"
-    desc "The great hall of Rabenstein manor, all cold hearths and colder
-          portraits. The library is north, a staircase climbs up, and the
-          lawn lies south."
-    arc_image scene_hall
-    south lawn
+          for any picture at all. The churchyard lies south; the manor's
+          library door stands north."
+    south church
     north library
-    up bedroom
 
-// The event test: the picture changes IN PLACE, same room, same turn.
+// Three tests in one room. DARKNESS: without light this room is dark and
+// the band shows arc_image_dark (the all-black 21); bring the lit lantern
+// and the room's own picture appears (the reveal). THE EVENT: the curtains
+// change the picture IN PLACE, same room, same turn, repeatably.
 room library
     name "Library"
     desc "Shelves to the ceiling, and moonlight through a tall window with
-          heavy curtains. The hall is back south."
+          heavy curtains. The lawn lies back south."
     arc_image scene_library
-    south hall
+    lit false
+    south lawn
 
 thing curtains in library
     name "heavy curtains"
@@ -267,31 +213,3 @@ thing curtains in library
         now self is open
         change here.arc_image to scene_library
         say "You pull the curtains back, and the moon reclaims the shelves."
-
-// The repeatable event: SLEEP swaps night for morning and back, the same
-// room wearing two pictures.
-flag morning
-
-room bedroom
-    name "Bedchamber"
-    desc block
-        if morning
-            say "Morning light pours over the old bed; for a while, the
-                 house almost forgets itself. The stairs lead down."
-        else
-            say "A four-poster bed under a window full of night. The stairs
-                 lead back down."
-    arc_image scene_night
-    down hall
-
-    on sleep
-        if morning
-            change morning to false
-            change here.arc_image to scene_night
-            say "You doze through the day, and wake to the window full of
-                 night again."
-            stop
-        change morning to true
-        change here.arc_image to scene_morning
-        say "You sleep, mercifully without dreams, and wake to daylight."
-        stop
