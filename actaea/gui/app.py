@@ -98,10 +98,13 @@ class GuiIO(IOSystem):
         self.app = app
 
     def screen_size(self):
-        """The window IS an 80-cell screen by construction (the geometry above
-        sizes it to exactly 80 cells), so 80 columns is the truth here, not a
-        default. The height is the chosen number of text rows."""
-        return 80, max(1, int(self.app._rows_var.get()))
+        """The window starts as an 80-cell screen by construction, and the
+        column count follows the REAL window width from then on (maximize,
+        fullscreen): the app recomputes it on resize and re-stamps the
+        header, the same fix the console front-end got first. The height is
+        the chosen number of text rows."""
+        return (max(1, int(getattr(self.app, "_cols", 80))),
+                max(1, int(self.app._rows_var.get())))
 
     def print_text(self, text: str) -> None:
         self.app.append_story(text)
@@ -219,6 +222,10 @@ class ActaeaApp:
         # width, so the settle-out Configure events after our own height
         # change dedup to nothing (no loop, no flicker).
         self._image_canvas.bind("<Configure>", lambda e: self._repaint_image())
+        # The game's column count follows the real window width (the status
+        # bar must span a maximized window; the console got this first).
+        self._cols = 80
+        self.root.bind("<Configure>", self._on_root_resize)
 
         # The upper window (status bar): a cell grid, shown only while the story
         # keeps a split open.
@@ -424,6 +431,25 @@ class ActaeaApp:
         n = max(1, avail // self.cell_h)
         if int(self.text.cget("height")) != n:
             self.text.configure(height=n)
+
+    def _on_root_resize(self, event=None) -> None:
+        """Fullscreen and maximize change the window's real width: recompute
+        the column count, re-stamp the header, and re-width the cell grid
+        (vm.screen_resized does both), so the game paints its status bar
+        across the whole window on its next turn, the v5 way (no resize
+        interrupt exists; the console front-end behaves identically)."""
+        if not hasattr(self, "text") or not hasattr(self, "vm"):
+            return
+        inner = self.root.winfo_width() - 2 * self._margin
+        if inner < 10 * self.cell_w:
+            return  # not mapped yet, or absurdly narrow: keep the old truth
+        cols = max(20, inner // self.cell_w)
+        if cols == self._cols:
+            return
+        self._cols = cols
+        self.vm.screen_resized()
+        self._redraw_grid()
+        self._repaint_image()
 
     def _reheight(self) -> None:
         self._apply_geometry()
