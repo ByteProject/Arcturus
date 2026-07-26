@@ -433,3 +433,41 @@ def test_the_demo_walkthrough_draws_the_documented_sequence():
         pass
     assert draws == [0, 8, 1, 0, 21, 0, 1, 0, 7, 9, 7, 9]
     assert "You have survived the night of Rabenstein" in io.text
+
+
+def test_the_cloak_demo_draws_mode_9_throughout():
+    """The mode 9 twin (Arthur bands, 320x72): Cloak of Darkness dressed for
+    arc_image. The plot is the darkness test: the bar's own dark painting is
+    the game's arc_image_dark, and hanging the cloak reveals the lit bar on
+    the next visit. Every draw must carry mode 9."""
+    import os
+    path = os.path.join(
+        os.path.dirname(__file__), "..", "examples", "arc_image",
+        "cloak-of-darkness.storyarc")
+    with open(path, "r", encoding="utf-8") as fh:
+        game = fh.read()
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    story = load(generate(analyze(cosmos.combined_program(parse(game)))))
+
+    class PicIO(CaptureIO):
+        supports_pictures = True
+
+    io = PicIO(script=["south", "north", "west", "hang cloak on hook",
+                       "east", "south", "x message"])
+    vm = VM(story, io)
+    draws = []
+    orig = vm.screen.set_image
+
+    def spy(img, mode):
+        draws.append((img, mode))
+        return orig(img, mode)
+
+    vm.screen.set_image = spy
+    try:
+        vm.run(max_steps=30_000_000)
+    except IndexError:
+        pass
+    assert draws == [(0, 9), (1, 9), (4, 9), (1, 9), (2, 9), (1, 9), (3, 9)]
+    assert "You have won" in io.text

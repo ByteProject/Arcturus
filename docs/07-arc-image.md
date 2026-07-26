@@ -81,7 +81,13 @@ The worked examples are in [examples/arc_image/](../examples/arc_image/),
 one per container, same story shape either way:
 `rabenstein.storyarc` ships its art in an `.arcres` pack, and
 `blorbenstein.storyarc` is the SAME demo shipped in a `.blorb`. Each
-comes with its pack and its built z5. The Rabenstein demo is also the
+comes with its pack and its built z5. Beside them,
+`cloak-of-darkness.storyarc` is the MODE 9 twin: Roger Firth's classic
+with four Arthur-band scenes (320x72), where the plot itself is the
+darkness test, the bar's own dark painting standing as arc_image_dark
+until the cloak hangs on its hook. Its retro conversions live under
+arc_image/cloak/. Between the two demos an interpreter exercises both
+band shapes. The Rabenstein demo is also the
 INTERPRETER AUTHOR'S TEST GAME: a compact walk exercising the whole
 contract (traversal, a pictureless room that must clear the band,
 darkness with its all-black scene, an in-place picture change on an

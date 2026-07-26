@@ -1,0 +1,177 @@
+// Cloak of Darkness, dressed for arc_image: the MODE 9 demonstration.
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Game by Roger Firth (the classic reference); pictures by Stefan Vogt.
+//
+// The conformance port (examples/cloak-of-darkness.storyarc) is untouched;
+// this is the same game with four scenes in INFOCOM MODE (arc_mode 9,
+// 320x72, the upper third, the Arthur look), the companion to the
+// Rabenstein demo's DAAD mode (12). Together the two demos cover both band
+// shapes an interpreter must draw. The plot IS the darkness test here: the
+// bar is dark while you carry the cloak, so its own darkness painting
+// (arc_image_dark) shows until the cloak hangs on its hook, and the lit
+// bar appears the next time you walk in.
+//
+// The tester's walkthrough (the expected band, step by step; mode 9 rides
+// every draw):
+//
+//     command                      the band shows
+//     (start) Foyer                picture 1
+//     SOUTH   Bar, dark            picture 4 (the bar's own darkness scene)
+//     NORTH   Foyer                picture 1
+//     WEST    Cloakroom            picture 2
+//     HANG CLOAK ON HOOK           no draw (the change is elsewhere)
+//     EAST, SOUTH  Bar, lit        1, then 3: the bar revealed
+//     EXAMINE MESSAGE              the win, if you blundered little enough
+//
+// Pictures travel as cloak-of-darkness.arcres beside the z5 (ids 1 foyer,
+// 2 cloakroom, 3 bar, 4 the darkness); the retro conversions live under
+// arc_image/cloak/. Everything else about arc_image is documented in the
+// Rabenstein demo and docs/07.
+
+game
+    title  "Cloak of Darkness"
+    headline "A basic IF demonstration."
+    author "Roger Firth"
+    release 3
+    serial "221116"
+    UUID   2a1f8e63-9b07-4c2d-8f3a-5e1d6042b7c9
+    start  foyer
+
+// The classic Cloak of Darkness, a 1:1 port of Roger Firth's reference
+// implementation (the PunyInform cloak.inf, release 3): three rooms, three
+// objects, two points. The original shows the score on its status line, so
+// this port summons one; the two `award 1` sites self-sum the max of 2.
+// One knowing divergence, truer to Firth's spec than to his code: an action
+// aimed at something unseen in the dark ("x message") disturbs the sawdust
+// here, where the Inform parser rejected it before any rule could run.
+summon.statusline
+
+// Infocom mode: the band is the upper third, 9 text rows, 320x72 art.
+constant arc_mode = 9
+
+constant scene_foyer = 1
+constant scene_cloakroom = 2
+constant scene_bar = 3
+
+// The bar's own darkness painting: the one dark room IS the bar, so the
+// game-wide darkness scene is the bar with the lights out.
+constant arc_image_dark = 4
+
+counter disturbed
+
+on start
+    say "Hurrying through the rainswept November night, you're glad to see
+         the bright lights of the Opera House. It's surprising that there
+         aren't more people about but, hey, what do you expect in a cheap
+         demo game...?"
+
+room foyer
+    name "Foyer of the Opera House"
+    desc "You are standing in a spacious hall, splendidly decorated in red
+          and gold, with glittering chandeliers overhead. The entrance from
+          the street is to the north, and there are doorways south and west."
+    arc_image scene_foyer
+    south bar
+    west  cloakroom
+
+    on go north
+        say "You've only just arrived, and besides, the weather outside
+             seems to be getting worse."
+        stop
+
+room cloakroom
+    name "Cloakroom"
+    desc "The walls of this small room were clearly once lined with hooks,
+          though now only one remains. The exit is a door to the east."
+    arc_image scene_cloakroom
+    east foyer
+
+thing hook of supporter in cloakroom
+    name  "small brass hook"
+    words small, brass, hook, peg
+    scenery
+
+    on examine
+        if hook holds cloak
+            say "It's just a small brass hook, with a cloak hanging on it."
+        else
+            say "It's just a small brass hook, screwed to the wall."
+        stop
+
+thing cloak in player
+    name  "velvet cloak"
+    words handsome, dark, black, velvet, satin, cloak
+    desc  "A handsome cloak, of velvet trimmed with satin, and slightly
+           spattered with raindrops. Its blackness is so deep that it
+           almost seems to suck light from the room."
+    wearable
+    worn
+
+    // The cloak is the light switch: while it is anywhere on the player the
+    // bar stays dark, and it may only be put down in the cloakroom. The
+    // first hang on the hook is worth a point (award pays once by itself).
+    on drop, put
+        if here is not cloakroom
+            say "This isn't the best place to leave a smart cloak lying
+                 around."
+            stop
+        continue
+
+    on after take
+        now bar is not lit
+
+    on after drop, put
+        if here is cloakroom
+            now bar is lit
+            if second is hook
+                award 1
+
+room bar
+    name "Foyer bar"
+    desc "The bar, much rougher than you'd have guessed after the opulence
+          of the foyer to the north, is completely empty. There seems to be
+          some sort of message scrawled in the sawdust on the floor."
+    arc_image scene_bar
+    north foyer
+    lit  false
+
+    // In the dark, going anywhere but north gropes badly (two disturbances,
+    // instant ruin) and any other action risks one; look and inventory pass
+    // through untouched, and the meta verbs never reach the room at all
+    // (out-of-world, as in the original).
+    on go
+        if here is not lit
+            if way is not north
+                change disturbed to disturbed + 2
+                say "Blundering around in the dark isn't a good idea!"
+                stop
+        continue
+
+    on look, inventory
+        continue
+
+    on other
+        if here is not lit
+            disturbed++
+            say "In the dark? You could easily disturb something!"
+            stop
+        continue
+
+thing message in bar
+    name  "scrawled message"
+    words message, sawdust, floor
+    scenery
+
+    on examine
+        if disturbed < 2
+            award 1
+            say "The message, neatly marked in the sawdust, reads..."
+            finish "*** You have won ***"
+        else
+            say "The message has been carelessly trampled, making it
+                 difficult to read. You can just distinguish the words..."
+            death "*** You have lost ***"
+        stop
+
+verb "hang"
+    put noun on noun
