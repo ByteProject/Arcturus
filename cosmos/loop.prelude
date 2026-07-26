@@ -470,6 +470,30 @@ block requires_failed_carried(obj)
     msg_not_holding
     return 1
 
+// The light watch (a field report: LIGHT LANTERN in the dark answered only
+// the lantern's own line, leaving the player to type LOOK for the room they
+// could suddenly see). st packs the turn's start: the room doubled, plus 1
+// when the player stood in darkness. Darkness lifting shows the room,
+// picture and all; darkness falling says where that leaves you. Only
+// without a move: walking through a doorway already describes (or reports
+// the darkness) through arrive, and must not do so twice. Refused turns
+// changed nothing. Dead code in an always-lit game: the one call site
+// folds away with any_dark, and DCE reclaims the block.
+block light_check(st)
+    if refused is not 0
+        return 0
+    let dk = st - (st / 2) * 2
+    let rm = st / 2
+    if here is not rm
+        return 0
+    if dk is 1
+        if is_lit is 1
+            describe_room
+        return 0
+    if is_lit is 0
+        par
+        msg_dark_room
+
 // Carry out one understood command. Undo is handled here, not through dispatch:
 // every other command first takes an undo checkpoint (save_undo), so that a later
 // undo rewinds to just before it. When save_undo returns 2 the machine has just
@@ -594,6 +618,18 @@ block run_turn(act)
     if list_pos is not 0
         run_noun_list(act)
         return 0
+    // Remember whether the player stood in darkness BEFORE the action, so a
+    // turn that brings light (switching the lantern on in the dark) can show
+    // the room it just revealed, and a turn that kills the light can say
+    // where that leaves you. Folds away in an always-lit game (any_dark).
+    // The light watch's snapshot: r (the undo result, long since read) is
+    // reused to carry the turn's start packed as here doubled, plus 1 when
+    // the player stood in darkness. Both stores fold away in an always-lit
+    // game, and no new local is spent (run_turn is a busy routine).
+    if any_dark is 1
+        change r to here + here
+        if is_lit is 0
+            change r to r + 1
     // The verb contract, BEFORE dispatch (the verbs overhaul, phase 2): a
     // turn whose operands fail what the action requires is refused here,
     // library-owned, and no handler ever sees it. perform() does not pass
@@ -614,6 +650,10 @@ block run_turn(act)
                 let aft = after_of(act)
                 if aft is not 0
                     dispatch(aft)
+    // Light changed hands this turn: the light watch reads the packed
+    // snapshot back and speaks. Folds away with any_dark.
+    if any_dark is 1
+        light_check(r)
     if meta_turn is 0
         // last_here is captured BEFORE the pulse: a scenery quip answers for
         // the room it ran in, and the pulse may relocate the player (a

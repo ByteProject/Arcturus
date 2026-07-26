@@ -131,15 +131,16 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     # pixel-grid scaling), so the band is full width and the height follows.
     # The mode is the game default, 12 (DAAD), carried in the opcode operand.
     assert app.vm.screen.image == (1, 12)
-    scaled = app._scaled_image(1)
+    scaled = app._scaled_image(1, app._band_width())
     # The picture fills the 80-cell screen width (inside the frame) at its aspect.
     assert scaled.width() == 80 * app.cell_w
     assert abs(scaled.height() / scaled.width() - 96 / 320) < 0.02
-    # The band height comes from the MODE (12 rows), not the picture: the
-    # interpreter sizes it from the opcode alone, and the status bar sits a whole
-    # number of rows down. (For 320x96 art at a 2:1 cell this equals the picture
-    # height, but the mode is what sets it.)
-    assert band and max(band) == 12 * app.cell_h
+    # The band follows the SCALED picture's height, so the art keeps its
+    # aspect at any window width (fullscreen included) and is never cropped
+    # (the old mode-rows clamp cut the bottom of every scene at fonts whose
+    # cells are not 8-pixel squares; the fullscreen fix removed it). On a
+    # fixed 8-pixel-cell screen this equals the mode's rows exactly.
+    assert band and max(band) == scaled.height()
     # The window is the 80-cell screen plus the frame on both sides.
     assert app.root.winfo_width() == 80 * app.cell_w + 2 * app._margin
     # The text area is a WHOLE number of lines (so it never shows a half row),

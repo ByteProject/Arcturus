@@ -214,6 +214,11 @@ class ActaeaApp:
             background=self._window_bg,
         )
         self._image_canvas.pack(fill="x", side="top", padx=m, pady=(m, 0))
+        # A window resize (maximize, fullscreen) widens the canvas; repaint
+        # the band at the new width. The repaint's state key includes the
+        # width, so the settle-out Configure events after our own height
+        # change dedup to nothing (no loop, no flicker).
+        self._image_canvas.bind("<Configure>", lambda e: self._repaint_image())
 
         # The upper window (status bar): a cell grid, shown only while the story
         # keeps a split open.
@@ -519,9 +524,11 @@ class ActaeaApp:
                 return None
         return None
 
-    def _scaled_image(self, image_id: int):
-        """The picture scaled to fill the window width at its own aspect ratio,
-        so the band fills the upper part of the window whatever the font size.
+    def _scaled_image(self, image_id: int, target_w: int):
+        """The picture scaled to fill target_w at its own aspect ratio, so the
+        band fills the upper part of the window whatever the font size, and
+        the whole window width in fullscreen (the field report: a maximized
+        window left the picture at the 80-cell width).
         These are pixel-art scenes (320x96 for the Amiga/ST art), so scaling
         stays on the pixel grid to keep it crisp instead of blurring it:
         tkinter's own zoom (integer up) and subsample (integer down) combine to
@@ -532,7 +539,6 @@ class ActaeaApp:
         native = self._load_image(image_id)
         if native is None:
             return None
-        target_w = 80 * self.cell_w
         iw = native.width() or 1
         key = (image_id, target_w)
         cached = self._scaled_cache.get(key)
@@ -554,14 +560,23 @@ class ActaeaApp:
         self._scaled_cache[key] = scaled
         return scaled
 
+    def _band_width(self) -> int:
+        """The width the band scales to: the canvas's REAL width (it packs
+        fill=x, so a maximized or fullscreen window widens it), falling back
+        to the 80-cell grid before the canvas is first mapped."""
+        w = self._image_canvas.winfo_width()
+        return w if w > 1 else 80 * self.cell_w
+
     def _repaint_image(self) -> None:
         img = self.vm.screen.image  # (id, mode) or None
-        # The change key folds in the window width (a font-size change rescales),
-        # the cell height (it sets the band's row count in pixels), and the game
-        # background (a background change repaints the band's letterbox), so the
-        # band only redraws when something it shows actually changed.
+        # The change key folds in the band's real width (a font-size change or
+        # a WINDOW RESIZE rescales; the field report was fullscreen leaving
+        # the picture at the 80-cell width), the cell height, and the game
+        # background (a background change repaints the band's letterbox), so
+        # the band only redraws when something it shows actually changed.
+        target_w = self._band_width()
         state = (None if img is None
-                 else (img, 80 * self.cell_w, self.cell_h, self.vm.screen.bg))
+                 else (img, target_w, self.cell_h, self.vm.screen.bg))
         if state == self._drawn_image:
             return  # nothing changed (the dedup: no reload, no flicker)
         self._drawn_image = state
@@ -571,27 +586,26 @@ class ActaeaApp:
             self._band_h = 0
             self._relayout()
             return
-        # The band height comes from the MODE, not the picture: mode is the band
-        # in TEXT ROWS (9 = Infocom, 12 = DAAD), so the band is mode * cell_h and
-        # the status bar sits flush below it, a whole number of rows down. The
-        # interpreter knows this from the opcode alone, without the picture, which
-        # is the property an 8-bit target needs. A mode of 0 (or an unknown value)
-        # falls back to the picture's own height.
+        # The band's HEIGHT follows the scaled picture, so the aspect holds at
+        # any window width (fullscreen included); at the ordinary 80-cell width
+        # this equals mode * cell_h exactly, the fixed-screen geometry. The
+        # mode height stands in when the picture itself is missing.
         image_id, mode = img
-        band_h = mode * self.cell_h if mode and mode > 0 else 0
-        photo = self._scaled_image(image_id)
-        if not band_h:
-            band_h = photo.height() if photo is not None else 0
-        # The picture fills the 80-cell width and is left-anchored at x=0, the
-        # same origin as the status grid and text, so all three share the left
-        # edge. The band wears the game background so any margin is the game's
-        # colour, and the canvas clips a picture taller than its mode-set band.
+        photo = self._scaled_image(image_id, target_w)
+        if photo is not None:
+            band_h = photo.height()
+        else:
+            band_h = mode * self.cell_h if mode and mode > 0 else 0
+        # The picture is centered in the band (at the ordinary width it fills
+        # it edge to edge, so nothing moves); the band wears the game
+        # background so any letterbox margin is the game's colour.
         self._image_canvas.configure(
             height=band_h,
             background=self._colour(self.vm.screen.bg, "black"),
         )
         if photo is not None:
-            self._image_canvas.create_image(0, 0, image=photo, anchor="nw")
+            self._image_canvas.create_image(target_w // 2, 0, image=photo,
+                                            anchor="n")
         self._band_h = band_h
         self._relayout()  # the text below re-fits to whole lines under the band
 

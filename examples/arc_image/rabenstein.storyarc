@@ -26,12 +26,20 @@
 //     (start) Forsaken Path        picture 8
 //     NORTH   Churchyard           picture 1
 //     NORTH   Open Lawn            NO picture: the band CLEARS (draw id 0)
-//     NORTH   Bedchamber, dark     picture 21 (the all-black darkness scene)
+//     NORTH   Bedchamber, dark     picture 21 (the DARK GREY darkness scene,
+//                                  distinguishable from a black background;
+//                                  plain black on ZX/TRS-80, whose palettes
+//                                  hold no grey)
 //     SOUTH, SOUTH  Churchyard     0 on the lawn, then 1 again
 //     TAKE LANTERN, LIGHT LANTERN
 //     NORTH, NORTH  Bedchamber     0 on the lawn, then 7 (the reveal: night)
 //     SLEEP                        picture 9, the SAME room repaints: morning
 //     SLEEP                        picture 7 again (repeatable, both ways)
+//     SLEEP, SOUTH                 morning again, and the demo ENDS (a win:
+//                                  you do not walk back into a slept-away
+//                                  night). LIGHT LANTERN inside the dark
+//                                  bedchamber also shows the reveal plus
+//                                  the room description in one turn.
 //
 //     What id 0 LOOKS like on the lawn is the interpreter's discretion
 //     (docs/08): a fixed screen keeps a blank band, a modern window may
@@ -67,7 +75,7 @@
 // handler repaints the band the same turn (the library curtains below), and a
 // DARK room shows the picture named by the game-wide constant arc_image_dark
 // instead of its own, because darkness is a scene too (the bedchamber
-// below, and picture 21 is exactly that: all black).
+// below, and picture 21 is exactly that: darkness as a flat dark grey).
 //
 // Two picture shapes exist, each a whole number of 8-pixel text rows tall so
 // the status bar sits flush beneath the band. You pick one game-wide with a
@@ -126,7 +134,10 @@ constant scene_night = 7
 constant scene_morning = 9
 
 // Darkness is a scene too: a dark room shows THIS picture, never a stale
-// leftover from the last lit room. Picture 21 is all black, on every target.
+// leftover from the last lit room. Picture 21 is a flat dark grey, so the
+// band stays distinguishable from a black game background (Stefan's call);
+// on the ZX Spectrum and the TRS-80, whose palettes hold no grey, it is
+// honest black.
 constant arc_image_dark = 21
 
 summon.statusline
@@ -203,8 +214,10 @@ room bedroom
                  the manor almost forgets itself. The side door back to the
                  lawn is south."
         else
-            say "A four-poster bed under a window full of night. The side
-                 door back to the lawn is south."
+            say "A four-poster bed under a window full of night. It has been
+                 a long walk through the dark; the bed is turned down, and
+                 SLEEP would end this night kindly. The side door back to
+                 the lawn is south."
     arc_image scene_night
     lit false
     south lawn
@@ -220,3 +233,11 @@ room bedroom
         change here.arc_image to scene_morning
         say "You sleep, mercifully without dreams, and wake to daylight."
         stop
+
+    // Waking to daylight is the demo's last step: walking back out into
+    // the night you just slept away would be a broken clock, so leaving
+    // in the morning ends the story instead (Stefan's ruling).
+    on go when morning
+        say "You step out into the morning, the manor at your back, and the
+             Black Forest, for once, lets you go."
+        finish "*** You have survived the night of Rabenstein ***"

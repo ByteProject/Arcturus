@@ -90,6 +90,13 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # Every game without a restless object stays byte-identical: the
 # performer walk, the mute buffer, and the scope-walk skip all fold
 # away behind any_restless.
+# 2026-07-26 (the light watch): +90 to +110 ONLY in games where
+# darkness can happen (any_dark): a turn that lifts darkness without
+# moving describes the room the player can suddenly see, and a turn
+# that kills the light says so (the field report: LIGHT LANTERN in
+# the dark answered only the lantern's line). Always-lit games are
+# byte-identical: the snapshot rides the spent undo local behind the
+# fold, and DCE reclaims the watch block.
 CEILINGS = {
     "features/yes-no.storyarc": 17824,  # 2026-07-25 new example (typed answers, when-guarded questions)
     "features/press-any-key.storyarc": 18456,  # 2026-07-25 new example (read_key as gate and as value)
@@ -159,13 +166,13 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 24060,  # 2026-07-21 the status bar names darkness (In the dark / Im Dunkeln / A oscuras) instead of spoiling an unseen room's name, +40 in games where darkness is reachable (any_dark); always-lit games are byte-identical (the fold test); previously 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "brass-lantern.storyarc": 19140,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "cloak-of-darkness.storyarc": 20180,  # 2026-07-21 the status bar names darkness (In the dark / Im Dunkeln / A oscuras) instead of spoiling an unseen room's name, +40 in games where darkness is reachable (any_dark); always-lit games are byte-identical (the fold test); previously 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "beispiel-deutsch.storyarc": 24160,  # 2026-07-21 the status bar names darkness (In the dark / Im Dunkeln / A oscuras) instead of spoiling an unseen room's name, +40 in games where darkness is reachable (any_dark); always-lit games are byte-identical (the fold test); previously 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "brass-lantern.storyarc": 19240,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "cloak-of-darkness.storyarc": 20280,  # 2026-07-21 the status bar names darkness (In the dark / Im Dunkeln / A oscuras) instead of spoiling an unseen room's name, +40 in games where darkness is reachable (any_dark); always-lit games are byte-identical (the fold test); previously 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
     "ejemplo-espanol.storyarc": 23000,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
     "features/computed-properties.storyarc": 17712,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
     "features/containers.storyarc": 18012,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/daemons-and-timers.storyarc": 19208,  # 2026-07-26 the showcase pays for what it shows: a second room, the restless apprentice, the performer walk, the mute buffer, TURN OFF CLOCK
+    "features/daemons-and-timers.storyarc": 19308,  # 2026-07-26 the showcase pays for what it shows: a second room, the restless apprentice, the performer walk, the mute buffer, TURN OFF CLOCK
     "features/doors-and-locks.storyarc": 17624,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
     "features/appearance.storyarc": 18392,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
     "features/components.storyarc": 17816,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
@@ -174,7 +181,7 @@ CEILINGS = {
     "features/handlers.storyarc": 18856,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
     "features/grammar.storyarc": 18024,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
     "features/introproperty.storyarc": 18940,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/kinds-and-inheritance.storyarc": 17580,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/kinds-and-inheritance.storyarc": 17680,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
     "features/on-other.storyarc": 17560,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
     "features/zcolor.storyarc": 17952,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
     "features/scoring.storyarc": 19916,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
@@ -193,7 +200,7 @@ CEILINGS = {
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 20792  # 2026-07-21 the status bar names darkness (In the dark / Im Dunkeln / A oscuras) instead of spoiling an unseen room's name, +40 in games where darkness is reachable (any_dark); always-lit games are byte-identical (the fold test); previously 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+CLOAK_Z8_CEILING = 20896  # 2026-07-21 the status bar names darkness (In the dark / Im Dunkeln / A oscuras) instead of spoiling an unseen room's name, +40 in games where darkness is reachable (any_dark); always-lit games are byte-identical (the fold test); previously 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

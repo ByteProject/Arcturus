@@ -417,7 +417,7 @@ def test_the_demo_walkthrough_draws_the_documented_sequence():
     io = PicIO(script=[
         "north", "north", "north", "look", "south", "south",
         "take lantern", "light lantern", "north", "north", "look",
-        "sleep", "sleep"])
+        "sleep", "sleep", "sleep", "south"])
     vm = VM(story, io)
     draws = []
     orig = vm.screen.set_image
@@ -431,4 +431,5 @@ def test_the_demo_walkthrough_draws_the_documented_sequence():
         vm.run(max_steps=40_000_000)
     except IndexError:
         pass
-    assert draws == [0, 8, 1, 0, 21, 0, 1, 0, 7, 9, 7]
+    assert draws == [0, 8, 1, 0, 21, 0, 1, 0, 7, 9, 7, 9]
+    assert "You have survived the night of Rabenstein" in io.text
