@@ -1525,7 +1525,11 @@ that language layer in place of English (02, section 8).
 A room's exit is written with this property name, not the word: `north cellar`,
 `east door` (section 5). So an exit stays in the fixed English name even in a
 translated game (`east puerta`), while the player types the localized word
-(`este`). The same split runs through the language: the fixed identifiers a game's
+(`este`). A named exit target is checked at compile time: it must be a
+declared room, a door-kind thing, or a computed block (`nothing` is the
+explicit no-exit), so a typo'd room name is a compile error rather than a
+silent runtime "There's no exit in that direction.", and an exit can never
+point at a plain thing (which would walk the player inside it). The same split runs through the language: the fixed identifiers a game's
 code uses (`thing`, `room`, `openable`, the direction properties, the grain
 actions in section 14) are English; only what the player reads and types is
 localized.

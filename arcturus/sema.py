@@ -126,6 +126,10 @@ class Analyzer:
                             f"direction",
                             mx.line)
         self._build_properties()
+        # Exits are validated once the members are on their objects (the
+        # properties pass just filled obj.props) and the kind chains are
+        # resolved (door detection).
+        self._check_exits()
         # After the members are collected: the automatic scored bits need
         # the real attributes (fixed blocks a thing, `scored false` opts
         # out), and the award scan feeds the compiler-summed max_score.
@@ -882,6 +886,50 @@ class Analyzer:
             # that was a kind, repoint it to the first room the kind expanded to.
             if obj.location in w.kinds and expanded:
                 obj.location = expanded[0]
+
+    def _check_exits(self) -> None:
+        """Every named exit target must exist and be walkable (a field report:
+        a typo'd room name compiled silently into "There's no exit in that
+        direction.", and an exit naming a plain THING walked the player inside
+        it, a pitch-black soft-lock). The legal targets are exactly three: a
+        declared room, a door-kind thing (east oak_door), or a computed block;
+        `nothing` stays legal as the explicit no-exit. Runs after
+        _resolve_kinds so door detection can read the resolved kind chain."""
+        w = self.world
+        # world.direction_props is not filled until the properties pass;
+        # the environment already knows the full set here.
+        dprops = set(self.env.directions)
+        for obj in w.objects.values():
+            if obj.category != "room":
+                continue
+            for pname, decl in obj.props.items():
+                if pname not in dprops:
+                    continue
+                if getattr(decl, "form", None) != ast.PROP_VALUE:
+                    continue  # a computed exit block decides at run time
+                if not decl.values or not isinstance(decl.values[0], ast.Name):
+                    continue
+                ident = decl.values[0].ident
+                if ident == "nothing":
+                    continue
+                line = getattr(decl, "line", 0) or obj.line
+                target = w.objects.get(ident)
+                if target is None:
+                    if ident in w.kinds:
+                        raise self._error(
+                            f"room '{obj.name}': exit '{pname}' names "
+                            f"'{ident}', a kind; an exit needs a room, a "
+                            f"door, or a computed block", line
+                        )
+                    raise self._error(
+                        f"room '{obj.name}': exit '{pname}' names '{ident}', "
+                        f"which is not declared", line
+                    )
+                if target.category != "room" and "door" not in target.chain:
+                    raise self._error(
+                        f"room '{obj.name}': exit '{pname}' points at "
+                        f"'{ident}', which is neither a room nor a door", line
+                    )
 
     def _rooted_in_room(self, kind_name: str) -> bool:
         """Does this kind chain reach `room`? A tolerant walk: an unknown or

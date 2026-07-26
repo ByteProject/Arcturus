@@ -6,6 +6,14 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Exits are checked at compile time.** A field report from Ichiro
+  Ota: a typo'd room name in an exit (`north attic`, no attic declared)
+  compiled silently into a runtime "There's no exit in that direction.",
+  and an exit naming a plain thing quietly walked the player inside it,
+  a pitch-black soft-lock. Both are compile errors now, with the honest
+  sentence naming the room, the direction, and the offender. The legal
+  targets are what they always were: a declared room, a door, or a
+  computed block, with `nothing` as the explicit no-exit.
 - **The one honest ask, and verb_trigger.** The verbs overhaul is
   whole: a command whose grammar wanted a noun that was never typed is
   answered by the library, one central line for every verb alike, "The
@@ -48,13 +56,6 @@ lives in the commit log. The feature roadmap follows below.
   dictionary word. And the oldest Easter egg in the medium finally
   answers: a player who curses gets a dry line back, selectable as the
   `swear` family.
-- **Push the crate north.** A thing marked `shiftable` (Stefan's word)
-  rolls through the exit with you: doors respected, the same arrival a
-  walk gets, and the crate is there when the room is described. Anything
-  unmarked answers that it will not shift; games with nothing shiftable
-  pay nothing. PICK UP THE LAMP arrived in the same pass, the everyday
-  take phrasing in all three languages, and it never mistakes itself for
-  boarding something.
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus
