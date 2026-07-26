@@ -1351,7 +1351,12 @@ class Analyzer:
                     blk.line,
                 )
             self._check_body(blk.body, set(blk.params))
-        # Attached grains and game start.
+        # Attached grains and game start. The outside-body form
+        # (`foyer.grains`, docs/01 section 14) MERGES here: it was checked
+        # but never added, so the whole form was silently dead (a field
+        # investigation found it; the words never even reached the
+        # dictionary). Attached grains join the owner's list exactly as an
+        # inline block's do, so the word-split lint covers them too.
         for decl in self.program.decls:
             if isinstance(decl, ast.GrainsAttach):
                 if decl.target not in w.objects:
@@ -1361,6 +1366,7 @@ class Analyzer:
                     )
                 for g in decl.grains:
                     self._check_grain(g)
+                    self._add_grain(g, decl.target, on_kind=False)
         if w.start_room is not None and w.start_room not in w.objects:
             line = w.game.line if w.game else 0
             raise self._error(
@@ -1963,18 +1969,44 @@ class Analyzer:
                         )
                     t.body = list(subj.body)
 
+    def _grain_home_rooms(self, name: str) -> set:
+        """The rooms a grain owner is statically at home in: a room is its
+        own home; a thing's home is the room its `in` chain reaches, plus
+        every room it spans. Used to tell deliberate cross-room word reuse
+        (disjoint homes, documented and quiet) from a co-located collision
+        (the same room, where only the first grain can ever answer)."""
+        w = self.world
+        obj = w.objects.get(name)
+        if obj is None:
+            return set()
+        if obj.category == "room":
+            return {name}
+        rooms = set(obj.spans or [])
+        seen: set = set()
+        cur = obj
+        while cur is not None and cur.name not in seen:
+            seen.add(cur.name)
+            if cur.category == "room":
+                rooms.add(cur.name)
+                break
+            cur = w.objects.get(cur.location) if cur.location else None
+        return rooms
+
     def _lint_grain_word_split(self) -> None:
-        """A word answers with ONE grain, so splitting a word across two grain
-        lines on the same owner leaves the later line dead: the parser finds
-        the first grain for the word and that one answers, whatever verb was
-        typed. Silent until now (a field report: `examine "junk"` on one line
-        and `touch "junk"` on the next, with touch falling through to the
-        scenery default). Note it and name both cures."""
+        """A word answers with ONE grain, so a second grain for the same word
+        leaves the later one dead wherever both are in scope: the parser
+        finds the first grain for the word and that one answers, whatever
+        verb was typed. Two shapes are noted, each silent-and-baffling in
+        play until now (both field reports): the same owner splitting a word
+        across two lines, and two CO-LOCATED owners (a room and a scenery
+        thing standing in it) sharing a word. Deliberate reuse across
+        DISJOINT rooms stays quiet, as documented."""
         owners = {}
         for name, obj in self.world.objects.items():
             owners[name] = obj.grains
         for kname, kind in self.world.kinds.items():
             owners.setdefault(kname, []).extend(kind.grains)
+        claimed = {}  # word -> (owner, line) that first claimed it, per owner
         for owner, grains in owners.items():
             seen = {}  # word -> the line that first claimed it
             for g in grains:
@@ -1993,6 +2025,36 @@ class Analyzer:
                         )
                     else:
                         seen.setdefault(key, g.line)
+                    claimed.setdefault(key, []).append((owner, g.line))
+        # The cross-owner collision: the same word on two owners whose home
+        # rooms overlap. Where both are in scope the first declared answers
+        # and the other grain is dead there, with nothing to say so at
+        # runtime.
+        for word, sites in claimed.items():
+            distinct = []
+            for owner, line in sites:
+                if not any(o == owner for o, _l in distinct):
+                    distinct.append((owner, line))
+            if len(distinct) < 2:
+                continue
+            for i in range(len(distinct)):
+                for j in range(i + 1, len(distinct)):
+                    a, la = distinct[i]
+                    b, lb = distinct[j]
+                    shared = self._grain_home_rooms(a) & self._grain_home_rooms(b)
+                    if shared:
+                        where = sorted(shared)[0]
+                        print(
+                            f"arcc: note: line {lb}: '{b}' answers \"{word}\" "
+                            f"with a grain, but '{a}' (line {la}) already "
+                            f"does, and both are in scope in '{where}'. A "
+                            f"word answers with ONE grain, the first "
+                            f"declared, so '{b}'s never runs there. Put "
+                            f"every verb for \"{word}\" on one grain line, "
+                            f"or give the answers to a `scenery` thing's "
+                            f"handlers.",
+                            file=sys.stderr,
+                        )
 
     def _lint_alter_without_continue(self) -> None:
         """`alter` REGISTERS a report that the library speaks at the action's

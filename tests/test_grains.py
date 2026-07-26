@@ -227,3 +227,75 @@ def test_a_story_name_still_wins_over_the_action_sugar():
     # action sugar. (The comparison is then object-vs-action, always false,
     # but it is the author's own name winning, which is the rule.)
     generate(analyze(cosmos.combined_program(parse(game))))
+
+
+def test_attached_grains_actually_attach(capsys):
+    # The outside-body form (`foyer.grains`, docs/01 section 14) was parsed
+    # and checked but never merged: the grains were silently dead and their
+    # words never reached the dictionary (a field investigation found it).
+    game = (
+        'game\n    title "T"\n    start lab\n'
+        'room lab\n    name "Lab"\n    desc "A lab."\n'
+        'lab.grains\n'
+        '    examine "molding" say "Ornate plasterwork."\n'
+    )
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    from arcturus.codegen import generate
+    story = load(generate(analyze(cosmos.combined_program(parse(game)))))
+    io = CaptureIO(script=["x molding"])
+    try:
+        VM(story, io).run(max_steps=5_000_000)
+    except IndexError:
+        pass
+    assert "Ornate plasterwork." in io.text
+
+
+def test_attached_grains_join_the_word_split_note(capsys):
+    game = (
+        'game\n    title "T"\n    start lab\n'
+        'room lab\n    name "Lab"\n    desc "A lab."\n'
+        'lab.grains\n'
+        '    examine "junk" say "Useless."\n'
+        'lab.grains\n'
+        '    touch "junk" say "Sticky."\n'
+    )
+    analyze(cosmos.combined_program(parse(game)))
+    assert "already answers" in capsys.readouterr().err
+
+
+def test_co_located_owners_sharing_a_word_are_noted(capsys):
+    # The Charles shape: the room answers a word with one grain and a
+    # scenery thing STANDING IN THAT ROOM answers it with another. Only the
+    # first declared can ever run while both are in scope; the note says so.
+    game = (
+        'game\n    title "T"\n    start drive\n'
+        'room drive\n    name "Drive"\n    desc "Muddy."\n'
+        '    grains\n'
+        '        examine "mud" say "Mud."\n'
+        'thing marker in drive\n    name "marker"\n    words marker\n'
+        '    scenery\n'
+        '    grains\n'
+        '        take "mud" say "No mud for you."\n'
+    )
+    analyze(cosmos.combined_program(parse(game)))
+    err = capsys.readouterr().err
+    assert "both are in scope in 'drive'" in err
+
+
+def test_cross_room_word_reuse_stays_quiet(capsys):
+    # The documented, deliberate reuse: "steps" as set dressing in two
+    # DIFFERENT rooms, each with its own answer. No note.
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n    north cellar\n'
+        '    grains\n'
+        '        examine "steps" say "Worn marble."\n'
+        'room cellar\n    name "Cellar"\n    desc "A cellar."\n    south hall\n'
+        '    grains\n'
+        '        examine "steps" say "Slick stone."\n'
+    )
+    analyze(cosmos.combined_program(parse(game)))
+    err = capsys.readouterr().err
+    assert "answers" not in err
