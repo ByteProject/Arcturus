@@ -2886,7 +2886,10 @@ rule           := handler
 
 statement      := let | change | now | move | add | remove | say
                 | stop | continue | finish | death | alter | if | while | for | switch
-                | return | call
+                | return | call | schedule | stop_timer
+schedule       := ( "after" | "every" ) expr "turns" "do" id
+stop_timer     := "stop" ( "after" | "every" ) expr "turns" "do" id
+                | "stop" "all" "timers"
 switch         := "switch" expr INDENT { case } [ else_case ] DEDENT
 case           := "case" value { "," value } INDENT { statement } DEDENT
 for            := "for" "each" id ( "in" | "of" ) expr
