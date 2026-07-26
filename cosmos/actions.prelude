@@ -274,10 +274,6 @@ block take_sealed_refused(obj)
     return 1
 
 on take
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     let why = take_probe(noun)
     if why is 4
         if take_sealed_refused(noun) is 1
@@ -299,10 +295,6 @@ on take
         msg_taken
 
 on drop
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if not (player holds noun)
         msg_not_holding
         stop
@@ -324,10 +316,6 @@ on drop
         msg_dropped
 
 on examine
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     // The cave rule (the modern approach; Inform 7 behaves the same,
     // Dialog checks light only for READ, classic Inform 6 not at all):
     // in darkness you can feel what you carry well enough to count it,
@@ -486,10 +474,6 @@ on inventory
         msg_empty_handed
 
 on switch_on
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -497,10 +481,6 @@ on switch_on
     msg_no_switch
 
 on switch_off
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -508,10 +488,6 @@ on switch_off
     msg_no_switch
 
 on wear
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if noun is not wearable
         change refused to 1
         msg_cant_wear
@@ -530,10 +506,6 @@ on wear
         msg_worn
 
 on take_off
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if noun is not worn
         msg_not_worn
         stop
@@ -547,14 +519,6 @@ on take_off
         msg_removed
 
 on put
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
-    if second is nothing
-        change refused to 1
-        msg_put_where
-        stop
     // PUT moves the noun without a hold check, so it needs the noun guard
     // too: a beyond chandelier must not ride into a sack, and a beyond
     // player must not fish things off the ground into the saddlebag.
@@ -593,14 +557,6 @@ on put
     msg_cant_put
 
 on insert
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
-    if second is nothing
-        change refused to 1
-        msg_put_where
-        stop
     // The same mover as put: both guards, same reason.
     if any_beyond is 1
         if beyond_guard is 1
@@ -641,10 +597,6 @@ block open_probe(obj)
     return 0
 
 on open
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -695,10 +647,6 @@ on open
         reveal_contents(noun)
 
 on close
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -719,10 +667,6 @@ on close
         msg_closed_it
 
 on lock
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -764,10 +708,6 @@ on lock
         msg_locked
 
 on unlock
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -835,10 +775,6 @@ block leave_report()
         msg_get_out
 
 on enter
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -900,14 +836,6 @@ requires show noun carried
 requires show second animate
 
 on give
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
-    if second is nothing
-        change refused to 1
-        msg_to_whom
-        stop
     if any_beyond is 1
         if beyond_guard_second is 1
             stop
@@ -923,39 +851,19 @@ on ask_for
         ask_for_to(noun)
 
 on show
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
-    if second is nothing
-        change refused to 1
-        msg_to_whom
-        stop
     change refused to 1
     msg_show
 
 on touch
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
     msg_touch
 
 on smell
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     msg_smell
 
 on taste
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     change refused to 1
     msg_taste
 
@@ -963,10 +871,6 @@ on listen
     msg_listen
 
 on eat
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -978,10 +882,6 @@ on drink
     msg_drink
 
 on attack
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -989,18 +889,10 @@ on attack
     msg_attack
 
 on kiss
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     change refused to 1
     msg_kiss
 
 on push
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -1047,10 +939,6 @@ on push
     msg_no_effect
 
 on pull
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -1058,10 +946,6 @@ on pull
     msg_no_effect
 
 on turn
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -1069,10 +953,6 @@ on turn
     msg_no_effect
 
 on climb
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     // Climbing something you can stand on IS boarding it: CLIMB STOOL
     // lands you on the stool through the full enter pipeline, the stool's
     // own handlers included. Folds away with nothing to stand on.
@@ -1084,10 +964,6 @@ on climb
     msg_cant_climb
 
 on talk
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if noun is animate
         talk_to(noun)
         stop

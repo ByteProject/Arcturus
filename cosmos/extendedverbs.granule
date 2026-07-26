@@ -27,10 +27,6 @@ verb "search", "frisk"
     search noun
 
 on search
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     // A shut, closed, or locked container yields nothing to a search: you
     // cannot see inside a sealed thing (a locked container is not open, so
     // this one check covers all three). A refusal, so it never fires an
@@ -132,10 +128,6 @@ verb "throw", "chuck", "toss", "hurl"
     throw noun at noun
 
 on throw
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     change refused to 1
     if any_alter is 1
         if altered is 0
@@ -150,10 +142,6 @@ verb "rub", "polish", "clean", "wipe", "scrub", "dust", "shine", "buff"
     rub noun
 
 on rub
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -170,10 +158,6 @@ verb "squeeze", "crush"
     squeeze noun
 
 on squeeze
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -190,10 +174,6 @@ verb "tie", "attach", "fasten", "secure"
     tie noun to noun
 
 on tie
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     change refused to 1
     if any_alter is 1
         if altered is 0
@@ -208,10 +188,6 @@ verb "cut", "chop", "slice", "prune", "carve"
     cut noun
 
 on cut
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -229,10 +205,6 @@ verb "fill"
     fill noun
 
 on fill
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -250,10 +222,6 @@ verb "burn", "ignite", "torch", "kindle"
     burn noun
 
 on burn
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -271,10 +239,6 @@ verb "blow"
     blow noun
 
 on blow
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -291,10 +255,6 @@ verb "set", "adjust"
     set noun to noun
 
 on set
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     change refused to 1
     if any_alter is 1
         if altered is 0
@@ -310,10 +270,6 @@ verb "empty", "drain"
     empty noun into noun
 
 on empty
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     if any_beyond is 1
         if beyond_guard is 1
             stop
@@ -330,10 +286,6 @@ verb "buy", "purchase"
     buy noun
 
 on buy
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     change refused to 1
     if any_alter is 1
         if altered is 0
@@ -356,10 +308,6 @@ verb "consult", "reference"
     consult noun about text
 
 on consult
-    if noun is nothing
-        change refused to 1
-        msg_noun_missing
-        stop
     // Nothing after ABOUT (or no ABOUT at all): ask what to look up.
     if topic_hi is 0
         change refused to 1

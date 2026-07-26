@@ -10,7 +10,11 @@
 // restated survive in the dictionary. Both anchor on a word that must
 // already be a verb, and both say what they do, which is the point: a
 // plain redeclaration merely shadows word by word, and the compiler
-// notes as much. Compile and run:
+// notes as much. Two seams ride along: a bare verb whose grammar wants
+// a noun gets the library's one honest ask, echoing the word AS TYPED
+// (bare ROLL says "roll", never "push"), and `verb_trigger` lets a
+// handler branch on that same word, so one action family can answer
+// each synonym in its own voice. Compile and run:
 //
 //   arcc examples/features/enhance-redefine.storyarc -o enhance.z5
 //   frotz enhance.z5
@@ -19,8 +23,14 @@
 //   look                    the family's old grammar still works
 //   look under bed          ...and the enhanced line joins it
 //   push trunk              plain push, as ever
-//   roll trunk              `roll` joined push's family as a synonym
-//   wave lantern            the redefined grammar: a noun is wanted now
+//   roll trunk              `roll` joined push's family, and verb_trigger
+//                           hears the difference: the trunk rolls
+//   roll                    the bare-command ask, echoing YOUR word:
+//                           "The verb roll requires you to be more
+//                           specific."
+//   wave                    the redefined grammar wants a noun now, and
+//                           the same ask answers
+//   wave lantern            the redefined grammar, fulfilled
 //   brandish wand           the redefinition's new synonym rides along
 
 game
@@ -65,7 +75,13 @@ thing trunk in bedroom
     words trunk, steamer
     desc "Round-lidded and heavy with travel."
 
+    // One action family, two voices: `roll` and `push` both dispatch the
+    // push action, and verb_trigger holds the word the player actually
+    // typed, so the handler answers each in kind.
     on push
+        if verb_trigger is "roll"
+            say "The trunk rolls a half turn and settles, lid rattling."
+            stop
         say "The trunk grinds a few inches across the boards."
 
 thing lantern in bedroom

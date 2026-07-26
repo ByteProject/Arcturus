@@ -344,6 +344,16 @@ _BUILTINS = {
     "oops_word": T_NUMBER,
     # The closed container a named-but-shut-away object sits in (open-first hint).
     "shut_in": T_OBJECT,
+    # The bare-command ask: 1 when the parsed command's grammar wanted a noun
+    # that was never typed (run_turn refuses with the be-more-specific line
+    # before any handler runs). Library-internal.
+    "incomplete": T_NUMBER,
+    # The dictionary entry of the word that resolved this command's verb, so
+    # author code can branch on the phrasing rather than the action family:
+    # `if verb_trigger is "roll"` inside an `on push` handler. last_trigger
+    # is its AGAIN twin (library-internal).
+    "verb_trigger": T_NUMBER,
+    "last_trigger": T_NUMBER,
     # Set to 1 by a refusal path when a command could not be carried out, so a
     # chained line ("take lamp and go north") stops at the failed command. The
     # library's default refusals set it; a story handler can too (docs/02 8b).

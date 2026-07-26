@@ -826,6 +826,15 @@ _BUILTIN_GLOBALS = [
     # The plurals granule: the matched group word for the sweep, the remembered
     # one for THEM, and the previous chained action for verb-less segments.
     "plural_go", "last_plural", "chain_prev",
+    # The bare-command ask (the verbs overhaul, completed): 1 when the parsed
+    # command's grammar wanted a noun that was never typed; run_turn refuses
+    # with the be-more-specific line before any handler runs.
+    "incomplete",
+    # The dictionary entry of the word that resolved the verb, for author code
+    # branching on phrasing (`if verb_trigger is "roll"` inside `on push`);
+    # last_trigger is its AGAIN twin. Both written only in a game that reads
+    # verb_trigger somewhere (the any_verb_read fold).
+    "verb_trigger", "last_trigger",
 ]
 
 
@@ -986,7 +995,8 @@ def build_story(
 
     # High memory: the entry stub and routines, run from the initial PC.
     high_base = sf.here()
-    blob, initial_pc, strrefs, packed_routines = link(entry, routines, high_base, scale)
+    blob, initial_pc, strrefs, packed_routines, dictrefs = link(
+        entry, routines, high_base, scale)
     blob_start = sf.here()
     sf.append(blob)
 
@@ -1036,6 +1046,14 @@ def build_story(
             )
     for pos, sid in strrefs:
         sf.set_word(blob_start + pos, string_packed[sid])
+    # Dictionary-entry references in code (`verb_trigger is "roll"`): the
+    # word's absolute dictionary address, exactly what word_dict() returns at
+    # run time, so the compare is address against address.
+    for pos, word in dictrefs:
+        if word not in word_offsets:
+            raise AssertionError(
+                f'dictionary reference to unknown word "{word}"')
+        sf.set_word(blob_start + pos, dict_addr + word_offsets[word])
 
     # Bootstrap the location globals so the turn loop starts in the right place:
     # here = the start room, player = the player object. Globals default to 0, so

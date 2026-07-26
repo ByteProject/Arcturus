@@ -153,6 +153,9 @@ block remap_action(act)
                 // something means getting off it (exit), not a walk: GET
                 // OUT in a crate must not answer "no exit that way".
                 // Folds away with nothing to be inside (any_enterable).
+                // These way-borne idioms are WHOLE commands: the resolver
+                // marked the bare take incomplete, and the remap unmarks it.
+                change incomplete to 0
                 if any_enterable is 1
                     if parent_of(player) is not here
                         return action_id("exit")
@@ -256,6 +259,12 @@ block resolve_objects()
     change two_reverse to 0
     if any_tables is 1
         change line_act to 0
+    // The verb's requirement bits (the grammar summary byte): rq1 says its
+    // grammar has no slotless line, so the verb typed bare is an incomplete
+    // command; rq2 says every noun-bearing line takes two slots, so a
+    // one-noun command is incomplete too. Both feed the loop's central ask.
+    let rq1 = 0
+    let rq2 = 0
     let d = word_dict(0)
     if d is not nothing
         if any_tables is 1
@@ -268,6 +277,12 @@ block resolve_objects()
         if peek_byte(d + 6) is 128 or peek_byte(d + 6) is 136
             let arity = peek_byte(d + 8)
             let va = peek_byte(d + 7)
+            if arity >= 16
+                change rq2 to 1
+                change arity to arity - 16
+            if arity >= 8
+                change rq1 to 1
+                change arity to arity - 8
             // A reverse-capable two-noun verb (give/show) is encoded as 6 (2 plus
             // bit 2): the same two-noun path, but resolve_two_nouns may split two
             // adjacent nouns and swap them (GIVE BOB COIN) when no preposition
@@ -276,7 +291,7 @@ block resolve_objects()
                 change two_reverse to 1
                 change arity to 2
             if arity is 2
-                resolve_two_nouns
+                resolve_two_nouns(rq1, rq2)
                 return 1
             if arity is 0
                 // oops takes a trailing correction word, not a noun; never an error.
@@ -303,6 +318,13 @@ block resolve_objects()
                 change unknown_at to first_unknown(1, word_count)
                 if unknown_at is not 0
                     change parse_fault to 4
+            // Nothing typed for a slot the grammar requires (the bare TAKE):
+            // an incomplete command, and the loop asks before any handler.
+            // A fault outranks it; remap_action clears it for the way-borne
+            // idioms (GET OUT) that are whole commands after all.
+            if parse_fault is 0
+                if rq1 is 1
+                    change incomplete to 1
     return 1
 
 // A hook for reaching an object ordinary scope could not: nothing by default, so
@@ -398,7 +420,7 @@ block is_separator(target)
 // by position, not by first-in-scope-wins, is what lets an out-of-scope first
 // noun stay unresolved (so the verb reports "you can't see that") instead of
 // letting the recipient slide into its slot.
-block resolve_two_nouns()
+block resolve_two_nouns(rq1, rq2)
     let n = word_count
     let b = 0
     let i = 1
@@ -444,6 +466,13 @@ block resolve_two_nouns()
                     if second is nothing
                         change parse_fault to noun_fault(b + 1, n)
                         return 1
+                else
+                    // A list with no second at all ("give coin and nail")
+                    // on a verb that requires one: incomplete as a whole,
+                    // asked once, and no item runs.
+                    if rq2 is 1
+                        change incomplete to 1
+                        return 1
                 change list_pos to 1
                 change list_end to b
                 return 1
@@ -456,21 +485,34 @@ block resolve_two_nouns()
     // unknown word, or a stray non-noun, it named nothing here: fault so the
     // turn is rejected rather than run, or dispatched to the recipient's own
     // handler, with no noun (a custom `on give` reading the noun would fault).
-    // A non-empty first-noun slot is `b > 1`; an EMPTY one ("give to bob", b is
-    // 1) is left to the action, which asks "give what".
+    // A non-empty first-noun slot is `b > 1`; an EMPTY one ("give to bob", a
+    // bare "give", b is 1) is an incomplete command when the grammar requires
+    // the noun (rq1): the loop asks before any handler runs.
     if noun is nothing
         if b > 1
             change parse_fault to noun_fault(1, b)
             return 1
+        if rq1 is 1
+            change incomplete to 1
     if b < n
         change second to match_phrase(b + 1, n, 0)
         if parse_fault is not 0
             return 1
-        // Likewise the recipient: a named-but-unresolved second noun faults,
-        // an empty one (nothing after the preposition) goes to the action.
+        // Likewise the recipient: a named-but-unresolved second noun faults;
+        // an empty one (nothing after the preposition, "put lamp in") is
+        // incomplete when every line of this verb wants two nouns (rq2).
         if second is nothing
             if b + 1 < n
                 change parse_fault to noun_fault(b + 1, n)
+            else
+                if rq2 is 1
+                    change incomplete to 1
+    else
+        // No separator at all ("put lamp"): the second slot never opened.
+        // A verb that also has a one-noun line (unlock noun) stays quiet
+        // (rq2 is 0) and the action decides what a single noun means.
+        if rq2 is 1
+            change incomplete to 1
     return 1
 
 // Remember the command just parsed so a following "oops" can correct it: find the
@@ -511,6 +553,8 @@ block fix_oops()
     let act = resolve_verb
     if act is 0
         return 0
+    if any_verb_read is 1
+        change verb_trigger to word_dict(0)
     change tie_want to 1
     if act is action_id("take")
         change tie_want to 0
@@ -734,9 +778,12 @@ verb "sit", "rest"
 // STAND (and STAND UP: the direction word rides `way`, which exit
 // ignores) leaves whatever you sit in or on, and STAND ON THE STOOL
 // boards it, the exit+on particle in compound() below, the same door
-// GET ON came through. One flag-model line: the noun slot is there for
-// the particle form and for the way ride, never tabled.
+// GET ON came through. Flag model, never tabled: the noun slot is
+// there for the particle form and the way ride, and the bare line
+// says in grammar what was always true, that STAND alone is a whole
+// command (so the bare-command ask leaves it be).
 verb "stand"
+    exit
     exit noun
 
 verb "exit", "leave"
@@ -1109,23 +1156,24 @@ block msg_unknown_word()
         change i to i + 1
     say "\"."
 
-// A bare verb ("take", "open") asks its question, echoing the verb as
-// typed ("Take what?"), the way msg_unknown_word spells a typo back. The
-// first letter is capitalized when it is plain a-z; an accented initial
-// is echoed as typed (the case tables stop at ASCII, and it stays honest).
+// An incomplete command (a bare TAKE, a PUT with nowhere to put): the one
+// honest ask. It never guesses the missing role: "Take what?" was fine, but
+// "Dance what?" guesses wrong when the grammar wanted WITH WHOM or ON WHAT,
+// so the line only says the command needs more. The verb is echoed AS TYPED,
+// spelled from the text buffer the way msg_unknown_word spells a typo back:
+// full length (the dictionary's nine-character cap never shows) and in the
+// player's own word, so a synonym stays itself (bare ROLL echoes "roll",
+// never "push"). The buffer is already lower-cased, which sits right
+// mid-sentence. Overridable like every message block.
 block msg_noun_missing()
+    show("The verb ")
     let p = word_pos(0) - 2
     let n = word_len(0)
     let i = 0
     while i < n
-        let c = text_char(p + i)
-        if i is 0
-            if c >= 97
-                if c <= 122
-                    change c to c - 32
-        show_char(c)
+        show_char(text_char(p + i))
         change i to i + 1
-    say " what?"
+    say " requires you to be more specific."
 
 // The beyond refusal (docs/01, beyond): visible, examinable, and the
 // hand does not get there. Takes the object (noun or second).
@@ -1406,9 +1454,6 @@ block line_foresight_open(obj)
 block msg_done()
     say "Done."
 
-block msg_put_where()
-    say "On what, or in what?"
-
 block msg_cant_put()
     say "${The second} won't hold it."
 
@@ -1417,9 +1462,6 @@ block msg_closed()
         say "${The second} ${is second} shut."
         return 0
     say "${The second} is shut."
-
-block msg_to_whom()
-    say "To whom?"
 
 block msg_give()
     if any_pluribus is 1

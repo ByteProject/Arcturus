@@ -70,7 +70,9 @@ def test_functional_verbs_on_frotz(tmp_path):
     assert "doesn't want" in out  # give to the guard (animate)
     assert "not really into that" in out  # show to the guard
     assert "therapy" in out  # give to a non-animate (the only-animate nudge)
-    assert "To whom?" in out  # give with no recipient asks, does not crash
+    # give with no recipient asks (the bare-command ask, echoing the verb as
+    # typed), does not crash
+    assert "The verb give requires you to be more specific." in out
     assert "test_attr" not in out  # the object-0 attribute-test bug is gone
     assert "You aren't inside anything to leave." in out  # exit in the open
 

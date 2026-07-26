@@ -47,8 +47,8 @@ block dispatch(action)
     // runs Vlad's own `on give`), the way Inform consults the second's life.
     // Only when there IS a first noun to act on, though: an incomplete "give to
     // vlad" has nothing being given, so the recipient has nothing to react to
-    // and the action runs its own "give what" default instead of Vlad's handler
-    // seeing a nothing noun.
+    // (the loop's central ask already refuses that command before dispatch;
+    // this guard keeps the invariant for any other nothing-noun path).
     if second is not nothing
         if second is not noun
             if noun is not nothing

@@ -65,9 +65,11 @@ def test_an_inanimate_recipient_is_refused_before_dispatch():
     assert "aren't carrying" not in out
 
 
-def test_empty_slots_still_ask_through_the_handler():
+def test_empty_slots_ask_centrally():
+    # GIVE PEBBLE with no recipient: the bare-command ask (library-owned,
+    # before any handler), echoing the verb as typed.
     out = _run(GAME, ["take pebble", "give pebble"])
-    assert "To whom?" in out
+    assert "The verb give requires you to be more specific." in out
 
 
 def test_show_shares_the_contract():

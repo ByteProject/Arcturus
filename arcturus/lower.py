@@ -96,6 +96,11 @@ INTRINSICS = frozenset({
     # grain body that answers several verbs. any_action_read is the
     # compile-time flag that folds the bookkeeping away when no code asks.
     "action", "any_action_read",
+    # any_verb_read is the same fold for verb_trigger (the dictionary word
+    # that resolved the verb, `if verb_trigger is "roll"`): 1 when any author
+    # code reads it, so the parser's one-store bookkeeping and the AGAIN and
+    # perform() plumbing fold away in a game that never asks.
+    "any_verb_read",
     # any_topics is the compile-time conversation flag (1 if anything declares
     # a `topic`). The turn loop guards its replay bookkeeping on it, so a game
     # with no conversation carries none of it.
@@ -1300,6 +1305,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_action_read(): 1 if any code reads `action`, so the dispatcher's
         # one-store bookkeeping folds away in a game that never asks.
         _place(rt, Const(_any_action_read(ctx)), dest)
+    elif name == "any_verb_read":
+        # any_verb_read(): 1 if any author code reads verb_trigger, so the
+        # parser's store and the AGAIN/perform plumbing fold away otherwise.
+        _place(rt, Const(_any_verb_read(ctx)), dest)
     elif name == "any_topic_idle":
         # any_topic_idle(): 1 if any topic is `idle`, so the granules' idle
         # handling folds away otherwise (and cosmos_topic_idle is then DCE'd).
@@ -1767,6 +1776,106 @@ def _any_action_read(ctx) -> int:
     return 0
 
 
+def _reads_verb_trigger(body) -> bool:
+    """Does this body READ verb_trigger? Two exclusions keep the fold honest:
+    a `change verb_trigger to ...` target is a write, not a read (the parser's
+    own store), and anything inside an `if any_verb_read is 1` clause is the
+    library's guarded plumbing, which only exists once something ELSE reads
+    the value (the static-if fold drops those clauses when the flag is 0, so
+    counting them would wrongly keep the flag at 1 forever)."""
+    import dataclasses
+
+    def is_fold_guard(cond) -> bool:
+        return (isinstance(cond, ast.IsTest)
+                and ((isinstance(cond.left, ast.Name)
+                      and cond.left.ident == "any_verb_read")
+                     or (isinstance(cond.left, ast.Call)
+                         and cond.left.name == "any_verb_read")))
+
+    def walk(node) -> bool:
+        if isinstance(node, ast.Name) and node.ident == "verb_trigger":
+            return True
+        if isinstance(node, ast.If):
+            for cl in node.clauses:
+                if cl.cond is not None and is_fold_guard(cl.cond):
+                    continue
+                if cl.cond is not None and walk(cl.cond):
+                    return True
+                for s in cl.body:
+                    if walk(s):
+                        return True
+            return False
+        if isinstance(node, ast.Change):
+            skip_target = (isinstance(node.target, ast.Name)
+                           and node.target.ident == "verb_trigger")
+            if not skip_target and walk(node.target):
+                return True
+            return walk(node.value)
+        if not dataclasses.is_dataclass(node):
+            return False
+        for f in dataclasses.fields(node):
+            v = getattr(node, f.name)
+            if isinstance(v, list):
+                for item in v:
+                    if dataclasses.is_dataclass(item) and walk(item):
+                        return True
+            elif dataclasses.is_dataclass(v) and walk(v):
+                return True
+        return False
+
+    return any(walk(s) for s in body)
+
+
+def _plain_string(lit) -> "str | None":
+    """The literal's text when it is plain (no interpolation), else None."""
+    if any(not isinstance(p, ast.StringText) for p in lit.parts):
+        return None
+    return "".join(p.text for p in lit.parts)
+
+
+def _trigger_words(ctx) -> set:
+    """Every word that can end up in verb_trigger: the single-token verb words
+    and the direction words (a bare NORTH resolves go through its own entry).
+    Backs the validation of `verb_trigger is "..."` so a word no verb declares
+    is a compile error instead of a compare that can never be true."""
+    cached = getattr(ctx, "_trigger_words_cache", None)
+    if cached is not None:
+        return cached
+    words = set()
+    for verb in ctx.world.verbs:
+        for phrase in verb.words:
+            tokens = phrase.lower().split()
+            if len(tokens) == 1:
+                words.add(tokens[0])
+    words |= {w.lower() for w in ctx.world.directions}
+    ctx._trigger_words_cache = words
+    return words
+
+
+def _any_verb_read(ctx) -> int:
+    """The compile-time flag behind verb_trigger: 1 when any handler, block,
+    grain, or topic body reads it (the parser's own guarded stores excluded,
+    see _reads_verb_trigger)."""
+    w = ctx.world
+    for blk in w.blocks.values():
+        if _reads_verb_trigger(blk.body):
+            return 1
+    bodies = []
+    for obj in w.objects.values():
+        bodies += [h.body for h in obj.handlers]
+        bodies += [g.body for g in getattr(obj, "grains", [])]
+        bodies += [t.body for t in getattr(obj, "topics", [])]
+    for kind in w.kinds.values():
+        bodies += [h.body for h in kind.handlers]
+        bodies += [g.body for g in getattr(kind, "grains", [])]
+        bodies += [t.body for t in getattr(kind, "topics", [])]
+    bodies += [h.body for h in w.free_handlers]
+    for body in bodies:
+        if body and _reads_verb_trigger(body):
+            return 1
+    return 0
+
+
 def _any_topics(ctx) -> int:
     """The compile-time conversation flag: 1 if anything declares a `topic`.
     The loop's AGAIN replay bookkeeping guards on it (a topic's subject lives
@@ -1999,6 +2108,29 @@ def _emit_test(rt, ctx, expr, label, on_true):
             if num is not None:
                 rt.op("je", Variable(ctx.globals["cur_action"]), Const(num),
                       branch=(label, t))
+                return
+        # `if verb_trigger is "roll"`: against verb_trigger, a string literal
+        # reads as the DICTIONARY word of that spelling, so the compare is the
+        # parser's matched entry against the word's own address, never a
+        # packed-string address. Both sides truncate identically in the
+        # dictionary, so any length works. The word must be verb vocabulary
+        # (or a direction word), or the test could never be true: that is a
+        # compile error, not a silent never.
+        left_is_trigger = (isinstance(expr.left, ast.Name)
+                           and expr.left.ident == "verb_trigger"
+                           and "verb_trigger" not in ctx.named)
+        if left_is_trigger and isinstance(right, ast.StringLit):
+            word = _plain_string(right)
+            if word is not None:
+                word = word.strip().lower()
+                if word not in _trigger_words(ctx):
+                    raise LowerError(
+                        f'verb_trigger compares against a verb word, and '
+                        f'"{word}" is not one (no verb or direction declares '
+                        f'it)', expr.line)
+                from .assembler import DictWordRef
+                rt.op("je", Variable(ctx.globals["verb_trigger"]),
+                      DictWordRef(word), branch=(label, t))
                 return
         opa, opb, tmp = _two_operands(rt, ctx, expr.left, expr.right)
         rt.op("je", opa, opb, branch=(label, t))
@@ -3115,6 +3247,8 @@ def _static_value(ctx, expr):
         return _any_topic_idle(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_action_read":
         return _any_action_read(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_verb_read":
+        return _any_verb_read(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_topics":
         return _any_topics(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "arc_mode":

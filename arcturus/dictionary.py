@@ -28,7 +28,8 @@ from . import zstring
 # Characters that are tokens in their own right (so "lamp,box" splits).
 _SEPARATORS = [ord("."), ord(",")]
 # Per-entry data bytes: [flags, b1, b2]. flags bit 7 marks a verb word (b1 = its
-# action number, b2 = its noun arity: 0 intransitive, 1 one noun, 2 two nouns);
+# action number, b2 = its grammar summary: noun arity 0/1/2 in the low bits,
+# +4 reverse-capable, +8 noun required, +16 second noun required, _verb_arity);
 # flags bit 6 marks a direction word (b1 = the go action, b2 = the direction's
 # property number); flags bit 5 marks a verb particle (b1 = its id), so the parser
 # can resolve all three.
@@ -154,29 +155,54 @@ def _preposition_words(world: wm.World) -> set:
 
 
 def _verb_arity(world: wm.World) -> dict:
-    """Single-word verb word -> how many noun slots its richest grammar line takes
-    (capped at 2). 0 marks an intransitive verb (jump, look, wait): the parser
-    uses this to reject a command that piles words onto a verb with no slot for
-    them, instead of silently dropping them. 2 marks a two-noun verb (put noun on
-    noun), so the parser resolves a second noun. A verb with a reversed two-noun
-    line (give/show BOB COIN) adds bit 2 (value 4), so 6 is a reverse-capable
-    two-noun verb: the parser then splits two adjacent nouns and swaps them."""
-    out: dict = {}
+    """Single-word verb word -> its grammar summary byte. The low bits are the
+    noun arity, how many noun slots the richest grammar line takes (capped at
+    2): 0 marks an intransitive verb (jump, wait), so the parser rejects a
+    command that piles words onto a verb with no slot for them; 2 marks a
+    two-noun verb (put noun on noun), so the parser resolves a second noun. A
+    verb with a reversed two-noun line (give/show BOB COIN) adds bit 2 (value
+    4), so 6 is a reverse-capable two-noun verb: the parser then splits two
+    adjacent nouns and swaps them.
+
+    Two REQUIREMENT bits complete the summary (the bare-command ask): bit 3
+    (value 8) says the noun is required, no grammar line for this word is
+    slotless, so the word typed bare is an incomplete command and the parser
+    asks rather than dispatching nothing (a verb like `look`, with a declared
+    bare line, never carries it). Bit 4 (value 16) says the SECOND noun is
+    required too: every noun-bearing line takes two slots (put, give), so a
+    one-noun command asks, while a verb that also has a one-slot line (unlock
+    noun / unlock noun with noun) stays quiet and lets the action decide."""
+    stats: dict = {}
     for verb in world.verbs:
         if wm.needs_table(verb):
             continue  # a tabled verb's data bytes hold its table address
-        slots = max(
-            (sum(1 for it in line.items if isinstance(it, ast.Slot)) for line in verb.grammar),
-            default=0,
-        )
-        if slots > 2:
-            slots = 2
-        if any(line.reverse for line in verb.grammar):
-            slots = slots | 4  # 2 -> 6: a reverse-capable two-noun verb
+        counts = [
+            sum(1 for it in line.items if isinstance(it, ast.Slot))
+            for line in verb.grammar
+        ]
+        slots = min(max(counts, default=0), 2)
+        reverse = any(line.reverse for line in verb.grammar)
+        bare = any(c == 0 for c in counts)
+        single = any(c == 1 for c in counts)
         for phrase in verb.words:
             tokens = phrase.lower().split()
             if len(tokens) == 1:
-                out[tokens[0]] = max(out.get(tokens[0], 0), slots)
+                s, r, b, o = stats.get(tokens[0], (0, False, False, False))
+                stats[tokens[0]] = (
+                    max(s, slots), r or reverse, b or bare, o or single)
+    out: dict = {}
+    for word, (slots, reverse, bare, single) in stats.items():
+        b2 = slots
+        if reverse:
+            b2 |= 4
+        if slots >= 1 and not bare:
+            b2 |= 8
+            if slots >= 2 and not single:
+                b2 |= 16
+        # The second-required bit only ever rides with the noun-required bit:
+        # a verb with a bare line answers bare input by that line, and a
+        # partial one-noun command then belongs to the action, not the ask.
+        out[word] = b2
     return out
 
 
@@ -226,7 +252,7 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
     enc_data: dict[bytes, bytes] = {}
     arity = _verb_arity(world)
     for word, action in _verb_actions(world, action_numbers).items():
-        b2 = arity.get(word, 0)  # data byte 2: noun arity (0 intransitive, 1, or 2)
+        b2 = arity.get(word, 0)  # data byte 2: the grammar summary (_verb_arity)
         enc_data[encoded[word]] = bytes([_VERB_FLAG, action & 0xFF, b2])
     if direction_props and action_numbers and "go" in action_numbers:
         go = action_numbers["go"]

@@ -358,6 +358,12 @@ block cosmos_perform(act, obj, other)
     let sw = way
     let sg = grain
     let sr = refused
+    let sv = 0
+    if any_verb_read is 1
+        // A performed action has no typed word behind it: verb_trigger reads
+        // 0 inside, so an author's phrasing branch falls to its default.
+        change sv to verb_trigger
+        change verb_trigger to 0
     change refused to 0
     change grain to 0
     if act is action_id("go")
@@ -381,16 +387,19 @@ block cosmos_perform(act, obj, other)
     change way to sw
     change grain to sg
     change refused to sr
+    if any_verb_read is 1
+        change verb_trigger to sv
     return ok
 
 // The declarative verb contract (the verbs overhaul, phase 2): enforce what
 // this action requires of its operands BEFORE any handler runs, so an object's
 // override owns the response and never the validation. The bits come from
 // requires_map (compiler-emitted, per action, from the `requires`
-// declarations); empty slots pass through, their asks belong to the handlers
-// ("Give what?"). Read arithmetically, low bit first (the source language has
-// no bitwise operators; the ambience deck's manner). Returns 1 on a refusal,
-// message already spoken.
+// declarations); a slot the grammar requires but the player left empty never
+// reaches here (the loop's bare-command ask refuses it earlier still), and a
+// grammar-optional empty slot passes through untested. Read arithmetically,
+// low bit first (the source language has no bitwise operators; the ambience
+// deck's manner). Returns 1 on a refusal, message already spoken.
 block check_requires(act)
     let r = requires_of(act)
     if r is 0
@@ -532,6 +541,20 @@ block run_turn(act)
         change second to last_second
         change way to last_way
         change grain to last_grain
+        if any_verb_read is 1
+            change verb_trigger to last_trigger
+    // The bare-command ask (the verbs overhaul, completed): a command whose
+    // grammar wanted a noun that was never typed refuses HERE, library-owned,
+    // before any handler and before the undo checkpoint, custom verbs and
+    // standard verbs alike. The message echoes the verb word as typed; no
+    // move is consumed. The resolvers set the mark, remap_action unmarks the
+    // way-borne idioms (GET OUT), and a sweep or noun list never carries it.
+    if incomplete is 1
+        change incomplete to 0
+        change meta_turn to 1
+        change refused to 1
+        msg_noun_missing
+        return 0
     let r = do_save_undo
     if r is 2
         change meta_turn to 1
@@ -605,6 +628,8 @@ block run_turn(act)
         change last_second to second
         change last_way to way
         change last_grain to grain
+        if any_verb_read is 1
+            change last_trigger to verb_trigger
     return 0
 
 // Undo the previous turn. restore_undo, on success, resumes at the save_undo in

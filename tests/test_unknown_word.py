@@ -8,8 +8,9 @@ custom-verb trap: "read sdlfjh" ran the author's handler as if the player
 had typed a bare "read"). A word the dictionary does not know at all is
 named back (parse_fault 4, msg_unknown_word); a known object word that
 nothing in scope answers to stays the classic can't-see (fault 1). A bare
-verb still reaches the handler with noun = nothing, which is now the ONLY
-thing noun = nothing means."""
+verb reaches the handler with noun = nothing ONLY when the verb's grammar
+declares a bare line (the author's way to own the bare response); without
+one the loop's central ask answers before any handler runs."""
 
 import shutil
 import subprocess
@@ -27,7 +28,7 @@ GAME = (
     'thing book in den\n    name "book"\n'
     'thing gem in vault\n    name "gem"\n'
     'room vault\n    name "Vault"\n    desc "Far away."\n'
-    'verb "read"\n    read noun\n'
+    'verb "read"\n    read\n    read noun\n'
     'on read\n'
     '    if noun is nothing\n'
     '        say "Specify reading material."\n'

@@ -464,14 +464,21 @@ the word spelled back from the text buffer), so a typo is told apart from
 a real thing that is not here, and OOPS corrects it on the next line. The
 messages are Cosmos blocks and overridable.
 
-The refusals stay distinct, three situations, three answers: a BARE VERB
-asks its question with the verb echoed as typed ("Take what?", "Nimm was?",
-"¿Coge qué?", msg_noun_missing, since an unresolved noun never dispatches, a
-handler's empty noun always means a bare verb); a named thing that is simply
-NOT HERE keeps the classic refusal (msg_cant_see, parse_fault 1); and a
-PRONOUN WITH NOTHING TO REFER TO (IT before anything was named, THEM with no
-group, an unbound Spanish clitic) asks the player to say what they mean
-(msg_no_it, parse_fault 5).
+The refusals stay distinct, three situations, three answers: an INCOMPLETE
+COMMAND (a bare verb whose grammar wants a noun, a PUT with nowhere to put)
+gets the one honest ask, "The verb take requires you to be more specific."
+(msg_noun_missing), echoing the verb AS TYPED from the text buffer, full
+length and in the player's own word, so a synonym stays itself; the line
+never guesses the missing role the way "Take what?" did, because the grammar
+may want WITH WHOM or ON WHAT. The ask is central: the resolvers mark the
+command (`incomplete`) and the loop refuses it before any handler runs, no
+move consumed, custom verbs and standard verbs alike. A verb whose grammar
+DECLARES a bare line (look, listen, a custom `hum` beside `hum noun`) is
+never marked: its handler owns the bare command and sees noun = nothing. A
+named thing that is simply NOT HERE keeps the classic refusal (msg_cant_see,
+parse_fault 1); and a PRONOUN WITH NOTHING TO REFER TO (IT before anything
+was named, THEM with no group, an unbound Spanish clitic) asks the player to
+say what they mean (msg_no_it, parse_fault 5).
 
 Grains. When a `noun` slot finds no real object but the typed word is a grain
 word on `here` or an in-scope object, and the action's verb is one the grain
@@ -660,9 +667,11 @@ finds the subject itself, at the first separator, so both models work. On a fit 
 the same scoring matcher as everything else, with the same faults: a tie asks
 "which do you mean", a named-but-unresolved noun on a two-slot line is
 rejected, a one-slot miss falls through to grains and the honest can't-see,
-and an EMPTY slot stays nothing so the action asks its own question ("dig
-what?"). When no line fits at all, the verb was understood but the rest was
-not: "You lost me after that." Disambiguation answers, pronouns, chaining,
+and an EMPTY slot marks the command incomplete, so the loop's central ask
+answers before any handler runs ("The verb dig requires you to be more
+specific."); a verb with a declared slotless line never lands there bare,
+that line sorts first and matches. When no line fits at all, the verb was
+understood but the rest was not: "You lost me after that." Disambiguation answers, pronouns, chaining,
 AGAIN, and OOPS all work on tabled verbs unchanged.
 
 The `direction` slot (SWIM SOUTH, PUSH CRATE WEST) lives on this model: a
@@ -703,10 +712,12 @@ runs at all, the VERB CONTRACT is enforced: what the action `requires` of
 its operands (a carried noun, an animate recipient; 01 section 10a). A turn
 whose operands fail the contract is refused by the library, message spoken,
 and no handler of any kind sees it, which is the point: an object's
-override owns the response to a valid turn, never the validation. Empty
-slots pass through, their asks belong to the handlers ("Give what?"), and
-`perform` bypasses the contract entirely, since an author performing an
-action means it. Then Cosmos dispatches the action as one chain of
+override owns the response to a valid turn, never the validation. A slot
+the grammar requires but the player left empty is refused earlier still,
+by the loop's central bare-command ask (section 8); a grammar-optional
+empty slot (unlock noun beside unlock noun with noun) passes through for
+the action to interpret. `perform` bypasses the contract entirely, since
+an author performing an action means it. Then Cosmos dispatches the action as one chain of
 handlers, most specific first:
 
 0. (between 1 and 2) for a two-noun action, the `second` object's handlers:

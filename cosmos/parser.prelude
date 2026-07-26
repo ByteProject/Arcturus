@@ -30,7 +30,10 @@ block copy_bytes(src, dst, n)
 // anything was named, THEM with no group; the loop asks the player to say
 // what they mean). A noun slot that HAD words but resolved nothing always
 // faults, so a handler seeing noun = nothing can trust the player typed the
-// bare verb, and the handlers ask their question (msg_noun_missing).
+// bare verb, and the LOOP asks the one honest question before any handler
+// runs (the bare-command ask, msg_noun_missing via `incomplete`), unless
+// the verb's grammar declares a bare line, in which case the handler owns
+// the bare command and sees noun = nothing.
 // Read one line of player input. When an input colour is set (zcolor.input),
 // the typed text prints in that colour and the base font colour returns the
 // moment the line is entered, the way PunyInform's clr_fginput works. With no
@@ -84,6 +87,8 @@ block parse()
 // call, or the re-tokenized tail of a chained line when chain_next re-enters.
 block parse_line()
     change parse_fault to 0
+    // No incomplete-command mark until a resolver finds an empty noun slot.
+    change incomplete to 0
     // No subject text until a grammar line's text slot absorbs some.
     change topic_lo to 0
     change topic_hi to 0
@@ -95,6 +100,13 @@ block parse_line()
         return 0
     chain_split
     let act = resolve_verb
+    if act is not 0
+        // Remember WHICH word resolved the verb, so author code can branch on
+        // the phrasing (`if verb_trigger is "roll"` inside `on push`). A
+        // verb-less chained segment keeps the borrowed command's word. The
+        // store folds away in a game that never reads verb_trigger.
+        if any_verb_read is 1
+            change verb_trigger to word_dict(0)
     if act is 0
         // A verb-less chained segment borrows the previous command's verb:
         // "take lamp and box" runs the take twice (docs/02 section 8b).
@@ -133,6 +145,9 @@ block parse_line()
     if any_allwords is 1
         if all_typed is 1
             change all_go to 1
+            // The sweep is a complete command; the all-word simply is not
+            // object vocabulary, so the noun resolver saw an empty slot.
+            change incomplete to 0
     // A language may remap the action now the nouns are known (English turns
     // LOOK <noun> into an examine); the seam lives in the language layer.
     return remap_action(act)
@@ -236,8 +251,10 @@ block next_literal(tok)
 // with the same faults as the classic path: a tie asks (fault 3), a
 // named-but-unresolved noun on a two-slot line is rejected (fault 1), a
 // one-slot miss falls to the debug reach, scenery, and the honest can't-see.
-// An EMPTY slot stays nothing and the action asks its own question ("dig
-// what?"). Returns 1 when the line matched (any fault stands), 0 to try the
+// An EMPTY slot stays nothing and marks the command incomplete: the loop's
+// central ask answers before any handler runs (a verb with a declared bare
+// line never lands there bare, since that line sorts first and matches).
+// Returns 1 when the line matched (any fault stands), 0 to try the
 // next line.
 // The index of the first typed direction word in [p, n), or 0 when there is
 // none (word 0 is always the verb, so 0 is free to mean "none"). try_line
@@ -357,6 +374,13 @@ block try_line(line, n)
                         if unknown_at is not 0
                             change parse_fault to 4
             return 1
+    else
+        // The matched line wanted a noun the player never typed (a bare DIG
+        // against `dig noun`, a bare LOOK UNDER): the command is incomplete,
+        // and the loop asks before any handler runs. A table with a slotless
+        // line never lands here bare: that line sorts first and matches.
+        change incomplete to 1
+        return 1
     if slots is 2
         if s2hi > s2lo
             change second to match_phrase(s2lo, s2hi, 0)
@@ -364,6 +388,9 @@ block try_line(line, n)
                 return 1
             if second is nothing
                 change parse_fault to noun_fault(s2lo, s2hi)
+        else
+            // The second slot went empty ("frob lamp with"): incomplete too.
+            change incomplete to 1
     return 1
 
 // Try a tabled verb's lines in table order (most literal words first, so a
@@ -766,6 +793,12 @@ block chain_here(i, n)
         if peek_byte(v + 6) is not 136
             return 1
     let arity = peek_byte(v + 8)
+    // Strip the requirement bits (the grammar summary byte): only the
+    // slot count decides whether "and" can join a noun list here.
+    if arity >= 16
+        change arity to arity - 16
+    if arity >= 8
+        change arity to arity - 8
     if arity is not 2
         if arity is not 6
             return 1

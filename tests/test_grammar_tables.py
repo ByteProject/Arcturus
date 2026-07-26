@@ -100,10 +100,13 @@ def test_no_line_fits_is_the_extra_words_fault():
     assert "You lost me after that." in _reply("peek bed")
 
 
-def test_empty_slot_is_left_to_the_action():
-    # DIG WITH SHOVEL fits `dig noun with held` with an empty first slot: the
-    # noun stays nothing and the action asks its own question.
-    assert "DIG BARE." in _reply("dig with shovel")
+def test_empty_slot_asks_centrally():
+    # DIG WITH SHOVEL fits `dig noun with held` with an empty first slot: an
+    # incomplete command, refused by the loop's central ask (the bare-command
+    # ask, echoing the verb as typed) before any handler runs. The declared
+    # bare `dig` line still reaches the handler's own DIG BARE branch.
+    assert "The verb dig requires you to be more specific." in _reply("dig with shovel")
+    assert "DIG BARE." in _reply("dig")
 
 
 def test_unresolved_slot_faults_honestly():

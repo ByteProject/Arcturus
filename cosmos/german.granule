@@ -230,6 +230,12 @@ block resolve_objects()
     change two_reverse to 0
     if any_tables is 1
         change line_act to 0
+    // Die Anforderungs-Bits des Verbs (das Grammatik-Byte): rq1 heisst, keine
+    // Zeile kommt ohne Slot aus, das nackte Verb ist also ein unvollstaendiger
+    // Befehl; rq2 heisst, jede Zeile mit Slots verlangt zwei. Beide speisen
+    // die zentrale Nachfrage der Schleife (incomplete).
+    let rq1 = 0
+    let rq2 = 0
     let d = word_dict(0)
     if d is not nothing
         if any_tables is 1
@@ -242,6 +248,12 @@ block resolve_objects()
         if peek_byte(d + 6) is 128 or peek_byte(d + 6) is 136
             let arity = peek_byte(d + 8)
             let va = peek_byte(d + 7)
+            if arity >= 16
+                change rq2 to 1
+                change arity to arity - 16
+            if arity >= 8
+                change rq1 to 1
+                change arity to arity - 8
             // A reverse-capable two-noun verb (geben/zeigen) is encoded as 6:
             // the recipient-first order (gib Bob die Muenze) with no preposition,
             // the natural German dative, splits and swaps in resolve_two_nouns.
@@ -249,7 +261,7 @@ block resolve_objects()
                 change two_reverse to 1
                 change arity to 2
             if arity is 2
-                resolve_two_nouns
+                resolve_two_nouns(rq1, rq2)
                 return 1
             if arity is 0
                 if va is not action_id("oops")
@@ -275,6 +287,12 @@ block resolve_objects()
                 change unknown_at to first_unknown(1, word_count)
                 if unknown_at is not 0
                     change parse_fault to 4
+            // Nichts getippt fuer einen Slot, den die Grammatik verlangt
+            // (das nackte NIMM): unvollstaendig, die Schleife fragt nach,
+            // bevor irgendein Handler laeuft. Ein Fault geht vor.
+            if parse_fault is 0
+                if rq1 is 1
+                    change incomplete to 1
     return 1
 
 // A hook for reaching an object ordinary scope could not: nothing by default.
@@ -353,7 +371,7 @@ block is_separator(target)
 
 // Bind the two noun slots by position: the words before the preposition name the
 // first noun, the words after it name the second.
-block resolve_two_nouns()
+block resolve_two_nouns(rq1, rq2)
     let n = word_count
     let b = 0
     let i = 1
@@ -387,11 +405,14 @@ block resolve_two_nouns()
         return 1
     // A named-but-unresolved noun (a known object out of scope, an unknown word,
     // a stray non-noun) faults so the turn is rejected rather than run with no
-    // noun; an EMPTY slot (b is 1) is left to the action's own default.
+    // noun; an EMPTY slot (b is 1, das nackte GIB) is incomplete when the
+    // grammar requires the noun (rq1): the loop asks before any handler.
     if noun is nothing
         if b > 1
             change parse_fault to noun_fault(1, b)
             return 1
+        if rq1 is 1
+            change incomplete to 1
     if b < n
         change second to match_phrase(b + 1, n, 0)
         if parse_fault is not 0
@@ -399,6 +420,14 @@ block resolve_two_nouns()
         if second is nothing
             if b + 1 < n
                 change parse_fault to noun_fault(b + 1, n)
+            else
+                if rq2 is 1
+                    change incomplete to 1
+    else
+        // Kein Trenner ("leg lampe"): der zweite Slot blieb zu. Ein Verb
+        // mit Ein-Slot-Zeile (schliess tuer auf) bleibt still (rq2 ist 0).
+        if rq2 is 1
+            change incomplete to 1
     return 1
 
 // Remember the command just parsed so a following "oops" can correct it.
@@ -430,6 +459,8 @@ block fix_oops()
     let act = resolve_verb
     if act is 0
         return 0
+    if any_verb_read is 1
+        change verb_trigger to word_dict(0)
     change tie_want to 1
     if act is action_id("take")
         change tie_want to 0
@@ -1078,22 +1109,21 @@ block msg_unknown_word()
         change i to i + 1
     say "\" kennt diese Geschichte nicht."
 
-// Ein nacktes Verb ("nimm", "öffne") fragt nach, mit dem Verb wie
-// getippt als Echo ("Nimm was?"). Der erste Buchstabe wird nur im
-// ASCII-Bereich großgeschrieben; ein Umlaut-Anfang bleibt wie getippt.
+// Ein unvollständiger Befehl (nacktes NIMM, ein LEG ohne Wohin): die eine
+// ehrliche Nachfrage. Sie rät die fehlende Rolle nie ("Tanz was?" wäre
+// falsch geraten, wenn die Grammatik MIT WEM wollte), sondern sagt nur,
+// dass der Befehl mehr braucht. Das Verb wird WIE GETIPPT aus dem
+// Textpuffer buchstabiert (volle Länge, das Wörterbuch-Limit bleibt
+// unsichtbar), Kleinschreibung passt mitten im Satz.
 block msg_noun_missing()
+    show("Das Verb ")
     let p = word_pos(0) - 2
     let n = word_len(0)
     let i = 0
     while i < n
-        let c = text_char(p + i)
-        if i is 0
-            if c >= 97
-                if c <= 122
-                    change c to c - 32
-        show_char(c)
+        show_char(text_char(p + i))
         change i to i + 1
-    say " was?"
+    say " verlangt eine genauere Angabe."
 
 // Die beyond-Abweisung (docs/01): sichtbar, aber die Hand kommt nicht hin.
 block msg_beyond(obj)
@@ -1353,9 +1383,6 @@ block line_foresight_open(obj)
 block msg_done()
     say "Erledigt."
 
-block msg_put_where()
-    say "Worauf, oder worin?"
-
 block msg_cant_put()
     if any_pluribus is 1
         if second is pluribus
@@ -1368,9 +1395,6 @@ block msg_closed()
         say "${The second} ${is second} geschlossen."
         return 0
     say "${The second} ist geschlossen."
-
-block msg_to_whom()
-    say "Wem?"
 
 block msg_ask_for()
     if any_pluribus is 1

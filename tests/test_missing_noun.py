@@ -56,7 +56,7 @@ def test_empty_first_noun_does_not_run_the_recipient_handler():
     # never sees a nothing noun.
     out = _run("give to bob")
     assert "GIVE" not in out
-    assert "sort" in out or "what" in out.lower()
+    assert "The verb give requires you to be more specific." in out
 
 
 def test_garbage_recipient_faults():

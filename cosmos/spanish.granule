@@ -340,6 +340,12 @@ block resolve_objects()
     change parse_fault to 0
     if any_tables is 1
         change line_act to 0
+    // Los bits de requisito del verbo (el byte de gramática): rq1 dice que
+    // ninguna línea va sin hueco, así que el verbo a secas es una orden
+    // incompleta; rq2 dice que toda línea con huecos pide dos. Ambos
+    // alimentan la pregunta central del bucle (incomplete).
+    let rq1 = 0
+    let rq2 = 0
     let d = word_dict(0)
     if d is not nothing
         if any_tables is 1
@@ -363,13 +369,23 @@ block resolve_objects()
                                 // grupo) es el fallo del pronombre (5).
                                 if noun is nothing
                                     change parse_fault to 5
+                // El clítico ES el sustantivo: la línea marcó el hueco vacío
+                // (incomplete) antes de saber que "cávalo" lo traía puesto.
+                if noun is not nothing
+                    change incomplete to 0
                 change clitico to 0
                 return 1
         if peek_byte(d + 6) is 128 or peek_byte(d + 6) is 136
             let arity = peek_byte(d + 8)
             let va = peek_byte(d + 7)
+            if arity >= 16
+                change rq2 to 1
+                change arity to arity - 16
+            if arity >= 8
+                change rq1 to 1
+                change arity to arity - 8
             if arity is 2
-                resolve_two_nouns
+                resolve_two_nouns(rq1, rq2)
                 return 1
             if arity is 0
                 // oops takes a trailing correction word, not a noun; never an error.
@@ -413,6 +429,13 @@ block resolve_objects()
                 change unknown_at to first_unknown(1, word_count)
                 if unknown_at is not 0
                     change parse_fault to 4
+            // Nada tecleado para un hueco que la gramática exige (el COGE a
+            // secas): orden incompleta, el bucle pregunta antes de que corra
+            // ningún handler. Un fallo tiene prioridad; un clítico ya habría
+            // ligado el sustantivo más arriba.
+            if parse_fault is 0
+                if rq1 is 1
+                    change incomplete to 1
     return 1
 
 // A hook for reaching an object ordinary scope could not: nothing by default, so
@@ -503,7 +526,7 @@ block is_separator(target)
 // of "put X on Y"). Binding by position, not by first-in-scope-wins, is what lets
 // an out-of-scope first noun stay unresolved (so the verb reports "you can't see
 // that") instead of letting the recipient slide into its slot.
-block resolve_two_nouns()
+block resolve_two_nouns(rq1, rq2)
     let n = word_count
     let b = 0
     let i = 1
@@ -521,11 +544,14 @@ block resolve_two_nouns()
         return 1
     // A named-but-unresolved noun (a known object out of scope, an unknown word,
     // a stray non-noun) faults so the turn is rejected rather than run with no
-    // noun; an EMPTY slot (b is 1) is left to the action's own default.
+    // noun; an EMPTY slot (b is 1, el PON a secas) is an incomplete command
+    // when the grammar requires the noun (rq1): the loop asks first.
     if noun is nothing
         if b > 1
             change parse_fault to noun_fault(1, b)
             return 1
+        if rq1 is 1
+            change incomplete to 1
     if b < n
         change second to match_phrase(b + 1, n, 0)
         if parse_fault is not 0
@@ -533,6 +559,14 @@ block resolve_two_nouns()
         if second is nothing
             if b + 1 < n
                 change parse_fault to noun_fault(b + 1, n)
+            else
+                if rq2 is 1
+                    change incomplete to 1
+    else
+        // Sin separador ("pon lámpara"): el segundo hueco quedó cerrado.
+        // Un verbo con línea de un solo hueco (abre puerta) calla (rq2 0).
+        if rq2 is 1
+            change incomplete to 1
     return 1
 
 // Remember the command just parsed so a following "oops" can correct it: find the
@@ -573,6 +607,8 @@ block fix_oops()
     let act = resolve_verb
     if act is 0
         return 0
+    if any_verb_read is 1
+        change verb_trigger to word_dict(0)
     change tie_want to 1
     if act is action_id("take")
         change tie_want to 0
@@ -1132,22 +1168,21 @@ block msg_unknown_word()
         change i to i + 1
     say "\"."
 
-// Un verbo a secas ("coge", "abre") pregunta, con el verbo tecleado como
-// eco ("¿Coge qué?"). La mayúscula solo se aplica en el rango ASCII.
+// Una orden incompleta (COGE a secas, un PON sin destino): la única
+// pregunta honesta. Nunca adivina el papel que falta ("¿Baila qué?"
+// adivinaría mal si la gramática pedía CON QUIÉN), solo dice que la orden
+// necesita más. El verbo se deletrea TAL COMO SE TECLEÓ desde el búfer de
+// texto (longitud completa; el límite del diccionario nunca se ve), y la
+// minúscula encaja en mitad de la frase.
 block msg_noun_missing()
-    show("¿")
+    show("El verbo ")
     let p = word_pos(0) - 2
     let n = word_len(0)
     let i = 0
     while i < n
-        let c = text_char(p + i)
-        if i is 0
-            if c >= 97
-                if c <= 122
-                    change c to c - 32
-        show_char(c)
+        show_char(text_char(p + i))
         change i to i + 1
-    say " qué?"
+    say " requiere más precisión."
 
 // El rechazo de beyond (docs/01): a la vista, pero la mano no llega.
 block msg_beyond(obj)
@@ -1433,9 +1468,6 @@ block line_foresight_open(obj)
 block msg_done()
     say "Hecho."
 
-block msg_put_where()
-    say "¿Sobre qué, o dentro de qué?"
-
 block msg_cant_put()
     if any_pluribus is 1
         if second is pluribus
@@ -1455,9 +1487,6 @@ block msg_closed()
         say "${The second} está cerrada."
     else
         say "${The second} está cerrado."
-
-block msg_to_whom()
-    say "¿A quién?"
 
 block msg_ask_for()
     if any_pluribus is 1

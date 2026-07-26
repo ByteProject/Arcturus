@@ -6,6 +6,19 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **The one honest ask, and verb_trigger.** The verbs overhaul is
+  whole: a command whose grammar wanted a noun that was never typed is
+  answered by the library, one central line for every verb alike, "The
+  verb dance requires you to be more specific." It echoes the verb as
+  the player typed it (bare ROLL says "roll", never "push") and no
+  longer guesses the missing role the way "Dance what?" did, when the
+  grammar may have wanted WITH WHOM. Custom verbs ask exactly like
+  standard ones now (a bare WIBBLE used to answer with silence), a
+  declared bare grammar line hands the bare command to your handler
+  instead, and every game got smaller: forty-odd per-verb ask stanzas
+  left the library for the one seam. And the seam is yours too:
+  `if verb_trigger is "roll"` inside an `on push` answers each synonym
+  in its own voice.
 - **The Plus/4 joins the proven machines.** The retro wave's fourth
   blueprint lands whole: pictures convert with the TED's real measured
   palette (the emulator itself was the measuring instrument, twice), the
@@ -42,13 +55,6 @@ lives in the commit log. The feature roadmap follows below.
   pay nothing. PICK UP THE LAMP arrived in the same pass, the everyday
   take phrasing in all three languages, and it never mistakes itself for
   boarding something.
-- **Noun lists reach the two-noun verbs.** "put coin and nail in box"
-  now does what it says: the box is bound once, each item runs as its
-  own full turn reported by name ("gold coin: Done."), the list stops at
-  the first refusal like any chained line, and the verb contract guards
-  every item. The "and" still chains when a verb follows it, and
-  single-noun lists ride the chain's verb borrow untouched.
-
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus

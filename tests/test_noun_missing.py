@@ -6,9 +6,10 @@
 """A bare verb asks its question (a field report from a Dialog port): TAKE
 with no noun used to answer "You see nothing of the sort here.", the same
 line as naming a thing that is absent, though the situations are opposite.
-Now the bare verb asks, echoing the verb as typed ("Take what?", "Nimm
-was?", "¿Coge qué?"), while a named-but-absent thing keeps the honest
-can't-see, and an unknown word keeps the typo line."""
+Now the bare verb asks with the one honest line, echoing the verb AS TYPED
+("The verb take requires you to be more specific."), never guessing the
+missing role the way "Take what?" did; a named-but-absent thing keeps the
+honest can't-see, and an unknown word keeps the typo line."""
 
 import pytest
 
@@ -55,9 +56,9 @@ def _run(cmds, game=GAME):
 
 def test_bare_verb_asks_with_the_verb_echoed():
     out = _run(["take", "examine", "open"])
-    assert "Take what?" in out
-    assert "Examine what?" in out
-    assert "Open what?" in out
+    assert "The verb take requires you to be more specific." in out
+    assert "The verb examine requires you to be more specific." in out
+    assert "The verb open requires you to be more specific." in out
     assert "You see nothing of the sort here." not in out
 
 
@@ -65,21 +66,21 @@ def test_the_three_answers_stay_distinct():
     # Bare verb asks; a real thing that is elsewhere keeps the can't-see;
     # an unknown word keeps the typo line. Three situations, three answers.
     out = _run(["take", "take broom", "take zzzq"])
-    assert "Take what?" in out
+    assert "The verb take requires you to be more specific." in out
     assert "You see nothing of the sort here." in out
     assert 'doesn\'t know the word "zzzq"' in out
 
 
 def test_german_asks_natively():
     out = _run(["nimm", "untersuche"], game=GERMAN)
-    assert "Nimm was?" in out
-    assert "Untersuche was?" in out
+    assert "Das Verb nimm verlangt eine genauere Angabe." in out
+    assert "Das Verb untersuche verlangt eine genauere Angabe." in out
 
 
 def test_spanish_asks_natively():
     out = _run(["coge", "examina"], game=SPANISH)
-    assert "¿Coge qué?" in out
-    assert "¿Examina qué?" in out
+    assert "El verbo coge requiere más precisión." in out
+    assert "El verbo examina requiere más precisión." in out
 
 
 def test_say_way_speaks_the_direction_word():

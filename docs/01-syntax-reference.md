@@ -1395,6 +1395,56 @@ ABOUT and HELP verbs, and what keeps the debug granule's GONEAR from firing
 story code on the way past. A meta handler that should not cost a turn sets
 `meta_turn`, as the standard session verbs do (02, section 9).
 
+THE BARE-COMMAND ASK. A verb typed without a noun its grammar wants is an
+incomplete command, and the library answers it centrally, before any
+handler runs and without costing a move:
+
+```
+> DANCE
+The verb dance requires you to be more specific.
+```
+
+The line echoes the verb AS TYPED, full length and in the player's own
+word (bare ROLL says "roll", even when roll is a push synonym), and it
+never guesses the missing role: "Dance what?" guesses wrong when the
+grammar wanted WITH WHOM or ON THE WHAT. This holds for every verb alike,
+the standard set, your own (`verb "wibble" / wib noun` asks the moment
+WIBBLE is typed bare), and partial commands too: PUT LAMP, with nowhere
+to put it, gets the same honest ask. Your grammar decides what counts as
+complete. A verb with a declared slotless line owns its bare form, and
+the handler then sees `noun` as `nothing`:
+
+```
+verb "hum"
+    hum
+    hum noun
+```
+
+Bare HUM reaches `on hum` (branch on `if noun is nothing`); bare WIBBLE,
+whose only line wants a noun, asks. The message is msg_noun_missing, one
+overridable block, worded natively by every language pack.
+
+VERB_TRIGGER. The word that resolved the verb is readable in any handler
+as `verb_trigger`, compared against a quoted verb word, so one action
+family can answer each of its synonyms in its own voice:
+
+```
+on push
+    if verb_trigger is "roll"
+        say "The trunk rolls a half turn and settles."
+        stop
+    say "The trunk grinds a few inches across the boards."
+```
+
+The compare works at any word length (both sides meet in the dictionary),
+and a word no verb or direction declares is a compile error, not a test
+that can never be true. During AGAIN the remembered command's word is
+restored; inside a `perform` there is no typed word and verb_trigger reads
+0, so a phrasing branch falls to its default. A game that never reads
+verb_trigger pays nothing for any of this. The worked showcase for both
+seams is
+[examples/features/enhance-redefine.storyarc](../examples/features/enhance-redefine.storyarc).
+
 EXTENDING THE STANDARD GRAMMAR. The grammar is not a fixed table you write
 additions into; it is the sum of every `verb` declaration in the compile,
 Cosmos's and yours alike, and your game is expected to add its own. Three
@@ -1597,9 +1647,12 @@ included) and `animate`. Each applies to `noun` or `second`. The standard
 GIVE and SHOW declare a carried noun and an animate second, which is why an
 object's `on give` override answers real offers and never gibberish, unheld
 gifts, or donations to furniture: a turn that fails the contract is refused
-by the library, with its own message, and no handler sees it. Empty slots
-pass through, so a handler still asks its own "Give what?"; `perform`
-bypasses the contract, since an author performing an action means it.
+by the library, with its own message, and no handler sees it. A slot the
+grammar requires but the player left empty is refused earlier still, by
+the library's bare-command ask ("The verb give requires you to be more
+specific.", see the verbs section above); a grammar-optional empty slot
+passes through for the action to interpret. `perform` bypasses the
+contract, since an author performing an action means it.
 
 The in-body form above binds to the verb's own actions. The free-standing
 form names the action, which is how requirements stay language-neutral

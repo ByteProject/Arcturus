@@ -39,6 +39,7 @@ class Operand:
     value: int
     routine: Optional[str] = None  # set when this is an unresolved call target
     string: Optional[str] = None  # set when this is an unresolved packed-string ref
+    dictword: Optional[str] = None  # set when this is an unresolved dictionary-entry ref
 
 
 def Const(v: int) -> Operand:
@@ -65,6 +66,14 @@ def StringRef(sid: str) -> Operand:
     """A reference to a packed string (by id): a large-constant placeholder,
     patched with the string's packed address at link time."""
     return Operand(LARGE, 0, string=sid)
+
+
+def DictWordRef(word: str) -> Operand:
+    """A reference to a dictionary entry (by word): a large-constant
+    placeholder, patched with the word's absolute dictionary address once the
+    dictionary is laid out (by the caller, like string refs). This is how
+    `verb_trigger is "roll"` compares against the word the parser matched."""
+    return Operand(LARGE, 0, dictword=word)
 
 
 # Opcode table: name -> (form, code, stores, branches, has_text).
@@ -342,6 +351,8 @@ class Routine:
             self.fixups.append(_Fixup(offset_in_code, "call", op.routine))
         elif op.string is not None:
             self.fixups.append(_Fixup(offset_in_code, "strref", op.string))
+        elif op.dictword is not None:
+            self.fixups.append(_Fixup(offset_in_code, "dictref", op.dictword))
 
     def _emit_branch(self, label: str, on_true: bool) -> None:
         # Reserve two bytes for the wide form; relax() later rewrites the branch to
@@ -429,7 +440,7 @@ class Routine:
         for f in jumps:
             by_pos[f.offset - 1] = ("jump", f)
         for f in self.fixups:
-            if f.kind in ("call", "strref"):
+            if f.kind in ("call", "strref", "dictref"):
                 by_pos[f.offset] = ("keep", f)
 
         new_code = bytearray()
@@ -498,9 +509,11 @@ class Routine:
 
 def link(entry: Routine, routines: list[Routine], base_addr: int, scale: int = 4):
     """Lay out the entry stub and routines in high memory starting at base_addr.
-    Returns the high-memory blob, the initial program counter, and the list of
+    Returns the high-memory blob, the initial program counter, the list of
     (absolute-offset-in-blob, string-id) packed-string references still to be
-    resolved once the strings are laid out (by the caller, in build_story).
+    resolved once the strings are laid out (by the caller, in build_story), the
+    packed-routine map, and the like list of (offset, word) dictionary-entry
+    references (the caller knows the dictionary's address).
 
     `scale` is the packed-address unit: a routine's packed address is its byte
     address / scale, so each routine is aligned to a scale-byte boundary. It is 4
@@ -531,15 +544,19 @@ def link(entry: Routine, routines: list[Routine], base_addr: int, scale: int = 4
         code_starts[r.name] = len(blob)
         blob += r.code
 
-    # Backpatch each routine's (and the entry's) fixups. String references are
-    # collected for the caller, which knows the string addresses.
+    # Backpatch each routine's (and the entry's) fixups. String and dictionary
+    # references are collected for the caller, which knows those addresses.
     strrefs: list[tuple[int, str]] = []
+    dictrefs: list[tuple[int, str]] = []
     for r in [entry] + routines:
         cs = code_starts[r.name]
         for fx in r.fixups:
             pos = cs + fx.offset
             if fx.kind == "strref":
                 strrefs.append((pos, fx.target))
+                continue
+            if fx.kind == "dictref":
+                dictrefs.append((pos, fx.target))
                 continue
             if fx.kind == "call":
                 if fx.target not in packed:
@@ -570,4 +587,4 @@ def link(entry: Routine, routines: list[Routine], base_addr: int, scale: int = 4
                 blob[pos] = (offset >> 8) & 0xFF
                 blob[pos + 1] = offset & 0xFF
 
-    return bytes(blob), base_addr + entry_code_start, strrefs, packed
+    return bytes(blob), base_addr + entry_code_start, strrefs, packed, dictrefs
