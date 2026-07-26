@@ -391,3 +391,46 @@ def test_restore_brings_back_the_saved_picture(tmp_path):
         pass
     assert calls == [(0, 9), (3, 9), (4, 9), (3, 9), (0, 9), (4, 9)]
     assert vm.screen.image == (4, 9)
+
+
+def test_the_demo_walkthrough_draws_the_documented_sequence():
+    """The Demo of Rabenstein is the interpreter author's test game: its
+    source header documents the expected picture for every step, and this
+    test pins that exact draw sequence (traversal, darkness as 21, the
+    pictureless lawn clearing to 0, the curtains repainting in place, the
+    repeatable sleep swap) plus the no-reload rule: the LOOK steps in the
+    script must add no draws at all."""
+    import os
+    path = os.path.join(
+        os.path.dirname(__file__), "..", "examples", "arc_image",
+        "rabenstein.storyarc")
+    with open(path, "r", encoding="utf-8") as fh:
+        game = fh.read()
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    story = load(generate(analyze(cosmos.combined_program(parse(game)))))
+
+    class PicIO(CaptureIO):
+        supports_pictures = True
+
+    io = PicIO(script=[
+        "north", "down", "up", "take lantern", "light lantern", "down",
+        "look", "up", "north", "north", "east", "west", "north", "north",
+        "close curtains", "open curtains", "south", "up", "sleep", "look",
+        "sleep"])
+    vm = VM(story, io)
+    draws = []
+    orig = vm.screen.set_image
+
+    def spy(img, mode):
+        draws.append(img)
+        return orig(img, mode)
+
+    vm.screen.set_image = spy
+    try:
+        vm.run(max_steps=40_000_000)
+    except IndexError:
+        pass
+    assert draws == [0, 8, 1, 21, 1, 3, 1, 12, 0, 14, 0, 16,
+                     17, 20, 17, 16, 7, 9, 7]

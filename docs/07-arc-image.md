@@ -81,7 +81,14 @@ The worked examples are in [examples/arc_image/](../examples/arc_image/),
 one per container, same story shape either way:
 `rabenstein.storyarc` ships its art in an `.arcres` pack, and
 `return-to-rabenstein.storyarc` ships four scenes in a `.blorb`. Each
-comes with its pack and its built z5.
+comes with its pack and its built z5. The Rabenstein demo is also the
+INTERPRETER AUTHOR'S TEST GAME: a nine-room walk exercising the whole
+contract (traversal, a pictureless room that must clear the band,
+darkness with its all-black scene, an in-place picture change on an
+event, a repeatable day-and-night swap, and the no-reload rule on LOOK),
+with the expected picture id for every step spelled out in the source
+header. An interpreter that matches that walkthrough renders arc_image
+correctly.
 
 ## 3. Converting for the retro machines
 
