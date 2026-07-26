@@ -397,8 +397,8 @@ def test_the_demo_walkthrough_draws_the_documented_sequence():
     """The Demo of Rabenstein is the interpreter author's test game: its
     source header documents the expected picture for every step, and this
     test pins that exact draw sequence (traversal, darkness as 21, the
-    pictureless lawn clearing to 0, the curtains repainting in place,
-    repeatably) plus the no-reload rule: the LOOK steps in the script must
+    pictureless lawn clearing to 0, SLEEP repainting the bedchamber in
+    place, repeatably) plus the no-reload rule: the LOOK steps in the script must
     add no draws at all."""
     import os
     path = os.path.join(
@@ -417,7 +417,7 @@ def test_the_demo_walkthrough_draws_the_documented_sequence():
     io = PicIO(script=[
         "north", "north", "north", "look", "south", "south",
         "take lantern", "light lantern", "north", "north", "look",
-        "close curtains", "open curtains"])
+        "sleep", "sleep"])
     vm = VM(story, io)
     draws = []
     orig = vm.screen.set_image
@@ -431,4 +431,4 @@ def test_the_demo_walkthrough_draws_the_documented_sequence():
         vm.run(max_steps=40_000_000)
     except IndexError:
         pass
-    assert draws == [0, 8, 1, 0, 21, 0, 1, 0, 17, 20, 17]
+    assert draws == [0, 8, 1, 0, 21, 0, 1, 0, 7, 9, 7]

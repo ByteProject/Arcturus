@@ -111,15 +111,26 @@ it unchanged as text. Here is the whole contract.
    draw_image IS the declaration. (A clear that arrives before any
    picture was ever shown reserves nothing and is a no-op.)
 
-   CLEARING KEEPS THE LAYOUT. On a fixed screen, id 0 takes the picture
-   down but the band stays reserved: a blank strip in the background
-   colour, the text area below keeping its size. The band never
-   collapses mid-game. Clears happen in ordinary play (a room without a
-   picture in a game whose other rooms have them), and re-flowing the
-   whole text screen on each one would be churn on exactly the machines
-   that can least afford it. Note that the library sends the game's real
-   mode even on a clear call, so a clear still tells you the band's
-   shape.
+   WHAT A CLEAR MEANS IS FIXED; WHAT IT LOOKS LIKE IS YOURS. Id 0 takes
+   the current picture down, always. What happens to the SPACE is the
+   interpreter author's discretion (Stefan's ruling, 2026-07-26), and
+   the two natural answers map onto the two kinds of machine. On a
+   fixed screen, keep the band reserved: a blank strip in the
+   background colour, the text area below keeping its size. This is
+   not conservatism but the shape of the hardware: a retro interpreter
+   holds no text backing store, so released rows would sit empty until
+   new prose scrolled into them, and re-flowing the screen on every
+   pictureless room would be churn on exactly the machines that can
+   least afford it. On a modern interpreter, feel free to RELEASE the
+   band instead: give the rows back to the text area, and re-base the
+   band when the next nonzero draw arrives (the first-draw machinery
+   above, run again). Actaea's window does exactly this: enter a
+   pictureless room and the prose takes the whole window; walk on and
+   the band returns. Both presentations are fully conformant, and a
+   game must not assume either. Clears happen in ordinary play (a room
+   without a picture in a game whose other rooms have them). Note that
+   the library sends the game's real mode even on a clear call, so a
+   clear still tells you the band's shape.
 
    ON A MODERN INTERPRETER, PRESENTATION IS YOURS. The fixed band is only
    binding where a fixed screen makes it so. If you are not tied to a cell

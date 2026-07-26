@@ -80,7 +80,7 @@ you can skip the pack and point Actaea at the directory:
 The worked examples are in [examples/arc_image/](../examples/arc_image/),
 one per container, same story shape either way:
 `rabenstein.storyarc` ships its art in an `.arcres` pack, and
-`return-to-rabenstein.storyarc` ships four scenes in a `.blorb`. Each
+`blorbenstein.storyarc` is the SAME demo shipped in a `.blorb`. Each
 comes with its pack and its built z5. The Rabenstein demo is also the
 INTERPRETER AUTHOR'S TEST GAME: a compact walk exercising the whole
 contract (traversal, a pictureless room that must clear the band,

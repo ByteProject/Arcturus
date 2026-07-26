@@ -1,4 +1,4 @@
-// The Demo of Rabenstein: an arc_image demonstration.
+// The Demo of Blorbenstein: the same arc_image demonstration, in a Blorb.
 // part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
@@ -6,8 +6,14 @@
 // ============================================================================
 // WHAT THIS IS
 // ============================================================================
-// A four-room walk that exercises EVERYTHING arc_image does, so it doubles as
-// the interpreter author's test game: traversal between pictured rooms, a
+// The companion to rabenstein.storyarc: the very same four-room walk, the
+// very same tester's walkthrough, shipped in a BLORB instead of an .arcres,
+// because that is the envelope the wider interpreter ecosystem already
+// knows how to open. Nothing about arc_image changes with the container: a
+// room still carries `arc_image <id>`, the id is still the resource slot,
+// and the compiled .z5 is still a plain conformant story file. Only the
+// packaging differs. The walk exercises EVERYTHING arc_image does, so it
+// doubles as the interpreter author's test game: traversal between pictured rooms, a
 // room with no picture (the band must clear), darkness with its own scene,
 // and a picture that changes on an event in the same room, repeatably. One
 // room, the bedchamber, carries three of the tests at once: it is dark
@@ -80,37 +86,39 @@
 // window, crisp for pixel art at any font size; pixel art looks best.
 //
 // ============================================================================
-// THE PICTURES: THE .arcres FILE
+// THE PICTURES: THE BLORB
 // ============================================================================
-// The pictures live beside the story, never inside it, so the .z5 stays a
-// plain story file. They travel as an .arcres pack: one file, a zip of the
-// numbered PNGs keyed by id, that the interpreter reads automatically when it
-// sits next to the story. This example ships rabenstein.arcres, which holds
-// pictures 1, 7, 8, 9, and 21. It was built with the arcimg tool:
+// Blorb has no filenames inside it. Resources are addressed by usage and
+// NUMBER, which is exactly the arc_image model, so picture id 8 is simply
+// Blorb resource `Pict 8`. Nothing is translated at either end. This
+// example ships pictures 1, 7, 8, 9, and 21 as blorbenstein.blorb beside
+// the .z5; Actaea finds it automatically by name, exactly as it finds an
+// .arcres. Two shapes exist, both built by arcimg:
 //
-//     arcimg pack 1.png 7.png 8.png 9.png 21.png -o rabenstein.arcres
+//     arcimg pack 1.png 7.png ... --blorb -o blorbenstein.blorb
+//         the pictures alone, sitting beside the story file
 //
-// arcimg also prepares art that is not already the right size (cropping and
-// scaling a photo or a wrong-sized image to a mode), and lists a pack:
+//     arcimg pack ... --zblorb blorbenstein.z5 -o blorbenstein.zblorb
+//         the story embedded too, so the whole game is ONE file
 //
-//     arcimg prep opening.jpg --id 8 --mode daad -o .   // -> 8.png at 320x96
-//     arcimg info rabenstein.arcres                     // list the pack
+// Every Blorb arcimg writes also carries a small `ARCI` declaration chunk
+// naming the extension version and the band mode. That lets an interpreter
+// know it should reserve a picture band BEFORE it executes a single
+// instruction, instead of discovering it when the first picture is drawn.
+// A Blorb without that chunk promises no arc_image graphics at all.
 //
 // ============================================================================
 // RUNNING IT
 // ============================================================================
-//     arcc rabenstein.storyarc -o rabenstein.z5    // compile (a plain z5 file)
-//     actaea rabenstein.z5                          // play, pictures and all
+//     arcc blorbenstein.storyarc -o blorbenstein.z5
+//     actaea blorbenstein.z5
 //
-// Actaea is the reference interpreter; the retro interpreters (the TRS-80
-// Model 4 was the first adopter-built one to draw the band) load the same
-// slots from their own picture files. The very same rabenstein.z5 also
-// plays, as pure text, on Frotz and in Actaea's --console and --headless
-// modes: the pictures are simply absent there.
+// And as always, the same .z5 plays as plain text on Frotz, and in Actaea's
+// --console and --headless modes: the pictures are simply absent there.
 
 game
-    title "The Demo of Rabenstein"
-    headline "An arc_image demonstration"
+    title "The Demo of Blorbenstein"
+    headline "An arc_image Blorb demonstration"
     author "Stefan Vogt"
     start opening
 
