@@ -548,8 +548,12 @@ def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None,
         rt.label(f"b{k}other")
         if others or after_others:
             # The catch-alls answer the player's verbs, never the life-cycle
-            # events the loop fires (start, enter, each_turn).
-            for ev in _EVENT_NAMES:
+            # events the loop fires. The skip list is the OBJECT'S OWN event
+            # set (event_names), not the global one: on a THING, `enter` is
+            # the ENTER verb, an ordinary consumable action the catch-all
+            # must answer (the field report: `on other` never saw ENTER),
+            # while on a ROOM it is the arrival event and stays skipped.
+            for ev in event_names:
                 if ev in actions:
                     rt.op("je", Variable(1), Const(actions[ev]), branch=(nxt, True))
             if afloor is not None:
