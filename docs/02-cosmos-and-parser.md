@@ -1299,8 +1299,8 @@ The Brass Lantern:
   replace the default messages, consuming the action.
 - `pull` is an added verb; the lever's handler consumes it, so the default
   "Nothing obvious happens." never runs.
-- `${turns}` reads the Cosmos turn counter, and the foyer's grain shows cheap
-  scenery answering examine without an object.
+- `${turns}` reads the Cosmos turn counter, and the foyer's grain shows
+  prose texture answering examine without an object (grains, 01 section 14).
 
 Cloak of Darkness (a 1:1 port of Firth's reference cloak.inf, which is also
 the PunyInform size benchmark):

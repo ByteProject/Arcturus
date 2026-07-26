@@ -2062,9 +2062,24 @@ opt-in by the summon alone; there is no separate release build to strip it.
 
 ## 14. Grains
 
-Grains are built-in cheap scenery: words that respond to a few verbs without
-the cost of a full object. They replace the cheap_scenery pattern and are
-part of the language, not an import.
+Grains are prose texture: one line each for the words a room description
+mentions in passing (the gravel, the ceiling, the distant hills) that
+deserve an answer but no existence. A grain is deliberately ONE grammar
+line, and the line is the whole feature: it may answer several verbs and
+several words, shade its response with `if action is`, and that is all it
+will ever do. The cap is the point. A grain has no state, no place in the
+tree, no handlers, no kind, no listing: nothing but words and an answer.
+
+Grains are NOT a cheap-object device, and they are deliberately less than
+PunyInform's cheap_scenery. That pattern serves the Z-machine version 3
+world, where the object ceiling is real and an author is pushed to make
+one non-object do as much as possible. Arcturus targets version 5 and 8,
+where objects are not scarce, so a grain never needs to imitate one. The
+rule of thumb: the moment a patch of scenery wants different answers per
+verb beyond a one-line `if action is`, or state, or to be seen in more
+than prose, stop growing the grain and declare a `scenery` thing. That is
+not a workaround; it is the intended escalation, and it costs you nothing
+the version 3 author had to fear.
 
 A `grains` block lists grain lines. Each line names the actions it answers, the
 scenery words it matches (one or more, joined by `or`), and a response, which
