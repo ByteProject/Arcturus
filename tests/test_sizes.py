@@ -265,7 +265,8 @@ def test_every_example_is_ceiling_tracked():
     # the art pipeline they demonstrate, not by library codegen.
     excluded = {"arc_image/rabenstein.storyarc",
                 "arc_image/blorbenstein.storyarc",
-                "arc_image/cloak-of-darkness.storyarc"}
+                "arc_image/cloak-of-darkness.storyarc",
+                "arc_image/blorb-of-darkness.storyarc"}
     root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "examples")
     on_disk = set()
     for r, _, files in os.walk(root):

@@ -86,8 +86,9 @@ comes with its pack and its built z5. Beside them,
 with four Arthur-band scenes (320x72), where the plot itself is the
 darkness test, the bar's own dark painting standing as arc_image_dark
 until the cloak hangs on its hook. Its retro conversions live under
-arc_image/cloak/. Between the two demos an interpreter exercises both
-band shapes. The Rabenstein demo is also the
+arc_image/cloak/, and `blorb-of-darkness.storyarc` is that same game
+shipped in a `.blorb`, so both band shapes come in both containers.
+Between the two demos an interpreter exercises both band shapes. The Rabenstein demo is also the
 INTERPRETER AUTHOR'S TEST GAME: a compact walk exercising the whole
 contract (traversal, a pictureless room that must clear the band,
 darkness with its all-black scene, an in-place picture change on an
