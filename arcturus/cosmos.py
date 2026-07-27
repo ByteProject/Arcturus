@@ -505,7 +505,7 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
         origin = "game" if is_chapter else "granule"
         gdecls: list = []
         for d in prog.decls:
-            if isinstance(d, (ast.BlockDecl, ast.Handler)):
+            if isinstance(d, (ast.BlockDecl, ast.Handler, ast.DirectionDecl)):
                 d.origin = origin
             gdecls.append(d)
         loaded[key] = gdecls
@@ -584,7 +584,7 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
         if language != _DEFAULT_LANGUAGE and name == default_prelude:
             continue
         for d in parse(src, name).decls:
-            if isinstance(d, (ast.BlockDecl, ast.Handler)):
+            if isinstance(d, (ast.BlockDecl, ast.Handler, ast.DirectionDecl)):
                 d.origin = "library"
             decls.append(d)
     # A non-default language is a granule, <language>.granule, resolved like any
@@ -605,7 +605,7 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
             # so semantic analysis never sees it.
             if isinstance(d, ast.LanguageDecl):
                 continue
-            if isinstance(d, ast.BlockDecl):
+            if isinstance(d, (ast.BlockDecl, ast.DirectionDecl)):
                 d.origin = "library"
             decls.append(d)
     # library, then granules, then the game: the game's own .storyarc chapters

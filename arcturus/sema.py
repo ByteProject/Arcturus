@@ -609,6 +609,14 @@ class Analyzer:
                     )
                 for word in decl.words:
                     w.directions[word.lower()] = decl.prop
+                # The canonical word a property answers to: the first word of
+                # its first declaration, unless the game itself redeclares
+                # (most specific wins). A granule ADDING vocabulary to a
+                # worded property (nautical's ALOFT riding up) never steals
+                # the canonical; a game rebinding a spare property does.
+                if decl.words:
+                    if decl.prop not in w.direction_names or decl.origin == "game":
+                        w.direction_names[decl.prop] = decl.words[0].lower()
             elif isinstance(decl, ast.PlayerDecl):
                 # Collected now, applied in the properties pass (below), where
                 # types unify and the words lists merge.

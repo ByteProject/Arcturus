@@ -168,6 +168,10 @@ class Layout:
     # direction nobody can walk (the nautical four in a landlocked game)
     # adds nothing to the verbose_exits routines.
     live_directions: list = field(default_factory=list)
+    # Direction property name -> the canonical word its declarations chose
+    # (world.direction_names), so dir_name/exit_name speak the game's own
+    # vocabulary when a spare property is rebound.
+    direction_canonical: dict = field(default_factory=dict)
     # catalog name -> word offset from the catalog region's start; the region's
     # byte offset within the table. __catalogs__ = objects_addr + region_off.
     catalogs: dict = field(default_factory=dict)
@@ -374,6 +378,7 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
         d for d in prelude._DIRECTIONS
         if (d in worded or d in used) and d in layout.prop_number
     ]
+    layout.direction_canonical = dict(world.direction_names)
 
     # Does any non-movable object declare `spans`? Only then does the scope code
     # keep its spans checks (any_spans folds to this); otherwise they cost nothing.

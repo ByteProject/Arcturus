@@ -1398,7 +1398,10 @@ def gen_exit_routines(layout) -> list:
     dn.op("rtrue")  # no direction (way 0): print nothing
     for i, name in enumerate(dirs):
         dn.label(f"d{i}")
-        dn.op("print", text=name)
+        # The canonical player-facing word, not the property name: a game
+        # that rebinds a spare property (direction fore "widdershins") must
+        # hear its own vocabulary back. They coincide for the compass.
+        dn.op("print", text=layout.direction_canonical.get(name, name))
         dn.op("rtrue")
 
     nm = Routine("cosmos_exit_name", nlocals=1)
@@ -1407,7 +1410,7 @@ def gen_exit_routines(layout) -> list:
     nm.op("rtrue")  # index out of range: print nothing
     for i, name in enumerate(dirs):
         nm.label(f"n{i}")
-        nm.op("print", text=name)
+        nm.op("print", text=layout.direction_canonical.get(name, name))
         nm.op("rtrue")
     return [prop, nm, dn]
 

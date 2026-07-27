@@ -671,6 +671,10 @@ class DirectionDecl:
     prop: str
     words: list[str]
     line: int = 0
+    # Where the declaration came from (library, granule, game), stamped like
+    # a block's origin: the canonical word a property answers to follows the
+    # most specific declaration, while every declared word stays vocabulary.
+    origin: str = "game"
 
 
 @dataclass

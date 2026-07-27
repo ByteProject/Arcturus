@@ -384,6 +384,11 @@ class World:
     # Player-facing direction word -> standard direction property name, from the
     # language layer's `direction` declarations (docs/01). Localized by a pack.
     directions: dict[str, str] = field(default_factory=dict)
+    # Direction property name -> its canonical player-facing word (the first
+    # word of the most specific `direction` declaration: a game's rebind of a
+    # spare property beats the language layer's compass word). dir_name and
+    # exit_name speak from this, so output follows the declared vocabulary.
+    direction_names: dict[str, str] = field(default_factory=dict)
     # Every direction PROPERTY name (the standard set plus any declared), set
     # at the end of analysis. Codegen allows a computed exit (a direction
     # property that is a block) using this; a general computed value property

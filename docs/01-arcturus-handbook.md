@@ -1541,6 +1541,25 @@ set. A game rarely writes these; it summons a language, or uses the default
 English. Selecting a language is one summon: `summon.language "spanish"` compiles
 that language layer in place of English (Part II section 8).
 
+CUSTOM DIRECTIONS. When a game needs directions of its own (the compass
+fails on a ringworld as surely as on a ship), it declares its words onto
+the four spare properties, right in the story:
+
+```
+direction fore "widdershins", "wid"
+direction aft  "turnwise", "turn"
+```
+
+The player types WIDDERSHINS (or WID), the exits are written with the
+carrier property (`fore rim` on the room), and everything a direction has
+comes along: the bare typed word, `on go fore` handlers, `if way is fore`,
+computed exits, teleports. Output follows the most specific declaration,
+so the exit list and `dir_name` speak "widdershins", never the carrier's
+name; a granule that merely adds vocabulary to an already-worded property
+(nautical's ALOFT riding `up`) never steals that canonical word. Four
+spare carriers exist; leave the nautical granule unsummoned and their
+namespace is entirely yours.
+
 A room's exit is written with this property name, not the word: `north cellar`,
 `east door` (section 5). So an exit stays in the fixed English name even in a
 translated game (`east puerta`), while the player types the localized word
