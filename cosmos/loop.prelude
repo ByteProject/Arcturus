@@ -839,6 +839,14 @@ block draw_room_image()
         if id is not shown_image
             draw_image(id, arc_mode)
             change shown_image to id
+            // The bar settles AFTER the band (Stefan's rule, the second
+            // Shawn invariant): on an interpreter that releases rows when
+            // the band changes, the bar's physical spot moves with it, so
+            // every real image change re-seats the bar before any text
+            // flows. Behind the dedup, so a quiet LOOK repaints nothing;
+            // an empty screen_ready (no bar granule) folds away with the
+            // call.
+            screen_ready
 
 // Force the next draw: the physical band may hold a picture the CURRENT world
 // state never drew, because memory moved without the screen moving (a restore,

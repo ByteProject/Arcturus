@@ -2402,10 +2402,21 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
         elif s.target == "background":
             # Background: apply and repaint, so the new colour covers the whole
             # screen rather than only the cells printed from now on (the same
-            # reason PunyInform clears after setting colours).
+            # reason PunyInform clears after setting colours). The erase is the
+            # nuclear one (unsplit and wipe), so put the screen furniture
+            # straight back through the screen_ready seam, exactly as
+            # clear_screen() does (the Shawn invariant: any full-screen erase
+            # is immediately followed by re-establishment, never a dead split
+            # until the next prompt). Unlike clear_screen, the pending
+            # paragraph break survives: a recolour in `on start` must not eat
+            # the spacing rule's breathing line under the bar. Bar-less games
+            # never claimed the seam and stay byte-identical.
             skip = _zc_guard(rt, ctx)
             rt.op("set_colour", Const(0), Const(n))
             rt.op("erase_window", Const(-1))
+            blk = ctx.world.blocks.get("screen_ready")
+            if blk is not None and blk.body:
+                rt.op("call_vn", RoutineRef("blk_screen_ready"))
             rt.label(skip)
         else:
             # statusline / input: remember the colour for the status bar or the

@@ -471,3 +471,56 @@ def test_the_cloak_demo_draws_mode_9_throughout():
         pass
     assert draws == [(0, 9), (1, 9), (4, 9), (1, 9), (2, 9), (1, 9), (3, 9)]
     assert "You have won" in io.text
+
+
+# --- the op-order contract (Stefan's rule: the bar settles AFTER the band) --
+
+def _op_stream(path, script):
+    """The traffic an interpreter sees, tagged: IMAGE draws, upper-window
+    selections (a bar paint), and full erases, consecutive duplicates
+    collapsed. The two invariants (docs/08): every full-screen erase and
+    every real image change is immediately followed by a bar paint, so the
+    bar always seats itself after the band moves and before text flows."""
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+
+    class PicIO(CaptureIO):
+        supports_pictures = True
+
+    io = PicIO(script=list(script))
+    vm = VM(load(_compile(open(path).read())), io)
+    log = []
+    orig_img = vm.screen.set_image
+    vm.screen.set_image = lambda i, m: (log.append("IMAGE"), orig_img(i, m))
+    orig_sel = vm.screen.select
+    vm.screen.select = lambda n: (log.append("BAR") if n == 1 else None,
+                                  orig_sel(n))[1]
+    orig_er = vm.screen.erase_window
+    vm.screen.erase_window = lambda n: (log.append("ERASE"), orig_er(n))
+    try:
+        vm.run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = []
+    for tag in log:
+        if out and out[-1] == tag:
+            continue
+        out.append(tag)
+    return out
+
+
+def test_every_erase_and_image_is_followed_by_a_bar_paint():
+    import os
+    demo_dir = os.path.join(os.path.dirname(__file__), "..", "examples",
+                            "arc_image")
+    demos = [
+        (os.path.join(demo_dir, "rabenstein.storyarc"), ["north", "north"]),
+        (os.path.join(demo_dir, "cloak-of-darkness.storyarc"),
+         ["west", "east"]),
+    ]
+    for path, script in demos:
+        stream = _op_stream(path, script)
+        for i, tag in enumerate(stream[:-1]):
+            if tag in ("IMAGE", "ERASE"):
+                assert stream[i + 1] == "BAR", (path, i, stream)

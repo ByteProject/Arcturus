@@ -143,6 +143,32 @@ it unchanged as text. Here is the whole contract.
    draw_image calls can drive a pinned band on an 8-bit machine and a
    flowing gallery in a browser, both of them correct.
 
+3a. THE ORDER YOU CAN RELY ON (the op contract, ruled 2026-07-28 after a
+   field report from the TRS-80 Model 4 build). If your layout moves the
+   status line when the band changes (the releasing choice above), you
+   need to know WHEN the bar is repainted relative to the image ops.
+   Cosmos guarantees two invariants, on the wire, in every game built
+   from arcc 1.3.39 on:
+
+   - EVERY FULL-SCREEN ERASE IS IMMEDIATELY FOLLOWED BY RE-ESTABLISHMENT.
+     An erase_window -1 (a game recolouring its background, or an
+     explicit clear_screen) unsplits and wipes everything, bar included;
+     the very next ops re-split and repaint the bar. You never sit on a
+     dead split waiting for the next prompt.
+   - EVERY REAL IMAGE CHANGE IS IMMEDIATELY FOLLOWED BY A BAR PAINT.
+     After each draw_image that changes the picture (draws and id-0
+     clears alike; the dedup means no-change turns send nothing), the
+     status line is repainted before any text flows. So the bar always
+     seats itself AFTER the band has moved, and lands in the right spot
+     whichever presentation you chose. A band-keeping interpreter sees
+     one redundant repaint per scene change and nothing else.
+
+   A boot therefore always reads: clear (id 0) | bar | [erase | bar,
+   if the game recolours] | first picture | bar | opening text | bar at
+   the first prompt. A room transition always reads: picture | bar |
+   room text. Both shipped demos are pinned to this stream in the test
+   suite, so it cannot drift.
+
 4. DEGRADATION. A text-only interpreter needs to do nothing at all: the
    bit stays clear, the opcode is never reached, and even if it somehow
    were, the Standard says to skip it. The same story file plays
