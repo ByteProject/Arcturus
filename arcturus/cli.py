@@ -501,7 +501,7 @@ def main(argv: list[str] | None = None) -> int:
         return rc
 
     # -L directories must be absolute, so the library is deliberately placed and
-    # there is no ambiguity about what a story summons by name (docs/01 Part III).
+    # there is no ambiguity about what a story summons by name (docs/01 chapter 22).
     for d in args.lib or ():
         if not os.path.isabs(d):
             print(f"arcc: error: -L path must be absolute: {d}", file=sys.stderr)
@@ -536,7 +536,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     # Compile the game together with the bundled Cosmos library and any granules
-    # it summons (docs/01 Part II). Summoned files resolve relative to the story's own
+    # it summons (docs/01 chapter 22). Summoned files resolve relative to the story's own
     # directory first, then the -L search path.
     if not args.no_cosmos:
         story_dir = os.path.dirname(os.path.abspath(args.source))

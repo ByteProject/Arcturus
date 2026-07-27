@@ -44,7 +44,7 @@ _action_numbers = wm.action_numbers  # the shared action -> number map
 def _guard_plan(h: wm.Handler, layout, gmap, dirnames=frozenset(), self_num=None):
     """A patterned handler's run-time guards, as [(global name, [values])]:
     every listed global must equal one of its values or the handler does not
-    apply this turn (docs/01 Part I section 12). A direction operand (`on go west`,
+    apply this turn (docs/01 chapter 11). A direction operand (`on go west`,
     `on go south or up`) guards `way` against the directions' property
     numbers; an object operand guards `noun` (and, past a preposition,
     `second`) against object numbers, with `or` alternatives side by side.
@@ -120,7 +120,7 @@ def _guard_plan(h: wm.Handler, layout, gmap, dirnames=frozenset(), self_num=None
 
 def _resolved_handlers(world: wm.World, obj: wm.Obj):
     """The object's handlers in resolution order: its own first (most specific),
-    then each kind up its inheritance chain, nearest first (docs/01 Part I section 5).
+    then each kind up its inheritance chain, nearest first (docs/01 chapter 3).
     An instance inherits every handler of its kind chain; put in one list here,
     the react routine runs them in order and a non-consuming handler (one that
     ends with `continue`) falls through to the next, exactly as documented."""
@@ -137,7 +137,7 @@ def _owner_bands(world: wm.World, obj: wm.Obj):
     kind, kind's kind, ...]. Each band is a list of handlers. The react
     routine runs band by band, and each band's `on other` catch-all sits at
     the END of ITS OWN band: the object's default runs before the action
-    climbs to the kind (docs/01 Part I section 12, the contract a field report
+    climbs to the kind (docs/01 chapter 11, the contract a field report
     held us to), and a kind's default before the next kind up."""
     bands = [list(obj.handlers)]
     for kindname in obj.chain:
@@ -153,7 +153,7 @@ def _react_handlers(world: wm.World, obj: wm.Obj, actions: dict):
     each_turn), and `on go <direction>` overrides (guarded on the direction).
     An `on after` handler answers to its action's synthetic after number, so
     it never runs in the main phase; the dispatcher fires it in the after pass
-    (docs/01 Part II section 9). Patterned handlers ride along; their operand guards
+    (docs/01 chapter 13). Patterned handlers ride along; their operand guards
     are emitted into the react routine (see _guard_plan). Free rules go
     through react_free."""
     out = []
@@ -167,7 +167,7 @@ def _react_handlers(world: wm.World, obj: wm.Obj, actions: dict):
 def _other_handlers(world: wm.World, obj: wm.Obj):
     """The object's `on other` catch-all handlers, own and inherited: the least
     specific handlers, run when no specific handler consumed the action, before it
-    climbs to the room or the Cosmos default (docs/01 Part I section 12). Main band
+    climbs to the room or the Cosmos default (docs/01 chapter 11). Main band
     only: `on after other` is the AFTER band's catch-all (below), never this
     one (the field bug: it rode here and fired during the main dispatch,
     before the action's own report and on refused actions too)."""
@@ -214,11 +214,11 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
         # `enter` is two things sharing one name: on a ROOM it is the arrival
         # event (fire_enter runs every hook and ignores the results), on a
         # THING it is the ENTER verb, an ordinary consumable action (a scenery
-        # shack's `on enter` teleport must consume, docs/01 Part I section 7). The
+        # shack's `on enter` teleport must consume, docs/01 chapter 9). The
         # object's category picks the semantic; room kinds and thing kinds
         # follow their instances here.
         events = wm.EVENT_NAMES if obj.category == "room" else wm.EVENT_NAMES - {"enter"}
-        # OWNER BANDS (docs/01 Part I section 12): the object's own handlers with
+        # OWNER BANDS (docs/01 chapter 11): the object's own handlers with
         # its own `on other` at their tail, then each kind's the same way,
         # nearest first. Life-cycle events stay a single merged step (every
         # hook fires, own and inherited; results are ignored), so they are
@@ -250,7 +250,7 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
     out.append(gen_react_free(world, actions, registry, layout, gmap))
     out.extend(gen_grain_routines(world, actions, gmap, layout, pool))
     # after_map(action) backs the after_of intrinsic: the dispatcher's after
-    # phase (docs/01 Part II section 9 step 6) asks it which synthetic after action to
+    # phase (docs/01 chapter 13 step 6) asks it which synthetic after action to
     # fire once the real one completed unrefused. Emitted only when an after
     # handler exists; without one, any_after folds the phase (and the only
     # call site) away, so games without `on after` pay nothing.
@@ -317,7 +317,7 @@ def _all_grains(world: wm.World):
 def gen_grain_routines(world, actions, gmap, layout, pool) -> list:
     """A grain<i>(action) routine per grain (answer the grain's verbs, else the
     scenery default) plus grain_dispatch(id, action) that routes to it. Grains are
-    scenery: words with a response but no object entry (docs/01 Part I section 14).
+    scenery: words with a response but no object entry (docs/01 chapter 18).
     grain_dispatch is always emitted (even with no grains) so Cosmos dispatch can
     call it unconditionally."""
     grains = _all_grains(world)
@@ -369,7 +369,7 @@ def _compile_grain(world, gmap, layout, pool, grain, idx, owner, actions) -> Rou
 
 # The free-rule precedence: a story rule outranks a granule's, which outranks
 # the Cosmos default, so `on xyzzy` in a game reskins the easter egg and
-# `continue` defers back down the chain (docs/01 Part I section 12, docs/01 Part III).
+# `continue` defers back down the chain (docs/01 chapters 11 and 23).
 _ORIGIN_RANK = {None: 0, "granule": 1, "library": 2}
 
 
@@ -447,7 +447,7 @@ def gen_react_free(world: wm.World, actions: dict, registry, layout=None, gmap=N
 
 
 def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None, afloor=None, dirnames=frozenset(), event_names=wm.EVENT_NAMES, mfloor=None, event_groups=None) -> Routine:
-    """react_<obj>(action), OWNER-BANDED (docs/01 Part I section 12): the object's
+    """react_<obj>(action), OWNER-BANDED (docs/01 chapter 11): the object's
     own handlers form band 0 with its own `on other` at the band's tail, then
     each kind's handlers band by band up the chain, each with ITS `on other`
     at its own tail. The object's default therefore runs BEFORE the action
@@ -466,7 +466,7 @@ def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None,
     event_groups = event_groups or {}
     rt = Routine("react_" + objname, nlocals=2)  # 1 = action, 2 = a guard ran
     # An owned handler is called with this react routine's own object as its
-    # self argument (docs/01 Part I section 9); free rules are called with none.
+    # self argument (docs/01 chapter 9); free rules are called with none.
     self_num = layout.obj_number.get(objname) if layout is not None else None
 
     def self_args(h):
@@ -785,7 +785,7 @@ _BUILTIN_GLOBALS = [
     # __strings__. A computed EXIT (a direction property that is a block) stores
     # the block routine's packed address, at or above this; a plain exit stores a
     # small room object number, below it. exit_dest compares against this to
-    # "read or run" (docs/01 Part II section 11a). It claims a fixed global slot only, and
+    # "read or run" (docs/01 chapter 8). It claims a fixed global slot only, and
     # exit_dest folds to a plain get_prop when the game has no computed exit.
     "__routines__",
     # The base font colour (zcolor.font), which say.<colour> restores to.
@@ -795,7 +795,7 @@ _BUILTIN_GLOBALS = [
     # 0 means unset: the status bar and the input reader skip their colour ops
     # entirely, so a game without them pays two cheap tests and nothing more.
     "__zcstatus__", "__zcinput__",
-    # The pronoun referents (docs/01 Part II section 8a), written by the language
+    # The pronoun referents (docs/01 chapter 14), written by the language
     # layer's note_pronouns and read back when a pronoun word resolves.
     "pron_it", "pron_him", "pron_her", "pron_them",
     # The ambience table's base address (summon.ambience), 0 when no block
@@ -811,7 +811,7 @@ _BUILTIN_GLOBALS = [
     # Scoring: the award earned-bytes table, the rank ladder, the labelled
     # pools for the fullscore breakdown.
     "__awards__", "__ranks__", "__pooltab__",
-    # Command chaining (docs/01 Part II section 8b): refused flags a command a refusal
+    # Command chaining (docs/01 chapter 14): refused flags a command a refusal
     # path could not carry out (stops the rest of a chained line); chain_pos is
     # the text-buffer offset of the queued rest of the line (0 when none);
     # chain_max is the full typed length chain_next restores before it
@@ -822,7 +822,7 @@ _BUILTIN_GLOBALS = [
     "list_pos", "list_end",
     # Score notification: the player-facing toggle and the loop's last look.
     "notify", "last_score",
-    # The disambiguation ask (docs/01 Part II section 8): the tied phrase's word range
+    # The disambiguation ask (docs/01 chapter 14): the tied phrase's word range
     # and winning score, and the offset where an answer weaves back in.
     "ask_lo", "ask_hi", "ask_score", "ask_at",
     # The held tiebreak's per-command direction (1 in-hand, 0 not-held).
@@ -963,7 +963,7 @@ def build_story(
                     )
                 chains += b"\x00\x00"  # terminator: grain id 0
             sf.append(bytes(chains))
-    # Positional grammar tables (docs/01 Part II section 8c): one static table per verb
+    # Positional grammar tables (docs/01 chapter 14): one static table per verb
     # the flag model cannot represent (worldmodel.needs_table). Each table is a
     # run of lines in matcher order (worldmodel.table_line_order): an action
     # byte, then one byte per token (1 noun, 2 held, 3 multi, 4 text; 5 is a
@@ -1218,7 +1218,7 @@ def build_story(
 
 
 def _self_operand(world: wm.World, handler: wm.Handler, layout):
-    """What `self` is inside a handler routine (docs/01 Part I section 9: the enclosing
+    """What `self` is inside a handler routine (docs/01 chapter 9: the enclosing
     object). An OWNED handler (on an object or a kind) reads its self object from
     the routine's first argument: the per-object react routine passes its own
     object, so a kind handler shared by many objects sees the RIGHT instance,
@@ -1685,7 +1685,7 @@ def gen_computed_prop_routines(world: wm.World, layout, gmap: dict, pool) -> lis
             # exception is a computed EXIT (a direction property that is a block):
             # its value is a room object NUMBER, always small, so an exit read can
             # tell it from the block routine's large packed address (exit_dest,
-            # docs/01 Part II section 11a).
+            # docs/01 chapter 8).
             raise CodegenError(
                 f"computed property '{pname}' must be a text property, or a "
                 f"direction (a computed exit); a general computed value "
@@ -1727,7 +1727,7 @@ def _walk_schedules(body, out: dict) -> None:
 
 def _collect_schedules(world: wm.World) -> dict:
     """Every distinct block scheduled by an `after`/`every` statement anywhere in
-    the program, mapped to its timer slot (docs/01 Part II section 13). Each slot is two
+    the program, mapped to its timer slot (docs/01 chapter 16). Each slot is two
     words in the timer table: a countdown and a reload (0 for a one-shot `after`,
     the period for a recurring `every`)."""
     out: dict = {}
@@ -1908,7 +1908,7 @@ def _abbreviations_for(world: wm.World) -> list:
 def _generate(world: wm.World, version: int = 5, stats=None) -> bytes:
     gmap = _globals_map(world)
     # Assign a timer slot to every scheduled block before anything is lowered, so
-    # the `after`/`every` statements can arm their slot by index (docs/01 Part II s.13).
+    # the `after`/`every` statements can arm their slot by index (docs/01 chapter 16).
     world.schedule_index = _collect_schedules(world)
     actions = _action_numbers(world)
     layout = objmod.build_layout(world, react_objects=_react_objects(world, actions))

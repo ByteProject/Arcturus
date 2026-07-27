@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The after phase (docs/01 Part II section 9 step 6): `on after <verb>` handlers run
+"""The after phase (docs/01 chapter 13 step 6): `on after <verb>` handlers run
 once the action completed, through the same chain in the same specificity
 order, and never when the action was refused. Found unimplemented on
 2026-07-04 (after handlers ran in the main phase and consumed the action, so

@@ -51,7 +51,7 @@
 // handler cannot reach).
 //
 // The words are English, like every granule's wording: a translation forks
-// this file beside its language pack (docs/01 Part III).
+// this file beside its language pack (docs/01 chapter 22).
 
 direction fore      "fore", "f"
 direction aft       "aft"

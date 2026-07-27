@@ -151,7 +151,7 @@ on warp
 
 // unmute: hear the background performers. A restless object's prose is
 // buffered every turn and spoken only when the performer is in scope (the
-// turn loop, docs/01 Part II): right for players, blinding while debugging,
+// turn loop, docs/01 chapter 16): right for players, blinding while debugging,
 // when the say lines sprinkled through a handler are exactly what you need
 // to see. UNMUTE lets every offstage voice through, each pulse prefixed
 // with the performer's name in brackets so you can tell who speaks from

@@ -5,8 +5,7 @@
 //
 // THE ENGLISH LANGUAGE LAYER. Everything about Arcturus that is specific to the
 // English language lives in this one file, so a translation is a fork of this
-// file alone (arcc --eject-language writes it out; docs/01 Part II section 8, docs/01 Part III
-// section 6). It has three parts, in order:
+// file alone (arcc --eject-language writes it out; docs/01 chapter 21). It has three parts, in order:
 //
 //   1. THE PARSER - the blocks that teach the parser how to read English: which
 //      word is the verb, how a noun phrase is matched, how directions, particles
@@ -36,7 +35,7 @@ block resolve_verb()
         return 0
     let flags = peek_byte(d + 6)
     if any_tables is 1
-        // A tabled verb (docs/01 Part II section 8c): the data bytes hold its grammar
+        // A tabled verb (docs/01 chapter 14): the data bytes hold its grammar
         // table's address, and the table's first byte is the first line's
         // action, the base until the matcher picks the real line (line_act).
         if flags is 144 or flags is 152
@@ -269,7 +268,7 @@ block resolve_objects()
     if d is not nothing
         if any_tables is 1
             // A tabled verb: the positional matcher owns the whole command,
-            // slots, faults, scenery fallback and all (docs/01 Part II section 8c).
+            // slots, faults, scenery fallback and all (docs/01 chapter 14).
             if peek_byte(d + 6) is 144 or peek_byte(d + 6) is 152
                 let tbl = peek_word(d + 7, 0)
                 grammar_match(tbl)
@@ -694,7 +693,7 @@ verb "switch", "light"
 particle on  "on"
 particle off "off"
 
-// The chain words (docs/01 Part II section 8b): each ends one command and starts the
+// The chain words (docs/01 chapter 14): each ends one command and starts the
 // next on the same line ("take the lamp and open the door then go north",
 // "drop cloak, hang cloak on hook"). The comma tokenizes as its own word, so
 // it chains with or without spaces around it.
@@ -709,13 +708,13 @@ chain ",", "and", "then"
 // every filler an idiom leans on must be declared here.
 noise "the", "a", "an", "some", "my", "of"
 
-// The pronouns (docs/01 Part II section 8a): "it" for the last thing, "him"/"her" for
+// The pronouns (docs/01 chapter 14): "it" for the last thing, "him"/"her" for
 // the last character, by its gender. The words map to canonical roles; the
 // note_pronouns rule below decides which role a resolved noun fills.
 // The player's own object: the standard self-words every game answers to
 // ("x me"), a printable name, and the proper-name flag so no article sticks
 // to it. A game ADDS its own with player.words (they accumulate) and sets its
-// own desc, plain or computed (docs/01 Part I section 5a).
+// own desc, plain or computed (docs/01 chapter 4).
 player.words me, myself, self, yourself, you
 player.name "yourself"
 player.named
@@ -862,7 +861,7 @@ verb "talk", "greet"
 // do not, so neither can be resolved against what is in scope. Both take a
 // `text` slot, and the wording selects the action, which one action byte
 // cannot express: this is the one standard verb that rides the positional
-// grammar table (docs/01 Part II section 8c), and the reason the table exists.
+// grammar table (docs/01 chapter 14), and the reason the table exists.
 verb "ask", "interrogate", "query"
     ask noun
     ask noun about text
@@ -898,7 +897,7 @@ verb "sing"
 // check folds away in a game with no named objects (any_named).
 block art_the(obj, cap)
     // Total, like the containment test: an unresolved noun prints
-    // as the word, never an illegal print_obj 0 (docs/01 Part II s.12).
+    // as the word, never an illegal print_obj 0 (docs/01 chapter 15).
     if obj is nothing
         show("nothing")
         return
@@ -907,7 +906,7 @@ block art_the(obj, cap)
         if obj is named
             print_name(obj)
             return
-    // A hand-set article wins over derivation (docs/01 Part I section 16): las
+    // A hand-set article wins over derivation (docs/01 chapter 15): las
     // tijeras, el agua. Printed as stored, so keep it lowercase and let such
     // objects sit mid-sentence.
     if article_addr(obj) is not 0
@@ -923,7 +922,7 @@ block art_the(obj, cap)
 
 block art_a(obj, cap)
     // Total, like the containment test: an unresolved noun prints
-    // as the word, never an illegal print_obj 0 (docs/01 Part II s.12).
+    // as the word, never an illegal print_obj 0 (docs/01 chapter 15).
     if obj is nothing
         show("nothing")
         return
@@ -960,7 +959,7 @@ block art_a(obj, cap)
             show("a ")
     print_name(obj)
 
-// The number-agreeing copula (docs/01 Part I section 16): ${is x} prints "is" or
+// The number-agreeing copula (docs/01 chapter 15): ${is x} prints "is" or
 // "are" by the object's pluribus attribute, so one sentence template serves
 // the scissors and the lamp alike. cap 1 is ${Is x}. In an unmarked game
 // the plural branch folds away and this prints "is", period.
@@ -1194,7 +1193,7 @@ block msg_no_it()
 block msg_be_specific()
     say "You'll have to be more specific."
 
-// The disambiguation question (docs/01 Part II section 8): the framing around the
+// The disambiguation question (docs/01 chapter 14): the framing around the
 // candidate list the parser prints ("Which do you mean, the gold coin or
 // the silver coin?"). line_which_item prints one candidate; a language
 // declines it as its grammar needs (German prints the accusative).
@@ -1233,7 +1232,7 @@ block line_end()
     say "\""
 
 // Append " (contains a, b and c)" to a container or supporter just named, listing
-// Conversation menu framing (the conversations granule, docs/01 Part III). Held in the
+// Conversation menu framing (the conversations granule, docs/01 chapter 22). Held in the
 // language layer so a pack translates it; every block here is dropped by dead-code
 // elimination in a game that does not summon the menu.
 block line_talk_header(who)

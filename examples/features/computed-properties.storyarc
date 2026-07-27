@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for computed properties (docs/01 Part I section 6). A property whose value
+// A showcase for computed properties (docs/01 chapter 5). A property whose value
 // is a `block` is not a fixed string: the block runs every time the property is
 // read, so a description can answer to the current state of the world. The
 // headline use is a computed `desc`. Compile and run:

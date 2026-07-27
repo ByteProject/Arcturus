@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// Scope and light (docs/01 Part II sections 5 and 6), written in Arcturus. Scope is the
+// Scope and light (docs/01 chapter 7), written in Arcturus. Scope is the
 // set of objects the parser considers and an action may touch; light decides
 // whether the location is lit, which collapses scope to what the player carries
 // when dark. Closed/transparent container nuances and held-container recursion
@@ -23,7 +23,7 @@ block is_lit()
     return 0
 
 // Does this object span the current room? A fixed object declared to span
-// several rooms (docs/01 Part I section 5) lives in one room in the object tree but is
+// several rooms (docs/01 chapter 3) lives in one room in the object tree but is
 // in scope in each room it spans, so a door reaches both sides and a piece of
 // scenery is referable from every room that can see it.
 block spans_here(obj)
@@ -68,7 +68,7 @@ block door_other_side(door)
 block in_scope(obj)
     if obj is player
         return 1
-    // Backstage (docs/01 Part I section 5): an object placed `in scope` lives in an
+    // Backstage (docs/01 chapter 3): an object placed `in scope` lives in an
     // invisible room whose contents are in scope EVERYWHERE, light or dark:
     // the home of a companion who follows, of parts of them, of anything the
     // parser should always answer for. It is never listed (its room is never
@@ -85,7 +85,7 @@ block in_scope(obj)
     if obj is here
         return 1
     // Spanning objects are checked only in a game that has any; the guard folds
-    // away and the spans blocks drop out otherwise (docs/01 Part I section 5).
+    // away and the spans blocks drop out otherwise (docs/01 chapter 3).
     if any_spans is 1
         if spans_here(obj)
             return 1
@@ -134,7 +134,7 @@ block reach_blocker(obj)
         change p to parent_of(p)
     return nothing
 
-// Visible AND touchable: the documented contract (docs/01 Part II section 5), which
+// Visible AND touchable: the documented contract (docs/01 chapter 7), which
 // taking and most physical actions want. `<obj> is reachable` reads it as a
 // predicate.
 block reachable(obj)

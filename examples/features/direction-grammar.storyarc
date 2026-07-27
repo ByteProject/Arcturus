@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for the `direction` grammar slot (docs/01 Part I section 10): a verb
+// A showcase for the `direction` grammar slot (docs/01 chapter 12): a verb
 // line that ends in `direction` accepts a direction word there, so SWIM
 // SOUTH and PUSH LOG WEST parse. The direction rides `way`, the same slot
 // GO uses, so a handler asks `if way is nothing` or `if way is south` and

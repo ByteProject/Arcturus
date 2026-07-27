@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for Arcturus's container knowledge model (docs/01 Part II section 5a): what a
+// A showcase for Arcturus's container knowledge model (docs/01 chapter 6): what a
 // container spells out follows what the PLAYER has learned, not just whether its
 // lid is open. This is a distinctive Cosmos feature and needs no author code; it
 // falls out of the standard library. Compile and run:

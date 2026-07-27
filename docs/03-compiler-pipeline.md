@@ -5,7 +5,7 @@ boundaries, the command-line interface and its options, the way Cosmos is
 included and overridden, the single-file distribution, and the version model.
 The code-generation detail (constructs to opcodes, the story-file image) is its
 own document, docs/04-codegen-mapping.md; the runtime the compiler targets is
-Part II of the Arcturus Handbook, docs/01-arcturus-handbook.md.
+the Arcturus Handbook, docs/01-arcturus-handbook.md.
 
 ## 1. What the compiler is
 
@@ -110,7 +110,7 @@ Options:
   identical for both.
 - `-L DIR`, `--lib DIR`: add an absolute directory to the search path for granule
   (`.granule`) files a story summons by name; repeatable. Used to compile against
-  a forked library (section 5, docs/01 Part III). A relative `-L` is rejected.
+  a forked library (docs/01 chapter 23). A relative `-L` is rejected.
 - `-q`, `--quiet`: script mode. By default every invocation prints the arcc
   banner, and every successful compile prints the compile statistics: a short
   ledger of what the story uses of each Z-machine ceiling. Values with a hard
@@ -151,7 +151,7 @@ Options:
   granules it summons) and write `abbreviations.granule` beside it, then exit. The
   standard set is always applied without this; summon the written file by name
   (`summon abbreviations.granule`) to use the tuned set instead (docs/04 section
-  10, docs/01 Part III section 7).
+  10, docs/01 chapter 24).
 - `--version`: print the version and exit.
 
 Exit status: 0 on success, 1 on a source error (parse or analysis, with a
@@ -165,7 +165,7 @@ generation.
 ## 5. Cosmos, overriding, and the library search
 
 By default the game is compiled together with the bundled Cosmos library
-(docs/01 Part II): `cosmos.combined_program` prepends the library declarations to the
+(docs/01 chapter 23): `cosmos.combined_program` prepends the library declarations to the
 game's. `--no-cosmos` opts out.
 
 Overriding works against the prelude. A block defined in the game (or in a
@@ -176,7 +176,7 @@ block replaces them, with a note outside the msg_*/line_* skin); to reshape a
 granule you fork it. That boundary is what keeps a granule distinct from a
 prelude (otherwise a granule would just be a renamed prelude), and a granule
 overriding a prelude is exactly what a language pack relies on. The full model -
-the override boundary, the summon forms, and the fork workflow - is docs/01 Part III.
+the override boundary, the summon forms, and the fork workflow - is docs/01 chapters 22 and 23.
 
 The library travels inside `arcc` (section 7), so the compiler never has to find
 it on disk. When an author wants to change the library, four paths, lightest
@@ -190,7 +190,7 @@ first:
 - `arcc --extract-library DIR` writes the whole library (preludes and granules)
   to fork wholesale, compiled with `-L DIR` (absolute).
 
-A story summons a granule in one of three forms (docs/01 Part III section 2):
+A story summons a granule in one of three forms (docs/01 chapter 22):
 `summon.statusline` always uses the bundled copy; `summon statusline.granule`
 prefers a copy in the story directory or a `-L` directory and otherwise falls
 back to the bundled one with a notice; `summon "path"` is an explicit file with

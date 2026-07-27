@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""`for each` is move-safe for its own loop object (docs/01 Part I section 8): the
+"""`for each` is move-safe for its own loop object (docs/01 chapter 9): the
 next sibling is cached before the body runs, so emptying a container by
 moving each child out cannot derail the walk. The field report: a bucket in
 the player's hands, `for each x in self / move x to loc`, spun forever and

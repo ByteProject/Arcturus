@@ -4,11 +4,11 @@
 // https://github.com/ByteProject/Arcturus
 //
 // THE NUMISMATIST. A small showcase for the plurals granule (summon.plurals,
-// docs/01 Part III). Each coin declares the group word (`plural coins`), so TAKE COINS
+// docs/01 chapter 22). Each coin declares the group word (`plural coins`), so TAKE COINS
 // sweeps every coin in scope, one full turn each, and DROP THEM lets go of
 // the same group. And the singular still asks: TAKE COIN, with several in
 // view, gets the honest "Which do you mean...?". (TAKE LOUPE AND TRAY works
-// too, but that is core noun-list chaining, not this granule; docs/01 Part II 8b.)
+// too, but that is core noun-list chaining, not this granule; docs/01 chapter 14.)
 //
 //   arcc examples/granules/plurals.storyarc -o coins.z5
 //   frotz coins.z5

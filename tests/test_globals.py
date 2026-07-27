@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The declaration trio (docs/01 Part I section 4): `flag` (boolean state, starts
+"""The declaration trio (docs/01 chapter 2): `flag` (boolean state, starts
 false, only ever true/false), `counter` (a number with ++ and --, starts 0),
 and `global` (the general drawer: numbers, object references, and strings,
 which hold their packed address and print as text)."""

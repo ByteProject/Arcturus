@@ -82,14 +82,11 @@ toolchain is built rather than written in advance.
 
 - 00-roadmap.md (this document): charter, decisions, milestones, index.
 - 01-arcturus-handbook.md: the Arcturus Handbook, the one authoritative
-  author-facing book, in three parts that keep the section numbering of the
-  documents they absorbed. Part I the language (grammar, every construct
-  with semantics and examples, the standard vocabulary, idiomatic patterns,
-  errors; strong enough to author from). Part II the runtime (the Cosmos
-  library as editable template, the standard kinds and verbs, the parser,
-  the action pipeline, the banner, scope and light, the turn loop). Part
-  III the summonable granules: how to summon each, what it adds, the blocks
-  an author can override, and how to write your own.
+  author-facing book: twenty-six chapters, one topic each, the syntax first
+  and the library behavior after it, the way the Inform Designer's Manual
+  reads. The language, the world model, verbs and the parser, output,
+  daemons, pictures, languages, the granules, hacking Cosmos, and the two
+  worked example games, with the deeper technical matter toward the back.
 - 03-compiler-pipeline.md (implementation phase): lexer, parser, semantic
   analysis, world-model lowering, z-code generation, text compression, and
   story-file assembly, with the size levers marked.
@@ -106,7 +103,7 @@ toolchain is built rather than written in advance.
   retro targets, one proven chapter per machine (the probes live in
   arc_image/probes/, the design record in arc_image/reference/design.md).
 
-The two worked examples in the handbook's Part I, the Brass Lantern and Cloak of Darkness, are
+The two worked examples in the handbook, the Brass Lantern and Cloak of Darkness, are
 the shared reference programs across all documents.
 
 ## 4. Tooling
@@ -118,7 +115,7 @@ Built alongside the compiler, all in Python where a tool is involved:
   compression. The compiler ships a standard abbreviation set, always applied;
   the same optimizer regenerates that default (tools/arcabbr.py) and backs the
   `arcc --make-abbreviations` pass, which writes a per-story abbreviations.granule
-  a project summons by name to override the default (handbook Part III section 7).
+  a project summons by name to override the default (handbook chapter 24).
 - The Arcturus VS Code extension: syntax highlighting for .storyarc. This is
   an early goal, not a finishing touch, because readable highlighted source
   speeds every later step. A TextMate grammar plus a minimal language
@@ -228,7 +225,7 @@ done-test.
 - B7: language packs. Spanish and German Cosmos translations, each a granule
   selected by `summon.language` - a message table keyed by id, localized
   vocabulary (directions and verbs), and parser grammar overrides where an
-  inflected language needs them (the language seam, section 8 of docs/01 Part II). Each
+  inflected language needs them (the language seam, docs/01 chapter 14). Each
   pack curates its own abbreviations via the B6 pipeline. A large milestone in its
   own right; the language seam is designed but unbuilt.
 - B8: port Hibernated 2 to Arcturus. Hibernated 2 is written in PunyInform and

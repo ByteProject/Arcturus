@@ -191,7 +191,7 @@ class Analyzer:
         return self.world
 
     # The requirement bit per (slot, kind): the packed word requires_map
-    # returns, read arithmetically by the loop's check (docs/01 Part II section 9).
+    # returns, read arithmetically by the loop's check (docs/01 chapter 13).
     _REQUIRE_BITS = {
         ("noun", "carried"): 1,
         ("noun", "animate"): 2,
@@ -407,7 +407,7 @@ class Analyzer:
         # Seed standard objects (player).
         for name, kind in self.env.objects.items():
             w.objects[name] = wm.Obj(name, "thing", kind, line=0)
-        # Seed the scope room on demand (docs/01 Part I section 5, Stefan's design):
+        # Seed the scope room on demand (docs/01 chapter 3, Stefan's design):
         # `in scope` places an object BACKSTAGE, an invisible room whose
         # contents the parser always has in scope. Nothing is seeded, and
         # nothing costs a byte, unless some object asks for it, EITHER by a
@@ -790,7 +790,7 @@ class Analyzer:
                 w.actions.add(line.action)
 
         # A verb whose grammar the flag model cannot represent gets a positional
-        # grammar table (docs/01 Part II section 8c). The table matcher walks each line
+        # grammar table (docs/01 chapter 14). The table matcher walks each line
         # token by token, so a few shapes the classic splitter tolerated by
         # accident are checked honestly here.
         for verb in w.verbs:
@@ -879,7 +879,7 @@ class Analyzer:
                     f"'{obj.name}' is of unknown kind '{obj.kind}'", obj.line
                 )
             obj.chain = self._chain(obj.kind, obj.line)
-            # A spanned name is a declared room, or a room KIND (docs/01 Part I section
+            # A spanned name is a declared room, or a room KIND (docs/01 chapter
             # 5): `the_sun spans outside_room` puts the object in scope in every
             # room of that kind. Every room is known at compile time, so a kind
             # expands to its rooms here; the runtime spans table and scope check
@@ -1252,7 +1252,7 @@ class Analyzer:
                 for g in m.grains:
                     self._add_grain(g, owner, on_kind)
             elif isinstance(m, ast.AmbienceBlock):
-                # Ambience blocks (docs/01 Part III) live on objects, not kinds, and
+                # Ambience blocks (docs/01 chapter 22) live on objects, not kinds, and
                 # need their granule (the driver) summoned.
                 if on_kind:
                     raise self._error("ambience belongs on a room or thing, not a kind", m.line)
@@ -1388,7 +1388,7 @@ class Analyzer:
                 )
             self._check_body(blk.body, set(blk.params))
         # Attached grains and game start. The outside-body form
-        # (`foyer.grains`, docs/01 Part I section 14) MERGES here: it was checked
+        # (`foyer.grains`, docs/01 chapter 18) MERGES here: it was checked
         # but never added, so the whole form was silently dead (a field
         # investigation found it; the words never even reached the
         # dictionary). Attached grains join the owner's list exactly as an
@@ -1718,7 +1718,7 @@ class Analyzer:
         right = expr.right
         # A bare identifier naming a boolean property is a property test; a kind
         # name is a kind-membership test; otherwise the comparison is an equality
-        # (docs/01 Part I section 9).
+        # (docs/01 chapter 9).
         if isinstance(right, ast.Name):
             prop = self.world.properties.get(right.ident)
             is_obj = (
@@ -2140,7 +2140,7 @@ class Analyzer:
                 )
 
     def _lint_nautical_land_start(self) -> None:
-        """A diagnostic for the shipped nautical granule (docs/01 Part III). Its
+        """A diagnostic for the shipped nautical granule (docs/01 chapter 22). Its
         `dirs_nautical` flag defaults to TRUE, meaning aboard: the four
         nautical directions are live and a bad one answers with the generic
         "no exit". A game that BEGINS ASHORE must set the flag false at the

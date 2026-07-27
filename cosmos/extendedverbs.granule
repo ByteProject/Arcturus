@@ -12,7 +12,7 @@
 // room so the findings are truly takeable (living people rebuff, sealed
 // containers refuse). Conversation is NOT here: ask/tell/answer are standard verbs, and
 // the two conversation presentations are their own granules (conversations,
-// infocom_talking; docs/01 Part III).
+// infocom_talking; docs/01 chapter 22).
 //
 // The wording lives here, in the granule, so it ships only when summoned.
 // Reskin any line from the story by redefining its msg_ block (most-specific-

@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// THE PLURAL MODEL: summon it with `summon.plurals` (docs/01 Part III). Two things,
+// THE PLURAL MODEL: summon it with `summon.plurals` (docs/01 chapter 22). Two things,
 // one coherent feature:
 //
 //   1. GROUP WORDS. An object declares the words that name it as part of a
@@ -12,7 +12,7 @@
 //   2. THEM. The pronoun for the last group: "take coins" then "drop them".
 //
 // (Noun lists, "take lamp and box", are CORE, not part of this granule: a
-// verb-less chained segment borrows the previous verb, docs/01 Part II section 8b.)
+// verb-less chained segment borrows the previous verb, docs/01 chapter 14.)
 //
 // Every swept item is a FULL TURN, the same rule as a chained line and TAKE
 // ALL (a deliberate departure from Inform). The core deliberately omits the

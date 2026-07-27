@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for Z-machine colours (docs/01 Part I section 16): the `zcolor` statement
+// A showcase for Z-machine colours (docs/01 chapter 15): the `zcolor` statement
 // sets the base colours, and `say.<colour>` prints one passage in a colour and
 // restores the base by itself. No switch-print-switch-back sandwich, no state to
 // manage, no restore to forget. Compile and run:

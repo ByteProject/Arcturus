@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The English meta words work in every language pack (docs/01 Part II section 11):
+"""The English meta words work in every language pack (docs/01 chapter 12):
 QUIT, SCORE, SAVE, RESTORE/LOAD, UNDO, AGAIN, OOPS, TRANSCRIPT and their
 kin answer in a German or Spanish game, because a player used to English
 adventures guesses the localized session verb wrong at first and the

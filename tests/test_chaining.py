@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""Command chaining (docs/01 Part II section 8b): several commands on one line, joined
+"""Command chaining (docs/01 chapter 14): several commands on one line, joined
 by the language layer's chain words ("and", "then", the comma; y/luego in
 Spanish, und/dann in German). The chain stops at a failed command: a parse
 failure, or a refusal path setting `refused`. An outcome that already holds
@@ -114,7 +114,7 @@ def test_and_then_run_chains_once(tmp_path):
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_noun_list_borrows_the_verb(tmp_path):
-    # NOUN LISTS are core (docs/01 Part II section 8b): a verb-less segment borrows
+    # NOUN LISTS are core (docs/01 chapter 14): a verb-less segment borrows
     # the previous command's verb, so "take lamp and box" takes both, one
     # full turn each. No granule involved.
     out = _play(tmp_path, GAME, "take lamp and box\ni\n")

@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for growing and replacing verbs (docs/01 Part I section 10):
+// A showcase for growing and replacing verbs (docs/01 chapter 12):
 // `enhance verb` appends to an existing family, new grammar lines, new
 // synonym words, or both, and everything the family had stays. `redefine
 // verb` replaces the family WHOLE: new grammar, and only the words

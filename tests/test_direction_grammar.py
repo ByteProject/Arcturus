@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The `direction` grammar slot (docs/01 Part I section 10): SWIM SOUTH and PUSH
+"""The `direction` grammar slot (docs/01 chapter 12): SWIM SOUTH and PUSH
 CRATE WEST. A line ending in `direction` consumes exactly one direction
 word positionally; the value rides `way`, which the parser binds on every
 command anyway. The slot always tables its verb (the flag model's arity

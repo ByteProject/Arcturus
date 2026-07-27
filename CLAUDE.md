@@ -20,13 +20,11 @@ three specifications under docs/, which are authoritative.
 
 - docs/00-roadmap.md: charter, locked decisions, milestones, the size
   strategy, and the graphics plan.
-- docs/01-arcturus-handbook.md: the Arcturus Handbook, one book in three
-  parts. Part I the language (grammar, every construct, and two worked example
-  games that are the conformance anchors); Part II the runtime (Cosmos as an
-  editable library, the parser, the action pipeline, the banner, scope and
-  light, the turn loop); Part III the summonable granules. Each part keeps
-  the section numbering of the document it absorbed (the former 01, 02, and
-  05), so older "02 section 8" citations read as "Part II section 8".
+- docs/01-arcturus-handbook.md: the Arcturus Handbook, the one author-facing
+  book: twenty-six chapters, one topic each, syntax first and library
+  behavior after it, technical matter toward the back (the Designer's
+  Manual arrangement). The two worked example games (chapters 25 and 26)
+  are the conformance anchors. Cite it by chapter ("docs/01 chapter 14").
 
 When code and a document disagree, the document wins: fix the code, or if the
 document is wrong, propose the change and update the document in the same
@@ -107,13 +105,13 @@ pyproject.toml
   concrete done-test; do not advance until it passes.
 - Produce docs/03-compiler-pipeline.md, docs/04-codegen-mapping.md,
   as the matching work is done (granule additions land in the handbook's
-  Part III),
+  chapter 22),
   so the design record stays current.
 
 ## Conformance
 
 The two example games are the golden tests. The Brass Lantern and Cloak of
-Darkness (docs/01 Part I sections 18 and 19) must compile, run correctly on Frotz,
+Darkness (docs/01 chapters 25 and 26) must compile, run correctly on Frotz,
 and run on Ceres, and their story files are tracked for size regression
 against a PunyInform-equivalent build.
 

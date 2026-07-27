@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// THE APPRENTICE'S TRIAL. A showcase for scoring (docs/01 Part I section 6a),
+// THE APPRENTICE'S TRIAL. A showcase for scoring (docs/01 chapter 19),
 // where score just works: one `scoring` line in the game block, and every
 // room pays five on the first visit, every takeable thing five on the first
 // take. Nothing pays for the cell you start in or the satchel you start

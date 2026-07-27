@@ -143,7 +143,7 @@ CEILINGS = {
     # 2026-07-07 (self fix): an owned handler now takes its self object as an
     # argument so a kind handler sees the right instance (docs/01 9); +0 to +20
     # bytes/game for the per-call argument.
-    # 2026-07-07 (positional grammar, docs/01 Part II 8c): a verb the flag model cannot
+    # 2026-07-07 (positional grammar, docs/01 chapter 14): a verb the flag model cannot
     # represent (dig in noun with held; look_under under noun) compiles to a
     # grammar table and a positional matcher. Every ceiling here is UNCHANGED:
     # the whole path folds away (any_tables) unless a game declares such a

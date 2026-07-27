@@ -42,8 +42,8 @@ certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.3.39 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 1.3.7 | shipped inside `arcc` |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.3.40 | [build/arcc](build/arcc) |
+| **Cosmos**, the standard library | 1.3.8 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.3.6 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.29.0 | [build/arcimg](build/arcimg) |
 
@@ -73,10 +73,10 @@ The authoritative definition is the Arcturus Handbook, one book in three
 parts, enough to start writing Arcturus today:
 
 - [docs/01-arcturus-handbook.md](docs/01-arcturus-handbook.md): the handbook.
-  Part I is the language (grammar, every construct, and two complete worked
-  example games); Part II is the runtime (the Cosmos library, the parser, the
-  action pipeline, scope, light, and the turn loop); Part III is the
-  summonable granules, how to fork one, and how to write your own.
+  Twenty-six chapters, one topic each: the language, the world model, verbs
+  and the parser, output, daemons, pictures, other languages, the granules,
+  hacking Cosmos, and two complete worked example games, with a linked table
+  of contents up front.
 - [docs/06-actaea.md](docs/06-actaea.md): Actaea, the reference interpreter.
   The three ways to play, the tools, saves and transcripts, and conformance.
 - [docs/07-arc-image.md](docs/07-arc-image.md): pictures in your story. The
@@ -288,7 +288,7 @@ forking; then `-L` (an absolute path) points the compiler at your copy. For a
 single standard message you need not extract anything: redefine its block (for
 example `block msg_jump()`) in your own story and it overrides the library's. A
 granule's own blocks are not overridable that way - you fork the granule;
-[the handbook Part III](docs/01-arcturus-handbook.md) covers the model.
+[the chapter 22](docs/01-arcturus-handbook.md) covers the model.
 
 Every file written out carries a fork stamp on its first line. A fork wins over
 the bundled copy for as long as it sits there, so the stamp is how the compiler

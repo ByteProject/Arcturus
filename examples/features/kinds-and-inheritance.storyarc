@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for kinds and inheritance (docs/01 Part I section 5). A `kind` is a
+// A showcase for kinds and inheritance (docs/01 chapter 3). A `kind` is a
 // template: it supplies default properties and shared handlers to every instance
 // declared `of` it. An instance inherits all of them, may override a default, and
 // its own handler runs before the kind's, with `continue` to pass control up the

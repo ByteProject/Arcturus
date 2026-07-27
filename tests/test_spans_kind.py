@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""Spanning a room KIND (docs/01 Part I section 5): `the_sun spans outside_room` puts
+"""Spanning a room KIND (docs/01 chapter 3): `the_sun spans outside_room` puts
 the object in scope in every room of that kind. Rooms are all known at compile
 time, so the kind expands to its rooms in sema; the runtime spans table and
 scope check are the same as for a list of named rooms. Also the marker kind: a

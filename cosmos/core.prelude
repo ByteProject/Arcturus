@@ -15,7 +15,7 @@
 block cosmos_ready()
     return 1
 
-// Transitive containment (docs/01 Part I section 9): is obj anywhere inside
+// Transitive containment (docs/01 chapter 9): is obj anywhere inside
 // outer's tree, however nested? The coin in a purse in a bucket the
 // player holds answers `coin within player`. The `within` operator
 // desugars to this walk; a game that never asks pays nothing (DCE).
@@ -32,7 +32,7 @@ block within(obj, outer)
         change p to parent_of(p)
     return 0
 
-// Swap one object out of the world for another IN PLACE (docs/01 Part I section 9):
+// Swap one object out of the world for another IN PLACE (docs/01 chapter 9):
 // `swap(bob, unconscious_bob)` moves the replacement into bob's exact spot,
 // removes bob, and HANDS OFF every live reference so the command bindings
 // follow the change. Without this, an author who moves an object away mid-

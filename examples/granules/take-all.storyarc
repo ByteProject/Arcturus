@@ -4,7 +4,7 @@
 // https://github.com/ByteProject/Arcturus
 //
 // THE COLLECTOR'S STUDY. A small showcase for the takeall granule
-// (summon.takeall, docs/01 Part III): TAKE ALL sweeps the room, DROP ALL empties your
+// (summon.takeall, docs/01 chapter 22): TAKE ALL sweeps the room, DROP ALL empties your
 // hands but keeps what you wear, and TAKE ALL FROM THE CABINET raids one
 // container. Every swept item is a full turn: watch the move counter in the
 // status bar climb once per item, and the metronome tick between them; that

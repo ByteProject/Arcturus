@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for daemons and timers (docs/01 Part II section 13): background behavior that
+// A showcase for daemons and timers (docs/01 chapter 16): background behavior that
 // unfolds as turns pass, written in plain Arcturus with no timer objects, no IDs,
 // and no hand-kept turn counters. Compile and run:
 //

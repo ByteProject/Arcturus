@@ -4,7 +4,7 @@
 // https://github.com/ByteProject/Arcturus
 //
 // A showcase for the quotes granule: the centered, reverse-video quote box in
-// the upper window, the classic way to open a game with an epigraph (docs/01 Part III).
+// the upper window, the classic way to open a game with an epigraph (docs/01 chapter 22).
 // The box is centered from the interpreter-reported screen width, so it sits
 // right on a 40-column 8-bit machine and a wide terminal alike. Compile and run:
 //

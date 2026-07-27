@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""Instance handlers beat kind handlers: the doctrine (docs/01 Part I section 9,
+"""Instance handlers beat kind handlers: the doctrine (docs/01 chapter 9,
 most specific wins) pinned as executable fact, in every dispatch shape.
 Grown from a field report (2026-07-17) that could NOT be reproduced; this
 file is the armor that keeps the answer true. Covers: same file, deep kind

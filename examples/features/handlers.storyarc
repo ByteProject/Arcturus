@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for handlers (docs/01 Part I section 12), the heart of Arcturus
+// A showcase for handlers (docs/01 chapter 11), the heart of Arcturus
 // behavior. One mechanism covers what other systems split across rulebooks
 // and daemons: a handler lives on an object, a kind, a room, or free at file
 // level, and an action walks that chain most specific first - the noun, the

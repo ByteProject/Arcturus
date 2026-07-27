@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for typed answers (docs/01 Part I section 10b): YES and NO are
+// A showcase for typed answers (docs/01 chapter 12): YES and NO are
 // ordinary in-world actions. A game that asks the player something reads
 // the reply with `on yes` / `on no`, and a `when` guard scopes each
 // question to its moment, so several questions can live in one game

@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for the matrix (docs/01 Part I section 4a): the mutable sibling of a
+// A showcase for the matrix (docs/01 chapter 22): the mutable sibling of a
 // catalog, a summoned feature. A catalog is fixed; a matrix you append to and
 // remove from at runtime, and it also comes in a two-dimensional table form.
 // Reach for one only when a collection truly grows or shrinks as the game
