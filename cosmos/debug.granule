@@ -149,6 +149,68 @@ on warp
     move player to dest
     describe_room
 
+// unmute: hear the background performers. A restless object's prose is
+// buffered every turn and spoken only when the performer is in scope (the
+// turn loop, docs/01 Part II): right for players, blinding while debugging,
+// when the say lines sprinkled through a handler are exactly what you need
+// to see. UNMUTE lets every offstage voice through, each pulse prefixed
+// with the performer's name in brackets so you can tell who speaks from
+// where; UNMUTE again turns it back off. In-scope performers are untouched,
+// and a performer whose turn printed nothing stays silent either way.
+
+global debug_unmute = 0
+
+verb "unmute" meta
+    unmute
+
+on unmute
+    if debug_unmute is 0
+        change debug_unmute to 1
+        say "Offstage voices unmuted."
+    else
+        change debug_unmute to 0
+        say "Offstage voices muted again."
+
+// The performer walk, overridden (a granule block replaces a library block
+// of the same name): identical to the library's fire_restless, plus the
+// unmute tap at the end, where prose that would have gone unheard is
+// spoken anyway behind a [name] tag.
+block fire_restless()
+    let obj = 1
+    while obj <= object_count
+        if obj is restless
+            if obj is not here
+                let r = handler_of(obj)
+                if r is not nothing
+                    let heard = 0
+                    if in_scope(obj)
+                        change heard to 1
+                    let pp = par_pending
+                    mute_begin
+                    call_handler(r, ev_each_turn)
+                    mute_end
+                    change par_pending to pp
+                    if heard is 0
+                        if in_scope(obj)
+                            change heard to 1
+                    if heard is 1
+                        replay_muted
+                    else
+                        if debug_unmute is 1
+                            let b = mute_buf
+                            let n = peek_word(b, 0)
+                            if n is not 0
+                                par
+                                show("[")
+                                print_name(obj)
+                                show("] ")
+                                let i = 0
+                                while i < n
+                                    show_char(peek_byte(b + 2 + i))
+                                    change i to i + 1
+        change obj to obj + 1
+
+// ---------------------------------------------------------------------------
 // inspect (Inform showobj): an object's location and the attributes it has set.
 
 verb "inspect", "showobj" meta

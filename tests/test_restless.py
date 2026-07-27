@@ -121,3 +121,33 @@ def test_stop_all_timers_clears_the_schedule():
     at = out.index("Hushed.")
     assert "POP." not in out[at:]
     assert "Drip." not in out[at:]
+
+
+# --- the debug granule's unmute tap ----------------------------------------
+
+UNMUTE_GAME = GAME.replace(
+    'game\n    title "R"\n    start hall\n',
+    'game\n    title "R"\n    start hall\nsummon.debug\n',
+)
+
+
+def test_unmute_speaks_offstage_prose_behind_a_name_tag():
+    # Muted by default even with debug summoned; UNMUTE lets the offstage
+    # voice through, tagged with the performer's name; UNMUTE again stills
+    # it. The silent worker (the possessed imp says nothing) never prints
+    # a bare tag.
+    out = _run(["wait", "unmute", "wait", "unmute", "wait"], game=UNMUTE_GAME)
+    first = out.index(">unmute")
+    assert "The mouse whirs." not in out[:first]
+    assert "Offstage voices unmuted." in out
+    loud = out[first:out.rindex(">unmute")]
+    assert "[clockwork mouse] The mouse whirs." in loud
+    assert "Offstage voices muted again." in out
+    assert "The mouse whirs." not in out[out.rindex(">wait"):]
+
+
+def test_unmute_never_tags_a_silent_performer():
+    out = _run(["possess", "unmute", "wait"], game=UNMUTE_GAME)
+    # The imp works every turn but says nothing: no [bottled imp] tag.
+    assert "[bottled imp]" not in out
+    assert "[clockwork mouse] The mouse whirs." in out

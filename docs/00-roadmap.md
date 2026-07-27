@@ -106,7 +106,7 @@ toolchain is built rather than written in advance.
   retro targets, one proven chapter per machine (the probes live in
   arc_image/probes/, the design record in arc_image/reference/design.md).
 
-The two worked examples in 01, the Brass Lantern and Cloak of Darkness, are
+The two worked examples in the handbook's Part I, the Brass Lantern and Cloak of Darkness, are
 the shared reference programs across all documents.
 
 ## 4. Tooling
@@ -118,7 +118,7 @@ Built alongside the compiler, all in Python where a tool is involved:
   compression. The compiler ships a standard abbreviation set, always applied;
   the same optimizer regenerates that default (tools/arcabbr.py) and backs the
   `arcc --make-abbreviations` pass, which writes a per-story abbreviations.granule
-  a project summons by name to override the default (05, section 7).
+  a project summons by name to override the default (handbook Part III section 7).
 - The Arcturus VS Code extension: syntax highlighting for .storyarc. This is
   an early goal, not a finishing touch, because readable highlighted source
   speeds every later step. A TextMate grammar plus a minimal language

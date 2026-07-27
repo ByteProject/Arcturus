@@ -2201,7 +2201,7 @@ presents them, either through the Infocom-style ask/tell verbs
 (`summon.infocom_talking`) or as a numbered menu (`summon.conversations`).
 The two are mutually exclusive by the compiler: a game summons exactly one,
 and switching presentations later is a one-line change. How they are
-presented is defined in 02; this section defines the construct.
+presented is defined in Part II; this section defines the construct.
 
 ### The five ways to address a character
 
@@ -3958,6 +3958,37 @@ returns it to the ordinary in-scope pulse, and the `when` guard still
 gates each firing. A game with no restless object folds the walk, the
 mute buffer, and the skip away entirely: byte-identical.
 
+Voicing an offstage event. When something happening far away should be
+HEARD, the announcement belongs to the narrator, not to the far-away
+object: an object cannot narrate itself from a place the player is not
+standing, because the right words depend on where the player is (in the
+belfry the bell is deafening; a village away it is faint; indoors it is
+muffled). So the performer does the work, restless and silent, and a
+free-standing rule (or the room's own each_turn) reads the state that
+work leaves behind and speaks from the player's side:
+
+```
+thing bell in belfry
+    restless
+    on each_turn
+        change tolls to tolls + 1
+
+on each_turn when tolls > tolls_heard
+    change tolls_heard to tolls
+    if here is village
+        say "Far off, a bell tolls faintly."
+```
+
+That completes the daemon vocabulary with nothing further to learn:
+offstage work is `restless`, scheduled events are `after` and `every`,
+and offstage narration is a free rule voicing the state the work left
+behind.
+
+While developing, the muting hides the very say lines an author sprinkles
+through a handler to watch it work. The debug granule's UNMUTE verb
+(Part III) lets every offstage voice through, each tagged with its
+performer's name; UNMUTE again restores the rule.
+
 Several each_turn handlers may be live at once; they
 fire the room's first, then the in-scope objects', then the restless
 performers', then the free-standing rules. Every live daemon fires:
@@ -4085,10 +4116,11 @@ place of English so the game plays in another language. Selecting, writing,
 forking, accents, gender, and abbreviations for a non-English game are gathered in
 section 14a.
 
-`summon.debug`. Developer verbs for testing, catalogued in 05: `tree` (the whole
-object tree), `scope` (what is reachable here), `fetch`/`purloin` (pull any object
-to you), `warp`/`gonear` (teleport to an object's room), and `inspect`/`showobj`
-(an object's location and attributes). They reach objects out of scope, which the
+`summon.debug`. Developer verbs for testing, catalogued in Part III: `tree` (the
+whole object tree), `scope` (what is reachable here), `fetch`/`purloin` (pull any
+object to you), `warp`/`gonear` (teleport to an object's room), `inspect`/`showobj`
+(an object's location and attributes), and `unmute` (hear the muted offstage
+prose of the background performers, name-tagged). They reach objects out of scope, which the
 parser normally refuses, through the `reach_unscoped` parser seam the granule
 overrides. There is no separate release build to strip them: not summoning the
 granule leaves them out entirely, which is the exclusion.
@@ -4100,7 +4132,7 @@ Inform's one-turn ALL), undo takes the whole sweep back, and an empty sweep
 refuses so a chain stops. The core deliberately omits ALL; the granule's
 `all` declaration names the words and its hand-off folds away unsummoned.
 
-`summon.plurals`. The group model, catalogued in 05: group words (each coin
+`summon.plurals`. The group model, catalogued in Part III: group words (each coin
 declares `plural coins`, and "take coins" runs the take on every coin in
 scope) and THEM for the last group. A group word matching a single object
 binds it singularly; a tie between group members sweeps instead of asking.
@@ -4109,7 +4141,7 @@ this granule: they are core (section 8b). English-worded; a translation forks
 the granule (a Spanish fork should keep THEM out: the clitic plurals in the
 core pack already cover it, and bare los/las are the articles).
 
-`summon.ambience`. Rooms and things murmur over time, catalogued in 05: an
+`summon.ambience`. Rooms and things murmur over time, catalogued in Part III: an
 `ambience` block of lines with a cadence (`about` breathes, `every` ticks,
 `in order` recites), topic-style `when` guards on the block and on single
 lines, `do <block>` computed lines, and the `ambience_rate` dial (0 mutes).
@@ -5047,6 +5079,11 @@ familiar Inform synonyms:
 - `fetch` / `purloin` - pull any object into your hands.
 - `warp` / `gonear` - teleport to an object's room.
 - `inspect` / `showobj` - an object's location and the attributes it has set.
+- `unmute` - hear the background performers: offstage restless prose, muted
+  for the player by design (Part II section 13), is spoken anyway, each
+  pulse tagged with the performer's name in brackets so you can tell who
+  speaks from where; a performer whose turn printed nothing stays silent.
+  `unmute` again restores the rule.
 
 `fetch`, `warp`, and `inspect` reach objects that are out of scope, which the
 parser would normally refuse; the granule teaches the parser to reach them
