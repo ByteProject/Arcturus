@@ -1,22 +1,26 @@
 # The Arcturus Handbook
 
 This is the manual for Arcturus: the language, the standard library
-(Cosmos), and the summonable granules, in one book. Each chapter takes one
-topic and covers it whole, the syntax first, then what the library does
-with it, so nothing about verbs lives anywhere but the verbs chapter. The
-deeper technical matter (the parser's machinery, hacking the library, the
-compiler and its flags) sits toward the back, the way Nelson arranged the
-Inform Designer's Manual; you can write a game long before you need any of
-it. The two worked games near the end compile and play as printed, and
-every construct in this book appears in at least one of them.
+(Cosmos), and the summonable granules, in one book. Each chapter takes
+one topic and covers it whole, the syntax first, then what the library
+does with it. The deeper technical matter (the parser's machinery,
+hacking the library, the compiler and its flags) sits toward the back;
+you can write a game long before you need any of it.
 
-One rule keeps this book honest: where the toolchain and the book
-disagree, the book wins; either the code gets fixed or the book is
-amended in the same commit. The design records are separate documents:
-the roadmap in 00-roadmap.md, the compiler internals in
-03-compiler-pipeline.md and 04-codegen-mapping.md, the Actaea
-interpreter in 06-actaea.md, pictures for interpreter authors in
-08-arcimage-interpreters.md.
+This book aims to be a truthful reference. If you find something in your
+code not working as described here, be sure to report it in the Arcturus
+Discord channel and I will have a look.
+
+Arcturus ships with its own reference interpreter, Actaea
+([docs/06](06-actaea.md)): a GUI that runs on any modern computer and
+supports arc_image, a console mode for any terminal, a debugger, and a
+headless mode in the manner of dumb frotz. arc_image, the picture system
+that reaches from modern machines down to the 8-bits, has its author
+guide in [docs/07](07-arc-image.md); interpreter authors refer to
+[docs/08](08-arcimage-interpreters.md). If you are interested in the
+compiler internals, check out [the compiler
+pipeline](03-compiler-pipeline.md) and [the codegen
+mapping](04-codegen-mapping.md).
 
 - [Chapter 1: Reading Arcturus](#chapter-1-reading-arcturus)
 - [Chapter 2: A game and its program](#chapter-2-a-game-and-its-program)
