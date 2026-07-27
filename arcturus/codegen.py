@@ -1139,7 +1139,8 @@ def build_story(
             elif layout is not None and v.ident in layout.matrices:
                 val = layout.matrices[v.ident]
             elif layout is not None and v.ident in layout.prop_number \
-                    and v.ident in _PRELUDE_DIRECTIONS:
+                    and v.ident in getattr(world, "direction_props",
+                                           _PRELUDE_DIRECTIONS):
                 # a direction: its property number, as everywhere
                 val = layout.prop_number[v.ident]
         if val:

@@ -30,10 +30,20 @@ def test_direction_decl_populates_world():
     assert world.directions["in"] == "in"  # a keyword works as the property
 
 
-def test_unknown_direction_is_rejected():
+def test_an_unknown_direction_is_created_not_rejected():
+    # Stefan's ruling (2026-07-28): a `direction` declaration naming a
+    # property outside the standard set CREATES that direction, first-class,
+    # at the cost of one property slot when a room walks it.
+    world = analyze(parse('direction sideways "sideways", "sw2"\n'))
+    assert "sideways" in world.direction_props
+    assert world.directions["sideways"] == "sideways"
+    assert world.directions["sw2"] == "sideways"
+
+
+def test_a_standard_property_cannot_become_a_direction():
     from arcturus.errors import ArcError
     with pytest.raises(ArcError):
-        analyze(parse('direction sideways "sideways"\n'))
+        analyze(parse('direction desc "sideways"\n'))
 
 
 GAME = (

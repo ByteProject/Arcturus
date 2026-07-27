@@ -389,11 +389,15 @@ class World:
     # spare property beats the language layer's compass word). dir_name and
     # exit_name speak from this, so output follows the declared vocabulary.
     direction_names: dict[str, str] = field(default_factory=dict)
-    # Every direction PROPERTY name (the standard set plus any declared), set
-    # at the end of analysis. Codegen allows a computed exit (a direction
-    # property that is a block) using this; a general computed value property
-    # stays unsupported.
+    # Every direction PROPERTY name (the standard set plus any declared,
+    # including author-declared custom directions), set at the end of
+    # analysis. Codegen allows a computed exit (a direction property that is
+    # a block) using this; a general computed value property stays
+    # unsupported.
     direction_props: set = field(default_factory=set)
+    # The same names in declaration order (standard first, then customs as
+    # declared), for everything that emits per-direction rows.
+    direction_order: list = field(default_factory=list)
     # True when a `now ... is beyond` statement exists anywhere: the any_beyond
     # fold must survive for a game that only sets beyond at runtime (the
     # player-beyond mount) and never declares it on an object.

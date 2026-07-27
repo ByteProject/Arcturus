@@ -367,15 +367,18 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
                     break
 
     # The live directions (see the Layout field): worded, or used as an exit.
+    # The set is the program's own, so an author-declared custom direction
+    # rides the exit routines exactly like the compass.
     worded = set(world.directions.values())
     used = set()
-    dir_names = set(prelude._DIRECTIONS)
+    dir_names = set(world.direction_props) or set(prelude._DIRECTIONS)
+    dir_order = list(world.direction_order) or list(prelude._DIRECTIONS)
     for name, obj in world.objects.items():
         for pname in _effective_props(world, obj):
             if pname in dir_names:
                 used.add(pname)
     layout.live_directions = [
-        d for d in prelude._DIRECTIONS
+        d for d in dir_order
         if (d in worded or d in used) and d in layout.prop_number
     ]
     layout.direction_canonical = dict(world.direction_names)

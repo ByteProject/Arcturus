@@ -85,10 +85,10 @@ class Analyzer:
                 objs = [v for v in cat.values if v.ident in self.world.objects]
                 dirs = [v for v in cat.values
                         if v.ident not in self.world.objects
-                        and v.ident in prelude._DIRECTIONS]
+                        and v.ident in self.env.directions]
                 unknown = [v for v in cat.values
                            if v.ident not in self.world.objects
-                           and v.ident not in prelude._DIRECTIONS]
+                           and v.ident not in self.env.directions]
                 if unknown:
                     raise self._error(
                         f"catalog '{cat.name}': '{unknown[0].ident}' is not "
@@ -120,7 +120,7 @@ class Analyzer:
             elif mx.cell == "direction":
                 for v in mx.seed:
                     if getattr(v, "ident", None) is not None \
-                            and v.ident not in prelude._DIRECTIONS:
+                            and v.ident not in self.env.directions:
                         raise self._error(
                             f"matrix '{mx.name}': '{v.ident}' is not a "
                             f"direction",
@@ -149,6 +149,9 @@ class Analyzer:
         # codegen may allow a COMPUTED exit (a direction property that is a
         # block) while a general computed value property stays unsupported.
         self.world.direction_props = set(self.env.directions)
+        # The same set in declaration order (standard first, then customs as
+        # declared), for everything that emits per-direction rows.
+        self.world.direction_order = list(self.env.directions)
         # Does any `now ... is beyond` appear? The any_beyond fold must flip for
         # a game that never DECLARES beyond on an object but sets it at runtime
         # (the player-beyond mount: `now player is beyond` and nothing else), or
@@ -358,8 +361,33 @@ class Analyzer:
             for s in self.world.summons
         )
 
+    def _register_custom_directions(self) -> None:
+        """Author-declared direction properties (Stefan's ruling, 2026-07-28):
+        a `direction` declaration naming a property outside the standard set
+        CREATES that direction, first-class: bare typed word, exits, `on go`
+        handlers, `way`, the exit list, everything the compass has. Each one
+        consumes a Z-machine property slot when a room uses it (the stock and
+        the hard ceiling show in `arcc -s`); declared and never walked it
+        costs only its dictionary words, and a game that declares none is
+        byte-identical to one built before the feature existed. Registered in
+        a pre-pass so a custom direction works in catalogs, matrices, and
+        exits regardless of where in the source it is declared."""
+        for decl in self.program.decls:
+            if not isinstance(decl, ast.DirectionDecl):
+                continue
+            prop = decl.prop
+            if self.env.is_direction(prop):
+                continue
+            if prop in self.env.properties:
+                raise self._error(
+                    f"'{prop}' cannot become a direction: it is already a "
+                    f"standard property", decl.line)
+            self.env.properties[prop] = prelude.StdProp(prop, prelude.T_OBJECT)
+            self.env.directions.append(prop)
+
     def _collect(self) -> None:
         w = self.world
+        self._register_custom_directions()
         # Seed standard kinds so the chain resolves against Cosmos.
         for sk in self.env.kinds.values():
             kind = wm.Kind(sk.name, sk.parent, "standard")
@@ -481,7 +509,7 @@ class Analyzer:
                                 f"be an object name", ln)
                     elif cell == "direction":
                         if not isinstance(v, ast.Name) \
-                                or v.ident not in prelude._DIRECTIONS:
+                                or v.ident not in self.env.directions:
                             got = getattr(v, "ident", None) or getattr(
                                 v, "value", "?")
                             raise self._error(

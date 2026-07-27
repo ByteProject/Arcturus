@@ -419,7 +419,7 @@ def _is_leaf(ctx: Context, expr) -> bool:
             expr.ident in ctx.named
             or expr.ident in ctx.globals
             or ctx.is_object_name(expr.ident)
-            or (expr.ident in _DIRECTIONS
+            or (expr.ident in getattr(ctx.world, "direction_props", _DIRECTIONS)
                 and ctx.prop_number(expr.ident) is not None)
         )
     return False
@@ -449,8 +449,9 @@ def _leaf_operand(ctx: Context, expr):
             return Const(ctx.obj_number(expr.ident))  # an object number constant
         # A bare direction name is its property number, so a handler can ask
         # `if way is north` (the parser stores the chosen direction's property
-        # number in `way`). Resolved last, so story names always win.
-        if expr.ident in _DIRECTIONS:
+        # number in `way`). Resolved last, so story names always win. The set
+        # is the program's own: custom directions resolve like the compass.
+        if expr.ident in getattr(ctx.world, "direction_props", _DIRECTIONS):
             p = ctx.prop_number(expr.ident)
             if p is not None:
                 return Const(p)
@@ -1619,7 +1620,7 @@ def _is_direction_literal(ctx, name: str) -> bool:
     """Is this bare name a direction literal here? Resolved last, exactly as
     the say path resolves it, so story names (a local, a global, an object,
     a block, a catalog) always win over the compass word."""
-    return (name in _DIRECTIONS
+    return (name in getattr(ctx.world, "direction_props", _DIRECTIONS)
             and name not in ctx.named
             and name not in ctx.globals
             and not ctx.is_object_name(name)
@@ -3222,7 +3223,8 @@ def _bare_call_name(ctx, expr):
         return None
     if ctx.world.constants.get(n) is not None or ctx.is_object_name(n):
         return None
-    if n in _DIRECTIONS and ctx.prop_number(n) is not None:
+    if n in getattr(ctx.world, "direction_props", _DIRECTIONS) \
+            and ctx.prop_number(n) is not None:
         return None
     if n in ctx.world.blocks or n in INTRINSICS:
         return n

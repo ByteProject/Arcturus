@@ -68,3 +68,43 @@ def test_a_granule_synonym_never_steals_a_worded_canonical():
     )
     out = _run(["port"], game=game)
     assert "You can only go up from here." in out
+
+
+# --- true custom direction properties (Stefan's ruling, 2026-07-28) --------
+
+TRUE_GAME = (
+    'summon.verbose_exits\nsummon.nautical\n'
+    'game\n    title "T"\n    start hub\n'
+    'direction widdershins "widdershins", "wid"\n'
+    'direction turnwise "turnwise", "turn"\n'
+    'room hub\n    name "Hub"\n    desc "The hub."\n'
+    '    widdershins rim\n    fore prow\n'
+    'room rim\n    name "Rim"\n    desc "The rim."\n    turnwise hub\n'
+    '    on go turnwise\n        say "The turnwise road hums."\n'
+    '        continue\n'
+    'room prow\n    name "Prow"\n    desc "The prow."\n    aft hub\n'
+    'on go\n'
+    '    if way is widdershins\n'
+    '        say "Spinward, then."\n'
+    '    continue\n'
+)
+
+
+def test_a_declared_direction_is_created_and_walks():
+    out = _run(["widdershins", "turnwise", "wid"], game=TRUE_GAME)
+    assert out.count("Rim") >= 2
+    assert "The turnwise road hums." in out
+
+
+def test_way_carries_a_custom_direction_and_handlers_fire():
+    out = _run(["widdershins"], game=TRUE_GAME)
+    assert "Spinward, then." in out
+
+
+def test_custom_and_nautical_coexist():
+    # The collision case that forced the ruling: nautical summoned AND two
+    # customs declared; both walk, and a blocked nautical try in a room
+    # with only a custom exit speaks the custom word.
+    out = _run(["fore", "aft", "widdershins", "port"], game=TRUE_GAME)
+    assert "Prow" in out
+    assert "You can only go turnwise from here." in out

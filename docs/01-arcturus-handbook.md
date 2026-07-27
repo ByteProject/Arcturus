@@ -1542,23 +1542,31 @@ English. Selecting a language is one summon: `summon.language "spanish"` compile
 that language layer in place of English (Part II section 8).
 
 CUSTOM DIRECTIONS. When a game needs directions of its own (the compass
-fails on a ringworld as surely as on a ship), it declares its words onto
-the four spare properties, right in the story:
+fails on a ringworld as surely as on a ship), it declares them, right in
+the story, and the declaration CREATES the direction:
 
 ```
-direction fore "widdershins", "wid"
-direction aft  "turnwise", "turn"
+direction widdershins "widdershins", "wid"
+direction turnwise    "turnwise", "turn"
 ```
 
-The player types WIDDERSHINS (or WID), the exits are written with the
-carrier property (`fore rim` on the room), and everything a direction has
-comes along: the bare typed word, `on go fore` handlers, `if way is fore`,
-computed exits, teleports. Output follows the most specific declaration,
-so the exit list and `dir_name` speak "widdershins", never the carrier's
-name; a granule that merely adds vocabulary to an already-worded property
-(nautical's ALOFT riding `up`) never steals that canonical word. Four
-spare carriers exist; leave the nautical granule unsummoned and their
-namespace is entirely yours.
+The player types WIDDERSHINS (or WID), rooms write the exit with the new
+property (`widdershins rim`), and everything the compass has comes along:
+the bare typed word, `on go widdershins` handlers, `if way is
+widdershins`, computed exits, teleports, catalogs of directions, and the
+exit list speaking the declared word. Custom and standard directions
+coexist freely, nautical included.
+
+The cost is the author's call, and it is flagged plainly: each custom
+direction used by a room consumes one Z-machine property slot from the
+same stock everything else draws on, a hard ceiling of the machine
+(`arcc -s` shows the running count, "properties 32/62"). Declared but
+never walked, it costs only its dictionary words; declared not at all,
+nothing. A `direction` declaration naming an EXISTING direction property
+adds vocabulary to it instead (that is how the nautical granule words
+fore and aft, and how ALOFT rides `up`), and the canonical word the
+output speaks follows the most specific declaration: the game's own
+beats a granule's beats the language layer's.
 
 A room's exit is written with this property name, not the word: `north cellar`,
 `east door` (section 5). So an exit stays in the fixed English name even in a
