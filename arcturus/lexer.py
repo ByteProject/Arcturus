@@ -9,11 +9,11 @@ Turns UTF-8 source into a flat token stream with explicit NEWLINE, INDENT, and
 DEDENT tokens, in the spirit of Python's tokenizer. The lexer owns:
 
 - indentation: an indent stack drives INDENT and DEDENT; mixing tabs and spaces
-  or an inconsistent dedent is a compile error (docs/01 section 2);
+  or an inconsistent dedent is a compile error (docs/01 Part I section 2);
 - significant newlines: one statement or declaration per logical line;
 - strings: double-quoted, may span physical lines, runs of literal whitespace
   collapse to a single space, with \" \\ \$ \n escapes and ${ } interpolation
-  whose raw source is captured for the parser (docs/01 section 16);
+  whose raw source is captured for the parser (docs/01 Part I section 16);
 - UUID literals: the 8-4-4-4-12 hex form, lexed whole so its hyphens are never
   read as minus operators;
 - numbers, identifiers and keywords, and operators.
@@ -143,7 +143,7 @@ class Lexer:
         if saw_tab:
             raise self._error(
                 "tabs are not allowed in indentation; use spaces "
-                "(docs/01 section 2)",
+                "(docs/01 Part I section 2)",
                 self.line,
                 start_col,
             )

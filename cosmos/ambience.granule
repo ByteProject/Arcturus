@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// AMBIENCE (summon.ambience, docs/05): rooms and things murmur over time.
+// AMBIENCE (summon.ambience, docs/01 Part III): rooms and things murmur over time.
 // An `ambience` block on a room plays while the player is there; on a thing,
 // while the thing is in scope (a companion, a muttering radio). The header
 // sets the shape: `about N turns` breathes (each silent turn shortens the

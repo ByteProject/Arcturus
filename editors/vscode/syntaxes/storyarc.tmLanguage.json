@@ -112,7 +112,7 @@
           }
         },
         {
-          "comment": "Language-layer declarations: words the parser reads (docs/02 8, 8a, 8b, 14a).",
+          "comment": "Language-layer declarations: words the parser reads (docs/01 Part II 8, 8a, 8b, 14a).",
           "match": "^\\s*(direction|particle|pronoun|chain|noise|all|language|catalog)\\b",
           "captures": {
             "1": {
@@ -133,7 +133,7 @@
           }
         },
         {
-          "comment": "A German gender line: a bare der/die/das in an object body (docs/02 14a).",
+          "comment": "A German gender line: a bare der/die/das in an object body (docs/01 Part II 14a).",
           "match": "^\\s*(der|die|das)\\s*$",
           "captures": {
             "1": {
@@ -256,7 +256,7 @@
           }
         },
         {
-          "comment": "The backstage scope room: `in scope` places an object always in scope (docs/01 section 5).",
+          "comment": "The backstage scope room: `in scope` places an object always in scope (docs/01 Part I section 5).",
           "match": "\\b(in|to)\\s+(scope)\\b",
           "captures": {
             "1": {
@@ -270,7 +270,7 @@
       ]
     },
     "attributes": {
-      "comment": "Standard Cosmos boolean attributes (docs/02).",
+      "comment": "Standard Cosmos boolean attributes (docs/01 Part II).",
       "name": "support.type.attribute.storyarc",
       "match": "\\b(fixed|scenery|hidden|concealed|wearable|worn|lit|edible|named|switchable|openable|open|lockable|locked|visited|clear|seen|moved|animate|an|feminine|neutral|pluribus|beyond|scored|component|shiftable)\\b"
     },
@@ -282,7 +282,7 @@
           "match": "\\b(name|desc|intro|appearance|words|capacity|spans|unseal_with|article|indefinite|tag|plural|arc_image)\\b"
         },
         {
-          "comment": "Topic, ambience, and rank header modifiers (docs/01 sections 6a and 15; docs/05 ambience).",
+          "comment": "Topic, ambience, and rank header modifiers (docs/01 Part I sections 6a and 15; docs/01 Part III ambience).",
           "name": "keyword.other.modifier.storyarc",
           "match": "\\b(once|hidden|idle|about|order|at|percent|points|turns)\\b"
         }
@@ -332,7 +332,7 @@
           }
         },
         {
-          "comment": "Conversation sugar in a topic body: the player's line, the NPC reply, and the reveal/hide toggles (docs/02 section 14).",
+          "comment": "Conversation sugar in a topic body: the player's line, the NPC reply, and the reveal/hide toggles (docs/01 Part II section 14).",
           "name": "keyword.other.conversation.storyarc",
           "match": "\\b(you|reply|reveal|hide)\\b"
         },

@@ -41,7 +41,7 @@ _PARTICLE_FLAG = 0x20
 # A grain word: data bytes 1 and 2 hold the ADDRESS of the word's grain chain, a
 # static table of (grain id, owner object) word pairs terminated by a zero id.
 # One word can serve several grains in several rooms; the parser walks the chain
-# and answers with the grain whose owner is in scope (docs/01 section 14).
+# and answers with the grain whose owner is in scope (docs/01 Part I section 14).
 _SCENERY_FLAG = 0x10
 # A pronoun word: data byte 1 holds the canonical role id (prelude
 # _PRONOUN_ROLES: it 1, him 2, her 3, them 4). The noun matcher resolves it to
@@ -49,7 +49,7 @@ _SCENERY_FLAG = 0x10
 # in it" must bind "it" as the second noun, so is_separator exempts this flag.
 _PRONOUN_FLAG = 0x04
 # A chain word ("and", "then", the comma): it ends the current command and the
-# words after it run as the next command once this one succeeds (docs/02 8b).
+# words after it run as the next command once this one succeeds (docs/01 Part II 8b).
 # The words come from the language layer's `chain` declarations.
 _CHAIN_FLAG = 0x02
 # An all-word ("all", "everything", from the takeall granule's `all`
@@ -67,7 +67,7 @@ _NOISE_FLAG = 0x03
 # begins. Words already flagged otherwise (on/in are a particle/direction) are
 # left as they are; the parser treats any flagged word as a phrase boundary.
 _PREPOSITION_FLAG = 0x08
-# A verb with a positional grammar table (docs/02 section 8c): the verb bit
+# A verb with a positional grammar table (docs/01 Part II section 8c): the verb bit
 # plus bit 4, and the data bytes hold the ADDRESS of the verb's table instead
 # of an action and an arity (the table's first byte is its first line's
 # action, which is where resolve_verb finds the base action). Bit 4 alone is

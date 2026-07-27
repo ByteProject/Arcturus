@@ -10,7 +10,7 @@
 // attribute is STATE, which is the whole point against faking it with
 // scenery: clear it and the hand arrives. Static faraway decoration (a
 // mountain range, a mural across the chasm) needs no object at all; that
-// is a grain's job (docs/01 section 14). Beyond is for distance that
+// is a grain's job (docs/01 Part I section 14). Beyond is for distance that
 // MATTERS to the model. Compile and run:
 //
 //   arcc examples/features/beyond.storyarc -o larder.z5

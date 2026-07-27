@@ -4,7 +4,7 @@
 # https://github.com/ByteProject/Arcturus
 
 """Lexer unit tests: token kinds, indentation, strings, UUID, and the
-representative lexical errors from docs/01 section 16."""
+representative lexical errors from docs/01 Part I section 16."""
 
 import pytest
 

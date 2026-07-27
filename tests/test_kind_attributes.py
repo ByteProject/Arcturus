@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The kind attribute budget (docs/01 section 5; the field wall Charles Moore
+"""The kind attribute budget (docs/01 Part I section 5; the field wall Charles Moore
 Jr. hit porting a 200K game). A kind is Arcturus sugar, not a Z-machine
 concept, so it must not silently steal from the 48-attribute ceiling the way
 Inform's classes never do. Three tiers:

@@ -6,7 +6,7 @@
 """Loading and bundling the Cosmos standard library.
 
 Cosmos is ordinary Arcturus source under cosmos/*.prelude, compiled together
-with the author's game (docs/02 section 1). This module finds those sources and
+with the author's game (docs/01 Part II section 1). This module finds those sources and
 combines their declarations with the game's into one program before semantic
 analysis, so the game resolves against Cosmos and vice versa.
 
@@ -42,7 +42,7 @@ _DEFAULT_LANGUAGE = "english"
 # The Cosmos library version. It is independent of the compiler version: the
 # bundled library can move ahead of (or behind) arcc, and since the embedded
 # library is not visible on disk, the banner reports it alongside arcc's version.
-COSMOS_VERSION = "1.3.3"
+COSMOS_VERSION = "1.3.4"
 
 # Set by the amalgamated build to a dict of {filename: source}.
 _EMBEDDED = None
@@ -332,7 +332,7 @@ def fork_note(fname: str, text: str, path: str) -> None:
 def _resolve_summon(s: ast.Summon, bundled: dict, lib_dirs, story_dir):
     """Resolve one summon to (key, source, srcname), or (None, None, None) for a
     feature the loader does not compile as runtime blocks (language,
-    abbreviations). The three forms (docs/05):
+    abbreviations). The three forms (docs/01 Part III):
       feature  summon.statusline         - the bundled copy, always.
       name     summon statusline.granule - story dir, then each -L dir, then the
                bundled copy (with a notice when it falls back), else an error.

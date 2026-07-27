@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""Computed exits (docs/02 section 11a): a direction property may be a
+"""Computed exits (docs/01 Part II section 11a): a direction property may be a
 `block`, so an exit can depend on world state, returning a room to allow the
 move or `nothing` to refuse it. The one computed VALUE property Arcturus
 supports: a destination is a room object number (small), so an exit read

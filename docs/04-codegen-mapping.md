@@ -5,8 +5,9 @@ This document records how Arcturus constructs lower to Z-machine version 5. It
 grows milestone by milestone; this revision covers the B3 minimum viable
 backend (banner, print, quit).
 
-The authoritative language and runtime definitions are docs/01 and docs/02;
-this document is the construct-to-opcode reference the backend implements.
+The authoritative language and runtime definitions are Parts I and II of the
+Arcturus Handbook (docs/01); this document is the construct-to-opcode
+reference the backend implements.
 
 ## 1. Text
 
@@ -71,7 +72,7 @@ routine header, so no packed addresses or alignment are involved.
 | end of `on start` | `quit` |
 
 The banner is emitted by the compiler as a stand-in. From B4 the banner is
-Cosmos's responsibility (docs/02 section 3), where the library contributes its
+Cosmos's responsibility (docs/01 Part II section 3), where the library contributes its
 own name and version; the compiler continues to hardcode nothing about Cosmos.
 
 ## 5. Routines and the value model (B4.1, B4.2)
@@ -161,7 +162,7 @@ the parse buffer against the dictionary, and `loadb`/`storeb`/`loadw`/`storew`
 read and write memory. The text and parse buffers sit at fixed dynamic-memory
 addresses just after the globals (`TEXT_BUFFER_ADDR`, `PARSE_BUFFER_ADDR`).
 
-A verb whose grammar needs the positional matcher (docs/02 section 8c;
+A verb whose grammar needs the positional matcher (docs/01 Part II section 8c;
 `worldmodel.needs_table`) is flagged as a TABLED verb, and its data bytes hold
 the address of its grammar table instead of an action and an arity. The tables
 sit in static memory with the grain chains, right before the dictionary: per
@@ -358,7 +359,7 @@ block routine, which says its own text.
 
 A general computed value property (a number decided at run time) stays a compile
 error, since that read cannot tell an arbitrary value from a routine address. The
-one exception is a **computed exit** (docs/02 section 11a): a direction property
+one exception is a **computed exit** (docs/01 Part II section 11a): a direction property
 that is a block. Its value is a room OBJECT NUMBER, always small, so it never
 collides with the block routine's large packed address. The exit read is
 `exit_dest`, which mirrors "print or run" as "read or run": it compares the stored

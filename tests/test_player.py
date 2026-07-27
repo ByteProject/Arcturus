@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The player object (docs/01 section 5a): the language layer's standard
+"""The player object (docs/01 Part I section 5a): the language layer's standard
 self-words, the game's additive player.words, and the plain or computed
 player.desc."""
 

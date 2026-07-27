@@ -42,11 +42,11 @@ KEYWORDS = frozenset(
         "case", "and", "or", "holds", "when", "self", "player", "here", "noun",
         "second", "nothing", "true", "false", "list", "summon", "grains", "do",
         "title", "headline", "author", "release", "serial", "UUID", "start",
-        # `mod` is the modulo operator (docs/01 section 9). `every` introduces a
-        # recurring scheduled event (docs/02 section 13); both read as keyword
+        # `mod` is the modulo operator (docs/01 Part I section 9). `every` introduces a
+        # recurring scheduled event (docs/01 Part II section 13); both read as keyword
         # operators / statement heads.
         "mod", "every",
-        # Conversation topics (docs/02 section 14): `topic` declares one on a
+        # Conversation topics (docs/01 Part II section 14): `topic` declares one on a
         # person; in a topic body `you` and `reply` are the player's and the
         # NPC's lines (auto-quoted, auto-attributed) and `reveal` / `hide` toggle
         # another topic's visibility by name.

@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// The turn loop (docs/02 section 10), the heart of a running game. The compiler
+// The turn loop (docs/01 Part II section 10), the heart of a running game. The compiler
 // hands control here after printing the banner (the __main__ shim). The loop
 // fires the opening event, describes the starting room, then repeats: prompt,
 // parse, dispatch the action, fire the per-turn events, count the turn. A `finish`
@@ -61,7 +61,7 @@ block show_tag(obj)
     return 0
 
 // TAKE ALL's expander: the takeall granule overrides this with the real
-// sweep (docs/05); the stub exists so the hand-off call resolves, and it
+// sweep (docs/01 Part III); the stub exists so the hand-off call resolves, and it
 // folds away with its caller in a game that never summons the granule.
 block run_all(act)
     return 0
@@ -91,7 +91,7 @@ block sweep_one(obj, act)
     if vetoed is 0
         dispatch(act)
     // Each swept item is a full turn, so it takes the after pass too
-    // (docs/02 s.9 step 6; folds away without an `on after` in the game).
+    // (docs/01 Part II s.9 step 6; folds away without an `on after` in the game).
     if any_after is 1
         if grain is 0
             if refused is 0
@@ -307,7 +307,7 @@ block run_game()
         note_oops
 
 // Carry out a parsed command, then any commands chained after it on the same
-// line ("take the lamp and open the door then go north", docs/02 section 8b).
+// line ("take the lamp and open the door then go north", docs/01 Part II section 8b).
 // The chain stops the moment a command fails: a parse failure, or a turn a
 // refusal path could not carry out (`refused`, set by the library's refusals
 // and settable by a story handler). What was already done stays done.
@@ -342,7 +342,7 @@ block run_chain(act)
         if chain_pos is 0
             return 0
         // Remember this command's action: a verb-less next segment borrows
-        // it ("take lamp and box", the noun lists of docs/02 section 8b).
+        // it ("take lamp and box", the noun lists of docs/01 Part II section 8b).
         change chain_prev to act
         // Each chained command's response is its own paragraph.
         par
@@ -469,7 +469,7 @@ block shut_in_refused()
 
 // The carried-requirement failure, the foresight seam: the default refuses
 // with the library line. summon.foresight redefines this block with the
-// repair (docs/05): probe first, promise only what the default take will
+// repair (docs/01 Part III): probe first, promise only what the default take will
 // certainly do, fall back to promise-then-run only where author code makes
 // the outcome unknowable. Returns 1 refused (message spoken), 0 repaired
 // (the object is now carried and the turn goes on).
@@ -648,7 +648,7 @@ block run_turn(act)
     dispatch(act)
     // The after phase: the action ran; if nothing refused it, the `on after`
     // handlers walk the same chain under the action's synthetic after number
-    // (docs/02 section 9 step 6). The library's can't/won't paths all set
+    // (docs/01 Part II section 9 step 6). The library's can't/won't paths all set
     // `refused`, and a story handler that refuses should too. A grain turn
     // is a scenery quip, not a world action, so it takes no after pass. In
     // a game with no `on after` anywhere, any_after folds all this away.

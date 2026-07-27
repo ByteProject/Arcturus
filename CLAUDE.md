@@ -20,11 +20,13 @@ three specifications under docs/, which are authoritative.
 
 - docs/00-roadmap.md: charter, locked decisions, milestones, the size
   strategy, and the graphics plan.
-- docs/01-syntax-reference.md: the language. Grammar, every construct, and two
-  worked example games that are the conformance anchors.
-- docs/02-cosmos-and-parser.md: the runtime. Cosmos as an editable library,
-  the parser, the action pipeline, the banner, scope and light, the turn loop,
-  and the summonable features.
+- docs/01-arcturus-handbook.md: the Arcturus Handbook, one book in three
+  parts. Part I the language (grammar, every construct, and two worked example
+  games that are the conformance anchors); Part II the runtime (Cosmos as an
+  editable library, the parser, the action pipeline, the banner, scope and
+  light, the turn loop); Part III the summonable granules. Each part keeps
+  the section numbering of the document it absorbed (the former 01, 02, and
+  05), so older "02 section 8" citations read as "Part II section 8".
 
 When code and a document disagree, the document wins: fix the code, or if the
 document is wrong, propose the change and update the document in the same
@@ -51,7 +53,7 @@ commit.
 
 ```
 CLAUDE.md
-docs/            00-02 specs (authoritative); 03-05 produced as you build
+docs/            00 roadmap + 01 handbook (authoritative); 03+ design records
 arcturus/        the compiler package (lexer, parser, ast, sema, codegen, cli)
 cosmos/          the Cosmos library in .prelude (english = language layer, actions,
                  parser, scope, dispatch, loop, core) plus the .granule features
@@ -104,13 +106,14 @@ pyproject.toml
 - Work milestone by milestone from docs/00 section 7 (B0 to B13). Each has a
   concrete done-test; do not advance until it passes.
 - Produce docs/03-compiler-pipeline.md, docs/04-codegen-mapping.md,
-  and docs/05-granules.md as the matching work is done,
+  as the matching work is done (granule additions land in the handbook's
+  Part III),
   so the design record stays current.
 
 ## Conformance
 
 The two example games are the golden tests. The Brass Lantern and Cloak of
-Darkness (docs/01 sections 18 and 19) must compile, run correctly on Frotz,
+Darkness (docs/01 Part I sections 18 and 19) must compile, run correctly on Frotz,
 and run on Ceres, and their story files are tracked for size regression
 against a PunyInform-equivalent build.
 

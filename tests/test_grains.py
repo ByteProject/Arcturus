@@ -72,7 +72,7 @@ SHARED_WORD = (
 def test_same_grain_word_in_two_rooms_on_frotz(tmp_path):
     # One dictionary word, two grains in two rooms: the word's grain chain is
     # walked and the grain whose owner is in scope answers, so each room keeps
-    # its own response (docs/01 section 14).
+    # its own response (docs/01 Part I section 14).
     story = tmp_path / "e.z5"
     story.write_bytes(generate(analyze(cosmos.combined_program(parse(SHARED_WORD)))))
     out = subprocess.run(
@@ -230,7 +230,7 @@ def test_a_story_name_still_wins_over_the_action_sugar():
 
 
 def test_attached_grains_actually_attach(capsys):
-    # The outside-body form (`foyer.grains`, docs/01 section 14) was parsed
+    # The outside-body form (`foyer.grains`, docs/01 Part I section 14) was parsed
     # and checked but never merged: the grains were silently dead and their
     # words never reached the dictionary (a field investigation found it).
     game = (

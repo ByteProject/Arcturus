@@ -79,7 +79,7 @@ block resolve_verb()
     if d is not nothing
         let flags = peek_byte(d + 6)
         if any_tables is 1
-            // Un verbo con tabla de gramática (docs/02 sección 8c): los bytes
+            // Un verbo con tabla de gramática (docs/01 Part II sección 8c): los bytes
             // de datos llevan la dirección de la tabla, cuyo primer byte es
             // la acción de su primera línea; la línea de verdad la elige
             // luego el matcher (line_act).
@@ -182,7 +182,7 @@ global clitico = 0
 // responde ("examina a yo" no, pero "examinate" sí, y también estas), un
 // nombre imprimible y la marca de nombre propio contra el artículo. Un juego
 // añade las suyas con player.words.
-// Las palabras de encadenar (docs/02 sección 8b): cada una cierra una orden y
+// Las palabras de encadenar (docs/01 Part II sección 8b): cada una cierra una orden y
 // abre la siguiente en la misma línea ("coge la lámpara y abre la puerta,
 // luego ve al norte"). La coma cuenta como palabra propia, con o sin espacios.
 chain ",", "y", "luego"
@@ -190,7 +190,7 @@ chain ",", "y", "luego"
 // Las palabras de relleno: los artículos que el parser conoce pero ignora.
 // Conocerlas importa: una lista de sustantivos puede llevarlas ("coge la
 // lámpara y la llave"), mientras que una palabra desconocida de verdad
-// rechaza el préstamo del verbo (docs/02 8b).
+// rechaza el préstamo del verbo (docs/01 Part II 8b).
 noise "el", "la", "los", "las", "un", "una", "unos", "unas", "al", "del"
 
 player.words yo, mismo
@@ -350,7 +350,7 @@ block resolve_objects()
     if d is not nothing
         if any_tables is 1
             // Un verbo con tabla: el matcher posicional se encarga de toda la
-            // orden (docs/02 sección 8c). Un clítico pendiente ("cávalo")
+            // orden (docs/01 Part II sección 8c). Un clítico pendiente ("cávalo")
             // sigue siendo el sustantivo cuando la línea no trajo ninguno.
             if peek_byte(d + 6) is 144 or peek_byte(d + 6) is 152
                 let tbl = peek_word(d + 7, 0)
@@ -881,7 +881,7 @@ verb "cantar", "canta"
 // check folds away in a game with no named objects (any_named).
 block art_the(obj, cap)
     // Total, like the containment test: an unresolved noun prints
-    // as the word, never an illegal print_obj 0 (docs/02 s.12).
+    // as the word, never an illegal print_obj 0 (docs/01 Part II s.12).
     if obj is nothing
         show("nada")
         return
@@ -890,7 +890,7 @@ block art_the(obj, cap)
         if obj is named
             print_name(obj)
             return
-    // A hand-set article wins over derivation (docs/01 section 16): las
+    // A hand-set article wins over derivation (docs/01 Part I section 16): las
     // tijeras, el agua. Printed as stored, so keep it lowercase and let such
     // objects sit mid-sentence.
     if article_addr(obj) is not 0
@@ -928,7 +928,7 @@ block art_the(obj, cap)
 
 block art_a(obj, cap)
     // Total, like the containment test: an unresolved noun prints
-    // as the word, never an illegal print_obj 0 (docs/02 s.12).
+    // as the word, never an illegal print_obj 0 (docs/01 Part II s.12).
     if obj is nothing
         show("nada")
         return
@@ -1207,7 +1207,7 @@ block msg_no_it()
 block msg_be_specific()
     say "Tendrás que ser más concreto."
 
-// La pregunta de desambiguación (docs/02 sección 8): el marco alrededor de
+// La pregunta de desambiguación (docs/01 Part II sección 8): el marco alrededor de
 // la lista de candidatos que imprime el parser ("¿A cuál te refieres, la
 // moneda de oro o la moneda de plata?").
 block line_which_open()

@@ -225,7 +225,7 @@ PRONOUN_GAME = (
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_english_pronouns_on_frotz(tmp_path):
-    # Part 1 of the pronoun work (docs/02 section 8a): "it" remembers the last
+    # Part 1 of the pronoun work (docs/01 Part II section 8a): "it" remembers the last
     # thing, "her"/"him" the last character by gender, a pronoun binds as a
     # second noun ("put coin in it"), and a referent that left scope answers
     # with the honest "you see nothing of the sort".

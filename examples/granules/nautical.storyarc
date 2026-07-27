@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for the nautical granule (docs/05): FORE, AFT, PORT, and
+// A showcase for the nautical granule (docs/01 Part III): FORE, AFT, PORT, and
 // STARBOARD as real directions, for a game set where the compass fails.
 // Cardinal directions are measured around the pole of a planet; a ship's
 // deck and deep space have no pole, so a vessel is laid out along its own

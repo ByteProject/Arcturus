@@ -8,7 +8,7 @@
 Recursive descent over the token stream from the lexer, producing the AST in
 ast.py. Declarations and statements are parsed top-down; expressions use
 precedence-climbing. The grammar followed is docs/01 appendix B, with the
-runtime constructs (grains attach, scheduling) from docs/02.
+runtime constructs (grains attach, scheduling) from docs/01 Part II.
 
 The parser records structure only. The is-as-property-test versus
 is-as-equality decision, scope, the property/attribute storage choice, and
@@ -25,7 +25,7 @@ from .errors import ArcError
 from .lexer import RawInterp, tokenize
 from .prelude import _ZCOLOURS
 
-# Articles recognized at the start of an interpolation (docs/01 section 16),
+# Articles recognized at the start of an interpolation (docs/01 Part I section 16),
 # plus the number-agreeing copula `is` (${is x} prints is/are by the object's
 # pluribus attribute, worded by the language pack: ist/sind, está/están).
 _ARTICLES = frozenset({"a", "an", "the", "is", "A", "An", "The", "Is"})
@@ -127,7 +127,7 @@ class Parser:
 
     def _kind_name(self, what: str) -> str:
         """A kind reference: an ordinary identifier or one of the builtin kinds
-        `thing` and `room`, which are keywords (docs/01 section 5)."""
+        `thing` and `room`, which are keywords (docs/01 Part I section 5)."""
         if self.cur.kind == T.NAME:
             return self.advance().value
         if self.cur.kind == T.KW and self.cur.value in ("thing", "room"):
@@ -215,7 +215,7 @@ class Parser:
             nxt = self._at(1)
             if nxt.kind == T.OP and nxt.value == ".":
                 # player.words Olivia, Lund / player.desc "..." / player.desc
-                # block: augment the seeded player object (docs/01 section 5a).
+                # block: augment the seeded player object (docs/01 Part I section 5a).
                 line = t.line
                 self.advance()
                 self.advance()
@@ -454,7 +454,7 @@ class Parser:
     def parse_subject(self) -> ast.SubjectDecl:
         # `subject <id> "<label>" words a, b` plus an optional indented body,
         # the default exchange for characters that reference it without one
-        # (docs/01 section 15). A subject is declared once at file level and
+        # (docs/01 Part I section 15). A subject is declared once at file level and
         # named by any character's `topic <id>`; the vocabulary and the label
         # live here, so adding a synonym is one edit for the whole cast.
         line = self.cur.line
@@ -539,7 +539,7 @@ class Parser:
             # Vocabulary, not expressions: any word is admissible, including
             # the language's reserved ones (words self, you), since the player
             # types them without knowing our keywords. `plural` is the group
-            # vocabulary the plurals granule matches (docs/05).
+            # vocabulary the plurals granule matches (docs/01 Part III).
             values = [self._vocab_word()]
             while self.check_op(","):
                 self.advance()
@@ -895,7 +895,7 @@ class Parser:
 
     def parse_chain(self) -> ast.ChainDecl:
         # `chain ",", "and", "then"`: the words that chain commands on one line
-        # (docs/02 section 8b). Dispatched as a leading name, like direction and
+        # (docs/01 Part II section 8b). Dispatched as a leading name, like direction and
         # particle; all chain words act alike, so there is no role to check.
         line = self.cur.line
         self.advance()  # the leading `chain`
@@ -907,7 +907,7 @@ class Parser:
         return ast.ChainDecl(words, line)
 
     def parse_all(self) -> ast.AllDecl:
-        # `all "all", "everything"`: the takeall granule's all-words (docs/05).
+        # `all "all", "everything"`: the takeall granule's all-words (docs/01 Part III).
         # Dispatched as a leading name followed by a string, like chain.
         line = self.cur.line
         self.advance()  # the leading `all`
@@ -1190,7 +1190,7 @@ class Parser:
                 return handler(self)
         if t.kind == T.NAME:
             # zcolor.font white / zcolor.background black: the base-colour
-            # statement (docs/01 section 9a). Dispatched here because zcolor is
+            # statement (docs/01 Part I section 9a). Dispatched here because zcolor is
             # not a reserved word.
             if t.value == "zcolor":
                 return self._parse_zcolor()

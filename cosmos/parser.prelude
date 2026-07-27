@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// The language-agnostic parser skeleton (docs/02 section 8). It reads a line,
+// The language-agnostic parser skeleton (docs/01 Part II section 8). It reads a line,
 // asks the language layer (english.prelude, swappable per summon.language) to
 // identify the verb and resolve the noun, and reports the result. It makes no
 // assumption about word order, articles, or inflection; all of that lives in the
@@ -49,7 +49,7 @@ block read_input()
         set_colour(zc_font, 0)
     return term
 
-// The remembered referent for a canonical pronoun role (docs/02 section 8a):
+// The remembered referent for a canonical pronoun role (docs/01 Part II section 8a):
 // 1 it, 2 him, 3 her, 4 them. The language layer's note_pronouns fills the
 // slots as nouns resolve; scope_match reads them back when a pronoun is typed.
 block pronoun_slot(role)
@@ -79,7 +79,7 @@ block parse()
     // A fresh line borrows no verb from the last one (noun lists, 8b).
     change chain_prev to 0
     // Remember the full typed length: chain_next restores it when it wakes the
-    // queued rest of a chained line (docs/02 section 8b).
+    // queued rest of a chained line (docs/01 Part II section 8b).
     change chain_max to peek_byte(text_addr + 1)
     return parse_line
 
@@ -109,7 +109,7 @@ block parse_line()
             change verb_trigger to word_dict(0)
     if act is 0
         // A verb-less chained segment borrows the previous command's verb:
-        // "take lamp and box" runs the take twice (docs/02 section 8b).
+        // "take lamp and box" runs the take twice (docs/01 Part II section 8b).
         change act to verb_fallback
         if act is 0
             return 0
@@ -122,7 +122,7 @@ block parse_line()
     change way to find_direction
     resolve_objects
     // An ambiguous noun phrase asks rather than refuses: "Which do you
-    // mean, the gold coin or the silver coin?" (docs/02 section 8).
+    // mean, the gold coin or the silver coin?" (docs/01 Part II section 8).
     if parse_fault is 3
         return ask_which
     if parse_fault is not 0
@@ -153,7 +153,7 @@ block parse_line()
     return remap_action(act)
 
 // ==========================================================================
-// The noun matcher (docs/02 section 8). Language-agnostic: the packs' thin
+// The noun matcher (docs/01 Part II section 8). Language-agnostic: the packs' thin
 // match_noun/resolve_two_nouns hand their word ranges to match_phrase here.
 // ==========================================================================
 
@@ -219,7 +219,7 @@ block probe_noun(lo, hi)
     return best
 
 // ==========================================================================
-// The positional grammar matcher (docs/02 section 8c). A verb whose grammar
+// The positional grammar matcher (docs/01 Part II section 8c). A verb whose grammar
 // the flag model cannot represent (a leading preposition on a two-noun verb,
 // "dig in noun with held", or wording that selects the action, "look_under
 // under noun") carries a TABLE: its lines in matcher order, each an action
@@ -419,7 +419,7 @@ block grammar_match(tbl)
     return 0
 
 // Is this word in the object's plural (group) vocabulary? The plurals
-// granule's counterpart of has_word (docs/05); a game without `plural`
+// granule's counterpart of has_word (docs/01 Part III); a game without `plural`
 // declarations has no property and the intrinsic answers 0.
 block has_plural(obj, target)
     let addr = plural_addr(obj)
@@ -442,7 +442,7 @@ block plural_tie(lo, hi)
 block plural_them()
     return 0
 
-// NOUN LISTS, a core parser feature (docs/02 section 8b): a chained segment
+// NOUN LISTS, a core parser feature (docs/01 Part II section 8b): a chained segment
 // with no verb of its own borrows the previous command's verb, so "take lamp
 // and box" runs as take lamp, take box, one full turn each. The list words
 // are the chain words, which the language layer already localizes, so this
@@ -514,7 +514,7 @@ block phrase_named(lo, hi)
 // an iron hook in scope, "hook" alone is ambiguous but "brass hook" resolves,
 // and typing more adjectives narrows further. A TIE at the best score is a
 // genuine ambiguity: parse_fault 3, and the turn asks the player rather than
-// silently taking whichever object happens to come first (docs/02 section 8).
+// silently taking whichever object happens to come first (docs/01 Part II section 8).
 // A typed pronoun short-circuits to its remembered referent. When nothing in
 // scope matches at all, the closed-container knowledge gets its chance
 // (shut_search), so naming the coin you know is in the shut chest still
@@ -699,7 +699,7 @@ block list_which()
         change obj to obj + 1
     line_which_end
 
-// The held tiebreak (docs/02 section 8, a field rule): a tie where exactly
+// The held tiebreak (docs/01 Part II section 8, a field rule): a tie where exactly
 // one candidate answers for the player's hands is not an ambiguity worth a
 // question. EXAMINE MIRROR with one in hand and one on the guard means the
 // held one; TAKE MIRROR in the same room means the one NOT held (taking
@@ -723,7 +723,7 @@ block which_tiebreak(want_held)
         change obj to obj + 1
     return pick
 
-// The disambiguation ask (docs/02 section 8): the phrase in [ask_lo, ask_hi)
+// The disambiguation ask (docs/01 Part II section 8): the phrase in [ask_lo, ask_hi)
 // tied between several objects at score ask_score. Ask which one, then read
 // the answer through the shared text buffer. An answer that starts with a
 // verb or a direction is a change of mind: it replaces the command outright.
@@ -774,7 +774,7 @@ block ask_which()
     retokenize
     return parse_line
 
-// Command chaining (docs/02 section 8b). A chain word (the language layer's
+// Command chaining (docs/01 Part II section 8b). A chain word (the language layer's
 // `chain` declarations: "and", "then", the comma) ends the current command;
 // what follows runs as the next command once this one succeeds. The split is
 // buffer surgery, not copying: the typed length byte is cut down so the

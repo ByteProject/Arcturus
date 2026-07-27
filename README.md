@@ -42,8 +42,8 @@ certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.3.33 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 1.3.3 | shipped inside `arcc` |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.3.34 | [build/arcc](build/arcc) |
+| **Cosmos**, the standard library | 1.3.4 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.3.6 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.29.0 | [build/arcimg](build/arcimg) |
 
@@ -61,23 +61,22 @@ python3 actaea --console mygame.z5            # or in the terminal
 
 The story file `mygame.z5` is a standard Z-machine v5 file: it also plays on
 Frotz, Ozmoo, and any other interpreter, old or new. Then read the docs and
-go: start with the [syntax reference](docs/01-syntax-reference.md) (the
-language, with two complete worked games) and, when you want to play or debug,
+go: start with the [Arcturus Handbook](docs/01-arcturus-handbook.md) (the
+language, the runtime, and the granules in one book, with two complete worked
+games) and, when you want to play or debug,
 the [Actaea guide](docs/06-actaea.md). The full documentation index is
 [below](#the-language).
 
 ## The language
 
-The authoritative language definition is the syntax reference, which is enough
-to start writing Arcturus today:
+The authoritative definition is the Arcturus Handbook, one book in three
+parts, enough to start writing Arcturus today:
 
-- [docs/01-syntax-reference.md](docs/01-syntax-reference.md): the language.
-  Grammar, every construct, and two complete worked example games.
-- [docs/02-cosmos-and-parser.md](docs/02-cosmos-and-parser.md): the runtime.
-  The Cosmos library, the parser, the action pipeline, scope, light, and the
-  turn loop.
-- [docs/05-granules.md](docs/05-granules.md): the summonable granules. How to
-  summon them, how to fork one, and how to write your own.
+- [docs/01-arcturus-handbook.md](docs/01-arcturus-handbook.md): the handbook.
+  Part I is the language (grammar, every construct, and two complete worked
+  example games); Part II is the runtime (the Cosmos library, the parser, the
+  action pipeline, scope, light, and the turn loop); Part III is the
+  summonable granules, how to fork one, and how to write your own.
 - [docs/06-actaea.md](docs/06-actaea.md): Actaea, the reference interpreter.
   The three ways to play, the tools, saves and transcripts, and conformance.
 - [docs/07-arc-image.md](docs/07-arc-image.md): pictures in your story. The
@@ -289,7 +288,7 @@ forking; then `-L` (an absolute path) points the compiler at your copy. For a
 single standard message you need not extract anything: redefine its block (for
 example `block msg_jump()`) in your own story and it overrides the library's. A
 granule's own blocks are not overridable that way - you fork the granule;
-[docs/05](docs/05-granules.md) covers the model.
+[the handbook Part III](docs/01-arcturus-handbook.md) covers the model.
 
 Every file written out carries a fork stamp on its first line. A fork wins over
 the bundled copy for as long as it sits there, so the stamp is how the compiler

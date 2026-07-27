@@ -31,7 +31,7 @@ class StringText:
 @dataclass
 class StringInterp:
     # The interpolated expression, already parsed. `article` is the optional
-    # leading article helper (a, an, the, A, An, The); see docs/01 section 16.
+    # leading article helper (a, an, the, A, An, The); see docs/01 Part I section 16.
     # `case` is an optional grammatical-case tag written after a colon on the
     # article (${the:acc noun}); it reaches the language layer's article block so
     # a case-inflected language (German der/den/dem) can pick the right form. Only
@@ -141,7 +141,7 @@ class Logic(Expr):
 @dataclass
 class IsTest(Expr):
     """left is right / left is not right. Whether this is a boolean property
-    test or an equality is decided in semantic analysis (docs/01 section 9)."""
+    test or an equality is decided in semantic analysis (docs/01 Part I section 9)."""
 
     left: Expr
     right: Expr
@@ -299,7 +299,7 @@ class ExprStmt(Stmt):
 
 @dataclass
 class Schedule(Stmt):
-    """after <n> turns do <event> / every <n> turns do <event> (docs/02 s.13)."""
+    """after <n> turns do <event> / every <n> turns do <event> (docs/01 Part II s.13)."""
 
     every: bool
     count: Expr
@@ -392,7 +392,7 @@ class GameBlock:
 
 @dataclass
 class Summon:
-    # The three summon forms (docs/05). `target` is a feature id, a granule
+    # The three summon forms (docs/01 Part III). `target` is a feature id, a granule
     # filename, or a path, depending on `form`:
     #   "feature"  summon.statusline        - the bundled copy, always
     #   "name"     summon statusline.granule - story dir, then -L dirs, then bundled
@@ -408,7 +408,7 @@ class Summon:
     selection: list = field(default_factory=list)
 
 
-# Property declaration forms (docs/01 section 6).
+# Property declaration forms (docs/01 Part I section 6).
 PROP_VALUE = "value"  # name <value> (or a comma list, as for words)
 PROP_BOOL = "bool"  # bare name, a boolean defaulting to true
 PROP_LIST = "list"  # name list <n>
@@ -446,7 +446,7 @@ PatternItem = Union[Operand, Prep]
 class Handler:
     # One or more action names. A header may list several verbs separated by
     # commas (on attack, push, pull), so this is always a list with at least
-    # one entry. `other` is the catch-all (docs/01 section 12).
+    # one entry. `other` is the catch-all (docs/01 Part I section 12).
     events: list[str]
     after: bool = False
     pattern: list[PatternItem] = field(default_factory=list)
@@ -480,7 +480,7 @@ class GrainsBlock:
 @dataclass
 class SubjectDecl:
     """A conversation subject declared once at file level and shared by every
-    character that raises it (docs/01 section 15): the match words and the
+    character that raises it (docs/01 Part I section 15): the match words and the
     menu label live here, and `body` is the optional default exchange for a
     character whose `topic` names it without writing one."""
     name: str
@@ -492,7 +492,7 @@ class SubjectDecl:
 
 @dataclass
 class TopicDecl:
-    # A conversation topic on a person (docs/02 section 14). `subject` is the id
+    # A conversation topic on a person (docs/01 Part II section 14). `subject` is the id
     # (used by reveal/hide); `label` is the menu line; `words` are the ask/tell
     # match words (empty for conversations-only). `when` guards visibility, `once`
     # retires after use, `hidden` starts it out of view. The body is the exchange.
@@ -503,7 +503,7 @@ class TopicDecl:
     once: bool = False
     hidden: bool = False
     idle: bool = False  # the ask/tell fallback: runs when no worded topic
-                        # matched (docs/05); the menu ignores it entirely
+                        # matched (docs/01 Part III); the menu ignores it entirely
     body: list[Stmt] = field(default_factory=list)
     line: int = 0
 
@@ -711,7 +711,7 @@ class ChainDecl:
     # A language layer declares the words that chain commands on one line:
     # `chain ",", "and", "then"` (English), `chain ",", "y", "luego"` (Spanish).
     # A chain word ends the current command; the parser runs what follows as the
-    # next command once the current one succeeds (docs/02 section 8b). All chain
+    # next command once the current one succeeds (docs/01 Part II section 8b). All chain
     # words behave identically, so this is a plain word list with no role.
     words: list[str]
     line: int = 0
@@ -754,7 +754,7 @@ class AllDecl:
     # The takeall granule's all-words: `all "all", "everything"` names the words
     # that mean "everything within reach" (TAKE ALL, DROP ALL, TAKE ALL FROM X).
     # Declared in the granule, so a game pays nothing unless it summons it; a
-    # translation forks the granule and redeclares them (docs/05).
+    # translation forks the granule and redeclares them (docs/01 Part III).
     words: list[str]
     line: int = 0
 
@@ -774,7 +774,7 @@ class GlobalDecl:
     # role: "global" (the general drawer: numbers, object references,
     # strings), "flag" (boolean state, starts false, only ever true/false),
     # or "counter" (a number with ++/--, starts 0). The declaration head
-    # says what you are holding (docs/01 section 4).
+    # says what you are holding (docs/01 Part I section 4).
     name: str
     value: Expr
     role: str = "global"
@@ -812,7 +812,7 @@ class AmbienceLine:
 
 @dataclass
 class AmbienceBlock:
-    # An `ambience` block on a room or thing (summon.ambience, docs/05): a
+    # An `ambience` block on a room or thing (summon.ambience, docs/01 Part III): a
     # list of lines the place or thing murmurs over time. mode is "about"
     # (living odds), "every" (strict clock), or "order" (written order);
     # rate is the declared cadence (None: the ambience_rate dial); once
@@ -829,7 +829,7 @@ class AmbienceBlock:
 @dataclass
 class GrainsAttach:
     """Grains attached to an existing object from outside its body:
-    <object>.grains (docs/01 section 14)."""
+    <object>.grains (docs/01 Part I section 14)."""
 
     target: str
     grains: list[Grain]

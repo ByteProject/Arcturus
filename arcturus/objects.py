@@ -40,7 +40,7 @@ REACT_PROP = 63
 # property, holding an array of dictionary addresses (filled in B4.5d.1).
 _SPECIAL = {"name"}
 
-# The conversation topic table (docs/02 section 14). A person with `topic`
+# The conversation topic table (docs/01 Part II section 14). A person with `topic`
 # declarations carries a `topics` property holding the address of its table:
 # a count word, then one fixed-size record per topic, then the per-topic
 # match-word sub-arrays. Each record is TOPIC_REC bytes:
@@ -663,7 +663,7 @@ def _emit_scoring_tables(world, layout) -> None:
 
 
 def _emit_ambience_tables(world, layout) -> None:
-    """Emit the ambience table (summon.ambience, docs/05): a count word, then a
+    """Emit the ambience table (summon.ambience, docs/01 Part III): a count word, then a
     ten-word record per block. The record is live data in dynamic memory; the
     last two words are the driver's state (cadence odds and the last line).
 
@@ -840,7 +840,7 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
         items.append((topics_prop, "topics", None))
     # The spans property: the extra rooms a fixed object is in scope in. Emitted
     # like `words` (an array of object numbers) but only for a non-movable object
-    # (fixed or scenery); on a movable object spans is ignored (docs/01 section 5).
+    # (fixed or scenery); on a movable object spans is ignored (docs/01 Part I section 5).
     spans_prop = layout.prop_number.get("spans")
     obj_spans = world.objects[name].spans
     nonmovable = ("fixed" in eff and _bool_value(eff["fixed"])) or (

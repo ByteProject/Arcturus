@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for positional grammar (docs/01 section 10). Most verbs need no
+// A showcase for positional grammar (docs/01 Part I section 10). Most verbs need no
 // more than a noun and a preposition between two nouns, and those compile to
 // the classic flag model. But a verb may put a word BEFORE its first noun, or
 // use its wording to pick the action, and then the compiler quietly gives the

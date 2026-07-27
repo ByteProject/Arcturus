@@ -78,7 +78,7 @@ INTRINSICS = frozenset({
     # holders; 0 (the default) folds the pass away.
     "any_scenery_contents",
     # any_tables is the compile-time positional-grammar flag (1 if any verb's
-    # grammar needs a table, docs/02 section 8c): the packs and the matcher
+    # grammar needs a table, docs/01 Part II section 8c): the packs and the matcher
     # guard on it, so a game whose verbs all fit the flag model folds the whole
     # table path away and its story file is byte-identical.
     "any_tables",
@@ -191,7 +191,7 @@ INTRINSICS = frozenset({
     # backed by routines codegen emits only when these intrinsics are used.
     "exits_count", "exit_prop", "exit_name",
     # exit_dest(room, dirprop): the destination of a direction, running a
-    # computed exit block if the property holds one (docs/02 section 11a). Folds
+    # computed exit block if the property holds one (docs/01 Part II section 11a). Folds
     # to a plain get_prop when the game has no computed exit.
     "exit_dest",
     # Screen model (v5), for the statusline granule: the upper window, cursor,
@@ -201,7 +201,7 @@ INTRINSICS = frozenset({
     "erase_window", "screen_height", "buffer_mode", "clear_screen", "random",
     "ambience_table", "ranks_table", "any_ranks", "print_packed",
     "pools_table", "award_earned", "any_awards", "meta_floor",
-    # The dispatcher's after phase (docs/02 section 9 step 6): whether any
+    # The dispatcher's after phase (docs/01 Part II section 9 step 6): whether any
     # `on after` handler exists (folds the phase away when not), and the
     # action -> synthetic-after-action map behind it.
     "any_after", "after_of", "any_requires", "requires_of",
@@ -241,7 +241,7 @@ INTRINSICS = frozenset({
 _ARITH = {"+": "add", "-": "sub", "*": "mul", "/": "div", "mod": "mod"}
 _MAX_LOCALS = 15
 
-# Builtin references that hold an object number at run time (docs/02 section 2).
+# Builtin references that hold an object number at run time (docs/01 Part II section 2).
 _OBJECT_BUILTINS = {"player", "here", "noun", "second", "self"}
 
 
@@ -1545,7 +1545,7 @@ def _bare_const_value(ctx, expr) -> bool:
 
 
 def _distribute_is_list(ctx, expr):
-    """The is-list (docs/01 section 9): `way is aft or north` distributes to
+    """The is-list (docs/01 Part I section 9): `way is aft or north` distributes to
     `way is aft or way is north`, and the negated form to NEITHER (`way is
     not aft and way is not north`, the natural reading). Only a bare
     compile-time value distributes: before this sugar such an operand was an
@@ -2876,7 +2876,7 @@ def _emit_prop_print_or_run(rt, ctx, dot, add_newline):
     stored value is a packed address: below the __strings__ threshold it is the
     property's block routine (call it; the block prints its own text), at or above
     it is a plain string (print it, adding a newline only when asked). This is the
-    "print or run" the computed-property read needs (docs/01 section 6).
+    "print or run" the computed-property read needs (docs/01 Part I section 6).
 
     Packed addresses are UNSIGNED 16-bit, but the Z-machine's jl compares signed:
     a string laid past file offset 0x20000 has a packed address >= 0x8000, which
@@ -3378,7 +3378,7 @@ def _if(rt, ctx, s: ast.If) -> bool:
 
 
 def _schedule(rt, ctx, s: ast.Schedule):
-    """Arm a timer (docs/02 section 13). `after N turns do B` sets B's slot to a
+    """Arm a timer (docs/01 Part II section 13). `after N turns do B` sets B's slot to a
     countdown of N and a reload of -N (fires once: schedule_tick treats any
     reload below 1 as one-shot, and the negated value preserves the ARMED
     interval so `stop after N turns do B` can match it); `every N turns do B`
@@ -3399,7 +3399,7 @@ def _schedule(rt, ctx, s: ast.Schedule):
 
 
 def _stop_schedule(rt, ctx, s: "ast.StopSchedule"):
-    """Disarm the timer the full triple names (docs/02 section 13): the kind
+    """Disarm the timer the full triple names (docs/01 Part II section 13): the kind
     and interval must MATCH what is armed in the block's slot (an `every 5`
     cannot stop an `every 4`, nor an `after 5`), and a triple that is not
     running is a clean no-op. The reload word carries the armed identity:

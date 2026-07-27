@@ -7,13 +7,13 @@
 
 The standard library, Cosmos, supplies the standard kinds, properties,
 directions, actions, and builtin references that a game uses without declaring
-them (docs/02 appendix A). Cosmos is written in Arcturus and will be compiled
+them (docs/01 Part II appendix A). Cosmos is written in Arcturus and will be compiled
 from its `.prelude` source in a later milestone (B4). Until then, this module
 provides the same interface as data, so semantic analysis and the world model
 can be built and checked now.
 
 This is the one place that mirrors the Cosmos vocabulary, kept isolated and
-spec-derived (docs/02 appendix A). Semantic analysis takes the environment as
+spec-derived (docs/01 Part II appendix A). Semantic analysis takes the environment as
 an argument rather than reaching for it directly, so when Cosmos source is
 compiled in B4 the analyzer can run over the real prelude AST unchanged.
 """
@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 # Property value types. A property's type is fixed program-wide by its declared
-# default (docs/01 section 6).
+# default (docs/01 Part I section 6).
 T_BOOL = "bool"
 T_NUMBER = "number"
 T_TEXT = "text"
@@ -71,7 +71,7 @@ class Environment:
         return name in self.directions
 
 
-# Standard kinds and their parent chain (docs/02 section 10, appendix A).
+# Standard kinds and their parent chain (docs/01 Part II section 10, appendix A).
 _STD_KINDS = [
     StdKind("thing", None),
     StdKind("room", None),
@@ -81,7 +81,7 @@ _STD_KINDS = [
     StdKind("character", "thing"),
 ]
 
-# Standard boolean properties become attribute candidates (docs/02 appendix A).
+# Standard boolean properties become attribute candidates (docs/01 Part II appendix A).
 _STD_BOOL_PROPS = [
     "fixed", "scenery", "hidden", "concealed", "wearable", "worn", "lit",
     "edible", "named", "switchable", "openable", "open", "lockable", "locked",
@@ -143,7 +143,7 @@ _STD_BOOL_PROPS = [
     # in scope and examinable while every touching action refuses ("... is
     # beyond your reach"), and it is STATE: `now jar is not beyond` when the
     # player gains the stool. Static faraway decoration needs no object at
-    # all: that is a grain's job (docs/01 section 14).
+    # all: that is a grain's job (docs/01 Part I section 14).
     "beyond",
     # Pushable between rooms (PUSH CRATE NORTH): the thing rolls through the
     # exit with the player. Stefan's name (2026-07-22), the -able family.
@@ -221,7 +221,7 @@ _STD_VALUE_PROPS = {
     # The plurals granule's group vocabulary: the words that name this object
     # AS PART OF A GROUP ("coins" on each coin). A plural word matching several
     # in-scope objects runs the action on each instead of asking which one
-    # (docs/05, summon.plurals). Ignored without the granule.
+    # (docs/01 Part III, summon.plurals). Ignored without the granule.
     "plural": T_LIST,
     "capacity": T_NUMBER,
     # The object that locks and unlocks a lockable thing (a door or chest). Named
@@ -229,10 +229,10 @@ _STD_VALUE_PROPS = {
     # free for a key object's own `words`.
     "unseal_with": T_OBJECT,
     # The extra rooms a fixed object is in scope in, beyond its tree location (the
-    # `spans` sugar, docs/01 section 5). Emitted as an array of room object numbers
+    # `spans` sugar, docs/01 Part I section 5). Emitted as an array of room object numbers
     # like `words`; scope reads it. Authors write `spans a, b` or `in a, b`.
     "spans": T_LIST,
-    # Conversation topics (docs/02 section 14). Authors never write this; the
+    # Conversation topics (docs/01 Part II section 14). Authors never write this; the
     # compiler synthesizes it from a character's `topic` declarations as the address
     # of that character's runtime topic table (objects.py emits the table, the
     # conversation granules walk it). T_LIST so it is a slot holding a pointer.
@@ -258,7 +258,7 @@ _DIRECTIONS = [
     "fore", "aft", "port", "starboard",
 ]
 
-# Standard action names a verb grammar line can produce (docs/02 appendix A).
+# Standard action names a verb grammar line can produce (docs/01 Part II appendix A).
 _STD_ACTIONS = {
     "look", "examine", "search", "take", "drop", "put", "wear", "take_off",
     "inventory", "go", "enter", "exit", "open", "close", "lock", "unlock",
@@ -268,7 +268,7 @@ _STD_ACTIONS = {
     # subject. English selects it by wording (the ask verb's grammar table);
     # other packs may give it a verb of their own.
     "ask_for",
-    # The rest of the standard verb set (docs/02 section 9). These exist as verbs
+    # The rest of the standard verb set (docs/01 Part II section 9). These exist as verbs
     # in the language layer, but the names must be known here too, so a handler
     # (`on touch`) or a grain line (`touch "stone"`) checks out even when a
     # program is analyzed without Cosmos (--no-cosmos, the bare IR tests).
@@ -278,10 +278,10 @@ _STD_ACTIONS = {
     "quit", "restart", "save", "restore", "undo", "oops", "score", "xyzzy",
 }
 
-# Engine-fired events, plus the catch-all (docs/01 section 12, docs/02).
+# Engine-fired events, plus the catch-all (docs/01 Part I section 12, docs/01 Part II).
 _CORE_EVENTS = {"start", "enter", "each_turn", "other"}
 
-# Builtin references usable in any handler or block (docs/02 section 2).
+# Builtin references usable in any handler or block (docs/01 Part II section 2).
 _BUILTINS = {
     "player": T_OBJECT,
     "here": T_OBJECT,
@@ -296,7 +296,7 @@ _BUILTINS = {
     # the next text. Library-internal: upper-window drawing holds it across a
     # draw (a bar or menu print must not consume the transcript's break).
     "par_pending": T_NUMBER,
-    # The pronoun referents, one per canonical role (docs/02 section 8a): what
+    # The pronoun referents, one per canonical role (docs/01 Part II section 8a): what
     # "it", "him", "her", and "them" currently mean. The language layer's
     # note_pronouns fills them as nouns resolve; scope_match reads them back.
     "pron_it": T_OBJECT,
@@ -311,9 +311,9 @@ _BUILTINS = {
     "unknown_at": T_NUMBER,
     # Set by resolve_objects when the matched verb has a reversed two-noun form
     # (give/show BOB COIN): resolve_two_nouns then splits the adjacent nouns and
-    # swaps the roles. Library-internal (docs/02 section 8).
+    # swaps the roles. Library-internal (docs/01 Part II section 8).
     "two_reverse": T_NUMBER,
-    # Set by the positional grammar matcher (docs/02 section 8c) to the matched
+    # Set by the positional grammar matcher (docs/01 Part II section 8c) to the matched
     # line's action, so a verb whose wording selects the action (look_under
     # under noun) reaches the right handler; 0 when no table line decided.
     # Library-internal.
@@ -362,9 +362,9 @@ _BUILTINS = {
     "last_trigger": T_NUMBER,
     # Set to 1 by a refusal path when a command could not be carried out, so a
     # chained line ("take lamp and go north") stops at the failed command. The
-    # library's default refusals set it; a story handler can too (docs/02 8b).
+    # library's default refusals set it; a story handler can too (docs/01 Part II 8b).
     "refused": T_NUMBER,
-    # Command chaining (docs/02 section 8b), library-internal: the text-buffer
+    # Command chaining (docs/01 Part II section 8b), library-internal: the text-buffer
     # offset where the queued rest of a chained line starts (0 when none), and
     # the full typed length chain_next restores before re-tokenizing.
     "chain_pos": T_NUMBER,
@@ -398,7 +398,7 @@ _BUILTINS = {
     "__awards__": T_NUMBER,
     "__ranks__": T_NUMBER,
     "__pooltab__": T_NUMBER,
-    # The disambiguation ask (docs/02 section 8), library-internal: the tied
+    # The disambiguation ask (docs/01 Part II section 8), library-internal: the tied
     # phrase's word range and winning score (so the question can list the
     # candidates), and the text offset where an answer's narrowing words are
     # woven back into the saved command.
@@ -412,7 +412,7 @@ _BUILTINS = {
     # Set by the parser when a typed all-word hands the command to the takeall
     # granule's expander (TAKE ALL); consumed by the turn loop.
     "all_go": T_NUMBER,
-    # The plurals granule (docs/05): plural_go carries the matched group word
+    # The plurals granule (docs/01 Part III): plural_go carries the matched group word
     # to the sweep, last_plural remembers it for THEM, and chain_prev holds the
     # previous chained command's action so a verb-less segment can borrow it
     # ("take lamp and box").

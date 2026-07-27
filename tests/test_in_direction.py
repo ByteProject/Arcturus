@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""IN is a standard direction property (docs/01 section 10), and it is also
+"""IN is a standard direction property (docs/01 Part I section 10), and it is also
 the containment keyword (`thing lamp in cellar`), so its token is a keyword.
 The parser must still admit it wherever a direction property name can stand:
 a room's exit line (`in cabin`), a go-handler operand (`on go in`), and a

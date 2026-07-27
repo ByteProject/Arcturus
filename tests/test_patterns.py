@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""Operand patterns in handler headers (docs/01 section 12): `on put ruby in
+"""Operand patterns in handler headers (docs/01 Part I section 12): `on put ruby in
 chest` fires for exactly that pairing, `or` lists alternatives, a failed
 pattern falls through to the next handler and the defaults, an all-guarded
 group still reaches the object's `on other`, and patterns compose with the

@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for alter (docs/01 section 7): default mechanics, your
+// A showcase for alter (docs/01 Part I section 7): default mechanics, your
 // wording. A handler that speaks the action's report itself, then
 // continues: the take or drop runs in full (scoring, bookkeeping, the
 // tree), and the library's success line ("Got it.", "Down it goes.")

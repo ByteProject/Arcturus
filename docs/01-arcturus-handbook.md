@@ -1,23 +1,41 @@
-# Arcturus Syntax Reference
+# The Arcturus Handbook
 
-Status: stable. This is the authoritative definition of the Arcturus
-language surface and its semantics, at the level an author needs to write
-correct programs. The language is proven in the field: Hibernated 2, a
-full-length commercial game, is ported and plays to completion, and the two
-reference games in sections 18 and 19 are the conformance anchors of the
-whole toolchain. Where the compiler and this document disagree, the document
-wins: the code gets fixed, or the document is amended in the same commit.
+Status: stable, authoritative. This is the one book an author needs: the
+language, the runtime it drives, and the optional features, in three parts,
+arranged the way a designer's manual reads: how the syntax works first, then
+the library, then the extras. It replaces the former 01-syntax-reference.md,
+02-cosmos-and-parser.md, and 05-granules.md; each part keeps the section
+numbering of the document it absorbed, so a citation like "Part II section
+8" is stable and every older "02 section 8" reference maps one-to-one.
+Where the toolchain and this book disagree, the book wins: the code gets
+fixed, or the book is amended in the same commit.
 
-Scope boundary. This document defines the language. The runtime behavior the
-language drives, the standard library (named Cosmos), the parser, the action
-pipeline, the banner, and the optional summonable features are defined in
-02-cosmos-and-parser.md. The lowering of each construct to z5 is recorded in
-03-compiler-pipeline.md and 04-codegen-mapping.md. Where this document says
-"Cosmos provides X", X is specified in 02.
+- Part I: The Language. Every construct an author writes, from lexical
+  structure to handlers, grammar, and output, closing with the two worked
+  example games.
+- Part II: Cosmos and the Parser. The runtime the language drives: the
+  standard library, the parser, the action pipeline, scope and light, the
+  turn loop, and the standard verbs and responses.
+- Part III: The Granules. The summonable features, how to summon and fork
+  them, and how to write your own.
 
-The worked examples in sections 18 and 19, the Brass Lantern and the iconic
-Cloak of Darkness, use only constructs defined here and serve as the shared
-reference programs across all documents.
+The book is proven in the field: Hibernated 2, a full-length commercial
+game, is ported and plays to completion, and the worked examples in Part I
+sections 18 and 19, the Brass Lantern and the iconic Cloak of Darkness, are
+the conformance anchors of the whole toolchain. The design records stay
+separate: the roadmap in 00-roadmap.md, the compiler internals in
+03-compiler-pipeline.md and 04-codegen-mapping.md, the Actaea interpreter
+in 06-actaea.md.
+
+# Part I: The Language
+
+The authoritative definition of the Arcturus language surface and its
+semantics, at the level an author needs to write correct programs. The
+runtime behavior this surface drives, the standard library (named Cosmos),
+the parser, the action pipeline, and the banner are defined in Part II;
+where this part says "Cosmos provides X", X is specified there. The optional
+summonable features are Part III. The lowering of each construct to z5 is
+recorded in 03-compiler-pipeline.md and 04-codegen-mapping.md.
 
 ## 1. Design principles
 
@@ -83,9 +101,9 @@ language-layer declarations `language` (its self-identifying marker),
 `direction`, `particle`, `pronoun`, `chain` (the words that join several
 commands on one line), and `noise` (the articles the parser knows but
 ignores), which map player-typed words to the compiler's fixed properties
-and roles (02, sections 8, 8a, 8b, and 14a); and a German
+and roles (Part II sections 8, 8a, 8b, and 14a); and a German
 object declares its gender with a bare `der`, `die`, or `das` line, which the
-compiler maps to the gender attributes (02, section 14a).
+compiler maps to the gender attributes (Part II section 14a).
 
 The metadata block sets everything the banner and story header carry:
 
@@ -107,7 +125,7 @@ game; it is optional but recommended. `headline` is the subtitle line of the
 banner. `banner false` stops the automatic banner at start: the game prints it
 later with `print_banner` (after a quote box, say), or never.
 The banner also names the compiler (Arcturus) and the library
-(Cosmos) with their versions; see 02.
+(Cosmos) with their versions; see Part II.
 
 Story state comes in three declarations, and the head tells the reader what
 they are holding:
@@ -218,7 +236,7 @@ catalog escape_route
 ```
 
 A catalog passes to a block as an ordinary value (`quote_catalog(letter)`,
-docs/05), and entry/calculate work on the parameter inside; `for each` and
+Part III), and entry/calculate work on the parameter inside; `for each` and
 the compile-folds need the catalog named in place. A property can hold a
 catalog the same way: `writing plaque_text` on an object (or as a kind
 default) stores the catalog, and `entry(self.writing, 1)` in a kind
@@ -374,7 +392,7 @@ thing <id> [of <kind>] in <room>, <room> ...
 `of <kind>` sets the parent kind; `in <location>` sets the initial tree
 position. The body is property settings, `on` handlers, an optional `grains`
 block (section 14), `topic` blocks on a character (section 15), and, with
-`summon.ambience`, `ambience` blocks (02, section 14; docs/05).
+`summon.ambience`, `ambience` blocks (Part II section 14; Part III).
 
 An object can also live BACKSTAGE: `thing vlad of character in scope` places
 it in an invisible room whose contents the parser always has in scope, in
@@ -456,7 +474,7 @@ The object identifier (`lantern`) is the code symbol; the `name` property is
 the printed text. They are different. The `words` property is a third thing
 again: the vocabulary the parser matches, holding the object's nouns and
 adjectives as equal entries. `name` is printed but not typed; `words` is
-typed but not printed. Adjectives are simply words in `words` (02, section 8).
+typed but not printed. Adjectives are simply words in `words` (Part II section 8).
 
 ## 5a. The player
 
@@ -516,7 +534,7 @@ does no bookkeeping of any kind. The Inform idiom "move lamp to player" (an
 acquisition the player should be credited for) is the Cosmos block
 `gain(lamp)`: it pays a scored thing's points exactly once and marks it
 `moved` and `seen` before moving it, the bookkeeping TAKE would have done
-(02, section 7). A bare `move lamp to player` leaves auto-scored points
+(Part II section 7). A bare `move lamp to player` leaves auto-scored points
 unreachable and the object's `intro` un-retired. Rule of thumb: `gain` when
 the player RECEIVES something, `teleport` when the player ARRIVES somewhere,
 `move` for silent stage management behind the scenes.
@@ -567,7 +585,7 @@ container`), and each supplies the defaults universal to it: a `room` is `lit`, 
 `door` is `openable` and `fixed`, a `character` is `animate` and refuses being
 taken. `character` is the animate kind for anyone the player addresses, gives to,
 or talks to, people and animals and robots alike. What each standard kind
-provides is listed in 02 section 10.
+provides is listed in Part II section 10.
 
 ## 6. Properties and the unified model
 
@@ -604,7 +622,7 @@ with one exception: a computed `desc` is the headline use, and a general
 computed value property (a number decided at run time) is reported as a
 compile error, because a read cannot tell a small value apart from the
 block's address. The exception is a computed EXIT (a direction property that
-is a block; docs/02 section 11a), where the value is a room and so is always
+is a block; Part II section 11a), where the value is a room and so is always
 small enough to distinguish; there the block returns a room to allow the move
 or `nothing` to refuse it.
 
@@ -657,7 +675,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `openable` | Can be opened and closed; the `open` / `close` verbs apply. |
 | `open` | Currently open (a container or door). Set by `open`, cleared by `close`. A closed container hides its contents from scope. |
 | `clear` | A see-through container (a glass jar): its contents are in scope and referable even when closed. An open or `clear` container exposes its contents; a closed opaque one shields them. |
-| `seen` | Set once the player has been shown an object (a content of an open container, something taken or examined). A closed opaque container still lists the contents the player has `seen`, so they are not forgotten when put away; contents never seen stay hidden until the box is opened. Cosmos manages this; you rarely set it. The full container knowledge model is in 02, section 5a. |
+| `seen` | Set once the player has been shown an object (a content of an open container, something taken or examined). A closed opaque container still lists the contents the player has `seen`, so they are not forgotten when put away; contents never seen stay hidden until the box is opened. Cosmos manages this; you rarely set it. The full container knowledge model is in Part II section 5a. |
 | `lockable` | Can be locked and unlocked. LOCK / UNLOCK read the object's state: with the object's `unseal_with` opener held, they succeed; without it (or with no opener defined) they refuse ("you don't have whatever it wants"); UNLOCK on a thing that is not `locked`, or not `lockable` at all, simply opens it. |
 | `locked` | Currently locked; blocks `open` until unlocked. A `lockable` + `locked` thing with NO `unseal_with` is a keyless lock the player cannot open by the verb (no opener to hold): the story springs it itself with `now x is not locked` (a chest you pry open with a crowbar). |
 | `scored` | Managed by `scoring` (section 6a): the compiler sets it on every room and takeable thing; write `scored false` to exempt one. Set it by hand only in a game without `scoring` that wants a single classic auto-payer. |
@@ -703,7 +721,7 @@ feature, which declares a global boolean, not an object attribute.)
 | `desc` | text | The description shown by `examine` (and on first look at a room). |
 | `words` | list | The vocabulary the parser matches: the object's nouns and adjectives, as equal entries. Typed but not printed. |
 | `tag` | text | A short state qualifier appended to the object in listings and the inventory: "a fluid canister (full)". Usually computed (`tag block`); print with `show`, not `say`, so it stays inline. The parentheses come from the listing. |
-| `plural` | list | The words that name this object AS PART OF A GROUP (`plural coins` on each coin): "take coins" acts on every match in scope. Only with `summon.plurals` (02 section 8; docs/05); ignored otherwise. |
+| `plural` | list | The words that name this object AS PART OF A GROUP (`plural coins` on each coin): "take coins" acts on every match in scope. Only with `summon.plurals` (Part II section 8; Part III); ignored otherwise. |
 | `intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). |
 | `appearance` | text | The paragraph the object ALWAYS owns in a room description, replacing its listing line and never expiring ("The keeper is trimming the wick."): Inform's describe, Dialog's `(appearance $)`. A computed block (`appearance block`) words it by state; checked before `intro`; `hidden`/`concealed` still suppress. Costs nothing in a game that never sets one. |
 | `capacity` | number | How many objects a container or supporter holds. |
@@ -986,7 +1004,7 @@ move note to nothing
 
 Three calls elevate `move` for the set pieces a silent tree operation
 would get wrong, each doing the bookkeeping its verb would have done
-(all three in 02, section 7). `teleport(dest)` moves the player without
+(all three in Part II section 7). `teleport(dest)` moves the player without
 walking (a crash landing, a transit pod) and describes the arrival.
 `gain(obj)` hands the player an object without TAKE (a panel pried open,
 a mechanism yielding its prize); section 5 has the move-versus-gain
@@ -1100,7 +1118,7 @@ Costs nothing in a game that never alters (any_alter). Worked example:
 
 `finish` ends the game, printing its final message; Cosmos then reports the
 final score (the same line SCORE prints) and offers the classic RESTART,
-RESTORE, QUIT prompt, answered in the pack's own words (02, section 7).
+RESTORE, QUIT prompt, answered in the pack's own words (Part II section 7).
 `death` is the same statement for an ending the player may take back: its
 prompt adds UNDO, which rewinds the fatal command itself, while a `finish`
 (a victory, a completed story) stays final; a won game must stay won.
@@ -1235,7 +1253,7 @@ takes any property-valued expression, so a block can receive a direction as
 a parameter and probe it: `if here.(dir) is nothing`. For the common
 question behind all this, WHICH ROOM LIES THAT WAY, there is also the total
 form `exit_dest(here, way)`: it reads the exit and, when a computed exit
-block stands there (02, section 11a), runs it and returns the room it
+block stands there (Part II section 11a), runs it and returns the room it
 allows, folding to the plain read in a game with no computed exit. Prefer
 it when your game computes exits; otherwise the two are the same read.
 An `is` comparison distributes over `or` when the extra operands are bare
@@ -1267,7 +1285,7 @@ surprise.
 Built-in references in handler and block bodies: `self` (the enclosing
 object), `player`, `here` (the current room), `noun` and `second` (the
 matched objects), `nothing`. Cosmos also provides `<obj> is visible` and
-`<obj> is reachable` (scope rules in 02).
+`<obj> is reachable` (scope rules in Part II).
 
 Swapping one object for another. When an action replaces a thing with a
 different one, moving the old thing away and a new one in (Bob knocked out
@@ -1394,7 +1412,7 @@ Its actions dispatch straight to the free rules, past every object and room
 handler (`on other` included), beside score/save/quit: the right shape for
 ABOUT and HELP verbs, and what keeps the debug granule's GONEAR from firing
 story code on the way past. A meta handler that should not cost a turn sets
-`meta_turn`, as the standard session verbs do (02, section 9).
+`meta_turn`, as the standard session verbs do (Part II section 9).
 
 THE BARE-COMMAND ASK. A verb typed without a noun its grammar wants is an
 incomplete command, and the library answers it centrally, before any
@@ -1489,15 +1507,15 @@ The showcase for all of this, including the LOOK extension with its two
 wording-selected actions, is `examples/features/grammar.storyarc`; compile it
 and type along. The same patterns hold in any language, because a language
 pack's verbs are ordinary declarations too: a German game redeclares `grabe`
-with `dig in noun mit noun` and the same matcher serves it (02 section 8c).
+with `dig in noun mit noun` and the same matcher serves it (Part II section 8c).
 When several of your lines could fit the same typed command, remember the
 matcher's order: the line with more literal words is tried first, declaration
 order breaks ties, so you rarely need to think about it; when in doubt, put
 the more specific wording first anyway, which reads better in the source.
 
 Standard verbs, including talk-to, come from Cosmos; the full list of
-standard grammar lines is 02 appendix B, and how input is tokenized and
-resolved is defined in 02 (the positional matcher in 02 section 8c). This
+standard grammar lines is Part II appendix B, and how input is tokenized and
+resolved is defined in Part II (the positional matcher in Part II section 8c). This
 section defines only how you declare a verb and how its grammar names the
 action your handlers receive.
 
@@ -1514,14 +1532,14 @@ directions and never changes; the quoted words are the player's vocabulary. The
 standard set also holds the four nautical directions (`fore`, `aft`, `port`,
 `starboard`) for a vessel or a deep space craft; their player words, with
 ALOFT and BELOW riding `up` and `down` and the `dirs_nautical` gate for
-going ashore, are the opt-in nautical granule (docs/05), while the
+going ashore, are the opt-in nautical granule (Part III), while the
 properties are always legal in exits and handlers and, like every
 direction, cost nothing unused. Like
 verbs and messages, direction words are part of the language layer, so a language
 pack redeclares them (`direction north "norte", "n"`) and Cosmos ships the English
 set. A game rarely writes these; it summons a language, or uses the default
 English. Selecting a language is one summon: `summon.language "spanish"` compiles
-that language layer in place of English (02, section 8).
+that language layer in place of English (Part II section 8).
 
 A room's exit is written with this property name, not the word: `north cellar`,
 `east door` (section 5). So an exit stays in the fixed English name even in a
@@ -1670,11 +1688,11 @@ requires sacrifice noun carried
 
 Requirements compile onto the action into one table; a verb that declares
 none costs nothing, and requirement kinds no verb in the game uses are not
-even compiled. The summonable foresight granule (docs/05) builds on this
+even compiled. The summonable foresight granule (Part III) builds on this
 same declaration: a repairable failure, the carried gift you merely have
 not picked up yet, becomes "(taking the pebble first)" instead of a
 refusal, and only when the take is certain to succeed; closed doors and
-containers join the repairs the same way (docs/05).
+containers join the repairs the same way (Part III).
 
 ## 11. Blocks
 
@@ -1751,7 +1769,7 @@ normal thing happen. `on after <verb>` is the same chain again, run once
 the action has really completed. That is the whole model; the rest of this
 section is its vocabulary. A complete worked game exercising every form is
 [examples/features/handlers.storyarc](../examples/features/handlers.storyarc),
-and the precise ordering is 02, section 9.
+and the precise ordering is Part II section 9.
 
 Action handlers match a verb and its objects:
 
@@ -1893,7 +1911,7 @@ on after go west
     say "The door clicks shut behind you."
 ```
 
-The full ordering is in 02.
+The full ordering is in Part II.
 
 The after handler, fully. `on after <verb>` takes everything an ordinary
 handler header takes: comma-separated verb lists, operand patterns, `or`
@@ -1966,7 +1984,7 @@ available wherever a turn is being dispatched, including grain bodies
 
 The
 name `other` always means "anything not otherwise matched": as a verb here, and
-as the fallback direction in `on go other` (02). A specific handler that runs
+as the fallback direction in `on go other` (Part II). A specific handler that runs
 and ends with `continue` climbs to the kind, the room, and the defaults; it
 does not fall into the same object's `on other`, so `on look / continue`
 reads as "pass look through untouched". Inside a `go` handler, `way` holds
@@ -1974,7 +1992,7 @@ the chosen direction and a bare direction name is comparable against it
 (`if way is not north`), for rules that treat one direction differently;
 `here.(way)` reads the exit that direction names, the room the move would
 reach (section 9, the run-time property read). The full dispatch chain is
-defined in 02, section 9.
+defined in Part II section 9.
 
 Free-standing rules. A handler at file level belongs to no object: it joins
 the chain after the rooms and before the library defaults, so it is the
@@ -2025,7 +2043,7 @@ stop every 5 turns do water_dripping
 stop all timers
 ```
 
-Daemons and timers together are covered in full in 02, section 13.
+Daemons and timers together are covered in full in Part II section 13.
 
 ## 13. Summon
 
@@ -2040,7 +2058,7 @@ summon.statusline                        // the bundled feature, always
 summon statusline.granule                // your copy if present, else bundled
 summon "extensions/lockpicking.granule"  // an explicit file
 summon.extendedverbs squeeze, burn       // a granule that declares verbs,
-                                         // sliced to these families (05)
+                                         // sliced to these families (Part III)
 ```
 
 - The dotted form (`summon.statusline`) always uses the copy that ships inside
@@ -2057,7 +2075,7 @@ summon.extendedverbs squeeze, burn       // a granule that declares verbs,
 A MULTI-FILE GAME summons its own chapters the same way: `summon
 rooms.storyarc`, `summon messages.storyarc`, and so on from the main file.
 A summoned `.storyarc` is a CHAPTER of the game, not a module: EVERY
-declaration in it ranks as GAME in the override chain (05, section 1), so a
+declaration in it ranks as GAME in the override chain (Part III section 1), so a
 message override in messages.storyarc, or a `verb` redefined in
 grammar.storyarc, beats the library's and a summoned granule's exactly as
 if it were written in the main file, in any summon order. The main file
@@ -2069,10 +2087,10 @@ Text compression is not a summonable feature. The compiler always applies a
 standard abbreviation set, so nothing is required to get it. A story can tune the
 set to its own text with `arcc --make-abbreviations`, which writes an
 `abbreviations.granule` beside it; summon that by name (`summon
-abbreviations.granule`) to use it in place of the default (02, and 05 section 7).
+abbreviations.granule`) to use it in place of the default (Part II, and Part III section 7).
 
 The granules that ship with Cosmos - extended verbs, the status line, verbose
-exits, the conversation menu, and debug verbs - are catalogued in 05. Debug is
+exits, the conversation menu, and debug verbs - are catalogued in Part III. Debug is
 opt-in by the summon alone; there is no separate release build to strip it.
 
 ## 14. Grains
@@ -2129,7 +2147,7 @@ foyer.grains
 
 A grain matches when the player's verb resolves to one of the grain's actions
 and names one of its words, and no real object in scope matches that word. The parser handling of grains
-is defined in 02. Grains cost only dictionary words and a small table, never
+is defined in Part II. Grains cost only dictionary words and a small table, never
 an object entry.
 
 A grain word may be reused freely across rooms: "steps" can be set dressing in
@@ -2466,7 +2484,7 @@ say "Hey\n\nThis is two lines below.\n\n\nAnd this three."
 
 To follow a say with a paragraph break, say it with the `par` modifier:
 `say.par "..."` prints the text and marks the library's pending break, which
-the next output flushes as a single blank line (repeats collapse, docs/02).
+the next output flushes as a single blank line (repeats collapse, Part II).
 Consecutive prose paragraphs are each a `say.par` line, no bookkeeping
 between them. The mirrored `par.say "..."` puts the break FIRST: the reveal
 paragraph appended under existing prose (a first-visit aside, a description
@@ -2480,7 +2498,7 @@ story code reads like Inform new_lines, something is being done wrong.
 Interpolation embeds an expression with `${ }`; printing an object prints its
 `name`. Article helpers: `${the ruby}`, `${a ruby}`, and the capitalized
 `${The ruby}`, `${A ruby}`; an object with `named` set takes no article.
-Their full behavior is in 02. Escapes: `\"`, `\\`, `\$`, and `\n`.
+Their full behavior is in Part II. Escapes: `\"`, `\\`, `\$`, and `\n`.
 
 An object may override its articles outright with the `article` (definite) and
 `indefinite` properties, for the cases derivation cannot reach: `article
@@ -2493,7 +2511,7 @@ An article may carry a grammatical-case tag after a colon, `${the:acc noun}` or
 `${a:dat noun}`, for a language whose article inflects for case (German
 der/den/dem). The cases are `nom`, `acc` (or `akk`), `dat`, and `gen`; with no
 tag the case is nominative. English and Spanish ignore the tag, so it costs
-nothing there; a language pack's article block reads it (02, section 14a). Only
+nothing there; a language pack's article block reads it (Part II section 14a). Only
 the definite and indefinite article take a tag.
 
 The copula agrees the same way: `${is ruby}` (capitalized `${Is ruby}`) prints
@@ -2826,7 +2844,7 @@ verb "hang"
 
 Both examples lean on Cosmos for the parser, the turn loop, scope, light, and
 the everyday verbs; the per-game logic above is all defined in this document.
-Section 15 of 02 reconciles each example with the Cosmos model in detail.
+Section 16 of Part II reconciles each example with the Cosmos model in detail.
 
 
 ## Appendix A: reserved words
@@ -2844,7 +2862,7 @@ before a policy word: sequence, loop, mutate, dice),
 `reveal`, `hide`.
 
 Grammar slot words (`held`, `multi`, `text`) and the standard direction and
-verb names are reserved by Cosmos rather than the core language; see 02.
+verb names are reserved by Cosmos rather than the core language; see Part II.
 
 ## Appendix B: grammar summary
 
@@ -2900,3 +2918,2311 @@ expr           := (* numbers, strings, booleans, object refs, nothing,
                      dot access, calls, is / is not, holds, in,
                      and / or / not, arithmetic and comparison *)
 ```
+
+# Part II: Cosmos and the Parser
+
+The runtime: Cosmos (the standard library), the parser, the action
+pipeline, and the banner. The language surface is defined in Part I; this
+part defines the behavior that surface drives. The compiler pipeline that
+turns a program plus Cosmos into a z5 story file and the construct-to-
+opcode mapping are recorded in 03-compiler-pipeline.md and
+04-codegen-mapping.md; this part is the behavioral specification that
+implementation satisfies. Smallest possible z-code is a standing
+requirement on all of it.
+
+The two worked examples in Part I (the Brass Lantern and Cloak of Darkness)
+are the conformance cases; section 16 reconciles each with the model here.
+
+## 1. Cosmos as an editable template
+
+Cosmos is not a compiled black box. It is ordinary Arcturus source, shipped as
+a default and compiled together with the author's program. It defines the
+standard kinds, the standard verbs and their grammar, the default action
+behavior, the messages, the banner, and the turn loop.
+
+Three layers, from fixed to free:
+
+1. Core and runtime: the compiler and the primitives it relies on (the object
+   tree, attribute and property access, the parse and print intrinsics).
+   Fixed.
+2. Cosmos: everything in this document, written in Arcturus. Shipped as a
+   default the author can read, override piecemeal, or fork wholesale.
+3. The game: the author's program, only what differs from Cosmos.
+
+Overriding uses the ordinary resolution order from 01 (sections 5 and 12):
+the author's handlers are more specific than Cosmos's, so they win, falling
+back with `continue`. A default is just the least specific handler. The
+standard take, for example, is defined in Cosmos in plain Arcturus:
+
+```
+verb "take", "get", "pick"
+    take noun
+
+on take noun
+    if noun is fixed
+        say "${The noun} is fixed in place."
+        stop
+    if player holds noun
+        say "You already have ${the noun}."
+        stop
+    move noun to player
+    say "Taken."
+```
+
+Cosmos ships as a set of library files, each with the `.prelude` extension. The
+split follows one line: what is specific to the English language, versus what is
+not.
+
+- `english.prelude` is **the language layer**: everything English lives in this
+  one file, in three documented parts (the parser hooks that read English, the
+  standard verb words and grammar, and every message shown to the player). A
+  translation is a fork of this file alone; `arcc --eject-language` writes it out
+  (section 8, Part III).
+
+  **Your game's voice.** The default messages carry one deliberate voice:
+  quick, dry, a little amused. That is a feature, not an accident, and it is
+  meant to be REPLACED as much as enjoyed: for a real game with its own
+  register (a horror piece, a period drama), the intended first move is
+  `arcc --eject-language`, which writes the whole voice as one file beside
+  your story; fork it and every line is yours. Overriding a single `msg_`
+  block is the other tool, for when the stock tone suits you and a few lines
+  need adjusting. Both are ordinary Arcturus source; neither touches the
+  parser.
+- `actions.prelude` holds the **standard action handlers**, the behaviour behind
+  each verb. It is language-agnostic: no words, no wording, only logic that works
+  on the normalized slots the parser fills (`noun`, `second`, `way`, the action),
+  so it is identical in every language and a translator never touches it.
+- `parser.prelude` is the **agnostic parser skeleton** that drives the language
+  hooks; `scope.prelude`, `dispatch.prelude`, `loop.prelude`, and `core.prelude`
+  are the scope rules, the action pipeline, the turn loop, and the base
+  environment, all agnostic.
+
+The build includes them unless the author supplies their own copies, which is how
+a wholesale fork works. Dead-code elimination ensures unused Cosmos verbs and
+properties never reach the story file.
+
+## 2. Runtime globals and story metadata
+
+Built-in references usable in any handler or block:
+
+- `player`: the player object, an instance of `character`.
+- `here`: the room the player is in, maintained as the player moves.
+- `turns`: a number, the elapsed turn count, starting at 0.
+- `score`, `max_score`: numbers for games that keep score.
+- `nothing`: the null object.
+- `refused`: set to 1 by a handler that refuses a command, so a chained line
+  stops at the failure (section 8b). The library's own refusals set it; it
+  resets before every command.
+
+Cosmos owns `here` and `turns`; assigning to them is a compile error. The
+author may change `score` and set `refused`.
+
+Story metadata from the `game` block (Part I section 4) is carried into the
+story file: `title`, `headline`, `author`, `release`, `serial`, and `UUID`.
+If `serial` is omitted Cosmos uses the build date in YYMMDD form. The `UUID`
+is written as an IFID array in static memory, in the form Inform uses
+(`UUID://<uuid>//`), so IFDB and similar tools can identify the game; the
+compiler emits it without a warning.
+
+## 3. The banner
+
+Cosmos prints the banner at game start, before `on start` output. It carries
+everything Inform's banner does, and names both the compiler and the library:
+
+```
+The Brass Lantern
+An Interactive Fiction by Stefan
+Release 1 / Serial number 260626 / Arcturus 0.9 / Cosmos 0.12
+```
+
+Line one is `title`. Line two is `headline` plus "by" and `author`, with
+sensible defaults if either is absent. Line three carries the release number,
+the serial, and then the compiler and library as a single final field,
+Inform-style: the compiler name and version (Arcturus) followed by the
+library name and version (Cosmos), separated by spaces rather than a slash.
+The compiler and library versions are build constants, not author-set. A game
+that wants its own opening first (a quote box, a pregame prelude) sets
+`banner false` in the game block, which stops the automatic banner, and calls
+`print_banner` whenever the banner should appear; never calling it leaves
+the banner out entirely, and dead-code elimination drops it. The banner
+manages its own vertical space: it flushes a pending paragraph break before
+printing (so it splices cleanly after mid-game prose) and marks one after,
+and at game start under a status bar the title sits DIRECTLY below the bar
+(where Inform leaves a stray blank line). No story ever pads a banner.
+
+The words in line two are language, not structure, so they come from the
+language layer: `line_by` prints the connector (" by "; " de " in Spanish,
+" von " in German) and `banner_headline` the default headline when a game sets
+none ("An Interactive Fiction"; "Una aventura conversacional"; "Ein
+Textadventure"). A pack localizes both, and a story may override either block
+for a custom banner voice.
+
+## 4. The object tree and the in/on relation
+
+Containment is the Z-machine object tree: one parent per object, reached with
+`in`, `move`, `holds`, and `for each`. The tree stores only parent and child.
+
+The in-versus-on distinction is carried by the parent's kind: a child of a
+`container` is in it, a child of a `supporter` is on it, a child of a
+`character` or the player is carried, or worn if its `worn` property is set.
+Cosmos uses the parent's kind to choose the preposition when listing or
+describing contents and to decide scope.
+
+Two small services for a story describing the player's outfit (a custom
+`player.desc block`, say): `worn_count` is the number of things the player
+wears, and `list_worn` prints them as a punctuated list ("a hat, a cloak
+and a ring"; German declines the articles, Spanish joins with "y") with no
+framing and no newline, returning the count, so the story writes its own
+prose around it. Both cost nothing unless called (dead-code elimination),
+and each language layer words its own.
+
+## 5. Scope and visibility
+
+Scope is the set of objects the parser considers when resolving a noun, and
+that an action may touch. Cosmos computes it each time it parses a noun.
+
+In scope, when the location is lit: the room `here` and its direct contents
+(minus `hidden` and concealed objects); everything the player holds or wears,
+recursively; the contents of any in-scope `container` that is `open` or `clear`
+(see-through); the contents of any in-scope `supporter`; and objects reached
+through these recursively. The noun matcher follows exactly this rule, recursing
+into open and `clear` containers and onto supporters, so a coin in an open box is
+referable while a coin in a closed opaque box is not: the closed lid shields its
+contents from scope until the box is opened. A `clear` container (a glass jar) is
+the exception, exposing its contents while still shut.
+
+A `component` (Part I, standard attributes) rides its own scope rule: the part
+is in scope whenever its whole is, whatever the whole's kind, so a lever
+declared `component` and placed in a plain machine is referable while an
+ordinary thing dropped "inside" a plain thing stays out of scope (a plain
+thing has no insides to see into). The rule, like the take answer and the
+listing exclusion, folds away in a game with no components
+(`any_components`).
+
+One place stands outside the room-and-carry rule: the BACKSTAGE scope room
+(Part I section 5). An object placed `in scope` (or moved there at run time,
+`move x to scope`) is in scope in every room, light or dark: the home of a
+companion who follows the player, of their examinable parts, of anything the
+parser should always answer for. Backstage contents are never listed, since
+their room is never entered, so they defend themselves in their own
+handlers. The whole mechanism folds away in a game that stages nothing.
+
+Two predicates Cosmos provides for conditions: `<obj> is visible` (in scope
+and the location lit; examining needs this) and `<obj> is reachable` (visible
+and not behind a closed container; taking and most physical actions need
+this). The open-air case of the same doctrine is the `beyond` attribute
+(Part I): visible and examinable while every touching action refuses,
+toggled with `now` as the geometry changes. `hidden` removes an object from scope entirely until cleared.
+`scenery` keeps it referable for examining but omits it from contents
+listings and refuses taking.
+
+The room description paragraphs an object can own, in the order checked:
+`appearance` (always, never expiring, computed by state if a block),
+`intro` (until the object is first taken), and the plain listing line
+("You can see a broom here."). `hidden` and `concealed` suppress all
+three. The appearance check folds away in a game that sets none
+(`any_appearance`).
+
+Scenery holders can join the room description too: with
+`constant scenery_contents = 1` declared once, every scenery container or
+supporter in the room gets its own paragraph after the listing pass
+("On the counter you can see a bell and a candle."), worded by
+`scenery_holder_line` in the language layer, the knowledge model deciding
+per item exactly as in section 5a: a closed opaque holder keeps its
+secret until first opened, then is remembered. Empty holders print
+nothing. Off by default and folded away entirely when the constant is
+absent (examples/features/scenery-contents.storyarc).
+
+## 5a. The container knowledge model
+
+Cosmos tracks what the player has learned, not only what is in view this instant,
+and lists a container's contents by that knowledge. This is what makes room
+descriptions read the way memory actually works, and it is a feature few other
+systems have.
+
+The switch is the `seen` attribute, which Cosmos sets on an object the moment the
+player has been shown it: listed inside an open (or `clear`) container, resting on
+a supporter, taken, or examined. From then on the object is known to the player.
+
+Whether a container spells out its contents follows that knowledge, not just its
+lid:
+
+- An **open** container lists everything inside, and marks each content `seen`.
+- A **`clear`** container (a glass jar) lists everything, open or shut, since its
+  contents are always in view.
+- A **closed, opaque** container lists only the contents the player has already
+  `seen`. A content the player has never seen is not listed at all, and is not
+  referable: there is no x-raying a shut box.
+
+So a box the player has never looked into is described bare, and the ring inside
+stays unknown:
+
+```
+> look
+You can see an iron box here.
+
+> examine ring
+You see nothing of the sort here.
+```
+
+Open the box and Cosmos reveals what is inside, describing it and marking it seen:
+
+```
+> open box
+Open. Inside you find a gold ring.
+```
+
+Close the box again, and the ring is now remembered. Because the player knows it is
+there, the room keeps listing it, even with the lid shut:
+
+```
+> close box
+> look
+You can see an iron box (contains a gold ring) here.
+```
+
+Knowledge sharpens the parser's answers too. Once the player has seen the ring,
+naming it while the box is shut earns a reminder to open the box, not a flat
+denial, because the object is known but out of reach:
+
+```
+> examine ring
+You'll have to open the iron box first.
+```
+
+A content the player has never seen still gives the ordinary "you see nothing of
+the sort here", since the player has no reason to believe it exists. Cosmos manages
+`seen` throughout; an author touches it only to pre-seed knowledge (something the
+character already knows about) or to clear it and make the character forget. The
+related attributes are `open` (the lid), `clear` (see-through, always shown),
+`concealed` (present but left out of a listing), and `hidden` (out of scope
+entirely until revealed).
+
+## 6. Light and darkness
+
+Cosmos computes light automatically. The location is lit when the room's own
+`lit` is true, or an in-scope object has `lit` true and gives light. A room's
+`lit` means the room is independently lit; a thing's `lit` means it is
+glowing.
+
+When the location is dark, scope collapses to what the player carries, room
+contents are not visible, and visibility-dependent actions report "It is
+pitch dark, and you can see nothing." Movement is still allowed unless a room
+blocks it. Because light is computed, authors rarely set it by hand; a game
+that needs special behavior overrides at the room, as the Cloak bar does.
+
+If you are coming from systems like Inform 6, PunyInform or Dialog, read
+this section carefully because Arcturus behaves differently to what you
+are used to.
+
+Arcturus adapts to the so-called IF "Cave Rule", which is a more modern
+approach to how the player can interact with darkness. The rule itself:
+While the parser allows the player to list the items they are carrying,
+they generally cannot examine or interact with those items if the action
+requires visibility. The interactive fiction logic here is that a person
+in pitch blackness can still feel the shape and weight of the items in
+their hands well enough to count them, but they cannot see visual details
+like text or color.
+
+Arcturus is analog to Inform 7 in that context. What this means: by
+default the player is allowed to list the inventory (the cave rule), but
+they generally cannot EXAMINE or interact with those items if the action
+requires visibility (e.g. READ). For those that want to be more
+restrictive: in Inform 7 you can create a simple rule if you want to
+prevent the player from listing the inventory in darkness. This
+translates almost 1:1 to the Arcturus handler syntax:
+
+```
+on inventory when is_lit is false
+    say "It is far too dark to rummage through your belongings."
+    stop
+```
+
+## 7. The turn loop
+
+Each turn Cosmos runs:
+
+1. If the player entered a new room this turn, describe it: print the room
+   `name`, the `desc` if unseen or on look, then the listed contents, and
+   fire the room's `on enter`.
+2. Print the prompt (default ">").
+3. Read a line and tokenize it (section 8).
+4. Parse: identify the verb, fill slots, resolve nouns in scope,
+   disambiguate. On failure, print the refusal and skip to step 7.
+5. Dispatch the action through the pipeline (section 9).
+6. Run `on after` handlers if the action completed.
+7. Fire active `on each_turn` handlers (the room's, and in-scope objects'),
+   subject to their `when` guards, then fire any scheduled events (section
+   13).
+8. Increment `turns`. If a `finish` or `death` ended the game, print the
+   final message, then the post-mortem: the final score (msg_score, rank
+   included) and the classic prompt, answered with the pack's own
+   restart/restore/undo/quit verb words (matched by action, so every
+   language works untranslated). After a `death` the prompt adds UNDO
+   (msg_game_over_died), which takes back the fatal command itself through
+   the checkpoint every turn already takes, resuming play as if it were
+   never typed; after a `finish` the prompt is the classic three
+   (msg_game_over) and an UNDO answer is refused: a won game stays won. A
+   failed restore or undo reports and re-asks, anything else re-prompts.
+9. If the line chained further commands (section 8b) and this one succeeded,
+   continue with the next from step 4.
+10. Loop.
+
+The room is described once on entry. The status line (the room name, plus
+the score and move count in a scored game, the move count alone otherwise)
+is repainted before every prompt. At game start, with the
+statusline summoned, the opening description skips its title line: the bar
+already names the room, and the opening prose scrolls straight under it;
+every later look prints the title as usual.
+
+When the player stands on a supporter or inside a container, the room
+title and the status bar both say where: "Crypt (on the altar)", "Cellar
+(in the crate)". The wording is the language layer's `line_nested(obj)`
+block (English on/in; German auf/in with the dative article through
+art_the; Spanish sobre/en), so a language pack or a story overrides the
+phrasing like any other line_* block. The whole feature rides the
+compile-time `any_enterable` flag (1 when any object is a supporter or a
+container by kind): a game with nothing to climb into folds it away and
+its story file is byte-identical. The same flag guards the rule that the
+player never appears in a holder's contents listing ("an altar (contains
+yourself)" never prints).
+
+A story moves the player without walking through `teleport(dest)`, the
+cutscene arrival (a crash landing, a transit pod, a trapdoor): it relocates
+the player, pays a scored room's points exactly once (the same `arrive`
+the go handler funnels through), marks the room visited, and describes it.
+It does not fire the room's `on enter` (that event belongs to walking; a
+teleport's own prose sets the scene). Its sibling `gain(obj)` is the
+acquisition without TAKE (a cutscene handover): it pays a scored thing's
+points exactly once and marks it `moved` and `seen` before moving it to the
+player; the take handler itself funnels through gain, so there is exactly
+one acquisition path. Neither is Arcturus's `move`, the silent tree
+operation with no bookkeeping (Part I section 5 carries the warning for
+Inform hands). Unused by stories, both fold to nothing extra.
+
+## 8. The parser
+
+The parser turns input into an action with bound objects.
+
+Tokenizing. Input is lowercased and split on spaces and punctuation. Noise
+words ("the", "a", "an", "my"; each pack declares its own with `noise`) are
+known to the dictionary and ignored: being known is what lets a noun-list
+segment carry them while a truly unknown word refuses the borrowed verb
+(section 8b). Remaining tokens are matched
+against the dictionary, which holds every verb word, every object's `words`,
+and all grain words (section 14). An object's printed `name` is not matched;
+matchable vocabulary comes only from `words`, which keeps the dictionary
+small and under the author's control. Dictionary entries are truncated to the
+Z-machine word resolution, so long words collide on their prefix; this is a
+property of the format.
+
+Verb resolution. The first verb word selects a `verb` declaration. Most
+verbs compile to the flag model: the word's dictionary entry carries the
+action and the noun arity, a two-noun command splits at its preposition, and
+a one-noun phrase reaches past a leading one (LOOK AT CLOAK). A verb whose
+grammar says more than that (a leading word on a two-noun verb, or wording
+that selects the action) is matched positionally against its grammar lines
+instead: section 8c.
+
+Noun resolution and adjectives. Arcturus has no separate adjective type;
+adjectives are ordinary entries in an object's `words`, ranked the same as
+nouns. A noun phrase runs from the verb (or a grammar preposition) to the
+next grammar preposition, and the scoring matcher (`match_phrase`, in the
+agnostic skeleton) scores every in-scope object by how many of the phrase's
+typed words its `words` contain, then takes the single best:
+
+- No object matches: the grain check, then "You see nothing of the sort
+  here." if a known object word was typed, or "This story doesn't know
+  the word \"...\"" (the word spelled back from the input) if a typed
+  word is in no dictionary entry at all. Either way the action is NOT
+  dispatched: a handler that sees `noun is nothing` can trust it means
+  the player typed the bare verb, never an unresolved phrase.
+- One object scores best: it fills the slot.
+- Several tie at the best score: first the HELD TIEBREAK. A tie where
+  exactly one candidate is in the player's hands is not an ambiguity
+  worth a question: EXAMINE MIRROR with your own in hand and the guard's
+  on the guard means yours, silently. TAKE runs the tiebreak the other
+  way (exactly one candidate NOT held wins, since taking wants the
+  takeable one), so a held thing never shadows the one on the table. A
+  tie with nobody on the wanted side, or two candidates there, stands.
+- The tie survives: a genuine ambiguity. The parser asks
+  "Which do you mean, the gold coin or the silver coin?", printing each
+  candidate with its article (in German, declined to the accusative), and
+  reads the answer. An answer that starts with a verb or a direction is a
+  change of mind and replaces the command outright; anything else is taken
+  as narrowing words, woven into the command right after the ambiguous
+  phrase, and the whole line re-parses, so answering "gold" resolves
+  exactly like typing "take gold coin" whole. An empty answer, or one that
+  cannot narrow, falls back to "You'll have to be more specific."
+
+So typing more adjectives narrows the result: with a gold coin and a silver
+coin in scope, "coin" is ambiguous and asks, "gold coin" resolves directly,
+and after the question a bare "gold" selects. Membership in the object's own
+`words` is the whole scoring test, so a word that also serves as a verb
+elsewhere still matches (a person named Pat survives "pat" the verb). The
+most recent match feeds the pronouns (section 8a). The word that scored is
+never printed: the `name`-versus-`words` split is the only lever needed. A
+word in `name` is printed but not matched, a word in `words` is matched but
+not printed, and a word you want both printed and typed appears in each.
+There is no "the brass one" anaphora in v1; that is deferred.
+
+Multi and all. Deliberately NOT core: both ship as granules, so a game that
+wants them summons them and one that does not pays nothing. `summon.takeall`
+gives TAKE ALL, DROP ALL, and TAKE ALL FROM (section 14; Part III).
+`summon.plurals` gives group words (`plural coins` on each coin, so "take
+coins" sweeps them) and THEM for the last group; noun lists ("take lamp and
+box") are core (section 8b). Every swept item is a full turn, the chaining
+rule. Unsummoned, "all" and group words are ordinary unknown words.
+
+Unknown words. A word in no dictionary entry is ignored where it cannot
+matter; where it sat in a noun slot the turn answers "This story doesn't
+know the word \"...\"", naming the word (msg_unknown_word, parse_fault 4,
+the word spelled back from the text buffer), so a typo is told apart from
+a real thing that is not here, and OOPS corrects it on the next line. The
+messages are Cosmos blocks and overridable.
+
+The refusals stay distinct, three situations, three answers: an INCOMPLETE
+COMMAND (a bare verb whose grammar wants a noun, a PUT with nowhere to put)
+gets the one honest ask, "The verb take requires you to be more specific."
+(msg_noun_missing), echoing the verb AS TYPED from the text buffer, full
+length and in the player's own word, so a synonym stays itself; the line
+never guesses the missing role the way "Take what?" did, because the grammar
+may want WITH WHOM or ON WHAT. The ask is central: the resolvers mark the
+command (`incomplete`) and the loop refuses it before any handler runs, no
+move consumed, custom verbs and standard verbs alike. A verb whose grammar
+DECLARES a bare line (look, listen, a custom `hum` beside `hum noun`) is
+never marked: its handler owns the bare command and sees noun = nothing. A
+named thing that is simply NOT HERE keeps the classic refusal (msg_cant_see,
+parse_fault 1); and a PRONOUN WITH NOTHING TO REFER TO (IT before anything
+was named, THEM with no group, an unbound Spanish clitic) asks the player to
+say what they mean (msg_no_it, parse_fault 5).
+
+Grains. When a `noun` slot finds no real object but the typed word is a grain
+word on `here` or an in-scope object, and the action's verb is one the grain
+answers, Cosmos runs the grain's response (a `say`, a `do` block, or its
+inline body) and treats the action as handled. Grains are checked after real
+objects, so a real object always wins. See section 14.
+
+Language seam. The parser is written in Arcturus, split into a language
+agnostic skeleton (reading the line, computing scope, dispatching the action,
+the turn loop) and language-specific routines (tokenizing and normalizing
+words, resolving the verb, matching a noun phrase, and applying word order).
+The English routines are the default; a language pack (section 14) overrides
+the language-specific routines through ordinary resolution to handle a
+language's morphology and grammar, without forking the skeleton. The skeleton
+makes no English-specific assumption about word order, articles, or inflection.
+
+## 8a. Pronouns
+
+The parser remembers what the pronouns mean. Four canonical referent slots,
+`it`, `him`, `her`, and `them`, hold the objects the player last dealt with;
+typing a pronoun as a noun resolves to its slot's referent, and a referent
+that has left scope answers with the ordinary "you see nothing of the sort",
+the honest failure. A pronoun binds in either noun position, so "put coin in
+it" works. The referents survive between turns and reset only on restart.
+
+The words and the rules are language, so both live in the language layer. A
+pack declares its words with `pronoun <role> "word", ...`:
+
+```
+pronoun it  "it"        // English
+pronoun him "ihn"       // German: the accusative, the object of a command
+pronoun her "sie"
+```
+
+and defines a `note_pronouns(obj)` block deciding which slot a just-resolved
+noun fills. English splits by animacy (a character becomes him or her,
+everything else it) and, within characters, by the `feminine` attribute:
+declare `feminine` on a female character so "her" finds her (the -a name
+heuristic that serves Spanish also runs, so a Marta derives it, but a Ruth
+does not); a male character needs nothing, masculine being the default. The
+slots are separate: "him" never returns a character noted as "her", and an
+empty slot answers the ordinary "you see nothing of the sort". German follows
+grammatical gender, so die Lampe becomes "sie" and das Buch "es".
+
+Spanish takes its pronouns as CLITICS, the natural form: "cogela" is coge with
+la attached, so an unknown first word ending in -lo, -la, -le (the leísmo
+form, taken as masculine), -los, -las, or -les splits its clitic off in the
+typed text, the verb re-resolves, and the pronoun's referent becomes the
+command's noun; -te is the reflexive and points at the player ("examinate").
+Accents fold first, PunyInformES-style, so "cógela" typed with its tilde works
+too. This chains with the infinitive retry: "cogerlo" sheds the clitic, then
+the -r, and lands on coge. The clitics are deliberately NOT dictionary words:
+bare la and los are the articles, and "coge la lámpara" must keep resolving
+the lámpara. A referent that has left scope falls into the ordinary honest
+failure, and the plurals (-los, -las, -les) wait, like `them`, for a plural
+model.
+
+The roles are the compiler contract (like the particle roles); the slot ids
+ride the pronoun words' dictionary entries where a pack declares words.
+
+## 8b. Command chaining
+
+Several commands fit on one line, joined by the language layer's chain words:
+
+```
+> take the lamp and open the door then go north
+> drop cloak, hang cloak on hook
+```
+
+A pack declares the words with a `chain` declaration; all chain words behave
+identically, and the comma tokenizes as its own word, so it chains with or
+without spaces around it:
+
+```
+chain ",", "and", "then"      // English
+chain ",", "y", "luego"       // Spanish
+chain ",", "und", "dann"      // German
+```
+
+Each chained command is a full turn of its own, exactly as if typed on its own
+line: it dispatches through the ordinary pipeline, fires the per-turn events,
+and counts a turn. The responses are separated by the usual paragraph break. A
+run of chain words ("take lamp, then go north") chains once, and a trailing
+chain word is harmless.
+
+THE CHAIN STOPS AT A FAILURE, and what was already done stays done. Two things
+count as failure: a command that does not parse (an unknown word, something
+out of scope), and a turn a refusal path could not carry out. The library's
+refusals distinguish honestly between the two ways a command can come to
+nothing:
+
+- A GENUINE REFUSAL (can't, won't, wrong key, no exit that way) stops the
+  line. "take statue and go north" with a fixed statue prints the refusal and
+  goes nowhere.
+- An outcome that ALREADY HOLDS ("you already have it", "it's already open")
+  does not stop the line: the command's goal is met, so the rest still makes
+  sense. "open door and go north" walks through a door that was already open.
+
+The signal is the `refused` global: every library refusal sets it to 1 before
+its message, and the turn loop reads it after each chained command. A story
+handler that refuses something should set it the same way, so a chain stops at
+its refusal too:
+
+```
+on take
+    if noun is idol
+        change refused to 1
+        say "The idol is welded to its pedestal."
+        stop
+```
+
+A handler that omits it simply never stops a chain, which is the right default
+for handlers that succeed. `again` after a chained line repeats only the LAST
+command of the line (the loop replays the resolved command it already
+remembers, so replaying the whole line would re-fire every side effect).
+Rewinding play cancels the queue: undo, and a mid-turn line read (the quit and
+restart confirmations, and the disambiguation ask, claim the same typed-text
+buffer), and a restore, all drop whatever was still queued.
+
+The mechanics reuse the typed line itself as the queue: the parser truncates
+the buffer's length byte at the first chain word (the tail stays where it was
+typed), runs the command, then blanks the consumed part, restores the length,
+and re-tokenizes. Nothing is copied and no second buffer exists.
+
+NOUN LISTS ride the same machinery: a chained segment with no verb of its
+own borrows the previous command's verb, so "take lamp and box" runs as take
+lamp, take box, one full turn each, and "drop the sword and the shield" works
+the way a player expects. Only a segment that starts with something noun-like
+borrows; anything else keeps the honest "those words don't add up to
+anything", and a bare noun typed on its own line is still no command. Since
+the list words are the chain words, a language pack localizes noun lists
+automatically. Lists distribute over ONE-noun verbs; "give x and y to z"
+stays out (v1).
+
+## 8c. Positional grammar
+
+Two grammar models serve one `verb` declaration syntax, and the compiler
+picks per verb. The FLAG MODEL is the compact default: the verb's dictionary
+entry carries its action and its noun arity, a two-noun command splits at the
+first preposition-flagged word, and the phrase matcher's scoring tolerates a
+leading or stray literal in a one-noun phrase. It represents every standard
+verb exactly and costs nothing beyond the dictionary entry. The POSITIONAL
+MODEL takes over for a verb whose grammar the flags cannot express:
+
+- a literal word before the first slot of a verb that takes two nouns
+  somewhere (`dig in noun with held`: the splitter would take the leading IN
+  for the boundary between the nouns); or
+- lines with different shapes naming different actions (`look_under under
+  noun` next to `look_behind behind noun`: one verb word, and the wording
+  picks the action, where the flag model has a single action byte).
+
+ONE STANDARD VERB rides the table: English ASK. `ask noun about text` and
+`ask_for noun for text` are different acts chosen by wording, and both name
+a SUBJECT rather than an object, which is the `text` slot below. So an
+English game carries the matcher; German and Spanish phrase a request with
+a verb of their own (BITTE, PIDE) and table nothing.
+
+Lines that differ in action but not in shape (`switch_on noun` next to
+`switch_off noun`) stay on the flag model: no positional match could tell
+them apart, and the particle machinery already does.
+
+Such a verb compiles to a GRAMMAR TABLE in static memory. Its dictionary
+entry is flagged as a tabled verb and its data bytes hold the table's address
+instead of an action and an arity. The table is the verb's lines in matcher
+order: per line an action byte, one byte per token (noun, held, multi, text,
+direction; a literal word carries its dictionary address), and a closing
+zero; a zero in action position ends the table. Matcher order is most literal words first, so
+`dig in noun with held` is probed before `dig noun`, whose bare slot would
+absorb the literals; among literal-free lines, fewest tokens first, so a bare
+`dig` catches DIG before `dig noun` matches it with an empty slot. The sort
+is stable; lines it does not separate keep their declared order.
+
+The matcher (`grammar_match` / `try_line`, in the agnostic skeleton) walks
+the typed words against each line and the first line that fits wins. A
+literal token must BE the typed word at its position; a slot absorbs the
+words up to the line's next literal, or to the end; the whole command must be
+consumed.
+
+A `text` slot is the exception to resolution: it absorbs its words the same
+way, but they are never matched against objects. The range is handed on
+(`topic_lo`, `topic_hi`) for the conversation layer to match against topics,
+because what it names is a SUBJECT: you ask ABOUT the old mine, which is no
+object at all, and you ask FOR a drink the barkeeper has and you do not, so
+neither could be resolved against scope. A pack still on the flag model
+finds the subject itself, at the first separator, so both models work. On a fit the line's action is taken and the slots resolve through
+the same scoring matcher as everything else, with the same faults: a tie asks
+"which do you mean", a named-but-unresolved noun on a two-slot line is
+rejected, a one-slot miss falls through to grains and the honest can't-see,
+and an EMPTY slot marks the command incomplete, so the loop's central ask
+answers before any handler runs ("The verb dig requires you to be more
+specific."); a verb with a declared slotless line never lands there bare,
+that line sorts first and matches. When no line fits at all, the verb was
+understood but the rest was not: "You lost me after that." Disambiguation answers, pronouns, chaining,
+AGAIN, and OOPS all work on tabled verbs unchanged.
+
+The `direction` slot (SWIM SOUTH, PUSH CRATE WEST) lives on this model: a
+line ending in `direction` demands a direction word at that position and
+consumes it, and a noun slot before it stops its phrase at the first typed
+direction word, so in PUSH CRATE WEST the noun is the crate. The word needs
+no binding of its own: the parser sets `way` from the whole line before any
+grammar runs, exactly as it does for GO, so the handler asks `if way is
+south` or hands the move to the walking machinery with `perform("go", way)`.
+A verb with a direction line always compiles to a table: the flag model's
+arity byte has no room for "and a direction word may stand here", and only
+`go` gets that tolerance on the classic path. The worked showcase is
+`examples/features/direction-grammar.storyarc`.
+
+The rules a positional verb must follow are checked at compile time: two
+noun slots per line at most, a literal word between two noun slots (the
+adjacent-noun `reverse` form stays a flag-model feature), single-word verb
+synonyms, and at most one `direction` slot, closing its line.
+
+Pay for use: the matcher and the packs' tabled-verb branches sit behind the
+`any_tables` compile-time flag, so a game whose verbs all fit the flag model
+folds the whole path away and its story file does not grow by a byte. A game
+that declares one positional verb pays once for the matcher and then a few
+bytes per line. The matcher is language-agnostic; each pack's grammar lines
+feed it through the same table format, so a German `grabe in noun mit noun`
+works the moment it is declared.
+
+The worked showcase is `examples/features/grammar.storyarc`: the dig verb
+with its leading IN, and a LOOK extended with `look_under`/`look_behind`,
+two wording-selected actions. The authoring patterns (adding verbs, feeding
+standard actions from new words, redeclaring a standard verb with richer
+lines) are Part I section 10.
+
+## 9. The action pipeline
+
+An action carries its verb, `noun`, and optional `second`. Before the chain
+runs at all, the VERB CONTRACT is enforced: what the action `requires` of
+its operands (a carried noun, an animate recipient; Part I section 10a). A turn
+whose operands fail the contract is refused by the library, message spoken,
+and no handler of any kind sees it, which is the point: an object's
+override owns the response to a valid turn, never the validation. A slot
+the grammar requires but the player left empty is refused earlier still,
+by the loop's central bare-command ask (section 8); a grammar-optional
+empty slot (unlock noun beside unlock noun with noun) passes through for
+the action to interpret. `perform` bypasses the contract entirely, since
+an author performing an action means it. Then Cosmos dispatches the action as one chain of
+handlers, most specific first:
+
+0. (between 1 and 2) for a two-noun action, the `second` object's handlers:
+   the RECIPIENT of a give or show, the container of a put, answers for
+   itself ("give chip to vlad" runs Vlad's own `on give`), the way Inform
+   consults the second's life-routine.
+1. the `noun` object's own `on <verb>` handler,
+2. the `noun` object's own `on other` handler,
+3. its kind chain, nearest kind first, each kind's `on <verb>` before its
+   `on other`,
+4. the room's `on <verb>` handler, then the room's `on other`,
+5. any free-standing top-level `on <verb>` rule,
+6. the Cosmos default `on <verb>` handler.
+
+`on other` is the catch-all (Part I section 12): at each level a specific
+`on <verb>` is tried before that level's `on other`, so an object's own
+`on other` is its private default, sitting below its specific handlers but
+above the kind chain. It fires only for actions the object does not
+otherwise ADDRESS: a specific handler that ran and continued climbs to the
+kind, the room, and the defaults, it never falls into the same object's
+catch-all (so `on look / continue` reads as "pass look through untouched").
+A direction-guarded `on go north` addresses only norths: a southward go on
+an object with no other go handler still reaches its `on other`. A handler
+that lists several verbs (`on attack, push, pull`) is a specific handler
+for each of those verbs.
+
+Out-of-world actions never enter the chain at all: score, save, restore,
+restart, quit, and the transcript pair report on or manage the session
+rather than act in the world, so no object, recipient, or room handler ever
+sees them (Inform and PunyInform mark the same verbs meta). The compiler
+numbers them past `meta_floor` and the dispatcher routes them straight to
+the free rules, where a story-level `on score` can still override the
+default. The band is open to declaration: `verb "about" meta` puts a
+verb's actions there too, for ABOUT and HELP verbs and the debug granule's
+reach-anything tools, whose GONEAR must never fire an object's `on other`
+on the way past.
+
+Each handler runs until it ends or calls `continue`. Ending consumes the
+action and stops the chain; `continue` passes to the next handler. If the
+chain reaches the Cosmos default and it ends, the action took its standard
+effect.
+
+After phase. If the action completed, Cosmos runs `on after <verb>` handlers
+in the same specificity order. A `when` guard that does not hold makes a
+handler skipped, and the chain continues as if it were absent.
+
+"Completed" means the turn ended with `refused` still 0: every library
+refusal (can't see it, it's fixed, the door is locked) sets `refused`, and a
+story handler that refuses something should set it the same way. An action a
+handler consumed as its own effect (the instead case) still completed; a
+scenery grain's quip is flavor, not a world action, so a grain turn takes no
+after pass. An after handler may `continue` like any other, passing to the
+next in specificity order; an object's `on other` never answers the after
+pass, and `on after other` is the after pass's own catch-all: it fires
+after any completed world action with no specific `on after` here, is
+shadowed by one that exists, and never answers a refusal or an out-of-world
+verb. In a game with no `on after` anywhere the entire phase folds away at
+compile time and costs nothing.
+
+This is leaner than Inform's rulebooks: one ordered chain, an explicit
+`continue`, and an `after` pass, expressing instead, before-with-continue,
+and after without further machinery.
+
+## 10. Standard kinds
+
+`thing` (base): `name`, `words`, `desc`; booleans `fixed`, `scenery`,
+`hidden`, `concealed`, `wearable`, `worn`, `lit`, `edible`, `named`. Default
+handlers for examine, take, drop, push, pull, turn, and the like (section
+12).
+
+`room`: `name`, `desc`, `lit` (true by default; a dark room declares `lit
+false`), `visited`, and the direction properties (`north`, `south`, `east`,
+`west`, `northeast`, `northwest`, `southeast`, `southwest`, `up`, `down`, `in`,
+`out`, and the nautical `fore`, `aft`, `port`, `starboard`, whose player words
+are the nautical granule), each an object defaulting `nothing`. A direction may name a room or a
+door. Default `go <direction>` reads the matching property and moves the player,
+or, when there is no exit, prints "You can't go that way." A room overrides one
+direction with its own `on go <direction>`. The full movement model, including
+computed exits and the blocked-direction fallback, is section 11a.
+
+Only attributes true for essentially every instance of a kind are kind defaults;
+the rest are declared per instance. So `openable` is deliberately not a container
+default (a bowl is a container that never opens), while a door is `openable` and
+`fixed` because every door is.
+
+`container of thing`: an optional `capacity`. Contents are children, in scope
+when the player can see in: the container is `open`, is `clear` (see-through), or
+has no lid at all (not `openable`), like a bowl or a basket. Declare `openable`
+(and `open false`) to make a box with a lid that must be opened. Default open,
+close, and put in.
+
+`supporter of thing`: an optional `capacity`. Contents are children, always in
+scope on top. Default put on.
+
+`door of thing`: `openable` and `fixed` by default; declare `lockable`, `locked`,
+and `unseal_with <key>` to make it lock. A door joins two rooms with the `in A, B` sugar: it
+lives in one room in the object tree and spans the other (section 5), so it is
+referable and operable from both sides. When a room's exit names the door (`east
+oak_door`), crossing it is gated on the door being open and unlocked and lands
+the player on its far side, with no author code. Default open, close, lock,
+unlock, and the movement gate.
+
+`character of thing`: `animate`; holds and wears objects; refuses being taken
+(an animate object answers TAKE with its own line, not the scenery `fixed` one)
+and routes the talk verb (section 11). `player` is the distinguished instance.
+
+## 11. Standard verbs
+
+The core set. Each entry leads with the ACTION IDENTIFIER, the name a
+handler matches: `on take_off` is how you catch REMOVE, because a handler
+names the action, never the typed phrase. The player's words follow in
+capitals. Identifiers cannot be guessed from phrases (TAKE OFF raises
+`take_off`, but TALK TO raises `talk`, and READ raises `examine`), so this
+list and the appendix B grammar table are the registry; the wiring itself
+is readable in english.prelude (`arcc --extract`).
+
+World verbs:
+
+- `look`: LOOK, L; describes `here`. LOOK AT X is `examine`.
+- `examine` noun: EXAMINE, X, READ; prints `desc`. Needs visibility.
+- `take` noun: TAKE, GET, CARRY, PICK (UP): move to player; refuse if fixed.
+- `drop` noun: DROP: move to `here`; a worn thing is refused until removed.
+- `put` noun in noun, `put` noun on noun: PUT, PLACE. `insert` noun in
+  noun: INSERT.
+- `wear` noun: WEAR, DON. `take_off` noun: REMOVE, DOFF, DISROBE, SHED,
+  and TAKE OFF (the take verb plus the off particle raises the same
+  action).
+- `inventory`: INVENTORY, I, INV.
+- `go` direction: GO, WALK, RUN, or a bare direction word (n, s, e, w, ne,
+  nw, se, sw, u, d, in/into, out).
+- `enter` noun: ENTER, BOARD, and SIT (ON/IN), REST (sitting is boarding).
+  `exit`: EXIT, LEAVE, OUT, and STAND (bare or STAND UP); STAND ON X
+  boards. English also reads the GET idioms: GET IN/INTO X and GET ON X
+  are enter, GET OUT OF X (and GET OFF X when the player is in or on X) is
+  exit, and a bare GET IN/OUT/UP/DOWN walks; GET OFF HAT stays the wearing
+  verb. The remaps live in the English pack (remap_action and the take+on
+  particle), so each language writes its own idioms.
+- `open` noun (also open noun with noun): OPEN, UNCOVER, UNWRAP. `close`
+  noun: CLOSE, SHUT, COVER.
+- `lock` noun with noun, `unlock` noun with noun: LOCK; UNLOCK.
+- `switch_on` noun, `switch_off` noun: SWITCH or TURN with ON/OFF in
+  either order (SWITCH ON THE LAMP, TURN THE LAMP OFF); LIGHT is a
+  switch_on synonym.
+- `push` noun: PUSH, PRESS, SHOVE (PUSH X <direction> moves a `shiftable`
+  thing). `pull` noun: PULL, DRAG, YANK. `turn` noun: TURN, ROTATE, TWIST,
+  SCREW, UNSCREW. All three default to "Nothing obvious happens." unless
+  handled.
+- `climb` noun: CLIMB, SCALE.
+- `give` noun to noun: GIVE, OFFER, FEED, PAY. `show` noun to noun: SHOW,
+  DISPLAY, PRESENT.
+- `talk` noun: TALK TO, TALK, GREET: the conversation action (below).
+  `ask` noun (about text), `ask_for` noun for text, `tell` noun, `answer`
+  noun follow the conversation model.
+- The sensory and physical set, each on a noun where appendix B says so:
+  `touch` (FEEL, PAT), `smell` (SNIFF), `taste` (LICK), `listen` (HEAR),
+  `eat`, `drink` (SIP, SWALLOW), `attack` (HIT, BREAK, KILL, FIGHT,
+  SMASH), `kiss` (HUG, EMBRACE), `jump` (HOP), `sing`.
+- `yes` and `no`: typed answers (YES, AFFIRMATIVE; NO, NEGATIVE), caught
+  with `on yes` / `on no` handlers and a `when` guard.
+- `wait`: WAIT, Z. `xyzzy`: the magic word, a normal (if fruitless) action
+  that costs a turn like any other.
+
+SEARCH is not in the core set: it ships in the extendedverbs granule
+(Part III), which adds the classic long-tail verbs (search, throw, dig,
+rub, pray, and their kin).
+
+The talk action. `talk to <person>` dispatches the `talk` action on the
+person. Without the conversations feature, the Cosmos default routes to the
+person's own `on talk` handler, or prints "There is no reply." With
+`summon.conversations` (section 14), `talk to <person>` opens that person's
+topic menu instead. ask, tell, and answer are likewise standard;
+with no conversation granule they hand over to the same talk brush-off, so
+asking IS talking until a granule redefines it.
+
+Meta verbs, each setting meta_turn so a cancelled quit costs no turn:
+`save`, `restore` (RESTORE, LOAD), `undo`, `again` (AGAIN, G), `oops`,
+`quit` (QUIT, Q), `restart`, `score` (the one score verb, Infocom-shaped:
+score, maximum, turn count, and the rank when a ladder is declared),
+`version` (prints the banner, so a bug report can say which build), and
+`notify` (the score-notification toggle, present only when the author
+enables scoring), using the corresponding Z-machine facilities.
+TRANSCRIPT (or SCRIPT) opens output stream 2, the transcript the interpreter
+records to a file of the player's choosing; TRANSCRIPT OFF (or UNSCRIPT, the
+Infocom word) closes it. The library reads the truth back from Flags 2 bit 0,
+so a player who cancels the interpreter's file prompt gets an honest "No
+transcript was started" rather than a false confirmation, and the closing
+"Transcript off" is printed before the stream shuts so it lands in the file.
+German words it MITSCHRIFT/PROTOKOLL AN and AUS; Spanish TRANSCRIPCION and
+TRANSCRIPCION NO.
+
+The English meta words work in every language pack: QUIT, SCORE, RESTART,
+SAVE, RESTORE (and LOAD), UNDO, AGAIN, OOPS, TRANSCRIPT/SCRIPT ON/OFF, and
+UNSCRIPT are declared as extra synonyms in the German and Spanish packs. A
+player used to English adventures guesses the localized session verb wrong
+at first; the session must never be hostage to vocabulary, so the original
+always answers. In-world verbs stay purely native: the fallback is a meta
+courtesy, not a second grammar.
+
+Every default message is a Cosmos string, overridable globally by replacing
+the Cosmos default or locally by handling the verb on an object or kind.
+
+## 11a. Movement and blocked directions
+
+The `go` verb reads the room's direction property for the chosen direction and
+moves the player to the room it names. The model has four tiers, from most
+specific to least, with no per-room boilerplate required:
+
+1. A static exit: `north cellar` names the destination room directly.
+2. A computed exit: a direction property may be a `block` (Part I section 6), so
+   an exit can depend on world state. The block returns a room to allow the
+   move or `nothing` to refuse it:
+
+   ```
+   room cave_mouth
+       name "Cave Mouth"
+
+       north block
+           if portcullis is open
+               return inner_hall
+           return nothing
+   ```
+
+   Because Cosmos reads every live direction to list exits (see
+   `verbose_exits` in section 14), direction blocks must be free of side
+   effects: reading an exit may happen more than once per turn.
+
+   A story reads an exit the same total way Cosmos does, with
+   `exit_dest(room, direction)`: it returns the destination, running a
+   computed exit's block when one stands there, and folds to a plain
+   property read (`here.(way)`, Part I section 9) in a game with none.
+3. A per-direction override: `on go <direction>` runs custom logic or a custom
+   message for one direction, as the Cloak of Darkness foyer does for north.
+   Ending the handler consumes the action; `continue` falls through to the
+   normal move.
+4. A per-room fallback: `on go other` fires for any direction that has no exit
+   and no specific `on go <direction>` handler. It is the room-wide
+   "you cannot go that way here" hook, replacing Inform's `cant_go` without a
+   new property:
+
+   ```
+   room ledge
+       name "Narrow Ledge"
+       east cliff_path
+
+       on go other
+           say "You can only go east from here."
+           stop
+   ```
+
+   `other` is not a direction; it is the reserved fallback operand of `go`,
+   matched only after a real exit and a specific direction handler have both
+   been ruled out, so genuine exits and specific overrides always win.
+
+When a direction has no exit and the room defines no `on go other`, the global
+behavior applies: by default "You can't go that way.", or, with
+`summon.verbose_exits` (section 14), an automatically listed set of the room's
+available exits.
+
+## 12. Standard responses
+
+Representative defaults, all overridable: take a fixed object, "${The noun}
+is fixed in place."; take something held, "You already have ${the noun}.";
+take success, "Taken."; drop, "Dropped."; examine with no desc, "You see
+nothing special about ${the noun}."; no exit, "You can't go that way."; a
+closed container, "${The noun} is closed."; darkness, "It is pitch dark, and
+you can see nothing."; an unhandled push, pull, or turn, "Nothing obvious
+happens."
+
+The pacing gate belongs here too: `press_any_key` (core) prints
+`msg_press_any_key`, waits for exactly one key (no echo, no Enter), and
+returns its ZSCII code for whoever cares which key fell. The prompt
+defaults to "[...]" in every language layer: convenient, understood
+everywhere, translation-free, and overridable like any message block. A
+device that speaks in its own voice calls `read_key` directly instead;
+the worked example (examples/features/press-any-key.storyarc) shows the
+gate, the custom prompt, and the specific-key catch side by side.
+
+## 13. Naming, articles, daemons, and timers
+
+Naming. `name` is the printed short name; the object identifier is never
+printed. Article helpers: `${a noun}` chooses a or an by sound, `${the
+noun}`, and capitalized `${A noun}` and `${The noun}` for sentence starts. An
+object with `named` set takes no article. When Cosmos lists several objects
+it joins them with commas and a final "and", each with its indefinite
+article.
+
+Daemons and timers. Arcturus gives you background behavior, code that runs on its
+own as turns pass, without the timer objects, integer IDs, and start/stop calls
+that this needs in other systems. There are two pieces: a per-turn daemon
+(`on each_turn`) and scheduled events (`after` and `every`).
+
+A daemon is an `on each_turn` handler. It fires once per turn, at the end of the
+turn, and a `when` guard is its on/off switch:
+
+```
+room bar
+    on each_turn when not lit
+        say "Something rustles in the dark."
+```
+
+While the condition holds, the daemon runs; when it stops holding, the daemon
+falls silent, with no explicit start or stop. Scope decides reach: a room's
+each_turn is active while the player is in that room, an object's while the object
+is in scope, and a free-standing each_turn (written at the top level, not inside
+an object) runs every turn.
+
+The exception is a BACKGROUND PERFORMER, an object marked `restless` (Part I,
+section 6a): its each_turn fires every turn wherever the object is. The
+principle is one sentence: work follows the performer's nature, prose
+follows scope. Every restless firing is buffered (a scratch table,
+Z-machine output stream 3, conformant on every interpreter), and the
+buffer is spoken afterward when the performer is in scope at EITHER end
+of its turn: standing before you, arriving as you watch, or leaving
+before your eyes are all heard, while a turn taken wholly offstage is
+discarded unread. So the author writes `say` unconditionally, arrival
+lines included, and the system decides audibility. Nothing ever fires
+twice (the scope walk skips restless objects; the performer walk owns
+them). `restless` is runtime state: `now thief is restless` arms a
+performer with no declaration anywhere, `now thief is not restless`
+returns it to the ordinary in-scope pulse, and the `when` guard still
+gates each firing. A game with no restless object folds the walk, the
+mute buffer, and the skip away entirely: byte-identical.
+
+Several each_turn handlers may be live at once; they
+fire the room's first, then the in-scope objects', then the restless
+performers', then the free-standing rules. Every live daemon fires:
+each_turn is a pulse, not a player action, so `stop` (or a handler simply
+running to its end) does not silence the sibling daemons the way it consumes a
+verb. This is what lets a game's own `on each_turn` and a granule's pulse (the
+ambience sweep, for instance) run side by side; the same holds for `on start`
+and `on enter`.
+
+Scheduled events fire a block after a set number of turns. `after` fires it once;
+`every` fires it again and again:
+
+```
+after 3 turns do collapse_tunnel     // once, three turns from now
+every 5 turns do tide_shifts         // every five turns, indefinitely
+```
+
+`do` names a `block` (Part I section 11), which runs with no arguments when the timer
+comes due. The count is any expression, evaluated when the statement runs, so a
+timer can be armed for a computed number of turns. Scheduling is a statement, so
+you arm a timer wherever it belongs, commonly in `on start` or in the very handler
+that sets an event in motion:
+
+```
+on take idol
+    move idol to player
+    say "The pedestal sinks. Somewhere, stone grinds on stone."
+    after 4 turns do temple_collapses
+```
+
+The timers count down from the turn loop, right after the each_turn pulse, so a
+scheduled block sees the world as it stands at the end of the turn. Re-running an
+`after` or `every` for the same block re-arms it: the countdown restarts from now
+with the new period, never a duplicate, which is how you extend, shorten, or
+restart a running timer. A scheduled block may even schedule itself, arming its
+next fire with a fresh count, for a timer whose period changes over its life.
+
+A timer STOPS by the exact statement that armed it, `stop` in front of the
+arming line:
+
+```
+stop after 4 turns do temple_collapses
+stop every 5 turns do water_dripping
+```
+
+The full triple, kind, interval, and block, is the timer's identity, and it
+must MATCH what is armed: an `every 3` cannot stop an `every 5`, nor an
+`after 5`, and stopping a timer that is not running is a clean no-op (that
+timer is not running, which is what you asked for). The schedule keeps the
+armed interval for exactly this, so a half-burnt fuse still answers to the
+number it was lit with. A `stop ... do` naming a block no arming statement
+ever schedules is flagged with a compile note. And a scene break clears
+everything at once, one-shots and recurring alike:
+
+```
+stop all timers
+```
+
+Between them, `on each_turn` (with `restless` for the background
+performers), `after`/`every`, and their stops cover the whole range: a
+condition-gated daemon, an offstage agenda, a one-shot fuse, a
+fixed-period timer, and the silence after, all written in ordinary
+Arcturus with no timer objects and no hand-kept turn counters.
+
+## 14. Summonable features
+
+These ship with Cosmos but are off until summoned (Part I section 13). Each is a
+granule, an official one distributed with Cosmos: a separate `.granule` module
+that enters the build only when summoned, so dead-code elimination keeps an
+unsummoned feature out of the story file entirely. Only the core Cosmos library
+is `.prelude`; everything opt-in here is a granule.
+
+`summon.conversations`. The menu presentation of the `topic` model. `talk to
+<person>` lists the topics in view as a numbered menu; the player presses the
+number to ask one, the exchange prints, and the menu redraws (topics reveal,
+retire, or unlock by `when` exactly as on the ask/tell path) until 0 or ENTER
+ends it. The menu prints inline in the main window and selects with a single
+keypress (the `read_key` intrinsic, backed by the `read_char` opcode), so there
+is no upper-window juggling; every line of wording is an overridable block
+(`draw_menu`, `msg_no_topics`, `msg_talk_over`). A sketch:
+
+```
+summon.conversations
+
+thing barman of character in bar
+    name "barman"
+
+    topic cloak "the cloak" words cloak when player holds cloak
+        you "About this cloak of yours."
+        reply "Best hang that up, sir. It unsettles the regulars."
+
+    topic message "the message" words message once
+        reply "Folk scrawl all sorts in the dark. I pay it no mind."
+```
+
+This is the same `topic` construct the Infocom-style ask/tell path uses
+(summon.infocom_talking, Part III): `words` are the ask/tell subject words,
+`when` gates visibility, `hidden` plus `reveal`/`hide` unlock by name, `once`
+retires after use, and `you`/`reply`/`say` form the exchange.
+
+The one place the two presentations differ is REPETITION, and it follows each
+one's shape. In the MENU, every topic the player picks leaves the list, so the
+menu shrinks as the person is drawn out: a plain topic is spent when picked, and
+`once` adds nothing there. On the ASK/TELL path there is no list to shrink, so a
+plain topic is REPEATABLE, the player may raise it again and again, and `once` is
+what marks the one that should answer only the first time (the confession, not
+the weather). Either way `once` stops only the PLAYER: a `reveal` in the author's
+code brings a spent or `once` topic back for another turn, after which it is
+spent again.
+
+The two granules are two presentations of one model and are mutually exclusive
+BY THE COMPILER:
+summoning both is an error, an author settles on one. ASK, TELL, and ANSWER
+are standard verbs either way (as in PunyInform): with no conversation granule
+they hand over to the talk brush-off (elevated conversation belongs to the
+granules alone); conversations makes ASK open the person's menu (asking IS
+talking) and TELL answer with the use-TALK hint; infocom_talking makes both
+dispatch the person's topics, with its own flat defaults as the no-match
+fallback (they cost other games nothing). The seams are overridable blocks
+(ask_to, tell_to, answer_to), so the words and wording stay in the language
+layer.
+
+`summon.language "<name>"`. Localization: compile a language pack (`spanish`) in
+place of English so the game plays in another language. Selecting, writing,
+forking, accents, gender, and abbreviations for a non-English game are gathered in
+section 14a.
+
+`summon.debug`. Developer verbs for testing, catalogued in 05: `tree` (the whole
+object tree), `scope` (what is reachable here), `fetch`/`purloin` (pull any object
+to you), `warp`/`gonear` (teleport to an object's room), and `inspect`/`showobj`
+(an object's location and attributes). They reach objects out of scope, which the
+parser normally refuses, through the `reach_unscoped` parser seam the granule
+overrides. There is no separate release build to strip them: not summoning the
+granule leaves them out entirely, which is the exclusion.
+
+`summon.takeall`. TAKE ALL, DROP ALL, and TAKE ALL FROM <container>,
+catalogued in Part III. Every swept item is a full turn (daemons and the clock move
+per item, the same rule as a chained line; a deliberate departure from
+Inform's one-turn ALL), undo takes the whole sweep back, and an empty sweep
+refuses so a chain stops. The core deliberately omits ALL; the granule's
+`all` declaration names the words and its hand-off folds away unsummoned.
+
+`summon.plurals`. The group model, catalogued in 05: group words (each coin
+declares `plural coins`, and "take coins" runs the take on every coin in
+scope) and THEM for the last group. A group word matching a single object
+binds it singularly; a tie between group members sweeps instead of asking.
+Every item is a full turn. Noun lists ("take lamp and box") are NOT part of
+this granule: they are core (section 8b). English-worded; a translation forks
+the granule (a Spanish fork should keep THEM out: the clitic plurals in the
+core pack already cover it, and bare los/las are the articles).
+
+`summon.ambience`. Rooms and things murmur over time, catalogued in 05: an
+`ambience` block of lines with a cadence (`about` breathes, `every` ticks,
+`in order` recites), topic-style `when` guards on the block and on single
+lines, `do <block>` computed lines, and the `ambience_rate` dial (0 mutes).
+One line at most per turn. A single recurring line is better served by a
+plain daemon; the granule is for shuffled texture (NPC behavior, layered
+room mood).
+
+`summon.verbose_exits`. Helpful blocked-direction messages, game-wide. When a
+player tries a direction with no exit, instead of the default "You can't go
+that way." Cosmos lists the room's available exits, for example "You can only
+go north or east from here." The list is computed from the room's live
+direction properties each time, so it stays correct as exits open and close;
+computed direction blocks (section 11a) are read to build it, which is why they
+must be side-effect free. The phrasing is an ordinary overridable Cosmos
+string, and a room's own `on go other` (section 11a) takes precedence over the
+listed message. This replaces hand-writing a blocked message in every room.
+
+## 14a. Writing in another language
+
+Arcturus is meant to be authored and played in languages other than English.
+Spanish and German are official, first-class Arcturus languages, maintained
+alongside Cosmos: Spanish (`cosmos/spanish.granule`, informal tuteo) and German
+(`cosmos/german.granule`, informal du) both ship, each a first pass pending
+native review. Others are the same shape of work. This section gathers what a foreign-language author needs; the mechanics
+each live in their own place, cross-referenced here.
+
+Selecting a language. `summon.language "spanish"` compiles the Spanish layer in
+place of English. English is the default, exactly one language is built into a
+story, and a plain English game pays nothing for the others. That directive is the
+only way to select a language, because only it does the swap (drops
+`english.prelude`).
+
+What is and is not translated. The language layer is one granule, a full fork of
+`english.prelude` in three parts: the parser hooks that read the language, the
+verb, `direction`, and `particle` vocabulary, and every message (including the
+framing the status-line and conversation-menu granules print). Everything else,
+the agnostic parser skeleton, scope, dispatch, and the action handlers, is shared
+and untouched.
+
+Three refinements that came out of the Spanish native review (Pablo Martinez)
+and serve every language: a closed openable announces itself in listings
+("Ves un cofre de roble (que está cerrado).", "(closed)", "(geschlossen)"),
+declared per pack in `list_item` with whatever agreement the language needs;
+the `article`/`indefinite` properties override a derived article verbatim
+(Part I section 16); and the Spanish pack retries an unknown first word that
+ends in -r with the -r stripped, so a regular infinitive finds its imperative
+("comer" reaches "come"), a trick a pack implements in its own `resolve_verb`.
+
+The player's standard self-words are the language layer's too: each pack
+declares them with `player.words` (me/myself/self/yourself/you;
+mich/dich/selbst; yo/mismo) plus a printable `player.name` its own messages
+read well with, and a game's own `player.words` ADD on top (Part I section 5a).
+
+So are the chain words (section 8b): `chain ",", "and", "then"` in English,
+`chain ",", "y", "luego"` in Spanish, `chain ",", "und", "dann"` in German.
+The splitting itself is the agnostic skeleton's; the pack only names the
+words. And so are the noise words (`noise "the", "a", ...`; el/la/los...;
+der/die/den...), the articles the parser knows but ignores, which noun lists
+depend on (section 8).
+
+Verb particles, so separable verbs read naturally. A multi-word verb combines a
+base verb with a particle (English "switch on", "take off"; German "schalt ... an",
+"schliess ... auf"). The particle words are declared in the language layer, not the
+compiler, with `particle <role> "word", ...`. The roles are `on`, `off`, `auf`, and
+`zu` (prelude `_PARTICLE_ROLES`), and the parser's `compound` block maps a base
+verb plus a role to the real action, so the same word can mean different things
+after different verbs. German uses all four:
+
+- `particle on "an", "ein"` / `particle off "aus", "ab"` with base `verb "schalt",
+  "schalte"` give "schalt die Lampe an", "... ein", "... aus", and the loose
+  "schalt an Lampe".
+- `particle auf "auf"` / `particle zu "zu"` with a base `verb "schliess", ...`
+  (whose first grammar line is `close`) give the everyday "schliess die Tuer mit
+  dem Schluessel auf" (unlock), "... ab" and "... zu" (lock), while bare "schliess
+  die Kiste" still closes. "ab" doubles as the switch-off particle; `compound`
+  keys on the base verb, so "ab" means off after schalt and lock after schliess.
+
+The parser finds the particle wherever it falls (both orders work for a one-noun
+verb), and a word may be both a particle and a preposition (English "on" in "put X
+on Y", German "an" in "gib X an Y", "auf" in "leg X auf Y"): the parser treats any
+tagged word as a phrase boundary, so the double duty just works. The line to hold onto: the identifiers a game's *code* uses stay
+English, only what the player *reads and types* is translated. So kinds (`thing`,
+`room`), attributes (`openable`), the direction properties in a room exit (`east
+puerta`), and the actions a `grains` line answers (`examine "mar"`) are fixed
+English names, while the player types `este` and `examinar`. A translator forks
+one file and touches nothing else.
+
+Accents, and typing on 8-bit systems. Display text is fully accented: the encoder
+writes each accented character with its Z-machine ZSCII code (section 1), so the
+acute vowels, u-diaeresis, n-tilde, and the inverted marks render on any
+conformant interpreter, the 8-bit and 16-bit ones included. But an 8-bit
+interpreter renders an accent it cannot type, so every word the player must *type*
+also carries a tilde-free form: the language's verbs list both (`oir`/`oír`,
+`ensena`/`enseña`), and an object with an accented name lists both spellings in
+its `words` (`words lampara, lámpara`). The rule: accent the display, and give
+every typeable word a plain-ASCII spelling too.
+
+Gender and articles, automatically. In a gendered language the article (un/una,
+el/la) and adjective agreement are automatic, with no per-object work. The
+compiler derives a `feminine` attribute from the object's head noun, the first
+word of its name: a head ending in -a, or in a reliably feminine suffix such as
+-ción, -sión, -dad, -tad, -tud, or -umbre, is feminine, everything else masculine.
+The pack's article blocks (`art_the`, `art_a`) and its messages read that
+attribute and agree on their own (`una lámpara`, `la caja está cerrada`). The
+author declares `feminine` only for the residue no spelling can reveal (la llave,
+el mapa), the same one-time act as the English `an` exception. `${the noun}` and
+`${a noun}` lower to a call to the article blocks precisely so a pack owns the
+article words (section 13).
+
+Gender where spelling cannot reveal it (German). German has three genders and no
+rule to guess them from, so the author states the gender the natural way, by
+declaring the object's article: `der`, `die`, or `das` on its own line in the
+object, like any attribute. The compiler maps that to the gender the pack reads
+(`die` sets `feminine`, `das` sets `neutral`, `der` is the masculine default), so
+the source reads as an author thinks (`das Buch`, `die Kiste`), not as an abstract
+flag. Because the gender is explicit, the Spanish -a spelling guess is turned off
+for German, so a masculine noun ending in -a is left masculine. The German article
+also inflects for case, and a message asks for the case it needs with the tag from
+Part I section 16, `${the:acc noun}` or `${the:dat noun}`; the pack's `art_the`
+turns gender and case into the right word (der/den/dem). German predicate
+adjectives do not inflect ("die Kiste ist offen", "der Schrank ist offen"), so the
+messages carry no per-gender variants: only the article changes, in the one place
+it is printed. The worked example is `examples/beispiel-deutsch.storyarc`.
+
+Number joins gender: the `pluribus` attribute (Part I, standard attributes)
+marks the one object that is grammatically plural (the scissors), and the same
+machinery agrees. The article blocks grow a plural column (English "some";
+German's bare indefinite plural and die/die/den/der by case; Spanish los/las,
+unos/unas, by gender), the pack's `art_is` block words the `${is x}` copula
+(is/are, ist/sind, está/están), and the core messages carry number branches
+beside the gender ones, every one under the `any_pluribus` fold, so a game
+with no pluribus object compiles byte-identical. The German and Spanish plural
+wordings await their native passes.
+
+Abbreviations. The baked-in abbreviation set is tuned to the English library, so a
+non-English game is built with no default set rather than English abbreviations
+that would not fit and would only cost the table (docs/04 section 10). Cosmos
+deliberately ships no standard set per language. Abbreviations barely matter for a
+small game; for a larger foreign game the recommendation is to run `arcc
+--make-abbreviations`, which sees the selected language's translated text and
+writes a set tuned to it (on the Spanish example, several hundred bytes below the
+no-abbreviation size).
+
+Forking a language, or adding one. A language pack is a granule, `<code>.granule`,
+that self-identifies with a marker at its top, `language "<code>"`. To fork one,
+`arcc --eject-granule spanish` writes it out; translate or adjust it, keep (or
+rename) it as `mylang.granule`, and select it with `summon.language "mylang"`, the
+filename being the selection key. To start a language from scratch, `arcc
+--eject-language` writes `english.prelude` to translate into a new
+`<code>.granule` (add the marker). Because a language pack must be selected with
+`summon.language` (which does the swap), a plain `summon spanish.granule` is a
+compile error that points you to `summon.language`, and `summon.language` on a
+granule that is not a language pack is likewise an error; neither can silently
+leave English baked in beside the new language. The worked example is
+`examples/ejemplo-espanol.storyarc`.
+
+## 15. Overriding Cosmos in practice
+
+Four patterns, in increasing scope: change one message by handling the verb
+on the object; change a verb everywhere with a top-level `on <verb>` rule;
+add a verb with a `verb` declaration plus its `on <verb>` default (as the
+Brass Lantern's pull and the Cloak's hang); or fork a Cosmos file by copying
+it into the project and editing it, so the build uses the local copy. Most
+games use only the first three; the fourth exists so Cosmos is never a
+ceiling.
+
+The GRAMMAR is overridable the same way, and no fork is ever needed for it:
+a game's `verb` declaration extends the standard set, feeds an existing
+action from a new word (`verb "peruse"` with `examine noun`), or redeclares a
+standard verb with a richer line set, positional lines included, and the
+later declaration wins for its words. The authoring patterns are Part I section
+10; the worked showcase is `examples/features/grammar.storyarc`.
+
+## 16. How the examples use Cosmos
+
+The Brass Lantern:
+
+- The cellar uses automatic light: with no `lit` of its own it is dark until
+  the player brings the switched-on lantern, whose `lit` lights the room. The
+  example's `on enter` additionally bounces the player back, a stricter
+  custom behavior than standard darkness; both are valid.
+- `switch_on` and `switch_off` are Cosmos verbs; the lantern's handlers
+  replace the default messages, consuming the action.
+- `pull` is an added verb; the lever's handler consumes it, so the default
+  "Nothing obvious happens." never runs.
+- `${turns}` reads the Cosmos turn counter, and the foyer's grain shows
+  prose texture answering examine without an object (grains, Part I section 14).
+
+Cloak of Darkness (a 1:1 port of Firth's reference cloak.inf, which is also
+the PunyInform size benchmark):
+
+- The foyer blocks north with `on go north`, a room-level override at pipeline
+  step 3. The 1:1 port carries no grains: the original answers for nothing
+  beyond its three objects.
+- The cloak is `wearable` and starts `worn`; Cosmos's wear and take-off verbs
+  manage `worn`, and putting it on the hook clears `worn` as part of put-on.
+  Its light logic is event-driven, as in the original: `on after take` darkens
+  the bar, `on after drop, put` in the cloakroom relights it, and the first
+  hang on the hook runs an `award 1` (paid once by award's own semantics,
+  where the original needed a flag).
+- The hook is a `supporter`; its child the cloak is on it and in scope, so
+  `hook holds cloak` is the test the hook's examine uses.
+- The bar's dark rules are the original's two tiers: `on go` charges two
+  disturbances for a wrong-way grope (`if way is not north`, the direction
+  name as a value), `on other` charges one for any other in-world action,
+  `on look, inventory` pass through (a matched handler that continues climbs
+  the chain, it never falls into the object's own catch-all), and the meta
+  verbs never reach the room at all (out-of-world dispatch, section 9).
+- The `disturbed` counter, the two `award 1` sites self-summing max_score 2,
+  and the two `finish` endings need nothing from Cosmos beyond the loop.
+
+## Appendix A: Cosmos-reserved names
+
+Direction names: `north`, `south`, `east`, `west`, `northeast`, `northwest`,
+`southeast`, `southwest`, `up`, `down`, `in`, `out`, `fore`, `aft`, `port`,
+`starboard` (the nautical four; their words are the nautical granule). The
+`go` verb also
+reserves `other` as the blocked-direction fallback operand (`on go other`,
+section 11a); it is not itself a direction.
+
+Standard kinds: `thing`, `room`, `container`, `supporter`, `door`, `character`.
+
+Standard boolean properties: `fixed`, `scenery`, `hidden`, `concealed`,
+`wearable`, `worn`, `lit`, `edible`, `named`, `an`, `clear`, `seen`, `switchable`,
+`openable`, `open`, `lockable`, `locked`, `visited`, `moved`, `animate`. The full
+table with each one's usage is in Part I section 6.
+
+Standard value properties: `name`, `words`, `desc`, `capacity`, `unseal_with`,
+`score`, `max_score`, `turns`.
+
+Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,
+`wear`, `take_off`, `inventory`, `go`, `enter`, `exit`, `open`, `close`,
+`lock`, `unlock`, `switch_on`, `switch_off`, `push`, `pull`, `turn`, `give`,
+`show`, `talk`, `wait`, `again`.
+
+Summonable features: `extendedverbs`, `infocom_talking`, `statusline`,
+`verbose_exits`, `conversations`, `takeall`, `plurals`, `ambience`, `debug`,
+and `language`. Text compression is not a summonable
+feature: the standard abbreviation set is always applied, and a story tunes it
+with its own `abbreviations.granule` (`arcc --make-abbreviations`, then summoned by
+name), which the text encoder reads as data rather than loading as runtime blocks
+(Part III section 7).
+
+## Appendix B: standard grammar lines
+
+The complete standard grammar, verb words to the left of the arrow, the
+grammar lines (action identifier first) to the right. This mirrors the
+declarations in english.prelude, which is the wiring itself (`arcc
+--extract` to read or fork it). SWITCH and TURN raise switch_on or
+switch_off through the on/off particles, wherever the particle sits in the
+command; TAKE plus the off particle raises take_off the same way.
+
+```
+verb "look", "l"                       -> look
+                                          look noun
+                                          look at noun
+verb "go", "walk", "run"               -> go
+                                          go noun
+verb "take", "get", "carry", "pick"    -> take noun
+verb "drop"                            -> drop noun
+verb "examine", "x"                    -> examine noun
+verb "read"                            -> examine noun
+verb "switch", "light"                 -> switch_on noun
+                                          switch_off noun
+verb "wear", "don"                     -> wear noun
+verb "remove", "doff", "disrobe",
+     "shed"                            -> take_off noun
+verb "put", "place"                    -> put noun on noun
+                                          put noun in noun
+verb "insert"                          -> insert noun in noun
+verb "open", "uncover", "unwrap"       -> open noun with noun
+                                          open noun
+verb "close", "shut", "cover"          -> close noun
+verb "lock"                            -> lock noun with noun
+                                          lock noun
+verb "unlock"                          -> unlock noun with noun
+                                          unlock noun
+verb "enter", "board"                  -> enter noun
+verb "sit", "rest"                     -> enter noun
+verb "stand"                           -> exit
+                                          exit noun
+verb "exit", "leave"                   -> exit
+                                          exit noun
+verb "give", "offer", "feed", "pay"    -> give noun to noun
+                                          give noun noun reverse
+verb "show", "display", "present"      -> show noun to noun
+                                          show noun noun reverse
+verb "touch", "feel", "pat"            -> touch noun
+verb "smell", "sniff"                  -> smell noun
+verb "taste", "lick"                   -> taste noun
+verb "listen", "hear"                  -> listen
+                                          listen noun
+verb "eat"                             -> eat noun
+verb "drink", "sip", "swallow"         -> drink
+                                          drink noun
+verb "attack", "hit", "break", "kill",
+     "fight", "smash"                  -> attack noun
+verb "kiss", "hug", "embrace"          -> kiss noun
+verb "push", "press", "shove"          -> push noun
+verb "pull", "drag", "yank"            -> pull noun
+verb "turn", "rotate", "twist",
+     "screw", "unscrew"                -> turn noun
+verb "climb", "scale"                  -> climb noun
+verb "talk", "greet"                   -> talk noun
+verb "ask", "interrogate", "query"     -> ask noun
+                                          ask noun about text
+                                          ask_for noun for text
+verb "tell", "inform"                  -> tell noun
+                                          tell noun about
+verb "answer", "respond"               -> answer noun
+verb "yes", "affirmative"              -> yes
+verb "no", "negative"                  -> no
+verb "jump", "hop"                     -> jump
+verb "wait", "z"                       -> wait
+verb "sing"                            -> sing
+verb "xyzzy"                           -> xyzzy
+verb "inventory", "i", "inv"           -> inventory
+verb "quit", "q"                       -> quit
+verb "score"                           -> score
+verb "restart"                         -> restart
+verb "save"                            -> save
+verb "restore", "load"                 -> restore
+verb "transcript", "script"            -> transcript
+                                          transcript_off (off particle)
+verb "unscript"                        -> transcript_off
+verb "undo"                            -> undo
+verb "again", "g"                      -> again
+verb "oops"                            -> oops
+verb "version" meta                    -> version
+verb "notify" meta                     -> notify
+```
+
+A direction word never resolves as an object: for GO (and a bare typed
+direction) it selects the room property to follow, and in a grammar line's
+`direction` slot (Part I section 10) it fills `way` the same way.
+
+# Part III: The Granules
+
+The summonable features of Cosmos: the optional modules a story pulls in
+with `summon`. This part is the reference for the granules that ship with
+Arcturus, how to summon and fork them, and how to write your own. The
+`summon` syntax is defined in Part I (section 13); the runtime each granule
+sits on is Part II.
+
+## 1. Granules and preludes
+
+Cosmos comes in two kinds of file, both ordinary Arcturus that lex identically;
+the extension marks the role (Part I section 2):
+
+- A `.prelude` is part of the core library, loaded before every story.
+- A `.granule` is a **summoned module**, loaded only when a story summons it,
+  and left out entirely otherwise.
+
+Overriding is one rule, the chain complete: **most specific wins**. A game
+block overrides a granule block overrides a library block of the same name.
+That is how the statusline granule replaces the core `prompt` (a granule
+overriding the prelude), how a translation's blocks replace the English
+wording (a language pack is a granule), and how a story reskins one line of
+a summoned feature: redefine `msg_throw` and yours speaks, extendedverbs
+summoned or not.
+
+> **Most specific wins: game over granule over library, block by block.**
+
+A summoned `.storyarc` (the chapters of a multi-file game, Part I section 13)
+counts as GAME here for EVERY declaration it holds, blocks, handlers, and
+verbs alike, whatever order it loads in; only `.granule` files ride at
+granule rank. So a `verb` a chapter redefines wins over a granule's verb of
+the same word, exactly as a chapter's message override wins over a granule's
+message.
+
+One courtesy at the granule seam: a granule's messages (`msg_*`, `line_*`)
+are its public skin and reskin silently, but a game block that replaces any
+OTHER granule block gets a compile note, because colliding with a granule's
+internal helper by accident (a block name you never saw, in a file you never
+opened) breaks the granule mysteriously. The note names the block; if the
+override is deliberate, it is working as declared, and if not, rename yours.
+
+Forking (section 4) remains the way to reshape a granule wholesale: take the
+file, edit anything, summon your copy.
+
+## 2. Summoning a granule
+
+There are three forms (Part I section 13), and they differ in where the granule is
+found:
+
+```
+summon.statusline             // the bundled copy, always
+summon statusline.granule     // your copy if present, else the bundled copy
+summon "/path/to/fork.granule"  // exactly this file
+```
+
+- **`summon.statusline`** (dotted) always uses the copy baked into `arcc`. It
+  never looks at your directories. This is the form to use for the official
+  feature, and the one the shipped examples use. Mind the fork trap: editing
+  an extracted granule beside the story does nothing while the summon stays
+  dotted (a deleted default message keeps printing, because the bundled copy
+  still supplies it); the compiler notices a same-named `.granule` beside the
+  story and prints a note naming the fix, which is the bare-filename form
+  below. The dotted form also covers the
+  non-granule feature `summon.language "<name>"`, a compiler feature rather than a
+  runtime module (section 6). The tuned abbreviation set is not a dotted feature;
+  it is summoned by name (section 7).
+- **`summon statusline.granule`** (a bare filename) searches the story's own
+  directory, then each `-L` directory, and only then falls back to the bundled
+  copy - printing a note when it does, so you know your fork was not picked up.
+  A custom name found nowhere and not bundled is an error. This is the
+  fork-friendly form.
+- **`summon "..."`** (a quoted string) is an explicit file: an absolute path as
+  written, or for a bare quoted name the story directory and then the working
+  directory. There is no bundled fallback; a missing file is an error.
+
+`-L` directories must be absolute paths, so the library a story compiles against
+is deliberate and unambiguous.
+
+## 3. The shipped granules
+
+### extendedverbs
+
+```
+summon.extendedverbs                         // every verb in the set
+summon.extendedverbs squeeze, burn, search   // exactly these families
+summon extendedverbs.granule squeeze, burn   // the same slice of your fork
+```
+
+The verbs beyond the always-in standard set, taken whole or by the slice.
+A SELECTION names verb families, where a family is one verb declaration
+and its synonyms, named by its action: `search` brings "frisk" along,
+because they are one action with two wordings, and it never brings `dig`
+as a neighbour. You pay only for what you take: an unselected verb's words
+never enter the dictionary, its grammar never compiles, its handlers are
+dropped at load, and its messages sweep out with them. A name the granule
+does not offer is a compile error that lists what it does. The bare form
+keeps meaning all of it, so no existing game changes, and the same
+selection works on a fork, which is the intended shape: one canonical verb
+library that forks carry whole and stories slice. The full verb-to-action table
+with every synonym, and each default line, is the granule source itself
+(cosmos/extendedverbs.granule, the editable template); the roster:
+
+- RUMMAGING: `search`/`frisk` works on ANY object, and the rule is: search
+  tells you what is there, and makes findable what wasn't. A LIVING thing
+  gets a social rebuff (frisking a person is not a discovery), a SHUT
+  container keeps its secrets, and everything else searches for real: the
+  contents are listed ("You find a wallet and a knife."), marked seen, and,
+  for a plain thing that cannot be looked into (a knocked-out guard, a
+  haystack), spilled to the room so they are truly takeable; an open
+  container or supporter only lists, its contents being reachable already.
+  So the whole authoring recipe for a lootable body is: clear `animate` on
+  the knockout and put the loot inside; nothing else. `alter` on the object
+  rewords the report while the mechanics run regardless. Things you marked
+  `hidden` stay yours to reveal. And the engine is public: `search_loot(self)`
+  from an instance `on search` runs the success path where the default
+  declines, the compliant frisk of a still-animate character being the
+  canonical case. One thing to know about the rebuff: it wins over your
+  wording. A living character refuses before any report is reached, so an
+  `alter` followed by `continue` never speaks on someone who is still
+  `animate`. That is deliberate, since a conscious person should almost
+  always refuse to be frisked. When you do want the exception, call
+  `search_loot(self)` instead of continuing: it runs the success path and
+  speaks your alter with it.
+- ACTING ON THINGS, futile by default until an object overrides:
+  `throw ... at`, `rub` (polish, clean, wipe...), `squeeze`, `tie ... to`,
+  `cut`, `fill`, `burn`, `blow`, `set ... to`, `empty`, `buy`.
+- CONSULT ... ABOUT, the reference-book verb, and no longer futile: the
+  subject rides a `text` slot (the ASK machinery), and the object's own
+  inline `topic` declarations answer it. Topics parse on any object, so a
+  gazetteer, a logbook, or a terminal answers CONSULT THE TOME ABOUT THE
+  MINE with its matching topic, with either conversation granule summoned
+  or neither. No match: "has nothing to say on the matter"; no subject:
+  "Consult it about what?"; both granule-owned messages, reskinnable.
+- BODY AND IDLE: `dig`, `wave`, `sleep`, `swim`, `swing`, `think`,
+  `pray`, `shout`. And `swear`, the oldest Easter egg in the medium: a
+  player who curses gets a dry line back instead of "unknown word"
+  (reskin msg_swear for your own tone; select it or leave it out like
+  any family). (`sit`/`rest` and `stand` are STANDARD verbs riding
+  enter and exit: SIT ON THE CHAIR boards it, STAND or STAND UP leaves
+  it, STAND ON THE STOOL boards too, in every game, no summon needed.)
+
+(Conversation is not this granule's business: ask/tell/answer are STANDARD
+verbs, and the two topic presentations are their own granules, conversations
+and infocom_talking, below. There is no fullscore verb anywhere: SCORE is
+the one score verb and reports score, turns, and rank itself.)
+
+Every default is an ordinary free handler, so the override story is the
+usual one: an object's own `on rub` wins ("on rub / say ..."), a top-level
+`on rub` rule reskins the verb game-wide, and `continue` defers back to the
+granule's default. The granule's own message blocks (msg_throw, msg_dig,
+...) are granule-owned wording: override any of them from the story
+(most-specific-wins), or fork the granule to reshape the set wholesale (section
+4) rather than overriding from the story.
+
+### infocom_talking
+
+```
+summon.infocom_talking
+```
+
+The Infocom-style conversation surface, the menu-less presentation of the
+`topic` model: `ask innkeeper about lighthouse` scans the person's inline
+`topic` declarations (Part I section 15; they live in the person's body) for one
+whose `words` match a typed subject word and is in view, runs it, and falls
+back to its own flat "stays mum" default when nothing matches (those richer
+defaults live here alone; every other game answers ask/tell with the one
+talk brush-off). `tell`
+shares the same path. Only the SUBJECT phrase is matched, the words after
+the about/for; the person's own name (the listener) is not, so a topic whose
+words happen to include the character's name does not fire for every ask.
+There is no topic list anywhere: discovery is play,
+the Infocom way, and TALK TO stays the flat brush-off a person can override
+to nudge the player toward the two verbs that matter.
+
+Several characters who answer about the same thing share one `subject`
+declaration (Part I section 15): it owns the match words and the label, each
+character writes only its reply, and the vocabulary is stored once no matter
+how large the cast.
+
+ASK <person> FOR <thing> reaches the same topics: a request names a subject
+just as a question does, and the topic tells them apart with `action is
+ask_for` (so one topic can answer "what about the beer?" and "may I have a
+beer?" differently). Nothing matching falls to the flat request default.
+
+One topic serves both ASK and TELL, because a topic is one SUBJECT and the
+two verbs raise the same subject. When the exchange should differ, branch on
+`action` inside the body (Part I section 12), which is also how a topic tells a
+question from a statement:
+
+```
+    topic vase "the vase" words vase
+        if action is tell
+            reply "I know all about that vase, thank you."
+        else
+            reply "The vase was my mother's."
+```
+
+AGAIN repeats the last exchange, as retyping it would.
+
+For a per-person default answer, give the person an `idle` topic (Part I section
+15): it answers when the player asks or tells about a subject no other topic
+matched, in place of the flat library line. It is an ordinary topic with a
+full exchange, `once` and `when` and all, that matches on "nothing else did"
+rather than on words; several are allowed, and the first in view answers.
+This is the ask/tell counterpart of the flat default; the conversations menu
+has no unmatched case and ignores idle topics entirely.
+
+With no list to exhaust, a plain topic here is REPEATABLE: the player may raise
+it again and again (asking about the weather twice answers twice), and `once` is
+what marks the topic that should answer only the first time (a confession the
+suspect will not repeat). `once` stops only the PLAYER; a `reveal` in the
+author's code brings a spent one back for another turn, after which it is spent
+again. This is the opposite default from the conversations menu, where picking a
+topic removes it from the list, so `once` adds nothing there (below).
+
+The granule holds ONLY logic, and is as translatable as the menu: the
+ask/tell/answer verb words, their grammar, and every message live in the
+language layer (the packs carry them), and the granule overrides the
+standard `ask_to`/`tell_to` seams with the dispatch. It is mutually
+exclusive with the conversations menu BY THE COMPILER: summoning both is an
+error, an author settles on one presentation. The topics themselves are
+identical either way, so switching later is a one-line change.
+
+### statusline
+
+```
+summon.statusline
+```
+
+A one-line status bar across the top of the screen, painted before every prompt:
+the room on the left, the score and move count on the right, in reverse video.
+The right side adapts to the screen width the way PunyInform does - the full
+`Score: n   Moves: n` on a wide screen, the compact `Score: s/t` on a narrow
+retro one - and to the game: one that scores nothing shows only the move
+count (`Moves: n`), never a permanent "Score: 0". The fold decides at
+compile time, so neither game pays for the other's bar. It coexists with the conversations menu: when both are summoned the
+bar sits pinned above the topic list.
+
+In the dark the bar does not name the room, because naming an unseen room
+is a spoiler: it shows the language layer's darkness line instead ("In the
+dark"; the German and Spanish packs carry their own wording). The whole
+branch folds away in a game where darkness cannot happen, which the
+compiler knows exactly (a room with `lit false`, or a handler clearing
+`lit`, is what makes it possible).
+
+### foresight
+
+```
+summon.foresight
+```
+
+The game does the obvious preparatory step for you. GIVE APPLE TO STACY
+with the apple at your feet becomes:
+
+```
+(taking the apple first)
+You give the apple to Stacy.
+```
+
+Built on the verb contract (Part I section 10a): a failed `requires noun
+carried` is repaired with an implicit take instead of refused. The
+parenthetical is a PROMISE, and it prints only when the promise is certain:
+the repair asks the default take's own factored guard chain (take_probe)
+first, so an unreachable or fixed thing refuses plainly, with the take's
+own line and no promise before it. "(taking the sun first) The sun is
+beyond your reach." does not happen here. The one residue is an object or
+room with its own take handler, whose outcome no probe can know without
+running it: those get promise-then-run, author prose landing between the
+promise and the outcome, where it belongs. A free-standing `on take` rule
+is not consulted by the certain path; a game that gates all taking through
+free rules should not summon this.
+
+Doors and containers get the same courtesy. A closed, UNLOCKED door on
+the walk opens itself, "(opening the oak door first)", and the walk goes
+on; naming a thing you KNOW is inside a closed, unlocked container opens
+the container and the command continues, and the two chain: GIVE PEARL TO
+BOB with the pearl visible in a sealed clear jar runs "(opening the clear
+jar first)", "(taking the pearl first)", and then the give, and the plain
+TAKE PEARL through the same glass opens the jar just as readily (the
+sealed-take seam; the direct take and the give-chain share one manners
+model). The same
+probe rule governs every step (open_probe is the default open's own guard
+chain), locked things stay honest refusals, since unlocking is a decision
+where opening is mechanics, and the knowledge model draws the other line:
+contents you have never seen cannot even be named, so nothing is ever
+conjured. A container or door with its own `on open` handler gets
+promise-then-run, the same residue as the take.
+
+Off unless summoned, deliberately: implicit actions are a matter of taste.
+The repaired take is silent (the bookkeeping runs, the points pay, no "Got
+it."), one UNDO takes back the whole exchange, and the parentheticals'
+wording is the language layer's (`line_foresight_take`,
+`line_foresight_open`), so each pack speaks its own idiom.
+
+### quotes
+
+```
+summon.quotes
+```
+
+The one-call form draws the whole box from a text catalog (Part I,
+catalogs): `quote_catalog(last_letter)` sizes the frame from the
+catalog's compile-time header (line count and widest line, no author
+arithmetic, nothing measured at run time) and prints every entry. The
+line-by-line form below remains for hand-built boxes.
+
+A centered, reverse-video quote box in the upper window, in the tradition of
+Infocom's Trinity: the classic way to open a game with an epigraph. The box is
+centered from the interpreter-reported screen width, so it sits right on a
+40-column 8-bit machine and a wide terminal alike, and it sits in the upper
+third of the screen, where the eye expects it.
+
+Three blocks, called in order:
+
+- `quote(lines, width)` opens the box: `lines` is the number of text lines,
+  `width` the length of the LONGEST line, counted by hand the way one counts a
+  fixed-width layout. The box adds one space of padding on each side and a
+  blank reverse row above and below. Opening the box clears the screen.
+- `quote_line` advances to the next line and leaves the cursor inside it;
+  the author's own `show("...")` then prints that line's text. One
+  `quote_line` / `show(...)` pair per line, top to bottom. Lines print
+  left-aligned inside the box; pad with leading spaces by hand for a
+  right-aligned attribution, exactly as on paper. An empty line is
+  `quote_line` followed by `show("")`.
+- `quote_done` draws the bottom row, waits for a single keypress, and clears
+  the screen for whatever follows. The status line, if summoned, redraws at
+  the next prompt.
+
+```
+on start
+    quote(3, 37)
+    quote_line
+    show("In order to make an apple pie from")
+    quote_line
+    show("scratch, you must first create the")
+    quote_line
+    show("universe.        -- Carl Sagan")
+    quote_done
+```
+
+The text goes through `show(...)` directly because a string cannot travel
+through a block parameter (Part I section 3); the box manages the geometry, the
+author supplies the words. Keep `width` under the narrowest screen you target
+minus four (36 is safe on a 40-column Commodore 64); on a screen too narrow to
+center, the box clamps to the left edge rather than wrapping.
+
+An opening quote usually comes BEFORE the banner. Pair the granule with
+`banner false` in the game block and a `print_banner` call after
+`quote_done` (Part I section 4; Part II section 3), and the game opens in the
+classic order: quote, keypress, banner, story. The box prints no words of its
+own, so it works identically in every language, and it draws with the same
+colours the game set with `zcolor` (Part I section 16a).
+
+### verbose_exits
+
+```
+summon.verbose_exits
+```
+
+Replaces the blunt "there's no exit in that direction" with a list of the room's
+actual exits ("You can only go north or east from here."), read from the
+compiler's own direction data, so it always matches the map.
+
+### nautical
+
+```
+summon.nautical
+```
+
+The nautical directions, FORE, AFT, PORT, and STARBOARD (with F and SB as
+the ship's shorthand), plus ALOFT and BELOW riding the existing up and
+down, because a vessel is a volume, not a deck plan (a submarine, a
+crow's nest): for a game set aboard a ship or a deep space craft, where
+the compass fails (cardinal directions are measured around the pole of a
+planet, and in deep space there is no pole; the Hibernated problem). The
+four horizontal properties are part of the compiler's standard set, so
+exits, handlers, and `way` tests read like any other (`fore engine_room`,
+`on go fore`, `if way is aft`); the granule adds the player-facing words.
+Nautical and compass directions coexist in one game.
+
+WHERE THE WORDS APPLY: `dirs_nautical`, the granule's flag, true by
+default, so a pure ship game never touches it. Set it false as the player
+steps ashore (`change dirs_nautical to false`, back to true at the
+gangplank) and the four nautical-only words refuse honestly, "Nautical
+directions mean nothing here." (msg_no_nautical, overridable), instead of
+a misleading "no exit". ALOFT and BELOW stay live either way: they are
+synonyms of up and down, which exist everywhere, and gating them would
+gate every cellar staircase ashore.
+
+If your game BEGINS ashore, set the flag false at the very start, not just
+when stepping off the boat: the default is true (aboard), so the opening
+room would otherwise treat nautical directions as live and answer "no
+exit" there. An `on start` rule does it: `on start` / `change dirs_nautical
+to false`. The compiler emits a note when the nautical granule is summoned
+and the start room has no nautical exit, since the opening room is the one
+place a step-off handler can never reach.
+
+### conversations
+
+```
+summon.conversations
+```
+
+The menu presentation of the `topic` model: TALK TO <person> opens a numbered
+list of what there is to talk about, pinned in the upper window while the
+conversation scrolls beneath it.
+
+WHERE TOPICS LIVE. Topics are not declared in the granule or in any separate
+registry: they live INLINE in the person's body, like properties and
+handlers, and the same declarations serve both conversation systems (this
+menu, and infocom_talking's ask/tell). The full header grammar is Part I section
+15; the shape:
+
+```
+thing wirtin of character in inn
+    name "innkeeper"
+    named
+
+    topic lighthouse "the lighthouse" words lighthouse, tower
+        you "What about that lighthouse out there?"
+        reply "Dark since that night. Nobody has gone back up."
+        reveal key_talk
+
+    topic key_talk "the key" hidden
+        you "Is there a key somewhere?"
+        reply "In the chest, by the hearth."
+
+    topic debt "the old debt" when player holds ledger once
+        reply "So you found it. Then you know what I owe."
+```
+
+- The MENU LABEL is the quoted string after the subject id ("the
+  lighthouse"): that is the line the player sees, numbered, in the list.
+- `words` are only for ask/tell (`ask innkeeper about tower`); the menu does
+  not need them, players pick by number.
+- `idle` topics are only for ask/tell (the per-person default answer); the
+  menu has no unmatched-subject case, so it never lists or runs one. An idle
+  topic declared in a menu game is simply inert.
+- VISIBILITY is live, three ways (Part I section 15 explains when to use which):
+  a `when` guard follows the story state by itself; `hidden` topics enter
+  view when another topic's body (or any handler) runs `reveal <subject>`;
+  `once` retires a topic after one telling. In the menu, picking a topic
+  removes it from the list regardless, so `once` is redundant here; it earns
+  its keep on the ask/tell path (above), where plain topics repeat. Either
+  way a `reveal` in code brings a retired topic back for another turn.
+- The BODY is an ordinary statement block: `you`/`reply` print attributed,
+  auto-quoted dialogue (framing overridable via line_you/line_reply/
+  line_end), `say` is narration, and any statement works: set flags, move
+  objects, change the score. The person is `self`.
+
+THE MENU FLOW. TALK TO paints the list (the statusline, if summoned, stays
+pinned above it); a digit runs that topic's exchange in the lower window and
+the list repaints, reflecting anything the topic revealed, hid, or retired;
+0, or running out of topics, closes it ("You let the conversation rest
+there."). A person with nothing to raise answers msg_no_topics ("You can't
+think of anything worth raising right now."). Every framing line is in the
+language layer, so packs translate it.
+
+ASK AND TELL. The standard ask lands in the menu (asking IS talking:
+`ask vlad`, and even `ask vlad about the vines`, opens Vlad's menu, the
+subject words riding along), and the standard tell answers with the
+use-TALK hint (msg_use_talk, a language-layer line): the granule overrides
+the `ask_to`/`tell_to` seams and holds no words and no strings itself.
+The infocom_talking granule is the other presentation of the same topic
+declarations, and the two are mutually exclusive BY THE COMPILER: summoning
+both is an error. The topics are identical either way, so switching
+presentations is a one-line change. A person can still override `on talk`
+for a one-off custom exchange that bypasses the menu.
+
+### ambience
+
+```
+summon.ambience
+```
+
+Rooms and things murmur over time. An `ambience` block is a list of lines; on
+a room it plays while the player is there, on a thing while the thing is in
+scope, which is what makes a companion or a muttering radio work. At most one
+ambient line plays per turn, so a busy room never floods the transcript.
+
+```
+room monorail
+    ambience
+        "Vlad steps over the skeletal remains without adjusting his gait."
+        "Vlad runs a rapid scan of the chamber, then dismisses it as redundant."
+        "Somewhere far down the tunnel, metal settles."
+
+    ambience about 12 turns when door_open
+        "A draught moves through the open blast door."
+```
+
+The header, modifiers in any order (`when` reads to the end of the line, so
+it comes last):
+
+- bare `ambience`: ABOUT the `ambience_rate` dial (default 8), random order,
+  never the same line twice running.
+- `about N turns`: living odds. Each silent turn shortens them, a fired line
+  resets them, so the room breathes instead of ticking. The firing time
+  spreads evenly around the rate, so "about 7" truly averages one line
+  every 7 turns.
+- `every N turns`: the strict metronome.
+- `in order`: the lines play as written, then cycle; `in order once` falls
+  silent after the last, for scene-setting that quietly exhausts itself.
+- bare `once`: the shuffled deal. Each line fires once, in random order,
+  then the block falls quiet; when the block drops out of play (the player
+  leaves the room, the thing leaves scope) the deck re-deals, so a
+  revisited room starts fresh. The way an NPC companion comments on a
+  location: every remark lands exactly once per visit, and none repeats
+  while you stand there. A `once` deck holds at most 15 lines (the
+  compiler checks, and says so).
+- `when <cond>`: gates the whole block live, like a topic guard.
+
+A line is a string, or `do <block>` for a computed one, and each line may
+carry its own trailing `when`. The dial: `ambience_rate` is the default
+cadence, and `change ambience_rate to 0` mutes every block (bring it back
+after the tense scene); blocks with their own cadence keep it otherwise.
+
+KNOW WHEN NOT TO USE IT. One line that fires until a condition flips is a
+plain daemon, two lines of code and no granule (`every 3 turns do drip`);
+the ruby-gem style room pulse in the daemons example is exactly that.
+Ambience earns its summon for shuffled, breathing texture: NPC behavior and
+layered room mood.
+
+### takeall
+
+```
+summon.takeall
+```
+
+TAKE ALL, DROP ALL, and TAKE ALL FROM <container>. The core deliberately
+omits ALL (it flattens scenes into transactional loot runs), so it is a
+granule: a game that wants the convenience summons it, and a game that does
+not pays nothing (the parser's hand-off folds away without the summon).
+
+The sweep tries what a plain take would not refuse on sight: nothing fixed,
+scenery, animate, hidden, or already carried, including what sits on
+supporters and in open containers; DROP ALL keeps what is worn; a shut
+source refuses honestly ("The chest is shut."). Each attempt still runs the
+object's own handlers, so a custom `on take` refusal simply prints after the
+item's name:
+
+```
+>take all
+brass lamp: Got it.
+wooden box: Got it.
+idol: The idol is welded to its pedestal.
+```
+
+Every swept item is a FULL TURN: daemons fire and the clock moves per item,
+exactly as if the takes had been typed one by one. This is a deliberate
+departure from Inform, where ALL costs one turn; in Arcturus doing three
+things costs three turns, the same rule a chained line follows (Part II section
+8b). UNDO takes back the whole sweep, because the sweep is one typed command
+and undo peels typed commands. An empty sweep, and ALL with any other verb
+("eat all"), refuse, so a chained line stops there honestly.
+
+The granule declares the words (`all "all", "everything"`) and its messages
+in English; a translation forks it and redeclares both (section 4), the same
+rule as every granule.
+
+### plurals
+
+```
+summon.plurals
+```
+
+The group model, two parts that arrive together (noun lists, "take lamp
+and box", are a CORE chaining feature, not part of this granule; Part II section
+8b):
+
+- GROUP WORDS. Each member of a group declares the words that name it as a
+  group: `plural coins` on the gold coin and the silver coin. "take coins"
+  then runs the take on every coin in scope, one line and one full turn per
+  coin, exactly like TAKE ALL's sweep; with only one coin left, the same word
+  binds it singularly with no ceremony. The ordinary singular vocabulary
+  still disambiguates: "take coin" (a `words` entry on both) asks which.
+- THEM. The pronoun for the last group: "take coins" then "drop them". THEM
+  re-runs the group word, so it honestly covers whatever of the group is
+  still in scope.
+
+English-worded like every granule; a translation forks it. A Spanish fork
+should keep the THEM declaration out: the clitic plurals (-los, -las) in the
+core Spanish pack already fill that role, and bare "los"/"las" are the
+articles. The granule's `pronoun them "them"` declaration doubles as its
+compile-time marker: every hook in the core parser folds away without it.
+
+### debug
+
+```
+summon.debug
+```
+
+Developer verbs, opt-in by the summon alone (there is no separate release build
+to strip them from; not summoning them leaves them out). Arcturus-named with the
+familiar Inform synonyms:
+
+- `tree` / `objects` - the whole object tree.
+- `scope` - what is reachable from here.
+- `fetch` / `purloin` - pull any object into your hands.
+- `warp` / `gonear` - teleport to an object's room.
+- `inspect` / `showobj` - an object's location and the attributes it has set.
+
+`fetch`, `warp`, and `inspect` reach objects that are out of scope, which the
+parser would normally refuse; the granule teaches the parser to reach them
+through the `reach_unscoped` seam (section 5).
+
+Looking for Inform's RECORDING / REPLAY to step through a walkthrough? That is
+not a game verb in Arcturus; it lives in the interpreter, where it costs the
+story nothing. Actaea records a session, replays it, and checks whether a
+changed game still plays the same, with `actaea --record`, `--replay`, and
+`--check` (docs/06 section 3, "Record, replay, and check").
+
+### matrix
+
+```
+summon.matrix
+```
+
+The mutable sibling of a catalog: a capacity-bounded, numeric sequence whose
+LENGTH changes at runtime. A catalog is fixed data; a matrix you `append` to,
+`remove` from, and `insert` into. Reach for one only when a collection truly
+grows or shrinks as the game plays; for everything else a catalog is smaller
+and faster (Part I section 4a has the full "do you need this?" guidance and
+the syntax). The declaration and reads are compiler sugar, but the mutators
+themselves live here, in editable Arcturus, so you can override any of them by
+declaring a block of the same name:
+
+- `matrix_append(m, v)`, `matrix_insert(m, i, v)` - grow, with a full check.
+- `matrix_remove_at(m, i, swap)`, `matrix_remove_val(m, v, swap)` - shrink,
+  order-preserving or O(1) swap-with-last.
+- `matrix_load(m, src)` - copy a catalog's values in as the new contents.
+
+A matrix shares the catalog region and base, so its cells are peek_word /
+poke_word against `catalogs_base` at word `m + 1 + i`, the count at `m` and the
+capacity at `m + 1`. There is no heap and no allocator; a game that does not
+summon matrix contributes zero bytes.
+
+## 4. Forking a granule
+
+To change a granule, take a copy and edit it.
+
+- One granule next to a story:
+
+  ```
+  arcc --eject-granule statusline      // writes statusline.granule here
+  // edit statusline.granule, then in the story:
+  summon statusline.granule            // your copy wins over the bundled one
+  ```
+
+- The whole library, to fork several files or a prelude:
+
+  ```
+  arcc --extract-library /abs/cosmos   // every prelude and granule
+  // edit files in /abs/cosmos, then:
+  arcc game.storyarc -L /abs/cosmos    // -L must be absolute
+  ```
+
+  With `-L /abs/cosmos`, a `summon statusline.granule` in the story finds your
+  edited `/abs/cosmos/statusline.granule` before the bundled one. A prelude can
+  only be forked this way: there is no single-prelude eject (except
+  `--eject-language` for translation, section 6) - to hack a prelude you extract
+  the whole library and point `-L` at it.
+
+### Keeping a fork current
+
+A fork wins over the bundled copy for as long as it sits beside your story.
+That is the point of it, and it has one consequence worth knowing before you
+take your first one: the file you copied keeps improving in later releases, and
+your copy does not. A fork left alone long enough is a version of Cosmos from
+whenever you took it, and nothing about compiling makes that visible.
+
+So every file arcc writes out starts with a stamp:
+
+```
+// cosmos 1.2.14 base a06f30acb367
+```
+
+Leave it in place. The version is for you to read; the fingerprint identifies
+the source your fork came from, and the compiler compares it against its own
+copy of that file. If the file has not changed since, nothing is said, however
+old the stamp reads and however heavily you have edited your copy. If it has
+changed, one note tells you, on every compile until you deal with it:
+
+```
+arcc: note: extendedverbs.granule was forked from Cosmos 0.36.5 and the
+bundled extendedverbs.granule has changed since (now 1.2.14). Diff it against
+a fresh `arcc --eject-granule extendedverbs` to see what your fork is missing.
+```
+
+That is the whole recipe for catching up: eject a fresh copy somewhere else,
+diff it against yours, and move over what you want. Then re-stamp by taking the
+new copy and re-applying your edits to it, so the next release can tell you the
+same thing again.
+
+```
+arcc --library-status            // every fork here: current, AGED, unstamped
+arcc --library-status /abs/cosmos
+```
+
+Two notes on the edges. A fork you took before stamps existed carries none, so
+it gets a milder note saying its age cannot be told; re-eject to establish one.
+And a granule of your own, with no bundled file of the same name, is not a fork
+of anything and is never mentioned. Deleting the stamp line opts out entirely,
+which is fair once a fork has diverged past caring, but you lose the warning
+with it.
+
+## 5. Writing your own granule
+
+A granule is plain Arcturus in a `.granule` file. It may declare verbs, kinds,
+objects, and blocks, and it may **override prelude blocks** by defining a block
+of the same name. Summon it by filename (`summon mygranule.granule`) or path.
+
+A few patterns the shipped granules use:
+
+- **Override a message or behavior.** Define a block named like a prelude block
+  (a `msg_*`, or `prompt`, `describe_room`, the parser blocks) and yours replaces
+  it. This is how statusline overrides `prompt` and verbose_exits overrides
+  `msg_cant_go`.
+- **Add a verb with an overridable default.** Declare the `verb`, write a free
+  `on <verb>` handler that speaks a default, and let an object override it with
+  its own `on <verb>` (most-specific-wins).
+- **Integrate optionally with another feature through a seam.** When two granules
+  may or may not both be present, neither can override the other's blocks. Put a
+  default block in the *prelude* and have each granule override or call it. The
+  statusline/conversations coexistence works this way (`status_bar`, a prelude
+  no-op the statusline overrides and the menu calls), and so does the debug
+  granule reaching out of scope (`reach_unscoped`, a prelude hook the parser
+  calls and debug overrides). A seam is the only way to compose two optional
+  granules, and it is what lets a language pack and the debug granule both extend
+  the parser at once.
+- **Depend on another granule.** A granule may itself `summon` another; the
+  loader resolves summons transitively, each granule loaded once.
+
+Keep a granule self-contained and summon-gated: anything it ships is left out of
+a story that does not summon it.
+
+## 6. Not a granule: the language pack
+
+`summon.language "<name>"` is a compiler feature rather than a runtime granule: it
+selects a localization (milestone B7). A language pack is a translation of
+english.prelude, saved as a granule whose blocks override the English ones (a
+granule overriding the prelude, section 1). Start from `arcc --eject-language`,
+translate, and ship the result. The pack may replace the parser's grammar logic
+too, not only its wording, since an inflected language parses differently (Part II,
+section 8). An ejected language file carries the same fork stamp as any other
+library file, so a pack that predates a change to the English layer is told so
+rather than quietly missing a message.
+
+## 7. The tuned abbreviation set
+
+Most of a story file is text, so the compiler compresses it against the
+Z-machine's abbreviation table (docs/00 section 5). This asks nothing of you:
+every build already applies a standard abbreviation set, computed once from the
+Cosmos library text and baked into `arcc`.
+
+A particular story can do better than the standard set by curating one over its
+own text. Run:
+
+```
+arcc --make-abbreviations mystory.storyarc
+```
+
+which pools the strings of the story and every granule it summons, computes an
+optimized set up to the Z-machine's ceiling of 96 entries, and writes an
+`abbreviations.granule` beside the story. Summon it by name to use it in place of
+the default:
+
+```
+summon abbreviations.granule
+```
+
+It is neither a dotted feature nor runtime code. The file is compile-time data the
+text encoder reads, so it holds only string literals (and therefore lexes and
+highlights like any Arcturus source). A story that never summons it simply keeps
+the standard set, and summoning it costs nothing at run time; it only changes how
+the text is packed. Regenerate it after large text edits. The optimizer is the
+same one that computes the built-in default (tools/arcabbr.py), so a
+`--make-abbreviations` run is slower than a plain build, but it runs only when you
+ask, which is why the two-pass split exists: the fast default on every build, the
+slow tuned set on request.

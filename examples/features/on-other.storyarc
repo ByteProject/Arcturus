@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for the object catch-all, `on other` (docs/01 section 12). A handler
+// A showcase for the object catch-all, `on other` (docs/01 Part I section 12). A handler
 // with no verb pattern runs for any action aimed at the object that no more
 // specific handler already caught. It is the "everything else" arm: one place to
 // give an object a single voice for the dozens of verbs you did not write by

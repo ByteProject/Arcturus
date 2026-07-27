@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for shiftable (docs/01 section 10): a thing marked
+// A showcase for shiftable (docs/01 Part I section 10): a thing marked
 // `shiftable` can be pushed through an exit, and the player goes with
 // it: doors are respected exactly as walking respects them, the arrival
 // is the same a walk gets, and the thing is there when the room is

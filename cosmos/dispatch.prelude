@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// The action pipeline (docs/02 section 9), written in Arcturus. Given an action,
+// The action pipeline (docs/01 Part II section 9), written in Arcturus. Given an action,
 // it walks the chain most-specific first - the noun, then the room - calling each
 // object's react routine (wired by the compiler) and stopping at the first that
 // consumes the action (returns 1). A react routine runs the object's own
@@ -63,7 +63,7 @@ block dispatch(action)
                 return
     run_free(action)
 
-// The after phase (docs/02 section 9 step 6) lives at dispatch's call sites
+// The after phase (docs/01 Part II section 9 step 6) lives at dispatch's call sites
 // in the loop, not in a helper block, so that games without a single
 // `on after` fold it to NOTHING (a wrapper block would cost its call layer
 // even unused; the doctrine is pay-for-use). The loop runs, after a

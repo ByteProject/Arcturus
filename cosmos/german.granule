@@ -56,7 +56,7 @@ block resolve_verb()
     if d is not nothing
         let flags = peek_byte(d + 6)
         if any_tables is 1
-            // Ein Verb mit Grammatiktabelle (docs/02 Abschnitt 8c): die
+            // Ein Verb mit Grammatiktabelle (docs/01 Part II Abschnitt 8c): die
             // Datenbytes tragen die Adresse der Tabelle, deren erstes Byte
             // die Handlung der ersten Zeile ist; die eigentliche Zeile
             // waehlt spaeter der Matcher (line_act).
@@ -240,7 +240,7 @@ block resolve_objects()
     if d is not nothing
         if any_tables is 1
             // Ein Verb mit Grammatiktabelle: der positionsgenaue Matcher
-            // uebernimmt den ganzen Befehl (docs/02 Abschnitt 8c).
+            // uebernimmt den ganzen Befehl (docs/01 Part II Abschnitt 8c).
             if peek_byte(d + 6) is 144 or peek_byte(d + 6) is 152
                 let tbl = peek_word(d + 7, 0)
                 grammar_match(tbl)
@@ -655,7 +655,7 @@ player.words mich, dich, selbst
 player.name "dich selbst"
 player.named
 
-// Die Kettenwörter (docs/02 Abschnitt 8b): jedes beendet einen Befehl und
+// Die Kettenwörter (docs/01 Part II Abschnitt 8b): jedes beendet einen Befehl und
 // beginnt den nächsten auf derselben Zeile ("nimm die lampe und öffne die
 // tür, dann geh nach norden"). Das Komma zählt als eigenes Wort, mit oder
 // ohne Leerzeichen.
@@ -664,7 +664,7 @@ chain ",", "und", "dann"
 // Die Füllwörter: die Artikel, die der Parser kennt, aber überliest. Das
 // Kennen zählt: eine Substantivliste darf sie tragen ("nimm die lampe und
 // den schlüssel"), während ein wirklich unbekanntes Wort das Ausleihen des
-// Verbs ehrlich verweigert (docs/02 8b).
+// Verbs ehrlich verweigert (docs/01 Part II 8b).
 noise "der", "die", "das", "den", "dem", "des", "ein", "eine", "einen", "einem", "einer"
 
 pronoun it  "es"
@@ -797,7 +797,7 @@ verb "sing", "singe", "singen"
 // article; that check folds away in a game with no named objects (any_named).
 block art_the(obj, cap, kase)
     // Total, like the containment test: an unresolved noun prints
-    // as the word, never an illegal print_obj 0 (docs/02 s.12).
+    // as the word, never an illegal print_obj 0 (docs/01 Part II s.12).
     if obj is nothing
         show("nichts")
         return
@@ -806,7 +806,7 @@ block art_the(obj, cap, kase)
         if obj is named
             print_name(obj)
             return
-    // A hand-set article wins over derivation (docs/01 section 16): las
+    // A hand-set article wins over derivation (docs/01 Part I section 16): las
     // tijeras, el agua. Printed as stored, so keep it lowercase and let such
     // objects sit mid-sentence.
     if article_addr(obj) is not 0
@@ -867,7 +867,7 @@ block art_the(obj, cap, kase)
 
 block art_a(obj, cap, kase)
     // Total, like the containment test: an unresolved noun prints
-    // as the word, never an illegal print_obj 0 (docs/02 s.12).
+    // as the word, never an illegal print_obj 0 (docs/01 Part II s.12).
     if obj is nothing
         show("nichts")
         return
@@ -1148,7 +1148,7 @@ block msg_no_it()
 block msg_be_specific()
     say "Du musst dich schon etwas genauer ausdrücken."
 
-// Die Rueckfrage bei Mehrdeutigkeit (docs/02 Abschnitt 8): der Rahmen um die
+// Die Rueckfrage bei Mehrdeutigkeit (docs/01 Part II Abschnitt 8): der Rahmen um die
 // Kandidatenliste des Parsers ("Was meinst du: die goldene Münze oder den
 // Schlüssel?"). Nach "meinen" steht der Akkusativ, darum ${the:acc obj}.
 block line_which_open()

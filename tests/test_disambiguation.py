@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""Disambiguation (docs/02 section 8): the noun matcher scores every in-scope
+"""Disambiguation (docs/01 Part II section 8): the noun matcher scores every in-scope
 object by how many typed words its vocabulary contains and takes the single
 best. A tie at the best score is a genuine ambiguity: the turn asks the player
 which one is meant instead of silently taking whichever object comes first in

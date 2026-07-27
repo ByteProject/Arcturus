@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The positional grammar layer (docs/02 section 8c). A verb whose grammar the
+"""The positional grammar layer (docs/01 Part II section 8c). A verb whose grammar the
 flag model cannot represent (a leading preposition on a two-noun verb, or
 wording that selects the action) is compiled to a grammar table and matched
 positionally; every other verb stays on the classic flag path, byte for byte.

@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for doors, locks, and keys (docs/01 section 5, docs/02 section 10).
+// A showcase for doors, locks, and keys (docs/01 Part I section 5, docs/01 Part II section 10).
 // The `door` kind is `openable` and `fixed` by default; add `lockable`, `locked`,
 // and `unseal_with <key>` to make it lock. A door joins two rooms with the
 // `in A, B` sugar, and a room's exit points at the DOOR rather than a room, so

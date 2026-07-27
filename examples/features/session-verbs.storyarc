@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for the session verbs (docs/01 section 10): VERSION prints
+// A showcase for the session verbs (docs/01 Part I section 10): VERSION prints
 // the banner mid-game and is ALWAYS in, the bug-reporter's friend.
 // NOTIFY brings the classic score bracket line: off by default, enabled
 // here in `on start`, toggleable by the player, and the two are coupled,

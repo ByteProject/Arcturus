@@ -78,7 +78,7 @@ def test_other_arities_keep_the_call_error():
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_reachable_differs_from_visible_through_glass(tmp_path):
-    # The documented contract (docs/02): visible is sight, reachable is
+    # The documented contract (docs/01 Part II): visible is sight, reachable is
     # touch. A coin in a CLOSED clear jar is visible, not reachable, and
     # take answers "open it first"; opening the jar changes all three.
     game = (

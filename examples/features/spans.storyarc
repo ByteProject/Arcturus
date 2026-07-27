@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for `spans` (docs/01 section 5): a fixed piece of scenery that is in
+// A showcase for `spans` (docs/01 Part I section 5): a fixed piece of scenery that is in
 // scope in more than one room. The object tree gives each object a single home,
 // so a distant thing you can see from several places, the moon, a mountain, a
 // lighthouse, is placed once and SPANS the other rooms. It is then referable from

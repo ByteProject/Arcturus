@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""`self` as a handler-pattern operand (docs/01 section 12): inside an object
+"""`self` as a handler-pattern operand (docs/01 Part I section 12): inside an object
 or kind body, `on put noun in self` and `on enter self` name the enclosing
 object in its own pattern. Field report: replacing the object's name with
 `self` in such headers was a compile error, while `self` worked everywhere

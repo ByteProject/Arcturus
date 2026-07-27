@@ -54,7 +54,7 @@ OOPS_PARSE_ADDR = PARSE_BUFFER_ADDR + PARSE_BUFFER_BYTES
 OOPS_PARSE_BYTES = PARSE_BUFFER_BYTES
 # A backup of the text buffer, kept so the disambiguation ask ("Which do you
 # mean, ...?") can read the player's answer through the one shared text buffer
-# and then weave it back into the saved command (docs/02 section 8).
+# and then weave it back into the saved command (docs/01 Part II section 8).
 ASK_TEXT_ADDR = OOPS_PARSE_ADDR + OOPS_PARSE_BYTES
 ASK_TEXT_BYTES = TEXT_BUFFER_BYTES
 

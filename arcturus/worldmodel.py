@@ -54,7 +54,7 @@ def actions_with_after(world: "World") -> list:
     """Every action name that has at least one `on after` handler anywhere:
     on an object, on a kind, or free-standing. Each gets a synthetic after
     action (see action_numbers); the dispatcher's after phase fires it through
-    the same chain once the real action completes unrefused (docs/02 s.9)."""
+    the same chain once the real action completes unrefused (docs/01 Part II s.9)."""
     found = set()
     pools = [obj.handlers for obj in world.objects.values()]
     pools.extend(kind.handlers for kind in world.kinds.values())
@@ -218,14 +218,14 @@ class Obj:
     chain: list[str] = field(default_factory=list)  # kind chain, nearest first
     location: Optional[str] = None  # initial tree parent (an object name)
     # Extra rooms this fixed object is in scope in, beyond its tree location
-    # (the `spans` sugar; resolved room names, docs/01 section 5).
+    # (the `spans` sugar; resolved room names, docs/01 Part I section 5).
     spans: list[str] = field(default_factory=list)
     # Property name -> the initial value expression set on this object.
     props: dict[str, ast.Expr] = field(default_factory=dict)
     handlers: list[Handler] = field(default_factory=list)
     grains: list[Grain] = field(default_factory=list)
     topics: list["ast.TopicDecl"] = field(default_factory=list)
-    # The object's ambience blocks (summon.ambience, docs/05), kept as their
+    # The object's ambience blocks (summon.ambience, docs/01 Part III), kept as their
     # AST declarations; codegen compiles the lines and guards directly.
     ambiences: list["ast.AmbienceBlock"] = field(default_factory=list)
     decl: Optional[ast.ObjectDecl] = None
@@ -261,7 +261,7 @@ def line_shape(line: GrammarLine) -> tuple:
 
 
 def needs_table(verb: Verb) -> bool:
-    """Does this verb need the positional grammar table (docs/02 section 8c)?
+    """Does this verb need the positional grammar table (docs/01 Part II section 8c)?
 
     The flag model (a noun arity plus any-separator splitting) represents most
     verbs exactly, and those stay on it, byte for byte. That includes a leading
@@ -354,7 +354,7 @@ class Block:
     origin: str = "game"  # library / granule / game; see ast.BlockDecl
 
 
-# How an `is` test resolved (docs/01 section 9).
+# How an `is` test resolved (docs/01 Part I section 9).
 IS_PROPERTY = "property"  # right side is a boolean property: an attribute test
 IS_KIND = "kind"  # right side is a kind name: a kind-membership test
 IS_PREDICATE = "predicate"  # right side names a one-parameter block: a call test
@@ -367,7 +367,7 @@ class World:
     # Actions of verbs declared `meta` (see meta_actions above).
     meta_actions: set = field(default_factory=set)
     # catalog declarations, in declaration order (the layout is deterministic).
-    # Conversation subjects declared at file level (docs/01 section 15): id ->
+    # Conversation subjects declared at file level (docs/01 Part I section 15): id ->
     # SubjectDecl. A character's `topic <id>` naming one inherits its words and
     # label, and the word array is emitted once for the whole cast.
     subjects: dict = field(default_factory=dict)
@@ -409,7 +409,7 @@ class World:
     pronouns: dict[str, str] = field(default_factory=dict)
     # The words that chain commands on one line ("and", "then", the comma), from
     # the language layer's `chain` declarations. The dictionary flags them; the
-    # parser splits the line at the first one and queues the rest (docs/02 8b).
+    # parser splits the line at the first one and queues the rest (docs/01 Part II 8b).
     chain_words: list[str] = field(default_factory=list)
     # The takeall granule's all-words ("all", "everything"): flagged in the
     # dictionary so the parser hands the command to the granule's expander.
@@ -437,7 +437,7 @@ class World:
     # A tuned abbreviation set from a summoned abbreviations.granule (B6), carried
     # to codegen as the text encoder's set in place of the built-in default.
     abbreviations: Optional[list] = None
-    # event block name -> timer slot, for `after`/`every` scheduling (docs/02 s.13);
+    # event block name -> timer slot, for `after`/`every` scheduling (docs/01 Part II s.13);
     # codegen assigns the slots and lower reads them to arm a timer.
     schedule_index: dict = field(default_factory=dict)
     # Names of text properties computed on some object (`<name> block`), so a read

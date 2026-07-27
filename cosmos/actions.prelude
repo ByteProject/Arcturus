@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// THE STANDARD ACTION HANDLERS - the behaviour of the standard verbs (docs/02
+// THE STANDARD ACTION HANDLERS - the behaviour of the standard verbs (docs/01 Part II
 // section 11). This file is language-AGNOSTIC: it holds no verb words, no
 // prepositions, and no player-facing text. Each handler is keyed by an action
 // name (take, examine, put, ...) and works only on the normalized slots the
@@ -16,7 +16,7 @@
 // dispatch chain (after the noun and the room), so an object or room handler can
 // override it by consuming the action first, and `continue` defers back to it.
 //
-// REFUSALS AND CHAINING (docs/02 section 8b). A path that cannot carry the
+// REFUSALS AND CHAINING (docs/01 Part II section 8b). A path that cannot carry the
 // command out sets `refused` to 1 before its message, so a chained line ("take
 // lamp and go north") stops at the failure instead of running on. The rule: a
 // genuine refusal (can't, won't, wrong key) marks refused; an outcome that
@@ -72,7 +72,7 @@ block convey(vehicle, dest)
 // to the plain line) and seen (the knowledge model), then moves it to the
 // player. NOT the same statement as `move obj to player`: Arcturus's move is
 // the silent tree operation, no bookkeeping, while Inform's "move" idiom is
-// what gain covers (docs/01 section 5). The take handler itself funnels
+// what gain covers (docs/01 Part I section 5). The take handler itself funnels
 // through gain, so there is exactly one acquisition path. Unused by stories,
 // the block folds into take.
 block gain(obj)
@@ -99,7 +99,7 @@ on go
         stop
     // An exit may point at a door rather than a room: crossing it needs the door
     // open (and unlocked), and lands you on its far side. The guard folds away in
-    // a game with no doors (docs/01 section 5). door_other_side gives the room
+    // a game with no doors (docs/01 Part I section 5). door_other_side gives the room
     // across the door from here.
     if any_doors is 1
         if dest is door
@@ -358,7 +358,7 @@ on yes
 on no
     msg_no
 
-// The shut-door refusal's default (docs/05, foresight): refuse and stop.
+// The shut-door refusal's default (docs/01 Part III, foresight): refuse and stop.
 // Returns 1 refused (message spoken), 0 repaired (the door is open now and
 // the walk goes on).
 block door_shut_refused(d)
@@ -977,7 +977,7 @@ on talk
 // ASK open the menu and TELL hint at TALK TO; summon.infocom_talking
 // dispatches the person's topics (and only there do the richer flat
 // defaults msg_ask/msg_tell/msg_answer exist, so they cost every other
-// game nothing). The two presentations are mutually exclusive (docs/05).
+// game nothing). The two presentations are mutually exclusive (docs/01 Part III).
 on ask
     if convo_guard is 1
         ask_to(noun)

@@ -9,7 +9,7 @@
 //     (taking the apple first)
 //     You give the apple to Stacy.
 //
-// built on the verb contract (docs/01 section 10a): a `requires noun carried`
+// built on the verb contract (docs/01 Part I section 10a): a `requires noun carried`
 // failure is repaired with an implicit take instead of refused. Off unless
 // summoned, by design and by taste: some authors want no such help, and a
 // game that never summons this pays nothing for it.

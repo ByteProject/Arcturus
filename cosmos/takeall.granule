@@ -4,7 +4,7 @@
 // https://github.com/ByteProject/Arcturus
 //
 // TAKE ALL, DROP ALL, and TAKE ALL FROM <container>: summon it with
-// `summon.takeall` (docs/05). The core deliberately omits ALL, so a game only
+// `summon.takeall` (docs/01 Part III). The core deliberately omits ALL, so a game only
 // pays for it when it asks; without the summon, every hook below folds away
 // to nothing (the any_allwords guard).
 //
@@ -17,7 +17,7 @@
 // and undo peels typed commands.
 //
 // English-worded like every granule: a translation forks this file and
-// redeclares the all-words and the messages (docs/05 section 6).
+// redeclares the all-words and the messages (docs/01 Part III section 6).
 
 // The words that mean "everything within reach". The parser flags them in
 // the dictionary and hands any command carrying one to run_all below.

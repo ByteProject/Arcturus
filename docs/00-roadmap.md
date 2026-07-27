@@ -75,29 +75,26 @@ side once Arcturus itself is done.
 
 ## 3. Reference document set
 
-Produced in this order; dependencies flow downward. Documents 00 to 02 are the
-design record. Documents 03 to 05 belong to the implementation phase: they are
-implementation work guided by 00 to 02, produced as the compiler is built
-rather than written in advance.
+Dependencies flow downward. The roadmap (00) and the Arcturus Handbook (01,
+which absorbed the former 01, 02, and 05) are the design record; the
+remaining documents belong to the implementation phase, produced as the
+toolchain is built rather than written in advance.
 
 - 00-roadmap.md (this document): charter, decisions, milestones, index.
-- 01-syntax-reference.md: the authoritative language definition. Grammar,
-  every construct with semantics and examples, the standard vocabulary,
-  idiomatic patterns, and errors. Strong enough to author from. Highest
-  priority.
-- 02-cosmos-and-parser.md: the runtime. The Cosmos library as editable
-  template, the standard kinds and verbs, the parser, the action pipeline,
-  the banner, scope and light, the turn loop, and the summonable optional
-  features (conversations, localization, debug).
+- 01-arcturus-handbook.md: the Arcturus Handbook, the one authoritative
+  author-facing book, in three parts that keep the section numbering of the
+  documents they absorbed. Part I the language (grammar, every construct
+  with semantics and examples, the standard vocabulary, idiomatic patterns,
+  errors; strong enough to author from). Part II the runtime (the Cosmos
+  library as editable template, the standard kinds and verbs, the parser,
+  the action pipeline, the banner, scope and light, the turn loop). Part
+  III the summonable granules: how to summon each, what it adds, the blocks
+  an author can override, and how to write your own.
 - 03-compiler-pipeline.md (implementation phase): lexer, parser, semantic
   analysis, world-model lowering, z-code generation, text compression, and
   story-file assembly, with the size levers marked.
 - 04-codegen-mapping.md (implementation phase): the construct-to-z5 opcode
   reference.
-- 05-granules.md: the author-facing reference for the summonable granules
-  (extendedverbs, statusline, verbose_exits, conversations, debug): how to summon
-  each, what it adds, the blocks an author can override, and how to write your
-  own granule.
 - 06-actaea.md: the Actaea reference interpreter, the official documentation
   (milestone B10, complete; the design record is actaea/actaea-design.md).
 - 07-arc-image.md: the author guide to pictures: the master art, the arcimg
@@ -231,7 +228,7 @@ done-test.
 - B7: language packs. Spanish and German Cosmos translations, each a granule
   selected by `summon.language` - a message table keyed by id, localized
   vocabulary (directions and verbs), and parser grammar overrides where an
-  inflected language needs them (the language seam, section 8 of docs/02). Each
+  inflected language needs them (the language seam, section 8 of docs/01 Part II). Each
   pack curates its own abbreviations via the B6 pipeline. A large milestone in its
   own right; the language seam is designed but unbuilt.
 - B8: port Hibernated 2 to Arcturus. Hibernated 2 is written in PunyInform and

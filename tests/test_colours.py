@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""Z-machine colours (docs/01 section 16): the zcolor statement, the coloured
+"""Z-machine colours (docs/01 Part I section 16): the zcolor statement, the coloured
 say, the compile-time colour-name check, and the run-time degradation to plain
 text on an interpreter without colour support."""
 

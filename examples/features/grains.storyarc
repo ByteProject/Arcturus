@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for grains (docs/01 section 14): prose texture. A grain is a
+// A showcase for grains (docs/01 Part I section 14): prose texture. A grain is a
 // word, or a few words, that answers a handful of verbs with ONE line of
 // grammar; the line is the whole feature, and the cap is the point. A room
 // can be dense with answerable detail for the price of a few dictionary

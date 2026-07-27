@@ -3,7 +3,7 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""`on after other`: the after pass's catch-all (docs/02 section 9 step 6),
+"""`on after other`: the after pass's catch-all (docs/01 Part II section 9 step 6),
 fixed from the field (Charles Moore Jr.): it used to ride the PLAIN catch-all
 list, so it fired during the main dispatch, before the action's own report,
 on refused actions, and never in the actual after band. Now it mirrors plain
