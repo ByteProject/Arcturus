@@ -3061,6 +3061,10 @@ for a custom banner voice.
 
 Containment is the Z-machine object tree: one parent per object, reached with
 `in`, `move`, `holds`, and `for each`. The tree stores only parent and child.
+To TEST where something is, use the predicate: `if lamp is in chest`. To READ
+where something is (print it, compare it, walk upward to the room), use
+`parent_of(obj)`, which returns the holder itself, or `nothing` when the
+object is nowhere (appendix C, the author's toolkit).
 
 The in-versus-on distinction is carried by the parent's kind: a child of a
 `container` is in it, a child of a `supporter` is on it, a child of a
@@ -4477,6 +4481,92 @@ verb "notify" meta                     -> notify
 A direction word never resolves as an object: for GO (and a bare typed
 direction) it selects the room property to follow, and in a grammar line's
 `direction` slot (Part I section 10) it fills `way` the same way.
+
+## Appendix C: the author's toolkit
+
+The callable names a game reaches for beyond its own declarations: the
+intrinsic functions the compiler provides and the Cosmos blocks an author
+may call (or override; every block here obeys the ordinary most-specific-
+wins chain). An author never needs to know which of the two layers a name
+lives in, so this list does not sort by that.
+
+The world model:
+
+- `parent_of(obj)`: where an object sits, the holder itself (`nothing` when
+  it is nowhere). The idiomatic TEST is the predicate you already know,
+  `if lamp is in chest`; `parent_of` is for READING the place, to print it,
+  compare it, or walk upward to the room.
+- `object_count`: how many objects the story has; with `parent_of` it makes
+  the classic full sweep (`let i = 1` ... `while i <= object_count`).
+- `in_scope(obj)`: whether the player can perceive the object this turn.
+- `see_into(obj)`: whether a holder shows its contents (a supporter, or an
+  open, clear, or lidless container).
+- `set_here(room)`: retarget the narration to another room (a teleport;
+  pair with `move player to room` and `describe_room`).
+- `describe_room`: the full room description, the body of LOOK.
+
+Naming and listing (the wording lives in the language layer, so every
+language pack speaks its own):
+
+- `print_name(obj)`: the bare short name, no article. The article family
+  is interpolation: `${a obj}`, `${the obj}`, capitalized `${A obj}` and
+  `${The obj}`.
+- `name_contents(holder)`: the composable bare list, "a sabre, a dagger
+  and an iron axe": the holder's listable contents with their articles,
+  commas, and a final "and", each marked seen, one level deep. Returns
+  how many it named, and zero prints nothing at all, so your sentence
+  decides what emptiness deserves:
+
+  ```
+  show("Rusting on the rack you find ")
+  if name_contents(rack) is 0
+      show("nothing at all")
+  say "."
+  ```
+
+- `listable_count(holder)`: how many the listing would name, without
+  printing, for guarding a prefix.
+- `list_contents(holder)`: the " (contains ...)" suffix used by the room
+  and inventory listings.
+- `reveal_contents(holder)`: "Inside you find ...", the line an open
+  prints.
+- `content_listable(holder, x)`: the per-item filter behind all of them,
+  the knowledge model in one place: not hidden or concealed, and either
+  the holder shows its contents or the player has already seen the item.
+- `list_worn()` and `worn_count()`: the same composable contract for what
+  the player wears: the bare punctuated list (returning the count), and
+  the count alone.
+
+The screen and the session:
+
+- `clear_screen()`: erase the play area.
+- `screen_width()` and `screen_height()`: the interpreter-reported size,
+  for anything that spans the screen.
+- `press_any_key`: hold for a keypress (the staged-opening idiom, with
+  `banner false` and `print_banner`).
+- `print_banner`: the release banner on demand.
+- `status_bar`: the one seam the status line hangs on; override it and
+  the statusline granule's bar steps aside.
+- `confirm_quit` and `do_quit`, `do_restart`, `do_save`, `do_restore`:
+  the primitives the meta verbs stand on, reusable in a custom ending
+  ("RESTART, RESTORE or QUIT?").
+- `action_id("word")`: an action's number, for comparisons in low-level
+  seams (the debug granule's `reach_unscoped` is the worked example).
+
+Beneath all of this sits the library's substrate: the parse-buffer
+readers (`read_line`, `word_count`, `word_dict`, `word_len`, `word_pos`,
+`retokenize`), raw memory (`peek_byte`, `peek_word`, `poke_byte`,
+`poke_word`), dispatch (`call_handler`, `handler_of`, the `ev_*` event
+ids, `run_free`, `run_grain`, `run_alter`, `tick_timers`), the property
+accessors (`desc_addr` and its `*_addr` kin), the mute buffer
+(`mute_begin`, `mute_end`, `mute_buf`), the conversation machinery
+(`topic_*`), the screen opcodes (`set_window`, `split_window`,
+`set_cursor`, `set_colour`, `set_style`, `show_char`), and the arc_image
+plumbing (`draw_image`, `image_of`, `pictures_available`). These are the
+primitives Cosmos itself is written on. They are not secret (`arcc
+--extract` hands you every use of them, commented), but they are the
+library's vocabulary rather than the author's, and the design records
+(03 and 04) are their reference.
 
 # Part III: The Granules
 

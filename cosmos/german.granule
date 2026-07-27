@@ -997,15 +997,19 @@ block content_listable(holder, x)
 // One scenery holder's paragraph (constant scenery_contents = 1): what
 // sits on or in it, the knowledge model deciding per item. Prints
 // nothing when the holder holds nothing tellable.
+// Wie viele Inhalte eines Behälters die Auflistung nennen würde.
+block listable_count(holder)
+    let total = 0
+    for each x in holder
+        if content_listable(holder, x)
+            change total to total + 1
+    return total
+
 block scenery_holder_line(obj)
     if obj is not container
         if obj is not supporter
             return 0
-    let total = 0
-    for each x in obj
-        if content_listable(obj, x)
-            change total to total + 1
-    if total is 0
+    if listable_count(obj) is 0
         return 0
     par
     if obj is supporter
@@ -1013,19 +1017,33 @@ block scenery_holder_line(obj)
     else
         show("In ")
     art_the(obj, 0, 2)
+    // "siehst du" regiert den Akkusativ, wie jede Aufzählung hier: die
+    // gemeinsame Schleife (name_contents) spricht ihn durchgehend.
     show(" siehst du ")
+    name_contents(obj)
+    say "."
+
+// Die nackte Liste selbst, das komponierbare Grundelement: die sichtbaren
+// Inhalte mit Artikel, Kommas und einem "und", jedes als gesehen markiert;
+// zurück kommt die Anzahl (0 druckt gar nichts). Der Akkusativ, weil jeder
+// Satz, der Dinge nennt, ihn hier regiert; eine eigene Schleife mit
+// ${a:dat x} übernimmt den Sonderfall. Eine Ebene tief.
+block name_contents(holder)
+    let total = listable_count(holder)
+    if total is 0
+        return 0
     let shown = 0
-    for each x in obj
-        if content_listable(obj, x)
+    for each x in holder
+        if content_listable(holder, x)
             if shown is not 0
                 if shown is total - 1
                     show(" und ")
                 else
                     show(", ")
-            art_a(x, 0)
+            show("${a:acc x}")
             now x is seen
             change shown to shown + 1
-    say "."
+    return total
 
 // Append " (enthaelt ...)" to a container or supporter just named. "enthaelt"
 // takes the accusative, so the contents are listed with ${a:acc x}.
@@ -1038,48 +1056,20 @@ block list_contents(holder)
     return 0
 
 block list_contents_run(holder)
-    let total = 0
-    for each x in holder
-        if content_listable(holder, x)
-            change total to total + 1
-    if total is 0
+    if listable_count(holder) is 0
         return 0
     show(" (enthält ")
-    let shown = 0
-    for each x in holder
-        if content_listable(holder, x)
-            if shown is not 0
-                if shown is total - 1
-                    show(" und ")
-                else
-                    show(", ")
-            show("${a:acc x}")
-            now x is seen
-            change shown to shown + 1
+    name_contents(holder)
     show(")")
     return 0
 
 // After a container is opened, name what is revealed inside (marking it seen).
 // "Darin findest du" governs the accusative.
 block reveal_contents(holder)
-    let total = 0
-    for each x in holder
-        if content_listable(holder, x)
-            change total to total + 1
-    if total is 0
+    if listable_count(holder) is 0
         return 0
     show("Darin findest du ")
-    let shown = 0
-    for each x in holder
-        if content_listable(holder, x)
-            if shown is not 0
-                if shown is total - 1
-                    show(" und ")
-                else
-                    show(", ")
-            show("${a:acc x}")
-            now x is seen
-            change shown to shown + 1
+    name_contents(holder)
     say "."
 
 // One line of a room's contents listing. "Du siehst hier" governs the accusative.

@@ -1048,11 +1048,7 @@ block scenery_holder_line(obj)
     if obj is not container
         if obj is not supporter
             return 0
-    let total = 0
-    for each x in obj
-        if content_listable(obj, x)
-            change total to total + 1
-    if total is 0
+    if listable_count(obj) is 0
         return 0
     par
     if obj is supporter
@@ -1061,17 +1057,7 @@ block scenery_holder_line(obj)
         show("In ")
     art_the(obj, 0)
     show(" you can see ")
-    let shown = 0
-    for each x in obj
-        if content_listable(obj, x)
-            if shown is not 0
-                if shown is total - 1
-                    show(" and ")
-                else
-                    show(", ")
-            art_a(x, 0)
-            now x is seen
-            change shown to shown + 1
+    name_contents(obj)
     say "."
 
 // the contents the player can see or remembers and marking each as seen. Prints
@@ -1084,14 +1070,30 @@ block list_contents(holder)
         list_contents_run(holder)
     return 0
 
-block list_contents_run(holder)
+// How many of a holder's contents the listing would name.
+block listable_count(holder)
     let total = 0
     for each x in holder
         if content_listable(holder, x)
             change total to total + 1
+    return total
+
+// The bare list itself, the composable primitive: name the holder's
+// listable contents with their articles, commas, and a final "and",
+// marking each as seen, and return how many were named. Zero prints
+// nothing at all, so the caller decides what an empty holder deserves.
+// The knowledge model filters as everywhere (a closed opaque container
+// names only what the player has seen); one level deep, by design. The
+// framers below all speak through this one loop, and an author composes
+// it into their own prose the same way:
+//
+//     show("Rusting on the rack you find ")
+//     name_contents(rack)
+//     say "."
+block name_contents(holder)
+    let total = listable_count(holder)
     if total is 0
         return 0
-    show(" (contains ")
     let shown = 0
     for each x in holder
         if content_listable(holder, x)
@@ -1103,30 +1105,23 @@ block list_contents_run(holder)
             show("${a x}")
             now x is seen
             change shown to shown + 1
+    return total
+
+block list_contents_run(holder)
+    if listable_count(holder) is 0
+        return 0
+    show(" (contains ")
+    name_contents(holder)
     show(")")
     return 0
 
 // After a container is opened, name what is revealed inside (marking it seen), so
 // opening a box shows its contents at once rather than only on the next look.
 block reveal_contents(holder)
-    let total = 0
-    for each x in holder
-        if content_listable(holder, x)
-            change total to total + 1
-    if total is 0
+    if listable_count(holder) is 0
         return 0
     show("Inside you find ")
-    let shown = 0
-    for each x in holder
-        if content_listable(holder, x)
-            if shown is not 0
-                if shown is total - 1
-                    show(" and ")
-                else
-                    show(", ")
-            show("${a x}")
-            now x is seen
-            change shown to shown + 1
+    name_contents(holder)
     say "."
 
 // One line of a room's contents listing, naming a container's or supporter's
