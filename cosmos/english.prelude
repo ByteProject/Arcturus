@@ -788,6 +788,7 @@ verb "stand"
 
 verb "exit", "leave"
     exit
+    exit noun
 
 verb "give", "offer", "feed", "pay"
     give noun to noun

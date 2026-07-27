@@ -699,8 +699,9 @@ verb "entriegele", "entriegle", "entriegeln", "aufsperren"
 verb "betrete", "betreten", "besteige", "besteigen"
     enter noun
 
-verb "aussteigen", "raussteigen", "heraussteigen"
+verb "aussteigen", "raussteigen", "heraussteigen", "verlasse", "verlassen"
     exit
+    exit noun
 
 verb "gib", "gebe", "geben", "reich", "reiche"
     give noun an noun

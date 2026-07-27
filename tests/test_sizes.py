@@ -102,6 +102,11 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # look): two pending-break marks in the boot collapse to exactly one
 # blank under the bar, and an on-start intro gets one blank each side
 # of it, making true what an old comment only claimed.
+# 2026-07-27 (exit noun): a few bytes everywhere. EXIT ENGINE and LEAVE
+# ENGINE answered "You lost me after that.": the exit handler always
+# had the noun path, the standard verb never declared the line. All
+# three packs gained it (German also verlasse/verlassen), and the
+# boarding idiom matrix is pinned as a test.
 CEILINGS = {
     "features/yes-no.storyarc": 17836,  # 2026-07-25 new example (typed answers, when-guarded questions)
     "features/press-any-key.storyarc": 18468,  # 2026-07-25 new example (read_key as gate and as value)
@@ -171,7 +176,7 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 24172,  # 2026-07-21 the status bar names darkness (In the dark / Im Dunkeln / A oscuras) instead of spoiling an unseen room's name, +40 in games where darkness is reachable (any_dark); always-lit games are byte-identical (the fold test); previously 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "beispiel-deutsch.storyarc": 24188,  # 2026-07-21 the status bar names darkness (In the dark / Im Dunkeln / A oscuras) instead of spoiling an unseen room's name, +40 in games where darkness is reachable (any_dark); always-lit games are byte-identical (the fold test); previously 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
     "brass-lantern.storyarc": 19252,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
     "cloak-of-darkness.storyarc": 20292,  # 2026-07-21 the status bar names darkness (In the dark / Im Dunkeln / A oscuras) instead of spoiling an unseen room's name, +40 in games where darkness is reachable (any_dark); always-lit games are byte-identical (the fold test); previously 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
     "ejemplo-espanol.storyarc": 23012,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing

@@ -793,6 +793,7 @@ verb "entrar", "entra", "subir", "sube"
 
 verb "salir", "sal", "abandonar"
     exit
+    exit noun
 
 verb "dar", "da", "ofrecer", "ofrece", "entregar", "entrega"
     give noun a noun
