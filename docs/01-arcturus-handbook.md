@@ -8,8 +8,8 @@ hacking the library, the compiler and its flags) sits toward the back;
 you can write a game long before you need any of it.
 
 This book aims to be a truthful reference. If you find something in your
-code not working as described here, be sure to report it in the Arcturus
-Discord channel and I will have a look.
+code not working as described here, be sure to report it in the [Arcturus
+Discord channel](https://discord.gg/JF6YNUTPfT) and I will have a look.
 
 Arcturus ships with its own reference interpreter, Actaea
 ([docs/06](06-actaea.md)): a GUI that runs on any modern computer and
