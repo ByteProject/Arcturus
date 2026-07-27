@@ -42,7 +42,7 @@ _ARTICLE_CASE_RE = re.compile(
 )
 
 _META_KEYS = frozenset(
-    {"title", "headline", "author", "release", "serial", "UUID", "start"}
+    {"title", "headline", "author", "copyright", "release", "serial", "UUID", "start"}
 )
 
 _GRAMMAR_SLOTS = frozenset({"held", "multi", "text", "direction"})
@@ -298,12 +298,12 @@ class Parser:
             return ast.MetaLine("banner", False, tok.line)
         if tok.kind != T.KW or tok.value not in _META_KEYS:
             raise self._error(
-                f"expected a game metadata key (title, headline, author, "
+                f"expected a game metadata key (title, headline, author, copyright, "
                 f"release, serial, UUID, start), got {self._describe(tok)}"
             )
         key = tok.value
         self.advance()
-        if key in ("title", "headline", "author", "serial"):
+        if key in ("title", "headline", "author", "copyright", "serial"):
             value: object = self._plain_text(self.expect(T.STRING, "a string"))
         elif key == "release":
             value = self.expect(T.NUMBER, "a number").value

@@ -138,7 +138,9 @@ game
 YYMMDD serial; if omitted the compiler uses the build date. `UUID` is written
 into the story file as an IFID array so IFDB and similar can identify the
 game; it is optional but recommended. `headline` is the subtitle line of the
-banner. `banner false` stops the automatic banner at start: the game prints it
+banner. `copyright` is an optional line printed in the banner under the
+headline ("(c) 2026 Moonmist Entertainment"), the way Infocom credited a
+publisher; absent, nothing prints. `banner false` stops the automatic banner at start: the game prints it
 later with `print_banner` (after a quote box, say), or never.
 The banner also names the compiler (Arcturus) and the library
 (Cosmos) with their versions; the banner section later in this chapter has the details.
@@ -411,7 +413,8 @@ Cosmos owns `here` and `turns`; assigning to them is a compile error. The
 author may change `score` and set `refused`.
 
 Story metadata from the `game` block (this chapter) is carried into the
-story file: `title`, `headline`, `author`, `release`, `serial`, and `UUID`.
+story file: `title`, `headline`, `author`, `copyright`, `release`,
+`serial`, and `UUID`.
 If `serial` is omitted Cosmos uses the build date in YYMMDD form. The `UUID`
 is written as an IFID array in static memory, in the form Inform uses
 (`UUID://<uuid>//`), so IFDB and similar tools can identify the game; the
@@ -425,14 +428,15 @@ everything Inform's banner does, and names both the compiler and the library:
 ```
 The Brass Lantern
 An Interactive Fiction by Stefan
-Release 1 / Serial number 260626 / Arcturus 0.9 / Cosmos 0.12
+Release 1 / Serial number 260626 / Arcturus 1.3 (Cosmos 1.3)
 ```
 
 Line one is `title`. Line two is `headline` plus "by" and `author`, with
-sensible defaults if either is absent. Line three carries the release number,
-the serial, and then the compiler and library as a single final field,
-Inform-style: the compiler name and version (Arcturus) followed by the
-library name and version (Cosmos), separated by spaces rather than a slash.
+sensible defaults if either is absent; a declared `copyright` prints on its
+own line beneath. The last line carries the release number, the serial, and
+then the toolchain as a single final field: the compiler name and version
+(Arcturus) with the library version in parentheses (Cosmos), since the
+library ships inside the compiler.
 The compiler and library versions are build constants, not author-set. A game
 that wants its own opening first (a quote box, a pregame prelude) sets
 `banner false` in the game block, which stops the automatic banner, and calls
@@ -2515,8 +2519,10 @@ Unknown words. A word in no dictionary entry is ignored where it cannot
 matter; where it sat in a noun slot the turn answers "This story doesn't
 know the word \"...\"", naming the word (msg_unknown_word, parse_fault 4,
 the word spelled back from the text buffer), so a typo is told apart from
-a real thing that is not here, and OOPS corrects it on the next line. The
-messages are Cosmos blocks and overridable.
+a real thing that is not here, and OOPS corrects it on the next line. An
+empty line gets an answer of its own, "Silence is not a command."
+(msg_no_input), never a silent reprompt. The messages are Cosmos blocks
+and overridable.
 
 The refusals stay distinct, three situations, three answers: an INCOMPLETE
 COMMAND (a bare verb whose grammar wants a noun, a PUT with nowhere to put)

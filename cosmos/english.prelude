@@ -1698,6 +1698,10 @@ block msg_empty_handed()
 block msg_scenery()
     say "Just some scenery. Don't worry about it."
 
+// Printed when the player types nothing at all.
+block msg_no_input()
+    say "Silence is not a command."
+
 // Printed when the first word names no verb or direction.
 block msg_no_verb()
     say "Those words don't add up to anything."

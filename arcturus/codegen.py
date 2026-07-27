@@ -653,21 +653,22 @@ def _banner_parts(world: wm.World):
     cosmos_v = ".".join(cosmos.COSMOS_VERSION.split(".")[:2])
     line3 = (
         f"Release {release} / Serial number {serial} / "
-        f"Arcturus {_compiler_version()} / Cosmos {cosmos_v}"
+        f"Arcturus {_compiler_version()} (Cosmos {cosmos_v})"
     )
-    return title, headline, author, line3
+    return title, headline, author, m.get("copyright"), line3
 
 
 def banner_text(world: wm.World) -> str:
     """The whole banner as one string: the fallback for a bare build (no Cosmos),
     where no language layer supplies the connecting words. English throughout."""
-    title, headline, author, line3 = _banner_parts(world)
+    title, headline, author, copyright, line3 = _banner_parts(world)
     line2 = f"{headline or 'An Interactive Fiction'} by {author}"
+    mid = f"{copyright}\n" if copyright else ""
     # End on a single newline; the blank line that separates the banner from the
     # first text is a paragraph break the turn loop requests (run_game), so the
     # spacing is owned by the one paragraph model instead of hardcoded here (which
     # otherwise doubled up with describe_room's par on the opening screen).
-    return f"\n{title}\n{line2}\n{line3}\n"
+    return f"\n{title}\n{line2}\n{mid}{line3}\n"
 
 
 def _emit_banner(main: Routine, world: wm.World) -> None:
@@ -690,20 +691,21 @@ def _emit_banner(main: Routine, world: wm.World) -> None:
         # The bare build styles its title too: set_text_style is v5 core and
         # an unable interpreter must simply ignore it, so this costs nothing
         # anywhere and reads bold where bold exists.
-        title, headline, author, line3 = _banner_parts(world)
+        title, headline, author, copyright, line3 = _banner_parts(world)
         line2 = f"{headline or 'An Interactive Fiction'} by {author}"
+        mid = f"{copyright}\n" if copyright else ""
         main.op("print", text="\n")
         main.op("set_text_style", Const(2))
         main.op("print", text=f"{title}\n")
         main.op("set_text_style", Const(0))
-        main.op("print", text=f"{line2}\n{line3}\n")
+        main.op("print", text=f"{line2}\n{mid}{line3}\n")
         return
     # No leading blank: at game start the banner sits directly under the
     # status bar (where Inform leaves a stray line), and a mid-game banner
     # gets its space from the pending break the preceding prose marked.
     # The title prints bold, the classic library presentation (Stefan's
     # polish ruling): style up, the one line, style roman again.
-    title, headline, author, line3 = _banner_parts(world)
+    title, headline, author, copyright, line3 = _banner_parts(world)
     main.op("set_text_style", Const(2))
     main.op("print", text=f"{title}\n")
     main.op("set_text_style", Const(0))
@@ -714,7 +716,10 @@ def _emit_banner(main: Routine, world: wm.World) -> None:
     else:
         main.op("print", text="An Interactive Fiction")
     main.op("call_vn", RoutineRef("blk_line_by"))
-    main.op("print", text=f"{author}\n{line3}\n")
+    # The copyright line (the `copyright` metadata), under the headline the
+    # way Infocom credited a publisher; absent, nothing prints.
+    mid = f"{copyright}\n" if copyright else ""
+    main.op("print", text=f"{author}\n{mid}{line3}\n")
     # The banner manages its own trailing space: mark the pending break so
     # whatever prints next (the opening prose, a room description) stands
     # one blank line below, with no par() in any story.

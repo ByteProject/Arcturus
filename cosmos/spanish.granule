@@ -1782,6 +1782,9 @@ block msg_scenery()
     say "Solo es parte del decorado. No te preocupes por ello."
 
 // Printed when the first word names no verb or direction.
+block msg_no_input()
+    say "El silencio no es una orden."
+
 block msg_no_verb()
     say "Esas palabras no tienen ningún sentido."
 

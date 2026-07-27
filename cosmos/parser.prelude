@@ -97,6 +97,9 @@ block parse_line()
     change list_end to 0
     change shut_in to nothing
     if word_count is 0
+        // An empty line gets an answer, not a silent reprompt (the classic
+        // library behavior); the wording is the language layer's.
+        msg_no_input
         return 0
     chain_split
     let act = resolve_verb

@@ -41,7 +41,7 @@ KEYWORDS = frozenset(
         "continue", "finish", "death", "alter", "if", "else", "while", "for", "each", "switch",
         "case", "and", "or", "holds", "when", "self", "player", "here", "noun",
         "second", "nothing", "true", "false", "list", "summon", "grains", "do",
-        "title", "headline", "author", "release", "serial", "UUID", "start",
+        "title", "headline", "author", "copyright", "release", "serial", "UUID", "start",
         # `mod` is the modulo operator (docs/01 chapter 9). `every` introduces a
         # recurring scheduled event (docs/01 chapter 16); both read as keyword
         # operators / statement heads.
