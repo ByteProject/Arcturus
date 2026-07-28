@@ -1959,14 +1959,14 @@ incomplete command, and the library answers it centrally, before any
 handler runs and without costing a move:
 
 ```
-> DISINTEGRATE
-The verb disintegrate requires you to be more specific.
+> THROW
+The verb throw requires you to be more specific.
 ```
 
 The line echoes the verb AS TYPED, full length and in the player's own
 word (bare ROLL says "roll", even when roll is a push synonym), and it
-never guesses the missing role: "Disintegrate what?" guesses wrong when
-the grammar wanted WITH WHAT or AT WHOM. This holds for every verb alike,
+never guesses the missing role: "Throw what?" guesses wrong when the
+grammar wanted AT WHOM. This holds for every verb alike,
 the standard set, your own (`verb "wibble" / wib noun` asks the moment
 WIBBLE is typed bare), and partial commands too: PUT LAMP, with nowhere
 to put it, gets the same honest ask. Your grammar decides what counts as
@@ -2219,7 +2219,7 @@ The world verbs:
 | `look` | LOOK, L | `look`; describes `here`. LOOK AT X is `examine`; LOOK AROUND is a look. |
 | `examine` | EXAMINE, X, READ, LOOK THROUGH | `examine noun`; prints `desc`. Needs visibility. |
 | `look_under` | LOOK UNDER/UNDERNEATH/BENEATH | `look_under noun` (the under particle riding LOOK); "You find nothing of interest under..." unless handled. |
-| `take` | TAKE, GET, CARRY, PICK (UP), GRAB | `take noun`; "You take X with you", or "out" from a carried container; refused if fixed. |
+| `take` | TAKE, GET, CARRY, PICK (UP), GRAB | `take noun`; "You take X with you", or "out" from a carried container; refused if fixed. A game with `constant item_cap = N` refuses past N carried things ("Your hands are full, and so are your pockets."); no constant, no check, no cost. |
 | `drop` | DROP | `drop noun`; move to `here`; a worn thing is refused until removed. |
 | `put` | PUT, PLACE | `put noun on noun`, `put noun in noun`. |
 | `insert` | INSERT | `insert noun in noun`. |
@@ -4552,6 +4552,20 @@ not a game verb in Arcturus; it lives in the interpreter, where it costs the
 story nothing. Actaea records a session, replays it, and checks whether a
 changed game still plays the same, with `actaea --record`, `--replay`, and
 `--check` (docs/06 this chapter, "Record, replay, and check").
+
+### use
+
+```
+summon.use
+```
+
+The accessibility hub, from Hibernated 2: USE X guesses the obvious
+action from what X is (edible eats, wearable wears, switchable switches
+on, a closed openable opens), and coaches toward a real verb otherwise;
+USE X WITH Y unlocks a lockable Y with X and coaches otherwise. ACTIVATE,
+OPERATE, and ENGAGE come along as synonyms. An object's own `on use`
+handler beats the guessing, so puzzles keep their answers; a bare USE
+asks the standard way.
 
 ### matrix
 

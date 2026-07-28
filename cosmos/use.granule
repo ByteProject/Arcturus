@@ -1,0 +1,53 @@
+// use.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+//
+// summon.use: the accessibility hub (Stefan's design, from Hibernated 2).
+// USE X guesses the obvious action from what X is: edible things are eaten,
+// wearable things worn, switchable things switched on, a closed openable
+// opened; anything else gets coached toward a real verb. USE X WITH Y (or
+// ON, IN, AT: any separator reads the same) tries the obvious pairing, a
+// lockable second unlocks with the first, and otherwise coaches. ACTIVATE,
+// OPERATE, and ENGAGE come along as synonyms, so machinery answers however
+// an IF-savvy player phrases it.
+//
+// A story keeps its own puzzles on top: an object's `on use` handler beats
+// this default (most-specific-wins), so the granule only ever owns the
+// turns nobody claimed. A bare USE asks the standard way, like any verb
+// whose grammar wants a noun.
+
+verb "use", "activate", "operate", "engage"
+    use noun
+    use noun with noun
+
+on use
+    if second is nothing
+        if noun is edible
+            perform("eat", noun)
+            stop
+        if noun is wearable
+            perform("wear", noun)
+            stop
+        if noun is switchable
+            perform("switch_on", noun)
+            stop
+        if noun is openable
+            if noun is not open
+                perform("open", noun)
+                stop
+        change refused to 1
+        msg_use_how
+        stop
+    if second is lockable
+        perform("unlock", second, noun)
+        stop
+    change refused to 1
+    msg_use_with
+
+block msg_use_how()
+    say "How exactly do you want to use ${the noun}? Try to be more
+         specific, like [push], [pull], or [open]."
+
+block msg_use_with()
+    say "You'll have to be more specific about how you want to use
+         ${the noun} with ${the second}."

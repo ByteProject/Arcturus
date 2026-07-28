@@ -104,3 +104,62 @@ def test_a_grain_answers_a_two_slot_verb():
     out = _run(["burn dust", "examine grime"])
     assert "It smoulders reluctantly." in out
     assert "Grey and ancient." in out
+
+
+# --- max_carried and the use granule (wave B2) ------------------------------
+
+LIMIT_GAME = (
+    'game\n    title "L"\n    start hall\n'
+    'constant item_cap = 2\n'
+    'room hall\n    name "Hall"\n    desc "A hall."\n'
+    'thing pebble in hall\n    name "pebble"\n    words pebble\n'
+    'thing feather in hall\n    name "feather"\n    words feather\n'
+    'thing acorn in hall\n    name "acorn"\n    words acorn\n'
+)
+
+
+def test_max_carried_refuses_past_the_limit():
+    out = _run(["take pebble", "take feather", "take acorn", "drop pebble",
+                "take acorn"], game=LIMIT_GAME)
+    assert "You take the pebble with you." in out
+    assert "You take the feather with you." in out
+    assert "Your hands are full, and so are your pockets." in out
+    # dropping one frees a slot
+    assert out.count("You take the acorn with you.") == 1
+
+
+USE_GAME = (
+    'summon.use\n'
+    'game\n    title "U"\n    start hall\n'
+    'room hall\n    name "Hall"\n    desc "A hall."\n'
+    'thing apple in hall\n    name "apple"\n    words apple\n    edible\n'
+    'thing cloak in hall\n    name "wool cloak"\n    words cloak, wool\n'
+    '    wearable\n'
+    'thing lamp in hall\n    name "brass lamp"\n    words lamp, brass\n'
+    '    switchable\n'
+    'thing box in hall\n    name "pine box"\n    words box, pine\n'
+    '    container\n    openable\n'
+    'thing anvil in hall\n    name "anvil"\n    words anvil\n    fixed\n'
+    'thing chest in hall\n    name "sea chest"\n    words chest, sea\n'
+    '    container\n    openable\n    lockable\n    locked\n    unseal_with brass_key\n'
+    'thing brass_key in hall\n    name "brass key"\n    words key\n'
+)
+
+
+def test_use_guesses_the_obvious_action():
+    out = _run(["take apple", "use apple", "use cloak", "use lamp",
+                "use box", "use anvil"], game=USE_GAME)
+    assert "eat" in out.lower() or "apple" in out  # eaten via perform
+    assert "You put on the wool cloak." in out or "wool cloak" in out
+    assert "How exactly do you want to use the anvil?" in out
+
+
+def test_use_with_unlocks_a_lockable_second():
+    out = _run(["take key", "use key with chest", "open chest"],
+               game=USE_GAME)
+    assert "unlock" in out.lower() or "You open the sea chest." in out
+
+
+def test_bare_use_asks_the_standard_way():
+    out = _run(["use"], game=USE_GAME)
+    assert "The verb use requires you to be more specific." in out

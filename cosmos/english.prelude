@@ -1352,6 +1352,10 @@ block msg_examine_self()
 block msg_look_under()
     say "You find nothing of interest under ${the noun}."
 
+// The carry limit's refusal (constant max_carried = N).
+block msg_carry_limit()
+    say "Your hands are full, and so are your pockets."
+
 // Push and pull part ways (Stefan's H2 voice, now the library's).
 block msg_push()
     say "You give ${the noun} a bit of a push."

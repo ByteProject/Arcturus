@@ -69,9 +69,11 @@ block quote(lines, width)
     if qb_left < 1
         change qb_left to 1
     erase_window(-1)
-    split_window(lines + 4)
+    // Three blank rows above the box (Stefan's call, 2026-07-28): the old
+    // top-flush frame read cramped next to PunyInform's centric box.
+    split_window(lines + 7)
     set_window(1)
-    change qb_row to 2
+    change qb_row to 5
     quote_fill
 
 // Advance to the next line of the box. Follow with show("the line's text").

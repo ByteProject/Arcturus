@@ -77,6 +77,10 @@ INTRINSICS = frozenset({
     # bridge): the room description then lists what sits on or in scenery
     # holders; 0 (the default) folds the pass away.
     "any_scenery_contents",
+    # The carry limit (constant item_cap = N, the PunyInform MAX_CARRIED
+    # bridge): any_carry_limit folds the take-handler check away when the
+    # game sets no limit; carry_limit is the number itself.
+    "any_carry_limit", "carry_limit",
     # any_tables is the compile-time positional-grammar flag (1 if any verb's
     # grammar needs a table, docs/01 chapter 14): the packs and the matcher
     # guard on it, so a game whose verbs all fit the flag model folds the whole
@@ -1441,6 +1445,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # scenery_contents = 1` (the arc_mode manner: the constant folds by
         # name where declared; this default covers its absence).
         _place(rt, Const(_scenery_contents(ctx)), dest)
+    elif name == "any_carry_limit":
+        # any_carry_limit(): 1 when the game sets `constant item_cap = N`.
+        _place(rt, Const(1 if _carry_limit(ctx) else 0), dest)
+    elif name == "carry_limit":
+        _place(rt, Const(_carry_limit(ctx)), dest)
     elif name == "any_scored":
         # any_scored(): 1 when anything declares `scored`, so the award hooks
         # in take and go fold away in a scoreless game.
@@ -2230,6 +2239,14 @@ def _scenery_contents(ctx) -> int:
     c = ctx.world.constants.get("scenery_contents")
     if c is not None and isinstance(c.value, ast.Number):
         return 1 if c.value.value else 0
+    return 0
+
+
+def _carry_limit(ctx) -> int:
+    """The game's carry limit (constant item_cap = N), or 0 for none."""
+    c = ctx.world.constants.get("item_cap")
+    if c is not None and isinstance(c.value, ast.Number):
+        return max(0, c.value.value)
     return 0
 
 
@@ -3296,6 +3313,8 @@ def _static_value(ctx, expr):
         return _any_verb_read(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_restless":
         return 1 if (ctx.layout is not None and ctx.layout.has_restless) else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_carry_limit":
+        return 1 if _carry_limit(ctx) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_topics":
         return _any_topics(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "arc_mode":

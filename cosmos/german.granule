@@ -1277,6 +1277,9 @@ block msg_nothing_special()
 block msg_touch()
     say "Du berührst ${the:acc noun}. Nichts, was deine Augen nicht schon gesehen hätten."
 
+block msg_carry_limit()
+    say "Deine Hände sind voll, und deine Taschen auch."
+
 block msg_smell_air()
     say "Du schnupperst in die Luft und riechst nichts Überraschendes."
 

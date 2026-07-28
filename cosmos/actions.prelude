@@ -284,6 +284,17 @@ on take
     if player holds noun
         msg_have_it
         stop
+    // The carry limit (constant item_cap = N): counted against what the
+    // player directly holds or wears; folds away entirely when no limit is
+    // declared.
+    if any_carry_limit is 1
+        let held_count = 0
+        for each held_x in player
+            change held_count to held_count + 1
+        if held_count >= carry_limit
+            change refused to 1
+            msg_carry_limit
+            stop
     // Where it came from, before the move: lifting something out of a
     // container you carry reads "out", everything else "with you"
     // (Stefan's TakeSub, ported to the library).
