@@ -589,7 +589,11 @@ class ActaeaApp:
                 if down > 1:
                     scaled = scaled.subsample(down)
             else:
-                f = max(1, round(target_w / iw))
+                # FLOOR, never round: rounding up overshot the window and
+                # the bar (Stefan's fullscreen report, mode 9: the picture
+                # ran wider than everything under it). The picture stays at
+                # or under the grid width and centers with even margins.
+                f = max(1, int(target_w // iw))
                 scaled = native.zoom(f) if f > 1 else native
         else:
             f = max(1, round(iw / target_w))
