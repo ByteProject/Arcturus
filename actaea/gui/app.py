@@ -459,8 +459,12 @@ class ActaeaApp:
             self._redraw_grid()
             self._repaint_image()
         # Height may change without the width (fullscreen on a narrow
-        # window, vertical maximize): the text re-fits either way.
+        # window, vertical maximize): the text re-fits either way, and the
+        # bar's edge fill follows the canvas even when the column count
+        # did not move.
         self._relayout()
+        if getattr(self, "_grid_shown", False):
+            self._redraw_grid()
 
     def _reheight(self) -> None:
         self._apply_geometry()
@@ -727,14 +731,17 @@ class ActaeaApp:
                         x, y, text=chars, anchor="nw", fill=fg_c,
                         font=self._styled_font(style),
                     )
-            # Stefan's fill (2026-07-28): when the drawn picture is wider
-            # than the row's cells (integer scaling, a model width that has
-            # not caught up, any cause at all), paint the difference in the
-            # row's own trailing colour. The bar then always LOOKS flush
-            # with the picture, with no scaling tricks and no dependencies.
-            band_px = getattr(self, "_band_px", 0)
+            # Stefan's fill (2026-07-28): the band canvas spans the whole
+            # window and wears the game background, so its letterbox READS
+            # as picture; the bar must reach the same edge or it looks
+            # short (the fullscreen reports). Paint every upper row from
+            # its last cell to the canvas's real right edge in the row's
+            # own trailing colour: flush with the band strip at any width,
+            # any scaler, any cause. No scaling tricks, no dependencies.
             row_px = model.cols * self.cell_w
-            if band_px > row_px and row:
+            edge = max(self.canvas.winfo_width(),
+                       getattr(self, "_band_px", 0))
+            if edge > row_px and row:
                 last = row[-1]
                 lf = self._colour(last.fg, "black")
                 lb = self._colour(last.bg, self._window_bg)
@@ -742,7 +749,7 @@ class ActaeaApp:
                     lf, lb = lb, lf
                 if lb != self._window_bg:
                     self.canvas.create_rectangle(
-                        row_px, y, band_px, y + self.cell_h,
+                        row_px, y, edge, y + self.cell_h,
                         fill=lb, width=0,
                     )
 
