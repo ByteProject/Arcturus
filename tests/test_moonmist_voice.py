@@ -23,7 +23,7 @@ GAME = (
     'game\n    title "M"\n    start hall\n'
     'room hall\n    name "Hall"\n    desc "A hall."\n'
     '    grains\n'
-    '        examine, burn "dust" or "grime"\n'
+    '        examine, burn "soot" or "grime"\n'
     '            if action is burn\n'
     '                say "It smoulders reluctantly."\n'
     '            else\n'
@@ -101,7 +101,7 @@ def test_talk_to_yourself():
 def test_a_grain_answers_a_two_slot_verb():
     # burn has a with-line now; the grain still answers its one-noun form,
     # and the action read selects the verb's own text.
-    out = _run(["burn dust", "examine grime"])
+    out = _run(["burn soot", "examine grime"])
     assert "It smoulders reluctantly." in out
     assert "Grey and ancient." in out
 

@@ -270,6 +270,20 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
         enc_data[encoded[word]] = bytes([_NOISE_FLAG, 0, 0])
     if scenery:
         for word, chain_addr in scenery.items():
+            prior = enc_data.get(encoded[word])
+            if prior is not None and prior[0] & (_VERB_FLAG | _DIR_FLAG | _PARTICLE_FLAG):
+                # A grain word that is also a verb (SMELL as scenery), a
+                # direction, or a particle: the command word wins the flag
+                # byte, or typing it first would stop parsing entirely (the
+                # H2 wave C find: scenery silently clobbered the SMELL
+                # verb). The grain is unreachable through this word; say so
+                # instead of breaking the verb without a sound.
+                import sys
+                print(f"arcc: note: grain word \"{word}\" is also a command "
+                      f"word (a verb, direction, or particle); the command "
+                      f"wins, and the grain does not answer to this word. "
+                      f"Give the grain a different word.", file=sys.stderr)
+                continue
             enc_data[encoded[word]] = bytes(
                 [_SCENERY_FLAG, (chain_addr >> 8) & 0xFF, chain_addr & 0xFF]
             )
