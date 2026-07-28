@@ -45,8 +45,8 @@ def test_flavor_and_animate_on_frotz(tmp_path):
     ).stdout
     assert "You hop on the spot." in out  # jump
     assert "Time slips by." in out  # wait
-    assert "The grey rock smells about as you'd expect." in out  # smell, with the noun
-    assert "The grey rock holds firm." in out  # push default
+    assert "The grey rock smells as expected." in out  # smell, with the noun
+    assert "You give the grey rock a bit of a push." in out  # push default
     assert "The burly guard doesn't seem up for a conversation." in out  # talk to a person
     assert "talking to objects" in out  # talk to an object -> the animate guard
     assert "Hitting things rarely helps" in out  # attack default

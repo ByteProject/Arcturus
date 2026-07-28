@@ -56,9 +56,9 @@ def test_take_all_sweeps_and_counts_turns(tmp_path):
     # Three takeables (lamp, closed box, hat); the fixed statue is skipped
     # silently. Each item is a full turn: the counter moves per item.
     out = _play(tmp_path, GAME, "take all\nclock\ni\n")
-    assert "brass lamp: Got it." in out
-    assert "wooden box: Got it." in out
-    assert "felt hat: Got it." in out
+    assert "brass lamp: You take the" in out
+    assert "wooden box: You take the" in out
+    assert "felt hat: You take the" in out
     assert "stone statue:" not in out  # the fixed statue is never attempted
     assert "Turns: 3." in out
 
@@ -79,7 +79,7 @@ def test_take_all_from_container(tmp_path):
         "take all from box\nopen box\ntake all from box\ni\n",
     )
     assert "The wooden box is shut." in out
-    assert "gold coin: Got it." in out
+    assert "gold coin: You take the" in out
     assert "gold coin" in out.rsplit("You're carrying:", 1)[1]
 
 
@@ -110,7 +110,7 @@ def test_undo_takes_back_the_whole_sweep(tmp_path):
 def test_take_all_then_chain_continues(tmp_path):
     # A successful sweep is not a refusal: the chained move still runs.
     out = _play(tmp_path, GAME, "take all and go north\n")
-    assert "brass lamp: Got it." in out
+    assert "brass lamp: You take the" in out
     assert "Yard" in out
 
 

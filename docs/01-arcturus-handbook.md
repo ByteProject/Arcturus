@@ -1959,27 +1959,29 @@ incomplete command, and the library answers it centrally, before any
 handler runs and without costing a move:
 
 ```
-> DANCE
-The verb dance requires you to be more specific.
+> DISINTEGRATE
+The verb disintegrate requires you to be more specific.
 ```
 
 The line echoes the verb AS TYPED, full length and in the player's own
 word (bare ROLL says "roll", even when roll is a push synonym), and it
-never guesses the missing role: "Dance what?" guesses wrong when the
-grammar wanted WITH WHOM or ON THE WHAT. This holds for every verb alike,
+never guesses the missing role: "Disintegrate what?" guesses wrong when
+the grammar wanted WITH WHAT or AT WHOM. This holds for every verb alike,
 the standard set, your own (`verb "wibble" / wib noun` asks the moment
 WIBBLE is typed bare), and partial commands too: PUT LAMP, with nowhere
 to put it, gets the same honest ask. Your grammar decides what counts as
-complete. A verb with a declared slotless line owns its bare form, and
-the handler then sees `noun` as `nothing`:
+complete: DANCE never asks, because the standard grammar declares its
+bare line (a dance needs no object), while a verb whose every line wants
+a noun asks the moment it stands alone. A verb with a declared slotless
+line owns its bare form, and the handler then sees `noun` as `nothing`:
 
 ```
-verb "hum"
-    hum
-    hum noun
+verb "whittle"
+    whittle
+    whittle noun
 ```
 
-Bare HUM reaches `on hum` (branch on `if noun is nothing`); bare WIBBLE,
+Bare WHITTLE reaches `on whittle` (branch on `if noun is nothing`); bare WIBBLE,
 whose only line wants a noun, asks. The message is msg_noun_missing, one
 overridable block, worded natively by every language pack.
 
@@ -2214,9 +2216,10 @@ The world verbs:
 
 | Action | The player types | Grammar and default |
 |---|---|---|
-| `look` | LOOK, L | `look`; describes `here`. LOOK AT X is `examine`. |
-| `examine` | EXAMINE, X, READ | `examine noun`; prints `desc`. Needs visibility. |
-| `take` | TAKE, GET, CARRY, PICK (UP) | `take noun`; move to player, refused if fixed. |
+| `look` | LOOK, L | `look`; describes `here`. LOOK AT X is `examine`; LOOK AROUND is a look. |
+| `examine` | EXAMINE, X, READ, LOOK THROUGH | `examine noun`; prints `desc`. Needs visibility. |
+| `look_under` | LOOK UNDER/UNDERNEATH/BENEATH | `look_under noun` (the under particle riding LOOK); "You find nothing of interest under..." unless handled. |
+| `take` | TAKE, GET, CARRY, PICK (UP), GRAB | `take noun`; "You take X with you", or "out" from a carried container; refused if fixed. |
 | `drop` | DROP | `drop noun`; move to `here`; a worn thing is refused until removed. |
 | `put` | PUT, PLACE | `put noun on noun`, `put noun in noun`. |
 | `insert` | INSERT | `insert noun in noun`. |
@@ -2232,27 +2235,27 @@ The world verbs:
 | `unlock` | UNLOCK | `unlock noun with noun`, `unlock noun`. |
 | `switch_on` | SWITCH/TURN ... ON, LIGHT | `switch_on noun`; the particle works in either order (SWITCH ON THE LAMP, TURN THE LAMP OFF). |
 | `switch_off` | SWITCH/TURN ... OFF | `switch_off noun`. |
-| `push` | PUSH, PRESS, SHOVE | `push noun`; "Nothing obvious happens." unless handled; PUSH X NORTH moves a `shiftable` thing. |
-| `pull` | PULL, DRAG, YANK | `pull noun`; same default. |
+| `push` | PUSH, PRESS, SHOVE | `push noun`; "You give X a bit of a push." unless handled; PUSH X NORTH moves a `shiftable` thing. |
+| `pull` | PULL, DRAG, YANK | `pull noun`; "You yank at X but nothing noteworthy happens." |
 | `turn` | TURN, ROTATE, TWIST, SCREW, UNSCREW | `turn noun`; same default. |
 | `climb` | CLIMB, SCALE | `climb noun`. |
 | `give` | GIVE, OFFER, FEED, PAY | `give noun to noun` (also GIVE X Y reversed). |
 | `show` | SHOW, DISPLAY, PRESENT | `show noun to noun` (also reversed). |
-| `talk` | TALK TO, TALK, GREET | `talk noun`; the conversation action (below). |
+| `talk` | TALK TO, TALK, GREET | `talk noun`; the conversation action (below). Talking to yourself: "Nothing you hear surprises you." |
 | `ask` | ASK | `ask noun`, `ask noun about text`. |
 | `ask_for` | ASK ... FOR | `ask_for noun for text`; a request, distinct from asking about. |
 | `tell` | TELL, INFORM | `tell noun`, `tell noun about`. |
 | `answer` | ANSWER, RESPOND | `answer noun`. |
 | `touch` | TOUCH, FEEL, PAT | `touch noun`. |
-| `smell` | SMELL, SNIFF | `smell noun`. |
+| `smell` | SMELL, SNIFF | `smell`, `smell noun`; the air, yourself, and the thing each answer differently. |
 | `taste` | TASTE, LICK | `taste noun`. |
-| `listen` | LISTEN, HEAR | `listen`, `listen noun`. |
+| `listen` | LISTEN, HEAR | `listen`, `listen noun`; yourself, a creature, and a thing each answer differently. |
 | `eat` | EAT | `eat noun`; needs `edible`. |
 | `drink` | DRINK, SIP, SWALLOW | `drink`, `drink noun`. |
-| `attack` | ATTACK, HIT, BREAK, KILL, FIGHT, SMASH | `attack noun`. |
-| `kiss` | KISS, HUG, EMBRACE | `kiss noun`. |
+| `attack` | ATTACK, HIT, BREAK, KILL, FIGHT, SMASH, KICK | `attack noun`. |
+| `kiss` | KISS, HUG, EMBRACE | `kiss noun`; yourself, a creature, and a thing each answer differently. |
 | `jump` | JUMP, HOP | `jump`. |
-| `sing` | SING | `sing`. |
+| `sing` | SING, HUM | `sing`; "You hum a few notes." |
 | `yes` / `no` | YES, AFFIRMATIVE / NO, NEGATIVE | typed answers, caught with `on yes` / `on no` and a `when` guard; never meta, answering is speech. |
 | `wait` | WAIT, Z | `wait`. |
 | `xyzzy` | XYZZY | the magic word; a normal (if fruitless) action that costs a turn. |
@@ -2533,7 +2536,7 @@ never guesses the missing role the way "Take what?" did, because the grammar
 may want WITH WHOM or ON WHAT. The ask is central: the resolvers mark the
 command (`incomplete`) and the loop refuses it before any handler runs, no
 move consumed, custom verbs and standard verbs alike. A verb whose grammar
-DECLARES a bare line (look, listen, a custom `hum` beside `hum noun`) is
+DECLARES a bare line (look, listen, a custom `whittle` beside `whittle noun`) is
 never marked: its handler owns the bare command and sees noun = nothing. A
 named thing that is simply NOT HERE keeps the classic refusal (msg_cant_see,
 parse_fault 1); and a PRONOUN WITH NOTHING TO REFER TO (IT before anything

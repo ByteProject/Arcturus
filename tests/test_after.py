@@ -60,11 +60,11 @@ def test_after_compiles():
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_after_runs_after_the_default(tmp_path):
-    # The default take completes first (Got it.), then the after handler.
+    # The default take completes first (You take the), then the after handler.
     out = _play(tmp_path, GAME, "take coin\n")
-    assert "Got it." in out
+    assert "You take the" in out
     assert "hums as it settles" in out
-    assert out.index("Got it.") < out.index("hums as it settles")
+    assert out.index("You take the") < out.index("hums as it settles")
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
@@ -79,12 +79,12 @@ def test_after_skipped_when_refused(tmp_path):
 def test_after_runs_for_an_instead_handler(tmp_path):
     # A handler that replaces the default and ends (the instead case) still
     # completed the action, so the after pass runs; but the handler replaced
-    # the default, so the object never moved and "Got it." never prints.
+    # the default, so the object never moved and "You take the" never prints.
     out = _play(tmp_path, GAME, "take idol\n")
     assert "practiced flourish" in out
     assert "temple alarm" in out
     assert out.index("practiced flourish") < out.index("temple alarm")
-    assert "Got it." not in out
+    assert "You take the" not in out
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
@@ -106,7 +106,7 @@ def test_on_other_never_answers_the_after_pass(tmp_path):
         "        continue\n"
     )
     out = _play(tmp_path, src, "take coin\n")
-    assert "Got it." in out
+    assert "You take the" in out
     assert "The coin hums." in out
     assert out.count("The hall notices.") == 1
 

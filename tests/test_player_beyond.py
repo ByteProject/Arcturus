@@ -53,7 +53,7 @@ def _run(src, cmds):
 def test_mounted_player_cannot_reach_the_ground():
     out = _run(GAME, ["enter mare", "take key"]).split(">take")[-1]
     assert "The iron key is beyond your reach." in out
-    assert "Got it." not in out
+    assert "You take the" not in out
 
 
 def test_sight_crosses_the_gap():
@@ -68,7 +68,7 @@ def test_the_bubble_holds_mount_and_its_cargo():
                       "put key in saddlebag"])
     assert "You touch the grey mare" in out
     tail = out.split(">take apple")[-1]
-    assert "Got it." in tail
+    assert "You take the" in tail
     assert "Done." in out.split(">put")[-1]
 
 
@@ -82,7 +82,7 @@ def test_put_cannot_fish_the_ground():
 
 def test_dismount_restores_reach():
     out = _run(GAME, ["enter mare", "exit", "take key"]).split(">take")[-1]
-    assert "Got it." in out
+    assert "You take the" in out
 
 
 def test_player_beyond_why_wins_and_nothing_reverts():

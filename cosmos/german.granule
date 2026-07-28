@@ -126,6 +126,9 @@ block compound(base, particle)
             return action_id("transcript")
         if particle is 2
             return action_id("transcript_off")
+    if base is action_id("look")         // schau unter den teppich
+        if particle is 5
+            return action_id("look_under")
     return nothing
 
 // The chosen direction's property number, from the first direction word typed
@@ -409,6 +412,11 @@ block resolve_two_nouns(rq1, rq2)
     // grammar requires the noun (rq1): the loop asks before any handler.
     if noun is nothing
         if b > 1
+            // A scenery grain answers a two-slot verb's one-noun form too
+            // (BURN DUST): same fallback the single-noun path takes.
+            change grain to find_scenery
+            if grain is not 0
+                return 1
             change parse_fault to noun_fault(1, b)
             return 1
         if rq1 is 1
@@ -526,6 +534,7 @@ verb "wirf", "fallenlassen", "wegwerfen", "weglegen"
 
 verb "untersuch", "untersuche", "untersuchen", "betrachte", "pruefe", "prüfe", "x"
     examine noun
+    look_under noun
 
 // Meta verbs. Each sets meta_turn, so the loop skips the per-turn pulse and the
 // turn count. quit and restart confirm first. Jedes Meta-Verb hört AUCH auf
@@ -684,6 +693,7 @@ block note_pronouns(obj)
 
 particle auf "auf"
 particle zu  "zu"
+particle under "unter", "unters", "darunter"
 
 // Zusaetzlich ver- und entriegeln als eigene, UNTRENNBARE Verben ("entriegele die
 // Tuer mit dem Schluessel"), samt den zusammengeschriebenen ab-/aufsperren als
@@ -715,6 +725,7 @@ verb "beruehre", "berühre", "beruehren", "berühren", "fuehl", "fühl"
     touch noun
 
 verb "riech", "rieche", "riechen", "schnupper"
+    smell
     smell noun
 
 verb "schmeck", "schmecke", "koste", "probier", "probiere"
@@ -1266,6 +1277,40 @@ block msg_nothing_special()
 block msg_touch()
     say "Du berührst ${the:acc noun}. Nichts, was deine Augen nicht schon gesehen hätten."
 
+block msg_smell_air()
+    say "Du schnupperst in die Luft und riechst nichts Überraschendes."
+
+block msg_smell_self()
+    say "Du riechst so gut wie eh und je."
+
+block msg_listen_self()
+    say "Du hörst das vertraute Rauschen deines Blutkreislaufs und das
+         leise Sirren deiner Nerven."
+
+block msg_listen_animate()
+    say "${The noun} schweigt."
+
+block msg_listen_thing()
+    say "Aus ${the:dat noun} kommt kein unerwartetes Geräusch."
+
+block msg_kiss_self()
+    say "Deine Gefühle für dich selbst sind vor allem platonischer Natur."
+
+block msg_kiss_thing()
+    say "Du übst dich in Objektophilie mit ${the:dat noun}."
+
+block msg_push()
+    say "Du gibst ${the:dat noun} einen kleinen Schubs."
+
+block msg_pull()
+    say "Du zerrst an ${the:dat noun}, doch nichts Nennenswertes geschieht."
+
+block msg_talk_self()
+    say "Nichts, was du hörst, überrascht dich."
+
+block msg_look_under()
+    say "Unter ${the:dat noun} findest du nichts von Interesse."
+
 block msg_smell()
     if any_pluribus is 1
         if noun is pluribus
@@ -1282,7 +1327,11 @@ block msg_taste()
 // Carrying and giving. German past participles used as terse replies do not
 // inflect, so a single word serves every gender.
 block msg_taken()
-    say "Genommen."
+    say "Du nimmst ${the:acc noun} an dich."
+
+// Aus einem getragenen Behaelter gehoben (der take-Handler entscheidet).
+block msg_taken_out()
+    say "Du nimmst ${the:acc noun} heraus."
 
 block msg_fixed()
     // Das Pronomen richtet sich nach dem Geschlecht: die Tür bleibt, wo SIE

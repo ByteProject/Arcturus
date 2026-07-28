@@ -174,7 +174,8 @@ _GENDER_ARTICLES = {
 # lock words ("schliess die Tuer auf" / "... zu"). The id is what compound() tests,
 # so this table is the shared contract between the dictionary and the language
 # layer; keep the ids stable.
-_PARTICLE_ROLES = {"on": 1, "off": 2, "auf": 3, "zu": 4}
+_PARTICLE_ROLES = {"on": 1, "off": 2, "auf": 3, "zu": 4,
+                   "under": 5, "around": 6}
 
 # The Z-machine colour numbers (Standard 1.1 section 8.3.1), as the author-facing
 # names of the zcolor statement and the say.<colour> form. "default" asks the

@@ -49,7 +49,7 @@ def test_two_items_land_and_each_is_reported():
     assert "gold coin: Done." in out
     assert "rusty nail: Done." in out
     # ...and the nail really moved: takeable back out of the box.
-    assert "Got it." in out.split("take nail")[-1]
+    assert "You take the" in out.split("take nail")[-1]
 
 
 def test_three_items_with_comma_and():
@@ -65,7 +65,7 @@ def test_a_list_still_chains_afterwards():
 
 def test_single_noun_lists_ride_the_chain_untouched():
     out = _run(["take gem and coin"])
-    assert "Got it." in out                       # the gem, via take
+    assert "You take the" in out                       # the gem, via take
     assert "already have the gold coin" in out    # the borrowed verb
 
 
@@ -86,5 +86,5 @@ def test_the_contract_guards_each_item():
 
 def test_a_verb_after_and_still_chains():
     out = _run(["take gem and put coin in box"])
-    assert "Got it." in out
+    assert "You take the" in out
     assert "Done." in out

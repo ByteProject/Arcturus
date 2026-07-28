@@ -74,7 +74,7 @@ def test_functional_verbs_on_frotz(tmp_path):
     # typed), does not crash
     assert "The verb give requires you to be more specific." in out
     assert "test_attr" not in out  # the object-0 attribute-test bug is gone
-    assert "You aren't inside anything to leave." in out  # exit in the open
+    assert "You're already standing up." in out  # exit in the open
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")

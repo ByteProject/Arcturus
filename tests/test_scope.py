@@ -142,7 +142,7 @@ def test_move_to_scope_seeds_the_backstage_room():
         VM(load(story), io).run(max_steps=20_000_000)
     except IndexError:
         pass
-    assert "Got it." in io.text.split("take locket")[-1]  # reachable via scope
+    assert "You take the" in io.text.split("take locket")[-1]  # reachable via scope
 
 
 def test_no_scope_use_seeds_nothing():

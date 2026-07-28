@@ -49,7 +49,7 @@ def test_tie_is_never_taken_silently(tmp_path):
     # "take coin" matches both coins equally: nothing is taken, the turn
     # answers instead of guessing.
     out = _play(tmp_path, GAME, "take coin\ni\n")
-    assert "Got it." not in out
+    assert "You take the" not in out
     assert "gold coin" not in out.split(">")[2]  # inventory holds neither
 
 
@@ -57,13 +57,13 @@ def test_tie_is_never_taken_silently(tmp_path):
 def test_adjective_narrows(tmp_path):
     # A distinguishing word resolves without any question: score 2 beats 1.
     out = _play(tmp_path, GAME, "take gold coin\ntake silver coin\ni\n")
-    assert out.count("Got it.") == 2
+    assert out.count("You take the") == 2
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_single_word_unique_still_resolves(tmp_path):
     out = _play(tmp_path, GAME, "take gold\ni\n")
-    assert "Got it." in out
+    assert "You take the" in out
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
@@ -92,7 +92,7 @@ def test_ask_and_narrowing_answer(tmp_path):
     # ("take coin" + "gold" resolves like "take gold coin" typed whole).
     out = _play(tmp_path, GAME, "take coin\ngold\ni\n")
     assert "Which do you mean, the gold coin or the silver coin?" in out
-    assert "Got it." in out
+    assert "You take the" in out
     assert "gold coin" in out.rsplit("You're carrying:", 1)[1]
 
 
@@ -152,7 +152,7 @@ def test_german_ask_declines_accusative(tmp_path):
     # "Was meinst du" takes the accusative: den Hammer, not der Hammer.
     out = _play(tmp_path, GERMAN, "nimm das werkzeug\nhammer\ni\n")
     assert "Was meinst du: den Hammer oder den Meißel?" in out
-    assert "Genommen." in out
+    assert "Du nimmst den Hammer an dich." in out
 
 
 LOCK_GAME = (

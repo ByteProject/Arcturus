@@ -50,7 +50,7 @@ def test_container_reports_into_and_out_of():
 
 def test_exit_when_not_nested_still_refuses():
     out = _run(GAME, ["exit"]).split(">exit")[-1]
-    assert "You aren't inside anything to leave." in out
+    assert "You're already standing up." in out
 
 
 def test_supporter_declared_as_a_bare_attribute_also_reports():

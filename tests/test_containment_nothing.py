@@ -56,7 +56,7 @@ def test_unknown_word_is_refused_without_a_jin_warning():
 def test_the_guard_still_guards():
     text = _play(["take cup", "take lamp"])
     assert "STOPPED." in text
-    assert "Got it." in text
+    assert "You take the" in text
 
 
 def test_holds_with_nothing_is_false():

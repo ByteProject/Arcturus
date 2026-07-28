@@ -43,7 +43,7 @@ def _run(extra, cmds):
 
 def test_enhance_adds_a_synonym_to_a_standard_family():
     out = _run('enhance verb "take", "snatch"\n', ["snatch bell", "i"])
-    assert "Got it." in out
+    assert "You take the" in out
     assert "brass bell" in out.split(">i")[-1]
 
 
@@ -99,7 +99,7 @@ def test_redefine_without_grammar_is_refused():
 
 def test_plain_shadowing_still_works_but_says_so(capsys):
     out = _run('verb "take", "grab"\n    take noun\n', ["take bell"])
-    assert "Got it." in out
+    assert "You take the" in out
     err = capsys.readouterr().err
     assert "shadows it word by word" in err
     assert "redefine verb" in err

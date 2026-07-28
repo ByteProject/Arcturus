@@ -51,7 +51,7 @@ def test_a_shiftable_thing_travels_and_the_player_follows():
 
 def test_an_unshiftable_thing_refuses_the_direction():
     out = _run(["push anvil north"])
-    assert "not going anywhere that way" in out
+    assert "can't be pushed from place to place" in out
 
 
 def test_no_exit_refuses_like_a_walk():
@@ -61,7 +61,7 @@ def test_no_exit_refuses_like_a_walk():
 
 def test_a_bare_push_keeps_the_flat_default():
     out = _run(["push barrel"])
-    assert "holds firm" in out
+    assert "a bit of a push" in out
 
 
 def test_a_shut_door_blocks_the_shove():
@@ -79,7 +79,7 @@ def test_a_shut_door_blocks_the_shove():
 
 def test_pick_up_is_the_everyday_take():
     out = _run(["pick up the lamp", "i"])
-    assert "Got it." in out
+    assert "You take the" in out
     assert "brass lamp" in out.split(">i")[-1]
     out = _run(["pick the lamp up"])
-    assert "Got it." in out
+    assert "You take the" in out

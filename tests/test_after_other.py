@@ -56,7 +56,7 @@ def test_after_other_fires_after_the_report():
     out = _run(_room_game(), ["take pebble"]).split(">take")[-1]
     assert "AFTER-OTHER" in out
     # The action's own report comes FIRST; the after pass follows it.
-    assert out.index("Got it.") < out.index("AFTER-OTHER")
+    assert out.index("You take the") < out.index("AFTER-OTHER")
 
 
 def test_after_other_catches_an_intransitive_action():
@@ -97,15 +97,15 @@ def test_plain_other_and_after_other_keep_their_bands():
         '    on after other\n        say "AFTER-OTHER"\n        continue\n',
     )
     out = _run(src, ["take pebble"]).split(">take")[-1]
-    assert out.index("MAIN-OTHER") < out.index("Got it.")
-    assert out.index("Got it.") < out.index("AFTER-OTHER")
+    assert out.index("MAIN-OTHER") < out.index("You take the")
+    assert out.index("You take the") < out.index("AFTER-OTHER")
 
 
 def test_free_after_other():
     src = GAME + 'on after other\n    say "FREE-AFTER"\n    continue\n'
     out = _run(src, ["take pebble"]).split(">take")[-1]
     assert "FREE-AFTER" in out
-    assert out.index("Got it.") < out.index("FREE-AFTER")
+    assert out.index("You take the") < out.index("FREE-AFTER")
     # And a refused action stays silent.
     out2 = _run(src, ["east"]).split(">east")[-1]
     assert "FREE-AFTER" not in out2

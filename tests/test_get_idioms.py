@@ -56,7 +56,7 @@ def _reply(cmds):
 
 
 def test_plain_get_is_still_take():
-    assert "Got it." in _reply(["get lamp"])
+    assert "You take the" in _reply(["get lamp"])
 
 
 def test_get_in_and_into_are_enter():

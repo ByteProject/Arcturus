@@ -40,11 +40,11 @@ def test_named_suppresses_article_on_frotz(tmp_path):
     story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
     out = subprocess.run(
         [_frotz(), "-p", str(story)],
-        input="push linda\npush sword\n",  # the default uses "${The noun} holds firm."
+        input="push linda\npush sword\n",  # msg_push names the noun
         capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "Linda holds firm." in out  # named: no article
-    assert "The iron sword holds firm." in out  # ordinary: keeps the article
+    assert "You give Linda a bit of a push." in out  # named: no article
+    assert "You give the iron sword a bit of a push." in out  # ordinary: keeps the article
     assert "The Linda" not in out  # the bug this prevents
 
 

@@ -68,7 +68,7 @@ def test_perform_runs_the_full_pipeline(tmp_path):
     story = tmp_path / "p.z5"
     story.write_bytes(_build(GAME))
     out = _run(story, "grab\ni\n")
-    assert "Got it." in out                       # the action's own message
+    assert "You take the" in out                       # the action's own message
     assert "(carried)" in out                     # success returns 1
     assert "exactly where it is" in out           # the refusal message ran
     assert "(refused, and the turn goes on)" in out

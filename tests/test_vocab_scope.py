@@ -60,6 +60,6 @@ def test_name_vocab_and_hidden_on_frotz(tmp_path):
     assert "The panel slides aside." in out
     # The coin is hidden at first (not takeable), then revealed and taken.
     assert "You see nothing of the sort here." in out  # take coin while hidden
-    assert "Got it." in out  # take coin after the panel reveals it
+    assert "You take the" in out  # take coin after the panel reveals it
     # A hidden object is not listed in the room.
     assert "gold coin here" not in out.split("The panel slides aside.")[0]

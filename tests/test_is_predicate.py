@@ -105,7 +105,7 @@ def test_reachable_differs_from_visible_through_glass(tmp_path):
     assert "Seen, sealed." in out
     assert "You'll have to open the jar first." in out
     assert "In hand range." in out
-    assert "Got it." in out
+    assert "You take the" in out
 
 
 def test_kind_as_value_gets_a_category_error():

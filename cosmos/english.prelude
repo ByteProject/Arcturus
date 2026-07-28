@@ -102,6 +102,15 @@ block compound(base, particle)
         // the noun the phrase resolves (go carries a noun slot for this).
         if particle is 1
             return action_id("enter")
+    if base is action_id("look")
+        // LOOK UNDER X is its own action; LOOK THROUGH X reads as examine
+        // (the window), and a bare LOOK AROUND is just a look.
+        if particle is 5
+            return action_id("look_under")
+        if particle is 6
+            if noun is nothing
+                return action_id("look")
+            return action_id("examine")
     return nothing
 
 // The chosen direction's property number, from the first direction word typed
@@ -489,6 +498,11 @@ block resolve_two_nouns(rq1, rq2)
     // the noun (rq1): the loop asks before any handler runs.
     if noun is nothing
         if b > 1
+            // A scenery grain answers a two-slot verb's one-noun form too
+            // (BURN DUST): same fallback the single-noun path takes.
+            change grain to find_scenery
+            if grain is not 0
+                return 1
             change parse_fault to noun_fault(1, b)
             return 1
         if rq1 is 1
@@ -607,7 +621,7 @@ direction down      "down", "d"
 direction in        "in", "into"
 direction out       "out"
 
-verb "take", "get", "carry", "pick"
+verb "take", "get", "carry", "pick", "grab"
     take noun
 
 verb "drop"
@@ -615,6 +629,11 @@ verb "drop"
 
 verb "examine", "x"
     examine noun
+    // The look_under action's home line (never typed this way): it shares
+    // examine's one-noun shape, so the verb stays on the flag model (the
+    // transcript pattern), and LOOK UNDER X reaches it through the under
+    // particle in compound().
+    look_under noun
 
 // Meta verbs. These report on or steer the session rather than act in the world,
 // so each sets meta_turn: the loop then skips the per-turn pulse and the turn
@@ -692,6 +711,12 @@ verb "switch", "light"
 // role is `on` or `off`. English has just the two.
 particle on  "on"
 particle off "off"
+// LOOK UNDER THE MAT and LOOK AROUND: the under and around particles ride
+// the look verb through compound(), the same door SWITCH ON came through,
+// so look stays on the flag model (the look_under line above shares the
+// look noun shape; the particle selects between them).
+particle under  "under", "underneath", "beneath"
+particle around "around", "through"
 
 // The chain words (docs/01 chapter 14): each ends one command and starts the
 // next on the same line ("take the lamp and open the door then go north",
@@ -801,6 +826,7 @@ verb "touch", "feel", "pat"
     touch noun
 
 verb "smell", "sniff"
+    smell
     smell noun
 
 // Typed answers: a game that ASKS something reads them with an `on yes` /
@@ -826,7 +852,7 @@ verb "drink", "sip", "swallow"
     drink
     drink noun
 
-verb "attack", "hit", "break", "kill", "fight", "smash"
+verb "attack", "hit", "break", "kill", "fight", "smash", "kick"
     attack noun
 
 verb "kiss", "hug", "embrace"
@@ -880,7 +906,7 @@ verb "jump", "hop"
 verb "wait", "z"
     wait
 
-verb "sing"
+verb "sing", "hum"
     sing
 
 // ==========================================================================
@@ -1292,7 +1318,7 @@ block msg_already_there()
     say "You're already there."
 
 block msg_not_inside()
-    say "You aren't inside anything to leave."
+    say "You're already standing up."
 
 // Boarding and leaving, worded by the world model: on a supporter, in a
 // container (the choice is made in board_report / leave_report).
@@ -1322,6 +1348,21 @@ block msg_examine_self()
     say "Are we going to admire ourselves for a while or do we play an
          adventure game?"
 
+// LOOK UNDER: its own action, so a story can hide a key under the mat.
+block msg_look_under()
+    say "You find nothing of interest under ${the noun}."
+
+// Push and pull part ways (Stefan's H2 voice, now the library's).
+block msg_push()
+    say "You give ${the noun} a bit of a push."
+
+block msg_pull()
+    say "You yank at ${the noun} but nothing noteworthy happens."
+
+// Talking to yourself.
+block msg_talk_self()
+    say "Nothing you hear surprises you."
+
 block msg_nothing_special()
     say "Nothing about ${the noun} rewards a closer look."
 
@@ -1331,23 +1372,39 @@ block msg_touch()
 block msg_smell()
     if any_pluribus is 1
         if noun is pluribus
-            say "${The noun} smell about as you'd expect."
+            say "${The noun} smell as expected."
             return 0
-    say "${The noun} smells about as you'd expect."
+    say "${The noun} smells as expected."
+
+block msg_smell_air()
+    say "You sniff at the air, perceiving nothing that surprises you."
+
+block msg_smell_self()
+    say "You smell as fine as usual."
 
 block msg_listen()
     say "You listen. Nothing answers."
+
+block msg_listen_self()
+    say "You can hear the familiar rumble of your blood stream and the
+         faint whine of your nervous system."
+
+block msg_listen_animate()
+    say "${The noun} is silent."
+
+block msg_listen_thing()
+    say "You hear no unexpected sound coming from ${the noun}."
 
 block msg_taste()
     say "Best not."
 
 // Carrying and giving.
 block msg_taken()
-    if any_pluribus is 1
-        if noun is pluribus
-            say "Got them."
-            return 0
-    say "Got it."
+    say "You take ${the noun} with you."
+
+// Lifted out of a container the player carries (the take handler decides).
+block msg_taken_out()
+    say "You take ${the noun} out."
 
 block msg_fixed()
     if any_pluribus is 1
@@ -1419,7 +1476,7 @@ block msg_notify_off()
     say "[Score notification is off.]"
 
 block msg_wont_shift()
-    say "${The noun} is not going anywhere that way."
+    say "${The noun} can't be pushed from place to place."
 
 block msg_shifted()
     say "You put your shoulder to ${the noun} and shove it along."
@@ -1649,10 +1706,16 @@ block msg_wait()
     say "Time slips by."
 
 block msg_kiss()
-    say "Now is hardly the moment."
+    say "${The noun} is unmoved by your display of affection."
+
+block msg_kiss_self()
+    say "Your feelings for yourself are primarily of a platonic nature."
+
+block msg_kiss_thing()
+    say "You practice some objectophilia with ${the noun}."
 
 block msg_sing()
-    say "You manage a few bars. The room is unmoved."
+    say "You hum a few notes."
 
 // Conversation.
 block msg_no_talk()

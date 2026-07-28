@@ -51,7 +51,7 @@ def _play(tmp_path, source, commands):
 def test_chain_and_then_comma(tmp_path):
     # Three commands on one line, mixing all three separators; every one runs.
     out = _play(tmp_path, GAME, "take lamp and take box, then go north\ni\n")
-    assert out.count("Got it.") == 2
+    assert out.count("You take the") == 2
     assert "Yard" in out
     assert "brass lamp" in out and "wooden box" in out  # both in inventory
 
@@ -68,7 +68,7 @@ def test_chain_stops_on_refusal(tmp_path):
 def test_chain_stops_on_parse_failure(tmp_path):
     # An unknown word in the middle command ends the line there.
     out = _play(tmp_path, GAME, "take lamp and frobnicate box then go north\nlook\n")
-    assert "Got it." in out
+    assert "You take the" in out
     assert "Yard" not in out
 
 
@@ -86,7 +86,7 @@ def test_each_command_takes_a_turn(tmp_path):
     # counter advances per command.
     out = _play(tmp_path, GAME, "take lamp and take box\nscore\n")
     assert "in that direction" not in out  # sanity: nothing misparsed
-    assert out.count("Got it.") == 2
+    assert out.count("You take the") == 2
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
@@ -107,7 +107,7 @@ def test_and_then_run_chains_once(tmp_path):
         tmp_path, GAME,
         "take the lamp and take the box and then go north\ni\n",
     )
-    assert out.count("Got it.") == 2
+    assert out.count("You take the") == 2
     assert "Yard" in out
     assert "don't add up" not in out
 
@@ -118,7 +118,7 @@ def test_noun_list_borrows_the_verb(tmp_path):
     # the previous command's verb, so "take lamp and box" takes both, one
     # full turn each. No granule involved.
     out = _play(tmp_path, GAME, "take lamp and box\ni\n")
-    assert out.count("Got it.") == 2
+    assert out.count("You take the") == 2
     inv = out.rsplit("You're carrying:", 1)[1]
     assert "brass lamp" in inv and "wooden box" in inv
 
@@ -128,7 +128,7 @@ def test_noun_list_with_article(tmp_path):
     # An article is an unknown word, and the borrowed-verb leg tolerates it:
     # "take the lamp and the box" lists exactly like the bare form.
     out = _play(tmp_path, GAME, "take the lamp and the box\ni\n")
-    assert out.count("Got it.") == 2
+    assert out.count("You take the") == 2
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
@@ -153,7 +153,7 @@ def test_trailing_chain_word_is_harmless(tmp_path):
     # "take lamp and" has no second command: the take still runs cleanly, and
     # the dangling word never reaches the verb grammar as an extra word.
     out = _play(tmp_path, GAME, "take lamp and\ni\n")
-    assert "Got it." in out
+    assert "You take the" in out
     assert "lost me after that" not in out
 
 

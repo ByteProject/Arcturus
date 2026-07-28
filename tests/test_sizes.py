@@ -108,21 +108,21 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # three packs gained it (German also verlasse/verlassen), and the
 # boarding idiom matrix is pinned as a test.
 CEILINGS = {
-    "features/yes-no.storyarc": 17836,  # 2026-07-25 new example (typed answers, when-guarded questions)
-    "features/press-any-key.storyarc": 18468,  # 2026-07-25 new example (read_key as gate and as value)
-    "features/shiftable.storyarc": 17976,  # 2026-07-25 new example (push the barrel north, the player follows)
-    "features/enhance-redefine.storyarc": 18276,  # 2026-07-25 new example (grow a family, replace one whole)
-    "features/consult-about.storyarc": 18476,  # 2026-07-25 new example (reference books via inline topics)
-    "features/session-verbs.storyarc": 18164,  # 2026-07-25 new example (VERSION, coupled NOTIFY, the swear family)
-    "features/vary.storyarc": 19336,  # 2026-07-25 new example (the vary showcase incl. varied topic replies)
-    "features/foresight.storyarc": 19220,  # 2026-07-25 new example (the foresight showcase; its writing found the sealed-take gap)
-    "features/beyond.storyarc": 20096,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/alter.storyarc": 18688,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/catalogs.storyarc": 18628,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/matrix.storyarc": 18984,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/direction-grammar.storyarc": 18020,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/scenery-contents.storyarc": 18672,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "granules/nautical.storyarc": 18484,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "features/yes-no.storyarc": 18556,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/press-any-key.storyarc": 19184,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/shiftable.storyarc": 18692,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/enhance-redefine.storyarc": 18980,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/consult-about.storyarc": 19192,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/session-verbs.storyarc": 18880,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/vary.storyarc": 20052,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/foresight.storyarc": 19936,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/beyond.storyarc": 20812,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/alter.storyarc": 19404,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/catalogs.storyarc": 19344,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/matrix.storyarc": 19700,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/direction-grammar.storyarc": 18740,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/scenery-contents.storyarc": 19264,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "granules/nautical.storyarc": 19200,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
     # 2026-07-04 (Stefan's ruling, superseding the same day's FULL move):
     # there is NO fullscore verb; SCORE is the one score verb and reports
     # score, max, turns, and rank in one line. Pool labels stay in the
@@ -176,41 +176,41 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 24188,  # 2026-07-21 the status bar names darkness (In the dark / Im Dunkeln / A oscuras) instead of spoiling an unseen room's name, +40 in games where darkness is reachable (any_dark); always-lit games are byte-identical (the fold test); previously 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "brass-lantern.storyarc": 19252,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "cloak-of-darkness.storyarc": 20292,  # 2026-07-21 the status bar names darkness (In the dark / Im Dunkeln / A oscuras) instead of spoiling an unseen room's name, +40 in games where darkness is reachable (any_dark); always-lit games are byte-identical (the fold test); previously 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "ejemplo-espanol.storyarc": 23012,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/computed-properties.storyarc": 17724,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/containers.storyarc": 18024,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/daemons-and-timers.storyarc": 19320,  # 2026-07-26 the showcase pays for what it shows: a second room, the restless apprentice, the performer walk, the mute buffer, TURN OFF CLOCK
-    "features/doors-and-locks.storyarc": 17636,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/appearance.storyarc": 18404,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/components.storyarc": 17828,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/perform.storyarc": 17892,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/grains.storyarc": 17772,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/handlers.storyarc": 18868,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/grammar.storyarc": 18036,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/introproperty.storyarc": 18952,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/kinds-and-inheritance.storyarc": 17692,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/on-other.storyarc": 17572,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/zcolor.storyarc": 17964,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/scoring.storyarc": 19928,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/spans.storyarc": 17760,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "features/vehicles.storyarc": 18300,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "granules/ambience.storyarc": 19736,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "granules/conversations.storyarc": 19392,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "granules/extended-verbs.storyarc": 20464,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "granules/infocom-interrogation.storyarc": 19908,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "granules/quotes.storyarc": 17968,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "granules/take-all.storyarc": 19620,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "granules/plurals.storyarc": 18552,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "granules/statusline.storyarc": 17696,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
-    "granules/verbose-exits.storyarc": 17964,  # 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+    "beispiel-deutsch.storyarc": 24944,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "brass-lantern.storyarc": 19972,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "cloak-of-darkness.storyarc": 21008,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "ejemplo-espanol.storyarc": 23696,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/computed-properties.storyarc": 18440,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/containers.storyarc": 18740,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/daemons-and-timers.storyarc": 20036,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/doors-and-locks.storyarc": 18352,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/appearance.storyarc": 19124,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/components.storyarc": 18544,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/perform.storyarc": 18608,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/grains.storyarc": 18488,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/handlers.storyarc": 19584,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/grammar.storyarc": 18732,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/introproperty.storyarc": 19668,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/kinds-and-inheritance.storyarc": 18408,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/on-other.storyarc": 18288,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/zcolor.storyarc": 18684,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/scoring.storyarc": 20644,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/spans.storyarc": 18476,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "features/vehicles.storyarc": 19020,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "granules/ambience.storyarc": 20452,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "granules/conversations.storyarc": 20108,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "granules/extended-verbs.storyarc": 21396,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "granules/infocom-interrogation.storyarc": 20624,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "granules/quotes.storyarc": 18684,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "granules/take-all.storyarc": 20332,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "granules/plurals.storyarc": 19268,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "granules/statusline.storyarc": 18412,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
+    "granules/verbose-exits.storyarc": 18680,  # 2026-07-28 repriced: the Moonmist voice pass (H2 wave B: push/pull split, take/smell/listen/kiss branches, look_under, msg_no_input, dance)
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 20912  # 2026-07-21 the status bar names darkness (In the dark / Im Dunkeln / A oscuras) instead of spoiling an unseen room's name, +40 in games where darkness is reachable (any_dark); always-lit games are byte-identical (the fold test); previously 2026-07-20 ASK rides the grammar table (ask/ask_for chosen by wording, both with a text slot): the positional matcher now ships in every English game, +828; German and Spanish phrase requests with their own verb and table nothing
+CLOAK_Z8_CEILING = 21648  # 2026-07-28 repriced: the Moonmist voice pass
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

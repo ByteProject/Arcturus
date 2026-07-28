@@ -73,7 +73,7 @@ def test_object_verbs_on_frotz(tmp_path):
     ).stdout
     assert "The marble statue stays exactly where it is." in out  # take a fixed object
     assert "It glitters." in out  # examine
-    assert "Got it." in out  # take default
+    assert "You take the" in out  # take default
     assert "You're carrying:" in out and "gold coin" in out  # inventory
     assert "You cannot bear to part with the gem." in out  # on drop override
     assert "Pitch black. Even your hands have gone missing." in out  # darkness

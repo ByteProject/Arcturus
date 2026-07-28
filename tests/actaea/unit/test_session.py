@@ -68,7 +68,7 @@ def test_record_writes_a_readable_walkthrough(tmp_path):
     assert "> north" in text
     assert "> south" in text
     # The game's replies sit in the file too (so check has something to compare).
-    assert "Got it." in text
+    assert "You take the" in text
     assert "A grassy yard." in text
 
 

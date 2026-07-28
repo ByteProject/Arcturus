@@ -118,4 +118,4 @@ def test_restart_reboots_the_story(tmp_path):
     )
     assert out.count("Cosmos") >= 2
     # Both takes succeed: the restart put the coin back in the hall.
-    assert out.count("Got it.") == 2
+    assert out.count("You take the") == 2

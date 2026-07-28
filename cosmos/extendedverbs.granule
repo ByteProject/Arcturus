@@ -161,6 +161,10 @@ on squeeze
     if any_beyond is 1
         if beyond_guard is 1
             stop
+    if noun is animate
+        change refused to 1
+        msg_squeeze_animate
+        stop
     if any_alter is 1
         if altered is 0
             msg_squeeze
@@ -201,8 +205,9 @@ on cut
         msg_cut
 
 
-verb "fill"
+verb "fill", "pour", "spill"
     fill noun
+    fill noun with noun
 
 on fill
     if any_beyond is 1
@@ -220,6 +225,7 @@ on fill
 
 verb "burn", "ignite", "torch", "kindle"
     burn noun
+    burn noun with noun
 
 on burn
     if any_beyond is 1
@@ -351,6 +357,7 @@ on swear
 verb "dig", "excavate"
     dig
     dig noun
+    dig noun with noun
 
 on dig
     if any_alter is 1
@@ -367,6 +374,12 @@ verb "wave", "brandish"
     wave noun
 
 on wave
+    if noun is nothing
+        msg_wave_hands
+        stop
+    if not (player holds noun)
+        msg_not_holding
+        stop
     if any_alter is 1
         if altered is 0
             msg_wave
@@ -375,6 +388,19 @@ on wave
     else
         msg_wave
 
+
+verb "dance", "jive", "twirl", "spin"
+    dance
+    dance with noun
+
+on dance
+    if any_alter is 1
+        if altered is 0
+            msg_dance
+        else
+            run_alter
+    else
+        msg_dance
 
 verb "sleep", "nap", "doze"
     sleep
@@ -477,25 +503,30 @@ block msg_search_closed()
     say "Schroedinger's loot remains safe, mostly because ${the noun} is completely shut."
 
 block msg_throw()
-    say "Gravity has already been discovered; there is no need for you to test it again."
+    say "Throwing ${the noun} at ${the second} would achieve little."
 
 block msg_rub()
     say "You give ${the noun} a thorough buffing. It continues to judge you in silence."
 
 block msg_squeeze()
-    say "You give ${the noun} an uncomfortably long squeeze. Let's just move on."
+    say "Years of practice with ketchup bottles have made you a master
+         squeezer. Yet nothing happens as you give ${the noun} a bit of a
+         squeeze."
+
+block msg_squeeze_animate()
+    say "You have a dirty mind."
 
 block msg_tie()
-    say "Stringing things together won't help you unravel this particular problem."
+    say "There's no obvious way to attach ${the noun} to ${the second}."
 
 block msg_cut()
     say "${The noun} seems firmly opposed to being cut."
 
 block msg_fill()
-    say "${The noun} remains empty, mostly because you don't have anything to put in it."
+    say "This object doesn't support being poured or filled."
 
 block msg_burn()
-    say "Starting a fire here seems like a quick way to create a much bigger problem."
+    say "Your pyromania will get you nowhere here."
 
 block msg_blow()
     say "You unleash a mighty breath. The local climate remains entirely unaffected."
@@ -519,10 +550,16 @@ block msg_swear()
     say "Colorful. The story declines to transcribe it."
 
 block msg_dig()
-    say "The ground keeps its secrets."
+    say "As much as you \"dig\" the idea, it would achieve nothing."
 
 block msg_wave()
-    say "You wave. The room declines to wave back."
+    say "You wave ${the noun} in the air, with no apparent consequences."
+
+block msg_wave_hands()
+    say "You wave your hands in the air."
+
+block msg_dance()
+    say "You practise your moves."
 
 
 block msg_sleep()

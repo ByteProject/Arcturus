@@ -68,7 +68,7 @@ def _run(cmds):
 def test_alter_speaks_and_mechanics_run():
     out = _run(["take idol", "i", "drop idol"])
     assert "The idol comes free with a reluctance you can feel." in out
-    assert "Got it." not in out                      # the default stayed silent
+    assert "You take the" not in out                      # the default stayed silent
     assert "jade idol" in out                        # ...but the take HAPPENED
     assert "You set the idol down, and the shrine seems to sigh." in out
     assert "Down it goes." not in out                # block form suppressed too
@@ -88,7 +88,7 @@ def test_refusals_never_fire_the_registration():
 def test_plain_say_still_stacks():
     out = _run(["take candle"])
     assert "Wax flakes under your fingers." in out
-    assert "Got it." in out                          # the flavor idiom survives
+    assert "You take the" in out                          # the flavor idiom survives
 
 
 def test_alter_covers_a_granule_default():
@@ -99,7 +99,7 @@ def test_alter_covers_a_granule_default():
 
 def test_the_mark_lives_one_action():
     out = _run(["take idol", "drop idol", "take candle"])
-    assert "Got it." in out                          # candle's default back
+    assert "You take the" in out                          # candle's default back
 
 
 def test_no_exit_never_staggers():

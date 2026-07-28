@@ -55,7 +55,7 @@ def test_extended_verbs_on_frotz(tmp_path):
         capture_output=True, text=True, timeout=15,
     ).stdout
     assert "You find a gold coin." in out  # search lists an open container's contents
-    assert "The ground keeps its secrets." in out  # an intransitive flavor verb (dig)
+    assert "it would achieve nothing." in out  # an intransitive flavor verb (dig)
     assert "A fine idea. Nothing comes of it." in out  # think
     assert "You give the grey pebble a thorough buffing." in out  # rub default on an object
     # With no conversation granule, asking IS talking: the shared brush-off
@@ -115,9 +115,9 @@ def test_search_defaults_by_object_type():
     assert "Schroedinger" in out                   # a shut container
     assert "look that says" in out                 # a living thing: the rebuff
     assert "You find a gold coin." in out          # the cache lists itself
-    assert "Got it." in out.split("take coin")[-1]  # ... and is truly takeable
+    assert "You take the" in out.split("take coin")[-1]  # ... and is truly takeable
     assert "You find a stamped pass." in out       # search_loot on an animate
-    assert "Got it." in out.split("take pass")[-1]
+    assert "You take the" in out.split("take pass")[-1]
     # The emptied corpse searches clean the second time.
     assert "nothing new to see here" in out.split("search corpse")[-1]
 
@@ -144,7 +144,7 @@ def test_search_alter_rewords_but_the_loot_still_lands():
     out = io.text
     assert "A quick professional pat-down." in out
     assert "You find" not in out                   # the default report stayed silent
-    assert "Got it." in out.split("take coin")[-1]  # the mechanics ran anyway
+    assert "You take the" in out.split("take coin")[-1]  # the mechanics ran anyway
 
 
 def test_search_rebuff_beats_an_alter_on_a_living_character():
@@ -178,7 +178,7 @@ def test_search_rebuff_beats_an_alter_on_a_living_character():
     assert "look that says" in out                  # the rebuff spoke
     assert "leather wallet" not in out.split("take wallet")[0]  # the alter did not
     # ... and no loot moved: the wallet is still out of reach.
-    assert "Got it." not in out.split("take wallet")[-1]
+    assert "You take the" not in out.split("take wallet")[-1]
 
 
 def test_search_leaves_components_alone():
@@ -251,4 +251,4 @@ def test_stand_is_standard_exit_and_boarding():
     out = io.text
     assert out.count("You get on the stool.") == 2
     assert out.count("You get off the stool.") == 2
-    assert "aren't inside anything" in out
+    assert "You're already standing up." in out

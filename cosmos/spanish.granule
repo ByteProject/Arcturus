@@ -230,6 +230,9 @@ block compound(base, particle)
             return action_id("transcript")
         if particle is 2
             return action_id("transcript_off")
+    if base is action_id("look")         // mira bajo la alfombra
+        if particle is 5
+            return action_id("look_under")
     return nothing
 
 // The chosen direction's property number, from the first direction word typed
@@ -548,6 +551,11 @@ block resolve_two_nouns(rq1, rq2)
     // when the grammar requires the noun (rq1): the loop asks first.
     if noun is nothing
         if b > 1
+            // A scenery grain answers a two-slot verb's one-noun form too
+            // (BURN DUST): same fallback the single-noun path takes.
+            change grain to find_scenery
+            if grain is not 0
+                return 1
             change parse_fault to noun_fault(1, b)
             return 1
         if rq1 is 1
@@ -671,6 +679,7 @@ verb "dejar", "deja", "soltar", "suelta"
 
 verb "examinar", "examina", "x", "inspeccionar", "inspecciona"
     examine noun
+    look_under noun
 
 // Meta verbs. These report on or steer the session rather than act in the world,
 // so each sets meta_turn: the loop then skips the per-turn pulse and the turn
@@ -717,6 +726,7 @@ verb "unscript"
 // sigue siendo una palabra de más, con su rechazo.
 particle on  "on"
 particle off "no", "off"
+particle under "bajo", "debajo"
 
 // undo and again are intercepted by the turn loop (run_turn) before dispatch, so
 // they need no handler here; the declarations just register the verbs and their
@@ -805,6 +815,7 @@ verb "tocar", "toca", "palpar", "palpa"
     touch noun
 
 verb "oler", "huele", "olfatear"
+    smell
     smell noun
 
 verb "probar", "prueba", "lamer", "lame", "saborear"
@@ -1325,6 +1336,43 @@ block msg_nothing_special()
 
 block msg_touch()
     say "Tocas ${the noun}. No notas nada que tus ojos no vieran ya."
+
+block msg_taken_out()
+    say "Sacas ${the noun}."
+
+block msg_smell_air()
+    say "Olfateas el aire sin percibir nada que te sorprenda."
+
+block msg_smell_self()
+    say "Hueles tan bien como siempre."
+
+block msg_listen_self()
+    say "Oyes el rumor familiar de tu torrente sanguíneo y el leve zumbido
+         de tus nervios."
+
+block msg_listen_animate()
+    say "${The noun} guarda silencio."
+
+block msg_listen_thing()
+    say "No oyes ningún sonido inesperado procedente de ${the noun}."
+
+block msg_kiss_self()
+    say "Tus sentimientos hacia ti son sobre todo platónicos."
+
+block msg_kiss_thing()
+    say "Practicas un poco de objetofilia con ${the noun}."
+
+block msg_push()
+    say "Le das un pequeño empujón a ${the noun}."
+
+block msg_pull()
+    say "Tiras de ${the noun}, pero no ocurre nada digno de mención."
+
+block msg_talk_self()
+    say "Nada de lo que oyes te sorprende."
+
+block msg_look_under()
+    say "Bajo ${the noun} no encuentras nada de interés."
 
 block msg_smell()
     if any_pluribus is 1

@@ -64,7 +64,7 @@ def test_the_certain_repair_promises_takes_and_continues():
     out = _run("summon.foresight\n", ["give apple to stacy", "i"])
     assert "(taking the apple first)" in out
     assert "Stacy accepts the apple" in out
-    assert "Got it." not in out          # the repair is silent: gain, no report
+    assert "You take the" not in out          # the repair is silent: gain, no report
     assert "apple" in out.split("accepts the apple")[-1]  # inventoried
 
 
@@ -167,7 +167,7 @@ def test_a_known_thing_in_a_closed_chest_opens_it():
     out = _run2("summon.foresight\n",
                 ["open chest", "close chest", "take coin", "i"])
     assert "(opening the oak chest first)" in out
-    assert "Got it." in out
+    assert "You take the" in out
     assert "gold coin" in out.split(">i")[-1]
 
 
@@ -252,7 +252,7 @@ def test_a_clear_closed_container_repairs_the_direct_take():
     # by the foresight example, 2026-07-25).
     out = _run2("summon.foresight\n", ["take pearl"])
     assert "(opening the clear jar first)" in out
-    assert "Got it." in out
+    assert "You take the" in out
 
 
 def test_without_foresight_the_clear_take_still_refuses():

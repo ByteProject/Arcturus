@@ -78,7 +78,7 @@ def test_console_plays_with_a_live_status_bar(tmp_path):
     plain = re.sub(r"\x1b\[[0-9;]*[A-Za-z]|\x1b[()][0B]|\x1b[=>]", "", text)
     assert "\x1b[" in text  # colours/attributes really crossed the wire
     assert "The Long Hall" in plain  # the statusline granule, on the grid
-    assert "Got it." in plain
+    assert "You take the" in plain
     assert "story has ended" in plain
 
 
@@ -106,7 +106,7 @@ def test_console_record_writes_a_walkthrough(tmp_path):
             pass
     text = walk.read_text()
     assert "> take coin" in text     # the command, recorded from the terminal
-    assert "Got it." in text         # and the game's reply beneath it
+    assert "You take the" in text         # and the game's reply beneath it
 
 
 # --- the screen the game is told about ------------------------------------

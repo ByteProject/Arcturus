@@ -51,7 +51,7 @@ def test_selected_families_answer_and_dropped_ones_are_unknown():
     out = _run("summon.extendedverbs squeeze, burn, search\n",
                ["squeeze rope", "burn rope", "search rope", "dig"])
     assert "squeeze" in out          # the squeeze default spoke
-    assert "fire" in out             # the burn default spoke
+    assert "pyromania" in out        # the burn default spoke
     assert "nothing new to see" in out
     # DIG was not selected: its word is not even in the dictionary.
     assert "don't add up" in out or "doesn't know the word" in out
@@ -79,8 +79,8 @@ def test_selection_works_on_a_fork(tmp_path):
     fork = cosmos.granule_sources()["extendedverbs.granule"]
     (tmp_path / "extendedverbs.granule").write_text(
         fork.replace(
-            "You give the rope an uncomfortably long squeeze",
-            "You give the rope an uncomfortably long squeeze"),
+            "You give the rope a bit of a squeeze",
+            "You give the rope a bit of a squeeze"),
         encoding="utf-8")
     out = _run("summon extendedverbs.granule squeeze\n",
                ["squeeze rope", "dig"], story_dir=str(tmp_path))

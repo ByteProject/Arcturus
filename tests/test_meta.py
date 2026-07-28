@@ -83,7 +83,7 @@ def test_meta_verbs_on_frotz(tmp_path):
     assert "does not keep score" in out
     assert "briefly clever" in out
     assert "Start over from the very beginning?" in out
-    assert "Got it." in out  # the game kept running after the declines
+    assert "You take the" in out  # the game kept running after the declines
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
@@ -111,7 +111,7 @@ def test_undo_rewinds_a_turn_on_frotz(tmp_path):
         input="take coin\nundo\ninventory\n",  # undo the take, then look in hand
         capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "Got it." in out  # the take happened
+    assert "You take the" in out  # the take happened
     assert "Taken back." in out  # then undo confirms
     # After undo, the coin is back in the room and the hands are empty.
     assert "You're carrying precisely nothing." in out
@@ -202,7 +202,7 @@ def test_oops_corrects_a_typo_on_frotz(tmp_path):
         capture_output=True, text=True, timeout=15,
     ).stdout
     assert 'know the word "cdoin"' in out  # the typo failed, named back
-    assert "Got it." in out  # oops re-ran it as "take coin"
+    assert "You take the" in out  # oops re-ran it as "take coin"
     assert "gold coin" in out  # and the coin is now in hand
 
 
@@ -218,7 +218,7 @@ def test_oops_corrects_a_misspelled_verb_on_frotz(tmp_path):
         capture_output=True, text=True, timeout=15,
     ).stdout
     assert "Those words don't add up to anything." in out  # the verb typo failed
-    assert "Got it." in out  # oops re-ran it as "take coin"
+    assert "You take the" in out  # oops re-ran it as "take coin"
     assert "gold coin" in out  # the coin is in hand
 
 

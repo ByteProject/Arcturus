@@ -284,14 +284,24 @@ on take
     if player holds noun
         msg_have_it
         stop
+    // Where it came from, before the move: lifting something out of a
+    // container you carry reads "out", everything else "with you"
+    // (Stefan's TakeSub, ported to the library).
+    let src = parent_of(noun)
     gain(noun)
     if any_alter is 1
         if altered is 0
-            msg_taken
+            if src is in player
+                msg_taken_out
+            else
+                msg_taken
         else
             run_alter
     else
-        msg_taken
+        if src is in player
+            msg_taken_out
+        else
+            msg_taken
 
 on drop
     if not (player holds noun)
@@ -860,6 +870,12 @@ on touch
     msg_touch
 
 on smell
+    if noun is nothing
+        msg_smell_air
+        stop
+    if noun is player
+        msg_smell_self
+        stop
     msg_smell
 
 on taste
@@ -867,6 +883,15 @@ on taste
     msg_taste
 
 on listen
+    if noun is not nothing
+        if noun is player
+            msg_listen_self
+            stop
+        if noun is animate
+            msg_listen_animate
+            stop
+        msg_listen_thing
+        stop
     msg_listen
 
 on eat
@@ -889,7 +914,13 @@ on attack
 
 on kiss
     change refused to 1
-    msg_kiss
+    if noun is player
+        msg_kiss_self
+        stop
+    if noun is animate
+        msg_kiss
+        stop
+    msg_kiss_thing
 
 on push
     if any_beyond is 1
@@ -935,14 +966,14 @@ on push
             arrive
             stop
     change refused to 1
-    msg_no_effect
+    msg_push
 
 on pull
     if any_beyond is 1
         if beyond_guard is 1
             stop
     change refused to 1
-    msg_no_effect
+    msg_pull
 
 on turn
     if any_beyond is 1
@@ -950,6 +981,10 @@ on turn
             stop
     change refused to 1
     msg_no_effect
+
+on look_under
+    change refused to 1
+    msg_look_under
 
 on climb
     // Climbing something you can stand on IS boarding it: CLIMB STOOL
@@ -963,6 +998,10 @@ on climb
     msg_cant_climb
 
 on talk
+    if noun is player
+        change refused to 1
+        msg_talk_self
+        stop
     if noun is animate
         talk_to(noun)
         stop

@@ -104,7 +104,7 @@ def test_failed_guard_still_reaches_on_other(tmp_path):
     # The monk is animate and the idol is carried; only the guard fails.
     out = _play(tmp_path, GAME, "take idol\npush idol\ngive idol to monk\n")
     assert out.count("radiates disapproval") == 3
-    assert "Got it." not in out  # the catch-all consumed the take too
+    assert "You take the" not in out  # the catch-all consumed the take too
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
@@ -141,7 +141,7 @@ def test_free_patterned_rule(tmp_path):
         "    continue\n"
     )
     out = _play(tmp_path, src, "take book\ntake bell\n")
-    assert out.count("Got it.") == 2  # both takes complete
+    assert out.count("You take the") == 2  # both takes complete
     assert out.count("free rule rings") == 1  # only the bell's
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")

@@ -62,12 +62,12 @@ def test_examine_free_touch_refused():
     out = _run(["x jar", "take jar", "rub jar"])
     assert "Amber and patient, one shelf too high." in out
     assert out.count("The honey jar is beyond your reach.") == 2
-    assert "Got it." not in out
+    assert "You take the" not in out
 
 
 def test_beyond_is_state():
     out = _run(["take jar", "enter stool", "take jar", "i", "exit", "take jar"])
-    assert "Got it." in out                      # from the stool it works
+    assert "You take the" in out                      # from the stool it works
     assert "honey jar" in out.split("carrying")[-1]
     # back on the floor, a second jar-take... (already held, so have-it) -
     # instead prove the flag returned by touching something else beyond.

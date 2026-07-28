@@ -54,8 +54,8 @@ def _play(tmp_path, source, commands):
 def test_group_word_sweeps(tmp_path):
     # "take coins" acts on every coin, one turn each; the lamp is untouched.
     out = _play(tmp_path, GAME, "take coins\nclock\ni\n")
-    assert "gold coin: Got it." in out
-    assert "silver coin: Got it." in out
+    assert "gold coin: You take the" in out
+    assert "silver coin: You take the" in out
     assert "brass lamp:" not in out
     assert "Turns: 2." in out
 
@@ -73,7 +73,7 @@ def test_list_and_chain_coexist(tmp_path):
     # A verb after the chain word still chains; a noun borrows. Both on one
     # line: the sweep runs, then the move.
     out = _play(tmp_path, GAME, "take coins and go north\n")
-    assert "gold coin: Got it." in out
+    assert "gold coin: You take the" in out
     assert "Yard" in out
 
 
