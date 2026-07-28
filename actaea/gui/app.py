@@ -427,7 +427,16 @@ class ActaeaApp:
             return  # called once from __init__ before the widgets exist
         band = getattr(self, "_band_h", 0)
         status = self.cell_h if getattr(self, "_grid_shown", False) else 0
-        avail = self._rows_var.get() * self.cell_h - band - status
+        # The real window height wins once the window is mapped: fullscreen
+        # and maximize add rows the settings never knew about, and the story
+        # text should claim them (Stefan's report: the picture scaled while
+        # the text stayed at its settings height). Before mapping, the
+        # settings height stands.
+        real = self.root.winfo_height() if hasattr(self, "root") else 0
+        if real > 5 * self.cell_h:
+            avail = real - 2 * self._margin - band - status
+        else:
+            avail = self._rows_var.get() * self.cell_h - band - status
         n = max(1, avail // self.cell_h)
         if int(self.text.cget("height")) != n:
             self.text.configure(height=n)
@@ -444,12 +453,14 @@ class ActaeaApp:
         if inner < 10 * self.cell_w:
             return  # not mapped yet, or absurdly narrow: keep the old truth
         cols = max(20, inner // self.cell_w)
-        if cols == self._cols:
-            return
-        self._cols = cols
-        self.vm.screen_resized()
-        self._redraw_grid()
-        self._repaint_image()
+        if cols != self._cols:
+            self._cols = cols
+            self.vm.screen_resized()
+            self._redraw_grid()
+            self._repaint_image()
+        # Height may change without the width (fullscreen on a narrow
+        # window, vertical maximize): the text re-fits either way.
+        self._relayout()
 
     def _reheight(self) -> None:
         self._apply_geometry()
@@ -587,11 +598,15 @@ class ActaeaApp:
         return scaled
 
     def _band_width(self) -> int:
-        """The width the band scales to: the canvas's REAL width (it packs
-        fill=x, so a maximized or fullscreen window widens it), falling back
-        to the 80-cell grid before the canvas is first mapped."""
-        w = self._image_canvas.winfo_width()
-        return w if w > 1 else 80 * self.cell_w
+        """The width the band scales to: the CELL GRID's exact pixel width
+        (columns times cell width), so the picture, the status bar, and the
+        text always share one width and one left edge. The raw canvas width
+        can be up to a cell wider (the integer division's remainder), which
+        made the fullscreen bar run visibly short of the picture (Stefan's
+        report, 2026-07-28); the remainder now stays background margin on
+        the right, same as the grid's own."""
+        cols = getattr(self, "_cols", 80)
+        return max(20, cols) * self.cell_w
 
     def _repaint_image(self) -> None:
         img = self.vm.screen.image  # (id, mode) or None
@@ -630,6 +645,8 @@ class ActaeaApp:
             background=self._colour(self.vm.screen.bg, "black"),
         )
         if photo is not None:
+            # Centered within the grid width (edge to edge at that width),
+            # left-aligned with the bar and the text.
             self._image_canvas.create_image(target_w // 2, 0, image=photo,
                                             anchor="n")
         self._band_h = band_h
