@@ -532,34 +532,38 @@ class ActaeaApp:
         self._photo_cache[image_id] = photo
         return photo
 
-    def _read_photo(self, image_id: int):
-        """Read <id>.png into a PhotoImage: from the loose images directory when
-        one is set, otherwise from the .arcres pack (a zip of the same numbered
-        PNGs). None on any miss (bad path, absent entry, unreadable image)."""
+    def _load_image_bytes(self, image_id: int):
+        """The raw PNG bytes for a picture id: from the loose images
+        directory, the .arcres pack, or the Blorb. None on any miss."""
         fname = f"{image_id}.png"
         if self._images_dir:
             try:
-                return tk.PhotoImage(file=os.path.join(self._images_dir, fname))
-            except tk.TclError:
+                with open(os.path.join(self._images_dir, fname), "rb") as fh:
+                    return fh.read()
+            except OSError:
                 return None
         if self._images_zip:
-            # The pack is an .arcres (a zip of <id>.png) or a Blorb
-            # (.blorb/.zblorb: Pict resources, resource number = the id).
-            # Same numbered model, two envelopes.
             try:
                 if zipfile.is_zipfile(self._images_zip):
                     with zipfile.ZipFile(self._images_zip) as z:
-                        data = z.read(fname)
-                else:
-                    from ..loader import blorb_picture
-                    data = blorb_picture(self._images_zip, image_id)
-                    if data is None:
-                        return None
-                # tkinter reads PNG bytes through the base64 `data` option.
-                return tk.PhotoImage(data=base64.b64encode(data).decode("ascii"))
-            except (OSError, KeyError, zipfile.BadZipFile, tk.TclError):
+                        return z.read(fname)
+                from ..loader import blorb_picture
+                return blorb_picture(self._images_zip, image_id)
+            except (OSError, KeyError, zipfile.BadZipFile):
                 return None
         return None
+
+    def _read_photo(self, image_id: int):
+        """Read <id>.png into a PhotoImage. None on any miss (bad path,
+        absent entry, unreadable image)."""
+        data = self._load_image_bytes(image_id)
+        if data is None:
+            return None
+        try:
+            # tkinter reads PNG bytes through the base64 `data` option.
+            return tk.PhotoImage(data=base64.b64encode(data).decode("ascii"))
+        except tk.TclError:
+            return None
 
     def _scaled_image(self, image_id: int, target_w: int):
         """The picture scaled to fill target_w at its own aspect ratio, so the
@@ -581,25 +585,60 @@ class ActaeaApp:
         cached = self._scaled_cache.get(key)
         if cached is not None:
             return cached
-        if iw <= target_w:
+        if iw == target_w:
+            scaled = native
+        else:
             g = _gcd(target_w, iw)
             up, down = target_w // g, iw // g
-            if up <= 24:  # keep the intermediate zoom sane
+            if iw <= target_w and up <= 24:
+                # the exact rational fits tk's integer zoom: crisp and exact
                 scaled = native.zoom(up) if up > 1 else native
                 if down > 1:
                     scaled = scaled.subsample(down)
             else:
-                # FLOOR, never round: rounding up overshot the window and
-                # the bar (Stefan's fullscreen report, mode 9: the picture
-                # ran wider than everything under it). The picture stays at
-                # or under the grid width and centers with even margins.
-                f = max(1, int(target_w // iw))
-                scaled = native.zoom(f) if f > 1 else native
-        else:
-            f = max(1, round(iw / target_w))
-            scaled = native.subsample(f) if f > 1 else native
+                # tk's integer zoom cannot land on this width. Pillow, when
+                # the machine has it (it ships beside arcimg on the dev Mac),
+                # scales to the EXACT width with nearest-neighbour, so the
+                # pixels stay crisp and the band matches the bar to the
+                # pixel (Stefan's fullscreen reports, mode 9). Without
+                # Pillow, the integer floor stands and the picture centers
+                # at or under the grid width: Actaea itself stays
+                # zero-dependency either way.
+                scaled = self._pil_scaled(image_id, target_w)
+                if scaled is None:
+                    if iw <= target_w:
+                        f = max(1, int(target_w // iw))
+                        scaled = native.zoom(f) if f > 1 else native
+                    else:
+                        f = max(1, -(-iw // target_w))  # ceil: never overshoot
+                        scaled = native.subsample(f)
         self._scaled_cache[key] = scaled
         return scaled
+
+    def _pil_scaled(self, image_id: int, target_w: int):
+        """Exact-width scaling through Pillow when available: nearest-
+        neighbour keeps the pixel art crisp, and the result converts to a
+        tk PhotoImage through an in-memory PPM (no ImageTk needed). Returns
+        None when Pillow is absent or anything goes sideways; the caller
+        falls back to integer scaling."""
+        try:
+            from PIL import Image
+        except ImportError:
+            return None
+        try:
+            import io
+            raw = self._load_image_bytes(image_id)
+            if raw is None:
+                return None
+            img = Image.open(io.BytesIO(raw)).convert("RGB")
+            iw, ih = img.size
+            th = max(1, round(ih * target_w / iw))
+            img = img.resize((target_w, th), Image.NEAREST)
+            buf = io.BytesIO()
+            img.save(buf, format="PPM")
+            return tk.PhotoImage(data=buf.getvalue())
+        except Exception:
+            return None
 
     def _band_width(self) -> int:
         """The width the band scales to: the CELL GRID's exact pixel width
