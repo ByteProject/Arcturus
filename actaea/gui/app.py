@@ -596,49 +596,19 @@ class ActaeaApp:
                 if down > 1:
                     scaled = scaled.subsample(down)
             else:
-                # tk's integer zoom cannot land on this width. Pillow, when
-                # the machine has it (it ships beside arcimg on the dev Mac),
-                # scales to the EXACT width with nearest-neighbour, so the
-                # pixels stay crisp and the band matches the bar to the
-                # pixel (Stefan's fullscreen reports, mode 9). Without
-                # Pillow, the integer floor stands and the picture centers
-                # at or under the grid width: Actaea itself stays
-                # zero-dependency either way.
-                scaled = self._pil_scaled(image_id, target_w)
-                if scaled is None:
-                    if iw <= target_w:
-                        f = max(1, int(target_w // iw))
-                        scaled = native.zoom(f) if f > 1 else native
-                    else:
-                        f = max(1, -(-iw // target_w))  # ceil: never overshoot
-                        scaled = native.subsample(f)
+                # tk's integer zoom cannot land on this width exactly; the
+                # picture stays crisp at the nearest whole factor AT OR
+                # UNDER the target, and the bar paints itself out to the
+                # picture's edge (Stefan's design: paint the difference in
+                # the bar's own colour instead of chasing exact scaling).
+                if iw <= target_w:
+                    f = max(1, int(target_w // iw))
+                    scaled = native.zoom(f) if f > 1 else native
+                else:
+                    f = max(1, -(-iw // target_w))  # ceil: never overshoot
+                    scaled = native.subsample(f)
         self._scaled_cache[key] = scaled
         return scaled
-
-    def _pil_scaled(self, image_id: int, target_w: int):
-        """Exact-width scaling through Pillow when available: nearest-
-        neighbour keeps the pixel art crisp, and the result converts to a
-        tk PhotoImage through an in-memory PPM (no ImageTk needed). Returns
-        None when Pillow is absent or anything goes sideways; the caller
-        falls back to integer scaling."""
-        try:
-            from PIL import Image
-        except ImportError:
-            return None
-        try:
-            import io
-            raw = self._load_image_bytes(image_id)
-            if raw is None:
-                return None
-            img = Image.open(io.BytesIO(raw)).convert("RGB")
-            iw, ih = img.size
-            th = max(1, round(ih * target_w / iw))
-            img = img.resize((target_w, th), Image.NEAREST)
-            buf = io.BytesIO()
-            img.save(buf, format="PPM")
-            return tk.PhotoImage(data=buf.getvalue())
-        except Exception:
-            return None
 
     def _band_width(self) -> int:
         """The width the band scales to: the CELL GRID's exact pixel width
@@ -668,6 +638,7 @@ class ActaeaApp:
         if img is None:
             self._image_canvas.configure(height=0)
             self._band_h = 0
+            self._band_px = 0
             self._relayout()
             return
         # The band's HEIGHT follows the scaled picture, so the aspect holds at
@@ -678,8 +649,10 @@ class ActaeaApp:
         photo = self._scaled_image(image_id, target_w)
         if photo is not None:
             band_h = photo.height()
+            self._band_px = photo.width()
         else:
             band_h = mode * self.cell_h if mode and mode > 0 else 0
+            self._band_px = 0
         # The picture is centered in the band (at the ordinary width it fills
         # it edge to edge, so nothing moves); the band wears the game
         # background so any letterbox margin is the game's colour.
@@ -694,6 +667,8 @@ class ActaeaApp:
                                             anchor="n")
         self._band_h = band_h
         self._relayout()  # the text below re-fits to whole lines under the band
+        if self._grid_shown:
+            self._redraw_grid()  # the bar's edge fill follows the band width
 
     def _colour(self, value, default: str) -> str:
         """A cell/model colour as a tk colour: 1 (or anything unmapped) is
@@ -751,6 +726,24 @@ class ActaeaApp:
                     self.canvas.create_text(
                         x, y, text=chars, anchor="nw", fill=fg_c,
                         font=self._styled_font(style),
+                    )
+            # Stefan's fill (2026-07-28): when the drawn picture is wider
+            # than the row's cells (integer scaling, a model width that has
+            # not caught up, any cause at all), paint the difference in the
+            # row's own trailing colour. The bar then always LOOKS flush
+            # with the picture, with no scaling tricks and no dependencies.
+            band_px = getattr(self, "_band_px", 0)
+            row_px = model.cols * self.cell_w
+            if band_px > row_px and row:
+                last = row[-1]
+                lf = self._colour(last.fg, "black")
+                lb = self._colour(last.bg, self._window_bg)
+                if last.style & REVERSE:
+                    lf, lb = lb, lf
+                if lb != self._window_bg:
+                    self.canvas.create_rectangle(
+                        row_px, y, band_px, y + self.cell_h,
+                        fill=lb, width=0,
                     )
 
     def clear_story(self) -> None:
