@@ -2227,7 +2227,7 @@ The world verbs:
 | `take_off` | REMOVE, DOFF, DISROBE, SHED, TAKE OFF | `take_off noun`; TAKE plus the off particle raises the same action. |
 | `inventory` | INVENTORY, I, INV | `inventory`. |
 | `go` | GO, WALK, RUN, or a bare direction word | `go`, `go noun`; the noun slot is the direction and rides `way` (chapter 8). |
-| `enter` | ENTER, BOARD, SIT (ON/IN), REST | `enter noun`; sitting is boarding. |
+| `enter` | ENTER, BOARD, MOUNT, SIT (ON/IN), REST | `enter noun`; sitting is boarding. |
 | `exit` | EXIT, LEAVE, OUT, STAND (UP) | `exit`, `exit noun`; STAND ON X boards instead. |
 | `open` | OPEN, UNCOVER, UNWRAP | `open noun`, `open noun with noun`. |
 | `close` | CLOSE, SHUT, COVER | `close noun`. |
@@ -2235,7 +2235,7 @@ The world verbs:
 | `unlock` | UNLOCK | `unlock noun with noun`, `unlock noun`. |
 | `switch_on` | SWITCH/TURN ... ON, LIGHT | `switch_on noun`; the particle works in either order (SWITCH ON THE LAMP, TURN THE LAMP OFF). |
 | `switch_off` | SWITCH/TURN ... OFF | `switch_off noun`. |
-| `push` | PUSH, PRESS, SHOVE | `push noun`; "You give X a bit of a push." unless handled; PUSH X NORTH moves a `shiftable` thing. |
+| `push` | PUSH, PRESS, SHOVE, NUDGE | `push noun`; "You give X a bit of a push." unless handled; PUSH X NORTH moves a `shiftable` thing. |
 | `pull` | PULL, DRAG, YANK | `pull noun`; "You yank at X but nothing noteworthy happens." |
 | `turn` | TURN, ROTATE, TWIST, SCREW, UNSCREW | `turn noun`; same default. |
 | `climb` | CLIMB, SCALE | `climb noun`. |
@@ -2255,7 +2255,7 @@ The world verbs:
 | `attack` | ATTACK, HIT, BREAK, KILL, FIGHT, SMASH, KICK | `attack noun`. |
 | `kiss` | KISS, HUG, EMBRACE | `kiss noun`; yourself, a creature, and a thing each answer differently. |
 | `jump` | JUMP, HOP | `jump`. |
-| `sing` | SING, HUM | `sing`; "You hum a few notes." |
+| `sing` | SING, HUM | `sing`, `sing with noun`; "You hum a few notes." |
 | `yes` / `no` | YES, AFFIRMATIVE / NO, NEGATIVE | typed answers, caught with `on yes` / `on no` and a `when` guard; never meta, answering is speech. |
 | `wait` | WAIT, Z | `wait`. |
 | `xyzzy` | XYZZY | the magic word; a normal (if fruitless) action that costs a turn. |
@@ -2267,7 +2267,7 @@ turn (UNDO and AGAIN are intercepted by the turn loop before dispatch):
 |---|---|---|
 | `save` / `restore` | SAVE / RESTORE, LOAD | the Z-machine save facilities. |
 | `undo` | UNDO | take back the previous turn (the interpreter's save_undo/restore_undo pair does the snapshot). |
-| `again` | AGAIN, G | replay the previous non-meta command. |
+| `again` | AGAIN, G, CONTINUE | replay the previous non-meta command. |
 | `oops` | OOPS | correct the last unknown word. |
 | `quit` / `restart` | QUIT, Q / RESTART | both confirm first. |
 | `score` | SCORE | the one score verb, Infocom-shaped: score, maximum, turn count, and the rank when a ladder is declared. |
@@ -4574,7 +4574,7 @@ The accessibility hub, from Hibernated 2: USE X guesses the obvious
 action from what X is (edible eats, wearable wears, switchable switches
 on, a closed openable opens), and coaches toward a real verb otherwise;
 USE X WITH Y unlocks a lockable Y with X and coaches otherwise. ACTIVATE,
-OPERATE, and ENGAGE come along as synonyms. An object's own `on use`
+OPERATE, ENGAGE, and START come along as synonyms. An object's own `on use`
 handler beats the guessing, so puzzles keep their answers; a bare USE
 asks the standard way.
 

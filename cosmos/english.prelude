@@ -685,7 +685,7 @@ verb "unscript"
 verb "undo"
     undo
 
-verb "again", "g"
+verb "again", "g", "continue"
     again
 
 verb "oops"
@@ -799,7 +799,7 @@ verb "unlock"
     unlock noun with noun
     unlock noun
 
-verb "enter", "board"
+verb "enter", "board", "mount"
     enter noun
 
 // SIT ON the chair, SIT IN the tub: sitting is boarding (the field
@@ -874,7 +874,7 @@ verb "kiss", "hug", "embrace"
 // line carries the direction: `way` binds from anywhere in the command and
 // the matcher ignores the known direction word in the phrase, so push
 // stays on the flag model and ASK remains the one tabled standard verb.
-verb "push", "press", "shove"
+verb "push", "press", "shove", "nudge"
     push noun
 
 verb "pull", "drag", "yank"
@@ -919,6 +919,7 @@ verb "wait", "z"
 
 verb "sing", "hum"
     sing
+    sing with noun
 
 // ==========================================================================
 // 3. THE MESSAGES

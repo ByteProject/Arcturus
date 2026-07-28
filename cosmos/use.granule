@@ -16,7 +16,7 @@
 // turns nobody claimed. A bare USE asks the standard way, like any verb
 // whose grammar wants a noun.
 
-verb "use", "activate", "operate", "engage"
+verb "use", "activate", "operate", "engage", "start"
     use noun
     use noun with noun
 
