@@ -592,27 +592,63 @@ class ActaeaApp:
         if iw == target_w:
             scaled = native
         else:
-            g = _gcd(target_w, iw)
-            up, down = target_w // g, iw // g
-            if iw <= target_w and up <= 24:
-                # the exact rational fits tk's integer zoom: crisp and exact
-                scaled = native.zoom(up) if up > 1 else native
-                if down > 1:
-                    scaled = scaled.subsample(down)
-            else:
-                # tk's integer zoom cannot land on this width exactly; the
-                # picture stays crisp at the nearest whole factor AT OR
-                # UNDER the target, and the bar paints itself out to the
-                # picture's edge (Stefan's design: paint the difference in
-                # the bar's own colour instead of chasing exact scaling).
+            # Pillow first, when the machine has it (Stefan's ruling,
+            # 2026-07-28, the one sanctioned exception beside arcimg's own:
+            # the authors who use arc_image have Pillow installed, and exact
+            # width gives them a perfect representation for debugging their
+            # games). Nearest-neighbour, so the pixels stay crisp.
+            scaled = self._pil_scaled(image_id, target_w)
+            if scaled is None:
+                # The zero-dependency standard: tk's zoom-then-subsample
+                # chain scales by quarter steps (4.25x, 4.5x, 4.75x), so the
+                # picture lands within a quarter of the native width of the
+                # target at any window size, crisp, with the bar's edge fill
+                # dressing the small remainder.
                 if iw <= target_w:
-                    f = max(1, int(target_w // iw))
-                    scaled = native.zoom(f) if f > 1 else native
+                    best = None
+                    for b in (4, 2, 1):
+                        a = (target_w * b) // iw
+                        if a < b:
+                            a = b
+                        # keep the intermediate zoom's memory sane
+                        while a > b and iw * a > 8192:
+                            a -= 1
+                        w = iw * a // b
+                        if w <= target_w and (best is None or w > best[2]):
+                            best = (a, b, w)
+                    a, b, _w = best
+                    scaled = native.zoom(a) if a > 1 else native
+                    if b > 1:
+                        scaled = scaled.subsample(b)
                 else:
                     f = max(1, -(-iw // target_w))  # ceil: never overshoot
                     scaled = native.subsample(f)
         self._scaled_cache[key] = scaled
         return scaled
+
+    def _pil_scaled(self, image_id: int, target_w: int):
+        """Exact-width scaling through Pillow when available (sanctioned:
+        see _scaled_image): nearest-neighbour keeps the pixel art crisp, and
+        the result becomes a tk PhotoImage through an in-memory PPM. None
+        when Pillow is absent or anything fails; the tk path stands in."""
+        try:
+            from PIL import Image
+        except ImportError:
+            return None
+        try:
+            import io
+            raw = self._load_image_bytes(image_id)
+            if raw is None:
+                return None
+            img = Image.open(io.BytesIO(raw)).convert("RGB")
+            iw, ih = img.size
+            th = max(1, round(ih * target_w / iw))
+            img = img.resize((target_w, th), Image.NEAREST)
+            buf = io.BytesIO()
+            img.save(buf, format="PPM")
+            return tk.PhotoImage(data=buf.getvalue())
+        except Exception:
+            return None
 
     def _band_width(self) -> int:
         """The width the band scales to: the CELL GRID's exact pixel width
