@@ -328,3 +328,30 @@ def test_the_bar_names_darkness_not_the_room():
     assert "Secret Cellar" not in dark
     back = bar_after(["north", "south"])
     assert "Sunny Yard" in back
+
+
+def test_resize_reflows_the_one_row_bar_immediately():
+    # The classic bar re-lays itself at the new width without waiting for
+    # the game's next repaint: left text stays, the right-aligned cluster
+    # re-anchors to the new edge, the middle keeps the bar's style.
+    s = ScreenModel(sink=None, cols=40)
+    s.split(1)
+    s.select(1)
+    s.set_style(1)  # reverse, the classic bar dress
+    s.write(" " * 40)  # the bar's full-width reverse wash, granule-style
+    s.set_cursor(1, 1)
+    s.write("Hall")
+    s.set_cursor(1, 30)
+    s.write("Score: 5")
+    s.select(0)
+    s.set_width(60)
+    row = s.row_text(1)
+    assert row.startswith("Hall")
+    assert row.rstrip().endswith("Score: 5")
+    assert len(row) == 60
+    # the middle gained styled cells, not defaults
+    assert s.grid[0][20].style == 1
+    s.set_width(30)
+    row = s.row_text(1)
+    assert row.startswith("Hall")
+    assert row.rstrip().endswith("Score: 5")

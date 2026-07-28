@@ -162,19 +162,58 @@ class ScreenModel:
     # -- the screen's own size ---------------------------------------------------
 
     def set_width(self, cols: int) -> None:
-        """The screen got wider or narrower (a resized terminal). Existing rows
-        keep what they hold and gain blank cells or lose their right-hand end,
-        so a bar already on screen survives until the game repaints it, which it
-        does on the next turn."""
+        """The screen got wider or narrower (a resized terminal, fullscreen).
+        Existing rows keep what they hold and gain blank cells or lose their
+        right-hand end; the game repaints properly on its next turn. The
+        CLASSIC ONE-ROW STATUS BAR gets more (Stefan's report, 2026-07-28:
+        waiting a turn for the bar to fit fullscreen reads as a bug): when
+        exactly one row is split off, that row is re-laid to the new width
+        immediately, the left-anchored text staying put, the right-aligned
+        cluster (Score/Moves) re-anchoring to the new right edge, and the
+        middle filling with the bar's own style. Taller splits (menus, quote
+        boxes) keep the plain grow-or-truncate behavior: their layouts are
+        not a bar's, and their owners repaint on the next key."""
         cols = max(1, int(cols))
         if cols == self.cols:
             return
+        old_cols = self.cols
+        bar = None
+        if self.rows == 1 and self.grid:
+            bar = [Cell(char=c.char, fg=c.fg, bg=c.bg, style=c.style)
+                   for c in self.grid[0]]
         for row in self.grid:
             if cols > len(row):
                 row.extend(Cell() for _ in range(cols - len(row)))
             else:
                 del row[cols:]
         self.cols = cols
+        if bar is not None:
+            # Split at the widest run of blanks: left segment, right segment.
+            best_len, best_at = 0, None
+            run, run_at = 0, 0
+            for i, cell in enumerate(bar):
+                if cell.char == " ":
+                    if run == 0:
+                        run_at = i
+                    run += 1
+                    if run > best_len:
+                        best_len, best_at = run, run_at
+                else:
+                    run = 0
+            if best_at is not None and best_len >= 2:
+                left = bar[:best_at]
+                right = bar[best_at + best_len:]
+                filler = bar[best_at]  # a gap cell: the bar's own style
+                row = self.grid[0]
+                n = len(row)
+                mid = max(0, n - len(left) - len(right))
+                relaid = (left + [Cell(char=" ", fg=filler.fg, bg=filler.bg,
+                                       style=filler.style)
+                                  for _ in range(mid)] + right)[:n]
+                for i in range(n):
+                    src = relaid[i] if i < len(relaid) else filler
+                    row[i] = Cell(char=src.char, fg=src.fg, bg=src.bg,
+                                  style=src.style)
         r, c = self.cursor
         if c > cols:
             self.cursor = (r, cols)
