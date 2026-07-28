@@ -806,6 +806,9 @@ _BUILTIN_GLOBALS = [
     # The ambience table's base address (summon.ambience), 0 when no block
     # exists; the granule's driver walks it each turn.
     "__ambience__",
+    # The dual-role word table's base address (a grain word that is also a
+    # verb: LIGHT, SMELL), 0 without one; find_scenery walks it.
+    "__duals__",
     # The mute buffer's byte address (restless performers, stream 3).
     "__mutebuf__",
     # The opening-description title skip (a status bar already names the room).
@@ -1004,13 +1007,26 @@ def build_story(
                 tb.append(0)  # end of line
             tb.append(0)  # end of table (a zero where an action would be)
         sf.append(bytes(tb))
-    dict_bytes, word_offsets = dictionary.build(
+    dict_bytes, word_offsets, duals = dictionary.build(
         world, _action_numbers(world), dprops, scenery, grammar_tables
     )
     dict_addr = sf.append(dict_bytes)
     # Now the dictionary is placed, point each literal token at its word.
     for pos, word in grammar_fixups:
         sf.set_word(pos, dict_addr + word_offsets[word])
+    # Dual-role words (a grain word that is also a verb, direction, or
+    # particle: LIGHT, SMELL): the command owns the dictionary flag byte, and
+    # this side table carries the grain chains, [count] then (dict entry
+    # address, chain address) pairs. find_scenery walks it for flagged words;
+    # __duals__ holds its address, 0 in a game without dual words.
+    duals_addr = 0
+    if duals:
+        dt = bytearray([(len(duals) >> 8) & 0xFF, len(duals) & 0xFF])
+        for word, chain_addr in duals:
+            wa = dict_addr + word_offsets[word]
+            dt += bytes([(wa >> 8) & 0xFF, wa & 0xFF,
+                         (chain_addr >> 8) & 0xFF, chain_addr & 0xFF])
+        duals_addr = sf.append(bytes(dt))
 
     # High memory: the entry stub and routines, run from the initial PC.
     high_base = sf.here()
@@ -1154,6 +1170,11 @@ def build_story(
         sf.set_word(
             globals_addr + (gmap["__ambience__"] - 16) * 2,
             objects_addr + layout.ambience_off,
+        )
+    if duals_addr:
+        sf.set_word(
+            globals_addr + (gmap["__duals__"] - 16) * 2,
+            duals_addr,
         )
     if awards_addr:
         sf.set_word(globals_addr + (gmap["__awards__"] - 16) * 2, awards_addr)

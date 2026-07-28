@@ -85,6 +85,20 @@ block parse()
 
 // Parse the command now in the buffers: the whole typed line on the first
 // call, or the re-tokenized tail of a chained line when chain_next re-enters.
+// Walk one scenery grain chain ((grain id, owner) pairs, zero-ended) and
+// return the first grain whose owner is in scope here, or 0. Shared by the
+// language layers' find_scenery, the flagged path and the dual-word side
+// table alike.
+block grain_from_chain(c)
+    let j = 0
+    let g = peek_word(c, j)
+    while g is not 0
+        if in_scope(peek_word(c, j + 1))
+            return g
+        change j to j + 2
+        change g to peek_word(c, j)
+    return 0
+
 block parse_line()
     change parse_fault to 0
     // No incomplete-command mark until a resolver finds an empty noun slot.

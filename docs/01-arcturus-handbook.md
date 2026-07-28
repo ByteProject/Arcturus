@@ -3422,6 +3422,17 @@ still the clearer tool. For one piece of scenery genuinely visible
 from several rooms, a `scenery` thing with `spans` (chapter 3) is still the
 better tool: one object, one description, one identity.
 
+### Dual-role words
+
+A grain word may also be a command word: LIGHT is one of the most used
+scenery words in the genre, and LIGHT is a verb. Both live. The command
+owns the word's dictionary entry, so typed FIRST it is always the verb
+(LIGHT LAMP switches; SMELL DUST smells); named as a NOUN it reaches the
+grain (X LIGHT answers the scenery). The compiler notices the collision
+itself and emits a small side table only then; a game whose grain words
+never collide with a verb is byte-identical to one built before the
+mechanism existed.
+
 ## Chapter 19: Scoring
 
 Score just works. One line in the game block turns it on:

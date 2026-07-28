@@ -204,6 +204,10 @@ INTRINSICS = frozenset({
     "split_window", "set_window", "set_cursor", "set_style", "screen_width",
     "erase_window", "screen_height", "buffer_mode", "clear_screen", "random",
     "ambience_table", "ranks_table", "any_ranks", "print_packed",
+    # Dual-role words (a grain word that is also a verb/direction/particle):
+    # any_duals folds find_scenery's side-table walk away without one;
+    # duals_table is the table's base address (the __duals__ global).
+    "any_duals", "duals_table",
     "pools_table", "award_earned", "any_awards", "meta_floor",
     # The dispatcher's after phase (docs/01 chapter 13 step 6): whether any
     # `on after` handler exists (folds the phase away when not), and the
@@ -1116,6 +1120,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # ambience_table(): the ambience table's base address (0 when no
         # block exists), from the __ambience__ global build_story seeds.
         _place(rt, Variable(ctx.globals["__ambience__"]), dest)
+    elif name == "any_duals":
+        _place(rt, Const(_any_duals(ctx)), dest)
+    elif name == "duals_table":
+        _place(rt, Variable(ctx.globals["__duals__"]), dest)
     elif name == "random":
         # random(n): a uniform number from 1 to n (the interpreter's own
         # generator, @random). Vlad's ambience, save-quips, any dice.
@@ -2242,6 +2250,34 @@ def _scenery_contents(ctx) -> int:
     return 0
 
 
+def _any_duals(ctx) -> int:
+    """1 when any grain word is also a command word (a verb, a direction, or
+    a particle): the dual-role set (Stefan's ruling; LIGHT the verb and LIGHT
+    the scenery). Mirrors the collision test dictionary.build applies, so the
+    fold and the emitted table always agree."""
+    world = ctx.world
+    grain_words = set()
+    for obj in world.objects.values():
+        for g in obj.grains:
+            for w in g.words:
+                grain_words.add(w.lower())
+    for kind in world.kinds.values():
+        for g in kind.grains:
+            for w in g.words:
+                grain_words.add(w.lower())
+    if not grain_words:
+        return 0
+    command = set()
+    for verb in world.verbs:
+        for phrase in verb.words:
+            toks = phrase.lower().split()
+            if len(toks) == 1:
+                command.add(toks[0])
+    command |= {w.lower() for w in world.directions}
+    command |= {w.lower() for w in world.particles}
+    return 1 if grain_words & command else 0
+
+
 def _carry_limit(ctx) -> int:
     """The game's carry limit (constant item_cap = N), or 0 for none."""
     c = ctx.world.constants.get("item_cap")
@@ -3315,6 +3351,8 @@ def _static_value(ctx, expr):
         return 1 if (ctx.layout is not None and ctx.layout.has_restless) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_carry_limit":
         return 1 if _carry_limit(ctx) else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_duals":
+        return _any_duals(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_topics":
         return _any_topics(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "arc_mode":

@@ -163,3 +163,30 @@ def test_use_with_unlocks_a_lockable_second():
 def test_bare_use_asks_the_standard_way():
     out = _run(["use"], game=USE_GAME)
     assert "The verb use requires you to be more specific." in out
+
+
+# --- dual-role words (Stefan's ruling: LIGHT is scenery AND a verb) ---------
+
+DUAL_GAME = (
+    'game\n    title "D"\n    start hall\n'
+    'room hall\n    name "Hall"\n    desc "A hall."\n'
+    '    grains\n'
+    '        examine "light" or "glow" say "A pale wash from nowhere."\n'
+    '        examine, smell "smell" or "odour" say "Sharp and mineral."\n'
+    'thing lamp in hall\n    name "brass lamp"\n    words lamp, brass\n'
+    '    switchable\n'
+)
+
+
+def test_a_dual_word_serves_the_verb_and_the_grain():
+    out = _run(["light lamp", "x light", "smell smell", "x glow"],
+               game=DUAL_GAME)
+    assert "switching" in out  # LIGHT LAMP reached the switch machinery
+    assert out.count("A pale wash from nowhere.") == 2  # X LIGHT and X GLOW
+    assert "Sharp and mineral." in out  # SMELL SMELL: verb then dual grain
+
+
+def test_games_without_duals_fold_the_table_away():
+    # the moonmist GAME has grains but no dual words; the walk still answers
+    out = _run(["examine grime"])
+    assert "Grey and ancient." in out

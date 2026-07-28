@@ -268,21 +268,17 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
         enc_data[encoded[word]] = bytes([_ALL_FLAG, 0, 0])
     for word in noise_words:
         enc_data[encoded[word]] = bytes([_NOISE_FLAG, 0, 0])
+    duals: list = []
     if scenery:
         for word, chain_addr in scenery.items():
             prior = enc_data.get(encoded[word])
             if prior is not None and prior[0] & (_VERB_FLAG | _DIR_FLAG | _PARTICLE_FLAG):
-                # A grain word that is also a verb (SMELL as scenery), a
-                # direction, or a particle: the command word wins the flag
-                # byte, or typing it first would stop parsing entirely (the
-                # H2 wave C find: scenery silently clobbered the SMELL
-                # verb). The grain is unreachable through this word; say so
-                # instead of breaking the verb without a sound.
-                import sys
-                print(f"arcc: note: grain word \"{word}\" is also a command "
-                      f"word (a verb, direction, or particle); the command "
-                      f"wins, and the grain does not answer to this word. "
-                      f"Give the grain a different word.", file=sys.stderr)
+                # A DUAL-ROLE word (Stefan's ruling, 2026-07-28: LIGHT is one
+                # of THE most used scenery words and must stay a verb too).
+                # The command word keeps the flag byte, and the grain chain
+                # rides the side table build_story emits after the
+                # dictionary; find_scenery consults it for flagged words.
+                duals.append((word, chain_addr))
                 continue
             enc_data[encoded[word]] = bytes(
                 [_SCENERY_FLAG, (chain_addr >> 8) & 0xFF, chain_addr & 0xFF]
@@ -324,7 +320,7 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
         out += enc_data.get(enc, bytes(_DATA_BYTES))
 
     word_offset = {w: offset_of[encoded[w]] for w in words}
-    return bytes(out), word_offset
+    return bytes(out), word_offset, duals
 
 
 def direction_props(layout, world) -> dict:
