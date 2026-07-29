@@ -651,15 +651,50 @@ def _call(rt, ctx, expr: ast.Call, dest):
             f"Group some into a catalog or a matrix, or split the block",
             expr.line,
         )
-    # Push arguments right-first so they pop in order behind the routine address.
+    operands = [RoutineRef("blk_" + expr.name)] + _call_args(rt, ctx, expr)
+    # A zero-argument call is the short-form call_1s, a byte back; up to
+    # three arguments ride the ordinary call's single types byte; four to
+    # seven need the double-types-byte long call (call_vs2). (The peephole
+    # exhaustion, 2026-07-30.)
+    if not expr.args:
+        rt.op("call_1s", *operands, store=dest)
+    else:
+        rt.op("call_vs" if len(expr.args) <= 3 else "call_vs2",
+              *operands, store=dest)
+
+
+def _call_args(rt, ctx, expr: ast.Call) -> list:
+    """The call's argument operands. When EVERY argument is a leaf (a
+    constant, a local, a global, an object), each rides the call as a direct
+    operand: no push, no stack traffic, two to three bytes back per argument.
+    Leaves have no side effects, so reading them at call time is the same as
+    the stack discipline. Any computed argument sends the whole list through
+    the stack, right-first so they pop in order (evaluation order stays
+    whole-list, never mixed)."""
+    if expr.args and all(_is_leaf(ctx, a) for a in expr.args):
+        return [_leaf_operand(ctx, a) for a in expr.args]
     for arg in reversed(expr.args):
         eval_expr(rt, ctx, arg, Variable(STACK))
-    operands = [RoutineRef("blk_" + expr.name)]
-    operands += [Variable(STACK)] * len(expr.args)
-    # Up to three arguments ride the ordinary call's single types byte; four
-    # to seven need the double-types-byte long call (call_vs2).
-    rt.op("call_vs" if len(expr.args) <= 3 else "call_vs2",
-          *operands, store=dest)
+    return [Variable(STACK)] * len(expr.args)
+
+
+def _call_discard(rt, ctx, expr: ast.Call) -> None:
+    """A block call in statement position: the result is thrown away, so the
+    non-storing call family serves - call_1n bare (three bytes against the
+    old temp-storing call_vs's five), call_vn with arguments, call_vn2 past
+    three. (The peephole exhaustion, 2026-07-30.)"""
+    if len(expr.args) > 7:
+        raise LowerError(
+            f"a block call carries at most 7 arguments (the Z-machine's own "
+            f"ceiling); this call to '{expr.name}' passes {len(expr.args)}. "
+            f"Group some into a catalog or a matrix, or split the block",
+            expr.line,
+        )
+    operands = [RoutineRef("blk_" + expr.name)] + _call_args(rt, ctx, expr)
+    if not expr.args:
+        rt.op("call_1n", *operands)
+    else:
+        rt.op("call_vn" if len(expr.args) <= 3 else "call_vn2", *operands)
 
 
 def _intrinsic(rt, ctx, call: ast.Call, dest):
@@ -2216,7 +2251,19 @@ def _emit_test(rt, ctx, expr, label, on_true):
                       DictWordRef(word), branch=(label, t))
                 return
         opa, opb, tmp = _two_operands(rt, ctx, expr.left, expr.right)
-        rt.op("je", opa, opb, branch=(label, t))
+        # Equality against zero is the one-operand jz, a byte back per site
+        # (the peephole exhaustion, 2026-07-30). Only plain constants: a
+        # zero placeholder carrying a routine/string/dictword fixup is a
+        # real address, not a zero.
+        def _is_zero(o):
+            return (o.value == 0 and o.routine is None and o.string is None
+                    and getattr(o, "dictword", None) is None and o.kind != 2)
+        if _is_zero(opb):
+            rt.op("jz", opa, branch=(label, t))
+        elif _is_zero(opa):
+            rt.op("jz", opb, branch=(label, t))
+        else:
+            rt.op("je", opa, opb, branch=(label, t))
         if tmp is not None:
             ctx.free_temp(tmp)
         return
@@ -2658,9 +2705,15 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
                 and not ctx.world.blocks[s.expr.ident].params \
                 and not ctx.world.blocks[s.expr.ident].body:
             return
-        # A discarded expression: store its value into a scratch local and free
-        # it. (We cannot "pull" into the stack to drop a value: `pull` with a
-        # variable operand is an indirect store and would pop twice.)
+        # A discarded block call takes the non-storing call family (no temp,
+        # no store byte). Anything else stores its value into a scratch local
+        # and frees it. (We cannot "pull" into the stack to drop a value:
+        # `pull` with a variable operand is an indirect store and would pop
+        # twice.)
+        if isinstance(s.expr, ast.Call) and s.expr.name not in INTRINSICS \
+                and s.expr.name in ctx.world.blocks:
+            _call_discard(rt, ctx, s.expr)
+            return
         t = ctx.alloc_temp()
         if isinstance(s.expr, ast.Call):
             _call(rt, ctx, s.expr, Variable(t))
@@ -2948,7 +3001,19 @@ def _change(rt, ctx, s: ast.Change):
     if _change_entry(rt, ctx, s):
         return
     if isinstance(s.target, ast.Name):
-        eval_expr(rt, ctx, s.value, Variable(ctx.resolve_var(s.target.ident, s.line)))
+        slot = ctx.resolve_var(s.target.ident, s.line)
+        # `change i to i + 1` (every while loop's step) is the Z-machine's own
+        # two-byte inc; likewise - 1 and dec. The add-and-store form costs
+        # four (the peephole exhaustion, 2026-07-30).
+        v = s.value
+        if (isinstance(v, ast.Binary) and v.op in ("+", "-")
+                and isinstance(v.left, ast.Name) and v.left.ident == s.target.ident
+                and isinstance(v.right, ast.Number) and v.right.value == 1
+                and ctx.world.constants.get(s.target.ident) is None):
+            rt.op("inc" if v.op == "+" else "dec", Const(slot))
+            _note_local_etype(ctx, s.target.ident, s.value)
+            return
+        eval_expr(rt, ctx, s.value, Variable(slot))
         _note_local_etype(ctx, s.target.ident, s.value)
         return
     if isinstance(s.target, ast.Dot):

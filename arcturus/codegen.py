@@ -351,9 +351,9 @@ def _compile_grain(world, gmap, layout, pool, grain, idx, owner, actions) -> Rou
     else:
         body = grain.body
     rt = Routine(f"grain{idx}", nlocals=1)
-    for v in grain.verbs:
-        if v in actions:
-            rt.op("je", Variable(1), Const(actions[v]), branch=("respond", True))
+    _gverbs = [Const(actions[v]) for v in grain.verbs if v in actions]
+    for j in range(0, len(_gverbs), 3):
+        rt.op("je", Variable(1), *_gverbs[j:j + 3], branch=("respond", True))
     # An unanswered verb gets the scenery brush-off, and that is a refusal: a
     # chained line must stop here rather than run its remaining commands.
     rt.op("store", Const(ctx.globals["refused"]), _CONST_ONE)
@@ -494,14 +494,30 @@ def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None,
             rt.label(f"band{k}")
         first = False
         nxt = band_label(k + 1)
-        run_label = {}
-        for i, action in enumerate(groups):
-            run_label[action] = f"b{k}run{i}"
-            rt.op("je", Variable(1), Const(actions[action]),
-                  branch=(run_label[action], True))
-        rt.jump(f"b{k}other")  # nothing specific here: this band's catch-all
+        # Coalesce actions whose handler lists are identical (one `on take,
+        # pull` handler makes several groups with the same body): they share
+        # ONE run block, reached by multi-operand je's three constants a
+        # shot, instead of duplicating the dispatch line and the whole call
+        # sequence per action (the peephole exhaustion, 2026-07-30).
+        merged_order: list = []
+        merged: dict = {}
         for action, handlers in groups.items():
-            rt.label(run_label[action])
+            key = tuple(hn for hn, _ in handlers)
+            if key not in merged:
+                merged[key] = ([], handlers)
+                merged_order.append(key)
+            merged[key][0].append(action)
+        for i, key in enumerate(merged_order):
+            acts, _handlers = merged[key]
+            consts = [Const(actions[a]) for a in acts]
+            for j in range(0, len(consts), 3):
+                rt.op("je", Variable(1), *consts[j:j + 3],
+                      branch=(f"b{k}run{i}", True))
+        rt.jump(f"b{k}other")  # nothing specific here: this band's catch-all
+        for i, key in enumerate(merged_order):
+            acts, handlers = merged[key]
+            action = acts[0]
+            rt.label(f"b{k}run{i}")
             plans = [_guard_plan(h, layout, gmap, dirnames, self_num)
                      for _, h in handlers]
             all_guarded = all(p is not None for p in plans)
@@ -1368,12 +1384,86 @@ def _compile_handler(world, gmap, layout, pool, handler, name) -> Routine:
     return [rt] + extras
 
 
+def _value_read_blocks(world) -> set:
+    """Block names whose RETURN VALUE is read somewhere: any reference other
+    than a bare statement-position call (an argument, a comparison, a let, an
+    is-predicate, a property value, a schedule target). A block outside this
+    set is only ever called for effect, so its implicit default return can be
+    TRUE, which lets a trailing say take the one-opcode print_ret (the
+    peephole exhaustion, 2026-07-30). Conservative by construction: every
+    code-bearing root is walked, and the compiler's own value-called helpers
+    are hardwired in."""
+    import dataclasses
+    names = set(world.blocks)
+    used: set = set()
+
+    def walk(node, stmt_pos=False):
+        if isinstance(node, ast.ExprStmt):
+            e = node.expr
+            if isinstance(e, ast.Call) and e.name in names:
+                for a in e.args:
+                    walk(a)
+                return
+            if isinstance(e, ast.Name) and e.ident in names:
+                return
+            walk(e)
+            return
+        if isinstance(node, ast.Call) and node.name in names:
+            used.add(node.name)
+            for a in node.args:
+                walk(a)
+            return
+        if isinstance(node, ast.Name):
+            if node.ident in names:
+                used.add(node.ident)
+            return
+        if isinstance(node, (list, tuple)):
+            for x in node:
+                walk(x)
+            return
+        if dataclasses.is_dataclass(node) and not isinstance(node, type):
+            for f in dataclasses.fields(node):
+                walk(getattr(node, f.name))
+            return
+
+    def roots():
+        yield from world.blocks.values()
+        yield from world.free_handlers
+        pools = [world.objects.values(), world.kinds.values()]
+        for group in pools:
+            for owner in group:
+                yield from owner.handlers
+                yield from getattr(owner, "grains", [])
+                yield from getattr(owner, "topics", [])
+                for decl in getattr(owner, "props", {}).values():
+                    yield decl
+                for amb in getattr(owner, "ambience", []) or []:
+                    yield amb
+        if world.game is not None:
+            yield world.game
+
+    for r in roots():
+        walk(r)
+    # The compiler's own storing calls to named blocks (lower.py):
+    used |= {"cosmos_perform", "cosmos_exit_prop"}
+    return used
+
+
 def _compile_block(world, gmap, layout, pool, blk) -> Routine:
     rt = Routine("blk_" + blk.name, nlocals=len(blk.params))
     ctx = Context(world, gmap, params=blk.params, layout=layout, string_pool=pool)
     ctx.prescan(blk.body)
     if not compile_block(rt, ctx, blk.body):
-        rt.op("rfalse")  # default return value if the block does not return one
+        # Default return when the block never returns one. A block whose
+        # value is never read returns TRUE, so a trailing say merges into
+        # print_ret; a value-read block keeps the documented 0.
+        vr = getattr(world, "_value_read_blocks", None)
+        if vr is None:
+            vr = world._value_read_blocks = _value_read_blocks(world)
+        if blk.name in vr:
+            rt.op("rfalse")
+        else:
+            rt.op("rtrue")
     rt.nlocals = ctx.nlocals()
     return rt
 

@@ -102,6 +102,9 @@ _OPCODES = {
     # cheapest call in the instruction set (three bytes with a packed-address
     # operand); the paragraph flush rides it at every print site.
     "call_1n": ("1OP", 0x0F, False, False, False),
+    # call_1s routine (v4+): call with no arguments, store the result. One
+    # byte under call_vs for every zero-argument value call.
+    "call_1s": ("1OP", 0x08, True, False, False),
     # 2OP
     "je": ("2OP", 0x01, False, True, False),
     "jl": ("2OP", 0x02, False, True, False),
