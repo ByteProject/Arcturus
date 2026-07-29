@@ -3107,6 +3107,22 @@ def _const_string(ctx, value):
     return value
 
 
+# Inline texts that print at two or more live sites, chosen by generate()'s
+# census pass (the corpus audit, 2026-07-30): each pools ONCE in the packed
+# strings region and every site pays a three-byte print_paddr instead of
+# carrying its own copy. None outside the second pass.
+POOLED_TEXTS: set | None = None
+
+
+def _emit_text(rt, ctx, text):
+    """One piece of literal say text: inline by default; through the string
+    pool when the census chose it (identical text at several sites)."""
+    if POOLED_TEXTS and text in POOLED_TEXTS and ctx.string_pool is not None:
+        rt.op("print_paddr", StringRef(ctx.string_pool.add(text)))
+        return
+    rt.op("print", text=text)
+
+
 def _emit_say(rt, ctx, value):
     """Print a say value (a string with interpolation, or a bare expression)
     with no paragraph flush and no trailing newline. _say wraps it with both;
@@ -3116,7 +3132,7 @@ def _emit_say(rt, ctx, value):
         for part in value.parts:
             if isinstance(part, ast.StringText):
                 if part.text:
-                    rt.op("print", text=part.text)
+                    _emit_text(rt, ctx, part.text)
             else:  # StringInterp
                 if part.article is not None:
                     _say_with_article(rt, ctx, part.article, part.case, part.expr)

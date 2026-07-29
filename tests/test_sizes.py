@@ -176,10 +176,10 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 24096,  # 2026-07-30 repriced DOWN: the shared par_flush routine and the print_ret peephole (the win locked in)
+    "beispiel-deutsch.storyarc": 24088,  # 2026-07-30 repriced DOWN: duplicate inline texts pool once behind print_paddr (the census pass; the win locked in)
     "brass-lantern.storyarc": 19208,  # 2026-07-30 repriced DOWN: the shared par_flush routine and the print_ret peephole (the win locked in)
     "cloak-of-darkness.storyarc": 20120,  # 2026-07-30 repriced DOWN: the shared par_flush routine and the print_ret peephole (the win locked in)
-    "ejemplo-espanol.storyarc": 22812,  # 2026-07-30 repriced DOWN: the shared par_flush routine and the print_ret peephole (the win locked in)
+    "ejemplo-espanol.storyarc": 22780,  # 2026-07-30 repriced DOWN: duplicate inline texts pool once behind print_paddr (the census pass; the win locked in)
     "features/computed-properties.storyarc": 17760,  # 2026-07-30 repriced DOWN: the shared par_flush routine and the print_ret peephole (the win locked in)
     "features/containers.storyarc": 18096,  # 2026-07-30 repriced DOWN: the shared par_flush routine and the print_ret peephole (the win locked in)
     "features/daemons-and-timers.storyarc": 19340,  # 2026-07-30 repriced DOWN: the shared par_flush routine and the print_ret peephole (the win locked in)

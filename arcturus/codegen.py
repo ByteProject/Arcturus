@@ -1897,7 +1897,40 @@ def generate(world: wm.World, version: int = 5, stats=None) -> bytes:
     # later driven test (which never installs a set) is not contaminated.
     zstring.set_abbreviations(_abbreviations_for(world))
     try:
-        return _generate(world, version, stats)
+        # PASS 1, the census (the corpus audit, 2026-07-30): build once with
+        # pooling off and count every inline text at its LIVE print sites.
+        # Identical text printed from two or more places is worth storing
+        # once in the packed strings region, each site paying a three-byte
+        # print_paddr; the cost model below is conservative (it charges every
+        # site the print_ret-merge loss and the copy its alignment slack), so
+        # a chosen text is a guaranteed win. PASS 2 rebuilds with the choices
+        # in force. Compile time doubles; smallest possible z-code is the
+        # charter (docs/00 section 5).
+        from . import lower as lower_mod
+        saved_log = assembler.TEXT_LOG
+        saved_pool = lower_mod.POOLED_TEXTS
+        lower_mod.POOLED_TEXTS = None
+        assembler.TEXT_LOG = census = []
+        try:
+            _generate(world, version, None)
+        finally:
+            assembler.TEXT_LOG = saved_log
+        counts: dict = {}
+        for rname, text in census:
+            if rname in _LAST_LIVE_ROUTINES:
+                counts[text] = counts.get(text, 0) + 1
+        pooled = set()
+        for text, n in counts.items():
+            if n < 2:
+                continue
+            b = len(zstring.encode(text))
+            if n * ((1 + b) - 5) - (b + 2) > 0:
+                pooled.add(text)
+        lower_mod.POOLED_TEXTS = pooled
+        try:
+            return _generate(world, version, stats)
+        finally:
+            lower_mod.POOLED_TEXTS = saved_pool
     finally:
         zstring.set_abbreviations([])
 

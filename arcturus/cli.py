@@ -380,6 +380,29 @@ def _make_abbreviations(args) -> int:
         print(exc.format(), file=sys.stderr)
         return 1
     abbrevs = abbrev_lib.compute(strings)
+    # The tuned promise, enforced mechanically: a tuned set must never build
+    # LARGER than the default on the game it was tuned for. The string pooling
+    # pass and the tuner both feed on repeated text, and their interaction is
+    # set-dependent, so the only airtight guarantee is to build both ways and
+    # keep the winner (this pass is the slow opt-in; two extra compiles are
+    # nothing beside it).
+    try:
+        size_default = len(generate(world))
+        saved_override = world.abbreviations
+        world.abbreviations = abbrevs
+        try:
+            size_tuned = len(generate(world))
+        finally:
+            world.abbreviations = saved_override
+        if size_tuned > size_default:
+            print(
+                f"arcc: the tuned set built {size_tuned - size_default} bytes "
+                f"larger than the default on this game; keeping the default "
+                f"set in the granule instead"
+            )
+            abbrevs = list(abbrev_lib.DEFAULT_ABBREVS)
+    except ArcError:
+        pass
     out_path = os.path.join(story_dir, cosmos_lib._ABBREV_GRANULE)
     cosmos_lib.write_abbreviations_granule(
         out_path, abbrevs, os.path.basename(args.source)
