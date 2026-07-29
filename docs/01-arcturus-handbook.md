@@ -551,6 +551,11 @@ again: the vocabulary the parser matches, holding the object's nouns and
 adjectives as equal entries. `name` is printed but not typed; `words` is
 typed but not printed. Adjectives are simply words in `words` (chapter 14).
 
+A vocabulary word is normally a bare identifier. When the word itself is not
+one, quote it: `words shuttle, obsidian, "obsidian-black"` admits the
+hyphenated compound the player may type, since a hyphen does not split words
+at the prompt. A quoted entry is one word; spaces are not allowed in it.
+
 ### Standard kinds
 
 `thing` (base): `name`, `words`, `desc`; booleans `fixed`, `scenery`,
@@ -2395,6 +2400,15 @@ handlers, most specific first:
 5. any free-standing top-level `on <verb>` rule,
 6. the Cosmos default `on <verb>` handler.
 
+When the whole chain declines, the dispatcher itself answers: the refusal
+(`msg_cant_do`, "You can't do that to the lever.", nounless "You can't do
+that.") ends the turn, so a story-declared verb that no handler claims can
+never end a turn in silence. Cosmos rules every standard action, so this
+tail exists only in a game that declares a verb and gives its action no
+free rule; every other game folds it away, byte-identical (the compile-time
+`any_unruled` flag). The after pass is exempt: an after number that nothing
+answers is normal and stays quiet.
+
 `on other` is the catch-all (chapter 11): at each level a specific
 `on <verb>` is tried before that level's `on other`, so an object's own
 `on other` is its private default, sitting below its specific handlers but
@@ -2970,6 +2984,22 @@ on start
         sight of the stars makes me dream."
     say "-- Vincent van Gogh"
 ```
+
+`show.<colour> "..."` is the inline sibling: the same one-shot colour, but no
+trailing newline, so a single word or phrase can sit highlighted inside a
+sentence the surrounding `show(...)` calls build. A help text that names its
+verbs in colour reads like this, and the whole thing lands on one line:
+
+```
+on help
+    show("Conversations are handled via ")
+    show.yellow "[talk to NPC]"
+    say "."
+```
+
+A colour is required after the dot (`show.yellow`, never a bare `show.par`):
+show is inline by definition, so the paragraph modifiers do not apply. The
+plain `show("...")` intrinsic is unchanged.
 
 Colour support is handled for you, at both ends. The compiler marks the story
 as colour-using in the header (Flags 2 bit 6, which interpreters require

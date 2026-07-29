@@ -449,6 +449,19 @@ class Parser:
         if t.kind in (T.NAME, T.KW):
             self.advance()
             return ast.Name(t.value, t.line)
+        # A quoted vocabulary word: the escape hatch for words the lexer
+        # cannot carry bare, chiefly hyphenated compounds (words
+        # "obsidian-black"). One word only; the dictionary encodes the
+        # hyphen like any other ZSCII character.
+        if t.kind == T.STRING:
+            text = self._plain_text(t).strip()
+            self.advance()
+            if text and " " not in text:
+                return ast.Name(text.lower(), t.line)
+            raise self._error(
+                "a quoted vocabulary word must be a single word "
+                "(no spaces)"
+            )
         raise self._error(f"a vocabulary word, got {self._describe(t)}")
 
     def parse_subject(self) -> ast.SubjectDecl:
@@ -1194,6 +1207,16 @@ class Parser:
             # not a reserved word.
             if t.value == "zcolor":
                 return self._parse_zcolor()
+            # show.<colour> "...": inline coloured text, no trailing newline
+            # (a single highlighted word inside a sentence built from shows).
+            # Only the dotted form is a statement; plain show("...") stays an
+            # intrinsic call.
+            if (
+                t.value == "show"
+                and self._at(1).kind == T.OP
+                and self._at(1).value == "."
+            ):
+                return self._parse_show()
             # par.say "...": the paragraph comes first, then the text.
             if (
                 t.value == "par"
@@ -1536,6 +1559,23 @@ class Parser:
         value = self.parse_expr()
         self.expect_newline()
         return ast.Say(value, line, colour, para, lead)
+
+    def _parse_show(self) -> ast.Say:
+        # show.<colour> "text": the inline sibling of say.<colour>. Sets the
+        # colour, prints WITHOUT a trailing newline, restores the base font
+        # colour. No par modifier: show is inline by definition.
+        line = self.cur.line
+        self.advance()  # the leading `show`
+        self.expect_op(".")
+        mod = self.expect_name("a colour name after 'show.'").value
+        if mod not in _ZCOLOURS:
+            raise self._error(
+                f"unknown colour '{mod}' (use default, black, red, green, "
+                f"yellow, blue, magenta, cyan, or white)"
+            )
+        value = self.parse_expr()
+        self.expect_newline()
+        return ast.Say(value, line, mod, False, False, inline=True)
 
     def _parse_zcolor(self) -> ast.ZColor:
         # `zcolor.font white` / `zcolor.background black`: set a base screen

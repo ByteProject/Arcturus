@@ -208,6 +208,11 @@ INTRINSICS = frozenset({
     # any_duals folds find_scenery's side-table walk away without one;
     # duals_table is the table's base address (the __duals__ global).
     "any_duals", "duals_table",
+    # The dispatcher's refusal tail (Stefan's ruling, the silent-verb fix):
+    # any_unruled folds it away when every action in the program has a
+    # free-standing rule (Cosmos rules all standard verbs, so only a game
+    # verb without handlers pays); after_floor keeps it off the after pass.
+    "any_unruled", "after_floor",
     "pools_table", "award_earned", "any_awards", "meta_floor",
     # The dispatcher's after phase (docs/01 chapter 13 step 6): whether any
     # `on after` handler exists (folds the phase away when not), and the
@@ -1093,6 +1098,16 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # meta_floor(): the first out-of-world action number (a compile-time
         # constant); dispatch skips the object and room stages at or past it.
         _place(rt, Const(wm.meta_floor(ctx.world)), dest)
+    elif name == "after_floor":
+        # after_floor(): the first synthetic after action number (a
+        # compile-time constant); dispatch's refusal tail stays quiet at or
+        # past it, because an after pass that nothing answers is normal.
+        _place(rt, Const(wm.after_floor(ctx.world)), dest)
+    elif name == "any_unruled":
+        # any_unruled(): 1 when some action has no free-standing rule, so an
+        # unclaimed command could otherwise end the turn in silence. See
+        # _any_unruled below; folds in _static_value like every any_X.
+        _place(rt, Const(_any_unruled(ctx)), dest)
     elif name == "any_awards":
         # any_awards(): 1 when the game scores at all (any award site, pool,
         # or auto-scored object), so score plumbing folds away otherwise.
@@ -2250,6 +2265,36 @@ def _scenery_contents(ctx) -> int:
     return 0
 
 
+def _any_unruled(ctx) -> int:
+    """1 when some TYPEABLE action (one a verb's grammar can produce) has no
+    free-standing rule: a verb the game declared but nothing claims can then
+    fall through the whole dispatch chain, and without the refusal tail the
+    turn would end in silence (the Hibernated 2 OIL GRILL bug). Cosmos rules
+    every standard action, so a game whose custom verbs all carry free rules
+    folds the tail away and pays nothing. Only grammar-borne actions count:
+    an action that exists solely because a handler names it can never arrive
+    unclaimed from the parser. AGAIN, OOPS, and UNDO are consumed by the
+    loop before dispatch and never reach the tail; a free `on other` rules
+    everything at once, so its presence folds too."""
+    world = ctx.world
+    ruled = set()
+    for h in world.free_handlers:
+        if getattr(h, "after", False):
+            continue  # an `on after X` answers the after pass, not X itself
+        ruled.update(h.events)
+    if "other" in ruled:
+        return 0
+    specials = {"again", "oops", "undo"}
+    for verb in world.verbs:
+        for g in verb.grammar:
+            a = g.action
+            if a in wm.EVENT_NAMES or a in specials:
+                continue
+            if a not in ruled:
+                return 1
+    return 0
+
+
 def _any_duals(ctx) -> int:
     """1 when any grain word is also a command word (a verb, a direction, or
     a particle): the dual-role set (Stefan's ruling; LIGHT the verb and LIGHT
@@ -2429,12 +2474,13 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
             skip = _zc_guard(rt, ctx)
             rt.op("set_colour", Const(n), Const(0))
             rt.label(skip)
-            _say(rt, ctx, s.value)
+            # show.<colour> is the inline form: no trailing newline.
+            _say(rt, ctx, s.value, newline=not s.inline)
             skip = _zc_guard(rt, ctx)
             rt.op("set_colour", Variable(ctx.globals["__zcfont__"]), Const(0))
             rt.label(skip)
         else:
-            _say(rt, ctx, s.value)
+            _say(rt, ctx, s.value, newline=not s.inline)
         if s.para:
             # say.par: the text is followed by a paragraph break (the same
             # pending-break the par() intrinsic marks; the print layer
@@ -3353,6 +3399,8 @@ def _static_value(ctx, expr):
         return 1 if _carry_limit(ctx) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_duals":
         return _any_duals(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_unruled":
+        return _any_unruled(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_topics":
         return _any_topics(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "arc_mode":

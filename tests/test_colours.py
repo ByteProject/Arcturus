@@ -91,3 +91,43 @@ def test_colours_degrade_to_plain_text_on_frotz(tmp_path):
     assert "plain one" in out
     assert "the emphasized line" in out
     assert "plain two" in out
+
+
+SHOW_GAME = (
+    'game\n    title "S"\n    start r\n'
+    "on start\n"
+    '    show("Try ")\n'
+    '    show.yellow "[push]"\n'
+    '    say " instead."\n'
+    'room r\n    name "R"\n    desc "A room."\n'
+)
+
+
+def test_show_colour_parse_shape():
+    # show.<colour> "text": the inline sibling of say.<colour>. One Say node,
+    # colour set, inline set, no par and no lead.
+    prog = parse(SHOW_GAME)
+    handler = next(d for d in prog.decls if isinstance(d, ast.Handler))
+    shows = [s for s in handler.body if isinstance(s, ast.Say) and s.inline]
+    assert [(s.colour, s.para, s.lead) for s in shows] == [("yellow", False, False)]
+
+
+def test_show_colour_is_inline():
+    # The three pieces land on ONE line: show, show.yellow, say share it.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    story = generate(analyze(cosmos.combined_program(parse(SHOW_GAME))))
+    io = CaptureIO(script=["quit", "y"])
+    try:
+        VM(load(story), io).run(max_steps=30_000_000)
+    except IndexError:
+        pass
+    assert "Try [push] instead." in io.text
+
+
+def test_show_requires_a_colour():
+    # Bare `show "text"` is not a statement; the dotted form needs a colour.
+    bad = SHOW_GAME.replace('show.yellow "[push]"', 'show.velvet "[push]"')
+    with pytest.raises(ArcError):
+        parse(bad)

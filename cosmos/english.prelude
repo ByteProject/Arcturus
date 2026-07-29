@@ -1702,6 +1702,14 @@ block msg_no_effect()
             return 0
     say "${The noun} holds firm."
 
+// The dispatcher's refusal tail: a verb the game declared but nothing
+// claims (no object, no room, no free rule). Folds away with any_unruled.
+block msg_cant_do()
+    if noun is nothing
+        say "You can't do that."
+        return 0
+    say "You can't do that to ${the noun}."
+
 // Body, action, idle.
 block msg_attack()
     say "Hitting things rarely helps, and it won't start now."

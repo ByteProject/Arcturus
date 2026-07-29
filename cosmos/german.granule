@@ -1609,6 +1609,14 @@ block msg_no_effect()
             return 0
     say "${The noun} rührt sich nicht."
 
+// Die Verweigerung am Ende der Handlungskette: ein Verb, das das Spiel
+// deklariert hat, aber nichts beansprucht. Fällt mit any_unruled weg.
+block msg_cant_do()
+    if noun is nothing
+        say "Das lässt sich hier nicht machen."
+        return 0
+    say "Das lässt sich mit ${the:dat noun} nicht machen."
+
 // Body, action, idle.
 block msg_attack()
     say "Auf Dinge einzuschlagen hilft selten, und daran wird sich auch jetzt nichts ändern."

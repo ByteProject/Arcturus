@@ -220,6 +220,11 @@ class Say(Stmt):
     # paragraph appended after existing prose). Composes with the rest:
     # par.say.yellow, and par.say.par for a free-standing paragraph.
     lead: bool = False
+    # show.<colour> "...": the inline form, no trailing newline, for a single
+    # coloured word or phrase inside a sentence the surrounding shows build
+    # (the Hibernated 2 help-verb highlights). Colour is required there; par
+    # and lead never apply.
+    inline: bool = False
 
 
 @dataclass

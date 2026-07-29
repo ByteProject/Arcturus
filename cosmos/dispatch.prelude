@@ -35,6 +35,11 @@ block dispatch(action)
     // past meta_floor, so one compare routes them straight to the free
     // rules (a story still overrides them there, with a free `on score`).
     if action >= meta_floor
+        if any_unruled is 1
+            let g = run_free(action)
+            if g is 0
+                msg_cant_do
+            return
         run_free(action)
         return
     if noun is not nothing
@@ -61,6 +66,17 @@ block dispatch(action)
         if s is not nothing
             if call_handler(s, action) is 1
                 return
+    // The refusal tail (Stefan's ruling): when nothing anywhere claims the
+    // action, the turn must still answer. Only a real player action gets the
+    // refusal; an after pass that nothing answers is normal and stays quiet.
+    // The whole tail folds away (any_unruled) in a game where every action
+    // has a free rule, which every all-standard-verbs game does.
+    if any_unruled is 1
+        let f = run_free(action)
+        if f is 0
+            if action < after_floor
+                msg_cant_do
+        return
     run_free(action)
 
 // The after phase (docs/01 chapter 13 step 6) lives at dispatch's call sites

@@ -1782,6 +1782,14 @@ block msg_no_effect()
             return 0
     say "${The noun} no se inmuta."
 
+// La negativa al final de la cadena: un verbo que el juego declaró pero
+// que nada reclama. Se pliega con any_unruled.
+block msg_cant_do()
+    if noun is nothing
+        say "No puedes hacer eso."
+        return 0
+    say "No puedes hacer eso con ${the noun}."
+
 // Body, action, idle.
 block msg_attack()
     say "Pegar a las cosas rara vez ayuda, y esta no va a ser la excepción."

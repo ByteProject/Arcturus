@@ -111,7 +111,7 @@ CEILINGS = {
     "features/yes-no.storyarc": 18584,  # 2026-07-28 repriced: grammar parity (mount/nudge/continue/sing-with join the core words)
     "features/press-any-key.storyarc": 19212,  # 2026-07-28 repriced: grammar parity (mount/nudge/continue/sing-with join the core words)
     "features/shiftable.storyarc": 18720,  # 2026-07-28 repriced: grammar parity (mount/nudge/continue/sing-with join the core words)
-    "features/enhance-redefine.storyarc": 19004,  # 2026-07-28 repriced: grammar parity (mount/nudge/continue/sing-with join the core words)
+    "features/enhance-redefine.storyarc": 19092,  # 2026-07-29 repriced: the dispatcher's refusal tail (any_unruled); this example's wave_thing/wave_bare have no free rules, so unclaimed targets now refuse instead of ending the turn in silence
     "features/consult-about.storyarc": 19220,  # 2026-07-28 repriced: grammar parity (mount/nudge/continue/sing-with join the core words)
     "features/session-verbs.storyarc": 18908,  # 2026-07-28 repriced: grammar parity (mount/nudge/continue/sing-with join the core words)
     "features/vary.storyarc": 20080,  # 2026-07-28 repriced: grammar parity (mount/nudge/continue/sing-with join the core words)
