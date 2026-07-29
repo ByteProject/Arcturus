@@ -74,3 +74,23 @@ def test_game_free_rule_outranks_the_tail():
 def test_quoted_vocab_word_matches():
     out = _run(["examine work-bench"])
     assert "Sturdy." in out
+
+
+ELSEWHERE = (
+    'game\n    title "E"\n    start here_room\n'
+    'room here_room\n    name "Here"\n    desc "A bare room."\n'
+    '    east there_room\n'
+    'room there_room\n    name "There"\n    desc "Another room."\n'
+    '    grains\n'
+    '        examine "mural" say "A faded mural."\n'
+)
+
+
+def test_out_of_scope_grain_word_says_cant_see():
+    # A grain word from ANOTHER room names a thing that is not here: the
+    # answer is the can't-see refusal, never the bare-verb ask (the Amy
+    # Briggs find: X TRAIN from the next room over asked "The verb x
+    # requires you to be more specific.").
+    out = _run(["x mural"], game=ELSEWHERE)
+    assert "You see nothing of the sort here." in out
+    assert "requires you to be more specific" not in out

@@ -520,7 +520,15 @@ block phrase_named(lo, hi)
     while i < hi
         let d = word_dict(i)
         if d is not nothing
-            if peek_byte(d + 6) is 0
+            let f = peek_byte(d + 6)
+            if f is 0
+                return 1
+            // A grain word (flag 16) names scenery SOMEWHERE: when
+            // find_scenery already declined it here, the player named a
+            // thing that simply is not in this room ("x train" from the
+            // next room over), and the honest answer is "can't see", not
+            // the bare-verb ask (the Amy Briggs find, 2026-07-29).
+            if f is 16
                 return 1
         change i to i + 1
     return 0
