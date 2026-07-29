@@ -58,7 +58,7 @@ def test_strings_threshold_global_is_sign_biased():
     # The print-or-run test for computed text properties compares packed
     # addresses, which are unsigned, with jl, which is signed: past file offset
     # 0x20000 a string's packed address reads as negative and the string gets
-    # CALLED as a routine (the size-triggered Hibernated 2 crash, 2026-07-04).
+    # CALLED as a routine (the size-triggered crash of 2026-07-04).
     # Both sides of the compare therefore carry a +0x8000 sign bias. This pins
     # the stored global: top bit set (a small game's real threshold is far below
     # 0x8000), and the unbiased address lands inside the file, above the code

@@ -2,7 +2,7 @@
 // part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 // Copyright (c) 2026, Stefan Vogt.
 //
-// summon.use: the accessibility hub (Stefan's design, from Hibernated 2).
+// summon.use: the accessibility hub (Stefan's design).
 // USE X guesses the obvious action from what X is: edible things are eaten,
 // wearable things worn, switchable things switched on, a closed openable
 // opened; anything else gets coached toward a real verb. USE X WITH Y (or

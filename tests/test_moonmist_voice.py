@@ -3,8 +3,8 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The Moonmist voice pass (H2 step 1, wave B): Stefan's Hibernated 2
-customisations became the library's defaults, word for word. Pinned here:
+"""The Moonmist voice pass: Stefan's own house voice became the
+library's defaults, word for word. Pinned here:
 the take out/with-you split, the smell and listen and kiss branches, LOOK
 UNDER through the under particle (look stays on the flag model), WAVE with
 empty hands versus a held thing, DANCE as a whole bare command, and a

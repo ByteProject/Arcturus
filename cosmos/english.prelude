@@ -1368,7 +1368,7 @@ block msg_look_under()
 block msg_carry_limit()
     say "Your hands are full, and so are your pockets."
 
-// Push and pull part ways (Stefan's H2 voice, now the library's).
+// Push and pull part ways (Stefan's own voice, now the library's).
 block msg_push()
     say "You give ${the noun} a bit of a push."
 
@@ -1454,7 +1454,7 @@ block msg_part_of()
     say "."
 
 block msg_dropped()
-    // Nested, the message says where it lands (the Hibernated 2 manner):
+    // Nested, the message says where it lands (the house manner):
     // onto the altar, into the crate. Folds away without enterables.
     if any_enterable is 1
         if parent_of(player) is not here

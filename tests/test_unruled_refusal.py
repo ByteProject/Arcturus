@@ -3,9 +3,8 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The dispatcher's refusal tail (H2 step 2, Stefan's ruling): a custom verb
-nothing claims must answer, never end the turn in silence (the OIL GRILL
-bug). Pinned: the one-noun and two-noun refusals, the nounless form, a game
+"""The dispatcher's refusal tail (Stefan's ruling): a custom verb nothing
+claims must answer, never end the turn in silence. Pinned: the one-noun and two-noun refusals, the nounless form, a game
 free rule outranking the tail, the any_unruled fold (a game whose verbs all
 carry rules stays byte-identical), and the quoted-vocabulary escape hatch
 (words "obsidian-black") that rode along in the same commit."""

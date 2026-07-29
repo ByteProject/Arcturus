@@ -44,7 +44,7 @@ block within(obj, outer)
 // removing old, so the replacement lands where old actually was. DCE'd in a
 // game that never swaps.
 // The press-any-key gate, the pacing manner of the classics (and of
-// Hibernated 2's intro): print the prompt, wait for exactly one key, no
+// the classic intro gate): print the prompt, wait for exactly one key, no
 // echo, no Enter, and hand the key back for whoever cares which it was.
 // The prompt is msg_press_any_key in the language layer: the default
 // "[...]" is convenient, understood everywhere, and needs no

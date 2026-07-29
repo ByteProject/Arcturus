@@ -2269,7 +2269,7 @@ def _any_unruled(ctx) -> int:
     """1 when some TYPEABLE action (one a verb's grammar can produce) has no
     free-standing rule: a verb the game declared but nothing claims can then
     fall through the whole dispatch chain, and without the refusal tail the
-    turn would end in silence (the Hibernated 2 OIL GRILL bug). Cosmos rules
+    turn would end in silence (the silent-verb bug, caught in the B8 port). Cosmos rules
     every standard action, so a game whose custom verbs all carry free rules
     folds the tail away and pays nothing. Only grammar-borne actions count:
     an action that exists solely because a handler names it can never arrive
@@ -2992,7 +2992,7 @@ def _emit_prop_print_or_run(rt, ctx, dot, add_newline):
     Packed addresses are UNSIGNED 16-bit, but the Z-machine's jl compares signed:
     a string laid past file offset 0x20000 has a packed address >= 0x8000, which
     jl reads as negative, flips the test, and the string gets called as a routine
-    (in practice a clean @quit; the size-triggered H2 crash, 2026-07-04). The
+    (in practice a clean @quit; the size-triggered crash of 2026-07-04). The
     machine has no unsigned compare, so both sides carry the classic sign bias:
     the __strings__ global holds the threshold with its top bit flipped (codegen
     stores it that way), and the value gets +0x8000 here. add wraps mod 2^16, so

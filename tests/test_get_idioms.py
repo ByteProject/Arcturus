@@ -130,7 +130,7 @@ def test_exit_with_a_noun_respects_it():
 def test_drop_lands_where_the_player_is():
     # Charles's report: dropping while in a container or on a supporter
     # left the item in the room. It lands in the enclosure now, and the
-    # message says where (the Hibernated 2 manner).
+    # message says where (the house manner).
     text = _reply(["take lamp", "get in box", "drop lamp"])
     assert "into the box" in text
     text = _play(["take lamp", "get in box", "drop lamp", "get out", "look"])
