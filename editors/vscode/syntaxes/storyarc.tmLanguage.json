@@ -104,6 +104,18 @@
           }
         },
         {
+          "comment": "Growing and replacing verbs (docs/01 chapter 12): enhance verb adds grammar, redefine verb replaces the family whole.",
+          "match": "^\\s*(enhance|redefine)\\s+(verb)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.storyarc"
+            },
+            "2": {
+              "name": "keyword.declaration.storyarc"
+            }
+          }
+        },
+        {
           "match": "^\\s*(game|verb|grains|ranks|ambience)\\b",
           "captures": {
             "1": {
@@ -239,7 +251,7 @@
     },
     "builtins": {
       "name": "variable.language.storyarc",
-      "match": "\\b(self|player|here|noun|second|turns|score|max_score|way|grain|refused|ambience_rate)\\b"
+      "match": "\\b(self|player|here|noun|second|turns|score|max_score|way|grain|refused|ambience_rate|action|verb_trigger|meta_turn)\\b"
     },
     "kinds": {
       "patterns": [
@@ -272,7 +284,7 @@
     "attributes": {
       "comment": "Standard Cosmos boolean attributes (docs/01 chapter 3).",
       "name": "support.type.attribute.storyarc",
-      "match": "\\b(fixed|scenery|hidden|concealed|wearable|worn|lit|edible|named|switchable|openable|open|lockable|locked|visited|clear|seen|moved|animate|an|feminine|neutral|pluribus|beyond|scored|component|shiftable)\\b"
+      "match": "\\b(fixed|scenery|hidden|concealed|wearable|worn|lit|edible|named|switchable|openable|open|lockable|locked|visited|clear|seen|moved|animate|an|feminine|neutral|pluribus|beyond|scored|component|shiftable|restless)\\b"
     },
     "properties": {
       "comment": "Standard Cosmos value properties and the topic modifiers.",
@@ -284,7 +296,7 @@
         {
           "comment": "Topic, ambience, and rank header modifiers (docs/01 chapters 19, 17, and 22).",
           "name": "keyword.other.modifier.storyarc",
-          "match": "\\b(once|hidden|idle|about|order|at|percent|points|turns)\\b"
+          "match": "\\b(once|hidden|idle|about|order|at|percent|points|turns|meta|timers)\\b"
         }
       ]
     },
@@ -296,7 +308,7 @@
         },
         {
           "name": "keyword.other.statement.storyarc",
-          "match": "\\b(let|change|now|move|add|remove|say|zcolor|to|from|start)\\b"
+          "match": "\\b(let|change|now|move|add|remove|say|show|zcolor|par|to|from|start)\\b"
         },
         {
           "comment": "The award statement: score enters the game only through it (docs/01 6a).",
@@ -317,8 +329,8 @@
           }
         },
         {
-          "comment": "Dot-modifier chains, three scopes (Stefan's policy, 2026-07-04): the KEYWORD (say, zcolor, par), the MODIFIER chain (.par, .yellow, .font - one scope, dots included), and the trailing VALUE (the colour word of a zcolor line). say.yellow.par, par.say, zcolor.font white all show three colours.",
-          "match": "\\b(zcolor|say|par)((?:\\.(?:font|background|statusline|input|default|black|red|green|yellow|blue|magenta|cyan|white|par|say))+)\\b(?:[ \\t]+(default|black|red|green|yellow|blue|magenta|cyan|white)\\b)?",
+          "comment": "Dot-modifier chains, three scopes (Stefan's policy, 2026-07-04): the KEYWORD (say, zcolor, par), the MODIFIER chain (.par, .yellow, .font - one scope, dots included), and the trailing VALUE (the colour word of a zcolor line). say.yellow.par, par.say, zcolor.font white all show three colours. show.<colour> is the inline coloured show (2026-07-29).",
+          "match": "\\b(zcolor|say|par|show)((?:\\.(?:font|background|statusline|input|default|black|red|green|yellow|blue|magenta|cyan|white|par|say))+)\\b(?:[ \\t]+(default|black|red|green|yellow|blue|magenta|cyan|white)\\b)?",
           "captures": {
             "1": {
               "name": "keyword.other.statement.storyarc"
@@ -342,7 +354,12 @@
         },
         {
           "name": "support.type.metadata.storyarc",
-          "match": "\\b(title|headline|author|release|serial|UUID|scoring|banner)\\b"
+          "match": "\\b(title|headline|author|copyright|release|serial|UUID|scoring|banner)\\b"
+        },
+        {
+          "comment": "Grammar slot words inside a verb declaration's lines (docs/01 chapter 12).",
+          "name": "support.type.slot.storyarc",
+          "match": "\\b(held|multi)\\b"
         }
       ]
     },
@@ -366,7 +383,7 @@
     "services": {
       "comment": "The library services an author calls bare or tests with `is`: the cutscene trio (teleport/gain/convey), perform, the worn list, the sight-and-touch predicates. Curated, not exhaustive: the documented author surface only.",
       "name": "support.function.library.storyarc",
-      "match": "\\b(teleport|gain|convey|perform|swap|worn_count|list_worn|visible|reachable|calculate|entry|last|dice|position|quote_catalog)\\b"
+      "match": "\\b(teleport|gain|convey|perform|swap|worn_count|list_worn|visible|reachable|calculate|entry|last|dice|position|quote_catalog|parent_of|name_contents|listable_count|press_any_key|action_id)\\b"
     }
   }
 }
