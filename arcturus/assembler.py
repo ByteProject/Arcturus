@@ -98,6 +98,10 @@ _OPCODES = {
     "print_obj": ("1OP", 0x0A, False, False, False),
     "ret": ("1OP", 0x0B, False, False, False),
     "print_paddr": ("1OP", 0x0D, False, False, False),
+    # call_1n routine (v5): call with no arguments, discard the result. The
+    # cheapest call in the instruction set (three bytes with a packed-address
+    # operand); the paragraph flush rides it at every print site.
+    "call_1n": ("1OP", 0x0F, False, False, False),
     # 2OP
     "je": ("2OP", 0x01, False, True, False),
     "jl": ("2OP", 0x02, False, True, False),
@@ -213,6 +217,10 @@ class Routine:
         self.code = bytearray()
         self.labels: dict[str, int] = {}
         self.fixups: list[_Fixup] = []
+        # The last few emitted ops as (name, start_offset), for the print_ret
+        # peephole below. A label or jump clears it: a branch target between
+        # the ops makes the rewind unsafe.
+        self._trail: list[tuple] = []
 
     # -- instruction emission ----------------------------------------------
 
@@ -234,7 +242,23 @@ class Routine:
                     name, operands = "rfalse", ()
                 elif o.value == 1:
                     name, operands = "rtrue", ()
+        # The print_ret peephole (the corpus audit, 2026-07-30): a trailing
+        # `say` compiles as print text / new_line / rtrue, which is exactly
+        # what the one-byte print_ret opcode does whole. When those three
+        # arrive contiguously with no label between them (a branch target
+        # would make the rewind unsafe), rewrite the print in place and drop
+        # the tail: two bytes back per say-and-return site.
+        if name == "rtrue" and not operands and len(self._trail) >= 2:
+            (n1, s1), (n2, s2) = self._trail[-2], self._trail[-1]
+            if (n1 == "print" and n2 == "new_line" and s2 == len(self.code) - 1
+                    and not any(s1 < off for off in self.labels.values())
+                    and not any(f.offset >= s1 for f in self.fixups)):
+                self.code[s1] = 0xB3  # 0OP print_ret over 0OP print
+                del self.code[s2:]    # the new_line byte; rtrue never lands
+                self._trail = []
+                return
         form, code, stores, branches, has_text = _OPCODES[name]
+        _start = len(self.code)
         self.code += self._encode(form, code, list(operands))
         if has_text:
             assert text is not None
@@ -247,9 +271,13 @@ class Routine:
         if branches:
             assert branch is not None
             self._emit_branch(branch[0], branch[1])
+        self._trail.append((name, _start))
+        if len(self._trail) > 4:
+            del self._trail[0]
 
     def label(self, name: str) -> None:
         self.labels[name] = len(self.code)
+        self._trail = []
 
     def jump(self, label: str) -> None:
         """Unconditional jump (1OP:jump) to a label. Its operand is a signed
@@ -257,6 +285,7 @@ class Routine:
         self.code.append(0x8C)  # 1OP, large-constant operand, opcode 0x0C
         self.fixups.append(_Fixup(len(self.code), "jump", label))
         self.code += b"\x00\x00"
+        self._trail = []
 
     # -- encoding ----------------------------------------------------------
 

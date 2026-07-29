@@ -881,6 +881,23 @@ def build_story(
     sf = storyfile.StoryFile(version=version)
     scale = 8 if version == 8 else 4
 
+    # par_flush: the paragraph flush as ONE shared routine. Every print site
+    # pays a three-byte call_1n instead of the old seven-byte inline
+    # check-print-clear, several kilobytes back in a prose game (the corpus
+    # audit, 2026-07-30). Appended HERE so every build path that lowers a
+    # print site finds it, the driven backend tests included.
+    _gmap_pf = _globals_map(world)
+    if "par_pending" in _gmap_pf and not any(
+            getattr(r, "name", "") == "par_flush" for r in routines):
+        _pf = Routine("par_flush", nlocals=0)
+        _slot = _gmap_pf["par_pending"]
+        _pf.op("jz", Variable(_slot), branch=("done", True))
+        _pf.op("new_line")
+        _pf.op("store", Const(_slot), Const(0))
+        _pf.label("done")
+        _pf.op("rtrue")
+        routines = list(routines) + [_pf]
+
     # Dynamic memory: globals, the input buffers, and the object table.
     globals_addr = sf.append(bytes(_GLOBALS_BYTES))
     text_buf = bytearray(_TEXT_BUFFER_BYTES)

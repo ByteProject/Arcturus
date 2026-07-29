@@ -3021,17 +3021,15 @@ def _move(rt, ctx, s: ast.Move):
 
 
 def _flush_par(rt, ctx):
-    """Emit a pending paragraph break: if par_pending is set, print one blank
-    line and clear it. Runs before any text output so the library can request a
-    break without the author managing newlines."""
-    slot = ctx.globals.get("par_pending")
-    if slot is None:
+    """Emit a pending paragraph break before any text output, so the library
+    can request a break without the author managing newlines. One shared
+    routine does the check-print-clear (codegen's par_flush); the site pays a
+    three-byte call_1n instead of the old seven-byte inline sequence, which
+    across every print site in a prose game is kilobytes (the corpus audit,
+    2026-07-30)."""
+    if ctx.globals.get("par_pending") is None:
         return
-    skip = ctx.new_label()
-    rt.op("jz", Variable(slot), branch=(skip, True))
-    rt.op("new_line")
-    rt.op("store", Const(slot), Const(0))
-    rt.label(skip)
+    rt.op("call_1n", RoutineRef("par_flush"))
 
 
 def _emit_prop_print_or_run(rt, ctx, dot, add_newline):
