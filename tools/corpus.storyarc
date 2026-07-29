@@ -87,7 +87,7 @@ thing hatch of door in pantry
     open false
     locked
 
-thing keeper of person in hall
+thing keeper of character in hall
     name "old keeper"
     words keeper, caretaker, man, woman
     desc "The keeper watches you with patient, unsurprised eyes."

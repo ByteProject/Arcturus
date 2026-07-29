@@ -9,7 +9,7 @@ existing games to Arcturus: Hibernated 2 (text, the first large real-world game
 and the maturity milestone; port complete) and The Curse of Rabenstein (from
 DAAD, the graphics testbed). Ghosts of Blackwood Manor was dropped from the
 plan once Hibernated 2 proved sufficiency (2026-07-04). Hibernated 2 releases
-first in its PunyInform build; the Arcturus port follows. Writing Hibernated 3 stays
+in its Arcturus build (Stefan's ruling, 2026-07-29). Writing Hibernated 3 stays
 Stefan's own goal, pursued separately; this project stays focused on Arcturus
 itself.
 

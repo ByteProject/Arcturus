@@ -126,21 +126,50 @@ def _char_to_zchars(c: str) -> list[int]:
 
 
 def _text_to_zchars(text: str, matchers: list[tuple[str, int, int]]) -> list[int]:
-    """Walk the text left to right, emitting an abbreviation reference (the two
-    Z-chars shift+index) wherever the longest installed abbreviation is a prefix
-    of the remaining text, and the literal Z-chars otherwise."""
-    zchars: list[int] = []
-    i = 0
+    """Encode the text with the OPTIMAL parse: dynamic programming over the
+    positions, choosing at each one between the literal character and every
+    installed abbreviation that matches there, minimizing total Z-chars. The
+    old walk was greedy longest-first, which loses when a long match at i
+    shadows two better matches at i and i+k (the zabbrev lesson: the parse is
+    part of the compression). Minimizing Z-chars minimizes bytes, since a
+    string's byte cost is ceil(zchars/3) words."""
     n = len(text)
+    if not matchers:
+        zchars: list[int] = []
+        for c in text:
+            zchars.extend(_char_to_zchars(c))
+        return zchars
+    # Abbreviations that could match at each position, found once. A first-char
+    # index keeps the scan linear in practice.
+    by_first: dict[str, list[tuple[str, int, int]]] = {}
+    for m in matchers:
+        by_first.setdefault(m[0][0], []).append(m)
+    # cost[i] = minimal Z-chars for text[i:]; choice[i] = the matcher taken at i
+    # (None = literal). Filled right to left.
+    INF = 1 << 30
+    cost = [0] * (n + 1)
+    choice: list[tuple[str, int, int] | None] = [None] * (n + 1)
+    lit = [0] * n  # Z-char cost of the literal character at i
+    for i in range(n):
+        lit[i] = len(_char_to_zchars(text[i]))
+    for i in range(n - 1, -1, -1):
+        best = lit[i] + cost[i + 1]
+        pick = None
+        for m in by_first.get(text[i], ()):  # (s, bank, offset)
+            s = m[0]
+            if text.startswith(s, i):
+                c = 2 + cost[i + len(s)]
+                if c < best:
+                    best = c
+                    pick = m
+        cost[i] = best if best < INF else lit[i] + cost[i + 1]
+        choice[i] = pick
+    zchars = []
+    i = 0
     while i < n:
-        hit = None
-        if matchers:
-            for s, bank, offset in matchers:
-                if text.startswith(s, i):
-                    hit = (s, bank, offset)
-                    break
-        if hit is not None:
-            s, bank, offset = hit
+        pick = choice[i]
+        if pick is not None:
+            s, bank, offset = pick
             zchars.append(bank)
             zchars.append(offset)
             i += len(s)

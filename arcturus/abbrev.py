@@ -19,23 +19,17 @@ referencing. This module chooses which substrings, two ways:
   opt-in that beats the default for a specific game.
 
 The encoder applies whichever set is installed (zstring.set_abbreviations); this
-module only decides the set. The selection is a greedy heuristic: repeatedly take
-the substring whose references would save the most bytes, then mark its
-occurrences so overlapping candidates are re-scored, until the table is full or
-nothing else pays. It is not provably optimal (that problem is NP-hard), but it
-matches what the encoder does at pack time (greedy, longest-first, non-
-overlapping) and what zabbrv-style tools achieve in practice.
+module only decides the set. Selection is greedy with an EXACT objective: each
+round measures candidates' true byte gain by running the encoder's own optimal
+parse (padding included, storage subtracted) and takes the best, with a cleanup
+pass dropping entries later picks made worthless. Provable optimality is NP-hard;
+sharing the encoder's cost model end to end is the zabbrev-class lever that
+matters in practice.
 """
 
 from __future__ import annotations
 
 from . import zstring
-
-# A sentinel that cannot occur in source text (the lexer never admits a NUL), used
-# to blank out an abbreviation's occurrences between rounds so a later candidate
-# does not count text already claimed.
-_SENT = "\x00"
-
 
 def _zlen(s: str) -> int:
     """The number of Z-characters the literal text of `s` encodes to (a capital or
@@ -44,57 +38,165 @@ def _zlen(s: str) -> int:
     return sum(len(zstring._char_to_zchars(c)) for c in s)
 
 
-def _score_candidates(work: list[str], min_len: int, max_len: int) -> dict:
-    """Count every substring (length min_len..max_len, sentinel-free) across the
-    working corpus. The count is the overlapping occurrence count, a fast and good
-    enough proxy for ranking; the real saving is settled by re-scoring each round."""
-    counts: dict[str, int] = {}
-    for s in work:
-        n = len(s)
-        for i in range(n):
-            if s[i] == _SENT:
-                continue
-            hi = min(max_len, n - i)
-            for L in range(min_len, hi + 1):
+def _bytes_of(zchars: int) -> int:
+    """Story-file bytes for a string of `zchars` Z-characters: packed three to a
+    word, padded up, two bytes a word (an empty string still takes one word)."""
+    words = (zchars + 2) // 3
+    if words == 0:
+        words = 1
+    return words * 2
+
+
+def _parse_cost(text: str, matchers) -> int:
+    """Z-chars of the OPTIMAL parse of `text` under the abbreviation set, the
+    same DP the encoder runs (zstring._text_to_zchars); selection and encoding
+    share one cost model, so a predicted saving is a real saving."""
+    return len(zstring._text_to_zchars(text, matchers))
+
+
+def _corpus_bytes(strings, matchers) -> int:
+    """Total story-file bytes for the pooled strings under the set: each
+    string's padded words, plus the abbreviation strings' own literal storage.
+    The 96-entry table itself is fixed layout, the same for every set, so it
+    stays out of the objective."""
+    total = 0
+    for s in strings:
+        total += _bytes_of(_parse_cost(s, matchers))
+    for m in matchers:
+        total += _bytes_of(_zlen(m[0]))
+    return total
+
+
+def _candidates(pool: list[str], min_len: int, max_len: int) -> dict:
+    """Every substring worth considering, with its overlapping occurrence count
+    across the pool. Built level by level (the Apriori property: a substring can
+    only repeat if its prefix repeats), pruning count < 2 at each length, so
+    memory holds survivors only."""
+    prev: dict[str, int] | None = None
+    cands: dict[str, int] = {}
+    L = min_len
+    while L <= max_len:
+        level: dict[str, int] = {}
+        for s in pool:
+            top = len(s) - L
+            for i in range(top + 1):
                 sub = s[i : i + L]
-                if _SENT in sub:
-                    break
-                counts[sub] = counts.get(sub, 0) + 1
-    return counts
-
-
-def _saving(sub: str, count: int) -> int:
-    """Z-chars saved by abbreviating `sub` that occurs `count` times: each use drops
-    from _zlen(sub) to 2, less the one-time cost of storing the string. The table
-    word (2 bytes) is a fixed per-entry overhead and does not affect the ranking."""
-    return count * (_zlen(sub) - 2) - _zlen(sub)
-
-
-def compute(strings, limit: int = zstring.ABBREV_MAX, min_len: int = 2, max_len: int = 20) -> list[str]:
-    """Choose up to `limit` abbreviations for a pool of strings, best first. Each
-    round scores all candidate substrings, takes the one that saves the most (if
-    any still pays), and blanks its occurrences so the next round re-scores against
-    what is left. Returns the chosen substrings in selection order (the index
-    order the encoder and the table use)."""
-    work = [s for s in strings if s]
-    chosen: list[str] = []
-    while len(chosen) < limit:
-        counts = _score_candidates(work, min_len, max_len)
-        best = None
-        best_save = 0
-        for sub, count in counts.items():
-            if count < 2:
-                continue
-            save = _saving(sub, count)
-            # Tie-break on longer text, then lexicographically, so the result is
-            # deterministic regardless of dict iteration order.
-            if save > best_save or (save == best_save and best is not None and (len(sub), sub) > (len(best), best)):
-                best_save = save
-                best = sub
-        if best is None or best_save <= 0:
+                if prev is not None and sub[:-1] not in prev:
+                    continue
+                level[sub] = level.get(sub, 0) + 1
+        level = {k: v for k, v in level.items() if v >= 2}
+        if not level:
             break
-        chosen.append(best)
-        work = [s.replace(best, _SENT) for s in work]
+        cands.update(level)
+        prev = level
+        L += 1
+    return cands
+
+
+def compute(strings, limit: int = zstring.ABBREV_MAX, min_len: int = 2, max_len: int = 40) -> list[str]:
+    """Choose up to `limit` abbreviations for a pool of strings, best first.
+
+    The objective is EXACT story-file bytes, not Z-chars: each round shortlists
+    candidates by an optimistic bound, then measures each one's true byte gain
+    by re-running the encoder's own optimal parse over the strings it touches
+    (padding to the 3-Z-char word included, the abbreviation's own storage
+    subtracted). The candidate with the largest measured gain wins the slot; a
+    final pass drops any entry whose marginal value fell to nothing once later
+    picks absorbed its text, freeing the slot for the next-best candidate.
+    Selection and encoding share one cost model (the zabbrev lesson), so the
+    predicted total is the byte total the story file shows."""
+    pool = [s for s in strings if s]
+    if not pool:
+        return []
+    import heapq
+
+    cands = _candidates(pool, min_len, max_len)
+    zlens = {sub: _zlen(sub) for sub in cands}
+    containing = {}  # candidate -> indices of pool strings that hold it (lazy)
+
+    def holders(sub: str):
+        got = containing.get(sub)
+        if got is None:
+            got = [i for i, s in enumerate(pool) if sub in s]
+            containing[sub] = got
+        return got
+
+    chosen: list[str] = []
+    chosen_set: set[str] = set()
+    cur_bytes = [_bytes_of(_zlen(s)) for s in pool]
+
+    def exact_gain(sub: str) -> int:
+        tm = zstring._build_matchers(chosen + [sub])
+        gain = 0
+        for i in holders(sub):
+            gain += cur_bytes[i] - _bytes_of(_parse_cost(pool[i], tm))
+        return gain - _bytes_of(zlens[sub])
+
+    def take(sub: str) -> None:
+        chosen.append(sub)
+        chosen_set.add(sub)
+        tm = zstring._build_matchers(chosen)
+        for i in holders(sub):
+            cur_bytes[i] = _bytes_of(_parse_cost(pool[i], tm))
+
+    # Lazy greedy over a priority queue. Every candidate starts at an
+    # optimistic byte bound (all overlapping occurrences paid in full, padding
+    # luck included); popping re-measures the TRUE gain against the current
+    # set and re-inserts unless the fresh value still tops the queue. Gains
+    # only sink as picks absorb text, so a fresh value that beats the next
+    # stale bound is the round's true maximum (the classic lazy-greedy
+    # argument), and candidates that fell to nothing stop clogging the top.
+    heap: list = []
+    for sub, cnt in cands.items():
+        bound = 2 * cnt * max(1, zlens[sub] - 2)
+        heap.append((-bound, sub))
+    heapq.heapify(heap)
+
+    def pick_one():
+        while heap:
+            negg, sub = heapq.heappop(heap)
+            if sub in chosen_set:
+                continue
+            gain = exact_gain(sub)
+            if gain <= 0:
+                continue  # sunk; out of the queue for good
+            if not heap or -heap[0][0] <= gain:
+                return sub, gain
+            heapq.heappush(heap, (-gain, sub))
+        return None, 0
+
+    while len(chosen) < limit:
+        best, best_gain = pick_one()
+        if best is None:
+            break
+        take(best)
+
+    # The cleanup pass: a pick made early can lose its worth once later picks
+    # cover the same text. Measure each entry's marginal value against the
+    # final set; drop the worthless and refill from what remains in the queue.
+    for _ in range(2):
+        dropped = False
+        fm = zstring._build_matchers(chosen)
+        for sub in list(chosen):
+            rm = zstring._build_matchers([c for c in chosen if c != sub])
+            marginal = 0
+            for i in holders(sub):
+                marginal += _bytes_of(_parse_cost(pool[i], rm)) - _bytes_of(_parse_cost(pool[i], fm))
+            marginal -= _bytes_of(zlens[sub])
+            if marginal <= 0:
+                chosen.remove(sub)
+                chosen_set.discard(sub)
+                dropped = True
+                fm = zstring._build_matchers(chosen)
+        if not dropped:
+            break
+        tm = zstring._build_matchers(chosen)
+        cur_bytes = [_bytes_of(_parse_cost(s, tm)) for s in pool]
+        while len(chosen) < limit:
+            best, best_gain = pick_one()
+            if best is None:
+                break
+            take(best)
     return chosen
 
 
@@ -102,72 +204,86 @@ def compute(strings, limit: int = zstring.ABBREV_MAX, min_len: int = 2, max_len:
 # corpus; see module docstring). Empty until first generated, which simply means
 # no default compression until the set is filled in.
 DEFAULT_ABBREVS: list[str] = [
-    'The ',
+    'You ',
+    'thing',
     "n't ",
-    'thing ',
-    'You',
     ' already ',
-    'the ',
-    "There's no",
-    ' is ',
     ' to ',
-    ' with ',
+    ' the ',
+    ' like to RESTART, RESTORE a saved game,',
     ' you',
-    ' does',
-    't.',
-    'ing',
-    'ocked.',
-    ' have',
     ' and ',
-    'here.',
-    ' it ',
-    'ck.',
-    'close',
-    'n.',
-    "'re carry",
-    'about ',
-    'es.',
-    ' a ',
-    'It',
-    'too dark',
-    'hat save',
-    't in ',
-    'nside',
-    ' what',
-    "'ll",
-    ' no',
-    ', ',
-    'er ',
-    'all',
+    ' with ',
+    'ing',
     ' is',
-    'No',
-    'switch',
-    'plain ',
-    ' leave',
-    'room',
-    'keep',
-    'ight',
-    ' see',
-    ' of ',
-    ' for',
+    "There's no",
+    'ranscript',
+    ', ',
+    "You'",
+    " doesn't ",
+    ' that',
+    'The ',
+    '[Score notification is',
+    'locked.',
+    'n it goes',
+    ' have to ',
+    ' no',
+    ' nothing',
+    ' of',
+    'e.',
     ' fir',
-    ' are',
-    'wor',
-    'ed.',
-    'ant',
-    'ellar',
-    ' feel',
-    ' desk',
-    'one.',
-    'to ',
-    'tha',
-    'ome',
-    'old',
-    'ly ',
-    'be ',
-    'an ',
-    ': "',
-    ' on',
+    'Nothing',
+    'be more specific.',
+    ' carrying',
+    ' from ',
+    'It is',
+    "You aren't",
+    'Your ',
+    'close',
+    'here.',
+    'open',
+    'oursel',
+    'surprise',
+    't.',
+    ' QUIT?',
+    ' abou',
+    ' conversatio',
+    ' of a',
+    ' your ',
+    '.]',
+    'ake',
+    'et in',
+    'me ',
+    'n.',
+    've ',
     ' an',
-    's.',
+    ' can see ',
+    ' dark',
+    ' for ',
+    ' happens',
+    ' is not ',
+    ' it.',
+    ' just ',
+    ' mean',
+    ' now.',
+    ' on',
+    ' switch',
+    ' under',
+    '. ',
+    'Do',
+    'That',
+    'a single ',
+    'all',
+    'ave ',
+    'bject',
+    'cor',
+    'ear',
+    'eep',
+    'expected',
+    'hands ',
+    'here i',
+    'running.',
+    'shut.',
+    'start',
+    'worth',
 ]
