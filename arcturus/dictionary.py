@@ -320,7 +320,31 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
         out += enc_data.get(enc, bytes(_DATA_BYTES))
 
     word_offset = {w: offset_of[encoded[w]] for w in words}
-    return bytes(out), word_offset, duals
+    # THING-DUAL words (Stefan's ruling, 2026-07-29: OIL the verb and OIL the
+    # spray both live, GREASE the verb and someone's grease likewise): a
+    # command-flagged word that is also an object's vocabulary (or a grain's)
+    # names a THING somewhere in the program, so the parser's can't-see check
+    # must treat it as naming one when nothing in scope answers to it. The
+    # words ride a second side table of dictionary entry addresses
+    # (__tduals__); phrase_named consults it. Grain duals join too: their
+    # command flag hides the same fact from the flag byte.
+    from . import objects as _objects
+    thing_vocab: set = set()
+    for obj in world.objects.values():
+        thing_vocab.update(_objects.object_words(
+            _objects._effective_props(world, obj), obj.category == "room"))
+    named: list = []
+    for word in sorted(thing_vocab):
+        enc = encoded.get(word)
+        if enc is None:
+            continue
+        prior = enc_data.get(enc)
+        if prior is not None and prior[0] & (_VERB_FLAG | _DIR_FLAG | _PARTICLE_FLAG):
+            named.append(word)
+    for word, _chain in duals:
+        if word not in named:
+            named.append(word)
+    return bytes(out), word_offset, duals, named
 
 
 def direction_props(layout, world) -> dict:

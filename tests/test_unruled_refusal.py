@@ -94,3 +94,37 @@ def test_out_of_scope_grain_word_says_cant_see():
     out = _run(["x mural"], game=ELSEWHERE)
     assert "You see nothing of the sort here." in out
     assert "requires you to be more specific" not in out
+
+
+DUALWORD = (
+    'game\n    title "D"\n    start front\n'
+    'room front\n    name "Front"\n    desc "A bare room."\n'
+    '    east back\n'
+    'room back\n    name "Back"\n    desc "Another room."\n'
+    'thing sprayer in back\n    name "spray can"\n'
+    '    words spray, can, oil, grease\n'
+    '    desc "A can of oil."\n'
+    'verb "oil", "grease"\n'
+    '    oil noun with noun\n'
+    '    oil noun\n'
+    'on oil\n    change refused to 1\n    say "Nothing to oil."\n'
+)
+
+
+def test_thing_dual_word_out_of_scope_says_cant_see():
+    # OIL the verb and OIL the spray both live (Stefan's ruling): out of the
+    # spray's room, X OIL and X GREASE name a thing that is not here, never
+    # the bare-verb ask.
+    out = _run(["x oil", "x grease", "take oil"], game=DUALWORD)
+    assert out.count("You see nothing of the sort here.") >= 3
+    assert "requires you to be more specific" not in out
+
+
+def test_thing_dual_word_in_scope_still_resolves():
+    out = _run(["e", "x oil", "x grease"], game=DUALWORD)
+    assert "A can of oil." in out
+
+
+def test_pure_verb_word_still_asks():
+    out = _run(["x grab"], game=DUALWORD)
+    assert "requires you to be more specific" in out

@@ -809,6 +809,9 @@ _BUILTIN_GLOBALS = [
     # The dual-role word table's base address (a grain word that is also a
     # verb: LIGHT, SMELL), 0 without one; find_scenery walks it.
     "__duals__",
+    # The thing-dual word table's base address (a command word that is also
+    # thing vocabulary: OIL), 0 without one; phrase_named walks it.
+    "__tduals__",
     # The mute buffer's byte address (restless performers, stream 3).
     "__mutebuf__",
     # The opening-description title skip (a status bar already names the room).
@@ -1007,7 +1010,7 @@ def build_story(
                 tb.append(0)  # end of line
             tb.append(0)  # end of table (a zero where an action would be)
         sf.append(bytes(tb))
-    dict_bytes, word_offsets, duals = dictionary.build(
+    dict_bytes, word_offsets, duals, named_words = dictionary.build(
         world, _action_numbers(world), dprops, scenery, grammar_tables
     )
     dict_addr = sf.append(dict_bytes)
@@ -1027,6 +1030,17 @@ def build_story(
             dt += bytes([(wa >> 8) & 0xFF, wa & 0xFF,
                          (chain_addr >> 8) & 0xFF, chain_addr & 0xFF])
         duals_addr = sf.append(bytes(dt))
+    # Thing-dual words (a command word that is also thing vocabulary: OIL the
+    # verb and OIL the spray): a table of dictionary entry addresses,
+    # [count] then one word each; phrase_named consults it so the can't-see
+    # refusal covers them. __tduals__ holds its address, 0 without any.
+    named_addr = 0
+    if named_words:
+        nt = bytearray([(len(named_words) >> 8) & 0xFF, len(named_words) & 0xFF])
+        for word in named_words:
+            wa = dict_addr + word_offsets[word]
+            nt += bytes([(wa >> 8) & 0xFF, wa & 0xFF])
+        named_addr = sf.append(bytes(nt))
 
     # High memory: the entry stub and routines, run from the initial PC.
     high_base = sf.here()
@@ -1175,6 +1189,11 @@ def build_story(
         sf.set_word(
             globals_addr + (gmap["__duals__"] - 16) * 2,
             duals_addr,
+        )
+    if named_addr:
+        sf.set_word(
+            globals_addr + (gmap["__tduals__"] - 16) * 2,
+            named_addr,
         )
     if awards_addr:
         sf.set_word(globals_addr + (gmap["__awards__"] - 16) * 2, awards_addr)

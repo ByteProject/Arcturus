@@ -44,7 +44,7 @@ def test_vocabulary_collected():
 
 
 def test_entries_are_sorted_six_byte_words():
-    data, offsets, _duals = dictionary.build(world())
+    data, offsets, _duals, _named = dictionary.build(world())
     nsep = data[0]
     entry_len = data[1 + nsep]
     count = (data[2 + nsep] << 8) | data[3 + nsep]
@@ -69,7 +69,7 @@ def test_verb_words_carry_their_action():
 
     w = world()
     actions = _action_numbers(w)
-    data, off, _duals = dictionary.build(w, actions)
+    data, off, _duals, _named = dictionary.build(w, actions)
     # 'take'/'get' are verb words for the take action; 'lamp' is a plain noun.
     for verb in ("take", "get"):
         flags, action = data[off[verb] + 6], data[off[verb] + 7]

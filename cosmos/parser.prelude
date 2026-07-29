@@ -530,6 +530,20 @@ block phrase_named(lo, hi)
             // the bare-verb ask (the Amy Briggs find, 2026-07-29).
             if f is 16
                 return 1
+            // A thing-dual word carries a COMMAND flag but is also thing
+            // vocabulary somewhere (OIL the verb and OIL the spray, GREASE
+            // both ways): the __tduals__ side table lists those entries,
+            // so out of scope they too read as naming a thing (Stefan's
+            // ruling, 2026-07-29). Folds away without any such word.
+            if any_thing_duals is 1
+                let t = thing_duals_table
+                if t is not 0
+                    let cnt = peek_word(t, 0)
+                    let j = 0
+                    while j < cnt
+                        if peek_word(t + 2, j) is d
+                            return 1
+                        change j to j + 1
         change i to i + 1
     return 0
 
