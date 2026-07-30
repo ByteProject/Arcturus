@@ -128,3 +128,28 @@ def test_thing_dual_word_in_scope_still_resolves():
 def test_pure_verb_word_still_asks():
     out = _run(["x grab"], game=DUALWORD)
     assert "requires you to be more specific" in out
+
+
+EXACTNAME = (
+    'game\n    title "X"\n    start deck\n'
+    'room deck\n    name "Deck"\n    desc "A bare deck."\n'
+    'thing bluep in deck\n    name "blue planet"\n'
+    '    words blue, planet\n    fixed\n    desc "Blue whole."\n'
+    'thing deepp in deck\n    name "deep blue planet"\n'
+    '    words deep, blue, planet\n    fixed\n    desc "Deep and dim."\n'
+)
+
+
+def test_full_name_match_beats_partial_at_equal_score():
+    # The exact-name tie-break (Stefan's ruling): "blue planet" covers every
+    # word the blue planet owns and only part of the deep blue planet, so it
+    # resolves without asking; the longer name still reachable in full.
+    out = _run(["x blue planet", "x deep blue planet"], game=EXACTNAME)
+    assert "Blue whole." in out
+    assert "Deep and dim." in out
+    assert "Which do you mean" not in out
+
+
+def test_partial_against_partial_still_asks():
+    out = _run(["x planet"], game=EXACTNAME)
+    assert "Which do you mean" in out

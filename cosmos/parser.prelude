@@ -214,6 +214,7 @@ block probe_noun(lo, hi)
                 return nothing
     let best = nothing
     let best_score = 0
+    let best_full = 0
     let tied = 0
     let obj = 1
     while obj <= object_count
@@ -224,10 +225,29 @@ block probe_noun(lo, hi)
                     if s > best_score
                         change best to obj
                         change best_score to s
+                        change best_full to 0
+                        if s is words_count(obj)
+                            change best_full to 1
                         change tied to 0
                     else
                         if s is best_score
-                            change tied to 1
+                            // The exact-name tie-break (Stefan's ruling,
+                            // 2026-07-30): at equal score, a FULL match
+                            // (every word the object owns was typed - "blue
+                            // planet" for the blue planet) beats a partial
+                            // one (the deep blue planet, one word shy).
+                            // Partial against partial, and full against
+                            // full, are genuine ambiguities and still ask.
+                            let c_full = 0
+                            if s is words_count(obj)
+                                change c_full to 1
+                            if c_full > best_full
+                                change best to obj
+                                change best_full to 1
+                                change tied to 0
+                            else
+                                if c_full is best_full
+                                    change tied to 1
         change obj to obj + 1
     if best_score is 0
         return nothing
@@ -584,6 +604,7 @@ block match_phrase(lo, hi, plural_ok)
         change i to i + 1
     let best = nothing
     let best_score = 0
+    let best_full = 0
     let tied = 0
     let obj = 1
     while obj <= object_count
@@ -594,10 +615,29 @@ block match_phrase(lo, hi, plural_ok)
                     if s > best_score
                         change best to obj
                         change best_score to s
+                        change best_full to 0
+                        if s is words_count(obj)
+                            change best_full to 1
                         change tied to 0
                     else
                         if s is best_score
-                            change tied to 1
+                            // The exact-name tie-break (Stefan's ruling,
+                            // 2026-07-30): at equal score, a FULL match
+                            // (every word the object owns was typed - "blue
+                            // planet" for the blue planet) beats a partial
+                            // one (the deep blue planet, one word shy).
+                            // Partial against partial, and full against
+                            // full, are genuine ambiguities and still ask.
+                            let c_full = 0
+                            if s is words_count(obj)
+                                change c_full to 1
+                            if c_full > best_full
+                                change best to obj
+                                change best_full to 1
+                                change tied to 0
+                            else
+                                if c_full is best_full
+                                    change tied to 1
         change obj to obj + 1
     if best_score is 0
         change i to lo

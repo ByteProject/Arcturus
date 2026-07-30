@@ -190,3 +190,12 @@ def test_games_without_duals_fold_the_table_away():
     # the moonmist GAME has grains but no dual words; the walk still answers
     out = _run(["examine grime"])
     assert "Grey and ancient." in out
+
+
+def test_shake_family():
+    # The shake family (extendedverbs, 2026-07-30): a dry default, an animate
+    # refusal, and RATTLE/JIGGLE ride along.
+    game = GAME.replace("summon.extendedverbs", "summon.extendedverbs")
+    out = _run(["shake mat", "shake guard", "rattle mat"], game=game)
+    assert "You give the straw mat a good shake. It survives the experience unchanged." in out
+    assert "The tired guard is not a thing you shake." in out

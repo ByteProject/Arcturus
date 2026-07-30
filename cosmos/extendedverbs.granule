@@ -154,6 +154,25 @@ on rub
         msg_rub
 
 
+verb "shake", "rattle", "jiggle"
+    shake noun
+
+on shake
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
+    if noun is animate
+        change refused to 1
+        msg_shake_animate
+        stop
+    if any_alter is 1
+        if altered is 0
+            msg_shake
+        else
+            run_alter
+    else
+        msg_shake
+
 verb "squeeze", "crush"
     squeeze noun
 
@@ -507,6 +526,13 @@ block msg_throw()
 
 block msg_rub()
     say "You give ${the noun} a thorough buffing. It continues to judge you in silence."
+
+block msg_shake()
+    say "You give ${the noun} a good shake. It survives the experience
+         unchanged."
+
+block msg_shake_animate()
+    say "${The noun} ${is noun} not a thing you shake."
 
 block msg_squeeze()
     say "Years of practice with ketchup bottles have made you a master
