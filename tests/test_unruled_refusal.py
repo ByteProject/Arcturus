@@ -153,3 +153,24 @@ def test_full_name_match_beats_partial_at_equal_score():
 def test_partial_against_partial_still_asks():
     out = _run(["x planet"], game=EXACTNAME)
     assert "Which do you mean" in out
+
+
+ACTIONIS = (
+    'game\n    title "AI"\n    start yard2\n'
+    'room yard2\n    name "Yard"\n    desc "A yard."\n'
+    '    grains\n'
+    '        examine, open "gate" or "wicket"\n'
+    '            if action is open\n'
+    '                say "It swings a hand-width and jams."\n'
+    '            else\n'
+    '                say "A low wooden gate."\n'
+)
+
+
+def test_action_is_compares_actions_not_attributes():
+    # `if action is open` in a grain compares the ACTION, even though open is
+    # also a boolean attribute (the playtest find: the branch silently became
+    # an attribute test on a number and always fell to else).
+    out = _run(["x gate", "open gate"], game=ACTIONIS)
+    assert "A low wooden gate." in out
+    assert "It swings a hand-width and jams." in out

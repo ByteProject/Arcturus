@@ -1716,6 +1716,23 @@ class Analyzer:
     def _resolve_is(self, expr: ast.IsTest, locals_: set) -> None:
         self._check_expr(expr.left, locals_)
         right = expr.right
+        # `action is open` compares ACTIONS, always: the left side is the
+        # dispatcher's action builtin, so a right side that happens to share
+        # its name with a boolean property (open, hidden, locked) is the
+        # ACTION of that name, never an attribute test on a number (the
+        # playtest find, 2026-07-30: a grain's `if action is open` silently
+        # tested the open attribute and fell to the else branch).
+        left_is_action = (
+            (isinstance(expr.left, ast.Name) and expr.left.ident == "action"
+             and "action" not in locals_)
+            or (isinstance(expr.left, ast.Call) and expr.left.name == "action"
+                and not expr.left.args))
+        if left_is_action and isinstance(right, ast.Name) \
+                and right.ident not in locals_ \
+                and right.ident not in self.world.objects \
+                and right.ident in self.world.actions:
+            self.world.is_resolutions[id(expr)] = wm.IS_EQUALITY
+            return
         # A bare identifier naming a boolean property is a property test; a kind
         # name is a kind-membership test; otherwise the comparison is an equality
         # (docs/01 chapter 9).
