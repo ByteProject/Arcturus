@@ -8325,3 +8325,42 @@ the port's own log), all Stefan's rulings:
 
 arcc 1.3.47, Cosmos 1.3.14 (Actaea untouched at 1.3.7); suite 1318
 green.
+
+## CHECKPOINT for compaction (2026-07-31): the polish pass rests, feedback next
+
+IMMEDIATE RESUME POINT: Stefan returns with feedback on the B8 polish
+items (the game-side record and its open questions live in the port's
+own log, beside its source) AND with a defect he observed himself,
+which is received and fixed FIRST.
+
+WHAT THIS SESSION LANDED (all pushed):
+- The compression arc, closed on Stefan's word: the exact-objective
+  abbreviation optimizer with the DP encoder parse (1.3.48), the
+  shared paragraph flush and the print_ret peephole (1.3.50), the
+  duplicate-text pooling census with the guarded tuned-set promise
+  (1.3.51), and the peephole exhaustion: inc/dec, jz, the short call
+  family, direct leaf operands, merged je dispatch, discard-only
+  block tails (1.3.52). The flagship dropped 9.1 percent; the whole
+  ledger locked in its wins; the ratio now beats the zabbrev-class
+  reference at a richer feature set.
+- The dispatcher's refusal tail (msg_cant_do, any_unruled) and
+  show.<colour>, landed earlier in the session (1.3.47).
+- Thing-dual words answer can't-see out of scope (__tduals__,
+  1.3.49); "action is X" resolves actions, never attributes (1.3.53);
+  the exact-name tie-break with the shake family (Cosmos 1.3.17);
+  out-of-scope grain words answer can't-see (1.3.15).
+- The public record split: PROGRESS carries toolchain work only, the
+  history rewritten accordingly and force-pushed on Stefan's ruling
+  ("project cleanup"); the backup bundle is local; GitHub support
+  purge requested by Stefan.
+- The VS Code grammar caught up with the language (extension 1.1.0):
+  copyright, enhance/redefine, the show chain, bare par, restless,
+  the newer builtins and services.
+- Ozmoo will support arc_image (Johan Berntsson confirmed; the Puny
+  extension is accepted if clean, and Stefan judged it already
+  clean). Actaea remains the modern reference; Ozmoo the retro
+  interpreter. No publisher build outside Arcturus: the game ships
+  in its Arcturus build (CLAUDE.md updated).
+
+STATE: arcc 1.3.53, Cosmos 1.3.17, Actaea 1.3.7, vsix 1.1.0; suite
+1326 green; everything pushed through 166011b.
