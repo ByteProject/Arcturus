@@ -38,7 +38,10 @@ too: to create a zblorb you provide the story file, always.
 
 ## 2. What the page supports
 
-- Z-machine versions 5 and 8, the Arcturus targets.
+- Z-machine versions 5 and 8, the Arcturus targets. Versions 3 and 4
+  ride along (the engine plays them; a PunyInform-compiled version 3
+  game is part of the verification), so stories from other toolchains
+  are welcome too.
 - The arc_image picture band (docs/08): drawn above the text, scaled
   crisply to the window (the masters are pixel art), pictures swapped
   by the game, cleared on id 0, and absent entirely for a game without
