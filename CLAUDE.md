@@ -55,7 +55,11 @@ docs/            00 roadmap + 01 handbook (authoritative); 03+ design records
 arcturus/        the compiler package (lexer, parser, ast, sema, codegen, cli)
 cosmos/          the Cosmos library in .prelude (english = language layer, actions,
                  parser, scope, dispatch, loop, core) plus the .granule features
-tools/           arcabbr.py and other Python tools
+actaea/          the reference interpreter (docs/06)
+proteus/         the web interpreter, a vendored Z-machine-only Parchment fork
+                 with arc_image (docs/09, PROVENANCE.md inside; node toolchain
+                 for rebuilds, never for authors)
+tools/           arcimg.py, proteus.py, the amalgamators, and other Python tools
 examples/        brass-lantern.storyarc, cloak-of-darkness.storyarc
 tests/           unit and golden tests
 editors/vscode/  the syntax-highlighting extension

@@ -22,10 +22,12 @@ integer-scaled either way, so pixel art is the medium that looks best.
 
 Commands:
 
-  arcimg pack SOURCES... -o story.arcres
-      Zip the numbered PNGs found in the given files/directories into an
-      .arcres pack (one file, keyed by id, the story kept separate). Stdlib
-      only: pixel artists whose art is already sized never need anything else.
+  arcimg pack SOURCES... -o story.blorb
+      Pack the numbered PNGs found in the given files/directories into a
+      Blorb (Pict N = arc_image id N, plus the ARCI declaration chunk).
+      With --zblorb STORY the story rides inside as Exec 0: one file that
+      carries the whole game, for Actaea, the Gargoyle family, and the
+      proteus web builder alike. Stdlib only.
 
   arcimg prep SOURCE --id N --mode {infocom,daad} [-o DIR]
       Produce N.png sized to a mode. A PNG already at the exact mode size is
@@ -34,7 +36,7 @@ Commands:
       tool offers to install it, guided, the first time it is needed.
 
   arcimg info SOURCE
-      Report the size of a PNG, or list the pictures in an .arcres pack.
+      Report the size of a PNG, or list the pictures in a Blorb pack.
 
   arcimg convert SOURCES... --target TAG -o DIR [--preview DIR]
       The retro path (arc_image/reference/design.md): derive each master's native version for a
@@ -75,13 +77,13 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.29.0"
+__version__ = "1.30.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = '776564b'
+__build__ = '4146c6e'
 
 
 def build_id() -> str:
@@ -4081,7 +4083,22 @@ def cmd_pack(args) -> int:
                   f"{dims[0]}x{dims[1]}, neither a standard mode size "
                   f"({_modes_str()}) nor a band aspect (40:9 or 10:3)")
 
+    # The .arcres zip was retired (Stefan's ruling, 2026-07-31): the Blorb
+    # is the one pack, readable by Actaea, the Gargoyle family, and the
+    # proteus web builder alike. Refuse the old extension loudly instead
+    # of writing a Blorb under a lying name.
+    if args.out.lower().endswith(".arcres"):
+        print("arcimg: the .arcres format was retired; pack writes a Blorb "
+              "(use -o <name>.blorb, or --zblorb STORY -o <name>.zblorb)",
+              file=sys.stderr)
+        return 2
+
     zstory = getattr(args, "zblorb", None)
+    if zstory is None and args.out.lower().endswith(".zblorb"):
+        print("arcimg: a .zblorb embeds the story, so the story file is "
+              "required: arcimg pack ... --zblorb STORY -o "
+              f"{os.path.basename(args.out)}", file=sys.stderr)
+        return 2
     if zstory is not None:
         if not os.path.isfile(zstory):
             print(f"arcimg: no story file {zstory}", file=sys.stderr)
@@ -4092,47 +4109,73 @@ def cmd_pack(args) -> int:
             print(f"arcimg: {zstory} is not a z5/z8 story file",
                   file=sys.stderr)
             return 2
-    if zstory is not None or getattr(args, "blorb", False):
-        try:
-            with open(args.out, "wb") as fh:
-                fh.write(build_blorb(entries, zstory))
-        except OSError as exc:
-            print(f"arcimg: cannot write {args.out}: {exc}", file=sys.stderr)
-            return 2
-        ids = ", ".join(str(i) for i in sorted(entries))
-        kind = "zblorb (story + pictures)" if zstory else "blorb (pictures)"
-        print(f"arcimg: wrote {args.out}, {kind}: {ids}")
-        return 0
-
     try:
-        with zipfile.ZipFile(args.out, "w", zipfile.ZIP_DEFLATED) as z:
-            for iid in sorted(entries):
-                z.write(entries[iid], f"{iid}.png")
+        with open(args.out, "wb") as fh:
+            fh.write(build_blorb(entries, zstory))
     except OSError as exc:
         print(f"arcimg: cannot write {args.out}: {exc}", file=sys.stderr)
         return 2
     ids = ", ".join(str(i) for i in sorted(entries))
-    print(f"arcimg: wrote {args.out} ({len(entries)} pictures: {ids})")
+    kind = "zblorb (story + pictures)" if zstory else "blorb (pictures)"
+    print(f"arcimg: wrote {args.out}, {kind}: {ids}")
     return 0
+
+
+def _blorb_pictures(path):
+    """Read a Blorb pack: ({id: png_bytes}, has_story, arci_mode) or None
+    when the file is not a Blorb. The mirror of build_blorb, kept beside
+    it so the two never drift."""
+    with open(path, "rb") as fh:
+        data = fh.read()
+    if len(data) < 12 or data[:4] != b"FORM" or data[8:12] != b"IFRS":
+        return None
+    pictures, has_story, arci_mode = {}, False, None
+    ridx = {}
+    pos = 12
+    while pos + 8 <= len(data):
+        fourcc = data[pos:pos + 4]
+        (length,) = struct.unpack(">I", data[pos + 4:pos + 8])
+        payload = data[pos + 8:pos + 8 + length]
+        if fourcc == b"RIdx":
+            (count,) = struct.unpack(">I", payload[0:4])
+            for i in range(count):
+                usage, number, offset = struct.unpack(
+                    ">4sII", payload[4 + 12 * i:16 + 12 * i])
+                ridx[offset] = (usage, number)
+        elif fourcc == b"ARCI" and length >= 2:
+            arci_mode = payload[1]
+        usage_num = ridx.get(pos)
+        if usage_num:
+            usage, number = usage_num
+            if usage == b"Pict":
+                pictures[number] = payload
+            elif usage == b"Exec":
+                has_story = True
+        pos += 8 + length + (length & 1)
+    return pictures, has_story, arci_mode
 
 
 def cmd_info(args) -> int:
     src = args.source
-    if zipfile.is_zipfile(src):
-        with zipfile.ZipFile(src) as z:
-            names = [n for n in z.namelist() if _numbered_id(n) is not None]
-            print(f"{src}: {len(names)} pictures")
-            for n in sorted(names, key=_numbered_id):
-                dims = _png_size_bytes(z.read(n))
-                shape = f"{dims[0]}x{dims[1]}" if dims else "?"
-                mode = _mode_of(dims) if dims else None
-                tag = f" ({mode} mode)" if mode else ""
-                print(f"  {_numbered_id(n):>4}  {shape}{tag}")
+    blorb = None
+    if os.path.isfile(src):
+        blorb = _blorb_pictures(src)
+    if blorb is not None:
+        pictures, has_story, arci_mode = blorb
+        kind = "zblorb (story + pictures)" if has_story else "blorb (pictures)"
+        mode_tag = f", mode {arci_mode}" if arci_mode else ""
+        print(f"{src}: {kind}, {len(pictures)} pictures{mode_tag}")
+        for iid in sorted(pictures):
+            dims = _png_size_bytes(pictures[iid])
+            shape = f"{dims[0]}x{dims[1]}" if dims else "?"
+            mode = _mode_of(dims) if dims else None
+            tag = f" ({mode} mode)" if mode else ""
+            print(f"  {iid:>4}  {shape}{tag}")
         return 0
 
     dims = _png_size(src)
     if dims is None:
-        print(f"arcimg: {src} is not a PNG or an .arcres pack", file=sys.stderr)
+        print(f"arcimg: {src} is not a PNG or a Blorb pack", file=sys.stderr)
         return 2
     mode = _mode_of(dims)
     tag = f" ({mode} mode)" if mode else " (not a standard mode size)"
@@ -4416,19 +4459,15 @@ def build_parser() -> argparse.ArgumentParser:
     sub = ap.add_subparsers(dest="command")
 
     p_pack = sub.add_parser(
-        "pack", help="pack numbered PNGs: .arcres (default), or Blorb")
+        "pack", help="pack numbered PNGs into a Blorb")
     p_pack.add_argument("sources", nargs="+",
                         help="directories and/or <number>.png files")
     p_pack.add_argument("-o", "--out", required=True,
-                        help="the pack to write (.arcres, .blorb, .zblorb)")
-    packfmt = p_pack.add_mutually_exclusive_group()
-    packfmt.add_argument("--blorb", action="store_true",
-                         help="write a Blorb of the pictures (Pict N = "
-                         "arc_image id N) instead of an .arcres zip")
-    packfmt.add_argument("--zblorb", metavar="STORY",
-                         help="write a Blorb with STORY (.z5/.z8) embedded "
-                         "as Exec 0 plus the pictures: one file that "
-                         "Blorb-aware interpreters open directly")
+                        help="the pack to write (.blorb, or .zblorb with "
+                        "--zblorb)")
+    p_pack.add_argument("--zblorb", metavar="STORY",
+                        help="embed STORY (.z5/.z8) as Exec 0 beside the "
+                        "pictures: one file that carries the whole game")
     p_pack.set_defaults(func=cmd_pack)
 
     p_prep = sub.add_parser(
@@ -4445,7 +4484,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_info = sub.add_parser(
         "info", help="report a PNG's size or list a pack's pictures")
-    p_info.add_argument("source", help="a PNG file or an .arcres pack")
+    p_info.add_argument("source", help="a PNG file or a Blorb pack")
     p_info.set_defaults(func=cmd_info)
 
     p_targets = sub.add_parser(

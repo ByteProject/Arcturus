@@ -36,19 +36,20 @@ The name is a star, Arcturus, and the narrative arc every story is built on.
 ## Quickstart
 
 The whole toolchain is two self-contained files (a third if your game uses
-pictures). Download them and you are ready: no installation, no packages,
-nothing to build. All you need is Python 3.11 or later, which you almost
-certainly already have.
+pictures, a fourth to publish on the web). Download them and you are ready:
+no installation, no packages, nothing to build. All you need is Python 3.11
+or later, which you almost certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.3.53 | [build/arcc](build/arcc) |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.3.54 | [build/arcc](build/arcc) |
 | **Cosmos**, the standard library | 1.3.17 | shipped inside `arcc` |
-| **Actaea**, the reference interpreter | 1.3.7 | [build/actaea](build/actaea) |
-| **arcimg**, the arc_image tool (optional, for graphics) | 1.29.0 | [build/arcimg](build/arcimg) |
+| **Actaea**, the reference interpreter | 1.3.8 | [build/actaea](build/actaea) |
+| **arcimg**, the arc_image tool (optional, for graphics) | 1.30.0 | [build/arcimg](build/arcimg) |
+| **proteus**, the web story builder (optional, for the web) | 1.0.0 | [build/proteus](build/proteus) |
 
 Each is one self-contained file: download, `chmod +x`, done. Keeping them
-current is one command: `arcc --update` refreshes all three in place (the
+current is one command: `arcc --update` refreshes all of them in place (the
 only time arcc ever touches the network; there is no passive check).
 
 Write a game, compile it, play it:
@@ -57,6 +58,8 @@ Write a game, compile it, play it:
 python3 arcc mygame.storyarc -o mygame.z5    # compile to a Z-machine story
 python3 actaea mygame.z5                      # play it in a window,
 python3 actaea --console mygame.z5            # or in the terminal
+python3 proteus mygame.z5 -o mygame.html     # or publish it on the web:
+                                              # one self-contained page
 ```
 
 The story file `mygame.z5` is a standard Z-machine v5 file: it also plays on
@@ -82,6 +85,9 @@ parts, enough to start writing Arcturus today:
 - [docs/07-arc-image.md](docs/07-arc-image.md): pictures in your story. The
   master art, the `arcimg` workflow from PNG to every machine, and what plays
   where today.
+- [docs/09-proteus.md](docs/09-proteus.md): Proteus, the web interpreter.
+  One command turns a finished game into a single self-contained HTML page,
+  pictures and all.
 
 For the curious who want to see under the hood, two further documents cover how
 the compiler itself works:
@@ -130,10 +136,11 @@ same code generation, a larger 512KB story-file ceiling).
 ## What's new, and where Arcturus is heading
 
 Arcturus is in active, healthy development, and the core is solid enough to
-build real games on today. The three pieces of the toolchain - the **compiler**,
-the **Cosmos** standard library, and the **Actaea** reference interpreter - are
-all in stable shape and work together as a real pipeline: write a game, compile
-it, and play it, start to finish. You will still meet the occasional bug (please
+build real games on today. The core of the toolchain - the **compiler**, the
+**Cosmos** standard library, and the **Actaea** reference interpreter - is in
+stable shape, joined by **arcimg** (pictures) and **proteus** (the web), and
+the pieces work together as a real pipeline: write a game, compile it, play
+it, and publish it, start to finish. You will still meet the occasional bug (please
 report it), but this is no longer use-at-your-own-risk territory. If you write
 interactive fiction, this is a good time to pick it up.
 

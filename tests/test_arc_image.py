@@ -192,7 +192,7 @@ def test_arc_mode_must_be_a_valid_mode():
 def test_no_resource_sidecar_is_written(tmp_path):
     # The id is the resource slot, so the compiler writes NO manifest or pack
     # beside the story: pictures are delivered separately, as a --images
-    # directory of numbered PNGs or an .arcres pack that arcimg builds.
+    # directory of numbered PNGs or a Blorb pack that arcimg builds.
     import sys
     src = tmp_path / "g.storyarc"
     src.write_text(IMG)
@@ -202,22 +202,23 @@ def test_no_resource_sidecar_is_written(tmp_path):
         capture_output=True, text=True, check=True,
     )
     assert story.exists()
-    assert not (tmp_path / "g.arcres").exists()
+    assert not (tmp_path / "g.blorb").exists()
 
 
 def test_interpreter_resolves_dir_then_pack(tmp_path):
     # How a front-end finds the pictures: an explicit --images directory wins;
-    # else a sibling .arcres pack; else the story's own directory.
+    # else a sibling .blorb pack; else the story's own directory. (The
+    # .arcres zip was retired, 2026-07-31; the Blorb is the one pack.)
     from actaea.__main__ import _resolve_images
     story = str(tmp_path / "g.z5")
     (tmp_path / "g.z5").write_bytes(b"x")
     # No pack, no --images: the story's own directory (the loose debug default).
     d, z = _resolve_images(story, None)
     assert d == os.path.dirname(os.path.abspath(story)) and z is None
-    # A sibling .arcres pack is picked up when present.
-    (tmp_path / "g.arcres").write_bytes(b"PK")
+    # A sibling .blorb pack is picked up when present.
+    (tmp_path / "g.blorb").write_bytes(b"FORM\x00\x00\x00\x04IFRS")
     d, z = _resolve_images(story, None)
-    assert d is None and z == os.path.splitext(story)[0] + ".arcres"
+    assert d is None and z == os.path.splitext(story)[0] + ".blorb"
     # An explicit --images directory always wins over the pack.
     d, z = _resolve_images(story, "/some/dir")
     assert d == "/some/dir" and z is None

@@ -23,7 +23,7 @@
 //     EAST, SOUTH  Bar, lit        1, then 3: the bar revealed
 //     EXAMINE MESSAGE              the win, if you blundered little enough
 //
-// Pictures travel as cloak-of-darkness.arcres beside the z5 (ids 1 foyer,
+// Pictures travel as cloak-of-darkness.blorb beside the z5 (ids 1 foyer,
 // 2 cloakroom, 3 bar, 4 the darkness); the retro conversions live under
 // arc_image/cloak/. Everything else about arc_image is documented in the
 // Rabenstein demo and docs/07.

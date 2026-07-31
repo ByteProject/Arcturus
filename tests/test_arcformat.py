@@ -152,18 +152,16 @@ def test_the_golden_corpus_is_in_place():
     # The Rabenstein masters are the conversion corpus (arc_image/reference/design.md section 4):
     # every wave's back-end converts them and the results are the acceptance
     # gate. R1 only guarantees the corpus is present and band-shaped.
-    import zipfile
     pack = os.path.join(os.path.dirname(__file__), "..", "examples",
-                        "arc_image", "rabenstein.arcres")
-    with zipfile.ZipFile(pack) as z:
-        names = sorted(z.namelist())
-        assert names, "the corpus pack is empty"
-        for name in names:
-            data = z.read(name)
-            assert data[:8] == arcimg._PNG_SIG
-            import struct
-            w, h = struct.unpack(">II", data[16:24])
-            assert (w, h) in ((320, 72), (320, 96)), name
+                        "arc_image", "rabenstein.blorb")
+    pictures, _story, _mode = arcimg._blorb_pictures(pack)
+    assert pictures, "the corpus pack is empty"
+    for iid in sorted(pictures):
+        data = pictures[iid]
+        assert data[:8] == arcimg._PNG_SIG
+        import struct
+        w, h = struct.unpack(">II", data[16:24])
+        assert (w, h) in ((320, 72), (320, 96)), iid
 
 
 def test_the_ledger_is_complete():

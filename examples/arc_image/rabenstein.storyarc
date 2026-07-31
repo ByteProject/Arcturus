@@ -88,27 +88,41 @@
 // window, crisp for pixel art at any font size; pixel art looks best.
 //
 // ============================================================================
-// THE PICTURES: THE .arcres FILE
+// THE PICTURES: THE BLORB
 // ============================================================================
-// The pictures live beside the story, never inside it, so the .z5 stays a
-// plain story file. They travel as an .arcres pack: one file, a zip of the
-// numbered PNGs keyed by id, that the interpreter reads automatically when it
-// sits next to the story. This example ships rabenstein.arcres, which holds
-// pictures 1, 7, 8, 9, and 21. It was built with the arcimg tool:
+// The pictures travel in a Blorb, and the .z5 stays a plain story file.
+// Blorb has no filenames inside it: resources are addressed by usage and
+// NUMBER, which is exactly the arc_image model, so picture id 8 is simply
+// Blorb resource `Pict 8`. Nothing is translated at either end. Every Blorb
+// arcimg writes also carries a small `ARCI` declaration chunk naming the
+// extension version and the band mode, so an interpreter can reserve the
+// picture band before it executes a single instruction; a Blorb without
+// that chunk promises no arc_image graphics at all.
 //
-//     arcimg pack 1.png 7.png 8.png 9.png 21.png -o rabenstein.arcres
+// This example ships pictures 1, 7, 8, 9, and 21 as rabenstein.blorb
+// beside the .z5; Actaea finds it automatically by name. Two shapes
+// exist, both built by arcimg:
+//
+//     arcimg pack 1.png 7.png 8.png 9.png 21.png -o rabenstein.blorb
+//         the pictures alone, sitting beside the story file
+//
+//     arcimg pack 1.png ... --zblorb rabenstein.z5 -o rabenstein.zblorb
+//         the story embedded too, so the whole game is ONE file
 //
 // arcimg also prepares art that is not already the right size (cropping and
 // scaling a photo or a wrong-sized image to a mode), and lists a pack:
 //
 //     arcimg prep opening.jpg --id 8 --mode daad -o .   // -> 8.png at 320x96
-//     arcimg info rabenstein.arcres                     // list the pack
+//     arcimg info rabenstein.blorb                      // list the pack
 //
 // ============================================================================
 // RUNNING IT
 // ============================================================================
 //     arcc rabenstein.storyarc -o rabenstein.z5    // compile (a plain z5 file)
 //     actaea rabenstein.z5                          // play, pictures and all
+//     proteus rabenstein.z5 rabenstein.blorb -o rabenstein.html
+//                                                   // the same game as one
+//                                                   // self-contained web page
 //
 // Actaea is the reference interpreter; the retro interpreters (the TRS-80
 // Model 4 was the first adopter-built one to draw the band) load the same

@@ -6,6 +6,25 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Arcturus games play on the web.** Proteus, the fourth standalone:
+  one command turns a finished game into a single self-contained HTML
+  page that runs in any browser, nothing to install and nothing to
+  deploy. `proteus mygame.zblorb -o mygame.html`, or the story and its
+  pictures Blorb as a pair, or a bare `.z5` for a text game. The page
+  carries the whole interpreter, the arc_image picture band scaled
+  crisply to the window, the game's colours painted to the page edges,
+  and saves in the browser's local storage, typically in under a
+  megabyte. Inside it is a Z-machine-only fork of Dannii Willis's
+  Parchment (MIT, credited on the page), trimmed to a quarter of
+  upstream's size and taught the arc_image contract; the fork lives in
+  the repository under `proteus/`, and docs/09 is its book.
+- **One pack: the Blorb.** `arcimg pack` now writes the IF world's
+  standard resource container by default, and the short-lived `.arcres`
+  zip is retired. Picture id N is Blorb resource `Pict N`, nothing
+  translated; `--zblorb STORY` still embeds the story so the whole
+  game travels as one file that Actaea opens directly, the wider
+  Blorb-aware interpreter world understands, and `proteus` turns into
+  a web page. One pack, every destination.
 - **Restless things, and timers that stop.** Stefan's design, one
   sentence long: work follows the performer's nature, prose follows
   scope. Mark a character `restless` (or arm it mid-story: `now guard is
@@ -40,17 +59,7 @@ lives in the commit log. The feature roadmap follows below.
   left the library for the one seam. And the seam is yours too:
   `if verb_trigger is "roll"` inside an `on push` answers each synonym
   in its own voice.
-- **The Plus/4 joins the proven machines.** The retro wave's fourth
-  blueprint lands whole: pictures convert with the TED's real measured
-  palette (the emulator itself was the measuring instrument, twice), the
-  file format carries the hardware's own attribute quirks so a loader
-  copies matrices verbatim, and the reference loader displays the test
-  pictures pixel-identical to their previews. The Atari 8-bit's loader
-  was proven the same week, the GTIA colour wheel corrected against the
-  metal, and mode-9 pictures everywhere are now exact top slices of
-  their mode-12 versions: same picture, same colours, by construction.
-  For the TRS-80 Model 4, conversions now ship as `ARC1.TR4` style
-  files, matching what TRSDOS disks can actually hold.
+
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus

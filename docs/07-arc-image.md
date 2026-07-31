@@ -46,29 +46,29 @@ Two authoring aids:
 
 ## 2. Shipping for modern systems (playable today)
 
-```
-arcimg pack art/ -o mygame.arcres
-```
-
-zips the numbered PNGs into one `.arcres` beside the z5. Actaea's window
-shows the pictures; Actaea's console and pipe modes, and every other
-standard interpreter, play the same file text-only.
-
-For the wider interpreter ecosystem the same pack ships as a Blorb, the
-IF world's standard resource container, with the identical numbering
-(picture id N is Blorb resource Pict N; Blorb has no filenames, only
-numbers, which is exactly the arc_image model):
+The pictures ship in a Blorb, the IF world's standard resource
+container, with the arc_image numbering carried over exactly (picture
+id N is Blorb resource Pict N; Blorb has no filenames, only numbers,
+which is exactly the arc_image model). Two shapes, both from one
+command:
 
 ```
-arcimg pack art/ --blorb -o mygame.blorb        pictures only, beside the z5
+arcimg pack art/ -o mygame.blorb                       pictures only, beside the z5
 arcimg pack art/ --zblorb mygame.z5 -o mygame.zblorb   story + pictures, ONE file
 ```
 
 The `.zblorb` is the shape Blorb-aware interpreters (the Gargoyle
 family, and Actaea itself) open directly: your whole game, art
 included, in a single file. Actaea plays all of it: a `.zblorb` opened
-as the story, or a sibling `.arcres` or `.blorb` found next to a plain
-`.z5`/`.z8`.
+as the story, or a sibling `.blorb` found next to a plain `.z5`/`.z8`.
+Actaea's console and pipe modes, and every other standard interpreter,
+play the same story text-only. And the same finished artifacts feed the
+web: `proteus mygame.zblorb -o mygame.html` (or the story and its
+`.blorb` as a pair) turns the game into one self-contained page that
+plays in any browser, pictures and all (docs/09).
+
+(An earlier `.arcres` zip pack was retired on 2026-07-31; the Blorb is
+the one pack, readable everywhere the pictures go.)
 
 Masters need not be 320 wide: any resolution at the band's aspect ratio
 (40:9 for mode 9, 10:3 for mode 12) packs and displays, and interpreters
@@ -78,17 +78,13 @@ you can skip the pack and point Actaea at the directory:
 `actaea game.z5 --images art/`.
 
 The worked examples are in [examples/arc_image/](../examples/arc_image/),
-one per container, same story shape either way:
-`rabenstein.storyarc` ships its art in an `.arcres` pack, and
-`blorbenstein.storyarc` is the SAME demo shipped in a `.blorb`. Each
-comes with its pack and its built z5. Beside them,
-`cloak-of-darkness.storyarc` is the MODE 9 twin: Roger Firth's classic
-with four Arthur-band scenes (320x72), where the plot itself is the
-darkness test, the bar's own dark painting standing as arc_image_dark
-until the cloak hangs on its hook. Its retro conversions live under
-arc_image/cloak/, and `blorb-of-darkness.storyarc` is that same game
-shipped in a `.blorb`, so both band shapes come in both containers.
-Between the two demos an interpreter exercises both band shapes. The Rabenstein demo is also the
+each shipping its `.blorb` beside the storyarc: `rabenstein.storyarc`
+is the MODE 12 demo, and `cloak-of-darkness.storyarc` is the MODE 9
+twin: Roger Firth's classic with four Arthur-band scenes (320x72),
+where the plot itself is the darkness test, the bar's own dark painting
+standing as arc_image_dark until the cloak hangs on its hook. Its retro
+conversions live under arc_image/cloak/. Between the two demos an
+interpreter exercises both band shapes. The Rabenstein demo is also the
 INTERPRETER AUTHOR'S TEST GAME: a compact walk exercising the whole
 contract (traversal, a pictureless room that must clear the band,
 darkness with its all-black scene, an in-place picture change on an
@@ -135,7 +131,8 @@ is needed. Everything else is built in.
 
 | Target | Status |
 |---|---|
-| Modern (Actaea window) | PLAYS TODAY (`.arcres` beside the z5) |
+| Modern (Actaea window) | PLAYS TODAY (`.zblorb`, or `.blorb` beside the z5) |
+| The web (Proteus) | PLAYS TODAY (`proteus mygame.zblorb -o mygame.html`) |
 | DOS (VGA) | blueprint proven; interpreter support planned |
 | Amiga (OCS/ECS) | blueprint proven; planned for Eris |
 | Atari ST(E) | blueprint proven; planned for Eris |
@@ -157,8 +154,7 @@ and a later interpreter picks the same files up.
 ## 5. The commands, all of them
 
 ```
-arcimg pack SOURCES... -o game.arcres      the modern pack
-arcimg pack ... --blorb -o game.blorb      the same pictures as a Blorb
+arcimg pack SOURCES... -o game.blorb       the modern pack (a Blorb)
 arcimg pack ... --zblorb game.z5 -o game.zblorb   story + pictures in one Blorb
 arcimg prep SOURCE --id N --mode MODE      size and number a source
 arcimg info SOURCE                         a PNG's size / a pack's contents

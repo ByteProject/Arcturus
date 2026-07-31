@@ -30,7 +30,6 @@ is exact from day one."""
 import base64
 import json
 import os
-import zipfile
 import tkinter as tk
 import webbrowser
 from math import gcd as _gcd
@@ -158,10 +157,10 @@ class ActaeaApp:
         self.root = tk.Tk()
         self.root.title(f"{title} - Actaea")
         # arc_image (B11): an arc_image id IS the resource slot, so a picture the
-        # model asks for is loaded as <id>.png, either from a loose images
-        # directory or from the story's .arcres pack (a zip of the same numbered
-        # PNGs). No name manifest. Loaded on demand and cached; PhotoImages must
-        # be kept referenced or tkinter garbage-collects them off the canvas.
+        # model asks for is loaded by number, either as <id>.png from a loose
+        # images directory or as Pict <id> from the story's Blorb pack. No name
+        # manifest. Loaded on demand and cached; PhotoImages must be kept
+        # referenced or tkinter garbage-collects them off the canvas.
         self._images_dir = images_dir
         self._images_zip = images_zip
         self._photo_cache: dict = {}    # id -> native PhotoImage
@@ -538,7 +537,8 @@ class ActaeaApp:
 
     def _load_image_bytes(self, image_id: int):
         """The raw PNG bytes for a picture id: from the loose images
-        directory, the .arcres pack, or the Blorb. None on any miss."""
+        directory or the Blorb pack. None on any miss. (The .arcres zip
+        was retired, 2026-07-31; the Blorb is the one pack.)"""
         fname = f"{image_id}.png"
         if self._images_dir:
             try:
@@ -548,12 +548,9 @@ class ActaeaApp:
                 return None
         if self._images_zip:
             try:
-                if zipfile.is_zipfile(self._images_zip):
-                    with zipfile.ZipFile(self._images_zip) as z:
-                        return z.read(fname)
                 from ..loader import blorb_picture
                 return blorb_picture(self._images_zip, image_id)
-            except (OSError, KeyError, zipfile.BadZipFile):
+            except (OSError, KeyError):
                 return None
         return None
 

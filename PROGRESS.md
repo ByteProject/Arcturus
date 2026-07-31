@@ -8407,3 +8407,33 @@ in the browser. build/proteus is the fourth tracked standalone (the
 single-file template rides inside, gzipped, with a build fingerprint),
 arcc --update refreshes it alongside the others, and docs/09 is its
 book. arcc 1.3.54, proteus 1.0.0.
+
+## One pack: the Blorb; .arcres retired (2026-07-31)
+
+STEFAN'S RULING, reasoned in one line: when every destination reads the
+Blorb, a second pack has no point. Actaea opens a zblorb directly and
+finds a sibling .blorb by name, the wider Blorb-aware interpreter world
+speaks the container natively, and proteus builds the web page from
+exactly the same files, so the young .arcres zip retired the day its
+last unique consumer disappeared. The sub-rulings, all his: arcimg pack
+writes the pictures Blorb BY DEFAULT (the now-redundant --blorb flag is
+deleted, not kept as a no-op); a zblorb always requires the story file,
+stated loudly rather than guessed from an extension; Actaea's arcres
+reader goes too (Actaea 1.3.8); and the example twins merge under their
+plain names, the Blorb siblings keeping the names the arcres packs held
+(blorb-of-darkness became cloak-of-darkness.blorb, blorbenstein became
+rabenstein.blorb), each demo shipping story, source, and pack side by
+side. Documented across the board in the same sweep: docs/00, 01, 06,
+07, 08 (the packs section is Blorb-only now, with a one-line note for
+anyone meeting a stray .arcres in the wild), the design record, README,
+WHATSNEW, and the example sources themselves.
+
+Two honest footnotes from the sweep. The dark-room demo master carried
+two calibration pixels from the measuring days (my leftover, caught by
+Stefan on the web page of all places); the master is clean now and all
+nine existing target conversions were regenerated and verified by
+round-trip render. And the flat grey it became exposed a degenerate
+case in the ST text-contract test: a picture too plain to use all
+sixteen palette slots failed on unused entries no pixel references; the
+contract now judges the colours the picture actually uses. arcimg
+1.30.0, Actaea 1.3.8; the suite holds at 1328 green.

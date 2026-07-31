@@ -6,7 +6,7 @@
 """arcimg, the arc_image preparation tool: the stdlib paths, which are the ones
 a pixel artist actually uses (Pillow is only reached to resize or convert a
 non-mode source, and is not asserted here). Covers packing numbered PNGs into an
-.arcres pack that the interpreter can read, the prep fast-path that copies an
+Blorb pack that the interpreter can read, the prep fast-path that copies an
 already-sized PNG with no Pillow, and info reporting."""
 
 import importlib.util
@@ -64,22 +64,42 @@ def test_numbered_id():
     assert arcimg._numbered_id("8.gif") is None
 
 
-def test_pack_zips_numbered_pngs(tmp_path):
-    # A directory of numbered PNGs packs into an .arcres the interpreter reads.
+def test_pack_builds_a_blorb(tmp_path):
+    # A directory of numbered PNGs packs into a Blorb the interpreter reads
+    # (the .arcres zip was retired, 2026-07-31; the Blorb is the one pack).
     imgs = tmp_path / "images"
     imgs.mkdir()
     _make_png(imgs / "1.png", 320, 96)
     _make_png(imgs / "2.png", 320, 72)
     _make_png(imgs / "notes.txt.png", 320, 96)  # not numbered: ignored below
     (imgs / "readme.txt").write_text("ignore me")
-    pack = tmp_path / "game.arcres"
+    pack = tmp_path / "game.blorb"
 
     rc = arcimg.main(["pack", str(imgs), "-o", str(pack)])
     assert rc == 0
-    assert zipfile.is_zipfile(pack)
-    with zipfile.ZipFile(pack) as z:
-        names = sorted(z.namelist())
-    assert names == ["1.png", "2.png"]  # numbered only, keyed by id
+    data = pack.read_bytes()
+    assert data[:4] == b"FORM" and data[8:12] == b"IFRS"
+    pictures, has_story, _mode = arcimg._blorb_pictures(str(pack))
+    assert sorted(pictures) == [1, 2]  # numbered only, keyed by id
+    assert not has_story
+
+
+def test_pack_refuses_the_retired_arcres(tmp_path):
+    imgs = tmp_path / "i"
+    imgs.mkdir()
+    _make_png(imgs / "1.png", 320, 96)
+    rc = arcimg.main(["pack", str(imgs), "-o", str(tmp_path / "g.arcres")])
+    assert rc == 2
+    assert not (tmp_path / "g.arcres").exists()
+
+
+def test_pack_zblorb_needs_the_story(tmp_path):
+    imgs = tmp_path / "i"
+    imgs.mkdir()
+    _make_png(imgs / "1.png", 320, 96)
+    rc = arcimg.main(["pack", str(imgs), "-o", str(tmp_path / "g.zblorb")])
+    assert rc == 2
+    assert not (tmp_path / "g.zblorb").exists()
 
 
 def test_pack_round_trips_into_the_interpreter(tmp_path):
@@ -87,19 +107,18 @@ def test_pack_round_trips_into_the_interpreter(tmp_path):
     imgs = tmp_path / "images"
     imgs.mkdir()
     _make_png(imgs / "5.png", 320, 96, (1, 2, 3))
-    pack = tmp_path / "g.arcres"
+    pack = tmp_path / "g.blorb"
     arcimg.main(["pack", str(imgs), "-o", str(pack)])
-    with zipfile.ZipFile(pack) as z:
-        data = z.read("5.png")
-    assert arcimg._png_size_bytes(data) == (320, 96)
+    pictures, _story, _mode = arcimg._blorb_pictures(str(pack))
+    assert arcimg._png_size_bytes(pictures[5]) == (320, 96)
 
 
 def test_pack_rejects_a_non_png(tmp_path):
     bad = tmp_path / "3.png"
     bad.write_bytes(b"this is not a png")
-    rc = arcimg.main(["pack", str(bad), "-o", str(tmp_path / "out.arcres")])
+    rc = arcimg.main(["pack", str(bad), "-o", str(tmp_path / "out.blorb")])
     assert rc == 2
-    assert not (tmp_path / "out.arcres").exists()
+    assert not (tmp_path / "out.blorb").exists()
 
 
 def test_prep_fast_path_copies_a_mode_sized_png(tmp_path):
@@ -126,7 +145,7 @@ def test_info_lists_a_pack(tmp_path, capsys):
     imgs.mkdir()
     _make_png(imgs / "1.png", 320, 96)
     _make_png(imgs / "2.png", 320, 72)
-    pack = tmp_path / "g.arcres"
+    pack = tmp_path / "g.blorb"
     arcimg.main(["pack", str(imgs), "-o", str(pack)])
     capsys.readouterr()  # clear the pack output
     rc = arcimg.main(["info", str(pack)])

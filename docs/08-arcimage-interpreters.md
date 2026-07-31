@@ -15,7 +15,7 @@ edits the generated files by hand:
   in that machine's own memory order, so your loader unpacks bytes and
   never converts anything.
 - For modern systems there is no conversion at all. The master PNGs are
-  simply packed, either into an `.arcres` file or into a Blorb.
+  simply packed into a Blorb.
 
 So the masters are the single source, and the files you read are delivery
 copies that get rebuilt whenever the art changes.
@@ -182,7 +182,7 @@ it unchanged as text. Here is the whole contract.
    pictures must never change what a game's colour requests mean, and
    colour requests must never repaint a picture.
 
-## The modern desktop (the .arcres and .blorb path)
+## The modern desktop and the web (the Blorb path)
 
 If you are writing a modern interpreter, Part A and this section are all
 you need. Everything from Part B onwards, the `.arc` container and the
@@ -190,27 +190,29 @@ codecs and the per-machine chapters, is the retro machines' business, and
 you can skip it entirely. On the desktop there is nothing to decode: the
 pictures are the master PNGs, exactly as the author painted them.
 
-THE PACKS. Beside the story file sits a pack of numbered PNGs, and the
-picture id in the opcode is simply the number in that pack. Two shapes,
-same idea:
-
-- `.arcres` (mygame.z5, mygame.arcres): a plain zip holding `<id>.png`
-  (picture 8 is 8.png). No manifest; the names are the index.
-- Blorb: the same pictures as `Pict` resources (picture 8 is Pict 8,
-  a `PNG ` chunk holding the master bytes verbatim). `mygame.blorb`
-  accompanies a separate story file; `mygame.zblorb` embeds the story
-  itself as Exec 0 (a `ZCOD` chunk), the single-file shape the
-  Gargoyle family opens directly. arcimg writes both (`pack --blorb`,
-  `pack --zblorb STORY`).
+THE PACK. The pictures travel as a Blorb: each picture is a `Pict`
+resource (picture 8 is Pict 8, a `PNG ` chunk holding the master bytes
+verbatim). `mygame.blorb` accompanies a separate story file;
+`mygame.zblorb` embeds the story itself as Exec 0 (a `ZCOD` chunk), the
+single-file shape the Gargoyle family opens directly. arcimg writes
+both (`pack`, `pack --zblorb STORY`).
 
 If you already read Blorb, there is nothing new to learn: the resource
-number is the arc_image id, and the mode still comes from the opcode. If
-you read neither format, the zip is the smaller job.
+number is the arc_image id, and the mode still comes from the opcode.
+(An earlier `.arcres` zip pack existed briefly and was retired on
+2026-07-31; if you ever meet one in the wild, it is a plain zip of
+`<id>.png` files, and repacking it is one arcimg command.)
 
 A loose directory of numbered PNGs beside the story also works, but that
-is for debugging while writing a game; released games ship a pack.
-Actaea looks for a pack first and falls back to the story's own
+is for debugging while writing a game; released games ship the Blorb.
+Actaea looks for the pack first and falls back to the story's own
 directory.
+
+THE WEB. Proteus, the Arcturus web interpreter (proteus/ in this
+repository), plays the same pictures in the browser: the `proteus`
+tool embeds a zblorb (or a story plus its pictures Blorb) into one
+self-contained HTML page, band and all. Nothing in this chapter
+changes for it; it consumes exactly the contract above.
 
 One note on picture size. The masters do not have to be 320 wide. Any
 size works as long as it keeps the band's aspect (40:9 for mode 9, 10:3
@@ -231,7 +233,7 @@ the ordinary Blorb it is and play it the way you always have: no band,
 and leave the capability bit alone.
 
 Two things the chunk does not change. It is a rule about Blorbs only, so
-a plain `.z5` or `.z8` sitting beside an `.arcres` or an images directory
+a plain `.z5` or `.z8` sitting beside an images directory
 involves no Blorb at all and needs nothing extra; Part A on its own is
 still the whole runtime contract. And it never overrides the opcode: the
 mode operand on each `draw_image` call remains the authority, so a

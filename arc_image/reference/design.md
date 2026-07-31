@@ -123,7 +123,8 @@ research and these three are recipe application.
 One format family, one name: an `.arc` image (working name; the extension
 per platform is in the naming table below). Per image id, per target, one
 file, so a game disk for a machine carries exactly the pictures it shows
-and nothing else. The modern `.arcres` (a zip of the master PNGs) remains
+and nothing else. The modern Blorb pack (the master PNGs as Pict resources)
+remains
 the interchange and Actaea format; retro targets get flat files because
 retro file systems want flat files.
 
@@ -170,7 +171,7 @@ Architecture: one shared front half, per-target back halves.
 
 - THE MASTER (ruled): a band-shaped PNG, 320x72 or 320x96, matching the
   game's arc_mode; the author provides the right shape, exactly what the
-  modern `.arcres` already holds. Master RICHNESS varies and the converter
+  modern Blorb pack already holds. Master RICHNESS varies and the converter
   meets it where it is: the expected common denominator is ST-class art
   (16 colors, what Stefan himself will paint), while Amiga/DOS-class
   richer masters are welcome and convert downward with best effort. From

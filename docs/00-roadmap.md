@@ -150,9 +150,8 @@ the status bar sits flush beneath the band: Infocom mode (320x72, 9 rows, the
 upper third, the Arthur look) and DAAD mode (320x96, 12 rows, the upper half,
 the Rabenstein look). On modern systems the PNG renders directly in the
 reference interpreter, Actaea, which integer-scales it to the window, crisp for
-pixel art (B11); the author tool `arcimg` prepares the art and packs it into an
-`.arcres` file (a zip of the numbered PNGs) for distribution, the story kept
-separate. For retro targets (B12) `arcimg` gains back-ends that convert each
+pixel art (B11); the author tool `arcimg` prepares the art and packs it into a Blorb for
+distribution, beside the story or with the story embedded (`.zblorb`). For retro targets (B12) `arcimg` gains back-ends that convert each
 PNG into the machine's own trimmed, RLE-compressed format (a custom format per
 machine, sized to fit and not the full-screen .kla/.iff shapes, which cannot be
 cropped to a band), kept small for 8-bit machines.
@@ -256,8 +255,8 @@ done-test.
   capability guard and the EXT opcode contract, resource ids written as
   constants and the mode carried in the opcode (`arc_mode`), room and scene art
   rendered from PNGs in Infocom and DAAD modes, the rendering capability added
-  to Actaea, and the `arcimg` author tool preparing and packing the art into an
-  `.arcres` file, with the same story file still running unchanged on Frotz.
+  to Actaea, and the `arcimg` author tool preparing and packing the art into
+  the Blorb pack, with the same story file still running unchanged on Frotz.
 - B12 (in progress; the approved charter, target ledger, and sub-milestones
   R0 to R6 are arc_image/reference/design.md): `arc_image` on retro systems,
   fourteen targets. The center of gravity is the conversion intelligence:

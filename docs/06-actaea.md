@@ -81,7 +81,7 @@ first loading the picture, the same way a retro interpreter must. The console an
 support, so the same story plays there as pure text. Actaea finds the
 pictures next to the story: `--images DIR` points at a directory of numbered
 PNGs (`8.png` is picture id 8, the debug path), and with no flag it reads a
-sibling `.arcres` pack (the zip `arcimg` builds) or `.blorb`, then the story's own
+sibling `.blorb` pack (`arcimg` builds it), then the story's own
 directory. There is no name manifest; the id is the file. This is the modern
 half; retro rendering is B12.
 
@@ -143,7 +143,7 @@ input stream, so a scripted session can save and restore mid-walkthrough.
 
 The pictures a story shows are prepared by a separate tool, `arcimg`, the
 third standalone alongside `arcc` and `actaea` (01 section 6b). It packs
-numbered PNGs into the `.arcres` file Actaea reads (`arcimg pack`), sizes a
+numbered PNGs into the Blorb pack Actaea reads (`arcimg pack`), sizes a
 source to a picture mode (`arcimg prep`), and reports a PNG or a pack
 (`arcimg info`); like the others it leads with its banner.
 

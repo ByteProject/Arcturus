@@ -76,7 +76,12 @@ def test_the_st_text_contract():
         assert len(pal) == 16
         luma = lambda c: 2 * c[0] + 4 * c[1] + c[2]
         assert luma(pal[15]) >= 4 * 255, name          # a readable ink
-        assert luma(pal[0]) == min(map(luma, pal)), name  # darkest paper
+        # Darkest paper, judged over the colours the picture actually uses:
+        # an unused slot stays hardware black, and a picture too plain to
+        # use them all (the dark room's flat grey) must not fail on slots
+        # no pixel references.
+        used = {idx for row in native["pixels"] for idx in row} | {0}
+        assert luma(pal[0]) == min(luma(pal[i]) for i in used), name
 
 
 def test_wrong_shape_is_refused(tmp_path):

@@ -3674,11 +3674,12 @@ author your art to match it.
 A modern interpreter integer-scales the picture to the window width, which keeps
 pixel art crisp at any font size; pixel art is the medium that looks best.
 
-The pictures live beside the story, not inside it. During development, point the
-interpreter at a directory of numbered PNGs (`actaea game.z5 --images art/`).
-For distribution, the `arcimg` tool packs them into a single `.arcres` file (a
-zip of the numbered PNGs), which the interpreter reads automatically when it
-sits next to the story; the z5 stays a separate file.
+During development, point the interpreter at a directory of numbered PNGs
+(`actaea game.z5 --images art/`). For distribution, the `arcimg` tool packs
+them into a Blorb, the IF world's standard resource container: a sibling
+`game.blorb` the interpreter reads automatically next to the story, or,
+with the story embedded, a single `game.zblorb` that carries the whole
+game. The same finished files feed the `proteus` web builder (docs/09).
 
 `arcimg` is the third standalone tool, shipped like `arcc` and `actaea`
 (`build/arcimg`, a single self-contained file). The two commands of the
@@ -3686,7 +3687,8 @@ modern path:
 
 ```
 arcimg prep opening.jpg --id 8 --mode daad -o art/    # art/8.png at 320x96
-arcimg pack art/ -o game.arcres                        # the distributable pack
+arcimg pack art/ -o game.blorb                        # the distributable pack
+arcimg pack art/ --zblorb game.z5 -o game.zblorb      # the whole game, one file
 ```
 
 The full picture workflow, the retro conversions, and which interpreters
@@ -3694,7 +3696,7 @@ play the pictures today and next, is its own author guide: docs/07.
 
 Mode-sized PNGs need nothing but the standard library; `prep` reaches for Pillow
 only to resize or convert, and offers a guided install the first time. A worked
-example, with its `.arcres` and heavily commented source, is in
+example, with its `.blorb` and heavily commented source, is in
 [examples/arc_image](../examples/arc_image).
 
 ## Chapter 21: Writing in another language

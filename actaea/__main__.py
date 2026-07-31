@@ -63,11 +63,13 @@ def _report(story) -> str:
 
 def _resolve_images(story_path: str, images_arg):
     """Where the story's arc_image pictures live. An arc_image id is the
-    resource slot, so a front-end loads <id>.png directly; there is no name
-    manifest. Returns (images_dir, images_zip): a loose directory of numbered
-    PNGs, or a `.arcres` pack (a zip of the same numbered PNGs), whichever
-    applies. Priority: an explicit --images directory; else a sibling .arcres
-    pack; else the story's own directory (the loose debug default)."""
+    resource slot, so a front-end loads picture N directly; there is no name
+    manifest. Returns (images_dir, images_pack): a loose directory of
+    numbered PNGs, or a Blorb pack. Priority: an explicit --images
+    directory; else a .zblorb story serving its own pictures; else a
+    sibling .blorb pack; else the story's own directory (the loose debug
+    default). The .arcres zip was retired (2026-07-31); the Blorb is the
+    one pack."""
     if images_arg:
         return images_arg, None
     # A .zblorb serves its own pictures (Pict N inside the same file).
@@ -78,9 +80,6 @@ def _resolve_images(story_path: str, images_arg):
                 return None, story_path
     except OSError:
         pass
-    pack = os.path.splitext(story_path)[0] + ".arcres"
-    if os.path.isfile(pack):
-        return None, pack
     blb = os.path.splitext(story_path)[0] + ".blorb"
     if os.path.isfile(blb):
         return None, blb
@@ -282,7 +281,7 @@ def main(argv=None) -> int:
     ap.add_argument(
         "--images", metavar="DIR",
         help="directory of the story's numbered picture files (arc_image, GUI "
-        "only); defaults to a sibling .arcres pack, then the story's own "
+        "only); defaults to a sibling .blorb pack, then the story's own "
         "directory",
     )
     ap.add_argument(
