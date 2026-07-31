@@ -39,7 +39,7 @@ import sys
 from pathlib import Path
 
 __version__ = "1.0.0"
-__build__ = '987b868'
+__build__ = 'cf5be53'
 
 # The amalgamation replaces this with the gzipped, base64-coded template;
 # from the repository the tool reads the built template beside itself
@@ -199,7 +199,7 @@ def build_page(template: str, story_data: bytes, filename: str) -> str:
 
 
 def _looks_like_story(data: bytes) -> bool:
-    return len(data) > 64 and data[0] in (3, 4, 5, 7, 8)
+    return len(data) > 64 and data[0] in (3, 4, 5, 8)
 
 
 def _looks_like_blorb(data: bytes) -> bool:

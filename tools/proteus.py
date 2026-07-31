@@ -199,7 +199,7 @@ def build_page(template: str, story_data: bytes, filename: str) -> str:
 
 
 def _looks_like_story(data: bytes) -> bool:
-    return len(data) > 64 and data[0] in (3, 4, 5, 7, 8)
+    return len(data) > 64 and data[0] in (3, 4, 5, 8)
 
 
 def _looks_like_blorb(data: bytes) -> bool:
