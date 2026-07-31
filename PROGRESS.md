@@ -8364,3 +8364,46 @@ WHAT THIS SESSION LANDED (all pushed):
 
 STATE: arcc 1.3.53, Cosmos 1.3.17, Actaea 1.3.7, vsix 1.1.0; suite
 1326 green; everything pushed through 166011b.
+
+## Proteus: Arcturus games play on the web (2026-07-31)
+
+The most-asked feature of the modern-syntax adopters, ruled and built in
+one arc. STEFAN'S RULINGS SHAPED ALL OF IT: an owned fork rather than a
+PR upstream (a feature this central must not wait on another project's
+review queue); the fork lives INSIDE this repository under proteus/, no
+separate fork repo; the name is Proteus, broadening the Solar System
+naming of the interpreters; the export is its OWN standalone tool,
+because arcc compiles and arcimg makes pictures and neither is a
+packaging tool; the tool takes the FINISHED artifacts an author already
+has (a zblorb, or story plus pictures Blorb, or a bare z5), never
+masters; a zblorb always requires its story, no extension guessing; the
+page title is the story's filename in the Actaea manner (metadata
+machinery ruled overkill); no build date in the title; the CLI leads
+with the family banner on every path and ends with the family's blank
+line. And one infrastructure ruling with teeth: the orb Linux machine is
+a pristine BuildTools mirror, so the node toolchain lives on the Mac,
+and node is needed only to rebuild the web runtime, never by authors.
+
+The engineering: Parchment (Dannii Willis, MIT, credited on the page
+and in proteus/PROVENANCE.md) vendored at pinned commits and trimmed
+from 3.6 MB to about 0.8 MB single-file: every non-Z engine out, ZVM
+(dormant upstream, recovered from Parchment's own history) revived as
+the one engine and wired to the modern shell. arc_image took exactly
+the three tricks docs/08 promised: the capability bit at the
+update-header seam (boot, restart, restore in one place), extended
+opcode 1128 forwarding to the shell, and a band above the gameport
+that appears only when the Blorb declares ARCI. Stefan's browser
+testing then drove the real work: he DISPROVED the assumed no-colours
+limitation (Z-colours flow as garglk-style run styles; the shell now
+paints them onto the window frame and the page, the Gargoyle manner,
+reverse video included, which also stretched the statusline's colour
+full width), and his resize and zoom torture exposed the band geometry
+races, fixed structurally by making the band a flex sibling the browser
+lays out atomically. A headless-Chrome harness now boots every build,
+plays a route across picture changes, clears, the dark room, and window
+resizes, and asserts geometry, scroll, and console cleanliness; nothing
+reaches Stefan's glass unverified. The B8 game's full story file plays
+in the browser. build/proteus is the fourth tracked standalone (the
+single-file template rides inside, gzipped, with a build fingerprint),
+arcc --update refreshes it alongside the others, and docs/09 is its
+book. arcc 1.3.54, proteus 1.0.0.

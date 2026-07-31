@@ -1,0 +1,149 @@
+/*
+
+GlkOte window styles
+====================
+
+Copyright (c) 2022 Dannii Willis
+MIT licenced
+https://github.com/curiousdannii/asyncglk
+
+*/
+
+.WindowFrame {
+    background: var(--glkote-buffer-bg);
+    box-sizing: border-box;
+    margin: 0px;
+    overflow: hidden;
+    position: absolute;
+}
+
+.WindowFrame.hidden {
+    padding: 0;
+}
+
+.BufferWindow {
+    color: var(--glkote-buffer-fg);
+    font-family: var(--glkote-prop-family);
+    font-size: var(--glkote-buffer-size);
+    line-height: var(--glkote-buffer-line-height);
+    overflow-y: auto;
+    scrollbar-gutter: stable; /* preserve space for the vertical scrollbar */
+}
+
+/* Make the scrollbar transparent grey */
+.BufferWindow::-webkit-scrollbar {
+    width: 10px;
+}
+.BufferWindow::-webkit-scrollbar-thumb {
+    background: rgba(50%, 50%, 50%, 20%);
+}
+
+.BufferWindow:focus {
+    outline: 0;
+}
+
+/* We use a separate inner <div> so that the <input> for character input can be positioned at the bottom of the window */
+.BufferWindowInner {
+    padding: 6px 10px;
+    position: relative;
+}
+
+.BufferLine {
+    white-space: pre-wrap; /* required for spaces to work right */
+}
+
+.BufferLine span {
+    padding: var(--glkote-prop-half-leading) 0;
+    vertical-align: bottom;
+}
+
+.BufferLine span.monospace {
+    display: inline-block;
+    font-family: var(--glkote-mono-family);
+    padding: 0;
+}
+
+.BufferLine .Style_preformatted.proportional {
+    display: inline;
+    font-family: var(--glkote-prop-family);
+    padding: var(--glkote-prop-half-leading) 0;
+}
+
+.BufferLine span.reverse {
+    background: var(--glkote-buffer-reverse-bg);
+    color: var(--glkote-buffer-reverse-fg);
+}
+
+/* Use flexbox so that the <input> can be autosized */
+.BufferLine:last-child {
+    display: flex;
+    flex-wrap: wrap;
+}
+/* But flexbox turns inline children into inline-block, so we must now remove their padding (just like for .monospace) */
+.BufferLine:last-child span {
+    padding: 0;
+}
+
+/* Buffer window image classes */
+.FlowBreak {
+    clear: both;
+}
+.ImageInlineCenter {
+    vertical-align: middle;
+}
+.ImageInlineDown {
+    vertical-align: text-top;
+}
+.ImageInlineUp {
+    vertical-align: text-bottom;
+}
+.ImageMarginLeft {
+    float: left;
+    margin-right: 0.5em;
+}
+.ImageMarginRight {
+    float: right;
+    margin-left: 0.5em;
+}
+
+.GraphicsWindow canvas {
+    background-color: var(--glkote-buffer-bg);
+    display: block;
+}
+
+.GridWindow {
+    background: var(--glkote-grid-bg);
+    color: var(--glkote-grid-fg);
+    font-family: var(--glkote-grid-mono-family); /* necessary! */
+    font-size: var(--glkote-grid-size);
+    line-height: var(--glkote-grid-line-height);
+    padding: 6px 10px;
+}
+
+.GridWindow.reverse {
+    background: var(--glkote-grid-reverse-bg);
+}
+
+.GridLine {
+    white-space: pre; /* required for spaces to work right */
+}
+
+.GridLine span {
+    display: inline-block;
+}
+
+.GridWindow span.reverse {
+    background: var(--glkote-grid-reverse-bg);
+    color: var(--glkote-grid-reverse-fg);
+}
+
+/* A couple small adjustments for mobile devices */
+@media screen and (max-width: 767px) {
+    .BufferWindow::-webkit-scrollbar {
+        width: 0;
+    }
+
+    .GridWindow {
+        padding: 6px;
+    }
+}

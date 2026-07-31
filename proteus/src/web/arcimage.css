@@ -1,0 +1,19 @@
+/* Proteus: the arc_image picture band. A flex sibling above the
+   gameport (see parchment.css): the browser reflows the gameport in
+   the same layout pass whenever the band changes, and GlkOte's resize
+   observer follows. The picture keeps its own aspect (the band shape
+   is baked into the master PNG) and stays crisp: the masters are
+   pixel art. */
+
+#arc-image-band {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 900px;
+}
+
+#arc-image-band img {
+    display: block;
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+}

@@ -1,0 +1,49 @@
+root: true
+
+extends: 'eslint:recommended'
+
+parserOptions:
+  ecmaVersion: 6
+
+env:
+  es6: true
+  node: true
+  
+globals:
+  window: true
+
+rules:
+  brace-style:
+    - error
+    - allman
+  comma-dangle:
+    - error
+    - always-multiline
+  curly:
+    - error
+  eqeqeq:
+    - error
+    - always
+    -
+      null: ignore
+  indent:
+    - error
+    - tab
+    -
+      SwitchCase: 1
+      VariableDeclarator: 0
+  linebreak-style:
+    - error
+    - unix
+  no-cond-assign:
+    - off
+  no-console:
+    - off
+  no-constant-condition:
+    - off
+  quotes:
+    - error
+    - single
+#  semi:
+#    - error
+#    - always

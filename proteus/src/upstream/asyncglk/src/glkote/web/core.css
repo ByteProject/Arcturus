@@ -1,0 +1,68 @@
+/*
+
+GlkOte core styles
+==================
+
+Copyright (c) 2023 Dannii Willis
+MIT licenced
+https://github.com/curiousdannii/asyncglk
+
+*/
+
+/* Base black on white styles, see light.css for something nicer */
+:root {
+    --glkote-buffer-bg: #fff;
+    --glkote-buffer-fg: #000;
+    --glkote-buffer-line-height: 1.4;
+    --glkote-buffer-reverse-bg: #000;
+    --glkote-buffer-reverse-fg: #fff;
+    --glkote-buffer-size: 15px;
+    --glkote-error-border: #F00;
+    --glkote-grid-bg: #fff;
+    --glkote-grid-fg: #000;
+    --glkote-grid-line-height: 18px;
+    --glkote-grid-mono-family: var(--glkote-mono-family);
+    --glkote-grid-reverse-bg: #000;
+    --glkote-grid-reverse-fg: #fff;
+    --glkote-grid-size: 14px;
+    --glkote-input-fg: #000;
+    --glkote-warning-border: #00F;
+    /* These styles are all for buffer windows */
+    --glkote-mono-family: "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", monospace;
+    --glkote-prop-family: Georgia, "AsyncGlk Serif", serif;
+    --glkote-prop-half-leading: 0.132em;
+}
+
+/* Make Times New Roman or Liberation Serif have the same content-area height as Georgia */
+@font-face {
+    font-family: "AsyncGlk Serif";
+    src: local("Times News Roman"), local("Liberation Serif");
+    ascent-override: 91.7%;
+    descent-override: 21.9%;
+}
+
+/* The body-scroll-lock package needs these to be set */
+body, html {
+    height: 100%;
+    width: 100%;
+    /* The Inform 7 template needs this otherwise its margins will cause unwanted scrollbars */
+    overflow: hidden;
+}
+
+/* The position of #gameport must be controlled from without, but the overflow behaviour is ours. */
+div#gameport {
+    overflow: clip;
+}
+
+#windowport {
+    height: 100%;
+    position: relative;
+    width: 100%;
+}
+
+/* Make the test pane render invisibly */
+#layout_test_pane {
+    position: absolute;
+    top: 0;
+    visibility: hidden;
+}

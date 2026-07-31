@@ -180,7 +180,7 @@ def _build_argparser() -> argparse.ArgumentParser:
     )
     ap.add_argument(
         "--update", action=_UpdateAction, nargs=0,
-        help="refresh this standalone (and actaea/arcimg beside it) to the "
+        help="refresh this standalone (and actaea/arcimg/proteus beside it) to the "
         "latest published build, then exit. The ONLY command that touches "
         "the network; arcc never checks by itself.",
     )
@@ -596,7 +596,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{args.source}: wrote {args.output} ({len(story)} bytes)")
         # arc_image (B11): pictures need no compiler sidecar. The id in each room's
         # arc_image slot IS the resource number, so an aware interpreter loads
-        # <id>.png straight from the images directory (or the .arcres pack that
+        # <id>.png straight from the images directory (or the Blorb pack that
         # `arcimg` builds). Nothing extra is written beside the story.
         if stats is not None:
             print(_stats_report(stats, args.zversion))

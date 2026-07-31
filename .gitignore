@@ -15,6 +15,7 @@ build/*
 !build/arcc
 !build/actaea
 !build/arcimg
+!build/proteus
 
 # The arc_image directory is the B12 playground (docs/08): the masters are
 # the tracked truth; the per-target conversions and previews are derived
@@ -39,6 +40,12 @@ build/*
 # The Hibernated 2 source and walkthrough (the B8 port's working material) are
 # NOT released; this repository is public. Never commit this directory.
 hibernated2/
+
+# Proteus (the web interpreter fork living in proteus/): npm packages and
+# generated build output stay out; the sources and PROVENANCE are tracked.
+# proteus/dist is already covered by the dist/ rule above.
+proteus/node_modules/
+proteus/tools/
 
 # VS Code extension build artifacts
 editors/vscode/node_modules/

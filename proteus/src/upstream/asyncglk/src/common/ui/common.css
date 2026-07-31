@@ -1,0 +1,62 @@
+/*
+
+Common styles used by Svelte components
+=========
+
+Copyright (c) 2024 Dannii Willis
+MIT licenced
+https://github.com/curiousdannii/asyncglk
+
+*/
+
+/* A light theme (loosely) based on Material design */
+:root {
+    --asyncglk-ui-bg: #fff;
+    --asyncglk-ui-border: #666;
+    --asyncglk-ui-fg: #222;
+    --asyncglk-ui-selected: #cee0f2;
+    --asyncglk-ui-textbox: #fff;
+}
+
+/* A dark theme (loosely) based on Material design */
+[data-theme="dark"] {
+    --asyncglk-ui-bg: #111;
+    --asyncglk-ui-border: #666;
+    --asyncglk-ui-fg: #ddd;
+    --asyncglk-ui-selected: #153351;
+    --asyncglk-ui-textbox: #111;
+}
+
+/* UI controls */
+.asyncglk_ui .uirow {
+    line-height: 28px;
+}
+
+.asyncglk_ui button, .asyncglk_ui select, .asyncglk_ui textarea {
+    background: var(--asyncglk-ui-bg);
+    border: 2px solid var(--asyncglk-ui-border);
+    color: var(--asyncglk-ui-fg);
+    font-size: 15px;
+    padding: 3px 6px 4px;
+}
+
+.asyncglk_ui button.flat {
+    background: none;
+    border: 0;
+    display: inline;
+    font-size: inherit;
+    padding: 0;
+}
+
+.asyncglk_ui label {
+    line-height: 28px;
+}
+
+.asyncglk_ui select {
+    padding: 2px 3px 3px;
+}
+
+.asyncglk_ui textarea {
+    font-size: 14px;
+    padding: 4px 6px;
+}

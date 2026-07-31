@@ -1,0 +1,73 @@
+/*
+
+Parchment
+=========
+
+Copyright (c) 2024 Dannii Willis
+MIT licenced
+https://github.com/curiousdannii/parchment
+
+*/
+
+body, html {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background: var(--glkote-page-bg);
+  color: var(--glkote-buffer-fg);
+  height: 100%;
+  margin: 0px;
+  /* Proteus: the arc_image band and the gameport stack in a flex
+     column, so the browser owns the geometry: when the band appears,
+     disappears, or loads its picture, the gameport reflows in the same
+     layout pass and GlkOte's resize observer re-measures. No manual
+     height bookkeeping, no race. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Essential styles for GlkOte */
+#gameport {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+}
+
+/* Proteus: no visible scrollbar on the story window; wheel, trackpad
+   and keyboard scrolling all still work. The Gargoyle look. */
+.BufferWindow {
+  scrollbar-width: none;
+}
+.BufferWindow::-webkit-scrollbar {
+  display: none;
+}
+
+#about {
+  text-align: center;
+}
+
+#custom-file-upload {
+  display: none;
+  cursor: pointer;
+  text-decoration: underline;
+  color: blue;
+}
+
+#play-url {
+  display: none;
+}
+
+#play-url-input {
+  width: 250px;
+}
+
+#footer-date {
+  bottom: 0;
+  position: absolute;
+  width: 100%;
+}

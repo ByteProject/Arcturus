@@ -1,0 +1,87 @@
+/*
+
+Common Parchment Interfaces
+===========================
+
+Copyright (c) 2024 Dannii Willis
+MIT licenced
+https://github.com/curiousdannii/parchment
+
+*/
+
+import type {BrowserDialog, /*GlkApi,*/ GlkOte, GlkOteOptions, TruthyOption} from '../upstream/asyncglk/src/index-common.js'
+
+export interface EmglkenEngineOptions extends ParchmentOptions {
+    arguments: string[],
+}
+
+export interface EmglkenEngine {
+    start: (options: EmglkenEngineOptions) => void,
+}
+
+/** The size and gzipped size of a file */
+export interface FileSize {
+    /** Size of file in bytes, gzip compressed (doesn't need to be exact) */
+    gz: number
+    /** Size of file in bytes, uncompressed */
+    size: number
+}
+
+export interface StoryOptions {
+    /** Base filename */
+    filename?: string
+    /** Size of storyfile */
+    filesize?: FileSize
+    /** Format ID, matching formats.js */
+    format?: string
+    /** Dialog file path */
+    path?: string
+    /** Path to JS resource map */
+    resource_map?: string
+    /** Sound formats this game uses */
+    sounds?: ['aiff' | 'mod' | 'ogg']
+    /** Story title (can include author name too) */
+    title?: string
+    /** Actual URL to the storyfile */
+    url?: string
+}
+
+export interface ParchmentOptions extends Omit<GlkOteOptions, 'accept'> {
+    // Parchment options
+
+    /** Whether or not to automatically launch Parchment */
+    auto_launch?: TruthyOption,
+    /** Whether or not to autoplay, if not a Play button will be shown (useful for games that play sounds on startup) */
+    autoplay?: TruthyOption,
+    /** Storyfile path or metadata */
+    story?: string | StoryOptions,
+    /** Theme name, can be set to 'dark */
+    theme?: string,
+    /** Name of theme cookie to check */
+    theme_cookie: string,
+    /** Whether to test the AsyncGlk GlkApi library */
+    use_asyncglk?: TruthyOption,
+
+    // Modules to pass to other modules
+
+    /** Dialog instance to use */
+    Dialog: BrowserDialog,
+    /** GlkApi instance to use */
+    //Glk: GlkApi,
+    /** GlkOte instance to use */
+    GlkOte: GlkOte,
+
+    // Common options for VMs
+
+    /** Whether or not to load an autosave */
+    do_vm_autosave?: TruthyOption,
+
+    // Proteus
+
+    /** arc_image draw handler; its presence lights the capability bit */
+    arc_image_draw?: (id: number, mode: number) => void,
+    /** GlkApi instance for ZVM (an AsyncGlk, installed by the launcher) */
+    Glk?: any,
+    /** Classic synchronous Dialog for the Glk's file side */
+    classic_dialog?: any,
+}

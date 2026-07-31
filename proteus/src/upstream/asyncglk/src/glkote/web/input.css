@@ -1,0 +1,51 @@
+/*
+
+GlkOte input styles
+===================
+
+Copyright (c) 2023 Dannii Willis
+MIT licenced
+https://github.com/curiousdannii/asyncglk
+
+*/
+
+textarea.Input {
+    /* This class mimicks the Style_input class. It also eliminates the 
+       usual decoration of an <textarea> field, as much as possible. */
+    background: none;
+    border: none;
+    color: var(--glkote-input-fg);
+    font-weight: bold;
+    left: -10000px;
+    margin: 0px;
+    padding: 0px;
+    position: absolute;
+    outline-style: none;
+    outline-width: 0px;
+    resize: none;
+    width: 5px;
+}
+
+.BufferWindow .Input {
+    bottom: 0;
+    font-family: var(--glkote-prop-family);
+    font-size: var(--glkote-buffer-size);
+    line-height: var(--glkote-buffer-line-height);
+}
+
+.BufferLine .Input {
+    display: inline-block;
+    position: static;
+}
+
+/* Line inputs in buffer windows use the flexbox system for autosizing the input width */
+.BufferWindow .LineInput {
+    flex-grow: 1;
+    min-width: 175px;
+}
+
+.GridWindow .Input {
+    font-family: var(--glkote-grid-mono-family);
+    font-size: var(--glkote-grid-size);
+    line-height: var(--glkote-grid-line-height);
+}

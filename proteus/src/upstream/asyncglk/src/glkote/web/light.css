@@ -1,0 +1,21 @@
+/*
+
+AsyncGlk light theme
+====================
+
+Copyright (c) 2022 Dannii Willis
+MIT licenced
+https://github.com/curiousdannii/asyncglk
+
+*/
+
+/* A light theme (loosely) based on Material design */
+:root {
+    --glkote-buffer-fg: #222;
+    --glkote-buffer-reverse-bg: #222;
+    --glkote-buffer-reverse-fg: #ddd;
+    --glkote-grid-fg: #222;
+    --glkote-grid-reverse-bg: #222;
+    --glkote-grid-reverse-fg: #ddd;
+    --glkote-input-fg: #0b4c8e;
+}

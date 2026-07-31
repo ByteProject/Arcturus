@@ -1,0 +1,39 @@
+/*
+
+GlkOte error styles
+===================
+
+Copyright (c) 2022 Dannii Willis
+MIT licenced
+https://github.com/curiousdannii/asyncglk
+
+*/
+
+#errorpane {
+    background: var(--glkote-buffer-bg);
+    border: 2px solid var(--glkote-error-border);
+    border-radius: 8px;
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#errorpane.WarningPane {
+    border-color: var(--glkote-warning-border);
+}
+
+#errorpane div {
+    font-size: 1.1em;
+    padding: 1em 50px;
+    text-align: center;
+}
+
+#errorclose {
+    background: none;
+    border: none;
+    padding: 10px;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}

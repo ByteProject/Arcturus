@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "isolatedModules": true,
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
+        "resolveJsonModule": true,
+        "rootDir": "src",
+        "skipLibCheck": true,
+        "strict": true,
+        "target": "esnext",
+        "verbatimModuleSyntax": true
+    },
+    "include": [
+        "src/upstream/asyncglk/src/global.d.ts",
+        "src/types.d.ts",
+        "src/common/**/*",
+        "src/tools/*"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

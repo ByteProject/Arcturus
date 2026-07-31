@@ -1,0 +1,15 @@
+{
+  "name": "glkaudio",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "glkaudio_bg.wasm",
+    "glkaudio.js",
+    "glkaudio.d.ts"
+  ],
+  "main": "glkaudio.js",
+  "types": "glkaudio.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

@@ -1,0 +1,22 @@
+name: test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        node: [20, 22, 24, 25]
+    name: test (Node v${{ matrix.node }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm install
+      - run: npm run lint
+      - run: npm run svelte-check
+      - run: ./tests/runtests.sh

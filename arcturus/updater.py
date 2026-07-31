@@ -6,10 +6,11 @@
 """arcc --update: refresh the standalone builds in place.
 
 The standalones ship as single files (build/arcc, build/actaea,
-build/arcimg), and an author who is not tracking the repository has no
+build/arcimg, build/proteus), and an author who is not tracking the
+repository has no
 BuildTools updater to lean on; this is theirs. `arcc --update` replaces
-the running arcc with the latest published build, and refreshes actaea
-and arcimg when they sit in the same directory.
+the running arcc with the latest published build, and refreshes actaea,
+arcimg, and proteus when they sit in the same directory.
 
 The rules:
 
@@ -30,7 +31,7 @@ import sys
 import urllib.request
 
 RAW_BASE = "https://raw.githubusercontent.com/ByteProject/Arcturus/main/build/"
-SIBLINGS = ("actaea", "arcimg")
+SIBLINGS = ("actaea", "arcimg", "proteus")
 
 # The version constant every standalone carries in its embedded source, the
 # Cosmos version arcc embeds (a real update may be Cosmos-only: same arcc

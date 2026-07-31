@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Proteus</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+    <script src="dist/web/jquery.min.js"></script>
+    <script src="dist/web/ie.js" nomodule></script>
+    <script src="dist/web/web.js" type="module"></script>
+    <link rel="stylesheet" href="dist/web/web.css">
+</head>
+<body>
+    <div id="gameport">
+        <div id="about">
+            <h1>Proteus</h1>
+            <p>is the Arcturus web interpreter for Interactive Fiction, based on <a href="https://github.com/curiousdannii/parchment">Parchment</a>. <a href="https://github.com/ByteProject/Arcturus">Find out more.</a></p>
+            <p>Find stories to play at the <a href="https://ifdb.org/">Interactive Fiction Database</a>.</p>
+            <p id="play-url">
+                <input id="play-url-input" placeholder="Enter a URL of a story file" type="url">
+                <button id="play-url-button">Go</button>
+            </p>
+            <p id="play-url-error"></p>
+            <label id="custom-file-upload" for="file-upload" tabindex="0" role="button">
+                <p>Or, click here to play a story file on your device</p>
+            </label>
+            <input id="file-upload" type="file" style="display: none"/>
+            <noscript><p>Proteus requires Javascript. Please enable it in your browser.</p></noscript>
+        </div>
+        <div id="windowport"></div>
+        <div id="loadingpane" style="display:none;">
+            <img src="dist/web/waiting.gif" alt="LOADING"><br>
+            <em>&nbsp;&nbsp;&nbsp;Loading...</em>
+        </div>
+        <div id="errorpane" style="display:none;"><div id="errorcontent">...</div></div>
+    </div>
+</body>
+</html>

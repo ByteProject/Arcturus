@@ -1,0 +1,24 @@
+/*
+
+AsyncGlk dark theme
+===================
+
+Copyright (c) 2022 Dannii Willis
+MIT licenced
+https://github.com/curiousdannii/asyncglk
+
+*/
+
+/* A dark theme (loosely) based on Material design */
+[data-theme="dark"] {
+    --glkote-buffer-bg: #111;
+    --glkote-buffer-fg: #ddd;
+    --glkote-buffer-reverse-bg: #444;
+    --glkote-buffer-reverse-fg: #ddd;
+    --glkote-grid-bg: #111;
+    --glkote-grid-fg: #ddd;
+    --glkote-grid-reverse-bg: #292929;
+    --glkote-grid-reverse-fg: #ddd;
+    --glkote-input-fg: #7db2e8;
+    --glkote-page-bg: #111;
+}
