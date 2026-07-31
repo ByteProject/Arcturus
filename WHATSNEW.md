@@ -10,8 +10,8 @@ lives in the commit log. The feature roadmap follows below.
   one command turns a finished game into a single self-contained HTML
   page that runs in any browser, nothing to install and nothing to
   deploy. `proteus mygame.zblorb -o mygame.html`, or the story and its
-  pictures Blorb as a pair, or a bare `.z5` or `.z8` for a text-only game. The the resulting webpage 
-  carries the whole interpreter, the arc_image picture band scaled
+  pictures Blorb as a pair, or a bare `.z5` or `.z8` for a text-only game.
+  The resulting webpage carries the whole interpreter, the arc_image picture band scaled
   crisply to the window, the game's Z-machine colours painted to the page edges,
   and saves in the browser's local storage, typically in under a
   megabyte. Inside it is a Z-machine-only fork of Dannii Willis'
