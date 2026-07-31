@@ -6,10 +6,7 @@ arc_image pictures, all inside a single page. Upload that file anywhere
 (itch.io, your own webspace) and the game plays in any browser. There
 is no server component and nothing else to deploy.
 
-This document covers the author tool (`proteus`, the fourth standalone),
-what the web page does and does not support, and the fork that powers
-it. The name follows the Solar System naming of the project's
-interpreters, alongside Actaea.
+This document covers the author tool (`proteus`, the fourth standalone), what the web page does and does not support, and the fork that powers it. The name follows the Solar System object naming of the project's arc_image capable Z-machine interpreters, alongside Actaea.
 
 ## 1. The proteus tool
 
@@ -64,11 +61,7 @@ project tests.
 
 ## 3. The fork (proteus/ in this repository)
 
-Proteus is a trimmed, Z-machine-only fork of Dannii Willis's Parchment
-(MIT), vendored under `proteus/` with its provenance and upstream
-commits recorded in `proteus/PROVENANCE.md`. There is no separate fork
-repository; this directory is the source of truth. What was trimmed,
-what was added:
+Proteus is a trimmed, Z-machine-only fork of Dannii Willis' Parchment, vendored under `proteus/` with its provenance and upstream commits recorded in `proteus/PROVENANCE.md`. There is no separate fork repository. What was trimmed, what was added:
 
 - Trimmed: every non-Z engine (Glulx, TADS, Hugo, SCARE, AGT), the
   iplayif.com application, the Inform 7 packaging, test harnesses, and

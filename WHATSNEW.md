@@ -10,21 +10,20 @@ lives in the commit log. The feature roadmap follows below.
   one command turns a finished game into a single self-contained HTML
   page that runs in any browser, nothing to install and nothing to
   deploy. `proteus mygame.zblorb -o mygame.html`, or the story and its
-  pictures Blorb as a pair, or a bare `.z5` for a text game. The page
+  pictures Blorb as a pair, or a bare `.z5` or `.z8` for a text-only game. The the resulting webpage 
   carries the whole interpreter, the arc_image picture band scaled
-  crisply to the window, the game's colours painted to the page edges,
+  crisply to the window, the game's Z-machine colours painted to the page edges,
   and saves in the browser's local storage, typically in under a
-  megabyte. Inside it is a Z-machine-only fork of Dannii Willis's
-  Parchment (MIT, credited on the page), trimmed to a quarter of
+  megabyte. Inside it is a Z-machine-only fork of Dannii Willis'
+  Parchment, trimmed to a quarter of
   upstream's size and taught the arc_image contract; the fork lives in
   the repository under `proteus/`, and docs/09 is its book.
-- **One pack: the Blorb.** `arcimg pack` now writes the IF world's
+- **Blorb is the new standard.** `arcimg pack` now writes the IF world's
   standard resource container by default, and the short-lived `.arcres`
   zip is retired. Picture id N is Blorb resource `Pict N`, nothing
   translated; `--zblorb STORY` still embeds the story so the whole
-  game travels as one file that Actaea opens directly, the wider
-  Blorb-aware interpreter world understands, and `proteus` turns into
-  a web page. One pack, every destination.
+  game travels as one file that the Arcturus reference interpreter `Actaea` opens directly, and `proteus` turns it into
+  a web page.
 - **Restless things, and timers that stop.** Stefan's design, one
   sentence long: work follows the performer's nature, prose follows
   scope. Mark a character `restless` (or arm it mid-story: `now guard is

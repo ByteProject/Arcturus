@@ -348,3 +348,5 @@ Thanks to **Pablo Martínez** for the translation of the Spanish language
 granule.
 
 Special thanks to **Charles Moore Jr.** for early adoption and bug hunting.
+
+Proteus uses a forked version of Parchment by **Dannii Willis**.
