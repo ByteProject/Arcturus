@@ -451,7 +451,8 @@ function evhan_accept_save_button(ev) {
     if (!fel.length)
         return false;
     var filename = fel.val();
-    filename = jQuery.trim(filename);
+    /* Proteus: jQuery 4 removed jQuery.trim; the native one is enough. */
+    filename = String(filename).trim();
     if (!filename.length)
         return false;
     var dirent = file_construct_ref(filename, cur_usage, cur_gameid);
