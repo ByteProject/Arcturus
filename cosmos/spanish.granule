@@ -1972,6 +1972,9 @@ block msg_transcript_failed()
 block msg_undone()
     say "Deshecho."
 
+block msg_undo_unavailable()
+    say "Este intérprete no puede deshacer órdenes."
+
 block msg_cant_undo()
     say "No hay nada que deshacer."
 

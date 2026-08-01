@@ -8470,3 +8470,37 @@ repriced in the same commit; a new test drives the boot through Actaea's
 screen model and pins the silence, and the seat-after-band invariant
 test now binds from the first paint on. Cosmos 1.3.18; the suite grows
 to 1329.
+
+## The undo handshake: no promise the interpreter declined (2026-08-01)
+
+The second field report from the retro interpreter wave, and this one
+was a genuine library bug that would have shipped in the B8 game.
+Shawn Sijnstra's Canopus (the TRS-80 Model 4 interpreter, named into
+the Solar System family) and the Haumea CPC work both hit the same
+wall from opposite sides: Cosmos ignored the interpreter's declared
+inability to undo. The Standard gives a terp two voices for it,
+clearing Flags 2 bit 4 (S 11.1, the static veto) and answering -1 from
+save_undo (S 15, the opcode's own report), and TerpEtude cross-checks
+the two against each other; Cosmos listened to neither. The result on
+a small machine was a death prompt that OFFERED "UNDO the last
+command" and then answered the attempt with "There's nothing to take
+back.", a false sentence delivered right after a loss, at the exact
+moment undo matters most (Shawn's screenshot). STEFAN'S RULING drove
+the design to its final shape: gate on the header bit as the primary,
+spec-named channel, and never attempt a restore into the void.
+
+Cosmos now latches undo_off from both channels: Flags 2 bit 4 read
+once at boot, the -1 backstop at the checkpoint already taken every
+turn (no probe, no new opcode). A latched game answers UNDO with the
+new truthful line in all three language layers ("This interpreter
+can't take commands back."), the death prompt simply does not offer
+what the machine declined, and "There's nothing to take back."
+survives only where it is literally true: an empty history on a
+capable interpreter. A failed restore on a capable-looking terp speaks
+the unavailable line too, never the empty-history one. Priced at 92 to
+112 bytes per game (the handshake, the gate, the message), all 45
+ceilings repriced; three new tests drive a death-capable fixture
+through Actaea three ways (capable, header-vetoed, -1-answering) and
+pin every sentence. Cosmos 1.3.19; the suite grows to 1332. Canopus
+and the Haumea build become correct citizens with zero changes on
+their side, which is the whole point of a handshake.

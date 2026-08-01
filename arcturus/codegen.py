@@ -768,6 +768,13 @@ _BUILTIN_GLOBALS = [
     "last_act", "last_noun", "last_second", "last_way", "last_grain",
     # 1 when the ending was a `death` (the post-mortem then offers UNDO).
     "died",
+    # 1 once the interpreter has declared it cannot undo: Flags 2 bit 4
+    # cleared at boot (the Standard's veto channel, S 11.1), or -1 from
+    # save_undo at a checkpoint (the opcode's own report, S 15). The UNDO
+    # verb and the death prompt consult it, so no interpreter is ever
+    # promised an undo it said it cannot give (the Canopus and Haumea
+    # field reports, 2026-08-01).
+    "undo_off",
     # 1 once a handler spoke this action's report (`alter`); the default's
     # success line then stays silent. Cleared per dispatch.
     "altered",

@@ -211,7 +211,13 @@ block game_over()
         // folds to the classic prompt in a game with no death statement.
         if any_death is 1
             if died is 1
-                msg_game_over_died
+                // Offer UNDO only on an interpreter that can keep the
+                // promise (the undo handshake; Canopus and Haumea both
+                // veto honestly on their small machines).
+                if undo_off is 1
+                    msg_game_over
+                else
+                    msg_game_over_died
             else
                 msg_game_over
         else
@@ -238,13 +244,19 @@ block game_over()
                             // every turn takes, before it dispatched): on
                             // success restore_undo resumes inside run_turn,
                             // which reports the undo and redescribes the
-                            // room, so this line is only reached when the
-                            // interpreter has no undo to give. After a
-                            // finish, undo falls to "not one of the
-                            // choices": a won game stays won.
-                            let u = do_restore_undo
+                            // room, so the lines after the restore are only
+                            // reached when the interpreter has no undo to
+                            // give, and they say so truthfully (the
+                            // handshake gate skips the void attempt
+                            // entirely). After a finish, undo falls to
+                            // "not one of the choices": a won game stays
+                            // won.
                             change handled to 1
-                            msg_cant_undo
+                            if undo_off is 1
+                                msg_undo_unavailable
+                            else
+                                let u = do_restore_undo
+                                msg_undo_unavailable
                 if act is action_id("quit")
                     do_quit
         if handled is 0
@@ -262,6 +274,13 @@ block run_game()
     // The start room is visited by definition (and never scores: you did
     // not earn arriving where you begin).
     now here is visited
+    // THE UNDO HANDSHAKE, static half: arcc sets Flags 2 bit 4 (the game
+    // wants undo, S 11.1) and an interpreter that cannot undo clears it
+    // back. Read the answer once, before the first prompt, so UNDO and
+    // the death prompt never promise what the machine already declined
+    // (Canopus on the Model 4, Haumea's 64K CPC). The dynamic half is
+    // the -1 backstop at the checkpoint in run_turn.
+    undo_check
     // At first boot this clear is a no-op (no band exists before the first
     // real draw); after a RESTART it is the difference between a fresh game
     // and the dead game's picture hanging over it, since restart rewinds
@@ -588,6 +607,11 @@ block run_turn(act)
         msg_noun_missing
         return 0
     let r = do_save_undo
+    // The dynamic half of the undo handshake: -1 (0xFFFF) is the opcode's
+    // own "unable to provide this feature" (S 15). Latch it, so a terp
+    // that left the header bit alone but answers honestly is still heard.
+    if r + 1 is 0
+        change undo_off to 1
     if r is 2
         change meta_turn to 1
         // The rewound state may date from the middle of a chained line or
@@ -680,17 +704,36 @@ block run_turn(act)
             change last_trigger to verb_trigger
     return 0
 
+// Read the interpreter's side of the undo handshake: Flags 2 low byte,
+// bit 4 (value 16). The game set the bit at compile time; a cleared bit
+// is the interpreter's veto (S 11.1), latched here as undo_off. The
+// arithmetic extracts one bit without a bitwise op, the
+// transcript_active manner.
+block undo_check()
+    let f = peek_byte(17)
+    let h = f / 16
+    let odd = h / 2
+    if h - odd - odd is 0
+        change undo_off to 1
+
 // Undo the previous turn. restore_undo, on success, resumes at the save_undo in
 // run_turn (it does not return here); so reaching the line after it means the
 // undo failed, and reaching here with no turns yet means there is nothing to take
-// back.
+// back. An interpreter that declared no-undo (undo_off, either handshake
+// channel) is answered with the truth instead: nothing is attempted into
+// the void, and the wording never claims an empty history it cannot know.
 block do_undo()
     change refused to 1
+    if undo_off is 1
+        msg_undo_unavailable
+        return 0
     if turns is 0
         msg_cant_undo
         return 0
     let r = do_restore_undo
-    msg_cant_undo
+    // A restore that failed despite a capable-looking interpreter is
+    // still the machine declining, not an empty history.
+    msg_undo_unavailable
     return 0
 
 // Fire the current room's `on enter` (the loop and the go verb call this after

@@ -342,6 +342,10 @@ _BUILTINS = {
     "topic_hi": T_NUMBER,
     # 1 when the ending was a `death`; game_over offers UNDO only then.
     "died": T_NUMBER,
+    # 1 once the interpreter declared it cannot undo (Flags 2 bit 4 cleared
+    # at boot, or -1 from save_undo): the undo handshake latch. The UNDO
+    # verb and the death prompt consult it (loop.prelude).
+    "undo_off": T_NUMBER,
     # The catalog region's byte address, seeded at build (docs/01, catalogs).
     "__catalogs__": T_NUMBER,
     # 1 once a handler spoke this action's report (alter); library-internal.
