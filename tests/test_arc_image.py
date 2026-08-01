@@ -522,6 +522,13 @@ def test_every_erase_and_image_is_followed_by_a_bar_paint():
     ]
     for path, script in demos:
         stream = _op_stream(path, script)
+        # The boot latch (the CPC flash fix): the bar first paints at the
+        # first prompt, so boot-time erases and the opening image draw are
+        # followed by a silent row reserve, not a paint. The seat-after
+        # rule binds from the first bar paint on, when there is a bar the
+        # player has actually seen.
+        live = stream.index("BAR") if "BAR" in stream else len(stream)
+        assert live < len(stream), (path, "the bar never painted", stream)
         for i, tag in enumerate(stream[:-1]):
-            if tag in ("IMAGE", "ERASE"):
+            if i >= live and tag in ("IMAGE", "ERASE"):
                 assert stream[i + 1] == "BAR", (path, i, stream)

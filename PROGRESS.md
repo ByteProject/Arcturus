@@ -8437,3 +8437,36 @@ case in the ST text-contract test: a picture too plain to use all
 sixteen palette slots failed on unused entries no pixel references; the
 contract now judges the colours the picture actually uses. arcimg
 1.30.0, Actaea 1.3.8; the suite holds at 1328 green.
+
+## The first cross-interpreter bug report: the boot status flash (2026-08-01)
+
+A milestone of a different kind: the first bug found BY a retro
+interpreter implementation consuming Arcturus output. The Haumea work
+(the CPC interpreter, built in its own project) instrumented its boot
+and traced the game's screen-op stream: Cosmos painted the complete
+status bar twice before the game's `on start` had even finished, both
+paints erased again before the quote screen. Every interpreter receives
+that stream; a modern machine executes draw-then-erase inside one frame,
+and at 4 MHz the draw takes visible milliseconds, so the CPC showed the
+bar flashing before the intro. Reproduced here independently by hooking
+Actaea's screen model and logging the boot: paint one was run_game
+seating the bar before `on start` (itself the fix for an old field
+report, start text landing under the bar), paint two was
+zcolor.background's erase-and-reseat honouring the Shawn invariant. Two
+correct rules, colliding at boot, where there is nothing on screen worth
+re-establishing.
+
+THE FIX IS THE PUNYINFORM MANNER, which Stefan pointed out mid-analysis:
+the bar stays invisible until the opening room description. Cosmos now
+carries a boot latch in the statusline granule: until the first prompt,
+screen_ready only reserves row 1 (the split, so the old field fix
+holds), and the first prompt flips the latch and paints, with the
+game's final colours, once. RESTART rewinds the latch with the rest of
+memory, so restarted games boot quietly for free. The traced result: a
+boot of zero bar paints and exactly one at the first prompt, room name
+and status colour in place. Priced honestly at +16 bytes per statusline
+game (the flag, the prompt store, the reserve branch), all 32 ceilings
+repriced in the same commit; a new test drives the boot through Actaea's
+screen model and pins the silence, and the seat-after-band invariant
+test now binds from the first paint on. Cosmos 1.3.18; the suite grows
+to 1329.

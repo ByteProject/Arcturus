@@ -27,18 +27,37 @@
 // side), redefine draw_status / status_bar in the story (most-specific-wins;
 // the compile notes the capture, deliberate here) or fork the granule.
 
+// THE BOOT LATCH. The bar stays invisible until the first prompt, the
+// PunyInform manner. Before it, boot runs a whole hidden theatre: the
+// library seats the bar, the game's `on start` sets colours (a
+// full-screen erase and re-seat), a quote box erases again. On a fast
+// interpreter the draws and erases cancel within a frame; at 4 MHz each
+// paint takes visible milliseconds, and the CPC work (Haumea) caught the
+// bar flashing before the quote screen. So until bar_live flips,
+// screen_ready only RESERVES row 1 (the split, so `on start` text can
+// never land under the future bar: the old field report stays fixed)
+// and paints nothing. The first prompt flips the latch and paints, and
+// from then on every re-seat behaves exactly as before (the Shawn
+// invariant is about a bar the player has SEEN; before the first prompt
+// there is none). RESTART rewinds the latch with the rest of memory, so
+// a restarted game boots quietly too.
+flag bar_live
+
 // The input prompt, extended: paint the bar, then do the ordinary prompt (the
 // paragraph break and the ">" the core library would have shown).
 block prompt()
+    change bar_live to true
     draw_status
     par
     show(">")
 
-// Put the window up before `on start` prints a word (the screen seam in the
-// loop): without this, start text lands on row 1 and the first split paints
-// the bar over it (a field report: the opening line hidden under the bar).
+// Reserve the row before `on start` prints a word (the screen seam in the
+// loop); paint only once the bar has gone live at the first prompt.
 block screen_ready()
-    draw_status
+    if bar_live
+        draw_status
+    else
+        split_window(1)
 
 // Set up the one-row upper window and paint the bar into it. The painting itself
 // is status_bar (below), so the conversations menu can reuse it at the top of its
