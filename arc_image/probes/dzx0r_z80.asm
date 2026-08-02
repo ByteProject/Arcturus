@@ -42,7 +42,7 @@
 ; ENTRY:  HL = compressed source (read strictly forward; streamable).
 ; EXIT :  past the end marker, stack balanced; the image is fully emitted.
 ; USES :  AF, BC, DE, HL.
-; SIZE :  about 110 bytes.
+; SIZE :  about 100 bytes.
 ; ----------------------------------------------------------------------
 
 ; the re-anchor constants: low 3 bits of H are ring index bits, the rest
@@ -59,12 +59,10 @@ dzx0r_literals:
         call    dzx0r_elias             ; BC = literal length
         push    af                      ; reservoir sleeps across the copy
 .lit:   ld      a, (hl)                 ; literal byte from the source
-        inc     hl
-        ld      (de), a                 ; shadow into the ring
         call    emit                    ; and out to the screen
-        call    dzx0r_next_de           ; WP++ (ring wrap)
-        dec     bc
-        ld      a, b
+        ldi                             ; shadow into the ring + adjust counters
+        call    dzx0r_next_de           ; ring bounds check
+        ld      a, b                    ; check for this run done
         or      c
         jr      nz, .lit
         pop     af                      ; reservoir wakes
@@ -77,17 +75,15 @@ dzx0r_copy:
         push    af                      ; reservoir sleeps BEFORE the anchor
                                         ; math below borrows A
         add     hl, de                  ; HL = WP - offset (mod 65536)
-        ld      a, h                    ; re-anchor into the ring: the low
+.cpy:   ld      a, h                    ; re-anchor into the ring: the low
         and     RIDX                    ; 11 bits are already correct
         or      high zx0ring
         ld      h, a                    ; HL = ring read pointer
-.cpy:   ld      a, (hl)                 ; history byte from the ring
-        ld      (de), a                 ; shadow the new byte
+        ld      a, (hl)                 ; history byte from the ring
         call    emit                    ; and out to the screen
-        call    dzx0r_next_hl           ; RP++ (ring wrap)
-        call    dzx0r_next_de           ; WP++ (ring wrap)
-        dec     bc
-        ld      a, b
+        ldi                             ; shadow into the ring + adjust counters
+        call    dzx0r_next_de           ; ring bounds check
+        ld      a, b                    ; check for this run done
         or      c
         jr      nz, .cpy
         pop     af
@@ -112,21 +108,13 @@ dzx0r_new_offset:
         inc     bc
         jr      dzx0r_copy
 
-; --- ring stepping: advance and re-anchor (the 2K wrap) --------------------
-; each trashes A only
+; --- ring stepping: re-anchor (the 2K wrap) --------------------
+; trashes A only; assumes DE already adjusted
 dzx0r_next_de:
-        inc     de
         ld      a, d
         and     RIDX
         or      high zx0ring
         ld      d, a
-        ret
-dzx0r_next_hl:
-        inc     hl
-        ld      a, h
-        and     RIDX
-        or      high zx0ring
-        ld      h, a
         ret
 
 ; --- interlaced Elias gamma, verbatim from dzx0_standard -------------------
