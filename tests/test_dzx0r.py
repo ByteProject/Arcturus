@@ -212,6 +212,18 @@ def run_dzx0r(code, stream):
             v = pop16()
             push16(rr16("H", "L"))
             wr16("H", "L", v)
+        elif op == 0xED:                            # ED prefix
+            sub = fetch()
+            if sub == 0xA0:                         # ldi (PR #2: the fused
+                # ring shadow: (DE)<-(HL); DE++; HL++; BC--. Z and carry
+                # untouched (the decoder tests BC by or-ing B and C).
+                m[rr16("D", "E")] = m[rr16("H", "L")]
+                wr16("D", "E", (rr16("D", "E") + 1) & 0xFFFF)
+                wr16("H", "L", (rr16("H", "L") + 1) & 0xFFFF)
+                wr16("B", "C", (rr16("B", "C") - 1) & 0xFFFF)
+            else:
+                raise AssertionError(
+                    f"unimplemented ED opcode {sub:02X} at {st['PC'] - 2:04X}")
         elif op == 0x18:                            # jr
             d = fetch()
             st["PC"] = (st["PC"] + (d - 256 if d > 127 else d)) & 0xFFFF
