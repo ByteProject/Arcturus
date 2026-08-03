@@ -8504,3 +8504,21 @@ through Actaea three ways (capable, header-vetoed, -1-answering) and
 pin every sentence. Cosmos 1.3.19; the suite grows to 1332. Canopus
 and the Haumea build become correct citizens with zero changes on
 their side, which is the whole point of a handshake.
+
+## The first community pull request, merged (2026-08-03)
+
+Shawn Sijnstra, who ships the arc_image band on the TRS-80 Model 4 in
+his Canopus interpreter, sent the project's first code PR: the shared
+Z80 ring decompressor (dzx0r_z80.asm, the blueprint every Z80 target
+reads) optimized for size and speed. LDI fuses the ring shadow with
+the pointer and counter steps in both copy paths, and the
+per-iteration re-anchor absorbs an entire helper routine: 13 bytes
+smaller, measurably faster per byte, on the machines where both are
+scarce. Verified before merging at three levels: a line-by-line
+semantic review, both versions assembled with sjasmplus (zero errors,
+124 to 111 bytes exactly), and both executed in a Z80 emulator against
+arcimg's own ring-capped ZX0 streams, structured, noisy, and a real
+CPC conversion payload alike, byte-identical to the Python reference
+in every case. docs/08's size figures follow in the same push. The
+adopter loop at its best: the person who implements the blueprint on
+real hardware makes the blueprint better for everyone behind him.

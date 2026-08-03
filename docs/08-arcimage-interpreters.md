@@ -362,7 +362,7 @@ loader reading the same .arc file produce the same pixels. The published
 Z80 and 6502 dzx0 routines implement the staging model as written. The
 ring model's Z80 reference is
 [arc_image/probes/dzx0r_z80.asm](../arc_image/probes/dzx0r_z80.asm):
-about 110 bytes, built as the smallest possible delta on the standard
+about 100 bytes, built as the smallest possible delta on the standard
 dzx0 (only the two LDIR copy paths are re-plumbed; the Elias gamma
 reader, the negative-offset bookkeeping, and the end-marker detection
 are carried verbatim), with a single platform-supplied `emit` routine as
@@ -776,7 +776,7 @@ whatever was on screen shows through the sub-band area otherwise.
 
 CODEC. ZX0 (part B) under the 2048 window guarantee, decoded by the RING
 model: this chapter is the reference ring loader. The
-decoder is dzx0r_z80.asm, about 110 bytes, and its whole working memory
+decoder is dzx0r_z80.asm, about 100 bytes, and its whole working memory
 is one 2K-aligned ring; each decoded byte goes to the ring and out
 through an `emit` the probe points at the screen writer or a buffer
 writer per section. No staging band exists. This is the 64K posture the
