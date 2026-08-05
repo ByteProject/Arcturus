@@ -8614,3 +8614,22 @@ which pathfinding is only one, and its surface gets designed WITH
 Stefan before a line is written); and the retro probe cascade, resting
 at the MSX1 pickup until Stefan rules the derivation source and the
 emulator at round start, then the Spectrum, then the Agon RLE.
+
+## 2026-08-06: the re-base never eats a line (Stefan's ruling)
+
+The CPC interpreter booted the demo under the contract as written and
+the screen proved the contract wrong: the demo's opening is taller
+than the window below a DAAD band on a 25-row display, and the
+"newest window-full, bottom-anchored" escape clause let the boot drop
+the first lines of the welcome text with no [MORE] ever offering
+them. The interpreter was compliant; the clause was defective; the
+player lost unread text, which the beat rule exists to forbid.
+
+STEFAN'S RULING: eating lines the player has not read is obviously
+wrong, everywhere, always. The beat rule outranks every layout
+convenience. docs/08 is amended in both places: the re-base never
+discards a line; a page too tall for the window below the band is
+paged below it from its top, genuine [MORE]s and all, bottom-anchored
+truncation reaching only the same final frame the paging would. The
+retro boot paragraph now names the demo as the proof case so no
+interpreter author mistakes the truncated boot for correct again.

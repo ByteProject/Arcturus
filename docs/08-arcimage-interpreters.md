@@ -111,15 +111,21 @@ arc_image plays it unchanged as text. Here is the whole contract.
    is yours (scroll it, redraw it); that it gets there is the contract.
    Update the header's screen-height field to the rows that remain,
    exactly as you would for any screen change. Two consequences fall
-   out on their own: an intro short enough to share its page with the
-   first room boots as one composition, picture above, all its text
-   below; and an intro long enough to page never shows a picture until
-   the page the room text lands on. Should the visible page ever
-   exceed the window below the band, keep the newest window-full,
-   bottom-anchored (an interpreter with scrollback keeps the rest
-   reachable); ordinary full-screen paging makes that moment rare and
-   small. No advance declaration exists or is needed: the first real
-   draw_image IS the declaration. (A clear that arrives before any
+   out on their own: an intro that fits below the band boots as one
+   composition, picture above, all its text below; and an intro long
+   enough to page never shows a picture until the page the room text
+   lands on. THE RE-BASE NEVER EATS A LINE. Every line on the page
+   being re-based is unread (no input has intervened), so none of it
+   may be discarded. If the page fits below the band, it goes below
+   whole. If it does NOT fit, page it below the band from its top:
+   band above, the first window-full of the page, a genuine [MORE],
+   and so on until the newest lines stand bottom-anchored above the
+   prompt. The final frame is the same tail either way; the
+   difference is that every line passed before the player's eyes on
+   the way, behind honest [MORE]s. An interpreter with scrollback
+   keeps the older frames reachable too, but scrollback never
+   substitutes for the [MORE]s. No advance declaration exists or is
+   needed: the first real draw_image IS the declaration. (A clear that arrives before any
    picture was ever shown reserves nothing and is a no-op.)
 
    WHAT A CLEAR MEANS IS FIXED; WHAT IT LOOKS LIKE IS YOURS. Id 0 takes
@@ -498,9 +504,15 @@ draw the band does not exist and the text window is the full screen:
 an intro pages at genuine window-full, never earlier, and no picture
 appears during it. The first nonzero draw then re-bases the screen
 with every currently visible line placed below the band (part A, the
-first draw). From then on, the beat rule above governs every stamp.
-No opening shape is asked of authors: a game may flow its intro
-straight into the first room, and the demo does.
+first draw), and the re-base never eats a line: a page too tall for
+the window below the band is paged below it from its top, genuine
+[MORE]s and all, never truncated to its tail. The demo itself is the
+proof case on a small screen: its opening does not fit below a DAAD
+band on a 25-row display, so a correct boot there shows the band with
+the TOP of the welcome text and a [MORE], and only then the banner,
+the room text, and the prompt. From then on, the beat rule above
+governs every stamp. No opening shape is asked of authors: a game may
+flow its intro straight into the first room, and the demo does.
 
 The beat rule binds EVERY interpreter, the windowed ones included. A
 scrollback satisfies retention, but the view after a band change must
