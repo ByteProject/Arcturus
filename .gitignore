@@ -32,6 +32,9 @@ build/*
 .DS_Store
 *.swp
 
+# The assistant harness's local settings (permission grants), never shipped
+.claude/
+
 # Build output
 *.z5
 *.z8
