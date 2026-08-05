@@ -457,10 +457,9 @@ probes with wave 2's chapters).
 
 Part A's ops are the whole protocol on a modern machine, where the band
 is its own surface and rows are free. On a memory-mapped retro screen
-the same ops need an orchestration model, and it was never written down
-until the first two retro implementations earned it the hard way (the
-CPC work and the Model 4). These are the rules. The first two are
-REQUIRED; the rest name the quality path and the allowed freedom.
+the same ops need an orchestration model. These are the rules. The
+first two are REQUIRED; the rest name the quality path and the allowed
+freedom.
 
 THE STAMP MODEL (required). Text scrolls bottom to top, and a picture
 draw STAMPS the band over the top of the screen, overwriting the oldest
