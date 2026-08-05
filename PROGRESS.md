@@ -8544,3 +8544,26 @@ CPC interpreter did the same), and the contract now blesses it with
 the header reporting the honest remaining rows. The lesson in one
 line: an undocumented possibility is indistinguishable from a
 forbidden one, and implementers pay for the difference.
+
+## The boot beat, closed honestly (2026-08-03)
+
+The CPC implementation put the new beat rule under load and found the
+hole in it within a day: at boot no input precedes the first draw, so
+a literal beat stretches back to power-on, and the demo's fifteen-row
+intro could not survive into an eleven-row window. The interpreter
+side had implemented the contract exactly as written; the contract and
+the demo's stream were the defects, and the analysis that proved it
+(with the trace) came from the interpreter work. Two fixes, both
+stream-side, as their analysis requested: the Rabenstein demo now
+models THE CANONICAL OPENING (the intro consumed by a key wait and a
+screen clear before the first room, the shape the B8 game always had),
+so the first draw lands on a clean screen; and docs/08's beat rule
+gained its boundary cases: at boot the beat begins at power-on and a
+key wait counts as input, and the obligation is bounded by the text
+window (a stream that skips the canonical opening owes the player at
+most the newest window-full). STEFAN'S RULING settled the second
+finding as design, now documented: the status line first paints with
+the first prompt; no prompt on screen, no bar, and a [MORE] pause
+before the first prompt correctly shows band and text bar-less. Part
+A's first-draw paragraph now references the canonical opening instead
+of assuming banners stay small. The suite holds at 1332.

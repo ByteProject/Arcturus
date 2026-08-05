@@ -415,8 +415,10 @@ def test_the_demo_walkthrough_draws_the_documented_sequence():
     class PicIO(CaptureIO):
         supports_pictures = True
 
+    # The leading "" answers the canonical opening's key wait (the intro
+    # is consumed and cleared before the first draw, docs/08).
     io = PicIO(script=[
-        "north", "north", "north", "look", "south", "south",
+        "", "north", "north", "north", "look", "south", "south",
         "take lantern", "light lantern", "north", "north", "look",
         "sleep", "sleep", "sleep", "south"])
     vm = VM(story, io)
@@ -516,7 +518,8 @@ def test_every_erase_and_image_is_followed_by_a_bar_paint():
     demo_dir = os.path.join(os.path.dirname(__file__), "..", "examples",
                             "arc_image")
     demos = [
-        (os.path.join(demo_dir, "rabenstein.storyarc"), ["north", "north"]),
+        (os.path.join(demo_dir, "rabenstein.storyarc"),
+         ["", "north", "north"]),
         (os.path.join(demo_dir, "cloak-of-darkness.storyarc"),
          ["west", "east"]),
     ]

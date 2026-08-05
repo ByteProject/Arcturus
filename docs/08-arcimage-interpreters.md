@@ -108,8 +108,10 @@ arc_image plays it unchanged as text. Here is the whole contract.
    over that text. Scroll what is on screen down by the band's height,
    move your text screen's origin below the band, and update the
    header's screen-height field to the rows that remain, exactly as you
-   would for any screen change. This happens once per session; there is
-   always room (a banner is a few lines on a screen of twenty and more),
+   would for any screen change. This happens once per session, and the
+   canonical opening (the retro screen section: the intro consumed by a
+   key wait and a clear before the first room) keeps the moment small:
+   at the first draw the screen holds at most the room text beginning,
    and nothing later is at risk, since the status line repaints every
    turn. No advance declaration exists or is needed: the first real
    draw_image IS the declaration. (A clear that arrives before any
@@ -485,6 +487,23 @@ what the beat is NOT: retaining only the room description is not
 enough. The beat begins at the player's input, not at the description;
 a game that prints travel prose or a cutscene between the move and the
 draw (Arcturus games do) must not lose it under the picture.
+
+Two boundary cases complete the rule. AT BOOT the beat begins at
+power-on, and a key wait counts as input: the canonical opening (the
+intro consumed by a key wait and a screen clear before the first room,
+which every picture game should use and the demo models) means the
+boot beat at stamp time is the room text alone. And the obligation is
+BOUNDED BY THE WINDOW: when a stream skips the canonical opening and a
+beat grows taller than the text window, the interpreter keeps the
+newest window-full of it and owes nothing older; no interpreter is
+required to display more rows than it has.
+
+THE STATUS LINE AT BOOT (by design). The bar first paints with the
+first prompt: no prompt on screen, no status line. A [MORE] pause
+before the first prompt therefore shows the band and the text with no
+bar, and that is correct, not a missing paint. From the first prompt
+on, the bar repaints every turn and re-seats after every band change,
+before the room text flows.
 
 THE CLEAR (recommended). draw_image with id 0 blanks the band region
 and lets it rejoin the scroll: text flows back through it on the next

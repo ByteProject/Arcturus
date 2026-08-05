@@ -23,6 +23,9 @@
 // An interpreter that renders arc_image should show exactly this:
 //
 //     command                      the band shows
+//     (intro, then ANY KEY)        no band; the screen clears (the
+//                                  canonical opening: the intro is
+//                                  consumed before the first draw)
 //     (start) Forsaken Path        picture 8
 //     NORTH   Churchyard           picture 1
 //     NORTH   Open Lawn            NO picture: the band CLEARS (draw id 0)
@@ -174,6 +177,13 @@ on start
          the dark finally offers you a bed, SLEEP. Interpreter authors:
          the source file carries the walkthrough, with the expected
          picture at every step."
+    // THE CANONICAL OPENING (docs/08, the retro screen): a picture game
+    // consumes its intro with a key wait and a clear BEFORE the first
+    // room, so the first draw lands on a clean screen and the boot beat
+    // at stamp time is the room text alone. Every picture game should
+    // open this way; this demo models it for interpreter authors.
+    press_any_key
+    clear_screen
 
 // SLEEP works only in the bedchamber; this free rule answers elsewhere.
 verb "sleep", "doze", "nap"
