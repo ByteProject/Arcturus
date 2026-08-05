@@ -453,6 +453,54 @@ chooses codec 0; for ZX0 use the published decompressors (the official
 Z80 versions ship with ZX0 itself; 6502 and Z80 versions land in the
 probes with wave 2's chapters).
 
+## The retro screen: the stamp, the beat, and the gap
+
+Part A's ops are the whole protocol on a modern machine, where the band
+is its own surface and rows are free. On a memory-mapped retro screen
+the same ops need an orchestration model, and it was never written down
+until the first two retro implementations earned it the hard way (the
+CPC work and the Model 4). These are the rules. The first two are
+REQUIRED; the rest name the quality path and the allowed freedom.
+
+THE STAMP MODEL (required). Text scrolls bottom to top, and a picture
+draw STAMPS the band over the top of the screen, overwriting the oldest
+scrolled text. Nothing shifts in the common case: the region the band
+claims holds only history the player has already read. The op stream is
+ordered for exactly this model; the draw always precedes the text of
+the room that wants it, so the new content is at its smallest the
+moment the stamp lands.
+
+THE BEAT RULE (required). The beat is everything printed since the last
+player input: the echoed command, travel prose from handlers, a
+cutscene, and then the room text that follows the draw. The interpreter
+MUST keep the whole beat visible: when a stamp would cover any beat
+line, shift the beat down below the band first. Content older than the
+beat is expendable and needs no protection. Only the interpreter can
+enforce this, because only it knows line wrapping and screen height,
+which is why the duty is the interpreter's and not the game's. Note
+what the beat is NOT: retaining only the room description is not
+enough. The beat begins at the player's input, not at the description;
+a game that prints travel prose or a cutscene between the move and the
+draw (Arcturus games do) must not lose it under the picture.
+
+THE CLEAR (recommended). draw_image with id 0 blanks the band region
+and lets it rejoin the scroll: text flows back through it on the next
+scrolls. A permanently dead band wastes a third of a small screen
+through a picture-light stretch of play, and that cannot be the
+quality aim. (A clear before any picture was ever drawn remains a
+no-op, part A.)
+
+THE GAP (allowed; document yours). A machine may be unable to seat the
+status line flush under the band. The CPC is the proven case: the CRTC
+cannot split the screen at exactly that raster line without visible
+artifacts, and the cure is one blank buffer line between band and bar.
+Tim Gilberts advised precisely this, and DAAD's own CPC interpreter
+does the same, so the gap line has classic-era precedent. Such a
+filler line is fully conformant: take it, report the honest remaining
+text rows in the screen-size header (the library reads and adapts),
+and record the reason in your port's notes so the next machine's
+implementer recognizes the constraint as hardware, not taste.
+
 ## Part C: the targets
 
 Each chapter covers one machine: its target id and tag, the video setup,

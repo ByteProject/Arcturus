@@ -8522,3 +8522,25 @@ CPC conversion payload alike, byte-identical to the Python reference
 in every case. docs/08's size figures follow in the same push. The
 adopter loop at its best: the person who implements the blueprint on
 real hardware makes the blueprint better for everyone behind him.
+
+## The retro orchestration contract, written down (2026-08-03)
+
+The third gift from the retro interpreter wave was a documentation
+debt surfacing as wasted engineering: the CPC work burned days trying
+to seat the status bar flush under the picture band, because docs/08
+never said the screen model out loud and never granted the freedoms
+real hardware needs. STEFAN'S RULINGS, now docs/08's "The retro
+screen: the stamp, the beat, and the gap": the STAMP MODEL is required
+(text scrolls bottom to top and a draw stamps the band over the oldest
+scrolled text, the model the op stream was always ordered for), and
+the BEAT RULE is required (everything printed since the last player
+input, travel prose and cutscenes included, must survive a stamp;
+keeping only the room description is explicitly not enough). The
+clear-and-rejoin behavior is the documented quality path (no dead
+band regions), and the gap line is the documented freedom: the CPC's
+CRTC cannot split at the band's exact raster line without artifacts,
+Tim Gilberts confirmed the one-line buffer as the classic cure (DAAD's
+CPC interpreter did the same), and the contract now blesses it with
+the header reporting the honest remaining rows. The lesson in one
+line: an undocumented possibility is indistinguishable from a
+forbidden one, and implementers pay for the difference.
