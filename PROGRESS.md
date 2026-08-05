@@ -8587,3 +8587,31 @@ page. The in-game beat rule stands unchanged and now explicitly binds
 every interpreter, windowed ones included. The demo is untouched
 again and right because the system is right, which is the only
 acceptable order of those two facts.
+
+## CHECKPOINT for compaction (2026-08-06): the retro contract settled
+
+Where things stand. The orchestration contract in docs/08 is complete
+and final in Stefan's model: full-screen text until the first draw,
+paging at genuine window-full only, the first draw re-basing its page
+with all visible text below the band, the in-game beat rule binding
+every interpreter (Actaea's unread mark is the reference behavior),
+the bar first painting with the first prompt, the stamp model, the
+clear-and-rejoin quality path, and the CPC's CRTC buffer line as
+documented freedom. The demo ships its original unaltered stream. The
+undo handshake (Flags 2 bit 4 primary, -1 backstop, truthful messages
+in three languages) and the statusline boot latch are in Cosmos
+1.3.19. arc_image is defined for Z-machine 5, 7, and 8; Actaea will
+NOT implement v7 (ruled). Blorb is the one pack, .arcres retired.
+Proteus 1.0.0 is the fourth standalone; web save/restore is verified.
+The first community PR (the Z80 ring decoder, 13 bytes smaller and
+faster) is merged with the three Z80 probes rebuilt and the strict
+tiny-emulator test extended. Versions: arcc 1.3.54, Cosmos 1.3.19,
+Actaea 1.3.8, arcimg 1.30.0, proteus 1.0.0; the suite stands at 1332.
+
+NEXT, IN ORDER: (1) PATHFINDING for the field report that has waited
+longest: design the surface WITH Stefan before a line is written (GO
+TO <visited room> / FIND <object>, one engine, actor movement later).
+(2) The CPC interpreter implements the final orchestration model in
+its own project; field reports flow back here. (3) The retro probe
+cascade rests at the MSX1 pickup (Stefan rules derivation source and
+emulator at round start), then the Spectrum, then the Agon RLE.
