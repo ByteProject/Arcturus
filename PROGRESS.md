@@ -8567,3 +8567,23 @@ the first prompt; no prompt on screen, no bar, and a [MORE] pause
 before the first prompt correctly shows band and text bar-less. Part
 A's first-draw paragraph now references the canonical opening instead
 of assuming banners stay small. The suite holds at 1332.
+
+## The boot rule, corrected to Stefan's model (2026-08-06)
+
+The previous entry's fix was wrong, and STEFAN REJECTED IT in the
+strongest terms: the canonical-opening doctrine made authors count
+lines and insert key waits to work around the system, and a demo that
+must run unaltered on retro hardware had been altered to suit the
+contract. Both reverted. THE RULING that replaced it, his model
+stated visually: before the first draw the band does not exist and
+the text window is the WHOLE screen; an intro pages at genuine
+window-full only (no half-screen [MORE], the thing every author would
+rightly mock); the first draw arrives with the room text and re-bases
+the page it lands on, everything visible moving below the band, by
+whatever mechanism the interpreter likes. A short intro boots as one
+composition, picture above and all its text beneath, exactly as
+Actaea shows it; a long intro pages pictureless until the room's
+page. The in-game beat rule stands unchanged and now explicitly binds
+every interpreter, windowed ones included. The demo is untouched
+again and right because the system is right, which is the only
+acceptable order of those two facts.

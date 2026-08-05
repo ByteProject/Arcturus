@@ -101,19 +101,24 @@ arc_image plays it unchanged as text. Here is the whole contract.
    deduplicates (a re-LOOK issues no draw), so the interpreter needs no
    redraw caching of its own.
 
-   THE FIRST DRAW RE-BASES THE SCREEN. The band appears at the first
-   draw_image whose id is not 0, and by then there is already text on
-   the screen: a game prints its banner before it describes the first
-   room, and that first description issues the first draw. Do not paint
-   over that text. Scroll what is on screen down by the band's height,
-   move your text screen's origin below the band, and update the
-   header's screen-height field to the rows that remain, exactly as you
-   would for any screen change. This happens once per session, and the
-   canonical opening (the retro screen section: the intro consumed by a
-   key wait and a clear before the first room) keeps the moment small:
-   at the first draw the screen holds at most the room text beginning,
-   and nothing later is at risk, since the status line repaints every
-   turn. No advance declaration exists or is needed: the first real
+   THE FIRST DRAW RE-BASES THE SCREEN. Until the first draw_image
+   whose id is not 0, the band does not exist: the text window is the
+   WHOLE screen, and a long intro pages exactly as any long text does,
+   [MORE] at genuine window-full and never earlier. The first nonzero
+   draw arrives with the first room's text and re-bases the screen: the
+   band appears at the top, and EVERYTHING visible on the current page,
+   intro tail and banner included, ends up below it. How it gets there
+   is yours (scroll it, redraw it); that it gets there is the contract.
+   Update the header's screen-height field to the rows that remain,
+   exactly as you would for any screen change. Two consequences fall
+   out on their own: an intro short enough to share its page with the
+   first room boots as one composition, picture above, all its text
+   below; and an intro long enough to page never shows a picture until
+   the page the room text lands on. Should the visible page ever
+   exceed the window below the band, keep the newest window-full,
+   bottom-anchored (an interpreter with scrollback keeps the rest
+   reachable); ordinary full-screen paging makes that moment rare and
+   small. No advance declaration exists or is needed: the first real
    draw_image IS the declaration. (A clear that arrives before any
    picture was ever shown reserves nothing and is a no-op.)
 
@@ -488,15 +493,19 @@ enough. The beat begins at the player's input, not at the description;
 a game that prints travel prose or a cutscene between the move and the
 draw (Arcturus games do) must not lose it under the picture.
 
-Two boundary cases complete the rule. AT BOOT the beat begins at
-power-on, and a key wait counts as input: the canonical opening (the
-intro consumed by a key wait and a screen clear before the first room,
-which every picture game should use and the demo models) means the
-boot beat at stamp time is the room text alone. And the obligation is
-BOUNDED BY THE WINDOW: when a stream skips the canonical opening and a
-beat grows taller than the text window, the interpreter keeps the
-newest window-full of it and owes nothing older; no interpreter is
-required to display more rows than it has.
+AT BOOT the rule is different, and simpler. Before the first nonzero
+draw the band does not exist and the text window is the full screen:
+an intro pages at genuine window-full, never earlier, and no picture
+appears during it. The first nonzero draw then re-bases the screen
+with every currently visible line placed below the band (part A, the
+first draw). From then on, the beat rule above governs every stamp.
+No opening shape is asked of authors: a game may flow its intro
+straight into the first room, and the demo does.
+
+The beat rule binds EVERY interpreter, the windowed ones included. A
+scrollback satisfies retention, but the view after a band change must
+still show the beat; releasing rows or re-basing a window is never a
+licence to leave the player staring at the wrong part of the story.
 
 THE STATUS LINE AT BOOT (by design). The bar first paints with the
 first prompt: no prompt on screen, no status line. A [MORE] pause
