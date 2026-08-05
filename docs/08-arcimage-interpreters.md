@@ -39,9 +39,8 @@ or 8 interpreter: a picture across the top of the screen, with the text
 area and status line below it. The extension is defined for all three
 versions because the Standard defines them as identical apart from file
 size and packed-address scale; an interpreter that supports version 7
-would need extra effort NOT to support arc_image there (Chris
-Spiegel's observation, issue #1). Arcturus itself emits versions 5 and
-8 only. A game that uses pictures is still an ordinary story file, and
+would need extra effort NOT to support arc_image there. Arcturus
+itself emits versions 5 and 8 only. A game that uses pictures is still an ordinary story file, and
 an interpreter that knows nothing about arc_image plays it unchanged as
 text. Here is the whole contract.
 
