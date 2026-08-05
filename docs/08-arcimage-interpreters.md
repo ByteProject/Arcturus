@@ -40,9 +40,9 @@ area and status line below it. The extension is defined for all three
 versions because the Standard defines them as identical apart from file
 size and packed-address scale; an interpreter that supports version 7
 would need extra effort NOT to support arc_image there. Arcturus
-itself emits versions 5 and 8 only. A game that uses pictures is still an ordinary story file, and
-an interpreter that knows nothing about arc_image plays it unchanged as
-text. Here is the whole contract.
+itself emits versions 5 and 8 only. A game that uses pictures is still
+an ordinary story file, and an interpreter that knows nothing about
+arc_image plays it unchanged as text. Here is the whole contract.
 
 1. CAPABILITY. If your interpreter can show pictures, set Flags 1 bit 1
    (the Standard's "picture displaying available" bit) at boot, and set
