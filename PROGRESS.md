@@ -8608,10 +8608,9 @@ faster) is merged with the three Z80 probes rebuilt and the strict
 tiny-emulator test extended. Versions: arcc 1.3.54, Cosmos 1.3.19,
 Actaea 1.3.8, arcimg 1.30.0, proteus 1.0.0; the suite stands at 1332.
 
-NEXT, IN ORDER: (1) PATHFINDING for the field report that has waited
-longest: design the surface WITH Stefan before a line is written (GO
-TO <visited room> / FIND <object>, one engine, actor movement later).
-(2) The CPC interpreter implements the final orchestration model in
-its own project; field reports flow back here. (3) The retro probe
-cascade rests at the MSX1 pickup (Stefan rules derivation source and
-emulator at round start), then the Spectrum, then the Agon RLE.
+NEXT: Stefan sets the agenda on return. Open threads, in no imposed
+order: the adopters' field reports (several topics are waiting, of
+which pathfinding is only one, and its surface gets designed WITH
+Stefan before a line is written); and the retro probe cascade, resting
+at the MSX1 pickup until Stefan rules the derivation source and the
+emulator at round start, then the Spectrum, then the Agon RLE.
