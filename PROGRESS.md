@@ -8539,9 +8539,9 @@ keeping only the room description is explicitly not enough). The
 clear-and-rejoin behavior is the documented quality path (no dead
 band regions), and the gap line is the documented freedom: the CPC's
 CRTC cannot split at the band's exact raster line without artifacts,
-Tim Gilberts confirmed the one-line buffer as the classic cure (DAAD's
-CPC interpreter did the same), and the contract now blesses it with
-the header reporting the honest remaining rows. The lesson in one
+the one-line buffer is the classic cure (DAAD's CPC interpreter did
+the same), and the contract now blesses it with the header reporting
+the honest remaining rows. The lesson in one
 line: an undocumented possibility is indistinguishable from a
 forbidden one, and implementers pay for the difference.
 
@@ -8698,3 +8698,17 @@ advice trails) leave the specs; credits and references standing in
 context to a product stay, in docs/08 as much as anywhere. The
 chapter again names Shawn Sijnstra and now, correcting an older
 omission, his interpreter by name: Canopus.
+
+## 2026-08-06: checkpoint picked up, and by day's end superseded
+
+The compaction checkpoint above was resumed the same day, but the
+pickup goes on record only now, late, after Stefan asked, which is
+the discipline failing and being restored in one line. And the
+contract that checkpoint calls complete and final did not survive
+the day: the CPC field build's boot screen disproved the re-base
+escape clause within hours, and the rulings that followed (the
+re-base never eats a line; then the two profiles, with the fixed
+band replacing the entire dynamic boot on the 8-bits) replaced the
+model the checkpoint describes. The entries between there and here
+are the record of that; read them, not the checkpoint's summary,
+for what the contract now is (docs/08, Version 1.2).
