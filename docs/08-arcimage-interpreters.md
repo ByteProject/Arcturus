@@ -101,7 +101,23 @@ arc_image plays it unchanged as text. Here is the whole contract.
    deduplicates (a re-LOOK issues no draw), so the interpreter needs no
    redraw caching of its own.
 
-   THE FIRST DRAW RE-BASES THE SCREEN. Until the first draw_image
+   TWO PROFILES, ONE INVARIANT. The invariant behind everything below
+   is that the player never loses unread text and a picture never
+   covers the current beat (the beat rule, the retro section). An
+   interpreter satisfies it in one of two ways, and the choice is the
+   interpreter author's, made for the machine; the machines named here
+   are examples, not a roster. The WINDOWED PROFILE is for anything
+   with the horsepower to move a live page: the desktop interpreters
+   and the web, the ST, Amiga, DOS, and MSX2 class, and the modern
+   retro machines (the MEGA65, the Spectrum Next). There the band
+   appears with the first draw and the rules of this section apply in
+   full. The FIXED-BAND PROFILE is for the classic 8-bits, where
+   performance and simple elegance carry equal weight: the band stands
+   from boot and never comes down, and the retro section replaces this
+   section's first-draw and release machinery with something much
+   smaller.
+
+   THE FIRST DRAW RE-BASES THE SCREEN (windowed profile). Until the first draw_image
    whose id is not 0, the band does not exist: the text window is the
    WHOLE screen, and a long intro pages exactly as any long text does,
    [MORE] at genuine window-full and never earlier. The first nonzero
@@ -128,23 +144,21 @@ arc_image plays it unchanged as text. Here is the whole contract.
    needed: the first real draw_image IS the declaration. (A clear that arrives before any
    picture was ever shown reserves nothing and is a no-op.)
 
-   WHAT A CLEAR MEANS IS FIXED; WHAT IT LOOKS LIKE IS YOURS. Id 0 takes
-   the current picture down, always. What happens to the SPACE is the
-   interpreter author's discretion (Stefan's ruling, 2026-07-26), on
-   every kind of machine. KEEP the band reserved if you like: a blank
-   strip in the background colour, the text area below keeping its
-   size, the layout holding still. Or RELEASE it: give the rows back
-   to the text area, and re-base the band when the next nonzero draw
-   arrives (the first-draw machinery above, run again). Releasing
-   works on a fixed screen too; just know what it looks like there: an
-   interpreter holds no text backing store, so the freed rows start
-   BLANK and fill as new prose scrolls up into them. Nothing already
-   printed reappears; that reveal would need a scrollback the 8-bit
-   machines do not keep. Actaea's window releases: enter a pictureless
-   room and the prose takes the whole window; walk on and the band
-   returns. Both presentations are fully conformant, and a game must
-   not assume either. Clears happen in ordinary play (a room without a
-   picture in a game whose other rooms have them). Note that the
+   WHAT A CLEAR MEANS IS FIXED; WHAT IT LOOKS LIKE IS PROFILED. Id 0
+   takes the current picture down, always. What happens to the SPACE
+   depends on the profile. On the fixed-band profile the answer is
+   fixed: the band blanks and keeps its rows, always (the retro
+   section). On the windowed profile it is the interpreter author's
+   discretion (Stefan's ruling, 2026-07-26). KEEP the band reserved if
+   you like: a blank strip in the background colour, the text area
+   below keeping its size, the layout holding still. Or RELEASE it:
+   give the rows back to the text area, and re-base the band when the
+   next nonzero draw arrives (the first-draw machinery above, run
+   again). Actaea's window releases: enter a pictureless room and the
+   prose takes the whole window; walk on and the band returns. All of
+   these presentations are fully conformant, and a game must not
+   assume any of them. Clears happen in ordinary play (a room without
+   a picture in a game whose other rooms have them). Note that the
    library sends the game's real mode even on a clear call, so a clear
    still tells you the band's shape.
 
@@ -470,54 +484,53 @@ chooses codec 0; for ZX0 use the published decompressors (the official
 Z80 versions ship with ZX0 itself; 6502 and Z80 versions land in the
 probes with wave 2's chapters).
 
-## The retro screen: the stamp, the beat, and the gap
+## The retro screen: the fixed band, the stamp, and the gap
 
 Part A's ops are the whole protocol on a modern machine, where the band
 is its own surface and rows are free. On a memory-mapped retro screen
-the same ops need an orchestration model. These are the rules. The
-first two are REQUIRED; the rest name the quality path and the allowed
-freedom.
+the same ops need an orchestration model, and the model is the
+FIXED-BAND PROFILE (Stefan's ruling, 2026-08-06): the screen never
+changes shape. On these machines performance and simple elegance carry
+equal weight with everything else, and a standing screen buys both;
+the field experience behind the ruling is that the hard interpreter
+defects live in the moving parts of a screen, not the standing parts.
+The profile and the stamp are REQUIRED; the rest names the quality
+path and the allowed freedom.
 
-THE STAMP MODEL (required). Text scrolls bottom to top, and a picture
-draw STAMPS the band over the top of the screen, overwriting the oldest
-scrolled text. Nothing shifts in the common case: the region the band
-claims holds only history the player has already read. The op stream is
-ordered for exactly this model; the draw always precedes the text of
-the room that wants it, so the new content is at its smallest the
-moment the stamp lands.
+THE FIXED BAND (required; the profile). The band is reserved from boot
+and never comes down. The interpreter knows the game's mode before it
+executes an instruction (the ARCI chunk in the Blorb names it, and a
+disk builder bakes it into the build), reserves the band at that
+height, and shows it BLACK until the game's first draw. The text
+window lives below the band from the first byte of output: the intro
+scrolls and pages there, [MORE] at genuine window-full of THAT window,
+and if the intro has not yet reached the first pictured room, the band
+simply stays black above it. The interpreter never draws of its own
+accord; the picture arrives when the game reaches the location that
+carries it, which for the usual opening is moments after boot. There
+is no full-screen phase, no re-base, and no division of a live page:
+part A's first-draw machinery belongs to the windowed profile and does
+not exist here. A game that ships no pictures at all deserves the
+text-only interpreter build instead, and the disk builder knows the
+difference at build time, so the fixed band never enters.
 
-THE BEAT RULE (required). The beat is everything printed since the last
-player input: the echoed command, travel prose from handlers, a
-cutscene, and then the room text that follows the draw. The interpreter
-MUST keep the whole beat visible: when a stamp would cover any beat
-line, shift the beat down below the band first. Content older than the
-beat is expendable and needs no protection. Only the interpreter can
-enforce this, because only it knows line wrapping and screen height,
-which is why the duty is the interpreter's and not the game's. Note
-what the beat is NOT: retaining only the room description is not
-enough. The beat begins at the player's input, not at the description;
-a game that prints travel prose or a cutscene between the move and the
-draw (Arcturus games do) must not lose it under the picture.
+THE STAMP (required). A picture draw STAMPS the new picture into the
+standing band, and that is the whole event. Text never occupies the
+band's rows, so a stamp cannot cover a line of text, read or unread.
+The op stream still orders the draw before the text of the room that
+wants it, so the picture is already up when the prose arrives.
 
-AT BOOT the rule is different, and simpler. Before the first nonzero
-draw the band does not exist and the text window is the full screen:
-an intro pages at genuine window-full, never earlier, and no picture
-appears during it. The first nonzero draw then re-bases the screen
-with every currently visible line placed below the band (part A, the
-first draw), and the re-base never eats a line: a page too tall for
-the window below the band is paged below it from its top, genuine
-[MORE]s and all, never truncated to its tail. The demo itself is the
-proof case on a small screen: its opening does not fit below a DAAD
-band on a 25-row display, so a correct boot there shows the band with
-the TOP of the welcome text and a [MORE], and only then the banner,
-the room text, and the prompt. From then on, the beat rule above
-governs every stamp. No opening shape is asked of authors: a game may
-flow its intro straight into the first room, and the demo does.
-
-The beat rule binds EVERY interpreter, the windowed ones included. A
-scrollback satisfies retention, but the view after a band change must
-still show the beat; releasing rows or re-basing a window is never a
+THE BEAT, satisfied by construction. The invariant behind both
+profiles is the beat rule: the beat is everything printed since the
+last player input (the echoed command, travel prose from handlers, a
+cutscene, and then the room text that follows the draw), and it must
+stay readable, never covered by a picture. The windowed profile
+enforces this actively: after any band change the view must still
+show the beat, and a scrollback satisfies retention but is never a
 licence to leave the player staring at the wrong part of the story.
+The fixed band satisfies the rule by construction: no draw ever
+touches a text row, so there is nothing to enforce and no enforcement
+code to get wrong.
 
 THE STATUS LINE AT BOOT (by design). The bar first paints with the
 first prompt: no prompt on screen, no status line. A [MORE] pause
@@ -526,12 +539,15 @@ bar, and that is correct, not a missing paint. From the first prompt
 on, the bar repaints every turn and re-seats after every band change,
 before the room text flows.
 
-THE CLEAR (recommended). draw_image with id 0 blanks the band region
-and lets it rejoin the scroll: text flows back through it on the next
-scrolls. A permanently dead band wastes a third of a small screen
-through a picture-light stretch of play, and that cannot be the
-quality aim. (A clear before any picture was ever drawn remains a
-no-op, part A.)
+THE CLEAR (fixed by the profile). draw_image with id 0 blanks the band
+to the background and the band KEEPS its rows; it never rejoins the
+scroll. Part A's keep-or-release discretion belongs to the windowed
+profile alone. An author who dislikes a blank strip across a
+pictureless stretch of the game ships a placeholder picture for those
+rooms; that is an authoring convention with classic precedent (Arthur
+and the DAAD games did exactly this), not interpreter code. (A clear
+that arrives before any picture was drawn blanks an already black
+band: nothing happens, and nothing needs to.)
 
 THE GAP (allowed; document yours). A machine may be unable to seat the
 status line flush under the band. The CPC is the proven case: the CRTC

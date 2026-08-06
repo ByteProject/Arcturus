@@ -8633,3 +8633,33 @@ paged below it from its top, genuine [MORE]s and all, bottom-anchored
 truncation reaching only the same final frame the paging would. The
 retro boot paragraph now names the demo as the proof case so no
 interpreter author mistakes the truncated boot for correct again.
+
+## 2026-08-06: two profiles, one invariant (Stefan's ruling)
+
+The first CPC field build got its correctness the hard way, and every
+hard defect lived in the moving parts of the screen: the re-base of a
+live page, the release and re-division of the band, the boot's
+full-screen phase. Stefan took counsel on this and ruled the
+complexity OUT of the 8-bit machines rather than better-handled.
+
+STEFAN'S RULING: the contract now names two profiles over one
+invariant (the player never loses unread text; a picture never covers
+the beat). The WINDOWED profile keeps the full dynamic contract:
+full-screen boot, first-draw re-base, never-eats paging, keep-or-
+release clears, the beat rule actively enforced. It belongs to any
+machine with the horsepower to move a live page: the desktops and the
+web, the ST/Amiga/DOS/MSX2 class, the MEGA65 and Spectrum Next; the
+machine lists are examples, not a roster. The FIXED-BAND profile
+belongs to the classic 8-bits, where performance and simple elegance
+carry equal weight: the band is reserved from boot at the game's mode
+(the ARCI chunk names it before an instruction runs), stands black
+until the game itself reaches the first pictured room (the intro
+scrolls through the lower window; the interpreter never draws on its
+own, faithful to the concept), never comes down, and a clear blanks
+it without freeing it. Authors who dislike the blank strip ship a
+placeholder picture, the Arthur and DAAD convention. The beat rule is
+satisfied by construction there: no draw ever touches a text row. A
+game with no pictures gets the text-only interpreter build from the
+disk builder. No compiler, Cosmos, or demo change: arc_mode was
+already game-wide, the ARCI chunk already declared the geometry, and
+the demo already documented both clear looks as correct.

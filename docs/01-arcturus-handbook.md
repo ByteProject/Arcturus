@@ -3604,7 +3604,11 @@ Ids start at 1; 0 is reserved to mean "no picture" (it clears the band). Cosmos
 reads the property on room entry, behind the guard, and draws the picture; a
 room with no `arc_image` clears the band, so the picture always matches the
 room. Re-looking in the same room does not redraw (it would make a retro target
-re-decompress its art for nothing).
+re-decompress its art for nothing). What a cleared band looks like depends on
+the interpreter: a windowed one may give the rows back to the prose, a retro
+screen keeps a blank strip. If you dislike that strip across a long pictureless
+stretch, give those rooms a placeholder picture; Arthur and the DAAD games did
+the same.
 
 THE PICTURE FOLLOWS THE SCENE. `arc_image` is an ordinary value property,
 so a handler can move it, and the band repaints at the end of that same

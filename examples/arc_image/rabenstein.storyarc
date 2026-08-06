@@ -41,9 +41,10 @@
 //                                  bedchamber also shows the reveal plus
 //                                  the room description in one turn.
 //
-//     What id 0 LOOKS like on the lawn is the interpreter's discretion
-//     (docs/08): a fixed screen keeps a blank band, a modern window may
-//     release the rows to the prose (Actaea does). Both are correct.
+//     What id 0 LOOKS like on the lawn depends on the interpreter's
+//     profile (docs/08): a fixed-band retro screen keeps a blank band, a
+//     windowed interpreter may release the rows to the prose (Actaea
+//     does). Both are correct.
 //
 // And two things that must NOT happen: LOOK in any room must not reload or
 // flicker the band (the library redraws only when the picture actually
