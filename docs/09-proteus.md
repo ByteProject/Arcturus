@@ -64,13 +64,13 @@ project tests.
 
 ## 3. The fork (proteus/ in this repository)
 
-Proteus is a trimmed, Z-machine-only fork of Dannii Willis' Parchment, vendored under `proteus/` with its provenance and upstream commits recorded in `proteus/PROVENANCE.md`. There is no separate fork repository. What was trimmed, what was added:
+Proteus is a trimmed, Z-machine-only fork of Parchment, vendored under `proteus/` with its provenance and upstream commits recorded in `proteus/PROVENANCE.md`. There is no separate fork repository. What was trimmed, what was added:
 
 - Trimmed: every non-Z engine (Glulx, TADS, Hugo, SCARE, AGT), the
   iplayif.com application, the Inform 7 packaging, test harnesses, and
   all fonts but the one the page embeds. The single file went from
   upstream's 3.6 MB to about 0.8 MB.
-- Revived: ZVM, Dannii's TypeScript Z-machine, as the one engine (it
+- Revived: ZVM, Parchment's TypeScript Z-machine, as the one engine (it
   was dormant in upstream), wired to the modern shell.
 - Added: the arc_image band (an `ARCI`-declaring Blorb lights the
   capability bit and the band appears; see docs/08), window and page

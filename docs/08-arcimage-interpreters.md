@@ -1,5 +1,7 @@
 # arc_image for interpreter authors: the contract, the format, the loaders
 
+Version 1.2
+
 This is the implementer's guide to arc_image, the optional picture band in
 Arcturus games. Everything you need to support it is here: this document,
 a working reference loader for your machine, and the test pictures. You
@@ -149,7 +151,7 @@ arc_image plays it unchanged as text. Here is the whole contract.
    depends on the profile. On the fixed-band profile the answer is
    fixed: the band blanks and keeps its rows, always (the retro
    section). On the windowed profile it is the interpreter author's
-   discretion (Stefan's ruling, 2026-07-26). KEEP the band reserved if
+   discretion. KEEP the band reserved if
    you like: a blank strip in the background colour, the text area
    below keeping its size, the layout holding still. Or RELEASE it:
    give the rows back to the text area, and re-base the band when the
@@ -174,8 +176,7 @@ arc_image plays it unchanged as text. Here is the whole contract.
    draw_image calls can drive a pinned band on an 8-bit machine and a
    flowing gallery in a browser, both of them correct.
 
-3a. THE ORDER YOU CAN RELY ON (the op contract, ruled 2026-07-28 after a
-   field report from the TRS-80 Model 4 build). If your layout moves the
+3a. THE ORDER YOU CAN RELY ON (the op contract). If your layout moves the
    status line when the band changes (the releasing choice above), you
    need to know WHEN the bar is repainted relative to the image ops.
    Cosmos guarantees two invariants, on the wire, in every game built
@@ -230,8 +231,7 @@ both (`pack`, `pack --zblorb STORY`).
 
 If you already read Blorb, there is nothing new to learn: the resource
 number is the arc_image id, and the mode still comes from the opcode.
-(An earlier `.arcres` zip pack existed briefly and was retired on
-2026-07-31; if you ever meet one in the wild, it is a plain zip of
+(An earlier `.arcres` zip pack existed briefly and was retired; if you ever meet one in the wild, it is a plain zip of
 `<id>.png` files, and repacking it is one arcimg command.)
 
 A loose directory of numbered PNGs beside the story also works, but that
@@ -489,12 +489,11 @@ probes with wave 2's chapters).
 Part A's ops are the whole protocol on a modern machine, where the band
 is its own surface and rows are free. On a memory-mapped retro screen
 the same ops need an orchestration model, and the model is the
-FIXED-BAND PROFILE (Stefan's ruling, 2026-08-06): the screen never
-changes shape. On these machines performance and simple elegance carry
-equal weight with everything else, and a standing screen buys both;
-the field experience behind the ruling is that the hard interpreter
-defects live in the moving parts of a screen, not the standing parts.
-The profile and the stamp are REQUIRED; the rest names the quality
+FIXED-BAND PROFILE: the screen never changes shape. On these machines
+performance and simple elegance carry equal weight with everything
+else, and a standing screen buys both; the hard defects of a
+memory-mapped screen live in its moving parts, not its standing
+parts. The profile and the stamp are REQUIRED; the rest names the quality
 path and the allowed freedom.
 
 THE FIXED BAND (required; the profile). The band is reserved from boot
@@ -553,8 +552,8 @@ THE GAP (allowed; document yours). A machine may be unable to seat the
 status line flush under the band. The CPC is the proven case: the CRTC
 cannot split the screen at exactly that raster line without visible
 artifacts, and the cure is one blank buffer line between band and bar.
-Tim Gilberts advised precisely this, and DAAD's own CPC interpreter
-does the same, so the gap line has classic-era precedent. Such a
+DAAD's own CPC interpreter does exactly this, so the gap line has
+classic-era precedent. Such a
 filler line is fully conformant: take it, report the honest remaining
 text rows in the screen-size header (the library reads and adapts),
 and record the reason in your port's notes so the next machine's
@@ -952,8 +951,8 @@ reference).
 
 ### C.7 TRS-80 Model 4 (target id 15, tag TRSM4, files `<id>.TRSM4`)
 
-The first target whose interpreter lives outside the family: Shawn
-Sijnstra builds and maintains the Model 4 engine. The TARGET is
+The first target whose interpreter is built and maintained outside
+this repository. The TARGET is
 first-class arc_image regardless: arcimg converts,
 packs, and renders it like any other, this chapter is its blueprint,
 and the test assets ship with the family.
@@ -1012,8 +1011,8 @@ part A contract; the interpreter renders its text in the machine's one
 ink.
 
 ASSETS. `ARC<id>.TR4` beside the story: TRSDOS caps a suffix at three
-characters and a filename must begin with a letter (Shawn Sijnstra's
-report from the real machine), so this target's files break the
+characters and a filename must begin with a letter (verified on the
+real machine), so this target's files break the
 family's `<id>.<TAG>` convention BY DESIGN. The .arc header id stays
 authoritative, so nothing but the name differs. The standard test
 pair: ARC9.TR4, ARC12.TR4.
@@ -1213,8 +1212,8 @@ ASSETS. `<id>.P4` beside the story. The standard test pair: 9.P4
 (mode 9), 12.P4 (mode 12), both picture 8 of the corpus, and the
 mode-9 file is the TOP SLICE of the mode-12 conversion (arcimg
 slice9): registers identical, every shared row and attribute cell
-byte-identical. Stefan's ruling makes it doctrine: a mode 9 that is
-a different version of the picture is a quality issue. The first
+byte-identical. This is doctrine: a mode 9 that is a different
+version of the picture is a quality issue. The first
 test pair was converted independently and elected the same globals
 in opposite roles with brighter cell pairs; a probe verifying
 against such a pair verifies nothing about consistency.

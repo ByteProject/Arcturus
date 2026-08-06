@@ -8663,3 +8663,17 @@ game with no pictures gets the text-only interpreter build from the
 disk builder. No compiler, Cosmos, or demo change: arc_mode was
 already game-wide, the ARCI chunk already declared the geometry, and
 the demo already documented both clear looks as correct.
+
+## 2026-08-06: reference docs are timeless (Stefan's rule, third strike)
+
+Provenance noise had crept back into docs/08: "(Stefan's ruling,
+DATE)" parentheticals, an advisor's name in the gap paragraph, field
+report framing, an adopter's name in two chapters. Stefan's test is
+the Z-machine Standard itself: it never says who said what. THE RULE,
+now standing: a reference document carries hard facts and its version
+number at the top, nothing else; every name, date, ruling, and piece
+of history lives here in PROGRESS, in commit messages, or in issues.
+docs/08 is swept clean and now opens with "Version 1.2"; the same
+sweep cleared the handbook, docs/07, and docs/09 (upstream PROJECT
+names stay, personal names live in PROVENANCE.md and here). The
+roadmap is exempt: it is a decision record by charter.

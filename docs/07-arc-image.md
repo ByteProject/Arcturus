@@ -141,7 +141,7 @@ is needed. Everything else is built in.
 | Amstrad CPC | conversion ready; planned for Haumea |
 | Commodore Plus/4 | blueprint proven; interpreter support planned |
 | Atari 8-bit | blueprint proven; interpreter support planned |
-| TRS-80 Model 4 | blueprint proven; Shawn Sijnstra's interpreter adopts it |
+| TRS-80 Model 4 | blueprint proven; adopted by an externally built interpreter |
 | MSX1/2, Apple II, Spectrum Next, MEGA65, C128 VDC | planned |
 
 "Blueprint proven" means the machine's picture loader is designed,
