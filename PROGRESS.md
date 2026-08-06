@@ -8689,3 +8689,12 @@ not process provenance. All three are restored. The rule stands
 refined: rulings, dates, and advice attributions leave the specs;
 credit for work someone made never does. docs/08 alone stays fully
 name-free, per the explicit order that created it.
+
+## 2026-08-06: docs/08's Model 4 chapter restored, and named right
+
+The sweep had also castrated the TRS-80 Model 4 chapter. Stefan's
+clarification of the rule, final: diary entries (rulings, dates,
+advice trails) leave the specs; credits and references standing in
+context to a product stay, in docs/08 as much as anywhere. The
+chapter again names Shawn Sijnstra and now, correcting an older
+omission, his interpreter by name: Canopus.

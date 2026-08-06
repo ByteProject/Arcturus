@@ -951,11 +951,11 @@ reference).
 
 ### C.7 TRS-80 Model 4 (target id 15, tag TRSM4, files `<id>.TRSM4`)
 
-The first target whose interpreter is built and maintained outside
-this repository. The TARGET is
-first-class arc_image regardless: arcimg converts,
-packs, and renders it like any other, this chapter is its blueprint,
-and the test assets ship with the family.
+The first target whose interpreter lives outside the family: Shawn
+Sijnstra builds and maintains Canopus, the Model 4 engine. The TARGET
+is first-class arc_image regardless: arcimg converts, packs, and
+renders it like any other, this chapter is its blueprint, and the
+test assets ship with the family.
 
 Probe: [arc_image/probes/trsm4/](../arc_image/probes/trsm4/), source
 `probe.asm` with the ring decoder
@@ -1011,8 +1011,8 @@ part A contract; the interpreter renders its text in the machine's one
 ink.
 
 ASSETS. `ARC<id>.TR4` beside the story: TRSDOS caps a suffix at three
-characters and a filename must begin with a letter (verified on the
-real machine), so this target's files break the
+characters and a filename must begin with a letter (Shawn Sijnstra's
+report from the real machine), so this target's files break the
 family's `<id>.<TAG>` convention BY DESIGN. The .arc header id stays
 authoritative, so nothing but the name differs. The standard test
 pair: ARC9.TR4, ARC12.TR4.
