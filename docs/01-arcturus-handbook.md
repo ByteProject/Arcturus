@@ -3725,8 +3725,8 @@ framing the status-line and conversation-menu granules print). Everything else,
 the agnostic parser skeleton, scope, dispatch, and the action handlers, is shared
 and untouched.
 
-Three refinements that came out of native review and serve every
-language: a closed openable announces itself in listings
+Three refinements that came out of the Spanish native review (Pablo Martinez)
+and serve every language: a closed openable announces itself in listings
 ("Ves un cofre de roble (que está cerrado).", "(closed)", "(geschlossen)"),
 declared per pack in `list_item` with whatever agreement the language needs;
 the `article`/`indefinite` properties override a derived article verbatim

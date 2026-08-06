@@ -8677,3 +8677,15 @@ docs/08 is swept clean and now opens with "Version 1.2"; the same
 sweep cleared the handbook, docs/07, and docs/09 (upstream PROJECT
 names stay, personal names live in PROVENANCE.md and here). The
 roadmap is exempt: it is a decision record by charter.
+
+## 2026-08-06: the sweep overreached; credit is not provenance
+
+The timeless-docs sweep wiped three names it had no business
+touching: Dannii Willis as the author of Parchment in docs/09, Pablo
+Martinez's Spanish native review in the handbook, Shawn Sijnstra's
+interpreter in docs/07. Stefan's correction, immediate and right:
+those are AUTHORSHIP CREDITS, the same class as a copyright line,
+not process provenance. All three are restored. The rule stands
+refined: rulings, dates, and advice attributions leave the specs;
+credit for work someone made never does. docs/08 alone stays fully
+name-free, per the explicit order that created it.
