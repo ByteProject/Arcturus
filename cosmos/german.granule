@@ -446,6 +446,31 @@ block resolve_two_nouns(rq1, rq2)
         // Kein Trenner ("leg lampe"): der zweite Slot blieb zu. Ein Verb
         // mit Ein-Slot-Zeile (schliess tuer auf) bleibt still (rq2 ist 0).
         if rq2 is 1
+            // The reversed dative's blind spot, same as the English
+            // resolver: ZEIG GAUKLER PUPPE with the Puppe elsewhere.
+            // The probe wins only when both sides resolve, so the
+            // fall-through matched the Gaukler alone. A residual word
+            // naming a real thing answers can't-see, an unknown word is
+            // spelled back; only a bare "zeig gaukler" keeps the ask.
+            if noun is not nothing
+                let rw = 1
+                while rw < n
+                    let rwd = word_dict(rw)
+                    if rwd is nothing
+                        change unknown_at to rw
+                        change parse_fault to 4
+                        return 1
+                    let claim = 0
+                    if has_word(noun, rwd)
+                        change claim to 1
+                    if any_plurals is 1
+                        if has_plural(noun, rwd) is 1
+                            change claim to 1
+                    if claim is 0
+                        if peek_byte(rwd + 6) is 0
+                            change parse_fault to 1
+                            return 1
+                    change rw to rw + 1
             change incomplete to 1
     return 1
 

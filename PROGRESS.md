@@ -8712,3 +8712,31 @@ band replacing the entire dynamic boot on the 8-bits) replaced the
 model the checkpoint describes. The entries between there and here
 are the record of that; read them, not the checkpoint's summary,
 for what the contract now is (docs/08, Version 1.2).
+
+## 2026-08-08: the reversed dative's absent thing (arcc 1.3.55, Cosmos 1.3.20)
+
+The field-report round opens with a parser bug from Charles: SHOW
+<npc> <thing> with the thing elsewhere answered the bare-verb ask
+("The verb show requires you to be more specific.") while SHOW
+<thing> TO <npc> honestly said "You see nothing of the sort here."
+Root cause: the reversed-dative probe only wins when both sides
+resolve, so the fall-through matched the recipient as a lone noun
+phrase, silently dropped the absent thing's words, and the
+no-separator branch read the command as bare. GIVE failed the same
+way, in English and German alike.
+
+The fix is a residual scan in that branch of both packs: before the
+ask, any typed word the matched noun does not own is examined, and a
+word naming a real object answers can't-see while an unknown word is
+spelled back, exactly as the prepositioned order answers; only a
+genuinely bare command keeps the ask. Spanish is untouched by design:
+its grammar never accepts the adjacent-noun dative (the mandatory "a"
+or a clitic carries it), so the ask nudging toward the proper
+phrasing is the correct answer there. Priced at 80 bytes per
+English/German game (96 with the plurals granule); all 45 ceilings
+repriced, and the z8 cloak ceiling lowered 1880 bytes to the measured
+build while passing (slack predating this change). Done-test:
+tests/test_reverse_dative_absent.py pins ten behaviors across both
+packs, both orders, present and absent, the bare ask, and the
+unknown-word echo; the suite grows to 1342. README's Cosmos row was
+stale at 1.3.17 and now reads truthfully.
