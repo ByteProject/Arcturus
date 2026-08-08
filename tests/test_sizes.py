@@ -186,6 +186,7 @@ CEILINGS = {
     "features/doors-and-locks.storyarc": 16784,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
     "features/appearance.storyarc": 17560,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
     "features/components.storyarc": 17044,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
+    "features/pathfinding.storyarc": 18916,  # 2026-08-08 first ceiling: the pathfinding showcase (the granule, the way family engine, room-name vocabulary)
     "features/perform.storyarc": 17064,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
     "features/grains.storyarc": 16952,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
     "features/handlers.storyarc": 17980,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)

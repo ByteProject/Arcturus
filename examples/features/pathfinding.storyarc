@@ -1,0 +1,93 @@
+// pathfinding.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// The pathfinding granule (docs/01 chapter 22) and the way family beneath it
+// (docs/01 chapter 8). Summon the granule and the player can GO TO any room
+// they have visited, by name, with no declarations: a room's name words
+// become its vocabulary. FIND walks to a thing you know of; LOOK <direction>
+// answers what lies that way, and only knowledge speaks: unvisited places
+// are as unknown as places that do not exist.
+//
+// Try, in order:
+//   go to gallery        you haven't been: "You don't know that place."
+//   look north           never been: the honest "haven't been that way yet"
+//   north, north         walk there yourself
+//   look south           now it answers: "South lies the Entrance Hall."
+//   go to hall           the walk back, one breadcrumb per room passed
+//   find candle          it walks you to what you know
+//   east, open the oak door, east, west, close the oak door, west
+//   go to library        a route through a closed door is no route
+//
+// Every step of a GO TO is a real turn: daemons run and the clock ticks,
+// which the chapel bell proves on the way. One UNDO takes back the whole
+// walk. The engine itself needs no summon: way_between and way_toward are
+// core library, and the fuse at the bottom shows an author call.
+
+game
+    title "The Long Stride"
+    headline "A pathfinding showcase"
+    author "Stefan Vogt"
+    start hall
+
+summon.pathfinding
+
+room hall
+    name "Entrance Hall"
+    desc "A cold stone hall. The gallery lies north, the chapel beyond it;
+          an oak door closes off the library to the east."
+    north gallery
+    east oak_door
+
+room gallery
+    name "Long Gallery"
+    desc "Portraits line the walls. The hall is south, the chapel north."
+    south hall
+    north chapel
+
+room chapel
+    name "Chapel"
+    desc "A small chapel. A candle burns here. The gallery is south."
+    south gallery
+
+room library
+    name "Library"
+    desc "Shelves to the ceiling. The oak door leads back west."
+    west oak_door
+
+thing oak_door of door in hall
+    name "oak door"
+    words oak, door
+    desc "Heavy oak, iron-banded."
+    openable
+
+    spans library
+
+thing candle in chapel
+    name "wax candle"
+    words wax, candle
+    desc "A stub of wax, still lit."
+
+// The bell proves that a GO TO's steps are real turns: walk the length of
+// the house and the toll count keeps up with the clock.
+counter tolls
+
+on each_turn
+    tolls++
+    if tolls is 5
+        say "Somewhere above, a bell tolls the hour."
+        change tolls to 0
+
+// An author call into the engine, no granule needed: the verger knows the
+// way home from anywhere. way_toward is one call per turn, which is all an
+// NPC walking toward a goal ever needs.
+verb "home" meta
+    homeward
+
+on homeward
+    let w = way_toward(here, hall)
+    if w is no_way
+        say "You are either there already, or there is no way."
+        stop
+    say "Homeward would be step ${w} of the compass table from here."
