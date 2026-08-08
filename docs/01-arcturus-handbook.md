@@ -1735,7 +1735,11 @@ you ask for it back. How the handler ENDS decides how much happens:
    lines happen AFTER the action has really taken place. The player walks
    west first, then "The door clicks shut behind you." If the walk never
    happened (refused, or replaced by a handler that did not continue),
-   the after handler stays silent.
+   the after handler stays silent. And because the action has taken
+   place, the after pass runs in the world the action MADE: for movement,
+   `here` is already the destination, so a room's `on after go` belongs
+   to the room the walk ARRIVES in, never the one it leaves (the example
+   below is two rooms' worth of code for exactly that reason).
 
 `stop` on a handler's last line changes nothing: reaching the end blocks
 the built-in behavior anyway. `stop` exists to end the handler from the
@@ -1743,15 +1747,24 @@ MIDDLE of the body, almost always inside an `if`, when a refusal means the
 remaining lines should not run:
 
 ```
-on go west
-    if door is locked
-        say "The door won't budge."
-        stop            // end here: no movement
-    say "You slip through."
-    continue            // unlocked: and now the go really happens
+room hallway
+    name "Hallway"
+    west study
 
-on after go west
-    say "The door clicks shut behind you."
+    on go west
+        if door is locked
+            say "The door won't budge."
+            stop            // end here: no movement
+        say "You slip through."
+        continue            // unlocked: and now the go really happens
+
+room study
+    name "Study"
+
+    on after go west
+        // The walk has landed and here is the study now, which is why
+        // this handler lives here and not in the hallway it left.
+        say "The door clicks shut behind you."
 ```
 
 The full ordering is in chapter 13.
@@ -1777,6 +1790,16 @@ refuses something should do the same by setting the `refused` global before
 it stops. Second, replacing counts as completing: an `on take` that ends
 after printing its own version of the take still completed the action, so
 its after handlers run. Only a REFUSED turn silences them.
+
+WHERE a movement's after handler lives follows from the first rule: the
+walk has completed, `here` is the destination, and the handler resolves
+there. A room's `on after go <direction>` therefore answers walks that
+arrive in that room; the departure side of the same walk belongs to the
+origin's plain `on go` (with `continue`). A handler that must hear every
+walk wherever it lands is written free-standing at file level, and it
+fires after the arrival's room description, the after pass's fixed
+timing; the hook that speaks BEFORE the description is the destination's
+`on enter`.
 
 Within the after pass, handlers resolve exactly like the main ones: most
 specific first, and `continue` passes to the next (the kind's after, the
