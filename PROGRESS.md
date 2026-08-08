@@ -8740,3 +8740,24 @@ tests/test_reverse_dative_absent.py pins ten behaviors across both
 packs, both orders, present and absent, the bare ask, and the
 unknown-word echo; the suite grows to 1342. README's Cosmos row was
 stale at 1.3.17 and now reads truthfully.
+
+## 2026-08-08: the doubled pulse gap (arcc 1.3.56, Cosmos 1.3.21)
+
+Charles's second report: a restless NPC's each_turn arrived under TWO
+blank lines, every turn. The mechanism took four probes to corner
+because dumb frotz collapses adjacent blank lines and hid it; the
+shipped daemons example reproduced it on Actaea's glass at once (and
+the suite's dfrotz-blindness is noted: spacing assertions belong on
+the in-process VM). Root cause: an ordinary each_turn that runs
+silently (the example's own guarded cat) strands the pending
+paragraph break; the performer's buffered firing then flushes that
+stale break INTO the mute buffer as a real newline, and the replay
+adds its own honest gap on top, two blanks where one belongs.
+
+The fix clears par_pending inside the mute (both fire_restless
+copies, library and debug granule), so the buffer holds the
+performer's prose and nothing else; the outer break is saved and
+restored around it as before, now guarded in both directions. Priced
+at 4 bytes, paid only by restless games; one ceiling repriced.
+Done-test: test_restless.py gains the stranded-break pin (verified
+red against the pre-fix library); suite 1343.

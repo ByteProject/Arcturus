@@ -817,8 +817,9 @@ block fire_object_turns(holder)
 // before your eyes are all heard; a turn taken wholly offstage is
 // silence. So the author writes `say` unconditionally and the system
 // decides audibility, arrivals included. The pending paragraph break is
-// saved around the buffered call so a swallowed `par` never leaks a
-// stray blank line. A restless room the player stands in already fired
+// saved and CLEARED around the buffered call, both directions guarded: a
+// `par` swallowed inside never leaks a stray blank line out, and a break
+// stranded outside never flushes into the buffer as a doubled gap. A restless room the player stands in already fired
 // through the room path above, so `here` is skipped. Reached only
 // behind any_restless (compile time).
 block fire_restless()
@@ -833,6 +834,14 @@ block fire_restless()
                         change heard to 1
                     let pp = par_pending
                     mute_begin
+                    // The buffer must hold the performer's prose and nothing
+                    // else: a pending break stranded by an earlier silent
+                    // handler would be flushed by the performer's first say
+                    // as a REAL newline into the buffer, and the replay,
+                    // adding its own honest gap, would show two (the field
+                    // report: an extra blank line before every pulse). Clear
+                    // it inside the mute; pp restores the outer state after.
+                    change par_pending to 0
                     call_handler(r, ev_each_turn)
                     mute_end
                     change par_pending to pp

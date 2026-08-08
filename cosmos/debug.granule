@@ -187,6 +187,14 @@ block fire_restless()
                         change heard to 1
                     let pp = par_pending
                     mute_begin
+                    // The buffer must hold the performer's prose and nothing
+                    // else: a pending break stranded by an earlier silent
+                    // handler would be flushed by the performer's first say
+                    // as a REAL newline into the buffer, and the replay,
+                    // adding its own honest gap, would show two (the field
+                    // report: an extra blank line before every pulse). Clear
+                    // it inside the mute; pp restores the outer state after.
+                    change par_pending to 0
                     call_handler(r, ev_each_turn)
                     mute_end
                     change par_pending to pp

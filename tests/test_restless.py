@@ -151,3 +151,17 @@ def test_unmute_never_tags_a_silent_performer():
     # The imp works every turn but says nothing: no [bottled imp] tag.
     assert "[bottled imp]" not in out
     assert "[clockwork mouse] The mouse whirs." in out
+
+
+def test_a_stranded_break_never_doubles_the_pulse_gap():
+    # The field report: an ordinary each_turn that runs SILENTLY (here the
+    # imp, ticking a counter) strands the pending paragraph break, and the
+    # performer's first say used to flush it into the mute buffer as a real
+    # newline; the replay then added its own gap, so every pulse arrived
+    # under TWO blank lines. The buffer must hold prose only: exactly one
+    # blank line between the action's answer and the pulse.
+    out = _run(["north", "wait"])
+    at = out.rindex(">wait")
+    tail = out[at:]
+    assert "\n\nThe mouse whirs." in tail
+    assert "\n\n\nThe mouse whirs." not in tail

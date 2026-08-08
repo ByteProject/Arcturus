@@ -182,7 +182,7 @@ CEILINGS = {
     "ejemplo-espanol.storyarc": 21812,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
     "features/computed-properties.storyarc": 16900,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
     "features/containers.storyarc": 17220,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
-    "features/daemons-and-timers.storyarc": 18448,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
+    "features/daemons-and-timers.storyarc": 18452,  # 2026-08-08 repriced: the mute buffer clears the stranded paragraph break (the doubled pulse gap, the field report); only restless games pay
     "features/doors-and-locks.storyarc": 16784,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
     "features/appearance.storyarc": 17560,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
     "features/components.storyarc": 17044,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
