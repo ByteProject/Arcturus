@@ -830,7 +830,11 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     # `words` plus the significant words of its `name`. It is emitted for every
     # object that has any, so a thing named but lacking `words` is still parsable.
     words_prop = layout.prop_number.get("words")
-    vocab = object_words(eff, world.objects[name].category == "room")
+    vocab = object_words(
+        eff,
+        world.objects[name].category == "room",
+        room_names=wm.has_summon(world, "pathfinding"),
+    )
     if words_prop is not None and vocab:
         items.append((words_prop, "words", vocab))
     # The plural property (the plurals granule's group vocabulary) is an array
@@ -888,14 +892,23 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     table.append(0)
 
 
-def object_words(eff: dict, is_room: bool = False) -> list:
+def object_words(eff: dict, is_room: bool = False, room_names: bool = False) -> list:
     """An object's matchable vocabulary: its explicit `words`, then any new words
     from its `name` (so `name "rusted lever"` makes lever and rusted match even
     with no `words` line). Rooms contribute only explicit words, not their name,
-    so a room name is not a noun the player can take or examine."""
+    so a room name is not a noun the player can take or examine; the pathfinding
+    granule flips room_names on (GO TO CHURCHYARD must resolve the churchyard),
+    and an explicit `words` on a room then narrows it, exactly as on a thing."""
     words: list = []
     if "words" in eff:
         words.extend(v.ident.lower() for v in eff["words"].values if isinstance(v, ast.Name))
+    if is_room and room_names and not words and "name" in eff \
+            and eff["name"].form == ast.PROP_VALUE and eff["name"].values:
+        v = eff["name"].values[0]
+        if isinstance(v, ast.StringLit):
+            for w in _plain(v).lower().split():
+                if w.isalnum() and w not in words:
+                    words.append(w)
     if not is_room and "name" in eff and eff["name"].form == ast.PROP_VALUE and eff["name"].values:
         v = eff["name"].values[0]
         if isinstance(v, ast.StringLit):

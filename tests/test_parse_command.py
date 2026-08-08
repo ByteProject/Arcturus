@@ -23,6 +23,7 @@ from arcturus.codegen import (
     build_story,
     gen_react_routines,
     gen_schedule_tick,
+    gen_exit_routines,
 )
 from arcturus.objects import build_layout
 from arcturus.parser import parse
@@ -68,7 +69,7 @@ def _parse_story():
     entry.op("call_vn", a.RoutineRef("__main__"))
     entry.op("quit")
     story = build_story(world, entry, [drive] + routines + react + [gen_schedule_tick(world, gmap)]
-                       + gen_topic_helpers(layout), layout=layout, string_pool=pool)
+                       + gen_topic_helpers(layout) + gen_exit_routines(layout), layout=layout, string_pool=pool)
     return story, actions
 
 

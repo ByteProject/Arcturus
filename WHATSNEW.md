@@ -6,6 +6,24 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Pathfinding: GO TO, FIND, LOOK <direction>, and the way family.**
+  `summon.pathfinding` and the player can GO TO any room they have
+  visited, by name and with no declarations (a room's name words become
+  its vocabulary; `words` on a room overrides). FIND walks to a thing
+  you know of; LOOK NORTH answers what lies that way, leading with the
+  direction as typed, so it composes with the nautical granule ("Aft
+  lies your cabin."). Knowledge is the visited set: unvisited places
+  are as unknown as places that do not exist, and no route leads
+  through rooms you have not seen or doors that stand closed. Every
+  step of a walk is a real turn (daemons and clocks run; one breadcrumb
+  line per room passed), one UNDO takes back the whole walk, and the
+  walk yields the moment the world pushes back. Beneath the granule,
+  the engine is core library, callable with no summon from any handler:
+  `way_between(a, b)` for adjacency, `way_toward(a, b)` for the first
+  step of a shortest path (an NPC walking toward a goal is one call per
+  turn), the `door_bars` and `path_admits` seams for doors and rooms
+  that play by their own rules, and the `no_way` constant, so 0 stays
+  honest north forever. Unused, all of it folds away to the byte.
 - **Arcturus games play on the web.** Proteus, the fourth standalone:
   one command turns a finished game into a single self-contained HTML
   page that runs in any browser, nothing to install and nothing to
@@ -64,9 +82,6 @@ lives in the commit log. The feature roadmap follows below.
 Considered and coming, in no particular order; each lands the Arcturus
 way, designed on its own terms, pay-for-use as always.
 
-- **Pathfinding.** One shortest-path engine over the room graph with two
-  consumers: player travel (`GO TO <a visited room>`, `FIND <object>`)
-  and actor movement, an NPC walking toward a goal one step per turn.
 - **An NPC engine.** A summoned granule for living characters: define an
   NPC's movement (patrol routes, pathfinding toward goals), what they
   do and say as they go, where they operate, whether they can open
@@ -79,7 +94,6 @@ way, designed on its own terms, pay-for-use as always.
   DARKNESS answers) and EXITS refusing without light. (The status bar
   already shows darkness instead of the room name; the rest of the
   furniture is still to come.)
-- **LOOK \<direction\>.** "look north" describes what lies that way.
 - **Question preservation.** A disambiguation question survives an
   interposed command: asked "which coin?", the player may take inventory
   first and then answer. In the same breath: likelihood hints, letting a

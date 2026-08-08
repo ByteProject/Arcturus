@@ -118,7 +118,9 @@ def collect_vocab(world: wm.World) -> set:
     for obj in world.objects.values():
         # An object's matchable vocabulary (explicit words plus its name words),
         # computed the same way the object table emits it.
-        words.update(objects.object_words(objects._effective_props(world, obj), obj.category == "room"))
+        words.update(objects.object_words(
+            objects._effective_props(world, obj), obj.category == "room",
+            room_names=wm.has_summon(world, "pathfinding")))
         for grain in obj.grains:
             for gw in grain.words:
                 words.add(gw.lower())

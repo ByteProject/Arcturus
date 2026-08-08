@@ -8792,3 +8792,42 @@ granule overrides the seam beyond its trivial default), and the size
 gate proved every seamless example byte-identical. Done-test: the
 reach-bound AGAIN pin in test_again_scope.py, red against the
 pre-fix loop; suite 1345.
+
+## 2026-08-08: pathfinding, the way family (arcc 1.3.58, Cosmos 1.3.23)
+
+The milestone from the design round, built the day the round closed.
+STEFAN'S RULINGS shaped every layer: Dialog is the role model (the
+manual and stdlib source were read, not remembered: connections
+queryable both ways, first-step reconstruction over breadcrumb links,
+paths over visited rooms only, doors passing per-door); the naming is
+OURS, the way family, because Arcturus already calls a direction the
+way: way_between (adjacency, the map), way_toward (first step of a
+shortest walk), no_way (-1, so 0 stays honest north, the zero-overlap
+wart Charles reported now dead), door_bars and path_admits (the door
+and room seams), crumbs and fringe (the search's internals). GO TO
+knows only visited rooms (his knowledge ruling: an unvisited place is
+as unknown as one that does not exist), LOOK <direction> leads with
+the direction word as typed so nautical composes ("Aft lies your
+cabin.", his frame), a shut door answers "North lies the oak door,
+closed." on the same frame, and every step of a walk is a real turn
+with one breadcrumb per room passed.
+
+The engine is core (crumbs-and-fringe breadth-first search, scratch
+allocated only when way_toward is called anywhere); the verbs and
+knowledge are summon.pathfinding, wording in the granule per the
+extendedverbs precedent. Room names become room vocabulary under the
+summon; `words` on a room overrides. One ruling amended in the open:
+the "computed exits are opaque to the search" clause fell, because
+the handbook already requires direction blocks to be side-effect-free
+(the document wins); the search reads them exactly as verbose_exits
+does. One compiler fix the milestone forced: the grammar table now
+probes direction-slot lines before plain noun slots (LOOK NORTH
+belongs to look_way, not to a doomed noun phrase). The arrive stride,
+the striding global, and the any_pathfinding fold keep every
+unsummoned game byte-identical, which the size gate proved: not one
+ceiling moved. The NPC engine, when it comes, is way_toward called
+once per turn; no new surface waits on it. Done-test: 16 pins across
+test_way_family.py and test_pathfinding.py (the map, the walk, the
+knowledge, the frames, nautical, ambiguity, room words); suite 1361.
+German and Spanish wording for the granule is open translation work,
+flagged, not forgotten.

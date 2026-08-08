@@ -197,6 +197,11 @@ INTRINSICS = frozenset({
     # verbose_exits granule can list a room's live exits. exit_prop/exit_name are
     # backed by routines codegen emits only when these intrinsics are used.
     "exits_count", "exit_prop", "exit_name",
+    # no_way is the way family's absence value (-1): way_between/way_toward
+    # return it where 0 must stay honest north (the zero-overlap wart).
+    "no_way", "path_buf",
+    # any_pathfinding folds the granule's core hooks (the arrive stride).
+    "any_pathfinding",
     # exit_dest(room, dirprop): the destination of a direction, running a
     # computed exit block if the property holds one (docs/01 chapter 8). Folds
     # to a plain get_prop when the game has no computed exit.
@@ -1090,6 +1095,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
             _place(rt, Variable(v), dest)
             rt.label(done)
             ctx.free_temp(v)
+    elif name == "no_way":
+        # no_way(): the way family's absence value, -1 as a 16-bit word.
+        # Never 0, which is a real direction index (north), and never a
+        # valid index at all, so `if w is no_way` is unambiguous.
+        _place(rt, Const(0xFFFF), dest)
     elif name == "exits_count":
         # exits_count(): how many directions are properties in this program.
         _place(rt, Const(len(exit_directions(ctx.layout))), dest)
@@ -1404,6 +1414,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # screen. Stream 3 is fully conformant back to the 8-bit terps.
         rt.op("output_stream", Const(3), Variable(ctx.globals["__mutebuf__"]))
         _place(rt, Const(0), dest)
+    elif name == "any_pathfinding":
+        _place(rt, Const(1 if wm.has_summon(ctx.world, "pathfinding") else 0), dest)
+    elif name == "path_buf":
+        # path_buf(): the path scratch's byte address (crumbs, then fringe;
+        # codegen sizes and seeds it only when way_toward is called).
+        _place(rt, Variable(ctx.globals["__pathbuf__"]), dest)
     elif name == "mute_buf":
         # mute_buf(): the mute buffer's byte address (the __mutebuf__
         # global), for replay_muted to read the captured text back.
@@ -3550,6 +3566,8 @@ def _static_value(ctx, expr):
         return _any_verb_read(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_reach":
         return _any_reach(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_pathfinding":
+        return 1 if wm.has_summon(ctx.world, "pathfinding") else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_restless":
         return 1 if (ctx.layout is not None and ctx.layout.has_restless) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_carry_limit":

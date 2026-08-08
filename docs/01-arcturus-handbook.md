@@ -1161,6 +1161,40 @@ behavior applies: by default "You can't go that way.", or, with
 `summon.verbose_exits` (chapter 22), an automatically listed set of the room's
 available exits.
 
+### The way family: querying the room graph
+
+The map the exits weave is queryable from any handler, no summon needed;
+each block folds away unless called. A direction is named by its INDEX (the
+same currency as `exit_prop(i)`), and absence is always the constant
+`no_way`, which is -1: never 0, because 0 is a real direction index and a
+real direction property is a real value. Comparing against `no_way` is
+always unambiguous.
+
+- `way_between(a, b)`: the direction index leading from room `a` straight
+  to room `b`, or `no_way` when they are not adjacent. This is the MAP:
+  a door between them is read through to its far side whatever its state,
+  because adjacency is topology, not passability.
+- `way_toward(a, b)`: the first step of a shortest path from `a` to `b`
+  as a direction index, or `no_way` when no path exists (or when `a` is
+  already `b`; that case belongs to the caller). This is the WALK: a
+  breadth-first search over the room graph. A door passes only where
+  `door_bars` allows; a room joins the path only where `path_admits`
+  allows. Called each turn, it walks an actor one step per turn toward
+  any goal.
+- `door_bars(d)`: the per-door seam the walk consults. The default bars
+  any door that is not open; override it and a bead curtain never bars,
+  or a haunted arch bars even when open.
+- `path_admits(r)`: the per-room seam the walk consults; everything is
+  admitted by default. The pathfinding granule (chapter 22) narrows it to
+  the player's knowledge while a GO TO or FIND is resolving; an author's
+  own calls, an NPC walking toward a goal, are not bound by what the
+  player has seen.
+
+Computed exits are read during the search exactly as the go handler and
+verbose_exits read them, which is why direction blocks must be free of side
+effects (the rule above). A program that never calls `way_toward` carries
+none of the search's scratch memory.
+
 ## Chapter 9: Statements, control flow, and expressions
 
 Statements appear inside `on` handlers, `block` bodies, and computed
@@ -4419,6 +4453,53 @@ exit" there. An `on start` rule does it: `on start` / `change dirs_nautical
 to false`. The compiler emits a note when the nautical granule is summoned
 and the start room has no nautical exit, since the opening room is the one
 place a step-off handler can never reach.
+
+### pathfinding
+
+```
+summon.pathfinding
+```
+
+The player-facing half of the way family (chapter 8): GO TO a visited room
+by name, FIND a thing you know of, LOOK <direction> to ask what lies that
+way. The engine itself, `way_between` and `way_toward`, is core library and
+needs no summon; the granule adds the verbs and the knowledge. Knowledge is
+the visited set: GO TO resolves only rooms the player has stood in, the
+walk routes only through rooms they have seen, and LOOK names only visited
+destinations. An unvisited place answers "You don't know that place.",
+exactly as unknown as a place that does not exist.
+
+Summoning the granule turns every room's `name` words into that room's
+vocabulary, so GO TO CHURCHYARD works with no declarations; `words` on a
+room overrides, exactly as on a thing.
+
+THE WALK. A GO TO or FIND performs each step as an ordinary go action,
+doors, refusals, `on enter`, and alter lines all behaving, and every
+intermediate step is a full world beat: daemons and timers run and the
+clock ticks, exactly as if the step had been typed. Passage through an
+intermediate room prints one breadcrumb, "(through the Arcade)", in place
+of the full description; arrival describes normally. The whole walk is one
+command, so a single UNDO takes it all back, and the walk stops the moment
+the world pushes back: a refused step, a step that lands somewhere
+unexpected, or the path dissolving mid-walk. Whatever intervened has
+already spoken, and the walk adds nothing over it. A route through a
+closed door is no route; open the door and it is.
+
+FIND speaks for what is present ("The silver locket is right here."),
+walks to what is elsewhere and known ("(setting off for the Dusty
+Attic)"), and refuses what is not ("You don't know of any such thing.",
+or, for a thing whose room the player has never seen, "You don't know the
+way there."). LOOK FOR is the same verb.
+
+LOOK <direction> leads with the direction word as typed, so it composes
+with nautical: "North lies the Churchyard.", "Aft lies your cabin.", "The
+way east is open, but you haven't been that way yet.", "Nothing lies that
+way.", and for a shut door, "North lies the oak door, closed."
+
+The wording ships in the granule (the extendedverbs manner): reskin any
+line by redefining its msg_ block, or fork the granule wholesale. A game
+that never summons it pays nothing anywhere, and its own calls into the
+way family stay free of the granule's knowledge gate.
 
 ### conversations
 

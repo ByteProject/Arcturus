@@ -349,6 +349,8 @@ _BUILTINS = {
     # reach-bound noun this turn, and its AGAIN memory (the any_reach fold).
     "reached": T_NUMBER,
     "last_reached": T_NUMBER,
+    # mid-walk breadcrumb mode (summon.pathfinding).
+    "striding": T_NUMBER,
     # The catalog region's byte address, seeded at build (docs/01, catalogs).
     "__catalogs__": T_NUMBER,
     # 1 once a handler spoke this action's report (alter); library-internal.
@@ -394,6 +396,7 @@ _BUILTINS = {
     # table out-of-scope prose is discarded into. 0 in a game with no
     # restless object (the buffer is not even allocated). Library-internal.
     "__mutebuf__": T_NUMBER,
+    "__pathbuf__": T_NUMBER,
     # Set for the opening room description when a status bar already names
     # the room: describe_room skips its title line once (library-internal).
     "hide_title": T_NUMBER,

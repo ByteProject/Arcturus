@@ -52,9 +52,12 @@ block spans_match(target)
         change i to i + 1
     return nothing
 
-// The room across a door from where the player stands. A door joins two rooms:
-// it lives in one (its tree parent) and spans the other, so the far side is the
-// one that is not `here`. Returns nothing for a door with no second room.
+// The room across a door from where the player stands. A door joins two
+// rooms: it lives in one (its tree parent) and spans the other, so the far
+// side is the one that is not `here`. Returns nothing for a door with no
+// second room. door_far_side below is the from-anywhere twin for the way
+// family; the two stay separate so a doors game that never pathfinds keeps
+// its exact bytes (DCE drops the twin unused).
 block door_other_side(door)
     let home = parent_of(door)
     if here is home
@@ -63,6 +66,108 @@ block door_other_side(door)
             return nothing
         return peek_word(addr, 0)
     return home
+
+// The room across a door from a given room (the path engine's form).
+block door_far_side(d, origin)
+    let home = parent_of(d)
+    if origin is home
+        let addr = spans_addr(d)
+        if addr is nothing
+            return nothing
+        return peek_word(addr, 0)
+    return home
+
+// ==========================================================================
+// THE WAY FAMILY (docs/01 chapter 8): the room graph, queryable from author
+// code. A direction is named by its INDEX (the exit_prop world), and absence
+// is always the constant no_way (-1), never 0, which stays honest north.
+// Every block here folds away unless called; way_toward alone brings the
+// path scratch (crumbs and fringe) into the build.
+// ==========================================================================
+
+// Does this door bar travel? The path engine's per-door seam: by default a
+// door that is not open bars the way. Override it and a bead curtain never
+// bars, or a haunted arch bars even when open.
+block door_bars(d)
+    if d is open
+        return 0
+    return 1
+
+// May a path pass through this room? The engine's per-room seam: everything
+// by default. The pathfinding granule narrows it to the player's knowledge
+// (visited rooms) while a GO TO or FIND is resolving; an NPC walking the
+// same graph is not bound by what the player has seen.
+block path_admits(r)
+    return 1
+
+// The direction index leading from room a straight to room b, or no_way when
+// they are not adjacent. This is the MAP: doors are read through to their far
+// side whatever their state, because adjacency is topology, not passability
+// (way_toward is the walk, and it respects door_bars).
+block way_between(a, b)
+    let n = exits_count
+    let i = 0
+    while i < n
+        let d = exit_dest(a, exit_prop(i))
+        if d is not nothing
+            if any_doors is 1
+                if d is door
+                    change d to door_far_side(d, a)
+            if d is b
+                return i
+        change i to i + 1
+    return no_way
+
+// The first step of a shortest path from room a to room b: a direction index,
+// or no_way when no path exists (or a is already b; the caller owns that
+// case). The WALK: a breadth-first search over the room graph, doors passing
+// only where door_bars says so, rooms admitted only where path_admits says
+// so. Computed exits are read exactly as the go handler and verbose_exits
+// read them; the handbook already requires them to be side-effect-free.
+// The scratch lives in __pathbuf__: one crumb byte per object (the first-step
+// direction that discovered the room, +1; 0 unseen; 255 the origin), then
+// the fringe, one word per object, the frontier queue.
+block way_toward(a, b)
+    if a is b
+        return no_way
+    if path_admits(b) is 0
+        return no_way
+    let crumbs = path_buf
+    let fringe = crumbs + object_count + 1
+    let i = 0
+    while i <= object_count
+        poke_byte(crumbs + i, 0)
+        change i to i + 1
+    poke_byte(crumbs + a, 255)
+    poke_word(fringe, 0, a)
+    let head = 0
+    let tail = 1
+    while head < tail
+        let r = peek_word(fringe, head)
+        change head to head + 1
+        change i to 0
+        while i < exits_count
+            let d = exit_dest(r, exit_prop(i))
+            if d is not nothing
+                if any_doors is 1
+                    if d is door
+                        if door_bars(d) is 1
+                            change d to nothing
+                        else
+                            change d to door_far_side(d, r)
+                if d is not nothing
+                    if peek_byte(crumbs + d) is 0
+                        if path_admits(d) is 1
+                            let c = peek_byte(crumbs + r)
+                            if c is 255
+                                change c to i + 1
+                            poke_byte(crumbs + d, c)
+                            if d is b
+                                return c - 1
+                            poke_word(fringe, tail, d)
+                            change tail to tail + 1
+            change i to i + 1
+    return no_way
 
 // Is obj in scope right now?
 block in_scope(obj)

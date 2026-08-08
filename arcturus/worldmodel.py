@@ -247,6 +247,15 @@ class Verb:
     line: int = 0
 
 
+def has_summon(world: "World", target: str) -> bool:
+    """Was a feature granule summoned (summon.<target>)? The codegen-side
+    twin of sema's check, for features whose emission depends on it (the
+    pathfinding granule turns room names into vocabulary)."""
+    return any(
+        s.form == "feature" and s.target == target for s in world.summons
+    )
+
+
 def line_shape(line: GrammarLine) -> tuple:
     """The positional signature of a grammar line: its slots and literal words,
     in order. Two lines with the same shape cannot be told apart by positional
@@ -322,8 +331,24 @@ def table_line_order(grammar: list) -> list:
     def lits(line):
         return sum(1 for it in line.items if isinstance(it, ast.Word))
 
+    def dirred(line):
+        # A direction slot only ever matches direction words, so among
+        # literal-free lines it is strictly more selective than a noun or
+        # text slot and must be probed first: LOOK NORTH belongs to
+        # `look_way direction` even though `look noun` would swallow the
+        # word into a doomed noun phrase.
+        return any(
+            isinstance(it, ast.Slot) and it.kind == "direction"
+            for it in line.items
+        )
+
     return sorted(
-        grammar, key=lambda l: (-lits(l), len(l.items) if lits(l) == 0 else 0)
+        grammar,
+        key=lambda l: (
+            -lits(l),
+            0 if dirred(l) else 1,
+            len(l.items) if lits(l) == 0 else 0,
+        ),
     )
 
 

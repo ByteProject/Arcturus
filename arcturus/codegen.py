@@ -782,6 +782,10 @@ _BUILTIN_GLOBALS = [
     # any_reach fold; a game that leaves the seam alone never stores them.
     "reached",
     "last_reached",
+    # 1 while a GO TO walk is passing through an intermediate room: arrive
+    # prints the granule's breadcrumb instead of the description. Exists for
+    # the any_pathfinding fold; never stored in an unsummoned game.
+    "striding",
     # 1 once a handler spoke this action's report (`alter`); the default's
     # success line then stays silent. Cleared per dispatch.
     "altered",
@@ -844,6 +848,8 @@ _BUILTIN_GLOBALS = [
     "__tduals__",
     # The mute buffer's byte address (restless performers, stream 3).
     "__mutebuf__",
+    # The path scratch base (way_toward): crumbs then fringe; 0 unallocated.
+    "__pathbuf__",
     # The opening-description title skip (a status bar already names the room).
     "hide_title",
     # arc_image (B11): the picture id currently on screen, so describe_room skips
@@ -959,6 +965,16 @@ def build_story(
     mutebuf_addr = 0
     if layout is not None and layout.has_restless:
         mutebuf_addr = sf.append(bytes(2 + 512))
+
+    # The path scratch (the way family, docs/01 chapter 8): the crumbs, one
+    # byte per object (the first-step direction that discovered each room,
+    # +1, 0 unseen, 255 the origin), then the fringe, one word per object
+    # (the BFS frontier queue). Allocated only when something in the program
+    # actually calls way_toward; way_between needs no scratch.
+    pathbuf_addr = 0
+    if layout is not None and _calls_way_toward(world):
+        n_objs = len(layout.obj_number)
+        pathbuf_addr = sf.append(bytes((n_objs + 1) * 3))
 
     # Scoring (docs/01): one earned byte per award site and pool, zeroed, in
     # dynamic memory; the base goes in __awards__ below. max_score sums
@@ -1168,6 +1184,10 @@ def build_story(
         if mutebuf_addr:
             sf.set_word(
                 globals_addr + (gmap["__mutebuf__"] - 16) * 2, mutebuf_addr)
+        # The path scratch's address (way_toward); 0 when nothing pathfinds.
+        if pathbuf_addr:
+            sf.set_word(
+                globals_addr + (gmap["__pathbuf__"] - 16) * 2, pathbuf_addr)
         # The catalog region's byte address (docs/01, catalogs); zero, and
         # never read, in a game with no author catalogs, no spilled kind, no
         # matrix, and no stateful vary site (all of which share this region
@@ -1984,6 +2004,40 @@ def _prune_unreachable(entry: Routine, routines: list, layout) -> list:
             if f.kind == "call" and f.target not in reachable:
                 stack.append(f.target)
     return [r for r in routines if r.name in reachable]
+
+
+def _calls_way_toward(world) -> bool:
+    """Does anything in the program call way_toward, outside the engine's own
+    definition? Decides whether the path scratch buffer exists at all."""
+    import dataclasses
+
+    def walk(node) -> bool:
+        if isinstance(node, list):
+            return any(walk(n) for n in node)
+        if dataclasses.is_dataclass(node) and not isinstance(node, type):
+            if type(node).__name__ == "Call" and getattr(node, "name", "") == "way_toward":
+                return True
+            return any(
+                walk(getattr(node, f.name)) for f in dataclasses.fields(node)
+            )
+        return False
+
+    for blk in world.blocks.values():
+        if blk.name == "way_toward":
+            continue
+        if walk(blk.body):
+            return True
+    bodies = []
+    for obj in world.objects.values():
+        bodies += [h.body for h in obj.handlers]
+        bodies += [g.body for g in getattr(obj, "grains", [])]
+        bodies += [t.body for t in getattr(obj, "topics", [])]
+    for kind in world.kinds.values():
+        bodies += [h.body for h in kind.handlers]
+        bodies += [g.body for g in getattr(kind, "grains", [])]
+        bodies += [t.body for t in getattr(kind, "topics", [])]
+    bodies += [h.body for h in world.free_handlers]
+    return any(walk(b) for b in bodies if b)
 
 
 def generate(world: wm.World, version: int = 5, stats=None) -> bytes:

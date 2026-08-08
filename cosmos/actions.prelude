@@ -30,12 +30,31 @@ on look
 // pays out on the first visit (the compiler set the scored bits and summed
 // max_score, docs/01); the payout folds away in a game that scores nothing.
 block arrive()
+    // The long stride (summon.pathfinding): an intermediate step of a GO TO
+    // walk marks its passage with the granule's one breadcrumb line instead
+    // of the full description; every other arrival duty (the score payout,
+    // the visited mark) still runs. Folds away unsummoned.
+    if any_pathfinding is 1
+        if striding is 1
+            if any_scored is 1
+                if here is scored
+                    if here is not visited
+                        change score to score + 5
+            now here is visited
+            line_stride
+            return 0
     if any_scored is 1
         if here is scored
             if here is not visited
                 change score to score + 5
     now here is visited
     describe_room
+
+// The stride breadcrumb's default: nothing. The pathfinding granule
+// overrides it with the real line; unsummoned, the arrive clause above
+// folds away and this empty block is dropped by DCE.
+block line_stride()
+    return 0
 
 // Arrive in a room without walking: the story-facing teleport for cutscene
 // moves (a crash landing, a transit pod, a trapdoor). It pays the room's
