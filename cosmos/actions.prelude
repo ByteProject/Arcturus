@@ -50,12 +50,6 @@ block arrive()
     now here is visited
     describe_room
 
-// The stride breadcrumb's default: nothing. The pathfinding granule
-// overrides it with the real line; unsummoned, the arrive clause above
-// folds away and this empty block is dropped by DCE.
-block line_stride()
-    return 0
-
 // Arrive in a room without walking: the story-facing teleport for cutscene
 // moves (a crash landing, a transit pod, a trapdoor). It pays the room's
 // auto-score exactly once, marks it visited, and describes it, so a scored

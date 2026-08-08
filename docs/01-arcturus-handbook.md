@@ -4160,17 +4160,32 @@ summon "/path/to/fork.granule"  // exactly this file
 `-L` directories must be absolute paths, so the library a story compiles against
 is deliberate and unambiguous.
 
-### Language companions
+### when language: granules that speak
 
-A granule that speaks to the player ships its wording and grammar in
-per-language companion files, `<granule>_<language>.granule`: summoning
-the granule loads the companion matching the game's language
-automatically, English included (the `_english` twin). The logic granule
-carries no player-facing words at all, so a translation is a new
-companion file and nothing else; a language without one simply gets no
-extra words, and the granule's own text, if any, stands. A companion
-never chains a companion of its own. The pathfinding granule is the
-model of the pattern.
+A `when language` group holds ordinary declarations that exist only when
+the named language is the game's language; the other groups vanish at
+combine time and cost nothing:
+
+```
+when language "german"
+    verb "finde", "suche"
+        find_where text
+```
+
+Two homes serve a speaking granule, by one rule. A LIBRARY granule's
+messages live in the language packs beside everything else the library
+says (the statusline's "Punkte" and "Züge" sit in german.granule), so
+`arcc --eject-language` hands a translator ONE file that carries the
+whole library, granule wording included; the blocks fold away in a game
+that never summons the granule. What cannot live in a pack is GRAMMAR,
+because verbs and dictionary words do not fold: a granule that brings
+new verbs declares them inside itself under `when language` groups, one
+per language, stacked and visible (the pathfinding granule is the
+model). A THIRD-PARTY granule has no pack to lean on and self-hosts
+everything, wording and grammar alike, in its own `when language`
+groups; [examples/granules/whistle.granule](../examples/granules/whistle.granule)
+is the worked pattern. Groups do not nest, and a language without a
+group simply contributes nothing.
 
 ### The shipped granules
 
@@ -4531,13 +4546,13 @@ with nautical: "North lies the Churchyard.", "Aft lies your cabin.", "The
 way east is open, but you haven't been that way yet.", "Nothing lies that
 way.", and for a shut door, "North lies the oak door, closed."
 
-The wording and the grammar ship per language: summoning the granule
-loads its LANGUAGE COMPANION beside it, pathfinding_english.granule for
-an English game, pathfinding_german.granule under `summon.language
-"german"` (GEH ZU, FINDE, SCHAU NORDEN), pathfinding_spanish.granule
-under Spanish (VE A, BUSCA, MIRA AL NORTE), each carrying the verbs and
-every message natively. Reskin any line by redefining its msg_ block, or
-fork a companion wholesale. A game that never summons the granule pays
+The granule speaks every shipped language. Its grammar lives inside it
+under `when language` groups (English GO TO and FIND; German GEH
+ZU/ZUR/ZUM, FINDE, SUCHE, SCHAU [NACH]; Spanish VE A/AL/HACIA, BUSCA,
+ENCUENTRA, MIRA [HACIA EL/AL]), and its messages live in the language
+packs beside the rest of the library's voice, so an ejected language
+file carries them to a translator with everything else. Reskin any line
+by redefining its msg_ block. A game that never summons the granule pays
 nothing anywhere, and its own calls into the way family stay free of the
 granule's knowledge gate.
 

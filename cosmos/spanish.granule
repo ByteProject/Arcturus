@@ -2005,3 +2005,58 @@ block list_held(obj)
     show_tag(obj)
     list_contents(obj)
     say ""
+
+// La búsqueda de caminos (summon.pathfinding, docs/01 capítulo 22): cada
+// línea desaparece en un juego sin el granule. El marco de la puerta
+// evita la concordancia dejando que la puerta cierre el paso.
+block line_stride()
+    say "(pasas por ${the here})"
+
+block line_seek_notice(r)
+    say "(te encaminas hacia ${the r})"
+
+
+block msg_no_way_known()
+    say "No conoces el camino hasta allí."
+
+block msg_unknown_place()
+    say "No conoces ese lugar."
+
+block msg_seek_unknown()
+    say "No sabes de nada parecido."
+
+block msg_find_here(o)
+    say "${The o} está aquí mismo."
+
+block msg_seek_near(o)
+    say "${The o} debería andar por aquí."
+
+block msg_nothing_that_way()
+    say "Por ahí no hay nada."
+
+block msg_door_shut_way(d)
+    let at = dir_word_at
+    if at is 0
+        say "${The d} cierra el paso por ahí."
+        return 0
+    show("${The d} cierra el paso hacia el ")
+    show_dir_word(at, 0)
+    say "."
+
+block msg_way_lies(d)
+    let at = dir_word_at
+    if at is 0
+        say "Por ahí queda ${the d}."
+        return 0
+    show("Hacia el ")
+    show_dir_word(at, 0)
+    say " queda ${the d}."
+
+block msg_way_unknown()
+    let at = dir_word_at
+    if at is 0
+        say "El camino está abierto, pero nunca has estado allí."
+        return 0
+    show("El camino hacia el ")
+    show_dir_word(at, 0)
+    say " está abierto, pero nunca has estado allí."

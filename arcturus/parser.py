@@ -220,6 +220,9 @@ class Parser:
                 self.advance()
                 self.advance()
                 return ast.PlayerDecl(self.parse_property(), line)
+        if t.is_kw("when") and self._at(1).kind == T.NAME \
+                and self._at(1).value == "language":
+            return self.parse_language_guard()
         if t.kind == T.NAME and t.value == "language":
             return self.parse_language_decl()
         if t.kind == T.NAME:
@@ -846,6 +849,37 @@ class Parser:
         kind = self.expect_name("a requirement (carried, animate)").value
         self.expect_newline()
         return ast.RequiresDecl(action, slot, kind, line)
+
+    def parse_language_guard(self) -> "ast.LanguageGuard":
+        # `when language "german"` with an indented group of declarations:
+        # the group exists only when the game's language matches. Any
+        # declaration is legal inside except another guard (no nesting) and
+        # a language pack marker.
+        line = self.cur.line
+        self.advance()  # when
+        self.advance()  # language
+        code = self._plain_text(self.expect(T.STRING, "a language code"))
+        self.expect_newline()
+        self.expect(T.INDENT, "an indented group of declarations")
+        decls: list = []
+        while not self.check(T.DEDENT):
+            if self.check(T.EOF):
+                raise self._error(
+                    "unexpected end of file inside a `when language` group")
+            if self.check(T.NEWLINE):
+                self.advance()
+                continue
+            d = self.parse_toplevel()
+            if isinstance(d, ast.LanguageGuard):
+                raise self._error(
+                    "a `when language` group cannot nest another")
+            if isinstance(d, ast.LanguageDecl):
+                raise self._error(
+                    "a language pack marker cannot sit inside a "
+                    "`when language` group")
+            decls.append(d)
+        self.expect(T.DEDENT)
+        return ast.LanguageGuard(code, decls, line)
 
     def parse_language_decl(self) -> ast.LanguageDecl:
         # `language "spanish"`: the self-identifying marker of a language pack.

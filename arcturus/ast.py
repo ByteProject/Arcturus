@@ -659,6 +659,18 @@ class MatrixOp:
 
 
 @dataclass
+class LanguageGuard:
+    # `when language "german"` at file level: an indented group of ordinary
+    # declarations that exist only when the named language is the game's
+    # language (docs/01 chapter 22). The loader expands or drops the group
+    # at combine time; semantic analysis never sees the guard itself. This
+    # is how a granule self-hosts its wording and grammar per language.
+    code: str
+    decls: list["Decl"] = field(default_factory=list)
+    line: int = 0
+
+
+@dataclass
 class LanguageDecl:
     # A self-identifying marker at the top of a language pack: `language "spanish"`.
     # The compiler uses it to require that a language granule is selected with

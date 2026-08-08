@@ -8907,3 +8907,38 @@ DEPTH round (pronominal adverbs, adjective declension, umlaut
 folding) is DELIBERATELY PARKED until German adoption appears, no
 investment into low adoption, Stefan's call; granule wording is NOT
 depth work and is never optional again.
+
+## 2026-08-08: B2, ruled and built; the companions retracted (arcc 1.3.62, Cosmos 1.4.4)
+
+The language-companion mechanism lasted one day, and its retraction
+is the more important record than its shipping. STEFAN'S REBUKES,
+both earned: the architecture was decided without him (the discussion
+rule exists precisely for new mechanisms, and a rebuke to fix a gap
+is not a license to choose the fix's shape alone), and it ignored the
+house pattern he then had to point out himself: every shipped
+granule's wording already lives in the LANGUAGE PACKS, folded away by
+DCE when the granule is unsummoned (the statusline's "Punkte" and
+"Züge" sit in german.granule and always have). Auto-loaded shadow
+files were, in his word, bullshit: invisible, inconsistent, and
+unknowable from the source.
+
+THE RULING, B2, his reasoning: the ejected language file is the
+promise. `arcc --eject-language` hands a translator ONE file carrying
+everything the library says, so a library granule's messages belong
+in the packs with the rest of the library's voice. What cannot live
+there is grammar (verbs and dictionary words do not fold), so the one
+new mechanism is the smallest possible: `when language "<code>"`, a
+file-level group of ordinary declarations that exists only when it
+matches the game's language, expanded at combine time, unnestable,
+costing nothing unmatched. Pathfinding's grammar now sits inside its
+granule in three stacked groups; its messages joined the three packs
+(one duplicate fell out: the library's own msg_already_there already
+said it better); the dir-word speller moved to parser.prelude; the
+companion files and the loader hook are deleted.
+
+AND THE PATTERN FOR EVERYONE ELSE, Stefan's addition: a third-party
+granule has no pack to lean on and self-hosts wording and grammar
+alike in its own groups. examples/granules/whistle.granule is the
+worked pattern (WHISTLE, PFEIFE, SILBA, one behavior, three voices),
+with its demo storyarc in the size gate and the handbook's chapter 22
+teaching both homes by one rule. Suite 1374.

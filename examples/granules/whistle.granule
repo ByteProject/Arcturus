@@ -1,0 +1,45 @@
+// whistle.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// THE SELF-HOSTING PATTERN for granule authors (docs/01 chapter 22): a
+// third-party granule has no language pack to lean on, so it carries its
+// own grammar AND its own wording per language, each in a `when language`
+// group. The group matching the game's language joins the build; the
+// others vanish at combine time and cost nothing. A game summons this
+// file by name from its own directory:
+//
+//     summon "whistle.granule"
+//
+// and the player can WHISTLE (English), PFEIFE (German), or SILBA
+// (Spanish), each answered natively. A story reskins any line by
+// redefining its msg_ block, most-specific-wins as always. The logic, if
+// a granule has any, stays OUTSIDE the groups, written once; only words
+// belong inside.
+
+when language "english"
+    verb "whistle"
+        whistling
+
+    block msg_whistling()
+        say "You whistle a few bright notes into the quiet."
+
+when language "german"
+    verb "pfeife", "pfeif"
+        whistling
+
+    block msg_whistling()
+        say "Du pfeifst ein paar helle Töne in die Stille."
+
+when language "spanish"
+    verb "silba", "silbar"
+        whistling
+
+    block msg_whistling()
+        say "Silbas unas notas claras en el silencio."
+
+// The behavior, once, language-free: the groups above only bring words.
+on whistling
+    msg_whistling
+    stop

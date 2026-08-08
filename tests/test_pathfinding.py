@@ -101,7 +101,7 @@ def test_every_step_is_a_real_turn():
 
 def test_already_there_and_bare_ask():
     out = _run(["go to plaza", "go to"])
-    assert "You are already there." in out
+    assert "You're already there." in out
     assert "The verb go requires you to be more specific." in out
 
 

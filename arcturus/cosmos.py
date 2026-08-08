@@ -42,7 +42,7 @@ _DEFAULT_LANGUAGE = "english"
 # The Cosmos library version. It is independent of the compiler version: the
 # bundled library can move ahead of (or behind) arcc, and since the embedded
 # library is not visible on disk, the banner reports it alongside arcc's version.
-COSMOS_VERSION = "1.4.3"
+COSMOS_VERSION = "1.4.4"
 
 # Set by the amalgamated build to a dict of {filename: source}.
 _EMBEDDED = None
@@ -84,6 +84,21 @@ def granule_sources() -> dict:
 # The per-game abbreviation file (B6): summoned like a granule, but its content is
 # compile-time data for the text encoder, not runtime blocks.
 _ABBREV_GRANULE = "abbreviations.granule"
+
+
+def _expand_language(decls, language):
+    """Expand `when language` guards for the active language: a matching
+    group's declarations join the stream in place, any other group is
+    dropped whole. Runs at combine time, so semantic analysis never sees a
+    guard and an unmatched group costs nothing at all."""
+    out: list = []
+    for d in decls:
+        if isinstance(d, ast.LanguageGuard):
+            if d.code == language:
+                out.extend(d.decls)
+            continue
+        out.append(d)
+    return out
 
 
 def _summons(program: ast.Program) -> list:
@@ -505,7 +520,7 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
         is_chapter = srcname.endswith(".storyarc")
         origin = "game" if is_chapter else "granule"
         gdecls: list = []
-        for d in prog.decls:
+        for d in _expand_language(prog.decls, language):
             if isinstance(d, (ast.BlockDecl, ast.Handler, ast.DirectionDecl)):
                 d.origin = origin
             gdecls.append(d)
@@ -514,29 +529,6 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
         if is_chapter:
             chapters.add(key)
         worklist.extend(_summons(prog))  # a granule may summon further granules
-        # THE LANGUAGE COMPANION (the pathfinding lesson, 2026-08-08): a
-        # granule that speaks to the player ships its wording and grammar
-        # per language as <granule>_<language>.granule; summoning the
-        # granule in a German game loads pathfinding_german.granule beside
-        # it, English loads the _english twin, and a language without a
-        # companion simply gets none (the granule's own text then stands).
-        # Only bundled companions are consulted, and a companion never
-        # chains a companion of its own.
-        if (not is_chapter and srcname.endswith(".granule")
-                and not srcname.startswith("_")):
-            stem = srcname[:-len(".granule")]
-            if not stem.endswith("_" + language):
-                comp = f"{stem}_{language}.granule"
-                if comp in bundled and comp not in loaded:
-                    cprog = parse(bundled[comp], comp)
-                    cdecls: list = []
-                    for d in cprog.decls:
-                        if isinstance(d, (ast.BlockDecl, ast.Handler,
-                                          ast.DirectionDecl)):
-                            d.origin = "granule"
-                        cdecls.append(d)
-                    loaded[comp] = cdecls
-                    order.append(comp)
     # The two conversation presentations are views of the same topic model
     # and are mutually exclusive by design: an author settles on one. Match
     # by filename so a local fork of either still counts as that presentation.
@@ -607,7 +599,7 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
         # load.
         if language != _DEFAULT_LANGUAGE and name == default_prelude:
             continue
-        for d in parse(src, name).decls:
+        for d in _expand_language(parse(src, name).decls, language):
             if isinstance(d, (ast.BlockDecl, ast.Handler, ast.DirectionDecl)):
                 d.origin = "library"
             decls.append(d)
@@ -624,7 +616,7 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
                 f"summon.language: '{srcname}' is not a language pack (it has no "
                 f'`language "..."` marker)', filename="<summon>",
             )
-        for d in lang_decls:
+        for d in _expand_language(lang_decls, language):
             # The marker is a loader directive, not a runtime declaration; drop it
             # so semantic analysis never sees it.
             if isinstance(d, ast.LanguageDecl):
@@ -642,7 +634,7 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
         game, lib_dirs, story_dir)
     decls.extend(granule_decls)
     decls.extend(chapter_decls)
-    decls.extend(game.decls)
+    decls.extend(_expand_language(game.decls, language))
     # Score notification is coupled, per the ruling: a game that writes the
     # `notify` global anywhere gets the NOTIFY verb and the machinery; one
     # that never does gets neither, and the verb word does not even exist.

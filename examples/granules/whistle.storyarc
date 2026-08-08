@@ -1,0 +1,26 @@
+// whistle.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// The worked demo for the self-hosting granule pattern: whistle.granule
+// beside this file carries its own grammar and wording for all three
+// languages in `when language` groups (docs/01 chapter 22). Swap the
+// summon.language line in and the SAME granule answers in German or
+// Spanish, untouched. Compile: arcc whistle.storyarc -o whistle.z5
+
+game
+    title "The Whistling Yard"
+    headline "A self-hosting granule demo"
+    author "Stefan Vogt"
+    start yard
+
+// summon.language "german"
+// summon.language "spanish"
+summon "whistle.granule"
+summon.statusline
+
+room yard
+    name "Quiet Yard"
+    desc "A small yard, very quiet, as if waiting for a sound. Try
+          WHISTLE."

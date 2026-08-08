@@ -186,6 +186,7 @@ CEILINGS = {
     "features/doors-and-locks.storyarc": 16796,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
     "features/appearance.storyarc": 17576,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
     "features/components.storyarc": 17060,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
+    "granules/whistle.storyarc": 16780,  # 2026-08-08 first ceiling: the self-hosting granule pattern demo (when language groups)
     "features/pathfinding.storyarc": 19192,  # 2026-08-08 repriced: the showcase joins the statusline convention (features in realistic context)
     "features/perform.storyarc": 17080,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
     "features/grains.storyarc": 16964,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
@@ -219,9 +220,14 @@ PUNY_CLOAK_BYTES = 27 * 1024
 
 
 def _compile(name, version=5):
-    with open(os.path.join(EXAMPLES, name), "r", encoding="utf-8") as fh:
+    path = os.path.join(EXAMPLES, name)
+    with open(path, "r", encoding="utf-8") as fh:
+        # story_dir: a dir-local summon (the whistle demo's own granule)
+        # resolves beside its example, exactly as arcc would resolve it.
         return generate(
-            analyze(cosmos.combined_program(parse(fh.read(), name))), version=version
+            analyze(cosmos.combined_program(
+                parse(fh.read(), name), story_dir=os.path.dirname(path))),
+            version=version,
         )
 
 

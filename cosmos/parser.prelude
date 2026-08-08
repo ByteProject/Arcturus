@@ -946,3 +946,37 @@ block chain_next()
     change chain_pos to 0
     retokenize
     return parse_line
+
+// ==========================================================================
+// The typed direction word, spelled back (the pathfinding granule's message
+// frames read it: "North lies the Churchyard.", "Aft lies your cabin.").
+// Language-agnostic mechanics; both fold away unless something calls them.
+// ==========================================================================
+
+// The word index of the typed direction word, or 0 when the line has none.
+block dir_word_at()
+    let n = word_count
+    let i = 1
+    while i < n
+        let d = word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 64
+                return i
+        change i to i + 1
+    return 0
+
+block show_dir_word(at, cap)
+    let p = word_pos(at) - 2
+    let n = word_len(at)
+    let i = 0
+    while i < n
+        let ch = text_char(p + i)
+        if cap is 1
+            if i is 0
+                if ch >= 97
+                    if ch <= 122
+                        change ch to ch - 32
+        show_char(ch)
+        change i to i + 1
+    return 0
+
