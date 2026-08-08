@@ -722,8 +722,12 @@ chain ",", "und", "dann"
 noise "der", "die", "das", "den", "dem", "des", "ein", "eine", "einen", "einem", "einer"
 
 pronoun it  "es"
-pronoun him "ihn"
-pronoun her "sie"
+// The accusative and the dative bind to one slot each: resolving needs no
+// case agreement, only the referent ("rede mit ihr", the field report).
+// Known limit for the German depth round: "ihm" is also the NEUTER dative,
+// but it reaches only the him slot here; a das-referent stays under "es".
+pronoun him "ihn", "ihm"
+pronoun her "sie", "ihr"
 
 // Welches Pronomen ein aufgelöstes Substantiv wird: nach dem Genus, das der
 // Autor mit der/die/das erklärt hat. Das Skelett ruft dies nach jedem Befehl.

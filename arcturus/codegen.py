@@ -88,6 +88,27 @@ def _guard_plan(h: wm.Handler, layout, gmap, dirnames=frozenset(), self_num=None
                 f"(the parser sets `way` only for go)"
             )
         for name in item.names:
+            if name == "other":
+                # The per-room movement fallback (docs/01 chapter 8, tier 4):
+                # `on go other` fires when the chosen direction has NO exit
+                # here (static or computed-answering-nothing) and no specific
+                # `on go <direction>` handler consumed the walk first (the
+                # band sort below puts it after every specific one). The
+                # guard reads the room's own exit for `way`, running a
+                # computed exit exactly as the go handler would (direction
+                # blocks are side-effect-free by contract).
+                if "go" not in h.events:
+                    raise CodegenError(
+                        f"line {h.line}: 'other' as a handler operand belongs "
+                        "to go (the per-room fallback, docs/01 chapter 8)"
+                    )
+                if self_num is None:
+                    raise CodegenError(
+                        f"line {h.line}: 'on go other' needs an enclosing "
+                        "room (it is the room's own fallback)"
+                    )
+                plan.append(("__noexit__", [self_num]))
+                continue
             if name == slot or name == "noun":
                 wildcard = True  # `on take noun`: anything in this slot
                 continue
@@ -232,6 +253,11 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
                             wm.after_key(ev) if h.after else ev) not in events:
                         key = wm.after_key(ev) if h.after else ev
                         band_groups.setdefault(key, []).append((hname[id(h)], h))
+            for lst in band_groups.values():
+                # The movement fallback yields to every specific handler
+                # (docs/01 chapter 8: genuine overrides always win), whatever
+                # the declaration order; the sort is stable for the rest.
+                lst.sort(key=lambda p: 1 if _pattern_other(p[1]) else 0)
             band_others = [(hname[id(h)], h) for h in owner_handlers
                            if "other" in h.events and not h.pattern and not h.after]
             band_after = [(hname[id(h)], h) for h in owner_handlers
@@ -446,6 +472,12 @@ def gen_react_free(world: wm.World, actions: dict, registry, layout=None, gmap=N
     )
 
 
+def _pattern_other(h: wm.Handler) -> bool:
+    """Does this handler's pattern name the reserved `other` operand (the
+    per-room movement fallback, docs/01 chapter 8)?"""
+    return any("other" in getattr(item, "names", ()) for item in h.pattern)
+
+
 def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None, afloor=None, dirnames=frozenset(), event_names=wm.EVENT_NAMES, mfloor=None, event_groups=None) -> Routine:
     """react_<obj>(action), OWNER-BANDED (docs/01 chapter 11): the object's
     own handlers form band 0 with its own `on other` at the band's tail, then
@@ -464,7 +496,15 @@ def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None,
     only main actions, `on after other` only the synthetic after numbers,
     metas climb silently."""
     event_groups = event_groups or {}
-    rt = Routine("react_" + objname, nlocals=2)  # 1 = action, 2 = a guard ran
+    needs_exit_local = any(
+        _pattern_other(h)
+        for groups, _o, _a in bands
+        for handlers in groups.values()
+        for _hn, h in handlers
+    )
+    # 1 = action, 2 = a guard ran; 3 = the go-other guard's exit scratch,
+    # present only where that guard is (the count byte costs the same).
+    rt = Routine("react_" + objname, nlocals=3 if needs_exit_local else 2)
     # An owned handler is called with this react routine's own object as its
     # self argument (docs/01 chapter 9); free rules are called with none.
     self_num = layout.obj_number.get(objname) if layout is not None else None
@@ -528,6 +568,25 @@ def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None,
                     skip = f"skipg{skip_n}"
                     skip_n += 1
                     for gvar, values in plan:
+                        if gvar == "__noexit__":
+                            # No exit the chosen way: way must be set, and
+                            # the room's exit for it must answer nothing
+                            # (a computed exit is run; a stored room skips).
+                            ok = f"goth{skip_n}ok"
+                            rt.op("jz", Variable(gmap["way"]),
+                                  branch=(skip, True))
+                            rt.op("get_prop", Const(values[0]),
+                                  Variable(gmap["way"]), store=Variable(3))
+                            rt.op("jz", Variable(3), branch=(ok, True))
+                            rt.op("add", Variable(3), Const(0x8000),
+                                  store=Variable(STACK))
+                            rt.op("jl", Variable(STACK),
+                                  Variable(gmap["__routines__"]),
+                                  branch=(skip, True))
+                            rt.op("call_vs", Variable(3), store=Variable(3))
+                            rt.op("jz", Variable(3), branch=(skip, False))
+                            rt.label(ok)
+                            continue
                         chunks = [values[i:i + 3] for i in range(0, len(values), 3)]
                         if len(chunks) == 1:
                             rt.op("je", Variable(gmap[gvar]),

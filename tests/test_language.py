@@ -448,3 +448,53 @@ def test_reversed_dative_takes_pronouns():
     out = play(["give him coin"])
     assert "Bob pockets" not in out
     assert "say what you mean" in out
+
+
+# The German field-report pair (the if-forum findings, 2026-08-08): dative
+# pronouns bind to the same referent slots as the accusative, and a name like
+# "Tuer aus Eiche" no longer bleeds the particle "aus" into its vocabulary
+# (name-derived words skip what the language layer claims as grammar; an
+# explicit `words` stays the author's own and is never filtered).
+GERMAN_FIELD = (
+    'summon.language "german"\n'
+    'game\n    title "F"\n    start stube\n'
+    'room stube\n    name "Stube"\n    desc "Eine Stube."\n'
+    'thing wirtin of character in stube\n    name "Wirtin"\n    words wirtin\n'
+    '    die\n    named\n    desc "Eine freundliche Wirtin."\n'
+    '    on ask\n        say "Sie nickt dir zu."\n'
+    'thing tuer in stube\n    name "Tuer aus Eiche"\n    die\n'
+    '    desc "Schweres Eichenholz."\n'
+    'thing lampe in stube\n    name "Lampe"\n    words lampe\n    die\n'
+    '    switchable\n'
+)
+
+
+def _run_de(cmds):
+    from arcturus import cosmos as _cosmos
+    from actaea.io import CaptureIO
+    from actaea.loader import load as _load
+    from actaea.vm import VM as _VM
+    story = generate(analyze(_cosmos.combined_program(parse(GERMAN_FIELD))))
+    io = CaptureIO(script=list(cmds))
+    try:
+        _VM(_load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+def test_german_dative_pronouns_bind():
+    out = _run_de(["x wirtin", "frag ihr nach wein"])
+    # "ihr" reaches the her slot: the Wirtin answers instead of a refusal.
+    assert "Sie nickt dir zu." in out
+
+
+def test_name_grammar_words_stay_out_of_vocabulary():
+    out = _run_de(["nimm lampe", "schalt die lampe an", "schalte lampe aus"])
+    # Before the fix, "aus" belonged to the oak door's name words and the
+    # switch-off collided into a disambiguation ask.
+    assert "meinst du" not in out.lower()
+    assert "Welche" not in out
+    # The door still answers to its honest words.
+    out2 = _run_de(["x tuer"])
+    assert "Schweres Eichenholz." in out2

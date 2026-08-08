@@ -115,12 +115,14 @@ def collect_vocab(world: wm.World) -> set:
             for it in line.items:
                 if isinstance(it, ast.Word):
                     words.add(it.text.lower())
+    _room_names = wm.has_summon(world, "pathfinding")
+    _reserved = frozenset(objects.grammar_reserved_words(world))
     for obj in world.objects.values():
         # An object's matchable vocabulary (explicit words plus its name words),
         # computed the same way the object table emits it.
         words.update(objects.object_words(
             objects._effective_props(world, obj), obj.category == "room",
-            room_names=wm.has_summon(world, "pathfinding")))
+            room_names=_room_names, reserved=_reserved))
         for grain in obj.grains:
             for gw in grain.words:
                 words.add(gw.lower())

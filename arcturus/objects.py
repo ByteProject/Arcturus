@@ -834,6 +834,7 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
         eff,
         world.objects[name].category == "room",
         room_names=wm.has_summon(world, "pathfinding"),
+        reserved=frozenset(grammar_reserved_words(world)),
     )
     if words_prop is not None and vocab:
         items.append((words_prop, "words", vocab))
@@ -892,7 +893,38 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     table.append(0)
 
 
-def object_words(eff: dict, is_room: bool = False, room_names: bool = False) -> list:
+def grammar_reserved_words(world) -> set:
+    """The words the language layer claims as STRUCTURAL grammar: particles,
+    grammar-line prepositions, direction words, chain words, all-words, and
+    noise words, lowercased. Name-derived vocabulary skips them (the field
+    report: "Tür aus Eiche" made every oak thing answer to the particle
+    "aus", and "schalte lampe aus" collided into a disambiguation ask); the
+    parser treats these words as phrase boundaries, so they can only poison
+    a noun match. Verb words are NOT reserved: a thing named "Rusty Saw"
+    keeps its saw, the dual machinery's job. An explicit `words` declaration
+    is the author's own and is never filtered."""
+    cached = getattr(world, "_grammar_reserved_cache", None)
+    if cached is not None:
+        return cached
+    from . import ast as _ast
+    out = set(world.particles)
+    out |= set(world.noise_words)
+    out |= set(world.chain_words)
+    out |= set(world.all_words)
+    for dwords in world.directions:
+        out.add(dwords.lower())
+    for verb in world.verbs:
+        for line in verb.grammar:
+            for it in line.items:
+                if isinstance(it, _ast.Word):
+                    out.add(it.text.lower())
+    out = {w.lower() for w in out}
+    world._grammar_reserved_cache = out
+    return out
+
+
+def object_words(eff: dict, is_room: bool = False, room_names: bool = False,
+                 reserved: frozenset = frozenset()) -> list:
     """An object's matchable vocabulary: its explicit `words`, then any new words
     from its `name` (so `name "rusted lever"` makes lever and rusted match even
     with no `words` line). Rooms contribute only explicit words, not their name,
@@ -907,13 +939,13 @@ def object_words(eff: dict, is_room: bool = False, room_names: bool = False) -> 
         v = eff["name"].values[0]
         if isinstance(v, ast.StringLit):
             for w in _plain(v).lower().split():
-                if w.isalnum() and w not in words:
+                if w.isalnum() and w not in words and w not in reserved:
                     words.append(w)
     if not is_room and "name" in eff and eff["name"].form == ast.PROP_VALUE and eff["name"].values:
         v = eff["name"].values[0]
         if isinstance(v, ast.StringLit):
             for w in _plain(v).lower().split():
-                if w.isalnum() and w not in words:
+                if w.isalnum() and w not in words and w not in reserved:
                     words.append(w)
     return words
 

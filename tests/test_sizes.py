@@ -176,7 +176,7 @@ CEILINGS = {
     # event (whose results are ignored). react_free's enter branch gains the
     # consume checks: +8 on the one ceiling that had zero slack
     # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 23188,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
+    "beispiel-deutsch.storyarc": 23200,  # 2026-08-08 repriced: the dative pronouns ihm/ihr join the German pack (the if-forum field report); the aus-vocabulary fix shrank the dictionary in the same commit
     "brass-lantern.storyarc": 18312,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
     "cloak-of-darkness.storyarc": 19168,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)
     "ejemplo-espanol.storyarc": 21812,  # 2026-08-08 repriced: the reversed-dative residual scan (a named absent thing answers can't-see in both noun orders, the field report; English and German packs)

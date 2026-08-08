@@ -8838,3 +8838,33 @@ Pathfinding shipped as a patch number, 1.3.23, and Stefan corrected
 the arithmetic: fixes ride the patch train, a capability of this size
 bumps the minor. Cosmos is 1.4.0; arcc keeps its own track (1.3.58).
 The rule stands for the next significant library feature.
+
+## 2026-08-08: the German forum's findings (arcc 1.3.59, Cosmos 1.4.1)
+
+The first real German-language field report, from the if-forum thread,
+and it found the deepest hole yet: `on go other`, documented in the
+handbook's chapter 8 as tier 4 of the movement model since the model
+was written, was never implemented by the compiler, and nothing in
+the repository, no example, no test, not Hibernated 2, had ever
+exercised it. The reporter's code was correct to the letter of the
+book. STEFAN'S GOLDEN RULE, stated for the record: the handbook is
+right, the code grows up to it. The compiler now accepts the reserved
+`other` operand on go: the per-room fallback fires when the chosen
+direction has no exit here (a computed exit answering nothing counts)
+and no specific `on go <direction>` handler consumed the walk first,
+whatever the declaration order; genuine exits always win. Six pins in
+test_go_other.py, the handbook's own ledge shape among them.
+
+The same report's German findings, fixed in the same push: dative
+pronouns (ihm/ihr bind to the accusative's referent slots; "rede mit
+ihr" resolves; the neuter-dative "ihm" limit is noted for the depth
+round), and the vocabulary poisoning ("Tür aus Eiche" owned the
+particle "aus" through name derivation, so "schalte lampe aus"
+collided into a disambiguation ask; name-derived words now skip
+everything the language layer claims as structural grammar, in every
+language, while explicit `words` stay the author's own). The
+silent-handler blank line is reproduced and isolated but touches the
+spacing doctrine, so it waits for Stefan's ruling. SCHEDULED as the
+German depth round, with Stefan, not rushed: pronominal adverbs
+(damit/darauf, German's clitics moment), adjective declension, and
+automatic umlaut folding in the dictionary. Suite 1370.
