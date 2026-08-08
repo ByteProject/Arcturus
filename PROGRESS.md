@@ -8831,3 +8831,10 @@ test_way_family.py and test_pathfinding.py (the map, the walk, the
 knowledge, the frames, nautical, ambiguity, room words); suite 1361.
 German and Spanish wording for the granule is open translation work,
 flagged, not forgotten.
+
+## 2026-08-08: Cosmos is 1.4.0 (Stefan's versioning ruling)
+
+Pathfinding shipped as a patch number, 1.3.23, and Stefan corrected
+the arithmetic: fixes ride the patch train, a capability of this size
+bumps the minor. Cosmos is 1.4.0; arcc keeps its own track (1.3.58).
+The rule stands for the next significant library feature.
