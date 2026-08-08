@@ -103,6 +103,9 @@ block parse_line()
     change parse_fault to 0
     // No incomplete-command mark until a resolver finds an empty noun slot.
     change incomplete to 0
+    // No reach-bound noun until a resolver binds one through the seam.
+    if any_reach is 1
+        change reached to 0
     // No subject text until a grammar line's text slot absorbs some.
     change topic_lo to 0
     change topic_hi to 0
@@ -402,6 +405,9 @@ block try_line(line, n)
                 change parse_fault to noun_fault(s1lo, s1hi)
                 return 1
             change noun to reach_unscoped
+            if any_reach is 1
+                if noun is not nothing
+                    change reached to 1
             if noun is nothing
                 change grain to find_scenery
                 if grain is 0

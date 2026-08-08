@@ -775,6 +775,13 @@ _BUILTIN_GLOBALS = [
     # promised an undo it said it cannot give (the Canopus and Haumea
     # field reports, 2026-08-01).
     "undo_off",
+    # 1 when this turn's noun was bound through the reach_unscoped seam (an
+    # author verb naming something legitimately out of scope, docs/01
+    # chapter 14); last_reached remembers it for AGAIN, whose ghost guard
+    # must not refuse a reach-bound replay. Both exist only for the
+    # any_reach fold; a game that leaves the seam alone never stores them.
+    "reached",
+    "last_reached",
     # 1 once a handler spoke this action's report (`alter`); the default's
     # success line then stays silent. Cleared per dispatch.
     "altered",

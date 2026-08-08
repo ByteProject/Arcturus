@@ -2572,6 +2572,43 @@ the language-specific routines through ordinary resolution to handle a
 language's morphology and grammar, without forking the skeleton. The skeleton
 makes no English-specific assumption about word order, articles, or inflection.
 
+### Reaching beyond scope (the reach_unscoped seam)
+
+Ordinary matching resolves against scope, and for almost every verb that is
+right: what the player cannot see, they cannot act on. A few verbs are
+exceptions by nature, FOLLOW the classic among them: the one moment the
+command makes sense is the moment its object has just left. The escape
+hatch is the `reach_unscoped` seam, a block the parser calls only after
+ordinary matching has failed, answering with an object to bind or `nothing`
+to let the honest refusal stand:
+
+```
+verb "follow"
+    follow noun
+
+block reach_unscoped()
+    // Only FOLLOW reaches beyond the room, and only for the drover.
+    if verb_trigger is "follow"
+        return drover
+    return nothing
+```
+
+The contract has two sides. The parser's side: whatever the seam returns is
+bound as the noun exactly as if it had been in scope, and AGAIN replays a
+reach-bound noun without the usual left-scope refusal. The author's side: a
+verb that reaches beyond scope owns its own validity, in its handler,
+because only the verb knows what reachable means for it (the next room,
+anywhere at all, only while the tracks are fresh); answer the impossible
+case yourself, and remember the object may have moved between the command
+and an AGAIN. `verb_trigger` (chapter 12) is the natural way to scope the
+seam to the verbs that need it, so every other verb keeps refusing
+normally. The seam is consulted on the single-noun path only; a two-noun
+command resolves both of its slots against ordinary scope.
+
+A game that never overrides the seam pays nothing: the plumbing folds away.
+The debug granule's fetch and warp verbs are the library's own use of the
+same seam (chapter 23).
+
 ### Pronouns
 
 The parser remembers what the pronouns mean. Four canonical referent slots,

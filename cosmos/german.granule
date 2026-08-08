@@ -282,6 +282,9 @@ block resolve_objects()
             return 1
     if noun is nothing
         change noun to reach_unscoped
+        if any_reach is 1
+            if noun is not nothing
+                change reached to 1
     if noun is nothing
         change grain to find_scenery
         if grain is 0
@@ -298,7 +301,13 @@ block resolve_objects()
                     change incomplete to 1
     return 1
 
-// A hook for reaching an object ordinary scope could not: nothing by default.
+// The reach_unscoped seam (docs/01 chapter 14): the parser's escape hatch
+// for a verb that legitimately names something out of scope (FOLLOW the
+// classic). Called only after ordinary matching failed; return an object to
+// bind it as the noun, nothing to keep the honest refusal. A verb that
+// reaches owns its own validity in its handler, AGAIN included (the replay
+// skips the left-scope refusal for a reach-bound noun). The debug granule's
+// fetch/warp verbs are the library's own use of the seam.
 block reach_unscoped()
     return nothing
 

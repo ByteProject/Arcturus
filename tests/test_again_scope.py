@@ -122,3 +122,45 @@ def test_no_swap_is_byte_identical():
     a = generate(analyze(cosmos.combined_program(parse(base))))
     b = generate(analyze(cosmos.combined_program(parse(base))))
     assert a == b  # deterministic, and swap adds nothing when uncalled
+
+
+# The reach-bound replay (a field report): a verb that legitimately names
+# something out of scope through the reach_unscoped seam (docs/01 chapter
+# 14) must survive AGAIN. The ghost guard above exists for VANISHED nouns;
+# a reach-bound noun is elsewhere by design, and its verb's handler owns
+# validity. The seam override compiles any_reach to 1; without one the
+# whole plumbing folds away (the size gate holds every seamless example
+# byte-identical).
+REACH_GAME = (
+    'game\n    title "T"\n    start road\n'
+    'room road\n    name "Road"\n    desc "A dusty road."\n    east bend\n'
+    'room bend\n    name "Bend"\n    desc "A bend in the road."\n'
+    '    west road\n    east ford\n'
+    'room ford\n    name "Ford"\n    desc "A shallow ford."\n    west bend\n'
+    'thing peddler of character in bend\n    name "peddler"\n    words peddler\n'
+    '    named\n    desc "A wandering peddler."\n'
+    '    on each_turn\n'
+    '        if self in bend\n            move self to ford\n'
+    'verb "follow"\n    follow noun\n'
+    'block reach_unscoped()\n'
+    '    return peddler\n'
+    'on follow\n'
+    '    if noun is peddler\n'
+    '        say "You trail after the peddler."\n'
+    '        stop\n'
+    '    say "Only the peddler is worth following."\n'
+)
+
+
+def test_a_reach_bound_noun_survives_again():
+    # Turn 1 binds the out-of-scope peddler through the seam; the replay
+    # must bind him again instead of refusing a "ghost".
+    out = _run(["follow peddler", "g"], game=REACH_GAME)
+    assert out.count("You trail after the peddler.") == 2
+    assert "You see nothing of the sort here." not in out
+
+
+def test_the_ghost_guard_still_refuses_vanished_ordinary_nouns():
+    # The lantern game has no seam override: the original refusal stands.
+    out = _run(["examine lantern", "g", "g", "g", "g"])
+    assert "You see nothing of the sort here." in out

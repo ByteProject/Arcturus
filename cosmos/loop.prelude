@@ -561,11 +561,27 @@ block run_turn(act)
         // a lantern spirited to nothing, forever examinable through AGAIN).
         // A scenery quip is bound to its room the same way.
         if last_noun is not nothing
-            if not in_scope(last_noun)
-                change meta_turn to 1
-                change refused to 1
-                msg_cant_see
-                return 0
+            if any_reach is 1
+                // A noun the parser bound through the reach_unscoped seam
+                // (docs/01 chapter 14: a verb that legitimately names
+                // something out of scope, FOLLOW being the classic) replays
+                // without the ghost refusal: being elsewhere is its normal
+                // state, and the verb's own handler owns validity, AGAIN
+                // included. Only an ordinarily-bound noun that has since
+                // left scope is a ghost. Both arms spelled out so the
+                // static fold keeps a seamless game byte-identical.
+                if not in_scope(last_noun)
+                    if last_reached is 0
+                        change meta_turn to 1
+                        change refused to 1
+                        msg_cant_see
+                        return 0
+            else
+                if not in_scope(last_noun)
+                    change meta_turn to 1
+                    change refused to 1
+                    msg_cant_see
+                    return 0
         if last_second is not nothing
             if not in_scope(last_second)
                 change meta_turn to 1
@@ -592,6 +608,8 @@ block run_turn(act)
         change second to last_second
         change way to last_way
         change grain to last_grain
+        if any_reach is 1
+            change reached to last_reached
         if any_verb_read is 1
             change verb_trigger to last_trigger
     // The bare-command ask (the verbs overhaul, completed): a command whose
@@ -700,6 +718,8 @@ block run_turn(act)
         change last_second to second
         change last_way to way
         change last_grain to grain
+        if any_reach is 1
+            change last_reached to reached
         if any_verb_read is 1
             change last_trigger to verb_trigger
     return 0

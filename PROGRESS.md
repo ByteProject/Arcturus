@@ -8761,3 +8761,34 @@ restored around it as before, now guarded in both directions. Priced
 at 4 bytes, paid only by restless games; one ceiling repriced.
 Done-test: test_restless.py gains the stranded-break pin (verified
 red against the pre-fix library); suite 1343.
+
+## 2026-08-08: the seam is blessed, and AGAIN honors it (arcc 1.3.57, Cosmos 1.3.22)
+
+Charles's third thread was a feature request (an Inform-style scope
+token for verbs like FOLLOW) that he himself half-answered mid-thread
+by finding reach_unscoped unprompted. STEFAN'S RULINGS, from the
+discussion: no grammar scope token; the out-of-scope resolution
+policy (GO TO a visited room, FIND an absent object, FOLLOW a
+departed actor) is one design family and belongs to the pathfinding
+milestone, Dialog as the role model, routines first and verbs on
+top, with the NPC engine a later consumer of the same graph. The
+seam is BLESSED as the permanent floor beneath that house, for the
+author who finds the engine overkill for a single verb: docs/01
+chapter 14 gains "Reaching beyond scope", the two-sided contract
+(the parser binds whatever the seam returns; the reaching verb owns
+its own validity, AGAIN included), and all three packs' comments now
+say seam, not debug hook. The graph primitives (dir_between, the
+no_way sentinel that kills the zero-overlap wart) ride the milestone
+and get their surface designed with Stefan at round start.
+
+And the bug the blessing exposed: the anti-ghost AGAIN guard (the
+spirited-lantern fix) refused every reach-bound replay, conflating
+"vanished" with "legitimately elsewhere", which broke FOLLOW on the
+second keystroke. The parser now remembers a reach-bound noun
+(reached/last_reached) and the replay skips the left-scope refusal
+for it, validity staying with the verb's handler. All of it folds
+behind the new any_reach compile-time flag (1 only when a game or
+granule overrides the seam beyond its trivial default), and the size
+gate proved every seamless example byte-identical. Done-test: the
+reach-bound AGAIN pin in test_again_scope.py, red against the
+pre-fix loop; suite 1345.

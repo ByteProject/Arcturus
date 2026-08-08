@@ -105,6 +105,9 @@ INTRINSICS = frozenset({
     # code reads it, so the parser's one-store bookkeeping and the AGAIN and
     # perform() plumbing fold away in a game that never asks.
     "any_verb_read",
+    # any_reach folds the reach-bound AGAIN plumbing: 1 only when a game or
+    # granule overrides the reach_unscoped seam beyond its trivial default.
+    "any_reach",
     # any_restless folds the background-performer walk (the restless
     # attribute): 1 when any object declares restless or a `now ... is
     # restless` exists. mute_begin/mute_end redirect output to the mute
@@ -1383,6 +1386,8 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_action_read(): 1 if any code reads `action`, so the dispatcher's
         # one-store bookkeeping folds away in a game that never asks.
         _place(rt, Const(_any_action_read(ctx)), dest)
+    elif name == "any_reach":
+        _place(rt, Const(_any_reach(ctx)), dest)
     elif name == "any_verb_read":
         # any_verb_read(): 1 if any author code reads verb_trigger, so the
         # parser's store and the AGAIN/perform plumbing fold away otherwise.
@@ -1968,6 +1973,25 @@ def _trigger_words(ctx) -> set:
     words |= {w.lower() for w in ctx.world.directions}
     ctx._trigger_words_cache = words
     return words
+
+
+def _any_reach(ctx) -> int:
+    """The compile-time flag behind the reach_unscoped seam: 1 when the
+    winning block of that name does more than the trivial default (a lone
+    `return nothing`), i.e. a game or granule genuinely reaches beyond
+    scope. The reach-bound AGAIN replay plumbing guards on it, so a game
+    that leaves the seam alone stays byte-identical."""
+    blk = ctx.world.blocks.get("reach_unscoped")
+    if blk is None or not blk.body:
+        return 0
+    body = blk.body
+    if (
+        len(body) == 1
+        and isinstance(body[0], ast.Return)
+        and isinstance(body[0].value, ast.Nothing)
+    ):
+        return 0
+    return 1
 
 
 def _any_verb_read(ctx) -> int:
@@ -3524,6 +3548,8 @@ def _static_value(ctx, expr):
         return _any_action_read(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_verb_read":
         return _any_verb_read(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_reach":
+        return _any_reach(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_restless":
         return 1 if (ctx.layout is not None and ctx.layout.has_restless) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_carry_limit":
