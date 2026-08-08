@@ -845,6 +845,11 @@ _BUILTIN_GLOBALS = [
     # prints the granule's breadcrumb instead of the description. Exists for
     # the any_pathfinding fold; never stored in an unsummoned game.
     "striding",
+    # 1 once anything printed since the last prompt (par_flush sets it,
+    # every print site passes through there): the prompt suppresses its
+    # blank line on a turn that never spoke (the silent-handler field
+    # report), and the status bar holds it across its own paints.
+    "spoke",
     # 1 once a handler spoke this action's report (`alter`); the default's
     # success line then stays silent. Cleared per dispatch.
     "altered",
@@ -986,6 +991,10 @@ def build_story(
             getattr(r, "name", "") == "par_flush" for r in routines):
         _pf = Routine("par_flush", nlocals=0)
         _slot = _gmap_pf["par_pending"]
+        # Every print passes through here, so this is where the turn admits
+        # it spoke; the prompt reads and clears the flag (english.prelude).
+        if "spoke" in _gmap_pf:
+            _pf.op("store", Const(_gmap_pf["spoke"]), Const(1))
         _pf.op("jz", Variable(_slot), branch=("done", True))
         _pf.op("new_line")
         _pf.op("store", Const(_slot), Const(0))

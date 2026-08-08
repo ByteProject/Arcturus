@@ -106,3 +106,22 @@ def test_declaration_order_does_not_matter():
     out = _run(["south", "north"], game=ORDERED)
     assert "The south wall whispers." in out
     assert "Blank stone everywhere." in out
+
+
+def test_a_silent_turn_leaves_no_stray_blank_line():
+    # The companion field report: a consuming handler that prints nothing
+    # used to leave one blank line between the echo and the next prompt
+    # (the pre-prompt paragraph gap flushed unconditionally). A turn that
+    # never spoke now goes straight to the prompt; a spoken turn keeps its
+    # gap exactly as before.
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing stone in hall\n    name "stone"\n    words stone\n'
+        '    desc "A stone."\n'
+        '    on take\n        now self is hidden\n'
+    )
+    out = _run(["take stone", "look"], game=game)
+    assert ">take stone\n>" in out.replace("look", "", 1) or ">take stone\n>look" in out
+    # And the spoken turn keeps the gap before its prompt.
+    assert "A hall.\n\n>" in out

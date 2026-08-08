@@ -1046,8 +1046,16 @@ block banner_headline()
 // collapsed with any the turn already pending) rather than forcing its own, so
 // responses are separated from the next prompt by exactly one blank line.
 block prompt()
-    par
+    // The blank line before the prompt belongs to the turn's TEXT: a turn
+    // that printed nothing (a consuming handler with no say, the field
+    // report) goes straight to the next prompt, no stray gap. par_flush
+    // raises `spoke` on any print; the prompt consumes it.
+    if spoke is 1
+        par
+    else
+        change par_pending to 0
     show(">")
+    change spoke to 0
 
 // What of a holder's contents should be listed: not hidden or concealed, and
 // either the holder shows its contents (a supporter, or an open or clear

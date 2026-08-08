@@ -48,8 +48,13 @@ flag bar_live
 block prompt()
     change bar_live to true
     draw_status
-    par
+    // The same silent-turn rule as the core prompt: no text, no gap.
+    if spoke is 1
+        par
+    else
+        change par_pending to 0
     show(">")
+    change spoke to 0
 
 // Reserve the row before `on start` prints a word (the screen seam in the
 // loop); paint only once the bar has gone live at the first prompt.
@@ -71,6 +76,8 @@ block draw_status()
     // do exactly this dance too).
     let held = par_pending
     change par_pending to 0
+    // The bar's own prints must not count as the turn speaking either.
+    let spoke_held = spoke
     buffer_mode(0)
     split_window(1)
     set_window(1)
@@ -78,6 +85,7 @@ block draw_status()
     set_window(0)
     buffer_mode(1)
     change par_pending to held
+    change spoke to spoke_held
 
 // One row, so the conversations menu leaves room for the bar above its list.
 block status_lines()

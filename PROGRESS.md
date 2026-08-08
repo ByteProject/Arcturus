@@ -8868,3 +8868,17 @@ spacing doctrine, so it waits for Stefan's ruling. SCHEDULED as the
 German depth round, with Stefan, not rushed: pronominal adverbs
 (damit/darauf, German's clitics moment), adjective declension, and
 automatic umlaut folding in the dictionary. Suite 1370.
+
+## 2026-08-08: the silent turn goes straight to the prompt (arcc 1.3.60, Cosmos 1.4.2)
+
+The last of the if-forum findings, and STEFAN'S RULING was one line:
+of course it gets fixed. A handler that consumed its action without
+printing left one blank line between the echo and the next prompt,
+because the pre-prompt paragraph gap flushed unconditionally. The
+mechanism rides the corpus-audit choke point: par_flush, which every
+print already passes through, now raises `spoke`; the prompt consumes
+it, printing its gap only after a turn that actually said something,
+and the status bar holds the flag across its own paints exactly as it
+holds the pending break. Roughly 35 bytes per game, every ceiling
+repriced, every spacing-sensitive test untouched; pinned beside the
+go-other tests. Suite 1371.

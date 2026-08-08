@@ -351,6 +351,8 @@ _BUILTINS = {
     "last_reached": T_NUMBER,
     # mid-walk breadcrumb mode (summon.pathfinding).
     "striding": T_NUMBER,
+    # anything printed since the last prompt (par_flush sets it).
+    "spoke": T_NUMBER,
     # The catalog region's byte address, seeded at build (docs/01, catalogs).
     "__catalogs__": T_NUMBER,
     # 1 once a handler spoke this action's report (alter); library-internal.
