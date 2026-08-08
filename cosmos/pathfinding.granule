@@ -49,20 +49,6 @@ block path_admits(r)
     return 1
 
 // ---------------------------------------------------------------------------
-// The grammar. GO TO rides the standard go verb; FIND is its own verb and
-// also answers LOOK FOR; LOOK <direction> joins the look verb.
-
-enhance verb "go"
-    goto_room to text
-
-verb "find", "locate"
-    find_where text
-
-enhance verb "look"
-    look_way direction
-    find_where for text
-
-// ---------------------------------------------------------------------------
 // Matching typed words against what the player knows.
 
 // Does this object answer for EVERY content word in [lo, hi)? Grammar words
@@ -252,11 +238,11 @@ on look_way
     stop
 
 // ---------------------------------------------------------------------------
-// The wording. The direction word is spoken as typed (so the nautical
-// granule's AFT answers "Aft lies your cabin."), spelled from the text
-// buffer like msg_noun_missing spells the verb; cap is 1 to open a
-// sentence. A replay with no direction word on the line (AGAIN) falls back
-// to the frame with "that way".
+// The wording and the grammar live in the language companions
+// (pathfinding_english.granule and siblings): the loader adds the one
+// matching the game's language automatically. The two helpers below are
+// mechanics the companions share: the typed direction word, spelled as
+// typed so the nautical granule's AFT answers in kind.
 
 // The word index of the typed direction word, or 0 when the line has none.
 block dir_word_at()
@@ -285,54 +271,3 @@ block show_dir_word(at, cap)
         change i to i + 1
     return 0
 
-block line_stride()
-    say "(through ${the here})"
-
-block line_seek_notice(r)
-    say "(setting off for ${the r})"
-
-block msg_already_there()
-    say "You are already there."
-
-block msg_no_way_known()
-    say "You don't know the way there."
-
-block msg_unknown_place()
-    say "You don't know that place."
-
-block msg_seek_unknown()
-    say "You don't know of any such thing."
-
-block msg_find_here(o)
-    say "${The o} is right here."
-
-block msg_seek_near(o)
-    say "${The o} should be somewhere close by."
-
-block msg_nothing_that_way()
-    say "Nothing lies that way."
-
-block msg_door_shut_way(d)
-    let at = dir_word_at
-    if at is 0
-        say "That way lies ${the d}, closed."
-        return 0
-    show_dir_word(at, 1)
-    say " lies ${the d}, closed."
-
-block msg_way_lies(d)
-    let at = dir_word_at
-    if at is 0
-        say "That way lies ${the d}."
-        return 0
-    show_dir_word(at, 1)
-    say " lies ${the d}."
-
-block msg_way_unknown()
-    let at = dir_word_at
-    if at is 0
-        say "That way is open, but you haven't been to see."
-        return 0
-    show("The way ")
-    show_dir_word(at, 0)
-    say " is open, but you haven't been that way yet."

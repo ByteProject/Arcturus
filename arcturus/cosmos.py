@@ -42,7 +42,7 @@ _DEFAULT_LANGUAGE = "english"
 # The Cosmos library version. It is independent of the compiler version: the
 # bundled library can move ahead of (or behind) arcc, and since the embedded
 # library is not visible on disk, the banner reports it alongside arcc's version.
-COSMOS_VERSION = "1.4.2"
+COSMOS_VERSION = "1.4.3"
 
 # Set by the amalgamated build to a dict of {filename: source}.
 _EMBEDDED = None
@@ -463,6 +463,7 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
     A summoned abbreviations.granule is not compiled to blocks; its strings are
     extracted and returned separately. Returns (declarations, abbreviations)."""
     bundled = granule_sources()
+    language = _language_choice(game)
     loaded: dict = {}
     order: list = []
     chapters: set = set()  # keys whose source is a .storyarc chapter (game rank)
@@ -513,6 +514,29 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
         if is_chapter:
             chapters.add(key)
         worklist.extend(_summons(prog))  # a granule may summon further granules
+        # THE LANGUAGE COMPANION (the pathfinding lesson, 2026-08-08): a
+        # granule that speaks to the player ships its wording and grammar
+        # per language as <granule>_<language>.granule; summoning the
+        # granule in a German game loads pathfinding_german.granule beside
+        # it, English loads the _english twin, and a language without a
+        # companion simply gets none (the granule's own text then stands).
+        # Only bundled companions are consulted, and a companion never
+        # chains a companion of its own.
+        if (not is_chapter and srcname.endswith(".granule")
+                and not srcname.startswith("_")):
+            stem = srcname[:-len(".granule")]
+            if not stem.endswith("_" + language):
+                comp = f"{stem}_{language}.granule"
+                if comp in bundled and comp not in loaded:
+                    cprog = parse(bundled[comp], comp)
+                    cdecls: list = []
+                    for d in cprog.decls:
+                        if isinstance(d, (ast.BlockDecl, ast.Handler,
+                                          ast.DirectionDecl)):
+                            d.origin = "granule"
+                        cdecls.append(d)
+                    loaded[comp] = cdecls
+                    order.append(comp)
     # The two conversation presentations are views of the same topic model
     # and are mutually exclusive by design: an author settles on one. Match
     # by filename so a local fork of either still counts as that presentation.

@@ -8882,3 +8882,28 @@ and the status bar holds the flag across its own paints exactly as it
 holds the pending break. Roughly 35 bytes per game, every ceiling
 repriced, every spacing-sensitive test untouched; pinned beside the
 go-other tests. Suite 1371.
+
+## 2026-08-08: granules learn languages (arcc 1.3.61, Cosmos 1.4.3)
+
+STEFAN'S REBUKE, verbatim: "Since when did we start doing things
+half-arsed?" Pathfinding had shipped English-only behind the
+extendedverbs precedent, and the precedent was the problem, not the
+excuse. The fix is architecture, not translation alone: LANGUAGE
+COMPANIONS, <granule>_<language>.granule, loaded by the summon
+machinery beside the granule to match the game's language, English
+included. The logic granule now carries no player-facing words at
+all; pathfinding_english, pathfinding_german (GEH ZU/ZUR/ZUM, FINDE,
+SUCHE, SCHAU [NACH] <richtung>, the "in Richtung" frame that carries
+compass and nautical alike, cases declined through the pack's
+article machinery), and pathfinding_spanish (VE A/AL/HACIA, BUSCA,
+ENCUENTRA, MIRA [HACIA EL/AL] <direccion>, the door "cierra el paso"
+frame that sidesteps gender agreement) ship together. Both new
+wordings are marked for Stefan's native pass; the German seek notice
+prints uncontracted "zu der" where "zur" would be idiomatic, noted.
+Fourteen pathfinding pins, two of them the new languages; suite 1373.
+
+ALSO RULED today: the Martin reply is posted and done; the German
+DEPTH round (pronominal adverbs, adjective declension, umlaut
+folding) is DELIBERATELY PARKED until German adoption appears, no
+investment into low adoption, Stefan's call; granule wording is NOT
+depth work and is never optional again.

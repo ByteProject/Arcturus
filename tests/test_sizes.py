@@ -264,7 +264,8 @@ def test_every_example_is_ceiling_tracked():
     tracked = set(_re.findall(r'"([^"]+\.storyarc)"', src))
     # The two arc_image showcases stay untracked: their size is dominated by
     # the art pipeline they demonstrate, not by library codegen.
-    excluded = {"arc_image/rabenstein.storyarc",
+    excluded = {"ghosts/ghosts.storyarc",  # the Blackwood port workspace: gitignored until Stefan moves it public
+                "arc_image/rabenstein.storyarc",
                 "arc_image/blorbenstein.storyarc",
                 "arc_image/cloak-of-darkness.storyarc",
                 "arc_image/blorb-of-darkness.storyarc"}

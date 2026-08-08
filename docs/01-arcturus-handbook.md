@@ -4160,6 +4160,18 @@ summon "/path/to/fork.granule"  // exactly this file
 `-L` directories must be absolute paths, so the library a story compiles against
 is deliberate and unambiguous.
 
+### Language companions
+
+A granule that speaks to the player ships its wording and grammar in
+per-language companion files, `<granule>_<language>.granule`: summoning
+the granule loads the companion matching the game's language
+automatically, English included (the `_english` twin). The logic granule
+carries no player-facing words at all, so a translation is a new
+companion file and nothing else; a language without one simply gets no
+extra words, and the granule's own text, if any, stands. A companion
+never chains a companion of its own. The pathfinding granule is the
+model of the pattern.
+
 ### The shipped granules
 
 ### extendedverbs
@@ -4519,10 +4531,15 @@ with nautical: "North lies the Churchyard.", "Aft lies your cabin.", "The
 way east is open, but you haven't been that way yet.", "Nothing lies that
 way.", and for a shut door, "North lies the oak door, closed."
 
-The wording ships in the granule (the extendedverbs manner): reskin any
-line by redefining its msg_ block, or fork the granule wholesale. A game
-that never summons it pays nothing anywhere, and its own calls into the
-way family stay free of the granule's knowledge gate.
+The wording and the grammar ship per language: summoning the granule
+loads its LANGUAGE COMPANION beside it, pathfinding_english.granule for
+an English game, pathfinding_german.granule under `summon.language
+"german"` (GEH ZU, FINDE, SCHAU NORDEN), pathfinding_spanish.granule
+under Spanish (VE A, BUSCA, MIRA AL NORTE), each carrying the verbs and
+every message natively. Reskin any line by redefining its msg_ block, or
+fork a companion wholesale. A game that never summons the granule pays
+nothing anywhere, and its own calls into the way family stay free of the
+granule's knowledge gate.
 
 ### conversations
 

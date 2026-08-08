@@ -158,3 +158,61 @@ def test_room_words_override_the_name():
     out = _run(["east", "west", "go to loft", "go to hayloft"], game=TWINS)
     assert "You don't know that place." in out
     assert "A loft." in out.rsplit(">go to hayloft", 1)[1]
+
+
+# The language companions (the half-arsed lesson, 2026-08-08): summoning
+# pathfinding in a German or Spanish game loads the granule's language
+# twin (pathfinding_german/_spanish.granule) beside it, grammar and
+# wording alike; English loads the _english twin. The logic granule
+# itself carries no player-facing words at all.
+GERMAN = (
+    'summon.language "german"\n'
+    'game\n    title "P"\n    start hof\n'
+    'summon.pathfinding\n'
+    'room hof\n    name "Hof"\n    desc "Ein Hof."\n    north halle\n'
+    'room halle\n    name "Halle"\n    die\n    desc "Eine Halle."\n'
+    '    south hof\n    north kapelle\n'
+    'room kapelle\n    name "Kapelle"\n    die\n    desc "Eine Kapelle."\n'
+    '    south halle\n'
+    'thing kerze in kapelle\n    name "Kerze"\n    die\n    words kerze\n'
+    '    desc "Eine Kerze."\n'
+)
+
+SPANISH = (
+    'summon.language "spanish"\n'
+    'game\n    title "P"\n    start patio\n'
+    'summon.pathfinding\n'
+    'room patio\n    name "Patio"\n    desc "Un patio."\n    north sala\n'
+    'room sala\n    name "Sala"\n    la\n    desc "Una sala."\n'
+    '    south patio\n    north capilla\n'
+    'room capilla\n    name "Capilla"\n    la\n    desc "Una capilla."\n'
+    '    south sala\n'
+    'thing vela in capilla\n    name "vela"\n    la\n    words vela\n'
+    '    desc "Una vela."\n'
+)
+
+
+def test_german_companion_speaks_german():
+    out = _run(
+        ["geh zur kapelle", "schau norden", "norden", "norden",
+         "schau nach sueden", "geh zum hof", "suche kerze"],
+        game=GERMAN,
+    )
+    assert "Diesen Ort kennst du nicht." in out
+    assert "Der Weg in Richtung Norden ist offen" in out
+    assert "In Richtung Sueden liegt die Halle." in out
+    assert "(durch die Halle)" in out
+    assert "(du machst dich auf den Weg zu der Kapelle)" in out
+
+
+def test_spanish_companion_speaks_spanish():
+    out = _run(
+        ["ve a la capilla", "mira al norte", "norte", "norte",
+         "mira hacia el sur", "ve al patio", "busca vela"],
+        game=SPANISH,
+    )
+    assert "No conoces ese lugar." in out
+    assert "El camino hacia el norte está abierto" in out
+    assert "Hacia el sur queda la Sala." in out
+    assert "(pasas por la Sala)" in out
+    assert "(te encaminas hacia la Capilla)" in out
