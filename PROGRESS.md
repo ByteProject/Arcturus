@@ -9024,3 +9024,30 @@ above new below; MY eye locates, HIS eye gates; metrics are witnesses
 dark-detail loss), never judges. Scratch previews live in the session
 scratchpad under beach/ (final/noweave = the approved flat state;
 gd/gd64 = the current ground-decides build).
+
+CHECKPOINT ADDENDUM (2026-08-10, later): THE TRUSS CHAPTER. Stefan's
+correction: the lost highlights were never the window lights but the
+TRUSS LINES, the dark timber-frame strokes through picture 1's house
+walls: dark-blue thin lines on MIDTONE blue, the case every witness
+metric was blind to (both watched dark-on-BRIGHT only). Round 3's
+continuity halving preserved them by luck of the seed; every
+bedpost-era rule ate them. Three more disagree-rules were tried and
+scored, eight in total now; the full scoreboard (post-loss pic7 /
+dark-details pic1 / truss-region texture / dots):
+  continuity 692/64/581/0 (his woodwork praise, his half bedpost),
+  brighter-wins 0/91/-/0, ground-decides@60 8/47/599/0 (IN THE TREE
+  NOW), neighbours 119/49/701/0, support-counting 320/32/674/0,
+  averaging 0/73/-/102-dots-DISQUALIFIED.
+No single horizontal rule wins all three witnesses. VISUAL EVIDENCE:
+arcimg-truss-compare.png on the Desktop (master/round3/gd/support at
+8x): round 3 and support keep the truss strokes, ground-decides thins
+them. PROPOSED FOR THE RESUMED SESSION, undecided: partition by
+black-involvement: a disagreeing pair with a near-black member (the
+bedpost against the void) resolves by ground-decides; without one
+(truss on wall) by support-counting; chimneys land at ground-decides'
+47. Also still open, unchanged: the window-light JEWELS (a REAL but
+SECONDARY finding: warm lights render white; the hint-sidecar revival
+proposal + the visual disc preview arcimg-hint-proposal-1.png stand,
+deferred until the truss is settled), the authored fallback table,
+picture 8's C64 sky, P4/A8/corpus/goldens. The scratch preview dirs:
+beach/{noweave,gd,nb,sup,avg,...} map to the scoreboard rows.
