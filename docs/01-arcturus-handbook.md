@@ -1252,7 +1252,7 @@ exactly as the player's own command would dispatch it, refusals, handlers,
 and messages included (Inform's `<<take book>>`, Dialog's `(try ...)`):
 
 ```
-perform("take", book)         // the full TAKE, "Got it." and all
+perform("take", book)         // the full TAKE, report line and all
 perform("go", west)           // a real move; a direction rides the way slot
 perform("give", coin, bob)    // two nouns
 if perform("open", chest) is false
@@ -4701,8 +4701,8 @@ item's name:
 
 ```
 >take all
-brass lamp: Got it.
-wooden box: Got it.
+brass lamp: You take the brass lamp with you.
+wooden box: You take the wooden box with you.
 idol: The idol is welded to its pedestal.
 ```
 
