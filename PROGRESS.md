@@ -8942,3 +8942,85 @@ alike in its own groups. examples/granules/whistle.granule is the
 worked pattern (WHISTLE, PFEIFE, SILBA, one behavior, three voices),
 with its demo storyarc in the size gate and the handbook's chapter 22
 teaching both homes by one rule. Suite 1374.
+
+## CHECKPOINT: the CPC/C64 quality round, mid-flight (2026-08-10, compaction)
+
+Self-sufficient resume state. THE WORKING TREE IS THE ROUND: tools/
+arcimg.py carries UNCOMMITTED changes a fresh session must not lose or
+blindly commit; `git diff tools/arcimg.py` shows them. Nothing commits
+until Stefan's eye gates a state (goldens freeze what he approves).
+
+STEFAN'S VERDICTS SO FAR, in order: the shipped conversions created
+artifacts (colored dots on black ground the master never painted,
+dotted strands through dark furniture, a half-eaten bedpost, picture
+8's C64 sky band brown where the master is green). Root causes were
+MEASURED, not guessed: error diffusion misplacing legitimate palette
+entries into darkness, expression amplifying quiet dark entries into
+loud cube colours, picks made on the error accumulator, and (for the
+sky) Colodore holding no dark green so plain distance chose brown. THE
+IDENTITY DOCTRINE, his words, now the round's law: wherever the
+pipeline is uncertain, colour identity is RETAINED, never improvised.
+
+IN THE TREE (uncommitted, tools/arcimg.py):
+1. THE DARK SANCTUARY in _map_pixels_diffusion: source luma < 48 goes
+   flat and literal, only palette entries themselves dark (plum <=
+   src+24) may fire, picked luminance-first (_dist_luma) by the
+   SOURCE, no error in or out. APPROVED by his eye ("genuinely almost
+   perfect"; the woodwork lines returned). A chroma-split variant
+   (colored darkness keeps diffusion) was tried and REVERTED same day:
+   artifacts returned. "Flat and safe" is his ruling.
+2. THE EXPRESSION CLAMP in _express: a dark free entry (luma < 56)
+   may not land on a cube colour lifting it by > 24, and ranks its
+   quiet options luminance-first.
+3. THE HALVING, 320->160: agreeing pairs blend; a disagreeing pair is
+   settled by THE GROUND (outer neighbours): bright surroundings keep
+   their dark feature, dark surroundings their bright feature; margin
+   60 swept on the two witnesses (40 lost the post, 120 the chimneys).
+   Tried and removed the same day, all documented in the code comment:
+   continuity-seed (halved the bedpost), brighter-wins (ate picture
+   1's chimneys), context- and minority-rules, plain averaging (the
+   dots returned, 102 on picture 1). Current witness numbers: picture
+   7 post losses 8 (was 692), picture 1 dark-detail losses 47 (flat
+   was 64), dots CPC 0/0/0/0/0, C64 4/0/0/5/7 (noise band).
+4. THE BOUNDARY WEAVE: built, gated, refined, REMOVED on his ruling;
+   a tombstone comment forbids re-adding without his reopening.
+5. The C64 ink mapping is PLAIN (all hue/grey/affordability vetoes
+   reverted); picture 8's brown sky band therefore STILL STANDS OPEN.
+
+RULED AND CLOSED: CPC-trunk derivation stays (the direct-from-master
+C64 experiment ran and is closed as information; family coherence
+wins). The floor variants (36/28) were visually identical (his eye)
+because the masters are BIMODAL in darkness: nothing lives between
+luma 28 and 48; that measurement explains all "no change" reports.
+
+OPEN, IN ORDER:
+a. THE WINDOW JEWELS (his current complaint, diagnosed): picture 1's
+   warm yellow house lights (~500 gold px vs 30,000) never earn a
+   16-slot palette seat, render white. _protect_extremes guards only
+   the single brightest cluster; THE TRUNK DOES NOT CONSULT THE HINT
+   SIDECAR (the 2026-07-23 reboot dropped it; only masters/8.hint
+   exists, the moon). PROPOSAL awaiting his eye: (i) trunk reads
+   salient hints again, each disc's dominant saturated colour gets a
+   reserved seat (the _protect_extremes replace-least-used move);
+   (ii) STEFAN authors 1.hint from a VISUAL disc preview (he ruled
+   auto-detection out long ago; he cannot read raw coordinates, give
+   him pictures, Desktop preview pending as of this checkpoint).
+b. THE AUTHORED FALLBACK TABLE (his design, postponed by his own
+   either/or for the bedpost): CPC 27 -> Colodore 16, near matches
+   automatic, his table speaks ONLY where no near match exists; kills
+   green->brown structurally. Both palettes with names were delivered
+   in chat 2026-08-10; he authors, I wire, corpus flags every row
+   that fires. This also owns the open C64 sky band.
+c. Plus/4 and A8 previews through the settled trunk, the 21-image
+   corpus pass on all four machines, goldens on his word, ONE commit
+   carrying this whole story into PROGRESS.
+
+THE WORKING METHOD, restated: beach = Rabenstein pictures 1/4/6/7/8
+(he knows them "in and out"; never stress images for his eye);
+previews via the tool's own writer (a hand renderer caused one false
+alarm); before/after panels to his Desktop per iteration, 4x, old
+above new below; MY eye locates, HIS eye gates; metrics are witnesses
+(the dark-zone dot counter, picture 7 post-loss, picture 1
+dark-detail loss), never judges. Scratch previews live in the session
+scratchpad under beach/ (final/noweave = the approved flat state;
+gd/gd64 = the current ground-decides build).
