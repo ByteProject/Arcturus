@@ -9308,5 +9308,6 @@ clash.
 
 REVISED PICKUP ORDER: MSX1 converter, then the Spectrum re-gate deriving
 from it (closing R3), then MSX2, then the R4 probe question, then R5.
-docs/00 and arc_image/reference/design.md are updated to match; the R3
-bullet no longer claims completion.
+arc_image/reference/design.md is updated to match: its R3 bullet no
+longer claims completion. docs/00 needed no change, it carries the wave
+order only through B12 and never claimed R3 was closed.
