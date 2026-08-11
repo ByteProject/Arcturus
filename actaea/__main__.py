@@ -86,6 +86,25 @@ def _resolve_images(story_path: str, images_arg):
     return os.path.dirname(os.path.abspath(story_path)), None
 
 
+def _tk_hint() -> str:
+    """The exact way to get tkinter on THIS platform, one copy-paste away.
+    tkinter is part of the Python build, not a pip package, so Actaea
+    cannot install it; the best it can do is name the remedy precisely
+    (the Fos report, 2026-08-11: a tkinter-less Windows Python fell
+    silently through to the bare pipe, which read as Actaea being
+    broken while Windows Frotz worked beside it)."""
+    if sys.platform == "win32":
+        return ("tkinter ships with the python.org installer: re-run the "
+                "installer, choose Modify, and tick 'tcl/tk and IDLE', "
+                "then start Actaea the same way again (py actaea story.z5)")
+    if sys.platform == "darwin":
+        return ("a Homebrew Python gets it with 'brew install python-tk'; "
+                "the python.org installer includes it already")
+    return ("most Linux systems ship it as a package: "
+            "'sudo apt install python3-tk' on Debian, Ubuntu, and "
+            "Raspberry Pi OS, 'sudo dnf install python3-tkinter' on Fedora")
+
+
 def _play_window(story, title: str, images_dir=None, images_zip=None, seed=None) -> bool:
     try:
         from .gui.app import play
@@ -361,7 +380,8 @@ def main(argv=None) -> int:
         if args.console:
             if _play_terminal(story, os.path.basename(args.story), seed=args.seed):
                 return 0
-            print("actaea: no terminal for --console here; "
+            print("actaea: no terminal or no curses for --console here "
+                  "(native Windows has no curses; WSL does); "
                   "playing headless", file=sys.stderr)
             return _play_headless(story, seed=args.seed)
 
@@ -371,13 +391,20 @@ def main(argv=None) -> int:
 
         # The default ladder: the window on a desktop; the terminal when
         # tkinter is absent; the pipe when input is piped or nothing
-        # screen-like exists at all.
+        # screen-like exists at all. Every step DOWN the ladder says so
+        # (docs/06 section 1 has always promised it; only --console kept
+        # the promise until the Fos report showed what silence costs).
         if sys.stdin.isatty():
             if _play_window(story, os.path.basename(args.story),
                             images_dir, images_zip, seed=args.seed):
                 return 0
+            print("actaea: this Python has no tkinter, so the window "
+                  "cannot open; " + _tk_hint() + ".", file=sys.stderr)
             if _play_terminal(story, os.path.basename(args.story), seed=args.seed):
                 return 0
+            print("actaea: no curses here either (native Windows has "
+                  "none); playing headless, a plain text pipe with no "
+                  "status line.", file=sys.stderr)
         return _play_headless(story, seed=args.seed)
     except BrokenPipeError:
         return _pipe_closed()

@@ -34,7 +34,20 @@ Actaea ships two ways, identical in behavior:
 
 Python 3.11 or later. The GUI needs tkinter and the terminal mode needs
 curses; both ship inside CPython itself. On a Python without one of them,
-Actaea degrades to the next mode down and says so.
+Actaea degrades to the next mode down and says so, naming the exact way
+to get tkinter on that platform.
+
+On Windows, two things differ. First, the standalone must be started
+through the Python launcher: `py actaea story.z5` (the file's first line
+is a Unix shebang, which Windows does not read, so the file cannot be
+started by name alone; this is the whole reason a plain `actaea story.z5`
+is "not recognized" there). Second, the window needs a Python that
+includes tkinter: the python.org installer ships it when the "tcl/tk and
+IDLE" box stays ticked, and an installation missing it can be repaired by
+re-running the installer and choosing Modify. A quick test is
+`py -c "import tkinter"`. Native Windows has no curses at all, so without
+tkinter the ladder goes straight down to the plain pipe; the console mode
+plays fine under WSL.
 
 ## 2. The three ways to play
 

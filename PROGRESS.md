@@ -9311,3 +9311,31 @@ from it (closing R3), then MSX2, then the R4 probe question, then R5.
 arc_image/reference/design.md is updated to match: its R3 bullet no
 longer claims completion. docs/00 needed no change, it carries the wave
 order only through B12 and never claimed R3 was closed.
+
+## 2026-08-11: the ladder says so (Actaea 1.3.9)
+
+A new adopter running Arcturus on Windows 11, an RPi 5 and Ubuntu
+reported that "Win 11 balks at Actaea" while Windows Frotz played the
+same z5 fine. Triage found no bug: the standalone must go through the
+Python launcher on Windows (py actaea story.z5; Windows reads no
+shebang), and his Python likely lacks tkinter, which drops the default
+ladder window -> curses -> pipe straight to the bare pipe, since native
+Windows has no curses either.
+
+What made it FEEL broken was our own silence. docs/06 has always
+promised that Actaea "degrades to the next mode down and says so", and
+only --console kept the promise; the default ladder stepped down without
+a word. Doc and code disagreed, so per the standing rule the doc won:
+
+- Every step down the ladder now says so on stderr, and the tkinter
+  note carries the exact remedy for THAT platform (the python.org
+  installer's tcl/tk tickbox on Windows, brew install python-tk on a
+  Homebrew Mac, the python3-tk / python3-tkinter package on Linux).
+- Stefan asked whether Actaea could prompt to INSTALL tkinter; ruled
+  down to the precise hint: tkinter is part of the Python build, not a
+  pip package, so the only automated route would be running the system
+  package manager under sudo, which an interpreter must not do.
+- docs/06 section 1 gains the Windows paragraph: the py launcher, the
+  tickbox, the one-line test (py -c "import tkinter"), and why the
+  ladder on a tkinter-less native Windows lands in the pipe.
+- Three ladder tests hold the promise; suite 1377.
