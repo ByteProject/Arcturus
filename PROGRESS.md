@@ -9373,3 +9373,18 @@ Cost, measured and repriced across all 48 example ceilings: +176 bytes
 (a handful at +172 to +184), the predicate plus the run. The z8 Cloak
 ceiling moves with it. Handbook chapter 5's listing passage rewritten,
 WHATSNEW rotated, suite 1377 green.
+
+## 2026-08-11: the stale standalone (arcimg 1.31.0)
+
+Stefan's README check caught a real gap: the arc_image quality round
+(7e8d00c, all four retro converters repaired and approved) landed in
+tools/arcimg.py without a version bump, so build/arcimg was never
+regenerated and the SHIPPED standalone still carried the pre-round
+converters. Anyone downloading arcimg got the defective CPC, C64,
+Plus/4 and A8 conversions the round had just fixed. Now arcimg 1.31.0,
+amalgam regenerated, README table synced (the arcc/Cosmos/Actaea rows
+were updated with their own bumps earlier today). The lesson is the
+standing habit restated: a behavior change IS a version bump, and the
+bump IS the amalgam regeneration; the round's size (seven approval
+rounds over two days) made it feel like work-in-progress when each
+approval was already a release-worthy change.
