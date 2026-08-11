@@ -985,10 +985,22 @@ listings and refuses taking.
 
 The room description paragraphs an object can own, in the order checked:
 `appearance` (always, never expiring, computed by state if a block),
-`intro` (until the object is first taken), and the plain listing line
+`intro` (until the object is first taken), and the plain listing
 ("You can see a broom here."). `hidden` and `concealed` suppress all
 three. The appearance check folds away in a game that sets none
 (`any_appearance`).
+
+Every plain-listed object shares one combined sentence, the classic
+idiom: "You can see a MRE, a lantern and a backpack here.", never a
+line per item. Objects with their own `appearance` or unexpired `intro`
+keep their own paragraphs above it. The closed-openable qualifier and
+a holder's contents ride along inline per item ("a pine box (closed)").
+The sentence is the language layer's `list_room`, which speaks each
+item through `name_room_item`; a single object goes through `list_item`
+unchanged, so a game that overrides `list_item` to reword its listing
+keeps that wording for the single case, and overrides `list_room` to
+reshape the sentence itself. Which objects are plain is the loop's
+`room_plain` predicate, shared between the count and the printing.
 
 Scenery holders can join the room description too: with
 `constant scenery_contents = 1` declared once, every scenery container or

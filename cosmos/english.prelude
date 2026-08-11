@@ -1203,10 +1203,10 @@ block reveal_contents(holder)
     name_contents(holder)
     say "."
 
-// One line of a room's contents listing, naming a container's or supporter's
-// contents in passing.
-block list_item(obj)
-    show("You can see ")
+// One item as the room listing names it: article, the closed qualifier,
+// its tag, its contents in passing. The single line and the combined
+// sentence both speak through this, so they can never drift apart.
+block name_room_item(obj)
     show("${a obj}")
     // A closed openable says so (Pablo Martinez's suggestion, the PunyInform
     // qualifier): the one state a player cannot read off the listing.
@@ -1215,6 +1215,37 @@ block list_item(obj)
             show(" (closed)")
     show_tag(obj)
     list_contents(obj)
+
+// One line of a room's contents listing, naming a container's or supporter's
+// contents in passing.
+block list_item(obj)
+    show("You can see ")
+    name_room_item(obj)
+    say " here."
+
+// The room's combined listing sentence (Cosmos 1.5.0, the adopters'
+// request): every plain item in ONE sentence, "You can see a MRE, a
+// lantern and a backpack here.", the classic idiom, instead of a line
+// per item. Which items are plain is the loop's room_plain predicate,
+// the same one that counted them. A single item keeps going through
+// list_item, so a game that overrode list_item keeps its wording.
+block list_room(total)
+    if total is 1
+        for each x in here
+            if room_plain(x) is 1
+                list_item(x)
+        return 0
+    show("You can see ")
+    let shown = 0
+    for each x in here
+        if room_plain(x) is 1
+            if shown is not 0
+                if shown is total - 1
+                    show(" and ")
+                else
+                    show(", ")
+            name_room_item(x)
+            change shown to shown + 1
     say " here."
 
 // Parser.

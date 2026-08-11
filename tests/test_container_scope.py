@@ -98,6 +98,8 @@ def test_closed_box_remembers_and_redirects(tmp_path):
     assert "You see nothing of the sort here." in out  # never seen: unknown
     assert "Inside you find a gold coin." in out  # opening reveals it
     # Closed, but remembered: the knowledge model lists the contents the player
-    # has seen, and the closed-openable qualifier sits alongside it.
-    assert "wooden box (closed) (contains a gold coin)" in out
+    # has seen, and the closed-openable qualifier sits alongside it. The
+    # combined listing sentence (Cosmos 1.5.0) is long enough that Frotz may
+    # wrap between the qualifiers, so the assertion is wrap-proof.
+    assert "wooden box (closed) (contains a gold coin)" in " ".join(out.split())
     assert "You'll have to open the wooden box first." in out  # known but shut away

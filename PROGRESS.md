@@ -9339,3 +9339,37 @@ a word. Doc and code disagreed, so per the standing rule the doc won:
   tickbox, the one-line test (py -c "import tkinter"), and why the
   ladder on a tkinter-less native Windows lands in the pipe.
 - Three ladder tests hold the promise; suite 1377.
+
+## 2026-08-11: the room lists its things in one sentence (arcc 1.3.63, Cosmos 1.5.0)
+
+An adopter request from the Discord (jens.leugengroot: can more than one
+item share a line, "There is a MRE, a lantern and a backpack here",
+instead of a sentence per item?), seconded by EdwardianDuck, who had
+already mapped the override route and the two-pass shape it needs.
+Stefan's ruling in the thread, verbatim: "it should be the standard
+behavior of the library. Separate items below the room description only
+if they have their own intro line." His calls on the design: the frame
+stays "You can see", no approval round needed for the rest, and the
+default-behavior change makes this Cosmos 1.5.0.
+
+The build: describe_room now only COUNTS the plain items (appearance
+and intro paragraphs unchanged above), and one new language-layer block,
+list_room, speaks them all in a single sentence through the run idiom
+name_contents already owned. Which items are plain is one shared
+predicate, room_plain, asked by both the count and the printing, so the
+two passes cannot drift (EdwardianDuck's insight, done once in the
+library). The closed qualifier and the contents-in-passing ride along
+inline per item. A single item still goes through list_item untouched,
+so adopters who overrode list_item keep their wording where it counts
+most; the sentence itself is overridable as list_room.
+
+All three languages speak it natively: English "You can see some
+scissors and a brass lamp here.", German case-correct through the
+existing ${a:acc} machinery ("Du siehst hier eine Laterne, einen
+Rucksack und eine Brotzeit."), Spanish "Ves una linterna, una mochila y
+una ración." Verified by eye on dfrotz in all three.
+
+Cost, measured and repriced across all 48 example ceilings: +176 bytes
+(a handful at +172 to +184), the predicate plus the run. The z8 Cloak
+ceiling moves with it. Handbook chapter 5's listing passage rewritten,
+WHATSNEW rotated, suite 1377 green.

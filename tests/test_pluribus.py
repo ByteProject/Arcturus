@@ -66,8 +66,9 @@ def _run(cmds, game):
 def test_english_agreement():
     out = _run(["look", "take scissors", "open scissors"], ENGLISH)
     assert "The scissors are here; the brass lamp is too." in out
-    assert "You can see some scissors here." in out   # the indefinite plural
-    assert "You can see a brass lamp here." in out    # singular untouched
+    # The combined sentence (Cosmos 1.5.0): plural and singular articles
+    # agree item by item inside one line.
+    assert "You can see some scissors and a brass lamp here." in out
     assert "The scissors stay exactly where they are." in out
     assert "The scissors don't open." in out
 

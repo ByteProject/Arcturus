@@ -1140,9 +1140,10 @@ block reveal_contents(holder)
     name_contents(holder)
     say "."
 
-// One line of a room's contents listing. "Du siehst hier" governs the accusative.
-block list_item(obj)
-    show("Du siehst hier ")
+// Ein Ding, wie das Raumlisting es nennt: Artikel (Akkusativ), der
+// Geschlossen-Qualifier, sein Tag, sein Inhalt im Vorbeigehen. Die
+// Einzelzeile und der Sammelsatz sprechen beide hierdurch.
+block name_room_item(obj)
     show("${a:acc obj}")
     // Ein verschließbares Ding, das zu ist, sagt es (Pablo Martínez' Vorschlag,
     // der PunyInform-Qualifier): der eine Zustand, den das Listing sonst nicht
@@ -1152,6 +1153,36 @@ block list_item(obj)
             show(" (geschlossen)")
     show_tag(obj)
     list_contents(obj)
+
+// One line of a room's contents listing. "Du siehst hier" governs the accusative.
+block list_item(obj)
+    show("Du siehst hier ")
+    name_room_item(obj)
+    say "."
+
+// Der Sammelsatz des Raumlistings (Cosmos 1.5.0): alle gewöhnlichen
+// Dinge in EINEM Satz, "Du siehst hier eine Laterne, eine Notration
+// und einen Rucksack.", statt einer Zeile je Ding. Was gewöhnlich ist,
+// entscheidet room_plain, dieselbe Vorauswahl, die gezählt hat. Ein
+// einzelnes Ding geht weiter durch list_item, damit ein Spiel, das
+// list_item überschrieben hat, seine Formulierung behält.
+block list_room(total)
+    if total is 1
+        for each x in here
+            if room_plain(x) is 1
+                list_item(x)
+        return 0
+    show("Du siehst hier ")
+    let shown = 0
+    for each x in here
+        if room_plain(x) is 1
+            if shown is not 0
+                if shown is total - 1
+                    show(" und ")
+                else
+                    show(", ")
+            name_room_item(x)
+            change shown to shown + 1
     say "."
 
 // Parser.

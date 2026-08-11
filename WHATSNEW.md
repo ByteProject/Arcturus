@@ -6,6 +6,17 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **The room lists its things in one sentence.** "You can see a MRE, a
+  lantern and a backpack here.", the classic idiom, instead of a line
+  per item: every plain item joins one combined sentence, with the
+  closed qualifier and a holder's contents riding along inline ("a pine
+  box (closed)"). Things with their own `appearance` or unexpired
+  `intro` keep their own paragraphs above it, exactly as before. All
+  three shipped languages speak it natively, German with its accusative
+  intact ("Du siehst hier eine Laterne, einen Rucksack und eine
+  Brotzeit."), and a game that overrode `list_item` keeps its wording
+  for the single-item case. An adopter request, and the standard
+  behavior now (Cosmos 1.5.0).
 - **Pathfinding: GO TO, FIND, LOOK <direction>, and the way family.**
   `summon.pathfinding` and the player can GO TO any room they have
   visited, by name and with no declarations (a room's name words become
@@ -55,28 +66,6 @@ lives in the commit log. The feature roadmap follows below.
   water_dripping`; the kind and interval must match, so you always stop
   the timer you mean) and `stop all timers` clears the stage for the
   next act. Games without any of it stay byte-identical.
-- **Exits are checked at compile time.** A field report from Ichiro
-  Ota: a typo'd room name in an exit (`north attic`, no attic declared)
-  compiled silently into a runtime "There's no exit in that direction.",
-  and an exit naming a plain thing quietly walked the player inside it,
-  a pitch-black soft-lock. Both are compile errors now, with the honest
-  sentence naming the room, the direction, and the offender. The legal
-  targets are what they always were: a declared room, a door, or a
-  computed block, with `nothing` as the explicit no-exit.
-- **The one honest ask, and verb_trigger.** The verbs overhaul is
-  whole: a command whose grammar wanted a noun that was never typed is
-  answered by the library, one central line for every verb alike, "The
-  verb dance requires you to be more specific." It echoes the verb as
-  the player typed it (bare ROLL says "roll", never "push") and no
-  longer guesses the missing role the way "Dance what?" did, when the
-  grammar may have wanted WITH WHOM. Custom verbs ask exactly like
-  standard ones now (a bare WIBBLE used to answer with silence), a
-  declared bare grammar line hands the bare command to your handler
-  instead, and every game got smaller: forty-odd per-verb ask stanzas
-  left the library for the one seam. And the seam is yours too:
-  `if verb_trigger is "roll"` inside an `on push` answers each synonym
-  in its own voice.
-
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus

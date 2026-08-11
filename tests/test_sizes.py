@@ -108,111 +108,58 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # three packs gained it (German also verlasse/verlassen), and the
 # boarding idiom matrix is pinned as a test.
 CEILINGS = {
-    "features/yes-no.storyarc": 17012,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/press-any-key.storyarc": 17632,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/shiftable.storyarc": 17152,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/enhance-redefine.storyarc": 17508,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/consult-about.storyarc": 17632,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/session-verbs.storyarc": 17236,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/vary.storyarc": 18412,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/foresight.storyarc": 18316,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/beyond.storyarc": 19112,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/alter.storyarc": 17804,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/catalogs.storyarc": 17756,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/matrix.storyarc": 18068,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/direction-grammar.storyarc": 17188,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/scenery-contents.storyarc": 17656,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "granules/nautical.storyarc": 17672,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    # 2026-07-04 (Stefan's ruling, superseding the same day's FULL move):
-    # there is NO fullscore verb; SCORE is the one score verb and reports
-    # score, max, turns, and rank in one line. Pool labels stay in the
-    # source and ledger but never reach the story file. teleport(dest)
-    # joined the standard blocks (the go handler shares its arrive(), so
-    # walking pays for it; unused teleport folds away). Before that, the
-    # 2026-07-03 batch: recipient dispatch (~40), the start-title skip
-    # (~25), show_tag (~20); chaining, disambiguation, noun lists with
-    # noise words, all core parser features every game carries.
-    # 2026-07-07 (pronouns): the parser now binds a pronoun for the SECOND noun
-    # too, so after "show coin to bob" HIM refers to Bob. +4 to +20 bytes/game.
-    # 2026-07-07 (reversed dative): GIVE/SHOW accept the reversed order (GIVE BOB
-    # COIN), with the reverse split (inline per pack) and the shared probe_noun.
-    # +~196 bytes for a pack that declares a reverse line. English got it first;
-    # German followed (gib Bob die Muenze, its natural dative), +196 here. Spanish
-    # is UNCHANGED: its dative uses the mandatory personal "a" (da a Maria la
-    # moneda) or clitics, not the adjacent-noun form, so no reverse line applies.
-    # 2026-07-07 (self fix): an owned handler now takes its self object as an
-    # argument so a kind handler sees the right instance (docs/01 9); +0 to +20
-    # bytes/game for the per-call argument.
-    # 2026-07-07 (positional grammar, docs/01 chapter 14): a verb the flag model cannot
-    # represent (dig in noun with held; look_under under noun) compiles to a
-    # grammar table and a positional matcher. Every ceiling here is UNCHANGED:
-    # the whole path folds away (any_tables) unless a game declares such a
-    # verb. features/grammar.storyarc is the one that does, and its ceiling
-    # (14340 vs the ~13400 feature baseline) is the matcher's full price.
-    # 2026-07-08 (total articles): ${the x} and ${a x} print "nothing"
-    # (nichts, nada) for an unresolved object instead of an illegal
-    # print_obj 0 (Actaea halts on those; the same field game). A few
-    # bytes per pack.
-    # 2026-07-08 (total containment): `X in Y` and `X holds Y` gate the
-    # child operand on nothing BEFORE the @jin (and before Y evaluates), so
-    # a handler testing an unresolved noun is false instead of an illegal
-    # object-0 @jin (a field game warned on every turn). Compile-time
-    # object children skip the gate.
-    # 2026-07-08 (move-safe for each): the tree loop caches the next sibling
-    # BEFORE its body runs, so `for each x in box / move x to ...` (emptying a
-    # container, the classic shape) terminates instead of following the moved
-    # object's rewritten sibling pointer forever (a field report caught the
-    # PLAYER swept into a bucket's iteration). +52 to +68 bytes per game, one
-    # cached-next per for-each site; correctness over bytes.
-    # 2026-07-07 (GET idioms): English reads GET IN/INTO X as enter, GET
-    # ON X as enter (the take+on particle), GET OUT OF/DOWN FROM X and GET
-    # OFF X-you-are-in as exit, and a bare GET IN/OUT/UP/DOWN as go; "into"
-    # joined the in-direction vocabulary, which also splits PUT X INTO Y
-    # properly. All in remap_action/compound in the English pack: +68 to +84
-    # bytes per English game; German and Spanish are UNCHANGED (idioms are
-    # language, each pack writes its own).
-    # 2026-07-07 (enter consumes): `on enter` on a THING is the ENTER verb, an
-    # ordinary consumable action, no longer mistaken for the room-arrival
-    # event (whose results are ignored). react_free's enter branch gains the
-    # consume checks: +8 on the one ceiling that had zero slack
-    # (features/grammar 14340 -> 14348); every other example absorbed it.
-    "beispiel-deutsch.storyarc": 23216,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "brass-lantern.storyarc": 18324,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "cloak-of-darkness.storyarc": 19184,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "ejemplo-espanol.storyarc": 21820,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/computed-properties.storyarc": 16912,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/containers.storyarc": 17232,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/daemons-and-timers.storyarc": 18464,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/doors-and-locks.storyarc": 16796,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/appearance.storyarc": 17576,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/components.storyarc": 17060,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "granules/whistle.storyarc": 16780,  # 2026-08-08 first ceiling: the self-hosting granule pattern demo (when language groups)
-    "features/pathfinding.storyarc": 19192,  # 2026-08-08 repriced: the showcase joins the statusline convention (features in realistic context)
-    "features/perform.storyarc": 17080,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/grains.storyarc": 16964,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/handlers.storyarc": 17996,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/grammar.storyarc": 17176,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/introproperty.storyarc": 18076,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/kinds-and-inheritance.storyarc": 16876,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/on-other.storyarc": 16776,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/zcolor.storyarc": 17144,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/scoring.storyarc": 19004,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/spans.storyarc": 17000,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "features/vehicles.storyarc": 17424,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "granules/ambience.storyarc": 18748,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "granules/conversations.storyarc": 18452,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "granules/extended-verbs.storyarc": 19768,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "granules/infocom-interrogation.storyarc": 18928,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "granules/quotes.storyarc": 17120,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "granules/take-all.storyarc": 18676,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "granules/plurals.storyarc": 17712,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "granules/statusline.storyarc": 16880,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
-    "granules/verbose-exits.storyarc": 17144,  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
+    "features/yes-no.storyarc": 17188,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/press-any-key.storyarc": 17808,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/shiftable.storyarc": 17328,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/enhance-redefine.storyarc": 17684,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/consult-about.storyarc": 17808,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/session-verbs.storyarc": 17412,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/vary.storyarc": 18588,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/foresight.storyarc": 18492,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/beyond.storyarc": 19288,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/alter.storyarc": 17980,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/catalogs.storyarc": 17932,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/matrix.storyarc": 18244,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/direction-grammar.storyarc": 17364,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/scenery-contents.storyarc": 17832,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "granules/nautical.storyarc": 17848,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "beispiel-deutsch.storyarc": 23396,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "brass-lantern.storyarc": 18500,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "cloak-of-darkness.storyarc": 19360,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "ejemplo-espanol.storyarc": 21996,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/computed-properties.storyarc": 17088,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/containers.storyarc": 17408,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/daemons-and-timers.storyarc": 18640,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/doors-and-locks.storyarc": 16972,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/appearance.storyarc": 17760,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/components.storyarc": 17236,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "granules/whistle.storyarc": 16956,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/pathfinding.storyarc": 19364,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/perform.storyarc": 17256,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/grains.storyarc": 17140,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/handlers.storyarc": 18172,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/grammar.storyarc": 17352,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/introproperty.storyarc": 18252,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/kinds-and-inheritance.storyarc": 17052,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/on-other.storyarc": 16952,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/zcolor.storyarc": 17320,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/scoring.storyarc": 19180,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/spans.storyarc": 17176,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/vehicles.storyarc": 17600,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "granules/ambience.storyarc": 18924,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "granules/conversations.storyarc": 18628,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "granules/extended-verbs.storyarc": 19944,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "granules/infocom-interrogation.storyarc": 19104,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "granules/quotes.storyarc": 17296,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "granules/take-all.storyarc": 18852,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "granules/plurals.storyarc": 17888,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "granules/statusline.storyarc": 17056,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "granules/verbose-exits.storyarc": 17320,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 19808  # 2026-08-08 repriced: the silent-turn prompt rule (a turn that prints nothing goes straight to the next prompt; par_flush raises `spoke`, the prompt consumes it; the if-forum field report)
+CLOAK_Z8_CEILING = 19992  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

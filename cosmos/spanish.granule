@@ -1162,8 +1162,10 @@ block reveal_contents(holder)
 
 // One line of a room's contents listing, naming a container's or supporter's
 // contents in passing.
-block list_item(obj)
-    show("Ves ")
+// Un objeto tal como lo nombra el listado de la sala: artículo, el
+// calificador de cerrado, su etiqueta, su contenido de paso. La línea
+// suelta y la frase combinada hablan las dos por aquí.
+block name_room_item(obj)
     show("${a obj}")
     // Un objeto que se puede abrir y está cerrado lo dice (sugerencia de Pablo
     // Martínez): el único estado que el listado no revela por sí solo. El
@@ -1176,6 +1178,35 @@ block list_item(obj)
                 show(" (que está cerrado)")
     show_tag(obj)
     list_contents(obj)
+
+block list_item(obj)
+    show("Ves ")
+    name_room_item(obj)
+    say "."
+
+// La frase combinada del listado de la sala (Cosmos 1.5.0): todos los
+// objetos corrientes en UNA sola frase, "Ves una linterna, una ración
+// y una mochila.", en vez de una línea por objeto. Cuáles son
+// corrientes lo decide room_plain, el mismo filtro que los contó. Un
+// objeto solo sigue pasando por list_item, para que un juego que haya
+// sobrescrito list_item conserve su redacción.
+block list_room(total)
+    if total is 1
+        for each x in here
+            if room_plain(x) is 1
+                list_item(x)
+        return 0
+    show("Ves ")
+    let shown = 0
+    for each x in here
+        if room_plain(x) is 1
+            if shown is not 0
+                if shown is total - 1
+                    show(" y ")
+                else
+                    show(", ")
+            name_room_item(x)
+            change shown to shown + 1
     say "."
 
 // Parser.

@@ -56,9 +56,9 @@ def test_indefinite_a_an_on_frotz(tmp_path):
         [_frotz(), "-p", str(story)],  # the room listing uses ${a obj}
         input="look\n", capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "You can see a gold coin here." in out  # consonant -> a
-    assert "You can see an iron sword here." in out  # vowel -> an
-    assert "You can see Linda here." in out  # named -> no article
+    # The combined listing sentence (Cosmos 1.5.0): every plain item in one
+    # line, each with its own derived article.
+    assert "You can see Linda, an iron sword and a gold coin here." in out
     assert "a iron" not in out and "an gold" not in out
 
 
@@ -157,6 +157,6 @@ def test_article_override_and_closed_qualifier_on_frotz(tmp_path):
         input="open box\nlook\n",
         capture_output=True, text=True, timeout=15,
     ).stdout
-    assert "You can see some water here." in out  # the override
-    assert "You can see a pine box (closed) here." in out  # before opening
-    assert "You can see a pine box here." in out  # after: qualifier gone
+    # The combined sentence carries the override and the qualifier inline.
+    assert "You can see some water and a pine box (closed) here." in out
+    assert "You can see some water and a pine box here." in out  # after: gone
