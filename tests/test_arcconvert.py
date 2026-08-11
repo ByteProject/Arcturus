@@ -177,10 +177,10 @@ def test_cpc_inks_are_in_the_cube():
 # ruling that expression policy is per target: the CPC keeps the exact
 # path it was approved with.
 _CPC_GOLDEN = {
-    "2.png": "acf280f35b1a1b43",
-    "8.png": "39f75b8ea04d3602",
-    "10.png": "7eb55b0c34e9600e",
-    "12.png": "1de995d5b46d1290",
+    "2.png": "1524361bafdcfa78",
+    "8.png": "bd676aa84d3b5c69",
+    "10.png": "b81616567de04cd1",
+    "12.png": "8c8aa3c1b9ede1d5",
 }
 
 
@@ -198,10 +198,10 @@ def test_cpc_output_is_frozen(name):
 # corpus "genuinely all good, we cracked it"). Same freeze mechanism:
 # these digests pin the approved derivation.
 _C64_GOLDEN = {
-    "2.png": "340bee30bfa683c3",
-    "8.png": "ce4cd87434dc94e2",
-    "10.png": "e6cc5a5e431c9458",
-    "12.png": "480ab54dc63b9c17",
+    "2.png": "9095c6ea9af758f0",
+    "8.png": "d5c3a91195b1b947",
+    "10.png": "5ff79aaf31d076bf",
+    "12.png": "a2d9fb73b6d9e609",
 }
 
 
@@ -224,10 +224,10 @@ def test_c64_output_is_frozen(name):
 # (preview PNGs byte-identical across the re-pin); only the native
 # bytes re-encode for real hardware.
 _A8_GOLDEN = {
-    "2.png": "3bf66cbb5b4d6ab3",
-    "8.png": "d6c1d1c8d0a5eb37",
-    "10.png": "ed47446fe72073d5",
-    "12.png": "82f4b7567177860a",
+    "2.png": "0388d0d5d8967397",
+    "8.png": "176221ddbd350e66",
+    "10.png": "8cce252fb7146a8f",
+    "12.png": "2bfb5af3d3780013",
 }
 
 
@@ -418,10 +418,10 @@ def test_zx3_attrs_are_hardware_legal():
 # the approved corpus (image 19: 16 pixels); the probe then verified
 # mode 9, mode 12, and picture 12 pixel-exact on the emulator.
 _P4_GOLDEN = {
-    "2.png": "a1b1145f5b2e4008",
-    "8.png": "6ac499a58416f9c3",
-    "10.png": "ab30fa6eadddb134",
-    "12.png": "efc53707d322f3db",
+    "2.png": "7d6ea70f0856afa0",
+    "8.png": "28ce3d245b713a56",
+    "10.png": "30f017e0c7e1bc8e",
+    "12.png": "230ee10b9db47e97",
 }
 
 

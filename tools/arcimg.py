@@ -1531,6 +1531,101 @@ def _spice(M, argb, x, y, smooth=True):
     return i2 if _BAYER8[y & 7][x & 7] / 64.0 < t else i1
 
 
+# THE AUTHORED CPC -> COLODORE FALLBACK TABLE (Stefan's ruling, 2026-08-10).
+# Arithmetic makes bad calls between these two palettes: the CPC's cube is
+# saturated primaries, Colodore is muted, so plain nearest-distance sent
+# CPC Green to Colodore Brown (picture 8's sky) and bumped Bright Yellow
+# off Yellow (picture 1's window lights turned white). The artist states
+# the intent instead; the tool only obeys. Each CPC ink lists its homes in
+# order of preference, so an ink whose first home is already claimed by a
+# more-used ink falls to the alternative its author chose, never to
+# whatever the metric liked next. Keyed by the ink's RGB, since the CPC
+# firmware's ink numbering and this file's cube order differ.
+_C = {"Black": 0, "White": 1, "Red": 2, "Cyan": 3, "Purple": 4, "Green": 5,
+      "Blue": 6, "Yellow": 7, "Orange": 8, "Brown": 9, "Light Red": 10,
+      "Dark Grey": 11, "Grey": 12, "Light Green": 13, "Light Blue": 14,
+      "Light Grey": 15}
+_CPC_TO_COLODORE = {
+    # STEFAN'S AUTHORED ROWS (2026-08-10). Only these inks are ruled; any
+    # ink without a row keeps the automatic nearest match untouched. A
+    # second home is where the ink goes when the first is already claimed
+    # by another ink in that picture, which is how his conditional notes
+    # express themselves ("Cyan if blue and bright blue are also used").
+    # THE BLUES KEEP THEIR DISTANCE (Stefan, 2026-08-11): where two blue
+    # tones stand side by side on the CPC, both Colodore blues should be
+    # in play rather than collapsing to one. Each blue therefore lists
+    # the other blue as a last resort, so a picture with several of them
+    # spreads across Blue and Light Blue instead of flattening.
+    (0x00, 0x00, 0x80): ("Blue", "Light Blue"),        # Blue
+    (0x00, 0x00, 0xFF): ("Light Blue", "Blue"),        # Bright Blue
+    (0x00, 0x80, 0xFF): ("Light Blue", "Cyan", "Blue"),  # Sky Blue
+    (0xFF, 0x80, 0x00): ("Light Red",),                # Orange
+    (0xFF, 0x00, 0xFF): ("Purple", "Light Red"),       # Bright Magenta
+    (0x00, 0x80, 0x00): ("Green",),                    # Green
+    (0x00, 0x80, 0x80): ("Green", "Cyan"),             # Cyan (teal)
+    (0x00, 0xFF, 0x80): ("Cyan",),                     # Sea Green
+    (0x00, 0xFF, 0x00): ("Light Green",),              # Bright Green
+    (0x80, 0xFF, 0x00): ("Light Green",),              # Lime
+    (0x80, 0x80, 0x00): ("Light Red",),                # Yellow (olive)
+    (0xFF, 0xFF, 0x00): ("Yellow",),                   # Bright Yellow
+    (0xFF, 0xFF, 0x80): ("Yellow",),                   # Pastel Yellow
+    # Pastel Magenta lands on blank White automatically, which drained the
+    # warm glow out of picture 2's church windows; Orange first, Light Red
+    # where Orange is already claimed. (Two companion rows, Pink to Light
+    # Red and Pastel Cyan to Light Green, were tried the same day and
+    # REVERTED: they fixed their own regions but cost more elsewhere,
+    # Stefan's verdict "the older one was genuinely better when all
+    # colours worked together".)
+    (0xFF, 0x80, 0xFF): ("Orange", "Light Red"),       # Pastel Magenta
+}
+
+
+def _inks_to_colodore(inks_rgb, usage):
+    """THE ONE COLOUR DECISION OF THE FAMILY (Stefan's ruling, 2026-08-11:
+    identify each CPC ink and map it 1:1 to the closest Colodore colour,
+    his authored table ruling where it speaks). The C64 renders the result
+    directly; the Plus/4 renders the SAME result on the TED's finer
+    ladder. Computing it once is the point: when each machine resolved its
+    own preferences the two drifted apart (picture 8's sky went green on
+    the C64 and teal on the Plus/4), because a home taken in one palette
+    is free in the other."""
+    order = sorted(range(len(inks_rgb)), key=lambda i: -usage.get(i, 0))
+    to_c64 = [0] * len(inks_rgb)
+    taken = set()
+    for i in order:
+        prefs = [_C[n] for n in _CPC_TO_COLODORE.get(inks_rgb[i], ())]
+        pick = next((k for k in prefs if k not in taken), None)
+        if pick is None and prefs:
+            # Every home this ink is allowed is already claimed, so it
+            # COLLAPSES onto its first choice and shares it. The table
+            # names those collapses on purpose (the cyan family, the two
+            # blues, the yellows). Falling to the nearest unused colour
+            # instead is what produced the cascade that cost picture 1
+            # its window lights: sky blue took cyan, pastel cyan took
+            # light green, pastel green took yellow, and the lights
+            # ended up white.
+            pick = prefs[0]
+        elif pick is None:
+            ranked = sorted(range(16),
+                            key=lambda k: _dist(inks_rgb[i], _COLODORE[k]))
+            pick = next((k for k in ranked if k not in taken), ranked[0])
+        taken.add(pick)
+        to_c64[i] = pick
+    def _lum(c):
+        return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
+
+    _blues = (_C["Blue"], _C["Light Blue"])
+    holders = [i for i in range(len(inks_rgb))
+               if usage.get(i, 0) > 0 and to_c64[i] in _blues]
+    targets = sorted({to_c64[i] for i in holders},
+                     key=lambda k: _lum(_COLODORE[k]))
+    if len(holders) == len(targets) > 1:
+        holders.sort(key=lambda i: _lum(inks_rgb[i]))
+        for i, k in zip(holders, targets):
+            to_c64[i] = k
+    return to_c64
+
+
 def _c64_from_cpc(cpc):
     """THE C64 DERIVES FROM THE FROZEN CPC (Stefan's ruling, 2026-07-24:
     "the derived route without any alteration was already it"; the whole
@@ -1550,14 +1645,7 @@ def _c64_from_cpc(cpc):
         for i in row:
             usage[i] = usage.get(i, 0) + 1
     order = sorted(range(len(inks_rgb)), key=lambda i: -usage.get(i, 0))
-    to_c64 = [0] * len(inks_rgb)
-    taken = set()
-    for i in order:
-        ranked = sorted(range(16),
-                        key=lambda k: _dist(inks_rgb[i], _COLODORE[k]))
-        pick = next((k for k in ranked if k not in taken), ranked[0])
-        taken.add(pick)
-        to_c64[i] = pick
+    to_c64 = _inks_to_colodore(inks_rgb, usage)
     grid = [[to_c64[pixels[y][x]] for x in range(w)] for y in range(h)]
     # the Polizei background vote among clashing cells
     clash = {}
@@ -1894,8 +1982,32 @@ def _convert_cpc(rows, salient=None):
     # exactly one new variable, its own constraint. Salience is handled
     # by the intermediate itself (_protect_extremes); the hint sidecar
     # is not consulted.
-    half = [[tuple((a + b) // 2 for a, b in zip(row[x], row[x + 1]))
-             for x in range(0, len(row), 2)] for row in rows]
+    # Pairs collapse by agreement, NEVER an average (the Polizei doctrine;
+    # plain averaging was isolated 2026-08-10 and disqualified: its
+    # mid-tone smears escape the dark sanctuary and the ground dots
+    # return). An agreeing pair blends; a disagreeing pair keeps its
+    # BRIGHTER member, which is what puts the bedpost back on its wall
+    # (Stefan's ruling, 2026-08-10: "the bedpost fix is still the best").
+    #
+    # THE TRUSS CHAPTER, closed with it. Picture 1's half-timbered walls
+    # carry a lattice of ONE-PIXEL vertical posts at 320, sub-Nyquist for
+    # a 160-wide target: any pairwise rule must drop either the post or
+    # the wall between two posts. Eleven rules were built and scored
+    # against it (continuity, ground-decides at three margins, rarity at
+    # five, rarity-with-continuity at four, plain averaging); the ones
+    # that held the lattice cost bright highlights everywhere else, and
+    # Stefan judged the highlights worth more. PROGRESS holds the full
+    # scoreboard. Do not reopen without him.
+    half = []
+    for row in rows:
+        out_row = []
+        for x in range(0, len(row), 2):
+            a, b = row[x], row[x + 1]
+            if _dist(a, b) <= 2400:
+                out_row.append(tuple((p + q) // 2 for p, q in zip(a, b)))
+            else:
+                out_row.append(a if sum(a) >= sum(b) else b)
+        half.append(out_row)
     h, w = len(half), len(half[0])
     lv = (0, 0x80, 0xFF)
     cube = [(lv[r], lv[g], lv[b])
@@ -2190,6 +2302,111 @@ def _a8_from_c64(c64, refs=None, skip=frozenset()):
     return {"w": w, "h": h, "pixels": pixels, "lines": lines}
 
 
+# THE PROTECTION BAR (Stefan's direction B, 2026-08-11). A colour cluster
+# had to hold 120 pixels of a 1280-pixel strip, 9.4 percent, before the
+# election was priced for losing it, while the darkest anchor was defended
+# from 40 pixels, 3.1 percent, and at double weight. Black was cheap to
+# protect and shadow expensive, which is the asymmetry behind his "too
+# much black and a lot is flattening": measured over the corpus, a third
+# of all strips elected four registers but painted only three, and the
+# wasted one was usually the shadow rung.
+_A8_MASS = 120
+
+# How many of the strip's own colours stand as candidates, and how much
+# of the strip they must account for before the pipeline believes it is
+# looking at palette art rather than a photograph. Set _A8_EXACT to 0 to
+# go back to clustering unconditionally.
+_A8_EXACT = 8
+_A8_EXACT_COVER = 0.90
+
+# What a chromatic colour pays to be housed by a neutral of the same
+# brightness. 1 is no loyalty at all, which is what the election's main
+# error term used to have.
+_A8_TINT = 3
+
+# And what a neutral pays to be housed by a chromatic register of the
+# same brightness. 0 is the old one-way rule.
+_A8_TINT_BOTH = 3
+
+# Whether a strip may hold only one hard bright member (see the white
+# canvas in _a8_seg_analysis). 0 restores the July behaviour of two.
+_A8_ONE_BRIGHT = 1
+
+# Whether the moon rule decrees its register (1, July) or merely pays a
+# heavy price for losing it (0, with this weight).
+_A8_MOON_HARD = 1
+_A8_MOON_WEIGHT = 8
+
+# The darkest anchor's own bar, and the weight it carries once it clears
+# it. This is the other half of the asymmetry: the anchor is defended
+# from 40 pixels at DOUBLE weight while every other cluster needs 120 at
+# single, so the strip pays three times more to lose its black than to
+# lose its shadow.
+_A8_DMASS = 40
+_A8_DWEIGHT = 2
+
+# THE GUARD. A register may only serve a pixel within this much luma and
+# this much chroma of the source. July's 40 and 70 keep a dark purple
+# dithering toward purple and black, never blue, which was right; but
+# measured over the corpus they leave 74 to 91 percent of all pixels with
+# exactly ONE legal register, so error diffusion has no partner to flip
+# to and whole regions render poster-flat with no halftone at all. That
+# is the "flattening way too much". Widening the luma bound is what lets
+# the diffusion mix a lighter and a darker register into a colour the
+# four-entry palette cannot name.
+_A8_GUARD_L = 40.0
+_A8_GUARD_C = 70.0
+
+# How far the guard may travel from the source to follow the error the
+# diffusion has actually accumulated, per channel. THE LOGIC ERROR THIS
+# REPAIRS (found 2026-08-11 on Stefan's reading, "this looks more like a
+# logic error than anything else"): the guard was recomputed from the
+# UNTOUCHED source for every pixel, so in a region where only one
+# register is legal the candidate set never changed however much error
+# piled up. The error could not be discharged and simply compounded:
+# measured, it reached 9531 on a 0-255 scale in picture 6, with 94
+# percent of the picture carrying more than a full channel of it, and
+# since the accumulated colour is clamped to 0-255 before the cost is
+# computed, those regions were choosing against a pinned black or white
+# rather than a colour. Following the error instead lets a flat zone
+# spend a second register the band already holds, which is Stefan's own
+# proposal ("paint what is missing there in one of the darker colours
+# that is already accepted by the band"), and it fires only where error
+# has actually built up, so an isolated highlight like picture 8's moon
+# keeps its own register. REJECTED BY STEFAN 2026-08-11 ("the diffusion
+# repair doesn't look good, it creates artifacts that shouldn't be there,
+# dots everywhere, look at the ceiling in the picture of the chapel"):
+# discharging the error does scatter it, and on a smooth ceiling that
+# reads as dirt. Left as a dial at 0, where the guard stays centred on
+# the source exactly as in July. The divergence it was built to repair is
+# real but harmless in the picture; the election was the actual fault.
+_A8_DRIFT = 0.0
+
+# How far the diffusion buffer may depart from the source before it is
+# held, per channel. A flat region that cannot discharge has NO fixed
+# point: Floyd-Steinberg conserves the error, so it is handed on forever
+# and grows without bound, which is how picture 6 reached 9531. Holding
+# the buffer makes the runaway impossible by construction and keeps the
+# accumulated colour a real colour instead of a pinned black or white.
+# Set to 0 (or None) for the unbounded July buffer, which is where it
+# sits: it is only meaningful beside _A8_DRIFT, and that is off.
+_A8_ECLAMP = 0.0
+
+# What share of a strip a register must actually paint to keep its slot.
+# The moon rule forces the brightest cluster in from ten pixels out of
+# 1280 and the optimizer may not price it away; in picture 18 that bought
+# a luma-230 register in four separate strips which the pixel stage then
+# never used once, a quarter of the palette spent on nothing. A register
+# painting less than this is retired and the strip elects again without
+# it. Set to 0 to restore the July behaviour.
+_A8_MINUSE = 0.004
+
+# The same bar for a register the strip did not choose but inherited
+# from its neighbour, which has to pay for itself at a real share of the
+# strip or go back.
+_A8_INHERIT = 0.08
+
+
 def _a8_seg_analysis(rows):
     """One strip's colour truth for the A8 (APPROVED by Stefan's corpus
     verdict, 2026-07-24, after the day's whole arc): six candidate
@@ -2198,48 +2415,188 @@ def _a8_seg_analysis(rows):
     brightest cluster is a hard member, never priced); and the two
     CANVASES: a strip whose shadow tenth is truly dark carries black,
     a strip whose bright tenth is truly bright carries white."""
-    cents = _kmeans_polish(rows, _median_cut(rows, 6))
-    mass = [0] * len(cents)
+    # THE STRIP'S OWN COLOURS, NOT AVERAGES OF THEM (2026-08-11, the
+    # fourth appearance of the identity doctrine and the worst of them).
+    # A six-way k-means over palette art invents colours: in picture 6's
+    # ceiling strip the two largest colours are pure black (620 pixels)
+    # and a vivid blue (0, 0, 162) (283 pixels), and the clustering merged
+    # them into (0, 0, 51), a colour that exists nowhere in the picture.
+    # The election then protected the average, snapped the average, and
+    # elected a palette with no blue in it at all, so the whole ceiling
+    # rendered black. No amount of guard or diffusion tuning can repair
+    # that, because the band never held the colour. These masters carry
+    # at most sixteen colours in a whole picture, so the strip's own
+    # colours ARE the candidate set, with their exact masses. Clustering
+    # stays for a genuinely continuous master: if the leading colours do
+    # not account for most of the strip, this is not palette art.
+    cnt = {}
     for row in rows:
         for c in row:
-            i = min(range(len(cents)), key=lambda k: _dist(c, cents[k]))
-            mass[i] += 1
+            cnt[c] = cnt.get(c, 0) + 1
+    npx_all = sum(cnt.values())
+    top = sorted(cnt.items(), key=lambda kv: -kv[1])[:_A8_EXACT]
+    if _A8_EXACT and sum(n for _, n in top) >= _A8_EXACT_COVER * npx_all:
+        cents = [c for c, _ in top]
+        mass = [n for _, n in top]
+    else:
+        cents = _kmeans_polish(rows, _median_cut(rows, 6))
+        mass = [0] * len(cents)
+        for row in rows:
+            for c in row:
+                i = min(range(len(cents)), key=lambda k: _dist(c, cents[k]))
+                mass[i] += 1
     bright = max((c for row in rows for c in row),
                  key=lambda c: 2 * c[0] + 4 * c[1] + c[2])
+    npx = sum(len(row) for row in rows)
+    scale = npx / 1280.0          # the thresholds below were tuned on 8 rows
     bmass = sum(1 for row in rows for c in row if _dist(c, bright) < 1600)
     protected = []
-    forced = bright if bmass >= 10 else None
+    forced = bright if bmass >= max(2, 10 * scale) else None
+    # THE MOON, PRICED RATHER THAN DECREED (dial). The rule fires on 81
+    # percent of all strips, so "the brightest cluster is a hard member"
+    # is not a rule about moons, it is a standing tax of one register in
+    # four. Where the highlight is genuinely at risk the price defends it
+    # anyway; where it is 6 percent of the strip and the darks are 60,
+    # the picture should win.
+    if forced is not None and not _A8_MOON_HARD:
+        protected.append((forced, bmass * _A8_MOON_WEIGHT))
+        forced = None
     dark = min((c for row in rows for c in row),
                key=lambda c: 2 * c[0] + 4 * c[1] + c[2])
     dmass = sum(1 for row in rows for c in row if _dist(c, dark) < 1600)
-    if dmass >= 40:
-        protected.append((dark, dmass * 2))
+    if dmass >= max(5, _A8_DMASS * scale):
+        protected.append((dark, dmass * _A8_DWEIGHT))
     lums = sorted(0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
                   for row in rows for c in row)
-    force_black = lums[len(lums) // 10] < 25.0
+    # THE FORCED BLACK CANVAS IS GONE (Stefan, 2026-08-11: "this reaches
+    # too much to black"). Any strip whose shadow tenth was dark used to
+    # spend one of its four precious colours on pure black, which pulled
+    # the corpus to 37 percent black against the masters' 31; without it
+    # the A8 sits at 30, its art's own weight. Black still wins a slot
+    # wherever the strip's own colours elect it, which is most of the
+    # time; it is no longer imposed. (The darkest anchor keeps its double
+    # protection: measured the same day, it costs nothing.)
+    force_black = False
     force_white = lums[(9 * len(lums)) // 10] > 215.0
+    # ONE HARD BRIGHT MEMBER, NOT TWO (2026-08-11). The moon rule and the
+    # white canvas are separate tests and both can fire on the same strip,
+    # each claiming a slot the optimizer may not price away. In picture
+    # 1's house band that spent two of four registers on 11 percent of the
+    # pixels (a pale cyan highlight and white), leaving ONE register for
+    # black, dark blue and bright blue together, 73 percent of the strip
+    # collapsed into a single colour: the blue mass with no timber in it.
+    # The white canvas stays in the pool and can still win on price; it
+    # just stops outranking the picture.
+    if _A8_ONE_BRIGHT and forced is not None:
+        force_white = False
     for i, c in enumerate(cents):
-        if mass[i] >= 120:
+        if mass[i] >= max(15, _A8_MASS * scale):
             protected.append((tuple(c), mass[i]))
     return cents, protected, forced, force_black, force_white
 
 
-def _a8_combo_score(strip, combo_rgb, protected):
+def _a8_hist(strip):
+    """A strip as (colours, counts, per-block counts). These masters are
+    palette art: at most sixteen distinct colours in a whole picture and
+    a median of eleven per strip. Scoring a combination against the
+    histogram is therefore EXACT (integer arithmetic throughout, so the
+    result is identical to walking every pixel) and about a hundred times
+    cheaper, which is what makes a candidate pool bigger than six
+    affordable."""
+    idx, cols, counts, blocks = {}, [], [], []
+    for row in strip:
+        n = len(row)
+        for x, c in enumerate(row):
+            i = idx.get(c)
+            if i is None:
+                i = idx[c] = len(cols)
+                cols.append(c)
+                counts.append(0)
+                blocks.append([0] * 8)
+            counts[i] += 1
+            blocks[i][x * 8 // n] += 1
+    return cols, counts, blocks
+
+
+def _a8_home_cost(col, home):
+    """What it costs this strip colour to live on that register. ONE
+    definition, used by the whole election (the identity doctrine: the
+    protection term already knew a chromatic colour is not housed by a
+    grey of equal brightness, but the main error term did not, so the
+    main term, being the larger, decided the palette on brightness alone
+    and every strip bought a luminance ladder instead of the picture's
+    colours: picture 6 elected black, dark red, olive and pale yellow for
+    a strip whose ceiling is blue)."""
+    d = _dist_luma(col, home)
+    cs, hs = max(col) - min(col), max(home) - min(home)
+    if cs >= 18 and hs < 18:
+        d *= _A8_TINT
+    elif cs < 18 and hs >= 18 and _A8_TINT_BOTH:
+        # AND THE OTHER WAY (Stefan, 2026-08-11: "lots of blue areas but
+        # they are still missing the details"). The rule only ever ran in
+        # one direction, so a neutral was housed on a saturated register
+        # for free: picture 2's barn is 178 pixels of pure black against
+        # 81 of dark blue, and the whole region painted itself blue
+        # because black sat on the blue for nothing. Grey is not blue, and
+        # blue is not grey; the doctrine is symmetric or it is not a
+        # doctrine.
+        d *= _A8_TINT_BOTH
+    return d
+
+
+def _a8_seam(hist, combo_rgb, prev_rgb):
+    """The visible join with the strip above. A band is not "a strip
+    changed its palette", it is ONE COLOUR FAMILY being painted one
+    colour up there and a different colour down here, across a straight
+    horizontal edge, in front of however many pixels sit on that family.
+    So price exactly that: per family, how far the register this palette
+    gives it lies from the register the strip above gave it, weighted by
+    its mass.
+
+    The gate is what makes this different from a flat continuity price
+    (Stefan, 2026-08-11: a flat price "saturates some images with a
+    single colour", picture 10 losing its green ground to the sky's
+    palette). A family the strip above did NOT hold properly has no join
+    to preserve, so it costs nothing here and this strip is free to buy
+    it a colour of its own. Continuity binds what is shared and lets go
+    of what is new."""
+    cols, counts, _ = hist
+    seam = 0
+    for i, c in enumerate(cols):
+        b = min(prev_rgb, key=lambda k: _a8_home_cost(c, k))
+        a = min(combo_rgb, key=lambda k: _a8_home_cost(c, k))
+        if a == b:
+            continue
+        # The gate is RELATIVE: the family is new here, and so has no
+        # join to keep, only when this palette can house it far better
+        # than the strip above ever could. An absolute radius does not
+        # work, since almost every family sits further from its register
+        # than that and the seam then costs nothing at all.
+        if _a8_home_cost(c, b) > 2 * _a8_home_cost(c, a) + _A8_HOUSED:
+            continue
+        seam += counts[i] * _dist_luma(a, b)
+    return seam
+
+
+def _a8_combo_score(hist, combo_rgb, protected):
     """Region-balanced, protection-priced, luminance-dominant: the total
     error, plus the worst 20-column block (a palette may not sacrifice
     one side of the row to the other), plus a heavy price for any
     protected cluster left without a home."""
+    cols, counts, cblocks = hist
     total = 0
     blocks = [0] * 8
-    for row in strip:
-        for x, c in enumerate(row):
-            e = min(_dist_luma(c, k) for k in combo_rgb)
-            total += e
-            blocks[x * 8 // len(row)] += e
+    for i, c in enumerate(cols):
+        e = min(_a8_home_cost(c, k) for k in combo_rgb)
+        total += e * counts[i]
+        cb = cblocks[i]
+        for b in range(8):
+            if cb[b]:
+                blocks[b] += e * cb[b]
     score = total + 4 * max(blocks)
     for col, weight in protected:
         best = min(combo_rgb, key=lambda k: _dist_luma(col, k))
-        d = _dist_luma(col, best)
+        d = _a8_home_cost(col, best)
         # TINT LOYALTY in the housing test (the fourth appearance of
         # the grey-axis lesson, 2026-07-24): a chromatic cluster is NOT
         # housed by a grey of equal brightness. Without this the
@@ -2273,6 +2630,161 @@ def _a8_snap(c):
     return min(cands, key=lambda k: _dist(c, _GTIA_RGB[k]))
 
 
+# How strongly an A8 segment prefers a colour its neighbour above already
+# uses, as a PERCENTAGE of that strip's own error per differing register:
+# 0 lets every strip choose freely and the picture bands; higher binds the
+# strips together. (_A8_SHARE, an absolute figure in _dist units, was the
+# first attempt at this and was never wired to anything; it is gone.)
+_A8_CONT = 25
+
+# How much worse than its own best palette a strip will accept in order
+# to keep its neighbour's registers, as a percentage. This is the same
+# idea as _A8_CONT expressed as a TOLERANCE rather than a price, which is
+# the difference between "follow your neighbour unless it hurts" and
+# "pay to differ": only the first leaves a strip free to buy a colour the
+# rest of the picture does not have. 0 turns it off.
+_A8_TOL = 0
+
+# How heavily a visible join with the strip above is priced, as a
+# percentage of its own measure (see _a8_seam), and how close a register
+# must sit to a colour family to count as having painted it up there.
+_A8_SEAM = 0
+_A8_HOUSED = 4000
+
+# Whether the strips are solved as a chain (0) or in two passes against
+# their neighbours' independent choices (1). See _convert_a8.
+_A8_TWOPASS = 0
+
+# Whether a strip may answer with fewer than four colours to keep a join
+# clean (see the election). 0 forces a full four every time.
+_A8_FEWER = 0
+
+# Whether the join is priced on the colours a strip BRINGS IN (1) or on
+# the ones it fails to keep (0). See the election for why they differ.
+_A8_PRICE_NEW = 0
+
+# What a hue betrayal costs when a strip must substitute a colour it has
+# How much a hue betrayal MULTIPLIES the cost when a segment must
+# substitute a colour it has no room for, per turn of the wheel: enough
+# that a purple ground prefers another purple, not so much that every
+# unmatched hue flees to black.
+_A8_HUE = 6.0
+
+# How far a disagreeing pair leans toward its brighter member in the A8's
+# halving: 0.5 is the plain average this converter used until now, 1.0 is
+# the CPC trunk's full bedpost fix.
+_A8_PAIR = 1.0
+
+# Whether the kept member of a disagreeing pair is the one that departs
+# further from the ground either side of it (1), or simply the brighter
+# one (0, the CPC's rule, which has no dark features to lose).
+_A8_PAIR_EXTREME = 1
+
+# What share of the pixels sitting on a grey canvas must themselves be
+# tinted before the canvas may take their tint. 0 restores the old
+# mean-only test, which a warm minority could carry.
+_A8_CANVAS_SHARE = 0.5
+
+# Above this luminance a canvas is a white and keeps its neutrality. 255
+# lets even white take a tint, which is what the code did before.
+_A8_CANVAS_WHITE = 200.0
+
+
+def _a8_choose(sx, cc, prgb, plum):
+    """Which of a strip's four registers this pixel takes. ONE decision,
+    called from two places (the identity doctrine's lesson from the
+    Plus/4: a second site that re-derives the same answer will drift from
+    it). `sx` is the source colour, which sets the guard; `cc` is what the
+    diffusion has accumulated, which settles the choice. The pixel loop
+    passes both; the usage probe that retires a dead register passes the
+    source twice, since no error has flowed yet.
+
+    Returns (register, guarded). `guarded` is False when nothing passed
+    the guard at all and the pixel simply took its nearest: July's code
+    diffused no error out of such a pixel, and that is kept."""
+    # The guard is centred on WHAT IS LEFT TO RENDER, the source plus the
+    # error the diffusion has carried into this pixel, bounded by
+    # _A8_ECLAMP so it can follow the error without chasing a runaway.
+    # Centring it on the bare source is what made flat regions inescapable
+    # (see _A8_DRIFT above). The window itself is unchanged, and the hue
+    # loyalty below still judges against the SOURCE, so following the
+    # error can open a darker or lighter neighbour but never re-hue.
+    gx = tuple(min(sx[k] + _A8_DRIFT, max(sx[k] - _A8_DRIFT, cc[k]))
+               for k in range(3))
+    src_l = 0.299 * gx[0] + 0.587 * gx[1] + 0.114 * gx[2]
+    su, sv = gx[2] - src_l, gx[0] - src_l
+    cands = []
+    for i2 in range(4):
+        if abs(plum[i2] - src_l) > _A8_GUARD_L:
+            continue
+        p2 = prgb[i2]
+        pu, pv = p2[2] - plum[i2], p2[0] - plum[i2]
+        if abs(pu - su) > _A8_GUARD_C or abs(pv - sv) > _A8_GUARD_C:
+            continue
+        cands.append(i2)
+    if not cands:
+        cands = [i2 for i2 in range(4)
+                 if abs(plum[i2] - src_l) <= _A8_GUARD_L]
+    if not cands:
+        return min(range(4), key=lambda k: _dist(sx, prgb[k])), False
+
+    # HUE LOYALTY IN THE SUBSTITUTION (Stefan, 2026-08-11, applied to the
+    # master-inheritance converter): the strip's four colours cannot serve
+    # every hue, and when one must stand in for another the replacement
+    # has to stay in the source's own family. Plain distance re-hued whole
+    # bands ("a stripe of dominant red, dominant blue"); the chroma window
+    # above only bounds the tint, it does not stop a saturated pixel
+    # landing on a saturated stranger.
+    def cost(k):
+        # The hue penalty MULTIPLIES the distance, it does not add a wall
+        # (Stefan, 2026-08-11: "this reaches too much to black"). An
+        # additive wall only punished saturated strangers, so black, being
+        # neutral, escaped it entirely and became the cheapest escape
+        # whenever no hue matched. Scaling keeps luminance in the contest:
+        # a wrong hue costs proportionally, and a black that is far in
+        # brightness stays expensive on its own account.
+        d = _dist(cc, prgb[k])
+        ws = max(sx) - min(sx)
+        ps = max(prgb[k]) - min(prgb[k])
+        if ws >= 40 and ps >= 40:
+            hs, hp = _hue_turn(sx), _hue_turn(prgb[k])
+            if hs is not None and hp is not None:
+                dh = abs(hs - hp)
+                dh = min(dh, 1.0 - dh)
+                if dh > 0.15:
+                    d *= 1.0 + _A8_HUE * dh
+        return d
+
+    return min(cands, key=cost), True
+
+
+def _a8_usage(strip, pal4):
+    """How many pixels each of the four registers would actually paint,
+    diffusion aside. A register that paints (almost) none of them is a
+    quarter of the strip's palette bought for nothing."""
+    plum = [0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2] for p in pal4]
+    use = [0, 0, 0, 0]
+    for row in strip:
+        for c in row:
+            use[_a8_choose(c, c, pal4, plum)[0]] += 1
+    return use
+
+
+def _hue_turn(c):
+    """The colour's hue as a fraction of the wheel, or None for a neutral."""
+    mx, mn = max(c), min(c)
+    if mx == mn:
+        return None
+    r, g, b = c
+    if mx == r:
+        hh = (g - b) / (mx - mn)
+    elif mx == g:
+        hh = 2.0 + (b - r) / (mx - mn)
+    else:
+        hh = 4.0 + (r - g) / (mx - mn)
+    return (hh % 6.0) / 6.0
+
+
 def _convert_a8(rows, salient=None):
     # THE A8 CONVERTS DIRECT FROM THE MASTER, as the per-line-palette
     # machine it is (Stefan's ruling and corpus approval, 2026-07-24;
@@ -2294,16 +2806,76 @@ def _convert_a8(rows, salient=None):
         f = 1.0 + 0.12 * (1.0 - y / 255.0)
         return tuple(min(255, round(v * f)) for v in c)
 
-    half = [[lift(tuple((a + b) // 2 for a, b in zip(row[x], row[x + 1])))
-             for x in range(0, len(row), 2)] for row in rows]
+    # THE BEDPOST FIX, HERE TOO (Stefan, 2026-08-11). This converter
+    # halved the master by plain averaging, the very line the CPC trunk
+    # gave up: an averaged pair smears a one-pixel vertical into a
+    # half-tone that quantises away, and the A8 lost its thin bright
+    # structures the same way the CPC lost the bedpost. Pairs collapse by
+    # agreement instead; a disagreeing pair keeps its brighter member.
+    half = []
+    for row in rows:
+        out_row = []
+        for x in range(0, len(row), 2):
+            a, b = row[x], row[x + 1]
+            if _dist(a, b) <= 2400:
+                out_row.append(lift(tuple((p + q) // 2
+                                          for p, q in zip(a, b))))
+            else:
+                # The fix at ADJUSTABLE STRENGTH (Stefan, 2026-08-11:
+                # "not that much"). The CPC takes the brighter member
+                # whole; here the pair leans toward it by _A8_PAIR, so
+                # 0.5 is the old averaging and 1.0 is the CPC's full
+                # force. A threshold dial was tried first and did
+                # nothing: these pairs sit far beyond any threshold.
+                br, dk = (a, b) if sum(a) >= sum(b) else (b, a)
+                if _A8_PAIR_EXTREME:
+                    # KEEP THE FEATURE, NOT THE BRIGHTER (2026-08-11).
+                    # Always taking the brighter member saves a bright
+                    # line on a dark ground and destroys a DARK line on a
+                    # bright one, which is the same loss the fix exists
+                    # to prevent, mirrored: measured over the corpus,
+                    # going from the plain average to the full rule
+                    # raised thin bright lines from 78.8 to 92.0 percent
+                    # and dropped thin dark lines from 83.9 to 68.6, and
+                    # it is why picture 2's chapel windows lose their
+                    # mullions. So judge each member against the ground
+                    # either side of the pair and keep whichever departs
+                    # from it further; on a dark ground that is still the
+                    # brighter one, and the fix behaves as before.
+                    ground = [row[k] for k in (x - 1, x + 2)
+                              if 0 <= k < len(row)]
+                    if ground:
+                        g = sum(0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
+                                for c in ground) / len(ground)
+                        la = 0.299 * a[0] + 0.587 * a[1] + 0.114 * a[2]
+                        lb = 0.299 * b[0] + 0.587 * b[1] + 0.114 * b[2]
+                        br, dk = ((a, b) if abs(la - g) >= abs(lb - g)
+                                  else (b, a))
+                w = _A8_PAIR
+                out_row.append(lift(tuple(
+                    round(br[k] * w + dk[k] * (1.0 - w)) for k in range(3))))
+        half.append(out_row)
     h, w = len(half), len(half[0])
 
     snap = _a8_snap
 
-    palettes = []
-    prev = None
-    for s in range(h // 8):
-        strip = half[s * 8:(s + 1) * 8]
+    # A palette per EIGHT lines. Electing one per scanline was tried
+    # 2026-08-11 (the format carries four registers per line, so the
+    # capacity is there) and REVERTED the same hour: neighbouring lines
+    # elected independently and locked into full-width stripes running
+    # through the picture, while the flat regions stayed flat. The
+    # capacity is real but it needs an election that reasons about the
+    # picture, not one line at a time.
+    def elect_strip(strip, neighbours):
+        """This strip's four registers. `neighbours` is a list of the
+        palettes it must join with, and it is the whole difference
+        between banding and a picture drowned in one colour: pass the
+        strip above as it was ELECTED IN TURN and a decision walks the
+        length of the picture (Stefan, 2026-08-11: picture 10 "is
+        basically only blue now, there used to be at least a green
+        ground"); pass what the neighbours chose ON THEIR OWN, above and
+        below, and every strip is pulled toward a fixed reference that
+        cannot propagate. The seam is priced, never forbidden."""
         cents, protected, forced, f_black, f_white = _a8_seg_analysis(strip)
         must = snap(forced) if forced is not None else None
         fresh = []
@@ -2315,74 +2887,231 @@ def _convert_a8(rows, salient=None):
             k = snap(col)
             if k not in fresh:
                 fresh.append(k)
-        pool = fresh if prev is None else list(dict.fromkeys(prev + fresh))
-        if must is not None and must not in pool:
-            pool.append(must)
-        if f_black and 0 not in pool:
-            pool.append(0)
-        if f_white and 7 not in pool:
-            pool.append(7)
-        best, bd = None, None
-        for hard in (True, False):     # drop the canvases before failing
-            for combo in combinations(pool, min(4, len(pool))):
-                if hard:
-                    if must is not None and must not in combo:
-                        continue
-                    if f_black and 0 not in combo:
-                        continue
-                    if f_white and 7 not in combo:
-                        continue
-                sc = _a8_combo_score(strip, [_GTIA_RGB[k] for k in combo],
-                                     protected)
-                if prev is not None:
-                    sc += (4 - len(set(combo) & set(prev))) * 250000
-                if bd is None or sc < bd:
-                    best, bd = list(combo), sc
-            if best is not None:
+
+        hist = _a8_hist(strip)
+        prev = neighbours[0] if neighbours else None
+
+        def elect(banned, prev=prev, hist=hist, fresh=fresh, must=must,
+                  protected=protected, f_black=f_black, f_white=f_white):
+            pool = list(fresh)
+            for nb in neighbours:
+                pool = list(dict.fromkeys(nb + pool))
+            live = [k for k in pool if k not in banned]
+            # A ban may never leave the strip with too little to choose
+            # from: capacity is the whole point of retiring a register.
+            if len(live) >= 4:
+                pool = live
+            m = None if must in banned else must
+            if m is not None and m not in pool:
+                pool.append(m)
+            if f_black and 0 not in pool:
+                pool.append(0)
+            if f_white and 7 not in pool and 7 not in banned:
+                pool.append(7)
+            # FEWER COLOURS IS A LEGAL ANSWER (Stefan, 2026-08-11: "is
+            # there a way in these regions to fall back into less
+            # colours?"). A band is a colour appearing in one strip and
+            # not the next, so a strip that can only serve three of its
+            # neighbour's four registers should be free to take just
+            # those three and leave a slot doubled, rather than fill it
+            # with something new that will show as a seam. Sizes below
+            # four are offered to the election and it takes them when the
+            # join is worth more than the colour.
+            sizes = [min(4, len(pool))]
+            if _A8_FEWER and neighbours:
+                sizes += [n for n in (3, 2) if n < len(pool)]
+            best, bd, near = None, None, []
+            for hard in (True, False):   # drop the canvases before failing
+                for combo in (c for n in sizes for c in combinations(pool, n)):
+                    if hard:
+                        if m is not None and m not in combo:
+                            continue
+                        if f_black and 0 not in combo:
+                            continue
+                        if f_white and 7 not in combo and 7 not in banned:
+                            continue
+                    sc = _a8_combo_score(hist, [_GTIA_RGB[k] for k in combo],
+                                         protected)
+                    near.append((sc, combo))
+                    crgb = [_GTIA_RGB[k] for k in combo]
+                    for nb in neighbours:
+                        # The price is on the colours this strip BRINGS
+                        # IN, not on the ones it fails to keep. Those are
+                        # not the same thing, and only the first lets a
+                        # strip answer with fewer colours: charging for
+                        # what is dropped makes "three of yours" cost
+                        # exactly what "three of yours plus one of mine"
+                        # costs, so the extra colour is always taken and
+                        # always seams. (The flat 250000 this replaced
+                        # was under one percent of a score that runs to
+                        # tens of millions, so strips elected as if they
+                        # were separate pictures.)
+                        diff = (len(set(combo) - set(nb)) if _A8_PRICE_NEW
+                                else 4 - len(set(combo) & set(nb)))
+                        sc += diff * 250000 + diff * sc * _A8_CONT // 100
+                        if _A8_SEAM:
+                            sc += _A8_SEAM * _a8_seam(
+                                hist, crgb,
+                                [_GTIA_RGB[k] for k in nb]) // 100
+                    if bd is None or sc < bd:
+                        best, bd = list(combo), sc
+                if best is not None:
+                    break
+            # CONTINUITY WHERE IT IS NEARLY FREE (Stefan, 2026-08-11: a
+            # flat price per changed register "saturates some images with
+            # a single colour", picture 10's green ground turning blue
+            # because the sky's palette walked all the way down the
+            # picture). A price cannot tell a strip that is merely
+            # undecided from one that genuinely needs a colour its
+            # neighbour does not have. So: find what the strip would
+            # choose alone, then among every palette within _A8_TOL
+            # percent of that, take the one holding most of the
+            # neighbour's registers. A strip with nothing at stake falls
+            # into line; a strip with a green ground keeps its green.
+            if near and prev is not None and _A8_TOL:
+                b0 = min(sc for sc, _ in near)
+                cap = b0 + abs(b0) * _A8_TOL // 100
+                best = list(min(
+                    ((sc, c) for sc, c in near if sc <= cap),
+                    key=lambda t: (-len(set(t[1]) & set(prev)), t[0]))[1])
+            # A short palette doubles a register it already holds; it
+            # must never be padded with black, which would smuggle in the
+            # very extra colour the short answer was avoiding.
+            while len(best) < 4:
+                best.append(best[0] if best else 0)
+            # THE CANVAS TAKES ITS USERS' TINT (Stefan's proposal,
+            # 2026-07-24, after four gate rounds proved the pixel stage was
+            # the wrong place: the Kopie build was right everywhere except
+            # its grey canvas). For each mid-grey register, gather the strip
+            # pixels that would land on it; if they are mostly tinted one
+            # way, the register BECOMES their tint-loyal colour: a sea
+            # canvas turns light blue, near-neutrals sit on it comfortably,
+            # and no pixel gate exists to speckle a sky. True black and
+            # bright white canvases stay; chromatic entries stay.
+            pal4 = [_GTIA_RGB[k] for k in best]
+            for slot in range(4):
+                e = pal4[slot]
+                el = 0.299 * e[0] + 0.587 * e[1] + 0.114 * e[2]
+                # A bright white canvas stays white, which is what this
+                # pass always said it did ("true black and bright white
+                # canvases stay") and never actually checked: only black
+                # was guarded. Picture 15 is what that cost. Its white
+                # register serves about 175 white pixels and about 100
+                # pink ones in three strips running; in the middle one
+                # the pink is a shade heavier, the canvas turns pink, and
+                # a mountain that occupies a corner of the picture paints
+                # a band across its whole width while the strips above
+                # and below stay white. Stefan, 2026-08-11: "the mountain
+                # part that would be in this colour is genuinely small
+                # and for that it paints over the whole row, that feels
+                # off, disproportional".
+                if (max(e) - min(e) >= 18 or el < 30.0
+                        or el > _A8_CANVAS_WHITE):
+                    continue
+                users = []
+                for srow in strip:
+                    for c in srow:
+                        if min(range(4), key=lambda k: _dist(c, pal4[k])) \
+                                == slot:
+                            users.append(c)
+                if len(users) < 80:
+                    continue
+                n = len(users)
+                # THE MAJORITY DECIDES, NOT THE MEAN (Stefan, 2026-08-11:
+                # "a skin coloured bar going through, which only harms
+                # the picture... the whole picture would be way better
+                # off if this pink area is just painted with the rest of
+                # the surrounding colours"). A mean can be pulled warm by
+                # a minority while most of the users are plain grey, and
+                # then the register turns and paints the grey salmon: in
+                # picture 10's strip 2, 280 grey pixels lost their canvas
+                # to 74 olive and red ones, and the result was a
+                # full-width bar of skin tone through a stone wall. A
+                # canvas may only take a tint that most of the pixels on
+                # it actually have.
+                tinted = sum(1 for c in users if max(c) - min(c) >= 18)
+                if tinted < _A8_CANVAS_SHARE * n:
+                    continue
+                mc = tuple(sum(c[k] for c in users) / n for k in range(3))
+                ml2 = 0.299 * mc[0] + 0.587 * mc[1] + 0.114 * mc[2]
+                mmag = ((mc[2] - ml2) ** 2 + (mc[0] - ml2) ** 2) ** 0.5
+                if mmag < 12.0:
+                    continue
+                k2 = _a8_snap(tuple(round(v) for v in mc))
+                if k2 not in best:
+                    best[slot] = k2
+                    pal4[slot] = _GTIA_RGB[k2]
+            return best
+
+        # USE IT OR LOSE IT (Stefan's direction B, 2026-08-11). A strip
+        # gets four registers and a third of the corpus painted only
+        # three of them, because the moon rule forces the brightest
+        # cluster in from ten pixels and the optimizer may not price it
+        # away. Elect, ask the pixel stage what it would actually paint,
+        # and retire anything it refuses; the slot goes back into the
+        # pool and the strip elects again. Two rounds at most: this is a
+        # cleanup pass, not a search.
+        # A register the strip took from its neighbour has to EARN its
+        # quarter of the palette, and a much higher bar than one the
+        # strip chose for itself (Stefan, 2026-08-11: "some images are
+        # now saturated too much with a single colour... picture 10 is
+        # basically only blue now, there used to be at least a green
+        # ground"). The join price is right to make a strip follow its
+        # neighbour; it is wrong when the strip has no use for what it
+        # inherits, and that is how a sky palette walks down into a
+        # field. Applying the same bar to the strip's own choices was
+        # tried and was too blunt: picture 16's green room turned salmon.
+        own = set(fresh)
+        inherited = set()
+        for nb in neighbours:
+            inherited |= set(nb)
+        inherited -= own
+
+        banned = set()
+        best = elect(banned)
+        for _round in range(2):
+            if _A8_MINUSE <= 0:
                 break
-        while len(best) < 4:
-            best.append(0)
-        # THE CANVAS TAKES ITS USERS' TINT (Stefan's proposal,
-        # 2026-07-24, after four gate rounds proved the pixel stage was
-        # the wrong place: the Kopie build was right everywhere except
-        # its grey canvas). For each mid-grey register, gather the strip
-        # pixels that would land on it; if they are mostly tinted one
-        # way, the register BECOMES their tint-loyal colour: a sea
-        # canvas turns light blue, near-neutrals sit on it comfortably,
-        # and no pixel gate exists to speckle a sky. True black and
-        # bright white canvases stay; chromatic entries stay.
-        pal4 = [_GTIA_RGB[k] for k in best]
-        for slot in range(4):
-            e = pal4[slot]
-            el = 0.299 * e[0] + 0.587 * e[1] + 0.114 * e[2]
-            if max(e) - min(e) >= 18 or el < 30.0:
-                continue
-            users = []
-            for srow in strip:
-                for c in srow:
-                    if min(range(4), key=lambda k: _dist(c, pal4[k])) \
-                            == slot:
-                        users.append(c)
-            if len(users) < 80:
-                continue
-            n = len(users)
-            mc = tuple(sum(c[k] for c in users) / n for k in range(3))
-            ml2 = 0.299 * mc[0] + 0.587 * mc[1] + 0.114 * mc[2]
-            mmag = ((mc[2] - ml2) ** 2 + (mc[0] - ml2) ** 2) ** 0.5
-            if mmag < 12.0:
-                continue
-            k2 = _a8_snap(tuple(round(v) for v in mc))
-            if k2 not in best:
-                best[slot] = k2
-                pal4[slot] = _GTIA_RGB[k2]
-        palettes.append(best)
-        prev = best
+            use = _a8_usage(strip, [_GTIA_RGB[k] for k in best])
+            n_use = sum(use)
+            floors = [n_use * (_A8_INHERIT if best[k] in inherited
+                               else _A8_MINUSE) for k in range(4)]
+            dead = {best[k] for k in range(4) if use[k] < floors[k]}
+            dead -= set(best[k] for k in range(4) if use[k] >= floors[k])
+            if not dead or dead <= banned:
+                break
+            banned |= dead
+            best = elect(banned)
+        return best
+
+    strips = [half[s * 8:(s + 1) * 8] for s in range(h // 8)]
+    if _A8_TWOPASS:
+        # Pass one: every strip elects alone. Pass two: each strip joins
+        # with what its neighbours chose ALONE, above and below, so no
+        # decision can walk the length of the picture. MEASURED WORSE
+        # (2026-08-11) and left here as a dial: pulled toward two
+        # references that disagree with each other, a strip lands on a
+        # compromise matching neither, and the joins came out worse than
+        # the plain chain (churn 256 against 127). The idea is right and
+        # the arbitration is wrong; it wants the whole picture solved at
+        # once, not each strip against its neighbours.
+        alone = [elect_strip(st, []) for st in strips]
+        palettes = [
+            elect_strip(st, [n for n in (alone[i - 1] if i else None,
+                                         alone[i + 1] if i + 1 < len(strips)
+                                         else None) if n is not None])
+            for i, st in enumerate(strips)]
+    else:
+        palettes = []
+        prev = None
+        for st in strips:
+            prev = elect_strip(st, [prev] if prev is not None else [])
+            palettes.append(prev)
 
     buf = [[[float(v) for v in c] for c in row] for row in half]
     codes = [[0] * w for _ in range(h)]
     for y in range(h):
-        pal = palettes[y // 8]
-        prgb = [_GTIA_RGB[k] for k in pal]
+        prgb = [_GTIA_RGB[k] for k in palettes[y // 8]]
         plum = [0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2] for p in prgb]
         serp = y & 1
         xs = range(w - 1, -1, -1) if serp else range(w)
@@ -2394,25 +3123,10 @@ def _convert_a8(rows, salient=None):
                   min(255.0, max(0.0, c[2])))
             sx = half[y][x]
             src_l = 0.299 * sx[0] + 0.587 * sx[1] + 0.114 * sx[2]
-            su, sv = sx[2] - src_l, sx[0] - src_l
-            cands = []
-            for i2 in range(4):
-                if abs(plum[i2] - src_l) > 40.0:
-                    continue
-                p2 = prgb[i2]
-                pu, pv = p2[2] - plum[i2], p2[0] - plum[i2]
-                if abs(pu - su) > 70.0 or abs(pv - sv) > 70.0:
-                    continue
-                cands.append(i2)
-            if not cands:
-                cands = [i2 for i2 in range(4)
-                         if abs(plum[i2] - src_l) <= 40.0]
-            if not cands:
-                codes[y][x] = min(range(4),
-                                  key=lambda k: _dist(sx, prgb[k]))
-                continue
-            i = min(cands, key=lambda k: _dist(cc, prgb[k]))
+            i, guarded = _a8_choose(sx, cc, prgb, plum)
             codes[y][x] = i
+            if not guarded:
+                continue
             dz = 300.0 if src_l < 60.0 else 900.0
             if _dist(sx, prgb[i]) < dz:
                 continue
@@ -2426,13 +3140,19 @@ def _convert_a8(rows, salient=None):
                     t[0] += er * wt / 16.0
                     t[1] += eg * wt / 16.0
                     t[2] += eb * wt / 16.0
+                    if _A8_ECLAMP:
+                        # Hold the buffer near its own source: without
+                        # this the error is conserved and handed on
+                        # forever (see _A8_ECLAMP above).
+                        n_sx = half[ny][nx]
+                        for k in range(3):
+                            t[k] = min(n_sx[k] + _A8_ECLAMP,
+                                       max(n_sx[k] - _A8_ECLAMP, t[k]))
 
     lines = []
     for y in range(h):
-        pal = palettes[y // 8]
-        lines += [_GTIA128[k] for k in pal]
+        lines += [_GTIA128[k] for k in palettes[y // 8]]
     return {"w": w, "h": h, "pixels": codes, "lines": lines}
-
 
 def _convert_trsm4(rows, salient=None):
     """Master to TRS-80 Model 4 mono: luminance, 2x horizontal (the hi-res
@@ -2526,6 +3246,25 @@ def _map_pixels_diffusion(rows, palette):
                     cands = range(len(palette))
                 idx[y][x] = min(cands, key=lambda k: _dist(s, palette[k]))
                 continue
+            if src_l < 48.0:
+                # THE DARK SANCTUARY (the CPC beach round, Stefan's
+                # verdicts 2026-08-09/10, FINAL: "flat and safe"). In
+                # darkness the mapper goes flat and literal, the 8-bit
+                # school's way: only entries that are THEMSELVES dark may
+                # fire (no bright or loud tint is ever planted into a
+                # shadow), picked luminance-first by the SOURCE, and no
+                # error crosses the boundary in either direction. A
+                # chroma-split variant that let colored darkness keep the
+                # diffusion detail was tried 2026-08-10 and REVERTED the
+                # same day: it re-created the artifacts. Lit regions keep
+                # the global guards and the jackpot diffusion untouched.
+                dark = [k for k in range(len(palette))
+                        if plum[k] <= src_l + 24.0]
+                if not dark:
+                    dark = [min(range(len(palette)), key=lambda k: plum[k])]
+                idx[y][x] = min(
+                    dark, key=lambda k: _dist_luma(s, palette[k], 20))
+                continue
             i = min(cands, key=lambda k: _dist(cc, palette[k]))
             idx[y][x] = i
             if _dist(s, palette[i]) < 900:
@@ -2540,6 +3279,10 @@ def _map_pixels_diffusion(rows, palette):
                     t[0] += er * wt / 16.0
                     t[1] += eg * wt / 16.0
                     t[2] += eb * wt / 16.0
+    # A boundary weave (a two-colour shadow dissolve at big-block edges)
+    # was designed, gated, and REMOVED on Stefan's ruling, 2026-08-10:
+    # flat-and-safe darkness is the final look. The record lives in
+    # PROGRESS; do not re-add a weave without his explicit reopening.
     return idx
 
 
@@ -2576,6 +3319,20 @@ def _express(free, usage_order, machine, merge_far=2.5):
         sm = max(m) - min(m)
         if sf >= 32 and sm == 0 and m != (0, 0, 0):
             return 1 << 30
+        # KNOB 3 (the CPC beach round, 2026-08-09): a quiet dark entry
+        # stays quiet. The green ground dots were a dark teal (luma 36)
+        # expressed to the cube's pure green (luma 75): plain distance
+        # liked the hue and ignored the shout. Below the floor no entry
+        # may lift its luminance past 24, and the landing among the quiet
+        # options is ranked luminance-first, or the clamped entries crowd
+        # the cube's one dark chromatic corner (the first iteration's
+        # dark-red flood).
+        lf = 0.299 * f[0] + 0.587 * f[1] + 0.114 * f[2]
+        lm = 0.299 * m[0] + 0.587 * m[1] + 0.114 * m[2]
+        if lf < 56.0:
+            if lm - lf > 24.0:
+                return 1 << 29
+            return _dist_luma(f, m, 20) + 4 * max(0, sf - sm) * sf
         return _dist(f, m) + 4 * max(0, sf - sm) * sf
 
     expr = [None] * len(free)
@@ -2637,9 +3394,17 @@ def _p4_from_cpc(cpc):
     order = sorted(range(len(inks_rgb)), key=lambda i: -usage.get(i, 0))
     to_ted = [0] * len(inks_rgb)
     taken = set()
+    # THE PLUS/4 RENDERS THE FAMILY'S COLOUR DECISION (Stefan, 2026-08-11):
+    # the assignment is made ONCE in Colodore space by _inks_to_colodore,
+    # table and all, and the TED simply reproduces each chosen Colodore
+    # colour on its own finer ladder. Distinct Colodore choices stay
+    # distinct here; where two inks collapsed onto one Colodore colour the
+    # TED separates them onto neighbouring rungs, which it can afford.
+    to_col = _inks_to_colodore(inks_rgb, usage)
     for i in order:
+        target = _COLODORE[to_col[i]]
         ranked = sorted(range(len(ted_rgb)),
-                        key=lambda k: _dist(inks_rgb[i], ted_rgb[k]))
+                        key=lambda k: _dist(target, ted_rgb[k]))
         pick = next((k for k in ranked if k not in taken), ranked[0])
         taken.add(pick)
         to_ted[i] = pick
@@ -2678,7 +3443,13 @@ def _p4_from_cpc(cpc):
         for cx in range(cells_x):
             idxs = [pixels[cy * 8 + yy][cx * 4 + xx]
                     for yy in range(8) for xx in range(4)]
-            src_px = [inks_rgb[i] for i in idxs]
+            # THE CELL SOLVE JUDGES AGAINST THE FAMILY'S DECISION, not the
+            # raw CPC ink (Stefan's catch, 2026-08-11). Measuring against
+            # the ink let every upgraded cell re-derive its own answer in
+            # TED space and discard the Colodore choice: picture 8's green
+            # sky came back teal, picture 1's grey fog came back violet.
+            # The intended colour is what the cell must reproduce.
+            src_px = [_COLODORE[to_col[i]] for i in idxs]
             cnt = {}
             for i in idxs:
                 cnt[to_ted[i]] = cnt.get(to_ted[i], 0) + 1

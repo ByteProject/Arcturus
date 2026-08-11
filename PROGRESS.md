@@ -9126,3 +9126,80 @@ AFTER THE A8: re-freeze the stale goldens (12 failing now: 4 CPC, 4 C64,
 4 P4; the A8's 4 will follow), then ONE commit carrying this whole round
 into PROGRESS. Note for that commit: the goldens froze three of the
 defects found this round as correct, which is worth saying out loud.
+
+## 2026-08-11: the arc_image quality round, closed on Stefan's eye
+
+All four retro targets approved. The two CHECKPOINT sections above are
+closed; this entry is the record.
+
+STEFAN'S VERDICTS, in the order they were given. CPC: "CPC is flawless
+now". C64: "Major success. C64 is approved and I am genuinely happy with
+the results". Plus/4: "finally. approved". A8, after seven rounds:
+"Hell yes, that's it. A white canvas stays white cracked it. All images
+look perfect now."
+
+HIS RULINGS ALONG THE WAY, each of which overrode a measurement of mine:
+- The colour table for the C64 is HIS, fourteen rows authored by hand
+  from the two palettes side by side. A generated table was tried first
+  and he rejected it: "the older one was genuinely better when all
+  colours worked together".
+- The A8 keeps its July direct-from-master route. A Colodore-inheritance
+  version measured closer to the C64 at every step and he rejected it on
+  sight.
+- Widening the pixel guard was rejected: "guard 90 is certainly not the
+  answer, look how many details and colours are lost in picture 7, the
+  iconic picture 8 losing the moon".
+- Repairing the diverging diffusion was rejected on its artefacts: "it
+  creates dots everywhere, look at the ceiling in the chapel". The
+  divergence is real and measured; the picture disagreed, so the picture
+  won. It stays in the tree as a dial at zero.
+- Continuity 25 is his choice over 15, made against the full corpus.
+- Every alternative I built to beat it (two-pass election, near-tie
+  tolerance, seam pricing, use-it-or-lose-it floors, short palettes) he
+  judged no better, and the measurements agreed once looked at.
+
+THE DOCTRINE, his, and now proved eight times: WHEREVER THE PIPELINE IS
+UNCERTAIN, COLOUR IDENTITY IS RETAINED, NEVER IMPROVISED. Every defect
+found this round was the same fault in a different place, a decision
+taken on an AVERAGE instead of on what is actually there:
+- diffusion averaged a dark pair into a tone that quantised away (the
+  bedpost fix);
+- the strip analysis averaged pure black with a vivid blue into a colour
+  present nowhere in the picture, then elected a palette with no blue in
+  it, which is why a whole ceiling rendered black;
+- the election's error metric averaged brightness over hue, so every
+  strip bought a luminance ladder instead of the picture's colours;
+- the tint rule ran in one direction only, so a black pixel sat on a
+  saturated register for free and a barn's timber vanished into blue;
+- the canvas pass averaged a grey majority with a warm minority and
+  painted a stone wall skin colour across the full width.
+
+THE LAST ONE, which he found by eye and named exactly: "the mountain
+part that would be in this colour is genuinely small and for that it
+paints over the whole row, that feels off, disproportional". The canvas
+pass has always documented itself as leaving true black AND BRIGHT WHITE
+alone, and only black was ever guarded. One strip's white canvas tipped
+pink on a 50/50 split while its neighbours stayed white, and a corner of
+the picture painted a band across the whole width. Guarding white, as
+the code always said it did, closed the round.
+
+THE BEDPOST FIX, RE-OPENED AND REPAIRED at his request once the rest was
+right ("that is something I want to look into again now that we are so
+close"). It kept the BRIGHTER member of a disagreeing pair, which is
+correct on the CPC where it was written and half a rule on the A8: it
+bought thin bright lines by destroying thin dark ones, corpus-wide from
+83.9 percent of dark lines kept down to 68.6, below what plain averaging
+managed. It now keeps whichever member departs further from the ground
+either side of it. Bright lines 90.8 percent, dark lines 96.4, and the
+mean pixel error fell to its best figure of the round.
+
+THE GOLDENS FROZE THREE OF THESE DEFECTS AS CORRECT, which is worth
+saying plainly: a golden test proves a converter has not changed, never
+that it was right. Sixteen were re-frozen here against Stefan's eye, the
+only gate this work has. Suite 1374 green.
+
+METHOD NOTE, earned twice this round the hard way: LOOK AT THE OUTPUT
+BEFORE REPORTING. A metric said the per-scanline palettes were better
+while the picture had gained stripes; a metric said the new-colour price
+healed three pictures while it put a red band back through one of them.
+Numbers locate, they do not judge.
