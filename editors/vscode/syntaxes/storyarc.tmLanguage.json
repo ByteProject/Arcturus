@@ -116,6 +116,18 @@
           }
         },
         {
+          "comment": "The when-language guard (docs/01 chapter 22): a declaration group that exists only when the game speaks that language.",
+          "match": "^\\s*(when)\\s+(language)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.storyarc"
+            },
+            "2": {
+              "name": "keyword.declaration.storyarc"
+            }
+          }
+        },
+        {
           "match": "^\\s*(game|verb|grains|ranks|ambience)\\b",
           "captures": {
             "1": {
