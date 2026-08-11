@@ -9203,3 +9203,72 @@ BEFORE REPORTING. A metric said the per-scanline palettes were better
 while the picture had gained stripes; a metric said the new-colour price
 healed three pictures while it put a red band back through one of them.
 Numbers locate, they do not judge.
+
+## CHECKPOINT for pickup (2026-08-11): B12 is mid-R4, not near B13
+
+Self-sufficient resume state. It supersedes the two mid-flight
+checkpoints above, which are closed: the quality round they describe
+landed as 7e8d00c and the entry above it is its record.
+
+WHERE WE ACTUALLY ARE. B12, wave R4. Stefan corrected a claim of mine
+that we were at B13 ("Many of the systems are not implemented and don't
+have a probe yet. How do you come to the conclusion we are at B13. We
+are far away from that?"). He is right and the mistake is worth naming:
+four machines passing his eye is not a milestone closing. The ledger in
+arc_image/reference/design.md is the authority on the wave order and the
+done-tests; read it before planning anything here.
+
+THE COUNT, measured, not remembered:
+- Formats defined in arcimg.TARGETS: 15.
+- Converters implemented: 9 (AMI, AST, DOS, C64, ZX3, CPC, A8, P4,
+  TRSM4), with 9 matching probes under arc_image/probes/.
+- SIX TARGETS HAVE A FORMAT AND NOTHING ELSE, no converter, no probe:
+  MSX1 and MSX2 (both still inside R4), Apple II, Spectrum Next and
+  MEGA65 (R5), and the C128 VDC (an undecided ruling, R5).
+
+WHAT R4 STILL OWES, its own done-test: "corpus conversions approved;
+probes green in atari800, openMSX, and xplus4, both modes."
+- MSX1 and MSX2 converters do not exist. That is the bulk of it.
+- The A8 and Plus/4 conversions are approved as of this round. Whether
+  their probes have been through atari800 and xplus4 under Stefan's eye
+  in BOTH modes is not recorded here; ASK HIM, do not assume. Emulators
+  run on his machine and he gives the path (never launch or install one
+  unprompted).
+Then R5 (Apple II with the DHGR variant, Spectrum Next, MEGA65, the
+C128 ruling executed) and R6 (the public interpreter contract, arcimg
+2.0, docs/00 and PROGRESS synced, the size ledger final).
+
+WHAT THE JUST-FINISHED ROUND SETTLED, so it is not reopened by accident:
+CPC, C64, Plus/4 and A8 conversions are APPROVED BY STEFAN on the full
+22-picture Rabenstein corpus. That closes the R4 amendment's re-gate for
+C64, CPC and A8 and takes the Plus/4 with it. It says NOTHING about
+probes. The Spectrum keeps its R3 solver and has not been re-gated.
+
+THE TUNING SURFACE now lives in named module constants in tools/arcimg.py
+(all _A8_* around lines 2060-2690). Everything Stefan rejected is still
+there as a dial at its off value WITH THE REASON IN THE COMMENT, so no
+one re-tries it blind: _A8_DRIFT and _A8_ECLAMP (the diffusion divergence
+repair, real but it scatters dots on a smooth ceiling), _A8_TWOPASS (the
+picture-wide election, measured worse than the chain), _A8_TOL (near-tie
+continuity), _A8_SEAM with _A8_HOUSED (per-family join pricing),
+_A8_FEWER and _A8_PRICE_NEW (short palettes; they never fire because
+taking the neighbour's whole palette is already free). The live settings
+are _A8_EXACT 8, _A8_TINT 3 both ways, _A8_ONE_BRIGHT 1, _A8_CONT 25,
+_A8_PAIR 1.0 with _A8_PAIR_EXTREME 1, _A8_CANVAS_SHARE 0.5 and
+_A8_CANVAS_WHITE 200. Turning the whole set to its off values reproduces
+the pre-round build; that was verified at every step and is the way to
+check any future change is doing what it claims.
+
+THE DOCTRINE to carry into the remaining targets, because it caught
+every defect this round and the same five traps are waiting in MSX and
+Apple II code: wherever the pipeline is uncertain, COLOUR IDENTITY IS
+RETAINED, NEVER IMPROVISED. In practice, distrust any AVERAGE: of two
+pixels, of a colour cluster, of brightness against hue, of a majority
+against a minority. Read the entry above for the five places it hid.
+
+WORKING METHOD, unchanged and non-negotiable. Stefan's eye is the only
+gate. Previews go to his Desktop as arcimg-00..21.png, the WHOLE corpus,
+full pictures, never a crop and never a subset, MASTER on top and the
+candidates below, labelled. LOOK AT THE OUTPUT BEFORE REPORTING: metrics
+misled four separate times this round and his eye was right every time.
+Discuss before implementing; a design question is not authorization.
