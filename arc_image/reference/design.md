@@ -383,7 +383,23 @@ method). Naming: R for retro.
   palette contract on both 68k machines, the Z-machine colours clause,
   and the copper per-frame restore.
 - R3. WAVE 2, the cell class flagship: C64, ZX Spectrum +3, CPC.
-  COMPLETE 2026-07-10. The per-cell solver framework landed and was
+  NOT CLOSED: its FORMAT, probe and codec work is done, but the ZX
+  SPECTRUM CONVERSION IS STILL OPEN and the wave cannot close without
+  it. The +3 alone kept its original R3 solver when the Polizei family
+  was rebuilt, and Stefan's standing verdict on it is that the clashes
+  are awful and he is very unsatisfied with the result. The rework was
+  parked twice, first behind the Plus/4 (2026-07-17) and then behind
+  the Polizei rebuild; the Plus/4 has since landed and been approved
+  (2026-08-11), so the block is gone. THE SPECTRUM DERIVES FROM MSX1
+  (section 4's ruling, restated by Stefan 2026-08-11): MSX1 is its
+  nearest palette kin and carries the milder attribute constraint, and
+  the reasoning behind it is geometric, so no 160-wide base can
+  substitute. A C64-class base lacks the PIXEL DENSITY a few-colour
+  Spectrum needs; the machine's strength with a restrained palette is
+  its 256-wide detail, and only a 256-wide base supplies it. MSX1 is
+  therefore a DEPENDENCY of R3's closure, not merely another R4 target,
+  and it must be built first.
+  The rest, COMPLETE 2026-07-10. The per-cell solver framework landed and was
   refined through seven review rounds with Stefan's pixel-artist eye
   and his hand-painted Spectrum art as training data; the conversion
   gate passed 2026-07-08 (C64 and CPC with full approval, converters

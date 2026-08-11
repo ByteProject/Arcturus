@@ -9272,3 +9272,41 @@ full pictures, never a crop and never a subset, MASTER on top and the
 candidates below, labelled. LOOK AT THE OUTPUT BEFORE REPORTING: metrics
 misled four separate times this round and his eye was right every time.
 Discuss before implementing; a design question is not authorization.
+
+## AMENDMENT to the pickup checkpoint (2026-08-11): R3 is not closed either
+
+Stefan's correction to the checkpoint above, and it changes the order of
+work: "I was very unsatisfied with ZX Spectrum conversion and we wanted
+to try to inherit Spectrum from MSX1. So Spectrum was R3, so we are not
+completely through with R3 either."
+
+Both halves check out against the design record, which was contradicting
+itself: its milestone list called R3 COMPLETE while the same document
+carried the ZX3 solver re-gate as an open work item. R3's format, probe
+and codec work IS done; the CONVERSION is not. The +3 alone kept its
+original R3 solver when the Polizei family was rebuilt around it, and
+his verdict on re-view was that the clashes are awful. It was parked
+twice: behind the Plus/4 (2026-07-17), then behind the Polizei rebuild.
+The Plus/4 has now landed and is approved, so nothing blocks it.
+
+THE ORDER THAT FOLLOWS, and the reason it is not negotiable. The
+Spectrum derives FROM MSX1 (section 4, restated by Stefan today): MSX1
+is its nearest palette kin with the milder attribute constraint. The
+argument is geometric, so no substitute base will do. A C64-class
+160-wide base lacks the PIXEL DENSITY a few-colour Spectrum needs; the
+machine's strength with a restrained palette is its 256-wide detail, and
+only a 256-wide base supplies it. So MSX1 IS A DEPENDENCY OF R3's
+CLOSURE, not just another R4 target, and it comes first.
+
+The conversion philosophy for the Spectrum is already ruled and should
+not be re-derived: near-monochrome dithered form, one dominant ink per
+region, a FEW deliberate colour accents (a sky zone, a moon), plus
+dark/bright pairs of one colour for highlighting. Stefan confirmed from
+the originals that the historical Rabenstein Spectrum art worked exactly
+this way. A full-palette quantize is what makes the current output
+clash.
+
+REVISED PICKUP ORDER: MSX1 converter, then the Spectrum re-gate deriving
+from it (closing R3), then MSX2, then the R4 probe question, then R5.
+docs/00 and arc_image/reference/design.md are updated to match; the R3
+bullet no longer claims completion.
