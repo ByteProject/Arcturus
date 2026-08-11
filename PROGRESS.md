@@ -9051,3 +9051,78 @@ proposal + the visual disc preview arcimg-hint-proposal-1.png stand,
 deferred until the truss is settled), the authored fallback table,
 picture 8's C64 sky, P4/A8/corpus/goldens. The scratch preview dirs:
 beach/{noweave,gd,nb,sup,avg,...} map to the scoreboard rows.
+
+## CHECKPOINT: the arc_image quality round, mid-flight (2026-08-11, compaction)
+
+Self-sufficient resume state, superseding the 2026-08-10 checkpoint above
+(read this one; that one's OPEN list is stale). THE WORKING TREE IS THE
+ROUND: tools/arcimg.py carries UNCOMMITTED work across four converters.
+`git diff tools/arcimg.py` shows it. Nothing commits until Stefan's eye
+gates a target; goldens freeze only what he approves.
+
+APPROVED BY STEFAN, DO NOT REOPEN WITHOUT HIM:
+- CPC. The dark sanctuary (source luma < 48 renders flat and literal,
+  only entries themselves dark may fire, picked luminance-first from the
+  SOURCE, no error in or out), the expression clamp, and the BEDPOST FIX
+  (pairs collapse by agreement; a disagreeing pair keeps its BRIGHTER
+  member, never an average). His verdict: "CPC is flawless now".
+- C64. Everything above plus his AUTHORED 14-ROW PALETTE TABLE in
+  _CPC_TO_COLODORE (CPC ink -> preferred Colodore homes, in order),
+  the COLLAPSE rule (all listed homes taken -> share the first choice,
+  never steal a stranger's colour) and the BLUE SHADING ORDER (whoever
+  holds the two Colodore blues is re-paired by luminance). His verdict:
+  "Major success. C64 is approved."
+- PLUS/4. Renders the SAME decision: _inks_to_colodore computes the
+  family's colour choice ONCE in Colodore space and the TED reproduces
+  it. The bug that cost three attempts: the P4 cell solve judged against
+  the raw CPC ink (src_px), so every upgraded cell re-derived its own
+  answer and discarded the family choice (green sky came back teal, grey
+  fog violet). It now judges against _COLODORE[to_col[i]]. His verdict:
+  "finally. approved".
+
+THE DOCTRINE BEHIND ALL OF IT, his words: wherever the pipeline is
+uncertain, COLOUR IDENTITY IS RETAINED, never improvised. It has now
+fixed four separate defects at four levels: diffusion (the sanctuary),
+expression (the clamp), ink mapping (the table), and cell solve (the
+P4 fix). Expect the same class of bug wherever a stage re-optimises.
+
+THE A8, STILL OPEN, and the only thing left before bookkeeping:
+- Architecture: Stefan RULED (2026-08-11) that it keeps his July
+  direct-from-master route. A Colodore-inheritance version was built and
+  measured (mean distance to the C64 picture 76.0 -> 50.6 -> 39.2 as
+  processing was stripped) and he rejected it: "revert back to the
+  original master inheritance we had but apply THIS fix to it".
+- In the tree now, on top of the July converter: hue-loyal substitution
+  (PROPORTIONAL, d *= 1 + _A8_HUE * dh, _A8_HUE = 6.0; an additive wall
+  was tried first and made everything flee to black, since neutrals
+  escaped the penalty); the BEDPOST FIX at full strength (_A8_PAIR =
+  1.0, a blend weight where 0.5 is the old averaging; a threshold dial
+  was tried and did nothing, those pairs sit far beyond any threshold);
+  and force_black = False (the forced black canvas made every strip with
+  a dark tenth spend one of four colours on pure black: corpus black
+  share 37.1% against the masters' 31.2%, now 28.0%).
+- HIS STANDING COMPLAINT, unresolved: "still too much black and a lot is
+  flattening way too much", shown on pictures 6 and 18. A per-scanline
+  palette election was tried and REVERTED the same hour (the format does
+  carry four registers per line, and distinct colours rose 11 -> 17, but
+  neighbouring lines elected independently and locked into full-width
+  stripes; the flat regions stayed flat). Tree is back to per-8-line
+  strips, verified 22/22 identical to the pre-experiment build.
+- NOT YET TRIED: an election that reasons about the picture rather than
+  one strip at a time (global or region-aware), and the segment-analysis
+  thresholds (mass >= 120, dmass >= 40, bmass >= 10) which are tuned for
+  8-row strips and were only ever validated in July.
+
+WORKING METHOD, restated because it was violated twice today: LOOK AT
+THE OUTPUT before reporting. Metrics have misled repeatedly this round
+(the truss metric used a 40-unit threshold on a 36-unit contrast and saw
+nothing; the P4 mapping measured healthy while the picture was wrong;
+the per-scanline change measured better and looked worse). Previews go
+to Stefan's Desktop as arcimg-00..21.png, MASTER on top and the target
+below, two tiers unless he asks otherwise; the whole corpus, never a
+crop, never a subset. His eye gates; mine only locates.
+
+AFTER THE A8: re-freeze the stale goldens (12 failing now: 4 CPC, 4 C64,
+4 P4; the A8's 4 will follow), then ONE commit carrying this whole round
+into PROGRESS. Note for that commit: the goldens froze three of the
+defects found this round as correct, which is worth saying out loud.
