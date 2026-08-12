@@ -442,10 +442,11 @@ method). Naming: R for retro.
   tint-loyalty triad, the moon rule read from the picture (no hint
   sidecar, HIS RULE: the sidecar is an author's last resort, never this
   tool's crutch), the dark sanctuary, and the scoped third leg (a
-  chromatic pays to fall into a substantially darker neutral). Known
-  open: row-oscillation stripes in mottled regions (the one-row color
-  cell speaking), picture 7's curtain two-blues contrast, picture 10's
-  left wall. The openMSX probe is still owed.
+  chromatic pays to fall into a substantially darker neutral). The
+  residual artifacts of that round (row-oscillation stripes in mottled
+  regions, picture 7's curtain two-blues contrast) were RULED CLOSED as
+  super minor by Stefan, 2026-08-13: no further machinery. The openMSX
+  probe is still owed.
   Done-test: corpus conversions approved; probes green in atari800,
   openMSX, and xplus4, both modes.
 - R5. WAVE 4: Apple II (HGR, plus the DHGR variant), Spectrum Next,

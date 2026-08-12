@@ -3650,9 +3650,11 @@ def _convert_ms1(rows, salient=None):
     # lose their highlight minority under any consistent rule, and his
     # verdict was to keep THIS build, the reviewed one, whose per-octet
     # freedom reads livelier even where it is locally inconsistent.
-    # The open artifacts, 2's dotted timber, 7's stripes, 18's dots,
-    # 10's colorful left wall, stay open; whoever picks them up should
-    # read the 2026-08-12 session record before trying anything.)
+    # Of that round's artifacts, 2's dotted timber was later fixed by
+    # the third tint-loyalty leg (6.5 to 95.5 percent) and the rest
+    # were RULED CLOSED as super minor by Stefan on 2026-08-13: no
+    # further machinery. Whoever reopens any of this should read the
+    # 2026-08-12 session record first.)
     SANCT = 10 ** 12
     prev_pair = [None] * tiles_x
     for y in range(h):

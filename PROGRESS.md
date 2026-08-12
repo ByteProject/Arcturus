@@ -9487,3 +9487,70 @@ Still owed on B12: the openMSX probe (R4) and the ZX3 probe re-run
 against the new art path; the row-oscillation stripes and picture 7's
 curtain contrast on MSX1; wave 3's MSX2. R3's conversion question is
 CLOSED by the ruling above.
+
+## CHECKPOINT for pickup (2026-08-13, compaction): B12 after the Spectrum ruling
+
+Self-sufficient resume state; supersedes the 2026-08-11/12 checkpoints
+above. THE TREE IS CLEAN: everything through the Spectrum ruling is
+committed and pushed (7e99034, arcimg 1.33.0).
+
+WHERE B12 STANDS, wave by wave (the ledger in
+arc_image/reference/design.md is the authority):
+- R2 (16-bit trio): long closed.
+- R3 (C64, CPC, Spectrum): the CONVERSION question is now CLOSED. C64
+  and CPC approved since July; the Spectrum settled 2026-08-13 by
+  Stefan's design ruling: the automated path is deliberately a
+  reasonable black-and-white artwork (route "canopus", the C-banded
+  pattern stipple, bright white 0x47 on black, leashed adaptive band
+  edges, solid tone floors, moon rule with yielding glow; ZX3 goldens
+  frozen on 2/8/10/12), and COLOR on this machine belongs to authors
+  through the scr/unscr polish loop (docs/07 documents it; hand art is
+  stamped, convert never overwrites it). The ZX3 PROBE predates the new
+  art path and should be re-run when probes come up.
+- R4 (A8, Plus/4, MSX1, MSX2): conversions for A8, Plus/4, MSX1 are
+  approved and golden-frozen. The MSX1 round's residual artifacts were
+  RULED CLOSED as super minor (Stefan, 2026-08-13): no further
+  machinery. STILL OWED: the MSX2 converter, and THE OPENMSX PROBE.
+- R5 (Apple II, Next, MEGA65, C128 ruling) and R6 (the public
+  contract, arcimg 2.0): untouched.
+
+THE PROBE DEBT IS THE STANDING SHAME AND THE FIRST REMINDER: R4's
+done-test needs probes green in atari800, openMSX, xplus4, BOTH modes,
+under Stefan's eye. Whether A8 and Plus/4 ever went through their
+emulators post-quality-round is NOT recorded; ASK HIM. I failed to
+flag the missing MSX1 probe before sailing into the Spectrum and he
+called it out ("I am scratching my head why you didn't remind me to
+friggin build a probe"); do not repeat that. Emulators run on HIS
+machine, he provides paths, never install or launch unprompted.
+openMSX is downloaded in ~/Downloads (dmg + system ROMs zip).
+
+TEST ASSETS FOR THE ZX/MSX PROBES: his 21 original hand-authored 2022
+Spectrum pictures live in arc_image/masters/Spectrum_Masters (extracted
+from the +3 DSK, cross-validated against the divMMC release; the .ZXS
+band layout is decoded and documented in the 2026-08-13 entry).
+
+THE SPECTRUM ROUTE DIALS in tools/arcimg.py, all named: _ZX3_ROUTE
+("canopus" shipped; "rabenstein" and "inkline" experimental, kept
+documented; "derived" DELETED on his order), _ZXC_TEXTURE ("stipple"
+shipped; "bayer" selectable; "atkinson" rejected), _ZXC_ADAPT (1, the
+leashed C bands), _ZXC_GAIN/_ZXC_WHITE/_ZXC_BLACK (the tone law),
+_MS1_* (the MSX1 dials, including every documented rejected
+experiment).
+
+THE WORKING RULES, hard-earned and standing: ONE mechanism change per
+Stefan review, never stacked (three stacked architectures each cost a
+day's trust); his eye gates, metrics only locate; LOOK at the output
+before reporting; reverts are verified byte-identical against the last
+reviewed build; the hint sidecar is an author's last resort, NEVER the
+tool's fix; previews go to his Desktop as arcimg-00..21.png, whole
+corpus, full pictures, labeled tiers at 3x, MASTER on top; he decides
+visually, so when he must choose between approaches, render ALL
+candidates (the 7-dither preview round is the model). His hand-authored
+art is the quality bar on machines where he has authored; the converter
+does not compete with it, it serves authors without hand art.
+
+NEXT, in the order the record implies: (1) the probe round: MSX1 on
+openMSX first (he ruled the probe debt gets discussed), the ZX3 probe
+re-run, and the A8/Plus/4 probe question put to him; (2) MSX2 (Screen
+5, quantize class, likely quick); (3) R5. The Spectrum color question
+is settled; do not reopen it.
