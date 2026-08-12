@@ -391,9 +391,19 @@ method). Naming: R for retro.
   palette contract on both 68k machines, the Z-machine colours clause,
   and the copper per-frame restore.
 - R3. WAVE 2, the cell class flagship: C64, ZX Spectrum +3, CPC.
-  NOT CLOSED: its FORMAT, probe and codec work is done, but the ZX
-  SPECTRUM CONVERSION IS STILL OPEN and the wave cannot close without
-  it. The +3 alone kept its original R3 solver when the Polizei family
+  THE SPECTRUM CONVERSION RESOLVED BY RULING (2026-08-13, after the
+  2026-08-12/13 route campaign): due to the machine's attribute
+  restrictions the AUTOMATED path is deliberately a reasonable
+  black-and-white artwork (the C-banded pattern stipple, bright white
+  on black; goldens frozen, arcimg 1.33.0), and COLOR on this machine
+  belongs to the author through the scr/unscr polish loop, hand art
+  stamped and never overwritten (docs/07). Every automated color route
+  (MSX1 derivation with the sibling table and fg/bg mixes, quiet
+  philosophy, role table, inkline, rabenstein-grammar, seven dither
+  engines) was built, corpus-rendered, and failed Stefan's eye against
+  his own hand-authored art, now extracted 1:1 from the 2022 +3 release
+  into arc_image/masters/Spectrum_Masters as probe assets and reference.
+  The original R3 note stands for history: The +3 alone kept its original R3 solver when the Polizei family
   was rebuilt, and Stefan's standing verdict on it is that the clashes
   are awful and he is very unsatisfied with the result. The rework was
   parked twice, first behind the Plus/4 (2026-07-17) and then behind

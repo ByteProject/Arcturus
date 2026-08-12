@@ -77,7 +77,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.32.0"
+__version__ = "1.33.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -1724,6 +1724,19 @@ _ZX15 = [_zx_color(i, 0) for i in range(8)] + \
         [_zx_color(i, 1) for i in range(1, 8)]
 
 
+
+# The Spectrum's quiet mode: 1 renders the ruled near-monochrome
+# philosophy (dominant ink on the black canvas per cell, accents only
+# where a second color owns at least _ZX_ACCENT of the cell's 64
+# pixels); 0 keeps every cell's own best pair. REJECTED at 1 (Stefan,
+# 2026-08-12, "horrible": the accent bar eats thin colored lines, a
+# 2px timber brace can never own 20 of a cell's 64 pixels, and the
+# real complaint behind "too loud" was never saturation, it was FLAT
+# cells, no paper used for shading; the cure is his authored mapping
+# table plus a fg/bg mix where TMS siblings collide, not fewer inks).
+_ZX_QUIET = 0
+_ZX_ACCENT = 20
+
 def _dist_zx15(a, b):
     # The Spectrum match: luminance-dominant plus a SATURATION term. The
     # palette is all full-blast primaries, and a dark muted brown or mauve
@@ -1736,176 +1749,497 @@ def _dist_zx15(a, b):
     return _dist_luma(a, b, 20) + 3 * (sa - sb) ** 2
 
 
+# Which Spectrum conversion route runs. "canopus" is the SHIPPED path
+# (Stefan's ruling, 2026-08-13): due to the machine's attribute
+# restrictions the automated conversion is deliberately a reasonable
+# black-and-white artwork, the C-banded pattern stipple in bright white
+# over black; every color route built in the 2026-08-12 session failed
+# his eye against his own hand-authored art, and the color path on
+# this machine is the AUTHOR'S, via the scr/unscr polish loop (hand
+# art is stamped and never overwritten). The "derived" color route was
+# deleted on his order after a final render; "rabenstein" and
+# "inkline" stay as documented experimental dials.
+# The inkline route's tone bar: a melted region fills white at or
+# above this luminance, black below.
+_ZXI_TONE = 100.0
+
+# A same-fill boundary earns its ink line only when the two regions'
+# tones differ by at least this much; 0 inks every boundary.
+_ZXI_EDGE = 0.0
+
+# The Rabenstein route's ink bar: a master pixel speaks (renders as
+# ink) when any channel reaches this; below it, the black canvas.
+_ZXR_INK = 64
+
+# A cell vote below this margin is thin and may adopt its neighbours'
+# ink (region coherence); a pixel below this fraction of its cell's lit
+# tone is a shadow stroke and falls to black.
+_ZXR_FIRM = 0.5
+_ZXR_SHADOW = 0.45
+
+# How many hue families the whole picture may spend (basic and bright
+# of one hue count as one family; the moon's white is earned, never
+# budgeted). 0 lifts the budget.
+_ZXR_BUDGET = 4
+
+# The Canopus texture engine: "stipple" (Stefan's keeper), "bayer"
+# (decent, lattice artifacts), "atkinson" (rejected on review).
+_ZXC_TEXTURE = "stipple"
+
+# Band edges: 0 keeps the fixed classic edges, 1 adapts them to each
+# picture's tonal quartiles ON A LEASH (Stefan's keeper, 2026-08-12,
+# "C is a keeper", after the A/B/C round: raw adaptation destroyed
+# picture 9, the leash holds each edge inside a window around the
+# classic values). Fine adjustment expected.
+_ZXC_ADAPT = 1
+
+# The Canopus tone curve: middle steepness, and the solid floors where
+# white stays white and shadow stays black.
+_ZXC_GAIN = 1.4
+_ZXC_WHITE = 0.90
+_ZXC_BLACK = 0.10
+
+_ZX3_ROUTE = "canopus"
+
+
 def _convert_zx3(rows, salient=None):
-    # The Spectrum: 256 wide, per 8x8 cell exactly TWO colors sharing one
-    # bright level (black lives in both halves). The doctrine, relearned on
-    # Stefan's own hand-painted Spectrum Rabenstein (arc_image/Training) and
-    # on Pixel Polizei's manner: FIRST downsample every pixel to its nearest
-    # of the fifteen real Spectrum colors, plainly, with no pre-curves (an
-    # earlier night-darkening curve crushed whole scenes to black); THEN
-    # resolve each cell to a legal pair. Black is the school's canvas: it is
-    # the one color legal beside both bright levels, so black-partnered
-    # pairs clash least and get a gentle preference, never a forced crush.
-    rows = _crop_width(rows, 256)
-    sal = {(x - 32, y) for x, y in salient
-           if 32 <= x < 288} if salient else set()
+    return _ZX3_ROUTES[_ZX3_ROUTE](rows, salient)
+
+
+def _convert_zx3_canopus(rows, salient=None):
+    """THE CANOPUS ROUTE (Stefan, 2026-08-12): the Spectrum drawn the
+    way the machine was actually drawn on. Step one, THIS function: the
+    FORM, black-and-white with dithering, derived straight from the
+    master at the ruled window, because the master holds the most pixel
+    density and the Spectrum's bitmap is per-pixel free; only color is
+    celled, so a mono canvas pays no attribute tax anywhere. The recipe
+    is the TRS-80 Model 4's, luminance, percentile contrast stretch,
+    ordered Bayer at full resolution, the whole quality budget in the
+    halftone. Step two, LATER and separately: color washes over chosen
+    regions through the attributes, exactly the historical Spectrum
+    manner, form first, color painted over it."""
+    rows = [row[_MS1_CROP_X:_MS1_CROP_X + 256] for row in rows]
     w, h = len(rows[0]), len(rows)
-    grad = _gradient_class(rows)
-    amp = 5 if grad else 0
-    idx = _map_pixels(rows, _ZX15, amp, metric=_dist_zx15)
-    for x, y in sal:
-        idx[y][x] = 14                    # the hinted object: bright white
+    # (An MSX1-sourced tone field was tried and wiped on Stefan's test,
+    # 2026-08-12: TMS owns no dark colors, so the MSX1 render arrives
+    # tonally lifted and the mono form loses its blacks. The master is
+    # the source.)
+    lumas = [[(299 * r + 587 * g + 114 * b) / 255000.0 for r, g, b in row]
+             for row in rows]
+    flat = sorted(v for row in lumas for v in row)
+    lo = flat[len(flat) * 2 // 100]
+    hi = flat[len(flat) * 98 // 100]
+    span = (hi - lo) or 1.0
+    pixels = [[0] * w for _ in range(h)]
+    # THE TEXTURE ENGINE (Stefan's visual ruling over seven candidates,
+    # 2026-08-12): PATTERN STIPPLE is the keeper, "am absolut
+    # schoensten, kommt am aehnlichsten an ZX Spectrum Art heran", the
+    # hand-artist's five deliberate levels; BAYER stays selectable,
+    # decent but with the lattice artifacts he named; ATKINSON stays as
+    # a dial value, rejected on review. All textures run under one law:
+    # solid white at and above the white floor, solid black at and
+    # below the black ceiling, texture only between. THE MOON RULE
+    # rides above all of them (his stipple review: picture 8's moon
+    # fell into its halo's band and vanished; the brightest fat blob
+    # outranks its band and renders solid white).
+    field = [[0.0] * w for _ in range(h)]
+    for y in range(h):
+        for x in range(w):
+            v = (lumas[y][x] - lo) / span
+            field[y][x] = (v - 0.5) * _ZXC_GAIN + 0.5
+
+    # The stipple's band edges, computed up front (the halo demotion
+    # below needs to know where SOLID truly begins: the top band, not
+    # only the white floor).
+    if _ZXC_ADAPT:
+        # ADAPTATION ON A LEASH (Stefan's split verdict, 2026-08-12:
+        # raw quantiles made picture 14 stunning and destroyed picture
+        # 9, whose dark-clustered mid-band collapsed all four edges to
+        # 0.11 so the bedsheet flattened into solid white). Each edge
+        # follows its picture's quantile only INSIDE a window around
+        # the classic value: balanced pictures keep their tailored
+        # edges, skewed ones are held near the classic stipple.
+        mid = sorted(field[y][x] for y in range(h) for x in range(w)
+                     if _ZXC_BLACK < field[y][x] < _ZXC_WHITE)
+        if mid:
+            q = (mid[len(mid) // 8], mid[len(mid) // 4],
+                 mid[len(mid) // 2], mid[(3 * len(mid)) // 4])
+            windows = ((0.10, 0.25), (0.22, 0.40),
+                       (0.45, 0.65), (0.68, 0.86))
+            t0, t1, t2, t3 = (max(lo_, min(hi_, v))
+                              for v, (lo_, hi_) in zip(q, windows))
+        else:
+            t0, t1, t2, t3 = 0.15, 0.30, 0.55, 0.80
+    else:
+        t0, t1, t2, t3 = 0.15, 0.30, 0.55, 0.80
+
+    bright = max((c for row in rows for c in row),
+                 key=lambda c: 0.299*c[0] + 0.587*c[1] + 0.114*c[2])
+    bset = set()
+    if 0.299*bright[0] + 0.587*bright[1] + 0.114*bright[2] >= 150.0:
+        cand = {(x, y) for y in range(h) for x in range(w)
+                if _dist(rows[y][x], bright) < 1600}
+        seen = set()
+        for start_ in cand:
+            if start_ in seen:
+                continue
+            blob, queue = {start_}, [start_]
+            while queue:
+                qx, qy = queue.pop()
+                for nx, ny in ((qx+1, qy), (qx-1, qy),
+                               (qx, qy+1), (qx, qy-1)):
+                    if (nx, ny) in cand and (nx, ny) not in blob:
+                        blob.add((nx, ny))
+                        queue.append((nx, ny))
+            seen |= blob
+            xs = [q[0] for q in blob]
+            ys = [q[1] for q in blob]
+            if (len(blob) >= 24 and max(xs) - min(xs) >= 6
+                    and max(ys) - min(ys) >= 6):
+                core = {(qx, qy) for qx, qy in blob
+                        if {(qx+1, qy), (qx-1, qy),
+                            (qx, qy+1), (qx, qy-1)} <= blob}
+                bset |= {(qx, qy) for qx, qy in blob
+                         if (qx, qy) in core
+                         or ({(qx+1, qy), (qx-1, qy), (qx, qy+1),
+                              (qx, qy-1)} & core)}
+
+    # A GLOW YIELDS TO ITS SOURCE (the eggless separation): pixels
+    # within reach of the moon blob may not claim the solid white
+    # floor; they render one level down, and the disc alone stays
+    # absolute. No rings, no outlines, nothing global.
+    if bset:
+        # The halo is the WHOLE connected solid-white mass around the
+        # disc (a six-pixel reach still drowned it): flood from the
+        # blob through every floor-white neighbour and demote the lot.
+        solid_gate = t3 if _ZXC_TEXTURE == "stipple" else _ZXC_WHITE
+        halo, frontier = set(), set(bset)
+        while frontier:
+            nxt = set()
+            for x, y in frontier:
+                for nx, ny in ((x+1, y), (x-1, y), (x, y+1), (x, y-1)):
+                    if 0 <= nx < w and 0 <= ny < h \
+                            and (nx, ny) not in bset \
+                            and (nx, ny) not in halo \
+                            and field[ny][nx] >= solid_gate:
+                        halo.add((nx, ny))
+                        nxt.add((nx, ny))
+            frontier = nxt
+        demote = (t2 + t3) / 2 if _ZXC_TEXTURE == "stipple" \
+            else _ZXC_WHITE - 0.001
+        for x, y in halo:
+            field[y][x] = min(field[y][x], demote)
+
+    if _ZXC_TEXTURE == "atkinson":
+        buf = [row[:] for row in field]
+        for y in range(h):
+            for x in range(w):
+                src = field[y][x]
+                if src >= _ZXC_WHITE:
+                    pixels[y][x] = 1
+                    continue
+                if src <= _ZXC_BLACK:
+                    pixels[y][x] = 0
+                    continue
+                out = 1 if buf[y][x] >= 0.5 else 0
+                pixels[y][x] = out
+                err = (buf[y][x] - out) / 8.0
+                for dx, dy in ((1, 0), (2, 0), (-1, 1), (0, 1), (1, 1),
+                               (0, 2)):
+                    nx, ny = x + dx, y + dy
+                    if 0 <= nx < w and 0 <= ny < h \
+                            and _ZXC_BLACK < field[ny][nx] < _ZXC_WHITE:
+                        buf[ny][nx] += err
+    elif _ZXC_TEXTURE == "bayer":
+        for y in range(h):
+            for x in range(w):
+                v = field[y][x]
+                if v >= _ZXC_WHITE:
+                    pixels[y][x] = 1
+                elif v <= _ZXC_BLACK:
+                    pixels[y][x] = 0
+                else:
+                    thr = (_BAYER8[y & 7][x & 7] + 0.5) / 64.0
+                    pixels[y][x] = 1 if v > thr else 0
+    else:                              # "stipple", the keeper
+        P25 = {(0, 0)}
+        P50 = {(0, 0), (1, 1)}
+        P75 = {(0, 0), (1, 1), (0, 1)}
+        # ADAPTIVE BAND EDGES (Stefan's detail complaint: fixed edges
+        # lose structures whose tones cluster inside one band): the
+        # five levels stay five, but their edges sit at the QUARTILES
+        # of this picture's own mid-band tones, hoisted above.
+        for y in range(h):
+            for x in range(w):
+                v = field[y][x]
+                if v >= _ZXC_WHITE:
+                    pixels[y][x] = 1
+                elif v <= _ZXC_BLACK:
+                    pixels[y][x] = 0
+                else:
+                    q = (x & 1, y & 1)
+                    if v < t1:
+                        pixels[y][x] = 1 if q in P25 and v >= t0 else 0
+                    elif v < t2:
+                        pixels[y][x] = 1 if q in P50 else 0
+                    elif v < t3:
+                        pixels[y][x] = 1 if q in P75 else 0
+                    else:
+                        pixels[y][x] = 1
+    for x, y in bset:
+        pixels[y][x] = 1               # the moon outranks its band
+    # (A one-pixel dark rim around the blob was tried here and reverted
+    # the same hour, Stefan: it egged picture 1's moon and outlined
+    # every fat bright blob. The disc separates from its halo through
+    # the adaptive bands instead: the halo lands one level below solid
+    # on its own.)
+
+    # Every cell: BRIGHT white ink over the black canvas (Stefan,
+    # 2026-08-12: "all WHITE in WHITE, not dark white"; the dither's
+    # color belongs on the vibrant tier, and black paper takes the
+    # bright bit for free). The wash step retints per region, staying
+    # on the bright plane.
+    attrs = [0x47] * ((w // 8) * (h // 8))
+    return {"w": w, "h": h, "pixels": pixels, "attrs": attrs}
+
+
+def _convert_zx3_rabenstein(rows, salient=None):
+    """THE RABENSTEIN ROUTE (Stefan's manner, measured off his own
+    hand-painted Spectrum picture 8 and built to its grammar,
+    2026-08-12): black is the paper virtually everywhere (62 percent of
+    his picture is black; 83 percent of its cells are one ink over
+    black), the shading is the master's OWN stroke texture (his ink
+    continues into its neighbour 66 percent horizontally, clustered
+    branch-work, never Bayer, which is why synthetic halftone offends
+    his eye), color is a wash per region with the bright bit carrying
+    depth, and accents are tiny and deliberate (two red pixels of eyes;
+    one white moon). Historically he derived these from the hires
+    Plus/4 by reducing colors in the same style; the master corpus
+    descends from that school, so the master's pixels carry the stroke
+    texture 1:1 at this window and the route simply keeps them: a pixel
+    is INK where the master speaks (any channel above the bar), BLACK
+    where it is quiet, and the cell's ink is the snap of its dominant
+    speaking color, over black paper always. Black paper leaves the
+    bright bit free per cell, the machine's one gift, so tiers mix
+    freely as depth exactly as in his art."""
+    rows = [row[_MS1_CROP_X:_MS1_CROP_X + 256] for row in rows]
+    w, h = len(rows[0]), len(rows)
     cells_x, cells_y = w // 8, h // 8
     pixels = [[0] * w for _ in range(h)]
+    ink_mask = [[max(c) >= _ZXR_INK for c in row] for row in rows]
 
-    # Pass 1: per cell, the best legal pair under EACH bright level.
-    choices = []                        # per cell: {bright: (err, a, b)}
+    def lum(c):
+        return 2 * c[0] + 4 * c[1] + c[2]
+
+    # Pass 1: each cell votes its ink (the dominant speaking color,
+    # snapped through the Spectrum's own metric) and remembers how
+    # decisive the vote was.
+    inks = [[None] * cells_x for _ in range(cells_y)]
+    margin = [[1.0] * cells_x for _ in range(cells_y)]
+    domlum = [[0.0] * cells_x for _ in range(cells_y)]
     for cy in range(cells_y):
         for cx in range(cells_x):
-            cell = [(rows[cy * 8 + yy][cx * 8 + xx],
-                     idx[cy * 8 + yy][cx * 8 + xx])
-                    for yy in range(8) for xx in range(8)]
-            hist = {}
-            for _c, i in cell:
-                hist[i] = hist.get(i, 0) + 1
-            forced = any((cx * 8 + xx, cy * 8 + yy) in sal
-                         for yy in range(8) for xx in range(8)) if sal \
-                else False
-            per_bright = {}
-            for bright in (0, 1):
-                legal = list(range(8)) if bright == 0 \
-                    else [0] + list(range(8, 15))
-                legal_set = set(legal)
-                proj = {}
-                for i, cnt in hist.items():
-                    li = i if i in legal_set else min(
-                        legal, key=lambda k: _dist_zx15(_ZX15[i], _ZX15[k]))
-                    proj[li] = proj.get(li, 0) + cnt
-                top = sorted(proj, key=proj.get, reverse=True)
-                if forced:
-                    # The object's ink is white in this half (normal white
-                    # against a colored sky, bright white against black
-                    # trees: his moon cells are bright-on-black, the sky
-                    # cells must not turn into a glowing attribute box).
-                    white = 7 if bright == 0 else 14
-                    partners = [t for t in top if t != white] or [0]
-                    cands = {(white, partners[0]), (white, 0)}
-                else:
-                    a = top[0]
-                    b = top[1] if len(top) > 1 else top[0]
-                    cands = {(a, b), (0, a)}
-                    # The pivot pair (img2spec's manner): split the cell at
-                    # its median luminance, average each side, snap each
-                    # average to this half. Derives the cell's two tones
-                    # from its structure; catches what frequency misses
-                    # (gradient cells, two-tone cells in scattered thirds).
-                    lums = sorted((2 * c[0] + 4 * c[1] + c[2], c)
-                                  for c, _i in cell)
-                    piv = lums[len(lums) // 2][0]
-                    lo = [c for l, c in lums if l <= piv]
-                    hi = [c for l, c in lums if l > piv] or lo
-                    avg = lambda g: tuple(sum(v[k] for v in g) // len(g)
-                                          for k in range(3))
-                    cands.add(tuple(min(
-                        legal, key=lambda k, cc=avg(g): _dist_zx15(
-                            cc, _ZX15[k])) for g in (lo, hi)))
-                bb = None
-                for a, b in cands:
-                    err = sum(min(_dist_zx15(c, _ZX15[a]),
-                                  _dist_zx15(c, _ZX15[b]))
-                              for c, _i in cell)
-                    if 0 in (a, b):
-                        err = err * 19 // 20    # the black school, gently
-                    if bb is None or err < bb[0]:
-                        bb = (err, a, b)
-                per_bright[bright] = bb
-            choices.append(per_bright)
-
-    # Pass 2: BRIGHT IS THE CANVAS (the Spectrum school, taught by the
-    # hand-painted references: Stefan's Rabenstein, Vanja Utne's
-    # Hibernated 1, Rail/Slave's Eight Feet Under, Shawn G. McClure's
-    # Hibernated 2). Those pictures live almost entirely in black plus
-    # the seven bright colors; the dark level appears rarely and
-    # DELIBERATELY. Mapping every dark-ish master color to its dark twin
-    # was the earlier mistake: it scattered dark cells everywhere and
-    # every boundary between the levels clashed. Dark-ish content renders
-    # as black paper with bright ink instead (exactly the school). The
-    # one thing the bright half cannot say is GREY: normal white D7 is
-    # the Spectrum's only grey, and stonework (the graveyard's statue)
-    # dissolves without it. So a cell may go dark ONLY when its dark pair
-    # actually uses D7 grey, the cell is not cloud-white (those stay with
-    # their sky), and the dark fit is decisively better.
-    white_frac = []
-    for n in range(len(choices)):
-        cx, cy = n % cells_x, n // cells_x
-        whites = sum(1 for yy in range(8) for xx in range(8)
-                     if idx[cy * 8 + yy][cx * 8 + xx] in (7, 14))
-        white_frac.append(whites / 64)
-
-    def _initial(n):
-        pb = choices[n]
-        if 7 not in pb[0][1:] or white_frac[n] >= 0.6:
-            return 1
-        return 1 if pb[0][0] * 20 > pb[1][0] * 11 else 0
-
-    brights = [_initial(n) for n in range(len(choices))]
-    # Then coherence: a cell surrounded by a clear majority of the other
-    # level flips to it unless its own error cost forbids. The two whites
-    # are nearly interchangeable, so white-dominated cells (cloud
-    # interiors) get a looser bound and a sky's level can propagate
-    # through the whole cloud over the rounds.
-    for _round in range(4):
-        flipped = False
-        for n, per_bright in enumerate(choices):
-            cx, cy = n % cells_x, n // cells_x
-            nb = [brights[yy * cells_x + xx]
-                  for yy in range(max(0, cy - 1), min(cells_y, cy + 2))
-                  for xx in range(max(0, cx - 1), min(cells_x, cx + 2))
-                  if (xx, yy) != (cx, cy)]
-            if not nb:
-                continue
-            other = 1 - brights[n]
-            if sum(1 for v in nb if v == other) * 3 >= len(nb) * 2:
-                mine = per_bright[brights[n]][0]
-                theirs = per_bright[other][0]
-                # 1.35x normally; 2.2x when the cell is mostly white
-                num, den = (11, 5) if white_frac[n] >= 0.6 else (27, 20)
-                if theirs * den <= mine * num:
-                    brights[n] = other
-                    flipped = True
-        if not flipped:
-            break
-
-    # Pass 3: emit pixels and attributes from the settled choices.
-    attrs = []
-    for cy in range(cells_y):
-        for cx in range(cells_x):
-            n = cy * cells_x + cx
-            bright = brights[n]
-            _err, a, b = choices[n][bright]
-
-            def luma(i):
-                c = _ZX15[i]
-                return 2 * c[0] + 4 * c[1] + c[2]
-            # Paper the darker, ink the brighter: his convention everywhere.
-            paper, ink = (a, b) if luma(a) <= luma(b) else (b, a)
-            pp, pi = _ZX15[paper], _ZX15[ink]
+            votes = {}
             for yy in range(8):
                 for xx in range(8):
                     x, y = cx * 8 + xx, cy * 8 + yy
-                    if (x, y) in sal:
-                        pixels[y][x] = 1      # the object is solid ink
-                        continue
-                    c = rows[y][x]
-                    if grad:
-                        t = _bayer_at(x, y, 8)
-                        c = tuple(min(255, max(0, round(v + t))) for v in c)
-                    pixels[y][x] = 1 if _dist_zx15(c, pi) < \
-                        _dist_zx15(c, pp) else 0
+                    if ink_mask[y][x]:
+                        k = min(range(1, 15),
+                                key=lambda k: _dist_zx15(rows[y][x],
+                                                         _ZX15[k]))
+                        votes[k] = votes.get(k, 0) + 1
+            if not votes:
+                continue
+            ranked = sorted(votes, key=votes.get, reverse=True)
+            inks[cy][cx] = ranked[0]
+            total = sum(votes.values())
+            second = votes[ranked[1]] if len(ranked) > 1 else 0
+            margin[cy][cx] = (votes[ranked[0]] - second) / total
+            best = max(((rows[cy*8+yy][cx*8+xx])
+                        for yy in range(8) for xx in range(8)
+                        if ink_mask[cy*8+yy][cx*8+xx]), key=lum)
+            domlum[cy][cx] = float(lum(best))
+    # Pass 1.5: THE GLOBAL INK BUDGET (Stefan's economy, measured off
+    # his hand art, 2026-08-12: the Village is FOUR families, blue as
+    # the world, cyan as the light, white for moon and snow, over the
+    # black canvas). The picture's hue families are ranked by how much
+    # ink they carry; the budget keeps the top few, and every cell
+    # whose ink lost its family remaps to the nearest kept ink through
+    # the Spectrum's own metric, tier following luminance. Basic and
+    # bright of one hue are ONE family, both tiers stay available: the
+    # two blues as depth is his grammar, not two spends. The moon rule
+    # overrides later regardless, an earned accent never budgeted.
+    if _ZXR_BUDGET:
+        fam_w = {}
+        for cy in range(cells_y):
+            for cx in range(cells_x):
+                k = inks[cy][cx]
+                if k is not None:
+                    f = k if k < 8 else k - 7
+                    fam_w[f] = fam_w.get(f, 0) + 1
+        kept = set(sorted(fam_w, key=fam_w.get, reverse=True)
+                   [:_ZXR_BUDGET])
+        allowed = [k for k in range(1, 15)
+                   if (k if k < 8 else k - 7) in kept]
+        for cy in range(cells_y):
+            for cx in range(cells_x):
+                k = inks[cy][cx]
+                if k is None:
+                    continue
+                f = k if k < 8 else k - 7
+                if f not in kept:
+                    inks[cy][cx] = min(
+                        allowed, key=lambda a: _dist_zx15(_ZX15[k],
+                                                          _ZX15[a]))
+
+    # Pass 2: REGION COHERENCE (his art holds one hue per region; a
+    # master gradient flipped neighbouring cells' votes and the sky
+    # checkered). A cell whose vote was thin adopts the ink most of its
+    # neighbours settled on. Two sweeps settle it.
+    for _sweep in range(2):
+        for cy in range(cells_y):
+            for cx in range(cells_x):
+                if inks[cy][cx] is None or margin[cy][cx] > _ZXR_FIRM:
+                    continue
+                nb = {}
+                for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                    ny, nx = cy + dy, cx + dx
+                    if 0 <= ny < cells_y and 0 <= nx < cells_x \
+                            and inks[ny][nx] is not None:
+                        nb[inks[ny][nx]] = nb.get(inks[ny][nx], 0) + 1
+                if nb:
+                    top = max(nb, key=nb.get)
+                    if nb[top] >= 3:
+                        inks[cy][cx] = top
+    # THE MOON RULE, third appearance (the MSX's earned salience, his
+    # own art's grammar: the moon is BrWhite, the picture's one glow):
+    # the brightest fat contiguous blob renders as bright white ink,
+    # solid.
+    bright = max((c for row in rows for c in row), key=lum)
+    bset = set()
+    if lum(bright) >= 1071:            # 150 luma on the 2-4-1 scale
+        cand = {(x, y) for y in range(h) for x in range(w)
+                if _dist(rows[y][x], bright) < 1600}
+        seen = set()
+        for start in cand:
+            if start in seen:
+                continue
+            blob, queue = {start}, [start]
+            while queue:
+                px_, py_ = queue.pop()
+                for nx, ny in ((px_+1, py_), (px_-1, py_),
+                               (px_, py_+1), (px_, py_-1)):
+                    if (nx, ny) in cand and (nx, ny) not in blob:
+                        blob.add((nx, ny))
+                        queue.append((nx, ny))
+            seen |= blob
+            xs = [q[0] for q in blob]
+            ys = [q[1] for q in blob]
+            if (len(blob) >= 24 and max(xs) - min(xs) >= 6
+                    and max(ys) - min(ys) >= 6):
+                core = {(qx, qy) for qx, qy in blob
+                        if {(qx+1, qy), (qx-1, qy),
+                            (qx, qy+1), (qx, qy-1)} <= blob}
+                bset |= {(qx, qy) for qx, qy in blob
+                         if (qx, qy) in core
+                         or ({(qx+1, qy), (qx-1, qy), (qx, qy+1),
+                              (qx, qy-1)} & core)}
+
+    # Pass 3: emit. The stroke texture is the master's own (ink where
+    # the master speaks), with THE RELATIVE SHADOW RULE for density:
+    # a pixel well below its cell's lit tone is a shadow stroke and
+    # falls to black, which is how his art shades WITHIN a region.
+    attrs = []
+    for cy in range(cells_y):
+        for cx in range(cells_x):
+            ink = inks[cy][cx]
+            if ink is None:
+                attrs.append(0x07)
+                continue
+            moon_here = any((cx * 8 + xx, cy * 8 + yy) in bset
+                            for yy in range(8) for xx in range(8))
+            bar = domlum[cy][cx] * _ZXR_SHADOW
+            if moon_here:
+                # His moon cells are disc-on-black: bright white ink,
+                # and the blob is the ONLY ink (painting the cell's
+                # glow pixels white too slabbed the sky).
+                ink = 14
+                for yy in range(8):
+                    for xx in range(8):
+                        x, y = cx * 8 + xx, cy * 8 + yy
+                        pixels[y][x] = 1 if (x, y) in bset else 0
+            else:
+                for yy in range(8):
+                    for xx in range(8):
+                        x, y = cx * 8 + xx, cy * 8 + yy
+                        pixels[y][x] = 1 if (ink_mask[y][x]
+                                             and lum(rows[y][x]) >= bar) \
+                            else 0
             ink_n = ink if ink < 8 else ink - 7
-            paper_n = paper if paper < 8 else paper - 7
-            attrs.append(ink_n | (paper_n << 3) | (0x40 if bright else 0))
+            attrs.append(ink_n | (0x40 if ink >= 8 else 0))
     return {"w": w, "h": h, "pixels": pixels, "attrs": attrs}
+
+
+def _convert_zx3_inkline(rows, salient=None):
+    """THE INKLINE ROUTE (Stefan, 2026-08-12: "black and white art,
+    like a black and white comic"). A comic is ink lines and committed
+    fills, never halftone, and the masters make both EXACT: they are
+    palette art, so a region boundary is a precise color change. The
+    master's one-pixel dither melts into solid regions under a mode
+    filter, each region commits to black or white by its tone, and an
+    ink line is drawn only where two regions of the SAME fill meet (a
+    white line between two blacks, a black line between two whites);
+    a black-white boundary is its own line. Mono pays zero attribute
+    tax: the Spectrum's whole clash disease vanishes."""
+    rows = [row[_MS1_CROP_X:_MS1_CROP_X + 256] for row in rows]
+    w, h = len(rows[0]), len(rows)
+
+    def lum(c):
+        return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
+
+    # Melt the dither: two passes of a 3x3 mode filter over the exact
+    # master colors turn pixel-interleave into the region it paints.
+    grid = [list(r) for r in rows]
+    for _pass in range(2):
+        nxt = [list(r) for r in grid]
+        for y in range(h):
+            for x in range(w):
+                cnt = {}
+                for dy in (-1, 0, 1):
+                    for dx in (-1, 0, 1):
+                        ny, nx_ = y + dy, x + dx
+                        if 0 <= ny < h and 0 <= nx_ < w:
+                            c = grid[ny][nx_]
+                            cnt[c] = cnt.get(c, 0) + 1
+                nxt[y][x] = max(cnt, key=cnt.get)
+        grid = nxt
+
+    # Fills: a region is white when its color's tone clears the bar.
+    fill = [[1 if lum(grid[y][x]) >= _ZXI_TONE else 0 for x in range(w)]
+            for y in range(h)]
+    pixels = [[fill[y][x] for x in range(w)] for y in range(h)]
+    # Ink lines where same-fill regions of different color meet.
+    for y in range(h):
+        for x in range(w):
+            for dy, dx in ((0, 1), (1, 0)):
+                ny, nx_ = y + dy, x + dx
+                if ny >= h or nx_ >= w:
+                    continue
+                if grid[y][x] != grid[ny][nx_] \
+                        and fill[y][x] == fill[ny][nx_] \
+                        and abs(lum(grid[y][x])
+                                - lum(grid[ny][nx_])) >= _ZXI_EDGE:
+                    # The line hierarchy: near-tones share a region's
+                    # silence, a line is earned by real contrast.
+                    pixels[y][x] = 1 - fill[y][x]
+                    break
+    attrs = [0x07] * ((w // 8) * (h // 8))
+    return {"w": w, "h": h, "pixels": pixels, "attrs": attrs}
+
+
+_ZX3_ROUTES = {"canopus": _convert_zx3_canopus,
+               "rabenstein": _convert_zx3_rabenstein,
+               "inkline": _convert_zx3_inkline}
 
 
 def _cpc_from_c64(c64, refs=None, skip=frozenset()):

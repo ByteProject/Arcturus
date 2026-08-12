@@ -9435,3 +9435,55 @@ nothing octet-local will do), picture 7's curtain two-blues contrast,
 picture 10's left wall. The openMSX probe is still owed to R4's
 done-test. Next per the standing order: the Spectrum re-derivation from
 MSX1, which closes R3.
+
+## 2026-08-13: the Spectrum settles, black and white by ruling (arcimg 1.33.0)
+
+The hardest machine of the family closed on Stefan's design judgment,
+not on a converter victory. The ruling, now in docs/07 and the code:
+due to the Spectrum's attribute restrictions (two colors per 8x8 cell,
+one shared bright), the AUTOMATED conversion path is deliberately a
+reasonable-looking black and white artwork; COLOR on this machine
+belongs to authors, who can supply their own image for any picture at
+any time through the first-class scr/unscr polish loop (a hand file is
+stamped and convert never overwrites it).
+
+THE SHIPPED FORM, built across two days under his eye, every step
+gated: the C-banded pattern stipple. Tone from the master at the ruled
+window, percentile contrast stretch, a gain curve with solid floors
+(bright is white, dark is black, HIS sentence become an algorithm),
+the hand-artist's five stipple levels with band edges that adapt to
+each picture's tonal quartiles ON A LEASH (raw adaptation collapsed
+picture 9's edges to 0.11 and ate the bedsheet; the leash holds each
+edge inside a window around the classic values), the moon rule with
+the yielding glow (the disc solid, its halo dropping one level, after
+a rim experiment egged picture 1 and was reverted), all of it in
+BRIGHT white ("all WHITE in WHITE, not dark white"), the vibrant tier
+that color washes would live on. Goldens frozen on 2, 8, 10, 12.
+
+WHAT DIED ON THE WAY, all of it rendered, corpus-reviewed, and
+rejected by his eye, recorded so nobody re-walks it: the MSX1-derived
+color route with the sibling table (approved-then-retracted when the
+attribute clashes surfaced on re-view; deleted on his order after a
+final render), the near-monochrome quiet philosophy (ate thin timber),
+an externally authored role-over-hue table (healed one picture, cost
+the church its two reds), general fg/bg mixes across chromatic pairs
+(no axis preserves identity across hues; twice shredded the church),
+the inkline comic route (ugly), the rabenstein-grammar route measured
+off his own hand art (right grammar, wrong league), Bayer at native
+resolution (crosses), Atkinson (rejected), and an MSX1-sourced tone
+field (TMS owns no darks; the mono lost its blacks). The 22-way and
+7-way preview rounds that drove the choices were his call and worked:
+"I need to make the decision visual and not blind."
+
+HIS ORIGINALS ARE IN THE REPO: the 21 hand-authored Spectrum pictures
+of the 2022 +3 release, extracted from the DSK (CPC data format, the
+.ZXS band layout decoded: standard interleave rows 0..63, compacted
+half-third 64..95, 384 attr bytes) and cross-validated byte-identical
+against the loose divMMC files. They live in
+arc_image/masters/Spectrum_Masters as the probe test assets and the
+permanent reference for what this machine's art should be.
+
+Still owed on B12: the openMSX probe (R4) and the ZX3 probe re-run
+against the new art path; the row-oscillation stripes and picture 7's
+curtain contrast on MSX1; wave 3's MSX2. R3's conversion question is
+CLOSED by the ruling above.

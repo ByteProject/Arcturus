@@ -109,18 +109,35 @@ convert in parallel, and only what changed reconverts on the next run.
 
 What the converter does for you, per machine: the right resolution and
 palette, the machine's color-cell constraints resolved, dithering only
-where it helps, your hinted moons and suns kept visible. The Spectrum
-deserves one honest note: its conversions are strong starting points,
-and depending on the image you may want to polish a few cells by hand.
-That loop is first-class:
+where it helps, your hinted moons and suns kept visible.
+
+The ZX Spectrum deserves its own honest paragraph. Its screen carries
+just two colors per 8x8 cell, sharing one brightness, and no automated
+conversion of full-color art survives that constraint gracefully: the
+attribute clashes always win. So on this one machine arcimg takes the
+deliberate way out: the automated conversion is a reasonable looking
+BLACK AND WHITE ARTWORK, a pattern-stipple rendition in bright white
+on black, in the manner of the machine's own classic art. It reads
+honestly, it never clashes, and it ships as-is.
+
+Color on the Spectrum belongs to authors, and an author can supply
+their own image for ANY picture, at ANY time; hand-drawn Spectrum art
+outclasses conversion on this machine, and the tool treats it as the
+first-class path:
 
 ```
 arcimg scr 8.ZX3 -o 8.scr        # a standard .scr any editor opens
 arcimg unscr 8.scr --id 8 -o zx3/  # the polished file back, protected
 ```
 
-A hand-polished picture is marked in its file, and `arcimg convert`
-will never overwrite it; delete it to reconvert from the master.
+`scr` writes any conversion (or a master directly) as a standard
+6912-byte .scr that every Spectrum art tool opens: the picture band on
+top, a black bar below. Draw or repaint as much as you like, from a few
+color washes to a full replacement, in SevenuP, img2spec, or the editor
+of your choice. `unscr` takes the finished screen back into the
+portfolio, strips the bar, lints it, and stamps the file HAND-AUTHORED:
+from then on `arcimg convert` will never overwrite it, with or without
+--force. Delete the file to return that picture to the automated path.
 
 The 16-bit targets compress with LZSA2: if Emmanuel Marty's `lzsa` tool
 is installed (or named in `$ARCIMG_LZSA`) it packs a few percent
@@ -137,7 +154,7 @@ is needed. Everything else is built in.
 | Amiga (OCS/ECS) | blueprint proven; planned for Eris |
 | Atari ST(E) | blueprint proven; planned for Eris |
 | Commodore 64 / C128 | blueprint proven; interpreter support planned |
-| ZX Spectrum +3 | conversion ready; blueprint in progress |
+| ZX Spectrum +3 | b/w conversion ready (color is the author's, see above); blueprint in progress |
 | Amstrad CPC | conversion ready; planned for Haumea |
 | Commodore Plus/4 | blueprint proven; interpreter support planned |
 | Atari 8-bit | blueprint proven; interpreter support planned |

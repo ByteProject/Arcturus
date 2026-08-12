@@ -240,6 +240,26 @@ def test_a8_output_is_frozen(name):
     assert hashlib.sha256(blob).hexdigest()[:16] == _A8_GOLDEN[name]
 
 
+# The Spectrum mono form as Stefan approved it (2026-08-13, "we keep
+# this for Spectrum"): the C-banded pattern stipple, bright white on
+# black. Color on this machine is the author's, via scr/unscr.
+_ZX3_GOLDEN = {
+    "2.png": "2b7cbeeff8a6a934",
+    "8.png": "ecb0bb2e813e8bcf",
+    "10.png": "5050b245178ddc6f",
+    "12.png": "0ac51354694b2f8a",
+}
+
+
+@pytest.mark.parametrize("name", sorted(_ZX3_GOLDEN))
+def test_zx3_output_is_frozen(name):
+    import hashlib
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, name), "ZX3")
+    t = arcimg.TARGETS["ZX3"]
+    blob = b"".join(bytes(pl) for _ty, _fl, pl in t.pack(native))
+    assert hashlib.sha256(blob).hexdigest()[:16] == _ZX3_GOLDEN[name]
+
+
 # The MSX1 conversion as Stefan approved it (2026-08-12, the scoped
 # third leg build): a golden proves the converter has not changed,
 # never that it was right; his eye is the gate that froze these.
@@ -350,10 +370,34 @@ def _disc_separation(rendered):
     return arcimg._dist(mean(inside), mean(ring))
 
 
-def test_hint_promotes_the_disc_to_white(tmp_path):
-    # The ZX3 keeps the R3 hint promotion until its own rework round.
+def test_zx3_ignores_the_hint_and_keeps_a_bright_disc(tmp_path):
+    # The derivation round (2026-08-12): the ZX3 derives from MSX1 and
+    # obeys Stefan's sidecar rule, the hint is an author's last resort,
+    # never consulted by our conversions. Byte-equality with and without
+    # the sidecar is the contract now.
     path = _disc_master(tmp_path)
-    _mode, native = arcimg.convert_master(path, "ZX3")
+    _mode, with_hint = arcimg.convert_master(path, "ZX3")
+    os.remove(os.path.splitext(path)[0] + ".hint")
+    _mode, without = arcimg.convert_master(path, "ZX3")
+    assert with_hint == without
+    # And salience must still be earned from the picture itself: a
+    # GENUINELY bright disc (the corpus moon's class, above the moon
+    # rule's luma bar) promotes to white with no hint anywhere. The dim
+    # teal disc of _disc_master is a KNOWN open case on the TMS-derived
+    # path, the same-hue luminance-contrast class as picture 7's two
+    # blues; it merges with its sky and this test does not pretend
+    # otherwise.
+    rows = []
+    for y in range(96):
+        row = []
+        for x in range(320):
+            row.append((20, 30, 20) if y > 64 else (0, 120, 120))
+            if (x - 160) ** 2 + (y - 32) ** 2 <= 14 * 14:
+                row[-1] = (200, 255, 255)
+        rows.append(row)
+    bright = tmp_path / "9.png"
+    arcimg._write_png(str(bright), rows)
+    _mode, native = arcimg.convert_master(str(bright), "ZX3")
     rendered = arcimg.TARGETS["ZX3"].render(native, native["w"],
                                             native["h"])
     whites = sum(1 for row in rendered for c in row
