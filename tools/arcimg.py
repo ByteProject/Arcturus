@@ -77,7 +77,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.33.0"
+__version__ = "1.33.1"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -5723,20 +5723,28 @@ def cmd_slice9(args) -> int:
     tag = next(t.tag for t in TARGETS.values() if t.id == head["target"])
     t = TARGETS[tag]
     tup = decode_arc(blob)
-    native = next(x for x in tup if isinstance(x, dict) and "pixels" in x)
+    native = next(x for x in tup if isinstance(x, dict) and "w" in x)
     h9 = (head["height"] * 9 + 5) // 12   # 96 -> 72, 200-row family safe
     out = dict(native)
     out["h"] = h9
-    out["pixels"] = [row[:] for row in native["pixels"][:h9]]
-    if "screen" in native:
+    # Every per-row and per-cell plane a target keeps must shrink with the
+    # band, or the slice smuggles mode-12 bytes below row 72 (the ZX3 probe
+    # caught exactly that: 96 leftover attribute bytes decoded into the
+    # interpreter's text rows). Non-plane keys (palette, regs) carry over.
+    for plane in ("pixels", "pattern", "colors", "hibits"):
+        if plane in native:                 # one entry per pixel row
+            out[plane] = [row[:] for row in native[plane][:h9]]
+    if "screen" in native:                  # C64 family: per 4x8 cell
         cells = (native["w"] // 4) * (h9 // 8)
         out["screen"] = list(native["screen"][:cells])
         out["color"] = list(native["color"][:cells])
+    if "attrs" in native:                   # Spectrum: per 8x8 cell
+        out["attrs"] = list(native["attrs"][:(native["w"] // 8) * (h9 // 8)])
     if "lines" in native:
         out["lines"] = list(native["lines"][:h9 * 4])
     blob9 = write_arc(head["target"], 9, head["width"], h9,
                       args.id if args.id is not None else head["id"],
-                      t.pack(out), codec=head["codec"])
+                      t.pack(out), codec=head["codec"], hand=head["hand"])
     open(args.out, "wb").write(blob9)
     print(f"arcimg: wrote {args.out} (mode 9 slice of {args.source})")
     return 0

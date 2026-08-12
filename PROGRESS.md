@@ -9554,3 +9554,50 @@ openMSX first (he ruled the probe debt gets discussed), the ZX3 probe
 re-run, and the A8/Plus/4 probe question put to him; (2) MSX2 (Screen
 5, quantize class, likely quick); (3) R5. The Spectrum color question
 is settled; do not reopen it.
+
+## 2026-08-13: the ZX3 probe green on Fuse, and the extraction confesses (arcimg 1.33.1)
+
+THE PROBE VERDICT IS STEFAN'S AND IT IS GREEN: his own picture 8, both
+bands, on the +3 under Fuse. The pairs are no longer conversions but
+HIS HAND ART carried through the exact author loop the Spectrum ruling
+promises: master to .scr, `arcimg unscr` back as a stamped hand-authored
+12.ZX3, `slice9` for the 9. One probe pass now proves the ring loader
+and the documented color path together.
+
+TWO OF HIS CALLS SHAPED THE SESSION. First, the hand-off emulator is
+FUSE (ZEsarUX retired from the human gate for accuracy; it stays for
+scripted ZRCP readback only). Fuse crashes on the 128K snapshot and a
+.sna forces the machine anyway, so the probe now ships as probe.dsk, a
+self-booting +3 disk built with Haumea's mk_plus3.py; its boot sector
+opens TRITON.BIN by hardcoded name, and the first disk failed until
+the payload wore that name. Second, when the screen showed one
+wrong-colour corner cell, he trusted the emulator and pressed; the
+emulator was honest and the bug was ours.
+
+THE EXTRACTION CONFESSES: the .ZXS format begins with its band height
+in rows (0x60 = 96), bitmap at offset 1, attrs after. The first
+extraction read everything one byte early: every bitmap sheared eight
+pixels, every attribute shifted one cell, the last bitmap byte posing
+as the corner attribute (his cyan cell). Proof came from his
+first-Rabenstein UI files: the 48-row and 192-row variants fit the
+height formula exactly, and picture 0 decodes byte-perfect against its
+.scr ground truth. All 21 masters in Spectrum_Masters are regenerated
+from the divMMC release and palette-checked. The lesson is an old one
+wearing new clothes: my render matching my own decode proved nothing,
+because both sides shared the bug; only his eye on real hardware
+truth-tested the chain.
+
+THE MACHINE CHECK ALSO CAUGHT A TOOL BUG BEFORE THE EMULATOR DID:
+slice9 only knew the C64 family's planes. It never sliced the
+Spectrum's attrs (a mode-9 slice kept all 384 mode-12 attribute bytes,
+three rows of colour decoding into the interpreter's text area),
+crashed outright on an MSX1 native, and dropped the hand stamp, so a
+sliced piece of hand art lost its convert-will-never-overwrite
+protection. One patch with a regression test (arcimg 1.33.1, standalone
+regenerated); the MSX1 leg is needed for the openMSX probe pairs next.
+The full-probe mini-Z80 simulation and the master-to-scr reconstructor
+are committed beside the probe (run_probe.py, png_to_scr.py), no
+longer session-only harness.
+
+Still owed on B12: the openMSX probe (R4), MSX2, and the A8/Plus/4
+post-quality-round probe question. The ZX3 probe debt is PAID.

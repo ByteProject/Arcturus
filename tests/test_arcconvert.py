@@ -529,3 +529,36 @@ def test_p4_converts_and_round_trips():
 def test_p4_rides_the_ring_codec():
     import arcimg
     assert arcimg.TARGETS["P4"].codec == arcimg.CODEC_ZX0
+
+
+# --- slice9: the mode-9 slice must shrink every plane ----------------------
+
+def test_slice9_slices_every_plane_and_keeps_the_hand_stamp(tmp_path):
+    # The ZX3 probe rebuild (2026-08-13) caught two slice9 defects at
+    # once: it only knew the C64 family's planes, so a ZX3 slice kept
+    # all 384 mode-12 attribute bytes (three rows of colour decoding
+    # below the band, into the interpreter's text area) and an MS1
+    # native (pattern/colors, no "pixels" key) crashed it outright; and
+    # it dropped header byte 15, so a slice of hand art lost its
+    # convert-will-never-overwrite protection.
+    import argparse
+    for tag in ("ZX3", "MS1"):
+        _mode, native = arcimg.convert_master(os.path.join(MASTERS, "8.png"),
+                                              tag)
+        src = tmp_path / f"12.{tag}"
+        src.write_bytes(arcimg.encode_native(tag, 12, 12, native, hand=True))
+        out = tmp_path / f"9.{tag}"
+        ns = argparse.Namespace(source=str(src), id=9, out=str(out))
+        assert arcimg.cmd_slice9(ns) in (0, None)
+        blob = out.read_bytes()
+        head, secs = arcimg.read_arc(blob)
+        assert head["hand"] is True, f"{tag}: the hand stamp was dropped"
+        if tag == "ZX3":
+            attrs = next(raw for t, _f, raw in secs if t == 4)
+            assert len(attrs) == (256 // 8) * (72 // 8)
+        t = arcimg.TARGETS[tag]
+        tup = arcimg.decode_arc(blob)
+        sliced = next(x for x in tup if isinstance(x, dict) and "w" in x)
+        full = t.render(native, native["w"], native["h"])
+        top = t.render(sliced, sliced["w"], sliced["h"])
+        assert top == full[:len(top)], f"{tag}: the slice is not the top rows"

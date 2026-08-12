@@ -403,6 +403,42 @@ method). Naming: R for retro.
   engines) was built, corpus-rendered, and failed Stefan's eye against
   his own hand-authored art, now extracted 1:1 from the 2022 +3 release
   into arc_image/masters/Spectrum_Masters as probe assets and reference.
+  THE ZX3 PROBE RE-RUN: GREEN UNDER STEFAN'S EYE (2026-08-13, Fuse on
+  the +3, both bands, his picture 8). The probe pairs are now HIS HAND
+  ART through the author loop the ruling points at: master PNG to .scr,
+  `arcimg unscr` back as a hand-authored 12.ZX3, `slice9` for the 9,
+  so the probe proves the loader AND the documented color path in one
+  pass. The rebuild surfaced and fixed three things:
+  - THE .ZXS LAYOUT, CORRECTED: byte 0 is the BAND HEIGHT IN ROWS
+    (0x60 = 96; his first-Rabenstein UI files confirm: 48-row and
+    192-row files fit 1 + h*32 + (h/8)*32 exactly, and picture 0 of
+    that release decodes byte-perfect against its .scr ground truth).
+    Bitmap at offset 1 (rows 0..63 standard ULA interleave, rows 64+
+    the compacted half-third), attrs after the bitmap. The first
+    extraction had read everything one byte early, shearing every
+    bitmap 8 pixels and shifting every attribute one cell; Stefan
+    caught it on the emulator as one wrong-colour corner cell (the
+    last bitmap byte posing as attr). All 21 masters regenerated from
+    the divMMC release and palette-checked; Fuse showed the truth,
+    the bug was ours, not the emulator's.
+  - SLICE9 KNEW ONLY THE C64 FAMILY'S PLANES (arcimg 1.33.1): it never
+    sliced the Spectrum's attrs (a mode-9 slice kept all 384 mode-12
+    attribute bytes, three rows of colour decoding into the
+    interpreter's text area), crashed on an MS1 native (no "pixels"
+    key), and dropped the hand stamp (header byte 15), so a sliced
+    piece of hand art lost its convert-will-never-overwrite
+    protection. One patch, regression test in test_arcconvert.py; the
+    MS1 leg matters for the openMSX probe pairs next.
+  - THE FUSE HAND-OFF SHAPE: Fuse (Stefan's ruling, the human gate;
+    ZEsarUX only for scripted ZRCP readback) crashes on the 128K
+    .sna and a snapshot forces a machine switch besides, so the
+    probe now also ships as probe.dsk, a self-booting +3 disk built
+    with Haumea's mk_plus3.py; the boot sector opens its payload by
+    the HARDCODED name TRITON.BIN, so the probe binary is placed
+    under that name. The full-probe mini-Z80 simulation (screen
+    captured at each waitkey entry, compared byte-exact against the
+    reconstructed .scr) is committed beside the probe as run_probe.py
+    with png_to_scr.py, no longer a session-only harness.
   The original R3 note stands for history: The +3 alone kept its original R3 solver when the Polizei family
   was rebuilt, and Stefan's standing verdict on it is that the clashes
   are awful and he is very unsatisfied with the result. The rework was
