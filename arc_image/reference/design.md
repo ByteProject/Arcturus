@@ -179,7 +179,15 @@ Architecture: one shared front half, per-target back halves.
   near 1:1; nothing is ever upsampled.
 - FRONT: load the master PNG, geometry (crop or scale the 320-wide master
   to 256/280/160 wide; center-crop is the default for narrower targets,
-  per-image override available). AMENDED 2026-07-13: on the 8-bit path
+  per-image override available). AMENDED 2026-08-12 (Stefan's geometry
+  rulings, the MSX1 round): the MSX1 window is LEFT-WEIGHTED, columns
+  24..279 of the master (a third of the discard off the left, exactly
+  three attribute columns, the rest off the right), always 8-aligned so
+  the attribute grid meets the master's own columns; and the Spectrum's
+  centre crop is ruled WRONG ("I am pretty sure that was part of the
+  problems we were facing"), to be replaced when the Spectrum re-derives
+  from MSX1, whose window it will inherit by construction.
+  AMENDED 2026-07-13: on the 8-bit path
   the width halving is NOT an average (averaging manufactures blend
   colors); pairs collapse by agreement, disagreement resolved by global
   frequency. The original perceptual-space clause ("never quantize in
@@ -419,6 +427,15 @@ method). Naming: R for retro.
   6.1K (LZSA2).
 - R4. WAVE 3: Atari 8-bit (the per-line palette solver), MSX1, MSX2,
   Plus/4.
+  MSX1 CONVERSION APPROVED 2026-08-12 (Stefan's corpus review; goldens
+  frozen; arcimg 1.32.0): the exact per-octet pair solve with the full
+  tint-loyalty triad, the moon rule read from the picture (no hint
+  sidecar, HIS RULE: the sidecar is an author's last resort, never this
+  tool's crutch), the dark sanctuary, and the scoped third leg (a
+  chromatic pays to fall into a substantially darker neutral). Known
+  open: row-oscillation stripes in mottled regions (the one-row color
+  cell speaking), picture 7's curtain two-blues contrast, picture 10's
+  left wall. The openMSX probe is still owed.
   Done-test: corpus conversions approved; probes green in atari800,
   openMSX, and xplus4, both modes.
 - R5. WAVE 4: Apple II (HGR, plus the DHGR variant), Spectrum Next,

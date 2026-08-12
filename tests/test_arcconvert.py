@@ -240,6 +240,26 @@ def test_a8_output_is_frozen(name):
     assert hashlib.sha256(blob).hexdigest()[:16] == _A8_GOLDEN[name]
 
 
+# The MSX1 conversion as Stefan approved it (2026-08-12, the scoped
+# third leg build): a golden proves the converter has not changed,
+# never that it was right; his eye is the gate that froze these.
+_MS1_GOLDEN = {
+    "2.png": "643694142ea7ad10",
+    "8.png": "3e6ee6e332ea3b78",
+    "10.png": "d087caac7527f0b2",
+    "12.png": "cbd215a159a537c1",
+}
+
+
+@pytest.mark.parametrize("name", sorted(_MS1_GOLDEN))
+def test_ms1_output_is_frozen(name):
+    import hashlib
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, name), "MS1")
+    t = arcimg.TARGETS["MS1"]
+    blob = b"".join(bytes(pl) for _ty, _fl, pl in t.pack(native))
+    assert hashlib.sha256(blob).hexdigest()[:16] == _MS1_GOLDEN[name]
+
+
 # -- wave 3: the Atari 8-bit per-line solver ------------------------------------
 
 @pytest.mark.parametrize("name", SAMPLE)

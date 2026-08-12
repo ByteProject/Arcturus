@@ -9388,3 +9388,50 @@ standing habit restated: a behavior change IS a version bump, and the
 bump IS the amalgam regeneration; the round's size (seven approval
 rounds over two days) made it feel like work-in-progress when each
 approval was already a release-worthy change.
+
+## 2026-08-12: the MSX1 conversion, banked on Stefan's eye (arcimg 1.32.0)
+
+The first new converter since the quality round, and R4's third of four.
+Stefan's verdict on the banked build: "really good", then "it passes
+almost 100%", with the known limits recorded rather than papered over.
+
+HIS RULINGS, which now bind the whole remaining 8-bit family:
+- THE HINT SIDECAR IS AN AUTHOR'S LAST RESORT, NEVER THIS TOOL'S CRUTCH
+  ("arcimg will bring the best results without any help or fix files").
+  Ruled when a moon fix reached for 8.hint; the fix was rebuilt from the
+  picture itself (the A8's moon rule plus a contiguity-and-fatness test,
+  an opening against tendrils). MEASURED the same hour: the four
+  approved converters produce byte-identical output with and without
+  the only hint in the corpus, so the quality round's approvals never
+  depended on a sidecar.
+- GEOMETRY: the MSX1 window is columns 24..279 of the master, ruled by
+  eye against pure top-left and against centre; and the Spectrum's
+  centre crop was WRONG, part of its problems, to be replaced when the
+  Spectrum re-derives from MSX1's window.
+
+THE CONVERTER as banked: exact per-octet pair solve (all 105 pairs
+against the source pixels), the tint-loyalty TRIAD (hue against hue;
+neutral pays for a chromatic home; and the third leg, found here, a
+chromatic pays to fall into a substantially DARKER neutral, which took
+picture 2's timber from 6.5 to 95.5 percent red, black had been eating
+the lines for free), the dark sanctuary with the saturated-dark
+exemption, and the moon rule. Goldens frozen on pictures 2, 8, 10, 12.
+
+THE DAY'S FAILURES, recorded because they cost hours and must not be
+re-tried blind (all reverted byte-exact, all documented in the code):
+- Ordered halftone in the octet assignment: moth-eaten holes.
+- The picture-global ink map (the C64 recolour mechanics computed):
+  fixed the dotted timber measurably but flattened the corpus; a
+  three-ink octet loses its highlight minority under ANY consistent
+  rule, and per-octet freedom turns out to be doing aesthetic work.
+- Vertical continuity between octet rows: new issues, no help.
+The lesson the day kept teaching: metrics locate, Stefan's eye judges,
+and each fix went to his eye BEFORE the next was attempted only in the
+second half of the day, which is when progress became real.
+
+OPEN, honestly: row-oscillation stripes in mottled regions (the one-row
+color cell itself; needs picture-level reasoning that does not flatten,
+nothing octet-local will do), picture 7's curtain two-blues contrast,
+picture 10's left wall. The openMSX probe is still owed to R4's
+done-test. Next per the standing order: the Spectrum re-derivation from
+MSX1, which closes R3.

@@ -77,7 +77,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.31.0"
+__version__ = "1.32.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -1432,10 +1432,13 @@ def _halve_width(rows):
     return out
 
 
-def _crop_width(rows, w):
-    """Center-crop the 320-wide master to a narrower band (the arc_image/reference/design.md
-    geometry policy: crop, do not squeeze)."""
-    x0 = (len(rows[0]) - w) // 2
+def _crop_width(rows, w, anchor="center"):
+    """Crop the 320-wide master to a narrower band (the arc_image/reference/design.md
+    geometry policy: crop, do not squeeze). Anchor "center" is the wave-2
+    default (the Spectrum); "left" pins the crop to the top-left corner
+    (Stefan's MSX1 ruling, 2026-08-11: the retained geometry sits better
+    with the attribute grid when the origin is honest)."""
+    x0 = 0 if anchor == "left" else (len(rows[0]) - w) // 2
     return [row[x0:x0 + w] for row in rows]
 
 
@@ -3154,6 +3157,217 @@ def _convert_a8(rows, salient=None):
         lines += [_GTIA128[k] for k in palettes[y // 8]]
     return {"w": w, "h": h, "pixels": codes, "lines": lines}
 
+# Where the MSX1's 256-wide window sits in the 320-wide master, in
+# pixels off the left edge, always a multiple of 8 so the attribute
+# grid meets the master's own columns. 0 was the first round's pure
+# top-left anchor; 24 is Stefan's call (2026-08-12): a third of the
+# discard off the left (exactly three attribute columns), the rest off
+# the right. 32 would be the centre crop, rejected.
+_MS1_CROP_X = 24
+
+# How strongly an octet prefers the pair its upstairs neighbour chose,
+# as a percentage discount on that pair's score. 0 turns it off, and 0
+# is where it stays: tried at 10 and 20 on 2026-08-12 against the
+# row-oscillation stripes, and Stefan rejected it, new issues, no help
+# where it was aimed. The stripes are the one-row color cell speaking;
+# whoever reopens this needs a mechanism that understands the picture,
+# not a bribe between neighbouring rows.
+_MS1_VCONT = 0
+
+
+
+def _convert_ms1(rows, salient=None):
+    """MSX1 Screen 2, the gentlest of the cell class: 256 wide from the
+    master by the TOP-LEFT crop (Stefan's ruling, 2026-08-11: one master
+    pixel stays one native pixel, and the retained geometry sits better
+    with the attribute grid when the origin is honest; wave 2's centre
+    crop stays the Spectrum's). Two colors per 8x1 octet from the fixed
+    fifteen (index 0 is transparent and never written). The octet is
+    small enough for an EXACT solve: all 105 legal pairs are scored
+    against the SOURCE pixels, so nothing here clusters, averages, or
+    improvises (the identity doctrine, proved eight ways in the retro
+    quality round; the exact solve is what a cell class looks like when
+    the cell is only eight pixels). The hint sidecar is NOT consulted
+    (Stefan's rule, 2026-08-12: the sidecar is an author's last resort
+    for a weird picture, never this tool's crutch; arcimg brings its
+    best results out of the box). Salience is the A8's MOON RULE, read
+    from the picture itself: the brightest source cluster renders
+    white, because TMS holds ONE cyan, so a moon disc and its halo
+    would otherwise snap to the same entry and the disc dissolve into
+    its own glow; GTIA's eight lumas per hue let the A8 keep that
+    contrast for free, this palette cannot. Truly dark source pixels
+    keep their darkness (the CPC's dark sanctuary carried over: below
+    the luma bar, with every channel quiet, only black may serve;
+    everything TMS owns besides black sits above luma 100, and without
+    the sanctuary the crypt's mortar lifts into pastel. A SATURATED
+    dark, picture 8's deep blue forest, is a color speaking, not
+    darkness, and stays exempt). The background nibble takes the
+    octet's MAJORITY color, so pattern bytes lean toward zero and the
+    ZX0 stream stays cheap."""
+    rows = [row[_MS1_CROP_X:_MS1_CROP_X + 256] for row in rows]
+    w, h = len(rows[0]), len(rows)
+    tiles_x = w // 8
+    pattern = [[0] * tiles_x for _ in range(h)]
+    colors = [[0] * tiles_x for _ in range(h)]
+    pairs = [(a, b) for a in range(1, 16) for b in range(1, a)]
+    white_pairs = [(a, b) for a, b in pairs if a == 15 or b == 15]
+
+    def lum(c):
+        return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
+
+    # The moon rule's census: the brightest cluster, IF the picture has
+    # a genuinely bright one (a dark hallway's brightest pixel is not a
+    # moon, hence the luma bar). The cluster's COLOR is not enough: a
+    # master's brightest ink paints the moon AND every glint and lit
+    # tree rim, and forcing the color wholesale turned picture 8 into
+    # white speckle. A moon is a large CONTIGUOUS patch of that ink, so
+    # only fat connected blobs are forced: area for a real disc, both
+    # bounding sides for fatness (a rim is long and thin, a disc is
+    # round).
+    bright = max((c for row in rows for c in row), key=lum)
+    bset = set()
+    if lum(bright) >= 150.0:
+        cand = {(x, y) for y in range(h) for x in range(w)
+                if _dist(rows[y][x], bright) < 1600}
+        seen = set()
+        for start in cand:
+            if start in seen:
+                continue
+            blob, queue = {start}, [start]
+            while queue:
+                cx, cy = queue.pop()
+                for nx, ny in ((cx + 1, cy), (cx - 1, cy),
+                               (cx, cy + 1), (cx, cy - 1)):
+                    if (nx, ny) in cand and (nx, ny) not in blob:
+                        blob.add((nx, ny))
+                        queue.append((nx, ny))
+            seen |= blob
+            xs = [p[0] for p in blob]
+            ys = [p[1] for p in blob]
+            if (len(blob) >= 24 and max(xs) - min(xs) >= 6
+                    and max(ys) - min(ys) >= 6):
+                # An OPENING before the blob is believed (picture 1's
+                # moon grew streaks: the disc's ink continues into thin
+                # connected glow trails, and contiguity alone follows
+                # them out of the disc). Erode one step, dilate back
+                # inside the blob: the fat disc survives, every tendril
+                # one or two pixels thin does not.
+                core = {(px, py) for px, py in blob
+                        if {(px + 1, py), (px - 1, py),
+                            (px, py + 1), (px, py - 1)} <= blob}
+                bset |= {(px, py) for px, py in blob
+                         if (px, py) in core
+                         or ({(px + 1, py), (px - 1, py), (px, py + 1),
+                              (px, py - 1)} & core)}
+
+    def tms_dist(c, k):
+        # HUE LOYALTY, the A8's proportional lesson carried over: TMS
+        # has no olive, so plain distance sent the crypt's gold walls to
+        # dark green, luma-right and hue-wrong, the exact betrayal the
+        # quality round priced out. The penalty MULTIPLIES (an additive
+        # wall lets black, being neutral, escape it and everything flees
+        # to black).
+        d = _dist(c, _TMS9918[k])
+        ws = max(c) - min(c)
+        p = _TMS9918[k]
+        ps = max(p) - min(p)
+        if ws >= 40 and ps >= 40:
+            hs, hp = _hue_turn(c), _hue_turn(p)
+            if hs is not None and hp is not None:
+                dh = abs(hs - hp)
+                dh = min(dh, 1.0 - dh)
+                if dh > 0.15:
+                    d *= 1.0 + _A8_HUE * dh
+        elif ws < 18 and ps >= 40:
+            # AND THE OTHER WAY (the A8's lesson, resurfacing on picture
+            # 10's grey wall: a neutral source paid nothing to be housed
+            # by a chromatic entry, so neighbouring octets each bought a
+            # different cheap hue and the stone turned patchwork). Grey
+            # is not blue; the doctrine is symmetric or it is nothing.
+            d *= 3
+        elif (ws >= 40 and ps < 18 and lum(c) >= 30.0
+                and lum(p) < lum(c) - 24.0):
+            # THE THIRD LEG, the one the A8 always had and this
+            # converter lacked (found 2026-08-12 on picture 2's timber):
+            # a chromatic color pays to be housed by a neutral THAT IS
+            # SUBSTANTIALLY DARKER, black eating lit color. The timber's
+            # dark red sits NEARER to black than to any TMS red, so no
+            # pair logic downstream could ever save the line; the metric
+            # itself had to stop giving black away free. Two guards
+            # bound the rule to its disease: the luminance floor lets
+            # picture 8's navy forest (luma 17) keep falling to black,
+            # whose lie about it is small, so its blue-on-black texture
+            # stays; and the darker-home test keeps the penalty OFF the
+            # bright neutrals, so a lavender cloud rim still rounds up
+            # into white as the master's art expects (Stefan's corpus
+            # review: the first cut penalized all neutrals and drew rim
+            # lines around picture 10's clouds and a stripe on 12's
+            # statue).
+            d *= 3
+        return d
+
+    # (Two whole architectures were tried here on 2026-08-12 and
+    # reverted the same day on Stefan's eye. First octet-local repairs:
+    # a census-gated sanctuary and ordered halftone, which read as
+    # moth-eaten holes. Then a picture-global ink map, the C64 recolour
+    # mechanics computed, with an exact pair solve over present inks:
+    # it fixed the dotted timber measurably, 6.5 to 89 percent, and
+    # improved many pictures, but flattened others; three-ink octets
+    # lose their highlight minority under any consistent rule, and his
+    # verdict was to keep THIS build, the reviewed one, whose per-octet
+    # freedom reads livelier even where it is locally inconsistent.
+    # The open artifacts, 2's dotted timber, 7's stripes, 18's dots,
+    # 10's colorful left wall, stay open; whoever picks them up should
+    # read the 2026-08-12 session record before trying anything.)
+    SANCT = 10 ** 12
+    prev_pair = [None] * tiles_x
+    for y in range(h):
+        row = rows[y]
+        for tx in range(tiles_x):
+            octet = row[tx * 8:(tx + 1) * 8]
+            moon = [(tx * 8 + i, y) in bset for i in range(8)]
+            d = []
+            for i, c in enumerate(octet):
+                px = [tms_dist(c, k) for k in range(16)]
+                if moon[i]:
+                    px = [SANCT] * 15 + [px[15]]
+                elif lum(c) < 40.0 and max(c) < 90:
+                    px = [px[0], px[1]] + [v * 6 for v in px[2:]]
+                d.append(px)
+            best, bd = None, None
+            for a, b in (white_pairs if any(moon) else pairs):
+                e = 0
+                for px in d:
+                    da, db = px[a], px[b]
+                    e += da if da <= db else db
+                # VERTICAL CONTINUITY AS A SMALL PRICE (Stefan's stripe
+                # report, 2026-08-12: the color cell is ONE ROW tall, so
+                # a mottled trunk elected a different pair every row and
+                # flat-filled it, horizontal stripes almost periodic;
+                # the third leg exposed what uniform black had hidden).
+                # The A8's proven idea at octet scale: a near-tie aligns
+                # with the octet above, a decisive content change still
+                # wins. The discount is multiplicative and small, so it
+                # never overrides a real difference, it only settles
+                # coin flips the same way twice.
+                if prev_pair[tx] is not None and {a, b} == prev_pair[tx]:
+                    e -= e * _MS1_VCONT // 100
+                if bd is None or e < bd:
+                    best, bd = (a, b), e
+            a, b = best
+            prev_pair[tx] = {a, b}
+            take_a = [px[a] <= px[b] for px in d]
+            na = sum(take_a)
+            fg, bg = (b, a) if na * 2 >= len(octet) else (a, b)
+            byte = 0
+            for i, ta in enumerate(take_a):
+                if (ta and fg == a) or (not ta and fg == b):
+                    byte |= 0x80 >> i
+            pattern[y][tx] = byte
+            colors[y][tx] = (fg << 4) | bg
+    return {"w": w, "h": h, "pattern": pattern, "colors": colors}
+
+
 def _convert_trsm4(rows, salient=None):
     """Master to TRS-80 Model 4 mono: luminance, 2x horizontal (the hi-res
     board's 640x240 pixels are half as wide as tall, so the doubling both
@@ -3560,7 +3774,8 @@ def _convert_p4(rows, salient=None):
 _CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,
                "C64": _convert_c64, "ZX3": _convert_zx3, "CPC": _convert_cpc,
                "P4": _convert_p4,
-               "A8": _convert_a8, "TRSM4": _convert_trsm4}
+               "A8": _convert_a8, "TRSM4": _convert_trsm4,
+               "MS1": _convert_ms1}
 
 
 # -- the Spectrum polish round-trip (.scr in and out) ---------------------------
