@@ -4,44 +4,41 @@ with exactly the opcodes the probe scaffold adds (di, out, ix loads,
 ldir, djnz, cp, ...); anything else still raises. Instead of emulating
 the keyboard, execution pauses at each `waitkey` ENTRY (the moment the
 just-drawn image is complete on screen), the ULA region $4000-$5AFF is
-captured, and waitkey is skipped by simulating its ret. Two captures
-(mode 9, then mode 12), then stop when PC lands on waitkey a third time.
+captured, and waitkey is skipped by simulating its ret. One capture per
+image in the review cycle, then stop.
 
-Expected frames come straight from the reconstructed 8.scr: mode 12's
-frame IS the scr (band rows 0..95, black below); mode 9's frame is the
-same scr with rows 72..95 and attr rows 9..11 zeroed.
+Expected frames come straight from the pair files: a drawn pair must
+leave behind exactly the scr projection of its own native (band on
+top, black below), so decode_arc + scr_from_native is the oracle.
 """
 
+import importlib.util
 import os
-import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
+_ROOT = os.path.dirname(os.path.dirname(_HERE))
 PROBE_BIN = os.path.join(_HERE, "probe.bin")
-# The expected screen, a 6912-byte .scr (band top, black below): pass a
-# path, or default to deriving it from the committed master via
-# png_to_scr.py's convention. Regenerate probe.bin (sjasmplus probe.asm)
-# whenever the pairs change, then run this BEFORE any emulator pass.
-SCR = sys.argv[1] if len(sys.argv) > 1 else os.path.join(_HERE, "8.scr")
+# The probe's review cycle: one pair file per waitkey stop, in the
+# order probe.asm draws them (Stefan's four-picture ruling, 2026-08-13:
+# his art 8 both modes, his art 14, then the b/w of both scenes).
+# Regenerate probe.bin (sjasmplus probe.asm) whenever the pairs change,
+# then run this BEFORE any emulator pass.
+CYCLE = ("9.ZX3", "12.ZX3", "art14.ZX3", "bw8.ZX3", "bw14.ZX3")
 ORG = 0x8000
-WAITKEY = 0x8030    # from the sjasmplus listing; re-derive if probe.asm
+WAITKEY = 0x8041    # from the sjasmplus listing; re-derive if probe.asm
                     # gains or loses code before the waitkey routine
 
+_spec = importlib.util.spec_from_file_location(
+    "arcimg", os.path.join(_ROOT, "..", "tools", "arcimg.py"))
+arcimg = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(arcimg)
 
-def scr_offset(y, xb):
-    return ((y & 0xC0) << 5) | ((y & 7) << 8) | ((y & 0x38) << 2) | xb
 
-
-def expected_frames():
-    scr = bytearray(open(SCR, "rb").read())
-    frame12 = bytes(scr)
-    scr9 = bytearray(scr)
-    for y in range(72, 96):
-        for xb in range(32):
-            scr9[scr_offset(y, xb)] = 0
-    for cy in range(9, 12):
-        for cx in range(32):
-            scr9[6144 + cy * 32 + cx] = 0
-    return bytes(scr9), frame12
+def expected_frame(pair):
+    """The ULA region $4000-$5AFF a drawn pair must leave behind."""
+    tup = arcimg.decode_arc(open(os.path.join(_HERE, pair), "rb").read())
+    native = next(x for x in tup if isinstance(x, dict) and "w" in x)
+    return arcimg.scr_from_native(native)[:0x1B00]
 
 
 def run():
@@ -84,7 +81,7 @@ def run():
     while True:
         if st["PC"] == WAITKEY:
             captures.append(bytes(m[0x4000:0x5B00]))
-            if len(captures) == 2:
+            if len(captures) == len(CYCLE):
                 return captures
             st["PC"] = pop16()          # skip waitkey: simulate its ret
             continue
@@ -349,15 +346,15 @@ def run():
 
 
 def main():
-    got9, got12 = run()
-    exp9, exp12 = expected_frames()
-    for name, got, exp in (("mode 9", got9, exp9), ("mode 12", got12, exp12)):
+    frames = run()
+    for pair, got in zip(CYCLE, frames):
+        exp = expected_frame(pair)
         if got == exp:
-            print(f"{name}: screen byte-exact "
+            print(f"{pair}: screen byte-exact "
                   f"({sum(1 for b in got if b)} nonzero bytes)")
         else:
             bad = [i for i in range(len(exp)) if got[i] != exp[i]]
-            print(f"{name}: {len(bad)} MISMATCHED bytes, first at "
+            print(f"{pair}: {len(bad)} MISMATCHED bytes, first at "
                   f"${0x4000 + bad[0]:04X} "
                   f"(got {got[bad[0]]:02X}, want {exp[bad[0]]:02X})")
             raise SystemExit(1)

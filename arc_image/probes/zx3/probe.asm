@@ -48,16 +48,26 @@ start:  di
                                 ; default would sit in the screen we clear
         xor a
         out ($fe), a            ; black border
+        ; the four-picture review cycle (Stefan's call, 2026-08-13):
+        ; his hand art 8 in both modes, his hand art 14, then the
+        ; automated black-and-white of the same two scenes, forever
+        ld hl, image9           ; art 8, the 72-row band
+        call show
+        ld hl, image12          ; art 8, the full band
+        call show
+        ld hl, imageart14       ; art 14
+        call show
+        ld hl, imagebw8         ; b/w 8
+        call show
+        ld hl, imagebw14        ; b/w 14
+        call show
+        jp start                ; a bare Spectrum has no OS to return to
+
+show:   push hl
         call cls
-        ld hl, image9
+        pop hl
         call draw
-        call waitkey
-        call cls
-        ld hl, image12
-        call draw
-        call waitkey
-        jp start                ; and around again: 9, 12, 9, 12 forever
-                                ; (a bare Spectrum has no OS to return to)
+        jp waitkey              ; ret through waitkey
 
 cls:    ld hl, $4000            ; pixels and attributes all zero
         ld de, $4001
@@ -272,6 +282,12 @@ image9:
         incbin "9.ZX3"
 image12:
         incbin "12.ZX3"
+imageart14:
+        incbin "art14.ZX3"
+imagebw8:
+        incbin "bw8.ZX3"
+imagebw14:
+        incbin "bw14.ZX3"
 
         SAVESNA "probe.sna", start
         SAVEBIN "probe.bin", start, $ - start   ; the raw image, for the

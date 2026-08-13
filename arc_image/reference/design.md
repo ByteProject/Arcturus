@@ -353,12 +353,20 @@ A blueprint is "proven" when its probe is green. Per target:
   side of verification is the converter's render-back: arcimg renders any
   .arc back to PNG, and that encode/render round-trip is the unit test of
   the format, run in pytest long before an emulator is opened.
-- The bench runs on the macOS side: FS-UAE (Amiga), Hatari (ST),
-  DOSBox-X (DOS), VICE x64sc/x128/xplus4 (CBM), ZEsarUX for BOTH the
-  Spectrum +3 and the CPC (Stefan's ruling: no Caprice) and for the
-  Next, openMSX (MSX1/2), atari800 (A8), AppleWin-class (Apple II),
-  Xemu (MEGA65). Several are already installed; each target's probe work
-  starts by checking which, rather than installing duplicates.
+- The bench runs on the macOS side (the human-gate roster as ruled by
+  Stefan through 2026-08-13): FS-UAE (Amiga), Hatari (ST), DOSBox-X
+  (DOS), VICE x64sc/x128/xplus4 (CBM), FUSE for the Spectrum +3 (a
+  .sna forces a machine switch and crashes Fuse, so the probe ships as
+  a self-booting +3 disk), CPCEMU for the CPC (Uto's recommendation,
+  cycle/CRTC accurate, CRTC type selectable; steered by a generated
+  config, disks via Haumea's mk_amsdos.py), ALTIRRA UNDER WINE for the
+  A8 ("the best and most accurate"; atari800 retired; recipe in
+  Varuna's Makefile), openMSX (MSX1/2, Disk BASIC .dsk delivery),
+  trs80gp (Model 4), AppleWin-class (Apple II), Xemu (MEGA65).
+  ZESARUX IS RETIRED FROM THE HUMAN GATE ("it let so many bugs pass");
+  it remains only where scripted ZRCP readback is needed. Each
+  target's probe work starts by checking what is installed, rather
+  than installing duplicates.
 - Interpreter integration is deliberately NOT part of the harness: the
   probes prove the blueprint, and the interpreters (Eris first) implement
   it independently once B12 is done, returning here only if a probe
@@ -503,10 +511,41 @@ method). Naming: R for retro.
   and cross-validated the image: listing, extraction byte-identical);
   the reference repo is never modified from here, so the builder is
   ours, mk_plus3-manner.
-  Done-test: corpus conversions approved; probes green in atari800,
-  openMSX (DONE 2026-08-13), and xplus4, both modes. Whether the A8
-  and Plus/4 probes ran after their quality rounds is still an open
-  question with Stefan.
+  THE PROBE ROUND OF 2026-08-13, all green under Stefan's eye: he
+  confirmed the A8 and Plus/4 probes never ran after their quality
+  rounds, and the measurement then showed EVERY probe pair and EVERY
+  8-bit corpus directory lagging the approved converters (the pairs by
+  whole quality rounds, the P4 corpus by an encoding convention, so it
+  even mis-decoded). Everything was regenerated from the current
+  golden-frozen converters and re-verified on the ruled bench: A8 on
+  Altirra ("picture perfect"), Plus/4 on xplus4 ("picture perfect"),
+  C64 on x64sc, CPC on CPCemu, the Model 4 on trs80gp, MSX1 on
+  openMSX, and the Spectrum's four-picture cycle on Fuse. The probe
+  pairs now carry PICTURE 8 as the benchmark scene on every machine
+  (Stefan's call; the Spectrum adds 14, the Plus/4 keeps its 12).
+  THE CORPUS CURRENCY RULE (Stefan, 2026-08-13, now standing): the
+  committed corpora, previews, stress-out, and cloak sets are quality
+  reporting to the outside world ("no one will give arc_image a test
+  run, they look at the corpus"), so any converter change regenerates
+  them in the same bank. Applied in full: c64/cpc/p4/a8/trsm4/ms1
+  corpora current (ms1 created), the ZX3 CORPUS IS STEFAN'S OWN HAND
+  ART through the author loop (hand-stamped; the automated
+  black-and-white lives in previews/zx3/auto as its own showcase),
+  stress-out regenerated across all ten converter targets, and the
+  BEACH VINDICATION noted: after the early picture-first tuning era
+  was abandoned for corpus-first work, the freshly regenerated beach
+  stress conversion came out, in Stefan's words, the best he has ever
+  seen of it; get the corpus right and the stress image follows.
+  A NAMING SCAR, so it cannot repeat: the Model 4 ships ARC<id>.TR4
+  (arcimg 1.27.0, TRSDOS 8.3, Shawn's report); a resync script
+  mistook the tag for a retired one, wrote .TRSM4-named duplicates
+  and replaced the three untracked stress .TR4 files. Repaired the
+  same hour (correct names, current content, nothing hand-made
+  touched); the standing rule is Stefan's sentence: "If you are not
+  sure about something you ask me."
+  Done-test: corpus conversions approved; probes green in Altirra,
+  openMSX, xplus4, x64sc, CPCemu, trs80gp, and Fuse (all 2026-08-13).
+  R4 now owes ONLY the MSX2 converter.
 - R5. WAVE 4: Apple II (HGR, plus the DHGR variant), Spectrum Next,
   MEGA65; the C128 ruling executed (C64 asset reused in C64 mode; the
   VDC addendum written if ruled in).

@@ -9631,3 +9631,52 @@ foreign-cased twins somewhere else.
 
 R4 now owes only the MSX2 converter, and Stefan's answer on whether
 the A8 and Plus/4 probes ever ran after their quality rounds. Then R5.
+
+## 2026-08-13: the probe round pays every debt, and the corpus becomes the shop window
+
+SEVEN MACHINES GREEN UNDER STEFAN'S EYE IN ONE DAY: Atari 8-bit on
+Altirra and Plus/4 on xplus4 ("picture perfect": the A8 picture 8 is
+the conversion the community suspected could not be automated), C64 on
+x64sc and CPC on CPCemu ("just as I expected and remember them"), the
+Model 4 on trs80gp, MSX1 on openMSX, and the Spectrum's new
+four-picture cycle on Fuse (his hand art 8 and 14, then the automated
+black and white of both). Every probe pair had lagged its approved
+converter by whole quality rounds; all were regenerated from the
+golden-frozen current output, machine-verified where a harness exists,
+and judged on the emulator bench Stefan ruled this same day: Fuse,
+CPCemu, Altirra under Wine, VICE, openMSX, trs80gp. ZEsarUX is retired
+from the human gate ("it let so many bugs pass"); picture 8 is the
+benchmark scene on every machine.
+
+THE CORPUS CURRENCY RULE, Stefan's ruling, now standing: the committed
+corpora and previews are quality reporting to the outside world; "no
+one will give arc_image a test run, they look at the corpus to get a
+first idea." Measurement showed every 8-bit corpus directory stale
+(the C64 by 40% of pixels, the P4 by an encoding convention so old the
+files mis-decoded). All regenerated: c64, cpc, p4, a8, trsm4, the ms1
+corpus created, stress-out across all ten converter targets, the cloak
+set, and some 200 previews. THE ZX3 CORPUS IS NOW HIS OWN HAND ART,
+brought in through the author loop and hand-stamped, exactly what the
+Spectrum ruling promises authors; the automated black-and-white route
+shows beside it in previews/zx3/auto.
+
+THE BEACH VINDICATION, his story worth keeping: the early days tuned
+the beach stress picture one image at a time, then he flipped to
+corpus-first optimization and the whole family improved. Today the
+freshly regenerated beach conversion appeared on the CPC bench by
+accident, and he asked whether it was the new one because it "looked
+legit like the best conversion that I ever saw of it." It was the new
+one, proven by arithmetic. Get the corpus right and the stress image
+follows.
+
+ONE SCAR, RECORDED IN FULL: a resync script assumed the .TR4 suffix
+was a retired tag; the truth is the opposite (ARC<id>.TR4 is the Model
+4's shipping name, his 1.27.0 ruling from Shawn's report), and three
+untracked stress files were deleted and rewritten under wrong names.
+Repaired within the hour, correct names, current content, nothing
+hand-made lost. His rule, verbatim, now in the working memory: "Make
+sure this stuff doesn't happen again. If you are not sure about
+something you ask me."
+
+B12 after today: R2 through R4 owe nothing but the MSX2 converter.
+Then R5.
