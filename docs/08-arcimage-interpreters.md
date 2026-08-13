@@ -854,7 +854,11 @@ LESSONS THE PROBE PAID FOR (beyond the type-4 one above):
   no OS to return to, and a final freeze reads as a crash.
 
 ASSETS. `<id>.ZX3` beside the story. The standard test pair: 9.ZX3
-(mode 9), 12.ZX3 (mode 12).
+(mode 9), 12.ZX3 (mode 12), Stefan's hand-authored picture 8 through
+the scr/unscr author loop (header byte 15 stamped); the probe's review
+cycle adds his picture 14 and the automated black-and-white
+conversions of both scenes (art14.ZX3, bw8.ZX3, bw14.ZX3), so one pass
+shows the loader, the hand-art path, and the automated path together.
 
 MEMORY. The 2K ring: the entire decode working set (the R3 staging
 buffer of 3072 bytes is retired); attributes decode straight to the
@@ -949,7 +953,7 @@ streamed from disc in sector bites rather than held whole. The keyboard
 is read through the PPI/AY row scan (the probe's anykey is the
 reference).
 
-### C.7 TRS-80 Model 4 (target id 15, tag TRSM4, files `<id>.TRSM4`)
+### C.7 TRS-80 Model 4 (target id 15, tag TRSM4, files `ARC<id>.TR4`)
 
 The first target whose interpreter lives outside the family: Shawn
 Sijnstra builds and maintains Canopus, the Model 4 engine. The TARGET
@@ -1221,3 +1225,73 @@ against such a pair verifies nothing about consistency.
 MEMORY. The 2K ring; zero page for the decoder and the walk; the
 matrices and bitmap in their display homes. The compressed source is
 read strictly forward and may be streamed from disk in sector bites.
+
+### C.10 MSX1 (target id 7, tag MS1, files `<id>.MS1`)
+
+Probe: [arc_image/probes/ms1/](../arc_image/probes/ms1/), source
+`probe.asm` with the shared ring decoder
+[arc_image/probes/dzx0r_z80.asm](../arc_image/probes/dzx0r_z80.asm)
+carried unchanged, the embedded test pair 9.MS1 and 12.MS1, and
+`mk_disk.py` (a bootable 720K Disk BASIC .dsk, pure Python:
+AUTOEXEC.BAS fences BASIC with CLEAR and BLOADs the probe with `,R`).
+Build: `sjasmplus probe.asm` then `python3 mk_disk.py`; run: openMSX
+with the disk in drive A (any MSX1 with a drive; the bench machine is
+a Sony HitBit). The full probe is executed end to end on a mini-Z80
+with a TMS9918A write model (`run_probe.py`: the port pair's register
+and address latches, the data port's auto-increment) before any
+emulator pass: VRAM and the register file byte-exact for both modes.
+
+VIDEO. TMS9918A Screen 2 (Graphics II), the three-thirds tile mode.
+The probe's register file, written once: R0 = $02 (M3), R1 = $C0
+(16K, display on, no interrupts), R2 = $06 (name table $1800), R3 =
+$FF (color table $2000, full), R4 = $03 (pattern table $0000, full),
+R5 = $36 and one byte 208 at $1B00 (sprites terminated), R6 = $07,
+R7 = $01 (backdrop black). The band is 256x72 (mode 9) or 256x96
+(mode 12) at the top of the screen: tile rows 0..8 or 0..11, 8 bytes
+per 8x8 tile, 32 tiles per row. The name table is IMPLICIT: the
+loader writes the identity (0..255, three times, one per third) once
+at startup and never touches it again; the band's tiles fill the
+pattern and color tables from the top, and clearing both tables to
+zero beforehand keeps every row below the band on the black backdrop
+(color 0 is transparent, and the backdrop shows through).
+
+CODEC. ZX0 (part B) under the 2048 window guarantee, ring-decoded.
+This is the friendliest emit of the whole family: BOTH sections
+stream to the VDP data port, whose address auto-increments on every
+write, so the emit vector is two instructions (`out`, `ret`) and
+there is no walk state at all. Set the VRAM write address to $0000
+before the bitmap section and to $2000 before the color section;
+decode; done. The decoder's per-byte pace through the ring satisfies
+the TMS9918A's VRAM access spacing with no explicit delays (proven
+on openMSX; the probe adds none).
+
+SECTIONS: two, both in name order, 2304 bytes each in mode 9, 3072
+in mode 12.
+
+- bitmap (type 1): the Screen 2 pattern table for the band's tiles,
+  8 bytes per tile, bit 7 the leftmost pixel.
+- color (type 3): the matching color table, one byte per pattern
+  byte: foreground nibble high, background nibble low, TMS9918A
+  color indices (1..15; 0 is transparent and shows the backdrop).
+
+CONVERSION (the arcimg side, for the record): an exact per-octet
+two-color solve over the source pixels with the tint-loyalty
+distance, the dark sanctuary, and the earned-salience moon rule; the
+window is columns 24..279 of the master, top-anchored (the attribute
+geometry ruling).
+
+Z-COLOURS. The TMS9918A's fixed 15 colors carry the standard set
+well enough for text: map per the part A contract, and render the
+interpreter's text below the band in whatever ink the screen model
+chooses; the band's own colors live entirely in its color table and
+are not the interpreter's concern.
+
+ASSETS. `<id>.MS1` beside the story (MSX-DOS and Disk BASIC both
+live happily inside 8.3). The standard test pair: 9.MS1 (mode 9),
+12.MS1 (mode 12), picture 8 of the corpus, the mode-9 file the top
+slice of the mode-12 conversion (arcimg slice9), per the family
+doctrine.
+
+MEMORY. The 2K ring: the entire decode working set; VRAM is
+port-addressed and never read back. The compressed source is read
+strictly forward and may be streamed from disk in sector bites.
