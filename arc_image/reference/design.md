@@ -481,10 +481,32 @@ method). Naming: R for retro.
   chromatic pays to fall into a substantially darker neutral). The
   residual artifacts of that round (row-oscillation stripes in mottled
   regions, picture 7's curtain two-blues contrast) were RULED CLOSED as
-  super minor by Stefan, 2026-08-13: no further machinery. The openMSX
-  probe is still owed.
+  super minor by Stefan, 2026-08-13: no further machinery.
+  THE OPENMSX PROBE: GREEN UNDER STEFAN'S EYE (2026-08-13, openMSX
+  21.0, Sony HB-75P with a disk drive, picture 8's approved conversion,
+  the 9/12 cycle). The probe (arc_image/probes/ms1/) is the reference
+  MSX1 loader for the format and the friendliest of the family: Screen
+  2 set up with cleared tables and the implicit identity name table,
+  then BOTH sections stream through the SAME ring decoder as the
+  Spectrum and CPC probes to the VDP data port, whose auto-increment
+  does all the walking; the emit vector is two instructions and the
+  decoder's per-byte pace satisfies the TMS9918A's VRAM access spacing
+  with no explicit delays. Verified before the emulator by the probe's
+  own mini-Z80 simulation with a TMS9918A write model (run_probe.py:
+  VRAM and the register file byte-exact for both pairs). The pairs are
+  the corpus-gate conversion of picture 8 (12.MS1 from the approved
+  converter, 9.MS1 its slice9 top slice on the fixed slicer). The
+  DELIVERY VEHICLE: a bootable 720K Disk BASIC .dsk (AUTOEXEC.BAS
+  fences BASIC below $9000 and BLOADs the probe with ,R), written
+  deterministically by mk_disk.py in the probe directory because
+  FictionTools' dsktool segfaults on create (its reader still works
+  and cross-validated the image: listing, extraction byte-identical);
+  the reference repo is never modified from here, so the builder is
+  ours, mk_plus3-manner.
   Done-test: corpus conversions approved; probes green in atari800,
-  openMSX, and xplus4, both modes.
+  openMSX (DONE 2026-08-13), and xplus4, both modes. Whether the A8
+  and Plus/4 probes ran after their quality rounds is still an open
+  question with Stefan.
 - R5. WAVE 4: Apple II (HGR, plus the DHGR variant), Spectrum Next,
   MEGA65; the C128 ruling executed (C64 asset reused in C64 mode; the
   VDC addendum written if ruled in).

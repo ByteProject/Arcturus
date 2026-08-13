@@ -9601,3 +9601,33 @@ longer session-only harness.
 
 Still owed on B12: the openMSX probe (R4), MSX2, and the A8/Plus/4
 post-quality-round probe question. The ZX3 probe debt is PAID.
+
+## 2026-08-13: the openMSX probe, green on the HitBit
+
+R4's standing debt is paid: Stefan's verdict on openMSX 21.0 (his Sony
+HB-75P with a disk drive) is green for picture 8's approved MSX1
+conversion, the 9/12 cycle. The probe is the reference MSX1 loader for
+the format, and the friendliest of the whole family: Screen 2 with the
+implicit identity name table, then both sections stream through the
+SAME ring decoder the Spectrum and CPC probes use, straight to the VDP
+data port; the port's auto-increment does all the walking, so the emit
+vector is two instructions and there is no walk state at all.
+
+The method held from the Spectrum round: the mini-Z80 simulation (now
+with a TMS9918A write model) proved VRAM and the register file
+byte-exact for both pairs BEFORE the emulator, so the hand-off was
+about pixels, not loader bugs. The delivery vehicle is a bootable Disk
+BASIC .dsk; FictionTools' dsktool segfaults on create, and the
+reference repo is never modified from here, so mk_disk.py writes the
+720K FAT12 image itself, mk_plus3-manner, and dsktool's still-working
+reader cross-validated it (listing and extraction byte-identical, an
+INDEPENDENT check, the circularity lesson applied the same day it was
+learned).
+
+One self-inflicted scar for the record: macOS's case-insensitive
+filesystem let an extracted PROBE.BIN overwrite probe.bin during
+validation, and a cleanup deleted it; one reassembly restored it. Copy
+foreign-cased twins somewhere else.
+
+R4 now owes only the MSX2 converter, and Stefan's answer on whether
+the A8 and Plus/4 probes ever ran after their quality rounds. Then R5.

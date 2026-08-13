@@ -294,7 +294,7 @@ def test_committed_corpus_honors_the_window_guarantee():
     roots = ("arc_image/c64", "arc_image/cpc", "arc_image/zx3", "arc_image/a8",
              "arc_image/trsm4",
              "arc_image/probes/c64", "arc_image/probes/cpc",
-             "arc_image/probes/zx3")
+             "arc_image/probes/zx3", "arc_image/probes/ms1")
     base = os.path.join(os.path.dirname(__file__), "..")
     checked = 0
     for root in roots:
