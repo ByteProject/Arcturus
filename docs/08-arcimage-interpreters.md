@@ -1,6 +1,6 @@
 # arc_image for interpreter authors: the contract, the format, the loaders
 
-Version 1.2
+Version 1.3
 
 This is the implementer's guide to arc_image, the optional picture band in
 Arcturus games. Everything you need to support it is here: this document,
@@ -481,8 +481,8 @@ adapted 8086 and 68000 versions as they convert to the codec.
 
 6502 and Z80 RLE decoders land with their waves' chapters if a target
 chooses codec 0; for ZX0 use the published decompressors (the official
-Z80 versions ship with ZX0 itself; 6502 and Z80 versions land in the
-probes with wave 2's chapters).
+Z80 versions ship with ZX0 itself) or the ring variants in the probe
+directories (`dzx0r_z80.asm`, `dzx0r_6502.asm`).
 
 ## The retro screen: the fixed band, the stamp, and the gap
 
@@ -836,29 +836,16 @@ Z-COLOURS. The fixed 15 carry every Z-machine colour. The interpreter's
 text lives in the attribute rows below the band; the art's attributes
 are never shared with text, so nothing needs aligning.
 
-LESSONS THE PROBE PAID FOR (beyond the type-4 one above):
-
-- A bare-metal program must claim its own stack FIRST: sjasmplus's 48K
-  SAVESNA parks SP inside the screen area, and clearing the screen then
-  wipes the return addresses (the first black-screen build).
-- Snapshot formats carry a MACHINE: loading a 48K .sna downgrades the
-  emulated machine to a 48K Spectrum, and the 128K .sna runs as a plain
-  128k. For machine-exact +3 verification use ZEsarUX's remote protocol
-  instead: `--enable-remoteprotocol`, then `enter-cpu-step`,
-  `load-binary <absolute path> 32768 0`, `set-register PC=8000H`,
-  `exit-cpu-step`. Register values are HEX WITH THE H SUFFIX (decimal
-  parses wrong), paths must be absolute (ZEsarUX chdirs into its app
-  bundle), and send ONE command per connection: a multi-command pipe
-  races the parser.
-- A probe should loop its pictures (9, 12, 9, ...): a bare Spectrum has
-  no OS to return to, and a final freeze reads as a crash.
+ONE MORE PITFALL (beyond the type-4 one above): a bare-metal loader
+must claim its own stack before it touches the screen. An inherited SP
+may sit inside the display file, and clearing the screen then wipes
+the return addresses.
 
 ASSETS. `<id>.ZX3` beside the story. The standard test pair: 9.ZX3
-(mode 9), 12.ZX3 (mode 12), Stefan's hand-authored picture 8 through
-the scr/unscr author loop (header byte 15 stamped); the probe's review
-cycle adds his picture 14 and the automated black-and-white
-conversions of both scenes (art14.ZX3, bw8.ZX3, bw14.ZX3), so one pass
-shows the loader, the hand-art path, and the automated path together.
+(mode 9) and 12.ZX3 (mode 12), hand-authored art brought in through
+the scr/unscr loop (header byte 15 stamped); beside them art14.ZX3,
+bw8.ZX3, and bw14.ZX3 cover the hand-authored and the automated form
+of two scenes.
 
 MEMORY. The 2K ring: the entire decode working set (the R3 staging
 buffer of 3072 bytes is retired); attributes decode straight to the
@@ -866,10 +853,6 @@ attribute file. The compressed section is read strictly forward, so it
 may be streamed from disc in sector bites rather than held whole.
 
 ### C.6 Amstrad CPC (target id 6, tag CPC, files `<id>.CPC`)
-
-One tooling note before you start: ZEsarUX cannot load a CPC snapshot.
-Its .sna reader is Spectrum-only and will tell you the file is corrupt.
-The v1 snapshot the build emits is for the WinAPE family instead.
 
 Probe: [arc_image/probes/cpc/](../arc_image/probes/cpc/), source
 `probe.asm` with the ring decoder
@@ -1058,9 +1041,7 @@ THE DLI DISCIPLINE, every clause paid for on the metal:
   the CPU roughly every other cycle, and a 33-cycle prologue rode
   that starvation to the WSYNC deadline at cycle 105: fires 0-9
   squeaked in and the last fire tipped past it, painting its boundary
-  one row late, stably. The verdict probe measured it on VCOUNT:
-  entry on time, stores a scan line late. Ten cycles to the wait,
-  always.
+  one row late, stably. Ten cycles to the wait, always.
 - The stores stream out AFTER the release, through the horizontal
   blank and the next line's DMA-free head: COLBK from the held
   register, then load/store pairs for the three playfields, done
@@ -1092,8 +1073,7 @@ DLI chain is lying to itself.
 
 THE LAYOUT RULE. The bitmap decodes into its 4K home ($9000 in the
 probe; any 4K-clean base) and is wiped before every draw; embedded
-assets live BELOW it. And one assembler trap that cost a session its
-calm: acme's `>` binds tighter than `+`, so the wipe bound must be
+assets live BELOW it. And an assembler trap: acme's `>` binds tighter than `+`, so the wipe bound must be
 written `#(>BMP) + $0f`; the unbracketed form wiped 64K of address
 space through the POKEY registers, audibly.
 
@@ -1136,11 +1116,9 @@ Probe: [arc_image/probes/p4/](../arc_image/probes/p4/), source
 the embedded test pair 9.P4 and 12.P4 (plus pic12.P4, a second
 picture on the third keypress). Build (ACME):
 `acme -f cbm -o probe.prg probe.asm`; run: `xplus4 -autostart
-probe.prg`. Verified pixel-exact on VICE against the corpus renders,
-all three screens. Two calibration companions live beside it:
-`palette.asm` (the staircase that measured the palette) and the
-conventions quadrant probe (in the session record), which together
-determined everything below that the documentation alone did not.
+probe.prg`. A calibration companion lives beside it, `palette.asm`,
+the staircase that measured the palette: the TED facts below were
+measured on the machine, not taken from documentation.
 
 VIDEO. TED multicolour bitmap: $FF06 = $3B (bitmap, screen on, 25
 rows), $FF07 = $18 (multicolour, 40 columns), bitmap base via $FF12
@@ -1235,11 +1213,7 @@ carried unchanged, the embedded test pair 9.MS1 and 12.MS1, and
 `mk_disk.py` (a bootable 720K Disk BASIC .dsk, pure Python:
 AUTOEXEC.BAS fences BASIC with CLEAR and BLOADs the probe with `,R`).
 Build: `sjasmplus probe.asm` then `python3 mk_disk.py`; run: openMSX
-with the disk in drive A (any MSX1 with a drive; the bench machine is
-a Sony HitBit). The full probe is executed end to end on a mini-Z80
-with a TMS9918A write model (`run_probe.py`: the port pair's register
-and address latches, the data port's auto-increment) before any
-emulator pass: VRAM and the register file byte-exact for both modes.
+with the disk in drive A (any MSX1 with a drive).
 
 VIDEO. TMS9918A Screen 2 (Graphics II), the three-thirds tile mode.
 The probe's register file, written once: R0 = $02 (M3), R1 = $C0
@@ -1262,8 +1236,8 @@ write, so the emit vector is two instructions (`out`, `ret`) and
 there is no walk state at all. Set the VRAM write address to $0000
 before the bitmap section and to $2000 before the color section;
 decode; done. The decoder's per-byte pace through the ring satisfies
-the TMS9918A's VRAM access spacing with no explicit delays (proven
-on openMSX; the probe adds none).
+the TMS9918A's VRAM access spacing; the reference loader adds no
+explicit delays.
 
 SECTIONS: two, both in name order, 2304 bytes each in mode 9, 3072
 in mode 12.
@@ -1277,8 +1251,7 @@ in mode 12.
 CONVERSION (the arcimg side, for the record): an exact per-octet
 two-color solve over the source pixels with the tint-loyalty
 distance, the dark sanctuary, and the earned-salience moon rule; the
-window is columns 24..279 of the master, top-anchored (the attribute
-geometry ruling).
+window is columns 24..279 of the master, top-anchored.
 
 Z-COLOURS. The TMS9918A's fixed 15 colors carry the standard set
 well enough for text: map per the part A contract, and render the
@@ -1289,8 +1262,7 @@ are not the interpreter's concern.
 ASSETS. `<id>.MS1` beside the story (MSX-DOS and Disk BASIC both
 live happily inside 8.3). The standard test pair: 9.MS1 (mode 9),
 12.MS1 (mode 12), picture 8 of the corpus, the mode-9 file the top
-slice of the mode-12 conversion (arcimg slice9), per the family
-doctrine.
+slice of the mode-12 conversion (arcimg slice9).
 
 MEMORY. The 2K ring: the entire decode working set; VRAM is
 port-addressed and never read back. The compressed source is read

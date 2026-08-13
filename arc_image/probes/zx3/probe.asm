@@ -8,8 +8,9 @@
 ;
 ;   sjasmplus probe.asm
 ;
-; which SAVESNAs probe.sna; run in ZEsarUX (any Spectrum model; the +3 is
-; the shipping target and uses the same ULA screen). The codec is ZX0
+; which SAVESNAs probe.sna; the hand-off runs from probe.dsk instead (a
+; self-booting +3 disk built with Haumea's mk_plus3.py, payload name
+; TRITON.BIN as its boot sector demands), in Fuse. The codec is ZX0
 ; (codec 1, docs/08 part B) under the 2048-byte window guarantee, and THIS
 ; PROBE IS THE RING LOADER (R5): decode goes straight to the ULA screen
 ; through a per-byte emit, back-references come out of a 2K ring in main

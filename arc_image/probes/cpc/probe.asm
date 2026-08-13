@@ -9,7 +9,8 @@
 ;   sjasmplus probe.asm          (assembles probe.bin)
 ;   python3 build_sna.py         (wraps it into probe.sna, a v1 snapshot)
 ;
-; and run in ZEsarUX (CPC 464/6128). The codec is ZX0 (codec 1, docs/08
+; and run from probe.dsk in CPCemu (built with Haumea's mk_amsdos.py:
+; RUN"PROBE, CPC 464/6128). The codec is ZX0 (codec 1, docs/08
 ; part B) under the 2048-byte window guarantee, and THIS PROBE IS THE RING
 ; LOADER (R5, 2026-07-17): decode goes straight to the screen through a
 ; per-byte emit, back-references come out of a 2K ring in main RAM, and
