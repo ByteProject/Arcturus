@@ -466,7 +466,10 @@ thing <id> [of <kind>] in <room>, <room> ...
 ```
 
 `of <kind>` sets the parent kind; `in <location>` sets the initial tree
-position. The body is property settings, `on` handlers, an optional `grains`
+position, and the name it gives must be declared: a dangling location
+(`in truhe` with no truhe anywhere) is a compile error, never a silently
+stranded object, the same rule exits and spans follow. The body is
+property settings, `on` handlers, an optional `grains`
 block (chapter 18), `topic` blocks on a character (chapter 17), and, with
 `summon.ambience`, `ambience` blocks (chapter 22).
 

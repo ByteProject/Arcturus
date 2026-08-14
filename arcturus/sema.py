@@ -131,6 +131,7 @@ class Analyzer:
         # properties pass just filled obj.props) and the kind chains are
         # resolved (door detection).
         self._check_exits()
+        self._check_locations()
         # After the members are collected: the automatic scored bits need
         # the real attributes (fixed blocks a thing, `scored false` opts
         # out), and the award scan feeds the compiler-summed max_score.
@@ -969,6 +970,28 @@ class Analyzer:
             # that was a kind, repoint it to the first room the kind expanded to.
             if obj.location in w.kinds and expanded:
                 obj.location = expanded[0]
+
+    def _check_locations(self) -> None:
+        """Every `in <name>` must name a declared object (a field lesson,
+        2026-08-14: an example lost its Truhe declaration to an editor
+        accident and `thing schluessel in truhe` compiled SILENTLY, the key
+        stranded outside the tree). Exits and spans already refuse a
+        dangling name; the plain location was the last reference that
+        could dangle. A kind name was repointed to its first room by the
+        spans homing before this runs, so whatever is left must be a real
+        object; None stays legal (backstage), and `scope` was registered
+        as an object when anything declared it."""
+        w = self.world
+        for obj in w.objects.values():
+            if obj.location is None:
+                continue
+            if obj.location not in w.objects:
+                raise self._error(
+                    f"'{obj.name}' is placed in '{obj.location}', which is "
+                    f"not declared: the object would be stranded outside "
+                    f"the world",
+                    obj.line,
+                )
 
     def _check_exits(self) -> None:
         """Every named exit target must exist and be walkable (a field report:

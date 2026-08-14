@@ -9951,6 +9951,19 @@ ruling: `thing schluessel in truhe` with no truhe declared compiles
 SILENTLY today (the stranded object never errors); a candidate sema
 diagnostic.
 
+## 2026-08-14: a dangling `in` is a compile error now (arcc 1.6.1)
+
+The Truhe rescue's open finding, ruled fixed the same day: an object
+placed `in` a name that is not declared compiled silently and simply
+stranded outside the world, the exact failure that would have caught the
+editor accident the moment it happened. Exits learned this lesson from a
+field report long ago, spans likewise; the plain location was the last
+reference in the language that could dangle. Now it refuses at compile
+time, naming the object and the missing location, the handbook says so
+in chapter 3, and the legal shapes (a room, a container, the player,
+`scope`, backstage-by-omission) all pass untouched. Two tests beside the
+exit-validation family; full battery 1273 green.
+
 ## CHECKPOINT: the German forum round (updated per item; compaction-proof)
 
 THE PICKUP. This checkpoint is the single source for resuming the
@@ -9987,9 +10000,9 @@ DONE:
   forms resolve regardless. EN ROUTE: the working file had LOST its
   whole Truhe block before the edit (IDE buffer accident, predates the
   session's edits, proven by line offsets); restored from HEAD,
-  caught because the size DROPPED when it should grow. OPEN FINDING
-  for a ruling: `thing x in y` with y undeclared compiles silently
-  (object stranded, no sema error); candidate diagnostic.
+  caught because the size DROPPED when it should grow. The silent-strand
+  finding was ruled and FIXED same day (arcc 1.6.1, _check_locations
+  beside _check_exits): a dangling `in` errors at compile time.
 - A2: THE #TRIGGER MARKER (arcc 1.6.0, Cosmos 1.9.0). Syntax: `words
   #truhe, eiche` (parser.py words branch collects triggers; # is a
   lexer op, tokens.py; plural lists reject it). Sema _collect_members
@@ -10105,9 +10118,9 @@ dictionary flag per word (noise would clobber particle - the reason
 German "aus" could never be noise and takeall's German group needs no
 filler).
 
-SESSION STATE BEYOND THE ROUND: versions arcc 1.6.0 / Cosmos 1.9.0 /
+SESSION STATE BEYOND THE ROUND: versions arcc 1.6.1 / Cosmos 1.9.0 /
 arcimg 1.35.0 / Actaea 1.3.9 / proteus 1.0.0, all standalones
-committed and README current; suite 1271 green
+committed and README current; suite 1273 green
 (tests/actaea excluded from batch runs: curses needs a TTY). B12
 arc_image stands at R2-R4 complete plus Shawn's Agon (fifteen
 formats, twelve probe-proven); R5 (Apple II/DHGR, Next, MEGA65, C128

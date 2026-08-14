@@ -59,3 +59,30 @@ def test_the_legal_targets_pass():
         'thing oak of door in hall, vault\n    name "oak door"\n'
         '    words oak, door\n'
     )
+
+
+# --- locations: the last dangling reference (a field lesson, 2026-08-14) ----
+#
+# An example lost its Truhe declaration to an editor accident, and
+# `thing schluessel in truhe` compiled SILENTLY: the key stranded outside
+# the tree, no error, the game simply missing its object. Exits and spans
+# already refused a dangling name; `in` now does too.
+
+
+def test_a_thing_in_an_undeclared_container_is_a_compile_error():
+    with pytest.raises(ArcError, match="'key' is placed in 'chest'"):
+        _analyze(
+            'room hall\n    name "H"\n    desc "x"\n'
+            'thing key in chest\n    name "key"\n    words key\n'
+        )
+
+
+def test_the_legal_locations_pass():
+    # A room, a container, the player, and backstage (no location at all).
+    _analyze(
+        'room hall\n    name "H"\n    desc "x"\n'
+        'thing box of container in hall\n    name "box"\n    words box\n'
+        'thing key in box\n    name "key"\n    words key\n'
+        'thing coin in player\n    name "coin"\n    words coin\n'
+        'thing ghost\n    name "ghost"\n    words ghost\n'
+    )
