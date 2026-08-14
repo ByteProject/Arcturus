@@ -1,6 +1,6 @@
 # arc_image for interpreter authors: the contract, the format, the loaders
 
-Version 1.5
+Version 1.6
 
 This is the implementer's guide to arc_image, the optional picture band in
 Arcturus games. Everything you need to support it is here: this document,
@@ -1381,8 +1381,10 @@ TWO CONVENTIONS a Z80-mode loader must respect:
   parameters are LITTLE-endian; the .arc table is BIG-endian; the
   loader swaps as it speaks.
 
-CODEC. RLE (codec 0, part B), Shawn's ruling for this machine, and
-it makes this the purest loader of the whole family: THERE IS NO
+CODEC. RLE (codec 0, part B): on this machine simplicity beats
+ratio, since FAT32 storage is plentiful and a streaming loader wants
+no memory management. It makes this the purest loader of the whole
+family: THERE IS NO
 FRAMEBUFFER AND NO STAGING. The decoder's emit is the VDU write
 itself, so every decoded byte streams down the serial link directly
 into the VDP buffer; the band never exists in eZ80 RAM at all. The

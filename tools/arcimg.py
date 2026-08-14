@@ -4515,9 +4515,9 @@ class Target:
 # The 16-bit big-disk targets take LZSA2, everything else ZX0 (the codec
 # ruling; the note above lzsa2_compress has the measured trade).
 _LZSA2_TAGS = {"AMI", "AST", "DOS", "M65", "MS2", "NXT"}
-_RLE_TAGS = {"AGN"}    # Shawn Sijnstra's ruling for the Agon: RLE keeps
-                       # the eZ80 loader's memory management trivial, and
-                       # the SD card does not count bytes
+_RLE_TAGS = {"AGN"}    # the Agon standard: RLE keeps a streaming
+                       # loader's memory management trivial, and FAT32
+                       # storage does not count bytes
 
 
 def _target(tid, tag, width):
