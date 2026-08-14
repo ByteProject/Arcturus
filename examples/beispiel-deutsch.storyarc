@@ -3,38 +3,38 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// DAS GASTHAUS AM LEUCHTTURM. Ein vollständiges Beispiel auf Deutsch, das das
-// Sprachpaket von Cosmos zusammen mit mehreren Bibliotheksfunktionen zeigt. Die
-// Sprache wählt man mit `summon.language "german"`, das die deutsche Schicht
-// (german.granule) anstelle der englischen einbindet: Verben, Richtungen, Artikel
-// und alle Meldungen kommen auf Deutsch, mit Umlauten und ß, und der Artikel
-// beugt sich nach dem Fall (der/den/dem). Kompilieren und spielen:
+// THE INN BY THE LIGHTHOUSE. A complete example in German, showing the
+// Cosmos language pack alongside several library features. The language is
+// chosen with `summon.language "german"`, which compiles the German layer
+// (german.granule) in place of the English one: verbs, directions, articles,
+// and every message come out German, umlauts and ß included, and the article
+// inflects for case (der/den/dem). Compile and play:
 //
 //   arcc examples/beispiel-deutsch.storyarc -o gasthaus.z5
 //   frotz gasthaus.z5
 //
-// Was hier gezeigt wird:
-//   - die Statuszeile (summon.statusline): "Punkte" und "Züge" auf Deutsch
-//   - das Gesprächsmenü (summon.conversations) mit der Wirtin
-//   - zwei Dämonen (`every`), beide an ihren Ort gebunden: die Wanduhr schlägt
-//     im Gastraum, und am Strand wispern Stimmen im Wind
-//   - `grains`: Kulisse zum Nulltarif (das Meer, die Möwen, der Leuchtturm),
-//     und dasselbe Kulissenwort darf in mehreren Räumen vorkommen
-//   - `spans`: der Mond ist vom Hof und vom Strand aus zu sehen
-//   - ein Behälter (die Truhe), eine abgeschlossene Tür, und das Geschlecht
-//   - trennbare Verben: "schalt die Lampe an" (oder ein, oder "anmachen")
+// What this example shows:
+//   - the status line (summon.statusline): "Punkte" and "Züge" in German
+//   - the conversation menu (summon.conversations) with the innkeeper
+//   - two daemons (`every`), each bound to its place: the clock strikes in
+//     the taproom, and voices whisper in the wind on the beach
+//   - `grains`: scenery at zero cost (the sea, the gulls, the lighthouse),
+//     and the same scenery word may serve several rooms
+//   - `spans`: the moon is visible from the courtyard and the beach
+//   - a container (the chest), a locked door, and grammatical gender
+//   - separable verbs: "schalt die Lampe an" (or ein, or "anmachen")
 //
-// ZU DEN UMLAUTEN. Der Text, den der Spieler LIEST, ist voll akzentuiert, so wie
-// es sein soll; die Interpreter von Cosmos zeigen Umlaute und ß mühelos, bis
-// hinunter auf 8 Bit. Aber auf 8 Bit lassen sie sich nicht TIPPEN: darum erzeugt
-// die Falttabelle des Sprachpakets (docs/01 Kapitel 21) zu jedem Wörterbuchwort
-// mit ä/ö/ü/ß von selbst die Kreuzwortform. Man deklariert "öllampe" einmal,
-// und "oellampe" tippt sich trotzdem; dasselbe gilt für jedes Verb der Sprache.
+// ON UMLAUTS. The text the player READS is fully accented, as it should be;
+// the interpreters render umlauts and ß effortlessly, down to 8-bit
+// machines. But on 8 bits they cannot be TYPED: so the language pack's fold
+// table (docs/01 chapter 21) derives the crossword form of every dictionary
+// word containing ä/ö/ü/ß automatically. Declare "öllampe" once, and
+// "oellampe" still types; the same holds for every verb of the language.
 //
-// GESCHLECHT: Deutsch hat drei Geschlechter und keine Regel, sie aus dem Wort zu
-// erraten. Darum nennt der Autor den Artikel des Gegenstands, `der`, `die` oder
-// `das`, so wie man ihn ohnehin mitdenkt. Der Compiler leitet daraus das
-// Geschlecht ab, und der Artikel im Text beugt sich dann von selbst nach dem Fall.
+// GENDER: German has three genders and no rule to guess them from the word.
+// So the author states the object's article, `der`, `die`, or `das`, the way
+// one thinks it along anyway. The compiler derives the gender from it, and
+// the article in the text then inflects for case on its own.
 
 summon.language "german"
 summon.statusline
@@ -46,10 +46,10 @@ game
     author "Stefan Vogt"
     start  gasthaus
 
-// Zwei Dämonen, beide beim Start aufgezogen (`every` wiederholt sich; `after`
-// wäre einmalig). Jeder prüft selbst, wo der Spieler gerade steht: die Wanduhr
-// hört man nur im Gastraum, das Wispern nur am Strand. So tickt nichts durch
-// das ganze Spiel, das eigentlich an einen Ort gehört.
+// Two daemons, both wound up at the start (`every` repeats; `after` would
+// fire once). Each checks for itself where the player stands: the clock is
+// heard only in the taproom, the whispering only on the beach. So nothing
+// that belongs to one place ticks through the whole game.
 on start
     every 3 turns do uhr_schlaegt
     every 3 turns do stimmen_rufen
@@ -61,14 +61,14 @@ room gasthaus
           Truhe. Nach Osten führt eine geschlossene Tür hinaus in den Hof. Hinter dem
           Tresen mustert dich die Wirtin schweigend, als wüsste sie längst, warum du
           gekommen bist."
-    // Die Ausgänge werden nach der Richtungs-EIGENSCHAFT benannt (east, west, ...),
-    // ein fester englischer Bezeichner, genau wie `thing`, `room` oder `openable`.
-    // Der Spieler tippt das deutsche Wort ("osten"); nur der Wortschatz ist
-    // übersetzt, nicht der Name der Eigenschaft.
+    // Exits are named by the direction PROPERTY (east, west, ...), a fixed
+    // English identifier just like `thing`, `room`, or `openable`. The
+    // player types the German word ("osten"); only the vocabulary is
+    // translated, never the property name.
     east tuer
 
-    // Herd, Tresen und Wände stehen in der Beschreibung, also müssen sie sich
-    // auch untersuchen lassen: Kulisse (grains), wie am Strand.
+    // The stove, the counter, and the walls appear in the description, so
+    // they must answer EXAMINE: scenery (grains), as on the beach.
     grains
         examine, touch "herd" say "Die Glut ist fast erloschen, aber er wärmt
             noch ein wenig."
@@ -84,8 +84,8 @@ room hof
           Es riecht nach Meer, und irgendwo zwischen den Steinen zirpt noch eine
           Grille."
     west tuer
-    // Der Pfad FÄLLT nach Süden AB: die Beschreibung verspricht beide Wörter,
-    // also führen "sueden" und "runter" beide zum Strand.
+    // The path DROPS to the south: the description promises both words,
+    // so "sueden" and "runter" both lead to the beach.
     south strand
     down strand
 
@@ -101,14 +101,14 @@ room strand
           wieder und wieder, mit einem uralten Rauschen. Im Norden, den Pfad
           hinauf, liegt der Hof; weiter draußen, über den Felsen, ragt die dunkle
           Silhouette des erloschenen Leuchtturms."
-    // Der Pfad zum Hof steigt an: "norden" und "hoch" führen beide zurück.
+    // The path to the courtyard climbs: "norden" and "hoch" both lead back.
     north hof
     up hof
 
-    // Kulisse zum Nulltarif (grains): Wörter, die antworten, ohne ein eigenes
-    // Objekt zu kosten. Das Verb wird nach seiner Aktion benannt (examine,
-    // touch, smell); Kulissenwörter mit Umlaut ("möwen") bekommen ihre
-    // Kreuzwortform ("moewen") von der Falttabelle, wie jedes andere Wort.
+    // Scenery at zero cost (grains): words that answer without costing an
+    // object. The verb is named by its action (examine, touch, smell);
+    // a scenery word with an umlaut ("möwen") gets its crossword form
+    // ("moewen") from the fold table, like every other word.
     grains
         examine, touch "meer" or "see" or "wasser" or "wellen" say "Das Meer wiegt
             sich, schwarz und geduldig, als atmete es langsam."
@@ -117,9 +117,9 @@ room strand
         smell "brise" or "luft" say "Es riecht nach Salz, nach Tang und nach Weite."
         examine "möwen" or "möwe" say "Sie schlafen auf den Felsen; keine
             einzige Feder regt sich, wenn du vorbeigehst."
-        // Der Leuchtturm und die Felsen stehen in der Beschreibung, und die
-        // Wirtin redet von ihm: der Strand muss für beide eine Antwort haben,
-        // und die Antwort erklärt zugleich, warum niemand hinaufkommt.
+        // The lighthouse and the rocks appear in the description, and the
+        // innkeeper talks about it: the beach must answer for both, and
+        // the answer doubles as the reason nobody gets up there.
         examine "leuchtturm" or "turm" say "Er ragt weit draußen auf der Landzunge
             auf; den Weg dorthin hat sich das Meer geholt. Hinauf kommt niemand
             mehr."
@@ -127,9 +127,9 @@ room strand
             geschliffen. Zwischen ihnen und dem Leuchtturm hat das Meer den Pfad
             verschluckt."
 
-// Der Mond ist vom Hof und vom Strand aus zu sehen: ein einziger Gegenstand, der
-// beide Räume umspannt (spans). Er ist Kulisse, wird also nicht gelistet und nicht
-// genommen. "der Mond" ist maskulin, darum `der`.
+// The moon is visible from the courtyard and the beach: one single object
+// spanning both rooms (spans). It is scenery, so it is never listed and
+// never taken. "der Mond" is masculine, hence `der`.
 thing mond
     name "voller Mond"
     words mond, vollmond
@@ -139,9 +139,9 @@ thing mond
           werfen."
     spans hof, strand
 
-// Eine Öllampe: ihr Name wird akzentuiert gezeigt, und die Kreuzwortform
-// ("oellampe") entsteht von selbst aus der Falttabelle, tippbar auf jedem
-// 8-Bit-Rechner. "die Lampe" ist feminin, darum `die`.
+// An oil lamp: its name is shown accented, and the crossword form
+// ("oellampe") comes from the fold table by itself, typeable on any 8-bit
+// machine. "die Lampe" is feminine, hence `die`.
 thing lampe in gasthaus
     name "Öllampe"
     words öllampe, lampe, öl
@@ -151,13 +151,13 @@ thing lampe in gasthaus
     desc "Eine rußgeschwärzte Öllampe. Der Docht ist noch da, und vielleicht ein
           Rest Öl."
 
-    // `binary` + `lit`: die Bibliothek besitzt den Zustand (an/aus), koppelt
-    // das Licht, weist "ist schon an/aus" ehrlich ab und meldet den Erfolg,
-    // ganz ohne Code. Diese zwei Handler ersetzen nur den WORTLAUT der
-    // Meldung; wer den Handler übernimmt, übernimmt auch das Umlegen. Weil
-    // das Grundverb "schalt(e)" eine Partikel trägt, versteht der Parser
-    // "schalt die Lampe an", "... ein", "anmachen" und "einschalten"
-    // gleichermaßen.
+    // `binary` + `lit`: the library owns the state (on/off), couples the
+    // light, honestly refuses "is already on/off", and reports success,
+    // all with no code. These two handlers replace only the WORDING of
+    // the report; whoever takes the handler takes the flip with it. And
+    // since the base verb "schalt(e)" carries a particle, the parser
+    // reads "schalt die Lampe an", "... ein", "anmachen", and
+    // "einschalten" alike.
     on switch_on
         now self is active
         now self is lit
@@ -168,7 +168,7 @@ thing lampe in gasthaus
         now self is not lit
         say "Die Flamme erlischt, und das Dunkel rückt wieder näher."
 
-// Die Truhe: ein Behälter mit Deckel. Der Schlüssel wartet darin. `die` Truhe.
+// The chest: a container with a lid. The key waits inside. `die` Truhe.
 thing truhe of container in gasthaus
     name "Truhe aus Eiche"
     words truhe, eiche, kiste
@@ -176,31 +176,31 @@ thing truhe of container in gasthaus
     openable
     open false
 
-// Der Schlüssel: sein Name trägt einen Umlaut, und die tippbare Form ohne
-// ("schluessel") kommt aus der Falttabelle. "der Schlüssel" ist maskulin,
-// darum `der`.
+// The key: its name carries an umlaut, and the typeable plain form
+// ("schluessel") comes from the fold table. "der Schlüssel" is masculine,
+// hence `der`.
 thing schluessel in truhe
     name "Bronzeschlüssel"
     words bronzeschlüssel, schlüssel, bronze
     der
 
-// Die Tür verbindet die beiden Räume (spans, weil `door`) und wird mit dem
-// Schlüssel geöffnet. Als `door` ist sie schon `openable` und `fixed`. `die` Tür.
+// The door joins the two rooms (spans, being a `door`) and opens with the
+// key. As a `door` it is already `openable` and `fixed`. `die` Tür.
 thing tuer of door in gasthaus, hof
     name "Tür aus Eiche"
-    // Tür und Türe sind beide gutes Deutsch: beide Varianten deklariert,
-    // in der Schreibung mit Umlaut; die Kreuzwortformen (tuer, tuere ...)
-    // erzeugt die Falttabelle des Sprachpakets von selbst (docs/01
-    // Kapitel 21). Solche VARIANTEN bleiben Deklarationsarbeit: Tuere ist
-    // eine Schreibweise, Tische ist ein Plural; das weiß keine Regel.
+    // Tür and Türe are both good German: both variants declared, in the
+    // umlaut spelling; the crossword forms (tuer, tuere ...) come from
+    // the language pack's fold table by themselves (docs/01 chapter 21).
+    // Such VARIANTS stay declaration work: Tuere is a spelling, Tische is
+    // a plural; no rule can know the difference.
     words tür, türe, eichentür, eichentüre
     die
     lockable
     locked
     unseal_with schluessel
 
-// Die Wirtin: eine Figur mit Gesprächsthemen (Menü). SPRICH öffnet das Menü.
-// "die Wirtin" ist feminin, darum `die`.
+// The innkeeper: a character with conversation topics (the menu). SPRICH
+// opens it. "die Wirtin" is feminine, hence `die`.
 thing wirtin of character in gasthaus
     name "Wirtin"
     words wirtin, frau, gastwirtin
@@ -222,9 +222,9 @@ thing wirtin of character in gasthaus
         reply "In der Truhe, neben dem Herd. Nimm ihn und geh, wann du willst; mir ist
                längst alles gleich."
 
-// Die Blöcke, die die beiden Dämonen auslösen. Jeder prüft zuerst den Ort:
-// ein Dämon wird überall ausgelöst, also gehört die Frage, ob man ihn HÖRT,
-// in den Block selbst.
+// The blocks the two daemons fire. Each checks the place first: a daemon
+// fires everywhere, so the question of whether it can be HEARD belongs in
+// the block itself.
 block uhr_schlaegt()
     if here is not gasthaus
         return 0
