@@ -9815,3 +9815,86 @@ itself with its own on take_all; `continue` defers to the sweep; an
 intercepted sweep costs its turn and ends a chained line. Priced
 honestly: 104 bytes, paid only where the granule is summoned; every
 other example byte-identical.
+
+## 2026-08-14: the binary model (arcc 1.5.0, Cosmos 1.8.0)
+
+A field report noticed you could extinguish a dead lamp, in both
+shipped examples, since release. The flaw was doctrinal, not local:
+`switchable` only marked a thing and left every author to write the
+same naive handler pair, while open/shut has always been library-owned
+state. STEFAN'S RULING closed the asymmetry and renamed the idea: the
+attribute is `binary`, naming what the thing IS (only 0 or 1), not
+what you do to it; `toggleable` was considered and rejected, and
+`switchable` survives as a compatibility spelling that normalizes to
+the canon in one sema pass, so shipped games compile unchanged.
+
+The model: the library owns the state (`active`, christened by
+Stefan), flips it with default reports in all three languages, refuses
+"is already on/off" honestly in the verb contract BEFORE any handler
+(validation is never the handler's job, the pipeline's own doctrine),
+and couples light on GLOW things: binary + lit declared makes the
+default flip carry the light, so a working lamp is two declaration
+lines and no code. Flavor handlers override the default and then own
+the flip, the same split as everywhere. The already-on/off messages
+had been sitting fully translated and orphaned in all three packs,
+Spanish gender agreement included: the voice was ready years before
+the behavior.
+
+Priced honestly: games without a binary thing are BYTE-IDENTICAL
+(any_binary folds the contract, the defaults, and the messages away;
+one darkness-detector subtlety fixed en route, since the glow flip
+made every game look dark-capable until the detector learned to skip
+library-origin lit-writes). The two lamp examples pay their way and
+are repriced, dated. Full battery 1259 green.
+
+## CHECKPOINT: the German forum round (updated per item; compaction-proof)
+
+The working state for the forum-feedback round. RULES OF THE ROUND:
+one item at a time, top down; his eye and word gate each; every landed
+item updates THIS checkpoint; the forum reply is drafted together and
+posted only when everything verifies. The strategy and the thread's
+temperature are agreed in-session and deliberately NOT recorded here.
+
+DONE:
+- B: THE BINARY MODEL (arcc 1.5.0, Cosmos 1.8.0, this entry's date).
+  binary/active/glow, switchable alias, contract refusals, pack
+  reports, glow light coupling, examples reworked, 6-test file,
+  handbook rewritten, byte-identical for non-binary games.
+
+NEXT (in order, with the agreed resolutions):
+- A1: the two-noun split ("oeffne tuer aus eiche" asks): German
+  resolve_two_nouns splits at ANY particle (is_separator flag 32, kept
+  for "gib X an Y"); when a split slot is ambiguous/empty and the
+  WHOLE range resolves as one noun (it scores 2:1 today), the
+  one-noun reading must win. Fall-back after failed split, no
+  compiler change expected.
+- A2: the #trigger word marker: `words #truhe, eiche, kiste`; a
+  trigger decides a tie ONLY when exactly one tied candidate's
+  trigger was typed (two typed triggers still ask, Stefan's rule);
+  lexer accepts #word in words lists, matcher tie-break, handbook.
+- D: beispiel-deutsch declares tuere/tuere variants in words (one
+  line; RULED: no morphological automation, Tuer/Tuere is declaration
+  work like Tisch/Tische).
+- DEPTH F: automatic crossword umlauts: every dictionary word with
+  ae/oe/ue/ss gains its umlaut sibling automatically (and ss for
+  eszett: Spass/Spaß), both typed forms one entry; prune the doubled
+  declarations in german.granule and the examples after.
+- DEPTH C: pronouns done right: ihm binds neuter (das Kind) as well
+  as masculine; sie binds plural referents; NO narrow fixes (Stefan:
+  if it has to be a depth round, it is a depth round).
+- DEPTH G: pronominal adverbs (damit/darauf/daran family).
+- DEPTH H: adjective declension (declare the stem once, endings fold
+  in matching).
+- I: the German example enhanced or replaced (shape decided after the
+  round; Gasthaus was never meant as a showcase).
+- LATER: Hibernated 1 auf Deutsch (port first, translation second,
+  Stefan's native pass gates; the true showcase answer).
+- FINAL: the forum reply (professional part only; Stefan posts his
+  own personal words separately, then challenges the thread to
+  contribute rather than hunt).
+
+MEASURED FACTS the round rests on (do not re-derive): "untersuche
+tuer aus eiche" resolves 2:1 today (one-noun path healthy); the ask
+comes ONLY from the two-noun split at the particle; "gehe nord" and
+"gehe norden" both already work; "tuere" is unknown until declared;
+the double-off bug was real in both examples and is fixed by B.

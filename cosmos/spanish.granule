@@ -1794,6 +1794,12 @@ block msg_no_switch()
             return 0
     say "${The noun} no se puede encender."
 
+block msg_switched_on()
+    say "Enciendes ${the noun}."
+
+block msg_switched_off()
+    say "Apagas ${the noun}."
+
 block msg_already_on()
     if any_pluribus is 1
         if noun is pluribus

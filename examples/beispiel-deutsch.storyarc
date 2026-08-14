@@ -146,20 +146,25 @@ thing lampe in gasthaus
     name "Öllampe"
     words oellampe, öllampe, lampe, oel, öl
     die
-    switchable
+    binary
     lit false
     desc "Eine rußgeschwärzte Öllampe. Der Docht ist noch da, und vielleicht ein
           Rest Öl."
 
-    // `switchable` markiert die Lampe nur; das Verhalten gehört dem Autor (ohne
-    // Handler würde "anschalten" abgelehnt). Weil das Grundverb "schalt(e)" eine
-    // Partikel trägt, versteht der Parser "schalt die Lampe an", "... ein",
-    // "anmachen" und "einschalten" gleichermaßen.
+    // `binary` + `lit`: die Bibliothek besitzt den Zustand (an/aus), koppelt
+    // das Licht, weist "ist schon an/aus" ehrlich ab und meldet den Erfolg,
+    // ganz ohne Code. Diese zwei Handler ersetzen nur den WORTLAUT der
+    // Meldung; wer den Handler übernimmt, übernimmt auch das Umlegen. Weil
+    // das Grundverb "schalt(e)" eine Partikel trägt, versteht der Parser
+    // "schalt die Lampe an", "... ein", "anmachen" und "einschalten"
+    // gleichermaßen.
     on switch_on
+        now self is active
         now self is lit
         say "Die Öllampe fängt mit einem leisen Zischen Feuer."
 
     on switch_off
+        now self is not active
         now self is not lit
         say "Die Flamme erlischt, und das Dunkel rückt wieder näher."
 

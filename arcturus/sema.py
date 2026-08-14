@@ -62,6 +62,7 @@ class Analyzer:
     # -- entry -------------------------------------------------------------
 
     def analyze(self) -> wm.World:
+        self._normalize_aliases()
         self._collect()
         # An object's category follows its kind chain: `thing parlor of
         # lounge`, where lounge is a kind OF ROOM, makes parlor a ROOM in
@@ -169,7 +170,8 @@ class Analyzer:
         # so it gets a picture, never a stale leftover from the last lit room).
         dark_room = self._first_dark_room()
         self.world.uses_darkness = (
-            dark_room is not None or self._sets_attr("lit", negated=True)
+            dark_room is not None
+            or self._sets_attr("lit", negated=True, skip_library=True)
         )
         if (
             self.world.uses_images
@@ -310,13 +312,48 @@ class Analyzer:
             visit(n)
         return found[0]
 
-    def _sets_attr(self, attr: str, negated: bool = False) -> bool:
+    def _normalize_aliases(self) -> None:
+        """Rewrite property-name aliases across the whole program before any
+        pass reads a name: `switchable` becomes `binary` (the binary model;
+        one property, one attribute, two spellings) wherever it appears - a
+        declaration line, an `is` test, a `now`, a when-clause. Shipped
+        games keep compiling; every later pass sees only the canon."""
+        import dataclasses
+
+        def visit(node):
+            if isinstance(node, ast.Name) and node.ident == "switchable":
+                node.ident = "binary"
+            if isinstance(node, ast.PropertyDecl) and node.name == "switchable":
+                node.name = "binary"
+            if isinstance(node, ast.Now) and node.prop == "switchable":
+                node.prop = "binary"
+            if not dataclasses.is_dataclass(node):
+                return
+            for f in dataclasses.fields(node):
+                v = getattr(node, f.name)
+                if isinstance(v, list):
+                    for item in v:
+                        if dataclasses.is_dataclass(item):
+                            visit(item)
+                elif dataclasses.is_dataclass(v):
+                    visit(v)
+
+        for n in self.program.decls:
+            visit(n)
+
+    def _sets_attr(self, attr: str, negated: bool = False,
+                   skip_library: bool = False) -> bool:
         """Does any `now ... is <attr>` (or, with negated=True, `now ... is
         not <attr>`) appear in the program? The same generic walk as
         _moves_to_scope; used to flip a compile-time any_X fold for an
         attribute state that is only ever reached at runtime, never declared
         (set for beyond; cleared for lit, where clearing is what makes
-        darkness reachable in an otherwise lit game)."""
+        darkness reachable in an otherwise lit game). skip_library ignores
+        library-origin declarations: Cosmos itself clears thing-lit in the
+        binary model's glow coupling, which can only ever produce darkness
+        alongside a dark-capable room, and the dark-room half of the
+        darkness test already catches that; without the skip, every game
+        would carry the light watch for a branch that folds away."""
         found = [False]
 
         def visit(node):
@@ -338,6 +375,8 @@ class Analyzer:
         for n in self.program.decls:
             if found[0]:
                 break
+            if skip_library and getattr(n, "origin", None) == "library":
+                continue
             visit(n)
         return found[0]
 
@@ -1140,6 +1179,14 @@ class Analyzer:
         for obj in w.objects.values():
             if obj.decl is not None:
                 self._collect_members(obj.decl.members, obj.name, obj.props, False)
+            # The glow derivation (the binary model): a binary that also
+            # declares `lit` is a light source whose light follows its
+            # state, so the library's switch defaults flip both. Derived
+            # here so no author ever writes it; kinds contribute through
+            # their collected props like everything else.
+            if "binary" in obj.props and "lit" in obj.props                     and "glow" not in obj.props:
+                obj.props["glow"] = ast.PropertyDecl(
+                    name="glow", form=ast.PROP_BOOL)
 
     def _image_id(self, m: ast.PropertyDecl) -> int:
         """The numeric image id from `arc_image <id>`: the id IS the resource
@@ -1221,6 +1268,11 @@ class Analyzer:
                                 f"`{m.name} block` to word it by state",
                                 file=sys.stderr,
                             )
+                # `switchable` is the compatibility alias for `binary`: one
+                # property, one attribute, two spellings; shipped games keep
+                # compiling while the language says what the thing IS.
+                if m.name == "switchable":
+                    m.name = "binary"
                 # A German gender article (der / die / das) is not a property in its
                 # own right: it states the object's gender the way an author thinks
                 # of it, and maps to the gender attributes. der is masculine, the

@@ -43,7 +43,7 @@ def test_object_numbering_starts_after_player():
 def test_attribute_and_property_numbering():
     layout = layout_of(WORLD_SRC)
     # Boolean properties become attributes; value properties become properties.
-    assert "switchable" in layout.attr_number
+    assert "binary" in layout.attr_number  # switchable normalizes to it
     assert "lit" in layout.attr_number
     assert "value" in layout.prop_number
     assert "name" not in layout.prop_number  # name is the short name
@@ -53,9 +53,9 @@ def test_true_boolean_sets_attribute_bit():
     layout = layout_of(WORLD_SRC)
     num = layout.obj_number["lamp"]
     entry = 63 * 2 + (num - 1) * 14
-    attr = layout.attr_number["switchable"]
+    attr = layout.attr_number["binary"]
     byte = layout.table[entry + attr // 8]
-    assert byte & (0x80 >> (attr % 8))  # switchable is set on the lamp
+    assert byte & (0x80 >> (attr % 8))  # switchable normalized to binary, set
     # lit is false, so its bit is clear.
     lit = layout.attr_number["lit"]
     assert not (layout.table[entry + lit // 8] & (0x80 >> (lit % 8)))

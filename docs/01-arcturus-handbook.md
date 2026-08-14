@@ -542,7 +542,7 @@ thing lantern in hallway
     name  "brass lantern"
     words brass, lantern, lamp
     desc  "A battered brass lantern."
-    switchable
+    binary
 ```
 
 The object identifier (`lantern`) is the code symbol; the `name` property is
@@ -670,10 +670,11 @@ Kinds are templates supplying default properties and shared handlers:
 
 ```
 kind lamp_kind of thing
-    switchable
+    binary
     lit false
 
     on switch_on
+        now self is active
         now self is lit
         say "Light floods out."
 ```
@@ -793,7 +794,8 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `shiftable` | The thing can be pushed through an exit, the player following (PUSH CRATE NORTH). Section 10. |
 | `restless` | A background performer: its `on each_turn` fires EVERY turn, wherever the object is, not only in scope. Work follows the performer's nature; prose follows scope: what a restless object prints while out of scope is discarded by the system, so the handler writes its `say` unconditionally and the player hears it exactly when the performer shares their scene: present, arriving, or leaving before their eyes (in scope at either end of its turn); a turn taken wholly offstage is silence. It never fires twice. It is STATE: declare `restless` to be born performing, or arm and disarm at runtime (`now guard is restless`, `now guard is not restless`), with no declaration needed anywhere; a `when` guard on the handler still decides whether an armed performer acts this turn. A game with no restless object pays nothing (the walk, the mute buffer, everything folds away). Section 12; worked example: [examples/features/daemons-and-timers.storyarc](../examples/features/daemons-and-timers.storyarc). |
 | `pluribus` | Grammatical number: ONE object that is grammatically plural (the scissors, the boots; e pluribus unum, many speaking through one). The articles read it ("some scissors"; German's bare indefinite plural and die/die/den/der by case; Spanish los/las, unos/unas), `${is x}` agrees (is/are, ist/sind, está/están), and the core messages conjugate ("The scissors stay exactly where they are."). NOT the plurals granule, whose group words sweep several distinct singular objects ("take coins"). Costs nothing in a game that never sets it. |
-| `switchable` | Marks a thing the `switch` verb targets, but the effect is the author's: unlike `openable` or `edible`, there is no built-in on/off behavior (the library has no way to know what turning a thing on should do), so give the object `on switch_on` and `on switch_off` handlers. Without them, switching it is refused (`msg_no_switch`). The attribute itself only advertises intent. |
+| `binary` | A two-state device: a lamp, a lever, a valve, a machine. The library owns the state the way it owns open/shut: switching it on sets `active` and reports; switching it off clears it; asking for the state it already holds is refused honestly ("is already on/off") in the verb contract, before any handler. A binary that also declares `lit` is a GLOW thing: the default flip carries the light with it, so a working lamp is these two lines and no code. An author's own `on switch_on` / `on switch_off` handler overrides the default for flavor and then owns the flip (`now self is active`, plus `now self is lit` on a glow thing): validation stays with the library, the response is yours, the same split as everywhere in the pipeline. `switchable` is accepted as a compatibility spelling of `binary`. |
+| `active` | The binary state, tested like any attribute (`if noun is active`) and flipped by the library's switch defaults, or by your flavor handlers. |
 | `openable` | Can be opened and closed; the `open` / `close` verbs apply. |
 | `open` | Currently open (a container or door). Set by `open`, cleared by `close`. A closed container hides its contents from scope. |
 | `clear` | A see-through container (a glass jar): its contents are in scope and referable even when closed. An open or `clear` container exposes its contents; a closed opaque one shields them. |
@@ -4864,7 +4866,7 @@ summon.use
 ```
 
 The accessibility hub, from Hibernated 2: USE X guesses the obvious
-action from what X is (edible eats, wearable wears, switchable switches
+action from what X is (edible eats, wearable wears, binary switches
 on, a closed openable opens), and coaches toward a real verb otherwise;
 USE X WITH Y unlocks a lockable Y with X and coaches otherwise. ACTIVATE,
 OPERATE, ENGAGE, and START come along as synonyms. An object's own `on use`
@@ -5200,15 +5202,17 @@ room hallway
 thing lantern in hallway
     name  "brass lantern"
     words brass, lantern, lamp
-    desc  "A battered brass lantern, switchable if you care to."
-    switchable
+    desc  "A battered brass lantern, and it still works."
+    binary
     lit   false
 
     on switch_on
+        now self is active
         now self is lit
         say "The lantern catches with a soft hiss."
 
     on switch_off
+        now self is not active
         now self is not lit
         say "The flame gutters out, and the dark leans in."
 
@@ -5505,7 +5509,7 @@ chapter 8); it is not itself a direction.
 Standard kinds: `thing`, `room`, `container`, `supporter`, `door`, `character`.
 
 Standard boolean properties: `fixed`, `scenery`, `hidden`, `concealed`,
-`wearable`, `worn`, `lit`, `edible`, `named`, `an`, `clear`, `seen`, `switchable`,
+`wearable`, `worn`, `lit`, `edible`, `named`, `an`, `clear`, `seen`, `binary`, `active`,
 `openable`, `open`, `lockable`, `locked`, `visited`, `moved`, `animate`. The full
 table with each one's usage is in chapter 5.
 

@@ -28,9 +28,13 @@ GAME = (
     '    name "desk lamp"\n'
     '    words desk, lamp\n'
     '    switchable\n'
+    # the compat alias for binary; flavor handlers own the flip, and the
+    # contract refuses dishonest repeats, so the commands below alternate
     '    on switch_on\n'
+    '        now self is active\n'
     '        say "The lamp glows."\n'
     '    on switch_off\n'
+    '        now self is not active\n'
     '        say "The lamp dims."\n'
 )
 

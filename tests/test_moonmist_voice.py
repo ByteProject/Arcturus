@@ -181,7 +181,9 @@ DUAL_GAME = (
 def test_a_dual_word_serves_the_verb_and_the_grain():
     out = _run(["light lamp", "x light", "smell smell", "x glow"],
                game=DUAL_GAME)
-    assert "switching" in out  # LIGHT LAMP reached the switch machinery
+    # LIGHT LAMP reached the switch machinery: under the binary model the
+    # library default now flips the lamp and reports, rather than refusing.
+    assert "switch the brass lamp on" in out
     assert out.count("A pale wash from nowhere.") == 2  # X LIGHT and X GLOW
     assert "Sharp and mineral." in out  # SMELL SMELL: verb then dual grain
 

@@ -62,6 +62,7 @@ INTRINSICS = frozenset({
     # object spans (a static-if, see _if).
     "spans_addr", "spans_count", "any_spans", "any_doors", "any_named",
     "any_pluribus", "any_beyond", "any_death", "any_alter", "any_grains",
+    "any_binary",
     "any_allwords", "any_tagged", "any_scored", "any_scoperoom", "scope_room",
     # any_enterable is 1 when any object is a supporter or a container (by
     # kind chain), so the nested-location suffix on the room title and the
@@ -1341,6 +1342,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
     elif name == "any_beyond":
         # any_beyond(): 1 if any object is beyond; the touch guards fold.
         _place(rt, Const(_any_beyond(ctx)), dest)
+    elif name == "any_binary":
+        # any_binary(): 1 if any object is binary (or its alias switchable),
+        # so the switch contract folds away in a game with nothing to flip.
+        _place(rt, Const(_any_binary(ctx)), dest)
     elif name == "set_colour":
         opa, opb, t = _two_operands(rt, ctx, args[0], args[1])
         rt.op("set_colour", opa, opb)
@@ -1852,6 +1857,13 @@ def _any_alter(ctx) -> int:
         ) else 0
         w._has_alter_memo = memo
     return memo
+
+
+def _any_binary(ctx) -> int:
+    """The compile-time binary flag: 1 if any object declares `binary` (or
+    the switchable alias, the same property). The switch contract and the
+    default flip handlers fold away otherwise."""
+    return 1 if any("binary" in o.props for o in ctx.world.objects.values()) else 0
 
 
 def _any_beyond(ctx) -> int:
@@ -3538,6 +3550,8 @@ def _static_value(ctx, expr):
         return _any_alter(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_beyond":
         return _any_beyond(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_binary":
+        return _any_binary(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_grains":
         return _any_grains(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tables":

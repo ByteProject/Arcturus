@@ -109,8 +109,11 @@ GERMAN_SWITCH = (
     'game\n    title "S"\n    start raum\n'
     'room raum\n    name "Raum"\n    desc "Ein Raum."\n'
     'thing lampe in raum\n    name "Lampe"\n    words lampe\n    die\n    switchable\n'
-    '    on switch_on\n        say "[AN]"\n'
-    '    on switch_off\n        say "[AUS]"\n'
+    # switchable is the compat alias for binary; the flavor handlers own
+    # the flip (the binary model), and the contract's honest already-on
+    # refusals mean the particle forms alternate on/off below.
+    '    on switch_on\n        now self is active\n        say "[AN]"\n'
+    '    on switch_off\n        now self is not active\n        say "[AUS]"\n'
 )
 
 
@@ -123,8 +126,8 @@ def test_german_switch_particles_on_frotz(tmp_path):
     story.write_bytes(generate(analyze(cosmos.combined_program(parse(GERMAN_SWITCH)))))
     out = subprocess.run(
         [_frotz(), "-p", str(story)],
-        input="schalte die lampe an\nschalte die lampe ein\nschalte an lampe\n"
-        "schalte die lampe aus\nschalte die lampe ab\n",
+        input="schalte die lampe an\nschalte die lampe aus\n"
+        "schalte die lampe ein\nschalte die lampe ab\nschalte an lampe\n",
         capture_output=True, text=True, timeout=15,
     ).stdout
     assert out.count("[AN]") == 3  # an (after), ein (after), an (before the noun)

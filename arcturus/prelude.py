@@ -84,7 +84,19 @@ _STD_KINDS = [
 # Standard boolean properties become attribute candidates (docs/01 appendix C).
 _STD_BOOL_PROPS = [
     "fixed", "scenery", "hidden", "concealed", "wearable", "worn", "lit",
-    "edible", "named", "switchable", "openable", "open", "lockable", "locked",
+    "edible", "named", "openable", "open", "lockable", "locked",
+    # A two-state device: a lamp, a lever, a valve, a machine. The state is
+    # `active` (never "on": that word belongs to handlers), flipped by the
+    # library's switch defaults with honest already-on/already-off refusals
+    # in the verb contract; author handlers override for flavor and then own
+    # the flip. `binary` names what the thing IS, not what you do to it.
+    "binary",
+    # The binary state: active true/false. The library defaults flip it.
+    "active",
+    # Compiler-derived: a binary that also declares `lit` glows: the switch
+    # defaults couple lit to active (lamp lights, radio does not). Authors
+    # normally never write it; it is set for them at analysis.
+    "glow",
     "visited",
     # Awards points once, automatically: a scored room on first visit, a
     # scored thing on first take (room_score / object_score, default 5 each,
@@ -445,6 +457,9 @@ def standard_environment() -> Environment:
         env.kinds[k.name] = k
     for name in _STD_BOOL_PROPS:
         env.properties[name] = StdProp(name, T_BOOL)
+    # `switchable` is the compatibility alias for `binary` (same property,
+    # same attribute): shipped games keep compiling, new prose says binary.
+    env.properties["switchable"] = env.properties["binary"]
     for name, ty in _STD_VALUE_PROPS.items():
         env.properties[name] = StdProp(name, ty)
     for name in _DIRECTIONS:

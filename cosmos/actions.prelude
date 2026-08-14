@@ -510,12 +510,32 @@ on switch_on
     if any_beyond is 1
         if beyond_guard is 1
             stop
+    // The library owns the state (the binary model): flip, couple the
+    // light where the thing glows, report. The already-on refusal
+    // happened in the contract, before any handler; an author's own
+    // handler overrides all of this for flavor and then owns the flip.
+    // The any_binary guard folds the whole flip away in a game with no
+    // binary things, which then keeps the classic refusal, byte-same.
+    if any_binary is 1
+        if noun is binary
+            now noun is active
+            if noun is glow
+                now noun is lit
+            msg_switched_on
+            stop
     change refused to 1
     msg_no_switch
 
 on switch_off
     if any_beyond is 1
         if beyond_guard is 1
+            stop
+    if any_binary is 1
+        if noun is binary
+            now noun is not active
+            if noun is glow
+                now noun is not lit
+            msg_switched_off
             stop
     change refused to 1
     msg_no_switch

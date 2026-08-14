@@ -28,15 +28,21 @@ room hallway
 thing lantern in hallway
     name  "brass lantern"
     words brass, lantern, lamp
-    desc  "A battered brass lantern, switchable if you care to."
-    switchable
+    desc  "A battered brass lantern, and it still works."
+    binary
     lit   false
 
+    // `binary` + `lit` makes a glow thing: the library flips the state,
+    // couples the light, refuses "already on/off" honestly, and reports,
+    // all with no code. These two handlers override only the REPORT
+    // wording; a flavor handler owns the flip, so each sets its state.
     on switch_on
+        now self is active
         now self is lit
         say "The lantern catches with a soft hiss."
 
     on switch_off
+        now self is not active
         now self is not lit
         say "The flame gutters out, and the dark leans in."
 
