@@ -9789,3 +9789,29 @@ the drop line entirely and waits for a German throw family;
 FALLENLASSEN, WEGWERFEN, and WEGLEGEN stay as synonyms. One dated
 reprice: the German example pays 20 bytes for its new dictionary
 words.
+
+## 2026-08-14: the sweep becomes hookable, and actions shed their verbs (arcc 1.4.0, Cosmos 1.7.0)
+
+An adopter wanted to veto DROP ALL in one room and found the sweep
+unhookable: it ran beside the pipeline, not on it. Stefan ruled the
+fix at the language level, not the granule level: a bare `action`
+declaration now names an action with no verb attached ("It is
+generally a good thing being able to declare actions without verb
+attachment. That could in certain circumstances redirect one verb to
+a certain action or the other."). The name joins the ordinary
+numbering; handlers, when-clauses, action_id, and dispatch all work;
+only the keyboard cannot reach it until code sends the player there.
+
+The takeall granule is the first rider: take_all and drop_all are
+declared verbless, run_all dispatches them through the standard
+chain, and the sweeps moved into default handlers at the end of it.
+The adopter's exact wish is now ordinary Arcturus:
+
+    on drop_all when here is TheHut
+        say "Better not."
+
+TAKE ALL FROM binds the source as the noun, so a container defends
+itself with its own on take_all; `continue` defers to the sweep; an
+intercepted sweep costs its turn and ends a chained line. Priced
+honestly: 104 bytes, paid only where the granule is summoned; every
+other example byte-identical.

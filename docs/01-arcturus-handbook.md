@@ -2276,6 +2276,26 @@ not picked up yet, becomes "(taking the pebble first)" instead of a
 refusal, and only when the take is certain to succeed; closed doors and
 containers join the repairs the same way (chapter 22).
 
+### Verbless actions: `action`
+
+A bare declaration names an action with no verb attached:
+
+```
+action ritual
+action take_all, drop_all
+```
+
+The name joins the ordinary action numbering, so everything that works
+on a verb's action works on it: `on ritual` handlers at every level of
+the chain, `when` clauses, `action_id("ritual")` in low-level code, and
+`dispatch`. What it does not get is a word: nothing reaches the action
+from the keyboard until some code sends the player there, by
+dispatching it or by remapping a typed verb to it. Two uses carry it:
+a granule can route a piece of machinery through the standard pipeline
+so stories can hook it (the takeall granule's sweep events, chapter 22),
+and a language layer or story can redirect a verb to a private action
+of its own.
+
 ### The standard verbs, action by action
 
 A handler names the ACTION, never the typed phrase: `on take_off` is how
@@ -4745,6 +4765,25 @@ brass lamp: You take the brass lamp with you.
 wooden box: You take the wooden box with you.
 idol: The idol is welded to its pedestal.
 ```
+
+THE SWEEP IS HOOKABLE: the granule declares two verbless actions,
+`take_all` and `drop_all` (chapter 12), and dispatches them through the
+ordinary pipeline before sweeping. A story intercepts the sweep the same
+way it intercepts anything:
+
+```
+on drop_all when here is shrine
+    say "Nothing may be set down here."
+```
+
+The chain runs as always: for TAKE ALL FROM the source is the bound
+`noun`, so the container's own `on take_all` answers first; then the
+room, then the free rules; the granule's default handlers at the end of
+the chain perform the sweep. `continue` defers to them, so a handler can
+comment and still let the sweep run. An intercepted sweep costs its turn
+and ends a chained line: the interception was the outcome. Per-item
+control needs no hook at all, because each swept item runs its own full
+`on take` or `on drop`.
 
 Every swept item is a FULL TURN: daemons fire and the clock moves per item,
 exactly as if the takes had been typed one by one. This is a deliberate

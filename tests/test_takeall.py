@@ -179,3 +179,53 @@ def test_take_all_speaks_spanish(tmp_path):
                 "coge todo de la caja\ncoge todo\nexamina todo\n")
     assert "moneda:" in out                    # the from-sweep ran
     assert "Una cosa a la vez." in out         # msg_all_verb, translated
+
+
+HOOKED = GAME + (
+    "on drop_all when here is yard\n"
+    '    say "Not here. The ground swallows things."\n'
+    "on take_all when here is yard\n"
+    '    say "You hesitate."\n'
+    "    continue\n"
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_drop_all_event_vetoes_the_sweep(tmp_path):
+    # The sweep rides the ordinary pipeline: a story handler intercepts
+    # DROP ALL in one room (the adopter's exact wish), the items stay
+    # carried, and the interception still costs its turn.
+    out = _play(tmp_path, HOOKED,
+                "take lamp\nnorth\ndrop all\nclock\ni\n")
+    assert "The ground swallows things." in out
+    chunks = out.split(">")
+    assert "brass lamp" in chunks[-2]               # i: still carried
+    assert "Turns: 3." in out                       # take, north, veto
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_take_all_event_continue_defers_to_the_sweep(tmp_path):
+    # `continue` in the story handler falls through to the granule's
+    # default handler at the end of the chain: the comment prints AND
+    # the sweep runs.
+    out = _play(tmp_path, HOOKED, "take hat\nnorth\ndrop hat\ntake all\n")
+    assert "You hesitate." in out
+    assert "felt hat: You take the" in out
+
+
+# The source object's own handler: attached inside the box declaration.
+CHEST_HOOK = GAME.replace(
+    "    openable\n    open false\n",
+    "    openable\n    open false\n"
+    "    on take_all\n"
+    '        say "The box snaps shut protectively."\n',
+)
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_take_all_from_fires_on_the_source_object(tmp_path):
+    # TAKE ALL FROM binds the source as the noun, so the chain runs the
+    # object's own handler first: the chest defends itself.
+    out = _play(tmp_path, CHEST_HOOK, "open box\ntake all from box\n")
+    assert "snaps shut protectively" in out
+    assert "gold coin: " not in out

@@ -689,6 +689,10 @@ class Analyzer:
                 for word in decl.words:
                     if word.lower() not in w.noise_words:
                         w.noise_words.append(word.lower())
+            elif isinstance(decl, ast.ActionDecl):
+                for name in decl.names:
+                    if name not in w.declared_actions:
+                        w.declared_actions.append(name)
             elif isinstance(decl, ast.GlobalDecl):
                 self._seen(decl.name, decl.line)
                 role = getattr(decl, "role", "global")
@@ -783,11 +787,14 @@ class Analyzer:
                 # Attach grains to an existing object (resolved in pass 4).
                 pass
 
-        # Actions: the standard set plus every action a verb grammar names.
+        # Actions: the standard set, every action a verb grammar names, and
+        # the bare `action` declarations (verbless actions: reachable by
+        # dispatch and remap, never from the keyboard directly).
         w.actions = set(self.env.actions)
         for verb in w.verbs:
             for line in verb.grammar:
                 w.actions.add(line.action)
+        w.actions.update(w.declared_actions)
 
         # A verb whose grammar the flag model cannot represent gets a positional
         # grammar table (docs/01 chapter 14). The table matcher walks each line

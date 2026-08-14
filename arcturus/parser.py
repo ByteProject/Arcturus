@@ -199,6 +199,8 @@ class Parser:
             return self.parse_chain()
         if t.kind == T.NAME and t.value == "all" and self._at(1).kind == T.STRING:
             return self.parse_all()
+        if t.kind == T.NAME and t.value == "action" and self._at(1).kind == T.NAME:
+            return self.parse_action()
         if t.kind == T.NAME and t.value == "noise" and self._at(1).kind == T.STRING:
             return self.parse_noise()
         if t.kind == T.NAME and t.value == "ranks":
@@ -952,6 +954,19 @@ class Parser:
             words.append(self._plain_text(self.expect(T.STRING, "a chain word")))
         self.expect_newline()
         return ast.ChainDecl(words, line)
+
+    def parse_action(self) -> ast.ActionDecl:
+        # `action take_all, drop_all`: a bare action declaration, no verb
+        # attached (docs/01 chapter 13). The names are ordinary action
+        # identifiers, reachable by `on`, action_id(), and dispatch.
+        line = self.cur.line
+        self.advance()  # the leading `action`
+        names = [self.expect(T.NAME, "an action name").value]
+        while self.check_op(","):
+            self.advance()
+            names.append(self.expect(T.NAME, "an action name").value)
+        self.expect_newline()
+        return ast.ActionDecl(names, line)
 
     def parse_all(self) -> ast.AllDecl:
         # `all "all", "everything"`: the takeall granule's all-words (docs/01 chapter 22).

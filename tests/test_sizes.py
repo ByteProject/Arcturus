@@ -151,7 +151,7 @@ CEILINGS = {
     "granules/extended-verbs.storyarc": 19944,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "granules/infocom-interrogation.storyarc": 19104,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "granules/quotes.storyarc": 17296,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
-    "granules/take-all.storyarc": 18852,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "granules/take-all.storyarc": 18956,  # 2026-08-14 repriced: the sweep events (take_all/drop_all on the pipeline, Cosmos 1.7.0; 104 bytes only where the granule is summoned)
     "granules/plurals.storyarc": 17888,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "granules/statusline.storyarc": 17056,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "granules/verbose-exits.storyarc": 17320,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)

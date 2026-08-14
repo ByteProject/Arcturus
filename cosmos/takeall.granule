@@ -41,25 +41,49 @@ when language "spanish"
     all "todo"
     noise "de"
 
+// The sweep is an ACTION PAIR on the ordinary pipeline (docs/01 chapter
+// 22): take_all and drop_all are declared verbless below, and run_all
+// dispatches them through the standard chain, noun first (TAKE ALL FROM
+// binds the source there), then the room, then the free rules. A story
+// hooks the sweep like any action:
+//
+//     on drop_all when here is vault
+//         say "Nothing leaves this room."
+//
+// and `continue` defers to the default sweep handlers at the end of
+// this file. An intercepted sweep still costs its turn and ends a
+// chained line: the interception was the outcome.
+action take_all, drop_all
+
 // The expander the turn loop hands an all-command to (the run_all stub in
-// loop.prelude). take sweeps the room, or the named source ("take all from
-// the chest"); drop sweeps the hands, keeping what is worn. Any other verb
-// with "all", and an empty sweep, refuse, so a chained line stops honestly.
+// loop.prelude). Any verb but take and drop with "all", and an empty
+// sweep, refuse, so a chained line stops honestly.
 block run_all(act)
     if act is action_id("take")
-        if noun is not nothing
-            all_from(noun)
-            return 0
-        all_take
+        change all_ran to 0
+        dispatch(action_id("take_all"))
+        if all_ran is 0
+            change refused to 1
+            fire_turn
+            tick
         return 0
     if act is action_id("drop")
-        all_drop
+        change all_ran to 0
+        dispatch(action_id("drop_all"))
+        if all_ran is 0
+            change refused to 1
+            fire_turn
+            tick
         return 0
     change refused to 1
     msg_all_verb
     fire_turn
     tick
     return 0
+
+// Did a default sweep run? When a story handler consumed the action
+// instead, run_all above settles the turn itself.
+global all_ran = 0
 
 // Does the object sit in this room's tree (not carried)? Walks the parents.
 block rooted_here(obj)
@@ -168,3 +192,17 @@ block all_drop()
         fire_turn
         tick
     return 0
+
+// The default sweep handlers: the end of the dispatch chain. A story
+// handler that fired earlier (noun, room, or an earlier free rule) has
+// already won; `continue` from there lands here and the sweep proceeds.
+on take_all
+    change all_ran to 1
+    if noun is not nothing
+        all_from(noun)
+        stop
+    all_take
+
+on drop_all
+    change all_ran to 1
+    all_drop

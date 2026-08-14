@@ -771,6 +771,18 @@ class NoiseDecl:
 
 
 @dataclass
+class ActionDecl:
+    # A bare action declaration (`action take_all, drop_all`): names an
+    # action with no verb attached. The action joins the ordinary numbering,
+    # so `on <name>` handlers, action_id(), and dispatch all work; nothing
+    # reaches it from the keyboard until some code dispatches or remaps to
+    # it. The seam granules use to route through the standard pipeline
+    # (takeall's sweep events), and the door to verb-to-action redirection.
+    names: list[str]
+    line: int = 0
+
+
+@dataclass
 class AllDecl:
     # The takeall granule's all-words: `all "all", "everything"` names the words
     # that mean "everything within reach" (TAKE ALL, DROP ALL, TAKE ALL FROM X).
