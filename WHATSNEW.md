@@ -6,6 +6,16 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Pictures reach every 8-bit screen, probe-proven.** The retro side
+  of arc_image is complete through the MSX family: one master painting
+  now converts to fourteen native formats, and every 8-bit target of
+  the current set (C64, Spectrum +3, CPC, Plus/4, Atari 8-bit, TRS-80
+  Model 4, MSX1, and MSX2's sixteen colors from 512) has its reference
+  loader verified pixel-perfect on cycle-accurate emulation. The
+  committed corpus under arc_image/ is the shop window: what you see
+  in the previews is exactly what the current converter produces, on
+  every machine, including the Spectrum's deliberate black-and-white
+  art beside Stefan's own hand-painted originals.
 - **The room lists its things in one sentence.** "You can see a MRE, a
   lantern and a backpack here.", the classic idiom, instead of a line
   per item: every plain item joins one combined sentence, with the
@@ -53,19 +63,6 @@ lives in the commit log. The feature roadmap follows below.
   translated; `--zblorb STORY` still embeds the story so the whole
   game travels as one file that the Arcturus reference interpreter `Actaea` opens directly, and `proteus` turns it into
   a web page.
-- **Restless things, and timers that stop.** Stefan's design, one
-  sentence long: work follows the performer's nature, prose follows
-  scope. Mark a character `restless` (or arm it mid-story: `now guard is
-  restless`) and its `on each_turn` fires every turn wherever it is; the
-  thief keeps moving, taking, and scheming offstage, and the system, not
-  the author, decides what you hear: what happens in front of you is
-  spoken, arrivals and departures included, and what happens rooms away
-  is silently discarded. No new concepts, no daemon taxonomy, one
-  attribute. And the schedule became author-managed: a timer stops by
-  the exact statement that armed it (`stop every 5 turns do
-  water_dripping`; the kind and interval must match, so you always stop
-  the timer you mean) and `stop all timers` clears the stage for the
-  next act. Games without any of it stay byte-identical.
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus

@@ -77,7 +77,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.33.1"
+__version__ = "1.34.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -3704,6 +3704,32 @@ def _convert_ms1(rows, salient=None):
     return {"w": w, "h": h, "pattern": pattern, "colors": colors}
 
 
+def _convert_ms2(rows, salient=None):
+    """MSX2 Screen 5: 256 wide by the MSX window (the MS1 crop, columns
+    24..279 of the master, so both MSX machines frame the same scene),
+    free pixels, 16 simultaneous colors from the V9938's 512. The
+    quantize class verbatim (approved in wave 1): median-cut to 16,
+    palette snapped to the 3-bit guns BEFORE mapping, and the ST text
+    contract, whose constraint set (16 of 512, 3:3:3) this machine
+    shares exactly: entry 0 the darkest color (the text paper below the
+    band), the last entry a guaranteed-readable light ink."""
+    rows = [row[_MS1_CROP_X:_MS1_CROP_X + 256] for row in rows]
+    w, h = len(rows[0]), len(rows)
+    def luma(c):
+        return 2 * c[0] + 4 * c[1] + c[2]
+    pal = _build_palette(rows, 16, _snap3)
+    pal.sort(key=luma)
+    if luma(pal[-1]) < 4 * 255:  # no usable ink: trade one slot for white
+        pal = _build_palette(rows, 15, _snap3)
+        pal.sort(key=luma)
+        pal.append((255, 255, 255))
+    palette = pal + [(0, 0, 0)] * (16 - len(pal))
+    if len(pal) < 16:
+        palette = pal[:-1] + [(0, 0, 0)] * (16 - len(pal)) + [pal[-1]]
+    pixels = _map_pixels(rows, palette, _dither_amount(rows, 16))
+    return {"w": w, "h": h, "pixels": pixels, "palette": palette}
+
+
 def _convert_trsm4(rows, salient=None):
     """Master to TRS-80 Model 4 mono: luminance, 2x horizontal (the hi-res
     board's 640x240 pixels are half as wide as tall, so the doubling both
@@ -4111,7 +4137,7 @@ _CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,
                "C64": _convert_c64, "ZX3": _convert_zx3, "CPC": _convert_cpc,
                "P4": _convert_p4,
                "A8": _convert_a8, "TRSM4": _convert_trsm4,
-               "MS1": _convert_ms1}
+               "MS1": _convert_ms1, "MS2": _convert_ms2}
 
 
 # -- the Spectrum polish round-trip (.scr in and out) ---------------------------

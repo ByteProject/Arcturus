@@ -545,7 +545,33 @@ method). Naming: R for retro.
   sure about something you ask me."
   Done-test: corpus conversions approved; probes green in Altirra,
   openMSX, xplus4, x64sc, CPCemu, trs80gp, and Fuse (all 2026-08-13).
-  R4 now owes ONLY the MSX2 converter.
+  MSX2 LANDED 2026-08-14, CLOSING R4: the converter is the wave-1
+  quantize recipe through the shared MSX window (16 of 512 on the
+  3-bit guns, the ST text contract, whose constraint set the V9938
+  shares exactly; goldens frozen, arcimg 1.34.0), and the probe is
+  the reference Screen 5 loader on LZSA2, STAGED (Stefan's codec
+  ruling reaffirmed with its original reason on the record: the ZX0
+  packer's cost explodes on 16-bit-class payloads, and the ~6% size
+  sacrifice buys authors a corpus that converts in minutes; a
+  measurement had shown ZX0 6.5% smaller and the answer was still
+  LZSA2). The vendored reference decoder (unlzsa2_fast.asm, spke &
+  uniabis) is EXECUTED before being trusted: test_unlzsa2.py decodes
+  every LZSA2 stream in the repo on Haumea's SimZ80 byte-identically
+  to the Python unpacker. The probe round found two hardware truths
+  the simulator alone could not: the disk system owns the top of RAM
+  (HIMEM near $DE79 on a two-drive MSX2; the first build loaded to
+  $E410 and reboot-looped the machine), and the V9938 increments
+  R#14 itself on a 16K crossing (the second build painted picture 8
+  into invisible VRAM at $4000). Both fixed, both in doc 08 C.11 as
+  author-facing warnings, and the diagnosis established a NEW BENCH
+  CAPABILITY: openMSX is fully scriptable in Tcl (breakpoints,
+  VDP-register watchpoints, keystroke injection, VRAM census), so an
+  MSX probe is now machine-verified ON THE EMULATOR before Stefan's
+  eye is asked; his verdict on the fixed probe: "probe perfect"
+  (2026-08-14, his MSX2 machine of record: the Sony HB-G900P).
+  R4 IS COMPLETE. The ms2 corpus, previews, stress-out and cloak
+  entries shipped with the bank; the MSX pair filled cloak's missing
+  msx directories as well.
 - R5. WAVE 4: Apple II (HGR, plus the DHGR variant), Spectrum Next,
   MEGA65; the C128 ruling executed (C64 asset reused in C64 mode; the
   VDC addendum written if ruled in).

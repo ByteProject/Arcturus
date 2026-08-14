@@ -1,6 +1,6 @@
 # arc_image for interpreter authors: the contract, the format, the loaders
 
-Version 1.3
+Version 1.4
 
 This is the implementer's guide to arc_image, the optional picture band in
 Arcturus games. Everything you need to support it is here: this document,
@@ -1267,3 +1267,77 @@ slice of the mode-12 conversion (arcimg slice9).
 MEMORY. The 2K ring: the entire decode working set; VRAM is
 port-addressed and never read back. The compressed source is read
 strictly forward and may be streamed from disk in sector bites.
+
+### C.11 MSX2 (target id 8, tag MS2, files `<id>.MS2`)
+
+Probe: [arc_image/probes/ms2/](../arc_image/probes/ms2/), source
+`probe.asm` with the vendored reference LZSA2 decoder
+`unlzsa2_fast.asm` (spke & uniabis, from the lzsa repository, license
+notice intact) and the embedded test pair 9.MS2 and 12.MS2. The
+decoder is proven by execution before anything trusts it:
+`test_unlzsa2.py` decodes every LZSA2 stream in this repository on a
+simulated Z80 and compares each against the reference unpacker.
+Build: `sjasmplus probe.asm` then `python3 mk_disk.py`; run: openMSX
+with the disk in drive A (any MSX2 with a disk drive).
+
+VIDEO. V9938 Screen 5 (Graphics 4): 256x212 addressable, 4 bits per
+pixel, one global 16-entry palette from 512 colors. The probe's
+register file: R#0 = $06 (M4), R#1 = $40 (display on, no interrupts),
+R#2 = $1F (bitmap at VRAM $0000), R#7 = $00 (backdrop = palette entry
+0), R#8 = $0A (VRAM refresh on, sprites disabled), R#14 = $00. The
+band is the top 72 or 96 lines, 128 bytes per line, linear; rows
+below the band stay zero (palette entry 0) down to the text area.
+Screen 5 is a true bitmap, so text renders into it the DOS way; the
+sixteen colors are shared between band and text, so the per-region
+palette clause applies (part A): art palette above the band boundary,
+text palette below, swapped per frame on the V9938's line interrupt.
+
+TWO HARDWARE TRUTHS a loader must respect, both measured on the
+machine:
+
+- THE DISK SYSTEM OWNS THE TOP OF RAM. HIMEM on a two-drive MSX2
+  sits near $DE79; anything LOADED above it lands in the disk ROM's
+  live work area and the machine reboots, in a loop, since the boot
+  disk then reloads. Load low; if a staging buffer must reach higher,
+  write it only after the loader owns the machine and the disk system
+  is finished.
+- R#14 INCREMENTS ITSELF. When the VRAM address counter crosses a
+  16K boundary, the V9938 bumps R#14; a later address setup that
+  trusts a previously written R#14 lands one bank up, and the picture
+  paints into invisible VRAM. Reprogram R#14 as part of every address
+  setup.
+
+CODEC. LZSA2 (part B), decoded STAGED, the 16-bit manner: LZSA2
+back-references read the decompressed output and VRAM is
+port-addressed, so the stream decompresses into a RAM buffer first
+and the buffer is blitted to the VDP data port. Blank the display
+(R#1 bit 6) during decode and blit and no VRAM access pacing is ever
+needed; the reveal is one register write.
+
+SECTIONS: two.
+
+- bitmap (type 1): Screen 5 nibble-packed pixels, high nibble the
+  left pixel, 128 bytes per line, linear; 9216 bytes in mode 9,
+  12288 in mode 12. Blitted to VRAM $0000.
+- palette (type 5): 16 V9938 palette-register pairs (first byte
+  R2-R0 in bits 6-4 and B2-B0 in bits 2-0, second byte G2-G0), 32
+  bytes: written through R#16 = 0 and 32 writes to the palette port.
+
+CONVERSION (the arcimg side, for the record): the quantize class
+through the MSX window (columns 24..279 of the master, top-anchored,
+shared with MSX1): median-cut to 16, palette snapped to the 3-bit
+guns before mapping, and the ST text contract, whose constraint set
+this machine shares exactly: entry 0 the darkest color, the last
+entry a guaranteed-readable light ink.
+
+Z-COLOURS. Map the standard set into the shared palette per part A;
+on this machine the per-region palette swap gives text its own
+sixteen, so nothing is sacrificed to the band.
+
+ASSETS. `<id>.MS2` beside the story (8.3-safe). The standard test
+pair: 9.MS2 (mode 9), 12.MS2 (mode 12), picture 8 of the corpus, the
+mode-9 file the top slice of the mode-12 conversion (arcimg slice9).
+
+MEMORY. A 12288-byte staging buffer plus the ~210-byte decoder; the
+compressed source is read strictly forward and may be streamed from
+disk in sector bites. VRAM is port-addressed and never read back.

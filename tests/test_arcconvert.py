@@ -562,3 +562,38 @@ def test_slice9_slices_every_plane_and_keeps_the_hand_stamp(tmp_path):
         full = t.render(native, native["w"], native["h"])
         top = t.render(sliced, sliced["w"], sliced["h"])
         assert top == full[:len(top)], f"{tag}: the slice is not the top rows"
+
+
+# --- MS2 (MSX2): Screen 5, the quantize class through the MSX window -------
+
+_MS2_GOLDEN = {
+    "2.png": "df1a005de6a95877",
+    "8.png": "e6c5f6b82e636412",
+    "10.png": "2cd6dd59208ba367",
+    "12.png": "538fe0c4483f8d73",
+}
+
+
+@pytest.mark.parametrize("name", sorted(_MS2_GOLDEN))
+def test_ms2_output_is_frozen(name):
+    import hashlib
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, name), "MS2")
+    t = arcimg.TARGETS["MS2"]
+    blob = b"".join(bytes(pl) for _ty, _fl, pl in t.pack(native))
+    assert hashlib.sha256(blob).hexdigest()[:16] == _MS2_GOLDEN[name]
+
+
+def test_ms2_respects_the_st_text_contract():
+    # 16 of 512, 3:3:3: the ST's constraint set exactly, so the same
+    # guarantee: entry 0 darkest (the text paper), the last entry a
+    # readable light ink, every channel on the 3-bit gun grid.
+    def luma(c):
+        return 2 * c[0] + 4 * c[1] + c[2]
+    for n in ("2.png", "8.png"):
+        _m, native = arcimg.convert_master(os.path.join(MASTERS, n), "MS2")
+        pal = native["palette"]
+        assert len(pal) == 16
+        assert all(luma(pal[0]) <= luma(c) for c in pal[1:])
+        assert luma(pal[-1]) >= 4 * 255
+        legal = {round(v * 255 / 7) for v in range(8)}
+        assert all(ch in legal for c in pal for ch in c)

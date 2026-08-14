@@ -9680,3 +9680,35 @@ something you ask me."
 
 B12 after today: R2 through R4 owe nothing but the MSX2 converter.
 Then R5.
+
+## 2026-08-14: MSX2 closes R4 (arcimg 1.34.0)
+
+The last converter of wave 3 was the easy half: MSX2's constraint set
+(16 of 512, 3-bit guns) is the Atari ST's exactly, so the approved
+quantize recipe carried over whole, through the same window as MSX1
+so both machines frame the same scene. The codec was the real
+decision, and Stefan's R1 assignment stood for its original reason,
+now on the record: LZSA2, because the ZX0 packer's cost explodes on
+16-bit-class payloads, and a ~6% size sacrifice buys authors a corpus
+that converts in minutes instead of half-hours. A fresh measurement
+(ZX0 6.5% smaller on this corpus) did not move the ruling; the tool
+serves authors first.
+
+The probe carried the vendored reference LZSA2 decoder (spke &
+uniabis), executed against every LZSA2 stream in the repo on a
+simulated Z80 before anything trusted it, and then taught two lessons
+no RAM-only simulation could: the disk system owns the top of RAM
+(HIMEM near $DE79 on a two-drive MSX2; the first build loaded over
+the disk ROM's work area and reboot-looped the machine, the resets
+Stefan watched live), and the V9938 increments its own bank register
+when the VRAM address counter crosses 16K (the second build painted
+picture 8 into invisible VRAM). Both were found by MEASUREMENT on
+openMSX itself: the emulator is fully scriptable, and the diagnosis
+ran breakpoints, VDP watchpoints, HIMEM reads, keystroke injection,
+and VRAM censuses headlessly, a new standing capability of the bench.
+The fixed probe cycled 9/12/9 under script before his eye saw it;
+his verdict: "probe perfect."
+
+R4 IS COMPLETE: every 8-bit target of the current set converts,
+probes green, and reports itself honestly in the corpus. Next: R5
+(Apple II and DHGR, Spectrum Next, MEGA65, the C128 ruling), then R6.
