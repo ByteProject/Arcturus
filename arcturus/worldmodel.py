@@ -441,6 +441,13 @@ class World:
     # the language layer's `pronoun` declarations. The dictionary flags these
     # words and the noun matcher resolves them to the remembered referents.
     pronouns: dict[str, str] = field(default_factory=dict)
+    # Multi-role pronoun words (docs/01 chapter 21): word -> the pair's own
+    # role id (prelude._PRONOUN_ROLE_SETS). Kept apart from `pronouns` so
+    # its consumers (the plural THEM checks read role names there) never
+    # meet a set id. uses_pronoun_sets folds the skeleton's recency walk
+    # away in a pack without any.
+    pronoun_sets: dict[str, int] = field(default_factory=dict)
+    uses_pronoun_sets: bool = False
     # The words that chain commands on one line ("and", "then", the comma), from
     # the language layer's `chain` declarations. The dictionary flags them; the
     # parser splits the line at the first one and queues the rest (docs/01 chapter 14).

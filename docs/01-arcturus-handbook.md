@@ -2771,6 +2771,26 @@ slots are separate: "him" never returns a character noted as "her", and an
 empty slot answers the ordinary "you see nothing of the sort". German follows
 grammatical gender, so die Lampe becomes "sie" and das Buch "es".
 
+A pronoun word may name SEVERAL roles, because grammar sometimes does:
+German "ihm" is the dative of masculine and neuter alike, and "sie" is
+feminine and plural. The pack declares the roles together, and the word then
+reaches every named slot:
+
+```
+pronoun him, it "ihm"      // rede mit ihm: der Mann or das Kind
+pronoun her, them "sie"    // feminine or plural, whichever is fresher
+pronoun them "ihnen"       // the dative plural, plural only
+```
+
+Among a multi-role word's slots, the most recently MENTIONED live referent
+wins, silently: pronouns are recency creatures, and a player who examined
+the Kind after the Mann means the Kind by "ihm". No question is asked, and
+the freshest referent is judged for scope like any other, so one that has
+left the room answers the honest refusal rather than an older referent
+sliding in unnoticed. German files pluribus things under the them slot, so
+"sie" and "ihnen" reach die Stiefel while "ihr" stays feminine. A pack whose
+pronoun words are all single-role (English) carries none of this machinery.
+
 Spanish takes its pronouns as CLITICS, the natural form: "cogela" is coge with
 la attached, so an unknown first word ending in -lo, -la, -le (the leísmo
 form, taken as masculine), -los, -las, or -les splits its clitic off in the

@@ -793,6 +793,13 @@ pronoun it  "it"
 pronoun him "him"
 pronoun her "her"
 
+// The multi-role pronoun seam (docs/01 chapter 21): a pack whose pronoun
+// words reach several slots (German "ihm", "sie") overrides this with its
+// recency pick. English has no such word, so the skeleton's call folds
+// away (any_pronoun_sets) and this stub costs nothing.
+block pronoun_pick(role)
+    return nothing
+
 // Which pronoun a just-resolved noun becomes: English splits by animacy (a
 // character is him or her, everything else is it), and by the feminine
 // attribute within characters. The skeleton calls this after each command.

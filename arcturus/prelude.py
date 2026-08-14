@@ -199,6 +199,14 @@ _PARTICLE_ROLES = {"on": 1, "off": 2, "auf": 3, "zu": 4,
 # which slot a resolved noun lands in.
 _PRONOUN_ROLES = {"it": 1, "him": 2, "her": 3, "them": 4}
 
+# The supported multi-role pronoun words (docs/01 chapter 21), keyed by the
+# sorted role pair: the German dative "ihm" reaches masculine AND neuter,
+# "sie" reaches feminine AND plural. Each pair is its own role id, so the
+# single-role ids (and every existing pack's bytes) stay untouched; the
+# skeleton's pronoun_slot resolves a pair by recency. A new language needing
+# another combination adds it here and in pronoun_slot, deliberately.
+_PRONOUN_ROLE_SETS = {("him", "it"): 5, ("her", "them"): 6}
+
 _ZCOLOURS = {
     "default": 1, "black": 2, "red": 3, "green": 4, "yellow": 5,
     "blue": 6, "magenta": 7, "cyan": 8, "white": 9,

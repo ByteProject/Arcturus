@@ -46,7 +46,7 @@
 // `summon german.granule` (which would leave English baked in).
 language "german"
 
-// Die Kreuzwort-Faltung (docs/01 Kapitel 21): pro Zeile ein Paar.
+// The crossword fold table (docs/01 chapter 21): one pair per line.
 fold "ä" "ae"
 fold "ö" "oe"
 fold "ü" "ue"
@@ -66,10 +66,10 @@ block resolve_verb()
     if d is not nothing
         let flags = peek_byte(d + 6)
         if any_tables is 1
-            // Ein Verb mit Grammatiktabelle (docs/01 Kapitel 14): die
-            // Datenbytes tragen die Adresse der Tabelle, deren erstes Byte
-            // die Handlung der ersten Zeile ist; die eigentliche Zeile
-            // waehlt spaeter der Matcher (line_act).
+            // A tabled verb (docs/01 chapter 14): the data bytes carry
+            // the table's address, whose first byte is the first line's
+            // action; the actual line is chosen later by the matcher
+            // (line_act).
             if flags is 144 or flags is 152
                 let tbl = peek_word(d + 7, 0)
                 return peek_byte(tbl)
@@ -83,9 +83,9 @@ block resolve_verb()
             return base
         if flags is 64
             return peek_byte(d + 7)
-    // Kein Verb am Satzanfang? Steht irgendwo im Satz eine Richtung, ist es
-    // trotzdem ein Gehen-Befehl: so versteht der Parser "nach oben" und "nach
-    // unten", wo das erste Wort ("nach") gar nicht im Woerterbuch steht.
+    // No verb up front? If a direction stands anywhere in the line, it is
+    // still a go command: that is how "nach oben" and "nach unten" parse,
+    // where the first word ("nach") is not even in the dictionary.
     if find_direction is not nothing
         return action_id("go")
     return 0
@@ -130,9 +130,9 @@ block compound(base, particle)
             return action_id("switch_off")
     if base is action_id("take")         // nimm ... ab -> ausziehen (take_off)
         if particle is 2
-            // Nicht bei ALLES: "nimm alles aus der Kiste" ist der
-            // Sammelgriff des takeall-Granules, kein Ausziehen. Der
-            // Wächter faltet ohne das Granule weg.
+            // Not with ALLES: "nimm alles aus der Kiste" is the takeall
+            // granule's sweep, not undressing. The guard folds away
+            // without the granule.
             if any_allwords is 1
                 if all_typed is 1
                     return nothing
@@ -249,17 +249,17 @@ block resolve_objects()
     change two_reverse to 0
     if any_tables is 1
         change line_act to 0
-    // Die Anforderungs-Bits des Verbs (das Grammatik-Byte): rq1 heisst, keine
-    // Zeile kommt ohne Slot aus, das nackte Verb ist also ein unvollstaendiger
-    // Befehl; rq2 heisst, jede Zeile mit Slots verlangt zwei. Beide speisen
-    // die zentrale Nachfrage der Schleife (incomplete).
+    // The verb's requirement bits (the grammar byte): rq1 means no line
+    // works without a slot, so the bare verb is an incomplete command; rq2
+    // means every slotted line wants two. Both feed the loop's central ask
+    // (incomplete).
     let rq1 = 0
     let rq2 = 0
     let d = word_dict(0)
     if d is not nothing
         if any_tables is 1
-            // Ein Verb mit Grammatiktabelle: der positionsgenaue Matcher
-            // uebernimmt den ganzen Befehl (docs/01 Kapitel 14).
+            // A tabled verb: the positional matcher takes over the whole
+            // command (docs/01 chapter 14).
             if peek_byte(d + 6) is 144 or peek_byte(d + 6) is 152
                 let tbl = peek_word(d + 7, 0)
                 grammar_match(tbl)
@@ -309,9 +309,9 @@ block resolve_objects()
                 change unknown_at to first_unknown(1, word_count)
                 if unknown_at is not 0
                     change parse_fault to 4
-            // Nichts getippt fuer einen Slot, den die Grammatik verlangt
-            // (das nackte NIMM): unvollstaendig, die Schleife fragt nach,
-            // bevor irgendein Handler laeuft. Ein Fault geht vor.
+            // Nothing typed for a slot the grammar requires (the bare
+            // NIMM): incomplete, and the loop asks before any handler
+            // runs. A fault takes precedence.
             if parse_fault is 0
                 if rq1 is 1
                     change incomplete to 1
@@ -332,9 +332,9 @@ block named_unseen()
     return phrase_named(1, word_count)
 
 // For an intransitive verb (no noun slot), is there a word after it the grammar
-// cannot use? A go command is the exception: dort zaehlt nur, ob irgendwo eine
-// Richtung steht, denn "geh nach oben" traegt das Fuellwort "nach", das gar
-// nicht im Woerterbuch steht.
+// cannot use? A go command is the exception: there, all that counts is a
+// direction standing somewhere, since "geh nach oben" carries the filler
+// "nach", which is not even in the dictionary.
 block has_extra_words(act)
     if act is action_id("go")
         if find_direction is not nothing
@@ -344,8 +344,8 @@ block has_extra_words(act)
     while i < n
         let keep = 0
         let d = word_dict(i)
-        // Eine Partikel, die mit diesem Verb ein Kompositum bildet, gehört
-        // zum Verb ("mitschrift an"); jedes andere Wort ist eines zu viel.
+        // A particle that compounds with this verb belongs to the verb
+        // ("mitschrift an"); any other word is one too many.
         if d is not nothing
             if peek_byte(d + 6) is 32
                 if compound(act, peek_byte(d + 7)) is not nothing
@@ -408,15 +408,14 @@ block is_separator(target)
         return 1
     return 0
 
-// Die Ein-Nomen-Rettung: ein Trenner kann Teil EINES Namens sein ("Tuer aus
-// Eiche"), und dann liest der Split die Woerter dahinter als ein Werkzeug,
-// das niemand gemeint hat ("oeffne tuer aus eiche" fragte nach dem zweiten
-// Slot). Wenn ein Split-Slot mehrdeutig oder leer ausgeht und die Grammatik
-// kein zweites Nomen verlangt, bekommt die ganze getippte Spanne EINEN
-// Versuch als einzelnes Nomen: loest sie sauber auf, gewinnt diese Lesart
-// und der zweite Slot bleibt zu. Alles andere stellt den Ausgang des Splits
-// wieder her, mitsamt seiner Rueckfrage, damit "gib muenze an bob" und jede
-// echte Mehrdeutigkeit sich verhalten wie zuvor.
+// The one-noun retry: a separator can be part of ONE name ("Tuer aus
+// Eiche"), and the split then reads the words behind it as an instrument
+// nobody meant ("oeffne tuer aus eiche" asked about the second slot).
+// When a split slot comes up ambiguous or empty and the grammar does not
+// require a second noun, the whole typed range gets ONE try as a single
+// noun: a clean resolve wins and the second slot stays shut. Anything
+// less restores the split's own outcome, ask included, so "gib muenze an
+// bob" and every genuine ambiguity behave exactly as before.
 block one_noun_retry(n)
     let keep_fault = parse_fault
     let keep_lo = ask_lo
@@ -472,8 +471,8 @@ block resolve_two_nouns(rq1, rq2)
         change b to n
     change noun to match_phrase(1, b, 0)
     if parse_fault is not 0
-        // Der erste Slot mehrdeutig, obwohl hinter dem Trenner noch Woerter
-        // stehen: erst die Ein-Nomen-Lesart probieren (one_noun_retry).
+        // The first slot is ambiguous although words follow the
+        // separator: try the one-noun reading first (one_noun_retry).
         if parse_fault is 3
             if b < n
                 if rq2 is 0
@@ -502,8 +501,8 @@ block resolve_two_nouns(rq1, rq2)
     if b < n
         change second to match_phrase(b + 1, n, 0)
         if parse_fault is not 0
-            // Der zweite Slot mehrdeutig ("eiche" trifft Truhe UND Tuer):
-            // die Ein-Nomen-Lesart darf die Rueckfrage noch abwenden.
+            // The second slot is ambiguous ("eiche" hits Truhe AND
+            // Tuer): the one-noun reading may still avert the ask.
             if parse_fault is 3
                 if rq2 is 0
                     if one_noun_retry(n) is 1
@@ -519,8 +518,9 @@ block resolve_two_nouns(rq1, rq2)
                 if rq2 is 1
                     change incomplete to 1
     else
-        // Kein Trenner ("leg lampe"): der zweite Slot blieb zu. Ein Verb
-        // mit Ein-Slot-Zeile (schliess tuer auf) bleibt still (rq2 ist 0).
+        // No separator ("leg lampe"): the second slot stayed shut. A
+        // verb with a one-slot line (schliess tuer auf) stays quiet
+        // (rq2 is 0).
         if rq2 is 1
             // The reversed dative's blind spot, same as the English
             // resolver: ZEIG GAUKLER PUPPE with the Puppe elsewhere.
@@ -626,25 +626,25 @@ direction northeast "nordosten", "nordost", "no"
 direction northwest "nordwesten", "nordwest", "nw"
 direction southeast "südosten", "südost", "so"
 direction southwest "südwesten", "südwest", "sw"
-// Hinauf und hinab brauchen im Deutschen viele Formen: hoch, rauf, hinauf,
-// aufwaerts, oben (fuer "nach oben"), und ebenso runter, hinunter, hinab,
-// abwaerts, unten. Das nackte "auf" fehlt mit Absicht: es ist die
-// Aufschliess-Partikel ("schliess die Tuer auf"), und ein Wort traegt im
-// Woerterbuch nur eine Rolle. Ein nacktes "ab" waere ohnehin kein Deutsch.
+// Up and down need many German forms: hoch, rauf, hinauf, aufwaerts,
+// oben (for "nach oben"), and likewise runter, hinunter, hinab, abwaerts,
+// unten. A bare "auf" is missing on purpose: it is the unlock particle
+// ("schliess die Tuer auf"), and a dictionary word carries one role only.
+// A bare "ab" would not be German anyway.
 direction up        "hoch", "rauf", "hinauf", "aufwärts", "oben", "h"
 direction down      "runter", "hinunter", "hinab", "abwärts", "unten", "r"
 direction in        "rein", "hinein"
 direction out       "hinaus", "heraus"
 
-// HEB DIE LAMPE AUF: aufheben ist das deutsche pick up; die Partikel
-// (auf) läuft leer auf nimm hinaus, genau richtig.
+// HEB DIE LAMPE AUF: aufheben is the German pick up; the particle (auf)
+// runs empty and falls through to plain take, which is exactly right.
 verb "nimm", "nehmen", "nimmt", "hol", "hole", "schnapp", "heb", "hebe"
     take noun
 
-// LASS DIE LAMPE FALLEN: das kanonische deutsche DROP. "lass" trägt
-// die Handlung, das nachgestellte "fallen" ist als Füllwort erklärt
-// (die Phrasensuche zählt es schlicht nicht mit); "wirf" gehört dem
-// WERFEN und wartet auf eine deutsche throw-Familie.
+// LASS DIE LAMPE FALLEN: the canonical German DROP. "lass" carries the
+// action, and the trailing "fallen" is declared a noise word (the phrase
+// scoring simply does not count it); "wirf" belongs to WERFEN, throwing,
+// and waits for a German throw family.
 verb "lass", "lasse", "fallenlassen", "wegwerfen", "weglegen"
     drop noun
 
@@ -655,10 +655,10 @@ verb "untersuch", "untersuche", "untersuchen", "betrachte", "prüfe", "x"
     look_under noun
 
 // Meta verbs. Each sets meta_turn, so the loop skips the per-turn pulse and the
-// turn count. quit and restart confirm first. Jedes Meta-Verb hört AUCH auf
-// sein englisches Original (quit, score, save, restore, undo, again, oops,
-// transcript): wer englische Adventures gewohnt ist, rät das deutsche Wort
-// nicht immer beim ersten Mal, und die Sitzungsverben müssen einfach gehen.
+// turn count. quit and restart confirm first. Every meta verb ALSO answers
+// to its English original (quit, score, save, restore, undo, again, oops,
+// transcript): a player raised on English adventures will not always guess
+// the German word first try, and the session verbs simply have to work.
 verb "beende", "beenden", "ende", "quit"
     quit
 
@@ -675,10 +675,10 @@ verb "sichern", "sichere", "speichern", "speichere", "save"
 verb "laden", "lade", "wiederherstellen", "restore", "load"
     restore
 
-// Die Mitschrift (Ausgabestrom 2): MITSCHRIFT oder PROTOKOLL startet sie,
-// MITSCHRIFT AUS beendet sie. Die Partikeln an/aus laufen wie bei schalt
-// über compound; die Datei gehört dem Interpreter. Englisch als Rückfall:
-// TRANSCRIPT ON/OFF (die Partikeln unten kennen on und off) und UNSCRIPT.
+// The transcript (output stream 2): MITSCHRIFT or PROTOKOLL starts it,
+// MITSCHRIFT AUS ends it. The an/aus particles run through compound just
+// as with schalt; the file belongs to the interpreter. English fallback:
+// TRANSCRIPT ON/OFF (the particles below know on and off) and UNSCRIPT.
 verb "mitschrift", "protokoll", "transkript", "transcript", "script"
     transcript
     transcript_off
@@ -709,19 +709,20 @@ verb "version" meta
 verb "notify", "punktemeldung" meta
     notify
 
-// Getippte Antworten: ein Spiel, das fragt, liest sie mit `on yes` / `on no`.
+// Typed answers: a game that asks a question reads them with `on yes` /
+// `on no`.
 verb "ja", "jawohl"
     yes
 
 verb "nein"
     no
 
-// Ein- und ausschalten. Das Grundverb "schalt(e)" trägt eine Partikel danach oder
-// davor: "schalt die Lampe an", "schalt die Lampe ein", und (grammatisch schief,
-// aber in Textadventures üblich) "schalt an Lampe", "schalt ein Lampe". Die
-// zusammengeschriebenen Formen decken "einschalten Lampe" mit ab.
-// ZÜNDE DIE KERZE AN, ENTZÜNDE DIE FACKEL: anzünden ist das deutsche
-// "light"; die Partikel (an) macht daraus switch_on wie bei schalte ... an.
+// Switching on and off. The base verb "schalt(e)" takes a particle after
+// or before the noun: "schalt die Lampe an", "schalt die Lampe ein", and
+// (grammatically crooked but usual in text adventures) "schalt an Lampe".
+// The fused forms cover "einschalten Lampe" as well.
+// ZUENDE DIE KERZE AN, ENTZUENDE DIE FACKEL: anzuenden is the German
+// "light"; the particle (an) turns it into switch_on, as with schalte ... an.
 verb "schalt", "schalte", "zünde", "entzünde"
     switch_on noun
     switch_off noun
@@ -732,9 +733,9 @@ verb "einschalten", "anschalten", "anmachen"
 verb "ausschalten", "abschalten", "ausmachen"
     switch_off noun
 
-// Die Schaltpartikeln. "an"/"ein" schalten ein, "aus"/"ab" schalten aus. "an"
-// dient auch als Präposition (gib X an Y); das stört nicht, denn der Parser
-// behandelt jedes markierte Wort als Phrasengrenze, und compound wirkt nur auf
+// The switch particles. "an"/"ein" switch on, "aus"/"ab" switch off. "an"
+// also serves as a preposition (gib X an Y); no harm done, since the parser
+// treats any flagged word as a phrase boundary and compound only acts on
 // switch/turn/take.
 particle on  "an", "ein", "on"
 particle off "aus", "ab", "off"
@@ -756,70 +757,119 @@ verb "öffne", "öffnen"
     open noun mit noun
     open noun
 
-// Schliessen, ab- und aufschliessen als trennbares Grundverb. "schliess(e)"
-// allein macht zu (close). Mit einer Partikel wird daraus die natuerliche,
-// trennbare Form: "schliess die Tuer ab" oder "... zu" schliesst ab (lock, mit
-// oder ohne "mit dem Schluessel"), "... auf" schliesst auf (unlock). Die Partikel
-// darf davor oder danach stehen. Das ist genau, wie ein Deutscher es sagt:
-// "Hast du die Haustuer abgeschlossen?" -> "schliess die Haustuer ab".
-// Die mit-Zeile traegt den Schluessel ins zweite Feld ("schliess die Tuer mit
-// dem Schluessel ab"); WELCHE Handlung laeuft, entscheidet allein die Partikel
-// (compound oben), nie die Zeile, darum steht hier ueberall close.
+// Closing, locking, and unlocking as one separable base verb. A bare
+// "schliess(e)" closes. With a particle it becomes the natural separable
+// form: "schliess die Tuer ab" or "... zu" locks (with or without "mit dem
+// Schluessel"), "... auf" unlocks. The particle may come before or after
+// the noun; that is exactly how a German says it: "Hast du die Haustuer
+// abgeschlossen?" -> "schliess die Haustuer ab". The mit-line carries the
+// key into the second slot ("schliess die Tuer mit dem Schluessel ab");
+// WHICH action runs is decided by the particle alone (compound above),
+// never by the line, which is why every line here says close.
 verb "schließe", "schließ", "schließen", "zumachen"
     close noun
     close noun mit noun
 
-// Die Schliesspartikeln. "auf" schliesst auf (unlock); "zu" und "ab" schliessen ab
-// (lock). "ab" ist zugleich die Ausschalt-Partikel; compound unterscheidet nach
-// dem Grundverb (schalt vs. schliess), darum stoert die Doppelrolle nicht.
-// Die Pronomen: das grammatische Geschlecht entscheidet, nicht die Belebtheit.
-// Die Lampe ist "sie", der Schlüssel "ihn" (Akkusativ, das Objekt eines
-// Befehls), das Buch "es". "nimm die lampe" und dann "untersuche sie".
-// Das Spieler-Objekt: die Selbstwörter, auf die jedes Spiel hört
-// ("untersuche dich"), ein druckbarer Name, und das named-Flag gegen den
-// Artikel. Ein Spiel ergänzt eigene Wörter mit player.words.
+// The lock particles. "auf" unlocks; "zu" and "ab" lock. "ab" doubles as
+// the switch-off particle; compound tells them apart by the base verb
+// (schalt vs. schliess), so the double role does no harm.
+// The player object: the self words every game answers to ("untersuche
+// dich"), a printable name, and the named flag to suppress the article.
+// A game adds its own words with player.words.
 player.words mich, dich, selbst
 player.name "dich selbst"
 player.named
 
-// Die Kettenwörter (docs/01 Kapitel 14): jedes beendet einen Befehl und
-// beginnt den nächsten auf derselben Zeile ("nimm die lampe und öffne die
-// tür, dann geh nach norden"). Das Komma zählt als eigenes Wort, mit oder
-// ohne Leerzeichen.
+// The chain words (docs/01 chapter 14): each one ends a command and
+// starts the next on the same line ("nimm die lampe und oeffne die tuer,
+// dann geh nach norden"). The comma counts as a word of its own, with or
+// without a space.
 chain ",", "und", "dann"
 
-// Die Füllwörter: die Artikel, die der Parser kennt, aber überliest. Das
-// Kennen zählt: eine Substantivliste darf sie tragen ("nimm die lampe und
-// den schlüssel"), während ein wirklich unbekanntes Wort das Ausleihen des
-// Verbs ehrlich verweigert (docs/01 Kapitel 14).
+// The noise words: the articles the parser knows but reads past. Being
+// KNOWN is the point: a noun list may carry them ("nimm die lampe und den
+// schluessel"), while a genuinely unknown word honestly refuses the
+// borrowed verb (docs/01 chapter 14).
 noise "der", "die", "das", "den", "dem", "des", "ein", "eine", "einen", "einem", "einer"
 
-pronoun it  "es"
-// The accusative and the dative bind to one slot each: resolving needs no
-// case agreement, only the referent ("rede mit ihr", the field report).
-// Known limit for the German depth round: "ihm" is also the NEUTER dative,
-// but it reaches only the him slot here; a das-referent stays under "es".
-pronoun him "ihn", "ihm"
-pronoun her "sie", "ihr"
+// The mention stamps for the pronoun slots, and their shared counter.
+// Only this pack (multi-role words) reads or writes them, so they live
+// here and no other language pays for them.
+global pron_seq = 0
+global pron_at_it = 0
+global pron_at_him = 0
+global pron_at_her = 0
+global pron_at_them = 0
 
-// Welches Pronomen ein aufgelöstes Substantiv wird: nach dem Genus, das der
-// Autor mit der/die/das erklärt hat. Das Skelett ruft dies nach jedem Befehl.
+// The pronouns as German really distributes them (the forum's depth
+// round): "ihn" and "es" are unambiguous, but "ihm" is the dative of
+// masculine AND neuter ("rede mit ihm" about das Kind), "sie" is feminine
+// AND plural, "ihr" only the feminine dative, "ihnen" only the dative
+// plural. A word with two slots takes the most recently mentioned live
+// referent, silently (the round's ruling: pronouns follow recency, no
+// asking).
+pronoun it  "es"
+pronoun him "ihn"
+pronoun him, it "ihm"
+pronoun her "ihr"
+pronoun her, them "sie"
+pronoun them "ihnen"
+
+// The pick for a multi-role word (the skeleton's seam): role 5 is "ihm"
+// (masculine OR neuter), role 6 is "sie" (feminine OR plural). The most
+// recently mentioned live referent wins, silently; whether it is still in
+// scope is judged afterwards by the caller, so the honest refusal speaks
+// rather than an older referent quietly stepping in.
+block pronoun_pick(role)
+    if role is 5
+        return fresher(pron_him, pron_at_him, pron_it, pron_at_it)
+    if role is 6
+        return fresher(pron_her, pron_at_her, pron_them, pron_at_them)
+    return nothing
+
+// The fresher of two remembered referents, by stamp; an empty slot is no
+// candidate at all.
+block fresher(a, a_at, b, b_at)
+    if a is nothing
+        return b
+    if b is nothing
+        return a
+    if a_at > b_at
+        return a
+    return b
+
+// Which slot a resolved noun fills: pluribus things go to the plural slot
+// first, everything else by the gender the author declared with
+// der/die/das. Every filing stamps its slot (pron_seq) so a multi-role
+// word ("ihm", "sie") finds the freshest mention. The skeleton calls this
+// after every command. (The counter wraps at 16 bits; after 65535 mentions
+// ONE comparison orders wrongly once, then the world is right again.
+// Cheaper than any precaution.)
 block note_pronouns(obj)
+    change pron_seq to pron_seq + 1
+    if any_pluribus is 1
+        if obj is pluribus
+            change pron_them to obj
+            change pron_at_them to pron_seq
+            return 0
     if obj is feminine
         change pron_her to obj
+        change pron_at_her to pron_seq
         return 0
     if obj is neutral
         change pron_it to obj
+        change pron_at_it to pron_seq
         return 0
     change pron_him to obj
+    change pron_at_him to pron_seq
 
 particle auf "auf"
 particle zu  "zu"
 particle under "unter", "unters", "darunter"
 
-// Zusaetzlich ver- und entriegeln als eigene, UNTRENNBARE Verben ("entriegele die
-// Tuer mit dem Schluessel"), samt den zusammengeschriebenen ab-/aufsperren als
-// Synonyme, fuer Spieler, die lieber ein einzelnes Verb tippen.
+// Locking and unlocking also as their own INSEPARABLE verbs ("entriegele
+// die Tuer mit dem Schluessel"), with the fused ab-/aufsperren as
+// synonyms, for players who prefer typing a single verb.
 verb "verriegele", "verriegle", "verriegeln", "absperren", "zusperren"
     lock noun mit noun
     lock noun
@@ -947,8 +997,8 @@ block art_the(obj, cap, kase)
         show(" ")
         print_name(obj)
         return
-    // Der Plural (pluribus): die/die/den/der, die eigene Spalte der
-    // Kasustabelle. Faltet sich ohne markierte Objekte weg.
+    // The plural (pluribus): die/die/den/der, its own column of the case
+    // table. Folds away without marked objects.
     if any_pluribus is 1
         if obj is pluribus
             if cap is 1
@@ -1015,8 +1065,8 @@ block art_a(obj, cap, kase)
         show(" ")
         print_name(obj)
         return
-    // Unbestimmter Plural hat im Deutschen keinen Artikel: "Du siehst
-    // hier Stiefel." Faltet sich ohne markierte Objekte weg.
+    // An indefinite plural takes no article in German: "Du siehst hier
+    // Stiefel." Folds away without marked objects.
     if any_pluribus is 1
         if obj is pluribus
             print_name(obj)
@@ -1055,9 +1105,9 @@ block art_a(obj, cap, kase)
                         show("ines ")
     print_name(obj)
 
-// Die Kopula mit Numerus (docs/01 Abschnitt 16): ${is x} druckt "ist"
-// oder "sind" nach dem pluribus-Attribut des Objekts. Ohne markierte
-// Objekte faltet sich der Plural-Zweig weg.
+// The copula with number (docs/01 chapter 16): ${is x} prints "ist" or
+// "sind" by the object's pluribus attribute. The plural branch folds away
+// without marked objects.
 block art_is(obj, cap)
     if any_pluribus is 1
         if obj is pluribus
@@ -1072,16 +1122,17 @@ block art_is(obj, cap)
         show("ist")
     return 0
 
-// Die Banner-Wörter. Der Compiler setzt das Banner zusammen (Titel, Untertitel,
-// Autor, Versionszeile), aber die Wörter ZWISCHEN den Teilen gehören der
-// Sprache: line_by druckt das Bindewort zwischen Untertitel und Autor, und
-// banner_headline den Untertitel, wenn das Spiel keinen eigenen setzt.
+// The banner words. The compiler assembles the banner (title, headline,
+// author, version line), but the words BETWEEN the parts belong to the
+// language: line_by prints the connective between headline and author,
+// banner_headline the default headline when the game sets none.
 block line_by()
     show(" von ")
 
-// Der Ortszusatz in Titelzeile und Statusleiste: "Krypta (auf dem Altar)",
-// "Keller (in der Kiste)". Träger nehmen "auf", alles andere "in"; der
-// Artikel kommt im Dativ aus art_the (kase 2).
+// The nested-location suffix in the title line and the status bar:
+// "Krypta (auf dem Altar)", "Keller (in der Kiste)". Supporters take
+// "auf", everything else "in"; the article comes from art_the in the
+// dative (kase 2).
 block line_nested(obj)
     if obj is supporter
         show(" (auf ")
@@ -1090,8 +1141,8 @@ block line_nested(obj)
     art_the(obj, 0, 2)
     show(")")
 
-// Die linke Seite der Statusleiste im Dunkeln: der Raumname würde verraten,
-// was man nicht sehen kann, also nennt die Leiste die Dunkelheit selbst.
+// The status bar's left side in the dark: the room name would give away
+// what cannot be seen, so the bar names the darkness itself.
 block line_dark_status()
     show("Im Dunkeln")
 
@@ -1138,7 +1189,7 @@ block content_listable(holder, x)
 // One scenery holder's paragraph (constant scenery_contents = 1): what
 // sits on or in it, the knowledge model deciding per item. Prints
 // nothing when the holder holds nothing tellable.
-// Wie viele Inhalte eines Behälters die Auflistung nennen würde.
+// How many of a holder's contents the listing would name.
 block listable_count(holder)
     let total = 0
     for each x in holder
@@ -1158,17 +1209,17 @@ block scenery_holder_line(obj)
     else
         show("In ")
     art_the(obj, 0, 2)
-    // "siehst du" regiert den Akkusativ, wie jede Aufzählung hier: die
-    // gemeinsame Schleife (name_contents) spricht ihn durchgehend.
+    // "siehst du" governs the accusative, like every enumeration here:
+    // the shared loop (name_contents) speaks it throughout.
     show(" siehst du ")
     name_contents(obj)
     say "."
 
-// Die nackte Liste selbst, das komponierbare Grundelement: die sichtbaren
-// Inhalte mit Artikel, Kommas und einem "und", jedes als gesehen markiert;
-// zurück kommt die Anzahl (0 druckt gar nichts). Der Akkusativ, weil jeder
-// Satz, der Dinge nennt, ihn hier regiert; eine eigene Schleife mit
-// ${a:dat x} übernimmt den Sonderfall. Eine Ebene tief.
+// The bare list itself, the composable primitive: the visible contents
+// with article, commas, and one "und", each marked seen; the count comes
+// back (0 prints nothing at all). Accusative, because every sentence that
+// names things here governs it; a special case brings its own loop with
+// ${a:dat x}. One level deep.
 block name_contents(holder)
     let total = listable_count(holder)
     if total is 0
@@ -1213,14 +1264,15 @@ block reveal_contents(holder)
     name_contents(holder)
     say "."
 
-// Ein Ding, wie das Raumlisting es nennt: Artikel (Akkusativ), der
-// Geschlossen-Qualifier, sein Tag, sein Inhalt im Vorbeigehen. Die
-// Einzelzeile und der Sammelsatz sprechen beide hierdurch.
+// One thing as the room listing names it: article (accusative), the
+// closed qualifier, its tag, its contents in passing. The single line and
+// the combined sentence both speak through this.
 block name_room_item(obj)
     show("${a:acc obj}")
-    // Ein verschließbares Ding, das zu ist, sagt es (Pablo Martínez' Vorschlag,
-    // der PunyInform-Qualifier): der eine Zustand, den das Listing sonst nicht
-    // verrät. Das Prädikativ beugt sich nicht, also reicht EIN Wort.
+    // An openable thing that is shut says so (Pablo Martinez' suggestion,
+    // the PunyInform qualifier): the one state the listing would not
+    // otherwise reveal. The predicative does not inflect, so ONE word
+    // serves.
     if obj is openable
         if obj is not open
             show(" (geschlossen)")
@@ -1233,12 +1285,12 @@ block list_item(obj)
     name_room_item(obj)
     say "."
 
-// Der Sammelsatz des Raumlistings (Cosmos 1.5.0): alle gewöhnlichen
-// Dinge in EINEM Satz, "Du siehst hier eine Laterne, eine Notration
-// und einen Rucksack.", statt einer Zeile je Ding. Was gewöhnlich ist,
-// entscheidet room_plain, dieselbe Vorauswahl, die gezählt hat. Ein
-// einzelnes Ding geht weiter durch list_item, damit ein Spiel, das
-// list_item überschrieben hat, seine Formulierung behält.
+// The room listing's combined sentence (Cosmos 1.5.0): every plain thing
+// in ONE sentence, "Du siehst hier eine Laterne, eine Notration und einen
+// Rucksack.", instead of a line per thing. What counts as plain is
+// room_plain's call, the same preselection that counted. A single thing
+// still goes through list_item, so a game that overrode list_item keeps
+// its wording.
 block list_room(total)
     if total is 1
         for each x in here
@@ -1272,12 +1324,12 @@ block msg_unknown_word()
         change i to i + 1
     say "\" kennt diese Geschichte nicht."
 
-// Ein unvollständiger Befehl (nacktes NIMM, ein LEG ohne Wohin): die eine
-// ehrliche Nachfrage. Sie rät die fehlende Rolle nie ("Tanz was?" wäre
-// falsch geraten, wenn die Grammatik MIT WEM wollte), sondern sagt nur,
-// dass der Befehl mehr braucht. Das Verb wird WIE GETIPPT aus dem
-// Textpuffer buchstabiert (volle Länge, das Wörterbuch-Limit bleibt
-// unsichtbar), Kleinschreibung passt mitten im Satz.
+// An incomplete command (a bare NIMM, a LEG with no where): the one
+// honest ask. It never guesses the missing role ("Tanz was?" would guess
+// wrong when the grammar wanted WITH WHOM); it only says the command
+// needs more. The verb is spelled back AS TYPED from the text buffer
+// (full length, the dictionary limit stays invisible), and lowercase
+// fits mid-sentence.
 block msg_noun_missing()
     show("Das Verb ")
     let p = word_pos(0) - 2
@@ -1288,7 +1340,7 @@ block msg_noun_missing()
         change i to i + 1
     say " verlangt eine genauere Angabe."
 
-// Die beyond-Abweisung (docs/01): sichtbar, aber die Hand kommt nicht hin.
+// The beyond refusal (docs/01): visible, but the hand cannot reach.
 block msg_beyond(obj)
     if any_pluribus is 1
         say "${The obj} ${is obj} außer Reichweite."
@@ -1310,9 +1362,9 @@ block msg_no_it()
 block msg_be_specific()
     say "Du musst dich schon etwas genauer ausdrücken."
 
-// Die Rueckfrage bei Mehrdeutigkeit (docs/01 Kapitel 14): der Rahmen um die
-// Kandidatenliste des Parsers ("Was meinst du: die goldene Münze oder den
-// Schlüssel?"). Nach "meinen" steht der Akkusativ, darum ${the:acc obj}.
+// The disambiguation ask (docs/01 chapter 14): the framing around the
+// parser's candidate list ("Was meinst du: die goldene Muenze oder den
+// Schluessel?"). "meinen" governs the accusative, hence ${the:acc obj}.
 block line_which_open()
     show("Was meinst du: ")
 
@@ -1493,14 +1545,14 @@ block msg_taste()
 block msg_taken()
     say "Du nimmst ${the:acc noun} an dich."
 
-// Aus einem getragenen Behaelter gehoben (der take-Handler entscheidet).
+// Lifted out of a carried container (the take handler decides).
 block msg_taken_out()
     say "Du nimmst ${the:acc noun} heraus."
 
 block msg_fixed()
-    // Das Pronomen richtet sich nach dem Geschlecht: die Tür bleibt, wo SIE
-    // ist; der Schrank, wo ER ist; das Buch, wo ES ist. Der Plural zuerst:
-    // die Stiefel bleiben, wo sie sind.
+    // The pronoun follows the gender: die Tuer stays where SIE is, der
+    // Schrank where ER is, das Buch where ES is. The plural comes first:
+    // die Stiefel stay where sie are.
     if any_pluribus is 1
         if noun is pluribus
             say "${The noun} bleiben ziemlich genau, wo sie sind."
@@ -1526,7 +1578,6 @@ block msg_have_it()
 block msg_take_self()
     say "Dich selbst zumindest hast du fest im Griff."
 
-// Ein Bestandteil bleibt an seinem Ganzen; der Artikel steht im Dativ (zu).
 // Leaving a named thing the player is not actually in (exit noun).
 block msg_not_in_that()
     say "Da bist du nicht drin."
@@ -1538,8 +1589,8 @@ block msg_part_of()
     say "."
 
 block msg_dropped()
-    // Verschachtelt sagt die Zeile wohin (Akkusativ: auf den Altar, in
-    // die Kiste). Entfaellt ohne betretbare Dinge.
+    // Nested, the line says where to (accusative: auf den Altar, in die
+    // Kiste). Omitted without enterable things.
     if any_enterable is 1
         if parent_of(player) is not here
             if parent_of(player) is supporter
@@ -1692,8 +1743,8 @@ block msg_cant_close()
 block msg_locked()
     say "Abgeschlossen."
 
-// Neu (Cosmos 0.37): abgeschlossen-bereits und nicht-abgeschlossen. Sachlich
-// gehalten; Stefans Feinschliff-Durchgang gibt ihnen den frechen Ton.
+// New in Cosmos 0.37: already-locked and not-locked. Kept matter-of-fact;
+// Stefan's polish pass gives them their attitude.
 block msg_already_locked()
     say "Schon abgeschlossen."
 
@@ -1710,8 +1761,8 @@ block msg_cant_lock()
 block msg_close_first()
     say "Zuerst musst du ${the:acc noun} schließen."
 
-// Bewusst ohne Namen: ein nacktes SCHLIESS AUF darf nicht verraten,
-// welcher Schlüssel zu einem noch unentdeckten Schloss passt.
+// Deliberately nameless: a bare SCHLIESS AUF must not give away which
+// key fits a lock the player has not found yet.
 block msg_no_key()
     say "Dir fehlt der passende Schlüssel."
 
@@ -1765,8 +1816,8 @@ block msg_no_effect()
             return 0
     say "${The noun} rührt sich nicht."
 
-// Die Verweigerung am Ende der Handlungskette: ein Verb, das das Spiel
-// deklariert hat, aber nichts beansprucht. Fällt mit any_unruled weg.
+// The refusal at the end of the dispatch chain: a verb the game declared
+// but nothing claims. Falls away with any_unruled.
 block msg_cant_do()
     if noun is nothing
         say "Das lässt sich hier nicht machen."
@@ -1870,7 +1921,7 @@ block msg_farewell()
 block msg_game_over()
     say "Möchtest du NEU STARTEN, einen Spielstand LADEN oder BEENDEN?"
 
-// Nur nach einem `death`-Ende: der Weg zurück steht zur Wahl.
+// Only after a `death` ending: the way back is on the menu.
 block msg_game_over_died()
     say "Möchtest du NEU STARTEN, einen Spielstand LADEN, den letzten Zug WIDERRUFEN oder BEENDEN?"
 
@@ -1976,8 +2027,8 @@ block list_held(obj)
     list_contents(obj)
     say ""
 
-// Nimm alles (summon.takeall, docs/01 Kapitel 22): jede Zeile
-// verschwindet in einem Spiel ohne das Granule.
+// Take all (summon.takeall, docs/01 chapter 22): every line here
+// vanishes in a game without the granule.
 block msg_all_none()
     say "Hier gibt es nichts, das sich mitzunehmen lohnt."
 
@@ -1987,10 +2038,10 @@ block msg_all_none_in(source)
 block msg_all_verb()
     say "Eins nach dem anderen."
 
-// Die Wegfindung (summon.pathfinding, docs/01 Kapitel 22): jede Zeile
-// verschwindet in einem Spiel ohne das Granule. Die Richtungsrahmen
-// sprechen das getippte Wort nach ("In Richtung Norden liegt die Halle."),
-// so tragen Kompass und jede kuenftige Bordsprache denselben Satz.
+// Pathfinding (summon.pathfinding, docs/01 chapter 22): every line here
+// vanishes in a game without the granule. The direction frames echo the
+// typed word ("In Richtung Norden liegt die Halle."), so the compass and
+// any future nautical set share one sentence.
 block line_stride()
     say "(durch ${the:acc here})"
 

@@ -950,19 +950,24 @@ class Parser:
 
     def parse_pronoun(self) -> ast.PronounDecl:
         # `pronoun it "it"` / `pronoun her "sie"`: map typed words to a canonical
-        # pronoun role. Dispatched as a leading name, like direction and particle;
-        # the role is checked in sema against prelude._PRONOUN_ROLES.
+        # pronoun role. A word may name several roles (`pronoun him, it "ihm"`,
+        # the German dative): roles are names, words are strings, so after a
+        # comma the token kind says which list is still growing. Roles and
+        # their combinations are checked in sema.
         line = self.cur.line
         self.advance()  # the leading `pronoun`
         if self.cur.kind not in (T.NAME, T.KW):
             raise self._error("a pronoun role (it, him, her, them) after 'pronoun'")
-        role = self.advance().value
+        roles = [self.advance().value]
+        while self.check_op(",") and self._at(1).kind in (T.NAME, T.KW):
+            self.advance()
+            roles.append(self.advance().value)
         words = [self._plain_text(self.expect(T.STRING, "a pronoun word"))]
         while self.check_op(","):
             self.advance()
             words.append(self._plain_text(self.expect(T.STRING, "a pronoun word")))
         self.expect_newline()
-        return ast.PronounDecl(role, words, line)
+        return ast.PronounDecl(roles, words, line)
 
     def parse_chain(self) -> ast.ChainDecl:
         # `chain ",", "and", "then"`: the words that chain commands on one line

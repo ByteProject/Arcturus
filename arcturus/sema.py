@@ -690,14 +690,33 @@ class Analyzer:
                 # types unify and the words lists merge.
                 self._player_decls.append(decl.prop)
             elif isinstance(decl, ast.PronounDecl):
-                if decl.role not in prelude._PRONOUN_ROLES:
-                    roles = ", ".join(prelude._PRONOUN_ROLES)
-                    raise self._error(
-                        f"'{decl.role}' is not a pronoun role (use one of: {roles})",
-                        decl.line,
-                    )
-                for word in decl.words:
-                    w.pronouns[word.lower()] = decl.role
+                for role in decl.roles:
+                    if role not in prelude._PRONOUN_ROLES:
+                        roles = ", ".join(prelude._PRONOUN_ROLES)
+                        raise self._error(
+                            f"'{role}' is not a pronoun role (use one of: "
+                            f"{roles})",
+                            decl.line,
+                        )
+                if len(decl.roles) == 1:
+                    for word in decl.words:
+                        w.pronouns[word.lower()] = decl.roles[0]
+                else:
+                    # A multi-role word (the German dative "ihm"): the pair
+                    # maps to its own role id, resolved by recency in the
+                    # skeleton. Only the declared combinations exist; a new
+                    # one is added deliberately, never guessed.
+                    key = tuple(sorted(decl.roles))
+                    rid = prelude._PRONOUN_ROLE_SETS.get(key)
+                    if rid is None:
+                        raise self._error(
+                            f"the pronoun role combination "
+                            f"({', '.join(decl.roles)}) is not supported",
+                            decl.line,
+                        )
+                    for word in decl.words:
+                        w.pronoun_sets[word.lower()] = rid
+                    w.uses_pronoun_sets = True
             elif isinstance(decl, ast.ParticleDecl):
                 if decl.role not in prelude._PARTICLE_ROLES:
                     roles = ", ".join(prelude._PARTICLE_ROLES)

@@ -86,9 +86,12 @@ _TABLED_FLAG = _VERB_FLAG | 0x10
 
 
 def _pronoun_words(world: wm.World) -> dict:
-    """word -> pronoun role id, from the language layer's `pronoun` declarations."""
-    return {w: prelude._PRONOUN_ROLES[role] for w, role in world.pronouns.items()
-            if role in prelude._PRONOUN_ROLES}
+    """word -> pronoun role id, from the language layer's `pronoun`
+    declarations; multi-role words carry their pair's own id."""
+    out = {w: prelude._PRONOUN_ROLES[role] for w, role in world.pronouns.items()
+           if role in prelude._PRONOUN_ROLES}
+    out.update(world.pronoun_sets)
+    return out
 
 
 def _particle_words(world: wm.World) -> dict:

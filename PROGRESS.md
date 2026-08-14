@@ -9990,6 +9990,43 @@ word's role is skipped with a note, never silently. Verified end to end
 on fizmo-console: the whole example plays ASCII-only. Seven new tests;
 full battery 1280 green; the example holds its exact 23840 bytes.
 
+## 2026-08-15: pronouns done right, a word can reach two slots (arcc 1.8.0, Cosmos 1.11.0)
+
+The pronoun depth item, measured before designed: das Kind filed under
+the es slot and "rede mit ihm" refused, or worse, reached a stale Mann
+while the Kind was the freshest thing touched; and "ihnen", the dative
+plural, was not a word at all. The flaw was structural: the model mapped
+every pronoun word to exactly one slot, and German does not work that
+way. "ihm" is the dative of masculine AND neuter, "sie" is feminine AND
+plural, "ihnen" plural only.
+
+STEFAN'S RULINGS, three: a multi-role word takes the most recently
+mentioned live referent SILENTLY (pronouns are recency creatures, no
+interrogation); pluribus things file under the them slot, "sie" spans
+feminine and plural, "ihnen" is them-only; and recency is strict, so a
+freshest referent that left scope refuses honestly rather than an older
+one sliding in. The pack now declares `pronoun him, it "ihm"` and the
+skeleton resolves the pair by mention stamps; the slot semantics live in
+the language layer (the pronoun_pick seam), exactly where the parser
+seam principle wants them.
+
+Priced honestly: English and Spanish are byte-identical, PROVEN against
+snapshots (three encoding attempts were rejected on that proof: shifted
+global numbering twice, and a skeleton reference sema could see; the
+seam block was the shape that passed). The plural granule's fold was
+re-keyed to its summon on the way, since "ihnen" would have false-armed
+the old marker. German pays 84 bytes, repriced dated. Seven new tests
+(tests/test_pronoun_sets.py), all nine ruled behaviors probed on
+fizmo-console, full battery 1287 green.
+
+ALSO IN THIS COMMIT, Stefan's call of 2026-08-15: the German prose
+comments this assistant had written into german.granule were Denglish
+calques ("Die Erwaehnungsstempel"), ruled an abomination, and every
+German comment in the granule is now idiomatic English (56 blocks
+rewritten; German remains only inside quoted player input and message
+examples). The lesson is on record: library commentary is English;
+German prose appears only where a native pass gates it.
+
 ## CHECKPOINT: the German forum round (updated per item; compaction-proof)
 
 THE PICKUP. This checkpoint is the single source for resuming the
@@ -10015,6 +10052,26 @@ knowledge (file anchors, designs, measured facts) that the narrative
 entries deliberately leave out.
 
 DONE:
+- DEPTH C: PRONOUN SLOT SETS (arcc 1.8.0, Cosmos 1.11.0). Declaration:
+  `pronoun him, it "ihm"` (parser roles list; sema maps via
+  prelude._PRONOUN_ROLE_SETS {him+it:5, her+them:6} into
+  world.pronoun_sets, uses_pronoun_sets; single-role ids untouched so
+  existing packs keep bytes). dictionary._pronoun_words merges both.
+  any_plurals RE-KEYED to has_summon(world,"plurals") (old marker was
+  them-role-pronoun-exists; German ihnen would false-arm it).
+  any_pronoun_sets intrinsic folds the skeleton hook: pronoun_slot
+  role>=5 calls pronoun_pick(role), a PACK block (english stub returns
+  nothing, folded; german implements with fresher() + stamp globals
+  pron_seq/pron_at_* declared IN THE GRANULE). Lessons banked: stamps
+  as std-globals shift numbering (twice), skeleton refs to pack
+  globals fail sema even when folded; the seam block is the shape.
+  note_pronouns stamps + files pluribus->them first. German words:
+  es/ihn/ihm(5)/ihr/sie(6)/ihnen(4). Tests test_pronoun_sets.py (7);
+  beispiel repriced 23928. Handbook ch 21. EN ROUTE: all German prose
+  comments in german.granule rewritten to English (Stefan's ruling:
+  Denglish, wipe it); example beispiel-deutsch comments NOT touched,
+  flagged for Stefan (my recent German blocks there may need the same
+  treatment or his native pass).
 - DEPTH F: THE FOLD TABLE (arcc 1.7.0, Cosmos 1.10.0). `fold "ä" "ae"`
   pairs declared in the language pack (german.granule ~line 50, four
   folds incl. ß->ss); parse_fold beside parse_noise; world.folds;
@@ -10112,14 +10169,6 @@ DONE:
   in the handbook's attribute table and both lamp examples.
 
 NEXT (in order, with the agreed resolutions and pickup data):
-- DEPTH C: PRONOUNS DONE RIGHT. ihm binds neuter referents (das
-  Kind: "rede mit ihm") as well as masculine; sie binds plural
-  referents. NO narrow fixes (Stefan: if it has to be a depth
-  round, it is a depth round). The pronoun slot model lives in the
-  packs (pronoun decls + pronoun_slot in parser.prelude ~line 55);
-  German maps ihn/sie/es + now ihm/ihr; the neuter-dative and the
-  plural-sie need slot semantics designed WITH Stefan (ambiguity:
-  ihm with both masc and neut referents live).
 - DEPTH G: PRONOMINAL ADVERBS. damit/darauf/daran/danach family:
   "oeffne truhe damit" = mit + the remembered instrument referent.
   Grammar-model design with Stefan before code.
@@ -10148,9 +10197,9 @@ dictionary flag per word (noise would clobber particle - the reason
 German "aus" could never be noise and takeall's German group needs no
 filler).
 
-SESSION STATE BEYOND THE ROUND: versions arcc 1.7.0 / Cosmos 1.10.0 /
+SESSION STATE BEYOND THE ROUND: versions arcc 1.8.0 / Cosmos 1.11.0 /
 arcimg 1.35.0 / Actaea 1.3.9 / proteus 1.0.0, all standalones
-committed and README current; suite 1280 green
+committed and README current; suite 1287 green
 (tests/actaea excluded from batch runs: curses needs a TTY). B12
 arc_image stands at R2-R4 complete plus Shawn's Agon (fifteen
 formats, twelve probe-proven); R5 (Apple II/DHGR, Next, MEGA65, C128

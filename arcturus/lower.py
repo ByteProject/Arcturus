@@ -54,7 +54,7 @@ INTRINSICS = frozenset({
     "read_line", "peek_byte", "peek_word", "poke_byte", "poke_word",
     "word_count", "word_dict", "word_len", "word_pos", "call_handler",
     "handler_of", "parent_of", "words_addr", "words_count",
-    "plural_addr", "plural_count", "any_plurals",
+    "plural_addr", "plural_count", "any_plurals", "any_pronoun_sets",
     # trigger_addr / trigger_count expose an object's trigger array (the
     # #-marked words, docs/01 chapter 14), the same shape as plural.
     # any_triggers is the compile-time flag the matcher's tiebreak guards
@@ -1519,9 +1519,16 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # so the parser's TAKE ALL hand-off folds away without the granule.
         _place(rt, Const(1 if ctx.world.all_words else 0), dest)
     elif name == "any_plurals":
-        # any_plurals(): 1 when the plurals granule is in (its `pronoun them`
-        # declaration is the marker), so the plural hooks fold away without it.
-        _place(rt, Const(1 if "them" in ctx.world.pronouns.values() else 0), dest)
+        # any_plurals(): 1 when the plurals granule is summoned, so the plural
+        # hooks fold away without it. Keyed on the summon, NOT on a them-role
+        # pronoun existing: German declares "ihnen" (a them-role referent
+        # word) in its core pack, which must never arm the group machinery.
+        _place(rt, Const(1 if wm.has_summon(ctx.world, "plurals") else 0), dest)
+    elif name == "any_pronoun_sets":
+        # any_pronoun_sets(): 1 when the pack declares a multi-role pronoun
+        # word (German "ihm", "sie"), so the recency walk folds away in every
+        # other language.
+        _place(rt, Const(1 if ctx.world.uses_pronoun_sets else 0), dest)
     elif name == "any_triggers":
         # any_triggers(): 1 when any words list carries the # trigger marker
         # (docs/01 chapter 14), so the matcher's trigger tiebreak folds away
@@ -3615,7 +3622,9 @@ def _static_value(ctx, expr):
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_allwords":
         return 1 if ctx.world.all_words else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_plurals":
-        return 1 if "them" in ctx.world.pronouns.values() else 0
+        return 1 if wm.has_summon(ctx.world, "plurals") else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_pronoun_sets":
+        return 1 if ctx.world.uses_pronoun_sets else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_triggers":
         return 1 if ctx.world.uses_triggers else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tagged":

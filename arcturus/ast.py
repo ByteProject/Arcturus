@@ -710,11 +710,14 @@ class PlayerDecl:
 
 @dataclass
 class PronounDecl:
-    # A language layer maps player-typed words to a canonical pronoun role:
+    # A language layer maps player-typed words to canonical pronoun roles:
     # `pronoun it "it"` (English), `pronoun her "sie"` (German, grammatical
-    # gender). The role is one of prelude._PRONOUN_ROLES; the words resolve to
-    # that role's remembered referent when typed as a noun.
-    role: str
+    # gender). A word may name SEVERAL roles (`pronoun him, it "ihm"`: the
+    # German dative reaches masculine and neuter alike), and then the most
+    # recently mentioned live referent wins (docs/01 chapter 21). Roles are
+    # from prelude._PRONOUN_ROLES; the supported combinations from
+    # prelude._PRONOUN_ROLE_SETS.
+    roles: list[str]
     words: list[str]
     line: int = 0
 
