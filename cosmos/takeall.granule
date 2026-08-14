@@ -16,19 +16,30 @@
 // UNDO takes back the whole sweep, because the sweep is one typed command
 // and undo peels typed commands.
 //
-// English-worded like every granule: a translation forks this file and
-// redeclares the all-words and the messages (docs/01 chapter 22).
+// The granule speaks every shipped language (docs/01 chapter 22): its
+// words live below under `when language` groups, and its messages live
+// in the language packs beside the rest of the library's voice.
+// Reskin a line by redefining its msg_ block in your story.
 
-// The words that mean "everything within reach". The parser flags them in
-// the dictionary and hands any command carrying one to run_all below.
-all "all", "everything"
+// The words that mean "everything within reach". The parser flags them
+// in the dictionary and hands any command carrying one to run_all
+// below. English also declares "from" ("take all from the chest") as
+// noise so the source phrase stays whole and resolvable; German needs
+// no such line ("nimm alles aus der Kiste" resolves already: "aus" is
+// the off-particle, and phrase matching compares dictionary entries,
+// not flags, so a known word in the noun range is simply not counted);
+// Spanish declares the bare "de" ("coge todo de la caja"; "del" is
+// article noise already).
+when language "english"
+    all "all", "everything"
+    noise "from"
 
-// "from" is this granule's filler ("take all from the chest"): declared as
-// noise so the source phrase stays whole and resolvable now that the matcher
-// refuses genuinely unknown words. Pay-for-use: only a takeall game carries
-// it. The verbs overhaul's breadth phase will graduate "from" to a real
-// separator on TAKE's own grammar; this line retires then.
-noise "from"
+when language "german"
+    all "alles", "alle"
+
+when language "spanish"
+    all "todo"
+    noise "de"
 
 // The expander the turn loop hands an all-command to (the run_all stub in
 // loop.prelude). take sweeps the room, or the named source ("take all from
@@ -157,13 +168,3 @@ block all_drop()
         fire_turn
         tick
     return 0
-
-// The wording. Fork the granule to change any of these lines.
-block msg_all_none()
-    say "There's nothing here worth taking."
-
-block msg_all_none_in(source)
-    say "There's nothing in ${the source} worth taking."
-
-block msg_all_verb()
-    say "One thing at a time."

@@ -120,6 +120,12 @@ block compound(base, particle)
             return action_id("switch_off")
     if base is action_id("take")         // nimm ... ab -> ausziehen (take_off)
         if particle is 2
+            // Nicht bei ALLES: "nimm alles aus der Kiste" ist der
+            // Sammelgriff des takeall-Granules, kein Ausziehen. Der
+            // Wächter faltet ohne das Granule weg.
+            if any_allwords is 1
+                if all_typed is 1
+                    return nothing
             return action_id("take_off")
     if base is action_id("transcript")   // mitschrift an / mitschrift aus
         if particle is 1
@@ -1896,6 +1902,17 @@ block list_held(obj)
     show_tag(obj)
     list_contents(obj)
     say ""
+
+// Nimm alles (summon.takeall, docs/01 Kapitel 22): jede Zeile
+// verschwindet in einem Spiel ohne das Granule.
+block msg_all_none()
+    say "Hier gibt es nichts, das sich mitzunehmen lohnt."
+
+block msg_all_none_in(source)
+    say "In ${the:dat source} gibt es nichts, das sich mitzunehmen lohnt."
+
+block msg_all_verb()
+    say "Eins nach dem anderen."
 
 // Die Wegfindung (summon.pathfinding, docs/01 Kapitel 22): jede Zeile
 // verschwindet in einem Spiel ohne das Granule. Die Richtungsrahmen

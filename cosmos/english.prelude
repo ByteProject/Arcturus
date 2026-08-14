@@ -2010,6 +2010,17 @@ block list_held(obj)
     list_contents(obj)
     say ""
 
+// The takeall granule's wording (summon.takeall, docs/01 chapter 22):
+// folds away in a game that never summons it.
+block msg_all_none()
+    say "There's nothing here worth taking."
+
+block msg_all_none_in(source)
+    say "There's nothing in ${the source} worth taking."
+
+block msg_all_verb()
+    say "One thing at a time."
+
 // The pathfinding granule's wording (summon.pathfinding, docs/01 chapter
 // 22): every line folds away in a game that never summons it. The
 // direction frames speak the typed word back through show_dir_word

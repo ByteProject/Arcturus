@@ -4201,6 +4201,34 @@ group simply contributes nothing.
 
 ### The shipped granules
 
+Which granule speaks which language, at a glance. SPEAKS ALL means the
+granule works in every shipped language out of the box: its words sit in
+`when language` groups (or it declares none) and its messages live in the
+language packs. NEUTRAL means the granule has no words and no voice of
+its own, so language never touches it. ENGLISH means the granule is
+English-worded by design, and a game in another language forks it and
+translates the fork (chapter 23), summoning the fork in the granule's
+place; the more intricate the wording, the more the translation deserves
+an author's own voice, which is why these stay untranslated.
+
+| granule         | languages | notes                                    |
+|-----------------|-----------|------------------------------------------|
+| conversations   | speaks all | menu framing from the packs             |
+| infocom_talking | speaks all | ask/tell wording from the packs         |
+| statusline      | speaks all | score/moves labels from the packs       |
+| pathfinding     | speaks all | grammar in `when language` groups       |
+| takeall         | speaks all | all-words per language, wording in packs |
+| plurals         | speaks all* | group words are the author's own vocabulary, so the sweep works anywhere; only THEM is English, and a fork drops or renames it (see its section) |
+| foresight       | speaks all | wording from the packs                  |
+| verbose_exits   | english    | the exit frames are English-worded; fork to translate |
+| quotes          | neutral    | draws boxes, says nothing               |
+| ambience        | neutral    | timing machinery; your lines are yours  |
+| matrix          | neutral    | machinery only                          |
+| nautical        | english    | the terms ARE the flavor; fork to translate |
+| use             | english    | one verb and two lines; fork to translate |
+| extendedverbs   | english    | the big verb set; fork and translate the slice you summon |
+| debug           | english    | a developer tool, deliberately          |
+
 ### extendedverbs
 
 ```
@@ -4725,9 +4753,14 @@ things costs three turns, the same rule a chained line follows (chapter 14). UND
 and undo peels typed commands. An empty sweep, and ALL with any other verb
 ("eat all"), refuse, so a chained line stops there honestly.
 
-The granule declares the words (`all "all", "everything"`) and its messages
-in English; a translation forks it and redeclares both (chapter 23), the same
-rule as every granule.
+The granule speaks every shipped language. Its words live inside it under
+`when language` groups (English ALL and EVERYTHING with the filler FROM;
+German ALLES and ALLE, "nimm alles aus der Kiste" with no extra filler,
+since AUS is already the off-particle and phrase matching compares
+dictionary entries, not flags; Spanish TODO, "coge todo de la caja"), and
+its messages live in the language packs beside the rest of the library's
+voice. Reskin any line by redefining its msg_ block; a new language
+declares its own group in a fork (chapter 23).
 
 ### plurals
 

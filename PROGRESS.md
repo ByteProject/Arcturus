@@ -9742,3 +9742,37 @@ host directory.
 
 The family now stands at FIFTEEN formats, TWELVE probe-proven. R5
 still waits: Apple II, Spectrum Next, MEGA65, the C128 ruling.
+
+## 2026-08-14: TAKE ALL speaks every shipped language (Cosmos 1.6.0)
+
+An adopter's German game hit "nimm alles" and the story answered that
+it did not know the word: the takeall granule was English-worded, as
+several granules deliberately are. Now it speaks all three languages
+the compiler ships: its words moved into `when language` groups
+(English keeps ALL and EVERYTHING with the FROM filler; German gets
+ALLES and ALLE, and needs no filler at all, since AUS is already the
+off-particle and phrase matching compares dictionary entries, not
+flags; Spanish gets TODO with the bare DE as noise), and its three
+messages moved out of the granule into the language packs, the
+library-granule rule pathfinding modeled.
+
+One German subtlety earned its guard: "nimm ... aus" compounds to
+take_off (ausziehen), so TAKE ALL FROM undressed instead of sweeping.
+The compound now stands down when an all-word is typed, and the guard
+folds away in a game without the granule. The dictionary taught its
+own lesson along the way: one flag per word, so German's AUS could
+never have been noise (it is the off-particle), and the fix that
+looked obvious would have broken switching things off.
+
+THE COVERAGE TABLE, the second task of the report: the handbook's
+shipped-granules section now opens with a measured table of which
+granule speaks which language: eight speak all three, three are
+language-neutral machinery, and four are English by design
+(extendedverbs, nautical, use, verbose_exits, plus the debug tool),
+where a fork translates exactly the slice a game summons. The audit
+that fed the table also corrected two rows the code had drifted from
+the assumption on.
+
+Open, Stefan's call: the German pack has no "lass ... fallen"
+separable drop (the canonical German phrasing; WIRF and WEGLEGEN
+stand in), and the plurals granule's THEM is English by declaration.

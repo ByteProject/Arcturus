@@ -2037,6 +2037,17 @@ block list_held(obj)
     list_contents(obj)
     say ""
 
+// Coger todo (summon.takeall, docs/01 capítulo 22): cada línea
+// desaparece si el juego nunca invoca el gránulo.
+block msg_all_none()
+    say "Aquí no hay nada que valga la pena llevarse."
+
+block msg_all_none_in(source)
+    say "En ${the source} no hay nada que valga la pena llevarse."
+
+block msg_all_verb()
+    say "Una cosa a la vez."
+
 // La búsqueda de caminos (summon.pathfinding, docs/01 capítulo 22): cada
 // línea desaparece en un juego sin el granule. El marco de la puerta
 // evita la concordancia dejando que la puerta cierre el paso.
