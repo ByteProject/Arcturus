@@ -9964,6 +9964,32 @@ in chapter 3, and the legal shapes (a room, a container, the player,
 `scope`, backstage-by-omission) all pass untouched. Two tests beside the
 exit-validation family; full battery 1273 green.
 
+## 2026-08-14: the fold table, crossword umlauts for free (arcc 1.7.0, Cosmos 1.10.0)
+
+The depth item of the round: German is read with umlauts and typed, on an
+8-bit keyboard, without them, and until today every typeable word had to
+be declared twice, "oeffne" beside "öffne" through the whole granule and
+every game's own words. STEFAN'S RULING: the pack owns its orthography. A
+language layer now declares its fold table, one pair per line (fold "ä"
+"ae", and ß to ss, Spass for Spaß), and every dictionary word containing
+a source, the pack's verbs and directions and the game's words, plural
+and trigger vocabulary, grain and topic words alike, gains its crossword
+sibling automatically: same meaning, second spelling. One-way by design,
+declared to derived, because not every "ue" is a "ü"; the reverse would
+guess. English declares no folds and is untouched; Spanish stays
+declaration-based on Stefan's line that año to ano is not a spelling.
+
+The granule shed seventeen hand-doubled lines and the example its
+doubled words, and the proof came out exact: the pruned-and-folded build
+loses NOT ONE typeable spelling against the hand-doubled one and gains
+three (möwe, südost, südwest, the proper forms of words that had only
+crossword spellings). Collisions follow the ruling: a declared word
+always wins; two things sharing a folded spelling become an honest
+ambiguity the parser asks about, and a fold that would change a declared
+word's role is skipped with a note, never silently. Verified end to end
+on fizmo-console: the whole example plays ASCII-only. Seven new tests;
+full battery 1280 green; the example holds its exact 23840 bytes.
+
 ## CHECKPOINT: the German forum round (updated per item; compaction-proof)
 
 THE PICKUP. This checkpoint is the single source for resuming the
@@ -9989,6 +10015,21 @@ knowledge (file anchors, designs, measured facts) that the narrative
 entries deliberately leave out.
 
 DONE:
+- DEPTH F: THE FOLD TABLE (arcc 1.7.0, Cosmos 1.10.0). `fold "ä" "ae"`
+  pairs declared in the language pack (german.granule ~line 50, four
+  folds incl. ß->ss); parse_fold beside parse_noise; world.folds;
+  dictionary.build registers folded siblings with copied data bytes
+  (verbs/directions/particles/grains work by data), and fold_words
+  (objects.py) expands every ADDRESS-compared array: object words,
+  plural, trigger, topic word sub-arrays (matching is by dictionary
+  address, so data-copy alone was not enough, the first probe proved
+  it). Collision policy ruled: declared wins; same-data sibling silent
+  (hand-doubles stay quiet), shared thing-spelling becomes a parser
+  ambiguity, role-changing fold skipped with an arcc note. Granule
+  pruned 17 lines, example pruned (words + grains + comments);
+  word-set proof: nothing lost, three gained (möwe/südost/südwest).
+  Handbook ch 21 rewritten (fold table + the Spanish contrast).
+  Tests: tests/test_fold.py (7). Sizes: beispiel exactly 23840 still.
 - D: TUERE VARIANTS (example-only, no version bump). The Tür declares
   tuere/türe/eichentuere/eichentüre beside its four forms
   (examples/beispiel-deutsch.storyarc ~line 190, reasoning in a file
@@ -10071,17 +10112,6 @@ DONE:
   in the handbook's attribute table and both lamp examples.
 
 NEXT (in order, with the agreed resolutions and pickup data):
-- DEPTH F: CROSSWORD UMLAUTS, AUTOMATIC. Every dictionary word
-  containing ae/oe/ue/ss gets its sibling registered automatically
-  at dictionary build (both directions umlaut->crossword from
-  declared umlaut forms; eszett -> ss: Spass for Spaß), one entry
-  two spellings; then prune the hand-doubled declarations
-  (tuer/tür pairs in german.granule verbs, oellampe/öllampe in the
-  example). Site: arcturus/dictionary.py (encoding) - note ZSCII
-  umlauts already encode, this is about REGISTERING the folded
-  sibling spellings. German-only? Ruled: applies to the German
-  language build (and harmless generally); check with Stefan at
-  build time whether folding activates per-language.
 - DEPTH C: PRONOUNS DONE RIGHT. ihm binds neuter referents (das
   Kind: "rede mit ihm") as well as masculine; sie binds plural
   referents. NO narrow fixes (Stefan: if it has to be a depth
@@ -10118,9 +10148,9 @@ dictionary flag per word (noise would clobber particle - the reason
 German "aus" could never be noise and takeall's German group needs no
 filler).
 
-SESSION STATE BEYOND THE ROUND: versions arcc 1.6.1 / Cosmos 1.9.0 /
+SESSION STATE BEYOND THE ROUND: versions arcc 1.7.0 / Cosmos 1.10.0 /
 arcimg 1.35.0 / Actaea 1.3.9 / proteus 1.0.0, all standalones
-committed and README current; suite 1273 green
+committed and README current; suite 1280 green
 (tests/actaea excluded from batch runs: curses needs a TTY). B12
 arc_image stands at R2-R4 complete plus Shawn's Agon (fifteen
 formats, twelve probe-proven); R5 (Apple II/DHGR, Next, MEGA65, C128

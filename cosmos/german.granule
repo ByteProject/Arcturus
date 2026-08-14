@@ -33,14 +33,24 @@
 //     to the noun (msg_fixed: wo sie/er/es ist), which branches on the gender.
 //
 // TYPING ON 8-BIT HARDWARE: an accented word is shown in full (the interpreters
-// render umlauts and ß), but every word the player must TYPE also has a plain
-// ASCII form here, since an 8-bit keyboard cannot enter umlauts: "oeffne"
-// beside "öffne", "sueden" beside "süden", "schliesse" beside "schließe".
+// render umlauts and ß), but every word the player must TYPE also needs a plain
+// ASCII form, since an 8-bit keyboard cannot enter umlauts. The fold table
+// below does that automatically: every dictionary word containing ä/ö/ü/ß,
+// this pack's and the game's own words alike, gains its crossword sibling
+// (tuer for tür, spass for Spaß) as a second entry with the same meaning.
+// Declare the proper spelling once; the folded one is derived. One-way by
+// design: not every "ue" is a "ü", so the reverse would guess.
 //
 // The self-identifying marker: this is the language pack for the code "german".
 // The compiler requires it to be chosen with summon.language, and rejects a plain
 // `summon german.granule` (which would leave English baked in).
 language "german"
+
+// Die Kreuzwort-Faltung (docs/01 Kapitel 21): pro Zeile ein Paar.
+fold "ä" "ae"
+fold "ö" "oe"
+fold "ü" "ue"
+fold "ß" "ss"
 
 // ==========================================================================
 // 1. THE PARSER
@@ -609,20 +619,20 @@ verb "geh", "gehe", "gehen", "lauf", "laufe", "renne"
 // The property names never change; only the words are German. Each umlaut word
 // (sueden, suedosten, suedwesten) carries its ASCII form for typing.
 direction north     "norden", "nord", "n"
-direction south     "sueden", "süden", "sued", "süd", "s"
+direction south     "süden", "süd", "s"
 direction east      "osten", "ost", "o"
 direction west      "westen", "west", "w"
 direction northeast "nordosten", "nordost", "no"
 direction northwest "nordwesten", "nordwest", "nw"
-direction southeast "suedosten", "südosten", "suedost", "so"
-direction southwest "suedwesten", "südwesten", "suedwest", "sw"
+direction southeast "südosten", "südost", "so"
+direction southwest "südwesten", "südwest", "sw"
 // Hinauf und hinab brauchen im Deutschen viele Formen: hoch, rauf, hinauf,
 // aufwaerts, oben (fuer "nach oben"), und ebenso runter, hinunter, hinab,
 // abwaerts, unten. Das nackte "auf" fehlt mit Absicht: es ist die
 // Aufschliess-Partikel ("schliess die Tuer auf"), und ein Wort traegt im
 // Woerterbuch nur eine Rolle. Ein nacktes "ab" waere ohnehin kein Deutsch.
-direction up        "hoch", "rauf", "hinauf", "aufwaerts", "aufwärts", "oben", "h"
-direction down      "runter", "hinunter", "hinab", "abwaerts", "abwärts", "unten", "r"
+direction up        "hoch", "rauf", "hinauf", "aufwärts", "oben", "h"
+direction down      "runter", "hinunter", "hinab", "abwärts", "unten", "r"
 direction in        "rein", "hinein"
 direction out       "hinaus", "heraus"
 
@@ -640,7 +650,7 @@ verb "lass", "lasse", "fallenlassen", "wegwerfen", "weglegen"
 
 noise "fallen"
 
-verb "untersuch", "untersuche", "untersuchen", "betrachte", "pruefe", "prüfe", "x"
+verb "untersuch", "untersuche", "untersuchen", "betrachte", "prüfe", "x"
     examine noun
     look_under noun
 
@@ -677,7 +687,7 @@ verb "unscript"
     transcript_off
 
 // undo and again are intercepted by the turn loop before dispatch.
-verb "widerrufen", "rueckgaengig", "rückgängig", "undo"
+verb "widerrufen", "rückgängig", "undo"
     undo
 
 verb "wiederhole", "wiederholen", "nochmal", "g", "again"
@@ -712,7 +722,7 @@ verb "nein"
 // zusammengeschriebenen Formen decken "einschalten Lampe" mit ab.
 // ZÜNDE DIE KERZE AN, ENTZÜNDE DIE FACKEL: anzünden ist das deutsche
 // "light"; die Partikel (an) macht daraus switch_on wie bei schalte ... an.
-verb "schalt", "schalte", "zünde", "zuende", "entzünde", "entzuende"
+verb "schalt", "schalte", "zünde", "entzünde"
     switch_on noun
     switch_off noun
 
@@ -742,7 +752,7 @@ verb "leg", "lege", "stell", "stelle", "setz", "setze"
 verb "steck", "stecke", "einstecken"
     insert noun in noun
 
-verb "oeffne", "öffne", "oeffnen", "öffnen"
+verb "öffne", "öffnen"
     open noun mit noun
     open noun
 
@@ -755,7 +765,7 @@ verb "oeffne", "öffne", "oeffnen", "öffnen"
 // Die mit-Zeile traegt den Schluessel ins zweite Feld ("schliess die Tuer mit
 // dem Schluessel ab"); WELCHE Handlung laeuft, entscheidet allein die Partikel
 // (compound oben), nie die Zeile, darum steht hier ueberall close.
-verb "schliesse", "schließe", "schliess", "schließ", "schliessen", "schließen", "zumachen"
+verb "schließe", "schließ", "schließen", "zumachen"
     close noun
     close noun mit noun
 
@@ -833,7 +843,7 @@ verb "zeig", "zeige", "zeigen"
     show noun an noun
     show noun noun reverse
 
-verb "beruehre", "berühre", "beruehren", "berühren", "fuehl", "fühl"
+verb "berühre", "berühren", "fühl"
     touch noun
 
 verb "riech", "rieche", "riechen", "schnupper"
@@ -843,7 +853,7 @@ verb "riech", "rieche", "riechen", "schnupper"
 verb "schmeck", "schmecke", "koste", "probier", "probiere"
     taste noun
 
-verb "hoer", "hör", "hoere", "höre", "lausche", "horch"
+verb "hör", "höre", "lausche", "horch"
     listen
     listen noun
 
@@ -854,13 +864,13 @@ verb "trink", "trinke", "trinken", "schluck"
     drink
     drink noun
 
-verb "schlag", "schlage", "angreifen", "hau", "tritt", "zerstoere", "zerstöre", "brich"
+verb "schlag", "schlage", "angreifen", "hau", "tritt", "zerstöre", "brich"
     attack noun
 
-verb "kuess", "küss", "kuesse", "küsse", "umarme"
+verb "küss", "küsse", "umarme"
     kiss noun
 
-verb "drueck", "drück", "druecke", "drücke", "schieb", "schiebe", "press"
+verb "drück", "drücke", "schieb", "schiebe", "press"
     push noun
 
 verb "zieh", "ziehe", "ziehen", "zerr"
@@ -884,7 +894,7 @@ verb "frag", "frage", "befrage"
     ask noun über
     ask noun ueber
 
-verb "erzähl", "erzaehl", "erzähle", "erzaehle", "sag", "sage"
+verb "erzähl", "erzähle", "sag", "sage"
     tell noun
     tell noun von
     tell noun über
@@ -893,7 +903,7 @@ verb "erzähl", "erzaehl", "erzähle", "erzaehle", "sag", "sage"
 verb "antworte", "antworten"
     answer noun
 
-verb "spring", "springe", "huepf", "hüpf", "huepfe", "hüpfe"
+verb "spring", "springe", "hüpf", "hüpfe"
     jump
 
 verb "warte", "warten", "z"

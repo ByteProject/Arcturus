@@ -20,6 +20,8 @@ object's vocabulary into dictionary addresses.
 
 from __future__ import annotations
 
+import sys
+
 from . import ast
 from . import prelude
 from . import worldmodel as wm
@@ -122,23 +124,26 @@ def collect_vocab(world: wm.World) -> set:
         # computed the same way the object table emits it.
         words.update(objects.object_words(
             objects._effective_props(world, obj), obj.category == "room",
-            room_names=_room_names, reserved=_reserved))
+            room_names=_room_names, reserved=_reserved, folds=world.folds))
         for grain in obj.grains:
             for gw in grain.words:
                 words.add(gw.lower())
         # Plural (group) vocabulary, so the plurals granule's sweep words
-        # have dictionary entries to backpatch.
+        # have dictionary entries to backpatch. Folded siblings ride along,
+        # matching what the object table emits (fold_words).
         if obj.decl is not None:
             eff = objects._effective_props(world, obj)
             if "plural" in eff:
-                for v in eff["plural"].values:
-                    if isinstance(v, ast.Name):
-                        words.add(v.ident.lower())
+                for w in objects.fold_words(
+                        [v.ident.lower() for v in eff["plural"].values
+                         if isinstance(v, ast.Name)], world.folds):
+                    words.add(w)
         # A person's topic match-words (the ask/tell words) must be in the
         # dictionary so the topic table's word entries can be backpatched.
         for topic in obj.topics:
-            for tw in topic.words:
-                words.add(tw.lower())
+            for tw in objects.fold_words(
+                    [t.lower() for t in topic.words], world.folds):
+                words.add(tw)
     for kind in world.kinds.values():
         for grain in kind.grains:
             for gw in grain.words:
@@ -308,6 +313,52 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
             enc_data[enc] = bytes(
                 [enc_data[enc][0] | _PREPOSITION_FLAG, enc_data[enc][1], enc_data[enc][2]]
             )
+    # The crossword folds (docs/01 chapter 21): for every word containing a
+    # fold source ("ä"), register the folded sibling ("ae") as its own entry
+    # with the SAME data bytes, so the player can type the spelling an 8-bit
+    # keyboard allows. The declared spelling stays canonical; a sibling whose
+    # spelling the author declared themselves, or whose encoding an existing
+    # entry with different data already owns, is skipped (declared wins), the
+    # latter with a note so the lost typeability is not silent.
+    if world.folds:
+        taken = set(encoded.values())
+        for w in sorted(words):
+            folded = w
+            for src, dst in world.folds:
+                folded = folded.replace(src, dst)
+            if folded == w:
+                continue
+            enc_f = zstring.encode_dict_word(folded)
+            data = enc_data.get(encoded[w])
+            if folded in words:
+                # The spelling is declared in its own right. A hand-doubled
+                # pair (tuer beside tür, both meaning the same) carries the
+                # same data and stays silent; a declared word whose entry
+                # data DIFFERS from what the fold would carry (an author's
+                # thing named "druecke" beside the verb "drücke") keeps its
+                # own meaning, and the lost sibling is said out loud.
+                if data is not None and enc_data.get(enc_f) != data:
+                    print(
+                        f'arcc: note: the folded spelling "{folded}" (of '
+                        f'"{w}") is already a declared word with a meaning '
+                        f"of its own and was not registered as a sibling; "
+                        f"the declared word wins",
+                        file=sys.stderr,
+                    )
+                continue
+            if enc_f in taken and enc_data.get(enc_f) != data:
+                print(
+                    f'arcc: note: the folded spelling "{folded}" (of "{w}") '
+                    f"collides with another dictionary entry and was not "
+                    f"registered; the declared word wins",
+                    file=sys.stderr,
+                )
+                continue
+            encoded[folded] = enc_f
+            taken.add(enc_f)
+            if data is not None:
+                enc_data[enc_f] = data
+            words.add(folded)
     # Distinct entries, sorted by encoded bytes for binary search.
     distinct = sorted(set(encoded.values()))
 

@@ -761,7 +761,10 @@ def _emit_topic_tables(world, layout, topic_sites: dict) -> None:
                      | (TOPIC_IDLE if getattr(topic, "idle", False) else 0))
             table[rec + 8] = flags
             table[rec + 9] = TOPIC_HIDDEN if topic.hidden else 0
-            word_ptr_sites.append((rec + 6, topic.words))
+            # Folded siblings join the match array (docs/01 chapter 21), so
+            # a typed crossword spelling reaches the topic too.
+            word_ptr_sites.append((rec + 6, fold_words(
+                [w.lower() for w in topic.words], world.folds)))
         # The match-word sub-arrays (count word + a dictionary address per word),
         # pointed at from each record's +6 field.
         for ptr_site, words in word_ptr_sites:
@@ -835,6 +838,7 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
         world.objects[name].category == "room",
         room_names=wm.has_summon(world, "pathfinding"),
         reserved=frozenset(grammar_reserved_words(world)),
+        folds=world.folds,
     )
     if words_prop is not None and vocab:
         items.append((words_prop, "words", vocab))
@@ -842,7 +846,9 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     # of dictionary addresses exactly like words.
     plural_prop = layout.prop_number.get("plural")
     if plural_prop is not None and "plural" in eff:
-        pvocab = [v.ident.lower() for v in eff["plural"].values if isinstance(v, ast.Name)]
+        pvocab = fold_words(
+            [v.ident.lower() for v in eff["plural"].values if isinstance(v, ast.Name)],
+            world.folds)
         if pvocab:
             items.append((plural_prop, "plural", pvocab))
     # The trigger property (the #-marked words, docs/01 chapter 14): an array
@@ -850,7 +856,9 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     # a words list carries the marker, so a triggerless game emits nothing.
     trigger_prop = layout.prop_number.get("trigger")
     if trigger_prop is not None and "trigger" in eff:
-        tvocab = [v.ident.lower() for v in eff["trigger"].values if isinstance(v, ast.Name)]
+        tvocab = fold_words(
+            [v.ident.lower() for v in eff["trigger"].values if isinstance(v, ast.Name)],
+            world.folds)
         if tvocab:
             items.append((trigger_prop, "trigger", tvocab))
     # A person with `topic` declarations gets a `topics` property holding a
@@ -931,8 +939,26 @@ def grammar_reserved_words(world) -> set:
     return out
 
 
+def fold_words(words: list, folds) -> list:
+    """The crossword folds (docs/01 chapter 21): append the folded sibling of
+    every word a fold touches, in source order, so an address-compared word
+    array (an object's words, plural, trigger, a topic's words) matches the
+    typed folded spelling too. The dictionary build registers the sibling
+    entries; this puts their addresses where the matching looks."""
+    if not folds:
+        return words
+    out = list(words)
+    for w in words:
+        folded = w
+        for src, dst in folds:
+            folded = folded.replace(src, dst)
+        if folded != w and folded not in out:
+            out.append(folded)
+    return out
+
+
 def object_words(eff: dict, is_room: bool = False, room_names: bool = False,
-                 reserved: frozenset = frozenset()) -> list:
+                 reserved: frozenset = frozenset(), folds=()) -> list:
     """An object's matchable vocabulary: its explicit `words`, then any new words
     from its `name` (so `name "rusted lever"` makes lever and rusted match even
     with no `words` line). Rooms contribute only explicit words, not their name,
@@ -955,7 +981,7 @@ def object_words(eff: dict, is_room: bool = False, room_names: bool = False,
             for w in _plain(v).lower().split():
                 if w.isalnum() and w not in words and w not in reserved:
                     words.append(w)
-    return words
+    return fold_words(words, folds)
 
 
 def _emit_words(layout: Layout, pnum: int, words: list) -> None:

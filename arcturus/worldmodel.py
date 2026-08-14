@@ -452,6 +452,11 @@ class World:
     # The language layer's noise words (articles, fillers): in the dictionary
     # so the parser KNOWS them, flagged so it ignores them.
     noise_words: list[str] = field(default_factory=list)
+    # The language layer's crossword folds (`fold "ä" "ae"`, docs/01 chapter
+    # 21): (source, replacement) pairs the dictionary build applies to every
+    # word to register the folded sibling spelling. Empty for a pack that
+    # declares none (English, Spanish), and the machinery costs nothing then.
+    folds: list = field(default_factory=list)
     declared_actions: list[str] = field(default_factory=list)
     # The scoring plan, gathered at lowering time (docs/01, Scoring): each
     # anonymous `award` site's points, and each named pool's running

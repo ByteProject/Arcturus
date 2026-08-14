@@ -729,6 +729,9 @@ class Analyzer:
                 for word in decl.words:
                     if word.lower() not in w.noise_words:
                         w.noise_words.append(word.lower())
+            elif isinstance(decl, ast.FoldDecl):
+                if (decl.src, decl.dst) not in w.folds:
+                    w.folds.append((decl.src, decl.dst))
             elif isinstance(decl, ast.ActionDecl):
                 for name in decl.names:
                     if name not in w.declared_actions:

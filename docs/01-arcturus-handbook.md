@@ -3956,10 +3956,32 @@ writes each accented character with its Z-machine ZSCII code (chapter 23), so th
 acute vowels, u-diaeresis, n-tilde, and the inverted marks render on any
 conformant interpreter, the 8-bit and 16-bit ones included. But an 8-bit
 interpreter renders an accent it cannot type, so every word the player must *type*
-also carries a tilde-free form: the language's verbs list both (`oir`/`oír`,
-`ensena`/`enseña`), and an object with an accented name lists both spellings in
-its `words` (`words lampara, lámpara`). The rule: accent the display, and give
-every typeable word a plain-ASCII spelling too.
+also needs a plain-ASCII spelling. A language whose orthography has a standard
+one gets it automatically: the pack declares its FOLD TABLE, one pair per line,
+
+    fold "ä" "ae"
+    fold "ö" "oe"
+    fold "ü" "ue"
+    fold "ß" "ss"
+
+and every dictionary word containing a source, the pack's verbs and directions
+and the game's own `words`, `plural` and trigger vocabulary, grain and topic
+words alike, gains its folded sibling as a second entry with the same meaning:
+declare `words tür` once and the player types "tuer" or "tür" as the keyboard
+allows. The fold is ONE-WAY by design, declared spelling to derived: not every
+"ue" is a "ü", so the reverse would guess. German ships this table (the
+crossword convention is real orthography). A folded spelling that is already a
+declared word keeps the declared meaning: two things sharing the spelling
+become an ordinary ambiguity the parser asks about, and a fold that would
+change a declared word's role (an author's thing named "druecke" against the
+verb "drücke") is skipped with an arcc note, so nothing is lost silently.
+Spanish declares no folds: stripping "año" to "ano" is not a spelling, so its
+convention stays declaration-based, the verbs listing both forms
+(`oir`/`oír`) and an accented `words` entry carrying its plain twin
+(`words lampara, lámpara`). The rule is unchanged either way: accent the
+display, and make sure every typeable word has a plain-ASCII spelling, by
+fold table where the language has the convention, by declaration where it
+does not.
 
 Gender and articles, automatically. In a gendered language the article (un/una,
 el/la) and adjective agreement are automatic, with no per-object work. The

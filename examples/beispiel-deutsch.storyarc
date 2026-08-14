@@ -26,10 +26,10 @@
 //
 // ZU DEN UMLAUTEN. Der Text, den der Spieler LIEST, ist voll akzentuiert, so wie
 // es sein soll; die Interpreter von Cosmos zeigen Umlaute und ß mühelos, bis
-// hinunter auf 8 Bit. Aber auf 8 Bit lassen sie sich nicht TIPPEN: darum trägt
-// jedes Wort, das der Spieler eingibt (die Verben der Sprache, und hier die Lampe
-// und der Schlüssel), auch eine Form ohne Umlaut. So liest man "Öllampe" und
-// tippt "oellampe".
+// hinunter auf 8 Bit. Aber auf 8 Bit lassen sie sich nicht TIPPEN: darum erzeugt
+// die Falttabelle des Sprachpakets (docs/01 Kapitel 21) zu jedem Wörterbuchwort
+// mit ä/ö/ü/ß von selbst die Kreuzwortform. Man deklariert "öllampe" einmal,
+// und "oellampe" tippt sich trotzdem; dasselbe gilt für jedes Verb der Sprache.
 //
 // GESCHLECHT: Deutsch hat drei Geschlechter und keine Regel, sie aus dem Wort zu
 // erraten. Darum nennt der Autor den Artikel des Gegenstands, `der`, `die` oder
@@ -74,7 +74,7 @@ room gasthaus
             noch ein wenig."
         examine "tresen" or "theke" say "Dunkles Holz, blankgescheuert von
             tausend Krügen."
-        examine "waende" or "wände" or "wand" say "Schwarz vom Ruß; die
+        examine "wände" or "wand" say "Schwarz vom Ruß; die
             Jahrhunderte haben sich eingebrannt."
 
 room hof
@@ -107,15 +107,15 @@ room strand
 
     // Kulisse zum Nulltarif (grains): Wörter, die antworten, ohne ein eigenes
     // Objekt zu kosten. Das Verb wird nach seiner Aktion benannt (examine,
-    // touch, smell); die Kulissenwörter ("meer", "sand") sind der deutsche
-    // Wortschatz, ohne Umlaut, damit sie sich auf jeder Tastatur tippen lassen.
+    // touch, smell); Kulissenwörter mit Umlaut ("möwen") bekommen ihre
+    // Kreuzwortform ("moewen") von der Falttabelle, wie jedes andere Wort.
     grains
         examine, touch "meer" or "see" or "wasser" or "wellen" say "Das Meer wiegt
             sich, schwarz und geduldig, als atmete es langsam."
         examine "sand" or "kiesel" say "Kiesel, glatt geschliffen von tausend
             Gezeiten, kalt unter den Fingern."
         smell "brise" or "luft" say "Es riecht nach Salz, nach Tang und nach Weite."
-        examine "moewen" or "möwen" or "moewe" say "Sie schlafen auf den Felsen; keine
+        examine "möwen" or "möwe" say "Sie schlafen auf den Felsen; keine
             einzige Feder regt sich, wenn du vorbeigehst."
         // Der Leuchtturm und die Felsen stehen in der Beschreibung, und die
         // Wirtin redet von ihm: der Strand muss für beide eine Antwort haben,
@@ -139,12 +139,12 @@ thing mond
           werfen."
     spans hof, strand
 
-// Eine Öllampe: ihr Name trägt einen Umlaut und wird akzentuiert gezeigt, aber
-// ihre `words` enthalten auch die Form ohne Umlaut ("oellampe"), damit man sie auf
-// einem 8-Bit-Rechner tippen kann. "die Lampe" ist feminin, darum `die`.
+// Eine Öllampe: ihr Name wird akzentuiert gezeigt, und die Kreuzwortform
+// ("oellampe") entsteht von selbst aus der Falttabelle, tippbar auf jedem
+// 8-Bit-Rechner. "die Lampe" ist feminin, darum `die`.
 thing lampe in gasthaus
     name "Öllampe"
-    words oellampe, öllampe, lampe, oel, öl
+    words öllampe, lampe, öl
     die
     binary
     lit false
@@ -176,22 +176,24 @@ thing truhe of container in gasthaus
     openable
     open false
 
-// Der Schlüssel: sein Name trägt einen Umlaut, also führen die `words` auch die
-// Form ohne Umlaut. "der Schlüssel" ist maskulin, darum `der`.
+// Der Schlüssel: sein Name trägt einen Umlaut, und die tippbare Form ohne
+// ("schluessel") kommt aus der Falttabelle. "der Schlüssel" ist maskulin,
+// darum `der`.
 thing schluessel in truhe
     name "Bronzeschlüssel"
-    words bronzeschluessel, bronzeschlüssel, schluessel, schlüssel, bronze
+    words bronzeschlüssel, schlüssel, bronze
     der
 
 // Die Tür verbindet die beiden Räume (spans, weil `door`) und wird mit dem
 // Schlüssel geöffnet. Als `door` ist sie schon `openable` und `fixed`. `die` Tür.
 thing tuer of door in gasthaus, hof
     name "Tür aus Eiche"
-    // Tür und Türe sind beide gutes Deutsch: wer die Variante tippt, soll
-    // sie auch treffen. Solche Formen sind Deklarationsarbeit, keine
-    // Automatik (Tische ist der Plural von Tisch, tuere nur eine
-    // Schreibweise; das kann keine Endungsregel wissen).
-    words tuer, tür, tuere, türe, eichentuer, eichentür, eichentuere, eichentüre
+    // Tür und Türe sind beide gutes Deutsch: beide Varianten deklariert,
+    // in der Schreibung mit Umlaut; die Kreuzwortformen (tuer, tuere ...)
+    // erzeugt die Falttabelle des Sprachpakets von selbst (docs/01
+    // Kapitel 21). Solche VARIANTEN bleiben Deklarationsarbeit: Tuere ist
+    // eine Schreibweise, Tische ist ein Plural; das weiß keine Regel.
+    words tür, türe, eichentür, eichentüre
     die
     lockable
     locked

@@ -203,6 +203,8 @@ class Parser:
             return self.parse_action()
         if t.kind == T.NAME and t.value == "noise" and self._at(1).kind == T.STRING:
             return self.parse_noise()
+        if t.kind == T.NAME and t.value == "fold" and self._at(1).kind == T.STRING:
+            return self.parse_fold()
         if t.kind == T.NAME and t.value == "ranks":
             return self.parse_ranks()
         if t.kind == T.NAME and t.value == "subject":
@@ -1062,6 +1064,18 @@ class Parser:
             words.append(self._plain_text(self.expect(T.STRING, "a noise word")))
         self.expect_newline()
         return ast.NoiseDecl(words, line)
+
+    def parse_fold(self) -> ast.FoldDecl:
+        # `fold "ä" "ae"`: the language layer's crossword fold, one pair per
+        # declaration (docs/01 chapter 21). Dispatched like `noise`.
+        line = self.cur.line
+        self.advance()  # the leading `fold`
+        src = self._plain_text(self.expect(T.STRING, "a fold source"))
+        dst = self._plain_text(self.expect(T.STRING, "a fold replacement"))
+        self.expect_newline()
+        if not src or not dst:
+            raise self._error("a fold needs a non-empty source and replacement")
+        return ast.FoldDecl(src.lower(), dst.lower(), line)
 
     def _parse_grammar_line(self) -> list:
         # Returns one line per particle combination: `put noun in or into

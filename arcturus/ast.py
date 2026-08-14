@@ -765,6 +765,19 @@ class RanksDecl:
 
 
 @dataclass
+class FoldDecl:
+    # A language layer's crossword fold (`fold "ä" "ae"`): every dictionary
+    # word containing the source gains a sibling entry with the source
+    # replaced, same data bytes, so the player can type the folded spelling
+    # on a keyboard that lacks the character (docs/01 chapter 21). One-way
+    # by design: the declared spelling is canonical, the folded one derived
+    # (not every "ue" is a "ü", so the reverse would guess).
+    src: str
+    dst: str
+    line: int = 0
+
+
+@dataclass
 class NoiseDecl:
     # A language layer's noise words: the articles and fillers the parser
     # knows but ignores (`noise "the", "a", "an"`). Being KNOWN is the point:
