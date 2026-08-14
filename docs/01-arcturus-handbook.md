@@ -3894,7 +3894,14 @@ after different verbs. German uses all four:
 The parser finds the particle wherever it falls (both orders work for a one-noun
 verb), and a word may be both a particle and a preposition (English "on" in "put X
 on Y", German "an" in "gib X an Y", "auf" in "leg X auf Y"): the parser treats any
-tagged word as a phrase boundary, so the double duty just works. The line to hold onto: the identifiers a game's *code* uses stay
+tagged word as a phrase boundary, so the double duty just works. A boundary word
+can also sit inside ONE object's name (a Tür aus Eiche, and "öffne tür aus eiche"
+means the whole of it): when the split leaves a slot ambiguous or empty and the
+verb's grammar does not require a second noun, the German pack retries the whole
+phrase as a single noun, and a clean resolve wins with the second slot empty. A
+genuine two-noun command never notices, because both its slots resolve, and a
+retry that fails puts the split's own outcome back, the "which do you mean"
+question included. The line to hold onto: the identifiers a game's *code* uses stay
 English, only what the player *reads and types* is translated. So kinds (`thing`,
 `room`), attributes (`openable`), the direction properties in a room exit (`east
 puerta`), and the actions a `grains` line answers (`examine "mar"`) are fixed

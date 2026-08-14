@@ -398,6 +398,37 @@ block is_separator(target)
         return 1
     return 0
 
+// Die Ein-Nomen-Rettung: ein Trenner kann Teil EINES Namens sein ("Tuer aus
+// Eiche"), und dann liest der Split die Woerter dahinter als ein Werkzeug,
+// das niemand gemeint hat ("oeffne tuer aus eiche" fragte nach dem zweiten
+// Slot). Wenn ein Split-Slot mehrdeutig oder leer ausgeht und die Grammatik
+// kein zweites Nomen verlangt, bekommt die ganze getippte Spanne EINEN
+// Versuch als einzelnes Nomen: loest sie sauber auf, gewinnt diese Lesart
+// und der zweite Slot bleibt zu. Alles andere stellt den Ausgang des Splits
+// wieder her, mitsamt seiner Rueckfrage, damit "gib muenze an bob" und jede
+// echte Mehrdeutigkeit sich verhalten wie zuvor.
+block one_noun_retry(n)
+    let keep_fault = parse_fault
+    let keep_lo = ask_lo
+    let keep_hi = ask_hi
+    let keep_score = ask_score
+    let keep_at = ask_at
+    let keep_unknown = unknown_at
+    change parse_fault to 0
+    let w = match_phrase(1, n, 0)
+    if parse_fault is 0
+        if w is not nothing
+            change noun to w
+            change second to nothing
+            return 1
+    change parse_fault to keep_fault
+    change ask_lo to keep_lo
+    change ask_hi to keep_hi
+    change ask_score to keep_score
+    change ask_at to keep_at
+    change unknown_at to keep_unknown
+    return 0
+
 // Bind the two noun slots by position: the words before the preposition name the
 // first noun, the words after it name the second.
 block resolve_two_nouns(rq1, rq2)
@@ -431,6 +462,13 @@ block resolve_two_nouns(rq1, rq2)
         change b to n
     change noun to match_phrase(1, b, 0)
     if parse_fault is not 0
+        // Der erste Slot mehrdeutig, obwohl hinter dem Trenner noch Woerter
+        // stehen: erst die Ein-Nomen-Lesart probieren (one_noun_retry).
+        if parse_fault is 3
+            if b < n
+                if rq2 is 0
+                    if one_noun_retry(n) is 1
+                        return 1
         return 1
     // A named-but-unresolved noun (a known object out of scope, an unknown word,
     // a stray non-noun) faults so the turn is rejected rather than run with no
@@ -438,6 +476,10 @@ block resolve_two_nouns(rq1, rq2)
     // grammar requires the noun (rq1): the loop asks before any handler.
     if noun is nothing
         if b > 1
+            if b < n
+                if rq2 is 0
+                    if one_noun_retry(n) is 1
+                        return 1
             // A scenery grain answers a two-slot verb's one-noun form too
             // (BURN DUST): same fallback the single-noun path takes.
             change grain to find_scenery
@@ -450,9 +492,18 @@ block resolve_two_nouns(rq1, rq2)
     if b < n
         change second to match_phrase(b + 1, n, 0)
         if parse_fault is not 0
+            // Der zweite Slot mehrdeutig ("eiche" trifft Truhe UND Tuer):
+            // die Ein-Nomen-Lesart darf die Rueckfrage noch abwenden.
+            if parse_fault is 3
+                if rq2 is 0
+                    if one_noun_retry(n) is 1
+                        return 1
             return 1
         if second is nothing
             if b + 1 < n
+                if rq2 is 0
+                    if one_noun_retry(n) is 1
+                        return 1
                 change parse_fault to noun_fault(b + 1, n)
             else
                 if rq2 is 1

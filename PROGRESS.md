@@ -9847,6 +9847,41 @@ made every game look dark-capable until the detector learned to skip
 library-origin lit-writes). The two lamp examples pay their way and
 are repriced, dated. Full battery 1259 green.
 
+## 2026-08-14: the one-noun retry, "Tuer aus Eiche" resolves (arcc 1.5.1, Cosmos 1.8.1)
+
+A field report's second finding, the one our earlier reply had wrongly
+claimed fixed: "oeffne tuer aus eiche" asked "Was meinst du" while
+"untersuche tuer aus eiche" resolved cleanly. Measured before designed:
+the one-noun scorer was healthy all along (2:1 for the door), and the
+ask came from the positional TWO-noun split alone. OEFFNE carries a
+"mit" grammar, AUS is a phrase boundary (it must be, for "gib X an Y"
+and its kin), so the split read "eiche" as an instrument nobody meant,
+and the question was about that phantom second slot.
+
+The fix follows the grammar, not the example: when the split leaves a
+slot ambiguous or empty and the verb's grammar does not require a
+second noun, the German pack retries the whole typed range as ONE noun.
+A clean resolve wins and the second slot stays empty; anything less
+restores the split's own outcome exactly, the "which do you mean"
+question, its answer weave-point, and the unknown-word report included.
+A genuine two-noun command never enters the retry, because both its
+slots resolve; a required second noun (rq2) disarms it entirely.
+
+Verified on fizmo-console: the door opens without a question, the
+Truhe stays shut, "gib muenze an bob" still binds both slots, a
+genuine ambiguity still asks and takes its answer, and an unknown word
+is still reported, never dissolved. Priced honestly: German-only (the
+retry lives in german.granule), the German example pays 152 bytes,
+every English and Spanish example byte-identical. Four new tests
+(tests/test_split_fallback.py), the two rescue cases red on the old
+resolver; full battery 1263 green.
+
+One finding for the record: the checkpoint asked whether the Spanish
+resolver shares the split shape. It does, exactly (English too, all
+three split on flags 8/136/64/32), so the same seam exists wherever a
+name contains a boundary word. Whether the retry generalizes beyond
+German is Stefan's call, priced per pack.
+
 ## CHECKPOINT: the German forum round (updated per item; compaction-proof)
 
 THE PICKUP. This checkpoint is the single source for resuming the
@@ -9872,6 +9907,27 @@ knowledge (file anchors, designs, measured facts) that the narrative
 entries deliberately leave out.
 
 DONE:
+- A1: THE ONE-NOUN RETRY (arcc 1.5.1, Cosmos 1.8.1). german.granule
+  gained one_noun_retry(n) right after is_separator: saves and
+  restores parse_fault, ask_lo/ask_hi/ask_score/ask_at, and
+  unknown_at, retries match_phrase(1, n, 0), and wins only on a
+  clean non-nothing resolve (noun bound, second cleared). Three call
+  sites inside resolve_two_nouns, all gated on rq2 is 0: first slot
+  fault 3 with b < n; second slot fault 3; second slot nothing with
+  b + 1 < n (tried BEFORE noun_fault, and before find_scenery on the
+  first-slot-empty path). Fault 4/5 never retries (unknown words and
+  dangling pronouns fail the whole range too). Tests:
+  tests/test_split_fallback.py, 4 tests, rescue cases red pre-fix;
+  fizmo-console verified all four behaviors. German example repriced
+  23664 -> 23816 (+152, German-only; banner shows major.minor so
+  English/Spanish stay byte-identical). Handbook: chapter 21's
+  particle-boundary paragraph documents the retry as German-pack
+  behavior. VERIFIED FINDING for a later ruling: Spanish AND English
+  resolvers share the exact separator shape (flags 8/136/64/32, not
+  flag-8-only), so the seam exists there too; generalizing the retry
+  is Stefan's call, priced per pack. Also: no WHATSNEW entry per
+  round item (B set the precedent); propose one collected entry when
+  the round closes.
 - B: THE BINARY MODEL (commit 948637c; arcc 1.5.0, Cosmos 1.8.0).
   `binary`/`active`/`glow`, switchable alias, contract refusals,
   default flips with pack reports x3, glow light coupling, examples
@@ -9895,23 +9951,6 @@ DONE:
   in the handbook's attribute table and both lamp examples.
 
 NEXT (in order, with the agreed resolutions and pickup data):
-- A1: THE SPLIT FALLBACK. Repro: "oeffne tuer aus eiche" asks
-  "Truhe oder Tuer?" while "untersuche tuer aus eiche" resolves
-  (scores 2:1 for the Tuer). Mechanism, measured: OEFFNE has grammar
-  `open noun mit noun`; german.granule resolve_two_nouns (~line 403)
-  finds a separator via is_separator (~line 388), which accepts
-  prepositions (flag 8/136), directions (64), AND PARTICLES (32,
-  kept deliberately for "gib X an Y" where the dative an is also a
-  particle); it splits "tuer aus eiche" at "aus", first slot Tuer
-  resolves, second slot bare "eiche" ties between Truhe and Tuer ->
-  the ask is about the INSTRUMENT slot. Fix shape (agreed): try the
-  split as today; when a split slot comes up ambiguous (parse_fault
-  3) or nothing, and the verb's second slot is grammar-optional,
-  retry the WHOLE range as one noun via match_phrase(1, n, 0); a
-  clean resolve wins (second stays empty); "gib muenze an bob"
-  regression-tested (both slots resolve, no fallback). All in
-  german.granule; check whether Spanish resolve_two_nouns shares the
-  shape (probably splits only on flag-8, verify).
 - A2: THE #TRIGGER MARKER. Syntax: `words #truhe, eiche, kiste` (the
   # form, Stefan's pick over a property). Semantics (locked): among
   TIED candidates only, count those whose trigger word appears
@@ -9974,9 +10013,9 @@ dictionary flag per word (noise would clobber particle - the reason
 German "aus" could never be noise and takeall's German group needs no
 filler).
 
-SESSION STATE BEYOND THE ROUND: versions arcc 1.5.0 / Cosmos 1.8.0 /
+SESSION STATE BEYOND THE ROUND: versions arcc 1.5.1 / Cosmos 1.8.1 /
 arcimg 1.35.0 / Actaea 1.3.9 / proteus 1.0.0, all standalones
-committed and README current at 948637c; suite 1259 green
+committed and README current; suite 1263 green
 (tests/actaea excluded from batch runs: curses needs a TTY). B12
 arc_image stands at R2-R4 complete plus Shawn's Agon (fifteen
 formats, twelve probe-proven); R5 (Apple II/DHGR, Next, MEGA65, C128

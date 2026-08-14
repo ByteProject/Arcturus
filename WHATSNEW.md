@@ -10,7 +10,7 @@ lives in the commit log. The feature roadmap follows below.
   declaration, `action take_all, drop_all`, names an action with no
   verb attached: it joins the ordinary action numbering, so handlers
   at every level, `when` clauses, `action_id`, and `dispatch` all
-  work — only the keyboard cannot reach it until your code routes the
+  work; only the keyboard cannot reach it until your code routes the
   player there. The takeall granule is the first rider: TAKE ALL and
   DROP ALL now dispatch through the standard pipeline before
   sweeping, so `on drop_all when here is shrine` vetoes the sweep in
