@@ -9776,3 +9776,16 @@ the assumption on.
 Open, Stefan's call: the German pack has no "lass ... fallen"
 separable drop (the canonical German phrasing; WIRF and WEGLEGEN
 stand in), and the plurals granule's THEM is English by declaration.
+
+## 2026-08-14: LASS ... FALLEN, the canonical German drop (Cosmos 1.6.1)
+
+Stefan's own catch in the takeall review: the German drop verb line
+led with WIRF, which is WERFEN, throwing, not dropping ("I am German
+but never play German adventures"). The drop family now leads with
+LASS/LASSE and the trailing FALLEN declared as a filler word (the
+phrase search simply does not count it), so "lass die Lampe fallen"
+and "lass alles fallen" both land as the drop they are. WIRF leaves
+the drop line entirely and waits for a German throw family;
+FALLENLASSEN, WEGWERFEN, and WEGLEGEN stay as synonyms. One dated
+reprice: the German example pays 20 bytes for its new dictionary
+words.

@@ -123,7 +123,7 @@ CEILINGS = {
     "features/direction-grammar.storyarc": 17364,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "features/scenery-contents.storyarc": 17832,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "granules/nautical.storyarc": 17848,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
-    "beispiel-deutsch.storyarc": 23396,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "beispiel-deutsch.storyarc": 23416,  # 2026-08-14 repriced: LASS ... FALLEN, the canonical German drop (lass/lasse/fallen join the dictionary, wirf leaves for a future throw)
     "brass-lantern.storyarc": 18500,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "cloak-of-darkness.storyarc": 19360,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "ejemplo-espanol.storyarc": 21996,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)

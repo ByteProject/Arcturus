@@ -580,8 +580,14 @@ direction out       "hinaus", "heraus"
 verb "nimm", "nehmen", "nimmt", "hol", "hole", "schnapp", "heb", "hebe"
     take noun
 
-verb "wirf", "fallenlassen", "wegwerfen", "weglegen"
+// LASS DIE LAMPE FALLEN: das kanonische deutsche DROP. "lass" trägt
+// die Handlung, das nachgestellte "fallen" ist als Füllwort erklärt
+// (die Phrasensuche zählt es schlicht nicht mit); "wirf" gehört dem
+// WERFEN und wartet auf eine deutsche throw-Familie.
+verb "lass", "lasse", "fallenlassen", "wegwerfen", "weglegen"
     drop noun
+
+noise "fallen"
 
 verb "untersuch", "untersuche", "untersuchen", "betrachte", "pruefe", "prüfe", "x"
     examine noun

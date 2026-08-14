@@ -149,7 +149,7 @@ def test_take_all_speaks_german(tmp_path):
     # from the German pack.
     out = _play(tmp_path, GERMAN_GAME,
                 "nimm alles aus der kiste\nnimm alles\n"
-                "untersuche alles\nwirf alles\n")
+                "untersuche alles\nlass alles fallen\n")
     assert "Muenze: Du nimmst" in out          # the from-sweep (not
     #                                            take_off: the compound
     #                                            guard stands down on ALL)
