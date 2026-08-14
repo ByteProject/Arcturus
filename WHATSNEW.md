@@ -8,10 +8,10 @@ lives in the commit log. The feature roadmap follows below.
 
 - **Pictures reach every 8-bit screen, probe-proven.** The retro side
   of arc_image is complete through the MSX family: one master painting
-  now converts to fourteen native formats, and every 8-bit target of
-  the current set (C64, Spectrum +3, CPC, Plus/4, Atari 8-bit, TRS-80
-  Model 4, MSX1, and MSX2's sixteen colors from 512) has its reference
-  loader verified pixel-perfect on cycle-accurate emulation. The
+  converts to fourteen native formats, and eleven of them (Amiga,
+  Atari ST, DOS, C64, Spectrum +3, CPC, Plus/4, Atari 8-bit, TRS-80
+  Model 4, MSX1, and MSX2's sixteen colors from 512) carry reference
+  loaders verified pixel-perfect on accurate emulation. The
   committed corpus under arc_image/ is the shop window: what you see
   in the previews is exactly what the current converter produces, on
   every machine, including the Spectrum's deliberate black-and-white
