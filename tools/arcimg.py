@@ -77,7 +77,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.34.0"
+__version__ = "1.35.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -3704,6 +3704,23 @@ def _convert_ms1(rows, salient=None):
     return {"w": w, "h": h, "pattern": pattern, "colors": colors}
 
 
+def _convert_agn(rows, salient=None):
+    """Master to Agon Light mode 3 (640x240, the fixed 64-color RGBA2222
+    cube): 2x horizontal first (mode 3 pixels are half as wide as tall,
+    the Model 4's aspect logic, and the dither grid doubles with it),
+    then the nearest-color map over the full cube with the standard
+    gentle ordered dither. No palette to solve: the cube is the
+    hardware, and every master color is at most half a 2-bit step from
+    a native one."""
+    wide = [[c for c in row for _ in (0, 1)] for row in rows]
+    w, h = len(wide[0]), len(wide)
+    cube = [(r * 85, g * 85, b * 85)
+            for r in range(4) for g in range(4) for b in range(4)]
+    idx = _map_pixels(wide, cube, _dither_amount(wide, 64))
+    pixels = [[_agn_byte(*cube[i]) for i in row] for row in idx]
+    return {"w": w, "h": h, "pixels": pixels}
+
+
 def _convert_ms2(rows, salient=None):
     """MSX2 Screen 5: 256 wide by the MSX window (the MS1 crop, columns
     24..279 of the master, so both MSX machines frame the same scene),
@@ -4137,7 +4154,7 @@ _CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,
                "C64": _convert_c64, "ZX3": _convert_zx3, "CPC": _convert_cpc,
                "P4": _convert_p4,
                "A8": _convert_a8, "TRSM4": _convert_trsm4,
-               "MS1": _convert_ms1, "MS2": _convert_ms2}
+               "MS1": _convert_ms1, "MS2": _convert_ms2, "AGN": _convert_agn}
 
 
 # -- the Spectrum polish round-trip (.scr in and out) ---------------------------
@@ -4498,11 +4515,15 @@ class Target:
 # The 16-bit big-disk targets take LZSA2, everything else ZX0 (the codec
 # ruling; the note above lzsa2_compress has the measured trade).
 _LZSA2_TAGS = {"AMI", "AST", "DOS", "M65", "MS2", "NXT"}
+_RLE_TAGS = {"AGN"}    # Shawn Sijnstra's ruling for the Agon: RLE keeps
+                       # the eZ80 loader's memory management trivial, and
+                       # the SD card does not count bytes
 
 
 def _target(tid, tag, width):
     def deco(cls):
-        codec = CODEC_LZSA2 if tag in _LZSA2_TAGS else CODEC_ZX0
+        codec = (CODEC_RLE if tag in _RLE_TAGS else
+                 CODEC_LZSA2 if tag in _LZSA2_TAGS else CODEC_ZX0)
         TARGETS[tag] = Target(tid, tag, width, cls.pack, cls.unpack,
                               cls.render, cls.pattern, codec)
         return cls
@@ -5259,6 +5280,47 @@ class _Trsm4:
         return {"w": w, "h": h,
                 "pixels": [[1 if ((x ^ y) & 8) else 0 for x in range(w)]
                            for y in range(h)]}
+
+
+# ---- AGN: Agon Light, VDP mode 3 RGBA2222 -------------------------------------
+# Shawn Sijnstra's target (his Canopus interpreter family): 640x240 mode 3,
+# the full fixed 64-color cube, one byte per pixel in the VDP's RGBA2222
+# order (bits 1-0 R, 3-2 G, 5-4 B, 7-6 alpha; the band ships alpha %11,
+# opaque). No palette section: the cube is the hardware. Rows are raw and
+# continuous, top to bottom: the loader streams them to the serial VDP
+# unframed, and dimensions travel in the display command, not the data.
+
+def _agn_byte(r, g, b):
+    return 0xC0 | ((b // 85) << 4) | ((g // 85) << 2) | (r // 85)
+
+
+@_target(16, "AGN", 640)
+class _Agn:
+    @staticmethod
+    def pack(native):
+        out = bytearray()
+        for row in native["pixels"]:
+            out += bytes(row)
+        return [(SEC_BITMAP, 0, bytes(out))]
+
+    @staticmethod
+    def unpack(sections, w, h):
+        s = _sections_by_type(sections)
+        bm = s[SEC_BITMAP]
+        return {"w": w, "h": h,
+                "pixels": [list(bm[y * w:(y + 1) * w]) for y in range(h)]}
+
+    @staticmethod
+    def render(native, w, h):
+        return [[((p & 3) * 85, ((p >> 2) & 3) * 85, ((p >> 4) & 3) * 85)
+                 for p in row] for row in native["pixels"]]
+
+    @staticmethod
+    def pattern(w, h):
+        return {"w": w, "h": h,
+                "pixels": [[_agn_byte((x // 10) % 4 * 85, (y // 8) % 4 * 85,
+                                      ((x + y) // 12) % 4 * 85)
+                            for x in range(w)] for y in range(h)]}
 
 
 def decode_arc(blob: bytes):

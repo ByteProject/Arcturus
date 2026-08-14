@@ -572,6 +572,26 @@ method). Naming: R for retro.
   R4 IS COMPLETE. The ms2 corpus, previews, stress-out and cloak
   entries shipped with the bank; the MSX pair filled cloak's missing
   msx directories as well.
+- SHAWN'S AGON (2026-08-14, between the waves, target id 16): the
+  parked request fulfilled to his emailed spec (VDP mode 3, 640x240,
+  the fixed 64-color RGBA2222 cube, raw rows, RLE by his ruling: it
+  keeps the eZ80 loader's memory management trivial and FAT32 does
+  not count bytes). The converter is the fixed-cube map (2x
+  horizontal, the Model 4's aspect logic, gentle ordered dither;
+  goldens frozen, arcimg 1.35.0); the probe is a Z80-mode MOS
+  executable whose RLE decoder emits STRAIGHT DOWN THE SERIAL VDU
+  LINK into a VDP buffer, no framebuffer, no staging, the purest
+  loader of the family; verified on fab-agon-emulator (console8
+  firmware) and green under Stefan's eye ("faithful"). Doc 08 C.12
+  is the chapter, with the two conventions a Z80-mode loader must
+  respect (RST.LIS for every MOS call; the display path is a
+  conversation, not a memory map). BENCH NOTES: use release 1.2.2
+  of fab-agon-emulator; 1.2.3's macOS build never boots the modern
+  firmware (only quark; report upstream), the binary resolves its
+  firmware via the working directory, and a `copy x marker.txt`
+  autoexec line is the programmatic boot proof. Corpus, previews,
+  stress-out, and cloak shipped with the bank; the family is
+  FIFTEEN formats, twelve of them probe-proven.
 - R5. WAVE 4: Apple II (HGR, plus the DHGR variant), Spectrum Next,
   MEGA65; the C128 ruling executed (C64 asset reused in C64 mode; the
   VDC addendum written if ruled in).
@@ -979,6 +999,7 @@ payload order):
     12  NXT  320x72 / 320x96       bitmap, palette
     13  M65  320x72 / 320x96       bitmap, palette
     14  VDC  640x72 / 640x96       bitmap, attributes
+    16  AGN  640x72 / 640x96       bitmap
 
 PAYLOAD LAYOUTS, per target (native memory order; the loader never
 reorders; the full loader detail lives in each wave's addendum):
@@ -1032,6 +1053,9 @@ reorders; the full loader detail lives in each wave's addendum):
   (index 255 is reserved by the hardware's alpha path).
 - VDC: bitmap is 1bpp, 80 bytes per row, linear; attributes is one byte
   per 8x8 cell (fg nibble, bg nibble), row-major, 80 per cell row.
+- AGN: bitmap is one byte per pixel in the Agon VDP's RGBA2222 order
+  (bits 1-0 R, 3-2 G, 5-4 B, 7-6 alpha, shipped %11 opaque), 640 bytes
+  per row, linear: raw rows for streaming down the serial VDP link.
 
 arcimg is the only writer of this format; the loaders are its readers.
 arcimg can also RENDER any .arc back to a PNG through the target's

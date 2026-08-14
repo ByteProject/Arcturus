@@ -9712,3 +9712,33 @@ his verdict: "probe perfect."
 R4 IS COMPLETE: every 8-bit target of the current set converts,
 probes green, and reports itself honestly in the corpus. Next: R5
 (Apple II and DHGR, Spectrum Next, MEGA65, the C128 ruling), then R6.
+
+## 2026-08-14: Shawn's Agon lands (arcimg 1.35.0)
+
+The parked request from Shawn Sijnstra, fulfilled to his own spec:
+VDP mode 3, 640x240, the full fixed 64-color RGBA2222 cube, raw rows,
+and RLE as his codec ruling ("it reduces the requirement for memory
+management, and the code overhead is small"). The interpreter author
+is the consumer, so his answers became the chapter.
+
+The target got the full treatment in one day: converter (the fixed
+cube needs no palette solving at all; 2x horizontal, the Model 4's
+aspect logic), corpus and previews under the shop window, goldens
+frozen, and a probe that is the purest loader of the whole family:
+the RLE decoder's emit IS the VDU write, so the band streams down the
+serial link into a VDP buffer and never exists in eZ80 RAM. Stefan's
+verdict on the emulator: "faithful."
+
+The build taught the Z80-mode MOS lessons now in doc 08 C.12: every
+MOS call from Z80 mode must ride the .LIS-suffixed RST opcodes (the
+first build jp.lil'd into the flash handlers, which discards the
+return linkage and painted the band as text glyphs), and the display
+is a conversation over the Buffered Commands API, big-endian table in
+hand, little-endian wire on the tongue. Bench archaeology along the
+way: fab-agon-emulator 1.2.3's macOS build never boots the modern
+firmware; 1.2.2 does, and a marker-file autoexec is the programmatic
+proof of boot, a trick worth keeping on a machine whose SD card is a
+host directory.
+
+The family now stands at FIFTEEN formats, TWELVE probe-proven. R5
+still waits: Apple II, Spectrum Next, MEGA65, the C128 ruling.

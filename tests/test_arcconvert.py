@@ -597,3 +597,35 @@ def test_ms2_respects_the_st_text_contract():
         assert luma(pal[-1]) >= 4 * 255
         legal = {round(v * 255 / 7) for v in range(8)}
         assert all(ch in legal for c in pal for ch in c)
+
+
+# --- AGN (Agon Light): mode 3, the fixed RGBA2222 cube ---------------------
+
+_AGN_GOLDEN = {
+    "2.png": "0263e0cfb032ca6b",
+    "8.png": "4768aa3a68c75308",
+    "10.png": "784a530904c0bad1",
+    "12.png": "3725c9b644d8dfc7",
+}
+
+
+@pytest.mark.parametrize("name", sorted(_AGN_GOLDEN))
+def test_agn_output_is_frozen(name):
+    import hashlib
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, name), "AGN")
+    t = arcimg.TARGETS["AGN"]
+    blob = b"".join(bytes(pl) for _ty, _fl, pl in t.pack(native))
+    assert hashlib.sha256(blob).hexdigest()[:16] == _AGN_GOLDEN[name]
+
+
+def test_agn_bytes_are_opaque_cube_members():
+    # every pixel byte: alpha %11 (opaque) and channels on the 2-bit
+    # cube; width doubled from the 320 master, pairs identical never
+    # averaged (the C64 width rule, inverted)
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, "8.png"),
+                                          "AGN")
+    assert native["w"] == 640
+    for row in native["pixels"]:
+        for p in row:
+            assert (p & 0xC0) == 0xC0
+    assert arcimg.TARGETS["AGN"].codec == arcimg.CODEC_RLE

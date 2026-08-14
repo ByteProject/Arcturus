@@ -1,6 +1,6 @@
 # arc_image for interpreter authors: the contract, the format, the loaders
 
-Version 1.4
+Version 1.5
 
 This is the implementer's guide to arc_image, the optional picture band in
 Arcturus games. Everything you need to support it is here: this document,
@@ -1341,3 +1341,75 @@ mode-9 file the top slice of the mode-12 conversion (arcimg slice9).
 MEMORY. A 12288-byte staging buffer plus the ~210-byte decoder; the
 compressed source is read strictly forward and may be streamed from
 disk in sector bites. VRAM is port-addressed and never read back.
+
+### C.12 Agon Light (target id 16, tag AGN, files `<id>.AGN`)
+
+The second target whose interpreter lives outside the family: Shawn
+Sijnstra brings his Canopus engine to the Agon, and this target is
+built to his specification: VDP mode 3 (640x240), the full fixed
+64-color palette, RGBA2222, raw rows. The TARGET is first-class
+arc_image like any other; this chapter is its blueprint.
+
+Probe: [arc_image/probes/agn/](../arc_image/probes/agn/), source
+`probe.asm` (a Z80-mode MOS executable assembled with sjasmplus),
+`mk_sd.py` (stages the SD card directory: the probe and the MOS
+autoexec; the staged directory IS the distribution, on emulator and
+FAT32 card alike), and `test_unrle.py`, which executes the probe's
+RLE decoder on a simulated Z80 against the embedded pairs before
+anything trusts it. Run: `fab-agon-emulator --firmware console8
+--sdcard sdcard/`.
+
+VIDEO. VDP mode 3: 640x240, 64 colors, text at 80 columns in an 8x8
+font. The band is the top 72 or 96 rows, one byte per pixel,
+RGBA2222 (bits 1-0 R, 3-2 G, 5-4 B, 7-6 alpha; the band ships alpha
+%11). No palette anywhere: the 64-color cube is the hardware. The
+rows below the band belong to the text.
+
+TWO CONVENTIONS a Z80-mode loader must respect:
+
+- MOS API CALLS FROM Z80 MODE go through the .LIS-suffixed RST
+  opcodes (`db 49h, D7h` for the VDU write, `db 49h, CFh` for the
+  MOS API): a plain RST lands on the program's own vector page, and
+  a jp.lil into the flash handler discards the mixed-mode return
+  linkage the handler's long RET expects. The suffix is the whole
+  contract.
+- THE DISPLAY PATH IS A CONVERSATION, NOT A MEMORY MAP. The band
+  goes up as a VDP buffer (Buffered Commands API, VDP 2.2.0+): clear
+  the buffer, write one block whose length is the section's
+  uncompressed length, consolidate, select it as a bitmap, bind with
+  `VDU 23,27,&21,w;h;1` (format 1 = RGBA2222), draw. All VDU
+  parameters are LITTLE-endian; the .arc table is BIG-endian; the
+  loader swaps as it speaks.
+
+CODEC. RLE (codec 0, part B), Shawn's ruling for this machine, and
+it makes this the purest loader of the whole family: THERE IS NO
+FRAMEBUFFER AND NO STAGING. The decoder's emit is the VDU write
+itself, so every decoded byte streams down the serial link directly
+into the VDP buffer; the band never exists in eZ80 RAM at all. The
+decode working set is the ~20-instruction decoder. The write-block
+header carries the byte count up front, so the stream needs no
+framing and no counter on the wire.
+
+SECTIONS: one.
+
+- bitmap (type 1): raw RGBA2222 rows as specified above; 46080 bytes
+  in mode 9, 61440 in mode 12, RLE-compressed in the file.
+
+CONVERSION (the arcimg side, for the record): 2x horizontal first
+(mode 3 pixels are half as wide as tall, the Model 4's aspect logic,
+and the dither grid doubles with it), then the nearest-color map
+over the full cube with the standard gentle ordered dither. Every
+master color sits at most half a 2-bit step from a native one.
+
+Z-COLOURS. Sixty-four fixed colors carry the standard set directly;
+text below the band renders in whatever the interpreter chooses, and
+nothing is shared or sacrificed.
+
+ASSETS. `<id>.AGN` beside the story (FAT32; the universal
+conventions apply). The standard test pair: 9.AGN (mode 9), 12.AGN
+(mode 12), picture 8 of the corpus, the mode-9 file the top slice of
+the mode-12 conversion (arcimg slice9).
+
+MEMORY. The ~20-instruction decoder and the section walk; the
+compressed source is read strictly forward and may be streamed from
+the SD card in sector bites. Nothing else.
