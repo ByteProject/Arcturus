@@ -9849,52 +9849,136 @@ are repriced, dated. Full battery 1259 green.
 
 ## CHECKPOINT: the German forum round (updated per item; compaction-proof)
 
-The working state for the forum-feedback round. RULES OF THE ROUND:
-one item at a time, top down; his eye and word gate each; every landed
-item updates THIS checkpoint; the forum reply is drafted together and
-posted only when everything verifies. The strategy and the thread's
-temperature are agreed in-session and deliberately NOT recorded here.
+THE PICKUP. This checkpoint is the single source for resuming the
+round after a compaction. Read it whole, mirror the NEXT list into the
+session todo, and continue top-down. RULES OF THE ROUND: one item at a
+time; Stefan's word gates each design and his eye gates behavior;
+every landed item gets (1) its own dated PROGRESS entry above, in the
+house voice, rulings prominent, and (2) an update to THIS checkpoint
+(move the item to DONE with its commit hash, refresh NEXT). The forum
+reply is drafted together and posted only when every item verifies.
+The thread's temperature and all personal context are deliberately
+UNRECORDED anywhere in the repository; Stefan handles the personal
+side himself, then posts the professional part and challenges the
+thread to contribute rather than hunt. Never name the reporter in any
+tracked file for this round.
+
+HOW THE LOG WORKS (the documentation convention of this round): each
+landed item's PROGRESS entry states the field finding neutrally ("a
+field report noticed..."), the ruling with Stefan's reasoning, the
+mechanism built, the price measured (byte-identical or repriced,
+dated), and the test count. The checkpoint below carries the WORKING
+knowledge (file anchors, designs, measured facts) that the narrative
+entries deliberately leave out.
 
 DONE:
-- B: THE BINARY MODEL (arcc 1.5.0, Cosmos 1.8.0, this entry's date).
-  binary/active/glow, switchable alias, contract refusals, pack
-  reports, glow light coupling, examples reworked, 6-test file,
-  handbook rewritten, byte-identical for non-binary games.
+- B: THE BINARY MODEL (commit 948637c; arcc 1.5.0, Cosmos 1.8.0).
+  `binary`/`active`/`glow`, switchable alias, contract refusals,
+  default flips with pack reports x3, glow light coupling, examples
+  reworked, tests/test_binary.py (6 tests), handbook rewritten,
+  non-binary games byte-identical. Key code anchors: alias
+  normalization = sema.py _normalize_aliases (a whole-program AST
+  pre-pass, first thing analyze() does); glow derived in sema after
+  _collect_members (binary+lit -> glow); the contract =
+  check_switch in loop.prelude beside check_requires, called from
+  the main contract site AND sweep_one, both behind `if any_binary
+  is 1`; the state read: glow things test `lit`, plain binaries
+  test `active` (author flavor handlers historically flip lit);
+  defaults in actions.prelude fold behind any_binary so foldless
+  games keep the classic refusal byte-exactly; any_binary intrinsic
+  in lower.py (dynamic + _static_value entry, mirrors any_beyond);
+  the darkness detector (sema uses_darkness) skips library-origin
+  decls for the lit-clear scan (origin tags exist on
+  BlockDecl/Handler/DirectionDecl: "library"/"granule"/"game") or
+  every game arms the light watch. Doctrine: a flavor handler owns
+  its flip (now self is active, plus lit on glow things); documented
+  in the handbook's attribute table and both lamp examples.
 
-NEXT (in order, with the agreed resolutions):
-- A1: the two-noun split ("oeffne tuer aus eiche" asks): German
-  resolve_two_nouns splits at ANY particle (is_separator flag 32, kept
-  for "gib X an Y"); when a split slot is ambiguous/empty and the
-  WHOLE range resolves as one noun (it scores 2:1 today), the
-  one-noun reading must win. Fall-back after failed split, no
-  compiler change expected.
-- A2: the #trigger word marker: `words #truhe, eiche, kiste`; a
-  trigger decides a tie ONLY when exactly one tied candidate's
-  trigger was typed (two typed triggers still ask, Stefan's rule);
-  lexer accepts #word in words lists, matcher tie-break, handbook.
-- D: beispiel-deutsch declares tuere/tuere variants in words (one
-  line; RULED: no morphological automation, Tuer/Tuere is declaration
-  work like Tisch/Tische).
-- DEPTH F: automatic crossword umlauts: every dictionary word with
-  ae/oe/ue/ss gains its umlaut sibling automatically (and ss for
-  eszett: Spass/Spaß), both typed forms one entry; prune the doubled
-  declarations in german.granule and the examples after.
-- DEPTH C: pronouns done right: ihm binds neuter (das Kind) as well
-  as masculine; sie binds plural referents; NO narrow fixes (Stefan:
-  if it has to be a depth round, it is a depth round).
-- DEPTH G: pronominal adverbs (damit/darauf/daran family).
-- DEPTH H: adjective declension (declare the stem once, endings fold
-  in matching).
-- I: the German example enhanced or replaced (shape decided after the
-  round; Gasthaus was never meant as a showcase).
-- LATER: Hibernated 1 auf Deutsch (port first, translation second,
-  Stefan's native pass gates; the true showcase answer).
-- FINAL: the forum reply (professional part only; Stefan posts his
-  own personal words separately, then challenges the thread to
-  contribute rather than hunt).
+NEXT (in order, with the agreed resolutions and pickup data):
+- A1: THE SPLIT FALLBACK. Repro: "oeffne tuer aus eiche" asks
+  "Truhe oder Tuer?" while "untersuche tuer aus eiche" resolves
+  (scores 2:1 for the Tuer). Mechanism, measured: OEFFNE has grammar
+  `open noun mit noun`; german.granule resolve_two_nouns (~line 403)
+  finds a separator via is_separator (~line 388), which accepts
+  prepositions (flag 8/136), directions (64), AND PARTICLES (32,
+  kept deliberately for "gib X an Y" where the dative an is also a
+  particle); it splits "tuer aus eiche" at "aus", first slot Tuer
+  resolves, second slot bare "eiche" ties between Truhe and Tuer ->
+  the ask is about the INSTRUMENT slot. Fix shape (agreed): try the
+  split as today; when a split slot comes up ambiguous (parse_fault
+  3) or nothing, and the verb's second slot is grammar-optional,
+  retry the WHOLE range as one noun via match_phrase(1, n, 0); a
+  clean resolve wins (second stays empty); "gib muenze an bob"
+  regression-tested (both slots resolve, no fallback). All in
+  german.granule; check whether Spanish resolve_two_nouns shares the
+  shape (probably splits only on flag-8, verify).
+- A2: THE #TRIGGER MARKER. Syntax: `words #truhe, eiche, kiste` (the
+  # form, Stefan's pick over a property). Semantics (locked): among
+  TIED candidates only, count those whose trigger word appears
+  anywhere in the typed phrase; exactly one -> it wins silently; two
+  or more (OEFFNE TRUHE TUER) -> the ask happens as today; zero ->
+  ordinary scoring. A tiebreaker, never a gag order. Build: lexer
+  accepts #word inside words lists (check the words-value parse in
+  parser.py; entries are ast.Name values - a marker flag per word),
+  worldmodel carries per-object trigger words, the tie path in
+  match_phrase (parser.prelude, the `tied` handling near the
+  exact-name tie-break of 2026-07-30) consults triggers before
+  asking, handbook chapter 14 + the attribute/words section.
+- D: BEISPIEL WORDS. Add tuere (and tuere-variants) to the Tuer's
+  words line in examples/beispiel-deutsch.storyarc (~line 184).
+  RULED: declaration work, no morphological automation.
+- DEPTH F: CROSSWORD UMLAUTS, AUTOMATIC. Every dictionary word
+  containing ae/oe/ue/ss gets its sibling registered automatically
+  at dictionary build (both directions umlaut->crossword from
+  declared umlaut forms; eszett -> ss: Spass for Spaß), one entry
+  two spellings; then prune the hand-doubled declarations
+  (tuer/tür pairs in german.granule verbs, oellampe/öllampe in the
+  example). Site: arcturus/dictionary.py (encoding) - note ZSCII
+  umlauts already encode, this is about REGISTERING the folded
+  sibling spellings. German-only? Ruled: applies to the German
+  language build (and harmless generally); check with Stefan at
+  build time whether folding activates per-language.
+- DEPTH C: PRONOUNS DONE RIGHT. ihm binds neuter referents (das
+  Kind: "rede mit ihm") as well as masculine; sie binds plural
+  referents. NO narrow fixes (Stefan: if it has to be a depth
+  round, it is a depth round). The pronoun slot model lives in the
+  packs (pronoun decls + pronoun_slot in parser.prelude ~line 55);
+  German maps ihn/sie/es + now ihm/ihr; the neuter-dative and the
+  plural-sie need slot semantics designed WITH Stefan (ambiguity:
+  ihm with both masc and neut referents live).
+- DEPTH G: PRONOMINAL ADVERBS. damit/darauf/daran/danach family:
+  "oeffne truhe damit" = mit + the remembered instrument referent.
+  Grammar-model design with Stefan before code.
+- DEPTH H: ADJECTIVE DECLENSION. Declare the stem once ("rot"),
+  matching folds the endings (roten/rote/roter/rotes/rotem).
+  Touches words storage and the dictionary; design with Stefan.
+- I: THE GERMAN EXAMPLE. Enhance or replace the Gasthaus (never
+  meant as a showcase); shape decided after the depth round.
+- LATER: HIBERNATED 1 AUF DEUTSCH. Port first (days-scale, the H2
+  port discipline exists), translation second (drafted by the
+  assistant, gated line-by-line by Stefan's native pass). The true
+  showcase answer; parked on Stefan's word.
+- FINAL: THE FORUM REPLY. Professional substance only, drafted
+  together; structure: what was found -> what shipped (with arcc
+  --update), no tone-answering. Stefan appends his own personal
+  words and the contribute-or-hunt challenge himself.
 
 MEASURED FACTS the round rests on (do not re-derive): "untersuche
 tuer aus eiche" resolves 2:1 today (one-noun path healthy); the ask
-comes ONLY from the two-noun split at the particle; "gehe nord" and
-"gehe norden" both already work; "tuere" is unknown until declared;
-the double-off bug was real in both examples and is fixed by B.
+comes ONLY from the two-noun particle split; "gehe nord" AND "gehe
+norden" both already work (E closed); "tuere" is unknown until
+declared; the double-off bug was real in both examples since release
+and B killed it; phrase_score compares dictionary entries not flags,
+so known-but-foreign words in a noun range are harmless; one
+dictionary flag per word (noise would clobber particle - the reason
+German "aus" could never be noise and takeall's German group needs no
+filler).
+
+SESSION STATE BEYOND THE ROUND: versions arcc 1.5.0 / Cosmos 1.8.0 /
+arcimg 1.35.0 / Actaea 1.3.9 / proteus 1.0.0, all standalones
+committed and README current at 948637c; suite 1259 green
+(tests/actaea excluded from batch runs: curses needs a TTY). B12
+arc_image stands at R2-R4 complete plus Shawn's Agon (fifteen
+formats, twelve probe-proven); R5 (Apple II/DHGR, Next, MEGA65, C128
+ruling) waits until this adopter round closes. The emulator bench
+and its rules live in the memory files, not here.
