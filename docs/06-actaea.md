@@ -49,6 +49,24 @@ re-running the installer and choosing Modify. A quick test is
 tkinter the ladder goes straight down to the plain pipe; the console mode
 plays fine under WSL.
 
+On macOS, recent systems (Tahoe and later) deprecate the Tk that ships
+with the OS, and a Python still linked against it can open the Actaea
+window as a BLANK FORM, with "The system version of Tk is deprecated"
+in the terminal. The window is not broken, its toolkit is: give Python
+a current Tcl/Tk and the form fills in. With Homebrew:
+
+    brew install tcl-tk
+
+then put its bin directory on the PATH ahead of the system one, in
+`~/.zshenv` or your shell profile (check the installed version; the
+path carries it):
+
+    export PATH=/opt/homebrew/Cellar/tcl-tk/9.0.4/bin:$PATH
+
+and restart the terminal (and your editor, if it launched Actaea).
+Until then, `actaea --console story.z5` plays fine: the terminal mode
+does not use Tk at all.
+
 ## 2. The three ways to play
 
 One headless virtual-machine core sits behind three front-ends. The core
