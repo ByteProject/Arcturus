@@ -56,7 +56,10 @@ KEYWORDS = frozenset(
 
 # Multi-character operators, tried before single characters.
 TWO_CHAR_OPS = ("++", "--", "<=", ">=")
-ONE_CHAR_OPS = frozenset("()+-*/=<>.,")
+# "#" is the trigger marker, legal only inside a `words` list (docs/01
+# chapter 14); the lexer carries it as an operator and the parser rejects
+# it everywhere else.
+ONE_CHAR_OPS = frozenset("()+-*/=<>.,#")
 
 
 @dataclass

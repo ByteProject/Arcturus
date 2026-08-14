@@ -821,8 +821,8 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     # five bits hold the property number (section 12.4.2.1).
     items = []
     for pname, decl in eff.items():
-        if pname in ("words", "plural"):
-            continue  # both emitted as word arrays below
+        if pname in ("words", "plural", "trigger"):
+            continue  # all three emitted as word arrays below
         pnum = layout.prop_number.get(pname)
         if pnum is not None:
             items.append((pnum, pname, decl))
@@ -845,6 +845,14 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
         pvocab = [v.ident.lower() for v in eff["plural"].values if isinstance(v, ast.Name)]
         if pvocab:
             items.append((plural_prop, "plural", pvocab))
+    # The trigger property (the #-marked words, docs/01 chapter 14): an array
+    # of dictionary addresses exactly like words. Sema only registers it when
+    # a words list carries the marker, so a triggerless game emits nothing.
+    trigger_prop = layout.prop_number.get("trigger")
+    if trigger_prop is not None and "trigger" in eff:
+        tvocab = [v.ident.lower() for v in eff["trigger"].values if isinstance(v, ast.Name)]
+        if tvocab:
+            items.append((trigger_prop, "trigger", tvocab))
     # A person with `topic` declarations gets a `topics` property holding a
     # pointer to its topic table; the table itself is appended after all property
     # tables (the pointer is patched there, so only its site is reserved here).
@@ -862,7 +870,7 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     if spans_prop is not None and obj_spans and nonmovable:
         items.append((spans_prop, "spans", obj_spans))
     for pnum, pname, decl in sorted(items, reverse=True, key=lambda it: it[0]):
-        if pname in ("words", "plural"):
+        if pname in ("words", "plural", "trigger"):
             _emit_words(layout, pnum, decl)
             continue
         if pname == "spans":

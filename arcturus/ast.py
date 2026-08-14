@@ -428,6 +428,10 @@ class PropertyDecl:
     capacity: Optional[int] = None  # PROP_LIST
     body: list[Stmt] = field(default_factory=list)  # PROP_BLOCK
     line: int = 0
+    # The #-marked entries of a `words` list (the trigger marker, docs/01
+    # chapter 14): the words are ordinary vocabulary in `values` too; this
+    # records which of them the author marked as the object's triggers.
+    triggers: list[str] = field(default_factory=list)
 
 
 @dataclass

@@ -676,6 +676,14 @@ block match_phrase(lo, hi, plural_ok)
         change ask_hi to hi
         change ask_score to best_score
         change ask_at to word_pos(hi - 1) + word_len(hi - 1)
+        // The author's trigger first (docs/01 chapter 14): a #word in a
+        // words list marks what the thing IS. Exactly one tied candidate
+        // whose trigger was typed wins silently; declared intent outranks
+        // the held heuristic below. Two typed triggers keep the question
+        // (OPEN CRATE CHEST is a genuine one), zero changes nothing.
+        if any_triggers is 1
+            if trigger_break is not nothing
+                return trigger_break
         if which_tiebreak(tie_want) is not nothing
             return which_tiebreak(tie_want)
         change parse_fault to 3
@@ -802,6 +810,46 @@ block which_tiebreak(want_held)
                     if player holds obj
                         change h to 1
                     if h is want_held
+                        if pick is not nothing
+                            return nothing
+                        change pick to obj
+        change obj to obj + 1
+    return pick
+
+// Was one of the object's trigger words (the #-marked words, docs/01
+// chapter 14) typed in the phrase being asked about? Compares dictionary
+// entries, the way all matching does; an object without triggers has no
+// property and answers no.
+block trigger_typed(obj)
+    let addr = trigger_addr(obj)
+    if addr is nothing
+        return 0
+    let count = trigger_count(obj)
+    let i = ask_lo
+    while i < ask_hi
+        let d = word_dict(i)
+        if d is not nothing
+            let j = 0
+            while j < count
+                if peek_word(addr, j) is d
+                    return 1
+                change j to j + 1
+        change i to i + 1
+    return 0
+
+// The trigger tiebreak (docs/01 chapter 14): among the tied candidates (the
+// same set the ask would list), the single one whose trigger word was
+// typed. Nothing when none claims it, and nothing when two or more do: a
+// trigger is a tiebreaker, never a gag order, and typing two triggers at
+// once is a question the player must answer.
+block trigger_break()
+    let pick = nothing
+    let obj = 1
+    while obj <= object_count
+        if obj is not hidden
+            if phrase_score(obj, ask_lo, ask_hi) is ask_score
+                if in_scope(obj)
+                    if trigger_typed(obj) is 1
                         if pick is not nothing
                             return nothing
                         change pick to obj

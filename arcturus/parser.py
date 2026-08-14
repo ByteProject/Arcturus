@@ -558,12 +558,32 @@ class Parser:
             # the language's reserved ones (words self, you), since the player
             # types them without knowing our keywords. `plural` is the group
             # vocabulary the plurals granule matches (docs/01 chapter 22).
-            values = [self._vocab_word()]
-            while self.check_op(","):
+            # A `words` entry may carry the trigger marker (`words #truhe,
+            # eiche`): the word is ordinary vocabulary AND the object's
+            # trigger, the tie-breaking claim of docs/01 chapter 14.
+            values: list[ast.Name] = []
+            triggers: list[str] = []
+            while True:
+                if self.check_op("#"):
+                    if name != "words":
+                        raise self._error(
+                            "the # trigger marker belongs in a `words` "
+                            "list, not in `plural`"
+                        )
+                    self.advance()
+                    v = self._vocab_word()
+                    triggers.append(v.ident.lower())
+                else:
+                    v = self._vocab_word()
+                values.append(v)
+                if not self.check_op(","):
+                    break
                 self.advance()
-                values.append(self._vocab_word())
             self.expect_newline()
-            return ast.PropertyDecl(name, ast.PROP_VALUE, values=values, line=tok.line)
+            return ast.PropertyDecl(
+                name, ast.PROP_VALUE, values=values, line=tok.line,
+                triggers=triggers,
+            )
         if self.check(T.NEWLINE):
             self.advance()
             return ast.PropertyDecl(name, ast.PROP_BOOL, line=tok.line)

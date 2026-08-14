@@ -555,6 +555,9 @@ A vocabulary word is normally a bare identifier. When the word itself is not
 one, quote it: `words shuttle, obsidian, "obsidian-black"` admits the
 hyphenated compound the player may type, since a hyphen does not split words
 at the prompt. A quoted entry is one word; spaces are not allowed in it.
+An entry with a leading `#` (`words #lantern, brass, lamp`) is that AND the
+object's trigger, the word that settles a matching tie in this object's
+favor when the player typed it (chapter 14).
 
 ### Standard kinds
 
@@ -2587,13 +2590,15 @@ typed words its `words` contain, then takes the single best:
   dispatched: a handler that sees `noun is nothing` can trust it means
   the player typed the bare verb, never an unresolved phrase.
 - One object scores best: it fills the slot.
-- Several tie at the best score: first the HELD TIEBREAK. A tie where
-  exactly one candidate is in the player's hands is not an ambiguity
-  worth a question: EXAMINE MIRROR with your own in hand and the guard's
-  on the guard means yours, silently. TAKE runs the tiebreak the other
-  way (exactly one candidate NOT held wins, since taking wants the
-  takeable one), so a held thing never shadows the one on the table. A
-  tie with nobody on the wanted side, or two candidates there, stands.
+- Several tie at the best score: first the TRIGGER (the # marker, below):
+  if exactly one tied candidate's trigger word was typed, it wins
+  silently, declared intent before any guess. Then the HELD TIEBREAK. A
+  tie where exactly one candidate is in the player's hands is not an
+  ambiguity worth a question: EXAMINE MIRROR with your own in hand and
+  the guard's on the guard means yours, silently. TAKE runs the tiebreak
+  the other way (exactly one candidate NOT held wins, since taking wants
+  the takeable one), so a held thing never shadows the one on the table.
+  A tie with nobody on the wanted side, or two candidates there, stands.
 - The tie survives: a genuine ambiguity. The parser asks
   "Which do you mean, the gold coin or the silver coin?", printing each
   candidate with its article (in German, declined to the accusative), and
@@ -2614,6 +2619,41 @@ never printed: the `name`-versus-`words` split is the only lever needed. A
 word in `name` is printed but not matched, a word in `words` is matched but
 not printed, and a word you want both printed and typed appears in each.
 There is no "the brass one" anaphora in v1; that is deferred.
+
+The trigger marker. A `words` entry may carry a leading `#`:
+
+    thing crate in cellar
+        name "packing crate"
+        words #crate, packing
+
+    thing chest in cellar
+        name "oak chest"
+        words #chest, oak, crate
+
+The marked word is ordinary vocabulary AND the object's trigger: the word
+that says what the thing IS. Generous synonym lists are good declaration
+practice, and they are where ties come from: the chest above answers to
+"crate" as a synonym, so OPEN CRATE scores both objects equally and, without
+the marker, the parser would ask "Which do you mean, the packing crate or
+the oak chest?" about a phrase that already named its object. The trigger
+settles exactly that: among the TIED candidates, the one whose trigger word
+was typed wins silently.
+
+The rules, precisely. Triggers are consulted only when a tie stands, never
+before: an untied best match resolves by score exactly as always, and a
+trigger word plays its ordinary vocabulary role everywhere else. Among the
+tied candidates, exactly one with a typed trigger wins; if two or more tied
+candidates' triggers were typed (OPEN CRATE CHEST), the question happens as
+it always did, and if none was typed (OPEN BOX against two box-carrying
+things), nothing changes either. A trigger is a tiebreaker, never a gag
+order. It outranks the held tiebreak, declared intent before heuristics, and
+it works in every slot that resolves through the matcher: the second noun of
+PUT COIN IN CRATE settles the same way. An object may mark more than one
+word, and the marker is language-neutral: it lives in the agnostic matcher,
+so a German or Spanish game declares `words #kiste, gross, grosse` and gets
+identical behavior. A game with no marker anywhere carries none of this
+machinery, and its story file is byte-identical. Worked example:
+[examples/features/trigger.storyarc](../examples/features/trigger.storyarc).
 
 Multi and all. Deliberately NOT core: both ship as granules, so a game that
 wants them summons them and one that does not pays nothing. `summon.takeall`

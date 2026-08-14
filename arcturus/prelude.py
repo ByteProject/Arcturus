@@ -236,6 +236,11 @@ _STD_VALUE_PROPS = {
     # in-scope objects runs the action on each instead of asking which one
     # (docs/01 chapter 22, summon.plurals). Ignored without the granule.
     "plural": T_LIST,
+    # NOTE: the `trigger` property (the #-marked entries of a `words` list,
+    # docs/01 chapter 14) is deliberately NOT seeded here: every property in
+    # this table is numbered in every game, and the trigger must cost
+    # nothing where no words list carries the marker. Sema registers it on
+    # first use instead (_collect_members).
     "capacity": T_NUMBER,
     # The object that locks and unlocks a lockable thing (a door or chest). Named
     # `unseal_with` rather than `key` so the common vocabulary word "key" stays

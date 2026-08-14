@@ -9897,6 +9897,36 @@ same bytes. One word fixes it (the iteration is sorted now), and all
 three shipped examples now hash identically across runs, verified under
 three different hash seeds.
 
+## 2026-08-14: the trigger marker, #words settle their own ties (arcc 1.6.0, Cosmos 1.9.0)
+
+Generous synonym lists are good declaration practice, and they are where
+matching ties come from: a chest that helpfully answers to "kiste" makes
+OPEN KISTE ask "which do you mean" about a phrase that already named its
+object. The German round surfaced the annoyance; STEFAN'S DESIGN answers
+it at the language level: a `words` entry may carry a leading # marker,
+`words #kiste, gross, grosse`, and the marked word is ordinary vocabulary
+AND the object's trigger, the word that says what the thing IS.
+
+The semantics, ruled precisely: triggers are consulted only when a tie
+stands, never before. Among the tied candidates, exactly one whose
+trigger was typed wins silently; two or more typed triggers keep the
+question (OEFFNE TRUHE TUER is a genuine one, Stefan's rule); zero typed
+triggers change nothing. A tiebreaker, never a gag order. Declared intent
+outranks the held heuristic, and the marker works in every slot the
+matcher resolves, the second noun of PUT COIN IN CRATE included. It is
+language-neutral: the machinery lives in the agnostic matcher, so all
+three shipped languages speak it with no pack work.
+
+Under the hood the marked words become a per-object vocab array beside
+`words`, registered only on first use, so a game without the marker
+allocates nothing, folds the matcher code away entirely, and stays
+BYTE-IDENTICAL (the shipped examples prove it at their exact pinned
+sizes). Verified on fizmo-console: the typed trigger wins over a held
+rival, the honest asks all survive. Seven new tests
+(tests/test_trigger.py), a worked example
+(examples/features/trigger.storyarc, pinned 16944), the handbook's
+chapters 3 and 14 carry the feature, syntax first.
+
 ## CHECKPOINT: the German forum round (updated per item; compaction-proof)
 
 THE PICKUP. This checkpoint is the single source for resuming the
@@ -9922,6 +9952,30 @@ knowledge (file anchors, designs, measured facts) that the narrative
 entries deliberately leave out.
 
 DONE:
+- A2: THE #TRIGGER MARKER (arcc 1.6.0, Cosmos 1.9.0). Syntax: `words
+  #truhe, eiche` (parser.py words branch collects triggers; # is a
+  lexer op, tokens.py; plural lists reject it). Sema _collect_members
+  synthesizes a `trigger` vocab property from PropertyDecl.triggers,
+  registered via _unify_property ONLY on use (never seeded in the
+  prelude std table: std props are numbered in every game and would
+  shift all layouts); world.uses_triggers is the fold truth (an
+  adopter's unrelated property named trigger must not arm it).
+  objects.py emits it like plural/words; lower.py: trigger_addr/
+  trigger_count (0 when absent, plural_addr shape) + any_triggers
+  (dynamic + _static_value). Cosmos: trigger_typed/trigger_break in
+  parser.prelude before ask_which; tie path consults them AFTER
+  plural_tie, BEFORE which_tiebreak, gated on any_triggers. The
+  unread-prop lint skips "trigger" (read via intrinsic, not property).
+  Tests: tests/test_trigger.py (7: syn-tie win, beats-held, second
+  slot, two-triggers-ask, zero-triggers-ask, German, plural-#-error).
+  Example: examples/features/trigger.storyarc (pinned 16944).
+  Handbook: ch 3 words + ch 14 (tie ladder bullet updated: trigger
+  then held; dedicated syntax-first passage + worked-example link).
+  EN ROUTE: found and fixed (separate commit, arcc 1.5.2) the
+  hash-seed build nondeterminism: _gen_react's catch-all iterated
+  frozenset event_names raw; sorted now, examples hash-stable under
+  any PYTHONHASHSEED. Byte-identity claims from before that fix were
+  luck-prone across processes; in-process comparisons stand.
 - A1: THE ONE-NOUN RETRY (arcc 1.5.1, Cosmos 1.8.1). german.granule
   gained one_noun_retry(n) right after is_separator: saves and
   restores parse_fault, ask_lo/ask_hi/ask_score/ask_at, and
@@ -9966,18 +10020,6 @@ DONE:
   in the handbook's attribute table and both lamp examples.
 
 NEXT (in order, with the agreed resolutions and pickup data):
-- A2: THE #TRIGGER MARKER. Syntax: `words #truhe, eiche, kiste` (the
-  # form, Stefan's pick over a property). Semantics (locked): among
-  TIED candidates only, count those whose trigger word appears
-  anywhere in the typed phrase; exactly one -> it wins silently; two
-  or more (OEFFNE TRUHE TUER) -> the ask happens as today; zero ->
-  ordinary scoring. A tiebreaker, never a gag order. Build: lexer
-  accepts #word inside words lists (check the words-value parse in
-  parser.py; entries are ast.Name values - a marker flag per word),
-  worldmodel carries per-object trigger words, the tie path in
-  match_phrase (parser.prelude, the `tied` handling near the
-  exact-name tie-break of 2026-07-30) consults triggers before
-  asking, handbook chapter 14 + the attribute/words section.
 - D: BEISPIEL WORDS. Add tuere (and tuere-variants) to the Tuer's
   words line in examples/beispiel-deutsch.storyarc (~line 184).
   RULED: declaration work, no morphological automation.
@@ -10028,9 +10070,9 @@ dictionary flag per word (noise would clobber particle - the reason
 German "aus" could never be noise and takeall's German group needs no
 filler).
 
-SESSION STATE BEYOND THE ROUND: versions arcc 1.5.1 / Cosmos 1.8.1 /
+SESSION STATE BEYOND THE ROUND: versions arcc 1.6.0 / Cosmos 1.9.0 /
 arcimg 1.35.0 / Actaea 1.3.9 / proteus 1.0.0, all standalones
-committed and README current; suite 1263 green
+committed and README current; suite 1271 green
 (tests/actaea excluded from batch runs: curses needs a TTY). B12
 arc_image stands at R2-R4 complete plus Shawn's Agon (fifteen
 formats, twelve probe-proven); R5 (Apple II/DHGR, Next, MEGA65, C128

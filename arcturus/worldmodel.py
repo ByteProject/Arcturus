@@ -494,6 +494,11 @@ class World:
     # pay-for-use gate, letting any_images fold the whole picture path away in a
     # game with no pictures.
     uses_images: bool = False
+    # Any words list carries the # trigger marker (docs/01 chapter 14): the
+    # matcher's trigger tiebreak folds away when this stays False. The flag,
+    # not the property name, is the truth: a game may own an unrelated
+    # property that happens to be called trigger.
+    uses_triggers: bool = False
     # True when darkness is reachable: a room resolving `lit` false at compile
     # time, or a `now ... is not lit` anywhere. Feeds the any_dark fold, and
     # with uses_images the rule that an images game declares arc_image_dark.

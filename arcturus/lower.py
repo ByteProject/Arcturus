@@ -55,6 +55,11 @@ INTRINSICS = frozenset({
     "word_count", "word_dict", "word_len", "word_pos", "call_handler",
     "handler_of", "parent_of", "words_addr", "words_count",
     "plural_addr", "plural_count", "any_plurals",
+    # trigger_addr / trigger_count expose an object's trigger array (the
+    # #-marked words, docs/01 chapter 14), the same shape as plural.
+    # any_triggers is the compile-time flag the matcher's tiebreak guards
+    # on, so a game without the marker folds it away entirely.
+    "trigger_addr", "trigger_count", "any_triggers",
     # spans_addr / spans_count expose an object's spans array (the extra rooms it
     # is in scope in), the same shape as words, so scope can walk it. any_spans is
     # a compile-time flag (1 if any object spans, else 0) the scope code guards on,
@@ -1277,19 +1282,22 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
             raise LowerError(f"{name} needs a {prop} property")
         rt.op("get_prop_addr", op, Const(pnum), store=dest)
         _free(ctx, t)
-    elif name in ("plural_addr", "plural_count"):
-        # The plurals granule's group-vocabulary array, shaped like words. A
-        # game with the granule but no `plural` declarations has no property
-        # to read, so these lower to a plain 0 and has_plural answers no.
-        pnum = ctx.prop_number("plural") if ctx.layout is not None else None
+    elif name in ("plural_addr", "plural_count", "trigger_addr", "trigger_count"):
+        # The plurals granule's group-vocabulary array and the trigger array
+        # (the #-marked words), both shaped like words. A game with none of
+        # the declarations has no property to read, so these lower to a
+        # plain 0 and the callers answer no.
+        prop = "plural" if name.startswith("plural") else "trigger"
+        pnum = ctx.prop_number(prop) if ctx.layout is not None else None
         if pnum is None:
             op, t = _operand(rt, ctx, args[0])
             _free(ctx, t)
             _place(rt, Const(0), dest)
         else:
             op, t = _operand(rt, ctx, args[0])
-            rt.op("get_prop_addr", op, Const(pnum), store=dest if name == "plural_addr" else Variable(STACK))
-            if name == "plural_count":
+            rt.op("get_prop_addr", op, Const(pnum),
+                  store=dest if name.endswith("_addr") else Variable(STACK))
+            if name.endswith("_count"):
                 rt.op("get_prop_len", Variable(STACK), store=Variable(STACK))
                 rt.op("div", Variable(STACK), Const(2), store=dest)
             _free(ctx, t)
@@ -1514,6 +1522,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_plurals(): 1 when the plurals granule is in (its `pronoun them`
         # declaration is the marker), so the plural hooks fold away without it.
         _place(rt, Const(1 if "them" in ctx.world.pronouns.values() else 0), dest)
+    elif name == "any_triggers":
+        # any_triggers(): 1 when any words list carries the # trigger marker
+        # (docs/01 chapter 14), so the matcher's trigger tiebreak folds away
+        # without one. The world flag is the truth, not the property name: a
+        # game may own an unrelated property that happens to be called trigger.
+        _place(rt, Const(1 if ctx.world.uses_triggers else 0), dest)
     elif name == "any_tagged":
         # any_tagged(): 1 when any object declares a `tag` qualifier, so the
         # listing hook folds away otherwise.
@@ -3602,6 +3616,8 @@ def _static_value(ctx, expr):
         return 1 if ctx.world.all_words else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_plurals":
         return 1 if "them" in ctx.world.pronouns.values() else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_triggers":
+        return 1 if ctx.world.uses_triggers else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tagged":
         return 1 if any("tag" in o.props for o in ctx.world.objects.values()) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_enterable":

@@ -1,0 +1,57 @@
+// trigger.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the trigger marker (docs/01 chapter 14): a `words` entry with
+// a leading # is ordinary vocabulary AND the object's trigger, the word that
+// says what the thing IS. Generous synonym lists are good declaration practice,
+// and they are where matching ties come from: here the sea chest answers to
+// "crate" as a synonym, so OPEN CRATE would tie and ask "Which do you mean"
+// about a phrase that already named its object. The trigger settles exactly
+// that tie: among tied candidates, the one whose trigger was typed wins
+// silently. Two typed triggers still ask (a genuine question), zero typed
+// triggers change nothing. A tiebreaker, never a gag order. Compile and run:
+//
+//   arcc examples/features/trigger.storyarc -o trigger.z5
+//   frotz trigger.z5
+//
+// Try, in order:
+//   open crate          both answer to "crate"; the trigger settles it silently
+//   open box            no trigger typed: the honest question still happens
+//   crate               and the answer narrows it, as always
+//   take chest
+//   open crate          the chest is in hand, yet the typed trigger still wins
+//   put lens in crate   the second noun settles through the same matcher
+//   open chest packing  a tie again, and the one typed trigger (chest) wins
+
+game
+    title  "The Hold"
+    headline "A trigger showcase"
+    author "Stefan Vogt"
+    start  hold
+
+room hold
+    name "Cargo Hold"
+    desc "Low beams, salt air, and two containers lashed to the deck: a
+          packing crate and an old sea chest."
+
+// The crate's trigger is its own name: whoever types "crate" means this one,
+// however many other things answer to the word as a synonym.
+thing crate in hold
+    name "packing crate"
+    words #crate, packing, box
+    container
+    openable
+
+// The chest generously answers to "crate" and "box" too, as a real game
+// would declare it; its own trigger is "chest".
+thing chest in hold
+    name "sea chest"
+    words #chest, sea, crate, box
+    container
+    openable
+
+thing lens in hold
+    name "signal lens"
+    words lens, signal

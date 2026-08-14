@@ -1298,6 +1298,21 @@ class Analyzer:
                         line=m.line,
                     )
                     w.uses_images = True
+                # The trigger marker (docs/01 chapter 14): #-marked entries of
+                # a words list become the object's `trigger` property, a vocab
+                # array beside `words`. Registered only on first use, so a
+                # game without the marker allocates no property number and
+                # stays byte-identical; the marker keeps every trigger inside
+                # the vocabulary it belongs to.
+                if m.name == "words" and m.triggers:
+                    self._unify_property("trigger", prelude.T_LIST, m.line)
+                    props_out["trigger"] = ast.PropertyDecl(
+                        "trigger",
+                        ast.PROP_VALUE,
+                        values=[ast.Name(t, m.line) for t in m.triggers],
+                        line=m.line,
+                    )
+                    w.uses_triggers = True
                 ty = self._declared_type(m)
                 self._unify_property(m.name, ty, m.line)
                 props_out[m.name] = m
@@ -1936,7 +1951,10 @@ class Analyzer:
         predating the attribute accepted it as a custom property and the
         apron simply never entered scope). Say so, as a note."""
         std = set(self.env.properties)
-        skip = {"tag"}  # the listing qualifier rides props but is not one
+        # tag rides props but is not one; trigger is synthesized from the #
+        # marker and read through its intrinsic (trigger_addr), never as a
+        # property, so the unread-lint has no business with either.
+        skip = {"tag", "trigger"}
         noted = 0
         pools = [(o.name, o.props) for o in self.world.objects.values()]
         pools += [(k.name, k.props) for k in self.world.kinds.values()
