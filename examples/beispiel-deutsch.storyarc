@@ -187,7 +187,11 @@ thing schluessel in truhe
 // Schlüssel geöffnet. Als `door` ist sie schon `openable` und `fixed`. `die` Tür.
 thing tuer of door in gasthaus, hof
     name "Tür aus Eiche"
-    words tuer, tür, eichentuer, eichentür
+    // Tür und Türe sind beide gutes Deutsch: wer die Variante tippt, soll
+    // sie auch treffen. Solche Formen sind Deklarationsarbeit, keine
+    // Automatik (Tische ist der Plural von Tisch, tuere nur eine
+    // Schreibweise; das kann keine Endungsregel wissen).
+    words tuer, tür, tuere, türe, eichentuer, eichentür, eichentuere, eichentüre
     die
     lockable
     locked

@@ -124,7 +124,7 @@ CEILINGS = {
     "features/scenery-contents.storyarc": 17832,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "features/trigger.storyarc": 16944,  # 2026-08-14 first pin: the trigger marker showcase (words #crate; games without the marker stay byte-identical)
     "granules/nautical.storyarc": 17848,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
-    "beispiel-deutsch.storyarc": 23816,  # 2026-08-14 repriced: the one-noun retry in the two-noun split ("Tuer aus Eiche"; German-only, English examples unchanged)
+    "beispiel-deutsch.storyarc": 23840,  # 2026-08-14 repriced: tuere/türe variants declared on the Tür (+24, dictionary words; declaration work, ruled, no morphology)
     "brass-lantern.storyarc": 18736,  # 2026-08-14 repriced: the binary model (library-owned switch state, glow coupling, honest already-on/off; games without binary things stay byte-identical)
     "cloak-of-darkness.storyarc": 19360,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "ejemplo-espanol.storyarc": 21996,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)

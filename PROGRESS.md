@@ -9927,6 +9927,30 @@ rival, the honest asks all survive. Seven new tests
 (examples/features/trigger.storyarc, pinned 16944), the handbook's
 chapters 3 and 14 carry the feature, syntax first.
 
+## 2026-08-14: Tuere ist auch eine Tuer, and a rescue on the way
+
+The small ruled item of the round: "Türe" is good German beside "Tür",
+and a field report typed it. RULED: this is declaration work, not
+morphology. Tuere is a spelling, Tische is a plural; no ending rule can
+tell them apart, so the compiler will never guess (the crossword-umlaut
+automation, a separate depth item, is about spellings of the SAME word,
+which is mechanical). The example's Tür now declares tuere, türe,
+eichentuere, and eichentüre beside its four existing forms, with the
+reasoning as a comment in the file. Priced honestly: +24 bytes of
+dictionary, dated.
+
+The size check earned its keep on the way: the build came out SMALLER
+after adding words, which is impossible, and measuring instead of
+shrugging found the example file had lost its entire Truhe declaration
+(six lines, gone from the working tree before the edit, most likely an
+IDE buffer accident; the file had been open in an editor all session).
+Restored from git, verified back at its exact expected size. Measured
+truth, both directions: the deletion predated the session's edits, and
+the recovery is byte-exact. One compiler finding fell out for a later
+ruling: `thing schluessel in truhe` with no truhe declared compiles
+SILENTLY today (the stranded object never errors); a candidate sema
+diagnostic.
+
 ## CHECKPOINT: the German forum round (updated per item; compaction-proof)
 
 THE PICKUP. This checkpoint is the single source for resuming the
@@ -9952,6 +9976,20 @@ knowledge (file anchors, designs, measured facts) that the narrative
 entries deliberately leave out.
 
 DONE:
+- D: TUERE VARIANTS (example-only, no version bump). The Tür declares
+  tuere/türe/eichentuere/eichentüre beside its four forms
+  (examples/beispiel-deutsch.storyarc ~line 190, reasoning in a file
+  comment); repriced 23816 -> 23840 (+24 dictionary). RULED: spelling
+  variants are declaration work, never morphology (Tuere spelling vs
+  Tische plural). NOTE the encoding truth: türe/eichentuere/eichentüre
+  collapse onto existing z5 entries (ü costs 4 z-chars, entries
+  truncate at 6/9), only tuere is a new distinct entry; all four typed
+  forms resolve regardless. EN ROUTE: the working file had LOST its
+  whole Truhe block before the edit (IDE buffer accident, predates the
+  session's edits, proven by line offsets); restored from HEAD,
+  caught because the size DROPPED when it should grow. OPEN FINDING
+  for a ruling: `thing x in y` with y undeclared compiles silently
+  (object stranded, no sema error); candidate diagnostic.
 - A2: THE #TRIGGER MARKER (arcc 1.6.0, Cosmos 1.9.0). Syntax: `words
   #truhe, eiche` (parser.py words branch collects triggers; # is a
   lexer op, tokens.py; plural lists reject it). Sema _collect_members
@@ -10020,9 +10058,6 @@ DONE:
   in the handbook's attribute table and both lamp examples.
 
 NEXT (in order, with the agreed resolutions and pickup data):
-- D: BEISPIEL WORDS. Add tuere (and tuere-variants) to the Tuer's
-  words line in examples/beispiel-deutsch.storyarc (~line 184).
-  RULED: declaration work, no morphological automation.
 - DEPTH F: CROSSWORD UMLAUTS, AUTOMATIC. Every dictionary word
   containing ae/oe/ue/ss gets its sibling registered automatically
   at dictionary build (both directions umlaut->crossword from
