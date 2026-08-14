@@ -197,7 +197,12 @@ _PARTICLE_ROLES = {"on": 1, "off": 2, "auf": 3, "zu": 4,
 # roles). A pack maps its own words onto the slots (`pronoun her "sie"` in
 # German, where grammatical gender rules) and its note_pronouns block decides
 # which slot a resolved noun lands in.
-_PRONOUN_ROLES = {"it": 1, "him": 2, "her": 3, "them": 4}
+_PRONOUN_ROLES = {"it": 1, "him": 2, "her": 3, "them": 4,
+                  # The pronominal adverb (docs/01 chapter 21): German damit,
+                  # darauf, darin, the fused preposition-plus-referent. Never
+                  # phrase content: the pack's resolver binds the freshest
+                  # non-animate referent and splices the word out.
+                  "da": 7}
 
 # The supported multi-role pronoun words (docs/01 chapter 21), keyed by the
 # sorted role pair: the German dative "ihm" reaches masculine AND neuter,

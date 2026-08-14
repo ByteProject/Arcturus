@@ -2791,6 +2791,26 @@ sliding in unnoticed. German files pluribus things under the them slot, so
 "sie" and "ihnen" reach die Stiefel while "ihr" stays feminine. A pack whose
 pronoun words are all single-role (English) carries none of this machinery.
 
+The pronominal adverbs ride the same referents. German fuses preposition
+and pronoun into one word, damit for "mit ihm", darauf for "auf ihn", and
+the pack declares them under the `da` role:
+
+    pronoun da "damit", "darauf", "drauf", "darin", "drin", "daran", "dran"
+
+A da-word anywhere in a two-noun command fills the second slot with the
+freshest remembered THING and satisfies the requirement, so "leg das buch
+darauf" puts the book on the table just examined instead of asking wohin,
+and "nimm den schlüssel und schliess damit die tür auf" reads like the
+German it is. Two rules keep the meaning honest: the referent is never a
+person (after talking to the innkeeper, damit still means the key: the
+German word cannot refer to people), and never the object being acted on
+(the book is the freshest mention right after NIMM, and darauf must still
+mean the table). "darunter" and "drunter" stay particles, choosing
+look_under, and bind the same referent when no noun was typed, so "schau
+darunter" looks under the thing last dealt with. With nothing suitable
+remembered, the honest pronoun refusal speaks. The words are position-free,
+the machinery is German-only, and other packs stay byte-identical.
+
 Spanish takes its pronouns as CLITICS, the natural form: "cogela" is coge with
 la attached, so an unknown first word ending in -lo, -la, -le (the leísmo
 form, taken as masculine), -los, -las, or -les splits its clitic off in the

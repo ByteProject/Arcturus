@@ -280,6 +280,11 @@ block resolve_objects()
                 change two_reverse to 1
                 change arity to 2
             if arity is 2
+                // A da-word pre-fills the second slot and satisfies the
+                // requirement ("leg das buch darauf" stops asking wohin).
+                if bind_daword is 1
+                    if parse_fault is not 0
+                        return 1
                 resolve_two_nouns(rq1, rq2)
                 return 1
             if arity is 0
@@ -296,6 +301,20 @@ block resolve_objects()
     if any_plurals is 1
         if plural_go is not 0
             return 1
+    if noun is nothing
+        // A da-form under-compound with an empty slot ("schau darunter"):
+        // the freshest thing fills it, the same referent damit binds. Only
+        // when the particle really compounds to look_under, so "nimm
+        // darunter" keeps its ordinary refusal.
+        let d0 = word_dict(0)
+        if d0 is not nothing
+            if peek_byte(d0 + 6) is 128 or peek_byte(d0 + 6) is 136
+                if find_under_particle is 1
+                    if compound(peek_byte(d0 + 7), 5) is action_id("look_under")
+                        change noun to da_referent(nothing)
+                        if noun is nothing
+                            change parse_fault to 5
+                        return 1
     if noun is nothing
         change noun to reach_unscoped
         if any_reach is 1
@@ -442,6 +461,31 @@ block one_noun_retry(n)
 // first noun, the words after it name the second.
 block resolve_two_nouns(rq1, rq2)
     let n = word_count
+    // A second slot pre-filled by a da-word (bind_daword): the rest of the
+    // line is ONE noun, no split, and the da-word already satisfied the
+    // two-noun requirement, so only a missing FIRST noun still asks.
+    if second is not nothing
+        change noun to match_phrase(1, n, 0)
+        if parse_fault is not 0
+            return 1
+        // The noun turned out to BE the bound referent (nimm das buch, leg
+        // das buch darauf: the book is the freshest mention): repick,
+        // excluding it, so darauf means the table it must mean.
+        if second is noun
+            change second to da_referent(noun)
+            if second is nothing
+                change parse_fault to 5
+                return 1
+        if noun is nothing
+            if n > 1
+                change grain to find_scenery
+                if grain is not 0
+                    return 1
+                change parse_fault to noun_fault(1, n)
+                return 1
+            if rq1 is 1
+                change incomplete to 1
+        return 1
     let b = 0
     let i = 1
     while i < n
@@ -814,6 +858,89 @@ pronoun him, it "ihm"
 pronoun her "ihr"
 pronoun her, them "sie"
 pronoun them "ihnen"
+
+// The pronominal adverbs (docs/01 chapter 21): German fuses preposition and
+// referent into one word, damit for "mit ihm/ihr/es", darauf for "auf ...",
+// with the colloquial short forms. The word is genderless and never names a
+// person; the resolver binds the freshest non-animate referent into the
+// second slot and splices the word out of the parse buffer, so scoring, the
+// split, and every fault range see a clean command ("oeffne die truhe
+// damit", "leg das buch darauf", position-free like the German). darunter
+// and drunter stay particles (they pick look_under) and bind the same
+// referent when the noun slot comes up empty.
+pronoun da "damit", "darauf", "drauf", "darin", "drin", "daran", "dran"
+
+// The freshest remembered THING, for a da-word: the most recently mentioned
+// referent across all four slots, skipping the animate (German "damit"
+// never means a person; right after talking to the innkeeper it still
+// reaches the key) and skipping excl, the object being acted on: "leg das
+// buch darauf" must never put the book on itself, however fresh its
+// mention. Nothing when nothing qualifies: the honest refusal.
+block da_referent(excl)
+    let best = nothing
+    let bat = 0
+    if pron_it is not nothing
+        if pron_it is not animate
+            if pron_it is not excl
+                if pron_at_it > bat
+                    change best to pron_it
+                    change bat to pron_at_it
+    if pron_him is not nothing
+        if pron_him is not animate
+            if pron_him is not excl
+                if pron_at_him > bat
+                    change best to pron_him
+                    change bat to pron_at_him
+    if pron_her is not nothing
+        if pron_her is not animate
+            if pron_her is not excl
+                if pron_at_her > bat
+                    change best to pron_her
+                    change bat to pron_at_her
+    if pron_them is not nothing
+        if pron_them is not animate
+            if pron_them is not excl
+                if pron_at_them > bat
+                    change best to pron_them
+                    change bat to pron_at_them
+    return best
+
+// Find a typed da-word (pronoun flag, role 7), bind the second slot, and
+// SPLICE the word out of the parse buffer (2-byte header, then 4 bytes per
+// word), so everything downstream reads a clean command. Returns 1 when a
+// da-word claimed the slot (parse_fault 5 speaks for an empty referent),
+// 0 when none was typed.
+block bind_daword()
+    let n = word_count
+    let i = 1
+    while i < n
+        let d = word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 4
+                if peek_byte(d + 7) is 7
+                    change second to da_referent(nothing)
+                    if second is nothing
+                        change parse_fault to 5
+                        return 1
+                    copy_bytes(parse_addr + 6 + 4 * i, parse_addr + 2 + 4 * i, 4 * (n - 1 - i))
+                    poke_byte(parse_addr + 1, n - 1)
+                    return 1
+        change i to i + 1
+    return 0
+
+// Was an under-particle typed ("schau darunter", and the plain "unter" of a
+// hurried player reads the same way)? For the empty-noun binding below.
+block find_under_particle()
+    let n = word_count
+    let i = 1
+    while i < n
+        let d = word_dict(i)
+        if d is not nothing
+            if peek_byte(d + 6) is 32
+                if peek_byte(d + 7) is 5
+                    return 1
+        change i to i + 1
+    return 0
 
 // The pick for a multi-role word (the skeleton's seam): role 5 is "ihm"
 // (masculine OR neuter), role 6 is "sie" (feminine OR plural). The most

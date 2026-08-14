@@ -124,7 +124,7 @@ CEILINGS = {
     "features/scenery-contents.storyarc": 17832,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "features/trigger.storyarc": 16948,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
     "granules/nautical.storyarc": 17852,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "beispiel-deutsch.storyarc": 23928,  # 2026-08-15 repriced: pronoun slot sets (ihm/sie/ihnen by recency; German-only, other languages byte-identical)
+    "beispiel-deutsch.storyarc": 24532,  # 2026-08-15 repriced: the da-words (damit/darauf/darin bind the freshest thing; German-only, other languages byte-identical)
     "brass-lantern.storyarc": 18740,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
     "cloak-of-darkness.storyarc": 19360,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "ejemplo-espanol.storyarc": 21996,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)

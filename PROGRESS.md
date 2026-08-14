@@ -10027,6 +10027,39 @@ rewritten; German remains only inside quoted player input and message
 examples). The lesson is on record: library commentary is English;
 German prose appears only where a native pass gates it.
 
+## 2026-08-15: the da-words, damit means what a German means (arcc 1.9.0, Cosmos 1.12.0)
+
+The last built depth item of the round. German fuses preposition and
+referent into one word, damit, darauf, darin, daran, and no parser word
+existed for any of them: "schliess die truhe damit auf" answered that
+the story does not know "damit". Now the pack declares them under the
+`da` pronoun role, and a da-word anywhere in a two-noun command fills
+the second slot with the freshest remembered THING, satisfies the
+requirement ("leg das buch darauf" stops asking wohin), and reads
+position-free, exactly like the German.
+
+STEFAN'S RULINGS, three, plus one the first probe forced: the referent
+is never a person (damit cannot mean the innkeeper, however fresh her
+mention); the v1 word list is damit, darauf/drauf, darin/drin,
+daran/dran, with darunter/drunter staying particles that pick
+look_under and bind the same referent into an empty noun slot; an empty
+referent speaks the honest pronoun refusal. The forced fourth: the
+referent is never the object being acted on. The first probe put the
+book on itself, because NIMM had just made the book the freshest
+mention; "leg das buch darauf" now repicks past the noun and finds the
+table it must mean.
+
+The mechanism rides C wholesale: the mention stamps pick the freshest
+across all four slots, and the da-word is spliced out of the parse
+buffer after binding, so scoring, the split, and every fault range see
+a clean command; no skeleton code changed at all. The chain showcase
+works on the first try: "nimm den schluessel und schliess damit die
+tuer auf", one line, key taken, door unlocked. Priced honestly:
+German-only by construction, English and Spanish proven byte-identical;
+the German example pays 604 bytes for the referent walk and the two
+scans, repriced dated. Nine new tests (tests/test_dawords.py), verified
+on fizmo-console, full battery 1296 green.
+
 ## CHECKPOINT: the German forum round (updated per item; compaction-proof)
 
 THE PICKUP. This checkpoint is the single source for resuming the
@@ -10052,6 +10085,23 @@ knowledge (file anchors, designs, measured facts) that the narrative
 entries deliberately leave out.
 
 DONE:
+- DEPTH G: THE DA-WORDS (arcc 1.9.0, Cosmos 1.12.0). `pronoun da
+  "damit", "darauf", "drauf", "darin", "drin", "daran", "dran"` (role
+  7, prelude._PRONOUN_ROLES; no new syntax, no skeleton change).
+  german.granule: da_referent(excl) walks the four C slots by stamp,
+  skipping animate AND excl; bind_daword scans flag-4/role-7, binds
+  second, SPLICES the word from the parse buffer (header 2 bytes + 4
+  per word; copy_bytes forward-down + count byte) so downstream sees a
+  clean command; called in resolve_objects' arity-2 branch before
+  resolve_two_nouns, whose pre-bound-second early path resolves the
+  rest as ONE noun (repicking via da_referent(noun) when the noun IS
+  the referent) and only asks for a missing FIRST noun.
+  darunter/drunter: find_under_particle (flag 32 role 5) + compound
+  (base,5)==look_under gate in the empty-noun ladder, so "nimm
+  darunter" keeps its refusal. Rulings: never animate, never the
+  acted-on object, empty referent = fault 5. Tests
+  tests/test_dawords.py (9, incl. the chain showcase); beispiel
+  repriced 24532 (+604); EN/ES byte-identical proven. Handbook ch 21.
 - DEPTH C: PRONOUN SLOT SETS (arcc 1.8.0, Cosmos 1.11.0). Declaration:
   `pronoun him, it "ihm"` (parser roles list; sema maps via
   prelude._PRONOUN_ROLE_SETS {him+it:5, her+them:6} into
@@ -10169,9 +10219,6 @@ DONE:
   in the handbook's attribute table and both lamp examples.
 
 NEXT (in order, with the agreed resolutions and pickup data):
-- DEPTH G: PRONOMINAL ADVERBS. damit/darauf/daran/danach family:
-  "oeffne truhe damit" = mit + the remembered instrument referent.
-  Grammar-model design with Stefan before code.
 - DEPTH H: ADJECTIVE DECLENSION. Declare the stem once ("rot"),
   matching folds the endings (roten/rote/roter/rotes/rotem).
   Touches words storage and the dictionary; design with Stefan.
@@ -10197,9 +10244,9 @@ dictionary flag per word (noise would clobber particle - the reason
 German "aus" could never be noise and takeall's German group needs no
 filler).
 
-SESSION STATE BEYOND THE ROUND: versions arcc 1.8.0 / Cosmos 1.11.0 /
+SESSION STATE BEYOND THE ROUND: versions arcc 1.9.0 / Cosmos 1.12.0 /
 arcimg 1.35.0 / Actaea 1.3.9 / proteus 1.0.0, all standalones
-committed and README current; suite 1287 green
+committed and README current; suite 1296 green
 (tests/actaea excluded from batch runs: curses needs a TTY). B12
 arc_image stands at R2-R4 complete plus Shawn's Agon (fifteen
 formats, twelve probe-proven); R5 (Apple II/DHGR, Next, MEGA65, C128
