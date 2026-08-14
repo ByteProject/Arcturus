@@ -628,7 +628,11 @@ def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None,
             # the ENTER verb, an ordinary consumable action the catch-all
             # must answer (the field report: `on other` never saw ENTER),
             # while on a ROOM it is the arrival event and stays skipped.
-            for ev in event_names:
+            # sorted: event_names is a set, and iterating it raw made the
+            # emitted guard order (and so the story file) vary run to run
+            # with Python's hash seed. Reproducible builds are part of the
+            # size charter: same source, same bytes.
+            for ev in sorted(event_names):
                 if ev in actions:
                     rt.op("je", Variable(1), Const(actions[ev]), branch=(nxt, True))
             if afloor is not None:

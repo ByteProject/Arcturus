@@ -9882,6 +9882,21 @@ three split on flags 8/136/64/32), so the same seam exists wherever a
 name contains a boundary word. Whether the retry generalizes beyond
 German is Stefan's call, priced per pack.
 
+## 2026-08-14: reproducible builds, a latent defect caught in passing (arcc 1.5.2)
+
+Preparing a byte-identity proof for the next feature exposed a compiler
+defect nobody had seen: compiling the same source twice could produce two
+different story files. The react dispatcher's catch-all section iterated
+the life-cycle event set raw, and a Python set has no fixed order across
+runs, so the three event-skip tests emitted in whichever order the
+interpreter's hash seed dealt that day. Any object with an `on other`
+handler was affected; the files were equally correct and equally sized,
+but not identical, and a project that pins story-file sizes and ships
+support against exact binaries wants the stronger property: same source,
+same bytes. One word fixes it (the iteration is sorted now), and all
+three shipped examples now hash identically across runs, verified under
+three different hash seeds.
+
 ## CHECKPOINT: the German forum round (updated per item; compaction-proof)
 
 THE PICKUP. This checkpoint is the single source for resuming the
