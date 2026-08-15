@@ -1358,6 +1358,19 @@ class Analyzer:
                         line=m.line,
                     )
                     w.uses_triggers = True
+                # The adjective marker (`words #chest, box, >wooden`): the
+                # >-marked words become the object's `adjective` property, a
+                # vocab array beside `words`, feeding the ZIL match classes.
+                # Registered only on first use, like `trigger`.
+                if m.name == "words" and m.adjectives:
+                    self._unify_property("adjective", prelude.T_LIST, m.line)
+                    props_out["adjective"] = ast.PropertyDecl(
+                        "adjective",
+                        ast.PROP_VALUE,
+                        values=[ast.Name(t, m.line) for t in m.adjectives],
+                        line=m.line,
+                    )
+                    w.uses_adjectives = True
                 ty = self._declared_type(m)
                 self._unify_property(m.name, ty, m.line)
                 props_out[m.name] = m
@@ -1999,7 +2012,7 @@ class Analyzer:
         # tag rides props but is not one; trigger is synthesized from the #
         # marker and read through its intrinsic (trigger_addr), never as a
         # property, so the unread-lint has no business with either.
-        skip = {"tag", "trigger"}
+        skip = {"tag", "trigger", "adjective"}
         noted = 0
         pools = [(o.name, o.props) for o in self.world.objects.values()]
         pools += [(k.name, k.props) for k in self.world.kinds.values()

@@ -1,0 +1,75 @@
+// adjectives.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the word-class markers (docs/01 chapter 14): a `words`
+// entry with a leading > is an ADJECTIVE, the qualifier class (the sigil
+// points forward, because a word comes after an adjective), and one with a
+// leading # is the object's TRIGGER, the word that settles a matching tie
+// in its favor. Matching scores in Infocom's ZIL classes: adjective plus
+// noun beats noun alone beats adjective alone, and only the highest class
+// present survives. So one noun match silently outranks every adjective-only
+// match in scope, a UNIQUE adjective still finds its object (Infocom's
+// sausage rule), and a shared adjective asks the honest question. Compile
+// and run:
+//
+//   arcc examples/features/adjectives.storyarc -o adjectives.z5
+//   frotz adjectives.z5
+//
+// Try, in order:
+//   examine red          two red things share the adjective: the parser asks
+//   couch                and the answer narrows it, as always
+//   examine red guitar   a noun match: no question, class outranks count
+//   examine green        only one green thing: the lone adjective binds it
+//   examine wooden box   adjectives and a trigger share one declaration
+//   take chest           "chest" is the trigger: the crate answers to box
+//                        too, and the trigger settles that tie silently
+//   examine blue         an unmarked, undeclared word stays honestly unknown
+
+game
+    title  "The Parlor"
+    headline "An adjectives showcase"
+    author "Stefan Vogt"
+    start  parlor
+
+room parlor
+    name "Parlor"
+    desc "A velvet parlor: a red couch against the wall, a red guitar on its
+          stand, a green sausage nobody will explain, a wooden chest, and a
+          packing crate."
+
+thing couch in parlor
+    name "red couch"
+    words couch, sofa, >red
+    fixed
+    desc "Deep red velvet, worn to shine at the armrests."
+
+thing guitar in parlor
+    name "red guitar"
+    words guitar, >red
+    desc "Lacquered the red of a sunset; someone loved it once."
+
+// Only one thing in the parlor is green, so EXAMINE GREEN binds it without
+// a question: the lone adjective suffices where nothing competes.
+thing sausage in parlor
+    name "green sausage"
+    words sausage, >green
+    desc "Distinctly green. Best not to ask."
+
+// The chest and the crate both answer to "box": the # trigger says which
+// one the word MEANS, and the > adjectives qualify without ever standing
+// in for the chest against a real noun elsewhere.
+thing chest in parlor
+    name "wooden chest"
+    words #chest, box, trunk, >wooden, >heavy
+    container
+    openable
+    desc "Wooden, heavy, and older than the room around it."
+
+thing crate in parlor
+    name "packing crate"
+    words #crate, box
+    container
+    openable
+    desc "Pine slats and stencilled letters."

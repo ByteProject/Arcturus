@@ -242,6 +242,10 @@ block match_noun()
 // Resolve the command's objects into the noun (and, for a two-noun verb, the
 // second). The verb's dictionary entry carries its noun arity in data byte 2.
 block resolve_objects()
+    // The adjective ending strip first, so a declined form ("roten") is a
+    // known word before anything matches. Folds away without > markers.
+    if any_adjectives is 1
+        strip_endings
     change noun to nothing
     change second to nothing
     change grain to 0
@@ -869,6 +873,73 @@ pronoun them "ihnen"
 // and drunter stay particles (they pick look_under) and bind the same
 // referent when the noun slot comes up empty.
 pronoun da "damit", "darauf", "drauf", "darin", "drin", "daran", "dran"
+
+// The German ending strip (docs/01 chapter 21): a typed word the dictionary
+// does not know sheds an adjective ending, en/er/es/em first, then a bare
+// e, and is accepted ONLY when the stem is some object's >-marked adjective
+// (dictionary flat, one stem declared, every case form types: rot carries
+// roten, rotem, rote). Nouns never strip, so declaration work stays
+// declaration work, and a stripped word that still resolves nothing keeps
+// the honest unknown-word report under its typed spelling. The candidate
+// stem is looked up through the interpreter's own tokenizer over a scratch
+// corner of the ask buffer, which is idle whenever parsing runs.
+block strip_endings()
+    let n = word_count
+    let i = 1
+    while i < n
+        if word_dict(i) is nothing
+            try_strip(i)
+        change i to i + 1
+    return 0
+
+block try_strip(i)
+    let len = word_len(i)
+    if len < 4
+        return 0
+    let p = word_pos(i) - 2
+    let cut = 0
+    // ZSCII: e 101, n 110, r 114, s 115, m 109
+    if text_char(p + len - 1) is 101
+        change cut to len - 1
+    if text_char(p + len - 2) is 101
+        let last = text_char(p + len - 1)
+        if last is 110
+            change cut to len - 2
+        if last is 114
+            change cut to len - 2
+        if last is 115
+            change cut to len - 2
+        if last is 109
+            change cut to len - 2
+
+    if cut < 3
+        return 0
+    // The scratch: a one-word text buffer at ask_addr, a one-entry parse
+    // buffer at ask_addr + 20; both dead outside this lookup.
+    let j = 0
+    while j < cut
+        poke_byte(ask_addr + 2 + j, text_char(p + j))
+        change j to j + 1
+    poke_byte(ask_addr, 15)
+    poke_byte(ask_addr + 1, cut)
+    poke_byte(ask_addr + 20, 1)
+    poke_byte(ask_addr + 21, 0)
+    tokenise_at(ask_addr, ask_addr + 20)
+    let d2 = peek_word(ask_addr + 22, 0)
+    if d2 is nothing
+        return 0
+    // The stem must be somebody's marked adjective: the scope guarantee.
+    let obj = 1
+    let hit = 0
+    while obj <= object_count
+        if has_adjective(obj, d2) is 1
+            change hit to 1
+            change obj to object_count
+        change obj to obj + 1
+    if hit is 0
+        return 0
+    poke_word(parse_addr, 1 + 2 * i, d2)
+    return 1
 
 // The freshest remembered THING, for a da-word: the most recently mentioned
 // referent across all four slots, skipping the animate (German "damit"

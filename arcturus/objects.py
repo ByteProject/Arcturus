@@ -824,8 +824,8 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     # five bits hold the property number (section 12.4.2.1).
     items = []
     for pname, decl in eff.items():
-        if pname in ("words", "plural", "trigger"):
-            continue  # all three emitted as word arrays below
+        if pname in ("words", "plural", "trigger", "adjective"):
+            continue  # all four emitted as word arrays below
         pnum = layout.prop_number.get(pname)
         if pnum is not None:
             items.append((pnum, pname, decl))
@@ -861,6 +861,16 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
             world.folds)
         if tvocab:
             items.append((trigger_prop, "trigger", tvocab))
+    # The adjective property (the >-marked words, docs/01 chapter 14): a vocab
+    # array exactly like trigger, feeding the ZIL match classes; folded
+    # siblings ride along so a crossword spelling keeps its class.
+    adjective_prop = layout.prop_number.get("adjective")
+    if adjective_prop is not None and "adjective" in eff:
+        avocab = fold_words(
+            [v.ident.lower() for v in eff["adjective"].values if isinstance(v, ast.Name)],
+            world.folds)
+        if avocab:
+            items.append((adjective_prop, "adjective", avocab))
     # A person with `topic` declarations gets a `topics` property holding a
     # pointer to its topic table; the table itself is appended after all property
     # tables (the pointer is patched there, so only its site is reserved here).
@@ -878,7 +888,7 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     if spans_prop is not None and obj_spans and nonmovable:
         items.append((spans_prop, "spans", obj_spans))
     for pnum, pname, decl in sorted(items, reverse=True, key=lambda it: it[0]):
-        if pname in ("words", "plural", "trigger"):
+        if pname in ("words", "plural", "trigger", "adjective"):
             _emit_words(layout, pnum, decl)
             continue
         if pname == "spans":

@@ -49,6 +49,9 @@ build/*
 # NOT released; this repository is public. Never commit this directory.
 hibernated2/
 
+# The Craverly Heights port to Arcturus, Ryan Veeder's Inform 7 classic that has been ported to Puny, Dialog, Inform 6 and ZIL since then.
+/examples/craverly/
+
 # Proteus (the web interpreter fork living in proteus/): npm packages and
 # generated build output stay out; the sources and PROVENANCE are tracked.
 # proteus/dist is already covered by the dist/ rule above.

@@ -10060,6 +10060,49 @@ the German example pays 604 bytes for the referent walk and the two
 scans, repriced dated. Nine new tests (tests/test_dawords.py), verified
 on fizmo-console, full battery 1296 green.
 
+## 2026-08-15: the adjective marker, the parser learns parts of speech (arcc 1.10.0, Cosmos 1.13.0)
+
+The last depth item of the round, and the one that outgrew it. The forum
+asked for German adjective declension; the design talk found the bigger
+thing behind it: the parser KNOWING what an adjective is, the concept
+Inform 6 and Dialog never had and Infocom's ZIL always did. STEFAN'S
+DESIGN, assembled across the discussion: his marker gives the strip its
+scope, the strip keeps the dictionary flat, and the class knowledge
+serves every language.
+
+The declaration is one sigil: `words #chest, box, trunk, >wooden,
+>heavy`. The > points forward, because a word comes after an adjective
+(Stefan's sigil, Stefan's reasoning). Matching then scores in ZIL match
+classes, RULED 100% Infocom: adjective plus noun above noun alone above
+adjective alone, only the highest class survives. EXAMINE RED GUITAR
+never asks about the red couch; a UNIQUE adjective still finds its
+object (the sausage rule); and two red things in scope produce the
+sentence the design started from: "Which do you mean, the red couch or
+the red guitar?", asked by the existing machinery the moment the class
+model fed it a clean candidate list.
+
+German declension rides the marker: an unknown typed word sheds an
+adjective ending (en/er/es/em, then a bare e) and is accepted ONLY when
+the stem is a marked adjective, looked up through the interpreter's own
+tokenizer. Declare `words truhe, >rot` once and rote, roten, roter,
+rotes, rotem all type; the fold table composes, so gruenen reaches
+>grün. Nouns never strip: the D ruling stands untouched, and unknown
+words keep their honest report. A measurement en route killed a false
+positive: an early probe "passed" only because the name-derived word
+matched, and the debug print showed the strip had never fired; the real
+defect was the tokenise intrinsic's stack operands pushed in the wrong
+order.
+
+Priced with the strictest proof of the round: all four shipped examples
+BYTE-IDENTICAL with no marker anywhere (three encoding lessons paid on
+the way: a let in a statically dead branch still allocates a local, and
+hoisting one shifts the whole file). The showcase example
+(examples/features/adjectives.storyarc, pinned 17528) carries Stefan's
+exact declaration; eleven new tests; handbook chapters 3, 14, and 21;
+full battery 1308 green, fizmo-console verified. One open decision
+flagged, not built: probe_noun (the reversed-dative probe) still ranks
+classlessly; extending the classes there is Stefan's call.
+
 ## CHECKPOINT: the German forum round (updated per item; compaction-proof)
 
 THE PICKUP. This checkpoint is the single source for resuming the
@@ -10085,6 +10128,34 @@ knowledge (file anchors, designs, measured facts) that the narrative
 entries deliberately leave out.
 
 DONE:
+- DEPTH H: THE ADJECTIVE MARKER + ZIL CLASSES (arcc 1.10.0, Cosmos
+  1.13.0). `>word` in words lists (parser words branch beside #;
+  PropertyDecl.adjectives; sema synthesizes `adjective` vocab prop,
+  registered on use, uses_adjectives; objects.py emits with
+  fold_words; lower: adjective_addr/count + any_adjectives + the
+  tokenise_at intrinsic, STACK OPERANDS PUSHED REVERSED, args[1]
+  first, the house pattern). Skeleton: phrase_class/has_adjective
+  before phrase_score; match_phrase folds the class INTO the score
+  (class * 64 + count, commands never reach 64 words) so ask_score
+  carries the composite and NO new locals or globals exist; the
+  full-match checks and the three ask re-scans (list_which x2,
+  which_tiebreak, trigger_break) are DUAL-BRANCHED on any_adjectives
+  is 0 / is 1 with identical bodies, byte-identity proven for all
+  four examples. LESSONS BANKED: a `let` in a statically dead branch
+  still allocates a local slot (use the same name in both branches);
+  hoisting a let shifts every downstream address; an or-chain of four
+  comparisons is fine (was not the bug). German strip: strip_endings/
+  try_strip in german.granule behind any_adjectives (suffix chars
+  checked via text_char ZSCII, e=101 n=110 r=114 s=115 m=109; scratch
+  text at ask_addr + one-entry parse at ask_addr+20, idle during
+  parsing; per-object has_adjective walk gates acceptance; parse
+  entry patched via poke_word(parse_addr, 1+2*i, stem)). RULED: 100%
+  ZIL (unique adjective binds, shared asks, noun outranks); sigil >
+  (points forward); the ask sentence verified verbatim. Example
+  features/adjectives.storyarc (pinned 17528; Stefan's declaration
+  verbatim); tests/test_adjectives.py (11). OPEN, flagged not built:
+  probe_noun stays classless (reversed-dative probe); name-derived
+  words are noun-class (documented ch 14).
 - DEPTH G: THE DA-WORDS (arcc 1.9.0, Cosmos 1.12.0). `pronoun da
   "damit", "darauf", "drauf", "darin", "drin", "daran", "dran"` (role
   7, prelude._PRONOUN_ROLES; no new syntax, no skeleton change).
@@ -10219,9 +10290,6 @@ DONE:
   in the handbook's attribute table and both lamp examples.
 
 NEXT (in order, with the agreed resolutions and pickup data):
-- DEPTH H: ADJECTIVE DECLENSION. Declare the stem once ("rot"),
-  matching folds the endings (roten/rote/roter/rotes/rotem).
-  Touches words storage and the dictionary; design with Stefan.
 - I: THE GERMAN EXAMPLE. Enhance or replace the Gasthaus (never
   meant as a showcase); shape decided after the depth round.
 - LATER: HIBERNATED 1 AUF DEUTSCH. Port first (days-scale, the H2
@@ -10244,9 +10312,9 @@ dictionary flag per word (noise would clobber particle - the reason
 German "aus" could never be noise and takeall's German group needs no
 filler).
 
-SESSION STATE BEYOND THE ROUND: versions arcc 1.9.0 / Cosmos 1.12.0 /
+SESSION STATE BEYOND THE ROUND: versions arcc 1.10.0 / Cosmos 1.13.0 /
 arcimg 1.35.0 / Actaea 1.3.9 / proteus 1.0.0, all standalones
-committed and README current; suite 1296 green
+committed and README current; suite 1308 green
 (tests/actaea excluded from batch runs: curses needs a TTY). B12
 arc_image stands at R2-R4 complete plus Shawn's Agon (fifteen
 formats, twelve probe-proven); R5 (Apple II/DHGR, Next, MEGA65, C128

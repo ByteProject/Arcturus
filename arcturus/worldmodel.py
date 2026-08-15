@@ -511,6 +511,9 @@ class World:
     # not the property name, is the truth: a game may own an unrelated
     # property that happens to be called trigger.
     uses_triggers: bool = False
+    # Any words list carries the > adjective marker (docs/01 chapter 14):
+    # the matcher's ZIL match classes fold away when this stays False.
+    uses_adjectives: bool = False
     # True when darkness is reachable: a room resolving `lit` false at compile
     # time, or a `now ... is not lit` anywhere. Feeds the any_dark fold, and
     # with uses_images the rule that an images game declares arc_image_dark.

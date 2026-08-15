@@ -122,12 +122,13 @@ CEILINGS = {
     "features/matrix.storyarc": 18244,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "features/direction-grammar.storyarc": 17364,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "features/scenery-contents.storyarc": 17832,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
-    "features/trigger.storyarc": 16948,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
+    "features/trigger.storyarc": 16948,
+    "features/adjectives.storyarc": 17528,  # 2026-08-15 first pin: the adjective marker showcase (>red, the ZIL match classes; games without the marker stay byte-identical)  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
     "granules/nautical.storyarc": 17852,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
     "beispiel-deutsch.storyarc": 24532,  # 2026-08-15 repriced: the da-words (damit/darauf/darin bind the freshest thing; German-only, other languages byte-identical)
     "brass-lantern.storyarc": 18740,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
     "cloak-of-darkness.storyarc": 19360,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
-    "ejemplo-espanol.storyarc": 21996,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "ejemplo-espanol.storyarc": 22000,  # 2026-08-15 repriced: the version banner grew a character (Arcturus 1.10), alignment landed here
     "features/computed-properties.storyarc": 17092,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
     "features/containers.storyarc": 17412,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
     "features/daemons-and-timers.storyarc": 18644,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)

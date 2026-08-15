@@ -432,6 +432,11 @@ class PropertyDecl:
     # chapter 14): the words are ordinary vocabulary in `values` too; this
     # records which of them the author marked as the object's triggers.
     triggers: list[str] = field(default_factory=list)
+    # The >-marked entries (the adjective marker, docs/01 chapter 14): the
+    # word points forward, a word comes after it, which is what an adjective
+    # is about (Stefan's sigil). Ordinary vocabulary in `values` too; this
+    # records the object's adjective-class words for the ZIL match classes.
+    adjectives: list[str] = field(default_factory=list)
 
 
 @dataclass

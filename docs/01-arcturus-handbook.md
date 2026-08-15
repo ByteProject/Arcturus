@@ -560,7 +560,11 @@ hyphenated compound the player may type, since a hyphen does not split words
 at the prompt. A quoted entry is one word; spaces are not allowed in it.
 An entry with a leading `#` (`words #lantern, brass, lamp`) is that AND the
 object's trigger, the word that settles a matching tie in this object's
-favor when the player typed it (chapter 14).
+favor when the player typed it (chapter 14). An entry with a leading `>`
+(`words #chest, box, trunk, >wooden, >heavy`) is an ADJECTIVE, the
+qualifier class: the sigil points forward, because a word comes after an
+adjective. Both marked words stay ordinary vocabulary; the classes change
+how matching ranks them (chapter 14).
 
 ### Standard kinds
 
@@ -2658,6 +2662,33 @@ identical behavior. A game with no marker anywhere carries none of this
 machinery, and its story file is byte-identical. Worked example:
 [examples/features/trigger.storyarc](../examples/features/trigger.storyarc).
 
+The adjective marker, and the match classes. A `words` entry with a leading
+`>` is the object's ADJECTIVE:
+
+    thing chest in parlor
+        name "wooden chest"
+        words #chest, box, trunk, >wooden, >heavy
+
+With any adjective marked anywhere, matching scores in Infocom's ZIL match
+classes: a candidate whose adjective AND noun both matched ranks above one
+matching a noun alone, which ranks above one matching only an adjective,
+and only the highest class present survives. The count, the full-match
+tiebreak, the trigger, and the held tiebreak all still apply, but within a
+class. What this buys, precisely:
+
+- One noun match silently outranks every adjective-only match in scope:
+  EXAMINE RED GUITAR never asks about the red couch.
+- A UNIQUE adjective still finds its object (Infocom's sausage rule):
+  EXAMINE GREEN binds the only green thing present.
+- A shared adjective asks the honest question, and the class filter keeps
+  the candidate list clean: "Which do you mean, the red couch or the red
+  guitar?", answerable with a noun as always.
+
+An unmarked word is a noun, the words an object's `name` contributes
+included, so a game without a single `>` computes the same classes
+everywhere and is byte-identical to the classless build. Worked example:
+[examples/features/adjectives.storyarc](../examples/features/adjectives.storyarc).
+
 Multi and all. Deliberately NOT core: both ship as granules, so a game that
 wants them summons them and one that does not pays nothing. `summon.takeall`
 gives TAKE ALL, DROP ALL, and TAKE ALL FROM (chapter 22).
@@ -4022,6 +4053,18 @@ convention stays declaration-based, the verbs listing both forms
 display, and make sure every typeable word has a plain-ASCII spelling, by
 fold table where the language has the convention, by declaration where it
 does not.
+
+Adjective declension, by ending strip. German adjectives decline (rote,
+roten, roter, rotes, rotem), and the German pack folds the endings at
+match time instead of the dictionary: a typed word the dictionary does not
+know sheds a recognized adjective ending, en/er/es/em first, then a bare
+e, and is accepted ONLY when the stem is some object's `>`-marked
+adjective (chapter 14). Declare `words truhe, >rot` once and every case
+form types; the fold table composes, so a crossword spelling declines too
+("gruenen" reaches `>grün`). Nouns never strip: noun forms are new words
+and stay declaration work (Tuere beside Tür), and a stripped word that
+still resolves nothing keeps the honest unknown-word report under its
+typed spelling.
 
 Gender and articles, automatically. In a gendered language the article (un/una,
 el/la) and adjective agreement are automatic, with no per-object work. The

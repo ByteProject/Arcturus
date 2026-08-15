@@ -60,6 +60,11 @@ INTRINSICS = frozenset({
     # any_triggers is the compile-time flag the matcher's tiebreak guards
     # on, so a game without the marker folds it away entirely.
     "trigger_addr", "trigger_count", "any_triggers",
+    # adjective_addr / adjective_count expose the >-marked words the same
+    # way; any_adjectives folds the ZIL match classes away without them.
+    # tokenise_at runs the interpreter's tokenizer over EXPLICIT buffers
+    # (the German ending-strip's single-word lookup).
+    "adjective_addr", "adjective_count", "any_adjectives", "tokenise_at",
     # spans_addr / spans_count expose an object's spans array (the extra rooms it
     # is in scope in), the same shape as words, so scope can walk it. any_spans is
     # a compile-time flag (1 if any object spans, else 0) the scope code guards on,
@@ -1282,12 +1287,14 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
             raise LowerError(f"{name} needs a {prop} property")
         rt.op("get_prop_addr", op, Const(pnum), store=dest)
         _free(ctx, t)
-    elif name in ("plural_addr", "plural_count", "trigger_addr", "trigger_count"):
-        # The plurals granule's group-vocabulary array and the trigger array
-        # (the #-marked words), both shaped like words. A game with none of
-        # the declarations has no property to read, so these lower to a
-        # plain 0 and the callers answer no.
-        prop = "plural" if name.startswith("plural") else "trigger"
+    elif name in ("plural_addr", "plural_count", "trigger_addr",
+                  "trigger_count", "adjective_addr", "adjective_count"):
+        # The plurals granule's group-vocabulary array, the trigger array
+        # (the #-marked words), and the adjective array (the >-marked
+        # words), all shaped like words. A game with none of the
+        # declarations has no property to read, so these lower to a plain 0
+        # and the callers answer no.
+        prop = name.rsplit("_", 1)[0]
         pnum = ctx.prop_number(prop) if ctx.layout is not None else None
         if pnum is None:
             op, t = _operand(rt, ctx, args[0])
@@ -1529,6 +1536,20 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # word (German "ihm", "sie"), so the recency walk folds away in every
         # other language.
         _place(rt, Const(1 if ctx.world.uses_pronoun_sets else 0), dest)
+    elif name == "any_adjectives":
+        # any_adjectives(): 1 when any words list carries the > adjective
+        # marker, so the ZIL match classes fold away without one.
+        _place(rt, Const(1 if ctx.world.uses_adjectives else 0), dest)
+    elif name == "tokenise_at":
+        # tokenise_at(text, parse): the interpreter's tokenizer over explicit
+        # buffers (S 15, tokenise). The German ending-strip encodes a
+        # candidate stem into a scratch corner and looks it up here.
+        # Stack operands pop in reverse: push the parse buffer first, the
+        # text buffer second, so tokenise reads (text, parse).
+        eval_expr(rt, ctx, args[1], Variable(STACK))
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("tokenise", Variable(STACK), Variable(STACK))
+        _place(rt, Const(0), dest)
     elif name == "any_triggers":
         # any_triggers(): 1 when any words list carries the # trigger marker
         # (docs/01 chapter 14), so the matcher's trigger tiebreak folds away
@@ -3625,6 +3646,8 @@ def _static_value(ctx, expr):
         return 1 if wm.has_summon(ctx.world, "plurals") else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_pronoun_sets":
         return 1 if ctx.world.uses_pronoun_sets else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_adjectives":
+        return 1 if ctx.world.uses_adjectives else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_triggers":
         return 1 if ctx.world.uses_triggers else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tagged":

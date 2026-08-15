@@ -560,21 +560,28 @@ class Parser:
             # the language's reserved ones (words self, you), since the player
             # types them without knowing our keywords. `plural` is the group
             # vocabulary the plurals granule matches (docs/01 chapter 22).
-            # A `words` entry may carry the trigger marker (`words #truhe,
-            # eiche`): the word is ordinary vocabulary AND the object's
-            # trigger, the tie-breaking claim of docs/01 chapter 14.
+            # A `words` entry may carry a class marker: `#` makes the word
+            # the object's trigger (the tie-breaking claim), `>` makes it an
+            # adjective (the ZIL match classes; the sigil points forward,
+            # because a word comes after an adjective). Both words stay
+            # ordinary vocabulary too (docs/01 chapter 14).
             values: list[ast.Name] = []
             triggers: list[str] = []
+            adjectives: list[str] = []
             while True:
-                if self.check_op("#"):
+                if self.check_op("#") or self.check_op(">"):
+                    sigil = self.cur.value
                     if name != "words":
                         raise self._error(
-                            "the # trigger marker belongs in a `words` "
-                            "list, not in `plural`"
+                            f"the {sigil} marker belongs in a `words` "
+                            f"list, not in `plural`"
                         )
                     self.advance()
                     v = self._vocab_word()
-                    triggers.append(v.ident.lower())
+                    if sigil == "#":
+                        triggers.append(v.ident.lower())
+                    else:
+                        adjectives.append(v.ident.lower())
                 else:
                     v = self._vocab_word()
                 values.append(v)
@@ -584,7 +591,7 @@ class Parser:
             self.expect_newline()
             return ast.PropertyDecl(
                 name, ast.PROP_VALUE, values=values, line=tok.line,
-                triggers=triggers,
+                triggers=triggers, adjectives=adjectives,
             )
         if self.check(T.NEWLINE):
             self.advance()
