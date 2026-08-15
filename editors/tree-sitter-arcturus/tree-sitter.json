@@ -1,0 +1,18 @@
+{
+  "grammars": [
+    {
+      "name": "arcturus",
+      "camelcase": "Arcturus",
+      "scope": "source.storyarc",
+      "path": ".",
+      "file-types": ["storyarc", "granule", "prelude"]
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "license": "BSD-2-Clause",
+    "description": "Tree-sitter grammar for Arcturus, the interactive-fiction language for the Infocom Z-machine",
+    "authors": [{ "name": "Stefan Vogt" }],
+    "links": { "repository": "https://github.com/ByteProject/Arcturus" }
+  }
+}

@@ -1,0 +1,22 @@
+# extension.toml
+# part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+# Copyright (c) 2026, Stefan Vogt.
+# https://github.com/ByteProject/Arcturus
+#
+# The official Arcturus extension for the Zed editor. For local testing,
+# tools/zed_dev.py assembles an installable dev bundle under build/zed-dev
+# (the grammar reference below needs a git repository; the tool provides
+# one). For a public release the grammar moves to its own repository,
+# ByteProject/tree-sitter-arcturus, and the rev below pins a real commit.
+
+id = "arcturus"
+name = "Arcturus"
+version = "1.0.0"
+schema_version = 1
+authors = ["Stefan Vogt <stefan@8-bit.info>"]
+description = "Syntax highlighting for the Arcturus programming language (Infocom Z-machine)"
+repository = "https://github.com/ByteProject/Arcturus"
+
+[grammars.arcturus]
+repository = "https://github.com/ByteProject/tree-sitter-arcturus"
+rev = "0000000000000000000000000000000000000000"

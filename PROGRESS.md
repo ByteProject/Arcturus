@@ -10141,6 +10141,33 @@ versions, two example-roster rulings, and a parser that knows parts of
 speech. The reports were right, and answering them properly made the
 language better for every author, in every language it speaks.
 
+## 2026-08-15: Arcturus comes to Zed
+
+Stefan moved his daily editing to the Zed editor, and Zed speaks only
+Tree-sitter, so the official Arcturus highlighter for it starts a level
+deeper than a grammar file: editors/tree-sitter-arcturus/ is a real
+Tree-sitter grammar for the language, and editors/zed/ the extension
+that wears it (display name Arcturus, Stefan's description line, the
+zed-arcturus / tree-sitter-arcturus naming split ruled for the eventual
+public repositories, the grammar keeping the ecosystem convention so
+other editors can adopt it later).
+
+The grammar is deliberately loose, built for highlighting rather than
+parsing: declaration heads are structural so names colour and OUTLINE
+(rooms, things, kinds, blocks, and topics appear in Zed's breadcrumbs
+and symbol search, a step past what VS Code offers), everything else is
+an identifier, and the keyword, attribute, property, and builtin sets
+live in highlights.scm queries, one line per future word. The proof of
+the shape: ZERO parse errors across the entire corpus, every example,
+every granule, every prelude, and the queries validated against the
+grammar with real captures. All three file types are covered
+(.storyarc, .granule, .prelude), and the word-class markers highlight
+distinctly. Zed wants its grammar as a git repository even locally, so
+tools/zed_dev.py assembles an untracked installable bundle under
+build/zed-dev; Stefan's eye gates the install. Next in this lane, on
+his word: an Inform 6 extension for Zed, since the porting work reads
+Inform sources daily.
+
 ## CHECKPOINT: the German forum round (updated per item; compaction-proof)
 
 THE PICKUP. This checkpoint is the single source for resuming the

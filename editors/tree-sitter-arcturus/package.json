@@ -1,0 +1,13 @@
+{
+  "name": "tree-sitter-arcturus",
+  "version": "1.0.0",
+  "description": "Tree-sitter grammar for Arcturus, the interactive-fiction language for the Infocom Z-machine",
+  "main": "bindings/node",
+  "keywords": ["parser", "tree-sitter", "arcturus", "interactive-fiction", "z-machine"],
+  "author": "Stefan Vogt",
+  "license": "BSD-2-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ByteProject/Arcturus"
+  }
+}

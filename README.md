@@ -325,6 +325,14 @@ This works on macOS, Windows, and Linux. The extension source is under
 [editors/vscode/](editors/vscode/); rebuild the `.vsix` with
 `python3 tools/build_vsix.py`.
 
+A [Zed](https://zed.dev) extension provides the same highlighting for all
+three file types, built on a Tree-sitter grammar
+([editors/tree-sitter-arcturus/](editors/tree-sitter-arcturus/)), with an
+outline (rooms, things, and blocks as symbols) on top. To install it as a
+dev extension today: run `python3 tools/zed_dev.py`, then in Zed run
+"zed: install dev extension" and select `build/zed-dev`. The extension
+source is under [editors/zed/](editors/zed/).
+
 ## How Arcturus is built
 
 I want to be very open about how this project. Many of you know me: you played my games, like the *Hibernated* series, *Ghosts of Blackwood Manor*, or *The Curse of Rabenstein*, or maybe used one of my tools for your own interactive fiction games. The language design, the syntax, Cosmos, and the compiler are my work, and Arcturus is a human-driven project. I use Anthropic's Claude Code as a coding assistant. It doesn't do anything I couldn't do myself. Python is my language of choice, and I use it daily in my role as regional head of a department at a global software company. Arcturus is a serious effort and I build it the way any engineer would build a project of this scope today. I know some of you have mixed feelings or objections about AI, and I take that seriously. For me, a coding assistant buys the time and the efficiency that make a project of this scope possible for the community, and what it enables in the end are new opportunities for interactive fiction and new, wonderful human-made stories. That is what matters most to me. The repository keeps a full log of my design decisions and the code I made along the way. This is not another Sunday-afternoon-vibe-coding-experiment but a thoughtfully crafted product with a full-featured roadmap and quality assessment through regression tests, where the human factor in the loop makes the difference.
