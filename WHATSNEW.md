@@ -75,6 +75,7 @@ lives in the commit log. The feature roadmap follows below.
   turn), the `door_bars` and `path_admits` seams for doors and rooms
   that play by their own rules, and the `no_way` constant, so 0 stays
   honest north forever. Unused, all of it folds away to the byte.
+
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus
