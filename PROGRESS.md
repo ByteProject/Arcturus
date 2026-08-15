@@ -10127,6 +10127,20 @@ passed UNTOUCHED on the first run after the sweep: one hundred and
 three marking decisions, zero behavior regressions, the ceilings
 repriced for the armed machinery in one dated stroke.
 
+## 2026-08-15: the forum reply is posted, the round is delivered
+
+The reply went to the German IF forum today, in Stefan's voice after
+his native pass: every finding answered in the thread's order, the five
+features the discussion produced, one `arcc --update` to get it all,
+and an open invitation to report more. Drafting had its own lesson,
+now on record: composing English first and translating produces exactly
+the calqued German the round existed to keep out of the language;
+the good draft was written in German from the facts. With the post,
+the German forum round closes: eight landed items, five compiler
+versions, two example-roster rulings, and a parser that knows parts of
+speech. The reports were right, and answering them properly made the
+language better for every author, in every language it speaks.
+
 ## CHECKPOINT: the German forum round (updated per item; compaction-proof)
 
 THE PICKUP. This checkpoint is the single source for resuming the
@@ -10330,10 +10344,11 @@ NEXT (in order, with the agreed resolutions and pickup data):
   CRAVERLY HEIGHTS PORT (the English example game; workspace ready;
   read the Puny port for I7-behavior backports as Cosmos candidates).
   Both parked on Stefan's word; the forum reply comes first.
-- FINAL: THE FORUM REPLY. Professional substance only, drafted
-  together; structure: what was found -> what shipped (with arcc
-  --update), no tone-answering. Stefan appends his own personal
-  words and the contribute-or-hunt challenge himself.
+- FINAL (DONE 2026-08-15): the reply is POSTED. The round is closed;
+  WHATSNEW carries the collected entry. What remains beyond the round:
+  the Craverly Heights port (English example game) and Hibernated 1
+  auf Deutsch (both workspaces ready, parked on Stefan's word), then
+  B12 R5 (Apple II/DHGR, Next, MEGA65, C128).
 
 MEASURED FACTS the round rests on (do not re-derive): "untersuche
 tuer aus eiche" resolves 2:1 today (one-noun path healthy); the ask

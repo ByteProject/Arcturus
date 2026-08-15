@@ -6,6 +6,24 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **The parser learns parts of speech, and German gets its depth round.**
+  A field-report round on the German IF forum ended as the biggest parser
+  upgrade since the verbs overhaul, and the fundamentals serve every
+  language: a `words` entry marked `>red` is an ADJECTIVE, and matching
+  ranks in Infocom's ZIL classes (adjective plus noun over noun over
+  adjective alone), so EXAMINE RED with two red things asks the honest
+  "Which do you mean, the red couch or the red guitar?" while a lone
+  adjective still finds its object; a `#trigger` word settles
+  synonym-overlap ties silently; switch state is library-owned now
+  (`binary`, with honest already-on/off refusals and light coupling);
+  and language packs declare their own orthography folds and multi-role
+  pronouns. German cashes all of it in: declare `words tür` once and
+  "tuer" types (the fold table), one adjective stem carries every
+  declension (`>rot` matches rote, roten, roter, rotes, rotem), "ihm"
+  reaches masculine and neuter, "sie" feminine and plural, "ihnen"
+  exists, and the pronominal adverbs damit, darauf, darin, daran bind
+  the last thing mentioned. Games using none of it compile
+  byte-identical (arcc 1.5.0 to 1.10.0, Cosmos 1.8.0 to 1.13.0).
 - **Actions without verbs, and a sweep you can hook.** A bare
   declaration, `action take_all, drop_all`, names an action with no
   verb attached: it joins the ordinary action numbering, so handlers
@@ -57,18 +75,6 @@ lives in the commit log. The feature roadmap follows below.
   turn), the `door_bars` and `path_admits` seams for doors and rooms
   that play by their own rules, and the `no_way` constant, so 0 stays
   honest north forever. Unused, all of it folds away to the byte.
-- **Arcturus games play on the web.** Proteus, the fourth standalone:
-  one command turns a finished game into a single self-contained HTML
-  page that runs in any browser, nothing to install and nothing to
-  deploy. `proteus mygame.zblorb -o mygame.html`, or the story and its
-  pictures Blorb as a pair, or a bare `.z5` or `.z8` for a text-only game.
-  The resulting webpage carries the whole interpreter, the arc_image picture band scaled
-  crisply to the window, the game's Z-machine colours painted to the page edges,
-  and saves in the browser's local storage, typically in under a
-  megabyte. Inside it is a Z-machine-only fork of Dannii Willis'
-  Parchment, trimmed to a quarter of
-  upstream's size and taught the arc_image contract; the fork lives in
-  the repository under `proteus/`, and docs/09 is its book.
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus
