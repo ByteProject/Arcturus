@@ -27,7 +27,7 @@ room hallway
 
 thing lantern in hallway
     name  "brass lantern"
-    words brass, lantern, lamp
+    words >brass, lantern, lamp
     desc  "A battered brass lantern, and it still works."
     binary
     lit   false
@@ -100,7 +100,7 @@ thing lever in cellar
 
 thing ruby in cellar
     name  "blood ruby"
-    words red, blood, ruby, gem, jewel
+    words >red, >blood, ruby, gem, jewel
     desc  "A ruby the size of a plum, drinking the light, giving back fire."
     hidden
 

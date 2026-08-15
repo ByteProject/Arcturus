@@ -45,7 +45,7 @@ room cloakroom
 
 thing hook of supporter in cloakroom
     name  "small brass hook"
-    words small, brass, hook, peg
+    words >small, >brass, hook, peg
     scenery
 
     on examine
@@ -57,7 +57,7 @@ thing hook of supporter in cloakroom
 
 thing cloak in player
     name  "velvet cloak"
-    words handsome, dark, black, velvet, satin, cloak
+    words >handsome, >dark, >black, >velvet, >satin, cloak
     desc  "A handsome cloak, of velvet trimmed with satin, and slightly
            spattered with raindrops. Its blackness is so deep that it
            almost seems to suck light from the room."

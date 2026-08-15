@@ -68,6 +68,6 @@ thing esme of character in tent
 
 thing coin in tent
     name "silver coin"
-    words silver, coin
+    words >silver, coin
     intro "A silver coin glints at the edge of the table."
     desc "A worn silver coin, cold to the touch."

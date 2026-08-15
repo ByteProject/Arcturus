@@ -27,7 +27,7 @@ room workshop
 
 thing press in workshop
     name "printing press"
-    words press, printing
+    words press, >printing
     desc "An iron hand press. A long lever cocks the platen, and the type
         plate sits in its bed."
     fixed
@@ -37,7 +37,7 @@ thing press in workshop
 // listed as the press's contents.
 thing lever in press
     name "long lever"
-    words lever, long
+    words lever, >long
     desc "Smooth from a thousand pulls."
     component
     on pull
@@ -45,6 +45,6 @@ thing lever in press
 
 thing plate in press
     name "type plate"
-    words plate, type
+    words plate, >type
     desc "Mirror-writing, locked into its chase."
     component

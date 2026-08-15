@@ -76,7 +76,7 @@ room boathouse
 
 thing cat in jetty
     name "harbour cat"
-    words cat, harbour, tabby
+    words cat, >harbour, >tabby
     desc "A tabby of great professional idleness. She audits the jetty."
 
     // A companion block: it travels with the cat (in scope, not in a room),

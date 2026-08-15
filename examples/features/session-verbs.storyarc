@@ -45,6 +45,6 @@ room trophyroom
 
 thing medal in trophyroom
     name "tin medal"
-    words medal, tin
+    words medal, >tin
     scored
     desc "Third place, unspecified discipline, deeply loved once."

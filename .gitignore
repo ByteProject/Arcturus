@@ -40,17 +40,17 @@ build/*
 *.z8
 !tests/golden/**/*.z5
 
-# The Ghosts of Blackwood Manor port workspace: the original Inform source
-# stays here while the conversion runs; only the finished .storyarc moves up
-# into the public examples (Stefan's plan, the big source-visible example).
-/examples/ghosts/
-
 # The Hibernated 2 source and walkthrough (the B8 port's working material) are
 # NOT released; this repository is public. Never commit this directory.
 hibernated2/
 
 # The Craverly Heights port to Arcturus, Ryan Veeder's Inform 7 classic that has been ported to Puny, Dialog, Inform 6 and ZIL since then.
 /examples/craverly/
+
+# The Hibernated 1 German translation workspace (port first, translation
+# second, Stefan's native pass gates); working material stays local until
+# the finished .storyarc ships as the big German example.
+/examples/hibernated1_german/
 
 # Proteus (the web interpreter fork living in proteus/): npm packages and
 # generated build output stay out; the sources and PROVENANCE are tracked.

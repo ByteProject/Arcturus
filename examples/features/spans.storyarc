@@ -64,7 +64,7 @@ room shore of outdoor
 // room the kind expands to (the clearing) and is in scope in the others.
 thing moon
     name "silver moon"
-    words moon, silver
+    words moon, >silver
     scenery
     desc "A full silver moon, so bright it throws hard shadows from the pines."
     spans outdoor

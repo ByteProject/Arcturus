@@ -53,14 +53,14 @@ kind lantern_kind of thing
 // A pure instance: it adds nothing, so it behaves exactly as the kind dictates.
 thing brass_lantern of lantern_kind in vault
     name "brass lantern"
-    words brass, lantern, lamp
+    words >brass, lantern, lamp
 
 // An overriding instance. Its own `on switch_on` runs first, prints its flavor,
 // then `continue` defers to the kind handler, which does the actual lighting. The
 // creak is specific to this lantern; the light is inherited.
 thing iron_lantern of lantern_kind in vault
     name "iron lantern"
-    words iron, black, lantern, lamp
+    words >iron, >black, lantern, lamp
 
     on switch_on
         say "The old iron hinges creak in protest."

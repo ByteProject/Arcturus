@@ -79,14 +79,14 @@ room workshop
 
 thing candle in parlour
     name "wax candle"
-    words candle, wax, flame
+    words candle, >wax, flame
     scenery
     lit true
     desc "A stub of wax candle, its flame steady for now."
 
 thing clock in parlour
     name "tall case clock"
-    words clock, tall, pendulum
+    words clock, >tall, pendulum
     scenery
     desc "A tall case clock, its pendulum swinging with a slow, heavy tick."
 
@@ -100,14 +100,14 @@ thing clock in parlour
 
 thing fish in parlour
     name "dried fish"
-    words fish, dried
+    words fish, >dried
     desc "A stiff, salted fish. The cat has not once taken its eyes off it."
 
 // A person, so it is animate; scenery, so the room mentions it in prose rather
 // than listing it. Its each_turn is the daemon, gated by the `when`.
 thing cat of character in parlour
     name "grey cat"
-    words cat, grey, gray, kitten
+    words cat, >grey, >gray, kitten
     scenery
     desc "A lean grey cat, all patience and appetite."
 
@@ -121,7 +121,7 @@ thing cat of character in parlour
 // author can also arm one at runtime: `now apprentice is restless`.)
 thing apprentice of character in workshop
     name "clockwork apprentice"
-    words apprentice, clockwork, automaton
+    words apprentice, >clockwork, automaton
     restless
     desc "A brass automaton with a duster in each of its four hands."
 

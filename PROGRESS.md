@@ -10103,6 +10103,30 @@ full battery 1308 green, fizmo-console verified. One open decision
 flagged, not built: probe_noun (the reversed-dative probe) still ranks
 classlessly; extending the classes there is Stefan's call.
 
+## 2026-08-15: the example rulings, and the adjective sweep
+
+Three rulings closed the round's last open question and reshaped the
+example roster. THE GASTHAUS STAYS AS IT IS: a minimal German intro,
+never extended, because no extension would satisfy where a real game
+will; the big German example becomes HIBERNATED 1 AUF DEUTSCH, ported
+first and translated second, in its own gated workspace. THE GHOSTS OF
+BLACKWOOD MANOR PORT IS RETIRED: it remains a product of its time. The
+English example game becomes a port of Ryan Veeder's CRAVERLY HEIGHTS,
+the Inform 7 classic already carried to PunyInform, Dialog, Inform 6,
+and ZIL (permission at rcveeder.net/craverly/); a game every major
+system has ported is the right common yardstick, and the Puny port's
+back-ported Inform 7 behaviors are a reading list of Cosmos improvement
+candidates.
+
+And the quality sweep: with the word classes in the language, the
+shipped examples now speak them. One hundred and three words across
+thirty-nine files gained their > adjective marks, brass and oak and
+rusty and roble and eiche, so every example demonstrates the classes a
+player will feel. No content changed anywhere, and the full battery
+passed UNTOUCHED on the first run after the sweep: one hundred and
+three marking decisions, zero behavior regressions, the ceilings
+repriced for the armed machinery in one dated stroke.
+
 ## CHECKPOINT: the German forum round (updated per item; compaction-proof)
 
 THE PICKUP. This checkpoint is the single source for resuming the
@@ -10128,6 +10152,17 @@ knowledge (file anchors, designs, measured facts) that the narrative
 entries deliberately leave out.
 
 DONE:
+- I (RESOLVED BY RULING) + THE EXAMPLE ROSTER: Gasthaus stays minimal
+  (never extend); the big German example = HIBERNATED 1 AUF DEUTSCH
+  (examples/hibernated1_german/, gitignored, PORTLOG.md inside, parked
+  on Stefan's word); Ghosts port RETIRED and deleted; the English
+  example game = CRAVERLY HEIGHTS (Ryan Veeder, permission
+  rcveeder.net/craverly/; Puny source in examples/craverly/,
+  gitignored, PORTLOG.md inside; the Puny port's I7 backports are
+  Cosmos improvement candidates to read). THE ADJECTIVE SWEEP: 103
+  >marks across 39 example files (no triggers needed beyond the
+  showcase; no content changes); suite passed untouched; all ceilings
+  repriced dated (incl. CLOAK_Z8_CEILING 20224).
 - DEPTH H: THE ADJECTIVE MARKER + ZIL CLASSES (arcc 1.10.0, Cosmos
   1.13.0). `>word` in words lists (parser words branch beside #;
   PropertyDecl.adjectives; sema synthesizes `adjective` vocab prop,
@@ -10290,12 +10325,11 @@ DONE:
   in the handbook's attribute table and both lamp examples.
 
 NEXT (in order, with the agreed resolutions and pickup data):
-- I: THE GERMAN EXAMPLE. Enhance or replace the Gasthaus (never
-  meant as a showcase); shape decided after the depth round.
-- LATER: HIBERNATED 1 AUF DEUTSCH. Port first (days-scale, the H2
-  port discipline exists), translation second (drafted by the
-  assistant, gated line-by-line by Stefan's native pass). The true
-  showcase answer; parked on Stefan's word.
+- LATER: HIBERNATED 1 AUF DEUTSCH (the big German example; port then
+  translation, Stefan's native pass gates; workspace ready) and the
+  CRAVERLY HEIGHTS PORT (the English example game; workspace ready;
+  read the Puny port for I7-behavior backports as Cosmos candidates).
+  Both parked on Stefan's word; the forum reply comes first.
 - FINAL: THE FORUM REPLY. Professional substance only, drafted
   together; structure: what was found -> what shipped (with arcc
   --update), no tone-answering. Stefan appends his own personal

@@ -61,7 +61,7 @@ room chapel
 // This is the classic use: set dressing that reads as a sentence, not a list.
 thing statue in chapel
     name "marble statue"
-    words marble, statue, saint, figure
+    words >marble, statue, saint, figure
     fixed
     desc "A weathered saint, hands folded, the nose long since knocked away."
     intro "A marble statue of a nameless saint keeps watch from its niche."
@@ -71,7 +71,7 @@ thing statue in chapel
 // Drop it and look again to see the change: the prose intro does not come back.
 thing letter in chapel
     name "sealed letter"
-    words sealed, letter, note, parchment
+    words >sealed, letter, note, parchment
     desc "A single sheet folded thrice, sealed with a blob of red wax."
     intro "A sealed letter has been left on the altar rail, its wax still bright."
 
@@ -90,7 +90,7 @@ thing letter in chapel
 // letting Cosmos append a separate contents list.
 thing reliquary of container in chapel
     name "gilt reliquary"
-    words gilt, gilded, reliquary, casket, box
+    words >gilt, >gilded, reliquary, casket, box
     fixed
     open
     desc "A small gilded casket, its glass lid propped open."
@@ -99,7 +99,7 @@ thing reliquary of container in chapel
 
 thing bone in reliquary
     name "sliver of bone"
-    words sliver, bone, relic
+    words sliver, >bone, relic
     desc "A finger-bone, brown with age. Whose, the label no longer says."
 
 
@@ -112,7 +112,7 @@ room vault
 // have already watched the letter change: prose while untouched, plain once taken.
 thing key in vault
     name "tarnished key"
-    words tarnished, iron, key
+    words >tarnished, >iron, key
     desc "A heavy iron key, its ward crusted with green."
     intro "A tarnished key hangs from a nail driven into the mortar."
 

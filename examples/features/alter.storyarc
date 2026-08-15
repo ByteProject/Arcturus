@@ -50,7 +50,7 @@ room crypt
 // library's. No default take line follows; the flute is truly taken.
 thing flute in reliquary
     name "bone flute"
-    words flute, bone
+    words flute, >bone
     desc "Someone's tibia, once. Six holes, patient workmanship."
     on take
         alter "The flute comes to your hand as if it had been waiting."
@@ -72,7 +72,7 @@ thing flute in reliquary
 // shoulder-heave to print on the failed attempt too, that is say's job.
 thing slab of supporter in reliquary
     name "stone slab"
-    words slab, stone
+    words slab, >stone
     desc "A single piece, older than the room around it."
     fixed
     on take

@@ -33,7 +33,7 @@ room garden
 
 thing coin in garden
     name "gold coin"
-    words gold, coin
+    words >gold, coin
 
     // Award the point only the first time the coin is picked up. Cosmos sets
     // `moved` the first time an object is taken, so guarding on `not moved` means

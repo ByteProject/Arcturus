@@ -59,7 +59,7 @@ room library
 
 thing oak_door of door in hall
     name "oak door"
-    words oak, door
+    words >oak, door
     desc "Heavy oak, iron-banded."
     openable
 
@@ -67,7 +67,7 @@ thing oak_door of door in hall
 
 thing candle in chapel
     name "wax candle"
-    words wax, candle
+    words >wax, candle
     desc "A stub of wax, still lit."
 
 // The bell proves that a GO TO's steps are real turns: walk the length of

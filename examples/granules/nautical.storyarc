@@ -58,7 +58,7 @@ room hold
 
 thing crate in hold
     name "strapped crate"
-    words crate, strapped
+    words crate, >strapped
     desc "Stencilled MACHINE PARTS, strapped down twice. Somebody did not
           trust this sea."
     fixed

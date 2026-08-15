@@ -31,20 +31,20 @@ room clearing
 
 thing chest of container in clearing
     name "old chest"
-    words old, chest
+    words >old, chest
     open
 
 thing lamp in chest
     name "brass lamp"
-    words brass, lamp
+    words >brass, lamp
 
 thing pebble in clearing
     name "smooth pebble"
-    words smooth, pebble
+    words >smooth, pebble
 
 thing hermit of character in clearing
     name "old hermit"
-    words old, hermit
+    words >old, hermit
 
     // An object can override any extended verb. The hermit dislikes being rubbed.
     on rub

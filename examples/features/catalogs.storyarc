@@ -63,7 +63,7 @@ room parlor
 
 thing letter in parlor
     name "last letter"
-    words letter, last
+    words letter, >last
     fixed
 
 thing butler of character in parlor

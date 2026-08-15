@@ -49,7 +49,7 @@ room larder
 // shape. A bare `beyond` keeps the pack's message.
 thing jar in larder
     name "honey jar"
-    words jar, honey
+    words jar, >honey
     desc "Amber and patient. It has outwaited better climbers than you."
     beyond "One shelf too high. The stool in the corner looks willing."
 
@@ -70,7 +70,7 @@ thing stool of supporter in larder
 
 thing hook in larder
     name "brass hook"
-    words hook, brass
+    words hook, >brass
     desc "Screwed into the rafter, out of everything's reach."
     beyond block
         show("The hook is rafter-high")
@@ -103,7 +103,7 @@ room yard
 
 thing seat of supporter in yard
     name "cart seat"
-    words seat, cart, bench
+    words seat, >cart, bench
     desc "A plank bench a full fathom up. Deliveries wait for no ladder."
     fixed
     on after enter
@@ -123,7 +123,7 @@ thing strongbox of container in seat
 
 thing ledger in strongbox
     name "delivery ledger"
-    words ledger, delivery
+    words ledger, >delivery
     desc "Sums, signatures, and one suspicious honey entry."
 
 thing horseshoe in yard

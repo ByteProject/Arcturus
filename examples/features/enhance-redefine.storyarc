@@ -62,7 +62,7 @@ room bedroom
 
 thing bed in bedroom
     name "narrow bed"
-    words bed, narrow
+    words bed, >narrow
     fixed
     desc "Iron-framed, sagging with biographies."
 
@@ -72,7 +72,7 @@ thing bed in bedroom
 
 thing trunk in bedroom
     name "steamer trunk"
-    words trunk, steamer
+    words trunk, >steamer
     desc "Round-lidded and heavy with travel."
 
     // One action family, two voices: `roll` and `push` both dispatch the
@@ -86,7 +86,7 @@ thing trunk in bedroom
 
 thing lantern in bedroom
     name "signal lantern"
-    words lantern, signal
+    words lantern, >signal
     desc "A lantern for waving at trains, or at fate."
 
     on wave_thing
@@ -94,7 +94,7 @@ thing lantern in bedroom
 
 thing wand in bedroom
     name "willow wand"
-    words wand, willow
+    words wand, >willow
     desc "A dowser's wand, still faintly opinionated."
 
     on wave_thing

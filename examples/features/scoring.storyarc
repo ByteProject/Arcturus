@@ -67,12 +67,12 @@ room corridor
 
 thing lamp in corridor
     name "brass lamp"
-    words lamp, brass
+    words lamp, >brass
     desc "Sturdy, dented, and yours for the carrying."
 
 thing nail in corridor
     name "rusty nail"
-    words nail, rusty
+    words nail, >rusty
     scored false
     desc "Long, bent, and intimate with keyholes, by the look of it."
 
@@ -100,7 +100,7 @@ room vault_door_room
 
 thing vault_door in vault_door_room
     name "vault door"
-    words door, vault, iron, lock
+    words door, >vault, >iron, lock
     fixed
     desc block
         if door_open
@@ -120,7 +120,7 @@ thing vault_door in vault_door_room
 
 thing amulet in vault
     name "bronze amulet"
-    words amulet, bronze
+    words amulet, >bronze
     desc "The trial's little treasure: proof you reached the vault."
 
 room vault
@@ -131,7 +131,7 @@ room vault
 
 thing satchel in player
     name "leather satchel"
-    words satchel, leather
+    words satchel, >leather
     desc "Standard novice issue. Starting equipment earns nothing; the
           inscription was clear on that point."
 

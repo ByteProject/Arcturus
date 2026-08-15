@@ -46,11 +46,11 @@ room vault
 // the door kind; the lock and its key are declared here.
 thing oak_door of door in hall, vault
     name "oak door"
-    words oak, door
+    words >oak, door
     lockable
     locked
     unseal_with brass_key
 
 thing brass_key in player
     name "brass key"
-    words brass, key
+    words >brass, key

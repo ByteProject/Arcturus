@@ -40,18 +40,18 @@ room shop
 // you can see a small bell and a tallow candle.").
 thing counter of supporter in shop
     name "counter"
-    words counter, oak
+    words counter, >oak
     desc "Oak, polished by a century of elbows."
     scenery
 
 thing bell in counter
     name "small bell"
-    words bell, small
+    words bell, >small
     desc "Ring for service."
 
 thing candle in counter
     name "tallow candle"
-    words candle, tallow
+    words candle, >tallow
     desc "It smells like the rest of the shop."
 
 // A scenery container, standing open: "In the barrel you can see an apple."
@@ -72,7 +72,7 @@ thing apple in barrel
 // shilling is remembered and the paragraph stays even when shut again.
 thing drawer of container in shop
     name "brass-handled drawer"
-    words drawer, brass, handle
+    words drawer, >brass, handle
     desc "Set into the counter's front, with a brass handle."
     openable
     open false

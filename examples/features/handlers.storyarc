@@ -74,7 +74,7 @@ room workshop
 
 thing regulator of clock in shop
     name "wall regulator"
-    words regulator, wall
+    words regulator, >wall
     desc "The shop's master clock, bolted to the wall."
     fixed
 
@@ -94,7 +94,7 @@ thing regulator of clock in shop
 
 thing carriage of clock in shop
     name "carriage clock"
-    words carriage, clock
+    words >carriage, clock
     desc "A travelling clock with a brass handle, priced at exactly one
           coin."
 
@@ -116,7 +116,7 @@ thing carriage of clock in shop
 
 thing coin in shop
     name "silver coin"
-    words coin, silver
+    words coin, >silver
     desc "One honest coin."
 
 thing clockmaker of character in shop

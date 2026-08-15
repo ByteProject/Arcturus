@@ -54,7 +54,7 @@ thing telescope in dome
 
 thing plaque in dome
     name "brass plaque"
-    words brass, plaque, inscription
+    words >brass, plaque, inscription
     fixed
 
     on examine

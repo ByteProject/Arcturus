@@ -43,7 +43,7 @@ thing keeper of character in lamproom
 // object is first taken).
 thing lamp in lamproom
     name "great lamp"
-    words lamp, great, light
+    words lamp, >great, light
     desc "A first-order lens, bright as a small sun."
     fixed
     appearance "The great lamp turns slowly in its cage of brass."
@@ -56,13 +56,13 @@ thing bell in lamproom
 
 thing coat in player
     name "oilskin coat"
-    words coat, oilskin
+    words coat, >oilskin
     desc "Stiff with salt."
     wearable
 
 thing boots in player
     name "sea boots"
-    words boots, sea
+    words boots, >sea
     desc "Two sizes too big, exactly as intended."
     indefinite "some"
     wearable

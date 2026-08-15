@@ -50,17 +50,17 @@ room landing
 
 thing compass in study
     name "brass compass"
-    words compass, brass
+    words compass, >brass
     desc "It has pointed everywhere but home."
 
 thing soldier in study
     name "tin soldier"
-    words soldier, tin
+    words soldier, >tin
     desc "One leg, as tradition demands."
 
 thing gloves in study
     name "pair of kid gloves"
-    words gloves, glove, pair, kid
+    words gloves, glove, pair, >kid
     wearable
     desc "Soft as a confession."
 
@@ -78,18 +78,18 @@ thing astrolabe in study
 
 thing cabinet of container in study
     name "glass-fronted cabinet"
-    words cabinet, glass
+    words cabinet, >glass
     fixed
     openable
     open false
 
 thing scarab in cabinet
     name "faience scarab"
-    words scarab, faience
+    words scarab, >faience
 
 thing coin in cabinet
     name "roman coin"
-    words coin, roman
+    words coin, >roman
 
 block metronome()
     if here is not study

@@ -39,7 +39,7 @@ room shrine
 
 thing idol in shrine
     name "obsidian idol"
-    words obsidian, idol, statue, figure
+    words >obsidian, idol, statue, figure
     fixed
 
     // Two specific handlers. Each wins over `on other` for its own verb.

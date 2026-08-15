@@ -39,7 +39,7 @@ room study
 // live `polished` flag, so one property describes two states with no duplication.
 thing lamp in study
     name "brass lamp"
-    words lamp, brass, lantern
+    words lamp, >brass, lantern
     desc block
         if polished
             say "The brass lamp gleams, rubbed to a warm shine."
@@ -60,7 +60,7 @@ thing lamp in study
 // shines. The desc is recomputed from the wider world state on every read.
 thing glass in study
     name "scrying glass"
-    words scrying, glass, mirror
+    words >scrying, >glass, mirror
     fixed
     desc block
         if polished

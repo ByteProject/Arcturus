@@ -40,7 +40,7 @@ room estuary
 
 thing boat of container in jetty
     name "rowing boat"
-    words boat, rowing, dinghy
+    words boat, >rowing, dinghy
     desc "Weathered, but it floats."
     open
     fixed

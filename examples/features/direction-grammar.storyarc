@@ -43,7 +43,7 @@ room pool
 
 thing log in shallows
     name "drift log"
-    words log, drift, driftwood
+    words log, >drift, driftwood
     desc "A waterlogged trunk, more raft than tree."
     fixed
 

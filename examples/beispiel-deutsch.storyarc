@@ -144,7 +144,7 @@ thing mond
 // machine. "die Lampe" is feminine, hence `die`.
 thing lampe in gasthaus
     name "Öllampe"
-    words öllampe, lampe, öl
+    words öllampe, lampe, >öl
     die
     binary
     lit false
@@ -171,7 +171,7 @@ thing lampe in gasthaus
 // The chest: a container with a lid. The key waits inside. `die` Truhe.
 thing truhe of container in gasthaus
     name "Truhe aus Eiche"
-    words truhe, eiche, kiste
+    words truhe, >eiche, kiste
     die
     openable
     open false
@@ -181,7 +181,7 @@ thing truhe of container in gasthaus
 // hence `der`.
 thing schluessel in truhe
     name "Bronzeschlüssel"
-    words bronzeschlüssel, schlüssel, bronze
+    words bronzeschlüssel, schlüssel, >bronze
     der
 
 // The door joins the two rooms (spans, being a `door`) and opens with the

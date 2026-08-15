@@ -49,12 +49,12 @@ room ramp
 
 thing barrel in dock
     name "tar barrel"
-    words barrel, tar
+    words barrel, >tar
     shiftable
     desc "Heavy, but round: the docker's compromise."
 
 thing crane in dock
     name "loading crane"
-    words crane, loading
+    words crane, >loading
     fixed
     desc "Bolted through the planking into bedrock, probably."

@@ -55,7 +55,7 @@ room anteroom
 
 thing plaque in anteroom
     name "bronze plaque"
-    words plaque, bronze
+    words plaque, >bronze
     fixed
     desc "Three lines of small bronze capitals. Reading them feels like
           being read to."
@@ -69,7 +69,7 @@ thing plaque in anteroom
 
 thing panel in anteroom
     name "lettered panel"
-    words panel, lettered
+    words panel, >lettered
     fixed
     desc "Two brass keys, A and B, worn shiny."
 
@@ -87,7 +87,7 @@ thing panel in anteroom
 
 thing globe in anteroom
     name "glass globe"
-    words globe, glass
+    words globe, >glass
     fixed
     desc "Milky glass, faintly warm, waiting to be consulted."
 

@@ -38,7 +38,7 @@ room study
 
 thing gazetteer in study
     name "mining gazetteer"
-    words gazetteer, mining, book
+    words gazetteer, >mining, book
     fixed
     desc "A fat county gazetteer, spine cracked at the mining chapters."
 

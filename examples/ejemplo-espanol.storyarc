@@ -123,7 +123,7 @@ room playa
 // (spans) las dos habitaciones. Es decorado, así que no se lista ni se coge.
 thing luna
     name "luna llena"
-    words luna, llena
+    words luna, >llena
     scenery
     desc "Una luna llena y enorme, tan brillante que los guijarros proyectan
           sombras nítidas."
@@ -133,7 +133,7 @@ thing luna
 // incluyen la forma sin tilde ("lampara") para que se pueda escribir en un 8 bits.
 thing lampara in posada
     name "lámpara de aceite"
-    words lampara, lámpara, aceite
+    words lampara, lámpara, >aceite
     desc "Una lámpara de aceite ennegrecida. Todavía queda mecha, y quizá un
           resto de aceite."
 
@@ -148,14 +148,14 @@ thing cofre of container in posada
 // declaración de género del juego.
 thing llave in cofre
     name "llave de bronce"
-    words llave, bronce
+    words llave, >bronce
     feminine
 
 // La puerta une las dos habitaciones (spans) y se abre con la llave. Por ser de
 // tipo door, ya es `openable` y `fixed`.
 thing puerta of door in posada, patio
     name "puerta de roble"
-    words puerta, roble
+    words puerta, >roble
     lockable
     locked
     unseal_with llave

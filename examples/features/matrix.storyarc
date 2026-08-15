@@ -46,16 +46,16 @@ room meadow
 
 thing fern in meadow
     name "lady fern"
-    words fern, lady
+    words fern, >lady
 thing orchid in meadow
     name "spotted orchid"
-    words orchid, spotted
+    words orchid, >spotted
 thing thistle in meadow
     name "melancholy thistle"
     words thistle
 thing moss in meadow
     name "cushion of moss"
-    words moss, cushion
+    words moss, >cushion
 
 room greenhouse
     name "Greenhouse"
