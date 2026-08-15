@@ -123,6 +123,10 @@
           "named": true
         },
         {
+          "type": "uuid",
+          "named": true
+        },
+        {
           "type": "value_declaration",
           "named": true
         },
@@ -338,6 +342,10 @@
         },
         {
           "type": "topic_declaration",
+          "named": true
+        },
+        {
+          "type": "uuid",
           "named": true
         },
         {
@@ -833,6 +841,10 @@
   {
     "type": "topic",
     "named": false
+  },
+  {
+    "type": "uuid",
+    "named": true
   },
   {
     "type": "verb",

@@ -9,6 +9,12 @@
 ; captures come last, overriding them where context knows better (a word
 ; inside a words list is vocabulary, whatever else it spells).
 
+; ---- calls first, so statement keywords can override them ----------------
+
+; A call: quote(5, 29), action_id("go"). Known statement words with parens
+; (show, say) are recoloured by the keyword set BELOW, matching VS Code.
+(call name: (identifier) @function)
+
 ; ---- generic word sets (the VS Code lists, one to one) -------------------
 
 ; Control flow, statements, and declaration-adjacent keywords.
@@ -74,14 +80,11 @@
 
 (comment) @comment
 (number) @number
+(uuid) @constant
 (operator) @operator
 (punctuation) @punctuation.delimiter
 
 ; ---- structural captures (position beats spelling) -----------------------
-
-; A call: show("..."), action_id("go"). The head is a function, whatever
-; set its name happens to sit in.
-(call name: (identifier) @function)
 
 ; A dotted chain: say.yellow.par, obj.article, here.(way). The head keeps
 ; its own set colour; the tail reads as modifiers.

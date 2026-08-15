@@ -30,6 +30,7 @@ module.exports = grammar({
     source_file: $ => repeat($._item),
 
     _item: $ => choice(
+      $.uuid,
       $.call,
       $.dotted_name,
       $.object_declaration,
@@ -184,6 +185,11 @@ module.exports = grammar({
         ),
       )),
     ),
+
+    // A UUID literal (the game header's UUID line): one token, so the
+    // hyphenated hex never shreds into identifier and number soup.
+    uuid: $ => token(prec(3,
+      /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/)),
 
     comment: $ => token(seq('//', /.*/)),
 
