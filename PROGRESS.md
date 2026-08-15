@@ -10174,8 +10174,9 @@ Stefan's ruling on the Zed extension's road to the official registry:
 development remains in this repository (editors/zed and
 editors/tree-sitter-arcturus are the truth), and two sibling
 repositories on disk are pure publishing artifacts, refreshed by
-tools/zed_publish.py: ../tree-sitter-arcturus (the grammar Zed clones
-by commit) and ../zed-arcturus (the extension the registry submodules).
+tools/zed_publish.py: ../Misc/tree-sitter-arcturus (the grammar Zed
+clones by commit) and ../Misc/zed-arcturus (the extension the registry
+submodules).
 The tool wipes and re-exports both, writes their public READMEs, ships
 the MIT LICENSE into each (the registry demands one at the extension
 path; a BSD line that had slipped into the grammar metadata was

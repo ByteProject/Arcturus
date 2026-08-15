@@ -11,8 +11,8 @@ Development lives HERE, in the Arcturus repository (editors/zed and
 editors/tree-sitter-arcturus); the standalone repos are publishing
 artifacts, refreshed by this tool:
 
-    ../tree-sitter-arcturus   the grammar (Zed clones it by URL + rev)
-    ../zed-arcturus           the extension (submoduled by Zed's registry)
+    ../Misc/tree-sitter-arcturus   the grammar (Zed clones it by URL + rev)
+    ../Misc/zed-arcturus           the extension (submoduled by the registry)
 
 The tool copies the sources over (preserving each target's .git), stamps
 the extension's grammar reference with the LOCAL grammar repo's HEAD
@@ -35,8 +35,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 GRAMMAR_SRC = ROOT / "editors" / "tree-sitter-arcturus"
 EXT_SRC = ROOT / "editors" / "zed"
 LICENSE = ROOT / "LICENSE"
-GRAMMAR_DST = ROOT.parent / "tree-sitter-arcturus"
-EXT_DST = ROOT.parent / "zed-arcturus"
+GRAMMAR_DST = ROOT.parent / "Misc" / "tree-sitter-arcturus"
+EXT_DST = ROOT.parent / "Misc" / "zed-arcturus"
 
 
 def run(args, cwd):

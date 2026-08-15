@@ -40,7 +40,7 @@ The generated `src/` is committed, since Zed compiles the parser from it.
 
 Development lives here; the standalone repositories are publishing
 artifacts. `python3 tools/zed_publish.py` refreshes both siblings on disk
-(`../tree-sitter-arcturus`, `../zed-arcturus`), writes their public
+(`../Misc/tree-sitter-arcturus`, `../Misc/zed-arcturus`), writes their public
 READMEs and LICENSE files, and pins the extension's grammar `rev` to the
 grammar repo's HEAD. Review, commit, and push in each repo, THE GRAMMAR
 FIRST (the pinned rev must be public before the extension referencing it).
