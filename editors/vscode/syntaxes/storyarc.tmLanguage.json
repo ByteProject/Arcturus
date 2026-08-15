@@ -43,6 +43,9 @@
       "include": "#calls"
     },
     {
+      "include": "#markers"
+    },
+    {
       "include": "#operators"
     }
   ],
@@ -128,6 +131,18 @@
           }
         },
         {
+          "comment": "A bare action declaration (docs/01 chapter 12): an action with no verb attached, reachable from code but not the keyboard.",
+          "match": "^\\s*(action)\\s+([A-Za-z][A-Za-z0-9_]*)",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.storyarc"
+            },
+            "2": {
+              "name": "entity.name.function.storyarc"
+            }
+          }
+        },
+        {
           "match": "^\\s*(game|verb|grains|ranks|ambience)\\b",
           "captures": {
             "1": {
@@ -137,7 +152,7 @@
         },
         {
           "comment": "Language-layer declarations: words the parser reads (docs/01 chapters 14 and 21).",
-          "match": "^\\s*(direction|particle|pronoun|chain|noise|all|language|catalog)\\b",
+          "match": "^\\s*(direction|particle|pronoun|chain|noise|fold|all|language|catalog)\\b",
           "captures": {
             "1": {
               "name": "keyword.declaration.storyarc"
@@ -296,7 +311,7 @@
     "attributes": {
       "comment": "Standard Cosmos boolean attributes (docs/01 chapter 3).",
       "name": "support.type.attribute.storyarc",
-      "match": "\\b(fixed|scenery|hidden|concealed|wearable|worn|lit|edible|named|switchable|openable|open|lockable|locked|visited|clear|seen|moved|animate|an|feminine|neutral|pluribus|beyond|scored|component|shiftable|restless)\\b"
+      "match": "\\b(fixed|scenery|hidden|concealed|wearable|worn|lit|edible|named|switchable|binary|active|glow|openable|open|lockable|locked|visited|clear|seen|moved|animate|an|feminine|neutral|pluribus|beyond|scored|component|shiftable|restless)\\b"
     },
     "properties": {
       "comment": "Standard Cosmos value properties and the topic modifiers.",
@@ -379,6 +394,11 @@
       "comment": "A block or intrinsic call with arguments: the callee in its own scope, the arguments left to the value scopes (Stefan's policy, 2026-07-04). Bare zero-argument calls are lexically plain names and stay unscoped.",
       "match": "\\b([a-z_][a-z0-9_]*)(?=\\()",
       "name": "entity.name.function.call.storyarc"
+    },
+    "markers": {
+      "comment": "The word-class markers in a words list (docs/01 chapter 14): #word is the object's trigger, >word an adjective. Matched only when glued to the word (or its quoted form), so comparisons stay operators.",
+      "match": "(?<=[\\s,])([#>])(?=[A-Za-z\u00c0-\u017f\"])",
+      "name": "storage.modifier.marker.storyarc"
     },
     "operators": {
       "patterns": [
