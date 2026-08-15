@@ -63,7 +63,10 @@
     "teleport" "gain" "convey" "perform" "swap" "worn_count" "list_worn"
     "visible" "reachable" "calculate" "entry" "last" "dice" "position"
     "quote_catalog" "parent_of" "name_contents" "listable_count"
-    "press_any_key" "action_id"))
+    "press_any_key" "action_id" "clear_screen" "screen_width"
+    "screen_height" "print_banner" "status_bar" "confirm_quit" "do_quit"
+    "do_restart" "do_save" "do_restore" "list_contents" "reveal_contents"
+    "content_listable" "quote_line" "quote_done"))
 
 ; Standard kinds and grammar-line slots.
 ((identifier) @type
