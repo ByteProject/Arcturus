@@ -5,7 +5,7 @@
   "main": "bindings/node",
   "keywords": ["parser", "tree-sitter", "arcturus", "interactive-fiction", "z-machine"],
   "author": "Stefan Vogt",
-  "license": "BSD-2-Clause",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/ByteProject/Arcturus"

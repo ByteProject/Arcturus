@@ -10168,6 +10168,24 @@ build/zed-dev; Stefan's eye gates the install. Next in this lane, on
 his word: an Inform 6 extension for Zed, since the porting work reads
 Inform sources daily.
 
+## 2026-08-15: the publishing split, development stays home
+
+Stefan's ruling on the Zed extension's road to the official registry:
+development remains in this repository (editors/zed and
+editors/tree-sitter-arcturus are the truth), and two sibling
+repositories on disk are pure publishing artifacts, refreshed by
+tools/zed_publish.py: ../tree-sitter-arcturus (the grammar Zed clones
+by commit) and ../zed-arcturus (the extension the registry submodules).
+The tool wipes and re-exports both, writes their public READMEs, ships
+the MIT LICENSE into each (the registry demands one at the extension
+path; a BSD line that had slipped into the grammar metadata was
+corrected to the project's MIT), and stamps the extension's grammar
+reference with the grammar repo's HEAD, so the pin can never drift from
+what is actually published. Both repos stand committed locally;
+creating them on GitHub, pushing, and the registry pull request
+(fork zed-industries/extensions, submodule, extensions.toml entry) are
+Stefan's own acts, documented in editors/zed/README.md.
+
 ## CHECKPOINT: the German forum round (updated per item; compaction-proof)
 
 THE PICKUP. This checkpoint is the single source for resuming the

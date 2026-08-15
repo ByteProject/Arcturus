@@ -10,7 +10,7 @@
   ],
   "metadata": {
     "version": "1.0.0",
-    "license": "BSD-2-Clause",
+    "license": "MIT",
     "description": "Tree-sitter grammar for Arcturus, the interactive-fiction language for the Infocom Z-machine",
     "authors": [{ "name": "Stefan Vogt" }],
     "links": { "repository": "https://github.com/ByteProject/Arcturus" }

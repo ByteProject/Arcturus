@@ -36,10 +36,32 @@ tree-sitter CLI runs from the npm cache):
 
 The generated `src/` is committed, since Zed compiles the parser from it.
 
-## Publishing (later)
+## Publishing
 
-For a public release the grammar moves to its own repository
-(`ByteProject/tree-sitter-arcturus`, the Tree-sitter naming convention, so
-other editors can reuse it), the `rev` in `extension.toml` pins a real
-commit there, and the extension itself is submitted to the Zed extension
-registry from a `zed-arcturus` repository.
+Development lives here; the standalone repositories are publishing
+artifacts. `python3 tools/zed_publish.py` refreshes both siblings on disk
+(`../tree-sitter-arcturus`, `../zed-arcturus`), writes their public
+READMEs and LICENSE files, and pins the extension's grammar `rev` to the
+grammar repo's HEAD. Review, commit, and push in each repo, THE GRAMMAR
+FIRST (the pinned rev must be public before the extension referencing it).
+
+To list the extension in Zed's registry (one-time):
+
+1. Create the two public GitHub repositories under ByteProject:
+   `tree-sitter-arcturus` and `zed-arcturus`; push both local repos.
+2. Fork `zed-industries/extensions` (to the personal account), clone it
+   with `--recurse-submodules`.
+3. `git submodule add https://github.com/ByteProject/zed-arcturus.git
+   extensions/arcturus` (HTTPS, never SSH).
+4. Add to `extensions.toml`:
+
+       [arcturus]
+       submodule = "extensions/arcturus"
+       version = "1.0.0"
+
+5. `pnpm sort-extensions`, commit, open the pull request.
+
+Updates later: push new commits to zed-arcturus (grammar first if it
+changed), then in the fork `git submodule update --remote
+extensions/arcturus`, bump the version in extensions.toml to match
+extension.toml, and open a fresh PR.
