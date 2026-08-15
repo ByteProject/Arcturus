@@ -4,3 +4,4 @@
 (block_declaration keyword: _ @context name: (identifier) @name) @item
 (topic_declaration keyword: _ @context name: (identifier) @name) @item
 (value_declaration keyword: _ @context name: (identifier) @name) @item
+(data_declaration keyword: _ @context name: (identifier) @name) @item

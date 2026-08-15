@@ -39,6 +39,7 @@ module.exports = grammar({
       $.value_declaration,
       $.verb_declaration,
       $.vocabulary_declaration,
+      $.data_declaration,
       $.words_declaration,
       $.summon,
       $.player_augmentation,
@@ -98,6 +99,13 @@ module.exports = grammar({
         'all', 'language',
       )),
       repeat(choice($.identifier, $.string, ',')),
+    )),
+
+    // catalog phrases / matrix grid: the named data declarations (docs/01
+    // chapter 9), their names outlined like any entity.
+    data_declaration: $ => prec.right(2, seq(
+      field('keyword', choice('catalog', 'matrix')),
+      optional(field('name', $.identifier)),
     )),
 
     // words #chest, box, trunk, >wooden, >heavy: the class markers (docs/01

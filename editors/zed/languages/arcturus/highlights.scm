@@ -26,6 +26,7 @@
     "mutate" "loop" "let" "change" "now" "move" "add" "remove" "say"
     "show" "zcolor" "par" "to" "from" "award" "you" "reply" "reveal"
     "hide" "grains" "ranks" "ambience" "matrix" "catalog" "game" "list"
+    "start"
     "is" "not" "and" "or" "holds" "in" "within" "of" "mod"))
 
 ; Standard Cosmos boolean attributes (docs/01 chapter 5).
@@ -70,6 +71,12 @@
     "thing" "room" "container" "supporter" "door" "character" "held"
     "multi" "scope"))
 
+; The colour words of the zcolor family (support constants in VS Code).
+((identifier) @constant
+  (#any-of? @constant
+    "default" "black" "red" "green" "yellow" "blue" "magenta" "cyan"
+    "white"))
+
 ; The compass, so exits read at a glance (east tuer).
 ((identifier) @constant
   (#any-of? @constant
@@ -102,6 +109,8 @@
 (verb_declaration keyword: _ @keyword)
 (verb_mode) @keyword
 (vocabulary_declaration keyword: _ @keyword)
+(data_declaration keyword: _ @keyword)
+(data_declaration name: (identifier) @type)
 (words_declaration keyword: _ @property)
 (summon "summon" @keyword)
 (summon (identifier) @attribute)

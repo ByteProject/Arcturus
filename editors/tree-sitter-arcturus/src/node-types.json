@@ -71,6 +71,10 @@
           "named": true
         },
         {
+          "type": "data_declaration",
+          "named": true
+        },
+        {
           "type": "dotted_name",
           "named": true
         },
@@ -147,6 +151,36 @@
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "data_declaration",
+    "named": true,
+    "fields": {
+      "keyword": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "catalog",
+            "named": false
+          },
+          {
+            "type": "matrix",
+            "named": false
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -290,6 +324,10 @@
         },
         {
           "type": "call",
+          "named": true
+        },
+        {
+          "type": "data_declaration",
           "named": true
         },
         {
@@ -718,6 +756,10 @@
     "named": false
   },
   {
+    "type": "catalog",
+    "named": false
+  },
+  {
     "type": "chain",
     "named": false
   },
@@ -789,6 +831,10 @@
   {
     "type": "marker",
     "named": true
+  },
+  {
+    "type": "matrix",
+    "named": false
   },
   {
     "type": "noise",
