@@ -30,6 +30,8 @@ module.exports = grammar({
     source_file: $ => repeat($._item),
 
     _item: $ => choice(
+      $.call,
+      $.dotted_name,
       $.object_declaration,
       $.block_declaration,
       $.topic_declaration,
@@ -157,6 +159,30 @@ module.exports = grammar({
       '${',
       repeat(choice($.identifier, $.number, $.string, $.operator, $.punctuation)),
       '}',
+    ),
+
+    // A call: the name glued to its paren (show("..."), action_id("go")).
+    call: $ => prec(2, seq(
+      field('name', $.identifier),
+      token.immediate('('),
+      repeat($._item),
+      ')',
+    )),
+
+    // A dotted chain outside the special forms: say.yellow.par, zcolor.font,
+    // obj.article. The head keeps its own colouring; the tail reads as
+    // modifiers (the VS Code three-scope look).
+    dotted_name: $ => seq(
+      field('head', $.identifier),
+      repeat1(seq(
+        token.immediate('.'),
+        choice(
+          field('tail', $.identifier),
+          // The computed property access: here.(way) reads the property
+          // the way variable names (docs/01 chapter 8).
+          seq('(', field('tail', $.identifier), ')'),
+        ),
+      )),
     ),
 
     comment: $ => token(seq('//', /.*/)),

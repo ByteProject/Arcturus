@@ -44,6 +44,134 @@
     }
   },
   {
+    "type": "call",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "block_declaration",
+          "named": true
+        },
+        {
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "dotted_name",
+          "named": true
+        },
+        {
+          "type": "enhance_redefine",
+          "named": true
+        },
+        {
+          "type": "gender",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        },
+        {
+          "type": "number",
+          "named": true
+        },
+        {
+          "type": "object_declaration",
+          "named": true
+        },
+        {
+          "type": "operator",
+          "named": true
+        },
+        {
+          "type": "player_augmentation",
+          "named": true
+        },
+        {
+          "type": "punctuation",
+          "named": true
+        },
+        {
+          "type": "string",
+          "named": true
+        },
+        {
+          "type": "summon",
+          "named": true
+        },
+        {
+          "type": "topic_declaration",
+          "named": true
+        },
+        {
+          "type": "value_declaration",
+          "named": true
+        },
+        {
+          "type": "verb_declaration",
+          "named": true
+        },
+        {
+          "type": "vocabulary_declaration",
+          "named": true
+        },
+        {
+          "type": "when_language",
+          "named": true
+        },
+        {
+          "type": "words_declaration",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "dotted_name",
+    "named": true,
+    "fields": {
+      "head": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "tail": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "enhance_redefine",
     "named": true,
     "fields": {}
@@ -154,6 +282,14 @@
       "types": [
         {
           "type": "block_declaration",
+          "named": true
+        },
+        {
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "dotted_name",
           "named": true
         },
         {

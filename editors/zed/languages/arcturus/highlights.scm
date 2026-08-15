@@ -3,59 +3,15 @@
 ; Copyright (c) 2026, Stefan Vogt.
 ; https://github.com/ByteProject/Arcturus
 ;
-; The Zed highlight queries for Arcturus, mirroring the VS Code grammar's
-; scopes one to one. The grammar keeps most words as plain identifiers; the
-; keyword, attribute, property, and builtin SETS are coloured here, so a new
-; library word is one line in this file, never a parser rebuild.
+; The Zed highlight queries for Arcturus, a full port of the VS Code
+; grammar's scoping. ORDER MATTERS: in Zed the later pattern wins, so the
+; generic identifier SETS come first and the structural, position-aware
+; captures come last, overriding them where context knows better (a word
+; inside a words list is vocabulary, whatever else it spells).
 
-(comment) @comment
+; ---- generic word sets (the VS Code lists, one to one) -------------------
 
-(string) @string
-(escape_sequence) @string.escape
-(number) @number
-
-; ${...} interpolation inside strings: the braces stand out, the content
-; reads as embedded code.
-(interpolation
-  "${" @punctuation.special
-  "}" @punctuation.special)
-(interpolation (identifier) @variable.special)
-
-; Declaration heads and their names.
-(object_declaration keyword: _ @keyword)
-(object_declaration name: (identifier) @type)
-(block_declaration keyword: _ @keyword)
-(block_declaration name: (identifier) @function)
-(topic_declaration keyword: _ @keyword)
-(topic_declaration name: (identifier) @function)
-(value_declaration keyword: _ @keyword)
-(value_declaration name: (identifier) @variable)
-(verb_declaration keyword: _ @keyword)
-(verb_mode) @keyword
-(vocabulary_declaration keyword: _ @keyword)
-(words_declaration keyword: _ @property)
-(summon "summon" @keyword)
-(summon (identifier) @constant)
-(summon "granule" @constant)
-(player_augmentation "player" @variable.special)
-(player_augmentation (identifier) @property)
-(when_language "when" @keyword)
-(when_language "language" @keyword)
-(enhance_redefine "enhance" @keyword)
-(enhance_redefine "redefine" @keyword)
-(enhance_redefine "verb" @keyword)
-(gender) @keyword
-
-; The word-class markers (docs/01 chapter 14): # is the object's trigger,
-; > an adjective. The words themselves read as typed vocabulary.
-(marker) @punctuation.special
-(words_declaration (word_entry (identifier) @string.special))
-(words_declaration (word_entry (string) @string.special))
-
-(operator) @operator
-(punctuation) @punctuation.delimiter
-
-; Control flow and statement keywords (docs/01 chapters 9 to 13).
+; Control flow, statements, and declaration-adjacent keywords.
 ((identifier) @keyword
   (#any-of? @keyword
     "if" "else" "while" "for" "each" "switch" "case" "when" "return"
@@ -63,11 +19,7 @@
     "append" "insert" "load" "swapping" "checked" "vary" "sequence"
     "mutate" "loop" "let" "change" "now" "move" "add" "remove" "say"
     "show" "zcolor" "par" "to" "from" "award" "you" "reply" "reveal"
-    "hide" "grains" "ranks" "ambience" "matrix" "catalog" "game"))
-
-; Word operators.
-((identifier) @keyword.operator
-  (#any-of? @keyword.operator
+    "hide" "grains" "ranks" "ambience" "matrix" "catalog" "game" "list"
     "is" "not" "and" "or" "holds" "in" "within" "of" "mod"))
 
 ; Standard Cosmos boolean attributes (docs/01 chapter 5).
@@ -95,11 +47,10 @@
     "meta_turn"))
 
 ; Language constants.
-((identifier) @constant.builtin
-  (#any-of? @constant.builtin "true" "false" "nothing"))
+((identifier) @constant
+  (#any-of? @constant "true" "false" "nothing"))
 
-; The curated author-facing library services (docs/01, the documented
-; surface only), and the grammar slot words of verb lines.
+; The curated author-facing library services (the documented surface).
 ((identifier) @function
   (#any-of? @function
     "teleport" "gain" "convey" "perform" "swap" "worn_count" "list_worn"
@@ -107,7 +58,79 @@
     "quote_catalog" "parent_of" "name_contents" "listable_count"
     "press_any_key" "action_id"))
 
+; Standard kinds and grammar-line slots.
 ((identifier) @type
   (#any-of? @type
     "thing" "room" "container" "supporter" "door" "character" "held"
     "multi" "scope"))
+
+; The compass, so exits read at a glance (east tuer).
+((identifier) @constant
+  (#any-of? @constant
+    "north" "south" "east" "west" "northeast" "northwest" "southeast"
+    "southwest" "up" "down" "out"))
+
+; ---- tokens --------------------------------------------------------------
+
+(comment) @comment
+(number) @number
+(operator) @operator
+(punctuation) @punctuation.delimiter
+
+; ---- structural captures (position beats spelling) -----------------------
+
+; A call: show("..."), action_id("go"). The head is a function, whatever
+; set its name happens to sit in.
+(call name: (identifier) @function)
+
+; A dotted chain: say.yellow.par, obj.article, here.(way). The head keeps
+; its own set colour; the tail reads as modifiers.
+(dotted_name tail: (identifier) @property)
+
+; Declaration heads and their names.
+(object_declaration keyword: _ @keyword)
+(object_declaration name: (identifier) @type)
+(block_declaration keyword: _ @keyword)
+(block_declaration name: (identifier) @function)
+(topic_declaration keyword: _ @keyword)
+(topic_declaration name: (identifier) @function)
+(value_declaration keyword: _ @keyword)
+(value_declaration name: (identifier) @variable)
+(verb_declaration keyword: _ @keyword)
+(verb_mode) @keyword
+(vocabulary_declaration keyword: _ @keyword)
+(words_declaration keyword: _ @property)
+(summon "summon" @keyword)
+(summon (identifier) @attribute)
+(summon "granule" @attribute)
+(player_augmentation "player" @variable.special)
+(player_augmentation (identifier) @property)
+(when_language "when" @keyword)
+(when_language "language" @keyword)
+(enhance_redefine "enhance" @keyword)
+(enhance_redefine "redefine" @keyword)
+(enhance_redefine "verb" @keyword)
+(gender) @keyword
+
+; The word-class markers and the vocabulary they mark (docs/01 chapter 14):
+; # is the object's trigger, > an adjective; the words themselves read as
+; typed vocabulary, whatever else they spell elsewhere.
+(marker) @punctuation.special
+(words_declaration (word_entry (identifier) @string.special))
+(words_declaration (word_entry (string) @string.special))
+
+; ---- strings last, so nothing bleeds into them ---------------------------
+
+(string) @string
+(escape_sequence) @string.escape
+
+; ${...} interpolation: the braces stand out; the article or copula with
+; its case tag reads as a keyword (${the:acc noun}), the case tag as its
+; modifier, and the interpolated names keep their set colours.
+(interpolation
+  "${" @punctuation.special
+  "}" @punctuation.special)
+((interpolation (identifier) @keyword)
+  (#any-of? @keyword "the" "The" "a" "an" "A" "An" "is" "Is"))
+((interpolation (punctuation) @_colon . (identifier) @property)
+  (#eq? @_colon ":"))
