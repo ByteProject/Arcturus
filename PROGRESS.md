@@ -10529,3 +10529,63 @@ promise both ways (edited msg_taken speaks with -L, bundled without).
 The silence is what let the adopter believe his prelude edit had worked;
 his actual report is the spans design issue, ruled and landing
 separately (next entry).
+
+THE TWO MULTI-ROOM FORMS: EXISTENCE AND SIGHT (2026-08-17, Stefan's
+design, recovered). EdwardianDuck's spans report (a vine `in location1,
+location2` whose appearance showed in one room only) opened a design
+review, and Stefan's verdict rewrote the feature: the July 1 spans
+implementation had flattened TWO different designs into one, and the
+handbook's ambiguous passage ("puts the object in hall and spans it into
+vault" beside "referable from every room it spans") is exactly why the
+adopter had both syntaxes in his code and neither meaning. The record
+shows no ruling ever authorized the flattening; it was an earlier
+instance's choice, canonized by documentation after the fact.
+
+The recovered design, as ruled: `in room1, room2` is the EXISTENCE form.
+One object, whole, in every listed room, "like Agent Smith in the
+Matrix": same paragraphs, same listing sentence, contents along
+(subtree-follows ruled), one state (a door open on both sides). Fixed
+objects only; scenery is redirected to `spans`; a movable or a kind
+target is a compile ERROR, never the old silent drop (Stefan: loud, the
+silence was the failure mode). The containment test stays tree-truth by
+ruling: `if vine in gully` is false, the author declared the rooms and
+tests `here` directly; Stefan asked for the byte price of the
+alternative first (measured: ~150-260 bytes per game, every in/holds
+site swapping jin for a helper call) and ruled it not worth it, since
+no realistic author test needs it. Body `spans a, b` stays the SIGHT
+form: scenery referable from every spanned room, never presented, kinds
+allowed. One object takes one form, never both.
+
+Landed in one pass, arcc 1.11.0 / Cosmos 1.14.0: parser splits
+presence from spans (ObjectDecl.presence); sema validates and gates
+loudly (_check_presence, after the properties pass so kind-default
+fixed is visible: the door kind passes untouched) and synthesizes a
+1-byte `presence` marker ONLY when both forms live in one game, so
+property numbering never shifts for anyone else; the shared spans
+array carries both forms' rooms (scope machinery untouched, one hot
+read); is_presence folds to a constant unless both forms are live;
+the describer gains presence_next/presence_describe/list_presence_one
+in loop.prelude plus a list_presence_tail per language layer, all
+behind any_presence (the fold whitelist in _static_value was the
+catch: an unlisted any_X compiles as a RUNTIME test and nothing
+folds; both new flags are listed). The reserved-name trap struck
+again: `after` as a parameter name (the timing keyword); renamed prev.
+
+Proofs: 34 of 38 examples byte-identical to shipped 1.10.0 (the
+serial-date decoy en route: a midnight boundary made all 38 "differ"
+until the baseline was rebuilt same-day); the four that differ are the
+four that must (two existence doors now present on both sides, the two
+language examples also paying the 1-byte marker); the spans showcase
+byte-identical is the sight-form fold proof. tests/test_presence.py
+(13: the vine verbatim, plain listing both sides, subtree+state, sight
+never presented, both-forms discrimination, door shut from the far
+side, tree-truth containment, all four error gates, the German
+accusative tail). Ceilings repriced: door games pay ~264 bytes for
+the presence walk; pathfinding's door migrated from its stray
+body-spans shape to the comma form. Handbook: the chapter 3 passage
+rewritten as the two features (the stale "02 chapter 12" ref died with
+it), the door kind passage speaks existence, chapter 7 now actually
+documents both forms in scope (the old text pointed at it for spans
+and it said nothing). Suite 1328. The -L prelude fix landed separately
+the day before (4f6aca1). Both amalgams regenerated; README table and
+WHATSNEW updated (pathfinding entry rotated out).

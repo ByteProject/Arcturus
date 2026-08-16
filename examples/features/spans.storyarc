@@ -3,11 +3,15 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for `spans` (docs/01 chapter 3): a fixed piece of scenery that is in
-// scope in more than one room. The object tree gives each object a single home,
-// so a distant thing you can see from several places, the moon, a mountain, a
-// lighthouse, is placed once and SPANS the other rooms. It is then referable from
-// every room it spans, at the cost of no real object per room. Compile and run:
+// A showcase for `spans`, the SIGHT form (docs/01 chapter 3): a piece of
+// scenery that is in scope in more than one room. The object tree gives each
+// object a single home, so a distant thing you can see from several places,
+// the moon, a mountain, a lighthouse, is placed once and SPANS the other
+// rooms. It is then referable from every room it spans, at the cost of no
+// real object per room, and it is never listed there: seen, not present.
+// (An object that truly EXISTS in several rooms, a two-sided door, a vine
+// tied between two ledges, is the other form, `in a, b`; see
+// doors-and-locks.storyarc.) Compile and run:
 //
 //   arcc examples/features/spans.storyarc -o spans.z5
 //   frotz spans.z5

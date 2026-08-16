@@ -57,13 +57,13 @@ room library
     desc "Shelves to the ceiling. The oak door leads back west."
     west oak_door
 
-thing oak_door of door in hall
+// A two-sided door is the existence form (docs/01 chapter 3): `in hall,
+// library` means one door, fully present in both rooms it joins.
+thing oak_door of door in hall, library
     name "oak door"
     words >oak, door
     desc "Heavy oak, iron-banded."
     openable
-
-    spans library
 
 thing candle in chapel
     name "wax candle"

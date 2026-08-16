@@ -1494,6 +1494,8 @@ block list_room(total)
         for each x in here
             if room_plain(x) is 1
                 list_item(x)
+        if any_presence is 1
+            list_presence_one
         return 0
     show("Du siehst hier ")
     let shown = 0
@@ -1506,7 +1508,25 @@ block list_room(total)
                     show(", ")
             name_room_item(x)
             change shown to shown + 1
+    if any_presence is 1
+        list_presence_tail(shown, total)
     say "."
+
+// The existence objects' tail of the combined sentence (docs/01 chapter
+// 3): objects standing here beyond the tree join after the room's own
+// children, with the same separators. Folds away without the form.
+block list_presence_tail(shown, total)
+    let p = presence_next(0)
+    while p is not nothing
+        if shown is not 0
+            if shown is total - 1
+                show(" und ")
+            else
+                show(", ")
+        name_room_item(p)
+        change shown to shown + 1
+        change p to presence_next(p)
+    return 0
 
 // Parser.
 // The player typed a word the story's dictionary does not know at

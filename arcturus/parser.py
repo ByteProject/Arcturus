@@ -387,18 +387,20 @@ class Parser:
         location = None
         if self.accept_kw("of"):
             parent = self._kind_name("a kind name")
+        presence: list[str] = []
         spans: list[str] = []
         if self.accept_kw("in"):
             location = self._object_ref_name("a location name")
-            # `in hall, livingroom` or `in hall and livingroom`: the extra rooms
-            # are spanned (the object lives in the first and is in scope in all).
+            # `in hall, livingroom` or `in hall and livingroom`: the EXISTENCE
+            # form (docs/01 chapter 3). The object lives in the first room and
+            # is fully present in every listed one.
             while self.check_op(",") or self.check_kw("and"):
                 self.advance()
-                spans.append(self._object_ref_name("a room name"))
+                presence.append(self._object_ref_name("a room name"))
         self.expect_newline()
         members = self.parse_members()
-        # A `spans a, b, c` member folds into the same spans list (and is not a
-        # real property): pull it out of the members here.
+        # A `spans a, b, c` member is the SIGHT form (and not a real property):
+        # pull it out of the members here.
         kept: list[ast.Member] = []
         for m in members:
             if isinstance(m, ast.PropertyDecl) and m.name == "spans":
@@ -410,11 +412,21 @@ class Parser:
                     spans.append(v.ident)
             else:
                 kept.append(m)
-        # A spanning object with no `in` lives in the first room it spans (its
-        # tree home); it is in scope in all of them either way.
+        # The two forms are two different features and do not mix on one
+        # object: existence (`in a, b`) presents the object everywhere it
+        # exists, sight (`spans`) only makes it referable. One object, one
+        # meaning.
+        if presence and spans:
+            raise ArcError(
+                f"'{name}' uses both `in {location}, ...` (the existence form) "
+                f"and `spans` (the sight form); an object takes one or the "
+                f"other", line, filename=self.filename)
+        # A sight object with no `in` lives in the first room it spans (its
+        # tree home); it is referable from all of them either way.
         if location is None and spans:
             location = spans[0]
-        return ast.ObjectDecl(category, name, parent, location, kept, line, spans)
+        return ast.ObjectDecl(category, name, parent, location, kept, line,
+                              presence=presence, spans=spans)
 
     def parse_kind(self) -> ast.KindDecl:
         line = self.cur.line

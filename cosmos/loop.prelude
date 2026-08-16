@@ -999,6 +999,74 @@ block room_plain(obj)
     return 1
 
 
+// The existence walk (docs/01 chapter 3): an object declared `in a, b` is
+// FULLY PRESENT in every listed room, but it lives in one room of the
+// object tree, so the describer's tree walks cannot see it in the others.
+// These blocks fill that gap. They walk all objects; a room description
+// runs once per look, so the walk stays off the hot paths, and in a game
+// without the existence form every call folds away (any_presence) and
+// dead-code elimination drops the blocks. is_presence itself folds to a
+// constant unless both multi-room forms are live in one game, where it
+// reads the compiler's 1-byte marker, so sight objects (`spans`, referable
+// only) never enter these walks.
+
+// The next existence object after index `prev` that belongs to this
+// room's combined sentence: standing here beyond the tree, and plain by
+// room_plain, the exact predicate the tree walk applies. Returns nothing
+// when the walk is done. (`prev`, not `after`: after is the handler
+// timing keyword.)
+block presence_next(prev)
+    let i = prev + 1
+    while i <= object_count
+        if is_presence(i) is 1
+            if parent_of(i) is not here
+                if spans_here(i)
+                    if room_plain(i) is 1
+                        return i
+        change i to i + 1
+    return nothing
+
+// The paragraphs of the existence objects standing here beyond the tree
+// (appearance, unmoved intro), and the count of the plain ones for the
+// combined sentence. A MIRROR of describe_room's inline tree pass; the
+// two must stay in step, so an existence object reads identically in its
+// home room and in every other room it exists in. (No player test: the
+// player is movable and can never be an existence object.)
+block presence_describe()
+    let n = 0
+    let i = 1
+    while i <= object_count
+        if is_presence(i) is 1
+            if parent_of(i) is not here
+                if spans_here(i)
+                    if i is not hidden and i is not concealed
+                        if any_appearance is 1
+                            if appearance_addr(i) is not nothing
+                                par
+                                say i.appearance
+                            else
+                                if intro_addr(i) is not nothing and i is not moved
+                                    par
+                                    say i.intro
+                        else
+                            if intro_addr(i) is not nothing and i is not moved
+                                par
+                                say i.intro
+                    if room_plain(i) is 1
+                        change n to n + 1
+        change i to i + 1
+    return n
+
+// The single-item sentence when that one item is an existence object
+// standing here beyond the tree: the tree walk found nothing to speak,
+// so the language layer's list_item speaks it, keeping any override's
+// wording.
+block list_presence_one()
+    let p = presence_next(0)
+    if p is not nothing
+        list_item(p)
+
+
 block describe_room()
     par
     // The picture draws BEFORE the darkness gate: a dark room shows its
@@ -1055,6 +1123,11 @@ block describe_room()
                     say obj.intro
         if room_plain(obj) is 1
             change listed to listed + 1
+    // The existence objects standing here beyond the tree (docs/01 chapter
+    // 3) speak their paragraphs and join the count; folds away in a game
+    // without the form.
+    if any_presence is 1
+        change listed to listed + presence_describe
     if listed is not 0
         par
         list_room(listed)

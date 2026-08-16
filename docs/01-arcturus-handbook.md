@@ -468,7 +468,7 @@ thing <id> [of <kind>] in <room>, <room> ...
 `of <kind>` sets the parent kind; `in <location>` sets the initial tree
 position, and the name it gives must be declared: a dangling location
 (`in truhe` with no truhe anywhere) is a compile error, never a silently
-stranded object, the same rule exits and spans follow. The body is
+stranded object, the same rule exits, existence rooms, and spans follow. The body is
 property settings, `on` handlers, an optional `grains`
 block (chapter 18), `topic` blocks on a character (chapter 17), and, with
 `summon.ambience`, `ambience` blocks (chapter 22).
@@ -484,16 +484,37 @@ make it `scenery`, or answer `on take` yourself. The whole mechanism folds
 away in a game that stages nothing. The name `scope` is reserved as a
 location only in games that use it.
 
-A fixed object can be in scope in more than one room. The object tree gives each
-object a single home, so a second (and third) room is a *span*: `in hall, vault`
-puts the object in `hall` and spans it into `vault`, and a `spans a, b, c` line
-in the body does the same for a scenery object with no single home (a moon seen
-from three clearings). The object lives in one room and is referable from every
-room it spans. Spanning is for non-movable objects (`fixed` or `scenery`); on a
-movable object it is ignored, since a carried object's scope follows it. Its
-headline uses are a two-sided door (one door object in both rooms it joins) and
-wide scenery. A room's exit may name such a door, gating movement on it (02
-chapter 12).
+An object can be tied to more than one room, and Arcturus draws a hard line
+between two different ways of being there. One object uses one form or the
+other, never both.
+
+**`in room1, room2` is the EXISTENCE form.** The object exists, whole, in
+every room it lists. The object tree gives it a single home (the first room
+named), and in every other listed room it is exactly as present: described
+by the same paragraphs (`appearance`, `intro`), listed in the same "You can
+see" sentence, carrying its contents with it, sharing one state. Open the
+door in the hall and it stands open in the vault, because it is not a copy;
+it is the one door. The form is for `fixed` objects only, and the compiler
+holds that line loudly: a movable object refuses to exist in two places (a
+carried object's scope follows it), scenery is pointed at `spans` below,
+and the targets must be named rooms, never kinds. Its headline uses are the
+two-sided door (one door object in both rooms it joins; a room's exit may
+name it, gating movement on it, chapter 8) and any fixture genuinely shared
+by two rooms: a vine tied between a ledge and the gully below, a hatch in
+a floor, a counter served from both sides.
+
+One deliberate boundary: the containment test stays tree-truth. `if vine
+in gully` answers by the object tree, so it is true only in the home room;
+you declared the rooms, so test `here is ledge or here is gully` directly.
+Everything the player sees and does treats the object as fully there.
+
+**A `spans a, b, c` line in the body is the SIGHT form.** The object is a
+backdrop with no single home, referable from every room it spans and never
+presented there: the moon seen from three clearings answers EXAMINE in
+each, appears in none of their listings, and costs no real object per
+room. Sight is scenery's tool. It is for non-movable objects (`fixed` or
+`scenery`); on a movable object it is ignored, since a carried object's
+scope follows it.
 
 A span target may be a room KIND, not just a named room: `spans outside_room`
 puts the object in scope in *every* room of that kind. The sun and the sky hang
@@ -597,9 +618,9 @@ close, and put in.
 scope on top. Default put on.
 
 `door of thing`: `openable` and `fixed` by default; declare `lockable`, `locked`,
-and `unseal_with <key>` to make it lock. A door joins two rooms with the `in A, B` sugar: it
-lives in one room in the object tree and spans the other (chapter 7), so it is
-referable and operable from both sides. When a room's exit names the door (`east
+and `unseal_with <key>` to make it lock. A door joins two rooms with `in A, B`,
+the existence form (this chapter): one door, fully present in both rooms, listed
+and operable on both sides, one state. When a room's exit names the door (`east
 oak_door`), crossing it is gated on the door being open and unlocked and lands
 the player on its far side, with no author code. Default open, close, lock,
 unlock, and the movement gate.
@@ -978,6 +999,12 @@ thing has no insides to see into). The rule, like the take answer and the
 listing exclusion, folds away in a game with no components
 (`any_components`).
 
+The two multi-room forms (chapter 3) extend scope beyond the room-and-carry
+walk: an existence object (`in a, b`) is in scope, and fully present, in
+every room it lists, its contents with it; a sight object (`spans`) is in
+scope in every room it spans while never being presented there. Both fold
+away entirely in a game that uses neither.
+
 One place stands outside the room-and-carry rule: the BACKSTAGE scope room
 (chapter 3). An object placed `in scope` (or moved there at run time,
 `move x to scope`) is in scope in every room, light or dark: the home of a
@@ -1012,7 +1039,10 @@ item through `name_room_item`; a single object goes through `list_item`
 unchanged, so a game that overrides `list_item` to reword its listing
 keeps that wording for the single case, and overrides `list_room` to
 reshape the sentence itself. Which objects are plain is the loop's
-`room_plain` predicate, shared between the count and the printing.
+`room_plain` predicate, shared between the count and the printing. An
+existence object (`in a, b`, chapter 3) joins the paragraphs and the
+sentence in every room it exists in, its home room and the others alike,
+by the same predicate.
 
 Scenery holders can join the room description too: with
 `constant scenery_contents = 1` declared once, every scenery container or

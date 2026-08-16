@@ -132,6 +132,7 @@ class Analyzer:
         # resolved (door detection).
         self._check_exits()
         self._check_locations()
+        self._check_presence()
         # After the members are collected: the automatic scored bits need
         # the real attributes (fixed blocks a thing, `scored false` opts
         # out), and the award scan feeds the compiler-summed max_score.
@@ -484,6 +485,7 @@ class Analyzer:
                     decl.category,
                     decl.parent or decl.category,
                     location=decl.location,
+                    presence=list(decl.presence),
                     spans=list(decl.spans),
                     decl=decl,
                     line=decl.line,
@@ -1014,6 +1016,95 @@ class Analyzer:
                     f"the world",
                     obj.line,
                 )
+
+    def _effective_attr(self, obj, attr: str):
+        """The effective PropertyDecl for an attribute: the instance wins,
+        then the nearest kind in the chain (the _effective_props merge,
+        reduced to one name)."""
+        if attr in obj.props:
+            return obj.props[attr]
+        for kname in obj.chain:
+            kind = self.world.kinds.get(kname)
+            if kind is not None and attr in kind.props:
+                return kind.props[attr]
+        return None
+
+    def _attr_truthy(self, obj, attr: str) -> bool:
+        decl = self._effective_attr(obj, attr)
+        if decl is None:
+            return False
+        if decl.form == ast.PROP_BOOL:
+            return True
+        if decl.form == ast.PROP_VALUE and decl.values:
+            v = decl.values[0]
+            return isinstance(v, ast.Bool) and v.value
+        return False
+
+    def _check_presence(self) -> None:
+        """The existence form (`in a, b`, docs/01 chapter 3): the object is
+        fully present in every listed room. Validated here, after the
+        properties pass, because the gate reads effective attributes: the
+        form is for FIXED objects only. Scenery is redirected to `spans`
+        (the sight form, its tool), a movable object is refused outright
+        (never the old silent drop), and the targets must be named rooms,
+        never kinds (a kind target is the sight form's). When both forms
+        are live in one game, each existence object gets a synthesized
+        1-byte `presence` marker so the describer can tell them apart at
+        run time; a game using one form (or none) allocates no marker and
+        keeps its property numbering untouched."""
+        w = self.world
+        any_presence = False
+        any_sight = False
+        for obj in w.objects.values():
+            if obj.spans and (self._attr_truthy(obj, "fixed")
+                              or self._attr_truthy(obj, "scenery")):
+                any_sight = True
+            if not obj.presence:
+                continue
+            if obj.category == "room":
+                raise self._error(
+                    f"'{obj.name}' is a room: a room cannot exist inside "
+                    f"other rooms", obj.line)
+            seen: list[str] = []
+            for rname in obj.presence:
+                if rname in w.kinds:
+                    raise self._error(
+                        f"'{obj.name}' is declared in '{rname}', a kind: the "
+                        f"existence form (`in a, b`) takes named rooms; to be "
+                        f"referable from every room of a kind, use the sight "
+                        f"form (`spans {rname}`)", obj.line)
+                target = w.objects.get(rname)
+                if target is None:
+                    raise self._error(
+                        f"'{obj.name}' is declared in unknown room '{rname}'",
+                        obj.line)
+                if target.category != "room":
+                    raise self._error(
+                        f"'{obj.name}' is declared in '{rname}', which is "
+                        f"not a room", obj.line)
+                if rname not in seen and rname != obj.location:
+                    seen.append(rname)
+            obj.presence = seen
+            if self._attr_truthy(obj, "scenery"):
+                raise self._error(
+                    f"'{obj.name}' is scenery declared in several rooms: "
+                    f"scenery seen from many rooms uses `spans` (referable, "
+                    f"never listed); `in a, b` is the existence form, for a "
+                    f"fixed object that is fully present in each", obj.line)
+            if not self._attr_truthy(obj, "fixed"):
+                raise self._error(
+                    f"'{obj.name}' is declared in several rooms but is "
+                    f"movable: an object can exist in several rooms only "
+                    f"when `fixed` (a carried object's scope follows it)",
+                    obj.line)
+            any_presence = True
+        if any_presence and any_sight:
+            self._unify_property("presence", prelude.T_NUMBER, 0)
+            for obj in w.objects.values():
+                if obj.presence:
+                    obj.props["presence"] = ast.PropertyDecl(
+                        "presence", ast.PROP_VALUE,
+                        values=[ast.Number(1, obj.line)], line=obj.line)
 
     def _check_exits(self) -> None:
         """Every named exit target must exist and be walkable (a field report:
@@ -2011,8 +2102,9 @@ class Analyzer:
         std = set(self.env.properties)
         # tag rides props but is not one; trigger is synthesized from the #
         # marker and read through its intrinsic (trigger_addr), never as a
-        # property, so the unread-lint has no business with either.
-        skip = {"tag", "trigger", "adjective"}
+        # property, so the unread-lint has no business with either. presence
+        # is the existence-form marker, synthesized and intrinsic-read too.
+        skip = {"tag", "trigger", "adjective", "presence"}
         noted = 0
         pools = [(o.name, o.props) for o in self.world.objects.values()]
         pools += [(k.name, k.props) for k in self.world.kinds.values()

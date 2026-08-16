@@ -151,8 +151,10 @@ thing llave in cofre
     words llave, >bronce
     feminine
 
-// La puerta une las dos habitaciones (spans) y se abre con la llave. Por ser de
-// tipo door, ya es `openable` y `fixed`.
+// La puerta une las dos habitaciones (`in posada, patio`: la forma de
+// existencia, docs/01 capítulo 3): una sola puerta, presente entera en ambas
+// salas, con un único estado. Se abre con la llave. Por ser de tipo door, ya
+// es `openable` y `fixed`.
 thing puerta of door in posada, patio
     name "puerta de roble"
     words puerta, >roble

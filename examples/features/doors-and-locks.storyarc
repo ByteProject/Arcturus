@@ -3,12 +3,13 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for doors, locks, and keys (docs/01 chapter 3, docs/01 chapter 3).
-// The `door` kind is `openable` and `fixed` by default; add `lockable`, `locked`,
-// and `unseal_with <key>` to make it lock. A door joins two rooms with the
-// `in A, B` sugar, and a room's exit points at the DOOR rather than a room, so
-// crossing it is gated on the door being open and unlocked and lands you on the
-// far side, with no author code at all. Compile and run:
+// A showcase for doors, locks, and keys (docs/01 chapters 3 and 5). The
+// `door` kind is `openable` and `fixed` by default; add `lockable`, `locked`,
+// and `unseal_with <key>` to make it lock. A door joins two rooms with
+// `in A, B`, the EXISTENCE form: one door, fully present in both rooms,
+// listed on both sides, one state. A room's exit points at the DOOR rather
+// than a room, so crossing it is gated on the door being open and unlocked
+// and lands you on the far side, with no author code at all. Compile and run:
 //
 //   arcc examples/features/doors-and-locks.storyarc -o doors.z5
 //   frotz doors.z5

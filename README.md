@@ -42,8 +42,8 @@ or later, which you almost certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.10.0 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 1.13.0 | shipped inside `arcc` |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.11.0 | [build/arcc](build/arcc) |
+| **Cosmos**, the standard library | 1.14.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.3.9 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 1.35.0 | [build/arcimg](build/arcimg) |
 | **proteus**, the web story builder (optional, for the web) | 1.0.0 | [build/proteus](build/proteus) |
@@ -105,7 +105,8 @@ does is specified there. For a taste, the two worked games live under
 Cloak of Darkness. Small teaching showcases sit alongside them:
 [examples/features/](examples/features/) isolates core-language features (the
 container knowledge model, computed properties, kinds and inheritance, doors
-and locks, multi-room scenery with `spans`, the `intro` first-look property,
+and locks, an object existing in several rooms (`in a, b`) beside multi-room
+scenery with `spans`, the `intro` first-look property,
 grains, positional grammar, the object catch-all, daemons and timers,
 Z-machine colours with the self-restoring coloured say, and the player object
 with its standard self-words, pronouns, and Spanish clitic forms), and

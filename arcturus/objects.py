@@ -149,10 +149,16 @@ class Layout:
     # True if any object is `beyond` (visible, not touchable); the touch
     # guards fold away without one.
     has_beyond: bool = False
-    # True if any (non-movable) object declares `spans`. The scope code guards its
-    # spans checks with `any_spans()`, which folds to this; a game with no spanning
-    # objects folds the checks away and dead-code elimination drops the spans
-    # blocks, so it pays nothing for the feature.
+    # The two multi-room forms (docs/01 chapter 3). has_presence: any object
+    # uses the existence form (`in a, b`, fully present in each, sema-gated
+    # to fixed). has_sight: any non-movable object uses the sight form
+    # (`spans`, referable only). has_spans is their union and gates the
+    # shared scope machinery (any_spans folds to it); the describer's
+    # presence pass folds on any_presence, and the runtime marker read
+    # (is_presence) is needed only when BOTH are live in one game. A game
+    # using neither folds everything away and pays nothing.
+    has_presence: bool = False
+    has_sight: bool = False
     has_spans: bool = False
     # True if any object resolves `shiftable` (or a runtime `now ... is
     # shiftable` exists): the push-travel path folds on it (any_shiftable).
@@ -383,17 +389,23 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
     ]
     layout.direction_canonical = dict(world.direction_names)
 
-    # Does any non-movable object declare `spans`? Only then does the scope code
-    # keep its spans checks (any_spans folds to this); otherwise they cost nothing.
+    # Which multi-room forms are live? Existence (`in a, b`) is sema-gated to
+    # fixed objects, so any presence list counts; sight (`spans`) counts only
+    # on a non-movable object (on a movable one it is ignored, docs/01
+    # chapter 3). The scope machinery folds on their union (any_spans), the
+    # describer's presence pass on any_presence alone.
     for name, obj in world.objects.items():
-        if not obj.spans:
-            continue
-        eff = _effective_props(world, obj)
-        if ("fixed" in eff and _bool_value(eff["fixed"])) or (
-            "scenery" in eff and _bool_value(eff["scenery"])
-        ):
-            layout.has_spans = True
+        if obj.presence:
+            layout.has_presence = True
+        if obj.spans:
+            eff = _effective_props(world, obj)
+            if ("fixed" in eff and _bool_value(eff["fixed"])) or (
+                "scenery" in eff and _bool_value(eff["scenery"])
+            ):
+                layout.has_sight = True
+        if layout.has_presence and layout.has_sight:
             break
+    layout.has_spans = layout.has_presence or layout.has_sight
 
     # Is any object a door? Only then does the go handler keep its door detour
     # (any_doors folds to this); a game with no doors pays nothing for it.
@@ -877,16 +889,23 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     topics_prop = layout.prop_number.get("topics")
     if topics_prop is not None and world.objects[name].topics:
         items.append((topics_prop, "topics", None))
-    # The spans property: the extra rooms a fixed object is in scope in. Emitted
-    # like `words` (an array of object numbers) but only for a non-movable object
-    # (fixed or scenery); on a movable object spans is ignored (docs/01 chapter 3).
+    # The spans property carries BOTH multi-room forms' rooms (docs/01
+    # chapter 3): the existence rooms (`in a, b`, sema-gated to fixed) and
+    # the sight rooms (`spans`, only for a non-movable object; on a movable
+    # one sight is ignored). One shared array keeps the scope walk a single
+    # property read; the forms never mix on one object, and when both are
+    # live in one game the sema-synthesized `presence` marker tells the
+    # describer which objects the array means existence for.
     spans_prop = layout.prop_number.get("spans")
+    obj_presence = world.objects[name].presence
     obj_spans = world.objects[name].spans
     nonmovable = ("fixed" in eff and _bool_value(eff["fixed"])) or (
         "scenery" in eff and _bool_value(eff["scenery"])
     )
-    if spans_prop is not None and obj_spans and nonmovable:
-        items.append((spans_prop, "spans", obj_spans))
+    if not nonmovable:
+        obj_spans = []
+    if spans_prop is not None and (obj_presence or obj_spans):
+        items.append((spans_prop, "spans", obj_presence + obj_spans))
     for pnum, pname, decl in sorted(items, reverse=True, key=lambda it: it[0]):
         if pname in ("words", "plural", "trigger", "adjective"):
             _emit_words(layout, pnum, decl)

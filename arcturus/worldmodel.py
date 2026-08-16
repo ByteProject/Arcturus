@@ -217,8 +217,11 @@ class Obj:
     kind: str  # the immediate kind: a declared kind, or "thing"/"room"
     chain: list[str] = field(default_factory=list)  # kind chain, nearest first
     location: Optional[str] = None  # initial tree parent (an object name)
-    # Extra rooms this fixed object is in scope in, beyond its tree location
-    # (the `spans` sugar; resolved room names, docs/01 chapter 3).
+    # The two multi-room forms (docs/01 chapter 3): presence is the EXISTENCE
+    # form (`in a, b`, fully present in each, fixed only), spans the SIGHT
+    # form (`spans a, b`, referable only, scenery's tool). Resolved room
+    # names; the forms never mix on one object (parser-enforced).
+    presence: list[str] = field(default_factory=list)
     spans: list[str] = field(default_factory=list)
     # Property name -> the initial value expression set on this object.
     props: dict[str, ast.Expr] = field(default_factory=dict)

@@ -533,10 +533,15 @@ class ObjectDecl:
     location: Optional[str] = None  # in <location>
     members: list[Member] = field(default_factory=list)
     line: int = 0
-    # Extra rooms this (fixed) object is in scope in, beyond its tree location:
-    # from `in A, B` / `in A and B` sugar or a `spans B, C` member. The object
-    # lives in `location` in the tree and is visible in these too (docs/01 s5).
-    spans: list[str] = field(default_factory=list)
+    # The two multi-room forms are two different features (docs/01 chapter 3,
+    # Stefan's design, recovered 2026-08-16). `in A, B` is the EXISTENCE form:
+    # the object is fully present in every listed room (the first is its tree
+    # home), the describer includes it everywhere, and it must be fixed, never
+    # scenery, never movable. A `spans B, C` member is the SIGHT form: scenery
+    # referable from every listed room (or room kind) but never presented
+    # there. The forms do not mix on one object.
+    presence: list[str] = field(default_factory=list)  # in A, B: exists here too
+    spans: list[str] = field(default_factory=list)     # spans B, C: seen from here
 
 
 @dataclass

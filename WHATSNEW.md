@@ -6,6 +6,22 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **One object, truly in two rooms: the existence form.** An adopter's
+  field report uncovered a design flattened in implementation, and the
+  recovered ruling now stands: `thing vine in ledge, gully` means the
+  vine EXISTS in both rooms, whole. It is described and listed in each,
+  its contents come along, and its state is one, so a door declared
+  `in hall, vault` stands open on both of its sides. A body-line
+  `spans a, b` remains the SIGHT form: scenery referable from every
+  room it spans and presented in none (the moon over three clearings;
+  room kinds keep working there). The compiler holds the boundary
+  loudly now: a movable, scenery, or kind target on the existence form
+  is a compile error with a pointer to the right tool, never a silent
+  drop. All three shipped languages speak the far side natively, the
+  handbook teaches the two forms apart, and games using neither
+  compile byte-identical. From the same report: a forked prelude in a
+  `-L` directory now really shadows the bundled one, as chapter 23 had
+  promised since B5 (arcc 1.11.0, Cosmos 1.14.0).
 - **The parser learns parts of speech, and German gets its depth round.**
   A field-report round on the German IF forum ended as the biggest parser
   upgrade since the verbs overhaul, and the fundamentals serve every
@@ -57,24 +73,6 @@ lives in the commit log. The feature roadmap follows below.
   Brotzeit."), and a game that overrode `list_item` keeps its wording
   for the single-item case. An adopter request, and the standard
   behavior now (Cosmos 1.5.0).
-- **Pathfinding: GO TO, FIND, LOOK <direction>, and the way family.**
-  `summon.pathfinding` and the player can GO TO any room they have
-  visited, by name and with no declarations (a room's name words become
-  its vocabulary; `words` on a room overrides). FIND walks to a thing
-  you know of; LOOK NORTH answers what lies that way, leading with the
-  direction as typed, so it composes with the nautical granule ("Aft
-  lies your cabin."). Knowledge is the visited set: unvisited places
-  are as unknown as places that do not exist, and no route leads
-  through rooms you have not seen or doors that stand closed. Every
-  step of a walk is a real turn (daemons and clocks run; one breadcrumb
-  line per room passed), one UNDO takes back the whole walk, and the
-  walk yields the moment the world pushes back. Beneath the granule,
-  the engine is core library, callable with no summon from any handler:
-  `way_between(a, b)` for adjacency, `way_toward(a, b)` for the first
-  step of a shortest path (an NPC walking toward a goal is one call per
-  turn), the `door_bars` and `path_admits` seams for doors and rooms
-  that play by their own rules, and the `no_way` constant, so 0 stays
-  honest north forever. Unused, all of it folds away to the byte.
 
 ## Feature roadmap
 
@@ -85,7 +83,7 @@ way, designed on its own terms, pay-for-use as always.
   NPC's movement (patrol routes, pathfinding toward goals), what they
   do and say as they go, where they operate, whether they can open
   doors, and a measure of intelligence in how they act. Builds on the
-  pathfinding engine above.
+  shipped pathfinding engine (GO TO, FIND, and the way family).
 - **Light topology.** Doors and openings that block or pass light, so a
   lit room can spill light through an open doorway and a closed door can
   seal it off.

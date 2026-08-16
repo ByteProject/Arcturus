@@ -20,7 +20,9 @@
 //     the taproom, and voices whisper in the wind on the beach
 //   - `grains`: scenery at zero cost (the sea, the gulls, the lighthouse),
 //     and the same scenery word may serve several rooms
-//   - `spans`: the moon is visible from the courtyard and the beach
+//   - `spans`: the moon is visible from the courtyard and the beach (the
+//     sight form), while the door exists in both its rooms (`in a, b`,
+//     the existence form)
 //   - a container (the chest), a locked door, and grammatical gender
 //   - separable verbs: "schalt die Lampe an" (or ein, or "anmachen")
 //
@@ -184,8 +186,10 @@ thing schluessel in truhe
     words bronzeschlüssel, schlüssel, >bronze
     der
 
-// The door joins the two rooms (spans, being a `door`) and opens with the
-// key. As a `door` it is already `openable` and `fixed`. `die` Tür.
+// The door joins the two rooms (`in gasthaus, hof`: the existence form,
+// docs/01 chapter 3), one door fully present on both sides, one state.
+// It opens with the key. As a `door` it is already `openable` and
+// `fixed`. `die` Tür.
 thing tuer of door in gasthaus, hof
     name "Tür aus Eiche"
     // Tür and Türe are both good German: both variants declared, in the
