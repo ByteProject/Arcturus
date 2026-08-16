@@ -131,3 +131,64 @@ def test_an_aged_fork_notes_itself_at_compile_time(tmp_path, capsys):
     assert rc == 0
     err = capsys.readouterr().err
     assert "was forked from Cosmos 0.36.5" in err
+
+
+# --- Forked preludes shadow via -L ----------------------------------------
+#
+# Chapter 23's whole prelude-hacking story is: extract the library, edit,
+# point -L at it. The loader never honored that for preludes (only granule
+# summons consulted -L), so an edited prelude was silently ignored, from B5
+# until the field found it (EdwardianDuck's report, 2026-08-16). These pin
+# the promise both ways.
+
+def _mini_game():
+    return (
+        'game\n    title "L"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing coin in hall\n    name "coin"\n    words coin\n'
+    )
+
+
+def test_a_forked_prelude_in_L_shadows_the_bundled_one(tmp_path):
+    from arcturus import cosmos
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from arcturus.codegen import generate
+    assert cli.main(["--extract-library", str(tmp_path)]) == 0
+    eng = tmp_path / "english.prelude"
+    eng.write_text(
+        eng.read_text(encoding="utf-8").replace(
+            'say "You take ${the noun} with you."',
+            'say "Snagged."'),
+        encoding="utf-8")
+    prog = cosmos.combined_program(parse(_mini_game()), lib_dirs=(str(tmp_path),))
+    story = generate(analyze(prog))
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    io = CaptureIO(script=["take coin", "quit", "y"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except SystemExit:
+        pass
+    out = io.text
+    assert "Snagged." in out
+    assert "You take the coin with you." not in out
+
+
+def test_without_L_the_bundled_prelude_still_loads(tmp_path):
+    from arcturus import cosmos
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from arcturus.codegen import generate
+    prog = cosmos.combined_program(parse(_mini_game()))
+    story = generate(analyze(prog))
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    io = CaptureIO(script=["take coin", "quit", "y"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except SystemExit:
+        pass
+    assert "You take the coin with you." in io.text

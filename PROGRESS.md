@@ -10511,3 +10511,21 @@ deviations inside approved designs are proposals surfaced BEFORE
 landing; measure, never assume; byte-identity proofs for language work
 (snapshot before, compare after, deterministic builds make it real);
 per-item PROGRESS entry + checkpoint update in the landing commit.
+
+ADOPTER REPORTS ROUND (2026-08-16): EdwardianDuck brought two. (1) Block
+override granule-vs-granule: expected behavior (granules are peers, no
+load-order winner, duplicate is the honest report; the chapter-file rank
+is the supported route for a house-overrides file). Answered on Discord.
+(2) Spanned-object appearance shows only in the home room: triaging the
+report surfaced TWO real findings. First, THE -L PRELUDE BUG, fixed in
+this commit: chapter 23 promises "extract the library, edit, point -L at
+it" and --extract-library prints the same, but combined_program never
+consulted -L for preludes (only granule summons did), so a forked
+prelude was silently ignored, in every release since B5. Stefan's
+ruling: "it's a bug so this needs to be fixed." The loader now shadows
+each bundled prelude with a same-named file from the first -L directory
+holding one, with the existing fork note riding along; two tests pin the
+promise both ways (edited msg_taken speaks with -L, bundled without).
+The silence is what let the adopter believe his prelude edit had worked;
+his actual report is the spans design issue, ruled and landing
+separately (next entry).

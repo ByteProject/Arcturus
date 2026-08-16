@@ -599,6 +599,17 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
         # load.
         if language != _DEFAULT_LANGUAGE and name == default_prelude:
             continue
+        # A forked prelude in a -L directory shadows the bundled one (docs/01
+        # chapter 23: extract the library, edit, point -L at it). The first
+        # -L directory holding the file wins, and the fork note speaks when
+        # the fork's base has moved on, exactly as for a forked granule.
+        for root in lib_dirs:
+            cand = os.path.join(root, name)
+            if os.path.isfile(cand):
+                with open(cand, "r", encoding="utf-8") as fh:
+                    src = fh.read()
+                fork_note(name, src, cand)
+                break
         for d in _expand_language(parse(src, name).decls, language):
             if isinstance(d, (ast.BlockDecl, ast.Handler, ast.DirectionDecl)):
                 d.origin = "library"
