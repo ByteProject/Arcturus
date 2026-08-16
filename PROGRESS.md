@@ -10415,3 +10415,99 @@ arc_image stands at R2-R4 complete plus Shawn's Agon (fifteen
 formats, twelve probe-proven); R5 (Apple II/DHGR, Next, MEGA65, C128
 ruling) waits until this adopter round closes. The emulator bench
 and its rules live in the memory files, not here.
+
+## CHECKPOINT for pickup (2026-08-16, compaction): the Zed lane shipped, three lanes parked
+
+THE PICKUP. Versions: arcc 1.10.0 / Cosmos 1.13.0 / arcimg 1.35.0 /
+Actaea 1.3.9 / proteus 1.0.0; VS Code extension 1.2.1 (one vsix ships);
+Zed extension 1.0.0. Suite 1313 green (pytest from a real terminal;
+tests/actaea needs a TTY, keep it out of batch runs). Tree clean,
+everything pushed.
+
+CLOSED SINCE THE LAST CHECKPOINT: the German forum round is DELIVERED
+(reply posted 2026-08-15, Died... the round's eight items B, A1, A2, D,
+F, C, G, H plus the example rulings all landed and are recorded above;
+WHATSNEW carries the one collected entry; the Discord announcement was
+handed over). The adjective sweep marked 103 words in 39 examples with
+zero behavior regressions. The example roster RULED: Gasthaus stays the
+minimal German intro, Ghosts of Blackwood Manor is retired (its dir
+deleted), Craverly Heights becomes the English example game port
+(examples/craverly, gitignored, Puny source + PORTLOG.md inside,
+permission rcveeder.net/craverly/), Hibernated 1 auf Deutsch the big
+German one (examples/hibernated1_german, gitignored, PORTLOG.md).
+
+THE ZED LANE (this checkpoint's main news, all shipped):
+- editors/tree-sitter-arcturus: the Tree-sitter grammar (loose,
+  highlight-first; declaration heads structural, word sets in queries;
+  ZERO parse errors across the whole corpus, examples + cosmos).
+  Regenerate after grammar.js edits: cd editors/tree-sitter-arcturus &&
+  npx tree-sitter-cli@latest generate (commit src/ too).
+- editors/zed: the extension (id arcturus, display "Arcturus", all
+  three suffixes storyarc/granule/prelude; highlights + brackets +
+  outline). QUERY ORDER LAW: later pattern wins in Zed; calls first,
+  then generic sets, then structural captures, strings last (the
+  ordering comment in highlights.scm is normative).
+- tools/zed_dev.py: assembles the installable dev bundle under
+  build/zed-dev (grammar as throwaway git repo, file:// + sha; Zed
+  needs git even locally). Stefan: "zed: install dev extension" /
+  rebuild after re-running the tool.
+- tools/zed_publish.py: exports the publishing artifacts to
+  ../Misc/tree-sitter-arcturus and ../Misc/zed-arcturus (Stefan's
+  layout: publishing repos live under Fiction/Misc, never in Fiction
+  directly). The tool owns their READMEs and LICENSE (MIT, matching
+  the project; a stray BSD line was corrected). It stamps the
+  extension's grammar rev from the grammar repo's HEAD. Push order:
+  GRAMMAR FIRST, then extension.
+- PUBLIC STATE: both Misc repos pushed to GitHub (ByteProject).
+  tree-sitter-arcturus main = 7170081 (the rev the extension pins),
+  zed-arcturus main = 89af9a3. The registry PR is OUT: fork
+  ByteProject/extensions (shallow clone at ~/Fiction/Misc/extensions,
+  branch add-arcturus), submodule extensions/arcturus + [arcturus]
+  entry in extensions.toml (version 1.0.0), sorted with the repo's own
+  sorter (node src/sort-extensions.js after npx pnpm install; the
+  sorter placed arcturus AFTER arctikai-theme, hand-sorting would have
+  missed it). Bot checks PASSED; awaiting human merge.
+- UPDATE FLOW for later releases (documented in editors/zed/README.md):
+  develop in editors/*, zed_publish.py, commit+push Misc repos
+  (grammar first), bump version in extension.toml, then in the fork:
+  git submodule update --remote extensions/arcturus, bump
+  extensions.toml version, push branch, fresh PR.
+- tests/test_editors.py: the parity suite (5 tests) holds the VS Code
+  tmLanguage and the Zed queries together mechanically; deliberate
+  deviations are listed IN the test with reasons (turns stays builtin,
+  clear/capacity resolve as VS Code include order did). The UUID
+  lesson: never claim extension parity from memory, the test or a
+  file-against-file audit is the proof.
+
+NOT OURS: the "Inform 6 x PunyInform" Zed extension is Stefan's own
+project with an Opus instance (his ruling: not part of Arcturus). He
+has the ignition prompt (chat, 2026-08-16); foundation copies of the
+two Zed dirs were made by him. Do not develop it here; the grammar
+convention (tree-sitter-inform6 for the language, extension carries
+the pairing name) was advised.
+
+NEXT (the actual todo, in rough order, each on Stefan's word):
+1. ZED PR AFTERMATH: when the registry merges, Stefan verifies the
+   in-app listing, uninstalls the dev extension; the fork clone at
+   ~/Fiction/Misc/extensions stays for future update PRs.
+2. CRAVERLY HEIGHTS PORT (the English example game): workspace ready,
+   read the Puny port first and note the Inform-7-behavior backports
+   as Cosmos improvement candidates (Stefan: "if it serves Inform 7
+   well, it might also serve us"). PORTLOG.md discipline like H2.
+3. HIBERNATED 1 AUF DEUTSCH: port first (H2 discipline), translation
+   second, Stefan's native pass gates line by line. German prose only
+   through his pass; code comments English, always.
+4. B12 R5 (arc_image): Apple II/DHGR, Spectrum Next, MEGA65, and the
+   C128 ruling; then R6. This was the lane paused for the Zed work.
+5. SMALL OPEN THREADS: probe_noun stays classless (H's flagged
+   decision, Stefan's call if wanted); the Actaea Beyond Zork gap
+   stands (do not start unprompted); the roadmap items live in
+   WHATSNEW.
+
+STANDING DISCIPLINE (unchanged, the memory files hold the full set):
+one item at a time; Stefan's word gates designs, his eye gates
+behavior; answers before conditioned work, in the final message;
+deviations inside approved designs are proposals surfaced BEFORE
+landing; measure, never assume; byte-identity proofs for language work
+(snapshot before, compare after, deterministic builds make it real);
+per-item PROGRESS entry + checkpoint update in the landing commit.
