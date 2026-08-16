@@ -358,3 +358,5 @@ granule.
 Special thanks to **Charles Moore Jr.** for early adoption and bug hunting.
 
 Proteus uses a forked version of Parchment by **Dannii Willis**.
+
+Thanks to **Martin Oehm** for bug hunting in German language granule.
