@@ -10425,7 +10425,7 @@ tests/actaea needs a TTY, keep it out of batch runs). Tree clean,
 everything pushed.
 
 CLOSED SINCE THE LAST CHECKPOINT: the German forum round is DELIVERED
-(reply posted 2026-08-15, Died... the round's eight items B, A1, A2, D,
+(reply posted 2026-08-15; the round's eight items B, A1, A2, D,
 F, C, G, H plus the example rulings all landed and are recorded above;
 WHATSNEW carries the one collected entry; the Discord announcement was
 handed over). The adjective sweep marked 103 words in 39 examples with
