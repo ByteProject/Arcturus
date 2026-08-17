@@ -1415,3 +1415,89 @@ the mode-12 conversion (arcimg slice9).
 MEMORY. The ~20-instruction decoder and the section walk; the
 compressed source is read strictly forward and may be streamed from
 the SD card in sector bites. Nothing else.
+
+### C.13 ZX Spectrum Next (target id 12, tag NXT, files `<id>.NXT`)
+
+The Next receives the paintings literally: an ST-class master's colors
+sit exactly on the machine's 3-bit guns, so the whole Rabenstein corpus
+converts with zero differing pixels (measured, 2026-08-17, and frozen
+as a test), and the Next edition of a game's art IS its master art.
+The friendliest loader of the Z80 family follows from the hardware.
+
+Probe: [arc_image/probes/nxt/](../arc_image/probes/nxt/), source
+`probe.asm` (plain Z80, no Z80N opcodes, assembled with sjasmplus),
+`mk_nex.py` (wraps it into a standard .nex: code in bank 0, the two
+pair files riding banks 1 and 3), `run_probe.py` (the headless
+pre-proof: the probe executes on Haumea's simz80 core under a TBBlue
+port model, and the layer bytes, the palette writes, and the register
+discipline are all proven against the pair files before any emulator
+runs), and the vendored reference decoder `unlzsa2_fast.asm` (spke &
+uniabis, unchanged). Run: ZEsarUX `--machine TBBlue probe.nex` (or
+CSpect, or real hardware from SD; core 3.0 required, stated in the
+.nex header). Verified pixel-perfect on ZEsarUX 13.0 (Stefan's eye,
+2026-08-17).
+
+VIDEO. Layer 2 in the 320x256 8bpp mode (NextReg $70 = $10, core
+3.0+). The layer's memory IS the screen: plain banked RAM from the
+16K bank named in NextReg $12 (the probe states the default, 8),
+laid out COLUMN-MAJOR, address = x*256 + y. The .arc bitmap section
+is column-major by design, so placing a column is one LDIR and there
+is no bit-shuffling anywhere. The band is framed by the hardware
+clip window (NextReg $18, index reset via $1C bit 0: X1 0, X2 159 in
+the 320 mode's pair units, Y1 0, Y2 the band's last row); nothing
+below it is ever painted, the fallback colour ($4A) shows instead.
+The ULA is switched off outright ($68 bit 7): the interpreter's text
+below the band is the interpreter's business (its own layer, its own
+palette), and nothing is shared or sacrificed.
+
+CONVENTIONS a loader must respect:
+
+- NEXTREG ACCESS NEEDS NO Z80N. The classic port pair ($243B select,
+  $253B data) reaches every register; the probe uses nothing else,
+  which is also what lets it run on any plain Z80 core.
+- THE PALETTE IS A TWO-WRITE PROTOCOL. Select the Layer 2 first
+  palette for writing with $43 = %00010000 (auto-increment on), zero
+  the index via $40, then stream the .arc palette section's 512
+  bytes straight to $44: the section is stored in exactly the
+  hardware's order (first byte RRRGGGBB, second byte the ninth bit),
+  so the upload is a loop with no transformation.
+- THE CURSOR COMES FROM THE TABLE. The decoder's exit registers are
+  not part of its contract: advance the stream cursor by the section
+  table's compressed length, never by trusting where the decoder
+  left a register (the probe's first build did, and handed the
+  palette decoder garbage).
+
+CODEC. LZSA2 (codec 2, part B), decoder unlzsa2_fast (210 bytes).
+The probe stages a decoded section in main RAM ($4000-$B7FF in its
+own map) and copies columns into MMU-mapped layer pages (NextReg
+$57, one 8K page at $E000, 32 columns per page, ten pages for the
+320); an interpreter with its own memory plan may equally decode
+straight into layer RAM, which LZSA2 permits since the layer is
+ordinary readable memory, provided its destination is linear across
+the bank seams.
+
+SECTIONS: two.
+
+- bitmap (type 1): 320xH bytes column-major (for each x, the band's
+  H bytes top to bottom); 23040 bytes in mode 9, 30720 in mode 12.
+- palette (type 5): 256 two-byte entries in NextReg $44 order.
+
+CONVERSION (the arcimg side, for the record): the quantize class
+verbatim, median-cut to 256 of the 512-color RGB333 space, palette
+snapped to the 3-bit guns before mapping, then map; from a 16-color
+master this is the identity. No text contract: Layer 2 is the band's
+own layer, and no palette entry is reserved.
+
+Z-COLOURS. The interpreter's text lives on the ULA (or its own
+tilemap) with its own colors; the band's 256 entries are free.
+
+ASSETS. `<id>.NXT` beside the story (FAT32 SD; the universal
+conventions apply). The standard test pair: 9.NXT (mode 9), 12.NXT
+(mode 12), picture 8 of the corpus, the mode-9 file the top slice of
+the mode-12 conversion (arcimg slice9), the header id stamped to the
+mode name as on every target.
+
+MEMORY. The 210-byte decoder, the section walk, and a staging buffer
+the size of one decoded section (or none, decoding into the layer
+directly); the compressed source is read strictly forward and may be
+streamed from SD in sector bites.

@@ -10589,3 +10589,51 @@ documents both forms in scope (the old text pointed at it for spans
 and it said nothing). Suite 1328. The -L prelude fix landed separately
 the day before (4f6aca1). Both amalgams regenerated; README table and
 WHATSNEW updated (pathfinding entry rotated out).
+
+## 2026-08-17: B12 R5 OPENS. The Spectrum Next lands (arcimg 1.36.0)
+
+The round's rulings, all Stefan's: the C128 VDC is PARKED as an
+arc_image target (the VDC's graphics limits make it undesirable; his
+future C128 interpreter pairs the machine's extended memory with
+VIC-IIe graphics, so the C64 asset serves the C128, and 80-column
+love is an interpreter question); the Apple II is DHGR-ONLY for the
+128K machines (a 48K HGR machine cannot host z5 plus a band; his
+reference, deater's DHGR Monkey Island page); the Next verifies on
+ZEsarUX, not CSpect (CSpect wants mono and he refuses the bloat; his
+old hidden-bugs caveat about ZEsarUX stands, the probe discipline is
+the guard); and Canopus's Agon dither-depth request JOINS the round
+as its own one-fix item. Emulator logistics: Xemu/MEGA65 installed
+and working (his ROM 920422; the setup lessons live in memory and
+burned an afternoon: the supported ROM route is Xemu's own UI, and
+the SD image is never host-mounted).
+
+NXT, complete per the per-machine discipline: the converter is the
+quantize recipe verbatim and turns out to be the IDENTITY for
+Stefan's masters: zero differing pixels across all 22, both modes,
+because ST-class art sits exactly on the Next's 3-bit guns. The
+Rabenstein corpus landed (22 pictures, 126K packed under LZSA2), the
+identity is frozen as a test beside four goldens, and the probe is
+the friendliest loader of the Z80 family: Layer 2's 320-mode memory
+is column-major, the .arc stream order, so a column is one LDIR; the
+hardware clip frames the band; the ULA is simply switched off. The
+probe pre-proves headless on HAUMEA'S simz80 (Stefan's pointer: use
+the capable sim, not a bespoke one) under a TBBlue port model that
+checks layer bytes, palette, and register discipline against the
+pair files, then ships as a standard .nex (mk_nex.py, banks 0/1/3,
+core 3.0 gate). Verified pixel-perfect on ZEsarUX 13.0, his eye.
+
+ONE SCAR, RECORDED IN FULL: the probe pair convention is IMAGE 8 IN
+BOTH MODES, files and header ids named for the MODES (9 and 12), one
+byte patched. I built the first pair from corpus images 9 and 12,
+matching the filenames, and when Stefan said "we used image 8 for
+everything" I read the header ids back at him as proof he
+misremembered. His screenshots forced the measurement: the pair
+files' pixels are image 8, and C.12's ASSETS paragraph even says
+"picture 8 of the corpus" in plain words. The convention lives in
+the ART, not the labels; measure the content before contradicting
+the person who was there. Also en route: the -L prelude fix earlier
+in the round, and master 21's missing conversions closed for
+ms1/ms2/agn (trsm4 already had it). docs/08 C.13 written
+probe-after-probe; design.md ledger and docs/07's what-plays-where
+brought current (Haumea PLAYS TODAY had never been recorded there).
+NEXT: MEGA65, then Apple II DHGR, then the Agon dither probe.

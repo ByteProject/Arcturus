@@ -154,12 +154,15 @@ is needed. Everything else is built in.
 | Amiga (OCS/ECS) | blueprint proven; planned for Eris |
 | Atari ST(E) | blueprint proven; planned for Eris |
 | Commodore 64 / C128 | blueprint proven; interpreter support planned |
-| ZX Spectrum +3 | b/w conversion ready (color is the author's, see above); blueprint in progress |
-| Amstrad CPC | conversion ready; planned for Haumea |
+| ZX Spectrum +3 | blueprint proven (b/w conversion ships; color is the author's, see above) |
+| Amstrad CPC | PLAYS TODAY (Haumea) |
 | Commodore Plus/4 | blueprint proven; interpreter support planned |
-| Atari 8-bit | blueprint proven; interpreter support planned |
+| Atari 8-bit | blueprint proven; planned for Varuna |
 | TRS-80 Model 4 | blueprint proven; Shawn Sijnstra's interpreter adopts it |
-| MSX1/2, Apple II, Spectrum Next, MEGA65, C128 VDC | planned |
+| MSX1 and MSX2 | blueprint proven; interpreter support planned |
+| Agon Light | blueprint proven; Shawn Sijnstra's Canopus adopts it |
+| Spectrum Next | blueprint proven (conversion is the identity for ST-class masters) |
+| Apple II (DHGR), MEGA65 | planned |
 
 "Blueprint proven" means the machine's picture loader is designed,
 built, and demonstrated on the real hardware's emulator; the interpreter

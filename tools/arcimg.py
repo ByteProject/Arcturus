@@ -77,7 +77,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.35.0"
+__version__ = "1.36.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -3747,6 +3747,24 @@ def _convert_ms2(rows, salient=None):
     return {"w": w, "h": h, "pixels": pixels, "palette": palette}
 
 
+def _convert_nxt(rows, salient=None):
+    """Master to Spectrum Next Layer 2, 320 mode: the full 320-wide band,
+    free pixels, 256 simultaneous colors from the 512-color RGB333 space.
+    The quantize class verbatim (approved in wave 1): median-cut to the
+    budget, palette snapped to the 3-bit guns BEFORE mapping, then map;
+    from a 16-color master this passes through near 1:1. No text
+    contract: Layer 2 is the band's own layer, clipped to the band by
+    the interpreter, and the text below lives on the ULA with its own
+    palette, so no entry is reserved. The palette pads to the full 256
+    two-byte entries the blueprint fixes (design.md: NextReg 0x44
+    order)."""
+    w, h = len(rows[0]), len(rows)
+    palette = _build_palette(rows, 256, _snap3)
+    pixels = _map_pixels(rows, palette, _dither_amount(rows, 256))
+    palette = palette + [(0, 0, 0)] * (256 - len(palette))
+    return {"w": w, "h": h, "pixels": pixels, "palette": palette}
+
+
 def _convert_trsm4(rows, salient=None):
     """Master to TRS-80 Model 4 mono: luminance, 2x horizontal (the hi-res
     board's 640x240 pixels are half as wide as tall, so the doubling both
@@ -4154,7 +4172,8 @@ _CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,
                "C64": _convert_c64, "ZX3": _convert_zx3, "CPC": _convert_cpc,
                "P4": _convert_p4,
                "A8": _convert_a8, "TRSM4": _convert_trsm4,
-               "MS1": _convert_ms1, "MS2": _convert_ms2, "AGN": _convert_agn}
+               "MS1": _convert_ms1, "MS2": _convert_ms2, "AGN": _convert_agn,
+               "NXT": _convert_nxt}
 
 
 # -- the Spectrum polish round-trip (.scr in and out) ---------------------------

@@ -629,3 +629,48 @@ def test_agn_bytes_are_opaque_cube_members():
         for p in row:
             assert (p & 0xC0) == 0xC0
     assert arcimg.TARGETS["AGN"].codec == arcimg.CODEC_RLE
+
+
+# --- NXT (Spectrum Next): Layer 2 320 mode, 256 of 512 -----------------------
+
+_NXT_GOLDEN = {
+    "2.png": "77adfe873ebe8709",
+    "8.png": "2f365537af4e875e",
+    "10.png": "26860df99e397271",
+    "12.png": "6b649822a45cfa2a",
+}
+
+
+@pytest.mark.parametrize("name", sorted(_NXT_GOLDEN))
+def test_nxt_output_is_frozen(name):
+    import hashlib
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, name), "NXT")
+    t = arcimg.TARGETS["NXT"]
+    blob = b"".join(bytes(pl) for _ty, _fl, pl in t.pack(native))
+    assert hashlib.sha256(blob).hexdigest()[:16] == _NXT_GOLDEN[name]
+
+
+def test_nxt_is_identity_for_an_on_grid_master():
+    # The round's measured fact, frozen as law: an ST-class master whose
+    # colors sit on the 3-bit grid passes through the Next conversion
+    # pixel-perfect (the whole Rabenstein corpus measured 0 differing
+    # pixels, 2026-08-17). The Next edition IS the master.
+    master = arcimg._read_png(os.path.join(MASTERS, "9.png"))
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, "9.png"),
+                                          "NXT")
+    pal = native["palette"]
+    out = [[pal[i] for i in row] for row in native["pixels"]]
+    assert out == master
+
+
+def test_nxt_palette_is_full_and_on_the_guns():
+    # the blueprint fixes 256 two-byte entries (NextReg 0x44 order), every
+    # channel on the 3-bit guns; free pixels, no reserved text entries
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, "8.png"),
+                                          "NXT")
+    assert native["w"] == 320
+    assert len(native["palette"]) == 256
+    legal = {round(v * 7 / 255) * 255 // 7 for v in range(0, 256, 17)} | \
+            {round(round(v * 7 / 255) * 255 / 7) for v in range(256)}
+    assert all(ch in legal for c in native["palette"] for ch in c)
+    assert arcimg.TARGETS["NXT"].codec == arcimg.CODEC_LZSA2

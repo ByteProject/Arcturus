@@ -69,15 +69,15 @@ The ledger (band cost is uncompressed, 9-row / 12-row; RLE applies on top):
 | DOS | VGA/MCGA mode 13h | 320x72/96 | 256 of 262144 (6-bit DAC) | 23.0K / 30.7K | VRAM | planned |
 | C64 | multicolor bitmap | 160x72/96 (2:1 px) | fixed 16; 3 per 4x8 cell + 1 global | 3.6K / 4.8K | main RAM | planned |
 | C128 (C64 mode) | as C64 | as C64 | as C64 | as C64 | as C64 | with C64 |
-| C128 (VDC, optional) | 640x200 bitmap+attr | 640x72/96 (2x wide) | fixed 16 RGBI; 2 per 8x8 cell | 6.5K / 8.6K | 64K VDC VRAM | undecided |
+| C128 (VDC, optional) | 640x200 bitmap+attr | 640x72/96 (2x wide) | fixed 16 RGBI; 2 per 8x8 cell | 6.5K / 8.6K | 64K VDC VRAM | PARKED (R5 ruling: the VDC's graphics limits make it undesirable; a C128 interpreter uses the machine's extended memory with VIC-IIe graphics, i.e. the C64 asset; format-layer support stays) |
 | Plus/4 | TED multicolour bitmap | 160x72/96 (2:1 px) | 121 (16 hue x 8 luma); 2 per 4x8 cell + 2 global regs | 3.6K / 4.8K | main RAM | planned |
 | CPC | Mode 0 | 160x72/96 (2:1 px) | 16 inks of 27; no cells | 5.8K / 7.7K | screen block | Haumea (wip) |
 | MSX1 | Screen 2 | 256x72/96 | fixed 15; 2 per 8x1 octet | 4.6K / 6.1K | 16K VRAM (0 CPU RAM) | planned |
 | MSX2 | Screen 5 | 256x72/96 | 16 of 512 (3:3:3); free pixels | 9.2K / 12.3K | 128K VRAM (0 CPU RAM) | planned |
 | ZX Spectrum +3 | ULA screen | 256x72/96 | fixed 15; 2 per 8x8 cell, shared bright | 2.6K / 3.5K | screen at 0x4000 | planned |
 | Atari 8-bit | ANTIC mode E + DLI | 160x72/96 (2:1 px) | 4 per scanline of 128 (per-line palettes) | 3.2K / 4.2K | main RAM | Varuna |
-| Apple II | HGR (DHGR variant) | 280x72/96 | 6 artifact colors, 7px groups (DHGR: 16) | 2.9K / 3.8K | 8K hires page | planned |
-| ZX Spectrum Next | Layer 2, 320-wide | 320x72/96 | 256 of 512 (RGB333), free pixels | full layer 80K | banked RAM | planned |
+| Apple II | DHGR only (R5 ruling: 128K IIc/IIe/IIgs; a 48K HGR machine cannot host z5 plus band) | 280x72/96 | 16 artifact colors | 2.9K / 3.8K | aux+main hires pages | planned |
+| ZX Spectrum Next | Layer 2, 320-wide | 320x72/96 | 256 of 512 (RGB333), free pixels | full layer 80K | banked RAM | DONE (R5: converter is the identity for on-grid masters, 0 differing pixels corpus-wide; probe verified on ZEsarUX 2026-08-17; docs/08 C.13) |
 | MEGA65 | VIC-IV FCM, H320 | 320x72/96 | 255 of 16M, free pixels | 24.5K / 32.6K | chip RAM | planned |
 | TRS-80 M4 | hi-res board 640x240 | 640x72/96 (1:2 px) | 1bpp monochrome | 5.8K / 7.7K | port-addressed | external (Sijnstra) |
 
@@ -592,9 +592,12 @@ method). Naming: R for retro.
   autoexec line is the programmatic boot proof. Corpus, previews,
   stress-out, and cloak shipped with the bank; the family is
   FIFTEEN formats, twelve of them probe-proven.
-- R5. WAVE 4: Apple II (HGR, plus the DHGR variant), Spectrum Next,
-  MEGA65; the C128 ruling executed (C64 asset reused in C64 mode; the
-  VDC addendum written if ruled in).
+- R5. WAVE 4: Apple II (DHGR only, ruled 2026-08-17), Spectrum Next
+  (DONE 2026-08-17), MEGA65; the C128 ruling executed: C64 asset in
+  C64 mode, the VDC PARKED (its graphics limits; the future C128
+  interpreter pairs the machine's extended memory with VIC-IIe
+  graphics). The Agon dither-depth probe (Canopus's request) joins
+  the round as its own item.
   Done-test: probes green both modes on every remaining target.
 - R6. Close: the public interpreter-contract document published (the
   Vezza-facing cut), arcimg 2.0 released (amalgam, README, versions),
