@@ -10729,3 +10729,20 @@ write mk_dsk.py in the BuildTools doctrine); headless pre-proof in
 the M65 harness manner (the strict 6502 core plus a softswitch
 model); the emulator is AppleWin under wine (~/Fiction/Tools, wine
 on PATH), and the video mode MUST be composite for the verdict.
+
+AP2 ADDENDUM, same day: the probe body and its pre-proof are GREEN
+both modes (probe.asm: plain 6502, the DHGR softswitch dance, staged
+ZX0 decode via the vendored bitfire dzx0_6502, line-table scatter
+computed by the assembler; run_probe.py: the strict core under a
+main/aux softswitch model; aux and main pages byte-exact, below-band
+black, switch end-state asserted). REMAINING for the AppleWin
+verdict: the boot disk. Plan: vendor a public-domain minimal
+bootloader of the qkumba lineage (the ROM's own $C65C re-entry only
+reads within track 0; the probe spans ~2.2 tracks, so the loader
+needs arm stepping, which qboot-class loaders solve in one sector) or
+write the equivalent with the reference open; mk_dsk.py then lays
+probe.bin behind it in PHYSICAL sector order through the DOS 3.3
+logical skew ([0,7,14,6,13,5,12,4,11,3,10,2,9,1,8,15]), pure Python.
+Then AppleWin under wine, COMPOSITE video mode, Stefan's eye against
+the /tmp previews; then the corpus verdict, tuning if ruled, goldens,
+docs/08 C.15, the ledger, and the arcimg bump close the machine.
