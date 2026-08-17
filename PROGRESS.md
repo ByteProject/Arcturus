@@ -10674,3 +10674,58 @@ flashing." Probe pre-proof green both modes; suite 183 on the
 arcimg side; docs/07 and the design ledger current. NEXT: the Apple
 II DHGR converter (the signal class, the round's real test), then
 the Agon dither probe.
+
+## 2026-08-17: R5, the Apple II in flight (checkpoint at 98% budget)
+
+Status written mid-machine because the week's budget may force a model
+handover before the wave closes; this entry is the pickup state.
+
+STANDING: NXT done (2bf8859), M65 done (840e05f). AP2 = the signal
+class. Stefan's ruling on the recipe fork: OPTION B FIRST, the full
+NTSC signal model (the ii-pix manner), option A (aligned Polizei-flat
+140x16) stays the documented fallback if B's texture fails his eye.
+
+BUILT AND COMMITTED HERE: (1) _convert_ap2, a per-scanline dynamic
+program over all 560 dot positions; the NTSC decoder shows at every
+dot the colour of the last four dots through the phase table
+(_AP2_IDX; the aligned nibble is LSB-leftmost at phase 3), so the DP
+picks bits minimising plain-RGB distance to the master column under
+them, reaching colours between the sixteen through sequences. The
+280-column window is left-weighted (8 off the left, the MSX1
+principle). Palette FROZEN: ii-pix's OpenEmulator sRGB sixteen
+(_AP2_PAL), ending R1's approximate note. ~2s per picture. (2) The
+AP2 format class REDEFINED from the R1 HGR shape to DHGR (the R5
+DHGR-only ruling): two sections, aux page then main page (types 1
+and 2), 40 bytes per row per page in display row order; render IS
+the same window model, with rows DOUBLED so the preview keeps the
+master's proportions (AP2-only; Stefan asked for undistorted
+previews to judge by; TRSM4/AGN previews stay as approved). The
+unwaved-target test now points at the parked VDC, the last
+converter-less tag. arcformat/arcconvert suites green (163).
+
+THE GATE IS DELIBERATELY INVERTED FOR THIS CLASS and still OPEN:
+corpus previews (/tmp, not committed) read soft in places; the
+softness is part physics (chroma cannot change faster than the
+four-dot window slides), part optimiser taste (plain RGB distance
+rewards blending at every edge; tunable via luma-weighted cost or a
+flat-run preference, BEACH ONLY per the iteration rule). Stefan's
+key question, answered honestly: the preview is faithful to the
+COMPOSITE experience (the palette is measured from OpenEmulator;
+real analog reads slightly softer, never sharper) and OPTIMISTIC for
+RGB-path displays, which decode aligned nibbles and render the DP's
+sequences as different hard colours. THEREFORE: probe first, his eye
+on AppleWin in a composite video mode against these previews, THEN
+the corpus verdict and any tuning. No corpus, no goldens, no docs/08
+chapter yet.
+
+PROBE PLAN (next act, possibly the fresh week's first): plain-6502
+loader; the DHGR softswitch dance (80STORE, PAGE2 for the aux/main
+$2000 window, GR+HIRES+AN3-off+80COL); codec ZX0 (the 8-bit default;
+the 6502 decoders sit in probes/c64/); pairs = IMAGE 8 both modes,
+ids stamped 9/12, the standing convention; boot via a DOS-less
+boot-sector chain loader on a .dsk written by a pure-Python builder
+(FictionTools has no Apple II builder on the R0 list; check, then
+write mk_dsk.py in the BuildTools doctrine); headless pre-proof in
+the M65 harness manner (the strict 6502 core plus a softswitch
+model); the emulator is AppleWin under wine (~/Fiction/Tools, wine
+on PATH), and the video mode MUST be composite for the verdict.

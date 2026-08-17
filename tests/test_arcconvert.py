@@ -92,9 +92,9 @@ def test_wrong_shape_is_refused(tmp_path):
 
 
 def test_unwaved_target_says_so():
-    # AP2 is the last target without a converter (R5's remaining wave)
+    # the VDC is PARKED by ruling (R5) and stays converter-less
     with pytest.raises(ValueError, match="wave order"):
-        arcimg.convert_master(os.path.join(MASTERS, ALL[0]), "AP2")
+        arcimg.convert_master(os.path.join(MASTERS, ALL[0]), "VDC")
 
 
 # -- the gradient path (the stresstest class) ---------------------------------
