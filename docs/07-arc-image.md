@@ -151,13 +151,13 @@ is needed. Everything else is built in.
 | Modern (Actaea window) | PLAYS TODAY (`.zblorb`, or `.blorb` beside the z5) |
 | The web (Proteus) | PLAYS TODAY (`proteus mygame.zblorb -o mygame.html`) |
 | DOS (VGA) | blueprint proven; interpreter support planned |
-| Amiga (OCS/ECS) | blueprint proven; planned for Eris |
-| Atari ST(E) | blueprint proven; planned for Eris |
+| Amiga (OCS/ECS) | PLAYS TODAY (Eris) |
+| Atari ST(E) | PLAYS TODAY (Eris) |
 | Commodore 64 / C128 | blueprint proven; interpreter support planned |
-| ZX Spectrum +3 | blueprint proven (b/w conversion ships; color is the author's, see above) |
+| ZX Spectrum +3 | PLAYS TODAY (Triton); b/w conversion ships, color is the author's (see above) |
 | Amstrad CPC | PLAYS TODAY (Haumea) |
 | Commodore Plus/4 | blueprint proven; interpreter support planned |
-| Atari 8-bit | blueprint proven; planned for Varuna |
+| Atari 8-bit | PLAYS TODAY (Varuna) |
 | TRS-80 Model 4 | blueprint proven; Shawn Sijnstra's interpreter adopts it |
 | MSX1 and MSX2 | blueprint proven; interpreter support planned |
 | Agon Light | blueprint proven; Shawn Sijnstra's Canopus adopts it |
