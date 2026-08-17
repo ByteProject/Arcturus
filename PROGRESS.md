@@ -10746,3 +10746,11 @@ logical skew ([0,7,14,6,13,5,12,4,11,3,10,2,9,1,8,15]), pure Python.
 Then AppleWin under wine, COMPOSITE video mode, Stefan's eye against
 the /tmp previews; then the corpus verdict, tuning if ruled, goldens,
 docs/08 C.15, the ledger, and the arcimg bump close the machine.
+
+AP2 ADDENDUM 2: the bootloader question is settled. Peter Ferrie is
+qkumba, known personally to Stefan (he fixed the original Apple II Z5
+interpreter for the BuildTools), and his qboot is PUBLIC DOMAIN on
+Stefan's word. The path is clear: vendor QBOOT.S, translate
+Merlin-syntax to ACME with the adaptation plainly marked, mk_dsk.py
+lays probe.bin behind it, AppleWin composite verdict. Small world:
+his LZSA2 decoders already serve the M65 and MS2 probes.
