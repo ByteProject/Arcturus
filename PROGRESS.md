@@ -10637,3 +10637,40 @@ ms1/ms2/agn (trsm4 already had it). docs/08 C.13 written
 probe-after-probe; design.md ledger and docs/07's what-plays-where
 brought current (Haumea PLAYS TODAY had never been recorded there).
 NEXT: MEGA65, then Apple II DHGR, then the Agon dither probe.
+
+## 2026-08-17: R5 continues. The MEGA65 lands (arcimg 1.37.0)
+
+The conversion is the family's purest: the VIC-IV has 8-bit guns, so
+the quantize recipe with an identity snap IS the converter, and any
+master of 255 colors or fewer passes through exactly (0 differing
+pixels corpus-wide, frozen as a stronger law than the Next's: no
+grid required). Palette index 255 stays out of pixels by format
+(the hardware's alpha path) and becomes the loader's own black.
+
+The probe earned its chapter the hard way: five VIC-IV lessons now
+in docs/08 C.14, each found by measuring the metal after the sim
+said everything was right (the harness pre-proof, a strict 6502 core
+under a VIC-IV model, was green from early on; every remaining bug
+was a difference between my model and the machine). The knock, then
+legacy-before-precise under HOTREG; char numbers ABSOLUTE in
+full-colour mode (charset_base/64, CHARPTR plays no part; the first
+build showed zero page as art); CHRCOUNT never inherited (the ROM's
+80-column boot interleaved every other row); colour RAM reached by
+ONE DMAgic fill of $FF80000 (the $D800 window left the boot
+screen's stale attributes exactly under the old banner text, the
+"two problematic rows" Stefan called out; the fill is the probe's
+single non-6510 touch, a ruled exception); blank-first-reveal-whole
+(DEN off with boot-black borders before any setup, reveal only when
+everything stands: the boot flash died) plus the all-black char
+padding every matrix cell past the band (the partial 13th row the
+200-line window exposes showed stale entries below the band).
+Stefan drove the diagnosis rounds on Xemu; the decisive move was
+his normal-quit with -dumpmem armed, which proved charset and
+matrix byte-perfect in the machine and pinned every remaining fault
+on the display's inputs. Debug lesson kept: when the sim is green
+and the screen is wrong, dump the machine and diff, never squint.
+Verdict on the final build: "pixel perfect, no artifacts, no
+flashing." Probe pre-proof green both modes; suite 183 on the
+arcimg side; docs/07 and the design ledger current. NEXT: the Apple
+II DHGR converter (the signal class, the round's real test), then
+the Agon dither probe.

@@ -77,7 +77,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.36.0"
+__version__ = "1.37.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -3765,6 +3765,23 @@ def _convert_nxt(rows, salient=None):
     return {"w": w, "h": h, "pixels": pixels, "palette": palette}
 
 
+def _convert_m65(rows, salient=None):
+    """Master to MEGA65 VIC-IV full-color characters, H320: free pixels,
+    255 simultaneous colors of 16M (palette index 255 is the hardware's
+    alpha path and is never allocated). The quantize class verbatim
+    (approved in wave 1), with NO gun snap at all: the VIC-IV palette is
+    8 bits per channel, so median-cut to the budget IS the conversion,
+    and any master with 255 or fewer colors, on-grid or not, passes
+    through exactly. The palette pads to the blueprint's fixed 255
+    triples (design.md: nibble-swapped in the .arc, the register file's
+    own encoding)."""
+    w, h = len(rows[0]), len(rows)
+    palette = _build_palette(rows, 255, lambda c: c)
+    pixels = _map_pixels(rows, palette, _dither_amount(rows, 255))
+    palette = palette + [(0, 0, 0)] * (255 - len(palette))
+    return {"w": w, "h": h, "pixels": pixels, "palette": palette}
+
+
 def _convert_trsm4(rows, salient=None):
     """Master to TRS-80 Model 4 mono: luminance, 2x horizontal (the hi-res
     board's 640x240 pixels are half as wide as tall, so the doubling both
@@ -4173,7 +4190,7 @@ _CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,
                "P4": _convert_p4,
                "A8": _convert_a8, "TRSM4": _convert_trsm4,
                "MS1": _convert_ms1, "MS2": _convert_ms2, "AGN": _convert_agn,
-               "NXT": _convert_nxt}
+               "NXT": _convert_nxt, "M65": _convert_m65}
 
 
 # -- the Spectrum polish round-trip (.scr in and out) ---------------------------

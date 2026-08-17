@@ -45,7 +45,7 @@ or later, which you almost certainly already have.
 | **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.11.0 | [build/arcc](build/arcc) |
 | **Cosmos**, the standard library | 1.14.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.3.9 | [build/actaea](build/actaea) |
-| **arcimg**, the arc_image tool (optional, for graphics) | 1.36.0 | [build/arcimg](build/arcimg) |
+| **arcimg**, the arc_image tool (optional, for graphics) | 1.37.0 | [build/arcimg](build/arcimg) |
 | **proteus**, the web story builder (optional, for the web) | 1.0.0 | [build/proteus](build/proteus) |
 
 Each is one self-contained file: download, `chmod +x`, done. Keeping them

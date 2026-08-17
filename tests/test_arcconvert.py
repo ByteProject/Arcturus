@@ -92,8 +92,9 @@ def test_wrong_shape_is_refused(tmp_path):
 
 
 def test_unwaved_target_says_so():
+    # AP2 is the last target without a converter (R5's remaining wave)
     with pytest.raises(ValueError, match="wave order"):
-        arcimg.convert_master(os.path.join(MASTERS, ALL[0]), "M65")
+        arcimg.convert_master(os.path.join(MASTERS, ALL[0]), "AP2")
 
 
 # -- the gradient path (the stresstest class) ---------------------------------
@@ -674,3 +675,45 @@ def test_nxt_palette_is_full_and_on_the_guns():
             {round(round(v * 7 / 255) * 255 / 7) for v in range(256)}
     assert all(ch in legal for c in native["palette"] for ch in c)
     assert arcimg.TARGETS["NXT"].codec == arcimg.CODEC_LZSA2
+
+
+# --- M65 (MEGA65): VIC-IV FCM H320, 255 of 16M -------------------------------
+
+_M65_GOLDEN = {
+    "2.png": "48d1ff140388976c",
+    "8.png": "6cff78bab6f25ffe",
+    "10.png": "10f57ca67519ecb4",
+    "12.png": "9ea95936e7405b0b",
+}
+
+
+@pytest.mark.parametrize("name", sorted(_M65_GOLDEN))
+def test_m65_output_is_frozen(name):
+    import hashlib
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, name), "M65")
+    t = arcimg.TARGETS["M65"]
+    blob = b"".join(bytes(pl) for _ty, _fl, pl in t.pack(native))
+    assert hashlib.sha256(blob).hexdigest()[:16] == _M65_GOLDEN[name]
+
+
+def test_m65_is_identity_for_any_small_master():
+    # Stronger than the Next's law: the VIC-IV has 8-bit guns, so there
+    # is no snap at all, and ANY master with 255 or fewer colors passes
+    # through exactly (the whole corpus measured 0 differing pixels,
+    # 2026-08-17), on the 3-bit grid or off it.
+    master = arcimg._read_png(os.path.join(MASTERS, "9.png"))
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, "9.png"),
+                                          "M65")
+    pal = native["palette"]
+    out = [[pal[i] for i in row] for row in native["pixels"]]
+    assert out == master
+
+
+def test_m65_palette_respects_the_alpha_path():
+    # 255 triples exactly, index 255 never allocated to a pixel
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, "8.png"),
+                                          "M65")
+    assert native["w"] == 320
+    assert len(native["palette"]) == 255
+    assert all(p != 255 for row in native["pixels"] for p in row)
+    assert arcimg.TARGETS["M65"].codec == arcimg.CODEC_LZSA2

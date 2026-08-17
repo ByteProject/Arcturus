@@ -1501,3 +1501,102 @@ MEMORY. The 210-byte decoder, the section walk, and a staging buffer
 the size of one decoded section (or none, decoding into the layer
 directly); the compressed source is read strictly forward and may be
 streamed from SD in sector bites.
+
+### C.14 MEGA65 (target id 13, tag M65, files `<id>.M65`)
+
+The MEGA65 receives the paintings even more literally than the Next:
+the VIC-IV palette has 8-bit guns, so there is no snap at all, and ANY
+master with 255 or fewer colors converts pixel-perfect (the corpus
+measured zero differing pixels; the law is frozen as a test). The
+loader is free of tricks in the same way: full-colour mode makes each
+8x8 character 64 chunky palette bytes, and the .arc bitmap section IS
+the character set in reading order, decompressed straight to its base.
+
+Probe: [arc_image/probes/m65/](../arc_image/probes/m65/), source
+`probe.asm` (plain 6510 opcodes plus ONE DMAgic job, assembled with
+ACME), `run_probe.py` (the headless pre-proof: a strict 6502 core
+under a VIC-IV register model, proving the character data, the
+screen matrix, the palette pages, the colour-RAM fill, and the
+register discipline against the pair files before any emulator
+runs), and the vendored reference decoder `unlzsa2_6502.asm`
+(Emmanuel Marty & Peter Ferrie, unchanged; self-modifying: source
+and destination are stored into its instruction stream, NIBCOUNT at
+zero page $FC). Run: Xemu `xmega65 -prg probe.prg`, or from SD on
+the metal. Verified pixel-perfect on Xemu (ROM 920422, Stefan's eye,
+2026-08-17): no artifacts, no boot flash.
+
+VIDEO. VIC-IV full-colour text at H320: the knock ($D02F gets $45
+then $54), then 16-bit characters with full colour for both char
+ranges and full CPU speed in one register ($D054 = $47: VFAST,
+CHR16, FCLRLO, FCLRHI), LINESTEP 80, CHRCOUNT 40, DISPROWS the
+band's rows. Five lessons the metal taught, each one a register an
+interpreter must own rather than inherit:
+
+- THE HOTREG DISCIPLINE. While hot registers are enabled, every
+  legacy VIC-II write makes the VIC-IV recalculate its layout from
+  the legacy view, clobbering the precise registers. The order is
+  fixed: knock, legacy writes, HOTREG off ($D05D bit 7), and only
+  then the precise registers.
+- CHAR NUMBERS ARE ABSOLUTE. In full-colour mode a char number
+  times 64 is an absolute chip-RAM address; CHARPTR plays no part.
+  The screen matrix therefore counts from charset_base/64 upward
+  (the probe's first build counted from 0 and displayed zero page
+  and stack as art).
+- CHRCOUNT IS NOT YOURS UNTIL YOU SET IT. The ROM boots an
+  80-column screen; a 40-char band on an inherited CHRCOUNT of 80
+  interleaves every other row.
+- COLOUR RAM IS REACHED BY DMA. The band needs its colour-RAM cell
+  pairs zeroed (attributes clean), and the $D800 CPU window proved
+  unreliable for that in MEGA65 mode: the boot screen's stale
+  attributes stayed and garbled exactly the rows under the old boot
+  text. One enhanced DMAgic fill of $FF80000 (option $81 megabyte,
+  F018A FILL list, triggered through $D701/$D702/$D705) is the
+  platform's own idiom and the probe's single non-6510 touch. Pin
+  COLPTR ($D064/$D065) to zero so the VIC reads what was filled.
+- BLANK FIRST, REVEAL WHOLE. Nothing of the setup should ever be
+  seen: display off the legacy way (DEN, $D011 bit 4) with border
+  and backdrop on the BOOT palette's black as the very first
+  visible act, and the reveal (rows, our colours, display on) only
+  after decode, palette, and matrix all stand. Palette entry 255 is
+  never used by pixels (the format reserves it for the hardware's
+  alpha path), which hands the loader a free entry: set black, it
+  serves border, backdrop, and the blank char.
+
+The screen matrix is formulaic and PER IMAGE: the band's cells
+(rows*40) run sequentially from charset_base/64, and every cell
+after them, thirteen rows in all, names an all-black char (64 bytes
+of $FF, palette 255), so the partial row the 200-line window exposes
+below the band shows black, never stale entries.
+
+CODEC. LZSA2 (codec 2, part B). The probe stages nothing: sections
+decompress to their final homes (the charset base; a 765-byte
+palette buffer), and the stream cursor advances by the table's
+compressed length, never by trusting the decoder's exit registers.
+
+SECTIONS: two.
+
+- bitmap (type 1): the full-colour character set, 64 bytes per 8x8
+  char in reading order; 23040 bytes in mode 9, 30720 in mode 12.
+- palette (type 5): 255 RGB triples, nibble-swapped exactly as the
+  VIC-III/IV palette registers want their bytes ($D100/$D200/$D300
+  pages), so the upload is a copy. Index 255 is the interpreter's.
+
+CONVERSION (the arcimg side, for the record): the quantize class
+verbatim with an identity snap; median-cut to 255 is the whole
+conversion, and a small-palette master passes through exactly.
+
+Z-COLOURS. The interpreter's text below the band renders however it
+chooses; with 255 free entries and index 255 in hand, nothing is
+shared or sacrificed.
+
+ASSETS. `<id>.M65` beside the story (SD; the universal conventions
+apply). The standard test pair: 9.M65 (mode 9), 12.M65 (mode 12),
+picture 8 of the corpus, the mode-9 file the top slice of the
+mode-12 conversion (arcimg slice9), the header id stamped to the
+mode name as on every target.
+
+MEMORY. The decoder, the section walk, the 765-byte palette buffer,
+and the DMA list. The probe's own 64K arrangement (boot relocation,
+the pairs high under the I/O hole) is probe furniture, not part of
+the contract: a real interpreter with banking or DMA at hand places
+the charset wherever it likes and points the three pointers at it.

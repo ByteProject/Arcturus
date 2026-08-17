@@ -78,7 +78,7 @@ The ledger (band cost is uncompressed, 9-row / 12-row; RLE applies on top):
 | Atari 8-bit | ANTIC mode E + DLI | 160x72/96 (2:1 px) | 4 per scanline of 128 (per-line palettes) | 3.2K / 4.2K | main RAM | Varuna (plays) |
 | Apple II | DHGR only (R5 ruling: 128K IIc/IIe/IIgs; a 48K HGR machine cannot host z5 plus band) | 280x72/96 | 16 artifact colors | 2.9K / 3.8K | aux+main hires pages | planned |
 | ZX Spectrum Next | Layer 2, 320-wide | 320x72/96 | 256 of 512 (RGB333), free pixels | full layer 80K | banked RAM | DONE (R5: converter is the identity for on-grid masters, 0 differing pixels corpus-wide; probe verified on ZEsarUX 2026-08-17; docs/08 C.13) |
-| MEGA65 | VIC-IV FCM, H320 | 320x72/96 | 255 of 16M, free pixels | 24.5K / 32.6K | chip RAM | planned |
+| MEGA65 | VIC-IV FCM, H320 | 320x72/96 | 255 of 16M, free pixels | 24.5K / 32.6K | chip RAM | DONE (R5: identity conversion for any master of 255 colors or fewer, 0 differing pixels corpus-wide; probe verified on Xemu 2026-08-17; docs/08 C.14) |
 | TRS-80 M4 | hi-res board 640x240 | 640x72/96 (1:2 px) | 1bpp monochrome | 5.8K / 7.7K | port-addressed | external (Sijnstra) |
 
 Reading the ledger, the targets fall into three conversion classes:
@@ -593,7 +593,7 @@ method). Naming: R for retro.
   stress-out, and cloak shipped with the bank; the family is
   FIFTEEN formats, twelve of them probe-proven.
 - R5. WAVE 4: Apple II (DHGR only, ruled 2026-08-17), Spectrum Next
-  (DONE 2026-08-17), MEGA65; the C128 ruling executed: C64 asset in
+  (DONE 2026-08-17), MEGA65 (DONE 2026-08-17); the C128 ruling executed: C64 asset in
   C64 mode, the VDC PARKED (its graphics limits; the future C128
   interpreter pairs the machine's extended memory with VIC-IIe
   graphics). The Agon dither-depth probe (Canopus's request) joins
