@@ -10933,3 +10933,13 @@ machines (AGN, TRSM4) are still rendered squashed, 640x96, while the
 Apple II's are now aspect-true; making them consistent is a small
 round whenever wanted. And the salient-hint plumbing stays inert until
 the author-facing capability is deliberately reconnected.
+
+CORRECTION, same day: "the C128 is parked" was my wording and it was
+wrong. Stefan: the C128 is a machine of the family in its own right,
+named separately, using the same model as the C64 (VIC-IIe, the C64
+assets); only its VDC 80-column picture path is parked, and that
+question belongs to the interpreter rather than to arc_image. Both
+tables now say exactly that: docs/07 gives the C128 its own row, and
+the design ledger's C128 row states the model and the reason (an
+interpreter spends the machine's extra memory on the story, not on
+the picture).

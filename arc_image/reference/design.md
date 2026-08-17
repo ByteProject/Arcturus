@@ -68,8 +68,8 @@ The ledger (band cost is uncompressed, 9-row / 12-row; RLE applies on top):
 | Atari ST(E) | low res 4 planes | 320x72/96 | 16 of 512 (STE: of 4096) | 11.5K / 15.4K | screen RAM | Eris (plays) |
 | DOS | VGA/MCGA mode 13h | 320x72/96 | 256 of 262144 (6-bit DAC) | 23.0K / 30.7K | VRAM | planned |
 | C64 | multicolor bitmap | 160x72/96 (2:1 px) | fixed 16; 3 per 4x8 cell + 1 global | 3.6K / 4.8K | main RAM | planned |
-| C128 (C64 mode) | as C64 | as C64 | as C64 | as C64 | as C64 | with C64 |
-| C128 (VDC, optional) | 640x200 bitmap+attr | 640x72/96 (2x wide) | fixed 16 RGBI; 2 per 8x8 cell | 6.5K / 8.6K | 64K VDC VRAM | PARKED (R5 ruling: the VDC's graphics limits make it undesirable; a C128 interpreter uses the machine's extended memory with VIC-IIe graphics, i.e. the C64 asset; format-layer support stays) |
+| C128 | VIC-IIe, the C64 model exactly | as C64 | as C64 | as C64 | as C64 | with C64 (a first-class machine of the family, not a footnote: it plays the C64 assets, and an interpreter spends the extra memory on the story, not the picture) |
+| C128 VDC (80 columns, optional) | 640x200 bitmap+attr | 640x72/96 (2x wide) | fixed 16 RGBI; 2 per 8x8 cell | 6.5K / 8.6K | 64K VDC VRAM | PARKED as a picture path (R5 ruling: the VDC's graphics limits make it undesirable next to VIC-IIe; the 80-column question belongs to the interpreter, not to arc_image; the format layer keeps the tag) |
 | Plus/4 | TED multicolour bitmap | 160x72/96 (2:1 px) | 121 (16 hue x 8 luma); 2 per 4x8 cell + 2 global regs | 3.6K / 4.8K | main RAM | planned |
 | CPC | Mode 0 | 160x72/96 (2:1 px) | 16 inks of 27; no cells | 5.8K / 7.7K | screen block | Haumea (plays) |
 | MSX1 | Screen 2 | 256x72/96 | fixed 15; 2 per 8x1 octet | 4.6K / 6.1K | 16K VRAM (0 CPU RAM) | planned |
@@ -598,8 +598,9 @@ method). Naming: R for retro.
   stress-out, and cloak shipped with the bank; the family is
   FIFTEEN formats, twelve of them probe-proven.
 - R5. WAVE 4: Apple II (DHGR only, DONE 2026-08-17), Spectrum Next
-  (DONE 2026-08-17), MEGA65 (DONE 2026-08-17); the C128 ruling executed: C64 asset in
-  C64 mode, the VDC PARKED (its graphics limits; the future C128
+  (DONE 2026-08-17), MEGA65 (DONE 2026-08-17); the C128 ruling executed: the C128 is a
+  machine of the family on the C64 model, and only its VDC picture
+  path is PARKED (its graphics limits; the future C128
   interpreter pairs the machine's extended memory with VIC-IIe
   graphics). The Agon dither-depth probe (Canopus's request) joins
   the round as its own item.

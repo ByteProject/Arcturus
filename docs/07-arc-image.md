@@ -154,7 +154,8 @@ is needed. Everything else is built in.
 | DOS (VGA) | blueprint proven; interpreter support planned |
 | Amiga (OCS/ECS) | PLAYS TODAY (Eris) |
 | Atari ST(E) | PLAYS TODAY (Eris) |
-| Commodore 64 / C128 | blueprint proven; interpreter support planned |
+| Commodore 64 | blueprint proven; interpreter support planned |
+| Commodore 128 | blueprint proven (the same pictures as the C64: an interpreter uses the machine's extra memory with VIC-IIe graphics) |
 | ZX Spectrum +3 | PLAYS TODAY (Triton); b/w conversion ships, color is the author's (see above) |
 | Amstrad CPC | PLAYS TODAY (Haumea) |
 | Commodore Plus/4 | blueprint proven; interpreter support planned |
