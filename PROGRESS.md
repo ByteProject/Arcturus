@@ -10754,3 +10754,97 @@ Stefan's word. The path is clear: vendor QBOOT.S, translate
 Merlin-syntax to ACME with the adaptation plainly marked, mk_a2probe.py
 lays probe.bin behind it, AppleWin composite verdict. Small world:
 his LZSA2 decoders already serve the M65 and MS2 probes.
+
+## CHECKPOINT for pickup (2026-08-17 evening, model handover at the
+## budget cap): R5 two machines closed, the Apple II mid-stride
+
+Versions: arcc 1.11.0, Cosmos 1.14.0, arcimg 1.37.0, Actaea 1.3.9.
+Suites: compiler-side 1328, arc-side 183 (test_arcconvert/arcformat/
+arcimg). Tree clean, everything pushed. Read this checkpoint whole,
+then the day's entries above it; the memory files carry the standing
+discipline. fizmo is DEPRECATED: headless play is build/actaea
+--headless (or VM+CaptureIO), the ruling and the reasons are in
+memory.
+
+CLOSED TODAY, see the entries: the adopter round (block-override
+answer; the spans redesign into the EXISTENCE FORM `in a, b` vs the
+SIGHT FORM `spans`, arcc 1.11.0/Cosmos 1.14.0; the -L prelude fix,
+broken since B5); R5 opened with Stefan's rulings (VDC parked, AP2
+DHGR-only, ZEsarUX for the Next, the Agon dither probe joins); NXT
+closed pixel-perfect (2bf8859); M65 closed pixel-perfect (840e05f);
+what-plays-where caught up (Eris/Triton/Varuna/Haumea PLAY; Gargoyle
+row = next release); Xemu installed and working (memory has the
+setup).
+
+THE OPEN LANE: AP2, the signal class, Stefan's ruling = option B
+(the full NTSC model) first. DONE so far (commits 018552b, 019e1b3,
+e07cc0a, b9f6be8): the converter (_convert_ap2: per-scanline DP over
+560 dots, _AP2_IDX phase table, _AP2_PAL = frozen OpenEmulator
+sixteen; 280-window left-weighted 8 off the left; ~2s/picture); the
+AP2 format class redefined to DHGR (aux+main sections types 1/2, 40
+bytes per row per page, display row order; render = the same window
+model, rows doubled for aspect-true previews); the probe pre-proven
+BOTH MODES (arc_image/probes/ap2/: probe.asm at $6000, softswitch
+dance, staged ZX0 via vendored dzx0_6502, assembler-computed line
+table; run_probe.py = strict 6502 core + main/aux softswitch model;
+pairs 9.AP2/12.AP2 = IMAGE 8 both modes, ids stamped by mode, the
+standing convention). The corpus gate is DELIBERATELY OPEN: previews
+lived in /tmp (VOLATILE, macOS wiped /tmp once today); regenerate
+with:
+  python3 tools/arcimg.py convert --target AP2 -o /tmp/etri/ap2 \
+      --preview /tmp/etri/ap2-prev arc_image/masters
+The preview is faithful to COMPOSITE and optimistic for RGB decodes,
+hence probe-first for this class.
+
+PICKUP ORDER FOR AP2:
+1. Vendor QBOOT.S from github.com/peterferrie/qboot. PUBLIC DOMAIN
+   on Stefan's word: Ferrie IS qkumba, personally known to him (he
+   fixed the Apple II Z5 terp for BuildTools; that old path is
+   interlz3/interlz5 + Infocom's own 16K terps, nothing reusable).
+   Translate Merlin syntax to ACME, adaptation plainly marked,
+   credit in the header like the other vendored decoders.
+2. Write mk_a2probe.py (the NAME IS RULED: never mk_dsk/mk_disk,
+   those collide with the interpreters' real game-disk tools): 140K
+   .dsk, 35 tracks x 16 sectors x 256; qboot in T0S0; probe.bin laid
+   so qboot's PHYSICAL reads meet consecutive bytes, i.e. chunk for
+   physical p at file offset (track*16 + L[p])*256 with the DOS 3.3
+   skew L = [0,7,14,6,13,5,12,4,11,3,10,2,9,1,8,15]; the skew's
+   direction is the classic mirror trap, settle it empirically (a
+   wrong guess is instant garbage at $6000). Pure Python, stdlib,
+   deterministic, in the probe dir (probe furniture by charter; the
+   game pipeline lives in BuildTools, later, elsewhere).
+3. AppleWin under wine (~/Fiction/Tools/AppleWin, homebrew wine on
+   PATH; untested pairing, budget a moment for wine dust). The video
+   mode MUST be composite ("Color TV" class) for the verdict; RGB
+   modes decode aligned nibbles and misrepresent the DP's sequences.
+   Stefan's eye against the /tmp previews.
+4. THEN the corpus verdict: if too soft, tune the DP cost
+   (luma-weighted distance or a flat-run preference), BEACH ONLY per
+   the iteration rule, one knob per round; option A (aligned
+   Polizei-flat) stays the ruled fallback. On the pass: corpus +
+   previews land (arc_image/ap2, previews/ap2), goldens frozen (the
+   NXT/M65 test-block pattern; no identity law here, the signal
+   class approximates by nature), the unwaved-target test stays
+   pointed at the parked VDC.
+5. docs/08 C.15, probe-after-probe: the softswitch dance, the boot
+   story (qboot provenance), the composite-vs-RGB warning as a
+   loader convention, sections, the conversion recipe, MEMORY notes.
+6. design.md ledger + R5 line, docs/07 what-plays-where, arcimg ->
+   1.38.0, amalgamate_arcimg, README table, PROGRESS entry, one
+   commit, push.
+
+AFTER AP2: the Agon dither probe (Canopus's request, joined R5 by
+ruling): one mechanism change (likely the amplitude for
+gradient-class masters on AGN), Stefan's eye, corpus re-run per the
+shop-window rule, never stacked with other changes. Then R6 (the
+public interpreter-contract cut, arcimg 2.0).
+
+STANDING, for whichever model reads this: Stefan drives design; his
+word gates builds, his eye gates art; answers before conditioned
+work; deviations surfaced before landing; measure before
+contradicting (the image-8 pair scar of this very day); one machine
+complete before the next; probes become files; FictionTools and the
+sibling interpreter repos are NEVER modified from here; emulators
+ask-first except the cleared three (ZEsarUX, Xemu, AppleWin paths in
+memory); /tmp is scratch and dies, the repo and PROGRESS are the
+record.
