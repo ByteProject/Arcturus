@@ -77,7 +77,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.37.0"
+__version__ = "1.38.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes

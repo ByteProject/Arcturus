@@ -164,7 +164,7 @@ is needed. Everything else is built in.
 | Agon Light | blueprint proven; Shawn Sijnstra's Canopus adopts it |
 | Spectrum Next | blueprint proven (conversion is the identity for ST-class masters) |
 | MEGA65 | blueprint proven (conversion is the identity for any master up to 255 colors) |
-| Apple II (DHGR) | planned |
+| Apple II (DHGR, 128K) | blueprint proven (best on a composite display, the machine's own; an RGB card shows the sixteen flat) |
 
 "Blueprint proven" means the machine's picture loader is designed,
 built, and demonstrated on the real hardware's emulator; the interpreter

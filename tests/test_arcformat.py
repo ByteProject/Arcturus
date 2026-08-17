@@ -141,10 +141,14 @@ def test_target_renders_a_png(tag, tmp_path):
     arcimg.render_arc(blob, str(out))
     data = out.read_bytes()
     assert data[:8] == arcimg._PNG_SIG
-    # The preview's pixel width doubles for the wide-pixel machines.
+    # The preview's pixel width doubles for the wide-pixel machines. The
+    # Apple II doubles BOTH: its preview is the NTSC signal walk over 560
+    # dots (two per master column), and the rows double with them so the
+    # picture keeps the master's proportions, which is what the signal
+    # class is judged by eye on (Stefan, 2026-08-17).
     import struct
     pw, ph = struct.unpack(">II", data[16:24])
-    assert ph == h
+    assert ph == (h * 2 if tag == "AP2" else h)
     assert pw in (w, w * 2)
 
 

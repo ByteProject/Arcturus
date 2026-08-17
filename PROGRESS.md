@@ -10848,3 +10848,52 @@ sibling interpreter repos are NEVER modified from here; emulators
 ask-first except the cleared three (ZEsarUX, Xemu, AppleWin paths in
 memory); /tmp is scratch and dies, the repo and PROGRESS are the
 record.
+
+## 2026-08-17: R5 CLOSES ITS MACHINES. The Apple II lands (arcimg 1.38.0)
+
+The signal class, approved. Stefan's ruling stood (option B, the full
+NTSC model, the ii-pix lineage) and the machine confirmed it: the
+converter is a per-scanline dynamic program over all 560 DHGR dot
+positions, choosing bits so the decoder's four-dot window shows the
+master's colour and reaching hues between the sixteen through
+sequences. His verdict on the metal, both display paths: "it does the
+job", the corpus "rendered perfect". Accepted as it stands, no tuning
+round; option A (aligned Polizei-flat) stays documented as the
+fallback nobody needed.
+
+THE BOOT WORKED FIRST TRY, which is worth recording because the parts
+were all hand-laid: qboot (Peter Ferrie = qkumba, public domain on
+Stefan's word) already ships as ACME source, so no Merlin translation
+was needed at all; mk_a2probe.py (the ruled name) places its three
+pages on track 0 physical 0/2/4 and the probe's 35 sectors from track
+1 in physical order, translating to the .dsk file's DOS 3.3 logical
+order with Ferrie's OWN xlatsec table, lifted from his DOS33L.S: the
+skew question the checkpoint flagged as "the classic mirror trap" was
+answered by the source rather than by trial. AppleWin under wine took
+the disk without a murmur.
+
+THE DISPLAY FORK, now a documented convention (docs/08 C.15): the
+conversion targets the COMPOSITE decode, the machine's own video
+output; an RGB card decodes aligned nibbles and shows the sixteen
+flat, losing the sequences' in-between hues. Stefan saw both. Neither
+falls apart, which is the useful finding: the DP's choices stay
+legible even when a card ignores the physics they exploit.
+
+A CORRECTION WORTH KEEPING: mid-close I explained a dim moon by
+"the hint sidecar the other converters use" and Stefan stopped it
+flat: the salient hint is not used in any conversion. Measured: the
+interface lives (_read_hint, _salient_pixels, salient threaded to the
+cpc/zx3/c64/p4 routes) but no converter acts on it since the flat-base
+rewrite, and the forcing helpers are uncalled. His position, restated
+for the record: the FEATURE STAYS for authors; the aim was converters
+so good nobody reaches for it. Reconnecting the author-facing path is
+its own small round if wanted. My memory carried the R3 text and was
+stale; corrected there too. Lesson, again: measure before explaining.
+
+Landed: the AP2 format class redefined to DHGR (aux+main sections),
+the corpus (22 pictures) and previews, four goldens plus shape and
+render-model tests, docs/08 C.15 written probe-after-probe, the
+design ledger and docs/07 current, arcimg 1.38.0 with the amalgam.
+Suites: arc-side 189, compiler-side 1346. R5's three machines are
+DONE (NXT, M65, AP2); the C128/VDC stays parked by ruling. NEXT: the
+Agon dither probe (Canopus's request), then R6.

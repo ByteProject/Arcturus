@@ -76,7 +76,7 @@ The ledger (band cost is uncompressed, 9-row / 12-row; RLE applies on top):
 | MSX2 | Screen 5 | 256x72/96 | 16 of 512 (3:3:3); free pixels | 9.2K / 12.3K | 128K VRAM (0 CPU RAM) | planned |
 | ZX Spectrum +3 | ULA screen | 256x72/96 | fixed 15; 2 per 8x8 cell, shared bright | 2.6K / 3.5K | screen at 0x4000 | Triton (plays) |
 | Atari 8-bit | ANTIC mode E + DLI | 160x72/96 (2:1 px) | 4 per scanline of 128 (per-line palettes) | 3.2K / 4.2K | main RAM | Varuna (plays) |
-| Apple II | DHGR only (R5 ruling: 128K IIc/IIe/IIgs; a 48K HGR machine cannot host z5 plus band) | 280x72/96 | 16 artifact colors | 2.9K / 3.8K | aux+main hires pages | planned |
+| Apple II | DHGR only (R5 ruling: 128K IIc/IIe/IIgs; a 48K HGR machine cannot host z5 plus band) | 280x72/96 | 16 artifact colors, more through sequences | 2.9K / 3.8K | aux+main hires pages | DONE (R5: the signal DP, approved on AppleWin composite AND RGB 2026-08-17; docs/08 C.15) |
 | ZX Spectrum Next | Layer 2, 320-wide | 320x72/96 | 256 of 512 (RGB333), free pixels | full layer 80K | banked RAM | DONE (R5: converter is the identity for on-grid masters, 0 differing pixels corpus-wide; probe verified on ZEsarUX 2026-08-17; docs/08 C.13) |
 | MEGA65 | VIC-IV FCM, H320 | 320x72/96 | 255 of 16M, free pixels | 24.5K / 32.6K | chip RAM | DONE (R5: identity conversion for any master of 255 colors or fewer, 0 differing pixels corpus-wide; probe verified on Xemu 2026-08-17; docs/08 C.14) |
 | TRS-80 M4 | hi-res board 640x240 | 640x72/96 (1:2 px) | 1bpp monochrome | 5.8K / 7.7K | port-addressed | external (Sijnstra) |
@@ -279,10 +279,15 @@ Architecture: one shared front half, per-target back halves.
     clauses for the A8 are retired; corpus approved and golden-pinned. The paragraphs above describe the
     superseded per-target recipes and stay as the historical record;
     the Bayer/ordered dither of the 16-bit trio is untouched.
-  - Signal class: Apple II via NTSC modeling (the ii-pix lineage), with
-    the palette-bit group constraint driving a constraint-aware diffuser
-    (wave 4; expected to consume the flat base as well, ruled at its own
-    machine round).
+  - Signal class: Apple II via NTSC modeling (the ii-pix lineage).
+    LANDED 2026-08-17 as a per-scanline dynamic program over all 560
+    DHGR dot positions (the R0 note above anticipated HGR's palette-bit
+    groups; the DHGR ruling removed that constraint, and the DP replaced
+    the diffuser): at each dot the decoder's four-dot window names a
+    colour, so the program picks bits minimising distance to the master,
+    reaching hues between the sixteen through sequences. Plain RGB
+    distance, the flat-master manner; option A (aligned Polizei-flat
+    140x16) stays the documented fallback if a future corpus wants it.
 - DITHER POLICY (amended with the flat base): NONE on the 8-bit path,
   the Polizei manner; an author who wants dither paints it (the polish
   loops). The quantize class keeps the wave-1 policy: ordered (Bayer)
@@ -592,7 +597,7 @@ method). Naming: R for retro.
   autoexec line is the programmatic boot proof. Corpus, previews,
   stress-out, and cloak shipped with the bank; the family is
   FIFTEEN formats, twelve of them probe-proven.
-- R5. WAVE 4: Apple II (DHGR only, ruled 2026-08-17), Spectrum Next
+- R5. WAVE 4: Apple II (DHGR only, DONE 2026-08-17), Spectrum Next
   (DONE 2026-08-17), MEGA65 (DONE 2026-08-17); the C128 ruling executed: C64 asset in
   C64 mode, the VDC PARKED (its graphics limits; the future C128
   interpreter pairs the machine's extended memory with VIC-IIe

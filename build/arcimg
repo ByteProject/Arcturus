@@ -77,13 +77,13 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "1.37.0"
+__version__ = "1.38.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = '45fc711'
+__build__ = '954389d'
 
 
 def build_id() -> str:
@@ -1050,12 +1050,6 @@ def _gtia_color(hl: int):
     return (clamp(r), clamp(g), clamp(b))
 
 # Apple II HGR: black, white, and the two artifact pairs.
-_HGR = {
-    "black": (0, 0, 0), "white": (255, 255, 255),
-    "purple": (255, 68, 253), "green": (20, 245, 60),
-    "blue": (20, 207, 253), "orange": (255, 106, 60),
-}
-
 # C128 VDC: 16 RGBI (bit0 intensity); color 12 is dark yellow, not brown.
 def _vdc_color(idx: int):
     i = 0x55 if idx & 1 else 0
@@ -3782,6 +3776,64 @@ def _convert_m65(rows, salient=None):
     return {"w": w, "h": h, "pixels": pixels, "palette": palette}
 
 
+def _convert_ap2(rows, salient=None):
+    """Master to Apple II DHGR, the signal class in full (Stefan's ruling,
+    2026-08-17: the NTSC model first, the ii-pix lineage). The 280-column
+    window (left-weighted, eight columns off the left, the MSX1 window
+    principle) feeds a per-scanline dynamic program over all 560 dot
+    positions: the NTSC decoder shows, at every dot, the colour named by
+    the last four dots through the phase table, so the DP chooses each
+    bit to minimise the distance between that colour and the master
+    column beneath it, reaching colours BETWEEN the sixteen through
+    sequences no aligned mapping can express. Plain RGB distance on the
+    flat masters, the Polizei manner; the palette is _AP2_PAL, ii-pix's
+    emulator-verified set."""
+    rows = [r[8:288] for r in rows]
+    h = len(rows)
+    aux = [[0] * 40 for _ in range(h)]
+    main = [[0] * 40 for _ in range(h)]
+    INF = float("inf")
+    for y in range(h):
+        tgt = rows[y]
+        # every palette entry's distance to every master column, once
+        d = [[(c[0] - p[0]) ** 2 + (c[1] - p[1]) ** 2 + (c[2] - p[2]) ** 2
+              for p in _AP2_PAL] for c in tgt]
+        cost = [INF] * 8
+        cost[0] = 0.0            # the dots left of the band are dark
+        back = []
+        for x in range(560):
+            dc = d[x >> 1]
+            idx = _AP2_IDX[x & 3]
+            ncost = [INF] * 8
+            nback = [0] * 8
+            for st in range(8):
+                c = cost[st]
+                if c == INF:
+                    continue
+                base = st << 1
+                for b in (0, 1):
+                    pat = base | b
+                    nc = c + dc[idx[pat]]
+                    ns = pat & 7
+                    if nc < ncost[ns]:
+                        ncost[ns] = nc
+                        nback[ns] = st
+            back.append(nback)
+            cost = ncost
+        st = min(range(8), key=lambda q: cost[q])
+        bits = [0] * 560
+        for x in range(559, -1, -1):
+            bits[x] = st & 1
+            st = back[x][st]
+        for k in range(80):
+            byte = 0
+            for i in range(7):
+                if bits[7 * k + i]:
+                    byte |= 1 << i
+            (aux if k % 2 == 0 else main)[y][k >> 1] = byte
+    return {"w": 280, "h": h, "aux": aux, "main": main}
+
+
 def _convert_trsm4(rows, salient=None):
     """Master to TRS-80 Model 4 mono: luminance, 2x horizontal (the hi-res
     board's 640x240 pixels are half as wide as tall, so the doubling both
@@ -4190,7 +4242,7 @@ _CONVERTERS = {"AMI": _convert_ami, "AST": _convert_ast, "DOS": _convert_dos,
                "P4": _convert_p4,
                "A8": _convert_a8, "TRSM4": _convert_trsm4,
                "MS1": _convert_ms1, "MS2": _convert_ms2, "AGN": _convert_agn,
-               "NXT": _convert_nxt, "M65": _convert_m65}
+               "NXT": _convert_nxt, "M65": _convert_m65, "AP2": _convert_ap2}
 
 
 # -- the Spectrum polish round-trip (.scr in and out) ---------------------------
@@ -5068,69 +5120,94 @@ class _A8:
         return {"w": w, "h": h, "pixels": pixels, "lines": lines}
 
 
-# ---- AP2: HGR bytes in display row order --------------------------------------
+# ---- AP2: DHGR, aux and main pages in display row order -----------------------
+
+# The DHGR artifact palette in ii-pix's emulator-verified convention
+# (OpenEmulator sRGB, frozen 2026-08-17, ending R1's "approximate" note):
+# the colour at dot x is named by the last four dots, each contributing
+# at bit (dot position mod 4). _AP2_IDX[x % 4][window] resolves a window
+# (packed oldest-dot-highest) to the palette index; the aligned case
+# (x % 4 == 3) is the classic nibble whose LSB is its leftmost dot.
+_AP2_PAL = [
+    (0, 0, 0), (20, 0, 246), (0, 150, 0), (0, 174, 243),
+    (99, 103, 0), (130, 130, 130), (0, 235, 0), (25, 243, 136),
+    (203, 0, 121), (230, 0, 244), (130, 130, 130), (160, 156, 244),
+    (244, 78, 0), (244, 105, 235), (214, 218, 0), (244, 247, 244),
+]
+
+
+def _ap2_idx_table():
+    tbl = [[0] * 16 for _ in range(4)]
+    for ph in range(4):
+        for pat in range(16):
+            idx = 0
+            for j in range(4):
+                bit = (pat >> (3 - j)) & 1        # j = 0 is the oldest dot
+                idx |= bit << ((ph + 1 + j) & 3)  # its phase position
+            tbl[ph][pat] = idx
+    return tbl
+
+
+_AP2_IDX = _ap2_idx_table()
+
+
+def _ap2_line_bits(native, y):
+    """One scanline's 560 dots from the interleaved pages: byte column k
+    is aux for even k, main for odd, seven dots per byte, bit i the
+    (7k+i)th dot; bit 7 plays no part in DHGR."""
+    bits = []
+    for k in range(80):
+        byte = (native["aux"] if k % 2 == 0 else native["main"])[y][k >> 1]
+        for i in range(7):
+            bits.append((byte >> i) & 1)
+    return bits
+
 
 @_target(11, "AP2", 280)
 class _Ap2:
     @staticmethod
     def pack(native):
-        out = bytearray()
+        aux = bytearray()
+        main = bytearray()
         for y in range(native["h"]):
-            for bx in range(native["w"] // 7):
-                byte = native["hibits"][y][bx] << 7
-                for i in range(7):
-                    if native["pixels"][y][bx * 7 + i]:
-                        byte |= 1 << i
-                out.append(byte)
-        return [(SEC_BITMAP, 0, bytes(out))]
+            aux += bytes(native["aux"][y])
+            main += bytes(native["main"][y])
+        return [(SEC_BITMAP, 0, bytes(aux)), (SEC_SCREEN, 0, bytes(main))]
 
     @staticmethod
     def unpack(sections, w, h):
         s = _sections_by_type(sections)
-        bm = s[SEC_BITMAP]
-        span = w // 7
-        pixels = [[0] * w for _ in range(h)]
-        hibits = [[0] * span for _ in range(h)]
-        for y in range(h):
-            for bx in range(span):
-                byte = bm[y * span + bx]
-                hibits[y][bx] = (byte >> 7) & 1
-                for i in range(7):
-                    pixels[y][bx * 7 + i] = (byte >> i) & 1
-        return {"w": w, "h": h, "pixels": pixels, "hibits": hibits}
+        a, m = s[SEC_BITMAP], s[SEC_SCREEN]
+        return {"w": w, "h": h,
+                "aux": [list(a[y * 40:y * 40 + 40]) for y in range(h)],
+                "main": [list(m[y * 40:y * 40 + 40]) for y in range(h)]}
 
     @staticmethod
     def render(native, w, h):
-        # A simplified HGR preview: lit pixels take the group's artifact
-        # pair by column parity, adjacent lit pixels read white. The wave-4
-        # addendum brings the NTSC-modeled version.
+        # The preview IS the signal model: the same window walk the wire
+        # performs, so sequences between the sixteen render as the
+        # emulator shows them. 560 dots wide (two per master column),
+        # and each scanline DOUBLED so the preview keeps the master's
+        # proportions: the signal class is judged by eye on exactly
+        # these files, and a distorted aspect hides the verdict.
         rows = []
         for y in range(h):
+            bits = _ap2_line_bits(native, y)
             row = []
-            for x in range(w):
-                if not native["pixels"][y][x]:
-                    row.append(_HGR["black"])
-                    continue
-                left = x > 0 and native["pixels"][y][x - 1]
-                right = x < w - 1 and native["pixels"][y][x + 1]
-                if left or right:
-                    row.append(_HGR["white"])
-                    continue
-                pair = native["hibits"][y][x // 7]
-                if x % 2 == 0:
-                    row.append(_HGR["blue"] if pair else _HGR["purple"])
-                else:
-                    row.append(_HGR["orange"] if pair else _HGR["green"])
+            win = 0
+            for x in range(560):
+                win = ((win << 1) | bits[x]) & 0xF
+                row.append(_AP2_PAL[_AP2_IDX[x & 3][win]])
             rows.append(row)
+            rows.append(list(row))
         return rows
 
     @staticmethod
     def pattern(w, h):
-        pixels = [[1 if (x + y) % 4 == 0 else 0 for x in range(w)]
-                  for y in range(h)]
-        hibits = [[(bx + y // 8) % 2 for bx in range(w // 7)]
-                  for y in range(h)]
-        return {"w": w, "h": h, "pixels": pixels, "hibits": hibits}
+        aux = [[(3 * y + x) % 128 for x in range(40)] for y in range(h)]
+        main = [[(5 * y + 2 * x + 1) % 128 for x in range(40)]
+                for y in range(h)]
+        return {"w": w, "h": h, "aux": aux, "main": main}
 
 
 # ---- NXT: Layer 2 column-major + 9-bit palette ---------------------------------

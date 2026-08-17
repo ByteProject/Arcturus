@@ -1600,3 +1600,113 @@ and the DMA list. The probe's own 64K arrangement (boot relocation,
 the pairs high under the I/O hole) is probe furniture, not part of
 the contract: a real interpreter with banking or DMA at hand places
 the charset wherever it likes and points the three pointers at it.
+
+### C.15 Apple II (target id 11, tag AP2, files `<id>.AP2`)
+
+The signal class, and the only machine in the family whose colour is
+not a palette at all: on the composite wire the NTSC decoder colours
+each dot by the last four dots that passed it, so what the artist sees
+is a consequence of bit SEQUENCES, not of pixel values. The conversion
+models that wire (see below), and a loader's only duty is to place
+bytes exactly and let the signal do the rest.
+
+DHGR ONLY, 128K MACHINES (Stefan's ruling, 2026-08-17): a IIe, IIc, or
+IIgs. A 48K HGR machine cannot host a z5 story plus a picture band in
+the first place, so the single-page HGR variant is not part of the
+contract.
+
+Probe: [arc_image/probes/ap2/](../arc_image/probes/ap2/), source
+`probe.asm` (plain 6502, assembled with ACME), `mk_a2probe.py` (lays
+the assembled probe onto a bootable 140K .dsk behind qboot),
+`run_probe.py` (the headless pre-proof: the strict 6502 core under a
+main/aux softswitch model, proving both pages' bytes through the
+line-address scatter, the below-band black, and the switch end-state
+against the pair files before any emulator runs), the vendored ZX0
+decoder `dzx0_6502.asm` (Tobias Bindhammer, bitfire, BSD 3-Clause),
+and `qboot.s` (Peter Ferrie, public domain, configured but otherwise
+unchanged; it is already ACME source). Run: AppleWin with probe.dsk in
+drive 1. Verified on AppleWin, Apple //e enhanced, in both composite
+and RGB modes (Stefan's eye, 2026-08-17).
+
+VIDEO. Double hi-res is reached by six softswitches, and a loader that
+sets them in this order owns the screen: `$C00D` 80COL on, `$C050`
+graphics, `$C057` hi-res, `$C052` full screen, `$C05E` AN3 off (the
+DHGR gate itself), `$C001` 80STORE on. With 80STORE set, `$C055` and
+`$C054` (PAGE2 on and off) then bank the `$2000-$3FFF` window between
+the AUXILIARY and MAIN hi-res pages, which is the entire memory story:
+the loader writes the aux page with PAGE2 on, the main page with it
+off, using ordinary stores.
+
+Two conventions a loader must respect:
+
+- THE LINE-ADDRESS TABLE. Hi-res rows are not linear; row y begins at
+  `$2000 + (y & 7) * $400 + ((y >> 3) & 7) * $80 + (y >> 6) * $28`.
+  This is the family's one documented exception to dumb linear
+  unpacking: the .arc sections are in display row order, and the
+  loader scatters each 40-byte row to its own address (the probe lets
+  the assembler build the table).
+- THE HIGH BIT IS NOT YOURS. In DHGR the seventh bit of each byte
+  plays no part in the picture; the converter never sets it, and a
+  loader must not either. Setting it shifts the signal.
+
+DISPLAY PATH, THE ONE WARNING WORTH A PARAGRAPH. The conversion
+targets the COMPOSITE decode: a real Apple II's own video output, a TV
+or composite monitor, which is what almost every machine had. An RGB
+card (Video-7 and kin, or the IIgs's RGB output) decodes DHGR as
+ALIGNED four-bit nibbles instead: sixteen flat colours, no artifact
+blending, and none of the in-between hues the sequences buy. Both
+paths render the same bytes legibly, and the corpus was reviewed on
+both, but an interpreter that documents its picture quality should
+say which display it means. Emulators expose the same fork (AppleWin's
+"Composite Monitor" and "Composite Idealized" against "RGB
+Card/Monitor").
+
+BOOT, for a probe and for anyone building one. The Disk II ROM reads
+physical sector 0 of track 0 into `$0800` and runs it; everything
+after that is that sector's problem, which is why this probe carries
+qboot: one boot sector that reads its own two remaining pages
+(`$BE00`, `$BF00`, on physical sectors 2 and 4, the classic 2:1
+spacing that gives the ROM routine time to re-arm) and then seeks and
+loads any run of sectors into consecutive pages. qboot reads in
+PHYSICAL order, so `mk_a2probe.py` places page n of the payload at
+physical sector n, translating to the file's DOS 3.3 logical order
+with Ferrie's own table (physical to logical: 0, 7, 14, 6, 13, 5, 12,
+4, 11, 3, 10, 2, 9, 1, 8, 15). Track 0 belongs to the loader; the
+payload begins at track 1, sector 0.
+
+CODEC. ZX0 (codec 1, part B), decoder dzx0_6502. Each section
+decompresses to a staging buffer and its rows are then scattered
+through the line table with PAGE2 selecting the page; the stream
+cursor advances by the section table's compressed length, never by
+trusting a decoder's exit registers.
+
+SECTIONS: two.
+
+- bitmap (type 1): the AUXILIARY page, 40 bytes per row in display row
+  order; 2880 bytes in mode 9, 3840 in mode 12.
+- screen (type 2): the MAIN page, the same shape. Together they are
+  the 560 dots of each row, aux byte first, seven dots per byte.
+
+CONVERSION (the arcimg side, for the record): the 320-wide master is
+cropped to 280 (left-weighted, eight columns off the left, the MSX1
+window principle), and each scanline is solved by a dynamic program
+over all 560 dot positions: at every dot the NTSC decoder shows the
+colour named by the last four dots through the phase table, so the DP
+chooses each bit to minimise the distance between that colour and the
+master column beneath it. The palette is the emulator-verified
+sixteen of the ii-pix lineage. The result reaches colours between the
+sixteen through sequences, at the cost of the soft chroma edges the
+machine has by nature: on this wire a hue cannot change faster than
+the four-dot window slides.
+
+Z-COLOURS. Text below the band is the interpreter's own business;
+DHGR text and the picture share no palette state.
+
+ASSETS. `<id>.AP2` beside the story. The standard test pair: 9.AP2
+(mode 9), 12.AP2 (mode 12), picture 8 of the corpus, the mode-9 file
+the top slice of the mode-12 conversion (arcimg slice9), the header id
+stamped to the mode name as on every target.
+
+MEMORY. The decoder, the section walk, and a staging buffer the size
+of one page's section (3840 bytes at most); the compressed source is
+read strictly forward and may be streamed from disk.

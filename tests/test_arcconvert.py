@@ -717,3 +717,53 @@ def test_m65_palette_respects_the_alpha_path():
     assert len(native["palette"]) == 255
     assert all(p != 255 for row in native["pixels"] for p in row)
     assert arcimg.TARGETS["M65"].codec == arcimg.CODEC_LZSA2
+
+
+# --- AP2 (Apple II): DHGR, the signal class ----------------------------------
+#
+# The one target whose colour is not a palette but an artifact of the NTSC
+# wire: a per-scanline DP over all 560 dot positions chooses bits so the
+# decoder's four-dot window shows the master's colour, reaching hues
+# between the sixteen through sequences (Stefan's ruling, 2026-08-17:
+# the full signal model first, the ii-pix lineage). Approved on AppleWin
+# in composite; no identity law here, the class approximates by nature.
+
+_AP2_GOLDEN = {
+    "2.png": "985630c8418a5404",
+    "8.png": "0a1201f53c250613",
+    "10.png": "1dc85cf58ad7a38e",
+    "12.png": "b937ac334911e9c9",
+}
+
+
+@pytest.mark.parametrize("name", sorted(_AP2_GOLDEN))
+def test_ap2_output_is_frozen(name):
+    import hashlib
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, name), "AP2")
+    t = arcimg.TARGETS["AP2"]
+    blob = b"".join(bytes(pl) for _ty, _fl, pl in t.pack(native))
+    assert hashlib.sha256(blob).hexdigest()[:16] == _AP2_GOLDEN[name]
+
+
+def test_ap2_pages_are_dhgr_shaped():
+    # two pages, 40 bytes per row each, and bit 7 never set: in DHGR the
+    # high bit plays no part, and a stray one would shift the signal
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, "8.png"),
+                                          "AP2")
+    assert native["w"] == 280 and len(native["aux"]) == 96
+    for page in ("aux", "main"):
+        for row in native[page]:
+            assert len(row) == 40
+            assert all(b < 0x80 for b in row), f"{page}: high bit set"
+    assert arcimg.TARGETS["AP2"].codec == arcimg.CODEC_ZX0
+
+
+def test_ap2_render_is_the_signal_model():
+    # the preview walks the same four-dot window the wire does, and comes
+    # out aspect-true (rows doubled against the 560 dots)
+    _mode, native = arcimg.convert_master(os.path.join(MASTERS, "9.png"),
+                                          "AP2")
+    rows = arcimg.TARGETS["AP2"].render(native, 280, 96)
+    assert len(rows) == 192 and len(rows[0]) == 560
+    assert rows[0] == rows[1]                      # doubled, not resampled
+    assert all(c in arcimg._AP2_PAL for row in rows for c in row)
