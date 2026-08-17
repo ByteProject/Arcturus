@@ -10897,3 +10897,39 @@ design ledger and docs/07 current, arcimg 1.38.0 with the amalgam.
 Suites: arc-side 189, compiler-side 1346. R5's three machines are
 DONE (NXT, M65, AP2); the C128/VDC stays parked by ruling. NEXT: the
 Agon dither probe (Canopus's request), then R6.
+
+## 2026-08-17: the Agon dither request, RULED OUT (no code change)
+
+Canopus (Shawn Sijnstra) asked whether the Agon converter could dither
+for greater shading depth, suspecting it would help low-contrast
+images. Measured first: the Agon's fixed cube steps 85 per channel, so
+a nearest-cube map costs mean 13.2 / max 24 on our flat corpus art and
+mean 33.9 / max 42 on a GRADIENT master, while the shipped dither
+amplitude is 3, which against an 85 step does essentially nothing. A
+ladder on the beach (amplitudes 3, 12, 21, 30, 42) halved the blended
+error monotonically, 31.8 down to 16.2.
+
+STEFAN'S RULING: DROPPED, no dithering on the Agon. His reasoning,
+which reframes the question rather than answering it: dithering should
+already come from the MASTERS, where the artist put it deliberately;
+the Agon faithfully represents the maximum of the host systems, so it
+has nothing to overcome. The reasonable common denominator for masters
+is 32 colours, or 16-colour Amiga/ST-class art: that ports well to
+DOS, translates well to the retro machines, and lands on the Agon with
+no constraint to fight. None of the Rabenstein images need dithering,
+and machine-made dither does not do them good. A dither question is a
+constraint question; on this machine there is no constraint, so it is
+the wrong way of thinking.
+
+Recorded because the reasoning is the durable part: it is the same
+doctrine as the 8-bit path's "no machine dither, the author paints
+it", extended to say WHY a rich fixed-palette target needs it least.
+Nothing was implemented; the comparison ladder lived in scratch only.
+R5's machines are done and this closes its last item. NEXT: R6 (the
+public interpreter-contract cut, arcimg 2.0).
+
+OPEN, unruled, one line each: the shipped previews for the half-width
+machines (AGN, TRSM4) are still rendered squashed, 640x96, while the
+Apple II's are now aspect-true; making them consistent is a small
+round whenever wanted. And the salient-hint plumbing stays inert until
+the author-facing capability is deliberately reconnected.
