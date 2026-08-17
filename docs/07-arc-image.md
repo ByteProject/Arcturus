@@ -150,6 +150,7 @@ is needed. Everything else is built in.
 |---|---|
 | Modern (Actaea window) | PLAYS TODAY (`.zblorb`, or `.blorb` beside the z5) |
 | The web (Proteus) | PLAYS TODAY (`proteus mygame.zblorb -o mygame.html`) |
+| Modern (Gargoyle) | implemented; ships with the next Gargoyle release |
 | DOS (VGA) | blueprint proven; interpreter support planned |
 | Amiga (OCS/ECS) | PLAYS TODAY (Eris) |
 | Atari ST(E) | PLAYS TODAY (Eris) |
