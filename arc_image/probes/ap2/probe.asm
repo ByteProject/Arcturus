@@ -9,7 +9,7 @@
 ;
 ;   acme -f plain -o probe.bin probe.asm
 ;
-; mk_dsk.py lays probe.bin onto a bootable 140K .dsk behind a minimal
+; mk_a2probe.py lays probe.bin onto a bootable 140K .dsk behind a minimal
 ; boot-sector chain loader; run_probe.py executes the same binary
 ; headless first, on the strict 6502 core under an Apple II softswitch
 ; model, and proves both pages' bytes and the switch end-state against

@@ -10725,7 +10725,7 @@ the 6502 decoders sit in probes/c64/); pairs = IMAGE 8 both modes,
 ids stamped 9/12, the standing convention; boot via a DOS-less
 boot-sector chain loader on a .dsk written by a pure-Python builder
 (FictionTools has no Apple II builder on the R0 list; check, then
-write mk_dsk.py in the BuildTools doctrine); headless pre-proof in
+write mk_a2probe.py in the BuildTools doctrine); headless pre-proof in
 the M65 harness manner (the strict 6502 core plus a softswitch
 model); the emulator is AppleWin under wine (~/Fiction/Tools, wine
 on PATH), and the video mode MUST be composite for the verdict.
@@ -10740,7 +10740,7 @@ verdict: the boot disk. Plan: vendor a public-domain minimal
 bootloader of the qkumba lineage (the ROM's own $C65C re-entry only
 reads within track 0; the probe spans ~2.2 tracks, so the loader
 needs arm stepping, which qboot-class loaders solve in one sector) or
-write the equivalent with the reference open; mk_dsk.py then lays
+write the equivalent with the reference open; mk_a2probe.py then lays
 probe.bin behind it in PHYSICAL sector order through the DOS 3.3
 logical skew ([0,7,14,6,13,5,12,4,11,3,10,2,9,1,8,15]), pure Python.
 Then AppleWin under wine, COMPOSITE video mode, Stefan's eye against
@@ -10751,6 +10751,6 @@ AP2 ADDENDUM 2: the bootloader question is settled. Peter Ferrie is
 qkumba, known personally to Stefan (he fixed the original Apple II Z5
 interpreter for the BuildTools), and his qboot is PUBLIC DOMAIN on
 Stefan's word. The path is clear: vendor QBOOT.S, translate
-Merlin-syntax to ACME with the adaptation plainly marked, mk_dsk.py
+Merlin-syntax to ACME with the adaptation plainly marked, mk_a2probe.py
 lays probe.bin behind it, AppleWin composite verdict. Small world:
 his LZSA2 decoders already serve the M65 and MS2 probes.
