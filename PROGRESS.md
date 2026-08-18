@@ -11084,3 +11084,44 @@ here; emulators are ask-first except the cleared three (ZEsarUX, Xemu,
 AppleWin, paths and setup in memory); headless play is Actaea, never
 fizmo; /tmp is scratch that dies, the repository and this file are the
 record.
+
+CHECKPOINT ADDENDUM (2026-08-18, after the docs round): the author
+guide got the treatment B12's close deserved, all in docs/07 section 6
+("Budgeting your pictures"), and the state above is otherwise
+unchanged. What landed, so nobody re-does it:
+
+- BOTH BAND SHAPES have measured tables (band 9 was missing, which
+  Stefan called misleading), with a compression column and a legend
+  saying what each column answers: unpacked is a RAM question, typical
+  is the median to multiply, largest is what to size a disk by, packs
+  to is the codec's win. The band-9 numbers were measured by slicing
+  the whole corpus with `arcimg slice9`; both sets live only in the
+  document (design.md keeps the byte-exact band-12 ledger).
+- THE NATIVE-FORMAT BENCHMARK, Stefan's idea and the section's aha:
+  each machine's usual full-screen picture beside our band (Koala 9.8K
+  against 3.1K, .SCR 6.8K against 2.0K, IFF 39.1K against 7.5K), read
+  out in pictures per disk. Two reasons stated separately: we store a
+  band, not a screen, and then we compress it. All sizes in KB.
+- THE SHOWCASE is per-machine standalone, one picture each, every entry
+  naming the constraint that machine fights. No grouping, no image
+  shown twice (Stefan: identical-looking machines under one caption
+  taught nothing). It survives a change of master picture, which he
+  expects when he writes a new illustrated game.
+- THE SPECTRUM IS SHOWN TWICE, deliberately: the automatic black-and-
+  white conversion FIRST (taken from the converter in memory, because
+  the ZX3 corpus entry is intentionally HIS hand-painted art and is
+  never to be overwritten), then the hand-painted version beneath it as
+  what the polish loop buys. Never "fix" the corpus mismatch there: it
+  is the design.
+- Rabenstein is no longer named in the author guide except where it is
+  the filename of the shipped demo (examples/arc_image/rabenstein.*).
+  Stefan's rule: the corpus came from an existing game, and the
+  author-facing document is not the place to advertise it.
+- Multipaint (Tero Heikkinen, multipaint.kameli.net) is recommended by
+  name and link as the tool for masters; the "playable today"
+  parenthetical is gone from the modern-path heading, since it read as
+  though the retro half were unfinished.
+- tools/docs_showcase.py builds every showcase picture from the
+  committed corpus (plus that one in-memory Spectrum conversion), so
+  the guide cannot drift from the converters. RE-RUN IT whenever a
+  converter changes, exactly as the corpus and previews are re-run.
