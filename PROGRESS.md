@@ -11198,3 +11198,11 @@ Now it prints the same one-line file:line error as every other stage
 and returns 1. Test added (tests/test_cli_errors.py); full suite 1498
 green; arcc 1.11.1, standalone regenerated and the README table
 refreshed. Adopters get it with arcc --update, as always.
+
+FIELD CONFIRMATION, same morning: EdwardianDuck updated his WIP port
+to the split forms and reports all working as expected, and the new
+compile-time gates flagged real mistakes in his door definitions,
+which he counts as a bonus. The existence-form redesign is field-
+verified by the adopter whose report started it, and the loud-boundary
+ruling (a compile error with a pointer, never a silent drop) paid out
+on first contact.
