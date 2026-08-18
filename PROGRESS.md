@@ -10946,9 +10946,14 @@ the picture).
 
 ## 2026-08-18: B12 IS COMPLETE. R6 closes arc_image (arcimg 2.0.0)
 
-The retro graphics milestone is finished: sixteen formats across
-seventeen machines, every one carrying a reference loader proven on
-accurate emulation and reviewed by Stefan's eye. R6's three real items
+The retro graphics milestone is finished: FIFTEEN shipping formats
+covering SIXTEEN machines (the C128 rides the C64's; a sixteenth
+format, its 80-column VDC path, is specified and parked), every one
+carrying a reference loader proven on accurate emulation and reviewed
+by Stefan's eye. The counts above were wrong in my first writing of
+this entry ("sixteen formats across seventeen machines") and are
+corrected here, in WHATSNEW, and in docs/00; the Agon also had no
+ledger row despite shipping since 2026-08-14, and now has one. R6's three real items
 are done, and one was struck as a phantom.
 
 STRUCK: "the public interpreter-contract document published (the

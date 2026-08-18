@@ -80,6 +80,7 @@ The ledger (band cost is uncompressed, 9-row / 12-row; RLE applies on top):
 | ZX Spectrum Next | Layer 2, 320-wide | 320x72/96 | 256 of 512 (RGB333), free pixels | full layer 80K | banked RAM | DONE (R5: converter is the identity for on-grid masters, 0 differing pixels corpus-wide; probe verified on ZEsarUX 2026-08-17; docs/08 C.13) |
 | MEGA65 | VIC-IV FCM, H320 | 320x72/96 | 255 of 16M, free pixels | 24.5K / 32.6K | chip RAM | DONE (R5: identity conversion for any master of 255 colors or fewer, 0 differing pixels corpus-wide; probe verified on Xemu 2026-08-17; docs/08 C.14) |
 | TRS-80 M4 | hi-res board 640x240 | 640x72/96 (1:2 px) | 1bpp monochrome | 5.8K / 7.7K | port-addressed | external (Sijnstra) |
+| Agon Light | VDP mode 3, 640x240 | 640x72/96 (1:2 px) | fixed 64 (RGBA2222), free pixels | 46.1K / 61.4K | VDP buffer (0 CPU RAM) | external (Sijnstra, Canopus) |
 
 Reading the ledger, the targets fall into three conversion classes:
 

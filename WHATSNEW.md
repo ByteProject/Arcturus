@@ -6,9 +6,9 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
-- **arc_image is finished: sixteen formats, every one proven on the
+- **arc_image is finished: fifteen formats, every one proven on the
   metal.** The retro graphics path is complete. One band-shaped master
-  painting converts to sixteen native formats across seventeen
+  painting converts to fifteen native formats covering sixteen
   machines, from the Amiga and the ST down to the C64, Spectrum, CPC,
   Plus/4, MSX1 and 2, Atari 8-bit, TRS-80 Model 4, Apple II, Agon
   Light, Spectrum Next, MEGA65 and the C128 on the C64's model, and
