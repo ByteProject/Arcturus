@@ -252,8 +252,9 @@ paint and importing and exporting the native formats of the C64,
 Plus/4, Spectrum, MSX, CPC, Amiga and ST, so what you see on the
 canvas is already honest about palettes and cells. It runs on macOS,
 Windows and Linux. That is the ideal input, and if you want the best
-results on every machine at once, paint at that level: **sixteen colours, honest pixel art, flat
-regions rather than smooth gradients**.
+results on every machine at once, paint at that level: **sixteen
+colours, honest pixel art, flat regions rather than smooth
+gradients**.
 
 Up to about **32 colours** is comfortable too, the Amiga OCS look, and
 converts well everywhere. The reason 16 works so beautifully is that
