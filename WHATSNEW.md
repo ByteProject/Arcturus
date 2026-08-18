@@ -12,8 +12,9 @@ lives in the commit log. The feature roadmap follows below.
   the Amiga and the ST down to the C64 and C128, Spectrum, CPC,
   Plus/4, MSX1 and 2, Atari 8-bit, TRS-80 Model 4, Apple II, Agon
   Light, Spectrum Next and MEGA65, and every one of them carries a
-  reference loader verified pixel-perfect on accurate emulation. The last round closed the hardest three: the
-  Spectrum Next and MEGA65, where the conversion turns out to be the
+  reference loader verified pixel-perfect on accurate emulation. The
+  last round closed the hardest three: the Spectrum Next and the
+  MEGA65, where the conversion turns out to be the
   IDENTITY (their palettes reach the master exactly, so the art
   arrives untouched), and the Apple II, where colour is not a palette
   at all but an artifact of the NTSC signal, solved by a dynamic
