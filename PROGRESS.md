@@ -11125,3 +11125,37 @@ unchanged. What landed, so nobody re-does it:
   committed corpus (plus that one in-memory Spectrum conversion), so
   the guide cannot drift from the converters. RE-RUN IT whenever a
   converter changes, exactly as the corpus and previews are re-run.
+
+## CHECKPOINT for pickup (2026-08-18, pre-compaction): the adopter
+## round opens next
+
+Read the 2026-08-18 checkpoint above this one first; everything in it
+still stands (B0-B12 complete, B13 parked until Stefan's interpreters
+exist, no lettered milestone in flight, versions arcc 1.11.0 / Cosmos
+1.14.0 / arcimg 2.0.0 / Actaea 1.3.9, suites 1346 + 189, tree clean
+and pushed). This addendum is the delta since:
+
+- ZED PRS, BOTH STILL OPEN: the Arcturus extension (3 days) and
+  Stefan's Inform6 x PunyInform extension (2 days; NOT part of this
+  project, built with an Opus instance for the community, based on
+  Natrium's but expanded with a tree-sitter grammar and first-class
+  PunyInform support; he calls it "super good"). Both bot-approved,
+  awaiting the human merge. Nothing to do but wait; on merge, Stefan
+  verifies the in-app listings and uninstalls the dev extensions.
+
+- THE NEXT WORK IS THE ADOPTER ROUND, on Stefan's word, reports
+  arriving from him one at a time. His framing worth keeping: the
+  reports are SHIFTING FROM ISSUES TOWARD FEATURE REQUESTS, which is
+  the stable-codebase pattern (Fredrik's lesson in memory), though he
+  notes there are still some underlying issues in the queue. The
+  discipline, unchanged and battle-tested across the EdwardianDuck
+  round: reproduce against the exact shipped binary from git history
+  (git show <commit>:build/arcc), MEASURE before concluding or
+  contradicting, sort real defects from misunderstandings, treat
+  feature requests as design questions for Stefan (discuss first,
+  never build on the report alone), and hand him pasteable answers in
+  his voice, plain mechanics, no coined jargon.
+
+- Nothing else moved: no code, no docs, no corpus changes this
+  session; the only writes were this file and two memory notes (the
+  Zed extension state; the docs-showcase rule from the prior round).
