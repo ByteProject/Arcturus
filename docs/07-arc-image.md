@@ -244,9 +244,12 @@ start small rather than compress well.
 ### What makes a good master
 
 The masters this project is built and measured on are 16-colour pixel
-art, delivered as Atari ST Degas PI1 files. That is the ideal input,
-and if you want the best results on every machine at once, paint at
-that level: **sixteen colours, honest pixel art, flat
+art, painted in Multipaint and saved in the Atari ST's Degas PI1
+format. Multipaint is a natural home for this work: it paints inside
+the retro constraints rather than against them, so what you see while
+painting is already honest about palettes and cells. That is the ideal
+input, and if you want the best results on every machine at once,
+paint at that level: **sixteen colours, honest pixel art, flat
 regions rather than smooth gradients**.
 
 Up to about **32 colours** is comfortable too, the Amiga OCS look, and
