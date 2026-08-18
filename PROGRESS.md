@@ -11159,3 +11159,42 @@ and pushed). This addendum is the delta since:
 - Nothing else moved: no code, no docs, no corpus changes this
   session; the only writes were this file and two memory notes (the
   Zed extension state; the docs-showcase rule from the prior round).
+
+## 2026-08-18: the adopter round opens. The selection idea, RULED OUT;
+## a loader-error fix lands (arcc 1.11.1)
+
+EdwardianDuck reported back on the override recommendation from the
+last round: he moved his personal message overrides from a granule to
+.storyarc chapter files, one file per message, because a whole-file
+collection cannot be partially overridden in a specific game (chapter
+blocks rank as game, and a repeat at the same rank is a genuine
+duplicate, by design). He called his own approach over-thinking; it is
+in fact the correct shape, and measurement added two comforts he did
+not know: name-form chapter summons search the -L path, so his whole
+override library can live in one personal directory shared across
+games, and a local copy in a game's folder shadows the -L master, so
+per-game trimming needs no second mechanism.
+
+From there he floated a feature: generalize the extendedverbs slice
+syntax so `summon my.storyarc feature1, feature2` takes named pieces
+of any file. Measured: the syntax already parses (the selection list
+exists on every summon form since the verbs overhaul); only the
+semantics are verb-only, so the question was purely what a selection
+means for a file without verbs.
+
+STEFAN'S RULING: NO CHANGE. His reasoning: the author is building
+himself the modularity he needs, and the language already provides
+it; a single file summoned per game with unwanted overrides commented
+out (or the copy-and-trim pattern) does the same job in plain sight.
+Files are the selection mechanism. A second way to say something the
+language already says is how a small language stops being small.
+
+ONE REAL DEFECT surfaced by the measuring, fixed on Stefan's go as
+its own commit: every load-time summon error (missing granule, bad
+verb selection, the language gate, the clashing-presentation pair)
+escaped as a raw Python traceback, because the combined_program call
+in the CLI was the one compile stage outside the ArcError handler.
+Now it prints the same one-line file:line error as every other stage
+and returns 1. Test added (tests/test_cli_errors.py); full suite 1498
+green; arcc 1.11.1, standalone regenerated and the README table
+refreshed. Adopters get it with arcc --update, as always.

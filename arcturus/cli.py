@@ -560,12 +560,18 @@ def main(argv: list[str] | None = None) -> int:
 
     # Compile the game together with the bundled Cosmos library and any granules
     # it summons (docs/01 chapter 22). Summoned files resolve relative to the story's own
-    # directory first, then the -L search path.
+    # directory first, then the -L search path. A summon that cannot resolve (or
+    # resolves to something unusable, a bad selection, a clashing granule pair) is
+    # the author's error like any other: report it in one line, never a traceback.
     if not args.no_cosmos:
         story_dir = os.path.dirname(os.path.abspath(args.source))
-        program = cosmos_lib.combined_program(
-            program, lib_dirs=args.lib or (), story_dir=story_dir
-        )
+        try:
+            program = cosmos_lib.combined_program(
+                program, lib_dirs=args.lib or (), story_dir=story_dir
+            )
+        except ArcError as exc:
+            print(exc.format(), file=sys.stderr)
+            return 1
 
     try:
         world = analyze(program, filename=args.source)
