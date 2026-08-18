@@ -259,8 +259,7 @@ done-test.
   the Blorb pack, with the same story file still running unchanged on Frotz.
 - B12 (COMPLETE 2026-08-18; the charter, target ledger, and sub-milestones
   R0 to R6 are arc_image/reference/design.md): `arc_image` on retro systems,
-  fifteen shipping formats covering sixteen machines (a sixteenth
-  format, the C128's 80-column VDC path, is specified and parked). The center of gravity is the conversion intelligence:
+  sixteen machines. The center of gravity is the conversion intelligence:
   one band-shaped master painting per image, `arcimg` deriving the ideal
   native version per machine (palette, resolution, attribute-clash solving),
   with hand-painted native art as an optional 1:1 path. Per-platform RLE

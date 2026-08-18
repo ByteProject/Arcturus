@@ -10950,10 +10950,15 @@ The retro graphics milestone is finished: FIFTEEN shipping formats
 covering SIXTEEN machines (the C128 rides the C64's; a sixteenth
 format, its 80-column VDC path, is specified and parked), every one
 carrying a reference loader proven on accurate emulation and reviewed
-by Stefan's eye. The counts above were wrong in my first writing of
-this entry ("sixteen formats across seventeen machines") and are
-corrected here, in WHATSNEW, and in docs/00; the Agon also had no
-ledger row despite shipping since 2026-08-14, and now has one. R6's three real items
+by Stefan's eye. The counts were wrong in my first writing of this
+entry ("sixteen formats across seventeen machines"), and the fix that
+followed ("fifteen formats covering sixteen machines") was accurate
+but confusing. STEFAN'S RULING on how to say it: arc_image COVERS 16
+MACHINES, full stop; the public documents do not split formats from
+machines. The engineering ledger in design.md keeps the precision it
+needs (the C128 shares the C64's format; the VDC path is specified
+and parked). The Agon also had no ledger row despite shipping since
+2026-08-14, and now has one. R6's three real items
 are done, and one was struck as a phantom.
 
 STRUCK: "the public interpreter-contract document published (the
