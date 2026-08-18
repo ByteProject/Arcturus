@@ -44,7 +44,7 @@ Two authoring aids:
   the conversion promotes it to the brightest color instead of losing
   it. Seconds of work, and every target benefits.
 
-## 2. Shipping for modern systems (playable today)
+## 2. Shipping for modern systems
 
 The pictures ship in a Blorb, the IF world's standard resource
 container, with the arc_image numbering carried over exactly (picture
