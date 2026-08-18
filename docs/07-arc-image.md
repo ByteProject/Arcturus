@@ -160,7 +160,7 @@ is needed. Everything else is built in.
 | Amstrad CPC | PLAYS TODAY (Haumea) |
 | Commodore Plus/4 | blueprint proven; interpreter support planned |
 | Atari 8-bit | PLAYS TODAY (Varuna) |
-| TRS-80 Model 4 | blueprint proven; Shawn Sijnstra's interpreter adopts it |
+| TRS-80 Model 4 | blueprint proven; Shawn Sijnstra's Canopus adopts it |
 | MSX1 and MSX2 | blueprint proven; interpreter support planned |
 | Agon Light | blueprint proven; Shawn Sijnstra's Canopus adopts it |
 | Spectrum Next | blueprint proven (conversion is the identity for ST-class masters) |
@@ -192,3 +192,158 @@ arcimg scr / arcimg unscr                  the Spectrum polish loop
 
 `arcimg` ships like `arcc` and `actaea`: one self-contained file
 (build/arcimg), pure Python, no installation.
+
+## 6. Budgeting your pictures
+
+Every machine holds the band in its own way, and the numbers below are
+measured, not estimated: the whole 22-picture Rabenstein corpus at
+320x96 (mode 12), converted and packed with each machine's own codec.
+
+| Machine | In memory | Typical picture | Largest | Codec |
+|---|---|---|---|---|
+| Agon Light | 60.0K | 17.6K | 26.5K | RLE |
+| Amiga (OCS/ECS) | 18.8K | 7.5K | 10.7K | LZSA2 |
+| Atari ST(E) | 15.0K | 7.4K | 10.6K | LZSA2 |
+| DOS (VGA) | 30.8K | 6.4K | 8.7K | LZSA2 |
+| Spectrum Next | 30.5K | 6.0K | 9.1K | LZSA2 |
+| MEGA65 | 30.7K | 6.2K | 8.6K | LZSA2 |
+| MSX2 | 12.0K | 4.7K | 6.5K | LZSA2 |
+| Amstrad CPC | 7.5K | 4.0K | 5.5K | ZX0 |
+| Apple II (DHGR) | 7.5K | 3.6K | 5.0K | ZX0 |
+| MSX1 | 6.0K | 3.3K | 4.1K | ZX0 |
+| Commodore 64 / C128 | 4.7K | 3.1K | 4.1K | ZX0 |
+| TRS-80 Model 4 | 7.5K | 3.1K | 4.7K | ZX0 |
+| Commodore Plus/4 | 4.7K | 3.0K | 4.0K | ZX0 |
+| Atari 8-bit | 4.1K | 2.5K | 3.3K | ZX0 |
+| ZX Spectrum +3 | 3.4K | 2.0K | 2.8K | ZX0 |
+
+Read the columns like this. **In memory** is what the picture occupies
+on the machine once unpacked, which is a RAM question, not a disk one:
+it is the same for every picture and it is what an interpreter has to
+find room for. **Typical picture** is the number to multiply when you
+budget a game: half your pictures will be smaller, half larger.
+**Largest** is the number to size a disk by, so a scene of unusual
+detail cannot overflow the space you planned.
+
+So a twenty-picture game costs roughly 62K of disk on a C64, 40K on a
+Spectrum, 72K on an Apple II, and 150K on an Amiga, with the story
+file beside it. A mode-9 band (320x72, the shallower band) runs about
+three quarters of every figure above.
+
+One result in that table looks backwards and is worth a sentence,
+because it will save you a wrong assumption. The 8-bit machines
+compress WORST in ratio: a C64 picture packs to about two thirds of
+its raw size, while a MEGA65 picture packs to a fifth. That is not a
+weakness of the small machines. Their converted pictures are already
+dense, every byte carrying attribute decisions, so there is little
+repetition left for a compressor to find, whereas a picture at eight
+bits per pixel is mostly flat regions and squeezes enormously. The
+small machines still produce by far the smallest files; they simply
+start small rather than compress well.
+
+### What makes a good master
+
+The masters this project is built and measured on are 16-colour pixel
+art, delivered as Atari ST Degas PI1 files. That is the ideal input,
+and if you want the best results on every machine at once, paint at
+that level: **sixteen colours, honest pixel art, flat
+regions rather than smooth gradients**.
+
+Up to about **32 colours** is comfortable too, the Amiga OCS look, and
+converts well everywhere. The reason 16 works so beautifully is that
+it is close to what the target machines can hold: the conversion is
+then a translation rather than a reduction, and on a few machines it
+is not even that. On the Spectrum Next and the MEGA65 a 16-colour
+master arrives PIXEL FOR PIXEL, unchanged, because their palettes can
+name your colours exactly.
+
+Bring a photograph, or a painting with five hundred colours, and
+`arcimg` will still do its work: it reduces the palette (median cut,
+then a k-means polish so small bright regions keep an entry), snaps
+the result to each machine's gun depth, solves attribute clashes cell
+by cell, and dithers gradient-class art gently where banding would
+otherwise show. It will give you the best representation it can find.
+But that path is not what the corpus was tuned on and not what this
+project has tested, so expect to be less delighted than the author who
+brought pixel art. If in doubt: fewer colours, painted deliberately,
+beats more colours reduced by a tool.
+
+### One painting, sixteen machines
+
+Master 8 of the Rabenstein corpus, a moon forest painted in twelve
+colours from a 16-colour palette, and what `arcimg` derives from it.
+Every picture below is shown at the same scale, so the widths are
+honest: where a machine's band is narrower, its window really is
+narrower, and where its pixels are half as wide as tall, only the rows
+are doubled. Nothing here was retouched by hand; these are the
+converter's own output, rebuilt by `tools/docs_showcase.py`.
+
+**The master** (320x96, 12 colours)
+
+![The master](../artworks/docs/arcimage-master.png)
+
+**Amiga** (32 colours of 4096) and **Atari ST** (16 of 512): the
+16-bit machines take the art nearly untouched.
+
+![Amiga](../artworks/docs/arcimage-ami.png)
+
+![Atari ST](../artworks/docs/arcimage-ast.png)
+
+**DOS, VGA mode 13h** (256 colours), **Spectrum Next** (256 of 512)
+and **MEGA65** (255 of 16 million): free pixels and palettes deep
+enough that the master survives intact. On the Next and the MEGA65
+this conversion is the identity.
+
+![DOS](../artworks/docs/arcimage-dos.png)
+
+![Spectrum Next](../artworks/docs/arcimage-nxt.png)
+
+![MEGA65](../artworks/docs/arcimage-m65.png)
+
+**Agon Light** (64 fixed colours, 640 wide): a modern 8-bit machine
+with a fixed colour cube.
+
+![Agon Light](../artworks/docs/arcimage-agn.png)
+
+**Commodore 64**: multicolour bitmap, three colours plus a shared
+background per 4x8 cell, from a fixed sixteen. **Plus/4**: the same
+bitmap shape but its own arithmetic, two colours per cell beside two
+global registers, chosen from 121 shades (sixteen hues at eight
+brightnesses).
+
+![Commodore 64](../artworks/docs/arcimage-c64.png)
+
+![Plus/4](../artworks/docs/arcimage-p4.png)
+
+**Amstrad CPC** (16 inks chosen from 27, no cell limit) and **Atari
+8-bit** (four colours per scanline, chosen per line from 128).
+
+![Amstrad CPC](../artworks/docs/arcimage-cpc.png)
+
+![Atari 8-bit](../artworks/docs/arcimage-a8.png)
+
+**MSX1** (two colours per 8x1 strip) and **MSX2** (16 free-pixel
+colours of 512), both showing the 256-wide window.
+
+![MSX1](../artworks/docs/arcimage-ms1.png)
+
+![MSX2](../artworks/docs/arcimage-ms2.png)
+
+**ZX Spectrum +3**: two colours per 8x8 cell sharing one brightness,
+the hardest constraint in the family. The conversion ships in black
+and white by default, since colour on this machine is a matter of
+taste the author should own (see the polish loop above).
+
+![ZX Spectrum +3](../artworks/docs/arcimage-zx3.png)
+
+**Apple II** (DHGR): colour here is not a palette but an artifact of
+the NTSC signal, so the converter chooses each of the 560 dots per
+line to make the decoder show the painting. Shown as a composite
+display renders it, which is the machine's own output.
+
+![Apple II](../artworks/docs/arcimage-ap2.png)
+
+**TRS-80 Model 4**: one bit per pixel, 640 across, where the whole
+quality budget of a monochrome machine is its halftone.
+
+![TRS-80 Model 4](../artworks/docs/arcimage-trsm4.png)
