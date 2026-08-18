@@ -267,9 +267,13 @@ done-test.
   emulator probes, and the public contract document (docs/08) that
   third-party interpreters implement from: Shawn Sijnstra's Vezza and
   Canopus, Ozmoo, Dialog, and Gargoyle all adopt the format.
-- B13: port The Curse of Rabenstein from DAAD to Arcturus. Trivial as a port,
-  it exercises the `arc_image` graphics path end to end (its art is ready for
-  the retro targets) and ships as a worked example game.
+- B13 (PARKED 2026-08-18, Stefan's ruling): port The Curse of Rabenstein from
+  DAAD to Arcturus. Trivial as a port, it exercises the `arc_image` graphics
+  path end to end (its art is ready for every target) and ships as a worked
+  example game. It waits until interpreters exist for the arc_image host
+  machines: a graphics showcase with nothing to show it on proves nothing,
+  and the interpreters are the gate, not the port. The work is unblocked
+  whenever that changes; the art has been converted since B12.
 
 Beyond the lettered milestones, far out and deliberately unscheduled
 (Stefan's direction, 2026-07-19): a SECOND interpreter beside Actaea,

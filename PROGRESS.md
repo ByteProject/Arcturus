@@ -11010,3 +11010,77 @@ OPEN, unruled, small: the AGN and TRSM4 previews still render squashed
 (640x96) where the AP2's are aspect-true; the salient-hint plumbing
 stays inert until the author-facing capability is deliberately
 reconnected.
+
+## CHECKPOINT for pickup (2026-08-18): B12 CLOSED, B13 PARKED, the
+## lettered milestones are done for now
+
+B13 IS PARKED, Stefan's ruling of this date: the Rabenstein port waits
+until interpreters exist for the arc_image host machines. A graphics
+showcase with nothing to show it on proves nothing; the interpreters
+are the gate, not the port, and they are Stefan's own work in the
+sibling repositories (never touched from here). The art has been
+converted for every machine since B12, so the port is unblocked the
+day he says so. docs/00 carries the ruling.
+
+WHERE THE PROJECT STANDS. Versions: arcc 1.11.0, Cosmos 1.14.0, arcimg
+2.0.0, Actaea 1.3.9, proteus 1.0.0; VS Code extension 1.2.1, Zed
+extension 1.0.0. Suites: compiler-side 1346, arc-side 189 (the Actaea
+curses test needs a TTY, so never run the whole suite detached).
+Everything is committed and pushed; the tree is clean.
+
+MILESTONES: B0 to B12 are complete. B9 was dropped long ago (Ghosts),
+B13 is parked as above. There is no lettered milestone in flight for
+the first time in the project's life, which means the next work is
+chosen rather than queued.
+
+THE PARKED LANES, each on Stefan's word, none started:
+1. CRAVERLY HEIGHTS (Ryan Veeder, permission given): the English
+   example port. Workspace examples/craverly exists and is gitignored,
+   with PORTLOG.md. Read the PunyInform port first and note its
+   Inform-7-behaviour backports as Cosmos candidates ("if it serves
+   Inform 7 well, it might also serve us").
+2. HIBERNATED 1 AUF DEUTSCH: port first under the H2 discipline (no
+   game content in tracked files, ever), translation second, Stefan's
+   native pass gating line by line. Workspace examples/hibernated1_german,
+   gitignored, PORTLOG.md.
+3. ZED PR AFTERMATH: when zed-industries/extensions merges the
+   submitted PR (bot-approved, human pending), Stefan verifies the
+   in-app listing and uninstalls the dev extension. The fork clone at
+   ~/Fiction/Misc/extensions stays for future update PRs; the update
+   flow is documented in editors/zed/README.md.
+4. ADOPTER SUPPORT as it arrives (the pattern of the last two days:
+   reproduce against the exact shipped binary from git history, measure
+   before concluding, sort defects from misunderstandings, answer in
+   Stefan's voice as a pasteable block).
+
+SMALL OPEN ITEMS, unruled, one line each: the AGN and TRSM4 previews
+still render squashed (640x96) where the AP2's are now aspect-true;
+the salient-hint plumbing is inert (the interface lives, no converter
+acts on it) until the author-facing capability is deliberately
+reconnected, and Stefan's position is that the FEATURE STAYS while the
+converters aim to make it unnecessary; probe_noun stays classless from
+the German round; the Actaea Beyond Zork gap stands untriaged and is
+never to be started unprompted.
+
+WHAT THE LAST TWO DAYS ADDED, for context when reading the entries
+above: the German forum round's aftermath (answers, the Discord
+announcement, the VS Code and Zed extensions, the registry PR); two
+adopter reports from EdwardianDuck that produced the EXISTENCE FORM
+(`in a, b` as true multi-room presence, against `spans` as sight) and
+the -L prelude fix that had been broken since B5; then B12's last
+round, R5, which closed the Spectrum Next, the MEGA65 and the Apple II
+and ruled out the Agon dither request, followed by R6's close of the
+whole milestone at arcimg 2.0.0.
+
+STANDING DISCIPLINE (the memory files hold the full set; these are the
+ones this stretch exercised hardest): Stefan drives design, his word
+gates builds and his eye gates art; answer questions before starting
+conditioned work; surface deviations before landing them; MEASURE
+before contradicting him (two scars this stretch, the image-8 probe
+pairs and the salient hint); one machine or one mechanism at a time,
+never stacked; probes and their tooling become durable files; the
+sibling interpreter repos and FictionTools are never modified from
+here; emulators are ask-first except the cleared three (ZEsarUX, Xemu,
+AppleWin, paths and setup in memory); headless play is Actaea, never
+fizmo; /tmp is scratch that dies, the repository and this file are the
+record.
