@@ -589,45 +589,141 @@ how matching ranks them (chapter 14).
 
 ### Standard kinds
 
-`thing` (base): `name`, `words`, `desc`; booleans `fixed`, `scenery`,
-`hidden`, `concealed`, `wearable`, `worn`, `lit`, `edible`, `named`. Default
-handlers for examine, take, drop, push, pull, turn, and the like (chapter 15).
+Six kinds ship with the system: `thing` and `room`, the two roots, and
+`container`, `supporter`, `door`, and `character`, each a kind of thing.
+This section is the contract of each one: what the kind means, what it
+inherits, which attributes it sets, and what the library already does for
+it with no author code. Each entry ends where a chapter takes over.
 
-`room`: `name`, `desc`, `lit` (true by default; a dark room declares `lit
-false`), `visited`, and the direction properties (`north`, `south`, `east`,
-`west`, `northeast`, `northwest`, `southeast`, `southwest`, `up`, `down`, `in`,
-`out`, and the nautical `fore`, `aft`, `port`, `starboard`, whose player words
-are the nautical granule), each an object defaulting `nothing`. A direction may name a room or a
-door. Default `go <direction>` reads the matching property and moves the player,
-or, when there is no exit, prints "You can't go that way." A room overrides one
-direction with its own `on go <direction>`. The full movement model, including
-computed exits and the blocked-direction fallback, is chapter 8.
+Three rules govern all of them. First, a kind of thing inherits the whole
+of `thing`: every property, attribute, and default behavior in the base
+entry is available on every other kind, so the later entries list only
+what each kind ADDS. Second, a kind sets only the attributes true for
+essentially every instance of it. A door opens and a character is animate,
+so those are kind defaults; a bowl is a container that never opens, so
+`openable` is deliberately not one. Everything less than universal is
+declared per instance, and every kind default can still be overridden on
+the instance (a dark room declares `lit false`). Third, the kind is itself
+testable and dispatchable: `if obj is container` answers by the kind
+chain, and a handler declared on a kind answers for every instance that
+does not override it (chapter 11). Your own kinds extend the same chain
+(`kind crate of container`), and an instance of a kind of room is a room
+in every respect, as this chapter said above.
 
-Only attributes true for essentially every instance of a kind are kind defaults;
-the rest are declared per instance. So `openable` is deliberately not a container
-default (a bowl is a container that never opens), while a door is `openable` and
-`fixed` because every door is.
+#### thing
 
-`container of thing`: an optional `capacity`. Contents are children, in scope
-when the player can see in: the container is `open`, is `clear` (see-through), or
-has no lid at all (not `openable`), like a bowl or a basket. Declare `openable`
-(and `open false`) to make a box with a lid that must be opened. Default open,
-close, and put in.
+The base kind: every object that is not a room. Its properties are `name`
+(the printed text), `words` (the typed vocabulary), and `desc`, told apart
+earlier in this chapter, plus the standard attributes: `fixed`, `scenery`,
+`hidden`, `concealed`, `wearable`, `worn`, `lit`, `edible`, `named`, and
+the rest of the table that chapter 5 gives in full, with `appearance` and
+`intro` for a thing that owns its own paragraph in a room description. A
+plain thing sets none of them: it is portable, visible, and inert until a
+declaration says otherwise.
 
-`supporter of thing`: an optional `capacity`. Contents are children, always in
-scope on top. Default put on.
+What the library already does for any thing: EXAMINE prints its `desc`;
+TAKE and DROP move it between floor, hands, and holders, the refusal
+ladder speaking the true reason when it refuses (scenery, fixed, out of
+reach, part of a whole, alive); INVENTORY lists it when carried; WEAR and
+REMOVE work when it is `wearable`; and the rest of the standard actions,
+PUSH, PULL, TURN, SMELL, LISTEN and their peers, answer with library
+defaults, every message overridable (chapter 12). In a room description it
+joins the one-sentence listing ("You can see a lantern here.") unless
+`appearance` or an unexpired `intro` gives it a paragraph of its own
+(chapter 5).
 
-`door of thing`: `openable` and `fixed` by default; declare `lockable`, `locked`,
-and `unseal_with <key>` to make it lock. A door joins two rooms with `in A, B`,
-the existence form (this chapter): one door, fully present in both rooms, listed
-and operable on both sides, one state. When a room's exit names the door (`east
-oak_door`), crossing it is gated on the door being open and unlocked and lands
-the player on its far side, with no author code. Default open, close, lock,
-unlock, and the movement gate.
+#### room
 
-`character of thing`: `animate`; holds and wears objects; refuses being taken
-(an animate object answers TAKE with its own line, not the scenery `fixed` one)
-and routes the talk verb (chapter 12). `player` is the distinguished instance.
+A location. `lit` is true by default; a dark room declares `lit false`,
+and chapter 7 owns light and darkness. `visited` is set once the player
+has been there. The direction properties (`north`, `south`, `east`,
+`west`, `northeast`, `northwest`, `southeast`, `southwest`, `up`, `down`,
+`in`, `out`, and the nautical `fore`, `aft`, `port`, `starboard`, whose
+player words come with the nautical granule) each name a room or a door,
+defaulting `nothing`. GO reads the matching property and moves the player,
+or answers "You can't go that way."; a room overrides one direction with
+its own `on go <direction>`; computed exits and the blocked-direction
+fallback are chapter 8. On entry and on LOOK a room describes itself: the
+name, the `desc`, then the paragraphs and the one-sentence listing of what
+is present. A room may also be an instance of a room kind, and roomness
+flows through the chain (above).
+
+#### container
+
+A thing whose contents are its children in the object tree. The player
+can see and reach into it when the container is `open`, is `clear`
+(see-through, a glass jar), or has no lid at all (not `openable`), like a
+bowl or a basket. Declare `openable` (and `open false`) for a box with a
+lid that must be opened; the kind itself sets nothing, by the bowl rule
+above. An optional `capacity` bounds what fits. The library answers OPEN,
+CLOSE, and PUT IN, lists a container inline with its state and visible
+contents ("a pine box (closed)", "an iron box (contains a gold ring)"),
+and keeps the knowledge model honest: a closed opaque box still lists the
+contents the player has `seen`, and never the ones they have not (chapter
+6, which owns the whole containment model).
+
+#### supporter
+
+A thing whose children sit on top of it, always in scope: a table hides
+nothing. An optional `capacity` bounds what fits; the library answers PUT
+ON, and contents ride along in listings. Chapter 6 covers supporters
+beside containers.
+
+#### door
+
+`openable` and `fixed` by default, because every door is both. A door
+joins two rooms with `in A, B`, the existence form of this chapter: one
+door, fully present in both rooms, listed and operable on both sides, one
+state. When a room's exit names the door (`east oak_door`), crossing is
+gated on the door being open and unlocked and lands the player on its far
+side, with no author code. Declare `lockable`, `locked`, and
+`unseal_with <key>` to make it lock. The library answers OPEN, CLOSE,
+LOCK, UNLOCK, and the movement gate; movement itself is chapter 8.
+
+#### character
+
+The kind for the people of your game, and for anything else that is
+someone rather than something, an animal, a robot, a ghost: what other
+systems call an NPC. Declaring one is one line and a body:
+
+```
+thing innkeeper of character in taproom
+    name "Aggie"
+    named
+    feminine
+    words aggie, innkeeper
+    desc "Aggie pretends to polish a tankard, missing nothing."
+```
+
+`named` marks a proper name, so no article is ever printed before it;
+`feminine` is declared where the spelling cannot reveal it, so "her" finds
+her (chapter 5). The kind sets `animate`, and animacy is what the library
+keys on:
+
+- TAKE refuses with an animate line ("Aggie has other ideas."), never the
+  scenery one.
+- The conversation verbs reach a character and only a character: TALK TO,
+  ASK ABOUT, TELL ABOUT, ANSWER, and ASK FOR. With no conversation granule
+  summoned they share one honest brush-off ("Aggie doesn't seem up for a
+  conversation."), so every game is safe by default; `topic` blocks,
+  file-level subjects, and the two presentations, ask/tell and the menu,
+  are the whole of chapter 17.
+- GIVE and SHOW validate on the action itself (the gift must be carried,
+  the receiver animate) and politely decline by default; the character's
+  own `on give` and `on show` own the response, the acceptance pattern
+  chapter 6 works through.
+- The pronouns HIM and HER resolve to characters by animacy and the
+  `feminine` attribute (chapter 14).
+
+A character holds and wears things: place them `in` the character, declare
+`worn` on what it wears, and GIVE moves accepted gifts there. Its
+belongings are private by default, out of the player's scope, neither
+examinable nor takeable, until your code brings them out: a handler that
+hands one over, a `move` to the room or to `scope` (this chapter). To make
+a character act, `on each_turn` is its pulse (chapter 16), `way_toward`
+walks it one step toward a goal through the real room graph (chapter 8),
+and `restless` keeps it acting offstage (chapter 5). `player` is the
+distinguished character instance, chapter 4.
 
 ## Chapter 4: The player
 

@@ -11206,3 +11206,35 @@ which he counts as a bonus. The existence-form redesign is field-
 verified by the adopter whose report started it, and the loud-boundary
 ruling (a compile error with a pointer, never a silent drop) paid out
 on first contact.
+
+## 2026-08-18: STEFAN'S RULING: documentation before the NPC engine.
+## Every shipped kind gets its written contract
+
+The fos13 thread (a ParserComp organiser porting a large TADS/Adv3Lite
+game) surfaced a real documentation gap: he could not find how to
+create an NPC in the handbook. Measured: the word NPC appeared only in
+passing, and chapter 3's Standard kinds section gave the character
+kind three lines. Stefan's ruling, before any NPC engine work: the
+handbook must state, for EVERY kind that ships with the system, what
+it means, what it inherits, which attributes it sets, and what the
+library already does for it; the NPC engine gets the same treatment
+when it exists.
+
+DONE: chapter 3's Standard kinds rewritten from one terse list into
+per-kind subsections (thing, room, container, supporter, door,
+character), opened by the three governing rules (full inheritance
+from thing; universal-only kind defaults, the bowl rule; kinds are
+testable and dispatchable). Character's entry says NPC out loud so
+search finds it, and carries a worked declaration (innkeeper Aggie,
+a fresh scene, never an adopter's) that was compiled and played
+before it entered the book. Every behavioral claim was measured
+first, compiler and library both: the kind defaults in sema (room
+lit, character animate, door openable+fixed, container and supporter
+deliberately nothing), the take-refusal ladder, the conversation
+seams (one brush-off with no granule; ask/tell and menu in chapter
+17), give/show validating on the action, and the holds-and-wears
+contract, including the measured fact now stated plainly: a
+character's belongings are OUT OF THE PLAYER'S SCOPE until the
+author reveals them. A stale cross-reference fell out with the
+rewrite (default handlers pointed at chapter 15, the output
+chapter; now chapter 12).
