@@ -278,23 +278,23 @@ screen. A picture in the machine's usual format is a whole display,
 typically 200 lines or more; your band is 96 or 72. Compression then
 works on top of that. Set side by side:
 
-| Machine | Its usual full-screen picture | Band 12 | Band 9 |
-|---|---|---|---|
-| Commodore 64 | Koala, 10,003 bytes | 3.1K | 2.3K |
-| Commodore Plus/4 | multicolour bitmap, 10,000 | 3.0K | 2.2K |
-| ZX Spectrum | `.SCR` screen, 6,912 | 2.0K | 1.5K |
-| Amstrad CPC | Mode 0 screen, 16,384 | 4.0K | 2.9K |
-| MSX1 | Screen 2 pattern + colour, 12,288 | 3.3K | 2.4K |
-| MSX2 | Screen 5, 27,136 | 4.7K | 3.6K |
-| Atari 8-bit | ANTIC mode E screen, 7,680 | 2.5K | 1.7K |
-| Apple II | DHGR, two pages, 16,384 | 3.6K | 2.7K |
-| TRS-80 Model 4 | hi-res screen, 19,200 | 3.1K | 2.3K |
-| Atari ST(E) | Degas PI1, 32,034 | 7.4K | 5.5K |
-| Amiga | IFF ILBM, 5 planes, 40,000 | 7.5K | 5.6K |
-| DOS (VGA) | mode 13h screen, 64,000 | 6.4K | 4.7K |
-| MEGA65 | full-colour screen, 64,000 | 6.2K | 4.6K |
-| Spectrum Next | Layer 2 screen, 81,920 | 6.0K | 4.5K |
-| Agon Light | mode 3 screen, 153,600 | 17.6K | 13.1K |
+| Machine | Its usual full-screen picture | Full screen | Band 12 | Band 9 |
+|---|---|---|---|---|
+| Commodore 64 | Koala | 9.8K | 3.1K | 2.3K |
+| Commodore Plus/4 | multicolour bitmap | 9.8K | 3.0K | 2.2K |
+| ZX Spectrum | `.SCR` screen | 6.8K | 2.0K | 1.5K |
+| Amstrad CPC | Mode 0 screen | 16.0K | 4.0K | 2.9K |
+| MSX1 | Screen 2 pattern + colour | 12.0K | 3.3K | 2.4K |
+| MSX2 | Screen 5 | 26.5K | 4.7K | 3.6K |
+| Atari 8-bit | ANTIC mode E screen | 7.5K | 2.5K | 1.7K |
+| Apple II | DHGR, two pages | 16.0K | 3.6K | 2.7K |
+| TRS-80 Model 4 | hi-res screen | 18.8K | 3.1K | 2.3K |
+| Atari ST(E) | Degas PI1 | 31.3K | 7.4K | 5.5K |
+| Amiga | IFF ILBM, 5 planes | 39.1K | 7.5K | 5.6K |
+| DOS (VGA) | mode 13h screen | 62.5K | 6.4K | 4.7K |
+| MEGA65 | full-colour screen | 62.5K | 6.2K | 4.6K |
+| Spectrum Next | Layer 2 screen | 80.0K | 6.0K | 4.5K |
+| Agon Light | mode 3 screen | 150.0K | 17.6K | 13.1K |
 
 Read in pictures per disk, which is how it will feel while you build:
 a 1541 floppy holds about sixteen Koala pictures, or about fifty
@@ -432,11 +432,22 @@ sixteen flat colours.
 
 **ZX Spectrum +3**: 256 wide, two colours per 8x8 cell, and both must
 share one brightness bit. The hardest constraint in the family, and
-the reason this conversion ships in black and white by default:
-colour here is a matter of taste the author should own (see the polish
-loop in section 5).
+the reason the automatic conversion ships in BLACK AND WHITE: at this
+cell size colour is a matter of composition rather than of nearest
+match, and a tool that guesses at it produces the muddy look the
+machine is unfairly famous for. What `arcimg` gives you is a clean,
+honest halftone that is finished art in its own right.
 
-![ZX Spectrum +3](../artworks/docs/arcimage-zx3.png)
+![ZX Spectrum +3, the automatic conversion](../artworks/docs/arcimage-zx3.png)
+
+If you want Spectrum colour, the machine rewards taking it by hand,
+and section 5's polish loop is built for exactly that: `arcimg scr`
+writes the conversion out as a standard `.scr` screen, you paint it in
+your Spectrum tool of choice, and `arcimg unscr` brings it back as the
+target's picture, which `convert` will never overwrite afterwards.
+This is the same scene after that treatment:
+
+![ZX Spectrum +3, painted by hand](../artworks/docs/arcimage-zx3-hand.png)
 
 **TRS-80 Model 4**: one bit per pixel, 640 across at half width, no
 colour at all. The whole quality budget of a monochrome machine is its

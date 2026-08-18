@@ -64,12 +64,31 @@ def build():
     os.makedirs(OUT, exist_ok=True)
     written = []
 
+    # The Spectrum is the one machine with TWO showcase pictures. Its
+    # committed corpus entry is Stefan's hand-painted colour art (the
+    # polish loop's output, which `convert` deliberately never
+    # overwrites), so the automatic black-and-white conversion is taken
+    # straight from the converter here rather than from the corpus: the
+    # guide shows what the tool does, and then what a hand can do.
+    def spectrum_auto():
+        src = os.path.join(ROOT, "arc_image", "masters", f"{MASTER}.png")
+        _mode, native = arcimg.convert_master(src, "ZX3")
+        t = arcimg.TARGETS["ZX3"]
+        return t.render(native, t.width, len(native["pixels"]))
+
     src = os.path.join(ROOT, "arc_image", "masters", f"{MASTER}.png")
     rows = arcimg._read_png(src)
     dest = os.path.join(OUT, "arcimage-master.png")
     arcimg._write_png(dest, _scaled(rows, 2, 2))
     written.append((dest, len(rows[0]) * 2, len(rows) * 2,
                     len({c for r in rows for c in r})))
+
+    auto = spectrum_auto()
+    big = _scaled(auto, 2, 2)
+    dest = os.path.join(OUT, "arcimage-zx3.png")
+    arcimg._write_png(dest, big)
+    written.append((dest, len(big[0]), len(big),
+                    len({c for r in auto for c in r})))
 
     for tag, (sx, sy) in SCALE.items():
         prev = os.path.join(ROOT, "arc_image", "previews", tag.lower(),
@@ -79,7 +98,9 @@ def build():
             continue
         rows = arcimg._read_png(prev)
         big = _scaled(rows, sx, sy)
-        dest = os.path.join(OUT, f"arcimage-{tag.lower()}.png")
+        # the corpus Spectrum picture is the hand-painted one
+        name = "zx3-hand" if tag == "ZX3" else tag.lower()
+        dest = os.path.join(OUT, f"arcimage-{name}.png")
         arcimg._write_png(dest, big)
         written.append((dest, len(big[0]), len(big),
                         len({c for r in rows for c in r})))
