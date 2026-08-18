@@ -11238,3 +11238,49 @@ character's belongings are OUT OF THE PLAYER'S SCOPE until the
 author reveals them. A stale cross-reference fell out with the
 rewrite (default handlers pointed at chapter 15, the output
 chapter; now chapter 12).
+
+## 2026-08-18: the cross-reference sweep, on Stefan's "obviously I
+## want it now" (arcc 1.11.2, Cosmos 1.14.1)
+
+The kinds rewrite exposed one stale chapter pointer; Stefan ordered
+the full sweep. Every "chapter N" and "Section N" reference was
+audited against the real chapter list: 219 in the handbook by hand,
+about 120 in the compiler package and 88 in the Cosmos library by two
+parallel audit agents whose every finding was re-verified in place
+before a byte changed, and the design docs' eight inline. Found and
+fixed, thirty-one in all:
+
+- HANDBOOK, sixteen: the attribute table's stale old-arrangement
+  numbers (shiftable "Section 10" -> chapter 12, restless "Section
+  12" -> 16, arc_image "Section 6b" -> 20); restless's teaching text
+  pointing at Scoring (19 -> 5); grains called chapter 22 twice in
+  the parser chapter (-> 18); the move-versus-gain warning cited
+  three ways, none right ("chapter 3" twice, "Section 5" once, all
+  -> 4, where the CAREFUL INFORM HANDS text lives); article words to
+  the daemons chapter (16 -> 15); ZSCII to Hacking Cosmos (23 -> 1);
+  a mangled "(02 chapter 1)" (-> 2); a doubled "(chapter 2; chapter
+  2)"; and two cross-doc pointers into documents that have sections,
+  not chapters (docs/00 "chapter 23" -> section 5, docs/04 "chapter
+  3" -> section 10).
+- CODE COMMENTS, fourteen: the topic machinery cited the granules
+  chapter five times where the conversation chapter teaches the
+  construct (ast, tokens, objects, prelude -> 17); verbless actions
+  and the standard verb set cited the turn loop (-> 12); the turn
+  loop itself cited chapter 3 in loop.prelude's header (-> 13); the
+  gain warning again (-> 4); the German copula (16 -> 15); the
+  multi-role pronoun trio cited chapter 21, which contains no
+  pronoun text at all (-> 14, parser.prelude, english.prelude,
+  german.granule); and a fossil "docs/01 s6" (-> chapter 5).
+- ONE STRUCTURAL FIND, fixed at the root: the author-kinds block
+  (kind templates, the inheritance chain, resolution order, the
+  mixins non-goal) sat physically inside chapter 4, The player, an
+  old-arrangement stranding. It moved home to chapter 3 as "Kinds of
+  your own", after the standard kinds; its closing summary paragraph
+  was dropped as fully redundant against the new per-kind contracts.
+  The compiler's "resolution order (docs/01 chapter 3)" citation
+  became correct by the move instead of by editing the comment.
+
+Cosmos comments ship to authors via --extract, so both versions
+bumped honestly (arcc 1.11.2, Cosmos 1.14.1), the standalone
+regenerated, the README table refreshed. Suite 1498 green; the
+sweep touches only comments and the handbook, no behavior.

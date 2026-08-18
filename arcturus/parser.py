@@ -1003,7 +1003,7 @@ class Parser:
 
     def parse_action(self) -> ast.ActionDecl:
         # `action take_all, drop_all`: a bare action declaration, no verb
-        # attached (docs/01 chapter 13). The names are ordinary action
+        # attached (docs/01 chapter 12). The names are ordinary action
         # identifiers, reachable by `on`, action_id(), and dispatch.
         line = self.cur.line
         self.advance()  # the leading `action`

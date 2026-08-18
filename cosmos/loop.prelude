@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// The turn loop (docs/01 chapter 3), the heart of a running game. The compiler
+// The turn loop (docs/01 chapter 13), the heart of a running game. The compiler
 // hands control here after printing the banner (the __main__ shim). The loop
 // fires the opening event, describes the starting room, then repeats: prompt,
 // parse, dispatch the action, fire the per-turn events, count the turn. A `finish`

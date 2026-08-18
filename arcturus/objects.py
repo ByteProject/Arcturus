@@ -40,7 +40,7 @@ REACT_PROP = 63
 # property, holding an array of dictionary addresses (filled in B4.5d.1).
 _SPECIAL = {"name"}
 
-# The conversation topic table (docs/01 chapter 22). A person with `topic`
+# The conversation topic table (docs/01 chapter 17). A person with `topic`
 # declarations carries a `topics` property holding the address of its table:
 # a count word, then one fixed-size record per topic, then the per-topic
 # match-word sub-arrays. Each record is TOPIC_REC bytes:

@@ -263,7 +263,7 @@ _STD_VALUE_PROPS = {
     # `spans` sugar, docs/01 chapter 3). Emitted as an array of room object numbers
     # like `words`; scope reads it. Authors write `spans a, b` or `in a, b`.
     "spans": T_LIST,
-    # Conversation topics (docs/01 chapter 22). Authors never write this; the
+    # Conversation topics (docs/01 chapter 17). Authors never write this; the
     # compiler synthesizes it from a character's `topic` declarations as the address
     # of that character's runtime topic table (objects.py emits the table, the
     # conversation granules walk it). T_LIST so it is a slot holding a pointer.
@@ -299,7 +299,7 @@ _STD_ACTIONS = {
     # subject. English selects it by wording (the ask verb's grammar table);
     # other packs may give it a verb of their own.
     "ask_for",
-    # The rest of the standard verb set (docs/01 chapter 13). These exist as verbs
+    # The rest of the standard verb set (docs/01 chapter 12). These exist as verbs
     # in the language layer, but the names must be known here too, so a handler
     # (`on touch`) or a grain line (`touch "stone"`) checks out even when a
     # program is analyzed without Cosmos (--no-cosmos, the bare IR tests).

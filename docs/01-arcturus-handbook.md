@@ -725,6 +725,44 @@ walks it one step toward a goal through the real room graph (chapter 8),
 and `restless` keeps it acting offstage (chapter 5). `player` is the
 distinguished character instance, chapter 4.
 
+### Kinds of your own
+
+Kinds are templates supplying default properties and shared handlers:
+
+```
+kind lamp_kind of thing
+    binary
+    lit false
+
+    on switch_on
+        now self is active
+        now self is lit
+        say "Light floods out."
+```
+
+An instance is declared with `thing` or `room` plus `of`:
+
+```
+thing brass_lantern of lamp_kind in hallway
+    name "brass lantern"
+    lit  false              // overrides the inherited default
+```
+
+A kind roots at `thing` or `room`. Inheritance is single parent in v1: a kind
+names one parent with `of`, forming a chain (`small_box of container of
+thing`).
+
+Resolution order. An instance inherits every property and handler of its kind
+chain. Re-declaring a property overrides the inherited default. For handlers,
+the most specific runs first: the instance's own, then its kind's, then each
+parent, then the Cosmos default. Each handler either ends, which consumes the
+action so no more general handler or default runs, or ends with `continue` to
+pass control to the next handler up the chain.
+
+Multiple-parent composition (a thing that is both a container and a
+supporter) is a deliberate non-goal for v1; model it as a kind chain, or say
+so if a real game needs true mixins.
+
 ## Chapter 4: The player
 
 The player is a seeded object every game already has. The language layer gives
@@ -792,50 +830,6 @@ Directions are object-valued properties on a room whose value is another
 room. `north cellar` sets `north` to `cellar`; it can be changed at run time
 (`change hallway.north to nothing`). Cosmos defines the direction names and
 the GO verb that reads them.
-
-Kinds are templates supplying default properties and shared handlers:
-
-```
-kind lamp_kind of thing
-    binary
-    lit false
-
-    on switch_on
-        now self is active
-        now self is lit
-        say "Light floods out."
-```
-
-An instance is declared with `thing` or `room` plus `of`:
-
-```
-thing brass_lantern of lamp_kind in hallway
-    name "brass lantern"
-    lit  false              // overrides the inherited default
-```
-
-A kind roots at `thing` or `room`. Inheritance is single parent in v1: a kind
-names one parent with `of`, forming a chain (`small_box of container of
-thing`).
-
-Resolution order. An instance inherits every property and handler of its kind
-chain. Re-declaring a property overrides the inherited default. For handlers,
-the most specific runs first: the instance's own, then its kind's, then each
-parent, then the Cosmos default. Each handler either ends, which consumes the
-action so no more general handler or default runs, or ends with `continue` to
-pass control to the next handler up the chain.
-
-Multiple-parent composition (a thing that is both a container and a
-supporter) is a deliberate non-goal for v1; model it as a kind chain, or say
-so if a real game needs true mixins.
-
-The standard kinds root the tree: `thing` and `room`, and of `thing` the kinds
-`container`, `supporter`, `door`, and `character`. Each is an attribute (`obj is
-container`), and each supplies the defaults universal to it: a `room` is `lit`, a
-`door` is `openable` and `fixed`, a `character` is `animate` and refuses being
-taken. `character` is the animate kind for anyone the player addresses, gives to,
-or talks to, people and animals and robots alike. What each standard kind
-provides is listed in chapter 3.
 
 ## Chapter 5: Properties
 
@@ -918,8 +912,8 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `feminine` | Grammatical gender. Drives the Spanish articles and agreement (la lampara, Cogida), the German article (declared there with `die`, which sets this), and the English "her" pronoun on a character. Spanish derives it from a head noun ending in -a or a reliably feminine suffix; declare it where spelling cannot reveal it (la llave; an English Ruth). Masculine is the unmarked default. |
 | `neutral` | The third German gender, declared there with `das` (das Buch, "es"). English and Spanish never read it. |
 | `beyond` | Visible but not touchable: in scope and examinable (a chandelier overhead, a jar one shelf too high), while every touching action refuses ("${The noun} is beyond your reach.", msg_beyond, overridable). Conversation crosses the gap (an animate beyond person still answers ASK), and throwing AT a beyond thing stays legal: the arm reaches where the hand cannot. It is STATE: `now jar is not beyond` when the stool is gained. The refusal can carry the WHY (a field request): `beyond "Without the ladder, the top shelf might as well be the moon."` speaks your line instead of the generic one, and `beyond block` opens a computed body (the desc-block shape) for wording by state; a bare `beyond` keeps the pack's message. The property points BOTH ways: `now player is beyond` puts the PLAYER out of everything's reach instead, the mounted-on-a-horse case. While the player is beyond, only the arm's bubble stays touchable: themself, what they hold, and the thing they are on or in with everything it carries (the mare, her saddlebag, the apple inside); un-nested it collapses to self and held alone (hands bound, tied to a chair). Sight and speech cross the gap exactly as above, and EXIT is never blocked, so dismounting always works. Set it in the after phase, once the boarding has really happened: `on after enter mare / now player is beyond`, and `on after exit mare / now player is not beyond`. The player's refusal can carry its own why, settable at RUNTIME: `change player.beyond_why to "You can't reach that from up here."` speaks your line, `change player.beyond_why to nothing` reverts to the pack default (the slot is allocated automatically for any game that writes it). Static faraway decoration needs no object at all, that is a grain's job (chapter 18); beyond is for distance that matters to the model. Costs nothing unused. Worked example: [examples/features/beyond.storyarc](../examples/features/beyond.storyarc). |
-| `shiftable` | The thing can be pushed through an exit, the player following (PUSH CRATE NORTH). Section 10. |
-| `restless` | A background performer: its `on each_turn` fires EVERY turn, wherever the object is, not only in scope. Work follows the performer's nature; prose follows scope: what a restless object prints while out of scope is discarded by the system, so the handler writes its `say` unconditionally and the player hears it exactly when the performer shares their scene: present, arriving, or leaving before their eyes (in scope at either end of its turn); a turn taken wholly offstage is silence. It never fires twice. It is STATE: declare `restless` to be born performing, or arm and disarm at runtime (`now guard is restless`, `now guard is not restless`), with no declaration needed anywhere; a `when` guard on the handler still decides whether an armed performer acts this turn. A game with no restless object pays nothing (the walk, the mute buffer, everything folds away). Section 12; worked example: [examples/features/daemons-and-timers.storyarc](../examples/features/daemons-and-timers.storyarc). |
+| `shiftable` | The thing can be pushed through an exit, the player following (PUSH CRATE NORTH). Chapter 12. |
+| `restless` | A background performer: its `on each_turn` fires EVERY turn, wherever the object is, not only in scope. Work follows the performer's nature; prose follows scope: what a restless object prints while out of scope is discarded by the system, so the handler writes its `say` unconditionally and the player hears it exactly when the performer shares their scene: present, arriving, or leaving before their eyes (in scope at either end of its turn); a turn taken wholly offstage is silence. It never fires twice. It is STATE: declare `restless` to be born performing, or arm and disarm at runtime (`now guard is restless`, `now guard is not restless`), with no declaration needed anywhere; a `when` guard on the handler still decides whether an armed performer acts this turn. A game with no restless object pays nothing (the walk, the mute buffer, everything folds away). Chapter 16; worked example: [examples/features/daemons-and-timers.storyarc](../examples/features/daemons-and-timers.storyarc). |
 | `pluribus` | Grammatical number: ONE object that is grammatically plural (the scissors, the boots; e pluribus unum, many speaking through one). The articles read it ("some scissors"; German's bare indefinite plural and die/die/den/der by case; Spanish los/las, unos/unas), `${is x}` agrees (is/are, ist/sind, está/están), and the core messages conjugate ("The scissors stay exactly where they are."). NOT the plurals granule, whose group words sweep several distinct singular objects ("take coins"). Costs nothing in a game that never sets it. |
 | `binary` | A two-state device: a lamp, a lever, a valve, a machine. The library owns the state the way it owns open/shut: switching it on sets `active` and reports; switching it off clears it; asking for the state it already holds is refused honestly ("is already on/off") in the verb contract, before any handler. A binary that also declares `lit` is a GLOW thing: the default flip carries the light with it, so a working lamp is these two lines and no code. An author's own `on switch_on` / `on switch_off` handler overrides the default for flavor and then owns the flip (`now self is active`, plus `now self is lit` on a glow thing): validation stays with the library, the response is yours, the same split as everywhere in the pipeline. `switchable` is accepted as a compatibility spelling of `binary`. |
 | `active` | The binary state, tested like any attribute (`if noun is active`) and flipped by the library's switch defaults, or by your flavor handlers. |
@@ -979,10 +973,10 @@ feature, which declares a global boolean, not an object attribute.)
 | `article` | text | The definite article, verbatim, when derivation cannot reach it: `article "las"` (las tijeras), `article "el"` (el agua). |
 | `indefinite` | text | The indefinite article, verbatim: `indefinite "unas"`, or an English mass noun with `indefinite "some"` ("You can see some water here."). |
 | `unseal_with` | object | The opener that locks and unlocks this one (for `lockable` things): a key, a keycard, a code object, whatever fits the fiction. It must be HELD to work. Omit it for a keyless lock only the story can spring. |
-| `arc_image` | number | Optional. A room's picture, named by its resource id (`arc_image 8`, or a constant that folds to one). Shown on an aware interpreter, ignored on a standard one. Section 6b. |
+| `arc_image` | number | Optional. A room's picture, named by its resource id (`arc_image 8`, or a constant that folds to one). Shown on an aware interpreter, ignored on a standard one. Chapter 20. |
 
-`score`, `max_score`, and `turns` are runtime globals, not object properties (02
-chapter 1).
+`score`, `max_score`, and `turns` are runtime globals, not object properties
+(chapter 2).
 
 ## Chapter 6: Containers, supporters, and the object tree
 
@@ -1385,7 +1379,7 @@ would get wrong, each doing the bookkeeping its verb would have done
 (all three in chapter 13). `teleport(dest)` moves the player without
 walking (a crash landing, a transit pod) and describes the arrival.
 `gain(obj)` hands the player an object without TAKE (a panel pried open,
-a mechanism yielding its prize); chapter 3 has the move-versus-gain
+a mechanism yielding its prize); chapter 4 has the move-versus-gain
 warning, and with `scoring` on both pay exactly like their verbs
 (chapter 19). `convey(vehicle, dest)` moves a VEHICLE the player rides
 (a boat, a lift, a mine cart): the player sits inside the vehicle in the
@@ -2047,7 +2041,7 @@ An object marked `restless` breaks the scope tether: its `on each_turn`
 fires every turn wherever it is, and what it prints while out of scope is
 discarded by the system, so a wandering character keeps moving, taking,
 and scheming offstage while the player only ever reads the prose of what
-happens in front of them. See the attribute's row in chapter 19.
+happens in front of them. See the attribute's row in chapter 5.
 
 Recurring and delayed behavior beyond every turn uses the `after` and `every`
 scheduling statements (one-shot and repeating timers), and each timer stops
@@ -2597,7 +2591,7 @@ acquisition without TAKE (a cutscene handover): it pays a scored thing's
 points exactly once and marks it `moved` and `seen` before moving it to the
 player; the take handler itself funnels through gain, so there is exactly
 one acquisition path. Neither is Arcturus's `move`, the silent tree
-operation with no bookkeeping (chapter 3 carries the warning for
+operation with no bookkeeping (chapter 4 carries the warning for
 Inform hands). Unused by stories, both fold to nothing extra.
 
 ### The action pipeline
@@ -2695,7 +2689,7 @@ known to the dictionary and ignored: being known is what lets a noun-list
 segment carry them while a truly unknown word refuses the borrowed verb
 (this chapter). Remaining tokens are matched
 against the dictionary, which holds every verb word, every object's `words`,
-and all grain words (chapter 22). An object's printed `name` is not matched;
+and all grain words (chapter 18). An object's printed `name` is not matched;
 matchable vocabulary comes only from `words`, which keeps the dictionary
 small and under the author's control. Dictionary entries are truncated to the
 Z-machine word resolution, so long words collide on their prefix; this is a
@@ -2852,7 +2846,7 @@ Grains. When a `noun` slot finds no real object but the typed word is a grain
 word on `here` or an in-scope object, and the action's verb is one the grain
 answers, Cosmos runs the grain's response (a `say`, a `do` block, or its
 inline body) and treats the action as handled. Grains are checked after real
-objects, so a real object always wins. See chapter 22.
+objects, so a real object always wins. See chapter 18.
 
 Language seam. The parser is written in Arcturus, split into a language
 agnostic skeleton (reading the line, computing scope, dispatching the action,
@@ -3428,7 +3422,7 @@ each_turn is active while the player is in that room, an object's while the obje
 is in scope, and a free-standing each_turn (written at the top level, not inside
 an object) runs every turn.
 
-The exception is a BACKGROUND PERFORMER, an object marked `restless` (chapter 19): its each_turn fires every turn wherever the object is. The
+The exception is a BACKGROUND PERFORMER, an object marked `restless` (chapter 5): its each_turn fires every turn wherever the object is. The
 principle is one sentence: work follows the performer's nature, prose
 follows scope. Every restless firing is buffered (a scratch table,
 Z-machine output stream 3, conformant on every interpreter), and the
@@ -3929,7 +3923,7 @@ landing, a transit pod) is `teleport(dest)`; handing the player an object
 without TAKE (a panel pried open, a mechanism yielding its prize) is
 `gain(obj)`. Each pays exactly like the verb would, so no auto-scored
 point ever becomes unreachable; a bare `move obj to player` pays nothing.
-Section 5 has the rule of thumb (the move-versus-gain warning), chapter 9
+Chapter 4 has the rule of thumb (the move-versus-gain warning), chapter 9
 the statements themselves.
 
 The escape hatch: `change score` stays legal (penalties, score-as-resource),
@@ -4149,7 +4143,7 @@ English names, while the player types `este` and `examinar`. A translator forks
 one file and touches nothing else.
 
 Accents, and typing on 8-bit systems. Display text is fully accented: the encoder
-writes each accented character with its Z-machine ZSCII code (chapter 23), so the
+writes each accented character with its Z-machine ZSCII code (chapter 1), so the
 acute vowels, u-diaeresis, n-tilde, and the inverted marks render on any
 conformant interpreter, the 8-bit and 16-bit ones included. But an 8-bit
 interpreter renders an accent it cannot type, so every word the player must *type*
@@ -4202,7 +4196,7 @@ attribute and agree on their own (`una lámpara`, `la caja está cerrada`). The
 author declares `feminine` only for the residue no spelling can reveal (la llave,
 el mapa), the same one-time act as the English `an` exception. `${the noun}` and
 `${a noun}` lower to a call to the article blocks precisely so a pack owns the
-article words (chapter 16).
+article words (chapter 15).
 
 Gender where spelling cannot reveal it (German). German has three genders and no
 rule to guess them from, so the author states the gender the natural way, by
@@ -4231,7 +4225,7 @@ wordings await their native passes.
 
 Abbreviations. The baked-in abbreviation set is tuned to the English library, so a
 non-English game is built with no default set rather than English abbreviations
-that would not fit and would only cost the table (docs/04 chapter 3). Cosmos
+that would not fit and would only cost the table (docs/04 section 10). Cosmos
 deliberately ships no standard set per language. Abbreviations barely matter for a
 small game; for a larger foreign game the recommendation is to run `arcc
 --make-abbreviations`, which sees the selected language's translated text and
@@ -4798,7 +4792,7 @@ center, the box clamps to the left edge rather than wrapping.
 
 An opening quote usually comes BEFORE the banner. Pair the granule with
 `banner false` in the game block and a `print_banner` call after
-`quote_done` (chapter 2; chapter 2), and the game opens in the
+`quote_done` (chapter 2), and the game opens in the
 classic order: quote, keypress, banner, story. The box prints no words of its
 own, so it works identically in every language, and it draws with the same
 colours the game set with `zcolor` (chapter 15).
@@ -5427,7 +5421,7 @@ Representative compile-time errors:
 ### The tuned abbreviation set
 
 Most of a story file is text, so the compiler compresses it against the
-Z-machine's abbreviation table (docs/00 chapter 23). This asks nothing of you:
+Z-machine's abbreviation table (docs/00 section 5). This asks nothing of you:
 every build already applies a standard abbreviation set, computed once from the
 Cosmos library text and baked into `arcc`.
 

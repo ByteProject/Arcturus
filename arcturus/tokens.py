@@ -46,7 +46,7 @@ KEYWORDS = frozenset(
         # recurring scheduled event (docs/01 chapter 16); both read as keyword
         # operators / statement heads.
         "mod", "every",
-        # Conversation topics (docs/01 chapter 22): `topic` declares one on a
+        # Conversation topics (docs/01 chapter 17): `topic` declares one on a
         # person; in a topic body `you` and `reply` are the player's and the
         # NPC's lines (auto-quoted, auto-attributed) and `reveal` / `hide` toggle
         # another topic's visibility by name.

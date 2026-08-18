@@ -863,7 +863,7 @@ pronoun her "ihr"
 pronoun her, them "sie"
 pronoun them "ihnen"
 
-// The pronominal adverbs (docs/01 chapter 21): German fuses preposition and
+// The pronominal adverbs (docs/01 chapter 14): German fuses preposition and
 // referent into one word, damit for "mit ihm/ihr/es", darauf for "auf ...",
 // with the colloquial short forms. The word is genderless and never names a
 // person; the resolver binds the freshest non-animate referent into the
@@ -1303,7 +1303,7 @@ block art_a(obj, cap, kase)
                         show("ines ")
     print_name(obj)
 
-// The copula with number (docs/01 chapter 16): ${is x} prints "ist" or
+// The copula with number (docs/01 chapter 15): ${is x} prints "ist" or
 // "sind" by the object's pluribus attribute. The plural branch folds away
 // without marked objects.
 block art_is(obj, cap)

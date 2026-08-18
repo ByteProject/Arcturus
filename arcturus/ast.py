@@ -506,7 +506,7 @@ class SubjectDecl:
 
 @dataclass
 class TopicDecl:
-    # A conversation topic on a person (docs/01 chapter 22). `subject` is the id
+    # A conversation topic on a person (docs/01 chapter 17). `subject` is the id
     # (used by reveal/hide); `label` is the menu line; `words` are the ask/tell
     # match words (empty for conversations-only). `when` guards visibility, `once`
     # retires after use, `hidden` starts it out of view. The body is the exchange.
@@ -517,7 +517,7 @@ class TopicDecl:
     once: bool = False
     hidden: bool = False
     idle: bool = False  # the ask/tell fallback: runs when no worded topic
-                        # matched (docs/01 chapter 22); the menu ignores it entirely
+                        # matched (docs/01 chapter 17); the menu ignores it entirely
     body: list[Stmt] = field(default_factory=list)
     line: int = 0
 

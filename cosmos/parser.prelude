@@ -52,7 +52,7 @@ block read_input()
 // The remembered referent for a canonical pronoun role (docs/01 chapter 14):
 // 1 it, 2 him, 3 her, 4 them. The language layer's note_pronouns fills the
 // slots as nouns resolve; scope_match reads them back when a pronoun is typed.
-// Roles 5 and 6 are the multi-role words (docs/01 chapter 21): the German
+// Roles 5 and 6 are the multi-role words (docs/01 chapter 14): the German
 // dative "ihm" reaches masculine AND neuter (5), "sie" feminine AND plural
 // (6), and the most recently MENTIONED live candidate wins, silently (the
 // ruling of the German round: pronouns are recency creatures). Scope stays

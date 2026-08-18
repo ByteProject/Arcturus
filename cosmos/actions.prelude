@@ -84,7 +84,7 @@ block convey(vehicle, dest)
 // to the plain line) and seen (the knowledge model), then moves it to the
 // player. NOT the same statement as `move obj to player`: Arcturus's move is
 // the silent tree operation, no bookkeeping, while Inform's "move" idiom is
-// what gain covers (docs/01 chapter 3). The take handler itself funnels
+// what gain covers (docs/01 chapter 4). The take handler itself funnels
 // through gain, so there is exactly one acquisition path. Unused by stories,
 // the block folds into take.
 block gain(obj)
