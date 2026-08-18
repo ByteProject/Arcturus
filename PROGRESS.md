@@ -10943,3 +10943,60 @@ tables now say exactly that: docs/07 gives the C128 its own row, and
 the design ledger's C128 row states the model and the reason (an
 interpreter spends the machine's extra memory on the story, not on
 the picture).
+
+## 2026-08-18: B12 IS COMPLETE. R6 closes arc_image (arcimg 2.0.0)
+
+The retro graphics milestone is finished: sixteen formats across
+seventeen machines, every one carrying a reference loader proven on
+accurate emulation and reviewed by Stefan's eye. R6's three real items
+are done, and one was struck as a phantom.
+
+STRUCK: "the public interpreter-contract document published (the
+Vezza-facing cut)". Stefan's observation closed it: the document is
+already public in the repository. That line was R0-era wording from
+before docs/08 existed in its present form, when the plan imagined
+extracting an outsider-facing cut so a third party (Shawn Sijnstra's
+Vezza, the first) would never read Arcturus internals. docs/08 IS that
+document, implementer-facing throughout, and R6's own text already
+defines the handover as documents and content: the chapters, each
+target's probe source as reference loader code, the two-mode .arc test
+assets, and the arcimg standalone for rendering any .arc back to PNG
+as ground truth. All four exist. design.md now says so in place of the
+promise.
+
+THE SIZE LEDGER IS MEASURED at last, R1's promise honored: the whole
+22-picture corpus, mode 12, packed with each target's own codec, in
+design.md ("The size ledger, measured"). What it teaches, and worth
+knowing before sizing a disk: the cell machines compress WORST by
+ratio (the C64 at 66% of raw) because an attribute solver's output is
+already dense, yet they remain the smallest payloads in the family
+(the ZX3 median is 2054 bytes); the rich machines compress best (NXT
+and M65 near 20%) because band art is mostly flat regions at 8 bits a
+pixel; and the Agon is the deliberate outlier (RLE, 29% of a 61K raw
+payload) because Shawn ruled simplicity over ratio for a streaming
+loader on a FAT32 machine with no reason to count bytes.
+
+Also landed: arcimg 2.0.0 with its amalgam and the README table,
+docs/00 marks B12 COMPLETE (and names the adopters implementing the
+format: Vezza and Canopus, Ozmoo, Dialog, Gargoyle), docs/07's "never
+hand-paint fourteen versions" caught up to sixteen, and WHATSNEW leads
+with the finish (the older, now-stale pictures entry rotated out rather
+than a fresher one, since the new entry supersedes it). Suites: arc-side
+189, compiler-side 1346.
+
+WHAT B12 LEAVES BEHIND, for the record: one master painting per image,
+sixteen native formats derived by tool, fifteen probe directories that
+double as reference loaders, a container spec and two codecs ported to
+6502, Z80, 68000, 8086 and eZ80, and five outside implementations of
+the format (Vezza, Canopus, Ozmoo, Dialog, Gargoyle) plus five of our
+own interpreters playing bands today. The author's cost stayed one
+painting; Stefan's original eight months of hand-porting Rabenstein art
+is the number this milestone was measured against.
+
+NEXT: B13, the Rabenstein port from DAAD, which this milestone exists
+to serve. Its art is already converted for every target.
+
+OPEN, unruled, small: the AGN and TRSM4 previews still render squashed
+(640x96) where the AP2's are aspect-true; the salient-hint plumbing
+stays inert until the author-facing capability is deliberately
+reconnected.

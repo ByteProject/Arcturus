@@ -6,6 +6,22 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **arc_image is finished: sixteen formats, every one proven on the
+  metal.** The retro graphics path is complete. One band-shaped master
+  painting converts to sixteen native formats across seventeen
+  machines, from the Amiga and the ST down to the C64, Spectrum, CPC,
+  Plus/4, MSX1 and 2, Atari 8-bit, TRS-80 Model 4, Apple II, Agon
+  Light, Spectrum Next, MEGA65 and the C128 on the C64's model, and
+  every one of them carries a reference loader verified pixel-perfect
+  on accurate emulation. The last round closed the hardest three: the
+  Spectrum Next and MEGA65, where the conversion turns out to be the
+  IDENTITY (their palettes reach the master exactly, so the art
+  arrives untouched), and the Apple II, where colour is not a palette
+  at all but an artifact of the NTSC signal, solved by a dynamic
+  program that chooses each of the 560 dots per scanline so the
+  decoder's own four-dot window shows the painting, reaching hues
+  between the machine's sixteen. Authors paint once; arcimg derives
+  the rest (arcimg 2.0.0).
 - **One object, truly in two rooms: the existence form.** An adopter's
   field report uncovered a design flattened in implementation, and the
   recovered ruling now stands: `thing vine in ledge, gully` means the
@@ -51,17 +67,6 @@ lives in the commit log. The feature roadmap follows below.
   one room, a container answers TAKE ALL FROM with its own handler,
   and `continue` defers to the sweep. An adopter's question, answered
   at the language level (arcc 1.4.0, Cosmos 1.7.0).
-- **Pictures reach every 8-bit screen, probe-proven.** The retro side
-  of arc_image is complete through the MSX family and the Agon Light:
-  one master painting converts to fifteen native formats, and twelve
-  of them (Amiga, Atari ST, DOS, C64, Spectrum +3, CPC, Plus/4, Atari
-  8-bit, TRS-80 Model 4, MSX1, MSX2's sixteen colors from 512, and
-  the Agon's sixty-four) carry reference loaders verified
-  pixel-perfect on accurate emulation. The
-  committed corpus under arc_image/ is the shop window: what you see
-  in the previews is exactly what the current converter produces, on
-  every machine, including the Spectrum's deliberate black-and-white
-  art beside Stefan's own hand-painted originals.
 - **The room lists its things in one sentence.** "You can see a MRE, a
   lantern and a backpack here.", the classic idiom, instead of a line
   per item: every plain item joins one combined sentence, with the

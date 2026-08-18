@@ -257,15 +257,16 @@ done-test.
   rendered from PNGs in Infocom and DAAD modes, the rendering capability added
   to Actaea, and the `arcimg` author tool preparing and packing the art into
   the Blorb pack, with the same story file still running unchanged on Frotz.
-- B12 (in progress; the approved charter, target ledger, and sub-milestones
+- B12 (COMPLETE 2026-08-18; the charter, target ledger, and sub-milestones
   R0 to R6 are arc_image/reference/design.md): `arc_image` on retro systems,
-  fourteen targets. The center of gravity is the conversion intelligence:
+  sixteen targets across seventeen machines. The center of gravity is the conversion intelligence:
   one band-shaped master painting per image, `arcimg` deriving the ideal
   native version per machine (palette, resolution, attribute-clash solving),
   with hand-painted native art as an optional 1:1 path. Per-platform RLE
   formats sized to the band, per-target interpreter blueprints proven by
-  emulator probes, and the public contract document third-party
-  interpreters (Vezza) implement from.
+  emulator probes, and the public contract document (docs/08) that
+  third-party interpreters implement from: Shawn Sijnstra's Vezza and
+  Canopus, Ozmoo, Dialog, and Gargoyle all adopt the format.
 - B13: port The Curse of Rabenstein from DAAD to Arcturus. Trivial as a port,
   it exercises the `arc_image` graphics path end to end (its art is ready for
   the retro targets) and ships as a worked example game.

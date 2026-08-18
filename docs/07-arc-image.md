@@ -14,7 +14,7 @@ PNG, number it, and say `arc_image <number>` on the room. Your story
 remains a conformant z5 file that plays text-only on every standard
 interpreter; on a picture-aware interpreter the band shows your art. For
 the retro machines, `arcimg` derives each machine's native version from
-your master automatically, so you never hand-paint fourteen versions of
+your master automatically, so you never hand-paint sixteen versions of
 anything.
 
 ## 1. Authoring the masters

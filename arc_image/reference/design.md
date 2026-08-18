@@ -605,9 +605,14 @@ method). Naming: R for retro.
   graphics). The Agon dither-depth probe (Canopus's request) joins
   the round as its own item.
   Done-test: probes green both modes on every remaining target.
-- R6. Close: the public interpreter-contract document published (the
-  Vezza-facing cut), arcimg 2.0 released (amalgam, README, versions),
-  docs/00 and PROGRESS synced, the size ledger final.
+- R6. Close: arcimg 2.0 released (amalgam, README, versions), docs/00
+  and PROGRESS synced, the size ledger final (measured, below).
+  The "public interpreter-contract document, the Vezza-facing cut" this
+  line once promised is RETIRED as a deliverable (2026-08-18): it was
+  R0-era wording from before docs/08 existed in its present form, when
+  the plan imagined extracting an outsider-facing cut. docs/08 IS that
+  document, written implementer-facing throughout and public in the
+  repository, so there is nothing to extract.
   The handover is DOCUMENTS AND CONTENT (Stefan's ruling): docs/08 plus,
   per target, the probe source as reference loader code, the two-mode
   .arc test assets (the beach pair is the standard set), and the arcimg
@@ -617,6 +622,47 @@ method). Naming: R for retro.
   one and never reads Arcturus internals.
   Done-test: a fresh reader can implement a target from the blueprints
   alone; B13 (the Rabenstein port) is unblocked.
+
+### The size ledger, measured (R6 close, 2026-08-18)
+
+R1 promised that "compressed sizes join the ledger per wave, they need
+real conversions to mean anything". They do now: the whole 22-picture
+Rabenstein corpus, mode 12 (320x96 masters), packed with each target's
+own codec. Raw is the native payload the loader ends up holding;
+median is the number to budget with, max the one to size a disk by.
+
+| target | raw | packed min | packed median | packed max | of raw | codec |
+|---|---|---|---|---|---|---|
+| AMI | 19264 | 48 | 7673 | 10930 | 40% | LZSA2 |
+| AST | 15392 | 48 | 7617 | 10905 | 49% | LZSA2 |
+| DOS | 31488 | 72 | 6509 | 8942 | 21% | LZSA2 |
+| C64 | 4801 | 63 | 3193 | 4196 | 66% | ZX0 |
+| P4 | 4802 | 63 | 3115 | 4067 | 65% | ZX0 |
+| CPC | 7697 | 51 | 4083 | 5650 | 53% | ZX0 |
+| MS1 | 6144 | 42 | 3388 | 4245 | 55% | ZX0 |
+| MS2 | 12320 | 48 | 4860 | 6647 | 39% | LZSA2 |
+| ZX3 | 3456 | 41 | 2054 | 2848 | 59% | ZX0 |
+| A8 | 4224 | 44 | 2525 | 3343 | 60% | ZX0 |
+| AP2 | 7680 | 46 | 3678 | 5135 | 48% | ZX0 |
+| NXT | 31232 | 47 | 6115 | 9273 | 20% | LZSA2 |
+| M65 | 31485 | 48 | 6399 | 8780 | 20% | LZSA2 |
+| TRSM4 | 7680 | 29 | 3163 | 4783 | 41% | ZX0 |
+| AGN | 61440 | 983 | 18016 | 27160 | 29% | RLE |
+
+Three things the numbers say, worth stating for an implementer sizing
+a disk. The cell machines compress worst in RATIO (the C64 at 66%: an
+attribute solver's output is already dense, there is little left to
+squeeze) but they are the smallest payloads in the family regardless.
+The rich machines compress best (NXT and M65 near 20%) because band art
+is mostly flat regions at 8 bits a pixel. And the Agon is the outlier
+by choice, not by weakness: RLE was Shawn Sijnstra's ruling for a
+streaming loader with trivial memory management, and its 29% on a
+61K raw payload is the price of that simplicity, paid on a machine with
+FAT32 storage and no reason to count bytes. The minima are the darkness
+picture and other near-empty frames, and they show what every codec
+does with a flat field.
+
+A mode-9 band (320x72) runs three quarters of these figures.
 
 Wave order rationale: Wave 1 proves the whole pipeline shape (convert,
 encode, disk, probe, addendum) on the machines where conversion is easy,
