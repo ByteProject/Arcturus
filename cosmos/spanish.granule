@@ -452,6 +452,22 @@ block resolve_objects()
 // skips the left-scope refusal for a reach-bound noun). The debug granule's
 // fetch/warp verbs are the library's own use of the seam.
 block reach_unscoped()
+    if any_debug is 1
+        return reach_try_debug
+    if any_maniacswap is 1
+        return reach_swap
+    return nothing
+
+// The debug leg lives in its own block so reach_unscoped never carries
+// its local: a let in a statically-dead branch still allocates the slot
+// (the locals-count byte), the one byte that would break the identity of
+// every game (the dead-branch-let lesson, again).
+block reach_try_debug()
+    let r = reach_debug
+    if r is not nothing
+        return r
+    if any_maniacswap is 1
+        return reach_swap
     return nothing
 
 // Did the player name an object word that nothing in scope answered to? Every
@@ -1917,6 +1933,16 @@ block msg_npc_arrives(x, d)
 
 block msg_npc_opens(x, dd)
     say "${The x} abre ${the dd}."
+
+// maniacswap (summon.maniacswap, docs/01 chapter 22).
+block msg_become()
+    say "Ahora eres ${the noun}."
+
+block msg_not_playable()
+    say "No puedes ser ${the noun}."
+
+block msg_already_self()
+    say "Ya lo eres."
 
 // The addressed imperative's default refusal.
 block msg_wont_obey()

@@ -68,6 +68,12 @@ block pronoun_slot(role)
         return pron_her
     if role is 4
         return pron_them
+    // Role 7 is SELF (summon.maniacswap): the standard self words resolve
+    // through the player global, so ME follows the keyboard across a
+    // BECOME. Never noted, always live.
+    if any_maniacswap is 1
+        if role is 7
+            return player
     if any_pronoun_sets is 1
         if role >= 5
             return pronoun_pick(role)
@@ -83,6 +89,17 @@ block note_referent(obj)
     if obj is player
         return 0
     note_pronouns(obj)
+
+// The reach stubs (docs/01 chapter 14): each language layer's
+// reach_unscoped dispatches to these, so the debug granule and maniacswap
+// can both reach out of scope without colliding on one override. Each
+// granule replaces its own stub; the folds keep every other game
+// byte-identical.
+block reach_debug()
+    return nothing
+
+block reach_swap()
+    return nothing
 
 block parse()
     let term = read_input

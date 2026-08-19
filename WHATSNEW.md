@@ -6,6 +6,19 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Multiple player characters: maniacswap.** `summon.maniacswap`, mark
+  each body `playable`, and BECOME swaps the keyboard between them,
+  Maniac Mansion style, from anywhere, even between maps that never
+  connect. The body you leave freezes exactly where and as it was,
+  holding its own inventory, listed in its room like anyone standing
+  there; the mind (score, turns, every global) travels. ME and MYSELF
+  follow the keyboard in all three shipped languages (WERDE and ENCARNA
+  come along), and the story gates every swap in fiction with an
+  ordinary handler on the body ("Not without the signal."). Beside the
+  NPC engine it composes on one shared word: the engine never drives a
+  frozen PC nor the body you are riding. Games that never summon it
+  compile byte-identical, and the proof of that hunted down a one-byte
+  compiler subtlety along the way (arcc 1.13.0, Cosmos 1.16.0).
 - **The NPC engine: living characters, declared instead of hand-wired.**
   `summon.npcengine` and a character can `patrol` a route of rooms
   (opening doors on its way with `opens_doors`), wander a `territory`
@@ -73,29 +86,12 @@ lives in the commit log. The feature roadmap follows below.
   exists, and the pronominal adverbs damit, darauf, darin, daran bind
   the last thing mentioned. Games using none of it compile
   byte-identical (arcc 1.5.0 to 1.10.0, Cosmos 1.8.0 to 1.13.0).
-- **Actions without verbs, and a sweep you can hook.** A bare
-  declaration, `action take_all, drop_all`, names an action with no
-  verb attached: it joins the ordinary action numbering, so handlers
-  at every level, `when` clauses, `action_id`, and `dispatch` all
-  work; only the keyboard cannot reach it until your code routes the
-  player there. The takeall granule is the first rider: TAKE ALL and
-  DROP ALL now dispatch through the standard pipeline before
-  sweeping, so `on drop_all when here is shrine` vetoes the sweep in
-  one room, a container answers TAKE ALL FROM with its own handler,
-  and `continue` defers to the sweep. An adopter's question, answered
-  at the language level (arcc 1.4.0, Cosmos 1.7.0).
 
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus
 way, designed on its own terms, pay-for-use as always.
 
-- **Multiple player characters: maniacswap.** A summoned granule for
-  games with more than one playable character, Maniac Mansion style:
-  BECOME another character (the verb exists only when summoned), from
-  anywhere, with the story gating when a swap is right; the body you
-  leave freezes in place until you take it over again. Works alone or
-  alongside the NPC engine, whose hibernated state it shares.
 - **Light topology.** Doors and openings that block or pass light, so a
   lit room can spill light through an open doorway and a closed door can
   seal it off.

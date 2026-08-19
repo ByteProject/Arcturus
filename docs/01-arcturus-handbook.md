@@ -773,7 +773,9 @@ language's own: `untersuche dich`, `examinate`) work in every game with no
 author code; taking yourself answers its own line, and examining yourself
 without a `player.desc` gets a proper default ("Are we going to admire
 ourselves for a while or do we play an adventure game?") rather than an
-object's message.
+object's message. WHICH body is the player can even change during play:
+that is maniacswap (chapter 22), where playable characters share one
+keyboard and the self words follow it.
 
 A game augments the player with top-level `player.` declarations:
 
@@ -4544,6 +4546,7 @@ an author's own voice, which is why these stay untranslated.
 | statusline      | speaks all | score/moves labels from the packs       |
 | pathfinding     | speaks all | grammar in `when language` groups       |
 | npcengine       | speaks all | movement prose and the order refusal from the packs |
+| maniacswap      | speaks all | BECOME's words per language, wording from the packs |
 | takeall         | speaks all | all-words per language, wording in packs |
 | plurals         | speaks all* | group words are the author's own vocabulary, so the sweep works anywhere; only THEM is English, and a fork drops or renames it (see its section) |
 | foresight       | speaks all | wording from the packs                  |
@@ -5052,6 +5055,75 @@ and wandering are adjacency reads, cheap on the smallest machine; only
 pursuit pays the path search, per pursuing character per turn, and only
 while a pursuit stands. Hibernated characters cost one bit test. Worked
 example: [examples/granules/npcengine.storyarc](../examples/granules/npcengine.storyarc).
+
+### maniacswap
+
+```
+summon.maniacswap
+```
+
+Multiple player characters, Maniac Mansion style. Mark each body the
+keyboard may claim with `playable` (a character; the starting body is
+playable by default), and BECOME swaps between them:
+
+```
+player.name "Henrik"
+player.named
+player.words henrik, keeper
+
+thing maren of character in sheds
+    name "Maren"
+    named
+    feminine
+    words maren, sister
+    playable
+```
+
+BECOME MAREN works from anywhere, even between maps that never connect:
+the verb reaches every playable body by its words, scope or none, which
+is the whole point (two castaways on two shores swap as a thought, not
+as a walk). The swap re-points the player: scope, light, inventory, and
+the self words all follow. The body you LEAVE freezes exactly where and
+as it was, holding what it held, wearing what it wore, listed in its
+room like anyone standing there, examinable in third person, until you
+take it over again. The mind travels: score, turns, and every global are
+one story across all bodies.
+
+THE STORY GATES THE SWAP, not the engine. BECOME succeeds on any
+playable body by default; a game refuses it in fiction with an ordinary
+handler on the body, `stop` to veto, `continue` to allow:
+
+```
+on become
+    if signal_lamp is not active
+        change refused to 1
+        say "Not without the signal."
+        stop
+    continue
+```
+
+For authored beats (an ending that forces the change of view), call
+`become(x)` directly from any handler; it swaps without the verb's
+gates.
+
+ME FOLLOWS THE KEYBOARD. The standard self words (ME, MYSELF, MICH,
+examinate's -te, and each language's own) resolve to whoever you are
+right now, however far away the boot body stands. Give every body its
+own third-person words, the boot body included (`player.words henrik`),
+so the others stay nameable; name the boot body (`player.name`,
+`player.named`) so its abandoned self lists honestly ("You can see
+Henrik here.").
+
+SHARED VOCABULARY WITH THE NPC ENGINE: the frozen state is `hibernated`
+(the engine's controls, above). Alone it simply marks the bodies you
+are not; with `summon.npcengine` beside it, the engine never drives a
+frozen PC nor the body you are riding, so taking over an engine-driven
+character pauses its agenda for exactly as long as you stay, and a left
+body stays frozen by design (`resume(x)` wakes an agenda again if the
+story wants the character to walk off without you).
+
+Unsummoned, all of it costs nothing and BECOME is not a word. Worked
+example: [examples/granules/maniacswap.storyarc](../examples/granules/maniacswap.storyarc).
 
 ### conversations
 
@@ -5958,8 +6030,8 @@ Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,
 
 Summonable features: `extendedverbs`, `infocom_talking`, `conversations`,
 `statusline`, `foresight`, `quotes`, `verbose_exits`, `nautical`,
-`pathfinding`, `npcengine`, `ambience`, `takeall`, `plurals`, `matrix`,
-`use`, `debug`, and `language`. Text compression is not a summonable
+`pathfinding`, `npcengine`, `maniacswap`, `ambience`, `takeall`,
+`plurals`, `matrix`, `use`, `debug`, and `language`. Text compression is not a summonable
 feature: the standard abbreviation set is always applied, and a story tunes it
 with its own `abbreviations.granule` (`arcc --make-abbreviations`, then summoned by
 name), which the text encoder reads as data rather than loading as runtime blocks

@@ -134,6 +134,7 @@ class Analyzer:
         self._check_locations()
         self._check_presence()
         self._check_npcengine()
+        self._check_maniacswap()
         # After the members are collected: the automatic scored bits need
         # the real attributes (fixed blocks a thing, `scored false` opts
         # out), and the award scan feeds the compiler-summed max_score.
@@ -1251,6 +1252,35 @@ class Analyzer:
                     "npc_cursor", ast.PROP_VALUE,
                     values=[ast.Number(0, obj.line)], line=obj.line)
 
+    def _check_maniacswap(self) -> None:
+        """maniacswap (summon.maniacswap, docs/01 chapter 22): multiple
+        player characters, BECOME to swap. Recognized only when summoned:
+        `playable` marks a body the keyboard may claim (a character, on
+        pain of an error), the boot player is playable by default (the
+        starting body always is), and the granule's own code needs
+        `playable` and `hibernated` (the vocabulary it shares with the
+        NPC engine) to exist even in a game that declares neither."""
+        w = self.world
+        if not any(s.form == "feature" and s.target == "maniacswap"
+                   for s in w.summons):
+            return
+        self._unify_property("playable", prelude.T_BOOL, 0)
+        self._unify_property("hibernated", prelude.T_BOOL, 0)
+        for obj in w.objects.values():
+            if "playable" not in obj.props:
+                continue
+            if obj.name == "player":
+                continue
+            if "character" not in self._chain(obj.kind, obj.line):
+                raise self._error(
+                    f"'{obj.name}' is declared playable but is not a "
+                    f"character; the keyboard drives things `of character`",
+                    obj.line)
+        player = w.objects.get("player")
+        if player is not None and "playable" not in player.props:
+            player.props["playable"] = ast.PropertyDecl(
+                "playable", ast.PROP_BOOL, line=0)
+
     def _check_exits(self) -> None:
         """Every named exit target must exist and be walkable (a field report:
         a typo'd room name compiled silently into "There's no exit in that
@@ -1438,6 +1468,15 @@ class Analyzer:
                 if m.name == "words" and prior is not None and m.form == ast.PROP_VALUE:
                     prior.values = list(prior.values) + list(m.values)
                 else:
+                    if m.name == "words":
+                        # The FIRST words declaration is the language
+                        # layer's (the library loads before everything):
+                        # the standard self words. Marked so maniacswap's
+                        # SELF pronoun (dictionary role 7) takes exactly
+                        # these, never the game's own appended third-person
+                        # words, which must keep naming the boot body.
+                        for v in m.values:
+                            v.self_word = True
                     player.props[m.name] = m
             # `change player.beyond_why to "..."` (the player-beyond refusal's
             # custom wording, docs/01 beyond) allocates the slot invisibly: a

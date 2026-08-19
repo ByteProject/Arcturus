@@ -1,0 +1,106 @@
+// maniacswap.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// MANIACSWAP: summon it with `summon.maniacswap` (docs/01 chapter 22).
+// Multiple player characters, Maniac Mansion style: mark each body the
+// keyboard may claim with `playable` (the starting body is playable by
+// default), and BECOME swaps between them, from anywhere on the map,
+// even between maps that never connect. The body you leave FREEZES in
+// place, exactly as you left it, holding what it held and wearing what
+// it wore, until you take it over again; each body's inventory is its
+// own, and the mind (score, turns, everything global) travels with the
+// keyboard.
+//
+// THE STORY GATES THE SWAP, not the engine: BECOME works whenever the
+// target is playable, and a game refuses it in fiction with an ordinary
+// handler on the body ("Now is not the right time.", "You cannot reach
+// Vlad over the intercom."), `stop` to veto, `continue` to allow.
+//
+// ME FOLLOWS THE KEYBOARD. The standard self words (ME, MYSELF, and each
+// language's own) resolve to whoever you are right now, wherever the
+// boot body stands; give each body its own third-person words so the
+// others stay nameable (BECOME VLAD needs "vlad" on his body).
+//
+// SHARED VOCABULARY WITH THE NPC ENGINE: the frozen state is `hibernated`
+// (docs/01 chapter 22, the engine's controls). Alone, it simply marks the
+// bodies you are not; combined with summon.npcengine it means the engine
+// never drives a frozen PC nor the body you are riding, and taking over
+// an engine character pauses its agenda for exactly as long as you stay.
+// A left body stays frozen by design; resume(x) wakes an engine agenda
+// again if your story wants the character to walk off without you.
+
+when language "english"
+    verb "become"
+        become noun
+
+when language "german"
+    verb "werde"
+        become noun
+
+when language "spanish"
+    verb "encarna"
+        become noun
+
+// The swap itself, callable from any handler for authored beats
+// (an ending that forces the change of view, a cutscene). The left body
+// freezes; the claimed body is marked the same way, so a summoned NPC
+// engine never walks the body the keyboard is driving; the new room
+// describes itself as an arrival.
+block become(x)
+    if x is player
+        return 0
+    now player is hibernated
+    change player to x
+    now x is hibernated
+    set_here(parent_of(x))
+    arrive
+    return 0
+
+// The player-typed form. The body's own `on become` runs first (the
+// story's gate: veto with `stop`); this free rule is the default that
+// performs the swap.
+on become
+    if noun is player
+        change refused to 1
+        msg_already_self
+        stop
+    if noun is not playable
+        change refused to 1
+        msg_not_playable
+        stop
+    msg_become
+    become(noun)
+
+// The reach (the reach_swap stub, dispatched from reach_unscoped): BECOME
+// must resolve a playable body from anywhere, scope or none, or a swap
+// across disconnected maps could never be typed. Only the become verb
+// reaches; every other verb keeps the honest can't-see refusal.
+block reach_swap()
+    let d = word_dict(0)
+    if d is nothing
+        return nothing
+    if peek_byte(d + 7) is not action_id("become")
+        return nothing
+    let n = word_count
+    let i = 1
+    while i < n
+        let target = word_dict(i)
+        if target is not nothing
+            let found = swap_find(target)
+            if found is not nothing
+                return found
+        change i to i + 1
+    return nothing
+
+// The one playable body this dictionary word names, anywhere in the game.
+block swap_find(target)
+    let i = 1
+    while i <= object_count
+        if i is playable
+            if i is not player
+                if has_word(i, target)
+                    return i
+        change i to i + 1
+    return nothing

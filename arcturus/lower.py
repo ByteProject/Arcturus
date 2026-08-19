@@ -81,6 +81,10 @@ INTRINSICS = frozenset({
     # any_npcengine folds to 1 only when a roster exists, so a summoned but
     # unused engine costs nothing.
     "any_npcengine", "any_commanding", "npc_table",
+    # maniacswap (docs/01 chapter 22) and the debug granule: summon-presence
+    # folds, so the reach dispatcher and the SELF pronoun cost nothing in
+    # games without them.
+    "any_maniacswap", "any_debug",
     "patrol_addr", "patrol_count", "territory_addr", "territory_count",
     "spans_addr", "spans_count", "any_spans", "any_doors", "any_named",
     "any_pluribus", "any_beyond", "any_death", "any_alter", "any_grains",
@@ -1336,6 +1340,14 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # its whole walk on it (a static-if), so a summoned engine that no
         # character joined folds away entirely.
         _place(rt, Const(1 if getattr(ctx.world, "npcs", None) else 0), dest)
+    elif name == "any_maniacswap":
+        # any_maniacswap(): 1 when maniacswap is summoned (the SELF pronoun
+        # and the swap's reach fold on it).
+        _place(rt, Const(1 if wm.has_summon(ctx.world, "maniacswap") else 0),
+               dest)
+    elif name == "any_debug":
+        # any_debug(): 1 when the debug granule is summoned (its reach fold).
+        _place(rt, Const(1 if wm.has_summon(ctx.world, "debug") else 0), dest)
     elif name == "any_commanding":
         # any_commanding(): 1 when the NPC engine is summoned at all. The
         # addressed imperative (WATCHMAN, GO NORTH) folds on this, not on
@@ -2145,21 +2157,28 @@ def _trigger_words(ctx) -> set:
 
 def _any_reach(ctx) -> int:
     """The compile-time flag behind the reach_unscoped seam: 1 when the
-    winning block of that name does more than the trivial default (a lone
-    `return nothing`), i.e. a game or granule genuinely reaches beyond
-    scope. The reach-bound AGAIN replay plumbing guards on it, so a game
-    that leaves the seam alone stays byte-identical."""
+    winning block of that name does more than the trivial default, i.e. a
+    game or granule genuinely reaches beyond scope. Triviality is judged
+    AFTER static folds: the language layers' seam is now a dispatcher
+    whose branches guard on summon folds (any_debug, any_maniacswap), and
+    in a game with neither granule those branches vanish, so the seam is
+    as dead as a lone `return nothing` and must count as such. The
+    reach-bound AGAIN replay plumbing guards on this flag, so a game that
+    leaves the seam alone stays byte-identical."""
     blk = ctx.world.blocks.get("reach_unscoped")
     if blk is None or not blk.body:
         return 0
-    body = blk.body
-    if (
-        len(body) == 1
-        and isinstance(body[0], ast.Return)
-        and isinstance(body[0].value, ast.Nothing)
-    ):
-        return 0
-    return 1
+    for s in blk.body:
+        if isinstance(s, ast.If):
+            if all(c.cond is not None
+                   and _static_cond(ctx, c.cond) is False
+                   for c in s.clauses):
+                continue
+            return 1
+        if isinstance(s, ast.Return) and isinstance(s.value, ast.Nothing):
+            continue
+        return 1
+    return 0
 
 
 def _any_verb_read(ctx) -> int:
@@ -3730,6 +3749,10 @@ def _static_value(ctx, expr):
         return 1 if getattr(ctx.world, "npcs", None) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_commanding":
         return 1 if wm.has_summon(ctx.world, "npcengine") else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_maniacswap":
+        return 1 if wm.has_summon(ctx.world, "maniacswap") else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_debug":
+        return 1 if wm.has_summon(ctx.world, "debug") else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_restless":
         return 1 if (ctx.layout is not None and ctx.layout.has_restless) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_carry_limit":

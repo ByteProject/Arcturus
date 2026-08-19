@@ -1,0 +1,104 @@
+// maniacswap.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// THE TWO SHORES. A small showcase for maniacswap
+// (summon.maniacswap, docs/01 chapter 22): two playable characters on
+// maps that never connect. Henrik keeps the light on the west shore;
+// his sister Maren works the fish sheds on the island. No boat runs
+// tonight, so no walk joins them: BECOME MAREN and BECOME HENRIK are
+// the only way across, and each body stays exactly where and as it was
+// left, holding its own things. The swap is gated the story's way: the
+// signal lamp must be lit before Maren answers (an ordinary `on become`
+// handler refuses until then, and `continue` allows).
+//
+//   arcc examples/granules/maniacswap.storyarc -o shores.z5
+//   frotz shores.z5
+//
+// Try: BECOME MAREN (refused; the lamp is dark). LIGHT LAMP, then
+// BECOME MAREN: the island appears, X ME is Maren, INVENTORY is her
+// knife. TAKE THE HOOK, BECOME HENRIK: he still holds his matches, the
+// hook stayed with her. X MAREN answers only where she stands.
+
+summon.maniacswap
+summon.statusline
+
+game
+    title  "The Two Shores"
+    headline "A maniacswap showcase"
+    author "Stefan Vogt"
+    start lamproom
+
+player.name "Henrik"
+player.named
+player.words henrik, keeper
+player.desc "Henrik, keeper of the west light. Salt in every seam."
+
+room lamproom
+    name "Lamp Room"
+    desc "The top of the west light. The great lens sleeps; a signal
+        lamp waits on the sill, aimed at the island. Stairs go down."
+    down gallery
+
+room gallery
+    name "Gallery"
+    desc "The lighthouse gallery, all wind and iron railing. The island
+        is a shadow on the water. Stairs go up."
+    up lamproom
+
+thing signal_lamp in lamproom
+    name "signal lamp"
+    words signal, lamp
+    fixed
+    binary
+    desc "A stout paraffin lamp, aimed across the strait."
+
+thing matches in player
+    name "box of matches"
+    words box, matches
+    desc "Damp around the edges, dry enough inside."
+
+// The island: a second map, joined to the first by nothing at all.
+room sheds
+    name "Fish Sheds"
+    desc "Tarred sheds on the island's north spit. The strait glitters
+        between here and the west light. A drying rack stands east."
+    east rack_walk
+
+room rack_walk
+    name "Drying Racks"
+    desc "Racks of split fish, creaking in the wind. The sheds are
+        west."
+    west sheds
+
+thing maren of character in sheds
+    name "Maren"
+    named
+    feminine
+    words maren, sister
+    playable
+    desc "Maren, who guts fish faster than the gulls can beg."
+    // The story gates the swap: until Henrik's signal burns, she is
+    // not answering. `continue` hands an allowed swap to the granule.
+    on become
+        if signal_lamp is not active
+            change refused to 1
+            say "Not without the signal. Maren only minds the light
+                when the light asks."
+            stop
+        continue
+
+thing knife in maren
+    name "gutting knife"
+    words gutting, knife
+    desc "Short, curved, frighteningly keen."
+
+thing boat_hook in rack_walk
+    name "boat hook"
+    words boat, hook
+    desc "A long ash pole with a brass hook."
+
+on start
+    say "The ferry is hauled out for tar. Whatever crosses tonight
+        crosses as a thought."

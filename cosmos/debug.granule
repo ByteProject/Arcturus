@@ -18,10 +18,11 @@
 // Actaea records, replays, and checks a session with `actaea --record`,
 // `--replay`, and `--check` (docs/06 section 3).
 
-// The parser seam (library default: nothing). For a debug verb only, match the
+// The parser seam (the reach_debug stub, dispatched from reach_unscoped).
+// For a debug verb only, match the
 // typed word against every object so the verb can reach out of scope; other verbs
 // fall through and still answer "you can't see that".
-block reach_unscoped()
+block reach_debug()
     let d = word_dict(0)
     if d is nothing
         return nothing

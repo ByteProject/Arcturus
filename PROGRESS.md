@@ -11405,3 +11405,57 @@ property names unify with the summon rather than the roster, which the
 orders-only case needs to compile at all. One new test (orders with an
 empty roster), suite 1519 green, the byte gate re-proven clean against
 the committed 1.12.0 standalone.
+
+## 2026-08-19: MANIACSWAP LANDS (arcc 1.13.0, Cosmos 1.16.0)
+
+The second granule of the design round, built in the same lovely run,
+exactly to the rulings: its OWN granule, never part of the engine.
+summon.maniacswap:
+
+- BECOME is the verb (WERDE, ENCARNA), existing only when summoned;
+  `playable` marks a body (a character, on pain of an error; the boot
+  player is playable by default). The swap works from ANYWHERE, even
+  between maps that never connect, through the reach seam; the story
+  gates it in fiction with an ordinary `on become` handler on the body
+  (stop vetoes, continue allows), exactly as ruled. become(x) is the
+  authored-beat call.
+- THE LEFT BODY FREEZES where and as it was, holding its own
+  inventory, listed in its room, examinable in third person; the mind
+  (score, turns, every global) travels with the keyboard. The freeze
+  IS the engine's hibernated attribute, so the composition ruling
+  discharges itself: a summoned npcengine never drives a frozen PC nor
+  the body being ridden, and riding an engine character pauses its
+  agenda for exactly the stay.
+- ME FOLLOWS THE KEYBOARD, the July analysis's me-words seam, solved
+  as the SELF PRONOUN: the language layer's standard self words become
+  pronoun role 7 when maniacswap is summoned (sema marks them at the
+  player merge, the dictionary re-flags them, pronoun_slot answers
+  with the player global). Spanish's clitic machinery composed
+  unprompted: EXAMINATE resolves the new self correctly. Game-added
+  player words stay ordinary vocabulary, so the abandoned boot body
+  keeps its third-person name; the documented pattern names the boot
+  body (player.name, player.named, player.words henrik).
+- THE REACH SEAM became a DISPATCHER so debug and maniacswap compose
+  instead of colliding on one override: all four language layers
+  dispatch to per-feature stubs behind summon folds.
+
+THE BYTE GATE EARNED ITS KEEP TWICE. First, +28 bytes in every game:
+any_reach judged the seam live because its triviality test wanted a
+literal lone `return nothing`; it now judges AFTER static folds, so
+the dispatcher counts as dead in games without either granule. Then,
+with sizes restored, cmp still failed on TWO bytes, and the second was
+one locals-count byte: a `let` in a statically dead branch still
+allocates its slot (the dead-branch-let lesson, striking again); the
+debug leg moved into its own block. Only then: all 52 examples
+byte-identical, proven with cmp, not with sizes. The lesson is now
+written into the dispatcher's comment.
+
+DONE-TEST: tests/test_maniacswap.py, 9 tests (the cross-map swap, the
+self words and third-person naming, the refusals, the fiction gate,
+the engine composition with the frozen PC, the loud playable gate, the
+unsummoned case, German and Spanish natively); full suite 1529 green;
+the worked example is examples/granules/maniacswap.storyarc (The Two
+Shores, a fresh scene, played through headless). Handbook: the
+maniacswap section in chapter 22, chapter 4's player chapter points at
+it, the granule table and the features list carry it. WHATSNEW leads
+with it and its roadmap entry retires, shipped.

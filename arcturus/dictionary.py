@@ -91,6 +91,27 @@ def _pronoun_words(world: wm.World) -> dict:
     out = {w: prelude._PRONOUN_ROLES[role] for w, role in world.pronouns.items()
            if role in prelude._PRONOUN_ROLES}
     out.update(world.pronoun_sets)
+    # maniacswap (docs/01 chapter 22): the language layer's standard self
+    # words (ME, MYSELF; sema marked them at the player merge) become the
+    # SELF pronoun, role 7, resolving through the player global, so ME
+    # follows the keyboard across a BECOME instead of clinging to the boot
+    # body's vocabulary. The game's own appended player words stay ordinary
+    # vocabulary, third-person names for the boot body.
+    if wm.has_summon(world, "maniacswap"):
+        player = world.objects.get("player")
+        decl = player.props.get("words") if player is not None else None
+        if decl is not None:
+            from . import ast as _ast
+            for v in decl.values:
+                if not getattr(v, "self_word", False):
+                    continue
+                if isinstance(v, _ast.Name):
+                    out[v.ident.lower()] = 7
+                elif isinstance(v, _ast.StringLit):
+                    w = "".join(p.text for p in v.parts
+                                if isinstance(p, _ast.StringText))
+                    if w:
+                        out[w.lower()] = 7
     return out
 
 

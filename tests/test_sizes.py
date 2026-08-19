@@ -125,7 +125,8 @@ CEILINGS = {
     "features/trigger.storyarc": 16948,
     "features/adjectives.storyarc": 17528,  # 2026-08-15 first pin: the adjective marker showcase (>red, the ZIL match classes; games without the marker stay byte-identical)  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
     "granules/nautical.storyarc": 18072,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "granules/npcengine.storyarc": 20116,  # 2026-08-19 added: the NPC engine showcase (patrol, wander, send, orders, the hibernated controls; arcc 1.12.0, Cosmos 1.15.0)
+    "granules/npcengine.storyarc": 20116,
+    "granules/maniacswap.storyarc": 18336,  # 2026-08-19 added: the maniacswap showcase (BECOME, the fiction gate, disconnected maps; arcc 1.13.0, Cosmos 1.16.0)  # 2026-08-19 added: the NPC engine showcase (patrol, wander, send, orders, the hibernated controls; arcc 1.12.0, Cosmos 1.15.0)
     "beispiel-deutsch.storyarc": 25456,  # 2026-08-17 repriced: the existence form (docs/01 chapter 3); a two-sided door is now present on both sides (~264 bytes of presence walk, the two language examples also pay the 1-byte both-forms marker)
     "brass-lantern.storyarc": 18964,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "cloak-of-darkness.storyarc": 19596,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
