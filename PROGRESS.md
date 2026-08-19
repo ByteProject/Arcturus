@@ -11459,3 +11459,46 @@ Shores, a fresh scene, played through headless). Handbook: the
 maniacswap section in chapter 22, chapter 4's player chapter points at
 it, the granule table and the features list carry it. WHATSNEW leads
 with it and its roadmap entry retires, shipped.
+
+## CHECKPOINT for pickup (2026-08-19): the granule pair shipped;
+## Stefan builds interpreters next
+
+The standing state: B0 through B12 complete, B13 (the Rabenstein port)
+PARKED by ruling until interpreters exist for all the arc_image hosts.
+No lettered milestone is in flight. Versions: arcc 1.13.0, Cosmos
+1.16.0, arcimg 2.0.0, Actaea 1.3.9. The full suite is 1529 green (one
+pytest run covers compiler, library, and Actaea; it needs a real TTY).
+Tree clean and pushed.
+
+WHAT LANDED TODAY, all on Stefan's explicit go, entries above with the
+full detail: the NPC engine (summon.npcengine; movement, the hibernated
+controls with the master gate, presence prose in three languages, the
+events, the addressed imperative; then the orders-fold fix at 1.12.1)
+and maniacswap (summon.maniacswap; BECOME across any distance, the
+frozen left body, the SELF pronoun, the fiction gate; the byte gate
+caught the any_reach triviality bug and the dead-branch-let byte, both
+fixed). Both announced on Discord by Stefan from the WHATSNEW texts;
+fos was pointed at the engine announcement. The German and Spanish
+engine prose is Stefan-approved; maniacswap's words (WERDE, ENCARNA,
+and its pack lines) still await his native pass, a small open item.
+
+WHAT STEFAN DOES NEXT, in his own words: "until it's time to focus on
+new requests I am going to prioritise now the development of the
+remaining interpreters", meaning the arc_image host interpreters (his
+own projects: the Eris/Varuna/Haumea family, Triton, Canopus's side,
+and the rest of the what-plays-where table). That work lives outside
+this repo; docs/08-arcimage-interpreters.md is the interpreter-facing
+specification he builds against, and its per-machine chapters are the
+reference if he asks questions from the metal. When those interpreters
+cover the hosts, B13 unparks. The assistant's posture meanwhile:
+adopter support in the established discipline (reproduce on the exact
+shipped binary, measure before concluding, feature requests are design
+questions for Stefan, pasteable answers in his voice), and NOTHING
+started unprompted.
+
+Small open items carried, one line each: the AGN and TRSM4 previews
+are still rendered squashed while AP2's are aspect-true; the
+salient-hint plumbing stays inert until deliberately reconnected;
+the Actaea Beyond Zork gap stands (never start unprompted); the Zed
+PRs (Arcturus, and Stefan's separate Inform6 x PunyInform extension)
+were last seen open and bot-approved, awaiting human merge.
