@@ -402,6 +402,12 @@ _BUILTINS = {
     # is its AGAIN twin (library-internal).
     "verb_trigger": T_NUMBER,
     "last_trigger": T_NUMBER,
+    # The addressed character of the current line (summon.npcengine, docs/01
+    # chapter 12): MARSHAL, GO NORTH. Written by the parser's address
+    # pre-pass, consumed by run_chain's hand-off; 0 on ordinary lines. Its
+    # codegen slot is appended after every other global, so games without
+    # the engine keep their numbering and stay byte-identical.
+    "commanded": T_OBJECT,
     # Set to 1 by a refusal path when a command could not be carried out, so a
     # chained line ("take lamp and go north") stops at the failed command. The
     # library's default refusals set it; a story handler can too (docs/01 chapter 14).

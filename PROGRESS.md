@@ -11333,3 +11333,63 @@ sitting. The rulings, all his:
 No build authorized; the go is Stefan's, and the natural order when
 it comes is the engine first (an adopter's large port is waiting on
 moving NPCs), maniacswap second.
+
+## 2026-08-19: THE NPC ENGINE LANDS (arcc 1.12.0, Cosmos 1.15.0)
+
+Built in one sitting on Stefan's go, exactly to the round's rulings; an
+adopter's large port was the waiting field case. summon.npcengine:
+
+- MOVEMENT declared on the character: patrol (a cycle of adjacent
+  rooms, one waypoint pause, pure adjacency), territory (rooms or a
+  room kind, wandered one adjacent step at a time), pursue/send (the
+  authored errand through way_toward, one searched step per turn; a
+  reached room ends the pursuit), opens_doors (closed doors open
+  visibly en route; locked still bars; door_bars stays the seam).
+- THE CONTROLS, the round's centerpiece, exactly as ruled: hibernated
+  by default at zero per-turn cost, resume/hibernate by name, the
+  master gate on npc_engine preserving the per-NPC mix, everything
+  testable. The gate semantics fell out of one design stroke: the gate
+  object carries the same attribute, so one uniform block serves both
+  levels with no special case.
+- PROSE follows scope deterministically in all three languages
+  (departures with direction, arrivals with where-from, the door
+  opening seen from either side); German speaks its compass as proper
+  nouns via its own direction block, Spanish its own idiom, both
+  flagged for Stefan's native pass.
+- EVENTS on the ordinary pipeline: npc_arrives (a send completing),
+  npc_blocked (each turn a step cannot be made), the character as
+  noun, silent unhooked.
+- THE ADDRESSED IMPERATIVE, ruled into v1: WATCHMAN, GO NORTH, in all
+  three languages through one skeleton-level pre-pass (the comma chain
+  split was the natural seam; probe_noun the side-effect-free matcher).
+  The character's own on command decides via ordered/ordered_noun/way;
+  the default politely refuses; an order reaches a hibernated character
+  (process state never gates fiction).
+
+The compiler side mirrors the proven existence-form pattern: sema
+collects and validates the roster (loud gates: patrol needs two rooms
+and no kinds, engine behavior needs a character, territory expands room
+kinds), objects.py emits route arrays in the spans shape and the roster
+table, lower.py folds any_npcengine and reads routes through intrinsics,
+and the two new globals allocate AFTER every other global including the
+game's own, which is what closed the byte gate.
+
+DONE-TEST: tests/test_npcengine.py, 22 tests (controls, the mix through
+a gate cycle, all movement modes, doors and locks, events, commanding,
+the three languages, the loud compile gates, the unsummoned-name case);
+the byte-identity gate proved all 51 examples byte-identical against
+the shipped 1.11.2 standalone, file by file; full suite 1518 green.
+The worked example is examples/granules/npcengine.storyarc (The Night
+Rounds, a fresh scene). Handbook: the npcengine section in chapter 22,
+the addressed imperative in chapter 12, chapter 17's deferral line paid
+off, chapter 3's character entry points at the engine, and the stale
+summonable-features list repaired to the full roster. maniacswap stays
+future by ruling, on its own timeline, and took the engine's place on
+the public roadmap.
+
+Found and fixed along the way, before they could ship: the search flag
+leaking into the step (a warden ghosting through a door it should have
+opened), the address pre-pass zeroing its own flag through recursion,
+and two false alarms measured down to my own test construction (a
+Python operator-precedence slip) and to global renumbering, which the
+tail allocation then eliminated entirely.

@@ -1847,6 +1847,42 @@ block msg_kiss_thing()
 block msg_sing()
     say "You hum a few notes."
 
+// The NPC engine's presence prose (summon.npcengine, docs/01 chapter 22):
+// spoken by the walk exactly where the player is; a game reskins any line
+// by redefining its block. Unreferenced without the summon, so every
+// other game sheds them whole.
+block msg_npc_leaves(x, d)
+    show("${The x} heads ")
+    exit_name(d)
+    say "."
+
+block msg_npc_arrives(x, d)
+    if d is no_way
+        say "${The x} arrives."
+        return 0
+    let p = exit_prop(d)
+    if p is up
+        say "${The x} arrives from above."
+        return 0
+    if p is down
+        say "${The x} arrives from below."
+        return 0
+    show("${The x} arrives from the ")
+    exit_name(d)
+    say "."
+
+block msg_npc_opens(x, dd)
+    say "${The x} opens ${the dd}."
+
+// The addressed imperative's default refusal (MARSHAL, GO NORTH with no
+// `on command` handler anywhere).
+block msg_wont_obey()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} have better things to do."
+            return 0
+    say "${The noun} has better things to do."
+
 // Conversation.
 block msg_no_talk()
     if any_pluribus is 1

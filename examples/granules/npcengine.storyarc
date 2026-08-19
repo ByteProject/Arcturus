@@ -1,0 +1,136 @@
+// npcengine.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// THE NIGHT ROUNDS. A small showcase for the NPC engine
+// (summon.npcengine, docs/01 chapter 22). The watchman PATROLS the
+// square, the arcade, and the chapel, opening the chapel door on his way
+// (opens_doors); the stray dog WANDERS the two outdoor rooms and never
+// enters a building (territory); the verger has no standing behavior
+// (npc alone) until the bell rings and a SEND walks him to the chapel,
+// where an npc_arrives hook receives him. Everyone starts HIBERNATED,
+// the frozen-process default: the whole cast costs nothing per turn
+// until `on start` resumes the two regulars. The verger obeys one
+// spoken order (VERGER, GO NORTH: his own `on command` decides); the
+// watchman politely refuses (the library default). RING BELL freezes
+// nobody; CURFEW drops the master gate (hibernate(npc_engine)) and
+// preserves everyone's own state; DAWN lifts it and the same cast
+// resumes exactly as it was.
+//
+//   arcc examples/granules/npcengine.storyarc -o rounds.z5
+//   frotz rounds.z5
+//
+// Try: WAIT and watch the watchman pass through ("The watchman heads
+// east.", "The watchman arrives from the west."). FOLLOW him to the
+// chapel door and watch him open it. VERGER, GO NORTH, then WATCHMAN,
+// GO NORTH for the two answers. RING BELL and wait for the verger to
+// arrive. CURFEW, wait (stillness), DAWN, and the rounds continue.
+
+summon.npcengine
+summon.statusline
+
+game
+    title  "The Night Rounds"
+    headline "An NPC engine showcase"
+    author "Stefan Vogt"
+    start square
+
+room square
+    name "Market Square"
+    desc "Cobbles, moonlight, and a shut-up market stall. The arcade
+        runs east; the chapel fronts the square to the north."
+    north chapel_door
+    east arcade
+
+room arcade
+    name "Arcade"
+    desc "A covered walk of pale arches. The square lies west; a
+        narrow stair climbs to the bell loft."
+    west square
+    up loft
+
+room chapel
+    name "Chapel"
+    desc "Cold stone and one guttering candle. The door south leads
+        back to the square."
+    south chapel_door
+
+room loft
+    name "Bell Loft"
+    desc "Rafters, rope, and the great bell. The stair goes down."
+    down arcade
+
+thing chapel_door of door in square, chapel
+    name "chapel door"
+    words chapel, door
+    open false
+
+// The regular: a fixed route, wrapped into a cycle by writing the way
+// back into it, and the capability to open the chapel door en route.
+thing watchman of character in square
+    name "watchman"
+    words watchman, watch
+    desc "He knows every cobble by its first name."
+    patrol square, arcade, square, chapel
+    opens_doors
+
+// The wanderer: outdoor rooms only. It steps to a random adjacent
+// territory room, or stays put; it can never enter a building.
+thing dog of character in arcade
+    name "stray dog"
+    words stray, dog
+    desc "Ribs like barrel staves, dignity intact."
+    territory square, arcade
+
+// The verger: rostered with `npc` alone, no standing behavior, woken
+// only by send() or by your orders. His `on command` obeys GO; all
+// else defers to the library's polite refusal.
+thing verger of character in arcade
+    name "verger"
+    words verger
+    desc "A small man with an enormous key ring."
+    npc
+    on command
+        if ordered is action_id("go")
+            say "\"At once,\" says the verger."
+            send(self, here.(way))
+            stop
+        continue
+
+thing bell in loft
+    name "great bell"
+    words great, bell
+    fixed
+    desc "Louder than sin."
+    on ring
+        say "The bell tolls once, enormous in the dark."
+        send(verger, chapel)
+        stop
+
+verb "ring"
+    ring noun
+
+on npc_arrives when noun is verger
+    if here is chapel
+        say "The verger hurries in, keys jangling, and begins to fuss
+            with the candle."
+
+verb "curfew"
+    curfew
+
+on curfew
+    hibernate(npc_engine)
+    say "Curfew. The town holds still."
+
+verb "dawn"
+    dawn
+
+on dawn
+    resume(npc_engine)
+    say "First light. The rounds resume."
+
+on start
+    say "Night in the town. The watch is changing."
+    resume(watchman)
+    resume(dog)

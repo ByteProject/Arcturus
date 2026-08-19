@@ -6,6 +6,23 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **The NPC engine: living characters, declared instead of hand-wired.**
+  `summon.npcengine` and a character can `patrol` a route of rooms
+  (opening doors on its way with `opens_doors`), wander a `territory`
+  (rooms, or a whole room kind), or be sent on an errand
+  (`send(verger, chapel)`) that walks the real room graph one honest
+  step per turn, doors and all. The player watches it happen: "The
+  watchman heads east.", "The watchman arrives from the west.", in all
+  three shipped languages. The controls make a large cast cheap on real
+  8-bit hardware: every character starts `hibernated`, inactive at zero
+  per-turn cost, until `resume(watchman)` wakes them; the same calls on
+  `npc_engine` itself are a master gate that freezes the whole town for
+  a cutscene and restores the exact mix after. Two events ride the
+  ordinary pipeline (`npc_arrives`, `npc_blocked`), and the classic
+  addressed imperative arrives with it: WATCHMAN, GO NORTH reaches the
+  character's own `on command`, which decides; the default politely
+  refuses. Games that never summon it compile byte-identical, proven
+  file by file (arcc 1.12.0, Cosmos 1.15.0).
 - **arc_image is finished: sixteen machines, every one proven on the
   metal.** The retro graphics path is complete. One band-shaped master
   painting converts to the native format of sixteen machines, from
@@ -67,28 +84,18 @@ lives in the commit log. The feature roadmap follows below.
   one room, a container answers TAKE ALL FROM with its own handler,
   and `continue` defers to the sweep. An adopter's question, answered
   at the language level (arcc 1.4.0, Cosmos 1.7.0).
-- **The room lists its things in one sentence.** "You can see a MRE, a
-  lantern and a backpack here.", the classic idiom, instead of a line
-  per item: every plain item joins one combined sentence, with the
-  closed qualifier and a holder's contents riding along inline ("a pine
-  box (closed)"). Things with their own `appearance` or unexpired
-  `intro` keep their own paragraphs above it, exactly as before. All
-  three shipped languages speak it natively, German with its accusative
-  intact ("Du siehst hier eine Laterne, einen Rucksack und eine
-  Brotzeit."), and a game that overrode `list_item` keeps its wording
-  for the single-item case. An adopter request, and the standard
-  behavior now (Cosmos 1.5.0).
 
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus
 way, designed on its own terms, pay-for-use as always.
 
-- **An NPC engine.** A summoned granule for living characters: define an
-  NPC's movement (patrol routes, pathfinding toward goals), what they
-  do and say as they go, where they operate, whether they can open
-  doors, and a measure of intelligence in how they act. Builds on the
-  shipped pathfinding engine (GO TO, FIND, and the way family).
+- **Multiple player characters: maniacswap.** A summoned granule for
+  games with more than one playable character, Maniac Mansion style:
+  BECOME another character (the verb exists only when summoned), from
+  anywhere, with the story gating when a swap is right; the body you
+  leave freezes in place until you take it over again. Works alone or
+  alongside the NPC engine, whose hibernated state it shares.
 - **Light topology.** Doors and openings that block or pass light, so a
   lit room can spill light through an open doorway and a closed door can
   seal it off.

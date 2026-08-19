@@ -88,6 +88,11 @@ block parse()
     let term = read_input
     // A fresh line borrows no verb from the last one (noun lists, 8b).
     change chain_prev to 0
+    // ...and addresses nobody until its own pre-pass says so. Zeroed HERE,
+    // once per typed line, because parse_line re-enters itself through
+    // chain_next while the address is being carried.
+    if any_npcengine is 1
+        change commanded to 0
     // Remember the full typed length: chain_next restores it when it wakes the
     // queued rest of a chained line (docs/01 chapter 14).
     change chain_max to peek_byte(text_addr + 1)
@@ -109,6 +114,34 @@ block grain_from_chain(c)
         change g to peek_word(c, j)
     return 0
 
+// The addressed character of the current line lives in the compiler's
+// global set as `commanded` (summon.npcengine, docs/01 chapter 12):
+// MARSHAL, GO NORTH names the marshal, and the rest of the line parses
+// as the order the loop hands to run_command. 0 on every ordinary line;
+// costs nothing in a game without the engine (the pre-pass folds on
+// any_npcengine, and the compiler appends the slot after every other
+// global, so numbering never shifts).
+
+// The visible character this whole segment names, else nothing. Word 0
+// must not be a verb or a direction word, so LOOK, THEN NORTH keeps
+// chaining as ever; probe_noun is the side-effect-free matcher, so a
+// segment that names nobody falls through to the ordinary fault paths
+// untouched.
+block address_of()
+    let vd = word_dict(0)
+    if vd is not nothing
+        let vf = peek_byte(vd + 6)
+        if vf is 128 or vf is 136 or vf is 144 or vf is 152 or vf is 64
+            return nothing
+    let who = probe_noun(0, word_count)
+    if who is nothing
+        return nothing
+    if who is not animate
+        return nothing
+    if who is player
+        return nothing
+    return who
+
 block parse_line()
     change parse_fault to 0
     // No incomplete-command mark until a resolver finds an empty noun slot.
@@ -129,6 +162,16 @@ block parse_line()
         msg_no_input
         return 0
     chain_split
+    // The addressed imperative: a segment naming a visible character, with
+    // more line waiting beyond the comma, is an ADDRESS. The queued rest
+    // parses as the order (chain_next re-enters this block), and commanded
+    // carries the character to the loop.
+    if any_npcengine is 1
+        if commanded is 0
+            if chain_pos is not 0
+                change commanded to address_of
+                if commanded is not 0
+                    return chain_next
     let act = resolve_verb
     if act is not 0
         // Remember WHICH word resolved the verb, so author code can branch on

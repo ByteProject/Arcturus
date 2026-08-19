@@ -1884,6 +1884,48 @@ block msg_kiss()
 block msg_sing()
     say "Entonas unas notas. La sala no se inmuta."
 
+// The NPC engine's presence prose (summon.npcengine, docs/01 chapter 22).
+// The compass nouns are all masculine (el norte, el sur), so one article
+// serves; up and down speak their own verbs, and a custom direction falls
+// back to its declared word.
+block msg_npc_leaves(x, d)
+    let p = exit_prop(d)
+    if p is up
+        say "${The x} sube."
+        return 0
+    if p is down
+        say "${The x} baja."
+        return 0
+    show("${The x} se va hacia el ")
+    exit_name(d)
+    say "."
+
+block msg_npc_arrives(x, d)
+    if d is no_way
+        say "${The x} llega."
+        return 0
+    let p = exit_prop(d)
+    if p is up
+        say "${The x} llega de arriba."
+        return 0
+    if p is down
+        say "${The x} llega de abajo."
+        return 0
+    show("${The x} llega desde el ")
+    exit_name(d)
+    say "."
+
+block msg_npc_opens(x, dd)
+    say "${The x} abre ${the dd}."
+
+// The addressed imperative's default refusal.
+block msg_wont_obey()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} tienen cosas mejores que hacer."
+            return 0
+    say "${The noun} tiene cosas mejores que hacer."
+
 // Conversation.
 block msg_no_talk()
     if any_pluribus is 1

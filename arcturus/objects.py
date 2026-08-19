@@ -122,6 +122,9 @@ class Layout:
     # Offset of the ambience table inside `table` (-1 when no block exists);
     # build_story seeds the __ambience__ global with its absolute address.
     ambience_off: int = -1
+    # Offset of the NPC engine's roster table within the object-table region
+    # (summon.npcengine), -1 when no character joined the roster.
+    npcs_off: int = -1
     # Scoring (docs/01): offsets of the rank ladder and the labelled-pool
     # tables (-1 when absent), and the rank threshold patch sites
     # (position, percent-or-None, index, count); thresholds are written in
@@ -650,6 +653,7 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
     # routine and string addresses resolved only at link time.
     _emit_topic_tables(world, layout, topic_sites)
     _emit_ambience_tables(world, layout)
+    _emit_npc_roster(world, layout)
     _emit_scoring_tables(world, layout)
     # A global initialized with a string holds its packed address; register
     # the text so build_story can seed the slot once addresses are known.
@@ -728,6 +732,24 @@ def _emit_ambience_tables(world, layout) -> None:
         layout.routine_fixups.append((rec + 12, amb_play_name(name, idx)))
         if any(l.when is not None for l in amb.lines):
             layout.routine_fixups.append((rec + 14, amb_lg_name(name, idx)))
+
+
+def _emit_npc_roster(world, layout) -> None:
+    """The NPC engine's roster (summon.npcengine, docs/01 chapter 22): a
+    count word, then one object number per roster character, in declaration
+    order. The granule's walk reads it through npc_table() (the __npcs__
+    global build_story seeds); a game with no roster emits nothing and the
+    global stays 0."""
+    if not getattr(world, "npcs", None):
+        return
+    table = layout.table
+    layout.npcs_off = len(table)
+    table += bytes(2)
+    _put_word(table, layout.npcs_off, len(world.npcs))
+    for name in world.npcs:
+        at = len(table)
+        table += bytes(2)
+        _put_word(table, at, layout.obj_number.get(name, 0))
 
 
 def _emit_topic_tables(world, layout, topic_sites: dict) -> None:
@@ -912,6 +934,15 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
             continue
         if pname == "spans":
             _emit_spans(layout, pnum, decl)
+            continue
+        # The engine's route properties (summon.npcengine): patrol and
+        # territory are arrays of room object numbers, the spans shape
+        # exactly. Only when a roster exists; otherwise these names are
+        # the author's own ordinary properties, emitted the ordinary way.
+        if pname in ("patrol", "territory") and getattr(world, "npcs", None):
+            _emit_spans(layout, pnum,
+                        [v.ident for v in decl.values
+                         if isinstance(v, ast.Name)])
             continue
         table.append(0x40 | pnum)  # bit 6 = two data bytes; low bits = number
         data_at = len(table)

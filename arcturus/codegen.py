@@ -958,6 +958,16 @@ _BUILTIN_GLOBALS = [
     "verb_trigger", "last_trigger",
 ]
 
+# The NPC engine's two slots (summon.npcengine), allocated after EVERY
+# other global, the game's own included, so that no existing number ever
+# moves and games without the engine stay byte-identical (the globals
+# region is fixed-size and these slots go unreferenced there). commanded
+# is the addressed character of the current line (MARSHAL, GO NORTH;
+# docs/01 chapter 12); __npcs__ is the roster table's base address, 0
+# with no roster. A future engine slot joins this tuple, never the list
+# above.
+_TAIL_GLOBALS = ("commanded", "__npcs__")
+
 
 def _globals_map(world: wm.World) -> dict:
     m: dict = {}
@@ -966,6 +976,10 @@ def _globals_map(world: wm.World) -> dict:
         m[name] = n
         n += 1
     for name in world.globals:
+        if name not in m:
+            m[name] = n
+            n += 1
+    for name in _TAIL_GLOBALS:
         if name not in m:
             m[name] = n
             n += 1
@@ -1323,6 +1337,11 @@ def build_story(
         sf.set_word(
             globals_addr + (gmap["__ambience__"] - 16) * 2,
             objects_addr + layout.ambience_off,
+        )
+    if layout is not None and layout.npcs_off >= 0:
+        sf.set_word(
+            globals_addr + (gmap["__npcs__"] - 16) * 2,
+            objects_addr + layout.npcs_off,
         )
     if duals_addr:
         sf.set_word(

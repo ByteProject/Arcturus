@@ -1,0 +1,281 @@
+// npcengine.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// THE NPC ENGINE: summon it with `summon.npcengine` (docs/01 chapter 22).
+// Living characters, declared instead of hand-wired: a `patrol` walks a
+// fixed route of adjacent rooms in order; a `territory` (rooms, or a room
+// kind) is wandered within, one adjacent step at a time; `pursue` walks
+// toward a room or a character through the real room graph (the way
+// family, docs/01 chapter 8), paying the path search only while it runs;
+// `npc` alone joins the roster with no standing behavior, ready to be
+// sent. `opens_doors` lets a character open closed doors in its way
+// (locked still bars; door_bars stays the seam). Any of these implies the
+// roster; the compiler collects it, and a game with no roster folds this
+// whole file away (any_npcengine).
+//
+// THE CONTROLS (Stefan's design). Every roster character starts
+// HIBERNATED: inactive, costing not one cycle per turn, like a frozen
+// process. resume(x) wakes one, hibernate(x) freezes one, and the same
+// two calls on the npc_engine object itself are the MASTER GATE: freezing
+// the gate stops the whole cast in one bit and PRESERVES each character's
+// own state, so resuming the gate restores exactly the mix you froze.
+// Everything is testable: `if marshal is hibernated`, `if npc_engine is
+// hibernated`. Declare `hibernated false` on a character to be born
+// active.
+//
+// HIBERNATED IS A PROCESS STATE, NOT A FICTION STATE. A hibernated
+// character still answers ASK, still accepts GIVE, still obeys or refuses
+// a command; the player never meets the word. It governs one thing only:
+// whether the engine spends a turn on the character's own agenda. It
+// gates ONLY the engine; an author's own `on each_turn` on that character
+// keeps running (guard it on `self is not hibernated` yourself if you
+// want the full freeze).
+//
+// PROSE FOLLOWS SCOPE, deterministically: the walk speaks only when the
+// player shares the scene, departures in the leaver's room with their
+// direction, arrivals in the entered room with where they came from, a
+// door opened where the player can see the door (its existence form shows
+// both sides). Every line is a msg_ block in the language packs; reskin
+// per game, or per character in your own handlers.
+//
+// SEND, the authored beat: send(marshal, saloon) wakes the character and
+// walks them there; a pursued ROOM ends the pursuit on arrival (the
+// one-shot), a pursued CHARACTER is followed for as long as the pursuit
+// stands.
+
+// The master gate. A plain object, not a character, never rostered: it
+// exists to carry the shared hibernated bit for the whole engine. It has
+// no location and no vocabulary; the player can never meet it.
+thing npc_engine
+    fixed
+
+// THE EVENTS, on the ordinary pipeline (the takeall manner): npc_arrives
+// fires when a character reaches a pursued ROOM (a send() completing),
+// npc_blocked when a step could not be made (no way, a barred or locked
+// door). The character is the noun, so a hook reads naturally at every
+// level: on the character itself (`on npc_arrives` in its body), on a
+// room, or free (`on npc_arrives when noun is warden`). Unhooked, they
+// pass in silence. Work follows the performer: an event fires wherever
+// it happens; guard your prose on `here` as usual.
+action npc_arrives, npc_blocked
+
+block npc_event(x, act)
+    let savn = noun
+    change noun to x
+    dispatch(act)
+    change noun to savn
+    return 0
+
+// THE ADDRESSED IMPERATIVE: MARSHAL, GO NORTH. The parser recognizes a
+// visible character before the comma and parses the rest as the order;
+// this routes it. The character is the noun, so the character's own `on
+// command` handler decides (the documented pattern); `ordered` holds the
+// order's action, `ordered_noun` its noun, and `way` its direction, so a
+// handler reads the order naturally:
+//
+//     on command
+//         if ordered is action_id("go")
+//             say "\"On my way,\" the marshal says."
+//             send(self, here.(way))
+//             stop
+//         continue
+//
+// Unhandled, the default below refuses politely. Commanding spends the
+// player's turn (daemons run, the clock moves), and it works on a
+// hibernated character too: an order is the player spending the turn,
+// not the engine.
+action command
+
+global ordered = 0
+global ordered_noun = 0
+
+block run_command(act)
+    change ordered to act
+    change ordered_noun to noun
+    change noun to commanded
+    dispatch(action_id("command"))
+    fire_turn
+    tick
+    return 0
+
+// The polite default: fires only when no handler on the character, the
+// room, or the story answered.
+on command
+    change refused to 1
+    msg_wont_obey
+
+// Wake one character, or the whole cast: resume(npc_engine) lifts the
+// master gate. The state is the attribute, so `now marshal is not
+// hibernated` is the same act; the calls read as the orchestration they
+// are and work uniformly on both levels.
+block resume(x)
+    now x is not hibernated
+    return 0
+
+block hibernate(x)
+    now x is hibernated
+    return 0
+
+// The authored beat: wake x and walk it to dest (a room to reach once,
+// or a character to follow).
+block send(x, dest)
+    change x.pursue to dest
+    now x is not hibernated
+    return 0
+
+// The pulse: one free daemon for the whole cast. The any_npcengine guard
+// is compile-time (a game whose roster is empty folds all of this away);
+// the master gate is one runtime test when the cast sleeps.
+on each_turn
+    if any_npcengine is 1
+        if npc_engine is not hibernated
+            npc_walk
+
+block npc_walk()
+    let t = npc_table
+    let n = peek_word(t, 0)
+    let i = 1
+    while i <= n
+        let x = peek_word(t, i)
+        if x is not hibernated
+            npc_step(x)
+        change i to i + 1
+    return 0
+
+// One character's turn: pursue outranks patrol outranks wandering, so a
+// send interrupts a route and the route resumes when the pursuit ends.
+block npc_step(x)
+    if x.pursue is not nothing
+        npc_pursue_step(x)
+        return 0
+    if patrol_addr(x) is not 0
+        npc_patrol_step(x)
+        return 0
+    if territory_addr(x) is not 0
+        npc_wander_step(x)
+    return 0
+
+// A patrol walks its rooms in declared order and wraps to the first, so
+// the route is a CYCLE: write the way back into it (`patrol a, b, c, b`)
+// unless your ends already meet. The cursor names the next destination;
+// standing on it advances the route, so a character pauses one turn at
+// each waypoint. Steps are adjacency (way_between), never a search: a
+// patrol is a concrete route of declared neighbors.
+block npc_patrol_step(x)
+    let t = patrol_addr(x)
+    let n = patrol_count(x)
+    let c = x.npc_cursor
+    if c >= n
+        change c to 0
+    let dest = peek_word(t, c)
+    if dest is parent_of(x)
+        change c to c + 1
+        if c >= n
+            change c to 0
+        change x.npc_cursor to c
+        change dest to peek_word(t, c)
+    npc_move_toward(x, dest, 0)
+    return 0
+
+// While an opens_doors character is searching, a closed unlocked door
+// does not bar the path: the walker will open it on the way. The flag
+// scopes exactly one way_toward call; the seam keeps its shape for
+// authors (a game's own door_bars override wins as always and then owns
+// this rule too).
+global npc_opening = 0
+
+block door_bars(d)
+    if d is open
+        return 0
+    if npc_opening is 1
+        if d is not locked
+            return 0
+    return 1
+
+// A pursuit walks toward the goal through the live graph, one searched
+// step per turn (way_toward, the engine's one paid path). A reached ROOM
+// ends the pursuit; a reached character is simply kept company.
+block npc_pursue_step(x)
+    let goal = x.pursue
+    let dest = goal
+    if goal is not room
+        change dest to parent_of(goal)
+    if dest is nothing
+        return 0
+    if dest is parent_of(x)
+        if goal is room
+            change x.pursue to nothing
+            npc_event(x, action_id("npc_arrives"))
+        return 0
+    let moved = npc_move_toward(x, dest, 1)
+    if moved is 1
+        if dest is parent_of(x)
+            if goal is room
+                change x.pursue to nothing
+                npc_event(x, action_id("npc_arrives"))
+    return 0
+
+// Wandering: a random adjacent territory room, or stand still when none
+// neighbors this one. A bounded handful of draws keeps the turn cheap.
+block npc_wander_step(x)
+    let t = territory_addr(x)
+    let n = territory_count(x)
+    let loc = parent_of(x)
+    let tries = 4
+    while tries > 0
+        let pick = peek_word(t, random(n) - 1)
+        if pick is not loc
+            if way_between(loc, pick) is not no_way
+                let moved = npc_move_toward(x, pick, 0)
+                return 0
+        change tries to tries - 1
+    return 0
+
+// One honest step of the world: the exit is read as the go handler reads
+// it, a door in the way bars or is opened (the opens_doors capability;
+// locked still bars), and the prose speaks exactly where the player is.
+// Returns 1 when the character moved.
+block npc_move_toward(x, dest, seek)
+    let loc = parent_of(x)
+    if loc is dest
+        return 0
+    let d = no_way
+    if seek is 1
+        // The flag scopes the search alone: the step below asks the raw
+        // door state, so a door on the path is really opened, never
+        // ghosted through.
+        if x is opens_doors
+            change npc_opening to 1
+        change d to way_toward(loc, dest)
+        change npc_opening to 0
+    else
+        change d to way_between(loc, dest)
+    if d is no_way
+        npc_event(x, action_id("npc_blocked"))
+        return 0
+    let step = exit_dest(loc, exit_prop(d))
+    if step is nothing
+        npc_event(x, action_id("npc_blocked"))
+        return 0
+    if any_doors is 1
+        if step is door
+            let dd = step
+            change step to door_far_side(dd, loc)
+            if door_bars(dd) is 1
+                if x is not opens_doors
+                    npc_event(x, action_id("npc_blocked"))
+                    return 0
+                if dd is locked
+                    npc_event(x, action_id("npc_blocked"))
+                    return 0
+                now dd is open
+                if in_scope(dd) is 1
+                    msg_npc_opens(x, dd)
+    if here is loc
+        msg_npc_leaves(x, d)
+    move x to step
+    if here is step
+        msg_npc_arrives(x, way_between(step, loc))
+    return 1

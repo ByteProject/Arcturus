@@ -133,6 +133,7 @@ class Analyzer:
         self._check_exits()
         self._check_locations()
         self._check_presence()
+        self._check_npcengine()
         # After the members are collected: the automatic scored bits need
         # the real attributes (fixed blocks a thing, `scored false` opts
         # out), and the award scan feeds the compiler-summed max_score.
@@ -1105,6 +1106,150 @@ class Analyzer:
                     obj.props["presence"] = ast.PropertyDecl(
                         "presence", ast.PROP_VALUE,
                         values=[ast.Number(1, obj.line)], line=obj.line)
+
+    def _check_npcengine(self) -> None:
+        """The NPC engine's declaration surface (summon.npcengine, docs/01
+        chapter 22), recognized ONLY when the granule is summoned, so that
+        in every other game these names stay ordinary author properties and
+        the build is byte-identical. On a character: `npc` (bare, joins the
+        roster), `patrol r1, r2, ...` (adjacent rooms, walked in order),
+        `territory r1, ...` (rooms or room kinds, wandered within),
+        `pursue target` (a room or a character, seeded here and
+        runtime-changeable), `opens_doors` (the door capability). Any
+        movement declaration implies `npc`. Every roster member starts
+        `hibernated` (Stefan's controls: inactive, zero per-turn cost)
+        unless it declares `hibernated false`; the granule's own npc_engine
+        object is the master gate and is exempt from the character rule.
+        Roster members get a `pursue` slot even undeclared (send() writes
+        it at runtime; the put_prop trap), and patrol members a cursor."""
+        w = self.world
+        if not any(s.form == "feature" and s.target == "npcengine"
+                   for s in w.summons):
+            return
+        npcs: list = []
+        any_patrol = False
+        for obj in w.objects.values():
+            if obj.name == "npc_engine":
+                continue
+            props = obj.props
+            move_decls = [p for p in ("patrol", "territory", "pursue")
+                          if p in props]
+            is_npc = bool(move_decls) or "npc" in props
+            if not is_npc:
+                continue
+            chain = self._chain(obj.kind, obj.line)
+            if "character" not in chain:
+                raise self._error(
+                    f"'{obj.name}' declares NPC engine behavior "
+                    f"({', '.join(move_decls) or 'npc'}) but is not a "
+                    f"character; the engine drives things `of character`",
+                    obj.line)
+            if "patrol" in props:
+                decl = props["patrol"]
+                rooms = [v.ident for v in decl.values
+                         if isinstance(v, ast.Name)]
+                if len(rooms) < 2 or len(rooms) != len(decl.values):
+                    raise self._error(
+                        f"'{obj.name}': a patrol names at least two rooms, "
+                        f"in walking order (`patrol office, street`)",
+                        decl.line or obj.line)
+                for rname in rooms:
+                    if rname in w.kinds:
+                        raise self._error(
+                            f"'{obj.name}' patrols '{rname}', a kind: a "
+                            f"patrol is a concrete route of named, adjacent "
+                            f"rooms; to roam every room of a kind, use "
+                            f"`territory {rname}`", decl.line or obj.line)
+                    target = w.objects.get(rname)
+                    if target is None or target.category != "room":
+                        raise self._error(
+                            f"'{obj.name}' patrols '{rname}', which is not "
+                            f"a room", decl.line or obj.line)
+                any_patrol = True
+            if "territory" in props:
+                decl = props["territory"]
+                names = [v.ident for v in decl.values
+                         if isinstance(v, ast.Name)]
+                if not names or len(names) != len(decl.values):
+                    raise self._error(
+                        f"'{obj.name}': territory names rooms or room "
+                        f"kinds", decl.line or obj.line)
+                expanded: list = []
+                for rname in names:
+                    if rname in w.kinds:
+                        if "room" not in self._chain(rname, obj.line):
+                            raise self._error(
+                                f"'{obj.name}': territory '{rname}' is a "
+                                f"kind that is not a room kind",
+                                decl.line or obj.line)
+                        rooms = [o.name for o in w.objects.values()
+                                 if o.category == "room"
+                                 and rname in self._chain(o.kind, o.line)]
+                        if not rooms:
+                            raise self._error(
+                                f"'{obj.name}': territory '{rname}' is a "
+                                f"room kind with no rooms",
+                                decl.line or obj.line)
+                        for rm in rooms:
+                            if rm not in expanded:
+                                expanded.append(rm)
+                        continue
+                    target = w.objects.get(rname)
+                    if target is None or target.category != "room":
+                        raise self._error(
+                            f"'{obj.name}': territory '{rname}' is not a "
+                            f"room or a room kind", decl.line or obj.line)
+                    if rname not in expanded:
+                        expanded.append(rname)
+                decl.values = [ast.Name(r, decl.line) for r in expanded]
+            if "pursue" in props:
+                decl = props["pursue"]
+                if (len(decl.values) != 1
+                        or not isinstance(decl.values[0], ast.Name)):
+                    raise self._error(
+                        f"'{obj.name}': pursue names one target, a room or "
+                        f"a character (or nothing)", decl.line or obj.line)
+                ident = decl.values[0].ident
+                if ident != "nothing" and ident not in w.objects:
+                    raise self._error(
+                        f"'{obj.name}' pursues unknown '{ident}'",
+                        decl.line or obj.line)
+            npcs.append(obj.name)
+        if not npcs:
+            return
+        w.npcs = npcs
+        # The engine claims its property names outright (the summon is the
+        # opt-in): patrol and territory are room arrays whatever their
+        # declared arity (a one-kind `territory outside_room` must not type
+        # as a single object), read only through the route intrinsics; both
+        # get numbers even when no character declares one, so the walk's
+        # get_prop_addr stays legal in every engine game.
+        for pname in ("patrol", "territory"):
+            prop = w.properties.get(pname)
+            if prop is None:
+                w.properties[pname] = wm.Property(
+                    pname, prelude.T_LIST, "game", wm.STORE_SLOT,
+                    [(self.filename, 0)])
+            else:
+                prop.type = prelude.T_LIST
+                prop.storage = wm.STORE_SLOT
+        self._unify_property("hibernated", prelude.T_BOOL, 0)
+        self._unify_property("opens_doors", prelude.T_BOOL, 0)
+        self._unify_property("pursue", prelude.T_OBJECT, 0)
+        self._unify_property("npc_cursor", prelude.T_NUMBER, 0)
+        for name in npcs:
+            obj = w.objects[name]
+            if "hibernated" not in obj.props:
+                obj.props["hibernated"] = ast.PropertyDecl(
+                    "hibernated", ast.PROP_BOOL, line=obj.line)
+            if "pursue" not in obj.props:
+                obj.props["pursue"] = ast.PropertyDecl(
+                    "pursue", ast.PROP_VALUE, values=[ast.Nothing()],
+                    line=obj.line)
+            if "patrol" in obj.props and "npc_cursor" not in obj.props:
+                obj.props["npc_cursor"] = ast.PropertyDecl(
+                    "npc_cursor", ast.PROP_VALUE,
+                    values=[ast.Number(0, obj.line)], line=obj.line)
 
     def _check_exits(self) -> None:
         """Every named exit target must exist and be walkable (a field report:
@@ -2105,6 +2250,12 @@ class Analyzer:
         # property, so the unread-lint has no business with either. presence
         # is the existence-form marker, synthesized and intrinsic-read too.
         skip = {"tag", "trigger", "adjective", "presence"}
+        if getattr(self.world, "npcs", None):
+            # The engine's declaration surface (summon.npcengine) is read
+            # through the route intrinsics and the roster walk, never as
+            # plain property reads; with a roster live these are working
+            # declarations, not typos.
+            skip |= {"npc", "patrol", "territory", "npc_cursor"}
         noted = 0
         pools = [(o.name, o.props) for o in self.world.objects.values()]
         pools += [(k.name, k.props) for k in self.world.kinds.values()

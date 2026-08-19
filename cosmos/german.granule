@@ -2068,6 +2068,76 @@ block msg_kiss()
 block msg_sing()
     say "Du bringst ein paar Töne heraus. Der Raum bleibt ungerührt."
 
+// The NPC engine's presence prose (summon.npcengine, docs/01 chapter 22).
+// The compass words are printed as proper German nouns (nach Norden), so
+// the pack speaks them itself; up and down take their adverbs, and any
+// custom direction falls back to its declared word.
+block npc_dir_de(p, d)
+    if p is north
+        show("Norden")
+        return 0
+    if p is south
+        show("Süden")
+        return 0
+    if p is east
+        show("Osten")
+        return 0
+    if p is west
+        show("Westen")
+        return 0
+    if p is northeast
+        show("Nordosten")
+        return 0
+    if p is northwest
+        show("Nordwesten")
+        return 0
+    if p is southeast
+        show("Südosten")
+        return 0
+    if p is southwest
+        show("Südwesten")
+        return 0
+    exit_name(d)
+    return 0
+
+block msg_npc_leaves(x, d)
+    let p = exit_prop(d)
+    if p is up
+        say "${The x} geht nach oben."
+        return 0
+    if p is down
+        say "${The x} geht nach unten."
+        return 0
+    show("${The x} geht nach ")
+    npc_dir_de(p, d)
+    say "."
+
+block msg_npc_arrives(x, d)
+    if d is no_way
+        say "${The x} trifft ein."
+        return 0
+    let p = exit_prop(d)
+    if p is up
+        say "${The x} kommt von oben."
+        return 0
+    if p is down
+        say "${The x} kommt von unten."
+        return 0
+    show("${The x} kommt von ")
+    npc_dir_de(p, d)
+    say "."
+
+block msg_npc_opens(x, dd)
+    say "${The x} öffnet ${the:acc dd}."
+
+// The addressed imperative's default refusal.
+block msg_wont_obey()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} haben Besseres zu tun."
+            return 0
+    say "${The noun} hat Besseres zu tun."
+
 // Conversation.
 block msg_no_talk()
     if any_pluribus is 1

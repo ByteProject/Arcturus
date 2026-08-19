@@ -430,6 +430,11 @@ class World:
     # fold must survive for a game that only sets beyond at runtime (the
     # player-beyond mount) and never declares it on an object.
     sets_beyond: bool = False
+    # The NPC engine's roster (summon.npcengine, docs/01 chapter 22): the
+    # characters that declared engine behavior (npc, patrol, territory,
+    # pursue), in declaration order. Empty in every other game, and every
+    # fold and table keyed on it then vanishes.
+    npcs: list = field(default_factory=list)
     # How many vary sites need a state word (sequence/loop/mutate; dice keeps
     # none). Slots are stamped on the Vary nodes in sema, in source order, and
     # the words live at the end of the catalog region (objects.build_layout).

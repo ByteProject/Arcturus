@@ -722,7 +722,9 @@ examinable nor takeable, until your code brings them out: a handler that
 hands one over, a `move` to the room or to `scope` (this chapter). To make
 a character act, `on each_turn` is its pulse (chapter 16), `way_toward`
 walks it one step toward a goal through the real room graph (chapter 8),
-and `restless` keeps it acting offstage (chapter 5). `player` is the
+and `restless` keeps it acting offstage (chapter 5); the NPC engine
+granule packages the standing behaviors, patrols, territories, errands,
+and spoken orders, declaratively (chapter 22). `player` is the
 distinguished character instance, chapter 4.
 
 ### Kinds of your own
@@ -2322,6 +2324,31 @@ LIGHT is a switch_on synonym (LIGHT THE TORCH, LIGHT THE CANDLE), so
 lamp-game phrasing works everywhere the switch does; the packs carry
 their own words for all of these (ja/nein, sí/no, zünde an, prender).
 
+### Commanding characters: the addressed imperative
+
+With the NPC engine summoned (`summon.npcengine`, chapter 22), the player
+can address any visible character by name, the classic form every Infocom
+robot understood:
+
+```
+> WATCHMAN, GO NORTH
+The watchman has better things to do.
+```
+
+The words before the comma must name a visible character and must not
+begin with a verb or a direction word, so ordinary chained commands
+(LOOK, THEN NORTH; DROP CLOAK, HANG CLOAK ON HOOK) keep chaining exactly
+as chapter 14 defines. The rest of the line parses as a normal command,
+the order; the library's default refuses politely (msg_wont_obey, in
+every pack), and the character's own `on command` handler decides
+otherwise, reading `ordered` (the order's action), `ordered_noun` (its
+noun), and `way` (its direction). Chapter 22's npcengine section gives
+the worked pattern. An order spends the player's turn like any command,
+it reaches a hibernated character (the engine's process state never
+gates the fiction), and one order ends its line: anything chained after
+it is dropped. In every shipped language the form is the same, the comma
+doing the addressing (WACHMANN, GEH NACH NORDEN; GUARDIA, VE AL NORTE).
+
 ### Noun lists
 
 A two-noun command takes a list in its first slot: the second is bound
@@ -3560,7 +3587,9 @@ The first three name a SUBJECT, which is words rather than an object (you
 ask about the old mine, and you ask for a drink the barkeeper has and you
 do not), so they run through topics. The last two name a real object you
 are holding, so they are ordinary two-noun actions. Commanding a character
-outright is a separate matter and belongs to the NPC engine.
+outright is a separate matter and ships with the NPC engine: the
+addressed imperative (WATCHMAN, GO NORTH), chapter 12, routed through
+the character's own `on command` (chapter 22).
 
 ### Shared subjects
 
@@ -4514,6 +4543,7 @@ an author's own voice, which is why these stay untranslated.
 | infocom_talking | speaks all | ask/tell wording from the packs         |
 | statusline      | speaks all | score/moves labels from the packs       |
 | pathfinding     | speaks all | grammar in `when language` groups       |
+| npcengine       | speaks all | movement prose and the order refusal from the packs |
 | takeall         | speaks all | all-words per language, wording in packs |
 | plurals         | speaks all* | group words are the author's own vocabulary, so the sweep works anywhere; only THEM is English, and a fork drops or renames it (see its section) |
 | foresight       | speaks all | wording from the packs                  |
@@ -4892,6 +4922,136 @@ file carries them to a translator with everything else. Reskin any line
 by redefining its msg_ block. A game that never summons the granule pays
 nothing anywhere, and its own calls into the way family stay free of the
 granule's knowledge gate.
+
+### npcengine
+
+```
+summon.npcengine
+```
+
+Living characters, declared instead of hand-wired. The engine drives any
+character that declares a behavior, and everything below rides machinery
+this book already taught: the way family walks the real room graph
+(chapter 8), the prose is msg blocks in the language packs, and the
+events ride the ordinary action pipeline.
+
+The declaration surface, on a character:
+
+```
+thing watchman of character in square
+    ...
+    patrol square, arcade, square, chapel   // a fixed route, in order
+    opens_doors                             // may open closed doors en route
+
+thing dog of character in arcade
+    ...
+    territory square, arcade                // wanders these rooms
+
+thing verger of character in arcade
+    ...
+    npc                                     // rostered, no standing behavior
+```
+
+`patrol` walks its rooms in declared order and wraps to the first, so the
+route is a CYCLE of adjacent rooms: write the way back into it (`a, b, c,
+b`) unless your ends already meet. A character pauses one turn at each
+waypoint, and a patrol step is pure adjacency, never a search. `territory`
+is wandering: a random adjacent territory room each turn, staying put when
+none neighbors this one; it takes named rooms or a ROOM KIND (`territory
+outside_room`), exactly as `spans` does. `pursue` walks toward a room or a
+character through the live graph, one searched step per turn, and is
+usually written not as a declaration but as the authored beat:
+
+```
+send(verger, chapel)     // wake him and walk him there
+```
+
+A pursued ROOM ends the pursuit on arrival, so a send is a one-shot; a
+pursued CHARACTER is followed for as long as the pursuit stands
+(`change x.pursue to nothing` calls it off). Pursuit outranks patrol
+outranks wandering, so a send interrupts a route and the route resumes
+when the errand is done. `opens_doors` lets the character open a closed
+door in its way, visibly, on both of the door's sides; a locked door
+still bars, and `door_bars` (chapter 8) stays the seam for doors with
+their own rules. `npc` alone joins the roster with no standing behavior,
+ready for send() and orders.
+
+THE CONTROLS. Every roster character starts HIBERNATED: inactive, costing
+not one cycle per turn, like a frozen process. Wake and stop them by name,
+or the whole cast at once:
+
+```
+resume(watchman)          // one character acts from now on
+hibernate(watchman)       // and stops again, state kept
+resume(npc_engine)        // the master gate: the whole engine
+hibernate(npc_engine)     // freeze everything, preserving the mix
+if watchman is hibernated // everything is testable
+```
+
+The master gate is one bit on the engine itself, so freezing it does not
+touch any character's own state: a cutscene calls `hibernate(npc_engine)`,
+plays out, calls `resume(npc_engine)`, and the exact mix of active and
+sleeping characters returns untouched. Declare `hibernated false` on a
+character to be born active, or `resume` them in `on start`.
+
+HIBERNATED IS A PROCESS STATE, NOT A FICTION STATE. A hibernated
+character still answers ASK, still accepts GIVE, still obeys or refuses
+an order; the player never meets the word. It governs exactly one thing:
+whether the engine spends a turn on that character's own agenda. And it
+gates only the engine: your own `on each_turn` on the character keeps
+running (guard it with `when self is not hibernated` if you want the
+full freeze).
+
+THE PROSE follows scope, deterministically: departures speak in the
+leaver's room with their direction ("The watchman heads east."), arrivals
+in the entered room with where they came from ("The watchman arrives from
+the west."), a door opened where the player can see the door. The lines
+are msg blocks (msg_npc_leaves, msg_npc_arrives, msg_npc_opens) in every
+language pack, reskinnable per game like any message. A character
+entering a room the player already stands in is simply there next look,
+in the ordinary listing; walking in on a character is the standard
+encounter, no extra machinery.
+
+THE EVENTS ride the ordinary pipeline, the character as the noun:
+`npc_arrives` fires when a pursued room is reached (a send completing),
+`npc_blocked` each turn a step cannot be made (no way, a barred or locked
+door). Hook them at any level, most naturally on the character itself or
+free with a guard:
+
+```
+on npc_arrives when noun is verger
+    say "The verger hurries in, keys jangling."
+```
+
+Unhooked, they pass in silence.
+
+ORDERS. With the engine summoned, the player can address any visible
+character: WATCHMAN, GO NORTH. The library's default politely refuses
+("The watchman has better things to do."); the character's own
+`on command` decides otherwise, reading the order through `ordered` (the
+action), `ordered_noun` (its noun), and `way` (its direction):
+
+```
+on command
+    if ordered is action_id("go")
+        say "\"At once,\" says the verger."
+        send(self, here.(way))
+        stop
+    continue
+```
+
+An order works on a hibernated character too: a command is the player
+spending the turn, not the engine. The full parsing surface is chapter
+12; agendas beyond the declarations are ordinary handlers that call
+resume, hibernate, and send, or change `pursue`, on the state your game
+already has.
+
+WHAT IT COSTS. Unsummoned, nothing, as always. Summoned, the walk guards
+on the roster, so an engine no character joined folds away whole; patrols
+and wandering are adjacency reads, cheap on the smallest machine; only
+pursuit pays the path search, per pursuing character per turn, and only
+while a pursuit stands. Hibernated characters cost one bit test. Worked
+example: [examples/granules/npcengine.storyarc](../examples/granules/npcengine.storyarc).
 
 ### conversations
 
@@ -5796,9 +5956,10 @@ Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,
 `lock`, `unlock`, `switch_on`, `switch_off`, `push`, `pull`, `turn`, `give`,
 `show`, `talk`, `wait`, `again`.
 
-Summonable features: `extendedverbs`, `infocom_talking`, `statusline`,
-`verbose_exits`, `conversations`, `takeall`, `plurals`, `ambience`, `debug`,
-and `language`. Text compression is not a summonable
+Summonable features: `extendedverbs`, `infocom_talking`, `conversations`,
+`statusline`, `foresight`, `quotes`, `verbose_exits`, `nautical`,
+`pathfinding`, `npcengine`, `ambience`, `takeall`, `plurals`, `matrix`,
+`use`, `debug`, and `language`. Text compression is not a summonable
 feature: the standard abbreviation set is always applied, and a story tunes it
 with its own `abbreviations.granule` (`arcc --make-abbreviations`, then summoned by
 name), which the text encoder reads as data rather than loading as runtime blocks

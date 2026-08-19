@@ -75,6 +75,13 @@ INTRINSICS = frozenset({
     # marker read; is_presence(obj) answers whether THIS object's array means
     # existence, folding to a constant unless both forms are live in one game.
     "any_presence", "any_sight", "is_presence",
+    # The NPC engine (summon.npcengine, docs/01 chapter 22): npc_table is the
+    # roster's base address (the __npcs__ global, 0 without a roster);
+    # patrol/territory expose a character's route arrays exactly as spans;
+    # any_npcengine folds to 1 only when a roster exists, so a summoned but
+    # unused engine costs nothing.
+    "any_npcengine", "npc_table",
+    "patrol_addr", "patrol_count", "territory_addr", "territory_count",
     "spans_addr", "spans_count", "any_spans", "any_doors", "any_named",
     "any_pluribus", "any_beyond", "any_death", "any_alter", "any_grains",
     "any_binary",
@@ -1320,6 +1327,32 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("get_prop_len", Variable(STACK), store=Variable(STACK))
         rt.op("div", Variable(STACK), Const(2), store=dest)
         _free(ctx, t)
+    elif name == "npc_table":
+        # npc_table(): the NPC roster's base address (0 without a roster),
+        # from the __npcs__ global build_story seeds.
+        _place(rt, Variable(ctx.globals["__npcs__"]), dest)
+    elif name == "any_npcengine":
+        # any_npcengine(): 1 only when a roster exists. The granule guards
+        # its whole walk on it (a static-if), so a summoned engine that no
+        # character joined folds away entirely.
+        _place(rt, Const(1 if getattr(ctx.world, "npcs", None) else 0), dest)
+    elif name in ("patrol_addr", "territory_addr"):
+        # The address of the character's route array (0 if it has none):
+        # patrol and territory are arrays of room object numbers, emitted in
+        # the spans shape (objects.py).
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("get_prop_addr", op,
+              Const(_route_prop(ctx, name.split("_")[0])), store=dest)
+        _free(ctx, t)
+    elif name in ("patrol_count", "territory_count"):
+        # How many rooms the route names (array length / 2).
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("get_prop_addr", op,
+              Const(_route_prop(ctx, name.split("_")[0])),
+              store=Variable(STACK))
+        rt.op("get_prop_len", Variable(STACK), store=Variable(STACK))
+        rt.op("div", Variable(STACK), Const(2), store=dest)
+        _free(ctx, t)
     elif name == "spans_addr":
         # spans_addr(obj): the address of the object's spans array (0 if none).
         op, t = _operand(rt, ctx, args[0])
@@ -1685,6 +1718,16 @@ def _spans_prop(ctx) -> int:
     if ctx.layout is None or "spans" not in ctx.layout.prop_number:
         raise LowerError("spans_addr/spans_count need the object table with a spans property")
     return ctx.layout.prop_number["spans"]
+
+
+def _route_prop(ctx, pname: str) -> int:
+    """The property number of an NPC route array (patrol or territory).
+    Reachable only inside any_npcengine-guarded code, so a game with a
+    roster but, say, no territory anywhere still folds the caller away
+    before this is ever asked; 0 keeps get_prop_addr honest if not."""
+    if ctx.layout is None or pname not in ctx.layout.prop_number:
+        return 0
+    return ctx.layout.prop_number[pname]
 
 
 def _any_spans(ctx) -> int:
@@ -3676,6 +3719,8 @@ def _static_value(ctx, expr):
         return _any_reach(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_pathfinding":
         return 1 if wm.has_summon(ctx.world, "pathfinding") else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_npcengine":
+        return 1 if getattr(ctx.world, "npcs", None) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_restless":
         return 1 if (ctx.layout is not None and ctx.layout.has_restless) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_carry_limit":

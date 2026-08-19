@@ -66,6 +66,14 @@ block show_tag(obj)
 block run_all(act)
     return 0
 
+// The addressed imperative's hand-off (MARSHAL, GO NORTH): the npcengine
+// granule overrides this with the real routing (the character's own `on
+// command` decides; the default politely refuses). The stub exists so the
+// gated call below resolves, and it folds away with its caller in a game
+// that never summons the engine.
+block run_command(act)
+    return 0
+
 // The plural sweep: the plurals granule overrides this to run the action on
 // every in-scope object whose `plural` vocabulary carries the group word w
 // ("take coins"). Stub for the same reason as run_all.
@@ -358,6 +366,15 @@ block run_chain(act)
                                 if word_count is not 0
                                     msg_no_verb
             return 0
+        // An addressed order (MARSHAL, GO NORTH) goes to the character,
+        // not the player, and ends the line: one order per line, so the
+        // queued tail is dropped exactly as a failed segment drops it.
+        if any_npcengine is 1
+            if commanded is not 0
+                run_command(act)
+                change commanded to 0
+                change chain_pos to 0
+                return 0
         run_turn(act)
         if refused is not 0
             return 0

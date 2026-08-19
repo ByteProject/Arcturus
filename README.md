@@ -42,8 +42,8 @@ or later, which you almost certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.11.2 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 1.14.1 | shipped inside `arcc` |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.12.0 | [build/arcc](build/arcc) |
+| **Cosmos**, the standard library | 1.15.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 1.3.9 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 2.0.0 | [build/arcimg](build/arcimg) |
 | **proteus**, the web story builder (optional, for the web) | 1.0.0 | [build/proteus](build/proteus) |
@@ -111,8 +111,9 @@ grains, positional grammar, the object catch-all, daemons and timers,
 Z-machine colours with the self-restoring coloured say, and the player object
 with its standard self-words, pronouns, and Spanish clitic forms), and
 [examples/granules/](examples/granules/) shows the summonable granules (the
-Infocom-style and menu-driven conversation systems, the status line, verbose
-exits, the extended verbs, the nautical directions, and the quote box).
+NPC engine with its patrols and orders, the Infocom-style and menu-driven
+conversation systems, the status line, verbose exits, the extended verbs,
+the nautical directions, and the quote box).
 
 ## File extensions
 
