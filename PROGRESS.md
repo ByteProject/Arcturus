@@ -11393,3 +11393,15 @@ opened), the address pre-pass zeroing its own flag through recursion,
 and two false alarms measured down to my own test construction (a
 Python operator-precedence slip) and to global renumbering, which the
 tail allocation then eliminated entirely.
+
+ADDENDUM, same day (arcc 1.12.1, Cosmos 1.15.1): Stefan's practical
+question ("do orders need the summon?") uncovered a gate mismatch: the
+addressed imperative folded on the ROSTER, so a game summoning the
+engine purely for orders, with no character declaring movement, found
+them silently dead, against what chapter 12 said. Ruled and fixed on
+his go: commanding now folds on the SUMMON itself (the new
+any_commanding), the walk keeps its roster fold, and the engine's
+property names unify with the summon rather than the roster, which the
+orders-only case needs to compile at all. One new test (orders with an
+empty roster), suite 1519 green, the byte gate re-proven clean against
+the committed 1.12.0 standalone.

@@ -91,7 +91,7 @@ block parse()
     // ...and addresses nobody until its own pre-pass says so. Zeroed HERE,
     // once per typed line, because parse_line re-enters itself through
     // chain_next while the address is being carried.
-    if any_npcengine is 1
+    if any_commanding is 1
         change commanded to 0
     // Remember the full typed length: chain_next restores it when it wakes the
     // queued rest of a chained line (docs/01 chapter 14).
@@ -166,7 +166,7 @@ block parse_line()
     // more line waiting beyond the comma, is an ADDRESS. The queued rest
     // parses as the order (chain_next re-enters this block), and commanded
     // carries the character to the loop.
-    if any_npcengine is 1
+    if any_commanding is 1
         if commanded is 0
             if chain_pos is not 0
                 change commanded to address_of

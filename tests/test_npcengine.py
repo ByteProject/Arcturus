@@ -311,3 +311,19 @@ def test_ordinary_comma_chains_still_chain():
     out = _run(_build(CMD_HEAD), ["look, look"])
     # word 0 is a verb, so the pre-pass stands aside and the chain runs both
     assert out.count("A walled yard.") >= 3  # opening look + two chained
+
+
+def test_orders_work_with_an_empty_roster():
+    # summoned purely for orders: no npc, no movement declarations
+    src = (
+        'game\n    title "O"\n    start yard\n'
+        'summon.npcengine\n'
+        'room yard\n    name "Yard"\n    desc "A yard."\n'
+        'thing smith of character in yard\n'
+        '    name "smith"\n    words smith\n    desc "The smith."\n'
+        '    on command\n'
+        '        say "\\"Aye,\\" says the smith."\n'
+        '        stop\n'
+    )
+    out = _run(_build(src), ["smith, go north"])
+    assert '"Aye," says the smith.' in out

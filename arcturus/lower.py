@@ -80,7 +80,7 @@ INTRINSICS = frozenset({
     # patrol/territory expose a character's route arrays exactly as spans;
     # any_npcengine folds to 1 only when a roster exists, so a summoned but
     # unused engine costs nothing.
-    "any_npcengine", "npc_table",
+    "any_npcengine", "any_commanding", "npc_table",
     "patrol_addr", "patrol_count", "territory_addr", "territory_count",
     "spans_addr", "spans_count", "any_spans", "any_doors", "any_named",
     "any_pluribus", "any_beyond", "any_death", "any_alter", "any_grains",
@@ -1336,6 +1336,13 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # its whole walk on it (a static-if), so a summoned engine that no
         # character joined folds away entirely.
         _place(rt, Const(1 if getattr(ctx.world, "npcs", None) else 0), dest)
+    elif name == "any_commanding":
+        # any_commanding(): 1 when the NPC engine is summoned at all. The
+        # addressed imperative (WATCHMAN, GO NORTH) folds on this, not on
+        # the roster: orders work the moment the engine is summoned, even
+        # in a game whose characters declare no standing behavior.
+        _place(rt, Const(1 if wm.has_summon(ctx.world, "npcengine") else 0),
+               dest)
     elif name in ("patrol_addr", "territory_addr"):
         # The address of the character's route array (0 if it has none):
         # patrol and territory are arrays of room object numbers, emitted in
@@ -3721,6 +3728,8 @@ def _static_value(ctx, expr):
         return 1 if wm.has_summon(ctx.world, "pathfinding") else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_npcengine":
         return 1 if getattr(ctx.world, "npcs", None) else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_commanding":
+        return 1 if wm.has_summon(ctx.world, "npcengine") else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_restless":
         return 1 if (ctx.layout is not None and ctx.layout.has_restless) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_carry_limit":

@@ -369,7 +369,7 @@ block run_chain(act)
         // An addressed order (MARSHAL, GO NORTH) goes to the character,
         // not the player, and ends the line: one order per line, so the
         // queued tail is dropped exactly as a failed segment drops it.
-        if any_npcengine is 1
+        if any_commanding is 1
             if commanded is not 0
                 run_command(act)
                 change commanded to 0

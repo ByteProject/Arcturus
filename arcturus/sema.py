@@ -1215,15 +1215,15 @@ class Analyzer:
                         f"'{obj.name}' pursues unknown '{ident}'",
                         decl.line or obj.line)
             npcs.append(obj.name)
-        if not npcs:
-            return
         w.npcs = npcs
         # The engine claims its property names outright (the summon is the
-        # opt-in): patrol and territory are room arrays whatever their
-        # declared arity (a one-kind `territory outside_room` must not type
-        # as a single object), read only through the route intrinsics; both
-        # get numbers even when no character declares one, so the walk's
-        # get_prop_addr stays legal in every engine game.
+        # opt-in, roster or none: the granule's own code reads them, and an
+        # orders-only game rosters nobody): patrol and territory are room
+        # arrays whatever their declared arity (a one-kind `territory
+        # outside_room` must not type as a single object), read only
+        # through the route intrinsics; every name gets a number even when
+        # no character declares it, so the walk's get_prop_addr stays legal
+        # in every engine game.
         for pname in ("patrol", "territory"):
             prop = w.properties.get(pname)
             if prop is None:
