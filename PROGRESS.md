@@ -11284,3 +11284,52 @@ Cosmos comments ship to authors via --extract, so both versions
 bumped honestly (arcc 1.11.2, Cosmos 1.14.1), the standalone
 regenerated, the README table refreshed. Suite 1498 green; the
 sweep touches only comments and the handbook, no behavior.
+
+## 2026-08-18: the NPC engine designed. STEFAN'S RULINGS, no code yet
+
+The design round he promised the adopters, held and closed in one
+sitting. The rulings, all his:
+
+- TWO GRANULES, not one. summon.npcengine is the engine;
+  summon.maniacswap is multi-player-character switching, its own
+  granule from day one, because an author may want to swap player
+  characters with no NPCs anywhere (the modularity argument: cramming
+  it into the engine would lose what the granule system built).
+  Combinable, never entangled. Maniacswap's verb is BECOME, existing
+  only when summoned; swapping works from anywhere, and the author
+  gates it in fiction when the story demands; the abandoned body
+  freezes in place until taken over again.
+- V1 SLICE of the engine: movement (patrol routes, wandering in a
+  territory, pursuit via the shipped path engine, stay), presence
+  prose (arrivals, departures, encounters, overridable per
+  character), agenda as when-guards and author-handleable events,
+  commanding characters (MARSHAL, GO NORTH; ruled into v1: "now we
+  need it"), and a one-shot send for authored beats. Declaration
+  surface is plain properties and handlers on the character, no new
+  block form.
+- THE CONTROLS, Stefan's own design and the round's centerpiece:
+  every NPC starts HIBERNATED, inactive at zero per-turn cost, the
+  frozen-process model (the name is, of course, his). resume(x) and
+  hibernate(x) flip one NPC; resume(npc_engine) and
+  hibernate(npc_engine) act on the whole cast through a MASTER GATE
+  on the engine itself, ruled over the broadcast reading so a
+  cutscene freeze preserves and restores the author's exact per-NPC
+  mix; everything testable (if x is hibernated). This dissolved the
+  round's one hardware worry, the per-turn path cost of a large cast
+  on an 8-bit CPU: activity is opt-in per NPC per scene, so the cost
+  class is gone rather than measured.
+- HIBERNATED IS A PROCESS STATE, NOT A FICTION STATE, ruled bluntly
+  for the handbook: a hibernated character still answers ASK, still
+  accepts GIVE, still obeys a command; the word gates only whether
+  the engine spends a turn on their agenda. And it gates ONLY
+  npcengine activity, never the author's own each_turn, so idle
+  flavor keeps breathing on a character whose patrol sleeps.
+- POSSESSION, the July requirement, is discharged by composition:
+  the frozen state and the inactive state are one shared attribute,
+  so taking over an engine-driven character hibernates their agenda
+  on entry and restores it on release. A consequence of two granules
+  sharing a word, not a feature to build.
+
+No build authorized; the go is Stefan's, and the natural order when
+it comes is the engine first (an adopter's large port is waiting on
+moving NPCs), maniacswap second.
