@@ -377,7 +377,7 @@ class ActaeaApp:
             lines.add_radiobutton(label=f"{n} lines", variable=self._rows_var,
                                   value=n, command=self._reheight)
         shape = tk.Menu(view, tearoff=0)
-        shape.add_radiobutton(label="Modern (4:5)", variable=self._aspect_var,
+        shape.add_radiobutton(label="Modern (1:1)", variable=self._aspect_var,
                               value="modern", command=self._reshape)
         shape.add_radiobutton(label="Classic (4:3)", variable=self._aspect_var,
                               value="classic", command=self._reshape)
@@ -469,29 +469,33 @@ class ActaeaApp:
         self._relayout()
 
     def _aspect_size(self):
-        """The window's size for the chosen shape: modern is 4:5, the tall
-        book-shaped window a modern interpreter opens in, and classic is the
-        4:3 of the machines the format came from.
+        """The window's size for the chosen shape.
 
-        Eighty cells is the width it would like, but a 4:5 window that wide is
-        taller than most screens, so the SCREEN has the last word: when the
-        height has to be capped the width comes down with it and the shape is
-        kept, which simply means fewer columns, exactly as it does when the
-        player resizes. Everything here is relative: a bigger font gives a
-        bigger window of the same shape."""
+        Modern is 1:1, the square page a modern interpreter opens in (Stefan
+        measured it twice, from Gargoyle and from a window he shaped by hand:
+        0.92 and 0.93 of the width). Classic is the 4:3 of the machines the
+        format came from.
+
+        WHY SQUARE AND NOT PORTRAIT: a room picture always spans the grid's
+        full width, so its size is decided by the WIDTH alone. A taller window
+        cannot enlarge it; it only adds text rows underneath, which leaves the
+        picture looking small against the page, and reaching for a smaller
+        font to compensate makes it smaller still (fewer pixels per column).
+
+        Eighty cells is the width, and it KEEPS that width: where the desktop
+        is too short for the shape, the window is squatter than the ideal
+        rather than narrower than the story wants. Everything is relative: a
+        bigger font gives a bigger window, a bigger picture, and the same
+        shape."""
         m = self._margin
-        num, den = (4, 3) if self._aspect_var.get() == "classic" else (4, 5)
+        num, den = (4, 3) if self._aspect_var.get() == "classic" else (1, 1)
         width = 80 * self.cell_w + 2 * m
         height = width * den // num
         # Leave the menu bar and the dock their room rather than opening under
-        # them; two rows of slack is enough on every desktop tried.
+        # them; the desktop clamps whatever is left over anyway.
         room = self.root.winfo_screenheight() - 6 * self.cell_h
         if height > room:
             height = room
-            # Sixty columns is the floor: the status line's full form wants
-            # 54 and prose below that reads cramped, so the shape gives before
-            # the width does.
-            width = max(60 * self.cell_w + 2 * m, height * num // den)
         return width, height
 
     def _reshape(self) -> None:

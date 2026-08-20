@@ -108,17 +108,18 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     opening_w = app.root.winfo_width()
     opening_h = app.root.winfo_height()
     assert app._aspect_var.get() == "modern"
-    # It opens at exactly the size the shape asks for, and that size fits the
-    # screen: a 4:5 window 80 columns wide is taller than most desktops, so
-    # the height caps at the screen and the width comes down with it, never
-    # below sixty columns (the status line's full form wants 54).
+    # It opens at the size the shape asks for, and that size fits the screen:
+    # a square window 80 columns wide is taller than most desktops, so the
+    # height caps and the window is squatter than the ideal. The WIDTH is kept
+    # either way, because the picture spans it and a narrower window means a
+    # smaller picture, which is the thing the shape exists to get right.
     want_w, want_h = app._aspect_size()
     assert opening_w == want_w
     # The desktop has the last word on height (menu bar, dock): the window
     # asks for the shape and takes what it is given.
     assert 0 < opening_h <= want_h
     assert opening_h <= app.root.winfo_screenheight()
-    assert app._cols >= 60
+    assert app._cols == 80
     # And the two shapes really are different shapes: classic is the wider,
     # shorter 4:3, modern the taller 4:5.
     app._aspect_var.set("classic")
@@ -271,7 +272,7 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
         + app.text.winfo_height()), "the window does not fit its contents"
     # The window is the cell grid plus the frame on both sides.
     assert app.root.winfo_width() == app._cols * app.cell_w + 2 * app._margin
-    assert app._cols >= 60
+    assert app._cols == 80
     # The text area is a WHOLE number of lines (so it never shows a half row),
     # and it shrank to fit under the picture band.
     n = int(app.text.cget("height"))
