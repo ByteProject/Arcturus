@@ -228,7 +228,19 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     # (the old mode-rows clamp cut the bottom of every scene at fonts whose
     # cells are not 8-pixel squares; the fullscreen fix removed it). On a
     # fixed 8-pixel-cell screen this equals the mode's rows exactly.
-    assert band and max(band) == scaled.height()
+    # THE BAND TAKES WHOLE TEXT ROWS, with the picture's own height inside it
+    # and the few spare pixels below it in the game background. A picture
+    # scaled to the window width lands on whatever height its aspect gives it,
+    # and the remainder used to sit under the text as an orphan strip: too
+    # small for a line, big enough to look like one, so "pause one line before
+    # the bottom" showed two lines of space (Stefan, 2026-08-20).
+    rows_tall = -(-scaled.height() // app.cell_h) * app.cell_h
+    assert band and max(band) == rows_tall
+    assert 0 <= rows_tall - scaled.height() < app.cell_h
+    # And therefore the reading area is a whole number of rows with nothing
+    # left over: what the pager counts is what the window shows.
+    assert app.text.winfo_height() % app.cell_h == 0
+    assert app._reading_lines() == app.text.winfo_height() // app.cell_h
     # The window is the 80-cell screen plus the frame on both sides.
     assert app.root.winfo_width() == 80 * app.cell_w + 2 * app._margin
     # The text area is a WHOLE number of lines (so it never shows a half row),

@@ -448,6 +448,21 @@ class ActaeaApp:
         else:
             avail = self._rows_var.get() * self.cell_h - band - status
         n = max(1, avail // self.cell_h)
+        # A window's-eye view of its own arithmetic, for diagnosing a reading
+        # area that does not match what the player sees. Off unless asked for:
+        #   ACTAEA_GEOM=1 actaea story.z5      (writes ~/actaea-geom.log)
+        if os.environ.get("ACTAEA_GEOM"):
+            try:
+                with open(os.path.expanduser("~/actaea-geom.log"), "a") as fh:
+                    fh.write(
+                        "relayout: window=%d margin=%d band=%d bar=%d "
+                        "avail=%d cell_h=%d rows=%d leftover_px=%d "
+                        "text_px_now=%d\n"
+                        % (real, self._margin, band, status, avail,
+                           self.cell_h, n, avail - n * self.cell_h,
+                           self.text.winfo_height()))
+            except OSError:
+                pass
         # The authority on how tall the reading area is. Tk applies a geometry
         # change when it next goes idle, and the story prints a whole boot
         # (intro, banner, opening room) without ever returning to the event
@@ -744,6 +759,21 @@ class ActaeaApp:
         else:
             band_h = mode * self.cell_h if mode and mode > 0 else 0
             self._band_px = 0
+        # THE BAND TAKES WHOLE TEXT ROWS. A picture scaled to the window's
+        # width lands on whatever height its aspect gives it (measured: 288
+        # pixels against a 22-pixel line, thirteen rows and change), and the
+        # remainder became an orphan strip under the text: too small to hold a
+        # line, big enough to look like one. Reading "pause one line before the
+        # bottom" then showed two lines of space, which is what a cell screen
+        # never does and what Stefan kept seeing. The band is rounded UP to a
+        # whole row and the picture keeps its exact aspect inside it, with the
+        # few spare pixels below it in the game's own background, which is what
+        # the band already wears. Recomputed on every layout, so a font change
+        # (a different cell height) re-rounds by itself; nothing is stored.
+        if band_h > 0 and self.cell_h > 0:
+            over = band_h % self.cell_h
+            if over:
+                band_h += self.cell_h - over
         # The picture is centered in the band (at the ordinary width it fills
         # it edge to edge, so nothing moves); the band wears the game
         # background so any letterbox margin is the game's colour.
@@ -1080,6 +1110,21 @@ class ActaeaApp:
         self._pause_at(self.text.index("end-1c"))
         self._start_page(self._pager.column)
 
+    def _log_geom(self, what: str) -> None:
+        if not os.environ.get("ACTAEA_GEOM"):
+            return
+        try:
+            with open(os.path.expanduser("~/actaea-geom.log"), "a") as fh:
+                fh.write(
+                    "%s: rows=%d page=%d pager_lines=%d text_px=%d cell_h=%d "
+                    "band=%d bar=%s window=%d\n"
+                    % (what, self._reading_lines(), self._page_height(),
+                       self._pager.lines, self.text.winfo_height(),
+                       self.cell_h, getattr(self, "_band_h", 0),
+                       self._grid_shown, self.root.winfo_height()))
+        except OSError:
+            pass
+
     def _pause_at(self, where: str) -> None:
         """[MORE] at `where`, and any key goes on.
 
@@ -1091,6 +1136,7 @@ class ActaeaApp:
         becomes part of the transcript."""
         if self._closed:
             return
+        self._log_geom("[MORE]")
         self.text.mark_set("more_mark", where)
         self.text.mark_gravity("more_mark", "left")
         tag = self._more_tag()
@@ -1146,6 +1192,7 @@ class ActaeaApp:
             insertbackground=self._colour(self.vm.screen.fg, "black")
         )
         self._reading_line = True
+        self._log_geom("prompt")
         self._line_ready.set(False)
         if preload:
             self._absorb_preload(preload)

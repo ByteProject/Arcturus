@@ -107,6 +107,17 @@ printed so far. The page is measured from the reading area as it stands at
 that moment, so a picture band taking rows, a resized window, a different
 text size, and fullscreen are all accounted for without a setting.
 
+The picture band takes a whole number of text rows, with the picture at its
+exact aspect inside it and the few spare pixels below it in the game's own
+background. A picture scaled to the window's width lands on whatever height
+its aspect gives it, and a remainder left under the text would be an orphan
+strip: too small to hold a line, big enough to look like one. Rounding it
+into the band keeps the reading area an exact number of rows, so what the
+pager counts and what you see are the same thing. Running with
+`ACTAEA_GEOM=1` writes that arithmetic to `~/actaea-geom.log`, one line per
+layout and per pause, which is the quickest way to check a window that does
+not add up.
+
 When the picture band claims its rows, the reading area shrinks under text
 nobody has read yet, and that text is never simply scrolled away: the page
 is shown again from its top, a window-full at a time behind [MORE]s, until

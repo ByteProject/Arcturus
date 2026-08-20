@@ -11803,3 +11803,48 @@ Full suite 1555 green.
 STILL FOR STEFAN'S EYE: the boot with the picture, whether the [MORE]
 now leaves one spare line rather than two, and whether the re-base
 reads well in motion.
+
+## 2026-08-20 (later still): the orphan strip (Actaea 1.4.3).
+## MEASURED IN THE END, AFTER THREE ROUNDS OF GUESSING
+
+STEFAN, after the third failed attempt: "basically NOTHING has changed",
+and the fair sting with it, that every 8-bit interpreter and Actaea's
+own console get this right. He was right on all counts, including
+about the pace: I had been reading his screenshots for pixel counts
+instead of asking the window what it believed.
+
+SO THE WINDOW WAS MADE TO SAY. An opt-in geometry log (ACTAEA_GEOM=1,
+writes ~/actaea-geom.log) records the layout arithmetic and every
+pause; he booted the demo once, and the answer was in the first line:
+
+  band=288 bar=22 margin=10 window=680 -> avail=350 rows=15 leftover=20
+  [MORE]: rows=15 page=14 pager_lines=14
+
+The pause fires after 14 lines of a 15-row area, so the app has
+EXACTLY the one spare line he asked for. What made it read as two is
+that the picture band is 288 pixels against a 22-pixel line: thirteen
+rows and change. The remainder sat under the text as an orphan strip,
+too small to hold a line, big enough to look like one, and with the
+frame's own margin it came to 30 pixels of dead space below the spare
+line. The console has no such strip because a terminal IS a grid of
+rows, which is exactly why it never showed this.
+
+THE FIX IS GEOMETRIC, NOT ANOTHER OFF-BY-ONE. The band now takes a
+WHOLE number of text rows: the picture keeps its exact aspect inside
+it and the few spare pixels sit below it in the game's own background,
+which is what the band already wears. The reading area is then an
+exact number of rows with nothing left over, so what the pager counts
+and what the eye sees are the same thing, and one spare line means one
+spare line. His question about the font size answers itself: nothing
+is stored, the band's scale key already carries the cell height, so a
+font change re-rounds through the same path a resize does.
+
+For his window: the band goes 288 to 308, the reading area stays 15
+rows, and the dead space below the spare line drops from 30 pixels to
+the frame's 10.
+
+DONE-TEST: the GUI test now pins the whole-row band (the picture's own
+height unchanged inside it, the difference under one row) and, the
+assertion that matters, that the reading area is a whole number of
+rows and equals what the pager counts. Full suite 1555 green. docs/06
+documents the band rounding and the geometry log.
