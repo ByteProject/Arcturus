@@ -90,8 +90,8 @@ The menu bar:
 - View -> Font: every fixed-pitch family installed on the system (the list
   is scanned once, the first time the menu opens).
 - View -> Text Size, Screen Height: point sizes and window lines.
-- View -> Window Shape: Modern (Gargoyle) or Classic (4:3). Modern is the
-  Gargoyle page: portrait, 4:5, taller than wide, and on a big display that
+- View -> Window Shape: Modern (4:5) or Classic (4:3). Modern is a
+  portrait page, taller than wide, and on a big display that
   is exactly what opens. A laptop cannot show portrait at eighty columns
   (that wants some 1250 points of height), so the shape scales down keeping
   the ratio to a floor of seventy columns, where the width holds and the

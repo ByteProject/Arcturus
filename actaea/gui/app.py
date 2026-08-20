@@ -177,7 +177,7 @@ class ActaeaApp:
         self._font_size = tk.IntVar(value=int(st.get("size", 13)))
         self._rows_var = tk.IntVar(value=int(st.get("rows", 30)))
         # THE SHAPE OF THE WINDOW. Modern is the taller, book-like 4:5 that
-        # Gargoyle and its kin open in; classic is the 4:3 of the machines the
+        # modern desktop interpreters open in; classic is the 4:3 of the machines the
         # format came from. The window is 80 cells wide either way, so the
         # ratio decides the height, and both are relative: a bigger font makes
         # a bigger window of the same shape.
@@ -399,7 +399,7 @@ class ActaeaApp:
             lines.add_radiobutton(label=f"{n} lines", variable=self._rows_var,
                                   value=n, command=self._reheight)
         shape = tk.Menu(view, tearoff=0)
-        shape.add_radiobutton(label="Modern (Gargoyle)", variable=self._aspect_var,
+        shape.add_radiobutton(label="Modern (4:5)", variable=self._aspect_var,
                               value="modern", command=self._reshape)
         shape.add_radiobutton(label="Classic (4:3)", variable=self._aspect_var,
                               value="classic", command=self._reshape)
@@ -508,8 +508,8 @@ class ActaeaApp:
     def _aspect_size(self):
         """The window's size for the chosen shape.
 
-        Modern is the Gargoyle page as Stefan means it: PORTRAIT, 4:5, taller
-        than wide. On a big display that is exactly what opens. On a laptop
+        Modern is the portrait page of the modern desktop interpreters:
+        4:5, taller than wide. On a big display that is exactly what opens. On a laptop
         it cannot be had at full width: portrait at eighty columns needs some
         1250 points of height and the desktop has about 900 once the menu bar
         and dock take theirs (the reference crop that briefly turned this

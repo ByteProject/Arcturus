@@ -101,7 +101,7 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
         pytest.skip("no display for tkinter")
 
     # THE SHAPE IT OPENS IN. With nothing remembered, the window takes the
-    # modern 4:5 that Gargoyle and its kin use: 80 cells wide, and as tall as
+    # modern 4:5 of the desktop interpreters: 80 cells wide, and as tall as
     # the ratio makes it. Measured before the story runs, since fitting the
     # window to a picture band adjusts the height afterwards.
     app.root.update_idletasks()
@@ -109,7 +109,7 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     opening_h = app.root.winfo_height()
     assert app._aspect_var.get() == "modern"
     # It opens at the size the shape asks for, and that size fits the screen.
-    # Modern is the Gargoyle page as Stefan means it: portrait, 4:5. A short
+    # Modern is a portrait page, 4:5. A short
     # desktop scales it down keeping the ratio until the seventy-column
     # floor; there the width holds and the height takes what the desktop
     # honestly offers (wm_maxsize, dock included), which is the nearest
