@@ -11888,3 +11888,18 @@ window, and the column count now FOLLOWS the width rather than
 dictating it). Full suite 1555 green. docs/06 names the shape and the
 rule. Versions ran 1.4.4 to 1.5.3 through the evening; none of it
 pushed yet, Stefan looks first.
+
+ADDENDUM, same night: STEFAN WAS RIGHT ABOUT THE DOCK, and about the
+shape. Measured from his two fresh screenshots, the window really was
+wider than tall (0.91 with the dock, 0.99 without): my "measured
+Gargoyle" ratio of 0.92 had encoded a CLAMPED reference crop, not the
+portrait he meant. The truth underneath is an impossible triangle:
+portrait at eighty columns needs some 1250 points of height and his
+laptop has about 900 usable, so portrait + eighty columns + that
+screen cannot coexist. Modern is now what he asked for on day one,
+PORTRAIT 4:5, scaling down to the seventy-column floor, where the
+width holds and the height takes everything the desktop offers, with
+the room asked from wm_maxsize so the dock is part of the arithmetic
+instead of a surprise. On his laptop that opens 860x887, seventy
+columns, taller than wide at last; on a tall display it is the true
+4:5 page. (Actaea 1.5.4)

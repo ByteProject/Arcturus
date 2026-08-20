@@ -508,27 +508,33 @@ class ActaeaApp:
     def _aspect_size(self):
         """The window's size for the chosen shape.
 
-        Modern is the Gargoyle page, taken from Stefan's reference capture
-        rather than a textbook fraction: it measures 880 by 810, so the
-        height is 92 percent of the width. It is a true aspect ratio: where
-        the desktop is too short for it at eighty columns, BOTH sides come
-        down together so the proportion holds, to a floor of seventy columns
-        (the sixty-column floor of an earlier attempt made the picture small,
-        which was the whole complaint); only below the floor does the width
-        hold and the shape give. Classic is the 4:3 of the machines the
-        format came from, squat by nature: it keeps its eighty columns and
-        caps. Everything is relative to the font: a bigger font, a bigger
-        window, the same shape."""
+        Modern is the Gargoyle page as Stefan means it: PORTRAIT, 4:5, taller
+        than wide. On a big display that is exactly what opens. On a laptop
+        it cannot be had at full width: portrait at eighty columns needs some
+        1250 points of height and the desktop has about 900 once the menu bar
+        and dock take theirs (the reference crop that briefly turned this
+        ratio landscape was itself a clamped window, not the intent). So the
+        shape scales down keeping the ratio, and when it reaches the
+        seventy-column floor the width holds and the height takes everything
+        the desktop honestly offers, which lands as tall as the screen
+        allows: the nearest portrait the machine has. The room comes from
+        wm_maxsize, the window manager's own account of the usable area, so
+        the dock is finally part of the arithmetic instead of a surprise.
+        Classic is the squat 4:3 of the machines the format came from, at
+        the full eighty columns."""
         m = self._margin
-        room = self.root.winfo_screenheight() - 4 * self.cell_h
+        try:
+            usable = self.root.wm_maxsize()[1]
+        except tk.TclError:
+            usable = self.root.winfo_screenheight()
+        room = usable - 30      # the title bar lives inside wm_maxsize's box
         width = 80 * self.cell_w + 2 * m
         if self._aspect_var.get() == "classic":
-            height = width * 3 // 4
-            return width, min(height, room)
-        height = width * 92 // 100
+            return width, min(width * 3 // 4, room)
+        height = width * 5 // 4
         if height > room:
             height = room
-            width = height * 100 // 92
+            width = height * 4 // 5
             floor = 70 * self.cell_w + 2 * m
             if width < floor:
                 width = floor

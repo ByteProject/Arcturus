@@ -109,18 +109,20 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     opening_h = app.root.winfo_height()
     assert app._aspect_var.get() == "modern"
     # It opens at the size the shape asks for, and that size fits the screen.
-    # Modern is the Gargoyle page, measured from Stefan's reference capture:
-    # height 92 percent of width. It is a true ratio: on a desktop too short
-    # for it at eighty columns, both sides scale down together (never below
-    # seventy columns), so the window neither fills menu-bar-to-dock nor
-    # squats.
+    # Modern is the Gargoyle page as Stefan means it: portrait, 4:5. A short
+    # desktop scales it down keeping the ratio until the seventy-column
+    # floor; there the width holds and the height takes what the desktop
+    # honestly offers (wm_maxsize, dock included), which is the nearest
+    # portrait the machine has: on the laptop that is a window slightly
+    # taller than wide at seventy columns.
     want_w, want_h = app._aspect_size()
     assert opening_w == want_w
-    # The shape survives the fit: within a row's tolerance the opened window
-    # keeps the reference proportion unless the seventy-column floor forced
-    # the width up.
+    # The shape survives the fit: unclamped it is exactly 4:5 portrait, and
+    # at the floor the window is never squatter than the desktop forces.
     if want_w > 70 * app.cell_w + 2 * app._margin:
-        assert abs(want_h - want_w * 92 // 100) <= app.cell_h
+        assert want_h == want_w * 5 // 4
+    else:
+        assert want_h >= want_w          # the nearest portrait: taller or square
     # The desktop has the last word on height (menu bar, dock): the window
     # asks for the shape and takes what it is given.
     assert 0 < opening_h <= want_h
