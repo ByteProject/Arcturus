@@ -90,12 +90,21 @@ The menu bar:
 - View -> Font: every fixed-pitch family installed on the system (the list
   is scanned once, the first time the menu opens).
 - View -> Text Size, Screen Height: point sizes and window lines.
+- View -> Window Shape: Modern (4:5), the tall book-shaped window a modern
+  interpreter opens in, or Classic (4:3), the shape of the machines the
+  format came from. Everything about it is relative: the width is the cell
+  grid, so a larger font gives a larger window of the same shape, and where
+  a 4:5 window would be taller than the desktop the height caps and the
+  width follows it down, never below sixty columns.
 - View -> Game Colours: off shows black-on-white with styles kept; on
   restores the game's palette, including text already on screen.
 
 Settings persist in `~/.config/actaea/settings.json` (XDG_CONFIG_HOME is
 honoured) and return at the next launch. They save when changed in the
-menu, never behind your back.
+menu, and once more when the window closes, which is how the window's own
+size AND POSITION are remembered: Actaea opens where you last left it
+rather than wherever the desktop decides. Delete the file to start fresh;
+a first run takes the modern shape.
 
 A passage taller than the reading area stops at the bottom of it with a
 reverse-video `[MORE]`, and any key prints the next page, the same way the
@@ -107,13 +116,14 @@ printed so far. The page is measured from the reading area as it stands at
 that moment, so a picture band taking rows, a resized window, a different
 text size, and fullscreen are all accounted for without a setting.
 
-The picture band takes a whole number of text rows, with the picture at its
-exact aspect inside it and the few spare pixels below it in the game's own
-background. A picture scaled to the window's width lands on whatever height
-its aspect gives it, and a remainder left under the text would be an orphan
-strip: too small to hold a line, big enough to look like one. Rounding it
-into the band keeps the reading area an exact number of rows, so what the
-pager counts and what you see are the same thing. Running with
+The band is exactly as tall as the picture, and the WINDOW takes up the
+slack. A picture scaled to the window's width lands on whatever height its
+aspect gives it, so what is left for text is rarely a whole number of lines,
+and those few spare pixels read as a blank row wherever they are put: under
+the text as a spare line that is not there, under the picture as a second
+blank line beneath the status bar. So the window resizes to fit its contents
+exactly, once, when the picture arrives. The reading area is then a whole
+number of rows, and what the pager counts is what you see. Running with
 `ACTAEA_GEOM=1` writes that arithmetic to `~/actaea-geom.log`, one line per
 layout and per pause, which is the quickest way to check a window that does
 not add up.
@@ -126,12 +136,14 @@ the newest lines stand above the prompt. That is the re-base rule in
 other interpreter implementing arc_image. The same treatment covers the
 status bar taking its row and a window shrunk mid-turn.
 
-"Press any key" accepts any key including Return, and the window is
-exactly 80 cells wide, as the Z-machine screen model declares.
+"Press any key" accepts any key including Return. The window is a cell
+grid 80 columns wide where the desktop has room for that at the chosen
+shape and font, and narrower where it does not; the story is told the
+column count either way, as the Z-machine screen model requires.
 
 Pictures (arc_image): the window is the one front-end that shows a room's
 `arc_image` picture (01 section 6b). It draws a band across the top, above
-the status bar, integer-scaled to the 80-cell width so pixel art stays
+the status bar, integer-scaled to the grid width so pixel art stays
 crisp; the status bar and text sit flush beneath it, and the band clears in
 a room with no picture. The band height comes from the game's mode, carried
 in the draw opcode (`arc_mode`, 9 or 12 rows), so Actaea sizes it without

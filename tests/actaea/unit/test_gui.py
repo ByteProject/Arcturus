@@ -100,6 +100,33 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     except tk.TclError:
         pytest.skip("no display for tkinter")
 
+    # THE SHAPE IT OPENS IN. With nothing remembered, the window takes the
+    # modern 4:5 that Gargoyle and its kin use: 80 cells wide, and as tall as
+    # the ratio makes it. Measured before the story runs, since fitting the
+    # window to a picture band adjusts the height afterwards.
+    app.root.update_idletasks()
+    opening_w = app.root.winfo_width()
+    opening_h = app.root.winfo_height()
+    assert app._aspect_var.get() == "modern"
+    # It opens at exactly the size the shape asks for, and that size fits the
+    # screen: a 4:5 window 80 columns wide is taller than most desktops, so
+    # the height caps at the screen and the width comes down with it, never
+    # below sixty columns (the status line's full form wants 54).
+    want_w, want_h = app._aspect_size()
+    assert opening_w == want_w
+    # The desktop has the last word on height (menu bar, dock): the window
+    # asks for the shape and takes what it is given.
+    assert 0 < opening_h <= want_h
+    assert opening_h <= app.root.winfo_screenheight()
+    assert app._cols >= 60
+    # And the two shapes really are different shapes: classic is the wider,
+    # shorter 4:3, modern the taller 4:5.
+    app._aspect_var.set("classic")
+    classic_w, classic_h = app._aspect_size()
+    app._aspect_var.set("modern")
+    modern_w, modern_h = app._aspect_size()
+    assert classic_h / classic_w < modern_h / modern_w
+
     script = ["look", "recite", "quit", "y"]
     more_seen = []
     end_in_view = []
@@ -220,8 +247,10 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     # The mode is the game default, 12 (DAAD), carried in the opcode operand.
     assert app.vm.screen.image == (1, 12)
     scaled = app._scaled_image(1, app._band_width())
-    # The picture fills the 80-cell screen width (inside the frame) at its aspect.
-    assert scaled.width() == 80 * app.cell_w
+    # The picture fills the screen width (inside the frame) at its aspect.
+    # That width is the CURRENT column count: the window opens at its shape,
+    # and on a screen too short for 4:5 at 80 columns it opens narrower.
+    assert scaled.width() == app._cols * app.cell_w
     assert abs(scaled.height() / scaled.width() - 96 / 320) < 0.02
     # The band follows the SCALED picture's height, so the art keeps its
     # aspect at any window width (fullscreen included) and is never cropped
@@ -240,11 +269,22 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     assert app.root.winfo_height() == (
         2 * app._margin + app._band_h + app.cell_h
         + app.text.winfo_height()), "the window does not fit its contents"
-    # The window is the 80-cell screen plus the frame on both sides.
-    assert app.root.winfo_width() == 80 * app.cell_w + 2 * app._margin
+    # The window is the cell grid plus the frame on both sides.
+    assert app.root.winfo_width() == app._cols * app.cell_w + 2 * app._margin
+    assert app._cols >= 60
     # The text area is a WHOLE number of lines (so it never shows a half row),
     # and it shrank to fit under the picture band.
     n = int(app.text.cget("height"))
     assert n >= 1
-    assert n < app._rows_var.get()  # the band took some of the rows
+    without_band = (app.root.winfo_height() - 2 * app._margin
+                    - app.cell_h) // app.cell_h
+    assert n < without_band  # the band took some of the rows
+    # WHAT IT REMEMBERS. The shape and the exact place on screen are written
+    # to the settings, so the next launch opens where this one was left
+    # instead of wherever the window manager puts it.
+    import json
+    app._persist()          # what closing the window does
+    saved = json.load(open(tmp_path / "actaea" / "settings.json"))
+    assert saved["aspect"] == "modern"
+    assert "+" in saved["geometry"] and "x" in saved["geometry"]
     app.root.destroy()

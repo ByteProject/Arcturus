@@ -176,6 +176,17 @@ class ActaeaApp:
         self._use_colours = tk.BooleanVar(value=bool(st.get("game_colours", True)))
         self._font_size = tk.IntVar(value=int(st.get("size", 13)))
         self._rows_var = tk.IntVar(value=int(st.get("rows", 30)))
+        # THE SHAPE OF THE WINDOW. Modern is the taller, book-like 4:5 that
+        # Gargoyle and its kin open in; classic is the 4:3 of the machines the
+        # format came from. The window is 80 cells wide either way, so the
+        # ratio decides the height, and both are relative: a bigger font makes
+        # a bigger window of the same shape.
+        self._aspect_var = tk.StringVar(
+            value=st.get("aspect", "modern") if
+            st.get("aspect") in ("modern", "classic") else "modern")
+        # Where the window was when it was last closed, size and position
+        # both ("WxH+X+Y"), so it opens where the player left it.
+        self._saved_geometry = st.get("geometry") or ""
         self._mac_integration()
 
         self.font = tkfont.nametofont("TkFixedFont").copy()
@@ -208,7 +219,14 @@ class ActaeaApp:
         self.cell_h = self.font.metrics("linespace")
 
         # The window IS the story's 80-cell screen, inside the frame.
-        self._apply_geometry()
+        if self._saved_geometry:
+            try:
+                self.root.geometry(self._saved_geometry)
+                self._relayout()
+            except tk.TclError:
+                self._apply_geometry()
+        else:
+            self._apply_geometry()
         self.root.configure(background=self._window_bg)
 
         # The picture band (arc_image): a Canvas pinned to the top, inside the
@@ -279,6 +297,11 @@ class ActaeaApp:
         # The window height last asked for by the fit-to-contents snap; it is
         # compared against, never subtracted from (see _relayout).
         self._snapped_to = 0
+        # True while a resize event is being handled. The snap below must not
+        # run then: a resize rescales the picture, which would ask to fit the
+        # window, which is another resize event (it ran away at 154% CPU on
+        # Stefan's machine and could not be quit, 2026-08-20).
+        self._in_resize = False
         self.text.mark_set("page_start", "end-1c")
         self.text.mark_gravity("page_start", "left")
 
@@ -353,8 +376,14 @@ class ActaeaApp:
         for n in (25, 30, 35, 40):
             lines.add_radiobutton(label=f"{n} lines", variable=self._rows_var,
                                   value=n, command=self._reheight)
+        shape = tk.Menu(view, tearoff=0)
+        shape.add_radiobutton(label="Modern (4:5)", variable=self._aspect_var,
+                              value="modern", command=self._reshape)
+        shape.add_radiobutton(label="Classic (4:3)", variable=self._aspect_var,
+                              value="classic", command=self._reshape)
         view.add_cascade(label="Font", menu=fonts)
         view.add_cascade(label="Text Size", menu=size)
+        view.add_cascade(label="Window Shape", menu=shape)
         view.add_cascade(label="Screen Height", menu=lines)
         view.add_separator()
         view.add_checkbutton(label="Game Colours", variable=self._use_colours,
@@ -417,14 +446,66 @@ class ActaeaApp:
             "size": self._font_size.get(),
             "rows": self._rows_var.get(),
             "game_colours": self._use_colours.get(),
+            "aspect": self._aspect_var.get(),
+            "geometry": self._geometry_now(),
         })
 
+    def _geometry_now(self) -> str:
+        """The window as it stands, size and position ("WxH+X+Y"), so the next
+        run opens where this one was left rather than wherever the window
+        manager feels like."""
+        try:
+            self.root.update_idletasks()
+            return self.root.winfo_geometry()
+        except tk.TclError:
+            return self._saved_geometry
+
     def _apply_geometry(self) -> None:
+        """The window at the chosen aspect."""
         self.cell_w = self.font.measure("0")
         self.cell_h = self.font.metrics("linespace")
+        w, h = self._aspect_size()
+        self.root.geometry(f"{w}x{h}")
+        self._relayout()
+
+    def _aspect_size(self):
+        """The window's size for the chosen shape: modern is 4:5, the tall
+        book-shaped window a modern interpreter opens in, and classic is the
+        4:3 of the machines the format came from.
+
+        Eighty cells is the width it would like, but a 4:5 window that wide is
+        taller than most screens, so the SCREEN has the last word: when the
+        height has to be capped the width comes down with it and the shape is
+        kept, which simply means fewer columns, exactly as it does when the
+        player resizes. Everything here is relative: a bigger font gives a
+        bigger window of the same shape."""
         m = self._margin
-        # 80 cells wide and the chosen number of text rows tall, plus the frame
-        # on every side.
+        num, den = (4, 3) if self._aspect_var.get() == "classic" else (4, 5)
+        width = 80 * self.cell_w + 2 * m
+        height = width * den // num
+        # Leave the menu bar and the dock their room rather than opening under
+        # them; two rows of slack is enough on every desktop tried.
+        room = self.root.winfo_screenheight() - 6 * self.cell_h
+        if height > room:
+            height = room
+            # Sixty columns is the floor: the status line's full form wants
+            # 54 and prose below that reads cramped, so the shape gives before
+            # the width does.
+            width = max(60 * self.cell_w + 2 * m, height * num // den)
+        return width, height
+
+    def _reshape(self) -> None:
+        """The aspect changed from the menu: reshape in place, keeping the
+        window where the player put it."""
+        w, h = self._aspect_size()
+        self.root.geometry(f"{w}x{h}")
+        self._relayout()
+        self._persist()
+
+    def _rows_geometry(self) -> None:
+        """The Screen Height menu asks for an exact number of text rows, which
+        overrides the aspect until the aspect is chosen again."""
+        m = self._margin
         self.root.geometry(
             f"{80 * self.cell_w + 2 * m}"
             f"x{self._rows_var.get() * self.cell_h + 2 * m}"
@@ -482,7 +563,7 @@ class ActaeaApp:
         # subtracted from the current one, so it converges instead of walking
         # the window down a few pixels per layout, which is what an earlier
         # attempt did. Never on a plain resize, so it cannot fight a drag.
-        if snap and real > 5 * self.cell_h:
+        if snap and not self._in_resize and real > 5 * self.cell_h:
             want = 2 * self._margin + band + status + n * self.cell_h
             if want != real and want != self._snapped_to:
                 self._snapped_to = want
@@ -516,6 +597,15 @@ class ActaeaApp:
         interrupt exists; the console front-end behaves identically)."""
         if not hasattr(self, "text") or not hasattr(self, "vm"):
             return
+        if self._in_resize:
+            return
+        self._in_resize = True
+        try:
+            self._resize_body()
+        finally:
+            self._in_resize = False
+
+    def _resize_body(self) -> None:
         inner = self.root.winfo_width() - 2 * self._margin
         if inner < 10 * self.cell_w:
             return  # not mapped yet, or absurdly narrow: keep the old truth
@@ -534,7 +624,7 @@ class ActaeaApp:
             self._redraw_grid()
 
     def _reheight(self) -> None:
-        self._apply_geometry()
+        self._rows_geometry()
         self._persist()
 
     def _retype(self) -> None:
@@ -1015,6 +1105,11 @@ class ActaeaApp:
         # The window height last asked for by the fit-to-contents snap; it is
         # compared against, never subtracted from (see _relayout).
         self._snapped_to = 0
+        # True while a resize event is being handled. The snap below must not
+        # run then: a resize rescales the picture, which would ask to fit the
+        # window, which is another resize event (it ran away at 154% CPU on
+        # Stefan's machine and could not be quit, 2026-08-20).
+        self._in_resize = False
         self._tail_into_view()
 
     def _display_lines(self, start: str, end: str) -> int:
@@ -1414,6 +1509,13 @@ class ActaeaApp:
     # -- lifecycle --------------------------------------------------------------------
 
     def _on_close(self):
+        # Where the window stood, so it opens there next time (Stefan: having
+        # to move it across the screen at every launch is as annoying for his
+        # adopters as it is for him).
+        try:
+            self._persist()
+        except tk.TclError:
+            pass
         self._closed = True
         # Unblock whichever wait is spinning so the run loop can unwind.
         self._line_ready.set(True)
