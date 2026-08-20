@@ -377,7 +377,7 @@ class ActaeaApp:
             lines.add_radiobutton(label=f"{n} lines", variable=self._rows_var,
                                   value=n, command=self._reheight)
         shape = tk.Menu(view, tearoff=0)
-        shape.add_radiobutton(label="Modern (1:1)", variable=self._aspect_var,
+        shape.add_radiobutton(label="Modern (4:5)", variable=self._aspect_var,
                               value="modern", command=self._reshape)
         shape.add_radiobutton(label="Classic (4:3)", variable=self._aspect_var,
                               value="classic", command=self._reshape)
@@ -471,10 +471,14 @@ class ActaeaApp:
     def _aspect_size(self):
         """The window's size for the chosen shape.
 
-        Modern is 1:1, the square page a modern interpreter opens in (Stefan
-        measured it twice, from Gargoyle and from a window he shaped by hand:
-        0.92 and 0.93 of the width). Classic is the 4:3 of the machines the
-        format came from.
+        Modern is 4:5, the tall page Gargoyle and its kin open in. Classic is
+        the 4:3 of the machines the format came from.
+
+        A portrait window eighty columns wide is taller than most desktops, so
+        on a short screen the modern shape arrives CLAMPED and looks nearly
+        square. That is not the shape failing; it is the screen. Stefan shaped
+        one by hand and measured it: 896 by 855, eighty columns wide and as
+        tall as his display allowed, which is precisely what this returns.
 
         WHY SQUARE AND NOT PORTRAIT: a room picture always spans the grid's
         full width, so its size is decided by the WIDTH alone. A taller window
@@ -488,12 +492,12 @@ class ActaeaApp:
         bigger font gives a bigger window, a bigger picture, and the same
         shape."""
         m = self._margin
-        num, den = (4, 3) if self._aspect_var.get() == "classic" else (1, 1)
+        num, den = (4, 3) if self._aspect_var.get() == "classic" else (4, 5)
         width = 80 * self.cell_w + 2 * m
         height = width * den // num
         # Leave the menu bar and the dock their room rather than opening under
         # them; the desktop clamps whatever is left over anyway.
-        room = self.root.winfo_screenheight() - 6 * self.cell_h
+        room = self.root.winfo_screenheight() - 4 * self.cell_h
         if height > room:
             height = room
         return width, height

@@ -90,9 +90,11 @@ The menu bar:
 - View -> Font: every fixed-pitch family installed on the system (the list
   is scanned once, the first time the menu opens).
 - View -> Text Size, Screen Height: point sizes and window lines.
-- View -> Window Shape: Modern (1:1), the square page a modern interpreter
-  opens in, or Classic (4:3), the shape of the machines the format came
-  from. Modern is what a first run takes. The width is eighty columns in
+- View -> Window Shape: Modern (4:5), the tall page Gargoyle and its kin
+  open in, or Classic (4:3), the shape of the machines the format came
+  from. Modern is what a first run takes, and on a screen too short for a
+  portrait window it arrives clamped, looking nearer to square: that is the
+  desktop, not the shape. The width is eighty columns in
   both and stays eighty: a room picture spans the grid's full width, so its
   size is decided by the width alone, and a taller window cannot enlarge it,
   it only adds text rows underneath. Where the desktop is too short for the
