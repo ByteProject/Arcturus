@@ -65,3 +65,35 @@ def test_standalone_plays_without_package(tmp_path):
     m = re.search(r"Build ([0-9a-f]{7})$", version.stdout, re.MULTILINE)
     assert m, version.stdout
     assert m.group(1) != "source"
+
+
+def test_every_package_module_is_embedded():
+    """The module list in the amalgamator is the standalone's whole world.
+
+    A module that exists in the package but is missing from that list imports
+    fine in development and fails only in the built file, in front of a
+    player: gui.pager was added on 2026-08-20 and the suite had nothing to say
+    about it. This walks the package and insists every module is carried."""
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    try:
+        import amalgamate_actaea
+    finally:
+        sys.path.pop(0)
+
+    embedded = set(amalgamate_actaea._MODULES)
+    on_disk = set()
+    pkg = os.path.join(ROOT, "actaea")
+    for entry in sorted(os.listdir(pkg)):
+        if entry.endswith(".py") and entry != "__init__.py":
+            on_disk.add(entry[:-3])
+    gui = os.path.join(pkg, "gui")
+    for entry in sorted(os.listdir(gui)):
+        if entry.endswith(".py"):
+            name = entry[:-3]
+            on_disk.add("gui" if name == "__init__" else f"gui.{name}")
+
+    missing = sorted(on_disk - embedded)
+    assert not missing, (
+        "not carried by the standalone (add them to _MODULES in "
+        f"tools/amalgamate_actaea.py): {missing}"
+    )

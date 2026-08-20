@@ -41,6 +41,7 @@ from ..errors import ActaeaError
 from ..io import IOSystem
 from ..screen import BOLD, ITALIC, REVERSE, TRUE_COLOURS, true_colour_hex
 from ..vm import VM
+from .pager import Pager
 
 # Tk keysyms for the keys with ZSCII input codes of their own (S 3.8):
 # cursors, function keys, and the numeric keypad. read_char hands these
@@ -261,12 +262,11 @@ class ActaeaApp:
         # The input mark: everything before it is story text and immutable.
         self.text.mark_set("input_start", "end-1c")
         self.text.mark_gravity("input_start", "left")
-        # The unread mark: where the player last stopped reading (set at
-        # each completed input). When a burst of story text runs past a
-        # screenful, the view returns HERE at the next input instead of
-        # racing to the bottom, so long passages read from the top.
-        self.text.mark_set("unread", "1.0")
-        self.text.mark_gravity("unread", "left")
+        # Story text goes in a page at a time and stops with [MORE] when the
+        # reading area is full, the way the curses front end has always done
+        # it, so nothing scrolls past unread. The pager counts the display
+        # lines; the widget half is further down.
+        self._pager = Pager()
 
         self._line_ready = tk.BooleanVar(value=False)
         self._key: tk.StringVar = tk.StringVar(value="")  # the wake signal
@@ -807,7 +807,7 @@ class ActaeaApp:
                     self.text.tag_delete(tag)
         self.text.delete("1.0", "end")
         self.text.mark_set("input_start", "end-1c")
-        self.text.mark_set("unread", "1.0")  # a wiped screen is all unread
+        self._pager.reset(0)  # a wiped screen starts a fresh page
 
     # -- output --------------------------------------------------------------
 
@@ -853,14 +853,88 @@ class ActaeaApp:
             self.text.delete("input_start", "end-1c")
         tag = self._look_tag()
         self.text.mark_set("insert", "end-1c")
-        if tag:
-            self.text.insert("end-1c", s, (tag,))
-        else:
-            self.text.insert("end-1c", s)
+        self._insert_paged(s, tag)
         self.text.mark_set("input_start", "end-1c")
         if typed:
             self._insert_input(typed)
         self.text.see("end")
+
+    # -- [MORE] paging ---------------------------------------------------------
+    #
+    # A passage taller than the reading area would otherwise scroll past, and
+    # this window has no [MORE] of its own to stop it (the curses front end has
+    # always had one). The text goes in a page at a time: when the page fills,
+    # a reverse-video [MORE] is APPENDED at the end of what has been shown, so
+    # it covers nothing, and any key prints the next page. The page is measured
+    # from the text area's CURRENT height, so a picture band taking rows or a
+    # fullscreen window giving them back is accounted for by itself.
+
+    def _page_height(self) -> int:
+        """Display lines the reader gets before the pause, one row kept for
+        the [MORE] itself."""
+        try:
+            rows = int(self.text.cget("height"))
+        except (tk.TclError, ValueError):
+            return 0
+        return rows - 1
+
+    def _insert(self, s: str, tag: str) -> None:
+        if tag:
+            self.text.insert("end-1c", s, (tag,))
+        else:
+            self.text.insert("end-1c", s)
+
+    def _insert_paged(self, s: str, tag: str) -> None:
+        page = self._page_height()
+        # Mid-read printing (a timed interrupt) and key waits must not open a
+        # second wait inside the first, and a screen with no room to page
+        # cannot pause at all: in both cases the text goes in whole.
+        if page < 2 or self._reading_line or self._reading_key or self._closed:
+            self._insert(s, tag)
+            self._pager.reset(0)
+            return
+        rest = s
+        while rest:
+            room = page - self._pager.lines
+            if room <= 0:
+                self._page_pause()
+                if self._closed:
+                    self._insert(rest, tag)
+                    return
+                continue
+            piece, rest = self._pager.feed(rest, max(2, self._cols), room)
+            if piece:
+                self._insert(piece, tag)
+            if rest:
+                self._page_pause()
+                if self._closed:
+                    self._insert(rest, tag)
+                    return
+
+    def _page_pause(self) -> None:
+        """Show [MORE] at the end of the text and wait for any key."""
+        mark = self.text.index("end-1c")
+        self._insert("[MORE]", self._more_tag())
+        self.text.see("end")
+        self._reading_key = True
+        self._key.set("")
+        self.root.wait_variable(self._key)
+        self._reading_key = False
+        # The marker never becomes part of the transcript on screen: it is
+        # taken out again, and the story text continues exactly where it was.
+        self.text.delete(mark, "end-1c")
+        self._pager.reset(self._pager.column)
+
+    def _more_tag(self) -> str:
+        """The marker wears the CURRENT look, reversed: on a game-coloured
+        screen it is the game's own colours the other way round, the way the
+        curses front end draws its [MORE] in A_REVERSE."""
+        m = self.vm.screen
+        name = f"more-{m.style}-{m.fg}-{m.bg}"
+        if name not in self._tags_made:
+            self._configure_look(name, m.style ^ REVERSE, m.fg, m.bg)
+            self._tags_made.add(name)
+        return name
 
     def _insert_input(self, s: str) -> None:
         """Text into the editable region, wearing the input look. The
@@ -871,16 +945,6 @@ class ActaeaApp:
             self.text.insert("end-1c", s)
 
     # -- input: lines ----------------------------------------------------------
-
-    def _show_unread(self) -> None:
-        """At an input point: if the text since the player's last input has
-        scrolled past a screenful, bring its BEGINNING into view instead of
-        the tail, so a long passage is read from the top down."""
-        if self.text.bbox("unread") is None:
-            self.text.yview("unread")
-
-    def _mark_read(self) -> None:
-        self.text.mark_set("unread", "end-1c")
 
     def wait_for_line(self, max_len, preload="", terminators=frozenset(),
                       timeout=0.0, on_timeout=None):
@@ -902,7 +966,7 @@ class ActaeaApp:
         if preload:
             self._absorb_preload(preload)
         self.text.mark_set("insert", "end-1c")
-        self._show_unread()
+        self._pager.reset(self._pager.column)
         self._start_timer(timeout, on_timeout)
         self.root.wait_variable(self._line_ready)
         self._stop_timer()
@@ -919,7 +983,7 @@ class ActaeaApp:
             return line, 0
         # The typed line becomes story text, newline included.
         self.append_story("\n")
-        self._mark_read()
+        self._pager.reset(0)
         return line, self._terminator
 
     def _absorb_preload(self, preload: str) -> None:
@@ -1060,14 +1124,15 @@ class ActaeaApp:
         self._timed_out = False
         self._key_code = 0
         self._key.set("")
-        self._show_unread()
+        self._pager.reset(self._pager.column)
         self._start_timer(timeout, on_timeout)
         self.root.wait_variable(self._key)
         self._stop_timer()
         self._reading_key = False
         if self._closed:
             raise EOFError
-        self._mark_read()
+        # The reader just pressed a key of their own: a fresh page starts.
+        self._pager.reset(self._pager.column)
         return 0 if self._timed_out else self._key_code
 
     # -- lifecycle --------------------------------------------------------------------

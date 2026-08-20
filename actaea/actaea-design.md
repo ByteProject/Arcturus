@@ -155,6 +155,16 @@ Lower window (window 0): a scrolling, word-wrapped, buffered text area. The
 core performs word wrap and buffering; the front-end renders the resulting
 text with styles and colours.
 
+Each interactive front end also PAGES it, so no passage scrolls past
+unread: the console counts scrolled lines and draws `[MORE]` in reverse
+video (console.py, `_maybe_page`), and the window does the same with an
+appended marker (gui/pager.py for the arithmetic, gui/app.py for the
+widget half). The two are deliberately separate implementations of one
+idea: what they share is a line count, while measuring the height,
+drawing the marker and waiting for the key have nothing in common. The
+pipe front end never pages, or scripted play would hang waiting for a
+keypress nobody is there to give.
+
 Upper window (window 1): a fixed grid of character cells, non-buffered,
 overwriting, addressed by set_cursor. split_window sizes it, erase_window and
 erase_line clear it, and printing places characters at the cursor. This is the

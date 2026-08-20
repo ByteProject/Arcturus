@@ -11634,3 +11634,58 @@ band returns without re-asserting the tail, and _show_unread's
 read-from-the-top jump firing far more often in a shortened area. His
 one-second diagnostic decides it: press a key instead of scrolling,
 and if the view snaps to the bottom it is _show_unread.
+
+## 2026-08-20: Actaea's window learns [MORE] (Actaea 1.4.0).
+## STEFAN'S RULINGS: bottom, appended, reverse video, any key, adaptive
+
+THE QUESTION WAS HIS. Chasing the scroll behaviour he saw entering a
+pictured room, the diagnosis came out "not a bug": the window jumps to
+the top of a passage that does not fit, deliberately, because there was
+no [MORE] to stop it, and a picture band halves the reading area so it
+fired on ordinary room descriptions. Stefan then asked the better
+question: should Actaea have a [MORE] at all, the way Gargoyle does,
+with infinite scrollback afterwards? It resolves the root cause instead
+of the symptom, and the curses front end has paged since it was written,
+so the window was the odd one out.
+
+HIS RULINGS, all four: the marker goes where every other interpreter
+puts it, appended at the bottom in reverse video, never painted over
+existing text, curses style. The page adapts rather than assuming a
+fixed screen ("this needs to be done since Actaea has a full screen
+mode"). Any key continues. And the two implementations stay separate:
+"the curses one works brilliantly and I rather don't want to touch it",
+with my agreement that the shared part is about five lines of counting
+while measuring, drawing and waiting have nothing in common.
+
+BUILT: actaea/gui/pager.py owns the arithmetic (how many display lines
+a piece of text takes, where to cut it so exactly the rest of the page
+is printed), and app.py owns the widget half. The page is measured from
+the reading area's CURRENT height, so a band taking rows, a resize, a
+text-size change and fullscreen are all accounted for with no setting.
+The read-from-top rule it replaces is gone, as designed: with paging,
+nothing scrolls past unread, so returning the view to where the text
+began would now undo the reader's own paging.
+
+THE AMALGAM CAUGHT WHAT THE SUITE COULD NOT. The standalone embeds an
+explicit module list, so the new gui.pager imported fine in the package
+and was missing from build/actaea: the shipped window would have crashed
+the moment a player opened it. Found by grepping the built file, not by
+1555 green tests. tests/actaea/test_actaea_standalone.py now walks the
+package and insists every module is carried, so the next one cannot slip
+through.
+
+DONE-TEST: tests/actaea/unit/test_pager.py, 11 tests on the arithmetic
+(wrapping, the page boundary, a word longer than a line broken at the
+margin, a word that moves whole, blank lines, resuming after the pause).
+The wrapping was verified against tkinter itself, six cases, no
+mismatch; that comparison lives in test_pager_matches_tk.py but is
+OPT-IN (ACTAEA_TK_PARITY=1, run serially), because live Tk measurement
+inside the parallel suite fails a different case each run and a flaky
+test is worse than none. Full suite 1555 green, 6 skipped (the opt-in
+parity cases). docs/06 documents the paging; the design record notes the
+two deliberately separate implementations.
+
+HANDS OFF TO STEFAN: the widget half cannot be judged headlessly. Open a
+game in the window, walk into a pictured room, and see whether the
+[MORE] lands at the bottom of the reading area, whether any key
+continues cleanly, and whether the marker leaves no trace when it goes.

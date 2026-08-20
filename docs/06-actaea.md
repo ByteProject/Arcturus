@@ -97,10 +97,18 @@ Settings persist in `~/.config/actaea/settings.json` (XDG_CONFIG_HOME is
 honoured) and return at the next launch. They save when changed in the
 menu, never behind your back.
 
-A long passage returns the view to where unread text begins rather than
-racing to the bottom, "press any key" accepts any key including Return,
-and the window is exactly 80 cells wide, as the Z-machine screen model
-declares.
+A passage taller than the reading area stops at the bottom of it with a
+reverse-video `[MORE]`, and any key prints the next page, the same way the
+console front end has always paged. The marker is appended after the last
+line shown, so it covers no text, and it is taken away again when you
+continue. Nothing scrolls past unread, and the scrollback is untouched:
+the wheel, the trackpad, and Page Up still walk back through everything
+printed so far. The page is measured from the reading area as it stands at
+that moment, so a picture band taking rows, a resized window, a different
+text size, and fullscreen are all accounted for without a setting.
+
+"Press any key" accepts any key including Return, and the window is
+exactly 80 cells wide, as the Z-machine screen model declares.
 
 Pictures (arc_image): the window is the one front-end that shows a room's
 `arc_image` picture (01 section 6b). It draws a band across the top, above
