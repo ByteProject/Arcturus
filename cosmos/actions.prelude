@@ -434,6 +434,10 @@ on save
         change chain_pos to 0
         if any_images is 1
             image_reset
+        // The restored memory remembers a screen the interpreter may have
+        // reset under it, the status bar's reserved row included: forget the
+        // reservation so the next paint makes it again.
+        bar_unseated
         par
         describe_room
         stop

@@ -280,6 +280,14 @@ block game_over()
 // nothing: games without such a granule pay zero bytes for the seam.
 block screen_ready()
 
+// The companion seam: "whatever you were told about the upper window, forget
+// it". A granule that owns screen furniture reserves its row once and repaints
+// it thereafter, so anything that takes the row away (a taller window for a
+// menu, a full-screen erase, a restore that reset the screen) has to say so.
+// Empty by default, like screen_ready, so the calls emit nothing and cost
+// nothing in a game with no such granule.
+block bar_unseated()
+
 block run_game()
     move player to here
     // The start room is visited by definition (and never scores: you did

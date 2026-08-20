@@ -95,6 +95,9 @@ block draw_menu(person, count)
     set_window(1)
     erase_window(1)
     split_window(h)
+    // The bar's one-row reservation is gone while the taller menu window
+    // stands (the menu paints the bar itself, at the top of its own window).
+    bar_unseated
     erase_window(1)
     if top is 1
         status_bar
@@ -145,6 +148,8 @@ block menu_choice(count)
 block close_menu()
     erase_window(1)
     split_window(0)
+    // No upper window at all now: the next prompt's bar reserves its row again.
+    bar_unseated
     set_window(0)
 
 block count_visible(person)

@@ -107,63 +107,73 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # had the noun path, the standard verb never declared the line. All
 # three packs gained it (German also verlasse/verlassen), and the
 # boarding idiom matrix is pinned as a test.
+# 2026-08-20 (seat the status row once): +24, and +32 where the quote box or
+# the conversations menu is also summoned, in games WITH a status bar only;
+# every other example is byte-identical. Two interpreter authors reported the
+# bar re-issuing its split_window on every paint instead of establishing the
+# row once and repainting it. The bar now remembers its row and reserves it
+# only after something took it away (the menu's taller window, the quote box,
+# a full-screen erase through screen_ready, a restore that may have reset the
+# screen), which is the bar_unseated seam in loop.prelude. The bytes buy one
+# fewer opcode per turn forever, and on a memory-mapped 8-bit screen a split
+# is not free the way it is on a modern terminal.
 CEILINGS = {
-    "features/yes-no.storyarc": 17192,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "features/press-any-key.storyarc": 18040,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/shiftable.storyarc": 17552,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/enhance-redefine.storyarc": 17916,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/consult-about.storyarc": 18032,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/session-verbs.storyarc": 17632,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/vary.storyarc": 18812,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/foresight.storyarc": 18992,  # 2026-08-17 repriced: the existence form (docs/01 chapter 3); a two-sided door is now present on both sides (~264 bytes of presence walk, the two language examples also pay the 1-byte both-forms marker)
-    "features/beyond.storyarc": 19524,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/alter.storyarc": 18204,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/catalogs.storyarc": 18152,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/matrix.storyarc": 18472,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/direction-grammar.storyarc": 17584,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/scenery-contents.storyarc": 18064,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "features/yes-no.storyarc": 17216,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/press-any-key.storyarc": 18064,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/shiftable.storyarc": 17576,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/enhance-redefine.storyarc": 17940,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/consult-about.storyarc": 18056,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/session-verbs.storyarc": 17656,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/vary.storyarc": 18836,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/foresight.storyarc": 19016,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/beyond.storyarc": 19548,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/alter.storyarc": 18228,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/catalogs.storyarc": 18184,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/matrix.storyarc": 18496,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/direction-grammar.storyarc": 17608,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/scenery-contents.storyarc": 18088,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
     "features/trigger.storyarc": 16948,
     "features/adjectives.storyarc": 17528,  # 2026-08-15 first pin: the adjective marker showcase (>red, the ZIL match classes; games without the marker stay byte-identical)  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "granules/nautical.storyarc": 18072,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "granules/npcengine.storyarc": 20116,
-    "granules/maniacswap.storyarc": 18336,  # 2026-08-19 added: the maniacswap showcase (BECOME, the fiction gate, disconnected maps; arcc 1.13.0, Cosmos 1.16.0)  # 2026-08-19 added: the NPC engine showcase (patrol, wander, send, orders, the hibernated controls; arcc 1.12.0, Cosmos 1.15.0)
-    "beispiel-deutsch.storyarc": 25456,  # 2026-08-17 repriced: the existence form (docs/01 chapter 3); a two-sided door is now present on both sides (~264 bytes of presence walk, the two language examples also pay the 1-byte both-forms marker)
+    "granules/nautical.storyarc": 18096,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "granules/npcengine.storyarc": 20140,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "granules/maniacswap.storyarc": 18360,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "beispiel-deutsch.storyarc": 25488,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
     "brass-lantern.storyarc": 18964,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "cloak-of-darkness.storyarc": 19596,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "ejemplo-espanol.storyarc": 22500,  # 2026-08-17 repriced: the existence form (docs/01 chapter 3); a two-sided door is now present on both sides (~264 bytes of presence walk, the two language examples also pay the 1-byte both-forms marker)
+    "cloak-of-darkness.storyarc": 19620,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "ejemplo-espanol.storyarc": 22532,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
     "features/computed-properties.storyarc": 17316,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/containers.storyarc": 17652,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/daemons-and-timers.storyarc": 18880,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/doors-and-locks.storyarc": 17464,  # 2026-08-17 repriced: the existence form (docs/01 chapter 3); a two-sided door is now present on both sides (~264 bytes of presence walk, the two language examples also pay the 1-byte both-forms marker)
-    "features/appearance.storyarc": 17988,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/components.storyarc": 17468,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "granules/whistle.storyarc": 16956,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
-    "features/pathfinding.storyarc": 19856,  # 2026-08-17 repriced: its door migrated to the existence form (`in hall, library`), so it pays the presence walk like every door game
-    "features/perform.storyarc": 17260,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
+    "features/appearance.storyarc": 18012,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/components.storyarc": 17492,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "granules/whistle.storyarc": 16980,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/pathfinding.storyarc": 19880,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/perform.storyarc": 17284,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
     "features/grains.storyarc": 17144,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "features/handlers.storyarc": 18404,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "features/handlers.storyarc": 18428,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
     "features/grammar.storyarc": 17356,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "features/introproperty.storyarc": 18492,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "features/introproperty.storyarc": 18516,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
     "features/kinds-and-inheritance.storyarc": 17284,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/on-other.storyarc": 17176,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/zcolor.storyarc": 17544,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/scoring.storyarc": 19420,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "features/zcolor.storyarc": 17568,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/scoring.storyarc": 19444,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
     "features/spans.storyarc": 17400,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/vehicles.storyarc": 17824,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "granules/ambience.storyarc": 19148,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "granules/conversations.storyarc": 18852,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "features/vehicles.storyarc": 17848,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "granules/ambience.storyarc": 19172,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "granules/conversations.storyarc": 18884,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
     "granules/extended-verbs.storyarc": 20180,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "granules/infocom-interrogation.storyarc": 19104,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
-    "granules/quotes.storyarc": 17300,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "granules/take-all.storyarc": 19196,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "granules/plurals.storyarc": 18140,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "granules/statusline.storyarc": 17280,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "granules/quotes.storyarc": 17332,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "granules/take-all.storyarc": 19220,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "granules/plurals.storyarc": 18164,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "granules/statusline.storyarc": 17304,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
     "granules/verbose-exits.storyarc": 17320,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 20224  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+CLOAK_Z8_CEILING = 20240  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

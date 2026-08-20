@@ -72,6 +72,8 @@ block quote(lines, width)
     // Three blank rows above the box (Stefan's call, 2026-07-28): the old
     // top-flush frame read cramped next to PunyInform's centric box.
     split_window(lines + 7)
+    // The box owns the upper window now; the bar's row goes with it.
+    bar_unseated
     set_window(1)
     change qb_row to 5
     quote_fill
@@ -94,7 +96,11 @@ block quote_done()
     // back before prose resumes: without this, the first line printed
     // after a mid-game box lands on row 1 and the next prompt's bar
     // repaint paints straight over it (found when quote_catalog's
-    // follow-up say vanished under the statusline).
+    // follow-up say vanished under the statusline). The split below puts
+    // the row back physically; the bar is told nothing, so the next paint
+    // reserves it once more. One spare split in a rare path, and no way
+    // for a box to leave the bar believing it holds a row it lost.
+    bar_unseated
     if status_lines > 0
         split_window(status_lines)
     buffer_mode(1)

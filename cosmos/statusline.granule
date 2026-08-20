@@ -43,6 +43,24 @@
 // a restarted game boots quietly too.
 flag bar_live
 
+// SEAT ONCE, REPAINT AFTER (the interpreter authors' report, 2026-08-20: the
+// bar re-issued its split on every paint, once per turn forever). The split is
+// establishment, not painting: it reserves row 1, and in v5 re-issuing it does
+// not clear or move anything, so every repeat after the first was a wasted
+// opcode. This flag remembers that row 1 is ours, and everything that can take
+// it away clears the flag through the bar_unseated seam (loop.prelude): the
+// conversations menu while its taller window stands, the quote box, a restore
+// that may have reset the screen, and screen_ready itself, which exists
+// precisely because the caller just erased or moved the furniture. Wrong in
+// the safe direction costs one redundant split; wrong the other way would put
+// prose in the bar's row, so every doubtful path clears it.
+flag bar_seated
+
+// The seam's override: the row is gone (or may be), so the next paint reserves
+// it again before printing anything.
+block bar_unseated()
+    change bar_seated to false
+
 // The input prompt, extended: paint the bar, then do the ordinary prompt (the
 // paragraph break and the ">" the core library would have shown).
 block prompt()
@@ -59,10 +77,14 @@ block prompt()
 // Reserve the row before `on start` prints a word (the screen seam in the
 // loop); paint only once the bar has gone live at the first prompt.
 block screen_ready()
+    // Whoever calls this has just erased the screen or moved the band, so the
+    // reservation is void whatever we remembered: seat before painting.
+    change bar_seated to false
     if bar_live
         draw_status
     else
         split_window(1)
+        change bar_seated to true
 
 // Set up the one-row upper window and paint the bar into it. The painting itself
 // is status_bar (below), so the conversations menu can reuse it at the top of its
@@ -79,7 +101,10 @@ block draw_status()
     // The bar's own prints must not count as the turn speaking either.
     let spoke_held = spoke
     buffer_mode(0)
-    split_window(1)
+    // Reserve the row only when it is not already ours (see bar_seated above).
+    if bar_seated is false
+        split_window(1)
+        change bar_seated to true
     set_window(1)
     status_bar
     set_window(0)

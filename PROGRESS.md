@@ -11502,3 +11502,67 @@ salient-hint plumbing stays inert until deliberately reconnected;
 the Actaea Beyond Zork gap stands (never start unprompted); the Zed
 PRs (Arcturus, and Stefan's separate Inform6 x PunyInform extension)
 were last seen open and bot-approved, awaiting human merge.
+
+## 2026-08-20: the status bar seats its row once (Cosmos 1.16.1).
+## STEFAN'S CORRECTION: the two reports were one issue, not two
+
+FROM HIS OWN INTERPRETER WORK. Stefan brought a report written while
+building Triton and Haumea (the CPC host), reproduced on both, and
+paired it with Shawn's Discord observation from Canopus on the Agon
+Light: the status bar is painted twice on any turn that changes room,
+first with the new room and the OLD move count, and the split is
+re-issued at every paint instead of establishing the row once.
+
+I answered that these were two separate topics. STEFAN CORRECTED THAT:
+he had presented them as one issue on purpose, and the trace proved
+him right. The truthful division is one root cause plus one
+independent redundancy. The redundancy: draw_status re-issued
+split_window on EVERY paint, in every game with a bar, graphics or
+not. The root cause, which owns both remaining symptoms (the leftover
+split on a movement turn AND the stale-count second paint), is the
+single band re-seat call in draw_room_image. HIS ORDER: fix the
+redundancy first, discuss the re-seat separately. This entry is the
+first half only.
+
+MEASURED BEFORE TOUCHING ANYTHING, since the reports came from other
+people's interpreters. A probe traced every split_window, draw_image
+and completed bar paint on Actaea, playing the Rabenstein demo. With
+Actaea's default (no picture support) the extra paint never appeared;
+setting Flags 1 bit 1, the header bit Cosmos's pictures_available
+reads, reproduced the reported stream exactly, four boot splits
+included. That pinned the trigger: this is the arc_image path, not the
+bar as such, which is to say exactly the hosts Stefan is writing
+interpreters for.
+
+THE FIX. The split is establishment, not painting. The bar now
+remembers its row (bar_seated) and reserves it only after something
+took it away, through a new prelude seam, bar_unseated, empty and free
+in a game with no bar: the conversations menu's taller window and its
+close, the quote box at both ends, screen_ready (which every
+full-screen erase already comes back through), and a restore, whose
+rewound memory may describe a screen the interpreter reset underneath
+it. Wrong in the safe direction costs one spare split; wrong the other
+way would put prose in the bar's row, so every doubtful path clears it.
+
+WHAT CANOPUS SEES NOW, per turn: boot 4 splits to 3; a turn that
+changes room 2 splits to 1; a turn that does not, 1 to 0. In a
+text-only game the bar now splits ONCE for the whole session. The
+single remaining split on a movement turn is the band re-seat, the
+deferred topic.
+
+COST, stated plainly because size is a charter objective: +24 bytes,
++32 where the quote box or the menu is also summoned, in games WITH a
+bar only. Every other example is byte-identical, proven with cmp
+across all 53 example builds, 15 unchanged files and 38 changed, every
+changed one a statusline game. The bytes buy one fewer opcode per turn
+forever, on machines where a split is not free.
+
+DONE-TEST: tests/test_statusline_seat.py, 6 tests reading the story's
+OP STREAM rather than the screen, because that is where the defect
+lived (the picture was always right; the waste was invisible until
+someone counted opcodes): seat-once-repaint-after, the bar-less game
+that never splits at all, the menu and the quote box giving the row
+back, the restore re-seat, and the quiet turn costing no split on a
+picture-claiming interpreter. Full suite 1535 green. Handbook chapter
+23 states the rule for anyone writing a granule that takes the upper
+window.

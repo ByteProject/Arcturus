@@ -5634,6 +5634,17 @@ A few patterns the shipped granules use:
 - **Depend on another granule.** A granule may itself `summon` another; the
   loader resolves summons transitively, each granule loaded once.
 
+One rule holds for any granule that takes the upper window for itself (a menu,
+a box, a map): the status bar reserves its row once with `split_window` and
+repaints it thereafter, rather than re-reserving it on every paint, so a
+granule that changes the split or erases the whole screen must call
+`bar_unseated` afterwards. That prelude seam is empty in a story with no bar
+and costs nothing there. Reserving a row that was never lost is harmless; the
+failure that matters is the other direction, prose landing in a row the bar
+still believes it holds, so call it whenever the window may have moved. The
+`screen_ready` seam already does this for you: any full-screen erase comes
+back through it.
+
 Keep a granule self-contained and summon-gated: anything it ships is left out of
 a story that does not summon it.
 
