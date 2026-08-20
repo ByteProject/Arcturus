@@ -222,8 +222,9 @@ class ActaeaApp:
         if self._saved_geometry:
             try:
                 self.root.geometry(self._saved_geometry)
+                self._want_width = int(self._saved_geometry.split("x")[0])
                 self._relayout()
-            except tk.TclError:
+            except (tk.TclError, ValueError):
                 self._apply_geometry()
         else:
             self._apply_geometry()
@@ -263,6 +264,14 @@ class ActaeaApp:
         self._lower_frame = frame
         self.text = tk.Text(
             frame, wrap="word", font=self.font, undo=False,
+            # A Text's DEFAULT requested width is eighty characters, and a
+            # toplevel grows back to its children's natural size when it maps,
+            # overriding wm geometry: the window could never be narrower than
+            # eighty columns, whatever shape was asked for (measured: asked
+            # 894 wide, mapped at 971). Request next to nothing instead; the
+            # pack fill stretches to whatever the window really is, and the
+            # window's own geometry is the only authority on size.
+            width=20,
             # No padding inside the text: an 80-character line then measures
             # exactly 80 cells, so the text, the status bar, and the picture all
             # share that width and left edge. The margin around the screen is the
@@ -297,6 +306,13 @@ class ActaeaApp:
         # The window height last asked for by the fit-to-contents snap; it is
         # compared against, never subtracted from (see _relayout).
         self._snapped_to = 0
+        # The width this app ASKED for. The snap and any other height-only
+        # adjustment must never read winfo_width() for it: geometry is
+        # asynchronous, so mid-boot the widget still reports the previous
+        # width, and re-asserting it flips the window between two widths,
+        # re-wrapping every line while the pager is counting them (caught by
+        # the GUI test as text scrolling off before the first pause).
+        self._want_width = 0
         # True while a resize event is being handled. The snap below must not
         # run then: a resize rescales the picture, which would ask to fit the
         # window, which is another resize event (it ran away at 154% CPU on
@@ -325,6 +341,12 @@ class ActaeaApp:
         # Keep the caret out of the story text: any click refocuses the end.
         self.text.bind("<Button-1>", lambda e: self.root.after(1, self._to_end))
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
+        # Cmd-Q on macOS quits the Tk app without WM_DELETE_WINDOW firing,
+        # which lost the remembered geometry: route it through the same door.
+        try:
+            self.root.createcommand("tk::mac::Quit", self._on_close)
+        except tk.TclError:
+            pass
         self.text.focus_set()
 
         self.vm = VM(story, GuiIO(self), seed=seed)
@@ -377,7 +399,7 @@ class ActaeaApp:
             lines.add_radiobutton(label=f"{n} lines", variable=self._rows_var,
                                   value=n, command=self._reheight)
         shape = tk.Menu(view, tearoff=0)
-        shape.add_radiobutton(label="Modern (4:5)", variable=self._aspect_var,
+        shape.add_radiobutton(label="Modern (Gargoyle)", variable=self._aspect_var,
                               value="modern", command=self._reshape)
         shape.add_radiobutton(label="Classic (4:3)", variable=self._aspect_var,
                               value="classic", command=self._reshape)
@@ -441,6 +463,20 @@ class ActaeaApp:
         win.grab_set()
 
     def _persist(self) -> None:
+        """Write the settings soon, not now: a menu action that just asked
+        for a new window size must not record the size the window still has.
+        root.geometry() is asynchronous, and persisting in the same breath
+        saved the OLD height, which is why a reshaped window reopened short
+        (Stefan, 2026-08-21). Closing writes immediately (_persist_now)."""
+        if getattr(self, "_persist_job", None) is not None:
+            try:
+                self.root.after_cancel(self._persist_job)
+            except tk.TclError:
+                pass
+        self._persist_job = self.root.after(400, self._persist_now)
+
+    def _persist_now(self) -> None:
+        self._persist_job = None
         _save_settings({
             "family": self._family_var.get(),
             "size": self._font_size.get(),
@@ -465,41 +501,37 @@ class ActaeaApp:
         self.cell_w = self.font.measure("0")
         self.cell_h = self.font.metrics("linespace")
         w, h = self._aspect_size()
+        self._want_width = w
         self.root.geometry(f"{w}x{h}")
         self._relayout()
 
     def _aspect_size(self):
         """The window's size for the chosen shape.
 
-        Modern is 4:5, the tall page Gargoyle and its kin open in. Classic is
-        the 4:3 of the machines the format came from.
-
-        A portrait window eighty columns wide is taller than most desktops, so
-        on a short screen the modern shape arrives CLAMPED and looks nearly
-        square. That is not the shape failing; it is the screen. Stefan shaped
-        one by hand and measured it: 896 by 855, eighty columns wide and as
-        tall as his display allowed, which is precisely what this returns.
-
-        WHY SQUARE AND NOT PORTRAIT: a room picture always spans the grid's
-        full width, so its size is decided by the WIDTH alone. A taller window
-        cannot enlarge it; it only adds text rows underneath, which leaves the
-        picture looking small against the page, and reaching for a smaller
-        font to compensate makes it smaller still (fewer pixels per column).
-
-        Eighty cells is the width, and it KEEPS that width: where the desktop
-        is too short for the shape, the window is squatter than the ideal
-        rather than narrower than the story wants. Everything is relative: a
-        bigger font gives a bigger window, a bigger picture, and the same
-        shape."""
+        Modern is the Gargoyle page, taken from Stefan's reference capture
+        rather than a textbook fraction: it measures 880 by 810, so the
+        height is 92 percent of the width. It is a true aspect ratio: where
+        the desktop is too short for it at eighty columns, BOTH sides come
+        down together so the proportion holds, to a floor of seventy columns
+        (the sixty-column floor of an earlier attempt made the picture small,
+        which was the whole complaint); only below the floor does the width
+        hold and the shape give. Classic is the 4:3 of the machines the
+        format came from, squat by nature: it keeps its eighty columns and
+        caps. Everything is relative to the font: a bigger font, a bigger
+        window, the same shape."""
         m = self._margin
-        num, den = (4, 3) if self._aspect_var.get() == "classic" else (4, 5)
-        width = 80 * self.cell_w + 2 * m
-        height = width * den // num
-        # Leave the menu bar and the dock their room rather than opening under
-        # them; the desktop clamps whatever is left over anyway.
         room = self.root.winfo_screenheight() - 4 * self.cell_h
+        width = 80 * self.cell_w + 2 * m
+        if self._aspect_var.get() == "classic":
+            height = width * 3 // 4
+            return width, min(height, room)
+        height = width * 92 // 100
         if height > room:
             height = room
+            width = height * 100 // 92
+            floor = 70 * self.cell_w + 2 * m
+            if width < floor:
+                width = floor
         return width, height
 
     def _reshape(self) -> None:
@@ -514,6 +546,7 @@ class ActaeaApp:
         """The Screen Height menu asks for an exact number of text rows, which
         overrides the aspect until the aspect is chosen again."""
         m = self._margin
+        self._want_width = 80 * self.cell_w + 2 * m
         self.root.geometry(
             f"{80 * self.cell_w + 2 * m}"
             f"x{self._rows_var.get() * self.cell_h + 2 * m}"
@@ -575,7 +608,8 @@ class ActaeaApp:
             want = 2 * self._margin + band + status + n * self.cell_h
             if want != real and want != self._snapped_to:
                 self._snapped_to = want
-                self.root.geometry("%dx%d" % (self.root.winfo_width(), want))
+                w_now = self._want_width or self.root.winfo_width()
+                self.root.geometry("%dx%d" % (w_now, want))
         was = self._text_rows
         self._text_rows = n
         if int(self.text.cget("height")) != n:
@@ -614,6 +648,9 @@ class ActaeaApp:
             self._in_resize = False
 
     def _resize_body(self) -> None:
+        # The player's own hand sets the width now: it becomes the one the
+        # height-only adjustments preserve.
+        self._want_width = self.root.winfo_width()
         inner = self.root.winfo_width() - 2 * self._margin
         if inner < 10 * self.cell_w:
             return  # not mapped yet, or absurdly narrow: keep the old truth
@@ -1113,6 +1150,13 @@ class ActaeaApp:
         # The window height last asked for by the fit-to-contents snap; it is
         # compared against, never subtracted from (see _relayout).
         self._snapped_to = 0
+        # The width this app ASKED for. The snap and any other height-only
+        # adjustment must never read winfo_width() for it: geometry is
+        # asynchronous, so mid-boot the widget still reports the previous
+        # width, and re-asserting it flips the window between two widths,
+        # re-wrapping every line while the pager is counting them (caught by
+        # the GUI test as text scrolling off before the first pause).
+        self._want_width = 0
         # True while a resize event is being handled. The snap below must not
         # run then: a resize rescales the picture, which would ask to fit the
         # window, which is another resize event (it ran away at 154% CPU on
@@ -1521,7 +1565,7 @@ class ActaeaApp:
         # to move it across the screen at every launch is as annoying for his
         # adopters as it is for him).
         try:
-            self._persist()
+            self._persist_now()
         except tk.TclError:
             pass
         self._closed = True

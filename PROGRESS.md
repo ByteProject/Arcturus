@@ -11848,3 +11848,43 @@ height unchanged inside it, the difference under one row) and, the
 assertion that matters, that the reading area is a whole number of
 rows and equals what the pager counts. Full suite 1555 green. docs/06
 documents the band rounding and the geometry log.
+
+## 2026-08-21: the Gargoyle shape, measured and made to hold
+## (Actaea 1.5.3). THREE ASYNC-GEOMETRY BUGS UNDER ONE SYMPTOM
+
+STEFAN, out of patience after the ratio rounds, brought the reference
+back and two hard symptoms: switching shape filled the screen from
+menu bar to dock, and a reopened window kept losing height. The shape
+he wants is Gargoyle's page, which MEASURES 880 by 810: height 92
+percent of width. Not 4:5, not square; a named thing, so the menu now
+says Modern (Gargoyle) and the code carries the measured number.
+
+WHAT MADE EVERY EARLIER ATTEMPT WRONG was one wrong rule and two
+async-geometry bugs. The rule: the shape pinned its width at eighty
+columns and clamped only the height, so on a short desktop it filled
+top-to-bottom and squatted; a true aspect ratio scales BOTH sides
+(floor at seventy columns, the sixty-column floor of an earlier try is
+what made the picture small). The bugs, both the same trap: (1)
+_reshape persisted its geometry in the same breath as requesting it,
+but the window manager applies geometry asynchronously, so the
+settings recorded the OLD size and every reopen came up short; persist
+is debounced now, closing writes at once, and Cmd-Q on the Mac routes
+through the close handler it used to bypass. (2) The fit-to-contents
+snap read winfo_width() mid-boot, before the manager had applied the
+aspect width, and re-asserted the stale one: the window flapped
+between two widths while the pager was counting wrapped lines. The
+app now remembers the width it ASKED for and never asks the widget.
+
+AND THE ONE UNDERNEATH: the window could never be narrower than
+eighty columns at all, whatever anyone requested, because a Tk Text's
+DEFAULT requested width is eighty characters and a mapping toplevel
+grows back to its children's natural size, overriding wm geometry
+(measured: asked 894 wide, mapped at 971). The Text now requests
+next to nothing and the window's geometry is the only authority.
+
+The GUI test hunted all three down (its own two stale assertions fell
+along the way: the boot no longer paginates in the taller opening
+window, and the column count now FOLLOWS the width rather than
+dictating it). Full suite 1555 green. docs/06 names the shape and the
+rule. Versions ran 1.4.4 to 1.5.3 through the evening; none of it
+pushed yet, Stefan looks first.

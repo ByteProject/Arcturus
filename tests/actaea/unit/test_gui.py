@@ -108,18 +108,24 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     opening_w = app.root.winfo_width()
     opening_h = app.root.winfo_height()
     assert app._aspect_var.get() == "modern"
-    # It opens at the size the shape asks for, and that size fits the screen:
-    # a square window 80 columns wide is taller than most desktops, so the
-    # height caps and the window is squatter than the ideal. The WIDTH is kept
-    # either way, because the picture spans it and a narrower window means a
-    # smaller picture, which is the thing the shape exists to get right.
+    # It opens at the size the shape asks for, and that size fits the screen.
+    # Modern is the Gargoyle page, measured from Stefan's reference capture:
+    # height 92 percent of width. It is a true ratio: on a desktop too short
+    # for it at eighty columns, both sides scale down together (never below
+    # seventy columns), so the window neither fills menu-bar-to-dock nor
+    # squats.
     want_w, want_h = app._aspect_size()
     assert opening_w == want_w
+    # The shape survives the fit: within a row's tolerance the opened window
+    # keeps the reference proportion unless the seventy-column floor forced
+    # the width up.
+    if want_w > 70 * app.cell_w + 2 * app._margin:
+        assert abs(want_h - want_w * 92 // 100) <= app.cell_h
     # The desktop has the last word on height (menu bar, dock): the window
     # asks for the shape and takes what it is given.
     assert 0 < opening_h <= want_h
     assert opening_h <= app.root.winfo_screenheight()
-    assert app._cols == 80
+    assert app._cols >= 70
     # And the two shapes really are different shapes: classic is the wider,
     # shorter 4:3, modern the taller 4:5.
     app._aspect_var.set("classic")
@@ -163,13 +169,12 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
             # simply wait, which is exactly what it should do to a player.
             more_seen.append("[MORE]" in app.text.get("1.0", "end"))
             if not first_pause_clean:
-                # NOTHING MAY HAVE SCROLLED OFF YET. The story began at the
-                # top of an empty screen, so when it first stops for a key the
-                # very first line it printed must still be on screen. It was
-                # not: the picture band and the status bar only claimed their
-                # rows when the story finally waited, a dozen rows of text
-                # after they should have, so the top of the boot scrolled away
-                # unread with no pause to stop it (Stefan's screenshot).
+                # THE PAGE ON OFFER STARTS ON SCREEN, and the furniture
+                # matches the model. The story asked for its picture before
+                # printing a word, so a pause with no band is a pause measured
+                # against a screen that does not exist (the geometry-lag bug);
+                # and a pause whose own page has partly scrolled off means the
+                # reading area was not the size the pager believed.
                 # The furniture must already be on screen: the story asked
                 # for a picture band before it printed a word, so by the time
                 # it stops for a key the band must have claimed its rows and
@@ -179,7 +184,7 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
                 # away unread (Stefan's screenshot, 2026-08-20).
                 first_pause_clean.append(
                     (app.vm.screen.image is None) == (app._band_h == 0)
-                    and app.text.bbox("1.0") is not None)
+                    and app.text.bbox("page_start") is not None)
             app._key_code = 32
             app._key.set(" ")
             app.root.after(30, pump)
@@ -270,9 +275,12 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     assert app.root.winfo_height() == (
         2 * app._margin + app._band_h + app.cell_h
         + app.text.winfo_height()), "the window does not fit its contents"
-    # The window is the cell grid plus the frame on both sides.
-    assert app.root.winfo_width() == app._cols * app.cell_w + 2 * app._margin
-    assert app._cols == 80
+    # The column count is derived FROM the window's width (the aspect or the
+    # player's hand decides the width; the width decides the columns), and
+    # the division's few leftover pixels rest in the right margin, exactly as
+    # the cell grid has always drawn them.
+    assert app._cols == (app.root.winfo_width() - 2 * app._margin) // app.cell_w
+    assert app._cols >= 70
     # The text area is a WHOLE number of lines (so it never shows a half row),
     # and it shrank to fit under the picture band.
     n = int(app.text.cget("height"))
@@ -284,7 +292,7 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     # to the settings, so the next launch opens where this one was left
     # instead of wherever the window manager puts it.
     import json
-    app._persist()          # what closing the window does
+    app._persist_now()      # what closing the window does
     saved = json.load(open(tmp_path / "actaea" / "settings.json"))
     assert saved["aspect"] == "modern"
     assert "+" in saved["geometry"] and "x" in saved["geometry"]

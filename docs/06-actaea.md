@@ -90,16 +90,14 @@ The menu bar:
 - View -> Font: every fixed-pitch family installed on the system (the list
   is scanned once, the first time the menu opens).
 - View -> Text Size, Screen Height: point sizes and window lines.
-- View -> Window Shape: Modern (4:5), the tall page Gargoyle and its kin
-  open in, or Classic (4:3), the shape of the machines the format came
-  from. Modern is what a first run takes, and on a screen too short for a
-  portrait window it arrives clamped, looking nearer to square: that is the
-  desktop, not the shape. The width is eighty columns in
-  both and stays eighty: a room picture spans the grid's full width, so its
-  size is decided by the width alone, and a taller window cannot enlarge it,
-  it only adds text rows underneath. Where the desktop is too short for the
-  shape, the window is squatter than the ideal rather than narrower than the
-  story wants. Everything is relative: a larger font gives a larger window,
+- View -> Window Shape: Modern (Gargoyle) or Classic (4:3). Modern is the
+  Gargoyle page, taken by measurement from the real thing rather than a
+  textbook fraction: the height is 92 percent of the width. It is a true
+  aspect ratio: where the desktop is too short for it at eighty columns,
+  BOTH sides come down together so the proportion holds, to a floor of
+  seventy columns; the column count simply follows the width. Classic is
+  the squat 4:3 of the machines the format came from, at the full eighty.
+  Everything is relative to the font: a larger font gives a larger window,
   a larger picture, and the same shape.
 - View -> Game Colours: off shows black-on-white with styles kept; on
   restores the game's palette, including text already on screen.
