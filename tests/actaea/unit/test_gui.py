@@ -41,7 +41,10 @@ GAME = (
     # there is little reading area left, so RECITE overflows it and the
     # window's [MORE] has to stop and wait. The pump below answers it the
     # way a player would.
-    'verb "recite"\n    reciting\n'
+    'on start\n'
+    + "".join('    say "The watch changes at midnight and the deck is cold, '
+              'line %d of the opening."\n' % i for i in range(1, 13))
+    + 'verb "recite"\n    reciting\n'
     'on reciting\n'
     + "".join('    say "Line %d of the long watch, counted off against the '
               'turning of the ship and the cold."\n' % i
@@ -76,6 +79,15 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     # The app reads and writes persistent settings (the View menu);
     # the test must see neither the user's nor leave its own.
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    # A SMALL WINDOW on purpose. Stefan's screenshot was a window resized well
+    # below its saved row count, and that is what made the boot bug show: with
+    # a picture band on top there was room for a dozen lines, the story printed
+    # more than that before its first prompt, and nothing paused because the
+    # widget had not yet been given its real size.
+    cfg = tmp_path / "actaea"
+    cfg.mkdir(parents=True, exist_ok=True)
+    (cfg / "settings.json").write_text(
+        '{"family": "Menlo", "size": 14, "rows": 20, "game_colours": true}')
 
     world = analyze(cosmos.combined_program(parse(GAME)))
     story = load(generate(world))
@@ -89,6 +101,7 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
 
     script = ["look", "recite", "quit", "y"]
     more_seen = []
+    end_in_view = []
     band = []
     caret_checks = []
 
@@ -123,8 +136,18 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
             app.root.after(30, pump)
             return
         if app._reading_line:
+            # BEFORE any update: the question is whether the story's own boot
+            # left the prompt on screen, not whether an idle pass can repair
+            # it afterwards.
+            end_in_view.append(app.text.bbox("end-1c") is not None)
             app.root.update_idletasks()
             band.append(app._image_canvas.winfo_reqheight())
+            # THE PROMPT MUST BE ON SCREEN. It was not at boot: the widget is
+            # asked for the settings height and keeps it only until the
+            # picture band claims its rows, and the story prints its whole
+            # boot without returning to the event loop, so the text ran on
+            # past the bottom edge with the prompt below it (Stefan's
+            # screenshot, 2026-08-20).
             if not caret_checks:
                 check_caret_discipline()
             if script:
@@ -145,6 +168,12 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     assert all(more_seen), "the pause happened with no [MORE] on screen"
     assert "[MORE]" not in out
     assert "Line 40 of the long watch" in out
+    # Every prompt was visible when it was offered, boot included.
+    assert end_in_view and all(end_in_view), end_in_view
+    # The page is measured from the pixels the reading area HAS, so it agrees
+    # with the window rather than with what the widget asked for.
+    assert app._reading_lines() == app.text.winfo_height() // app.cell_h
+    assert app._page_height() == app._reading_lines() - 1
     assert caret_checks and all(ok for _, ok in caret_checks), caret_checks
     assert "Window Probe" in out
     assert "Observation Deck" in out

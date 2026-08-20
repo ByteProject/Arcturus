@@ -11701,3 +11701,56 @@ HANDS OFF TO STEFAN, for the look rather than the mechanism: open a game
 in the window, walk into a pictured room, and judge whether the [MORE]
 sits where it should and reads right. Fullscreen deserves one look, since
 that is where the adaptive height earns its keep.
+
+## 2026-08-20: the window's boot, from Stefan's two screenshots
+## (Actaea 1.4.1). ONE BUG, TWO SYMPTOMS, AND A METHOD CORRECTION
+
+HIS REPORT, from playing the Rabenstein demo in the window: at boot the
+status bar is up but the prompt is nowhere, and no [MORE] appears;
+after RESTART everything behaves, except the [MORE] comes one line too
+early, with room for two more lines below it.
+
+MY FIRST ANSWER WAS WRONG TWICE OVER, and both are worth recording.
+First, I read the status bar as a mode error; it is not. The bar
+appears at the first prompt because that is what Cosmos's latch says,
+so its presence PROVED the story had reached the prompt and the prompt
+itself was off-screen. Second, and worse as method: I launched the
+interpreter on his machine to measure it, without the art beside the
+story, so there was no picture band and the whole text fit, which is
+the one condition under which the bug cannot appear. A probe hung and
+left a dead window on his screen for five minutes. He asked what I was
+actually doing. NEW RULE, agreed: nothing gets opened on his screen
+without asking first.
+
+WHAT IT ACTUALLY WAS. His window is resized well below its saved
+thirty rows, so the picture band leaves only a handful of text lines.
+Tk applies a widget resize when it next goes idle, and the story
+prints its entire boot (intro, banner, opening room, prompt) without
+ever returning to the event loop, so at boot the window is measured as
+the size it had BEFORE the band arrived. Two consequences, exactly his
+two symptoms: the pager reckoned a page that did not exist and never
+paused, and Tk keeps the TOP line when a Text widget shrinks, so
+everything below the fold, prompt included, went out of sight and
+stayed there. RESTART looked right because by then the layout had
+settled.
+
+THE FIX, three parts. The reading area's height now comes from the
+arithmetic the layout itself does, right when it is computed, not from
+the widget's pixel height, which lags a turn behind (measured:
+update_idletasks does NOT bring it forward, still 439 pixels for a
+widget just told to be six lines). The view is put back at the tail on
+the idle pass that applies a resize, and again immediately before the
+story waits for input, which is the moment that matters to a player.
+And the page keeps ONE spare line below the marker, per his ruling, not
+two.
+
+THE TEST EARNED ITS PLACE THE HARD WAY. Written first, it passed
+against the broken code twice, because the probe game booted in a few
+lines and the harness flushed the layout before looking. It now boots
+with an intro longer than the area, in a deliberately small window, and
+inspects the view as the STORY left it. It fails against HEAD and
+passes with the fix, which is the only version of that test worth
+having. Full suite 1555 green.
+
+HANDS TO STEFAN, on the rebuilt standalone: the boot with the picture,
+and whether the [MORE] now sits with one spare line rather than two.

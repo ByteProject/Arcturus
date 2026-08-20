@@ -267,6 +267,9 @@ class ActaeaApp:
         # it, so nothing scrolls past unread. The pager counts the display
         # lines; the widget half is further down.
         self._pager = Pager()
+        # How many display lines the reading area has, kept by _relayout: the
+        # widget's own pixel height lags a turn behind (see there).
+        self._text_rows = 0
 
         self._line_ready = tk.BooleanVar(value=False)
         self._key: tk.StringVar = tk.StringVar(value="")  # the wake signal
@@ -437,8 +440,24 @@ class ActaeaApp:
         else:
             avail = self._rows_var.get() * self.cell_h - band - status
         n = max(1, avail // self.cell_h)
+        # The authority on how tall the reading area is. Tk applies a geometry
+        # change when it next goes idle, and the story prints a whole boot
+        # (intro, banner, opening room) without ever returning to the event
+        # loop, so asking the widget for its pixel height mid-boot answers with
+        # the size it had before the picture band arrived. This number is right
+        # the moment it is computed, and the pager reads it.
+        self._text_rows = n
         if int(self.text.cget("height")) != n:
             self.text.configure(height=n)
+            # The pixels follow later: Tk resizes the widget when it next goes
+            # idle, and update_idletasks here does NOT bring that forward (it
+            # was measured: still 439 pixels for a widget just told to be six
+            # lines). So the row count above is the authority mid-turn, and
+            # the VIEW is put right on the idle pass that does the resize, and
+            # again before the story waits for input (_settle_view). Tk keeps
+            # the TOP line when a Text widget shrinks, so without that the
+            # prompt ends up below the bottom edge and stays there.
+            self.text.after_idle(self._tail_into_view)
 
     def _on_root_resize(self, event=None) -> None:
         """Fullscreen and maximize change the window's real width: recompute
@@ -869,14 +888,66 @@ class ActaeaApp:
     # from the text area's CURRENT height, so a picture band taking rows or a
     # fullscreen window giving them back is accounted for by itself.
 
-    def _page_height(self) -> int:
-        """Display lines the reader gets before the pause, one row kept for
-        the [MORE] itself."""
+    def _settle_view(self) -> None:
+        """About to hand the screen to the player: make any pending resize
+        real and put the tail back in view.
+
+        The story prints a whole turn without returning to the event loop, so
+        a resize asked for mid-turn (the picture band claiming rows, the
+        status bar appearing) is still pending here, and Tk keeps the TOP line
+        when a Text widget shrinks. Left alone, the player is offered a prompt
+        that is below the bottom edge of the window, with no sign that
+        anything is there (Stefan's screenshot, 2026-08-20). Idle tasks only:
+        no input is processed, so nothing can re-enter."""
+        if self._closed:
+            return
         try:
-            rows = int(self.text.cget("height"))
+            self.text.update_idletasks()
+            self.text.see("end")
+        except tk.TclError:
+            pass
+
+    def _tail_into_view(self) -> None:
+        if not self._closed:
+            try:
+                self.text.see("end")
+            except tk.TclError:
+                pass  # the window went away between the request and the idle
+
+    def _reading_lines(self) -> int:
+        """How many display lines the reading area REALLY has at this moment.
+
+        Measured from the pixels the widget HAS, never from the height it
+        asked for. The two part company constantly: at boot the widget is
+        given the settings height and keeps it only until the picture band
+        claims its rows, and the player is free to change the text size, the
+        screen height, the window, or fullscreen at any time. Nothing here is
+        ever stored, so every one of those settles itself."""
+        rows = self._text_rows
+        if rows >= 2:
+            return rows
+        if self.cell_h <= 0:
+            return 0
+        try:
+            rows = self.text.winfo_height() // self.cell_h
+        except tk.TclError:
+            return 0
+        if rows >= 2:
+            return rows
+        # Not laid out yet (the window exists before the story starts): what
+        # it asked for is the best guess available.
+        try:
+            return int(self.text.cget("height"))
         except (tk.TclError, ValueError):
             return 0
-        return rows - 1
+
+    def _page_height(self) -> int:
+        """Display lines to print before pausing: the reading area less ONE,
+        so a line stays free below the marker rather than the pause landing
+        with the area brim full (Stefan's eye, 2026-08-20: one line of buffer,
+        not two)."""
+        rows = self._reading_lines()
+        return rows - 1 if rows >= 3 else 0
 
     def _insert(self, s: str, tag: str) -> None:
         if tag:
@@ -885,16 +956,19 @@ class ActaeaApp:
             self.text.insert("end-1c", s)
 
     def _insert_paged(self, s: str, tag: str) -> None:
-        page = self._page_height()
         # Mid-read printing (a timed interrupt) and key waits must not open a
         # second wait inside the first, and a screen with no room to page
         # cannot pause at all: in both cases the text goes in whole.
-        if page < 2 or self._reading_line or self._reading_key or self._closed:
+        if (self._page_height() < 2 or self._reading_line
+                or self._reading_key or self._closed):
             self._insert(s, tag)
             self._pager.reset(0)
             return
         rest = s
         while rest:
+            # Re-measured every time round: the window may have been resized
+            # between one page and the next, and the band may have arrived.
+            page = self._page_height()
             room = page - self._pager.lines
             if room <= 0:
                 self._page_pause()
@@ -967,6 +1041,7 @@ class ActaeaApp:
             self._absorb_preload(preload)
         self.text.mark_set("insert", "end-1c")
         self._pager.reset(self._pager.column)
+        self._settle_view()
         self._start_timer(timeout, on_timeout)
         self.root.wait_variable(self._line_ready)
         self._stop_timer()
@@ -1125,6 +1200,7 @@ class ActaeaApp:
         self._key_code = 0
         self._key.set("")
         self._pager.reset(self._pager.column)
+        self._settle_view()
         self._start_timer(timeout, on_timeout)
         self.root.wait_variable(self._key)
         self._stop_timer()
