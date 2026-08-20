@@ -759,17 +759,16 @@ class ActaeaApp:
         else:
             band_h = mode * self.cell_h if mode and mode > 0 else 0
             self._band_px = 0
-        # THE BAND TAKES WHOLE TEXT ROWS. A picture scaled to the window's
-        # width lands on whatever height its aspect gives it (measured: 288
-        # pixels against a 22-pixel line, thirteen rows and change), and the
-        # remainder became an orphan strip under the text: too small to hold a
-        # line, big enough to look like one. Reading "pause one line before the
-        # bottom" then showed two lines of space, which is what a cell screen
-        # never does and what Stefan kept seeing. The band is rounded UP to a
-        # whole row and the picture keeps its exact aspect inside it, with the
-        # few spare pixels below it in the game's own background, which is what
-        # the band already wears. Recomputed on every layout, so a font change
-        # (a different cell height) re-rounds by itself; nothing is stored.
+        # THE BAND TAKES WHOLE TEXT ROWS, AND THE SPARE PIXELS GO ON TOP. A
+        # picture scaled to the window's width lands on whatever height its
+        # aspect gives it (measured: 288 pixels against a 22-pixel line), and
+        # those few orphan pixels look like a blank row wherever they show:
+        # under the text they read as a spare line that is not there, under
+        # the picture as a second blank row where the library printed one
+        # (Stefan caught both, 2026-08-20). Above the picture they sit against
+        # the window's top edge in the game's own background, where there is
+        # no row for them to imitate. The picture keeps its exact aspect and
+        # its full width, and the reading area is a whole number of rows.
         if band_h > 0 and self.cell_h > 0:
             over = band_h % self.cell_h
             if over:
@@ -783,9 +782,13 @@ class ActaeaApp:
         )
         if photo is not None:
             # Centered within the grid width (edge to edge at that width),
-            # left-aligned with the bar and the text.
-            self._image_canvas.create_image(target_w // 2, 0, image=photo,
-                                            anchor="n")
+            # left-aligned with the bar and the text, and anchored to the
+            # BOTTOM of the band: the picture sits flush against the status
+            # bar and the text below it, and the few spare pixels that round
+            # the band to whole rows stay at the top, against the window's
+            # edge, where nothing mistakes them for a blank line.
+            self._image_canvas.create_image(target_w // 2, band_h, image=photo,
+                                            anchor="s")
         self._band_h = band_h
         self._relayout()  # the text below re-fits to whole lines under the band
         if self._grid_shown:
