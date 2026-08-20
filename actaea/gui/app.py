@@ -1062,14 +1062,18 @@ class ActaeaApp:
             return 0
 
     def _page_height(self) -> int:
-        """Display lines to print before pausing: the reading area less ONE,
-        so a line stays free below the marker rather than the pause landing
-        with the area brim full (Stefan's eye, 2026-08-20: one line of buffer,
-        not two)."""
+        """Display lines to print before pausing: the reading area, whole.
+
+        One row is held back, the way the console front end does it: the
+        marker is appended to the last line printed, so if that line is
+        already near the right margin the marker wraps, and without a row in
+        hand the wrap would push a line off the top unread."""
         rows = self._reading_lines()
         return rows - 1 if rows >= 3 else 0
 
     def _insert(self, s: str, tag: str) -> None:
+        if self._closed:
+            return
         if tag:
             self.text.insert("end-1c", s, (tag,))
         else:
@@ -1093,8 +1097,7 @@ class ActaeaApp:
             if room <= 0:
                 self._page_pause()
                 if self._closed:
-                    self._insert(rest, tag)
-                    return
+                    return      # the window went: nothing left to write into
                 continue
             piece, rest = self._pager.feed(rest, max(2, self._cols), room)
             if piece:
@@ -1102,8 +1105,7 @@ class ActaeaApp:
             if rest:
                 self._page_pause()
                 if self._closed:
-                    self._insert(rest, tag)
-                    return
+                    return      # the window went: nothing left to write into
 
     def _page_pause(self) -> None:
         """Show [MORE] after the last line printed and wait for any key."""
@@ -1125,6 +1127,28 @@ class ActaeaApp:
         except OSError:
             pass
 
+    def _log_gap(self, where: str) -> None:
+        """At a pause: exactly how much room is left below the marker, in
+        pixels and in rows. Settles by measurement what counting rows in a
+        screenshot cannot."""
+        if not os.environ.get("ACTAEA_GEOM"):
+            return
+        try:
+            box = self.text.bbox(where)
+            height = self.text.winfo_height()
+            with open(os.path.expanduser("~/actaea-geom.log"), "a") as fh:
+                if box is None:
+                    fh.write("  gap: the marker's line is not on screen\n")
+                else:
+                    bottom = box[1] + box[3]
+                    fh.write(
+                        "  gap: marker_line_bottom=%d text_height=%d "
+                        "free_px=%d free_rows=%.2f cell_h=%d\n"
+                        % (bottom, height, height - bottom,
+                           (height - bottom) / self.cell_h, self.cell_h))
+        except (tk.TclError, ZeroDivisionError):
+            pass
+
     def _pause_at(self, where: str) -> None:
         """[MORE] at `where`, and any key goes on.
 
@@ -1137,6 +1161,7 @@ class ActaeaApp:
         if self._closed:
             return
         self._log_geom("[MORE]")
+        self._log_gap(where)
         self.text.mark_set("more_mark", where)
         self.text.mark_gravity("more_mark", "left")
         tag = self._more_tag()
