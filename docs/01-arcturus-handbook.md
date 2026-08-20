@@ -4722,6 +4722,21 @@ branch folds away in a game where darkness cannot happen, which the
 compiler knows exactly (a room with `lit false`, or a handler clearing
 `lit`, is what makes it possible).
 
+The bar repaints its left side only when that side has changed: a turn
+that stays in the room rewrites the score and the move count and leaves
+the name where it stands, which is a full row of writes saved on every
+ordinary turn and, on an 8-bit screen, the difference between a name that
+flickers and one that sits still. It knows about moving, going in or out
+of something, light arriving or failing, and the window changing width;
+anything that takes the row away entirely (a menu, a quote box, a
+full-screen erase, an arc_image band re-basing) already tells it.
+
+If your own code writes into the bar's row, or overrides `line_nested` or
+the darkness line with something that changes on its own schedule, call
+`bar_unseated` and the next paint is whole again. Redefining `status_bar`
+itself needs nothing: your version replaces the whole painter, skip logic
+and all.
+
 ### foresight
 
 ```

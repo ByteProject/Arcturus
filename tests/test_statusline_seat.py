@@ -14,9 +14,20 @@ erase (which always comes back through screen_ready), or a restore that may
 have reset the screen. Everything that can take it away says so through the
 bar_unseated seam in loop.prelude, empty and free in a game with no bar.
 
-These tests read the story's op stream rather than the screen, because that is
-where the defect lived: the picture on a conformant interpreter was always
-right, and the waste was invisible until someone counted the opcodes."""
+The same round settled what a paint may cost. Painting the left side means
+blanking the row and writing the room name back over the blank, which on a
+memory-mapped screen is the name visibly going away and returning; the
+arc_image contract (docs/08 3a) asks for a bar paint after every image change,
+so on a scene change the player saw that happen twice in one turn. Nothing on
+the left changes on an ordinary turn, so the left side is painted only when it
+actually changed, and an ordinary turn writes the numbers alone. What may have
+taken the row away is exactly what bar_unseated already knew about, so the two
+halves share one seam.
+
+These tests read the story's op stream and the cells it writes rather than the
+finished screen, because that is where both defects lived: the picture on a
+conformant interpreter was always right, and the waste was invisible until
+someone counted."""
 
 import pytest
 
@@ -26,6 +37,7 @@ from arcturus.parser import parse
 from arcturus.sema import analyze
 from actaea.io import CaptureIO
 from actaea.loader import load
+from actaea.screen import ScreenModel
 from actaea.vm import VM
 
 ROOMS = (
@@ -204,3 +216,158 @@ def test_a_quiet_turn_costs_no_split_on_a_picture_interpreter():
     assert "split(1)" not in quiet, quiet       # nothing moved: no split
     assert "split(1)" not in still, still
     assert quiet.count("paint") == 1
+
+
+# -- what a paint costs ------------------------------------------------------
+#
+# The second harness watches the CELLS a paint writes, not the opcodes: a full
+# paint blanks the row and writes the name back (cells written twice), an
+# ordinary one writes the numbers alone (a handful of cells, none twice).
+
+def _paints(story, cmds, width=40, pictures=False, save_dir=None):
+    """Per bar paint: (characters written, cells written more than once, the
+    row as it stood when the paint finished)."""
+    out, cur = [], {"n": None}
+    orig_write, orig_select = ScreenModel.write, ScreenModel.select
+
+    def write(self, text):
+        if cur["n"] is not None and self.window == 1:
+            _, c = self.cursor
+            for i, ch in enumerate(text):
+                cur["n"]["writes"] += 1
+                key = c + i
+                cur["n"]["cells"][key] = cur["n"]["cells"].get(key, 0) + 1
+        return orig_write(self, text)
+
+    def select(self, window):
+        was = self.window
+        r = orig_select(self, window)
+        if was == 0 and self.window == 1:
+            cur["n"] = {"writes": 0, "cells": {}}
+        elif was == 1 and self.window == 0 and cur["n"] is not None:
+            p = cur["n"]
+            out.append((p["writes"],
+                        sum(1 for v in p["cells"].values() if v > 1),
+                        self.row_text(1).rstrip()))
+            cur["n"] = None
+        return r
+
+    ScreenModel.write, ScreenModel.select = write, select
+    try:
+        io = CaptureIO(script=list(cmds) + ["quit", "y"],
+                       save_dir=str(save_dir) if save_dir else None)
+        vm = VM(load(story), io)
+        vm.screen.set_width(width)
+        # The story reads its width from the header, not from the model.
+        vm.mem.set_byte(0x21, width)
+        if pictures:
+            vm.mem.set_byte(1, vm.mem.byte(1) | 2)
+        try:
+            vm.run(max_steps=20_000_000)
+        except SystemExit:
+            pass
+    finally:
+        ScreenModel.write, ScreenModel.select = orig_write, orig_select
+    return out
+
+
+def test_an_ordinary_turn_writes_the_numbers_alone():
+    # LOOK and WAIT change nothing on the left. Before this round every one of
+    # them blanked all 40 cells and wrote "The Hall" back over the blank.
+    boot, *rest = _paints(_build(BAR), ["look", "wait", "wait"])
+    assert boot[0] > 40 and boot[1] > 0          # the first paint is whole
+    for writes, twice, row in rest[:3]:
+        assert writes < 20, (writes, row)        # the numbers, nothing else
+        assert twice == 0, (twice, row)
+        assert "The Hall" in row                 # and the name still stands
+
+
+def test_a_room_change_paints_the_whole_row():
+    boot, moved, quiet = _paints(_build(BAR), ["east", "look"])[:3]
+    assert moved[1] > 0                          # blanked and rewritten
+    assert "The Garden" in moved[2]
+    assert quiet[1] == 0 and "The Garden" in quiet[2]
+
+
+def test_the_counters_still_advance_on_a_partial_paint():
+    # The right-hand block is repainted every time: it is what actually moves.
+    paints = _paints(_build(BAR), ["look", "look", "look"])
+    counts = [row.split("Moves:")[-1].strip() for _, _, row in paints]
+    assert counts[:4] == ["0", "1", "2", "3"], counts
+
+
+def test_a_picture_change_in_the_same_room_still_paints_the_whole_row():
+    # THE CONTRACT CASE (docs/08 3a). An interpreter that releases the band's
+    # rows in a pictureless room may hand the bar's row back to the text and
+    # re-base it later, so after every image change the bar must be painted
+    # WHOLE, even though the room did not change. screen_ready clears what the
+    # row shows for exactly this reason.
+    src = (
+        'game\n    title "I"\n    start hall\nconstant arc_mode = 12\n'
+        'summon.statusline\n'
+        'room hall\n    arc_image 8\n    name "The Hall"\n'
+        '    desc "A long hall."\n'
+        'verb "sleep"\n    sleeping\n'
+        'on sleeping\n    change here.arc_image to 9\n    say "Morning comes."\n'
+    )
+    # boot | LOOK (numbers only) | the picture moves (whole) | the prompt
+    # after it (numbers only).
+    paints = _paints(_build(src), ["look", "sleep"], pictures=True)
+    after_the_picture_moved = paints[2]
+    assert after_the_picture_moved[1] > 0, paints    # blanked and rewritten
+    assert "The Hall" in after_the_picture_moved[2]
+    assert paints[1][1] == 0 and paints[3][1] == 0   # the quiet ones stay cheap
+
+
+def test_a_width_change_paints_the_whole_row():
+    # A resized window moves the right-hand block, and the story hears about
+    # it only by reading screen_width again: the width is part of what the row
+    # is remembered by.
+    story = _build(BAR)
+    narrow = _paints(story, ["look"], width=40)
+    wide = _paints(story, ["look"], width=80)
+    assert "Moves:" in narrow[1][2] and "Moves:" in wide[1][2]
+    assert len(wide[0][2]) > len(narrow[0][2])
+
+
+def test_the_bar_is_whole_again_after_the_menu():
+    boot, talk, after = _paints(_build(MENU), ["talk to esme", "q", "look"])[:3]
+    assert "Madame Esme" not in after[2]
+    assert "A Tent" in after[2]
+
+
+def test_darkness_paints_the_whole_row():
+    # The left side says "In the dark" instead of the room: a light change is
+    # a left-side change like any other.
+    src = (
+        'game\n    title "D"\n    start hall\nsummon.statusline\n'
+        'room hall\n    name "The Hall"\n    desc "A long hall."\n'
+        '    lit false\n'
+        'thing torch in player\n    name "torch"\n    words torch\n'
+        '    binary\n    lit false\n'
+        '    on switch_on\n        now self is active\n        now self is lit\n'
+        '        say "It catches."\n'
+    )
+    paints = _paints(_build(src), ["turn on torch", "look"])
+    assert "dark" in paints[0][2].lower(), paints[0]   # boot: an unlit room
+    lit = paints[1]
+    assert "The Hall" in lit[2], paints                # the light arrived
+    assert lit[1] > 0                                  # and repainted it whole
+    assert paints[2][1] == 0                           # then back to cheap
+
+
+def test_a_story_can_force_a_whole_paint():
+    # The documented escape hatch (chapter 22): a story that writes into the
+    # bar's row itself, or overrides part of the left side with something that
+    # changes on its own schedule, calls bar_unseated and the next paint is
+    # whole again. The bar cannot see a change nobody told it about.
+    src = (
+        'game\n    title "R"\n    start hall\nsummon.statusline\n'
+        'room hall\n    name "The Hall"\n    desc "A long hall."\n'
+        'verb "refresh"\n    refreshing\n'
+        'on refreshing\n    bar_unseated\n    say "Redrawn."\n'
+    )
+    boot, quiet, forced = _paints(_build(src), ["look", "refresh"])[:3]
+    assert quiet[1] == 0                     # an ordinary turn: numbers only
+    assert forced[1] > 0                     # asked for whole, painted whole
+    assert "The Hall" in forced[2]

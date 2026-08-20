@@ -107,6 +107,16 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # had the noun path, the standard verb never declared the line. All
 # three packs gained it (German also verlasse/verlassen), and the
 # boarding idiom matrix is pinned as a test.
+# 2026-08-20 (the bar paints what changed): a further +40 to +64, again in
+# games WITH a status bar only. Painting the left side means blanking the row
+# and writing the room name back over the blank, 74 character writes for a
+# 40-cell row with 34 of its cells written twice; the arc_image contract asks
+# for a bar paint after every image change (docs/08 3a), so a scene change did
+# that twice in one turn and the name visibly flashed on a memory-mapped
+# screen. The left side is now painted only when it actually changed, so an
+# ordinary turn writes the numbers alone: 74 down to 11 at 40 columns. What the
+# row shows is remembered (room, nesting, darkness, and the width it was laid
+# out for) and forgotten through the same bar_unseated seam.
 # 2026-08-20 (seat the status row once): +24, and +32 where the quote box or
 # the conversations menu is also summoned, in games WITH a status bar only;
 # every other example is byte-identical. Two interpreter authors reported the
@@ -118,62 +128,62 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # fewer opcode per turn forever, and on a memory-mapped 8-bit screen a split
 # is not free the way it is on a modern terminal.
 CEILINGS = {
-    "features/yes-no.storyarc": 17216,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/press-any-key.storyarc": 18064,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/shiftable.storyarc": 17576,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/enhance-redefine.storyarc": 17940,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/consult-about.storyarc": 18056,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/session-verbs.storyarc": 17656,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/vary.storyarc": 18836,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/foresight.storyarc": 19016,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/beyond.storyarc": 19548,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/alter.storyarc": 18228,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/catalogs.storyarc": 18184,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/matrix.storyarc": 18496,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/direction-grammar.storyarc": 17608,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/scenery-contents.storyarc": 18088,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/yes-no.storyarc": 17256,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/press-any-key.storyarc": 18104,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/shiftable.storyarc": 17616,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/enhance-redefine.storyarc": 17980,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/consult-about.storyarc": 18096,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/session-verbs.storyarc": 17696,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/vary.storyarc": 18876,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/foresight.storyarc": 19064,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/beyond.storyarc": 19596,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/alter.storyarc": 18276,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/catalogs.storyarc": 18224,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/matrix.storyarc": 18536,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/direction-grammar.storyarc": 17648,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/scenery-contents.storyarc": 18136,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/trigger.storyarc": 16948,
     "features/adjectives.storyarc": 17528,  # 2026-08-15 first pin: the adjective marker showcase (>red, the ZIL match classes; games without the marker stay byte-identical)  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "granules/nautical.storyarc": 18096,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "granules/npcengine.storyarc": 20140,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "granules/maniacswap.storyarc": 18360,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "beispiel-deutsch.storyarc": 25488,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "granules/nautical.storyarc": 18136,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/npcengine.storyarc": 20180,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/maniacswap.storyarc": 18400,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "beispiel-deutsch.storyarc": 25552,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "brass-lantern.storyarc": 18964,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "cloak-of-darkness.storyarc": 19620,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "ejemplo-espanol.storyarc": 22532,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "cloak-of-darkness.storyarc": 19684,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "ejemplo-espanol.storyarc": 22580,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/computed-properties.storyarc": 17316,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/containers.storyarc": 17652,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/daemons-and-timers.storyarc": 18880,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/doors-and-locks.storyarc": 17464,  # 2026-08-17 repriced: the existence form (docs/01 chapter 3); a two-sided door is now present on both sides (~264 bytes of presence walk, the two language examples also pay the 1-byte both-forms marker)
-    "features/appearance.storyarc": 18012,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/components.storyarc": 17492,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "granules/whistle.storyarc": 16980,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/pathfinding.storyarc": 19880,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/perform.storyarc": 17284,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/appearance.storyarc": 18052,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/components.storyarc": 17532,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/whistle.storyarc": 17020,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/pathfinding.storyarc": 19920,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/perform.storyarc": 17324,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/grains.storyarc": 17144,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "features/handlers.storyarc": 18428,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/handlers.storyarc": 18468,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/grammar.storyarc": 17356,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "features/introproperty.storyarc": 18516,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/introproperty.storyarc": 18564,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/kinds-and-inheritance.storyarc": 17284,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/on-other.storyarc": 17176,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/zcolor.storyarc": 17568,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "features/scoring.storyarc": 19444,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/zcolor.storyarc": 17608,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/scoring.storyarc": 19484,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/spans.storyarc": 17400,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/vehicles.storyarc": 17848,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "granules/ambience.storyarc": 19172,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "granules/conversations.storyarc": 18884,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "features/vehicles.storyarc": 17896,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/ambience.storyarc": 19212,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/conversations.storyarc": 18924,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/extended-verbs.storyarc": 20180,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "granules/infocom-interrogation.storyarc": 19104,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
-    "granules/quotes.storyarc": 17332,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "granules/take-all.storyarc": 19220,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "granules/plurals.storyarc": 18164,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
-    "granules/statusline.storyarc": 17304,  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+    "granules/quotes.storyarc": 17372,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/take-all.storyarc": 19268,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/plurals.storyarc": 18204,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/statusline.storyarc": 17344,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/verbose-exits.storyarc": 17320,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 20240  # 2026-08-20 repriced: seat the status row once and repaint after (the interpreter authors' report)
+CLOAK_Z8_CEILING = 20304  # 2026-08-20 repriced: the bar paints its left side only when it changed
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

@@ -1648,19 +1648,19 @@ block msg_talk_over()
 // English "Score: " string it replaces; the wide form adds "   Zuege: ".
 block line_status_score(w)
     if any_awards is 0
-        set_cursor(1, w - 7 - status_digits(turns))
-        show("Züge: ")
+        set_cursor(1, w - 8 - status_digits(turns))
+        show(" Züge: ")
         show(turns)
         return 0
     if w < 54
-        set_cursor(1, w - 9 - status_digits(score) - status_digits(turns))
-        show("Punkte: ")
+        set_cursor(1, w - 10 - status_digits(score) - status_digits(turns))
+        show(" Punkte: ")
         show(score)
         show("/")
         show(turns)
     else
-        set_cursor(1, w - 17 - status_digits(score) - status_digits(turns))
-        show("Punkte: ")
+        set_cursor(1, w - 18 - status_digits(score) - status_digits(turns))
+        show(" Punkte: ")
         show(score)
         show("   Züge: ")
         show(turns)

@@ -1354,19 +1354,19 @@ block msg_talk_over()
 // right-aligned, in Spanish words and widths.
 block line_status_score(w)
     if any_awards is 0
-        set_cursor(1, w - 9 - status_digits(turns))
-        show("Turnos: ")
+        set_cursor(1, w - 10 - status_digits(turns))
+        show(" Turnos: ")
         show(turns)
         return 0
     if w < 54
-        set_cursor(1, w - 9 - status_digits(score) - status_digits(turns))
-        show("Puntos: ")
+        set_cursor(1, w - 10 - status_digits(score) - status_digits(turns))
+        show(" Puntos: ")
         show(score)
         show("/")
         show(turns)
     else
-        set_cursor(1, w - 19 - status_digits(score) - status_digits(turns))
-        show("Puntos: ")
+        set_cursor(1, w - 20 - status_digits(score) - status_digits(turns))
+        show(" Puntos: ")
         show(score)
         show("   Turnos: ")
         show(turns)

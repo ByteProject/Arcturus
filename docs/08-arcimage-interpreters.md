@@ -195,6 +195,22 @@ arc_image plays it unchanged as text. Here is the whole contract.
      whichever presentation you chose. A band-keeping interpreter sees
      one redundant repaint per scene change and nothing else.
 
+     That paint is a WHOLE one: the row is reserved again and every cell
+     of it is written, room name included, because an interpreter that
+     released the band's rows may have handed the bar's row away with
+     them. Ordinary turns are not whole. When nothing on the left has
+     changed, the bar rewrites only its numbers, since they are the only
+     part that moves, and a full row of writes per turn is real work on a
+     memory-mapped screen. Both shapes are the same bar; do not read a
+     partial paint as the story forgetting the room name.
+
+     The numbers on the post-band paint belong to the turn IN PROGRESS,
+     not the one that is ending: the picture is drawn while the command is
+     being carried out, and the move counter advances after it. So a scene
+     change shows the new room with the previous move count for the length
+     of one room description, and the paint at the prompt carries the
+     finished count. That is the intended stream, not a defect.
+
    A boot therefore always reads: clear (id 0) | bar | [erase | bar,
    if the game recolours] | first picture | bar | opening text | bar at
    the first prompt. A room transition always reads: picture | bar |

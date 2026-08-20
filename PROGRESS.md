@@ -11566,3 +11566,71 @@ back, the restore re-seat, and the quiet turn costing no split on a
 picture-claiming interpreter. Full suite 1535 green. Handbook chapter
 23 states the rule for anyone writing a granule that takes the upper
 window.
+
+## 2026-08-20: the bar paints what changed (Cosmos 1.16.2).
+## STEFAN'S RULING: the second paint STAYS, it is the contract
+
+THE SECOND HALF of the interpreter-authors' report, taken up the same
+day on Stefan's "I want to take this now", with a piece of information
+only he had: on a modern interpreter the band's rows are RELEASED back
+to the text view in a pictureless room and built up again in the next
+pictured room. That is precisely the case docs/08 section 3a was
+written for, and reading it settled the question: the bar paint after
+every image change is a PUBLISHED CONTRACT, promised on the wire, with
+both demos pinned to the stream in the test suite. Triton, Haumea,
+Canopus and Actaea's own window are all written against it. STEFAN
+RULED: we keep it, "there is a reason it is part of the contract."
+
+SO THE FLICKER HAD TO COME FROM SOMEWHERE ELSE, and measuring found
+it inside the paint, not between paints. Painting the left side meant
+blanking the whole row and writing the room name back over the blank:
+74 character writes for a 40-cell row, 34 of its cells written twice.
+On a memory-mapped screen that IS the name going away and coming back,
+and the contract asks for it twice on a scene change.
+
+THE FIX: the left side is painted only when it actually changed, so an
+ordinary turn writes the numbers alone, which are the only thing that
+moves. Measured on a 40-column screen, Rabenstein, per turn: a turn
+that changes room 116 writes down to 68 (and the name painted ONCE,
+not twice); a turn that changes nothing 57 down to 9. Identical shape
+in all three languages.
+
+WHAT THE ROW SHOWS is remembered as room, nesting, darkness, and the
+width it was laid out for (a resize moves the right-hand block, and
+the story hears about it only by reading screen_width again). It is
+forgotten through bar_unseated, yesterday's seam, which turned out to
+be exactly the same list of events: the menu, the quote box, a
+full-screen erase, a restore, and the band re-seat. One seam, both
+halves.
+
+THE TEST CAUGHT THE ONE THING THAT MATTERED. Written for the contract
+case (a picture that changes in the SAME room), it failed: screen_ready
+cleared the reservation but not the remembered content, so the paint
+after a band change was a cheap one. On an interpreter that had just
+handed the bar's row back to the text, that would have left the room
+name missing. screen_ready now forgets both, and the test pins it.
+
+A guard space rides in front of the numbers in all three language
+packs: with no blank-and-redraw, a counter that SHRINKS (undo rewinds
+turns, a penalty rewinds score) would otherwise leave its old leading
+digit standing.
+
+COST: +40 to +64, in games with a status bar only; the 15 examples
+without one are byte-identical under cmp. DONE-TEST:
+tests/test_statusline_seat.py, now 14 tests (the op stream and the
+cells written); full suite 1543 green. docs/08 section 3a now states
+all three parts of the contract in writing: the post-band paint is
+WHOLE, ordinary paints are partial and must not be read as the story
+forgetting the room, and the numbers on the post-band paint belong to
+the turn in progress, which is the stale count the reporters saw and
+correctly flagged as odd. Handbook chapter 22 documents bar_unseated
+for authors who paint into the row themselves.
+
+STILL OPEN, Stefan's own observation, ruled unrelated and next: in
+Actaea's window, coming from a pictureless room into a pictured one
+can leave the view needing a manual scroll. Two candidates in
+actaea/gui/app.py, the relayout that shrinks the text widget when the
+band returns without re-asserting the tail, and _show_unread's
+read-from-the-top jump firing far more often in a shortened area. His
+one-second diagnostic decides it: press a key instead of scrolling,
+and if the view snaps to the bottom it is _show_unread.

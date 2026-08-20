@@ -56,10 +56,50 @@ flag bar_live
 // prose in the bar's row, so every doubtful path clears it.
 flag bar_seated
 
+// What the row ALREADY SHOWS on its left side, so an ordinary turn can leave
+// it alone: the room, where the player stands inside it, whether the room was
+// dark, and the width the row was laid out for. The width belongs here as much
+// as the room does: a window resize moves the right-hand block, and the story
+// hears about it only by reading screen_width again.
+global bar_room = 0
+global bar_where = 0
+global bar_lit = 0
+global bar_width = 0
+
 // The seam's override: the row is gone (or may be), so the next paint reserves
-// it again before printing anything.
+// it again AND paints it whole. Forgetting what the row shows is the point:
+// whoever called this may have erased it, moved it, or handed its rows to a
+// picture band. Authors have the same call for the same purpose: change what
+// the bar's left side would say without moving the player (a room renamed
+// mid-scene) and `bar_unseated` makes the next paint show it.
 block bar_unseated()
     change bar_seated to false
+    change bar_room to nothing
+
+// Has the left side changed since it was last painted? Only then is it worth
+// the blank-and-redraw; the numbers on the right are repainted every time
+// either way, since they are what actually moves.
+block bar_stale(w)
+    if here is not bar_room
+        return 1
+    if w is not bar_width
+        return 1
+    if any_dark is 1
+        if is_lit is not bar_lit
+            return 1
+    if any_enterable is 1
+        if parent_of(player) is not bar_where
+            return 1
+    return 0
+
+// Remember what was just painted, in the same shape bar_stale asks about.
+block bar_painted(w)
+    change bar_room to here
+    change bar_width to w
+    if any_dark is 1
+        change bar_lit to is_lit
+    if any_enterable is 1
+        change bar_where to parent_of(player)
 
 // The input prompt, extended: paint the bar, then do the ordinary prompt (the
 // paragraph break and the ">" the core library would have shown).
@@ -77,9 +117,13 @@ block prompt()
 // Reserve the row before `on start` prints a word (the screen seam in the
 // loop); paint only once the bar has gone live at the first prompt.
 block screen_ready()
-    // Whoever calls this has just erased the screen or moved the band, so the
-    // reservation is void whatever we remembered: seat before painting.
-    change bar_seated to false
+    // Whoever calls this has just erased the screen or moved the band, so both
+    // the reservation and the row's contents are void whatever we remembered:
+    // seat again, and paint WHOLE. That second half is the arc_image contract
+    // (docs/08 3a): an interpreter that hands the band's rows back to the text
+    // in a pictureless room and re-bases them at the next picture needs the
+    // whole bar after every image change, not the numbers alone.
+    bar_unseated
     if bar_live
         draw_status
     else
@@ -138,36 +182,48 @@ block status_bar()
     if zc_status is not 0
         set_colour(zc_status, 0)
     set_style(1)
-    // Fill the WHOLE row in reverse video, all w columns including the last, so
-    // the bar spans the full screen width. Filling the final column is safe on
-    // the top row (the upper window never scrolls, so the bottom-right-corner
-    // scroll quirk that makes games skip the last cell cannot happen here), and
-    // it matters under an arc_image picture, where a short bar shows a gap.
-    set_cursor(1, 1)
-    let i = 1
-    while i <= w
-        show(" ")
-        change i to i + 1
-    // Left: the current room, with the nested location when the player is
-    // in or on something ("Crypt (on the altar)"), like the title line. In a
-    // DARK room the bar names the darkness instead (line_dark_status, the
-    // language layer's wording): naming an unseen room is a spoiler. The lit
-    // arm is duplicated in the else on purpose, so a game where darkness
-    // cannot happen (any_dark folds to 0) keeps exactly the old code.
-    set_cursor(1, 2)
-    if any_dark is 1
-        if is_lit is 0
-            line_dark_status
+    // THE LEFT SIDE IS PAINTED ONLY WHEN IT CHANGED (2026-08-20). Painting it
+    // meant blanking the whole row and writing the name back over the blank,
+    // which on a memory-mapped screen is the room name visibly going away and
+    // returning: 74 character writes for a 40-cell row, 34 of its cells
+    // written twice, and on a scene change the arc_image contract asks for two
+    // paints in the one turn (docs/08 3a), so the player saw it happen twice
+    // per move. Nothing on the left changes on an ordinary turn, so an
+    // ordinary turn now writes the numbers alone. What the row already shows
+    // is remembered below; anything that can take the row away clears it
+    // through bar_unseated and the next paint is whole again.
+    if bar_stale(w) is 1
+        // Fill the WHOLE row in reverse video, all w columns including the last, so
+        // the bar spans the full screen width. Filling the final column is safe on
+        // the top row (the upper window never scrolls, so the bottom-right-corner
+        // scroll quirk that makes games skip the last cell cannot happen here), and
+        // it matters under an arc_image picture, where a short bar shows a gap.
+        set_cursor(1, 1)
+        let i = 1
+        while i <= w
+            show(" ")
+            change i to i + 1
+        // Left: the current room, with the nested location when the player is
+        // in or on something ("Crypt (on the altar)"), like the title line. In a
+        // DARK room the bar names the darkness instead (line_dark_status, the
+        // language layer's wording): naming an unseen room is a spoiler. The lit
+        // arm is duplicated in the else on purpose, so a game where darkness
+        // cannot happen (any_dark folds to 0) keeps exactly the old code.
+        set_cursor(1, 2)
+        if any_dark is 1
+            if is_lit is 0
+                line_dark_status
+            else
+                print_name(here)
+                if any_enterable is 1
+                    if parent_of(player) is not here
+                        line_nested(parent_of(player))
         else
             print_name(here)
             if any_enterable is 1
                 if parent_of(player) is not here
                     line_nested(parent_of(player))
-    else
-        print_name(here)
-        if any_enterable is 1
-            if parent_of(player) is not here
-                line_nested(parent_of(player))
+        bar_painted(w)
     // Right, right-aligned: measure the text (status_digits, since the digit
     // counts vary) and start that many columns in from the edge.
     // Right, right-aligned: the score and moves, painted by the language layer
