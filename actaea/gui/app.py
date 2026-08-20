@@ -276,6 +276,9 @@ class ActaeaApp:
         # Guards the re-base against re-entering itself: it waits for keys,
         # which lets the event loop (and another resize) run.
         self._rebasing = False
+        # The window height last asked for by the fit-to-contents snap; it is
+        # compared against, never subtracted from (see _relayout).
+        self._snapped_to = 0
         self.text.mark_set("page_start", "end-1c")
         self.text.mark_gravity("page_start", "left")
 
@@ -428,7 +431,7 @@ class ActaeaApp:
         )
         self._relayout()
 
-    def _relayout(self) -> None:
+    def _relayout(self, snap: bool = False) -> None:
         """Set the text area to a WHOLE number of lines, so scrolled text never
         shows a half-clipped row at the top (the picture band and status bar can
         be any pixel height; the text below them takes the whole lines that fit
@@ -469,6 +472,21 @@ class ActaeaApp:
         # loop, so asking the widget for its pixel height mid-boot answers with
         # the size it had before the picture band arrived. This number is right
         # the moment it is computed, and the pager reads it.
+        # THE WINDOW GIVES UP THE REMAINDER. A picture scaled to the window's
+        # width is as tall as its aspect makes it, so what is left for text is
+        # rarely a whole number of lines, and those few orphan pixels read as a
+        # blank row wherever they are put (all three placements were tried on
+        # Stefan's screen and all three were wrong). The window is therefore
+        # resized to fit its contents exactly, ONCE, when the furniture
+        # changes: the height is computed from first principles rather than
+        # subtracted from the current one, so it converges instead of walking
+        # the window down a few pixels per layout, which is what an earlier
+        # attempt did. Never on a plain resize, so it cannot fight a drag.
+        if snap and real > 5 * self.cell_h:
+            want = 2 * self._margin + band + status + n * self.cell_h
+            if want != real and want != self._snapped_to:
+                self._snapped_to = want
+                self.root.geometry("%dx%d" % (self.root.winfo_width(), want))
         was = self._text_rows
         self._text_rows = n
         if int(self.text.cget("height")) != n:
@@ -759,20 +777,12 @@ class ActaeaApp:
         else:
             band_h = mode * self.cell_h if mode and mode > 0 else 0
             self._band_px = 0
-        # THE BAND TAKES WHOLE TEXT ROWS, AND THE SPARE PIXELS GO ON TOP. A
-        # picture scaled to the window's width lands on whatever height its
-        # aspect gives it (measured: 288 pixels against a 22-pixel line), and
-        # those few orphan pixels look like a blank row wherever they show:
-        # under the text they read as a spare line that is not there, under
-        # the picture as a second blank row where the library printed one
-        # (Stefan caught both, 2026-08-20). Above the picture they sit against
-        # the window's top edge in the game's own background, where there is
-        # no row for them to imitate. The picture keeps its exact aspect and
-        # its full width, and the reading area is a whole number of rows.
-        if band_h > 0 and self.cell_h > 0:
-            over = band_h % self.cell_h
-            if over:
-                band_h += self.cell_h - over
+        # The band is exactly as tall as the picture. Rounding it leaves spare
+        # pixels that read as a blank row wherever they are put: under the
+        # picture they double the library's blank line, above it they open a
+        # gap that was never there, under the text they look like a spare line
+        # (Stefan caught all three, 2026-08-20). The window gives them up
+        # instead, in _relayout.
         # The picture is centered in the band (at the ordinary width it fills
         # it edge to edge, so nothing moves); the band wears the game
         # background so any letterbox margin is the game's colour.
@@ -787,10 +797,12 @@ class ActaeaApp:
             # bar and the text below it, and the few spare pixels that round
             # the band to whole rows stay at the top, against the window's
             # edge, where nothing mistakes them for a blank line.
-            self._image_canvas.create_image(target_w // 2, band_h, image=photo,
-                                            anchor="s")
+            self._image_canvas.create_image(target_w // 2, 0, image=photo,
+                                            anchor="n")
         self._band_h = band_h
-        self._relayout()  # the text below re-fits to whole lines under the band
+        # The text below re-fits to whole lines under the band, and the window
+        # takes up the slack so nothing is left over.
+        self._relayout(snap=True)
         if self._grid_shown:
             self._redraw_grid()  # the bar's edge fill follows the band width
 
@@ -814,14 +826,14 @@ class ActaeaApp:
             if self._grid_shown:
                 self.canvas.pack_forget()
                 self._grid_shown = False
-                self._relayout()
+                self._relayout(snap=True)
             return
         if not self._grid_shown:
             # Left/right frame, same as the picture and text; no vertical inset
             # (the bar sits flush under the picture and above the text).
             self.canvas.pack(fill="x", before=self._lower_frame, padx=m)
             self._grid_shown = True
-            self._relayout()
+            self._relayout(snap=True)
         self.canvas.configure(height=model.rows * self.cell_h)
         self.canvas.delete("all")
         for r in range(1, model.rows + 1):
@@ -1000,6 +1012,9 @@ class ActaeaApp:
                 self.text.mark_set("page_start", stop)
         finally:
             self._rebasing = False
+        # The window height last asked for by the fit-to-contents snap; it is
+        # compared against, never subtracted from (see _relayout).
+        self._snapped_to = 0
         self._tail_into_view()
 
     def _display_lines(self, start: str, end: str) -> int:
