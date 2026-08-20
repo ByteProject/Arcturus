@@ -527,7 +527,13 @@ class ActaeaApp:
             usable = self.root.wm_maxsize()[1]
         except tk.TclError:
             usable = self.root.winfo_screenheight()
-        room = usable - 30      # the title bar lives inside wm_maxsize's box
+        # wm_maxsize accounts for the dock but NOT for the menu bar, the
+        # title bar, or the few points of placement slack under the menu bar.
+        # Asking for more than truly fits made macOS clamp the window, the
+        # whole-row fit then trimmed the clamped result, and that shrunken
+        # height was persisted and restored forever after (Stefan's settings
+        # remembered 860x793 where 860x852 fits): ask only for what fits.
+        room = usable - 65
         width = 80 * self.cell_w + 2 * m
         if self._aspect_var.get() == "classic":
             return width, min(width * 3 // 4, room)
