@@ -34,6 +34,7 @@ import zlib
 GAME = (
     'constant arc_mode = 12\n'   # DAAD mode, to match the 320x96 probe art
     'constant starfield = 1\n'
+    'summon.statusline\n'
     'game\n    title "Window Probe"\n    start deck\n'
     'room deck\n    name "Observation Deck"\n    desc "Stars wheel past."\n'
     '    arc_image starfield\n'
@@ -102,6 +103,8 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     script = ["look", "recite", "quit", "y"]
     more_seen = []
     end_in_view = []
+    first_line_seen = []
+    first_pause_clean = []
     band = []
     caret_checks = []
 
@@ -131,6 +134,24 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
             # been shown, and any key continues. Without this the window would
             # simply wait, which is exactly what it should do to a player.
             more_seen.append("[MORE]" in app.text.get("1.0", "end"))
+            if not first_pause_clean:
+                # NOTHING MAY HAVE SCROLLED OFF YET. The story began at the
+                # top of an empty screen, so when it first stops for a key the
+                # very first line it printed must still be on screen. It was
+                # not: the picture band and the status bar only claimed their
+                # rows when the story finally waited, a dozen rows of text
+                # after they should have, so the top of the boot scrolled away
+                # unread with no pause to stop it (Stefan's screenshot).
+                # The furniture must already be on screen: the story asked
+                # for a picture band before it printed a word, so by the time
+                # it stops for a key the band must have claimed its rows and
+                # the reading area must be the smaller one. Deferring that to
+                # an idle pass let the whole boot be laid out at the full
+                # window size and then shrink under itself, scrolling the top
+                # away unread (Stefan's screenshot, 2026-08-20).
+                first_pause_clean.append(
+                    (app.vm.screen.image is None) == (app._band_h == 0)
+                    and app.text.bbox("1.0") is not None)
             app._key_code = 32
             app._key.set(" ")
             app.root.after(30, pump)
@@ -140,6 +161,9 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
             # left the prompt on screen, not whether an idle pass can repair
             # it afterwards.
             end_in_view.append(app.text.bbox("end-1c") is not None)
+            if not first_line_seen:
+                first_line_seen.append(
+                    more_seen != [] or app.text.bbox("1.0") is not None)
             app.root.update_idletasks()
             band.append(app._image_canvas.winfo_reqheight())
             # THE PROMPT MUST BE ON SCREEN. It was not at boot: the widget is
@@ -170,6 +194,16 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     assert "Line 40 of the long watch" in out
     # Every prompt was visible when it was offered, boot included.
     assert end_in_view and all(end_in_view), end_in_view
+    # NOTHING SCROLLS AWAY UNREAD. At the first prompt no key has been
+    # pressed except in answer to a [MORE], so every line printed since the
+    # start must still be on screen. Anything else means text went past the
+    # top edge with no pause to stop it (Stefan's screenshot, 2026-08-20: the
+    # blank line the library puts under the status bar had scrolled off).
+    assert first_line_seen and first_line_seen[0], (
+        "boot text scrolled off with no [MORE] to stop it")
+    assert first_pause_clean and first_pause_clean[0], (
+        "text had already scrolled off the top when the first [MORE] came: "
+        "the reading area was not the size the pager thought it was")
     # The page is measured from the pixels the reading area HAS, so it agrees
     # with the window rather than with what the widget asked for.
     assert app._reading_lines() == app.text.winfo_height() // app.cell_h

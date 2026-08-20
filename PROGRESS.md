@@ -11754,3 +11754,52 @@ having. Full suite 1555 green.
 
 HANDS TO STEFAN, on the rebuilt standalone: the boot with the picture,
 and whether the [MORE] now sits with one spare line rather than two.
+
+## 2026-08-20 (later): the window obeys the re-base rule it was written
+## against (Actaea 1.4.2). THE SPEC HAD THE ANSWER ALL ALONG
+
+STEFAN'S THIRD SCREENSHOT: no [MORE] at all, the boot scrolled straight
+to the prompt, and the blank line the library deliberately puts under
+the status bar was gone with it. Two rounds of my fixes had not touched
+the actual cause.
+
+THE CAUSE, found by reading the window's own repaint path rather than
+theorising: screen changes are coalesced into ONE repaint per idle
+cycle, which is right for painting (a bar paint writes eighty cells,
+each signalling a change) and wrong for GEOMETRY. The story prints a
+whole boot without ever returning to the event loop, so the picture
+band and the status bar claimed their rows only when the story finally
+waited, a dozen rows of text after they should have. Everything had
+been laid out at the full window size and then shrank under itself.
+Furniture that changes the reading area is now applied AT ONCE, and
+only when it changes; the pixels stay deferred and coalesced.
+
+AND THEN THE RULE THAT WAS ALREADY WRITTEN. Shrinking the area under
+text nobody has read yet is exactly what docs/08 section 3 legislates
+for, in Stefan's own words: THE RE-BASE NEVER EATS A LINE. Every line
+on the page is unread, so if it no longer fits, it is shown from its
+top, a window-full at a time behind honest [MORE]s, until the newest
+lines stand bottom-anchored above the prompt; scrollback does not
+substitute for that. Actaea's window did not do this. It does now, and
+the same treatment covers the status bar taking its row and a window
+shrunk mid-turn. The interpreter that ships as the reference now obeys
+the contract the other interpreters are being written against.
+
+MEASURED IN THE HARNESS: with a picture band and a boot longer than
+what it leaves, the re-base offers the page in four pauses (17 unread
+lines, 4 to a page), from the top down, ending bottom-anchored.
+
+THE TEST TOOK FOUR TRIES TO BECOME HONEST, and that is the lesson worth
+keeping from this round. Written first, it passed against the broken
+code; made stricter, it passed again; given a status bar and a
+scroll-off assertion, it passed a third time (the first pause happened
+BEFORE the band applied, so nothing had scrolled yet). What finally
+caught it was asserting that the furniture on screen matches the MODEL
+whenever the story stops: the story had asked for a band before it
+printed a word, so a pause with no band is a pause measured against a
+screen that does not exist. Fails at the previous commit, passes now.
+Full suite 1555 green.
+
+STILL FOR STEFAN'S EYE: the boot with the picture, whether the [MORE]
+now leaves one spare line rather than two, and whether the re-base
+reads well in motion.

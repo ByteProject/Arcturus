@@ -167,6 +167,9 @@ class ActaeaApp:
         self._photo_cache: dict = {}    # id -> native PhotoImage
         self._scaled_cache: dict = {}   # (id, target_width) -> scaled PhotoImage
         self._drawn_image = False  # a sentinel distinct from None (no picture)
+        # The picture the band's GEOMETRY was last sized for; the sentinel is
+        # distinct from None, which means "no picture" (see _grid_changed).
+        self._band_state = False
         # Settings the menu drives, remembered across sessions; colours
         # before anything calls _colour.
         st = _load_settings()
@@ -270,6 +273,11 @@ class ActaeaApp:
         # How many display lines the reading area has, kept by _relayout: the
         # widget's own pixel height lags a turn behind (see there).
         self._text_rows = 0
+        # Guards the re-base against re-entering itself: it waits for keys,
+        # which lets the event loop (and another resize) run.
+        self._rebasing = False
+        self.text.mark_set("page_start", "end-1c")
+        self.text.mark_gravity("page_start", "left")
 
         self._line_ready = tk.BooleanVar(value=False)
         self._key: tk.StringVar = tk.StringVar(value="")  # the wake signal
@@ -446,6 +454,7 @@ class ActaeaApp:
         # loop, so asking the widget for its pixel height mid-boot answers with
         # the size it had before the picture band arrived. This number is right
         # the moment it is computed, and the pager reads it.
+        was = self._text_rows
         self._text_rows = n
         if int(self.text.cget("height")) != n:
             self.text.configure(height=n)
@@ -458,6 +467,13 @@ class ActaeaApp:
             # the TOP line when a Text widget shrinks, so without that the
             # prompt ends up below the bottom edge and stays there.
             self.text.after_idle(self._tail_into_view)
+            # A SHRINK OVER UNREAD TEXT RE-BASES RATHER THAN SCROLLS. The
+            # picture band claiming its rows is the case docs/08 section 3
+            # legislates for, and the rule there is absolute: the re-base
+            # never eats a line. The same applies to the status bar taking
+            # its row and to the player shrinking the window mid-turn.
+            if was > n:
+                self._rebase_page()
 
     def _on_root_resize(self, event=None) -> None:
         """Fullscreen and maximize change the window's real width: recompute
@@ -530,9 +546,28 @@ class ActaeaApp:
     # -- the upper window ---------------------------------------------------------
 
     def _grid_changed(self) -> None:
-        # Coalesce bursts of screen changes into one repaint per idle cycle.
-        # The model signals grid AND picture changes through here, so a repaint
-        # refreshes both.
+        # PAINTING is coalesced into one repaint per idle cycle: a bar paint
+        # writes eighty cells and each one signals a change, so redrawing per
+        # write would be absurd. The model signals grid AND picture changes
+        # through here, so that repaint refreshes both.
+        #
+        # GEOMETRY cannot wait, though, and this is where it used to. The
+        # story prints a whole turn (a boot: intro, banner, room, prompt)
+        # without ever returning to the event loop, so an idle repaint applies
+        # the picture band and the status bar's row only AFTER all that text
+        # has been laid out at the old size. The reading area then shrank by a
+        # dozen rows under text already printed, which scrolled away unread
+        # with no [MORE] to stop it: the blank line the library puts under the
+        # bar was the first thing to go (Stefan's screenshot, 2026-08-20).
+        # Furniture that changes the reading area is therefore applied AT
+        # ONCE, and only when it actually changes, so the pager always knows
+        # how tall the page is while the story is still printing it.
+        model = self.vm.screen
+        if (model.rows > 0) != self._grid_shown:
+            self._redraw_grid()          # packs or unpacks the bar, relayouts
+        if model.image != self._band_state:
+            self._band_state = model.image
+            self._repaint_image()        # sizes the band, relayouts
         if not self._redraw_queued:
             self._redraw_queued = True
             self.root.after_idle(self._repaint)
@@ -826,7 +861,7 @@ class ActaeaApp:
                     self.text.tag_delete(tag)
         self.text.delete("1.0", "end")
         self.text.mark_set("input_start", "end-1c")
-        self._pager.reset(0)  # a wiped screen starts a fresh page
+        self._start_page(0)  # a wiped screen starts a fresh page
 
     # -- output --------------------------------------------------------------
 
@@ -887,6 +922,61 @@ class ActaeaApp:
     # it covers nothing, and any key prints the next page. The page is measured
     # from the text area's CURRENT height, so a picture band taking rows or a
     # fullscreen window giving them back is accounted for by itself.
+
+    def _start_page(self, column: int = 0) -> None:
+        """A new page begins here: the reader has just acted (a command, a
+        keypress, a [MORE]) or the screen was wiped. Everything after this
+        mark is unread, which is what the re-base below must never discard."""
+        self._pager.reset(column)
+        try:
+            self.text.mark_set("page_start", "end-1c")
+            self.text.mark_gravity("page_start", "left")
+        except tk.TclError:
+            pass
+
+    def _rebase_page(self) -> None:
+        """The reading area just shrank under text nobody has read yet.
+
+        docs/08 section 3, the windowed profile: the first picture re-bases
+        the screen, and THE RE-BASE NEVER EATS A LINE. Every line on the page
+        is unread, so if the page no longer fits, it is shown from its top,
+        a window-full at a time behind honest [MORE]s, until the newest lines
+        stand bottom-anchored above the prompt. Scrollback does not
+        substitute for that: the lines have to pass before the player's eyes.
+
+        The same rule serves the status bar claiming its row and the player
+        shrinking the window mid-turn: any shrink over unread text."""
+        if self._closed or self._rebasing or self._reading_line:
+            return
+        page = self._page_height()
+        if page < 2:
+            return
+        self._rebasing = True
+        try:
+            while not self._closed:
+                self.text.update_idletasks()
+                unread = self._display_lines("page_start", "end-1c")
+                if unread <= page:
+                    break          # what is left fits: show it and carry on
+                stop = self.text.index(
+                    "page_start + %d display lines display lineend" % page)
+                if self.text.compare(stop, ">=", "end-1c"):
+                    break
+                self.text.see("page_start")
+                self._pause_at(stop)
+                self.text.mark_set("page_start", stop)
+        finally:
+            self._rebasing = False
+        self._tail_into_view()
+
+    def _display_lines(self, start: str, end: str) -> int:
+        try:
+            n = self.text.count(start, end, "displaylines")
+        except tk.TclError:
+            return 0
+        if isinstance(n, tuple):
+            n = n[0] if n else 0
+        return int(n or 0)
 
     def _settle_view(self) -> None:
         """About to hand the screen to the player: make any pending resize
@@ -962,7 +1052,7 @@ class ActaeaApp:
         if (self._page_height() < 2 or self._reading_line
                 or self._reading_key or self._closed):
             self._insert(s, tag)
-            self._pager.reset(0)
+            self._start_page(0)
             return
         rest = s
         while rest:
@@ -986,18 +1076,38 @@ class ActaeaApp:
                     return
 
     def _page_pause(self) -> None:
-        """Show [MORE] at the end of the text and wait for any key."""
-        mark = self.text.index("end-1c")
-        self._insert("[MORE]", self._more_tag())
-        self.text.see("end")
+        """Show [MORE] after the last line printed and wait for any key."""
+        self._pause_at(self.text.index("end-1c"))
+        self._start_page(self._pager.column)
+
+    def _pause_at(self, where: str) -> None:
+        """[MORE] at `where`, and any key goes on.
+
+        `where` is the end of the last line the reader has been shown, which
+        for ordinary paging is the end of the text and for a re-base is the
+        bottom of the window-full being offered. Inserting it there rather
+        than painting over the last line is Stefan's ruling: the marker
+        covers nothing, and it is taken out again afterwards, so it never
+        becomes part of the transcript."""
+        if self._closed:
+            return
+        self.text.mark_set("more_mark", where)
+        self.text.mark_gravity("more_mark", "left")
+        tag = self._more_tag()
+        if tag:
+            self.text.insert(where, "[MORE]", (tag,))
+        else:
+            self.text.insert(where, "[MORE]")
+        end_of_marker = self.text.index("more_mark + 6c")
+        self.text.see(end_of_marker)
         self._reading_key = True
         self._key.set("")
         self.root.wait_variable(self._key)
         self._reading_key = False
-        # The marker never becomes part of the transcript on screen: it is
-        # taken out again, and the story text continues exactly where it was.
-        self.text.delete(mark, "end-1c")
-        self._pager.reset(self._pager.column)
+        try:
+            self.text.delete("more_mark", "more_mark + 6c")
+        except tk.TclError:
+            pass
 
     def _more_tag(self) -> str:
         """The marker wears the CURRENT look, reversed: on a game-coloured
@@ -1040,7 +1150,7 @@ class ActaeaApp:
         if preload:
             self._absorb_preload(preload)
         self.text.mark_set("insert", "end-1c")
-        self._pager.reset(self._pager.column)
+        self._start_page(self._pager.column)
         self._settle_view()
         self._start_timer(timeout, on_timeout)
         self.root.wait_variable(self._line_ready)
@@ -1058,7 +1168,7 @@ class ActaeaApp:
             return line, 0
         # The typed line becomes story text, newline included.
         self.append_story("\n")
-        self._pager.reset(0)
+        self._start_page(0)
         return line, self._terminator
 
     def _absorb_preload(self, preload: str) -> None:
@@ -1199,7 +1309,7 @@ class ActaeaApp:
         self._timed_out = False
         self._key_code = 0
         self._key.set("")
-        self._pager.reset(self._pager.column)
+        self._start_page(self._pager.column)
         self._settle_view()
         self._start_timer(timeout, on_timeout)
         self.root.wait_variable(self._key)
@@ -1208,7 +1318,7 @@ class ActaeaApp:
         if self._closed:
             raise EOFError
         # The reader just pressed a key of their own: a fresh page starts.
-        self._pager.reset(self._pager.column)
+        self._start_page(self._pager.column)
         return 0 if self._timed_out else self._key_code
 
     # -- lifecycle --------------------------------------------------------------------

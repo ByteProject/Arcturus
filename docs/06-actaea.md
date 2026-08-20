@@ -107,6 +107,14 @@ printed so far. The page is measured from the reading area as it stands at
 that moment, so a picture band taking rows, a resized window, a different
 text size, and fullscreen are all accounted for without a setting.
 
+When the picture band claims its rows, the reading area shrinks under text
+nobody has read yet, and that text is never simply scrolled away: the page
+is shown again from its top, a window-full at a time behind [MORE]s, until
+the newest lines stand above the prompt. That is the re-base rule in
+08-arcimage-interpreters section 3, which Actaea's window follows like any
+other interpreter implementing arc_image. The same treatment covers the
+status bar taking its row and a window shrunk mid-turn.
+
 "Press any key" accepts any key including Return, and the window is
 exactly 80 cells wide, as the Z-machine screen model declares.
 
