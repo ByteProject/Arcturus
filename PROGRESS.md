@@ -11685,7 +11685,19 @@ test is worse than none. Full suite 1555 green, 6 skipped (the opt-in
 parity cases). docs/06 documents the paging; the design record notes the
 two deliberately separate implementations.
 
-HANDS OFF TO STEFAN: the widget half cannot be judged headlessly. Open a
-game in the window, walk into a pictured room, and see whether the
-[MORE] lands at the bottom of the reading area, whether any key
-continues cleanly, and whether the marker leaves no trace when it goes.
+THEN THE WIDGET HALF GOT ITS TEST TOO. A background stability run
+surfaced tests/actaea/unit/test_gui.py, which drives the real window
+programmatically and which I had wrongly believed did not exist: it
+failed once, in a run overlapping three other pytest processes (Tk
+contention, not the change; it passes five times out of five alone).
+But it WOULD have hung on a real pause, since its pump only answers
+line reads. It now answers key waits the way a player would, and the
+probe game recites forty lines under a picture band on purpose, so the
+one GUI test the Tk-9-on-macOS one-root rule allows now covers the
+whole path: the pause happens, [MORE] is on screen while it waits, any
+key continues, and the marker leaves no trace.
+
+HANDS OFF TO STEFAN, for the look rather than the mechanism: open a game
+in the window, walk into a pictured room, and judge whether the [MORE]
+sits where it should and reads right. Fullscreen deserves one look, since
+that is where the adaptive height earns its keep.

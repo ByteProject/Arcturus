@@ -37,6 +37,15 @@ GAME = (
     'game\n    title "Window Probe"\n    start deck\n'
     'room deck\n    name "Observation Deck"\n    desc "Stars wheel past."\n'
     '    arc_image starfield\n'
+    # LONGER THAN A PAGE, deliberately: with the picture band taking rows
+    # there is little reading area left, so RECITE overflows it and the
+    # window's [MORE] has to stop and wait. The pump below answers it the
+    # way a player would.
+    'verb "recite"\n    reciting\n'
+    'on reciting\n'
+    + "".join('    say "Line %d of the long watch, counted off against the '
+              'turning of the ship and the cold."\n' % i
+              for i in range(1, 41))
 )
 
 
@@ -78,7 +87,8 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     except tk.TclError:
         pytest.skip("no display for tkinter")
 
-    script = ["look", "quit", "y"]
+    script = ["look", "recite", "quit", "y"]
+    more_seen = []
     band = []
     caret_checks = []
 
@@ -103,6 +113,15 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
         if app.vm.halted or app._closed:
             app.root.quit()
             return
+        if app._reading_key:
+            # A [MORE] pause: the marker is on screen, at the end of what has
+            # been shown, and any key continues. Without this the window would
+            # simply wait, which is exactly what it should do to a player.
+            more_seen.append("[MORE]" in app.text.get("1.0", "end"))
+            app._key_code = 32
+            app._key.set(" ")
+            app.root.after(30, pump)
+            return
         if app._reading_line:
             app.root.update_idletasks()
             band.append(app._image_canvas.winfo_reqheight())
@@ -120,6 +139,12 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
 
     out = app.text.get("1.0", "end")
     assert app.vm.halted, "the story never reached its quit"
+    # PAGING: the long recital stopped at least once with [MORE] showing, and
+    # the marker left no trace behind it.
+    assert more_seen, "a passage taller than the window never paused"
+    assert all(more_seen), "the pause happened with no [MORE] on screen"
+    assert "[MORE]" not in out
+    assert "Line 40 of the long watch" in out
     assert caret_checks and all(ok for _, ok in caret_checks), caret_checks
     assert "Window Probe" in out
     assert "Observation Deck" in out
