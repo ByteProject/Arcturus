@@ -164,7 +164,13 @@ def main() -> int:
             skipped += 1
             continue
         cells = _rasterize(contours)
-        bold = cells | {(x + 1, y) for (x, y) in cells}
+        # COUNTER-PRESERVING bold, the classical refinement: a pixel only
+        # thickens rightward where that does not bridge a one-pixel gap to
+        # the next stem. A blanket shift welded monogram's m into a solid
+        # block (its counters are a single pixel); with the guard, tight
+        # glyphs keep their daylight and roomy ones take the full weight.
+        bold = cells | {(x + 1, y) for (x, y) in cells
+                        if (x + 2, y) not in cells}
         traced = _trace(bold)
         pts, ends, flags = [], [], []
         for c in traced:
