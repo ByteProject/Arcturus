@@ -6,23 +6,16 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
-- **Actaea 2.0: a massive overhaul of the reference interpreter.** The
-  window is a full desktop application now. It ships with selected
-  typefaces in three looks: Novel, serif prose over a mono machine
-  voice, the default; Clean, sans prose over the same mono; and Retro,
-  a real pixel font for the whole screen, bold cut included. The fonts
-  travel inside the standalone and load at launch, nothing to install.
-  Long passages page with [MORE] instead of scrolling past unread; the
-  window offers two shapes, the portrait Modern (4:5) and the classic
-  4:3, and remembers its size, position, and settings between sessions.
-  `actaea --install-app` installs it as a native application on macOS,
-  Linux, and Windows: its own icon and name, an entry among the
-  applications, and file associations for .z5, .z8, and .zblorb, while
-  the interpreter itself stays the single file that `arcc --update`
-  keeps current. Double-click a story and it opens in the window; a
-  bare `actaea` asks for a story or reopens the last one; File > Open
-  switches stories mid-session without quitting (Actaea 2.0.0, Cosmos
-  1.16.4).
+- **Actaea 2.0: a massive overhaul of the reference interpreter.**
+  Three selectable looks, set in a selected serif, a clean, and a
+  retro typeface. Long passages page with [MORE] instead of scrolling
+  past unread. Two window shapes, the portrait Modern (4:5) and the
+  classic 4:3, and the window remembers its size, position, and
+  settings between sessions. `actaea --install-app` installs it as a
+  native application on the host system, macOS, Linux, or Windows,
+  while it stays fully accessible from the command line, and
+  `arcc --update` continues to update everything in place when the
+  tools are kept together (Actaea 2.0.0, Cosmos 1.16.4).
 - **Multiple player characters: maniacswap.** `summon.maniacswap`, mark
   each body `playable`, and BECOME swaps the keyboard between them,
   Maniac Mansion style, from anywhere, even between maps that never
