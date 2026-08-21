@@ -8,9 +8,13 @@ Actaea is a Standard 1.1 conformant Z-machine interpreter for story-file
 versions 5 and 8, written in Python with zero dependencies beyond the
 standard library. It plays any well-formed z5 or z8 story file, not only
 Arcturus output, and it is also a debugging tool: a header inspector, a
-disassembler, and a scriptable harness. The name continues the
-trans-Neptunian line of the family (Ceres, Varuna, Eris, Haumea), and is the
-first written for the desktop rather than the metal.
+disassembler, and a scriptable harness. Beyond the Z-machine itself, it
+brings Arcturus's `arc_image` graphics to the modern desktop: the window
+draws a story's pictures, straight from loose PNGs while you are still
+working on them or from the finished pack when you ship, which makes
+Actaea the tool to develop an arc_image game with. The name continues
+the trans-Neptunian line of the family (Ceres, Varuna, Eris, Haumea),
+and is the first written for the desktop rather than the metal.
 
 ```
 Actaea vx.x.x - Z-machine v5/8 interpreter, debugger and disassembler
@@ -81,10 +85,10 @@ live.
 
 ### The window (default)
 
-`actaea story.z5` on a desktop opens the tkinter window: the game-drawn
-status area rendered as a true character-cell grid, text styles and the
-full Z-machine colour set, inline input at the story's own prompt wearing
-the game's input colour, and native save/restore/transcript file dialogs.
+`actaea story.z5` on a desktop opens the window: the game-drawn status
+bar, text styles and the full Z-machine colour set, inline input at the
+story's own prompt wearing the game's input colour, and native file
+dialogs for saves and transcripts.
 
 ![The Actaea window on macOS: an arc_image story with its picture band
 and status bar, the About panel, and the star on the Dock](../artworks/docs/actaea-window.png)
@@ -95,130 +99,64 @@ honours completely, repainting the paper when the game erases).
 
 The menu bar:
 
-- About Actaea: the version and identity panel.
-- File -> Open (Cmd+O): open another story in the same window, mid-session:
-  the running machine stands down and the new story boots on the same
-  screen. No quitting to change games.
-- Visuals -> Typeface: the window's whole typographic identity, one choice, three
-  answers. Novel (the default) sets the story in Noto Serif over a Roboto
-  Mono machine voice; Clean sets it in Roboto over the same mono; Retro
-  sets EVERYTHING in monogram, the pixel face, one face for the whole
-  screen the way a real 8-bit machine was. The faces ship with Actaea and
-  are registered with the system at startup, nothing installed; their
-  licenses are recorded in actaea/gui/fonts/LICENSES.md. There is no free
-  font mixing, by design: each look is a coherent pair.
-- Visuals -> Text Size: one size drives every look. Novel and Clean use it
-  directly; Retro derives its size from it (24 reads like 14, measured)
-  and snaps to monogram's pixel grid so the pixels stay crisp.
-- Visuals -> Screen Height: window lines.
-- Visuals -> Window Shape: Modern (4:5) or Classic (4:3). Modern is a
-  portrait page, taller than wide, and on a big display that
-  is exactly what opens. A laptop cannot show portrait at eighty columns
-  (that wants some 1250 points of height), so the shape scales down keeping
-  the ratio to a floor of seventy columns, where the width holds and the
-  height takes everything the desktop honestly offers, menu bar and dock
-  already subtracted (the window manager is asked, not guessed at): the
-  nearest portrait the machine has. The column count follows the width.
-  Classic is the squat 4:3 of the machines the format came from, at the
-  full eighty. Everything is relative to the font: a larger font gives a
-  larger window, a larger picture, and the same shape.
-- Visuals -> Game Colours: off shows black-on-white with styles kept; on
-  restores the game's palette, including text already on screen.
-- Settings -> On Launch: what a bare launch (a dock icon, a double-click)
-  does: ask for a story, or reopen the last one. Behaviour, not
-  appearance, so it lives apart from Visuals.
+- About Actaea: the version panel.
+- File -> Open (Cmd+O): open another story in the same window,
+  mid-session, without quitting.
+- Visuals -> Typeface: three looks, set in a selected serif (Novel, the
+  default), a clean typeface (Clean), or a genuine pixel font (Retro,
+  the whole screen in one face the way a real 8-bit machine was). The
+  fonts ship with Actaea; there is nothing to install.
+- Visuals -> Text Size: one size, driving every look.
+- Visuals -> Screen Height: how many lines tall the story plays.
+- Visuals -> Window Shape: Modern (4:5), a portrait page like the
+  modern desktop interpreters open, or Classic (4:3), the squat screen
+  of the machines the format came from. On a display too small for the
+  full portrait the shape scales down to fit what the desktop really
+  offers. Everything is relative to the font: a larger font gives a
+  larger window of the same shape.
+- Visuals -> Game Colours: off plays black-on-white with styles kept;
+  on restores the game's palette, including text already on screen.
+- Settings -> On Launch: what starting Actaea without a story does,
+  ask for one or reopen the last one played.
 
-Settings persist in `~/.config/actaea/settings.json` (XDG_CONFIG_HOME is
-honoured) and return at the next launch. They save when changed in the
-menu, and once more when the window closes, which is how the window's own
-size AND POSITION are remembered: Actaea opens where you last left it
-rather than wherever the desktop decides. Delete the file to start fresh;
-a first run takes the modern shape.
+Settings persist in `~/.config/actaea/settings.json` (XDG_CONFIG_HOME
+is honoured) and return at the next launch, the window's size and
+position included: Actaea opens where you last left it. Delete the file
+to start fresh.
 
-A passage taller than the reading area stops at the bottom of it with a
-reverse-video `[MORE]`, and any key prints the next page, the same way the
-console front end has always paged. The marker is appended after the last
-line shown, so it covers no text, and it is taken away again when you
-continue. Nothing scrolls past unread, and the scrollback is untouched:
-the wheel, the trackpad, and Page Up still walk back through everything
-printed so far. The page is measured from the reading area as it stands at
-that moment, so a picture band taking rows, a resized window, a different
-text size, and fullscreen are all accounted for without a setting.
+A passage taller than the screen stops at a reverse-video `[MORE]`, and
+any key turns the page: nothing scrolls past unread. The scrollback
+stays yours, and the wheel, the trackpad, and Page Up walk back through
+everything printed so far. "Press any key" accepts any key, Return
+included. The story sets in the chosen look's own typeface; the status
+bar and anything a game prints as fixed-pitch stay monospaced, as
+Z-machine games expect. In Retro, emphasis comes as colour and reverse
+video, the way the real machines did it.
 
-The band is exactly as tall as the picture, and the WINDOW takes up the
-slack. A picture scaled to the window's width lands on whatever height its
-aspect gives it, so what is left for text is rarely a whole number of lines,
-and those few spare pixels read as a blank row wherever they are put: under
-the text as a spare line that is not there, under the picture as a second
-blank line beneath the status bar. So the window resizes to fit its contents
-exactly, once, when the picture arrives. The reading area is then a whole
-number of rows, and what the pager counts is what you see. Running with
-`ACTAEA_GEOM=1` writes that arithmetic to `~/actaea-geom.log`, one line per
-layout and per pause, which is the quickest way to check a window that does
-not add up.
+Pictures: the window draws a story's `arc_image` picture (01 section
+6b) in a band across the top, pixel-crisp at every window size, and the
+window keeps the text below it at a whole number of lines; text the
+band displaces is re-shown behind [MORE]s rather than scrolled away
+(the re-base rule of 08 section 3, which every arc_image interpreter
+follows). This is arc_image on the modern desktop, and it is the loop
+an arc_image game is developed in: point `--images DIR` at a directory
+of numbered PNGs (`8.png` is picture id 8) and play while the art is
+still loose; when you ship, Actaea reads the same pictures from the
+sibling `.blorb` pack, or from a `.zblorb` carrying story and pictures
+in one file. The terminal and pipe modes report no picture support, so
+the same story plays there as pure text.
 
-When the picture band claims its rows, the reading area shrinks under text
-nobody has read yet, and that text is never simply scrolled away: the page
-is shown again from its top, a window-full at a time behind [MORE]s, until
-the newest lines stand above the prompt. That is the re-base rule in
-08-arcimage-interpreters section 3, which Actaea's window follows like any
-other interpreter implementing arc_image. The same treatment covers the
-status bar taking its row and a window shrunk mid-turn.
-
-"Press any key" accepts any key including Return. Story prose, the input
-line, and the [MORE] marker all set in the look's own face: the page
-speaks with one voice. The status bar is the deliberate exception, always
-in the look's mono, and anything the game prints in the fixed-pitch style
-or under the fixed-pitch header flag is monospaced too, exactly as the
-Standard requires. Retro sets everything in monogram, and its bold is a REAL drawn cut,
-generated from the face the classical bitmap way (every glyph unioned
-with itself one pixel right, same advance, so the mono rhythm holds);
-there is no synthetic oblique, italic text stands upright there, and
-further emphasis is colour and reverse video, the way the real machines
-did it. The screen's column
-count is still reckoned in the mono cell, and the window is 80 such
-columns wide where the desktop has room at the chosen shape and font,
-narrower where it does not; the story is told the column count either
-way. Switching looks re-fits the window to whole lines of the new face.
-
-Pictures (arc_image): the window is the one front-end that shows a room's
-`arc_image` picture (01 section 6b). It draws a band across the top, above
-the status bar, integer-scaled to the grid width so pixel art stays
-crisp; the status bar and text sit flush beneath it, and the band clears in
-a room with no picture. The band height comes from the game's mode, carried
-in the draw opcode (`arc_mode`, 9 or 12 rows), so Actaea sizes it without
-first loading the picture, the same way a retro interpreter must. The console and pipe modes report no picture
-support, so the same story plays there as pure text. Actaea finds the
-pictures next to the story: `--images DIR` points at a directory of numbered
-PNGs (`8.png` is picture id 8, the debug path), and with no flag it reads a
-sibling `.blorb` pack (`arcimg` builds it), then the story's own
-directory. There is no name manifest; the id is the file. This is the modern
-half; retro rendering is B12.
-
-The window presents as a native application, not as Python. On macOS the
-process takes the name Actaea in the menu bar and puts its star on the
-Dock by itself, at every launch, bundle or no bundle; on Windows it
-claims its own taskbar identity; everywhere the window wears the star in
-the title bar or taskbar where the platform shows one. (One boundary is
-the platform's own: on macOS the Dock tile's hover label follows the
-launching bundle, so a terminal launch may still whisper Python there;
-launched through the installed stub it says Actaea everywhere.) The
-About panel carries the star, the version, and the bundled typefaces'
-license record one click away.
-
-For a place among the applications, `actaea --install-app` (explicit,
-never automatic) installs a thin launcher: on macOS an Actaea.app stub
-in /Applications (or ~/Applications when the system one is not
-writable), on Linux a .desktop entry with the icon and the story MIME
-type, on Windows a Start Menu entry and per-user associations for .z5,
-.z8, and .zblorb files. The stub holds no logic at all, only the path to
-the real interpreter: the core application stays where it was
-downloaded and must be kept together with arcc and the other Arcturus
-files, so that `arcc --update` keeps every tool current; the stub
-follows automatically. Double-clicking a story file, or dropping one on
-the Dock icon, opens it in the window, mid-session included; if the
-download directory later moves, launching the relocated `actaea` once by
-hand heals the stub.
+The window is a native application, with Actaea's own name and icon
+rather than Python's. For a place among your applications,
+`actaea --install-app` installs a thin launcher on macOS, Linux, or
+Windows, with file associations for .z5, .z8, and .zblorb: double-click
+a story and it opens in the window. The interpreter itself stays the
+single file beside arcc and the other Arcturus tools, fully accessible
+from the command line, and `arcc --update` continues to update
+everything in place when the tools are kept together; the launcher
+holds no logic of its own, so it never goes stale. (If the tools'
+directory later moves, launch the relocated `actaea` once by hand and
+the launcher follows.)
 
 ### The terminal: --console
 
@@ -243,8 +181,8 @@ interpreter behaves.
 
 Resizing keeps what is on screen. The terminal itself holds no history, so
 the console keeps its own record of what the story has printed and repaints
-from it, re-wrapped to the new width; text no longer vanishes and trickles
-back as you play. A screen the story deliberately cleared stays cleared.
+from it, re-wrapped to the new width. A screen the story deliberately
+cleared stays cleared.
 
 Native Windows has no stdlib curses; there, --console degrades to the
 headless pipe with a note (WSL plays fine).
