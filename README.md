@@ -43,8 +43,8 @@ or later, which you almost certainly already have.
 | Component | Version | Download |
 |-----------|---------|----------|
 | **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.13.0 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 1.16.3 | shipped inside `arcc` |
-| **Actaea**, the reference interpreter | 1.9.4 | [build/actaea](build/actaea) |
+| **Cosmos**, the standard library | 1.16.4 | shipped inside `arcc` |
+| **Actaea**, the reference interpreter | 2.0.0 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 2.0.0 | [build/arcimg](build/arcimg) |
 | **proteus**, the web story builder (optional, for the web) | 1.0.0 | [build/proteus](build/proteus) |
 

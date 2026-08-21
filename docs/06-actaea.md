@@ -86,6 +86,9 @@ status area rendered as a true character-cell grid, text styles and the
 full Z-machine colour set, inline input at the story's own prompt wearing
 the game's input colour, and native save/restore/transcript file dialogs.
 
+![The Actaea window on macOS: an arc_image story with its picture band
+and status bar, the About panel, and the star on the Dock](../artworks/docs/actaea-window.png)
+
 Actaea is a light interpreter: its own screen is black on white paper, and
 a game that wants a dark screen sets its colours (which the window then
 honours completely, repainting the paper when the game erases).
@@ -196,9 +199,12 @@ The window presents as a native application, not as Python. On macOS the
 process takes the name Actaea in the menu bar and puts its star on the
 Dock by itself, at every launch, bundle or no bundle; on Windows it
 claims its own taskbar identity; everywhere the window wears the star in
-the title bar or taskbar where the platform shows one. The About panel
-carries the star, the version, and the bundled typefaces' license record
-one click away.
+the title bar or taskbar where the platform shows one. (One boundary is
+the platform's own: on macOS the Dock tile's hover label follows the
+launching bundle, so a terminal launch may still whisper Python there;
+launched through the installed stub it says Actaea everywhere.) The
+About panel carries the star, the version, and the bundled typefaces'
+license record one click away.
 
 For a place among the applications, `actaea --install-app` (explicit,
 never automatic) installs a thin launcher: on macOS an Actaea.app stub

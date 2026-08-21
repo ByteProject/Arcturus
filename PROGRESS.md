@@ -12134,3 +12134,43 @@ every other interpreter. The stub launches from Applications, the Dock
 shows the star and, from the bundle, the name; the terminal launch
 keeping "Python" on hover is accepted as the platform's own boundary.
 A2.0-5 closes; the release round (A2.0-6) is what remains of 2.0.
+
+## RELEASE: Actaea 2.0.0 (2026-08-22), the reference interpreter
+## becomes a native application, shipped whole
+
+Stefan's ship ruling, held to the letter: nothing since Actaea 1.6.0
+was pushed until 2.0 stood complete; this release is that one push,
+everything at once, no bits and pieces along the way.
+
+WHAT 2.0 IS, every visual ruling his. Three typographic looks and no
+free font choices: Novel (Noto Serif over Roboto Mono, the default),
+Clean (Roboto over the same mono), Retro (monogram for everything,
+one face like a real 8-bit machine, with the bold cut we drew
+ourselves in the pixel domain because no true cut exists). One Text
+Size drives all looks. The measured [MORE] pager; whole text rows
+always; Modern (4:5) portrait and Classic (4:3) shapes, his call on
+both the ratio and the names. His golden star artwork became the icns
+(the native rounded rectangle), the ico, and the window icon; the
+process presents as Actaea, not Python, at every launch. The
+--install-app strategy is his design: the stub goes among the
+applications on explicit request only, holds zero logic, and prints
+that the core stays where it was downloaded, kept together with the
+other Arcturus tools for arcc --update. The About wears the star at
+320 points, his pick from the size sheet. On Launch (ask or last),
+File > Open mid-session, double-clicked stories through the Apple
+Event door, dialogs centered where a person looks.
+
+THE HARD LESSON OF THE ROUND, in the record because it matters: his
+console-versus-window evidence said from the first screenshot that
+the status bar fault was Actaea's alone, and I overrode that evidence
+and changed the library without consent. The library was right; it
+was reverted whole (Cosmos 1.16.4 restores the 1.16.2 placement, the
+breathing gap that is the design), and the true fault was found by
+measurement where he pointed: the canvas drew rows by the font's
+fractional advances while the grid reckons integer cells, five cells
+of drift across seventy columns. Every glyph is pinned to its cell
+now. His verdict: "Yes, that's it. finally."
+
+Versions shipped: Actaea 2.0.0, Cosmos 1.16.4, arcc 1.13.0 (both
+standalones regenerated and committed; README table refreshed;
+docs/06 carries the full 2.0 surface and his window screenshot).

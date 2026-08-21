@@ -6,6 +6,28 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Actaea 2.0: the reference interpreter grows into a native
+  application.** The window now looks and behaves like the desktop app
+  it is. Three typographic looks, never freely mixable: Novel (Noto
+  Serif prose over a Roboto Mono machine voice, the default), Clean
+  (Roboto over the same mono), and Retro (monogram, the pixel face, for
+  everything, with a bold cut drawn pixel-by-pixel for the purpose);
+  fourteen faces ship inside the standalone and register with the
+  system at launch, nothing installed. The window pages long passages
+  with a measured [MORE], keeps to whole text rows, and offers two
+  shapes, the portrait Modern (4:5) and the squat Classic (4:3). It
+  presents as Actaea, not Python: the name in the macOS menu bar, the
+  golden star on the Dock and in the title bar, a polished About with
+  the typeface licenses one click away. `actaea --install-app` adds a
+  thin launcher among the applications (macOS .app stub, Linux .desktop
+  entry, Windows Start Menu and story associations) that holds no logic
+  and never goes stale: the core stays beside the other Arcturus tools,
+  where `arcc --update` keeps it current. Double-clicked stories open
+  in the window, mid-session included; a bare `actaea` asks for a story
+  or reopens the last one. And the status bar's right block finally
+  sits where every interpreter puts it: the upper window is now a true
+  cell grid in pixels, every glyph pinned to its cell (Actaea 2.0.0,
+  Cosmos 1.16.4).
 - **Multiple player characters: maniacswap.** `summon.maniacswap`, mark
   each body `playable`, and BECOME swaps the keyboard between them,
   Maniac Mansion style, from anywhere, even between maps that never
@@ -68,25 +90,6 @@ lives in the commit log. The feature roadmap follows below.
   compile byte-identical. From the same report: a forked prelude in a
   `-L` directory now really shadows the bundled one, as chapter 23 had
   promised since B5 (arcc 1.11.0, Cosmos 1.14.0).
-- **The parser learns parts of speech, and German gets its depth round.**
-  A field-report round on the German IF forum ended as the biggest parser
-  upgrade since the verbs overhaul, and the fundamentals serve every
-  language: a `words` entry marked `>red` is an ADJECTIVE, and matching
-  ranks in Infocom's ZIL classes (adjective plus noun over noun over
-  adjective alone), so EXAMINE RED with two red things asks the honest
-  "Which do you mean, the red couch or the red guitar?" while a lone
-  adjective still finds its object; a `#trigger` word settles
-  synonym-overlap ties silently; switch state is library-owned now
-  (`binary`, with honest already-on/off refusals and light coupling);
-  and language packs declare their own orthography folds and multi-role
-  pronouns. German cashes all of it in: declare `words tür` once and
-  "tuer" types (the fold table), one adjective stem carries every
-  declension (`>rot` matches rote, roten, roter, rotes, rotem), "ihm"
-  reaches masculine and neuter, "sie" feminine and plural, "ihnen"
-  exists, and the pronominal adverbs damit, darauf, darin, daran bind
-  the last thing mentioned. Games using none of it compile
-  byte-identical (arcc 1.5.0 to 1.10.0, Cosmos 1.8.0 to 1.13.0).
-
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus
