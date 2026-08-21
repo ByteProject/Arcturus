@@ -1796,7 +1796,20 @@ class ActaeaApp:
     def run(self) -> None:
         """Start the machine once the window is up, then hand the thread to
         tkinter. The VM blocks only inside wait_variable, so the window
-        stays alive the whole way."""
+        stays alive the whole way.
+
+        "Up" means MAPPED: the boot used to race the window manager, and a
+        story starting before the map was stamped with the default eighty
+        columns while the window really held ninety-five, so the first
+        status bar was painted for a screen that did not exist (Stefan's
+        H2 screenshot: the score block adrift of the prose's right edge).
+        Waiting for visibility, then measuring once, makes the first
+        screen's geometry the real one."""
+        try:
+            self.root.wait_visibility(self.root)
+        except tk.TclError:
+            pass
+        self._on_root_resize()
         self.root.after(20, self._run_vm)
         self.root.mainloop()
 
