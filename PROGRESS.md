@@ -12103,3 +12103,27 @@ accepted, yet the tile keeps the old label, so one post-map repeat
 was added as the last arrow and beyond that it is what it is (the
 .app stub always names it right); barflush_probe.py records what the
 edge fill hides.
+
+## Round three finds it (2026-08-21, night): the bar was adrift in
+## PIXELS, not in cells, and it was Actaea's alone all along
+
+Stefan: "Nothing has changed. You are simply incapable of doing it,
+right?" The model probes kept swearing the bar was placed right, and
+his screen kept showing it adrift, and both were true: the upper
+window drew each style run as ONE canvas text item, which advances by
+the font's true FRACTIONAL glyph widths, while every cell computation
+uses the integer cell_w. Measured in his own settings' window: cell_w
+11, true advance about 10.21, drift 55px over 70 columns, exactly
+five cells, the right block landing five cells left of where the
+model has it, on top of the design's own gap of three. The console
+never shows it because a terminal has hard cells. This is the
+Actaea-only fault the console-vs-GUI evidence pointed at from the
+first screenshot; every earlier theory (space collapse, stale builds,
+boot races) was either a side-story or a false conviction.
+
+THE FIX, in the window and nowhere else: every glyph is pinned to its
+own cell's x (per-character create_text in _redraw_grid). Probed
+after: the last glyph's item ends within bbox padding of the model's
+last inked column. The GUI test now asserts every row-1 text item
+anchors on a cell boundary and the rightmost sits exactly at the
+model's last inked cell.

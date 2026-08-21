@@ -1180,10 +1180,21 @@ class ActaeaApp:
                         fill=bg_c, width=0,
                     )
                 if chars.strip():
-                    self.canvas.create_text(
-                        x, y, text=chars, anchor="nw", fill=fg_c,
-                        font=self._styled_font(style),
-                    )
+                    # EVERY GLYPH IS PINNED TO ITS CELL (Stefan's status
+                    # bar, 2026-08-21, found by measuring): a run drawn as
+                    # one text item advances by the font's TRUE fractional
+                    # widths, while the grid reckons in the integer
+                    # cell_w, and the difference compounds: 55px over 70
+                    # columns at mono 13, the right block landing five
+                    # cells left of where the model has it. A terminal
+                    # has hard cells; this canvas must too.
+                    font = self._styled_font(style)
+                    for i, ch in enumerate(chars):
+                        if ch != " ":
+                            self.canvas.create_text(
+                                (start + i) * self.cell_w, y, text=ch,
+                                anchor="nw", fill=fg_c, font=font,
+                            )
             # Stefan's fill (2026-07-28): the band canvas spans the whole
             # window and wears the game background, so its letterbox READS
             # as picture; the bar must reach the same edge or it looks

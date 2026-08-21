@@ -69,6 +69,27 @@ def main() -> int:
             print("reverse cells: %s..%s (%d of %d)"
                   % (rev[0] if rev else "-", rev[-1] if rev else "-",
                      len(rev), model.cols))
+            # THE PIXEL TRUTH (2026-08-21, round three): the model can be
+            # flush while the canvas is not. cell arithmetic uses the
+            # INTEGER cell_w = measure("0"), but a whole row drawn as one
+            # text item advances by the font's TRUE fractional widths,
+            # and the error compounds across a hundred columns.
+            cw = app.cell_w
+            print("cell_w (integer):   ", cw)
+            print("cols*cell_w:        ", model.cols * cw)
+            print("font.measure(row):  ", app.font.measure(text))
+            print("drift over the row: ", model.cols * cw
+                  - app.font.measure(text), "px",
+                  "(%.2f cells)" % ((model.cols * cw
+                                     - app.font.measure(text)) / cw))
+            app.root.update_idletasks()
+            print("canvas width:       ", app.canvas.winfo_width())
+            for item in app.canvas.find_all():
+                if app.canvas.type(item) == "text":
+                    x1, y1, x2, y2 = app.canvas.bbox(item)
+                    if y1 < app.cell_h:
+                        print("row-1 text item: x %d..%d (model end %d)"
+                              % (x1, x2, len(text.rstrip()) * cw))
         # Never quit() during a live wait_variable: answer the prompt out
         # of the machine first, exactly as the GUI test does.
         if app._reading_line:

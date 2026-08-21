@@ -354,6 +354,20 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     # the cell grid has always drawn them.
     assert app._cols == (app.root.winfo_width() - 2 * app._margin) // app.cell_w
     assert app._cols >= 70
+    # THE GRID IS A TRUE CELL GRID IN PIXELS, not only in the model: every
+    # glyph is anchored at its own cell's x. Drawn as one run, the text
+    # advanced by the font's true FRACTIONAL widths while the grid reckons
+    # in integer cells, and the error compounded to five cells across a
+    # seventy-column bar (Stefan's Score/Moves, adrift since day one,
+    # convicted by measurement on 2026-08-21).
+    row1 = app.vm.screen.grid[0]
+    last_inked = len("".join(c.char for c in row1).rstrip())
+    xs = [app.canvas.coords(i)[0] for i in app.canvas.find_all()
+          if app.canvas.type(i) == "text"
+          and app.canvas.coords(i)[1] < app.cell_h]
+    assert xs, "the status bar must render text items"
+    assert all(x % app.cell_w == 0 for x in xs)
+    assert max(xs) == (last_inked - 1) * app.cell_w
     # The text area is a WHOLE number of lines (so it never shows a half row),
     # and it shrank to fit under the picture band.
     n = int(app.text.cget("height"))
