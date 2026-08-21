@@ -1021,7 +1021,11 @@ class ActaeaApp:
         self._drawn_image = state
         self._image_canvas.delete("all")
         if img is None:
+            # No picture: the canvas UNPACKS entirely. A packed canvas asked
+            # for height 0 still renders Tk's one-pixel minimum, a hairline
+            # across the top of every pictureless game (Stefan's screenshot).
             self._image_canvas.configure(height=0)
+            self._image_canvas.pack_forget()
             self._band_h = 0
             self._band_px = 0
             self._relayout()
@@ -1044,6 +1048,13 @@ class ActaeaApp:
         # gap that was never there, under the text they look like a spare line
         # (Stefan caught all three, 2026-08-20). The window gives them up
         # instead, in _relayout.
+        # Returning from bandless to banded: back into the stack, topmost,
+        # above the status grid when one is up.
+        if not self._image_canvas.winfo_manager():
+            before = self.canvas if self._grid_shown else self._lower_frame
+            self._image_canvas.pack(fill="x", side="top",
+                                    padx=self._margin, pady=(self._margin, 0),
+                                    before=before)
         # The picture is centered in the band (at the ordinary width it fills
         # it edge to edge, so nothing moves); the band wears the game
         # background so any letterbox margin is the game's colour.
@@ -1243,6 +1254,9 @@ class ActaeaApp:
         tag = self._look_tag()
         self.text.mark_set("insert", "end-1c")
         self._insert_paged(s, tag)
+        if self._closed:
+            return    # the window died during a [MORE] pause mid-print:
+                      # there is no widget left to keep books on
         self.text.mark_set("input_start", "end-1c")
         if typed:
             self._insert_input(typed)
