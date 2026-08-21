@@ -150,14 +150,18 @@ the newest lines stand above the prompt. That is the re-base rule in
 other interpreter implementing arc_image. The same treatment covers the
 status bar taking its row and a window shrunk mid-turn.
 
-"Press any key" accepts any key including Return. Story prose is set in
-the look's proportional face; the machine's voice, the status grid, the
-input line, the [MORE] marker, and anything the game prints in the
-fixed-pitch style or under the fixed-pitch header flag, stays monospaced,
-exactly as the Standard requires. The screen's column count is still
-reckoned in the mono cell, and the window is 80 such columns wide where
-the desktop has room at the chosen shape and font, narrower where it does
-not; the story is told the column count either way.
+"Press any key" accepts any key including Return. Story prose, the input
+line, and the [MORE] marker all set in the look's own face: the page
+speaks with one voice. The status bar is the deliberate exception, always
+in the look's mono, and anything the game prints in the fixed-pitch style
+or under the fixed-pitch header flag is monospaced too, exactly as the
+Standard requires. Retro uses monogram's one cut for everything, no
+synthetic bold or oblique to smear the pixels; emphasis there is colour
+and reverse video, the way the real machines did it. The screen's column
+count is still reckoned in the mono cell, and the window is 80 such
+columns wide where the desktop has room at the chosen shape and font,
+narrower where it does not; the story is told the column count either
+way. Switching looks re-fits the window to whole lines of the new face.
 
 Pictures (arc_image): the window is the one front-end that shows a room's
 `arc_image` picture (01 section 6b). It draws a band across the top, above

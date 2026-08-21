@@ -692,12 +692,29 @@ class ActaeaApp:
         prose_fam, mono_fam = fontpack.resolve(look, self.root)
         base = self._font_size.get()
         size = fontpack.retro_size(base) if look == "retro" else base
-        for f in (self.font, self.font_bold, self.font_italic,
-                  self.font_bold_italic):
-            f.configure(family=mono_fam, size=size)
-        for f in (self.font_prose, self.font_prose_bold,
-                  self.font_prose_italic, self.font_prose_bold_italic):
-            f.configure(family=prose_fam, size=size)
+        retro = look == "retro"
+        # Retro pins every variant to the plain cut: monogram has one, and a
+        # synthesized bold or oblique smears pixels. Emphasis in Retro is the
+        # game's colours and reverse video, the way the real machines did it.
+        for f, weight, slant in (
+                (self.font, "normal", "roman"),
+                (self.font_bold, "normal" if retro else "bold", "roman"),
+                (self.font_italic, "normal",
+                 "roman" if retro else "italic"),
+                (self.font_bold_italic, "normal" if retro else "bold",
+                 "roman" if retro else "italic")):
+            f.configure(family=mono_fam, size=size, weight=weight,
+                        slant=slant)
+        for f, weight, slant in (
+                (self.font_prose, "normal", "roman"),
+                (self.font_prose_bold, "normal" if retro else "bold",
+                 "roman"),
+                (self.font_prose_italic, "normal",
+                 "roman" if retro else "italic"),
+                (self.font_prose_bold_italic, "normal" if retro else "bold",
+                 "roman" if retro else "italic")):
+            f.configure(family=prose_fam, size=size, weight=weight,
+                        slant=slant)
         # The cell is the MONO cell (the Standard's screen units); the text
         # area lays out in PROSE lines, which are taller than the cell in
         # the serif look.
@@ -717,6 +734,10 @@ class ActaeaApp:
                 self._resize_body()
             finally:
                 self._in_resize = False
+        # The new face has a new line height: give the window's remainder up
+        # so the reading area holds WHOLE lines of it (a half line peeking
+        # out under the status bar was the first thing Stefan's eye found).
+        self._relayout(snap=True)
         self._settle_view()
         self._persist()
 
@@ -1421,13 +1442,14 @@ class ActaeaApp:
             pass
 
     def _input_look_tag(self) -> str:
-        """The player's typing is machine text: mono, in the game's current
-        input colours. Unlike prose, it always needs a tag, because the
-        widget's own font is the prose face."""
+        """The player's typing, in the game's input colours and the PROSE
+        face: Stefan's ruling, the page speaks with one voice and the
+        status bar is the only place the machine keeps its own. The tag
+        still exists for the colours."""
         m = self.vm.screen
         name = f"input-{m.style}-{m.fg}-{m.bg}"
         if name not in self._tags_made:
-            self._configure_look(name, m.style, m.fg, m.bg, fixed=True)
+            self._configure_look(name, m.style, m.fg, m.bg, fixed=False)
             self._tags_made.add(name)
         return name
 
@@ -1438,7 +1460,8 @@ class ActaeaApp:
         m = self.vm.screen
         name = f"more-{m.style}-{m.fg}-{m.bg}"
         if name not in self._tags_made:
-            self._configure_look(name, m.style ^ REVERSE, m.fg, m.bg)
+            self._configure_look(name, m.style ^ REVERSE, m.fg, m.bg,
+                                 fixed=False)
             self._tags_made.add(name)
         return name
 

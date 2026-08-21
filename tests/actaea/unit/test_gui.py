@@ -292,13 +292,13 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     # The widget's own font IS the prose face: untagged roman text is prose.
     assert tkfont.Font(root=app.root, name=str(app.text.cget("font")),
                        exists=True).actual("family") == "Noto Serif"
-    # The machine voice is mono wherever it speaks: the input line's tag and
-    # the [MORE] marker's tag both resolve to the mono face.
+    # The page speaks with ONE voice (Stefan's ruling): the input line sets
+    # in the prose face; only the status bar keeps the machine's own.
     app.vm.screen.set_style(0)
     in_tag = app._input_look_tag()
     in_font = str(app.text.tag_cget(in_tag, "font"))
     assert tkfont.Font(root=app.root, name=in_font,
-                       exists=True).actual("family") == "Roboto Mono"
+                       exists=True).actual("family") == "Noto Serif"
     # The FIXED text style forces mono even at default colours (S 8.7.1).
     app.vm.screen.set_style(8)
     fixed_tag = app._look_tag()
@@ -319,9 +319,22 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     assert app.font.actual("family") == "monogram"
     assert app.font.actual("size") == fontpack.retro_size(
         app._font_size.get())
+    # One cut only: no synthetic bold or oblique smearing the pixels, and
+    # never the italic file for roman text (the CoreText-matching bug
+    # Stefan's screenshot caught: the italic cut left the registered set).
+    assert app.font_prose.actual("slant") == "roman"
+    assert app.font_prose_bold.actual("weight") == "normal"
+    assert app.font_prose_italic.actual("slant") == "roman"
+    # The look switch snaps the window to whole lines of the NEW face: no
+    # half line can peek out under the status bar.
+    app.root.update_idletasks()
+    assert app.text.winfo_height() % app.line_h == 0
     app._look_var.set("novel")
     app._relook()
     assert app.font_prose.actual("family") == "Noto Serif"
+    assert app.font_prose_italic.actual("slant") == "italic"
+    app.root.update_idletasks()
+    assert app.text.winfo_height() % app.line_h == 0
     # The column count is derived FROM the window's width (the aspect or the
     # player's hand decides the width; the width decides the columns), and
     # the division's few leftover pixels rest in the right margin, exactly as
