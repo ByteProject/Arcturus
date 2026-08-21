@@ -413,6 +413,15 @@ def main(argv=None) -> int:
         print()
         return code
 
+    # A Finder/stub launch (ACTAEA_BUNDLE, set by the .app shim) has NO
+    # terminal at all: stdin is the void, isatty says no. That is not a
+    # developer piping input, it is the most window-shaped launch there
+    # is, so the bundle mark counts as a screen everywhere isatty does.
+    # Without this the stub died at birth on a usage error nobody saw
+    # (Stefan's install, 2026-08-21: "launches for a second, then
+    # nothing").
+    bundle = bool(os.environ.get("ACTAEA_BUNDLE"))
+
     gui_root = None
     if args.story is None:
         # A bare launch. Every terminal-facing mode is a developer at a
@@ -420,7 +429,7 @@ def main(argv=None) -> int:
         # story by itself (the dock-icon launch: double-click, play).
         if (args.console or args.headless or args.header or args.disasm
                 or args.record or args.replay or args.check
-                or not sys.stdin.isatty()):
+                or not (sys.stdin.isatty() or bundle)):
             ap.error("the following arguments are required: story")
         # The identity is claimed before the FIRST Tk root anywhere: the
         # menu bar name is snapshotted when Tk brings NSApplication up,
@@ -499,7 +508,7 @@ def main(argv=None) -> int:
         # screen-like exists at all. Every step DOWN the ladder says so
         # (docs/06 section 1 has always promised it; only --console kept
         # the promise until the Fos report showed what silence costs).
-        if sys.stdin.isatty():
+        if sys.stdin.isatty() or bundle:
             # Identity before the root exists (idempotent; the bare-launch
             # path already claimed it), and heal an installed stub whose
             # core path went dead (the download directory moved).

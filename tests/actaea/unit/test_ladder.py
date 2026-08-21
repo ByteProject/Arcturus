@@ -68,3 +68,46 @@ def test_console_explains_a_curses_less_platform(tmp_path, monkeypatch, capsys):
     err = capsys.readouterr().err
     assert "curses" in err
     assert "playing headless" in err
+
+
+def test_a_stub_launch_has_no_tty_and_still_gets_the_window(
+        tmp_path, monkeypatch):
+    """The .app stub launch (Finder, Dock) runs with NO terminal at all,
+    marked by ACTAEA_BUNDLE from the shim. Both tty gates must honor the
+    mark: the bare-launch guard (the stub died at birth on a usage error
+    nobody saw; Stefan's install, 2026-08-21) and the window ladder
+    (which would have dropped a Finder launch to the headless pipe)."""
+    story = _story(tmp_path)
+    opened = []
+    monkeypatch.setenv("ACTAEA_BUNDLE", "1")
+    monkeypatch.setattr(sys.stdin, "isatty", lambda: False)
+    monkeypatch.setattr(main_mod, "_startup_story",
+                        lambda: (story, None))
+    monkeypatch.setattr(main_mod, "_play_window",
+                        lambda s, t, *a, **k: opened.append(t) or True)
+    from actaea.gui import dress
+    monkeypatch.setattr(dress, "predress", lambda: None)
+    monkeypatch.setattr(dress, "refresh_stub", lambda bases=None: None)
+    # Bare launch: the guard lets the bundle through to _startup_story
+    # and the ladder hands the resolved story to the window.
+    assert main_mod.main([]) == 0
+    assert opened == ["ladder.z5"]
+    # With a story argument (open -a Actaea --args story.z5): same door.
+    assert main_mod.main([story]) == 0
+    assert opened == ["ladder.z5", "ladder.z5"]
+
+
+def test_a_piped_bare_launch_still_errors_without_the_mark(
+        tmp_path, monkeypatch, capsys):
+    """A developer piping into a bare `actaea` keeps the old contract:
+    no story argument is still a usage error when no bundle mark and no
+    tty are present."""
+    monkeypatch.delenv("ACTAEA_BUNDLE", raising=False)
+    monkeypatch.setattr(sys.stdin, "isatty", lambda: False)
+    try:
+        main_mod.main([])
+    except SystemExit as e:
+        assert e.code == 2
+    else:
+        raise AssertionError("a piped bare launch must still error")
+    assert "story" in capsys.readouterr().err
