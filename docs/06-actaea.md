@@ -42,23 +42,13 @@ both come with Python on most systems. Where one is missing, Actaea
 falls back to the next mode down and says so, naming the exact way to
 get tkinter on that platform.
 
-On Windows, two things differ. First, the standalone must be started
-through the Python launcher: `py actaea story.z5` (the file's first line
-is a Unix shebang, which Windows does not read, so the file cannot be
-started by name alone; this is the whole reason a plain `actaea story.z5`
-is "not recognized" there). Second, the window needs a Python that
-includes tkinter: the python.org installer ships it when the "tcl/tk and
-IDLE" box stays ticked, and an installation missing it can be repaired by
-re-running the installer and choosing Modify. A quick test is
-`py -c "import tkinter"`. Native Windows has no curses at all, so without
-tkinter the ladder goes straight down to the plain pipe; the console mode
-plays fine under WSL.
+### Notes for macOS users
 
-On macOS, recent systems (Tahoe and later) deprecate the Tk that ships
-with the OS, and a Python still linked against it can open the Actaea
-window as a BLANK FORM, with "The system version of Tk is deprecated"
-in the terminal. The window is not broken, its toolkit is: give Python
-a current Tcl/Tk and the form fills in. With Homebrew:
+Recent systems (Tahoe and later) deprecate the Tk that ships with the
+OS, and a Python still linked against it can open the Actaea window as
+a BLANK FORM, with "The system version of Tk is deprecated" in the
+terminal. The window is not broken, its toolkit is: give Python a
+current Tcl/Tk and the form fills in. With Homebrew:
 
     brew install tcl-tk
 
@@ -71,6 +61,20 @@ path carries it):
 and restart the terminal (and your editor, if it launched Actaea).
 Until then, `actaea --console story.z5` plays fine: the terminal mode
 does not use Tk at all.
+
+### Notes for Windows users
+
+Start the standalone through the Python launcher: `py actaea story.z5`.
+The file's first line is a Unix shebang, which Windows does not read,
+so the file cannot be started by name alone; that is the whole reason
+a plain `actaea story.z5` is "not recognized" there.
+
+The window needs a Python that includes tkinter: the python.org
+installer ships it when the "tcl/tk and IDLE" box stays ticked, and an
+installation missing it can be repaired by re-running the installer
+and choosing Modify. A quick test is `py -c "import tkinter"`. Native
+Windows has no curses, so without tkinter Actaea goes straight down to
+the plain pipe; the console mode plays fine under WSL.
 
 ## 2. The three ways to play
 
@@ -99,7 +103,7 @@ The menu bar:
 - Visuals -> Window Shape: Modern (4:5), a portrait page, or Classic
   (4:3), the squat screen of the old machines. A larger font gives a
   larger window of the same shape.
-- Visuals -> Game Colours: turns the game's colours on and off.
+- Visuals -> Game Colours: turns Z-machine colours on and off.
 - Settings -> On Launch: what starting Actaea without a story does,
   ask for one or reopen the last one played.
 
