@@ -411,6 +411,14 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     # rest, so the dock-icon launch can reopen where the player left off.
     assert saved["on_launch"] == "ask"
     assert saved["last_story"] == str(second)
+    # A remembered window is always a BELIEVABLE window: Tk's default
+    # 200x200 poisoned the settings once, and every later launch restored
+    # the accident. Neither side trusts an absurd size any more.
+    size = saved["geometry"].split("+")[0]
+    w, h = (int(v) for v in size.split("x"))
+    assert w >= 400 and h >= 300
+    assert not app._sane_geometry("200x195+327+52")
+    assert app._sane_geometry("860x845+325+52")
     assert saved["aspect"] == "modern"
     assert "+" in saved["geometry"] and "x" in saved["geometry"]
     app.root.destroy()

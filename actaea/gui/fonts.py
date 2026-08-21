@@ -57,8 +57,13 @@ RETRO_BOLD = "monogram bold"
 # TUNING IS ONE NUMBER PER FACE, here and nowhere else.
 OPTICAL_FACTORS = {
     "Noto Serif": 1.00,
-    "Roboto": 1.10,
-    "Roboto Mono": 1.10,
+    # Back to neutral (Stefan, 2026-08-21): the 1.10 was tuned against
+    # windows whose SIZE was quietly unstable (the persisted-geometry
+    # poisoning), which is exactly "healing an underlying issue with the
+    # font size", his phrase. Tune again only from a stable window, one
+    # number here per face.
+    "Roboto": 1.00,
+    "Roboto Mono": 1.00,
     "monogram": 24.0 / 14.0,
 }
 

@@ -245,7 +245,7 @@ class ActaeaApp:
         self._margin = 10
 
         # The window IS the story's 80-cell screen, inside the frame.
-        if self._saved_geometry:
+        if self._sane_geometry(self._saved_geometry):
             try:
                 self.root.geometry(self._saved_geometry)
                 self._want_width = int(self._saved_geometry.split("x")[0])
@@ -527,12 +527,27 @@ class ActaeaApp:
     def _geometry_now(self) -> str:
         """The window as it stands, size and position ("WxH+X+Y"), so the next
         run opens where this one was left rather than wherever the window
-        manager feels like."""
+        manager feels like. A geometry that never got applied (Tk's 200x200
+        default) is NOT the window as it stands: persisting one poisoned the
+        settings once, and every later launch faithfully restored the
+        accident (Stefan's tiny-window hunt, 2026-08-21). An insane reading
+        keeps the previous good value."""
         try:
             self.root.update_idletasks()
-            return self.root.winfo_geometry()
+            geo = self.root.winfo_geometry()
         except tk.TclError:
             return self._saved_geometry
+        return geo if self._sane_geometry(geo) else self._saved_geometry
+
+    @staticmethod
+    def _sane_geometry(geo: str) -> bool:
+        """A believable remembered window: laid out at least once."""
+        try:
+            size = geo.split("+")[0]
+            w, h = (int(v) for v in size.split("x"))
+        except (ValueError, AttributeError):
+            return False
+        return w >= 400 and h >= 300
 
     def _apply_geometry(self) -> None:
         """The window at the chosen aspect."""
