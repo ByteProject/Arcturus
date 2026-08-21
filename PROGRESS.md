@@ -11903,3 +11903,40 @@ the room asked from wm_maxsize so the dock is part of the arithmetic
 instead of a surprise. On his laptop that opens 860x887, seventy
 columns, taller than wide at last; on a tall display it is the true
 4:5 page. (Actaea 1.5.4)
+
+## 2026-08-21 (night): ACTAEA 2.0 CHARTERED, and the fonts settled.
+## All rulings Stefan's, no code yet
+
+WHAT 2.0 IS, in his framing: a new modern look, a better typeface,
+selectable stored aspect ratios, and native dressing so Actaea presents
+as a real app on Mac, Linux and Windows, icon and all, never again as
+"Python" in the menu bar. He made the icon himself while watching the
+window rounds: a golden star. The build order is chartered in the task
+list (A2.0-1 to A2.0-6): measured pager first (paging by Tk
+measurement, the prerequisite for everything), then proportional
+prose with the fixed-pitch obligations, the embedded fonts with
+first-run registration, the dressing with a polished About dialog
+linking the bundled font licenses.
+
+THE FONT ROUND, settled tonight from staged specimen cards: NO free
+font choices; three coherent LOOKS. "Novel", the default: Noto Serif
+prose over Roboto Mono. "Clean": Roboto over Roboto Mono. "Retro":
+monogram (datagoblin), ONE face for everything the way a real 8-bit
+machine was, unsmoothed, on its pixel grid of eights, default size
+step 24 (matches Novel's 14, his eye, the metrics agreed). Both
+non-retro looks share Roboto Mono, so the machine voice is constant
+and only the story voice changes. Rejected on the way: Pixeloid (the
+lowercase i reads as a capital), Geist Pixel (and any split-face
+retro). Licenses verified at source, every one: OFL for the Noto and
+Roboto faces, CC0 for monogram. Attribution goes in the licenses
+document regardless.
+
+A method lesson paid for twice tonight: specimens must be judged
+INSIDE one image, never across Preview windows (fit-to-window zoom
+lies), and never through a resampler; the mushy first cards and the
+false size alarm both came from my pipeline, not the fonts.
+
+STATE AT LIGHTS OUT: the whole 1.4.x-1.5.x window evening plus this
+charter is committed but UNPUSHED, waiting on Stefan's eye for the
+portrait window and dock behavior. The 2.0 build starts on his
+explicit go, at the measured pager.
