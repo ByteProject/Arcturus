@@ -76,8 +76,14 @@ def _save_settings(data: dict) -> None:
     path = _settings_path()
     try:
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w", encoding="utf-8") as f:
+        # Atomic: write beside, rename over. A process dying mid-dump left a
+        # torn file that read back as NOTHING, and every setting silently
+        # fell to its default (Stefan's text size went 14 -> 13 overnight
+        # that way). rename on the same filesystem cannot tear.
+        tmp = path + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
+        os.replace(tmp, path)
     except OSError:
         pass  # settings are a convenience; play goes on without them
 
@@ -757,11 +763,20 @@ class ActaeaApp:
         bg = self._colour(self.vm.screen.bg, "white")
         self._window_bg = bg
         for tag in self.text.tag_names():
-            if tag.startswith("look-"):
-                _, style, fg_part, bg_part = tag.split("-", 3)
-                self._configure_look(tag, int(style),
-                                     self._parse_colour(fg_part),
-                                     self._parse_colour(bg_part))
+            if not tag.startswith(("look-", "input-", "more-")):
+                continue
+            fixed = tag.endswith("-f")
+            body = tag[:-2] if fixed else tag
+            kind, style, fg_part, bg_part = body.split("-", 3)
+            style = int(style)
+            if kind == "more":
+                # The marker's NAME carries the plain style; its LOOK is
+                # that style reversed (the [MORE] convention).
+                style ^= REVERSE
+            self._configure_look(tag, style,
+                                 self._parse_colour(fg_part),
+                                 self._parse_colour(bg_part),
+                                 fixed if kind == "look" else False)
         self.text.configure(
             background=bg,
             insertbackground=self._colour(self.vm.screen.fg, "black"),
@@ -1103,7 +1118,7 @@ class ActaeaApp:
             self._lower_frame.configure(background=bg)
             self._tags_made.clear()  # cached looks resolved the old paper
             for tag in self.text.tag_names():
-                if tag.startswith("look-"):
+                if tag.startswith(("look-", "input-", "more-")):
                     self.text.tag_delete(tag)
         self.text.delete("1.0", "end")
         self.text.mark_set("input_start", "end-1c")
@@ -1677,6 +1692,12 @@ class ActaeaApp:
         # Where the window stood, so it opens there next time (Stefan: having
         # to move it across the screen at every launch is as annoying for his
         # adopters as it is for him).
+        if getattr(self, "_persist_job", None) is not None:
+            try:
+                self.root.after_cancel(self._persist_job)
+            except tk.TclError:
+                pass
+            self._persist_job = None
         try:
             self._persist_now()
         except tk.TclError:

@@ -352,6 +352,18 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     # to the settings, so the next launch opens where this one was left
     # instead of wherever the window manager puts it.
     import json
+    # Colours off reaches EVERY colour-carrying tag, the input tag
+    # included: a red prompt surviving the toggle was Stefan's find (the
+    # rebuild loop only knew the look- prefix).
+    app.vm.screen.set_colour(3, 2)
+    coloured = app._input_look_tag()
+    app._use_colours.set(False)
+    app._colours_toggled()
+    assert str(app.text.tag_cget(coloured, "foreground")) == "black"
+    app._use_colours.set(True)
+    app._colours_toggled()
+    assert str(app.text.tag_cget(coloured, "foreground")) != "black"
+    app.vm.screen.set_colour(1, 1)
     app._persist_now()      # what closing the window does
     saved = json.load(open(tmp_path / "actaea" / "settings.json"))
     assert saved["look"] == "novel"
