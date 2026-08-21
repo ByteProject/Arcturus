@@ -319,11 +319,11 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     assert app.font.actual("family") == "monogram"
     assert app.font.actual("size") == fontpack.retro_size(
         app._font_size.get())
-    # One cut only: no synthetic bold or oblique smearing the pixels, and
-    # never the italic file for roman text (the CoreText-matching bug
-    # Stefan's screenshot caught: the italic cut left the registered set).
+    # The slant stays pinned (the italic cut is retired and a synthetic
+    # oblique shears pixels), but BOLD is live in Retro by Stefan's ruling:
+    # the renderer emboldens the one cut.
     assert app.font_prose.actual("slant") == "roman"
-    assert app.font_prose_bold.actual("weight") == "normal"
+    assert app.font_prose_bold.actual("weight") == "bold"
     assert app.font_prose_italic.actual("slant") == "roman"
     # The look switch snaps the window to whole lines of the NEW face: no
     # half line can peek out under the status bar.

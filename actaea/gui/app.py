@@ -703,25 +703,26 @@ class ActaeaApp:
         prose_size = fontpack.scaled_size(prose_fam, base)
         mono_size = fontpack.scaled_size(mono_fam, base)
         retro = look == "retro"
-        # Retro pins every variant to the plain cut: monogram has one, and a
-        # synthesized bold or oblique smears pixels. Emphasis in Retro is the
-        # game's colours and reverse video, the way the real machines did it.
+        # Retro pins the SLANT only: monogram's italic cut is retired (the
+        # matcher handed it to roman requests) and a synthetic oblique shears
+        # pixel stems. BOLD stays live by Stefan's ruling: monogram has no
+        # drawn bold, so this is the renderer's emboldening, judged by eye
+        # and kept.
         for f, weight, slant in (
                 (self.font, "normal", "roman"),
-                (self.font_bold, "normal" if retro else "bold", "roman"),
+                (self.font_bold, "bold", "roman"),
                 (self.font_italic, "normal",
                  "roman" if retro else "italic"),
-                (self.font_bold_italic, "normal" if retro else "bold",
+                (self.font_bold_italic, "bold",
                  "roman" if retro else "italic")):
             f.configure(family=mono_fam, size=mono_size, weight=weight,
                         slant=slant)
         for f, weight, slant in (
                 (self.font_prose, "normal", "roman"),
-                (self.font_prose_bold, "normal" if retro else "bold",
-                 "roman"),
+                (self.font_prose_bold, "bold", "roman"),
                 (self.font_prose_italic, "normal",
                  "roman" if retro else "italic"),
-                (self.font_prose_bold_italic, "normal" if retro else "bold",
+                (self.font_prose_bold_italic, "bold",
                  "roman" if retro else "italic")):
             f.configure(family=prose_fam, size=prose_size, weight=weight,
                         slant=slant)
