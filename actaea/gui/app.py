@@ -691,7 +691,11 @@ class ActaeaApp:
         look = self._look_var.get()
         prose_fam, mono_fam = fontpack.resolve(look, self.root)
         base = self._font_size.get()
-        size = fontpack.retro_size(base) if look == "retro" else base
+        # The menu size MEANS Noto: every face wears its optical factor so
+        # all looks read at the same apparent size (Stefan's ruling; the
+        # factors live in fonts.OPTICAL_FACTORS, one number per face).
+        prose_size = fontpack.scaled_size(prose_fam, base)
+        mono_size = fontpack.scaled_size(mono_fam, base)
         retro = look == "retro"
         # Retro pins every variant to the plain cut: monogram has one, and a
         # synthesized bold or oblique smears pixels. Emphasis in Retro is the
@@ -703,7 +707,7 @@ class ActaeaApp:
                  "roman" if retro else "italic"),
                 (self.font_bold_italic, "normal" if retro else "bold",
                  "roman" if retro else "italic")):
-            f.configure(family=mono_fam, size=size, weight=weight,
+            f.configure(family=mono_fam, size=mono_size, weight=weight,
                         slant=slant)
         for f, weight, slant in (
                 (self.font_prose, "normal", "roman"),
@@ -713,7 +717,7 @@ class ActaeaApp:
                  "roman" if retro else "italic"),
                 (self.font_prose_bold_italic, "normal" if retro else "bold",
                  "roman" if retro else "italic")):
-            f.configure(family=prose_fam, size=size, weight=weight,
+            f.configure(family=prose_fam, size=prose_size, weight=weight,
                         slant=slant)
         # The cell is the MONO cell (the Standard's screen units); the text
         # area lays out in PROSE lines, which are taller than the cell in

@@ -41,12 +41,32 @@ LOOKS = {
 
 DEFAULT_LOOK = "novel"
 
-# Stefan's measured ratio: monogram at 24 reads like Noto Serif at 14.
-# The result snaps to monogram's pixel grid of eights so it stays crisp.
+# OPTICAL SIZE FACTORS, relative to Noto Serif, which is what the Text
+# Size menu MEANS: choose 14 and every look renders at Noto-14's apparent
+# size. The starting values are measured x-height parity corrected by
+# Stefan's eye (x-heights alone put the Robotos within 1.5 percent of
+# Noto, yet they read smaller: narrower fit, thinner strokes; monogram
+# measures exact at its ratio yet reads a touch big: chunky strokes).
+# TUNING IS ONE NUMBER PER FACE, here and nowhere else.
+OPTICAL_FACTORS = {
+    "Noto Serif": 1.00,
+    "Roboto": 1.10,
+    "Roboto Mono": 1.10,
+    "monogram": 24.0 / 14.0,
+}
+
+
+def scaled_size(family: str, base_size: int) -> int:
+    """The point size this family wears so it reads like Noto at base."""
+    factor = OPTICAL_FACTORS.get(family, 1.0)
+    if family == "monogram":
+        # The pixel face stays crisp only at multiples of eight.
+        return max(8, int(round(base_size * factor / 8.0)) * 8)
+    return max(6, int(round(base_size * factor)))
+
+
 def retro_size(base_size: int) -> int:
-    ideal = base_size * 24.0 / 14.0
-    step = max(8, int(round(ideal / 8.0)) * 8)
-    return step
+    return scaled_size("monogram", base_size)
 
 # System stand-ins per platform, used only when a bundled face could not
 # be registered (a locked-down machine, a stripped build): the look keeps
