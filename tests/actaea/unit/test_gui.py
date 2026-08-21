@@ -101,6 +101,14 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     except tk.TclError:
         pytest.skip("no display for tkinter")
 
+    # THE SNAP NEVER FIRES ON AN UNMAPPED WINDOW: before the WM applies the
+    # initial geometry the window reports Tk's default size, and a snap that
+    # measured it once locked a 181-pixel window (the tiny-launch race,
+    # caught by Stefan's geometry log). Simulate the race deliberately:
+    # ask for the snap right now, before anything has been mapped.
+    app._relayout(snap=True)
+    assert app._snapped_to == 0, "the snap trusted an unmapped window"
+
     # THE SHAPE IT OPENS IN. With nothing remembered, the window takes the
     # modern 4:5 of the desktop interpreters: 80 cells wide, and as tall as
     # the ratio makes it. Measured before the story runs, since fitting the

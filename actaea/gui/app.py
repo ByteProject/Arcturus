@@ -670,7 +670,18 @@ class ActaeaApp:
         # subtracted from the current one, so it converges instead of walking
         # the window down a few pixels per layout, which is what an earlier
         # attempt did. Never on a plain resize, so it cannot fight a drag.
-        if snap and not self._in_resize and real > 5 * self.cell_h:
+        # NEVER SNAP AN UNMAPPED WINDOW. The snap fits the window to its
+        # contents, and during boot it can fire before the window manager has
+        # applied the initial geometry: it then measures Tk's 200-pixel
+        # default, "fits" the window to six lines, and its own only-once
+        # guard holds the accident (Stefan's tiny launches; his geometry log
+        # caught it: window=200 at first layout, snapped to 181 and locked;
+        # the millisecond race with the WM is why harnesses, which force the
+        # layout before the story runs, never reproduced it). The
+        # believability test from the settings work answers the question.
+        if (snap and not self._in_resize and real > 5 * self.cell_h
+                and self._sane_geometry(
+                    "%dx%d" % (self.root.winfo_width(), real))):
             want = 2 * self._margin + band + status + n * line_h
             if want != real and want != self._snapped_to:
                 self._snapped_to = want
