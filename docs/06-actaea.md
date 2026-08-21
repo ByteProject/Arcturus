@@ -23,6 +23,12 @@ Copyright (c) 2026, Stefan Vogt | https://github.com/ByteProject/Arcturus
 Actaea ships two ways, identical in behavior:
 
 - The package: `python3 -m actaea story.z5` from the repository root. The
+  story argument is optional for the window: a bare `actaea` asks for one
+  with a native open dialog, or reopens the last story you played,
+  whichever View -> On Launch says (asking is the default). Every
+  terminal-facing mode (--console, --headless, --header, --disasm,
+  --record, --replay, --check) still requires the story on the command
+  line: those are developer's tools at a prompt. The
   story argument may also be a `.zblorb` (a Blorb with the story embedded,
   the pack `arcimg pack --zblorb` writes): Actaea plays the story out of
   it and serves its pictures from the same file.
@@ -99,6 +105,8 @@ The menu bar:
   directly; Retro derives its size from it (24 reads like 14, measured)
   and snaps to monogram's pixel grid so the pixels stay crisp.
 - View -> Screen Height: window lines.
+- View -> On Launch: what a bare launch (a dock icon, a double-click)
+  does: ask for a story, or reopen the last one.
 - View -> Window Shape: Modern (4:5) or Classic (4:3). Modern is a
   portrait page, taller than wide, and on a big display that
   is exactly what opens. A laptop cannot show portrait at eighty columns

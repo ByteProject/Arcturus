@@ -160,9 +160,14 @@ class ActaeaApp:
     run loop driving the VM through GuiIO."""
 
     def __init__(self, story, title: str, images_dir=None, images_zip=None,
-                 seed=None):
-        self.root = tk.Tk()
+                 seed=None, root=None, story_path=None):
+        # A bare launch hands its file-dialog root along to BE this window's
+        # root: this platform's Tk does not survive a second one.
+        self.root = root if root is not None else tk.Tk()
+        self.root.deiconify()
         self.root.title(f"{title} - Actaea")
+        # Remembered for the On Launch "open the last story" preference.
+        self._story_path = story_path
         # arc_image (B11): an arc_image id IS the resource slot, so a picture the
         # model asks for is loaded by number, either as <id>.png from a loose
         # images directory or as Pict <id> from the story's Blorb pack. No name
@@ -193,6 +198,11 @@ class ActaeaApp:
         # Where the window was when it was last closed, size and position
         # both ("WxH+X+Y"), so it opens where the player left it.
         self._saved_geometry = st.get("geometry") or ""
+        # A bare 'actaea' (the dock-icon launch) either asks for a story or
+        # reopens the last one; the player chooses in View > On Launch.
+        self._launch_var = tk.StringVar(
+            value=st.get("on_launch")
+            if st.get("on_launch") in ("ask", "last") else "ask")
         self._mac_integration()
 
         # THE LOOK (Actaea 2.0). Three named typographic identities, never
@@ -426,6 +436,14 @@ class ActaeaApp:
         view.add_cascade(label="Text Size", menu=size)
         view.add_cascade(label="Window Shape", menu=shape)
         view.add_cascade(label="Screen Height", menu=lines)
+        launch = tk.Menu(view, tearoff=0)
+        launch.add_radiobutton(label="Ask for a story",
+                               variable=self._launch_var, value="ask",
+                               command=self._persist)
+        launch.add_radiobutton(label="Open the last story",
+                               variable=self._launch_var, value="last",
+                               command=self._persist)
+        view.add_cascade(label="On Launch", menu=launch)
         view.add_separator()
         view.add_checkbutton(label="Game Colours", variable=self._use_colours,
                              command=self._colours_toggled)
@@ -479,6 +497,9 @@ class ActaeaApp:
         self._persist_job = None
         _save_settings({
             "look": self._look_var.get(),
+            "on_launch": self._launch_var.get(),
+            "last_story": self._story_path
+            or _load_settings().get("last_story"),
             "size": self._font_size.get(),
             "rows": self._rows_var.get(),
             "game_colours": self._use_colours.get(),
@@ -1734,5 +1755,7 @@ class ActaeaApp:
                 self.append_story(f"\n[actaea: {e}]\n")
 
 
-def play(story, title: str, images_dir=None, images_zip=None, seed=None) -> None:
-    ActaeaApp(story, title, images_dir, images_zip, seed).run()
+def play(story, title: str, images_dir=None, images_zip=None, seed=None,
+         root=None, story_path=None) -> None:
+    ActaeaApp(story, title, images_dir, images_zip, seed, root=root,
+              story_path=story_path).run()

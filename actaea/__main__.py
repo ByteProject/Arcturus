@@ -105,12 +105,14 @@ def _tk_hint() -> str:
             "Raspberry Pi OS, 'sudo dnf install python3-tkinter' on Fedora")
 
 
-def _play_window(story, title: str, images_dir=None, images_zip=None, seed=None) -> bool:
+def _play_window(story, title: str, images_dir=None, images_zip=None,
+                 seed=None, root=None, story_path=None) -> bool:
     try:
         from .gui.app import play
     except ImportError:
         return False  # no tkinter on this Python
-    play(story, title, images_dir, images_zip, seed=seed)
+    play(story, title, images_dir, images_zip, seed=seed, root=root,
+         story_path=story_path)
     return True
 
 
@@ -272,9 +274,45 @@ class _Version(argparse.Action):
         parser.exit(0)
 
 
+def _startup_story():
+    """A story for a bare GUI launch, per the window's On Launch setting:
+    "last" reopens the previous story when it still exists, otherwise (and
+    as the default, "ask") a native open dialog. Returns (path, root): the
+    dialog's withdrawn Tk root rides along to BECOME the window's root,
+    because this platform's Tk does not survive a second one."""
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+        from .gui.app import _load_settings
+    except ImportError:
+        return None, None
+    st = _load_settings()
+    if st.get("on_launch") == "last":
+        last = st.get("last_story")
+        if last and os.path.isfile(last):
+            return last, None
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        return None, None
+    root.withdraw()
+    path = filedialog.askopenfilename(
+        parent=root, title="Open a story",
+        filetypes=[("Z-machine stories", "*.z5 *.z8 *.zblorb"),
+                   ("All files", "*")],
+    )
+    return (path or None), root
+
+
 def main(argv=None) -> int:
     ap = _Cli(prog="actaea")
-    ap.add_argument("story", help="a .z5 or .z8 story file")
+    ap.add_argument(
+        "story", nargs="?", default=None,
+        help="a .z5, .z8, or .zblorb story file. Optional for the window: a "
+        "bare 'actaea' asks for one, or reopens the last story, per the "
+        "window's View > On Launch setting. Every terminal-facing mode "
+        "still requires it",
+    )
     ap.add_argument(
         "--console",
         action="store_true",
@@ -329,6 +367,22 @@ def main(argv=None) -> int:
     ap.add_argument("--version", action=_Version, nargs=0,
                     help="show the version banner and exit")
     args = ap.parse_args(argv)
+
+    gui_root = None
+    if args.story is None:
+        # A bare launch. Every terminal-facing mode is a developer at a
+        # prompt and keeps the old contract; only the window may resolve a
+        # story by itself (the dock-icon future: double-click, play).
+        if (args.console or args.headless or args.header or args.disasm
+                or args.record or args.replay or args.check
+                or not sys.stdin.isatty()):
+            ap.error("the following arguments are required: story")
+        resolved, gui_root = _startup_story()
+        if resolved is None:
+            if gui_root is not None:
+                gui_root.destroy()
+            return 0        # the player closed the dialog: a quiet non-start
+        args.story = resolved
 
     try:
         story = load_file(args.story)
@@ -388,6 +442,7 @@ def main(argv=None) -> int:
         # arc_image resources for the window (the terminal and headless modes
         # cannot show pictures, so they ignore them).
         images_dir, images_zip = _resolve_images(args.story, args.images)
+        story_path = os.path.abspath(args.story)
 
         # The default ladder: the window on a desktop; the terminal when
         # tkinter is absent; the pipe when input is piped or nothing
@@ -396,8 +451,11 @@ def main(argv=None) -> int:
         # the promise until the Fos report showed what silence costs).
         if sys.stdin.isatty():
             if _play_window(story, os.path.basename(args.story),
-                            images_dir, images_zip, seed=args.seed):
+                            images_dir, images_zip, seed=args.seed,
+                            root=gui_root, story_path=story_path):
                 return 0
+            if gui_root is not None:
+                gui_root.destroy()
             print("actaea: this Python has no tkinter, so the window "
                   "cannot open; " + _tk_hint() + ".", file=sys.stderr)
             if _play_terminal(story, os.path.basename(args.story), seed=args.seed):

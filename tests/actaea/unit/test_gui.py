@@ -96,7 +96,8 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     _make_png(tmp_path / "1.png", 320, 96, (20, 30, 90))
 
     try:
-        app = ActaeaApp(story, "probe", images_dir=str(tmp_path))
+        app = ActaeaApp(story, "probe", images_dir=str(tmp_path),
+                        story_path="/tmp/probe-story.z5")
     except tk.TclError:
         pytest.skip("no display for tkinter")
 
@@ -371,6 +372,10 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     app._persist_now()      # what closing the window does
     saved = json.load(open(tmp_path / "actaea" / "settings.json"))
     assert saved["look"] == "novel"
+    # The bare-launch preference and the remembered story travel with the
+    # rest, so the dock-icon launch can reopen where the player left off.
+    assert saved["on_launch"] == "ask"
+    assert saved["last_story"] == "/tmp/probe-story.z5"
     assert saved["aspect"] == "modern"
     assert "+" in saved["geometry"] and "x" in saved["geometry"]
     app.root.destroy()
