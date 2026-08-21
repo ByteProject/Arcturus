@@ -83,7 +83,7 @@ Actaea plays in a window, in the terminal, or as a plain text pipe.
 ### The window (default)
 
 `actaea story.z5` opens the window, the way Actaea is normally played.
-It supports the full Z-machine screen model: colours, text styles, the
+It supports the full Z-machine screen model: colors, text styles, the
 game-drawn status bar, and timed input. Long passages page with
 `[MORE]`, and you can scroll back through everything printed.
 
@@ -103,7 +103,7 @@ The menu bar:
 - Visuals -> Window Shape: Modern (4:5), a portrait page, or Classic
   (4:3), the squat screen of the old machines. A larger font gives a
   larger window of the same shape.
-- Visuals -> Game Colours: turns Z-machine colours on and off.
+- Visuals -> Game Colors: turns Z-machine colors on and off.
 - Settings -> On Launch: what starting Actaea without a story does,
   ask for one or reopen the last one played.
 
@@ -129,7 +129,7 @@ launcher never needs a reinstall.
 ### The terminal: --console
 
 `actaea --console story.z5` plays in the terminal, in the manner of
-fizmo-ncursesw: the game-drawn status bar, Z-machine colours mapped to
+fizmo-ncursesw: the game-drawn status bar, Z-machine colors mapped to
 the terminal's, bold, italic, and reverse, `[MORE]` paging, and timed
 input. The terminal tab is titled after the story while it plays.
 
@@ -185,7 +185,7 @@ actaea --check  walk.txt story.z5    # did anything change? (in plain words)
 
 - **`--record FILE`** plays normally and saves the session, your commands AND
   the game's replies, to FILE. Add `--console` to record from the full
-  terminal (status bar, colours, paging), the way you would normally play;
+  terminal (status bar, colors, paging), the way you would normally play;
   without it, recording runs on the plain console (interactive in a terminal,
   piped otherwise). `--replay` works the same way, in either. Only `--check`
   is always headless, since it is a batch comparison with nothing to show.
@@ -271,7 +271,7 @@ the test suite:
 - Praxix: all tests passed, every group verdict counted.
 - TerpEtude: the text portions asserted headless (signed arithmetic,
   multiple undo, input preloading, lower-casing, closing text before
-  quit); the styled, coloured, and timed portions verified by eye in the
+  quit); the styled, colored, and timed portions verified by eye in the
   window and the terminal.
 - Real games, z5 and z8, played headless as integration checks; the suite
   drives them where the (third-party) story files are present locally.
