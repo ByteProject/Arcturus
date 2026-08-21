@@ -166,9 +166,47 @@ def _take_name_mac() -> None:
                        (libobjc.sel_registerName(b"setObject:forKey:"),),
                        (ctypes.c_void_p,), restype=ctypes.c_bool)
         if mutable:
-            send(info, "setObject:forKey:",
-                 (nss(APP_NAME), nss("CFBundleName")),
-                 (ctypes.c_void_p, ctypes.c_void_p))
+            for key in ("CFBundleName", "CFBundleDisplayName"):
+                send(info, "setObject:forKey:",
+                     (nss(APP_NAME), nss(key)),
+                     (ctypes.c_void_p, ctypes.c_void_p))
+
+
+def _take_dock_name_mac() -> None:
+    """The Dock's hover label is LaunchServices' display name for the
+    running application, held in its process registration (the ASN), not
+    in the bundle dictionary: rewriting CFBundleName fixes the menu bar
+    but the Dock still whispered Python (Stefan's hover, 2026-08-21).
+    LaunchServices has a private setter for exactly this, the one Java
+    and SDL have leaned on for years; the ASN exists only once the app
+    has registered, so this runs AFTER the Tk root, from dress()."""
+    import ctypes
+    import ctypes.util
+    ls = ctypes.CDLL(ctypes.util.find_library("CoreServices"))
+    ls._LSGetCurrentApplicationASN.restype = ctypes.c_void_p
+    ls._LSGetCurrentApplicationASN.argtypes = []
+    ls._LSSetApplicationInformationItem.restype = ctypes.c_int
+    ls._LSSetApplicationInformationItem.argtypes = [
+        ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
+        ctypes.c_void_p]
+    cf = ctypes.CDLL(ctypes.util.find_library("CoreFoundation"))
+    cf.CFStringCreateWithCString.restype = ctypes.c_void_p
+    cf.CFStringCreateWithCString.argtypes = [ctypes.c_void_p,
+                                             ctypes.c_char_p,
+                                             ctypes.c_uint32]
+    # The private key symbol when it exports, else the literal string
+    # LaunchServices stores under (community-attested both ways).
+    try:
+        key = ctypes.c_void_p.in_dll(ls, "_kLSDisplayNameKey").value
+    except ValueError:
+        key = None
+    if not key:
+        key = cf.CFStringCreateWithCString(None, b"LSDisplayName", 0x08000100)
+    name = cf.CFStringCreateWithCString(None, APP_NAME.encode("utf-8"),
+                                        0x08000100)
+    asn = ls._LSGetCurrentApplicationASN()
+    if asn and key and name:
+        ls._LSSetApplicationInformationItem(-2, asn, key, name, None)
 
 
 def dress(root) -> None:
@@ -187,6 +225,10 @@ def dress(root) -> None:
     if sys.platform == "darwin":
         try:
             _dock_icon_mac()
+        except Exception:
+            pass
+        try:
+            _take_dock_name_mac()
         except Exception:
             pass
     elif sys.platform == "win32":
