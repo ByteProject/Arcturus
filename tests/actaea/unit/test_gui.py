@@ -319,14 +319,15 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     assert app.font.actual("family") == "monogram"
     assert app.font.actual("size") == fontpack.retro_size(
         app._font_size.get())
-    # The slant stays pinned (the italic cut is retired and a synthetic
-    # oblique shears pixels). Bold is REQUESTED in Retro by Stefan's ruling,
-    # but aqua Tk does not synthesize a weight the family lacks: actual()
-    # honestly reports the regular cut until a drawn bold ships (the
-    # pixel-perfect generated cut, planned). This assertion documents the
-    # renderer's truth, not the goal.
+    # Retro's bold is the DRAWN cut, its own family generated from
+    # monogram (aqua Tk synthesizes no weight, so a drawn cut is the only
+    # real bold a one-weight pixel family can have). The slant stays
+    # pinned: the italic cut is retired and a synthetic oblique shears
+    # pixel stems.
     assert app.font_prose.actual("slant") == "roman"
-    assert app.font_prose_bold.cget("weight") == "bold"      # the request
+    assert app.font_prose_bold.actual("family") == "monogram bold"
+    assert app.font_prose_bold.actual("size") == fontpack.retro_size(
+        app._font_size.get())
     assert app.font_prose_italic.actual("slant") == "roman"
     # The look switch snaps the window to whole lines of the NEW face: no
     # half line can peek out under the status bar.

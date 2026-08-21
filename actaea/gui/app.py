@@ -703,29 +703,35 @@ class ActaeaApp:
         prose_size = fontpack.scaled_size(prose_fam, base)
         mono_size = fontpack.scaled_size(mono_fam, base)
         retro = look == "retro"
-        # Retro pins the SLANT only: monogram's italic cut is retired (the
-        # matcher handed it to roman requests) and a synthetic oblique shears
-        # pixel stems. BOLD stays live by Stefan's ruling: monogram has no
-        # drawn bold, so this is the renderer's emboldening, judged by eye
-        # and kept.
-        for f, weight, slant in (
-                (self.font, "normal", "roman"),
-                (self.font_bold, "bold", "roman"),
-                (self.font_italic, "normal",
-                 "roman" if retro else "italic"),
-                (self.font_bold_italic, "bold",
-                 "roman" if retro else "italic")):
-            f.configure(family=mono_fam, size=mono_size, weight=weight,
-                        slant=slant)
-        for f, weight, slant in (
-                (self.font_prose, "normal", "roman"),
-                (self.font_prose_bold, "bold", "roman"),
-                (self.font_prose_italic, "normal",
-                 "roman" if retro else "italic"),
-                (self.font_prose_bold_italic, "bold",
-                 "roman" if retro else "italic")):
-            f.configure(family=prose_fam, size=prose_size, weight=weight,
-                        slant=slant)
+        # Retro's bold is the DRAWN cut (its own family, generated from
+        # monogram; see fonts.RETRO_BOLD): the family carries the boldness,
+        # so the weight stays normal and the matcher never guesses. The
+        # slant stays pinned in Retro: the italic cut is retired and a
+        # synthetic oblique shears pixel stems.
+        bold_fam_mono, bold_fam_prose, bold_weight = mono_fam, prose_fam, "bold"
+        if retro and fontpack.usable(self.root, fontpack.RETRO_BOLD):
+            bold_fam_mono = bold_fam_prose = fontpack.RETRO_BOLD
+            bold_weight = "normal"
+        it_slant = "roman" if retro else "italic"
+        self.font.configure(family=mono_fam, size=mono_size,
+                            weight="normal", slant="roman")
+        self.font_bold.configure(family=bold_fam_mono, size=mono_size,
+                                 weight=bold_weight, slant="roman")
+        self.font_italic.configure(family=mono_fam, size=mono_size,
+                                   weight="normal", slant=it_slant)
+        self.font_bold_italic.configure(family=bold_fam_mono, size=mono_size,
+                                        weight=bold_weight, slant=it_slant)
+        self.font_prose.configure(family=prose_fam, size=prose_size,
+                                  weight="normal", slant="roman")
+        self.font_prose_bold.configure(family=bold_fam_prose,
+                                       size=prose_size, weight=bold_weight,
+                                       slant="roman")
+        self.font_prose_italic.configure(family=prose_fam, size=prose_size,
+                                         weight="normal", slant=it_slant)
+        self.font_prose_bold_italic.configure(family=bold_fam_prose,
+                                              size=prose_size,
+                                              weight=bold_weight,
+                                              slant=it_slant)
         # The cell is the MONO cell (the Standard's screen units); the text
         # area lays out in PROSE lines, which are taller than the cell in
         # the serif look.

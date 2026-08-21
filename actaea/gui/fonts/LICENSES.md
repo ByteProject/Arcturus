@@ -10,7 +10,8 @@ dialog links to.
 | Noto Serif | NotoSerif-*.ttf | Google, the Noto Project | SIL Open Font License 1.1 |
 | Roboto | Roboto-*.ttf | Christian Robertson, Google | SIL Open Font License 1.1 |
 | Roboto Mono | RobotoMono-*.ttf | Christian Robertson, Google | SIL Open Font License 1.1 |
-| monogram extended | monogram-extended*.ttf | datagoblin (datagoblin.itch.io/monogram) | CC0 1.0 (public domain) |
+| monogram extended | monogram-extended.ttf | datagoblin (datagoblin.itch.io/monogram) | CC0 1.0 (public domain) |
+| monogram bold | monogram-extended-bold.ttf | derived from monogram for Actaea (tools/monogram_bold.py): each glyph unioned with itself one design pixel right, the classical bitmap bold | CC0 1.0, the dedication carried forward |
 
 monogram requires no attribution at all under CC0; it is credited here
 because it deserves to be.

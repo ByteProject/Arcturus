@@ -155,9 +155,12 @@ line, and the [MORE] marker all set in the look's own face: the page
 speaks with one voice. The status bar is the deliberate exception, always
 in the look's mono, and anything the game prints in the fixed-pitch style
 or under the fixed-pitch header flag is monospaced too, exactly as the
-Standard requires. Retro uses monogram's one cut for everything, no
-synthetic bold or oblique to smear the pixels; emphasis there is colour
-and reverse video, the way the real machines did it. The screen's column
+Standard requires. Retro sets everything in monogram, and its bold is a REAL drawn cut,
+generated from the face the classical bitmap way (every glyph unioned
+with itself one pixel right, same advance, so the mono rhythm holds);
+there is no synthetic oblique, italic text stands upright there, and
+further emphasis is colour and reverse video, the way the real machines
+did it. The screen's column
 count is still reckoned in the mono cell, and the window is 80 such
 columns wide where the desktop has room at the chosen shape and font,
 narrower where it does not; the story is told the column count either
