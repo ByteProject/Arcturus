@@ -2022,8 +2022,8 @@ events as the game runs, handled with the same `on` syntax:
 
 - `on start` runs once at the very beginning, BEFORE the banner: this is where
   everything that must happen before the game proper belongs. Set up the world,
-  arm timers from the outset, choose the screen colours (`zcolor.background` and
-  friends, so the banner prints on the colours you chose instead of being erased
+  arm timers from the outset, choose the screen colors (`zcolor.background` and
+  friends, so the banner prints on the colors you chose instead of being erased
   by them), and show an opening the way the Infocom games did, a scene or an
   epigraph before the title. The banner, then the first room description, follow.
 - `on enter` runs when the player arrives in a room, as that room's handler, so a
@@ -3288,7 +3288,7 @@ Consecutive prose paragraphs are each a `say.par` line, no bookkeeping
 between them. The mirrored `par.say "..."` puts the break FIRST: the reveal
 paragraph appended under existing prose (a first-visit aside, a description
 that grows a second paragraph when the state changes). Both compose with a
-colour in any order (`say.yellow.par`, `par.say.yellow`), and `par.say.par`
+color in any order (`say.yellow.par`, `par.say.yellow`), and `par.say.par`
 is a free-standing paragraph. The banner manages its own spacing the same
 way (a trailing pending break; under a status bar the title sits directly
 below the bar), so a story never calls the bare `par` for routine prose. If
@@ -3319,14 +3319,14 @@ language pack (ist/sind; está/están, the estar of states and places). One
 sentence template serves every number in every language: "${The coins}
 ${is coins} under the steamshovel." It takes no case tag.
 
-Screen colours have their own section, 16a, below.
+Screen colors have their own section, 16a, below.
 
-### Screen colours (zcolor)
+### Screen colors (zcolor)
 
-The Z-machine draws in nine standard colours, and Arcturus exposes them by
+The Z-machine draws in nine standard colors, and Arcturus exposes them by
 name. The palette, as the Standard defines it (chapter 9.3.1):
 
-| Name | Number | Colour |
+| Name | Number | Color |
 |------|--------|--------|
 | `default` | 1 | the interpreter's own default |
 | `black`   | 2 | black |
@@ -3339,26 +3339,26 @@ name. The palette, as the Standard defines it (chapter 9.3.1):
 | `white`   | 9 | white |
 
 (Later revisions of the Standard add interpreter-specific greys; Arcturus
-supports the portable nine, which every colour interpreter carries, down to
+supports the portable nine, which every color interpreter carries, down to
 the 8-bit machines.)
 
-The `zcolor` statement sets the base colours, one target per line, usually in
+The `zcolor` statement sets the base colors, one target per line, usually in
 `on start`:
 
-- `zcolor.font <colour>`: the base text colour. Remembered, so every one-shot
-  colour below restores to it.
-- `zcolor.background <colour>`: the background. Setting it also repaints the
-  screen, so the new colour covers the whole display rather than only the text
+- `zcolor.font <color>`: the base text color. Remembered, so every one-shot
+  color below restores to it.
+- `zcolor.background <color>`: the background. Setting it also repaints the
+  screen, so the new color covers the whole display rather than only the text
   printed from then on.
-- `zcolor.statusline <colour>`: the status bar's text colour (with the
-  statusline granule). The bar draws in it and the base font colour returns
+- `zcolor.statusline <color>`: the status bar's text color (with the
+  statusline granule). The bar draws in it and the base font color returns
   after every draw.
-- `zcolor.input <colour>`: the colour of the text the player types. The
-  command echoes in it, and the base font colour returns the moment the line
+- `zcolor.input <color>`: the color of the text the player types. The
+  command echoes in it, and the base font color returns the moment the line
   is entered.
 
-`say.<colour> "..."` prints one text in that colour and then restores the base
-font colour by itself, so an emphasized passage is a single line with no state
+`say.<color> "..."` prints one text in that color and then restores the base
+font color by itself, so an emphasized passage is a single line with no state
 to manage and no restore to forget. It composes with interpolation
 (`say.yellow "${The noun} glows."`) and with the `par` modifier in either
 order (`say.yellow.par`, this chapter). Together, the classic Infocom-era look is
@@ -3376,10 +3376,10 @@ on start
     say "-- Vincent van Gogh"
 ```
 
-`show.<colour> "..."` is the inline sibling: the same one-shot colour, but no
+`show.<color> "..."` is the inline sibling: the same one-shot color, but no
 trailing newline, so a single word or phrase can sit highlighted inside a
 sentence the surrounding `show(...)` calls build. A help text that names its
-verbs in colour reads like this, and the whole thing lands on one line:
+verbs in color reads like this, and the whole thing lands on one line:
 
 ```
 on help
@@ -3388,17 +3388,17 @@ on help
     say "."
 ```
 
-A colour is required after the dot (`show.yellow`, never a bare `show.par`):
+A color is required after the dot (`show.yellow`, never a bare `show.par`):
 show is inline by definition, so the paragraph modifiers do not apply. The
 plain `show("...")` intrinsic is unchanged.
 
-Colour support is handled for you, at both ends. The compiler marks the story
-as colour-using in the header (Flags 2 bit 6, which interpreters require
-before they enable colour at all), and every colour operation checks at run
-time whether the interpreter reports colour support (Flags 1 bit 0): on an
-interpreter without it, `zcolor` does nothing and `say.<colour>` is exactly a
+Color support is handled for you, at both ends. The compiler marks the story
+as color-using in the header (Flags 2 bit 6, which interpreters require
+before they enable color at all), and every color operation checks at run
+time whether the interpreter reports color support (Flags 1 bit 0): on an
+interpreter without it, `zcolor` does nothing and `say.<color>` is exactly a
 plain `say`. No author-side guard is ever needed, and a game that never uses
-colours pays nothing for the feature. An unknown colour name is a compile
+colors pays nothing for the feature. An unknown color name is a compile
 error that lists the palette.
 
 ### Standard responses
@@ -4843,7 +4843,7 @@ An opening quote usually comes BEFORE the banner. Pair the granule with
 `quote_done` (chapter 2), and the game opens in the
 classic order: quote, keypress, banner, story. The box prints no words of its
 own, so it works identically in every language, and it draws with the same
-colours the game set with `zcolor` (chapter 15).
+colors the game set with `zcolor` (chapter 15).
 
 ### verbose_exits
 

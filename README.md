@@ -108,7 +108,7 @@ container knowledge model, computed properties, kinds and inheritance, doors
 and locks, an object existing in several rooms (`in a, b`) beside multi-room
 scenery with `spans`, the `intro` first-look property,
 grains, positional grammar, the object catch-all, daemons and timers,
-Z-machine colours with the self-restoring coloured say, and the player object
+Z-machine colors with the self-restoring colored say, and the player object
 with its standard self-words, pronouns, and Spanish clitic forms), and
 [examples/granules/](examples/granules/) shows the summonable granules (the
 NPC engine with its patrols and orders, maniacswap's multiple player

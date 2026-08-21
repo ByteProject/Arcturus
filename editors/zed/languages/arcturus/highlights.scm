@@ -12,7 +12,7 @@
 ; ---- calls first, so statement keywords can override them ----------------
 
 ; A call: quote(5, 29), action_id("go"). Known statement words with parens
-; (show, say) are recoloured by the keyword set BELOW, matching VS Code.
+; (show, say) are recolored by the keyword set BELOW, matching VS Code.
 (call name: (identifier) @function)
 
 ; ---- generic word sets (the VS Code lists, one to one) -------------------
@@ -74,7 +74,7 @@
     "thing" "room" "container" "supporter" "door" "character" "held"
     "multi" "scope"))
 
-; The colour words of the zcolor family (support constants in VS Code).
+; The color words of the zcolor family (support constants in VS Code).
 ((identifier) @constant
   (#any-of? @constant
     "default" "black" "red" "green" "yellow" "blue" "magenta" "cyan"
@@ -97,7 +97,7 @@
 ; ---- structural captures (position beats spelling) -----------------------
 
 ; A dotted chain: say.yellow.par, obj.article, here.(way). The head keeps
-; its own set colour; the tail reads as modifiers.
+; its own set color; the tail reads as modifiers.
 (dotted_name tail: (identifier) @property)
 
 ; Declaration heads and their names.
@@ -141,7 +141,7 @@
 
 ; ${...} interpolation: the braces stand out; the article or copula with
 ; its case tag reads as a keyword (${the:acc noun}), the case tag as its
-; modifier, and the interpolated names keep their set colours.
+; modifier, and the interpolated names keep their set colors.
 (interpolation
   "${" @punctuation.special
   "}" @punctuation.special)

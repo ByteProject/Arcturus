@@ -7,8 +7,8 @@
 // for full parsing: Arcturus structures itself by indentation, which a
 // highlighter does not need. Declaration heads (thing, room, block, words
 // with its markers, summon, verb) are structural rules so their names can be
-// coloured and outlined; every other word is a plain identifier, and the
-// keyword, attribute, property, and builtin SETS are coloured in the Zed
+// colored and outlined; every other word is a plain identifier, and the
+// keyword, attribute, property, and builtin SETS are colored in the Zed
 // queries (highlights.scm) with #any-of? predicates, mirroring the VS Code
 // grammar one to one. This shape never errors on half-typed source, and a
 // new attribute is one query line, not a parser rebuild.
@@ -179,7 +179,7 @@ module.exports = grammar({
     )),
 
     // A dotted chain outside the special forms: say.yellow.par, zcolor.font,
-    // obj.article. The head keeps its own colouring; the tail reads as
+    // obj.article. The head keeps its own coloring; the tail reads as
     // modifiers (the VS Code three-scope look).
     dotted_name: $ => seq(
       field('head', $.identifier),

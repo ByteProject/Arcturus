@@ -56,7 +56,7 @@ lives in the commit log. The feature roadmap follows below.
   last round closed the hardest three: the Spectrum Next and the
   MEGA65, where the conversion turns out to be the
   IDENTITY (their palettes reach the master exactly, so the art
-  arrives untouched), and the Apple II, where colour is not a palette
+  arrives untouched), and the Apple II, where color is not a palette
   at all but an artifact of the NTSC signal, solved by a dynamic
   program that chooses each of the 560 dots per scanline so the
   decoder's own four-dot window shows the painting, reaching hues

@@ -8,8 +8,8 @@ Zed's breadcrumbs and symbol search.
 The highlighting is built on a Tree-sitter grammar that lives in
 [editors/tree-sitter-arcturus/](../tree-sitter-arcturus/). The grammar is
 deliberately loose: declaration heads are structural (so names can be
-coloured and outlined), everything else is a plain identifier, and the
-keyword, attribute, property, and builtin sets are coloured in
+colored and outlined), everything else is a plain identifier, and the
+keyword, attribute, property, and builtin sets are colored in
 [languages/arcturus/highlights.scm](languages/arcturus/highlights.scm).
 Adding a new library word to the highlighting is one line in that file.
 The word-class markers of a `words` list (`#trigger`, `>adjective`) are

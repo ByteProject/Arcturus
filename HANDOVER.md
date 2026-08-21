@@ -46,7 +46,7 @@ plus Stefan's polish rounds) is its second half.
 ## What changed since the last handover (B8 through B10, in brief)
 
 - B8: the flagship ports completely and plays to its ending. The port
-  fed the toolchain: zcolor and say.<colour>, the quote
+  fed the toolchain: zcolor and say.<color>, the quote
   box granule, banner control, the compile-statistics ledger, the finish
   post-mortem, the after phase, operand patterns in handler headers, and
   two deep compiler bugs found at real-game scale (a signed-compare crash
@@ -54,7 +54,7 @@ plus Stefan's polish rounds) is its second half.
   game: `hibernated2/` is gitignored and must NEVER be committed.
 - B10: Actaea, built milestone by milestone (M1 loader/memory, M2 decoder/
   disassembler, M3 executor, M4 objects, M5 text engine, M6 the conformance
-  gate, M7 the tkinter shell, M8 the cell grid, M9 styles and colours, M10
+  gate, M7 the tkinter shell, M8 the cell grid, M9 styles and colors, M10
   Quetzal, M11 the sweep), then five polish rounds from Stefan's play:
   the curses terminal front-end, the standalone build, CLI banner style,
   GUI menus with persistent settings, and a chain of screenshot-driven
@@ -101,8 +101,8 @@ carries events only (text out, keys in, file paths). Facts you will need:
 - Two deliberate leniencies real games forced: table opcodes wrap in 16-bit
   arithmetic (Anchorhead), object-0 tree reads answer 0 (Jigsaw).
 - Doctrine (Stefan's rulings): Actaea is a LIGHT interpreter, black on
-  white paper; a game wanting a dark screen sets its colours, and the
-  erase repaints the paper. The typed line wears the game's input colour.
+  white paper; a game wanting a dark screen sets its colors, and the
+  erase repaints the paper. The typed line wears the game's input color.
   The window is exactly 80 cells wide. No scrollbar.
 - One Tk root per process: Tk 9.0 on macOS SIGTRAPs on a second root; the
   GUI smoke test is the only Tk test in the suite.
@@ -153,7 +153,7 @@ its first two lines are the intro keypresses; do not prepend extra blanks).
 - Parked, explicitly deferred by Stefan: the B8 quality-sweep list (inside
   the gitignored port directory); the abbreviation-quality TODO
   (zabbrv on the B8 Inform build beat our pass; investigate); inline emphasis
-  colour (`show.<colour>`).
+  color (`show.<color>`).
 - Translation native review still owed (Spanish: Pablo; German: full pass).
 - macOS shows "Python" as the app-menu name unless pyobjc is present; a
   real .app is packaging, out of scope here by charter.

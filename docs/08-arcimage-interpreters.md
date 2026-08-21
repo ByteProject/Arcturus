@@ -152,7 +152,7 @@ arc_image plays it unchanged as text. Here is the whole contract.
    fixed: the band blanks and keeps its rows, always (the retro
    section). On the windowed profile it is the interpreter author's
    discretion. KEEP the band reserved if
-   you like: a blank strip in the background colour, the text area
+   you like: a blank strip in the background color, the text area
    below keeping its size, the layout holding still. Or RELEASE it:
    give the rows back to the text area, and re-base the band when the
    next nonzero draw arrives (the first-draw machinery above, run
@@ -183,7 +183,7 @@ arc_image plays it unchanged as text. Here is the whole contract.
    from arcc 1.3.39 on:
 
    - EVERY FULL-SCREEN ERASE IS IMMEDIATELY FOLLOWED BY RE-ESTABLISHMENT.
-     An erase_window -1 (a game recolouring its background, or an
+     An erase_window -1 (a game recoloring its background, or an
      explicit clear_screen) unsplits and wipes everything, bar included;
      the very next ops re-split and repaint the bar. You never sit on a
      dead split waiting for the next prompt.
@@ -212,7 +212,7 @@ arc_image plays it unchanged as text. Here is the whole contract.
      finished count. That is the intended stream, not a defect.
 
    A boot therefore always reads: clear (id 0) | bar | [erase | bar,
-   if the game recolours] | first picture | bar | opening text | bar at
+   if the game recolors] | first picture | bar | opening text | bar at
    the first prompt. A room transition always reads: picture | bar |
    room text. Both shipped demos are pinned to this stream in the test
    suite, so it cannot drift.
@@ -227,8 +227,8 @@ arc_image plays it unchanged as text. Here is the whole contract.
    TEXT AREA only, and each chapter says how its machine honors them
    (a reserved system range on DOS, a per-frame palette split on the
    Amiga, a declared-or-approximated choice on the ST). The general rule:
-   pictures must never change what a game's colour requests mean, and
-   colour requests must never repaint a picture.
+   pictures must never change what a game's color requests mean, and
+   color requests must never repaint a picture.
 
 ## The modern desktop and the web (the Blorb path)
 
@@ -621,7 +621,7 @@ SECTIONS, in file order:
   upward.
 
 Z-COLOURS: entries 0..15 are the standard PC palette and carry every
-Z-machine colour; the interpreter's text uses them and never touches the
+Z-machine color; the interpreter's text uses them and never touches the
 art's 16..255. Nothing to align, nothing to approximate.
 
 LOADER RECIPE (the probe's shape): verify the magic; walk the section table
@@ -692,9 +692,9 @@ ink 15 on paper 0 and never needs palette entries of its own.
 
 Z-COLOURS: the STF has one palette per frame and no reliable raster split,
 so while a picture is displayed an interpreter chooses one of two
-conformant answers: declare colours unavailable (Flags 1 bit 0 is the
+conformant answers: declare colors unavailable (Flags 1 bit 0 is the
 interpreter's own declaration; text runs ink 15 on paper 0), or honor
-set_colour approximately by mapping each requested colour to its nearest
+set_colour approximately by mapping each requested color to its nearest
 art-palette entry. Either way the art palette itself is never modified.
 
 LOADER RECIPE: verify magic; walk the table; palette section to
@@ -728,9 +728,9 @@ constraint. The facts:
   business.
 - Z-COLOURS AND THE SPLIT: the copper list that ends the band (the same
   wait the probe uses to switch the planes off) is where the interpreter
-  reloads the colour registers for its text area, EVERY frame: the art
+  reloads the color registers for its text area, EVERY frame: the art
   keeps all 32 entries above the line, and below it the interpreter
-  aligns the Z-machine colours onto registers it owns outright. The
+  aligns the Z-machine colors onto registers it owns outright. The
   probe's one-frame lesson applies to the restore direction too: whatever
   the bottom of the frame changes, the top of the list must set back.
 - As a courtesy to implementations that do not split, the converter
@@ -777,15 +777,15 @@ SECTIONS, in file order, every payload already in native memory order:
 - color (type 3): the color RAM nibbles for $D800 (360 / 480).
 - registers (type 7): one byte, the shared background; write to $D021.
 
-Z-COLOURS. The fixed 16 carry every Z-machine colour; the interpreter's
+Z-COLOURS. The fixed 16 carry every Z-machine color; the interpreter's
 text lives in the cells BELOW the band (its own matrix and color RAM
-rows), so text colours and art never share a register except $D021, the
+rows), so text colors and art never share a register except $D021, the
 global background. The screen model is the interpreter's choice of two
 classic constructions: a raster split at the band boundary (bitmap mode
 above, cheap text mode below; the VIC's stable raster interrupt makes
 this easier than the CPC's rupture) or a full-screen bitmap with the
-font rendered into it. Either honors this chapter unchanged. An interpreter that lets the player recolour the
-background must accept that the band's code-0 pixels recolour with it
+font rendered into it. Either honors this chapter unchanged. An interpreter that lets the player recolor the
+background must accept that the band's code-0 pixels recolor with it
 (the same global-register nature the Amiga chapter documents for
 COLOR00); keeping the story's background equal to the art's register is
 the simple answer.
@@ -848,7 +848,7 @@ SECTIONS, in file order:
   first build checked 2 and painted a perfect picture in black on
   black.
 
-Z-COLOURS. The fixed 15 carry every Z-machine colour. The interpreter's
+Z-COLOURS. The fixed 15 carry every Z-machine color. The interpreter's
 text lives in the attribute rows below the band; the art's attributes
 are never shared with text, so nothing needs aligning.
 
@@ -917,14 +917,14 @@ SECTIONS, in file order:
   bit 6 set).
 - registers (type 7): one byte, the border ink as a cube index.
 
-Z-COLOURS. The 27-cube contains every Z-machine colour at full
+Z-COLOURS. The 27-cube contains every Z-machine color at full
 saturation (as cube indices: black 0, blue 2, green 6, cyan 8, red 18,
 magenta 20, yellow 24, white 26). The art's sixteen pens are never
 modified; the TEXT region is mode 1, four concurrent pens, reloaded per
 frame by the split below, so the interpreter allocates text pens to the
-Z-colours a game actually requests and degrades gracefully past four in
+Z-colors a game actually requests and degrades gracefully past four in
 one frame (an IF page rarely wants more than paper, ink, and an
-emphasis). This is Haumea's one real colour-design point; nothing else
+emphasis). This is Haumea's one real color-design point; nothing else
 on the machine constrains it.
 
 THE SPLIT SCREEN (the interpreter's screen model). Mode 0 and mode 1
@@ -1009,7 +1009,7 @@ CONVERSION (the arcimg side, for the record): luminance, a
 percentile-anchored contrast stretch (a mono image lives on its tonal
 range), then ordered Bayer dither at the full 640 grid.
 
-Z-COLOURS. None. A game's colour requests degrade to nothing, per the
+Z-COLOURS. None. A game's color requests degrade to nothing, per the
 part A contract; the interpreter renders its text in the machine's one
 ink.
 
@@ -1074,10 +1074,10 @@ THE DLI DISCIPLINE, every clause paid for on the metal:
   chain for that whole display.
 - The OS deferred vertical-blank stage is REPLACED (SETVBV, deferred
   vector to a minimal handler: pet ATRACT, XITBV). The stock stage-2
-  copies its colour shadows into the hardware registers late enough
+  copies its color shadows into the hardware registers late enough
   to land mid-display, which repaints segment 0's rows with shadow
   values: the flickering top band. Petting ATRACT (also in the key
-  wait) keeps the OS attract cycling from ever touching the colours.
+  wait) keeps the OS attract cycling from ever touching the colors.
 
 CODEC. ZX0 (part B) under the 2048 window guarantee, decoded by the
 same ring model as the C64 chapter, ONE relocation deep: the
@@ -1106,7 +1106,7 @@ Z-COLOURS. The interpreter's text lives below the band in an ANTIC
 text mode: the display list simply switches mode after the band's
 rows, which is this machine's native gift; no raster split needs
 building because the DL IS the split. The band's DLI chain never
-fires below the band, so text colours own the registers there.
+fires below the band, so text colors own the registers there.
 
 LOADER RECIPE (the probe's shape): wipe the bitmap and the palette
 table; verify the magic; walk the section table once, dispatching
@@ -1136,18 +1136,18 @@ probe.prg`. A calibration companion lives beside it, `palette.asm`,
 the staircase that measured the palette: the TED facts below were
 measured on the machine, not taken from documentation.
 
-VIDEO. TED multicolour bitmap: $FF06 = $3B (bitmap, screen on, 25
-rows), $FF07 = $18 (multicolour, 40 columns), bitmap base via $FF12
+VIDEO. TED multicolor bitmap: $FF06 = $3B (bitmap, screen on, 25
+rows), $FF07 = $18 (multicolor, 40 columns), bitmap base via $FF12
 (bits 5-3; the probe uses $6000), attribute matrices via $FF14 (bits
 7-3): the LUMINANCE matrix at base+$000, the COLOUR matrix at
 base+$400. 160 wide pixels, 2 bits each; the band is the top 9 or 12
-cell rows. Per 4x8 cell: two private colours plus two global
+cell rows. Per 4x8 cell: two private colors plus two global
 registers: pixel %00 reads $FF15, %11 reads $FF16.
 
 THE ATTRIBUTE TRUTHS, all probe-proven on the emulator's metal, none
 of them entirely in the folklore:
 
-- HUES read straight: %01 takes its hue from the colour matrix HIGH
+- HUES read straight: %01 takes its hue from the color matrix HIGH
   nibble, %10 from the LOW.
 - LUMINANCE READS CROSSED: %01 takes its luminance from the
   luminance matrix LOW nibble, %10 from the HIGH. The .arc color
@@ -1194,7 +1194,7 @@ SECTIONS, in file order, every payload already in native order:
 
 Z-COLOURS. The interpreter's text lives below the band: either a
 raster split into a TED text mode below the band's rows, or a
-full-screen bitmap with the font rendered in. Text colours share
+full-screen bitmap with the font rendered in. Text colors share
 only the two global registers with the art; keeping the story
 background equal to the art's background register is the simple
 answer, as on the C64.
@@ -1461,7 +1461,7 @@ is column-major by design, so placing a column is one LDIR and there
 is no bit-shuffling anywhere. The band is framed by the hardware
 clip window (NextReg $18, index reset via $1C bit 0: X1 0, X2 159 in
 the 320 mode's pair units, Y1 0, Y2 the band's last row); nothing
-below it is ever painted, the fallback colour ($4A) shows instead.
+below it is ever painted, the fallback color ($4A) shows instead.
 The ULA is switched off outright ($68 bit 7): the interpreter's text
 below the band is the interpreter's business (its own layer, its own
 palette), and nothing is shared or sacrificed.
@@ -1524,7 +1524,7 @@ The MEGA65 receives the paintings even more literally than the Next:
 the VIC-IV palette has 8-bit guns, so there is no snap at all, and ANY
 master with 255 or fewer colors converts pixel-perfect (the corpus
 measured zero differing pixels; the law is frozen as a test). The
-loader is free of tricks in the same way: full-colour mode makes each
+loader is free of tricks in the same way: full-color mode makes each
 8x8 character 64 chunky palette bytes, and the .arc bitmap section IS
 the character set in reading order, decompressed straight to its base.
 
@@ -1532,7 +1532,7 @@ Probe: [arc_image/probes/m65/](../arc_image/probes/m65/), source
 `probe.asm` (plain 6510 opcodes plus ONE DMAgic job, assembled with
 ACME), `run_probe.py` (the headless pre-proof: a strict 6502 core
 under a VIC-IV register model, proving the character data, the
-screen matrix, the palette pages, the colour-RAM fill, and the
+screen matrix, the palette pages, the color-RAM fill, and the
 register discipline against the pair files before any emulator
 runs), and the vendored reference decoder `unlzsa2_6502.asm`
 (Emmanuel Marty & Peter Ferrie, unchanged; self-modifying: source
@@ -1541,8 +1541,8 @@ zero page $FC). Run: Xemu `xmega65 -prg probe.prg`, or from SD on
 the metal. Verified pixel-perfect on Xemu (ROM 920422, Stefan's eye,
 2026-08-17): no artifacts, no boot flash.
 
-VIDEO. VIC-IV full-colour text at H320: the knock ($D02F gets $45
-then $54), then 16-bit characters with full colour for both char
+VIDEO. VIC-IV full-color text at H320: the knock ($D02F gets $45
+then $54), then 16-bit characters with full color for both char
 ranges and full CPU speed in one register ($D054 = $47: VFAST,
 CHR16, FCLRLO, FCLRHI), LINESTEP 80, CHRCOUNT 40, DISPROWS the
 band's rows. Five lessons the metal taught, each one a register an
@@ -1553,7 +1553,7 @@ interpreter must own rather than inherit:
   the legacy view, clobbering the precise registers. The order is
   fixed: knock, legacy writes, HOTREG off ($D05D bit 7), and only
   then the precise registers.
-- CHAR NUMBERS ARE ABSOLUTE. In full-colour mode a char number
+- CHAR NUMBERS ARE ABSOLUTE. In full-color mode a char number
   times 64 is an absolute chip-RAM address; CHARPTR plays no part.
   The screen matrix therefore counts from charset_base/64 upward
   (the probe's first build counted from 0 and displayed zero page
@@ -1561,7 +1561,7 @@ interpreter must own rather than inherit:
 - CHRCOUNT IS NOT YOURS UNTIL YOU SET IT. The ROM boots an
   80-column screen; a 40-char band on an inherited CHRCOUNT of 80
   interleaves every other row.
-- COLOUR RAM IS REACHED BY DMA. The band needs its colour-RAM cell
+- COLOUR RAM IS REACHED BY DMA. The band needs its color-RAM cell
   pairs zeroed (attributes clean), and the $D800 CPU window proved
   unreliable for that in MEGA65 mode: the boot screen's stale
   attributes stayed and garbled exactly the rows under the old boot
@@ -1572,7 +1572,7 @@ interpreter must own rather than inherit:
 - BLANK FIRST, REVEAL WHOLE. Nothing of the setup should ever be
   seen: display off the legacy way (DEN, $D011 bit 4) with border
   and backdrop on the BOOT palette's black as the very first
-  visible act, and the reveal (rows, our colours, display on) only
+  visible act, and the reveal (rows, our colors, display on) only
   after decode, palette, and matrix all stand. Palette entry 255 is
   never used by pixels (the format reserves it for the hardware's
   alpha path), which hands the loader a free entry: set black, it
@@ -1591,7 +1591,7 @@ compressed length, never by trusting the decoder's exit registers.
 
 SECTIONS: two.
 
-- bitmap (type 1): the full-colour character set, 64 bytes per 8x8
+- bitmap (type 1): the full-color character set, 64 bytes per 8x8
   char in reading order; 23040 bytes in mode 9, 30720 in mode 12.
 - palette (type 5): 255 RGB triples, nibble-swapped exactly as the
   VIC-III/IV palette registers want their bytes ($D100/$D200/$D300
@@ -1619,8 +1619,8 @@ the charset wherever it likes and points the three pointers at it.
 
 ### C.15 Apple II (target id 11, tag AP2, files `<id>.AP2`)
 
-The signal class, and the only machine in the family whose colour is
-not a palette at all: on the composite wire the NTSC decoder colours
+The signal class, and the only machine in the family whose color is
+not a palette at all: on the composite wire the NTSC decoder colors
 each dot by the last four dots that passed it, so what the artist sees
 is a consequence of bit SEQUENCES, not of pixel values. The conversion
 models that wire (see below), and a loader's only duty is to place
@@ -1669,7 +1669,7 @@ DISPLAY PATH, THE ONE WARNING WORTH A PARAGRAPH. The conversion
 targets the COMPOSITE decode: a real Apple II's own video output, a TV
 or composite monitor, which is what almost every machine had. An RGB
 card (Video-7 and kin, or the IIgs's RGB output) decodes DHGR as
-ALIGNED four-bit nibbles instead: sixteen flat colours, no artifact
+ALIGNED four-bit nibbles instead: sixteen flat colors, no artifact
 blending, and none of the in-between hues the sequences buy. Both
 paths render the same bytes legibly, and the corpus was reviewed on
 both, but an interpreter that documents its picture quality should
@@ -1707,10 +1707,10 @@ CONVERSION (the arcimg side, for the record): the 320-wide master is
 cropped to 280 (left-weighted, eight columns off the left, the MSX1
 window principle), and each scanline is solved by a dynamic program
 over all 560 dot positions: at every dot the NTSC decoder shows the
-colour named by the last four dots through the phase table, so the DP
-chooses each bit to minimise the distance between that colour and the
+color named by the last four dots through the phase table, so the DP
+chooses each bit to minimise the distance between that color and the
 master column beneath it. The palette is the emulator-verified
-sixteen of the ii-pix lineage. The result reaches colours between the
+sixteen of the ii-pix lineage. The result reaches colors between the
 sixteen through sequences, at the cost of the soft chroma edges the
 machine has by nature: on this wire a hue cannot change faster than
 the four-dot window slides.

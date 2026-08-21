@@ -46,7 +46,7 @@ too: to create a zblorb you provide the story file, always.
   crisply to the window (the masters are pixel art), pictures swapped
   by the game, cleared on id 0, and absent entirely for a game without
   them. The band follows the browser window through resizes and zoom.
-- Z-machine colours: text colours flow through, and the game's
+- Z-machine colors: text colors flow through, and the game's
   background paints the window and the page (the Gargoyle manner), so
   a black-screen game is black to the page edges. The statusline's
   reverse video paints its full row.
@@ -74,7 +74,7 @@ Proteus is a trimmed, Z-machine-only fork of Dannii Willis' Parchment, vendored 
   was dormant in upstream), wired to the modern shell.
 - Added: the arc_image band (an `ARCI`-declaring Blorb lights the
   capability bit and the band appears; see docs/08), window and page
-  background painting from the game's colours, and the single-file
+  background painting from the game's colors, and the single-file
   template the `proteus` tool fills.
 
 ## 4. Rebuilding after changes

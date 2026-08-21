@@ -186,7 +186,7 @@ arcimg targets                             the target list
 arcimg render FILE -o out.png              preview any converted picture
 arcimg slice9 FILE --id N -o out           a mode-9 picture as the top
                                            slice of a mode-12 conversion
-                                           (same picture, same colours)
+                                           (same picture, same colors)
 arcimg scr / arcimg unscr                  the Spectrum polish loop
 ```
 
@@ -196,7 +196,7 @@ arcimg scr / arcimg unscr                  the Spectrum polish loop
 ## 6. Budgeting your pictures
 
 The figures below are measured, not estimated: a 22-picture corpus of
-16-colour pixel art, converted and packed with each machine's own
+16-color pixel art, converted and packed with each machine's own
 codec. Both band shapes are listed, because they cost differently and
 you choose one for the whole game.
 
@@ -244,7 +244,7 @@ you choose one for the whole game.
 
 - **Unpacked** is the size of the converted picture in the machine's
   own memory, once decompressed: the bitmap, plus whatever attribute,
-  colour or palette data that machine needs. It is the same for every
+  color or palette data that machine needs. It is the same for every
   picture on a given machine, and it is a RAM question, not a disk
   one: it is what an interpreter has to find room for while drawing.
 - **Typical** is the median packed size across the corpus, and the
@@ -281,10 +281,10 @@ works on top of that. Set side by side:
 | Machine | Its usual full-screen picture | Full screen | Band 12 | Band 9 |
 |---|---|---|---|---|
 | Commodore 64 | Koala | 9.8K | 3.1K | 2.3K |
-| Commodore Plus/4 | multicolour bitmap | 9.8K | 3.0K | 2.2K |
+| Commodore Plus/4 | multicolor bitmap | 9.8K | 3.0K | 2.2K |
 | ZX Spectrum | `.SCR` screen | 6.8K | 2.0K | 1.5K |
 | Amstrad CPC | Mode 0 screen | 16.0K | 4.0K | 2.9K |
-| MSX1 | Screen 2 pattern + colour | 12.0K | 3.3K | 2.4K |
+| MSX1 | Screen 2 pattern + color | 12.0K | 3.3K | 2.4K |
 | MSX2 | Screen 5 | 26.5K | 4.7K | 3.6K |
 | Atari 8-bit | ANTIC mode E screen | 7.5K | 2.5K | 1.7K |
 | Apple II | DHGR, two pages | 16.0K | 3.6K | 2.7K |
@@ -292,7 +292,7 @@ works on top of that. Set side by side:
 | Atari ST(E) | Degas PI1 | 31.3K | 7.4K | 5.5K |
 | Amiga | IFF ILBM, 5 planes | 39.1K | 7.5K | 5.6K |
 | DOS (VGA) | mode 13h screen | 62.5K | 6.4K | 4.7K |
-| MEGA65 | full-colour screen | 62.5K | 6.2K | 4.6K |
+| MEGA65 | full-color screen | 62.5K | 6.2K | 4.6K |
 | Spectrum Next | Layer 2 screen | 80.0K | 6.0K | 4.5K |
 | Agon Light | mode 3 screen | 150.0K | 17.6K | 13.1K |
 
@@ -307,28 +307,28 @@ your game can be.
 
 ### What makes a good master
 
-The masters this project is built and measured on are 16-colour pixel
+The masters this project is built and measured on are 16-color pixel
 art, painted in [Multipaint](http://multipaint.kameli.net/) (Tero
 Heikkinen) and saved in the Atari ST's Degas PI1 format. Multipaint is
 warmly recommended for this work: it draws INSIDE the machines'
-limitations rather than against them, emulating colour clash as you
+limitations rather than against them, emulating color clash as you
 paint and importing and exporting the native formats of the C64,
 Plus/4, Spectrum, MSX, CPC, Amiga and ST, so what you see on the
 canvas is already honest about palettes and cells. It runs on macOS,
 Windows and Linux. That is the ideal input, and if you want the best
 results on every machine at once, paint at that level: **sixteen
-colours, honest pixel art, flat regions rather than smooth
+colors, honest pixel art, flat regions rather than smooth
 gradients**.
 
-Up to about **32 colours** is comfortable too, the Amiga OCS look, and
+Up to about **32 colors** is comfortable too, the Amiga OCS look, and
 converts well everywhere. The reason 16 works so beautifully is that
 it is close to what the target machines can hold: the conversion is
 then a translation rather than a reduction, and on a few machines it
-is not even that. On the Spectrum Next and the MEGA65 a 16-colour
+is not even that. On the Spectrum Next and the MEGA65 a 16-color
 master arrives PIXEL FOR PIXEL, unchanged, because their palettes can
-name your colours exactly.
+name your colors exactly.
 
-Bring a photograph, or a painting with five hundred colours, and
+Bring a photograph, or a painting with five hundred colors, and
 `arcimg` will still do its work: it reduces the palette (median cut,
 then a k-means polish so small bright regions keep an entry), snaps
 the result to each machine's gun depth, solves attribute clashes cell
@@ -336,8 +336,8 @@ by cell, and dithers gradient-class art gently where banding would
 otherwise show. It will give you the best representation it can find.
 But that path is not what the converters were tuned on and not what
 this project has tested, so expect to be less delighted than the
-author who brought pixel art. If in doubt: fewer colours, painted
-deliberately, beats more colours reduced by a tool.
+author who brought pixel art. If in doubt: fewer colors, painted
+deliberately, beats more colors reduced by a tool.
 
 ### One painting, every machine
 
@@ -349,53 +349,53 @@ as wide as tall, only the rows are doubled. Nothing was retouched by
 hand; this is the converter's own output, rebuilt from the corpus by
 `tools/docs_showcase.py`.
 
-**The master**: 320x96, twelve colours used of a 16-colour palette.
+**The master**: 320x96, twelve colors used of a 16-color palette.
 
 ![The master](../artworks/docs/arcimage-master.png)
 
-**Amiga (OCS/ECS)**: 32 colours from 4,096, five bitplanes, no cell
+**Amiga (OCS/ECS)**: 32 colors from 4,096, five bitplanes, no cell
 rules. The art arrives essentially as painted.
 
 ![Amiga](../artworks/docs/arcimage-ami.png)
 
-**Atari ST(E)**: 16 colours from 512, four bitplanes, free pixels.
+**Atari ST(E)**: 16 colors from 512, four bitplanes, free pixels.
 
 ![Atari ST](../artworks/docs/arcimage-ast.png)
 
-**DOS (VGA mode 13h)**: 256 colours from a palette of 262,144, one
+**DOS (VGA mode 13h)**: 256 colors from a palette of 262,144, one
 byte per pixel, no constraints worth the name.
 
 ![DOS](../artworks/docs/arcimage-dos.png)
 
-**Spectrum Next**: 256 colours from 512 on Layer 2, free pixels. A
-16-colour master lands here PIXEL FOR PIXEL: the conversion is the
+**Spectrum Next**: 256 colors from 512 on Layer 2, free pixels. A
+16-color master lands here PIXEL FOR PIXEL: the conversion is the
 identity.
 
 ![Spectrum Next](../artworks/docs/arcimage-nxt.png)
 
-**MEGA65**: 255 colours from 16.7 million in full-colour character
-mode. Also an identity conversion for any master of 255 colours or
+**MEGA65**: 255 colors from 16.7 million in full-color character
+mode. Also an identity conversion for any master of 255 colors or
 fewer, on or off any grid.
 
 ![MEGA65](../artworks/docs/arcimage-m65.png)
 
-**Agon Light**: 64 fixed colours (a 2-bit RGB cube), 640 pixels across
+**Agon Light**: 64 fixed colors (a 2-bit RGB cube), 640 pixels across
 at half width. No palette to choose, so the art meets a fixed grid.
 
 ![Agon Light](../artworks/docs/arcimage-agn.png)
 
-**MSX2**: 16 colours from 512, free pixels, in a 256-wide window: the
+**MSX2**: 16 colors from 512, free pixels, in a 256-wide window: the
 band is cropped, so this machine shows less of the scene.
 
 ![MSX2](../artworks/docs/arcimage-ms2.png)
 
 **Amstrad CPC (Mode 0)**: 160 pixels across at double width, 16 inks
-chosen from 27, and no cell rule at all, so colour may change every
+chosen from 27, and no cell rule at all, so color may change every
 pixel.
 
 ![Amstrad CPC](../artworks/docs/arcimage-cpc.png)
 
-**Commodore 64**: 160 across at double width, three colours per 4x8
+**Commodore 64**: 160 across at double width, three colors per 4x8
 cell plus one background shared by the whole picture, all from a fixed
 sixteen. The cell rule is the classic constraint, and solving it well
 is most of the work.
@@ -403,44 +403,44 @@ is most of the work.
 ![Commodore 64](../artworks/docs/arcimage-c64.png)
 
 **Commodore Plus/4**: the same bitmap shape with its own arithmetic,
-two colours per cell beside two global registers, chosen from 121
+two colors per cell beside two global registers, chosen from 121
 shades (sixteen hues at eight brightnesses), which buys subtler
-gradients than the C64 at the cost of one cell colour.
+gradients than the C64 at the cost of one cell color.
 
 ![Plus/4](../artworks/docs/arcimage-p4.png)
 
-**Atari 8-bit (ANTIC mode E)**: 160 across, four colours at a time,
+**Atari 8-bit (ANTIC mode E)**: 160 across, four colors at a time,
 but the palette may change EVERY SCANLINE, chosen from 128 shades. A
 band is solved line by line.
 
 ![Atari 8-bit](../artworks/docs/arcimage-a8.png)
 
-**MSX1 (Screen 2)**: 256 wide, and two colours per 8x1 strip from a
+**MSX1 (Screen 2)**: 256 wide, and two colors per 8x1 strip from a
 fixed fifteen: eight pixels wide, one pixel tall, the tightest cell in
 the family.
 
 ![MSX1](../artworks/docs/arcimage-ms1.png)
 
-**Apple II (DHGR)**: colour is not a palette here but an artifact of
+**Apple II (DHGR)**: color is not a palette here but an artifact of
 the NTSC signal, so the converter chooses each of the 560 dots per
 line to make the decoder show the painting, reaching hues between the
 machine's sixteen. Shown as a composite display renders it, which is
 the machine's own output; an RGB card decodes the same bytes as
-sixteen flat colours.
+sixteen flat colors.
 
 ![Apple II](../artworks/docs/arcimage-ap2.png)
 
-**ZX Spectrum +3**: 256 wide, two colours per 8x8 cell, and both must
+**ZX Spectrum +3**: 256 wide, two colors per 8x8 cell, and both must
 share one brightness bit. The hardest constraint in the family, and
 the reason the automatic conversion ships in BLACK AND WHITE: at this
-cell size colour is a matter of composition rather than of nearest
+cell size color is a matter of composition rather than of nearest
 match, and a tool that guesses at it produces the muddy look the
 machine is unfairly famous for. What `arcimg` gives you is a clean,
 honest halftone that is finished art in its own right.
 
 ![ZX Spectrum +3, the automatic conversion](../artworks/docs/arcimage-zx3.png)
 
-If you want Spectrum colour, the machine rewards taking it by hand,
+If you want Spectrum color, the machine rewards taking it by hand,
 and section 5's polish loop is built for exactly that: `arcimg scr`
 writes the conversion out as a standard `.scr` screen, you paint it in
 your Spectrum tool of choice, and `arcimg unscr` brings it back as the
@@ -450,7 +450,7 @@ This is the same scene after that treatment:
 ![ZX Spectrum +3, painted by hand](../artworks/docs/arcimage-zx3-hand.png)
 
 **TRS-80 Model 4**: one bit per pixel, 640 across at half width, no
-colour at all. The whole quality budget of a monochrome machine is its
+color at all. The whole quality budget of a monochrome machine is its
 halftone.
 
 ![TRS-80 Model 4](../artworks/docs/arcimage-trsm4.png)
