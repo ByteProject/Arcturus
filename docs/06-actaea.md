@@ -87,9 +87,18 @@ honours completely, repainting the paper when the game erases).
 The menu bar:
 
 - About Actaea: the version and identity panel.
-- View -> Font: every fixed-pitch family installed on the system (the list
-  is scanned once, the first time the menu opens).
-- View -> Text Size, Screen Height: point sizes and window lines.
+- View -> Look: the window's whole typographic identity, one choice, three
+  answers. Novel (the default) sets the story in Noto Serif over a Roboto
+  Mono machine voice; Clean sets it in Roboto over the same mono; Retro
+  sets EVERYTHING in monogram, the pixel face, one face for the whole
+  screen the way a real 8-bit machine was. The faces ship with Actaea and
+  are registered with the system at startup, nothing installed; their
+  licenses are recorded in actaea/gui/fonts/LICENSES.md. There is no free
+  font mixing, by design: each look is a coherent pair.
+- View -> Text Size: one size drives every look. Novel and Clean use it
+  directly; Retro derives its size from it (24 reads like 14, measured)
+  and snaps to monogram's pixel grid so the pixels stay crisp.
+- View -> Screen Height: window lines.
 - View -> Window Shape: Modern (4:5) or Classic (4:3). Modern is a
   portrait page, taller than wide, and on a big display that
   is exactly what opens. A laptop cannot show portrait at eighty columns
@@ -141,10 +150,14 @@ the newest lines stand above the prompt. That is the re-base rule in
 other interpreter implementing arc_image. The same treatment covers the
 status bar taking its row and a window shrunk mid-turn.
 
-"Press any key" accepts any key including Return. The window is a cell
-grid 80 columns wide where the desktop has room for that at the chosen
-shape and font, and narrower where it does not; the story is told the
-column count either way, as the Z-machine screen model requires.
+"Press any key" accepts any key including Return. Story prose is set in
+the look's proportional face; the machine's voice, the status grid, the
+input line, the [MORE] marker, and anything the game prints in the
+fixed-pitch style or under the fixed-pitch header flag, stays monospaced,
+exactly as the Standard requires. The screen's column count is still
+reckoned in the mono cell, and the window is 80 such columns wide where
+the desktop has room at the chosen shape and font, narrower where it does
+not; the story is told the column count either way.
 
 Pictures (arc_image): the window is the one front-end that shows a room's
 `arc_image` picture (01 section 6b). It draws a band across the top, above

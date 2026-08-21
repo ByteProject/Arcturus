@@ -1,0 +1,197 @@
+# fonts.py
+# part of Actaea, the Arcturus reference Z-machine interpreter.
+# Copyright (c) 2026, Stefan Vogt.
+# https://github.com/ByteProject/Arcturus
+#
+# THE BUNDLED TYPE, and how it reaches Tk without installing anything.
+#
+# Actaea 2.0 ships its own faces so the window looks the same on every
+# machine (the fallback-to-whatever-the-OS-has look is exactly what it
+# retires). Three LOOKS, ruled by Stefan and never freely mixable:
+#
+#   Novel  (default)  Noto Serif prose over Roboto Mono machine text
+#   Clean             Roboto prose over Roboto Mono machine text
+#   Retro             monogram for everything, the way a real 8-bit
+#                     machine was; sizes on its pixel grid of eights,
+#                     scaled from the chosen text size by Stefan's
+#                     measured ratio (monogram 24 reads like Noto 14)
+#
+# The faces live beside this module as plain TTFs and are REGISTERED with
+# the operating system at startup, process-private where the platform can
+# (macOS CoreText, Windows GDI), a one-time user-directory copy where it
+# cannot (Linux fontconfig). Registration is pure ctypes: the zero-
+# dependency rule holds. When a face cannot be reached, the look falls
+# back to decent system faces and says nothing: play always starts.
+#
+# Licenses: Noto Serif, Roboto and Roboto Mono are SIL OFL 1.1; monogram
+# (by datagoblin) is CC0. The texts travel in LICENSES.md beside the
+# fonts, linked from the About dialog.
+
+import os
+import shutil
+import sys
+
+# look -> (prose family, mono family). Retro's single face fills both
+# slots on purpose: one face for everything is the ruling, not a gap.
+LOOKS = {
+    "novel": ("Noto Serif", "Roboto Mono"),
+    "clean": ("Roboto", "Roboto Mono"),
+    "retro": ("monogram", "monogram"),
+}
+
+DEFAULT_LOOK = "novel"
+
+# Stefan's measured ratio: monogram at 24 reads like Noto Serif at 14.
+# The result snaps to monogram's pixel grid of eights so it stays crisp.
+def retro_size(base_size: int) -> int:
+    ideal = base_size * 24.0 / 14.0
+    step = max(8, int(round(ideal / 8.0)) * 8)
+    return step
+
+# System stand-ins per platform, used only when a bundled face could not
+# be registered (a locked-down machine, a stripped build): the look keeps
+# its structure, serif prose or sans prose over a mono, just not its face.
+_FALLBACK_PROSE_SERIF = ("Charter", "Georgia", "Constantia", "Cambria",
+                         "DejaVu Serif", "Liberation Serif", "Times")
+_FALLBACK_PROSE_SANS = ("Helvetica Neue", "Segoe UI", "DejaVu Sans",
+                        "Liberation Sans", "Helvetica", "Arial")
+_FALLBACK_MONO = ("Menlo", "Consolas", "DejaVu Sans Mono",
+                  "Liberation Mono", "Courier New", "Courier")
+
+
+def fonts_dir() -> str:
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
+
+
+def _font_files() -> list:
+    d = fonts_dir()
+    try:
+        return [os.path.join(d, f) for f in sorted(os.listdir(d))
+                if f.lower().endswith((".ttf", ".otf"))]
+    except OSError:
+        return []
+
+
+def register() -> int:
+    """Make the bundled faces visible to this process's Tk. Returns how
+    many files were registered; 0 means the fallbacks will carry the
+    session. Never raises: a font must never stop a story."""
+    files = _font_files()
+    if not files:
+        return 0
+    try:
+        if sys.platform == "darwin":
+            return _register_mac(files)
+        if sys.platform == "win32":
+            return _register_windows(files)
+        return _register_linux(files)
+    except Exception:
+        return 0
+
+
+def _register_mac(files) -> int:
+    # CoreText, process scope: visible to Tk immediately, gone with the
+    # process, nothing installed. (Proven live before this was written:
+    # all four families appear in tkfont.families with true metrics.)
+    import ctypes
+    import ctypes.util
+    ct = ctypes.CDLL(ctypes.util.find_library("CoreText"))
+    cf = ctypes.CDLL(ctypes.util.find_library("CoreFoundation"))
+    cf.CFURLCreateFromFileSystemRepresentation.restype = ctypes.c_void_p
+    cf.CFURLCreateFromFileSystemRepresentation.argtypes = [
+        ctypes.c_void_p, ctypes.c_char_p, ctypes.c_long, ctypes.c_bool]
+    ct.CTFontManagerRegisterFontsForURL.restype = ctypes.c_bool
+    ct.CTFontManagerRegisterFontsForURL.argtypes = [
+        ctypes.c_void_p, ctypes.c_uint32, ctypes.c_void_p]
+    n = 0
+    for path in files:
+        raw = path.encode("utf-8")
+        url = cf.CFURLCreateFromFileSystemRepresentation(
+            None, raw, len(raw), False)
+        if url and ct.CTFontManagerRegisterFontsForURL(url, 1, None):
+            n += 1
+    return n
+
+
+def _register_windows(files) -> int:
+    # GDI, FR_PRIVATE: this process only, nothing installed.
+    import ctypes
+    FR_PRIVATE = 0x10
+    n = 0
+    for path in files:
+        if ctypes.windll.gdi32.AddFontResourceExW(path, FR_PRIVATE, 0):
+            n += 1
+    return n
+
+
+def _register_linux(files) -> int:
+    # fontconfig has no clean in-process ctypes path that Tk then re-reads,
+    # so the faces are copied once into the user's font directory, where
+    # every toolkit finds them; fc-cache is nudged when present. First
+    # launch may fall back; the second is dressed.
+    base = os.environ.get("XDG_DATA_HOME",
+                          os.path.join(os.path.expanduser("~"),
+                                       ".local", "share"))
+    dest = os.path.join(base, "fonts", "actaea")
+    os.makedirs(dest, exist_ok=True)
+    n = 0
+    for path in files:
+        target = os.path.join(dest, os.path.basename(path))
+        if not os.path.exists(target):
+            shutil.copy2(path, target)
+        n += 1
+    if shutil.which("fc-cache"):
+        import subprocess
+        subprocess.run(["fc-cache", dest], capture_output=True, timeout=30)
+    return n
+
+
+_usable_cache: dict = {}
+
+
+def _usable(root, family: str) -> bool:
+    """Can Tk actually set type in this family? Probed by INSTANTIATION,
+    never by enumeration: a face registered process-scope is fully usable
+    while tkfont.families() can still miss it (measured under pytest's fd
+    capture, and the same class of oddity threatens app-bundle launches).
+    actual("family") reports what Tk truly resolved, so a silent
+    substitution reads as unusable and the ladder moves on."""
+    key = family.lower()
+    if key in _usable_cache:
+        return _usable_cache[key]
+    try:
+        from tkinter import font as tkfont
+        got = tkfont.Font(root=root, family=family,
+                          size=12).actual("family")
+        ok = got.lower() == key
+    except Exception:
+        ok = False
+    _usable_cache[key] = ok
+    return ok
+
+
+def resolve(look: str, root) -> tuple:
+    """The (prose family, mono family) for a look, against what Tk can
+    truly set. Bundled faces win; otherwise the platform stand-ins, so the
+    look degrades in structure rather than in kind."""
+    prose_want, mono_want = LOOKS.get(look, LOOKS[DEFAULT_LOOK])
+
+    def pick(want, ladder):
+        if _usable(root, want):
+            return want
+        for cand in ladder:
+            if _usable(root, cand):
+                return cand
+        return "TkFixedFont"
+
+    serif = LOOKS["novel"][0]
+    prose_ladder = (_FALLBACK_PROSE_SERIF if prose_want == serif
+                    else _FALLBACK_PROSE_SANS if look != "retro"
+                    else _FALLBACK_MONO)
+    prose = pick(prose_want, prose_ladder)
+    mono = pick(mono_want, _FALLBACK_MONO)
+    if look == "retro" and not _usable(root, prose_want):
+        # Without monogram there is no pixel look: both voices fall back to
+        # the same system mono, keeping retro's one-face rule at least.
+        prose = mono
+    return prose, mono

@@ -36,7 +36,7 @@ _PACKAGE = "actaea"
 _MODULES = [
     "errors", "memory", "loader", "decode", "text", "dictionary", "objects",
     "screen", "quetzal", "io", "vm", "session", "console", "gui",
-    "gui.app", "__main__",
+    "gui.fonts", "gui.app", "__main__",
 ]
 
 # NOTE: this list is the standalone's whole world. A module missing from it

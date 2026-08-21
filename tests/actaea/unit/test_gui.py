@@ -244,8 +244,9 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
         "text had already scrolled off the top when the first [MORE] came: "
         "the reading area was not the size the pager thought it was")
     # The page is measured from the pixels the reading area HAS, so it agrees
-    # with the window rather than with what the widget asked for.
-    assert app._reading_lines() == app.text.winfo_height() // app.cell_h
+    # with the window rather than with what the widget asked for. The unit is
+    # the PROSE line (2.0): the serif's linespace, not the mono cell.
+    assert app._reading_lines() == app.text.winfo_height() // app.line_h
     assert app._page_height() == app._reading_lines() - 1
     assert caret_checks and all(ok for _, ok in caret_checks), caret_checks
     assert "Window Probe" in out
@@ -276,11 +277,51 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     # So the window fits its contents exactly and the reading area is a whole
     # number of rows: what the pager counts is what the window shows, with no
     # orphan strip anywhere to imitate a line.
-    assert app.text.winfo_height() % app.cell_h == 0
-    assert app._reading_lines() == app.text.winfo_height() // app.cell_h
+    assert app.text.winfo_height() % app.line_h == 0
+    assert app._reading_lines() == app.text.winfo_height() // app.line_h
     assert app.root.winfo_height() == (
         2 * app._margin + app._band_h + app.cell_h
         + app.text.winfo_height()), "the window does not fit its contents"
+
+    # THE LOOKS (2.0). Novel is the default: serif prose, mono machine voice,
+    # both from the bundled faces (fonts.py registered them at startup).
+    from tkinter import font as tkfont
+    assert app._look_var.get() == "novel"
+    assert app.font_prose.actual("family") == "Noto Serif"
+    assert app.font.actual("family") == "Roboto Mono"
+    # The widget's own font IS the prose face: untagged roman text is prose.
+    assert tkfont.Font(root=app.root, name=str(app.text.cget("font")),
+                       exists=True).actual("family") == "Noto Serif"
+    # The machine voice is mono wherever it speaks: the input line's tag and
+    # the [MORE] marker's tag both resolve to the mono face.
+    app.vm.screen.set_style(0)
+    in_tag = app._input_look_tag()
+    in_font = str(app.text.tag_cget(in_tag, "font"))
+    assert tkfont.Font(root=app.root, name=in_font,
+                       exists=True).actual("family") == "Roboto Mono"
+    # The FIXED text style forces mono even at default colours (S 8.7.1).
+    app.vm.screen.set_style(8)
+    fixed_tag = app._look_tag()
+    assert fixed_tag, "fixed style must tag even default-coloured text"
+    fx = tkfont.Font(root=app.root, name=str(app.text.tag_cget(
+        fixed_tag, "font")), exists=True)
+    assert fx.actual("family") == "Roboto Mono"
+    app.vm.screen.set_style(0)
+
+    # RETRO derives its size from the one Text Size setting by Stefan's
+    # measured ratio (24 reads like 14), snapped to monogram's grid of
+    # eights, and dresses BOTH voices in the one pixel face.
+    from actaea.gui import fonts as fontpack
+    assert fontpack.retro_size(14) == 24
+    app._look_var.set("retro")
+    app._relook()
+    assert app.font_prose.actual("family") == "monogram"
+    assert app.font.actual("family") == "monogram"
+    assert app.font.actual("size") == fontpack.retro_size(
+        app._font_size.get())
+    app._look_var.set("novel")
+    app._relook()
+    assert app.font_prose.actual("family") == "Noto Serif"
     # The column count is derived FROM the window's width (the aspect or the
     # player's hand decides the width; the width decides the columns), and
     # the division's few leftover pixels rest in the right margin, exactly as
@@ -300,6 +341,7 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     import json
     app._persist_now()      # what closing the window does
     saved = json.load(open(tmp_path / "actaea" / "settings.json"))
+    assert saved["look"] == "novel"
     assert saved["aspect"] == "modern"
     assert "+" in saved["geometry"] and "x" in saved["geometry"]
     app.root.destroy()

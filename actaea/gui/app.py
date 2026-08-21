@@ -39,8 +39,9 @@ from tkinter import font as tkfont
 from .. import __version__
 from ..errors import ActaeaError
 from ..io import IOSystem
-from ..screen import BOLD, ITALIC, REVERSE, TRUE_COLOURS, true_colour_hex
+from ..screen import BOLD, FIXED, ITALIC, REVERSE, TRUE_COLOURS, true_colour_hex
 from ..vm import VM
+from . import fonts as fontpack
 
 # Tk keysyms for the keys with ZSCII input codes of their own (S 3.8):
 # cursors, function keys, and the numeric keypad. read_char hands these
@@ -188,18 +189,31 @@ class ActaeaApp:
         self._saved_geometry = st.get("geometry") or ""
         self._mac_integration()
 
-        self.font = tkfont.nametofont("TkFixedFont").copy()
-        self.font.configure(size=self._font_size.get())
-        if st.get("family"):
-            self.font.configure(family=st["family"])
-        self._family_var = tk.StringVar(value=self.font.actual("family"))
-        # The style variants, shared by the grid and the lower-window tags.
-        self.font_bold = self.font.copy()
-        self.font_bold.configure(weight="bold")
-        self.font_italic = self.font.copy()
-        self.font_italic.configure(slant="italic")
-        self.font_bold_italic = self.font.copy()
-        self.font_bold_italic.configure(weight="bold", slant="italic")
+        # THE LOOK (Actaea 2.0). Three named typographic identities, never
+        # freely mixable (Stefan's ruling): Novel, serif prose over a mono
+        # machine voice, the default; Clean, sans prose over the same mono;
+        # Retro, one pixel face for everything, the way a real 8-bit screen
+        # was. The faces ship with Actaea and are registered with the OS at
+        # startup (fonts.py); the eight font objects below are SHARED by the
+        # widget, the tags, and the grid, and a look or size change
+        # reconfigures them in place, so even text already on screen changes
+        # its clothes.
+        self._look_var = tk.StringVar(
+            value=st.get("look") if st.get("look") in fontpack.LOOKS
+            else fontpack.DEFAULT_LOOK)
+        fontpack.register()
+        self.font = tkfont.Font(root=self.root)
+        self.font_bold = tkfont.Font(root=self.root, weight="bold")
+        self.font_italic = tkfont.Font(root=self.root, slant="italic")
+        self.font_bold_italic = tkfont.Font(root=self.root, weight="bold",
+                                            slant="italic")
+        self.font_prose = tkfont.Font(root=self.root)
+        self.font_prose_bold = tkfont.Font(root=self.root, weight="bold")
+        self.font_prose_italic = tkfont.Font(root=self.root, slant="italic")
+        self.font_prose_bold_italic = tkfont.Font(root=self.root,
+                                                  weight="bold",
+                                                  slant="italic")
+        self._build_fonts()
         self._tags_made: set = set()
         # The screen background: white paper until the game paints it. A
         # game wanting a dark screen sets its background and erases (the
@@ -213,9 +227,6 @@ class ActaeaApp:
         # background (white paper, or a game's own colour), so it reads as a
         # matte around the screen rather than a white border on a dark game.
         self._margin = 10
-
-        self.cell_w = self.font.measure("0")
-        self.cell_h = self.font.metrics("linespace")
 
         # The window IS the story's 80-cell screen, inside the frame.
         if self._saved_geometry:
@@ -262,7 +273,7 @@ class ActaeaApp:
         frame.pack(fill="both", expand=True, padx=m, pady=(0, m))
         self._lower_frame = frame
         self.text = tk.Text(
-            frame, wrap="word", font=self.font, undo=False,
+            frame, wrap="word", font=self.font_prose, undo=False,
             # A Text's DEFAULT requested width is eighty characters, and a
             # toplevel grows back to its children's natural size when it maps,
             # overriding wm geometry: the window could never be narrower than
@@ -384,11 +395,14 @@ class ActaeaApp:
             appmenu.add_separator()
             menubar.add_cascade(menu=appmenu)
         view = tk.Menu(menubar, tearoff=0)
-        # The Font menu lists EVERY fixed-pitch family the system has. The
-        # scan instantiates a font per family, so it runs once, lazily, the
-        # first time the menu opens.
-        fonts = tk.Menu(view, tearoff=0,
-                        postcommand=lambda: self._fill_font_menu(fonts))
+        # The Look menu is the whole typographic surface (Stefan's ruling:
+        # no free font choices): three coherent identities, each a prose
+        # face and a machine face that belong together.
+        looks = tk.Menu(view, tearoff=0)
+        for value, label in (("novel", "Novel"), ("clean", "Clean"),
+                             ("retro", "Retro")):
+            looks.add_radiobutton(label=label, variable=self._look_var,
+                                  value=value, command=self._relook)
         size = tk.Menu(view, tearoff=0)
         for n in (11, 12, 13, 14, 16, 18, 20):
             size.add_radiobutton(label=f"{n} pt", variable=self._font_size,
@@ -402,7 +416,7 @@ class ActaeaApp:
                               value="modern", command=self._reshape)
         shape.add_radiobutton(label="Classic (4:3)", variable=self._aspect_var,
                               value="classic", command=self._reshape)
-        view.add_cascade(label="Font", menu=fonts)
+        view.add_cascade(label="Look", menu=looks)
         view.add_cascade(label="Text Size", menu=size)
         view.add_cascade(label="Window Shape", menu=shape)
         view.add_cascade(label="Screen Height", menu=lines)
@@ -415,25 +429,6 @@ class ActaeaApp:
             helpm.add_command(label="About Actaea", command=self._about)
             menubar.add_cascade(label="Help", menu=helpm)
         self.root.config(menu=menubar)
-
-    def _fill_font_menu(self, menu: tk.Menu) -> None:
-        if getattr(self, "_fonts_filled", False):
-            return
-        self._fonts_filled = True
-        current = self._family_var.get()
-        names = set()
-        for fam in tkfont.families(self.root):
-            if fam.startswith(("@", ".")):
-                continue  # Windows vertical variants and hidden UI faces
-            try:
-                if tkfont.Font(root=self.root, family=fam).metrics("fixed"):
-                    names.add(fam)
-            except tk.TclError:
-                continue
-        names.add(current)  # whatever plays now is always offerable
-        for fam in sorted(names):
-            menu.add_radiobutton(label=fam, variable=self._family_var,
-                                 value=fam, command=self._retype)
 
     def _about(self) -> None:
         """The About panel, laid out like one: name large, the facts in
@@ -477,7 +472,7 @@ class ActaeaApp:
     def _persist_now(self) -> None:
         self._persist_job = None
         _save_settings({
-            "family": self._family_var.get(),
+            "look": self._look_var.get(),
             "size": self._font_size.get(),
             "rows": self._rows_var.get(),
             "game_colours": self._use_colours.get(),
@@ -573,17 +568,18 @@ class ActaeaApp:
             return  # called once from __init__ before the widgets exist
         band = getattr(self, "_band_h", 0)
         status = self.cell_h if getattr(self, "_grid_shown", False) else 0
+        line_h = getattr(self, "line_h", self.cell_h)
         # The real window height wins once the window is mapped: fullscreen
         # and maximize add rows the settings never knew about, and the story
         # text should claim them (Stefan's report: the picture scaled while
         # the text stayed at its settings height). Before mapping, the
         # settings height stands.
         real = self.root.winfo_height() if hasattr(self, "root") else 0
-        if real > 5 * self.cell_h:
+        if real > 5 * line_h:
             avail = real - 2 * self._margin - band - status
         else:
-            avail = self._rows_var.get() * self.cell_h - band - status
-        n = max(1, avail // self.cell_h)
+            avail = self._rows_var.get() * line_h - band - status
+        n = max(1, avail // line_h)
         # A window's-eye view of its own arithmetic, for diagnosing a reading
         # area that does not match what the player sees. Off unless asked for:
         #   ACTAEA_GEOM=1 actaea story.z5      (writes ~/actaea-geom.log)
@@ -616,7 +612,7 @@ class ActaeaApp:
         # the window down a few pixels per layout, which is what an earlier
         # attempt did. Never on a plain resize, so it cannot fight a drag.
         if snap and not self._in_resize and real > 5 * self.cell_h:
-            want = 2 * self._margin + band + status + n * self.cell_h
+            want = 2 * self._margin + band + status + n * line_h
             if want != real and want != self._snapped_to:
                 self._snapped_to = want
                 w_now = self._want_width or self.root.winfo_width()
@@ -683,16 +679,50 @@ class ActaeaApp:
         self._rows_geometry()
         self._persist()
 
-    def _retype(self) -> None:
-        n = self._font_size.get()
-        fam = self._family_var.get()
+    def _build_fonts(self) -> None:
+        """Shape the shared font objects to the current look and text size,
+        and refresh the metrics everything else measures with.
+
+        The mono four dress the machine voice: the status grid, the input
+        line, the [MORE] marker, and fixed-pitch text. The prose four dress
+        the story. Retro points both at monogram, one face for everything,
+        at the size Stefan's ratio derives (24 reads like Noto's 14),
+        snapped to the pixel grid of eights so it stays crisp."""
+        look = self._look_var.get()
+        prose_fam, mono_fam = fontpack.resolve(look, self.root)
+        base = self._font_size.get()
+        size = fontpack.retro_size(base) if look == "retro" else base
         for f in (self.font, self.font_bold, self.font_italic,
                   self.font_bold_italic):
-            f.configure(size=n, family=fam)
-        # Tags reference the font objects, so existing text re-dresses with
-        # them; only the cell geometry needs recomputing.
+            f.configure(family=mono_fam, size=size)
+        for f in (self.font_prose, self.font_prose_bold,
+                  self.font_prose_italic, self.font_prose_bold_italic):
+            f.configure(family=prose_fam, size=size)
+        # The cell is the MONO cell (the Standard's screen units); the text
+        # area lays out in PROSE lines, which are taller than the cell in
+        # the serif look.
+        self.cell_w = self.font.measure("0")
+        self.cell_h = self.font.metrics("linespace")
+        self.line_h = max(self.font_prose.metrics("linespace"), self.cell_h)
+
+    def _relook(self) -> None:
+        """The Look menu: reshape the shared fonts in place (text already on
+        screen changes with them), let the column count and the grid follow
+        the new cell, and re-fit the reading area. The window keeps its size
+        and place; only the type changes."""
+        self._build_fonts()
+        if not self._in_resize:
+            self._in_resize = True
+            try:
+                self._resize_body()
+            finally:
+                self._in_resize = False
+        self._settle_view()
+        self._persist()
+
+    def _retype(self) -> None:
+        self._build_fonts()
         self._apply_geometry()
-        self._grid_changed()
         self._persist()
 
     def _colours_toggled(self) -> None:
@@ -1057,6 +1087,9 @@ class ActaeaApp:
     # -- output --------------------------------------------------------------
 
     def _styled_font(self, style: int):
+        """The MACHINE voice: the mono face in the style's cut. The grid,
+        the input line, the [MORE] marker, and fixed-pitch text all speak
+        in it; in Retro it is the same face as the prose, by ruling."""
         if style & BOLD and style & ITALIC:
             return self.font_bold_italic
         if style & BOLD:
@@ -1065,27 +1098,53 @@ class ActaeaApp:
             return self.font_italic
         return self.font
 
+    def _prose_font(self, style: int):
+        """The STORY's voice: the look's prose face in the style's cut."""
+        if style & BOLD and style & ITALIC:
+            return self.font_prose_bold_italic
+        if style & BOLD:
+            return self.font_prose_bold
+        if style & ITALIC:
+            return self.font_prose_italic
+        return self.font_prose
+
+    def _fixed_now(self, style: int) -> bool:
+        """Must this text be fixed-pitch? Two doors, both the Standard's:
+        the FIXED text style (set_text_style bit 8), and Flags 2 bit 1,
+        which a game may set and clear at run time to force the whole
+        lower window fixed (S 8.1); it is read per print, as asked."""
+        if style & FIXED:
+            return True
+        try:
+            return bool(self.vm.mem.word(0x10) & 2)
+        except Exception:
+            return False
+
     def _look_tag(self) -> str:
         """A Text tag for the model's CURRENT look (style + colours),
-        created on first use. Roman-default text uses no tag at all."""
+        created on first use. Roman-default text in the prose face uses no
+        tag at all: the widget's own font IS the prose face."""
         m = self.vm.screen
         style, fg, bg = m.style, m.fg, m.bg
-        if style == 0 and fg == 1 and bg == 1:
+        fixed = self._fixed_now(style)
+        if style == 0 and fg == 1 and bg == 1 and not fixed:
             return ""
-        name = f"look-{style}-{fg}-{bg}"
+        name = f"look-{style}-{fg}-{bg}" + ("-f" if fixed else "")
         if name not in self._tags_made:
-            self._configure_look(name, style, fg, bg)
+            self._configure_look(name, style, fg, bg, fixed)
             self._tags_made.add(name)
         return name
 
-    def _configure_look(self, name: str, style: int, fg, bg) -> None:
+    def _configure_look(self, name: str, style: int, fg, bg,
+                        fixed: bool = True) -> None:
         fg_c = self._colour(fg, "black")
         bg_c = self._colour(bg, self._window_bg)
         if style & REVERSE:
             fg_c, bg_c = bg_c, fg_c
         self.text.tag_configure(
             name, foreground=fg_c, background=bg_c,
-            font=self._styled_font(style),
+            font=(self._styled_font(style) if fixed
+                  else self._prose_font(style)),
         )
 
     def append_story(self, s: str) -> None:
@@ -1222,10 +1281,10 @@ class ActaeaApp:
         rows = self._text_rows
         if rows >= 2:
             return rows
-        if self.cell_h <= 0:
+        if self.line_h <= 0:
             return 0
         try:
-            rows = self.text.winfo_height() // self.cell_h
+            rows = self.text.winfo_height() // self.line_h
         except tk.TclError:
             return 0
         if rows >= 2:
@@ -1361,6 +1420,17 @@ class ActaeaApp:
         except tk.TclError:
             pass
 
+    def _input_look_tag(self) -> str:
+        """The player's typing is machine text: mono, in the game's current
+        input colours. Unlike prose, it always needs a tag, because the
+        widget's own font is the prose face."""
+        m = self.vm.screen
+        name = f"input-{m.style}-{m.fg}-{m.bg}"
+        if name not in self._tags_made:
+            self._configure_look(name, m.style, m.fg, m.bg, fixed=True)
+            self._tags_made.add(name)
+        return name
+
     def _more_tag(self) -> str:
         """The marker wears the CURRENT look, reversed: on a game-coloured
         screen it is the game's own colours the other way round, the way the
@@ -1393,7 +1463,7 @@ class ActaeaApp:
         # The input wears the CURRENT look: Cosmos sets the input colour
         # (zcolor.input) right before every read, so the tag resolved here
         # is the game's choice; the caret matches it.
-        self._input_tag = self._look_tag()
+        self._input_tag = self._input_look_tag()
         self.text.configure(
             insertbackground=self._colour(self.vm.screen.fg, "black")
         )
