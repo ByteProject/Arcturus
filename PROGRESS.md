@@ -12127,3 +12127,10 @@ after: the last glyph's item ends within bbox padding of the model's
 last inked column. The GUI test now asserts every row-1 text item
 anchors on a cell boundary and the rightmost sits exactly at the
 model's last inked cell.
+
+VERIFIED BY STEFAN'S EYE (2026-08-21, night): "Yes, that's it.
+finally." The bar stands with its design gap in the window, matching
+every other interpreter. The stub launches from Applications, the Dock
+shows the star and, from the bundle, the name; the terminal launch
+keeping "Python" on hover is accepted as the platform's own boundary.
+A2.0-5 closes; the release round (A2.0-6) is what remains of 2.0.
