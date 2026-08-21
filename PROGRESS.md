@@ -11940,3 +11940,76 @@ STATE AT LIGHTS OUT: the whole 1.4.x-1.5.x window evening plus this
 charter is committed but UNPUSHED, waiting on Stefan's eye for the
 portrait window and dock behavior. The 2.0 build starts on his
 explicit go, at the measured pager.
+
+## CHECKPOINT for pickup (2026-08-21 evening): Actaea 2.0 in flight,
+## dressing next, NOTHING pushed until 2.0 ships whole
+
+STANDING STATE. Branch main, everything from Actaea 1.7.0 onward is
+LOCAL ONLY by Stefan's ruling: no push to origin until version 2.0 is
+complete, it ships as one release, never bits and pieces. Origin stands
+at 323387d (Actaea 1.6.0, the measured pager). Local versions: arcc
+1.13.0, Cosmos 1.16.3, Actaea 1.9.4, arcimg 2.0.0. Full suite 1544
+green (one pytest run, needs a real TTY). The 2.0 work is chartered in
+the harness task list as A2.0-1 to A2.0-6; done: typeface rulings,
+measured pager, proportional looks, font embed; open: A2.0-5 the native
+dressing (Stefan has thoughts to give FIRST, ask before building) and
+A2.0-6 the release round.
+
+WHAT 2.0 HOLDS SO FAR, all rulings Stefan's. THREE LOOKS, no free font
+choices: Novel (default) = Noto Serif prose + Roboto Mono machine
+voice; Clean = Roboto + Roboto Mono; Retro = monogram for EVERYTHING,
+one face like a real 8-bit machine, sizes snapped to its grid of
+eights, default step 24 for base 14 (he verified 24 matches Noto 14 by
+eye and by x-height both), plus a DRAWN bold cut we generated ourselves
+(tools/monogram_bold.py, pixel-domain: rasterize on the 64-unit grid,
+OR with a one-pixel shift, trace back; counter-preserving so the m
+keeps its daylight; own family "monogram bold" because the CoreText
+matcher mis-serves cuts sharing a family). Optical factors: NONE for
+the Robotos (neutral 1.00, his ruling after the geometry hunt), ratio
+only for Retro. The prompt and [MORE] speak the PROSE face (one voice
+on the page); the status bar is the deliberate mono exception; FIXED
+style and the Flags 2 bit stay mono per the Standard. Fonts: 14 TTFs,
+all OFL except monogram (CC0, verified at the itch page), licenses in
+actaea/gui/fonts/LICENSES.md, embedded in build/actaea (4.0MB) via a
+generated gui.fontdata module, unpacked once to XDG data on first run.
+
+THE APP SHAPE: File > Open (Cmd+O) switches stories mid-session in the
+same window; menus restructured to File / Visuals (Typeface, Text
+Size, Window Shape, Screen Height, Game Colours) / Settings (On
+Launch: ask for a story, or reopen the last). A bare launch resolves
+its own story (dialog or last-played); every terminal-facing mode
+still requires the story argument. Window shapes: Modern 4:5 portrait
+scaling to a 70-column floor with the room asked from wm_maxsize
+(dock included), Classic 4:3.
+
+THE BUG WAR, because the record matters. The boot-race family is dead
+in three doors: the fit-to-contents snap never trusts an unmapped
+window (Stefan's ACTAEA_GEOM log convicted it: window=200 at first
+layout, snapped to 181, locked); persist and restore both refuse
+absurd geometries (his settings had been poisoned with 200x195 and
+every launch restored the accident); and run() now waits for the map
+so the first screen is stamped with the real column count (the H2 bar
+adrift of the prose edge). The amalgam loader never set __file__, so
+every STANDALONE window launch since the looks had died on a NameError
+in fonts.py, which was Stefan's "it doesn't let me test". And the
+day-one status bar squeeze fell to the SPACE-COLLAPSE DISCOVERY: the
+compiler collapses interior space runs in string literals, so Cosmos's
+three-space gap never survived compilation; all three packs now place
+the bar's right block by cursor arithmetic, flush to the last column
+(Cosmos 1.16.3). DESIGN FLAG for Stefan, unruled: whether single-line
+literals should preserve space runs is a real language question now.
+
+METHOD RULINGS EARNED THE HARD WAY, binding: never open a window on
+Stefan's screen without asking; specimens and comparisons live in ONE
+image (Preview zoom lies across windows); his launches share the tree
+I edit, so tell him "tree is quiet" when handing over; a fix that
+cannot show a failing-then-passing test has proven nothing; edits
+must assert their own match (two replaces no-opped silently and
+printed success this session).
+
+NEXT: Stefan speaks first on the dressing (A2.0-5: his golden star
+icon, Actaea.app bundle so the menu bar stops saying Python, .desktop
+and ico, file associations, the polished About linking the font
+licenses). Then the release round (A2.0-6): PROGRESS charter entry,
+docs/06 full pass, version 2.0.0, amalgams, and the one push that
+ships everything.
