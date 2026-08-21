@@ -353,6 +353,41 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     without_band = (app.root.winfo_height() - 2 * app._margin
                     - app.cell_h) // app.cell_h
     assert n < without_band  # the band took some of the rows
+    # FILE > OPEN, mid-session: a second story boots in the same window.
+    # The switch path is the real one (flag, unwound waits, _load_story);
+    # only the dialog itself is bypassed.
+    second_src = (
+        'game\n    title "Second Story"\n    start attic\n'
+        'room attic\n    name "The Attic"\n    desc "Dust and one window."\n'
+    )
+    second = tmp_path / "second.z5"
+    second.write_bytes(generate(analyze(cosmos.combined_program(
+        parse(second_src)))))
+    # The first story has already quit here, so this is _open_dialog's
+    # halted branch: boot directly. (The live-unwind branch shares the
+    # close path's proven flag-and-unblock machinery.)
+    app._load_story(str(second))
+    deadline = [0]
+    script2 = ["quit", "y"]
+    def wait_boot():
+        deadline[0] += 1
+        if app.vm.halted or deadline[0] > 200:
+            # Never quit() the loop while a wait_variable is live: quit ends
+            # the mainloop but not a nested vwait, and the test hangs (found
+            # the hard way). Leave only once the machine has halted.
+            app.root.quit()
+            return
+        if app._reading_line and script2:
+            app.text.insert("end-1c", script2.pop(0))
+            app._on_return(None)
+        app.root.after(25, wait_boot)
+    app.root.after(25, wait_boot)
+    app.root.mainloop()
+    out2 = app.text.get("1.0", "end")
+    assert "Second Story" in out2 and "Dust and one window." in out2
+    assert "Window Probe" not in out2          # the old screen is gone
+    assert app._story_path == str(second)      # remembered for On Launch
+
     # WHAT IT REMEMBERS. The shape and the exact place on screen are written
     # to the settings, so the next launch opens where this one was left
     # instead of wherever the window manager puts it.
@@ -375,7 +410,7 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     # The bare-launch preference and the remembered story travel with the
     # rest, so the dock-icon launch can reopen where the player left off.
     assert saved["on_launch"] == "ask"
-    assert saved["last_story"] == "/tmp/probe-story.z5"
+    assert saved["last_story"] == str(second)
     assert saved["aspect"] == "modern"
     assert "+" in saved["geometry"] and "x" in saved["geometry"]
     app.root.destroy()

@@ -25,7 +25,7 @@ Actaea ships two ways, identical in behavior:
 - The package: `python3 -m actaea story.z5` from the repository root. The
   story argument is optional for the window: a bare `actaea` asks for one
   with a native open dialog, or reopens the last story you played,
-  whichever View -> On Launch says (asking is the default). Every
+  whichever Settings -> On Launch says (asking is the default). Every
   terminal-facing mode (--console, --headless, --header, --disasm,
   --record, --replay, --check) still requires the story on the command
   line: those are developer's tools at a prompt. The
@@ -93,7 +93,10 @@ honours completely, repainting the paper when the game erases).
 The menu bar:
 
 - About Actaea: the version and identity panel.
-- View -> Look: the window's whole typographic identity, one choice, three
+- File -> Open (Cmd+O): open another story in the same window, mid-session:
+  the running machine stands down and the new story boots on the same
+  screen. No quitting to change games.
+- Visuals -> Typeface: the window's whole typographic identity, one choice, three
   answers. Novel (the default) sets the story in Noto Serif over a Roboto
   Mono machine voice; Clean sets it in Roboto over the same mono; Retro
   sets EVERYTHING in monogram, the pixel face, one face for the whole
@@ -101,13 +104,13 @@ The menu bar:
   are registered with the system at startup, nothing installed; their
   licenses are recorded in actaea/gui/fonts/LICENSES.md. There is no free
   font mixing, by design: each look is a coherent pair.
-- View -> Text Size: one size drives every look. Novel and Clean use it
+- Visuals -> Text Size: one size drives every look. Novel and Clean use it
   directly; Retro derives its size from it (24 reads like 14, measured)
   and snaps to monogram's pixel grid so the pixels stay crisp.
 - View -> Screen Height: window lines.
 - View -> On Launch: what a bare launch (a dock icon, a double-click)
   does: ask for a story, or reopen the last one.
-- View -> Window Shape: Modern (4:5) or Classic (4:3). Modern is a
+- Visuals -> Window Shape: Modern (4:5) or Classic (4:3). Modern is a
   portrait page, taller than wide, and on a big display that
   is exactly what opens. A laptop cannot show portrait at eighty columns
   (that wants some 1250 points of height), so the shape scales down keeping
@@ -120,6 +123,9 @@ The menu bar:
   larger window, a larger picture, and the same shape.
 - View -> Game Colours: off shows black-on-white with styles kept; on
   restores the game's palette, including text already on screen.
+- Settings -> On Launch: what a bare launch (a dock icon, a double-click)
+  does: ask for a story, or reopen the last one. Behaviour, not
+  appearance, so it lives apart from Visuals.
 
 Settings persist in `~/.config/actaea/settings.json` (XDG_CONFIG_HOME is
 honoured) and return at the next launch. They save when changed in the

@@ -353,6 +353,10 @@ class ActaeaApp:
         self._reading_line = False
         self._reading_key = False
         self._closed = False
+        # File > Open mid-session: the path to switch to. The waits treat a
+        # pending switch like a close (EOFError unwinds the old machine), but
+        # the window survives and boots the new story in place.
+        self._switch_to = None
         self._max_len = 0
         self._input_tag = ""
         self._terminators = frozenset()
@@ -410,10 +414,18 @@ class ActaeaApp:
             appmenu.add_command(label="About Actaea", command=self._about)
             appmenu.add_separator()
             menubar.add_cascade(menu=appmenu)
+        # File: the door. A story can open mid-session without quitting.
+        filem = tk.Menu(menubar, tearoff=0)
+        filem.add_command(label="Open...", accelerator="Cmd+O",
+                          command=self._open_dialog)
+        menubar.add_cascade(label="File", menu=filem)
+        self.root.bind("<Command-o>", lambda e: self._open_dialog())
+        self.root.bind("<Control-o>", lambda e: self._open_dialog())
+
         view = tk.Menu(menubar, tearoff=0)
-        # The Look menu is the whole typographic surface (Stefan's ruling:
-        # no free font choices): three coherent identities, each a prose
-        # face and a machine face that belong together.
+        # The Typeface menu is the whole typographic surface (Stefan's
+        # ruling: no free font choices): three coherent identities, each a
+        # prose face and a machine face that belong together.
         looks = tk.Menu(view, tearoff=0)
         for value, label in (("novel", "Novel"), ("clean", "Clean"),
                              ("retro", "Retro")):
@@ -432,22 +444,27 @@ class ActaeaApp:
                               value="modern", command=self._reshape)
         shape.add_radiobutton(label="Classic (4:3)", variable=self._aspect_var,
                               value="classic", command=self._reshape)
-        view.add_cascade(label="Look", menu=looks)
+        view.add_cascade(label="Typeface", menu=looks)
         view.add_cascade(label="Text Size", menu=size)
         view.add_cascade(label="Window Shape", menu=shape)
         view.add_cascade(label="Screen Height", menu=lines)
-        launch = tk.Menu(view, tearoff=0)
+        view.add_separator()
+        view.add_checkbutton(label="Game Colours", variable=self._use_colours,
+                             command=self._colours_toggled)
+        menubar.add_cascade(label="Visuals", menu=view)
+
+        # Settings: behaviour, not appearance. On Launch lives here; it
+        # never belonged under a visuals menu.
+        settings = tk.Menu(menubar, tearoff=0)
+        launch = tk.Menu(settings, tearoff=0)
         launch.add_radiobutton(label="Ask for a story",
                                variable=self._launch_var, value="ask",
                                command=self._persist)
         launch.add_radiobutton(label="Open the last story",
                                variable=self._launch_var, value="last",
                                command=self._persist)
-        view.add_cascade(label="On Launch", menu=launch)
-        view.add_separator()
-        view.add_checkbutton(label="Game Colours", variable=self._use_colours,
-                             command=self._colours_toggled)
-        menubar.add_cascade(label="View", menu=view)
+        settings.add_cascade(label="On Launch", menu=launch)
+        menubar.add_cascade(label="Settings", menu=settings)
         if not self._aqua():
             helpm = tk.Menu(menubar, tearoff=0)
             helpm.add_command(label="About Actaea", command=self._about)
@@ -1524,7 +1541,7 @@ class ActaeaApp:
 
     def wait_for_line(self, max_len, preload="", terminators=frozenset(),
                       timeout=0.0, on_timeout=None):
-        if self._closed:
+        if self._closed or self._switch_to:
             raise EOFError
         self._max_len = max_len
         self._terminators = terminators
@@ -1549,7 +1566,7 @@ class ActaeaApp:
         self.root.wait_variable(self._line_ready)
         self._stop_timer()
         self._reading_line = False
-        if self._closed:
+        if self._closed or self._switch_to:
             raise EOFError
         self._dress_input()
         line = self.text.get("input_start", "end-1c")
@@ -1696,7 +1713,7 @@ class ActaeaApp:
     # -- input: single keys --------------------------------------------------------
 
     def wait_for_key(self, timeout=0.0, on_timeout=None) -> int:
-        if self._closed:
+        if self._closed or self._switch_to:
             raise EOFError
         self._reading_key = True
         self._timed_out = False
@@ -1708,7 +1725,7 @@ class ActaeaApp:
         self.root.wait_variable(self._key)
         self._stop_timer()
         self._reading_key = False
-        if self._closed:
+        if self._closed or self._switch_to:
             raise EOFError
         # The reader just pressed a key of their own: a fresh page starts.
         self._start_page()
@@ -1746,13 +1763,69 @@ class ActaeaApp:
     def _run_vm(self):
         try:
             self.vm.run()
-            if not self._closed:
+            if not self._closed and not self._switch_to:
                 self.append_story("\n[The story has ended.]\n")
         except EOFError:
-            pass  # the window closed mid-read: nothing left to do
+            pass  # the window closed (or is switching) mid-read
         except ActaeaError as e:
             if not self._closed:
                 self.append_story(f"\n[actaea: {e}]\n")
+        if self._switch_to and not self._closed:
+            path, self._switch_to = self._switch_to, None
+            self._load_story(path)
+
+    # -- File > Open: another story in the same window -----------------------
+
+    def _open_dialog(self) -> None:
+        path = filedialog.askopenfilename(
+            parent=self.root, title="Open a story",
+            filetypes=[("Z-machine stories", "*.z5 *.z8 *.zblorb"),
+                       ("All files", "*")],
+        )
+        if not path:
+            return
+        if self.vm.halted or self._closed:
+            # Nothing is waiting to unwind: boot directly.
+            self._load_story(path)
+            return
+        # Ask the running machine to stand down: the flag turns the next
+        # wait (or the one currently blocking) into an EOFError, the run
+        # loop unwinds, and _run_vm boots the new story.
+        self._switch_to = path
+        self._line_ready.set(True)
+        self._key.set("\n")
+
+    def _load_story(self, path: str) -> None:
+        """Boot `path` in this window, replacing the current machine: the
+        screen wipes, the caches empty, the title and the remembered story
+        follow, and the new story runs on the same widgets."""
+        from ..loader import load_file
+        from ..__main__ import _resolve_images
+        try:
+            story = load_file(path)
+        except (OSError, ActaeaError) as e:
+            from tkinter import messagebox
+            messagebox.showerror("Actaea", str(e), parent=self.root)
+            return
+        images_dir, images_zip = _resolve_images(path, None)
+        self._images_dir = images_dir
+        self._images_zip = images_zip
+        self._photo_cache.clear()
+        self._scaled_cache.clear()
+        self._drawn_image = False
+        self._band_state = False
+        self._story_path = os.path.abspath(path)
+        self.root.title(f"{os.path.basename(path)} - Actaea")
+        self.vm = VM(story, GuiIO(self))
+        self.vm.screen.on_change = self._grid_changed
+        self._reading_line = self._reading_key = False
+        self._timed_out = False
+        # A fresh machine means a fresh screen: the same wipe an in-game
+        # erase performs, which also re-bases the paper colour.
+        self.clear_story()
+        self._grid_changed()
+        self._persist()
+        self.root.after(20, self._run_vm)
 
 
 def play(story, title: str, images_dir=None, images_zip=None, seed=None,
