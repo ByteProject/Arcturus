@@ -1,20 +1,16 @@
 # Actaea: The Reference Interpreter
 
-Status: official documentation. Actaea is complete (Arcturus milestone B10);
-this document describes what it is and how to use it. The design record,
-with the architecture and the build milestones, is actaea/actaea-design.md.
+Status: official documentation.
 
-Actaea is a Standard 1.1 conformant Z-machine interpreter for story-file
-versions 5 and 8, written in Python with zero dependencies beyond the
-standard library. It plays any well-formed z5 or z8 story file, not only
-Arcturus output, and it is also a debugging tool: a header inspector, a
-disassembler, and a scriptable harness. Beyond the Z-machine itself, it
-brings Arcturus's `arc_image` graphics to the modern desktop: the window
-draws a story's pictures, straight from loose PNGs while you are still
-working on them or from the finished pack when you ship, which makes
-Actaea the tool to develop an arc_image game with. The name continues
-the trans-Neptunian line of the family (Ceres, Varuna, Eris, Haumea),
-and is the first written for the desktop rather than the metal.
+Actaea is Arcturus's own interpreter: Standard 1.1 conformant, for
+story files in versions 5 and 8, running natively on macOS, Linux, and
+Windows. It plays any well-formed z5 or z8 file, not only Arcturus
+output, and it doubles as a development tool: a header inspector, a
+disassembler, and a scriptable harness for recorded walkthroughs.
+Beyond the Z-machine itself it brings Arcturus's `arc_image` graphics
+to the desktop: the window shows a story's pictures, straight from
+loose PNGs during development or from the finished Blorb, which makes
+Actaea the tool to build an arc_image game with.
 
 ```
 Actaea vx.x.x - Z-machine v5/8 interpreter, debugger and disassembler
@@ -24,28 +20,27 @@ Copyright (c) 2026, Stefan Vogt | https://github.com/ByteProject/Arcturus
 
 ## 1. Getting it and running it
 
-Actaea ships two ways, identical in behavior:
+All Actaea needs is Python 3.11 or later. It ships two ways, identical
+in behavior:
 
-- The package: `python3 -m actaea story.z5` from the repository root. The
-  story argument is optional for the window: a bare `actaea` asks for one
-  with a native open dialog, or reopens the last story you played,
-  whichever Settings -> On Launch says (asking is the default). Every
-  terminal-facing mode (--console, --headless, --header, --disasm,
-  --record, --replay, --check) still requires the story on the command
-  line: those are developer's tools at a prompt. The
-  story argument may also be a `.zblorb` (a Blorb with the story embedded,
-  the pack `arcimg pack --zblorb` writes): Actaea plays the story out of
-  it and serves its pictures from the same file.
-- The standalone: one self-contained file, `build/actaea`, produced by
-  `python3 tools/amalgamate_actaea.py`. Copy it anywhere and run
-  `python3 actaea story.z5` (or `./actaea story.z5`); no installation, no
-  package directory, no dependencies. This is the distribution form, the
-  same arrangement as the `arcc` compiler.
+- The standalone: one self-contained file, `actaea`, beside `arcc` and
+  the other Arcturus tools. Keep them together, and `arcc --update`
+  keeps them all current. `actaea story.z5` plays. This is the form to
+  use.
+- The package: `python3 -m actaea story.z5` from a checkout of the
+  repository, for working on the interpreter itself.
 
-Python 3.11 or later. The GUI needs tkinter and the terminal mode needs
-curses; both ship inside CPython itself. On a Python without one of them,
-Actaea degrades to the next mode down and says so, naming the exact way
-to get tkinter on that platform.
+The story argument is optional for the window: a bare `actaea` asks
+for a story, or reopens the last one you played, whichever Settings ->
+On Launch says. Every terminal-facing mode (--console, --headless,
+--header, --disasm, --record, --replay, --check) requires the story on
+the command line. The story may also be a `.zblorb`, story and
+pictures in one file, written by `arcimg pack --zblorb`.
+
+The window needs Python's tkinter and the terminal mode its curses;
+both come with Python on most systems. Where one is missing, Actaea
+falls back to the next mode down and says so, naming the exact way to
+get tkinter on that platform.
 
 On Windows, two things differ. First, the standalone must be started
 through the Python launcher: `py actaea story.z5` (the file's first line
@@ -79,112 +74,67 @@ does not use Tk at all.
 
 ## 2. The three ways to play
 
-One headless virtual-machine core sits behind three front-ends. The core
-cannot tell them apart; they differ only in where the screen and keyboard
-live.
+Actaea plays in a window, in the terminal, or as a plain text pipe.
 
 ### The window (default)
 
-`actaea story.z5` on a desktop opens the window: the game-drawn status
-bar, text styles and the full Z-machine colour set, inline input at the
-story's own prompt wearing the game's input colour, and native file
-dialogs for saves and transcripts.
+`actaea story.z5` opens the window, the way Actaea is normally played.
+It supports the full Z-machine screen model: colours, text styles, the
+game-drawn status bar, and timed input. Long passages page with
+`[MORE]`, and you can scroll back through everything printed.
 
 ![The Actaea window on macOS: an arc_image story with its picture band
-and status bar, the About panel, and the star on the Dock](../artworks/docs/actaea-window.png)
-
-Actaea is a light interpreter: its own screen is black on white paper, and
-a game that wants a dark screen sets its colours (which the window then
-honours completely, repainting the paper when the game erases).
+and status bar, and the About panel](../artworks/docs/actaea-window.png)
 
 The menu bar:
 
 - About Actaea: the version panel.
 - File -> Open (Cmd+O): open another story in the same window,
-  mid-session, without quitting.
-- Visuals -> Typeface: three looks, set in a selected serif (Novel, the
-  default), a clean typeface (Clean), or a genuine pixel font (Retro,
-  the whole screen in one face the way a real 8-bit machine was). The
-  fonts ship with Actaea; there is nothing to install.
+  mid-session.
+- Visuals -> Typeface: three looks, set in a selected serif (Novel,
+  the default), a clean typeface (Clean), or a pixel font (Retro). The
+  fonts ship with Actaea.
 - Visuals -> Text Size: one size, driving every look.
 - Visuals -> Screen Height: how many lines tall the story plays.
-- Visuals -> Window Shape: Modern (4:5), a portrait page like the
-  modern desktop interpreters open, or Classic (4:3), the squat screen
-  of the machines the format came from. On a display too small for the
-  full portrait the shape scales down to fit what the desktop really
-  offers. Everything is relative to the font: a larger font gives a
+- Visuals -> Window Shape: Modern (4:5), a portrait page, or Classic
+  (4:3), the squat screen of the old machines. A larger font gives a
   larger window of the same shape.
-- Visuals -> Game Colours: off plays black-on-white with styles kept;
-  on restores the game's palette, including text already on screen.
+- Visuals -> Game Colours: turns the game's colours on and off.
 - Settings -> On Launch: what starting Actaea without a story does,
   ask for one or reopen the last one played.
 
-Settings persist in `~/.config/actaea/settings.json` (XDG_CONFIG_HOME
-is honoured) and return at the next launch, the window's size and
-position included: Actaea opens where you last left it. Delete the file
+Settings persist in `~/.config/actaea/settings.json` and return at the
+next launch, the window's size and position included. Delete the file
 to start fresh.
 
-A passage taller than the screen stops at a reverse-video `[MORE]`, and
-any key turns the page: nothing scrolls past unread. The scrollback
-stays yours, and the wheel, the trackpad, and Page Up walk back through
-everything printed so far. "Press any key" accepts any key, Return
-included. The story sets in the chosen look's own typeface; the status
-bar and anything a game prints as fixed-pitch stay monospaced, as
-Z-machine games expect. In Retro, emphasis comes as colour and reverse
-video, the way the real machines did it.
-
 Pictures: the window draws a story's `arc_image` picture (01 section
-6b) in a band across the top, pixel-crisp at every window size, and the
-window keeps the text below it at a whole number of lines; text the
-band displaces is re-shown behind [MORE]s rather than scrolled away
-(the re-base rule of 08 section 3, which every arc_image interpreter
-follows). This is arc_image on the modern desktop, and it is the loop
-an arc_image game is developed in: point `--images DIR` at a directory
-of numbered PNGs (`8.png` is picture id 8) and play while the art is
-still loose; when you ship, Actaea reads the same pictures from the
-sibling `.blorb` pack, or from a `.zblorb` carrying story and pictures
-in one file. The terminal and pipe modes report no picture support, so
-the same story plays there as pure text.
+6b) in a band across the top, pixel-crisp at every window size. This
+is the loop an arc_image game is developed in: point `--images DIR` at
+a directory of numbered PNGs (`8.png` is picture id 8) and play while
+the art is still loose; a shipped game's pictures are read from the
+sibling `.blorb`, or from a `.zblorb` with story and pictures in one
+file. The terminal and pipe modes play the same story as pure text.
 
-The window is a native application, with Actaea's own name and icon
-rather than Python's. For a place among your applications,
-`actaea --install-app` installs a thin launcher on macOS, Linux, or
-Windows, with file associations for .z5, .z8, and .zblorb: double-click
-a story and it opens in the window. The interpreter itself stays the
-single file beside arcc and the other Arcturus tools, fully accessible
-from the command line, and `arcc --update` continues to update
-everything in place when the tools are kept together; the launcher
-holds no logic of its own, so it never goes stale. (If the tools'
-directory later moves, launch the relocated `actaea` once by hand and
-the launcher follows.)
+`actaea --install-app` installs Actaea among your applications, on
+macOS, Linux, or Windows, with file associations for .z5, .z8, and
+.zblorb. The interpreter itself stays the single file beside the other
+Arcturus tools, still fully usable from the command line, and
+`arcc --update` continues to update everything in place; the installed
+launcher never needs a reinstall.
 
 ### The terminal: --console
 
 `actaea --console story.z5` plays in the terminal, in the manner of
-fizmo-ncursesw, on the standard library's curses: the status bar live from
-the cell grid, Z-machine colours mapped to the terminal's, bold, italic,
-and reverse, word wrap at the terminal width, [MORE] paging, inline input
-in the game's input colour, and timed input on the terminal clock. The
-screen fills from the top after a clear and scrolls once it reaches the
-bottom; erasing paints the whole screen in the game's background. The
-terminal tab is titled after the story for the session and gets its old
-name back on exit (the terminal's title stack; terminals without one
-keep the story title, as before).
+fizmo-ncursesw: the game-drawn status bar, Z-machine colours mapped to
+the terminal's, bold, italic, and reverse, `[MORE]` paging, and timed
+input. The terminal tab is titled after the story while it plays.
 
-The game is told the terminal's real size, so anything it draws across the
-screen crosses the whole screen: a status bar in a 103-column window is 103
-columns wide, and in a 40-column one it is 40. Resize the window and the new
-size reaches the game with the next thing it draws, which for a status bar
-means the next command; version 5 has no way for an interpreter to interrupt
-a game mid-turn to announce a resize, so one turn's delay is how every v5
-interpreter behaves.
+The status bar spans the terminal's full width, whatever it is. Resize
+the terminal and the text re-wraps to the new width; the game itself
+hears about the new size with its next command (a v5 game cannot be
+interrupted mid-turn to be told).
 
-Resizing keeps what is on screen. The terminal itself holds no history, so
-the console keeps its own record of what the story has printed and repaints
-from it, re-wrapped to the new width. A screen the story deliberately
-cleared stays cleared.
-
-Native Windows has no stdlib curses; there, --console degrades to the
+Native Windows has no curses; there, --console degrades to the
 headless pipe with a note (WSL plays fine).
 
 ### The pipe: --headless
@@ -329,10 +279,9 @@ the table opcodes compute addresses in wrapping 16-bit arithmetic, and
 asking for the relatives of object 0 answers "nothing" rather than
 faulting (mutating object 0 remains an error). Sound is a designed no-op,
 forever; there is no v6. Graphics are the one Arcturus extension: the
-`arc_image` picture band renders in the window (B11, section 2), with retro
-rendering to follow (B12). It extends the cell grid Actaea already keeps
-decoupled for it, and never touches conformance: a story's pictures are
-separate files, and a picture-less interpreter plays the same z5 as text.
+`arc_image` picture band renders in the window (section 2), and it never
+touches conformance: a story's pictures are separate files, and any
+interpreter without them plays the same z5 as pure text.
 
 ## 7. For Arcturus authors
 
