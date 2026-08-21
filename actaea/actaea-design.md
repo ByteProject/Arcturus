@@ -158,12 +158,15 @@ text with styles and colours.
 Each interactive front end also PAGES it, so no passage scrolls past
 unread: the console counts scrolled lines and draws `[MORE]` in reverse
 video (console.py, `_maybe_page`), and the window does the same with an
-appended marker (gui/pager.py for the arithmetic, gui/app.py for the
-widget half). The two are deliberately separate implementations of one
-idea: what they share is a line count, while measuring the height,
-drawing the marker and waiting for the key have nothing in common. The
-pipe front end never pages, or scripted play would hang waiting for a
-keypress nobody is there to give.
+appended marker. The window's paging is MEASURED, not computed (the 2.0
+architecture): text goes into the widget, the widget is asked how many
+display lines the unread page holds, and on overflow the tail past the
+boundary Tk names is lifted out, [MORE] waits, and the tail becomes the
+next page. Measurement is exact for any typeface, fixed or
+proportional, which is what the 2.0 looks require; the console's
+arithmetic stays correct because a terminal genuinely is a cell grid.
+The pipe front end never pages, or scripted play would hang waiting
+for a keypress nobody is there to give.
 
 Upper window (window 1): a fixed grid of character cells, non-buffered,
 overwriting, addressed by set_cursor. split_window sizes it, erase_window and

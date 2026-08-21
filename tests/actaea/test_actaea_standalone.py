@@ -72,8 +72,8 @@ def test_every_package_module_is_embedded():
 
     A module that exists in the package but is missing from that list imports
     fine in development and fails only in the built file, in front of a
-    player: gui.pager was added on 2026-08-20 and the suite had nothing to say
-    about it. This walks the package and insists every module is carried."""
+    player: a gui submodule added on 2026-08-20 shipped missing once and the
+    suite had nothing to say about it. This walks the package and insists every module is carried."""
     sys.path.insert(0, os.path.join(ROOT, "tools"))
     try:
         import amalgamate_actaea

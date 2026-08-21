@@ -41,7 +41,6 @@ from ..errors import ActaeaError
 from ..io import IOSystem
 from ..screen import BOLD, ITALIC, REVERSE, TRUE_COLOURS, true_colour_hex
 from ..vm import VM
-from .pager import Pager
 
 # Tk keysyms for the keys with ZSCII input codes of their own (S 3.8):
 # cursors, function keys, and the numeric keypad. read_char hands these
@@ -294,9 +293,9 @@ class ActaeaApp:
         self.text.mark_gravity("input_start", "left")
         # Story text goes in a page at a time and stops with [MORE] when the
         # reading area is full, the way the curses front end has always done
-        # it, so nothing scrolls past unread. The pager counts the display
-        # lines; the widget half is further down.
-        self._pager = Pager()
+        # it, so nothing scrolls past unread. Paging is MEASURED: the widget
+        # itself is asked where the page boundary fell (_insert_paged), so it
+        # is exact for any face, fixed or proportional.
         # How many display lines the reading area has, kept by _relayout: the
         # widget's own pixel height lags a turn behind (see there).
         self._text_rows = 0
@@ -1053,7 +1052,7 @@ class ActaeaApp:
                     self.text.tag_delete(tag)
         self.text.delete("1.0", "end")
         self.text.mark_set("input_start", "end-1c")
-        self._start_page(0)  # a wiped screen starts a fresh page
+        self._start_page()  # a wiped screen starts a fresh page
 
     # -- output --------------------------------------------------------------
 
@@ -1115,11 +1114,11 @@ class ActaeaApp:
     # from the text area's CURRENT height, so a picture band taking rows or a
     # fullscreen window giving them back is accounted for by itself.
 
-    def _start_page(self, column: int = 0) -> None:
+    def _start_page(self) -> None:
         """A new page begins here: the reader has just acted (a command, a
         keypress, a [MORE]) or the screen was wiped. Everything after this
-        mark is unread, which is what the re-base below must never discard."""
-        self._pager.reset(column)
+        mark is unread: the pager measures from it, and the re-base below
+        must never discard anything past it."""
         try:
             self.text.mark_set("page_start", "end-1c")
             self.text.mark_gravity("page_start", "left")
@@ -1257,37 +1256,41 @@ class ActaeaApp:
             self.text.insert("end-1c", s)
 
     def _insert_paged(self, s: str, tag: str) -> None:
-        # Mid-read printing (a timed interrupt) and key waits must not open a
-        # second wait inside the first, and a screen with no room to page
-        # cannot pause at all: in both cases the text goes in whole.
+        # MEASURED, NOT COMPUTED (the 2.0 architecture): the text goes in and
+        # the WIDGET is asked how many display lines the unread page now
+        # holds. When it overflows, the cut is the index Tk names for the
+        # page's last display line, the tail is lifted back out, the [MORE]
+        # waits, and the tail goes in again as the next page. The old pager
+        # modelled Tk's word-wrap arithmetically from the fixed cell width,
+        # which was exact for one font it could never leave; measurement is
+        # exact for any face, which is what the proportional looks need.
         if (self._page_height() < 2 or self._reading_line
                 or self._reading_key or self._closed):
             self._insert(s, tag)
-            self._start_page(0)
+            self._start_page()
             return
         rest = s
-        while rest:
-            # Re-measured every time round: the window may have been resized
-            # between one page and the next, and the band may have arrived.
+        while rest and not self._closed:
+            self._insert(rest, tag)
+            rest = ""
+            self.text.update_idletasks()
             page = self._page_height()
-            room = page - self._pager.lines
-            if room <= 0:
-                self._page_pause()
-                if self._closed:
-                    return      # the window went: nothing left to write into
-                continue
-            piece, rest = self._pager.feed(rest, max(2, self._cols), room)
-            if piece:
-                self._insert(piece, tag)
-            if rest:
-                self._page_pause()
-                if self._closed:
-                    return      # the window went: nothing left to write into
+            if page < 2:
+                return
+            used = self._display_lines("page_start", "end-1c")
+            if used <= page:
+                return
+            cut = self.text.index("page_start + %d display lines" % page)
+            if self.text.compare(cut, ">=", "end-1c"):
+                return
+            rest = self.text.get(cut, "end-1c")
+            self.text.delete(cut, "end-1c")
+            self._page_pause()
 
     def _page_pause(self) -> None:
         """Show [MORE] after the last line printed and wait for any key."""
         self._pause_at(self.text.index("end-1c"))
-        self._start_page(self._pager.column)
+        self._start_page()
 
     def _log_geom(self, what: str) -> None:
         if not os.environ.get("ACTAEA_GEOM"):
@@ -1298,7 +1301,8 @@ class ActaeaApp:
                     "%s: rows=%d page=%d pager_lines=%d text_px=%d cell_h=%d "
                     "band=%d bar=%s window=%d\n"
                     % (what, self._reading_lines(), self._page_height(),
-                       self._pager.lines, self.text.winfo_height(),
+                       self._display_lines("page_start", "end-1c"),
+                       self.text.winfo_height(),
                        self.cell_h, getattr(self, "_band_h", 0),
                        self._grid_shown, self.root.winfo_height()))
         except OSError:
@@ -1399,7 +1403,7 @@ class ActaeaApp:
         if preload:
             self._absorb_preload(preload)
         self.text.mark_set("insert", "end-1c")
-        self._start_page(self._pager.column)
+        self._start_page()
         self._settle_view()
         self._start_timer(timeout, on_timeout)
         self.root.wait_variable(self._line_ready)
@@ -1417,7 +1421,7 @@ class ActaeaApp:
             return line, 0
         # The typed line becomes story text, newline included.
         self.append_story("\n")
-        self._start_page(0)
+        self._start_page()
         return line, self._terminator
 
     def _absorb_preload(self, preload: str) -> None:
@@ -1558,7 +1562,7 @@ class ActaeaApp:
         self._timed_out = False
         self._key_code = 0
         self._key.set("")
-        self._start_page(self._pager.column)
+        self._start_page()
         self._settle_view()
         self._start_timer(timeout, on_timeout)
         self.root.wait_variable(self._key)
@@ -1567,7 +1571,7 @@ class ActaeaApp:
         if self._closed:
             raise EOFError
         # The reader just pressed a key of their own: a fresh page starts.
-        self._start_page(self._pager.column)
+        self._start_page()
         return 0 if self._timed_out else self._key_code
 
     # -- lifecycle --------------------------------------------------------------------

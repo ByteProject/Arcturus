@@ -35,14 +35,14 @@ _PACKAGE = "actaea"
 # __init__ (version and banner, no imports) is executed at bootstrap.
 _MODULES = [
     "errors", "memory", "loader", "decode", "text", "dictionary", "objects",
-    "screen", "quetzal", "io", "vm", "session", "console", "gui", "gui.pager",
+    "screen", "quetzal", "io", "vm", "session", "console", "gui",
     "gui.app", "__main__",
 ]
 
 # NOTE: this list is the standalone's whole world. A module missing from it
 # imports fine from the package and fails only in the built file, at the
-# moment a player opens the window (gui.pager was added on 2026-08-20 and
-# caught by the smoke test below, not by the suite).
+# moment a player opens the window (a gui submodule shipped missing once,
+# 2026-08-20, caught by the smoke test, not by the suite).
 
 _HEADER = '''#!/usr/bin/env python3
 # actaea
