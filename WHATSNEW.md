@@ -6,28 +6,23 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
-- **Actaea 2.0: the reference interpreter grows into a native
-  application.** The window now looks and behaves like the desktop app
-  it is. Three typographic looks, never freely mixable: Novel (Noto
-  Serif prose over a Roboto Mono machine voice, the default), Clean
-  (Roboto over the same mono), and Retro (monogram, the pixel face, for
-  everything, with a bold cut drawn pixel-by-pixel for the purpose);
-  fourteen faces ship inside the standalone and register with the
-  system at launch, nothing installed. The window pages long passages
-  with a measured [MORE], keeps to whole text rows, and offers two
-  shapes, the portrait Modern (4:5) and the squat Classic (4:3). It
-  presents as Actaea, not Python: the name in the macOS menu bar, the
-  golden star on the Dock and in the title bar, a polished About with
-  the typeface licenses one click away. `actaea --install-app` adds a
-  thin launcher among the applications (macOS .app stub, Linux .desktop
-  entry, Windows Start Menu and story associations) that holds no logic
-  and never goes stale: the core stays beside the other Arcturus tools,
-  where `arcc --update` keeps it current. Double-clicked stories open
-  in the window, mid-session included; a bare `actaea` asks for a story
-  or reopens the last one. And the status bar's right block finally
-  sits where every interpreter puts it: the upper window is now a true
-  cell grid in pixels, every glyph pinned to its cell (Actaea 2.0.0,
-  Cosmos 1.16.4).
+- **Actaea 2.0: a massive overhaul of the reference interpreter.** The
+  window is a full desktop application now. It ships with selected
+  typefaces in three looks: Novel, serif prose over a mono machine
+  voice, the default; Clean, sans prose over the same mono; and Retro,
+  a real pixel font for the whole screen, bold cut included. The fonts
+  travel inside the standalone and load at launch, nothing to install.
+  Long passages page with [MORE] instead of scrolling past unread; the
+  window offers two shapes, the portrait Modern (4:5) and the classic
+  4:3, and remembers its size, position, and settings between sessions.
+  `actaea --install-app` installs it as a native application on macOS,
+  Linux, and Windows: its own icon and name, an entry among the
+  applications, and file associations for .z5, .z8, and .zblorb, while
+  the interpreter itself stays the single file that `arcc --update`
+  keeps current. Double-click a story and it opens in the window; a
+  bare `actaea` asks for a story or reopens the last one; File > Open
+  switches stories mid-session without quitting (Actaea 2.0.0, Cosmos
+  1.16.4).
 - **Multiple player characters: maniacswap.** `summon.maniacswap`, mark
   each body `playable`, and BECOME swaps the keyboard between them,
   Maniac Mansion style, from anywhere, even between maps that never
