@@ -12,7 +12,8 @@
 #                 ten iconset sizes, assembled by the system's iconutil.
 #   actaea.ico    Windows: the full square, the sizes Explorer asks for.
 #   actaea.png    Linux and the Tk window icon: the full square at 512.
-#   actaea-128.png  the About panel's star.
+#   actaea-about.png  the About panel's star, 320 (Stefan's pick from the
+#                     size sheet, 2026-08-21).
 #
 # The squircle mask is drawn at 4x and downscaled so the corners land
 # smooth; each icns size is resampled from the masked 4096 master, never
@@ -83,8 +84,8 @@ def main() -> int:
     # Linux, the Tk window icon, and the About panel.
     art.resize((512, 512), Image.LANCZOS).save(
         os.path.join(OUT, "actaea.png"))
-    art.resize((128, 128), Image.LANCZOS).save(
-        os.path.join(OUT, "actaea-128.png"))
+    art.resize((320, 320), Image.LANCZOS).save(
+        os.path.join(OUT, "actaea-about.png"))
 
     for fn in sorted(os.listdir(OUT)):
         path = os.path.join(OUT, fn)

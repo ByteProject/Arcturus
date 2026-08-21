@@ -1407,28 +1407,22 @@ block msg_talk_over()
 block line_status_score(w)
     // A game that scores nothing shows only the move count; the score side
     // would be a permanent "Score: 0". The fold decides at compile time.
-    // Placed by cursor arithmetic, never by literal spaces: the compiler
-    // collapses interior space runs in strings (the prose-reflow rule), so
-    // "   Moves: " compiled to one space since day one and the bar ended
-    // adrift of its right edge. Each block is positioned; the line ends
-    // flush in column w.
     if any_awards is 0
-        set_cursor(1, w - 7 - status_digits(turns))
+        set_cursor(1, w - 9 - status_digits(turns))
         show(" Moves: ")
         show(turns)
         return 0
     if w < 54
-        set_cursor(1, w - 8 - status_digits(score) - status_digits(turns))
+        set_cursor(1, w - 9 - status_digits(score) - status_digits(turns))
         show(" Score: ")
         show(score)
         show("/")
         show(turns)
     else
-        set_cursor(1, w - 16 - status_digits(score) - status_digits(turns))
+        set_cursor(1, w - 18 - status_digits(score) - status_digits(turns))
         show(" Score: ")
         show(score)
-        set_cursor(1, w - 6 - status_digits(turns))
-        show("Moves: ")
+        show("   Moves: ")
         show(turns)
 
 // Room and light.

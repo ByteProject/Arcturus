@@ -484,7 +484,7 @@ class ActaeaApp:
         win = tk.Toplevel(self.root)
         win.title("About Actaea")
         win.resizable(False, False)
-        star = dress.icon_path("actaea-128.png")
+        star = dress.icon_path("actaea-about.png")
         if star:
             try:
                 img = tk.PhotoImage(file=star)

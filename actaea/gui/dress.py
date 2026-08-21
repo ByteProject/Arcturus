@@ -231,6 +231,22 @@ def dress(root) -> None:
             _take_dock_name_mac()
         except Exception:
             pass
+
+        # The setter is accepted (status 0, probed live) yet the tile can
+        # still whisper the old name: the Dock may read the registration
+        # before this process renamed it. One repeat once the window has
+        # mapped, when the tile certainly exists; if the Dock still says
+        # Python after that, the door is closed on this macOS and the
+        # .app stub is the way that always names it right.
+        def _again():
+            try:
+                _take_dock_name_mac()
+            except Exception:
+                pass
+        try:
+            root.after(1500, _again)
+        except Exception:
+            pass
     elif sys.platform == "win32":
         try:
             ico = icon_path("actaea.ico")

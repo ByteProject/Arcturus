@@ -12063,3 +12063,43 @@ a temp directory.
 NEXT: Stefan's live verdict (menu bar, Dock star, a real
 --install-app, a double-clicked story), then the release round
 (A2.0-6).
+
+## The revert (2026-08-21, late): the status line belongs to Stefan's
+## design, and the library was never mine to change (Cosmos 1.16.4)
+
+STEFAN'S RULING, in anger and in the right. The status bar's right
+block ending two to three columns short of the screen edge is THE
+DESIGN, proven by every shipped interpreter rendering the same build:
+Gargoyle, Canopus, Proteus, Haumea, and Actaea's own console all show
+that breathing gap, and he provided the screenshots. Yesterday's
+"flush to the edge" change (Cosmos 1.16.3) replaced his design with my
+theory, in the library, against evidence he had explicitly given: the
+console painted the bar right, so the fault could only be Actaea's
+window, and the ask was to fix ACTAEA. Cosmos 1.16.4 restores all
+three language packs and the size ceilings exactly to their 1.16.2
+state; the arcc amalgam, the arc_image example builds, and the local
+H2 build are regenerated with it. Probed after the revert: the
+Rabenstein demo ends at column 123 of 125, H2 at 122 of 125, the gap
+back at every window width, GUI included.
+
+WHAT THE ORIGINAL SYMPTOM ACTUALLY WAS, best supported reading: the
+"far off from the right side" screenshot came from a window whose
+boot had stamped 80 columns into a wider window (the boot race), a
+bug already killed in Actaea 1.9.4; his amalgam only received that
+fix at the 18:10 regeneration, after the screenshot. The library was
+innocent all along.
+
+THE LESSON, binding and written to memory: when the evidence
+localizes a fault to one front-end, the fix lives in that front-end;
+the library is shared truth across every interpreter and changing its
+behavior requires Stefan's explicit consent, every time. Reproduce on
+the exact artifact before theorizing (the stale hibernated2.z5 and
+the pre-fix screenshots cost this evening two false convictions).
+
+ALSO THIS ROUND: the About star at 320 (Stefan's pick from the size
+sheet); the Dock hover name probed to the end of the road: the
+LaunchServices setter resolves, gets a valid ASN, and returns
+accepted, yet the tile keeps the old label, so one post-map repeat
+was added as the last arrow and beyond that it is what it is (the
+.app stub always names it right); barflush_probe.py records what the
+edge fill hides.

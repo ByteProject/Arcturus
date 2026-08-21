@@ -29,7 +29,7 @@ def test_the_star_ships_in_three_shapes():
     icns = os.path.join(d, "actaea.icns")
     ico = os.path.join(d, "actaea.ico")
     png = os.path.join(d, "actaea.png")
-    about = os.path.join(d, "actaea-128.png")
+    about = os.path.join(d, "actaea-about.png")
     for p in (icns, ico, png, about):
         assert os.path.isfile(p), p
     # Each file is truly what its platform expects, by magic number.

@@ -133,7 +133,7 @@ CEILINGS = {
     "features/shiftable.storyarc": 17616,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/enhance-redefine.storyarc": 17980,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/consult-about.storyarc": 18096,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/session-verbs.storyarc": 17712,  # 2026-08-21 repriced: the bar's right block placed by cursor arithmetic, flush to the edge (the space-collapse discovery)
+    "features/session-verbs.storyarc": 17696,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/vary.storyarc": 18876,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/foresight.storyarc": 19064,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/beyond.storyarc": 19596,  # 2026-08-20 repriced: the bar paints its left side only when it changed
@@ -149,7 +149,7 @@ CEILINGS = {
     "granules/maniacswap.storyarc": 18400,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "beispiel-deutsch.storyarc": 25552,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "brass-lantern.storyarc": 18964,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "cloak-of-darkness.storyarc": 19700,  # 2026-08-21 repriced: the bar's right block placed by cursor arithmetic, flush to the edge (the space-collapse discovery)
+    "cloak-of-darkness.storyarc": 19684,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "ejemplo-espanol.storyarc": 22580,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/computed-properties.storyarc": 17316,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/containers.storyarc": 17652,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
@@ -167,7 +167,7 @@ CEILINGS = {
     "features/kinds-and-inheritance.storyarc": 17284,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/on-other.storyarc": 17176,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/zcolor.storyarc": 17608,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/scoring.storyarc": 19500,  # 2026-08-21 repriced: the bar's right block placed by cursor arithmetic, flush to the edge (the space-collapse discovery)
+    "features/scoring.storyarc": 19484,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/spans.storyarc": 17400,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/vehicles.storyarc": 17896,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/ambience.storyarc": 19212,  # 2026-08-20 repriced: the bar paints its left side only when it changed
@@ -183,7 +183,7 @@ CEILINGS = {
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 20320  # 2026-08-21 repriced: the bar's right block placed by cursor arithmetic, flush to the edge (the space-collapse discovery)
+CLOAK_Z8_CEILING = 20304  # 2026-08-20 repriced: the bar paints its left side only when it changed
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
