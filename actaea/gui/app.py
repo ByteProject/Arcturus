@@ -41,6 +41,7 @@ from ..errors import ActaeaError
 from ..io import IOSystem
 from ..screen import BOLD, FIXED, ITALIC, REVERSE, TRUE_COLOURS, true_colour_hex
 from ..vm import VM
+from . import dress
 from . import fonts as fontpack
 
 # Tk keysyms for the keys with ZSCII input codes of their own (S 3.8):
@@ -204,6 +205,9 @@ class ActaeaApp:
             value=st.get("on_launch")
             if st.get("on_launch") in ("ask", "last") else "ask")
         self._mac_integration()
+        # The star: Dock tile (macOS), title-bar and taskbar icon where
+        # the platform shows one. Dressing never stops a story.
+        dress.dress(self.root)
 
         # THE LOOK (Actaea 2.0). Three named typographic identities, never
         # freely mixable (Stefan's ruling): Novel, serif prose over a mono
@@ -390,22 +394,24 @@ class ActaeaApp:
 
     def _mac_integration(self) -> None:
         """macOS niceties. The BOLD name in the menu bar belongs to the
-        hosting bundle: bare Python has no bundle of its own, so it says
-        Python unless pyobjc is installed (then it says Actaea); a proper
-        .app rename is a packaging concern, out of scope here. The About
-        item in that menu is ours either way."""
+        hosting bundle, and dress.predress rewrites that bundle's
+        in-memory name to Actaea; __main__ calls it before the first Tk
+        root (the menu bar snapshots the name then), and the repeat here
+        is a free second chance for anyone driving play() directly. The
+        About item in that menu is ours, and so is the Apple Event a
+        double-clicked story arrives on (the .app stub's launch path)."""
         if not self._aqua():
             return
-        try:
-            from Foundation import NSBundle  # optional; never required
-
-            b = NSBundle.mainBundle()
-            info = b.localizedInfoDictionary() or b.infoDictionary()
-            if info is not None:
-                info["CFBundleName"] = "Actaea"
-        except Exception:
-            pass
+        dress.predress()
         self.root.createcommand("tkAboutDialog", self._about)
+        # Finder hands opened documents to a running app as Apple Events;
+        # aqua Tk surfaces them through this command. Mid-session it is
+        # exactly File > Open with the path already chosen.
+        try:
+            self.root.createcommand("::tk::mac::OpenDocument",
+                                    self._open_documents)
+        except tk.TclError:
+            pass
 
     def _build_menu(self) -> None:
         menubar = tk.Menu(self.root)
@@ -472,14 +478,24 @@ class ActaeaApp:
         self.root.config(menu=menubar)
 
     def _about(self) -> None:
-        """The About panel, laid out like one: name large, the facts in
-        their own lines, the repository clickable."""
+        """The About panel, laid out like one: the star, the name large,
+        the facts in their own lines, the repository clickable, and the
+        bundled typefaces' license record one click away."""
         win = tk.Toplevel(self.root)
         win.title("About Actaea")
         win.resizable(False, False)
+        star = dress.icon_path("actaea-128.png")
+        if star:
+            try:
+                img = tk.PhotoImage(file=star)
+                badge = tk.Label(win, image=img)
+                badge._star = img  # keep referenced or Tk drops it
+                badge.pack(pady=(20, 0))
+            except tk.TclError:
+                pass
         name_font = tkfont.nametofont("TkDefaultFont").copy()
         name_font.configure(size=24, weight="bold")
-        tk.Label(win, text="Actaea", font=name_font).pack(padx=48, pady=(22, 0))
+        tk.Label(win, text="Actaea", font=name_font).pack(padx=48, pady=(6, 0))
         tk.Label(win, text=f"Version {__version__}").pack(pady=(0, 10))
         tk.Label(
             win, justify="center",
@@ -491,7 +507,14 @@ class ActaeaApp:
         link = tk.Label(win, text=_REPO_URL, fg="#2b66c4", cursor="hand2")
         link.pack(pady=(0, 10))
         link.bind("<Button-1>", lambda e: webbrowser.open(_REPO_URL))
-        tk.Button(win, text="OK", command=win.destroy).pack(pady=(2, 16))
+        row = tk.Frame(win)
+        row.pack(pady=(2, 16))
+        lic = fontpack.licenses_path()
+        if lic:
+            tk.Button(row, text="Typeface Licenses",
+                      command=lambda: webbrowser.open(
+                          "file://" + lic)).pack(side="left", padx=(0, 8))
+        tk.Button(row, text="OK", command=win.destroy).pack(side="left")
         win.bind("<Return>", lambda e: win.destroy())
         win.bind("<Escape>", lambda e: win.destroy())
         win.transient(self.root)
@@ -1835,8 +1858,19 @@ class ActaeaApp:
             filetypes=[("Z-machine stories", "*.z5 *.z8 *.zblorb"),
                        ("All files", "*")],
         )
-        if not path:
-            return
+        if path:
+            self._open_path(path)
+
+    def _open_documents(self, *paths) -> None:
+        """A story double-clicked in Finder or dropped on the Dock icon,
+        arriving as an Apple Event (::tk::mac::OpenDocument). One window,
+        one story: the first real file wins."""
+        for path in paths:
+            if path and os.path.isfile(path):
+                self._open_path(path)
+                return
+
+    def _open_path(self, path: str) -> None:
         if self.vm.halted or self._closed:
             # Nothing is waiting to unwind: boot directly.
             self._load_story(path)

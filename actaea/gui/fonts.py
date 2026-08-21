@@ -146,6 +146,25 @@ def _unpacked_files() -> list:
         return []
 
 
+def licenses_path():
+    """The bundled-type license record (LICENSES.md) on disk, for the
+    About panel: beside the loose faces in a checkout, unpacked to the
+    user data directory by the standalone. None when neither exists."""
+    loose = os.path.join(fonts_dir(), "LICENSES.md")
+    if os.path.isfile(loose):
+        return loose
+    base = os.environ.get("XDG_DATA_HOME",
+                          os.path.join(os.path.expanduser("~"),
+                                       ".local", "share"))
+    unpacked = os.path.join(base, "actaea", "fonts", "LICENSES.md")
+    if os.path.isfile(unpacked):
+        return unpacked
+    # The standalone's first About might precede the first font unpack.
+    if _unpacked_files() and os.path.isfile(unpacked):
+        return unpacked
+    return None
+
+
 def register() -> int:
     """Make the bundled faces visible to this process's Tk. Returns how
     many files were registered; 0 means the fallbacks will carry the

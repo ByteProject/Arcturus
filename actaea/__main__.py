@@ -279,23 +279,53 @@ def _startup_story():
     "last" reopens the previous story when it still exists, otherwise (and
     as the default, "ask") a native open dialog. Returns (path, root): the
     dialog's withdrawn Tk root rides along to BECOME the window's root,
-    because this platform's Tk does not survive a second one."""
+    because this platform's Tk does not survive a second one.
+
+    A FINDER LAUNCH is a bare launch too: the .app stub execs `actaea`
+    with no arguments, and the double-clicked story arrives moments later
+    as an Apple Event (Tk's ::tk::mac::OpenDocument). So under the stub
+    (ACTAEA_BUNDLE in the environment) the event gets a short grace
+    before the On Launch preference speaks; a plain Dock-icon click has
+    no document and falls through after the grace."""
     try:
         import tkinter as tk
         from tkinter import filedialog
         from .gui.app import _load_settings
     except ImportError:
         return None, None
+    root = None
+    if os.environ.get("ACTAEA_BUNDLE"):
+        import time
+        try:
+            root = tk.Tk()
+        except tk.TclError:
+            return None, None
+        root.withdraw()
+        docs: list = []
+        try:
+            root.createcommand("::tk::mac::OpenDocument",
+                               lambda *paths: docs.extend(paths))
+            for _ in range(12):
+                root.update()
+                if docs:
+                    break
+                time.sleep(0.05)
+        except tk.TclError:
+            pass
+        opened = next((p for p in docs if p and os.path.isfile(p)), None)
+        if opened:
+            return opened, root
     st = _load_settings()
     if st.get("on_launch") == "last":
         last = st.get("last_story")
         if last and os.path.isfile(last):
-            return last, None
-    try:
-        root = tk.Tk()
-    except tk.TclError:
-        return None, None
-    root.withdraw()
+            return last, root
+    if root is None:
+        try:
+            root = tk.Tk()
+        except tk.TclError:
+            return None, None
+        root.withdraw()
     path = filedialog.askopenfilename(
         parent=root, title="Open a story",
         filetypes=[("Z-machine stories", "*.z5 *.z8 *.zblorb"),
@@ -364,19 +394,39 @@ def main(argv=None) -> int:
         "games with random flavor deterministic; never implied, always "
         "explicit",
     )
+    ap.add_argument(
+        "--install-app", action="store_true",
+        help="install the thin native launcher (a macOS Actaea.app stub, "
+        "a Linux .desktop entry, Windows Start Menu and story "
+        "associations) pointing at THIS copy of actaea, then exit. The "
+        "core stays where it was downloaded, kept current by arcc "
+        "--update; the stub holds no logic and follows automatically",
+    )
     ap.add_argument("--version", action=_Version, nargs=0,
                     help="show the version banner and exit")
     args = ap.parse_args(argv)
+
+    if args.install_app:
+        print(banner() + "\n")
+        from .gui import dress
+        code = dress.install_app()
+        print()
+        return code
 
     gui_root = None
     if args.story is None:
         # A bare launch. Every terminal-facing mode is a developer at a
         # prompt and keeps the old contract; only the window may resolve a
-        # story by itself (the dock-icon future: double-click, play).
+        # story by itself (the dock-icon launch: double-click, play).
         if (args.console or args.headless or args.header or args.disasm
                 or args.record or args.replay or args.check
                 or not sys.stdin.isatty()):
             ap.error("the following arguments are required: story")
+        # The identity is claimed before the FIRST Tk root anywhere: the
+        # menu bar name is snapshotted when Tk brings NSApplication up,
+        # and the startup dialog's root is that moment on a bare launch.
+        from .gui import dress
+        dress.predress()
         resolved, gui_root = _startup_story()
         if resolved is None:
             if gui_root is not None:
@@ -450,6 +500,12 @@ def main(argv=None) -> int:
         # (docs/06 section 1 has always promised it; only --console kept
         # the promise until the Fos report showed what silence costs).
         if sys.stdin.isatty():
+            # Identity before the root exists (idempotent; the bare-launch
+            # path already claimed it), and heal an installed stub whose
+            # core path went dead (the download directory moved).
+            from .gui import dress
+            dress.predress()
+            dress.refresh_stub()
             if _play_window(story, os.path.basename(args.story),
                             images_dir, images_zip, seed=args.seed,
                             root=gui_root, story_path=story_path):

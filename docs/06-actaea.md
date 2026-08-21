@@ -107,9 +107,7 @@ The menu bar:
 - Visuals -> Text Size: one size drives every look. Novel and Clean use it
   directly; Retro derives its size from it (24 reads like 14, measured)
   and snaps to monogram's pixel grid so the pixels stay crisp.
-- View -> Screen Height: window lines.
-- View -> On Launch: what a bare launch (a dock icon, a double-click)
-  does: ask for a story, or reopen the last one.
+- Visuals -> Screen Height: window lines.
 - Visuals -> Window Shape: Modern (4:5) or Classic (4:3). Modern is a
   portrait page, taller than wide, and on a big display that
   is exactly what opens. A laptop cannot show portrait at eighty columns
@@ -121,7 +119,7 @@ The menu bar:
   Classic is the squat 4:3 of the machines the format came from, at the
   full eighty. Everything is relative to the font: a larger font gives a
   larger window, a larger picture, and the same shape.
-- View -> Game Colours: off shows black-on-white with styles kept; on
+- Visuals -> Game Colours: off shows black-on-white with styles kept; on
   restores the game's palette, including text already on screen.
 - Settings -> On Launch: what a bare launch (a dock icon, a double-click)
   does: ask for a story, or reopen the last one. Behaviour, not
@@ -194,9 +192,27 @@ sibling `.blorb` pack (`arcimg` builds it), then the story's own
 directory. There is no name manifest; the id is the file. This is the modern
 half; retro rendering is B12.
 
-On macOS, the application menu shows the hosting Python's name unless
-pyobjc is installed (then it reads Actaea); a proper .app wrapper is a
-packaging concern outside this repository.
+The window presents as a native application, not as Python. On macOS the
+process takes the name Actaea in the menu bar and puts its star on the
+Dock by itself, at every launch, bundle or no bundle; on Windows it
+claims its own taskbar identity; everywhere the window wears the star in
+the title bar or taskbar where the platform shows one. The About panel
+carries the star, the version, and the bundled typefaces' license record
+one click away.
+
+For a place among the applications, `actaea --install-app` (explicit,
+never automatic) installs a thin launcher: on macOS an Actaea.app stub
+in /Applications (or ~/Applications when the system one is not
+writable), on Linux a .desktop entry with the icon and the story MIME
+type, on Windows a Start Menu entry and per-user associations for .z5,
+.z8, and .zblorb files. The stub holds no logic at all, only the path to
+the real interpreter: the core application stays where it was
+downloaded and must be kept together with arcc and the other Arcturus
+files, so that `arcc --update` keeps every tool current; the stub
+follows automatically. Double-clicking a story file, or dropping one on
+the Dock icon, opens it in the window, mid-session included; if the
+download directory later moves, launching the relocated `actaea` once by
+hand heals the stub.
 
 ### The terminal: --console
 

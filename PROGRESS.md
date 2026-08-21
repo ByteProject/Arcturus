@@ -12013,3 +12013,53 @@ and ico, file associations, the polished About linking the font
 licenses). Then the release round (A2.0-6): PROGRESS charter entry,
 docs/06 full pass, version 2.0.0, amalgams, and the one push that
 ships everything.
+
+## The star goes on (2026-08-21): Actaea presents as itself, not as
+## Python (Actaea 1.10.0, toward 2.0, still unpushed)
+
+STEFAN'S RULINGS, given before a line was written. The installer is
+explicit, never automatic: `actaea --install-app`, his approval of the
+flag name. The stub goes among the applications while THE CORE STAYS
+WHERE IT WAS DOWNLOADED, kept together with arcc and the other Arcturus
+files so that `arcc --update` keeps every tool current; the install
+prints exactly that sentence. Linux and Windows are considered, not
+promised and forgotten. The star is his own artwork (artworks/
+actaea.jpeg).
+
+THE PROBE CAME FIRST. The whole design stood on an undocumented
+technique, so before building, probes/macdress_probe.py rewrote
+CFBundleName in the hosting bundle's in-memory dictionary via pure
+ctypes/objc and opened a window: Stefan read "Actaea" in his menu bar.
+Only then was the strategy locked: the amalgam DRESSES ITS OWN PROCESS
+at every window launch (menu bar name and Dock star on macOS, taskbar
+identity on Windows, window icon everywhere), so the terminal life
+developers actually live looks native with no bundle involved; the
+.app stub is optional dressing holding ZERO logic, three shell lines
+that exec the real interpreter, so it can never go stale against
+updates. If the download directory moves, the next hand launch heals
+the stub; a stub pointing at a LIVE core is never touched (a second
+copy must not hijack the installed one), and the shim falls back to
+the PATH's python3 when a Homebrew upgrade retires the recorded
+interpreter's path.
+
+WHAT LANDED: actaea/gui/dress.py (identity, icons, installers, all of
+it unable to raise: an undressed session still plays); the icon set
+cut from the star by tools/actaea_icon.py (macOS icns masked into the
+native rounded rectangle on Apple's own grid, PROPOSED convention
+awaiting Stefan's Dock verdict; Windows ico and Linux png keep the
+full square); double-clicked and Dock-dropped stories arriving through
+Tk's ::tk::mac::OpenDocument into the same mid-session switch File >
+Open uses, with a short grace at bundle launches so the Apple Event
+beats the open dialog; the About panel wearing the star with the
+bundled typefaces' license record one click away; the icons embedded
+in the standalone beside the fonts (build/actaea now 7.6MB, the
+full-resolution icns is most of the growth, flagged for Stefan). The
+GUI test now walks the Apple Event door; six new dressing tests cover
+the icons by magic number, the logic-free bundle, the
+heal-only-dead-cores rule, and the Linux entry. Actaea unit suite 133
+green; the standalone's install path smoke-tested end to end against
+a temp directory.
+
+NEXT: Stefan's live verdict (menu bar, Dock star, a real
+--install-app, a double-clicked story), then the release round
+(A2.0-6).

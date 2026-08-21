@@ -371,10 +371,16 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     second = tmp_path / "second.z5"
     second.write_bytes(generate(analyze(cosmos.combined_program(
         parse(second_src)))))
-    # The first story has already quit here, so this is _open_dialog's
-    # halted branch: boot directly. (The live-unwind branch shares the
-    # close path's proven flag-and-unblock machinery.)
-    app._load_story(str(second))
+    # The first story has already quit here, so this is the halted
+    # branch: boot directly. (The live-unwind branch shares the close
+    # path's proven flag-and-unblock machinery.) The door is the Apple
+    # Event one (::tk::mac::OpenDocument -> _open_documents), which is
+    # how a double-clicked story reaches a running window; the first
+    # REAL file wins, a stale path in the event is skipped.
+    if app._aqua():
+        assert app.root.tk.call("info", "commands",
+                                "::tk::mac::OpenDocument")
+    app._open_documents(str(tmp_path / "never-was.z5"), str(second))
     deadline = [0]
     script2 = ["quit", "y"]
     def wait_boot():
@@ -395,6 +401,9 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     assert "Second Story" in out2 and "Dust and one window." in out2
     assert "Window Probe" not in out2          # the old screen is gone
     assert app._story_path == str(second)      # remembered for On Launch
+    # THE DRESSING (Actaea 2.0): the window wears the star. iconphoto
+    # keeps its PhotoImage referenced on the root or Tk drops it.
+    assert getattr(app.root, "_actaea_icon", None) is not None
 
     # WHAT IT REMEMBERS. The shape and the exact place on screen are written
     # to the settings, so the next launch opens where this one was left
