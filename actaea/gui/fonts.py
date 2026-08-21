@@ -92,14 +92,56 @@ _FALLBACK_MONO = ("Menlo", "Consolas", "DejaVu Sans Mono",
 
 
 def fonts_dir() -> str:
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
+    # In the standalone there is no real file behind this module (and its
+    # loader-supplied __file__ is a virtual path): the directory then simply
+    # does not exist and the embedded faces take over.
+    here = globals().get("__file__") or ""
+    return os.path.join(os.path.dirname(os.path.abspath(here)), "fonts")
 
 
 def _font_files() -> list:
     d = fonts_dir()
     try:
-        return [os.path.join(d, f) for f in sorted(os.listdir(d))
-                if f.lower().endswith((".ttf", ".otf"))]
+        files = [os.path.join(d, f) for f in sorted(os.listdir(d))
+                 if f.lower().endswith((".ttf", ".otf"))]
+    except OSError:
+        files = []
+    if files:
+        return files
+    return _unpacked_files()
+
+
+def _unpacked_files() -> list:
+    """The standalone: the faces ride inside as base64 (gui.fontdata, a
+    module the amalgamator generates) and unpack ONCE into the user data
+    directory; later launches find them already there. No fontdata module
+    (the plain package with its files missing) means no faces: the
+    fallback ladder carries the session."""
+    try:
+        from . import fontdata
+    except ImportError:
+        return []
+    import base64
+    base = os.environ.get("XDG_DATA_HOME",
+                          os.path.join(os.path.expanduser("~"),
+                                       ".local", "share"))
+    dest = os.path.join(base, "actaea", "fonts")
+    try:
+        os.makedirs(dest, exist_ok=True)
+        out = []
+        for name, blob in sorted(fontdata.FONTS.items()):
+            path = os.path.join(dest, name)
+            data = base64.b64decode(blob)
+            if not (os.path.exists(path)
+                    and os.path.getsize(path) == len(data)):
+                with open(path, "wb") as fh:
+                    fh.write(data)
+            out.append(path)
+        lic = os.path.join(dest, "LICENSES.md")
+        if not os.path.exists(lic):
+            with open(lic, "w", encoding="utf-8") as fh:
+                fh.write(fontdata.LICENSES)
+        return out
     except OSError:
         return []
 
@@ -108,7 +150,10 @@ def register() -> int:
     """Make the bundled faces visible to this process's Tk. Returns how
     many files were registered; 0 means the fallbacks will carry the
     session. Never raises: a font must never stop a story."""
-    files = _font_files()
+    try:
+        files = _font_files()
+    except Exception:
+        return 0
     if not files:
         return 0
     try:

@@ -1647,22 +1647,26 @@ block msg_talk_over()
 // right-aligned, in German words and widths. "Punkte: " is eight cells like the
 // English "Score: " string it replaces; the wide form adds "   Zuege: ".
 block line_status_score(w)
+    // Placed by cursor arithmetic, never by literal spaces: the compiler
+    // collapses interior space runs in strings, so the old three-space gap
+    // never survived compilation (see english.prelude).
     if any_awards is 0
-        set_cursor(1, w - 8 - status_digits(turns))
+        set_cursor(1, w - 6 - status_digits(turns))
         show(" Züge: ")
         show(turns)
         return 0
     if w < 54
-        set_cursor(1, w - 10 - status_digits(score) - status_digits(turns))
+        set_cursor(1, w - 9 - status_digits(score) - status_digits(turns))
         show(" Punkte: ")
         show(score)
         show("/")
         show(turns)
     else
-        set_cursor(1, w - 18 - status_digits(score) - status_digits(turns))
+        set_cursor(1, w - 16 - status_digits(score) - status_digits(turns))
         show(" Punkte: ")
         show(score)
-        show("   Züge: ")
+        set_cursor(1, w - 5 - status_digits(turns))
+        show("Züge: ")
         show(turns)
 
 // Room and light.
