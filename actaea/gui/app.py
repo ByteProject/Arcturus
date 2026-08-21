@@ -518,6 +518,15 @@ class ActaeaApp:
         win.bind("<Return>", lambda e: win.destroy())
         win.bind("<Escape>", lambda e: win.destroy())
         win.transient(self.root)
+        # Centered over the game window, not wherever the window manager
+        # drops a fresh toplevel (Stefan, 2026-08-21).
+        win.update_idletasks()
+        x = (self.root.winfo_rootx()
+             + (self.root.winfo_width() - win.winfo_reqwidth()) // 2)
+        y = (self.root.winfo_rooty()
+             + max(0, (self.root.winfo_height()
+                       - win.winfo_reqheight()) // 3))
+        win.geometry("+%d+%d" % (max(0, x), max(0, y)))
         win.grab_set()
 
     def _persist(self) -> None:

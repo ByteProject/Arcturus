@@ -435,6 +435,18 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     app._colours_toggled()
     assert str(app.text.tag_cget(coloured, "foreground")) != "black"
     app.vm.screen.set_colour(1, 1)
+    # THE ABOUT OPENS OVER THE GAME WINDOW, centered on it, never
+    # wherever the window manager drops a fresh toplevel (Stefan's
+    # off-desktop dialogs, 2026-08-21).
+    app._about()
+    about = [w for w in app.root.winfo_children()
+             if isinstance(w, tk.Toplevel)][-1]
+    about.update_idletasks()
+    left, right = app.root.winfo_rootx(), (app.root.winfo_rootx()
+                                           + app.root.winfo_width())
+    centre = about.winfo_x() + about.winfo_reqwidth() // 2
+    assert left <= centre <= right
+    about.destroy()
     app._persist_now()      # what closing the window does
     saved = json.load(open(tmp_path / "actaea" / "settings.json"))
     assert saved["look"] == "novel"

@@ -326,8 +326,20 @@ def _startup_story():
         except tk.TclError:
             return None, None
         root.withdraw()
+    # The panel must NOT anchor to the withdrawn root: an unmapped parent
+    # has no frame, and the panel landed half off the bottom of the
+    # desktop, unmovable (Stefan, 2026-08-21). The root is still placed
+    # mid-screen first, so any toolkit that anchors to it regardless
+    # anchors to the middle; without a parent the system centers the
+    # panel itself.
+    try:
+        root.update_idletasks()
+        root.geometry("+%d+%d" % (root.winfo_screenwidth() // 2,
+                                  root.winfo_screenheight() // 3))
+    except tk.TclError:
+        pass
     path = filedialog.askopenfilename(
-        parent=root, title="Open a story",
+        title="Open a story",
         filetypes=[("Z-machine stories", "*.z5 *.z8 *.zblorb"),
                    ("All files", "*")],
     )
