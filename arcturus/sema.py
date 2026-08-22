@@ -883,8 +883,8 @@ class Analyzer:
                 raise self._error(
                     f"verb '{verb.words[0]}': its prepositional two-noun "
                     f"lines mix `reverse` and plain order; one verb word "
-                    f"binds one order, so declare the reversed order as its "
-                    f"own verb naming the same action",
+                    f"binds one order, so give the reversed order's words "
+                    f"their own declaration naming the same action",
                     verb.line,
                 )
 

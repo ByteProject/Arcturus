@@ -2086,9 +2086,12 @@ the other order. It has two forms. Without a preposition it is the classic
 dative: GIVE and SHOW take both `give noun to noun` ("give the coin to Bob")
 and `give noun noun reverse` ("give Bob the coin"); the parser splits the two
 adjacent nouns for you. With a preposition it swaps the prepositional order
-itself: "fill X with Y" fills X, but "pour X into Y" fills Y, so POUR is
-declared as its own verb whose lines name the same fill action, the
-prepositional one marked `reverse`:
+itself: "fill X with Y" fills X, but "pour X into Y" fills Y. Pour is not a
+separate verb; it is fill, spoken in the other direction. A `verb`
+declaration ties words to the lines that read their way, and a family may
+span several declarations, so the pour words carry their own declaration
+whose lines name the SAME fill action, the prepositional line marked
+`reverse`:
 
 ```
 verb "pour", "spill"
