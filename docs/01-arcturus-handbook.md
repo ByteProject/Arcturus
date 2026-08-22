@@ -2099,8 +2099,12 @@ verb "pour", "spill"
 Either way the two orders reach the same handler with the same roles: on the
 reversed prepositional line the object of the preposition lands in `noun`
 (the trough being filled), and on the adjacent form the first object is the
-recipient (`second`) and the last the thing (`noun`). `reverse` needs exactly
-two `noun` slots. On a flag-model verb the prepositional lines must agree (all
+recipient (`second`) and the last the thing (`noun`). Because the roles are
+settled in the grammar, before any handler runs, an object defines the
+interaction ONCE, on the object it belongs to: a trough's `on fill` with
+`if second is jug` answers FILL TROUGH WITH JUG and POUR JUG INTO TROUGH
+alike, and the jug needs no handler of its own for either phrasing.
+`reverse` needs exactly two `noun` slots. On a flag-model verb the prepositional lines must agree (all
 reversed or none); the compiler says so when they mix. `reverse` is part of
 the grammar, not English, so a language pack declares the reversed lines its
 language wants: the German pack does, since recipient-first (`gib Bob die
