@@ -2082,16 +2082,14 @@ below). Bare words such as `in`, `on`, `with` are literal prepositions.
 Two-object lines bind `noun` and `second`.
 
 A two-noun line may end in `reverse`, for a verb whose two objects arrive in
-the other order. It has two forms. Without a preposition it is the classic
-dative: GIVE and SHOW take both `give noun to noun` ("give the coin to Bob")
-and `give noun noun reverse` ("give Bob the coin"); the parser splits the two
-adjacent nouns for you. With a preposition it swaps the prepositional order
-itself: "fill X with Y" fills X, but "pour X into Y" fills Y. Pour is not a
-separate verb; it is fill, spoken in the other direction. A `verb`
-declaration ties words to the lines that read their way, and a family may
-span several declarations, so the pour words carry their own declaration
-whose lines name the SAME fill action, the prepositional line marked
-`reverse`:
+the other order. Without a preposition it is the classic dative: GIVE and
+SHOW take both `give noun to noun` ("give the coin to Bob") and `give noun
+noun reverse` ("give Bob the coin"); the parser splits the two adjacent
+nouns for you, the first object landing in `second` (the recipient) and the
+last in `noun`. With a preposition it swaps the prepositional order itself:
+"fill X with Y" fills X, but "pour X into Y" fills Y, so the pour wording
+names the same fill action with its prepositional line reversed (the
+extendedverbs granule ships exactly this):
 
 ```
 verb "pour", "spill"
@@ -2099,19 +2097,28 @@ verb "pour", "spill"
     fill noun with noun reverse
 ```
 
-Either way the two orders reach the same handler with the same roles: on the
-reversed prepositional line the object of the preposition lands in `noun`
-(the trough being filled), and on the adjacent form the first object is the
-recipient (`second`) and the last the thing (`noun`). Because the roles are
-settled in the grammar, before any handler runs, an object defines the
-interaction ONCE, on the object it belongs to: a trough's `on fill` with
-`if second is jug` answers FILL TROUGH WITH JUG and POUR JUG INTO TROUGH
-alike, and the jug needs no handler of its own for either phrasing.
-`reverse` needs exactly two `noun` slots. On a flag-model verb the prepositional lines must agree (all
-reversed or none); the compiler says so when they mix. `reverse` is part of
-the grammar, not English, so a language pack declares the reversed lines its
-language wants: the German pack does, since recipient-first (`gib Bob die
-Muenze`) is the natural dative there.
+Both phrasings then arrive as the same action with the same roles, the
+thing being filled in `noun`, and an object defines the interaction once:
+
+```
+thing trough in yard
+    name "stone trough"
+    words stone, trough
+    fixed
+    on fill
+        if second is jug
+            say "You pour the jug out into the trough."
+            stop
+        say "The trough wants the jug."
+```
+
+This one handler answers FILL TROUGH WITH JUG, POUR JUG INTO TROUGH, and
+SPILL JUG INTO TROUGH alike; the jug needs no handler of its own. `reverse`
+needs exactly two `noun` slots, and on a flag-model verb the prepositional
+lines must agree (all reversed or none); the compiler says so when they
+mix. `reverse` is part of the grammar, not English, so a language pack
+declares the reversed lines its language wants: the German pack does, since
+recipient-first (`gib Bob die Muenze`) is the natural dative there.
 
 POSITIONAL GRAMMAR. A line's first name is its action, and the action need not
 be the same on every line, so a verb's wording can say more than "one noun" or
