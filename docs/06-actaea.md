@@ -103,7 +103,7 @@ The menu bar:
 - Visuals -> Window Shape: Modern (4:5), a portrait page, or Classic
   (4:3), the squat screen of the old machines. A larger font gives a
   larger window of the same shape.
-- Visuals -> Game Colors: turns Z-machine colors on and off.
+- Visuals -> Z-machine Colors: turns Z-machine colors on and off.
 - Settings -> On Launch: what starting Actaea without a story does,
   ask for one or reopen the last one played.
 

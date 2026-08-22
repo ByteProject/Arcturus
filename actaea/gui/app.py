@@ -455,7 +455,7 @@ class ActaeaApp:
         view.add_cascade(label="Window Shape", menu=shape)
         view.add_cascade(label="Screen Height", menu=lines)
         view.add_separator()
-        view.add_checkbutton(label="Game Colors", variable=self._use_colours,
+        view.add_checkbutton(label="Z-machine Colors", variable=self._use_colours,
                              command=self._colours_toggled)
         menubar.add_cascade(label="Visuals", menu=view)
 
