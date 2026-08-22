@@ -2081,16 +2081,30 @@ including "all"), `text` (free text), and `direction` (one direction word,
 below). Bare words such as `in`, `on`, `with` are literal prepositions.
 Two-object lines bind `noun` and `second`.
 
-A two-noun line may end in `reverse`, for a verb whose two objects can be typed
-in the other order without a preposition, the classic dative: GIVE and SHOW take
-both `give noun to noun` ("give the coin to Bob") and `give noun noun reverse`
-("give Bob the coin"). On a reversed line the first object is the recipient
-(`second`) and the last is the thing (`noun`), so both orders reach the same
-handler with the same roles. The parser splits the two adjacent nouns for you;
-`reverse` needs exactly two `noun` slots and no preposition between them.
-`reverse` is part of the grammar, not English, so a language pack declares the
-reversed lines its language wants: the German pack does, since recipient-first
-(`gib Bob die Muenze`) is the natural dative there.
+A two-noun line may end in `reverse`, for a verb whose two objects arrive in
+the other order. It has two forms. Without a preposition it is the classic
+dative: GIVE and SHOW take both `give noun to noun` ("give the coin to Bob")
+and `give noun noun reverse` ("give Bob the coin"); the parser splits the two
+adjacent nouns for you. With a preposition it swaps the prepositional order
+itself: "fill X with Y" fills X, but "pour X into Y" fills Y, so POUR is
+declared as its own verb whose lines name the same fill action, the
+prepositional one marked `reverse`:
+
+```
+verb "pour", "spill"
+    fill noun
+    fill noun with noun reverse
+```
+
+Either way the two orders reach the same handler with the same roles: on the
+reversed prepositional line the object of the preposition lands in `noun`
+(the trough being filled), and on the adjacent form the first object is the
+recipient (`second`) and the last the thing (`noun`). `reverse` needs exactly
+two `noun` slots. On a flag-model verb the prepositional lines must agree (all
+reversed or none); the compiler says so when they mix. `reverse` is part of
+the grammar, not English, so a language pack declares the reversed lines its
+language wants: the German pack does, since recipient-first (`gib Bob die
+Muenze`) is the natural dative there.
 
 POSITIONAL GRAMMAR. A line's first name is its action, and the action need not
 be the same on every line, so a verb's wording can say more than "one noun" or

@@ -12174,3 +12174,38 @@ now. His verdict: "Yes, that's it. finally."
 Versions shipped: Actaea 2.0.0, Cosmos 1.16.4, arcc 1.13.0 (both
 standalones regenerated and committed; README table refreshed;
 docs/06 carries the full 2.0 surface and his window screenshot).
+
+## Pour is not a synonym of fill, and the grammar learns to say so
+## (Cosmos 1.16.5, `reverse` on prepositional lines)
+
+Found by Stefan's own quality pass: checking the Hibernated 2
+invisiclues against the game showed POUR CONTAINER INTO TANK refused
+where the hint promised it, and he pushed past every shallow answer
+(the Inform original refused it too; the granule declared pour a plain
+synonym) to the real defect: "fill X with Y" fills X but "pour X into
+Y" fills Y, and a shared verb declaration hands every game the wrong
+roles for the pour phrasing, so the object written to accept the pair
+is never asked.
+
+HIS RULING SHAPED THE FIX, after my false start (a pour_into
+dispatcher verb, implemented without his go, guard-less, and breaking
+the selective summon: reverted whole, and the lesson recorded). The
+design he confirmed: `reverse`, the grammar's existing word for
+swapped roles, extended from the adjacent dative (give noun noun
+reverse) to prepositional lines. The granule now declares pour and
+spill as their own verb whose lines name the SAME fill action, the
+prepositional one marked reverse: same family, so a selective summon
+naming fill keeps them; same guarded default; an object's ordinary on
+fill serves both phrasings unaware.
+
+The mechanics: summary-byte bit 5, decoded behind the any_swap fold;
+the two_swap slot rides the tail globals so no number moves; the
+packs swap the bound slots reusing a spent local, because a let costs
+its slot even inside a folded branch. Byte-identity held the hard
+way: the first build differed by ONE byte (a routine's local count),
+and the reuse closed it, proven by compiling Cloak of Darkness on
+both compilers and comparing bytes. Hibernated 2 needed zero changes:
+POUR CANISTER INTO TANK now answers "You pour the viscous blue
+fluid..." through the reservoir's own handler, and the invisiclues
+sentence stands as written. Suite 1554 green; the extended-verbs
+example repriced +44, the only games that pay.

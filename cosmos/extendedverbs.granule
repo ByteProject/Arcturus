@@ -224,9 +224,19 @@ on cut
         msg_cut
 
 
-verb "fill", "pour", "spill"
+verb "fill"
     fill noun
     fill noun with noun
+
+// POUR and SPILL are fill with the roles the preposition implies: "fill
+// X with Y" fills X, but "pour X into Y" fills Y. Same action, so the
+// same family (a selective summon naming fill keeps them), the same
+// guarded default below, and an object's ordinary `on fill` serves both
+// phrasings; only the binding order differs, which is the grammar's to
+// say (`reverse` on the prepositional line, docs/01 chapter 14).
+verb "pour", "spill"
+    fill noun
+    fill noun with noun reverse
 
 on fill
     if any_beyond is 1

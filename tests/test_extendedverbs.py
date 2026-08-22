@@ -252,3 +252,66 @@ def test_stand_is_standard_exit_and_boarding():
     assert out.count("You get on the stool.") == 2
     assert out.count("You get off the stool.") == 2
     assert "You're already standing up." in out
+
+
+# POUR IS NOT A SYNONYM OF FILL: "fill X with Y" fills X, "pour X into Y"
+# fills Y. The pour declaration binds the same fill action through a
+# reversed prepositional line (`fill noun with noun reverse`, docs/01
+# chapter 14), so the roles swap in the grammar, the vessel's ordinary
+# `on fill` serves both phrasings, and the granule's guarded default
+# answers where no object does. Found by checking Hibernated 2's
+# invisiclues against the game (2026-08-22): the reservoir's handler was
+# written for exactly the pairing the old shared declaration could never
+# deliver. Driven on the Actaea core.
+POUR_GAME = (
+    'game\n    title "PV"\n    start cell\n%s'
+    'room cell\n    name "The Cell"\n    desc "A bare cell."\n'
+    'thing jug in cell\n    name "clay jug"\n    words clay, jug\n'
+    '    on fill\n'
+    '        if second is trough\n'
+    '            say "The trough takes water from the jug, not the other'
+    ' way."\n'
+    '            stop\n'
+    '        say "Nothing here fills the jug."\n'
+    'thing trough in cell\n    name "stone trough"\n'
+    '    words stone, trough\n    fixed\n'
+    '    on fill\n'
+    '        if second is jug\n'
+    '            say "You pour the jug out into the trough."\n'
+    '            stop\n'
+    '        say "The trough wants the jug."\n'
+)
+
+
+def _play(story_bytes, cmds):
+    from actaea.io import CaptureIO
+    from actaea.loader import load as actaea_load
+    from actaea.vm import VM
+    io = CaptureIO(script=list(cmds) + ["quit", "y"])
+    try:
+        VM(actaea_load(story_bytes), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+def test_pour_fills_the_vessel_not_the_source():
+    out = _play(_build(POUR_GAME % "summon.extendedverbs\n"),
+                ["pour jug into trough", "fill trough with jug",
+                 "fill jug with trough", "spill jug into trough",
+                 "pour jug"])
+    # Both phrasings reach the VESSEL's handler...
+    assert out.count("You pour the jug out into the trough.") == 3
+    # ...the inverted fill still speaks the source's own refusal...
+    assert "not the other way" in out
+    # ...and bare POUR keeps bare fill's meaning (the noun's default arm).
+    assert "Nothing here fills the jug." in out
+
+
+def test_selective_summon_of_fill_keeps_pour():
+    # The family is the ACTION (summon.extendedverbs fill), and pour's
+    # lines name fill, so a selection that worked before the split keeps
+    # working: Hibernated 2 summons exactly this way.
+    out = _play(_build(POUR_GAME % "summon.extendedverbs fill\n"),
+                ["pour jug into trough"])
+    assert "You pour the jug out into the trough." in out

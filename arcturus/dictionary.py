@@ -214,20 +214,30 @@ def _verb_arity(world: wm.World) -> dict:
             for line in verb.grammar
         ]
         slots = min(max(counts, default=0), 2)
-        reverse = any(line.reverse for line in verb.grammar)
+        # Two distinct reversals: the adjacent-noun probe (give noun noun
+        # reverse, bit 2) and the swapped prepositional order (fill noun
+        # with noun reverse, the pour phrasing, bit 5). The runtime paths
+        # differ, so the bits do too.
+        reverse = any(line.reverse and not wm.prep_reversed(line)
+                      for line in verb.grammar)
+        swapped = any(wm.prep_reversed(line) for line in verb.grammar)
         bare = any(c == 0 for c in counts)
         single = any(c == 1 for c in counts)
         for phrase in verb.words:
             tokens = phrase.lower().split()
             if len(tokens) == 1:
-                s, r, b, o = stats.get(tokens[0], (0, False, False, False))
+                s, r, b, o, sw = stats.get(
+                    tokens[0], (0, False, False, False, False))
                 stats[tokens[0]] = (
-                    max(s, slots), r or reverse, b or bare, o or single)
+                    max(s, slots), r or reverse, b or bare, o or single,
+                    sw or swapped)
     out: dict = {}
-    for word, (slots, reverse, bare, single) in stats.items():
+    for word, (slots, reverse, bare, single, swapped) in stats.items():
         b2 = slots
         if reverse:
             b2 |= 4
+        if swapped:
+            b2 |= 32
         if slots >= 1 and not bare:
             b2 |= 8
             if slots >= 2 and not single:

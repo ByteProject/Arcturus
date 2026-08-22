@@ -862,6 +862,32 @@ class Analyzer:
                 w.actions.add(line.action)
         w.actions.update(w.declared_actions)
 
+        # A reversed PREPOSITIONAL line (`fill noun with noun reverse`, the
+        # pour phrasing) rides the flag model as one summary bit per verb, so
+        # a flag-model verb must be all-of-one-mind about it: mixing a
+        # reversed and an unreversed two-noun line under one verb word is a
+        # thing one bit cannot say. Give the orders separate verb
+        # declarations sharing the action (fill / pour), which is also how
+        # they read.
+        for verb in w.verbs:
+            if wm.needs_table(verb):
+                continue
+            two_noun = [
+                line for line in verb.grammar
+                if sum(1 for it in line.items
+                       if isinstance(it, ast.Slot)) == 2
+                and any(isinstance(it, ast.Word) for it in line.items)
+            ]
+            if (any(line.reverse for line in two_noun)
+                    and any(not line.reverse for line in two_noun)):
+                raise self._error(
+                    f"verb '{verb.words[0]}': its prepositional two-noun "
+                    f"lines mix `reverse` and plain order; one verb word "
+                    f"binds one order, so declare the reversed order as its "
+                    f"own verb naming the same action",
+                    verb.line,
+                )
+
         # A verb whose grammar the flag model cannot represent gets a positional
         # grammar table (docs/01 chapter 14). The table matcher walks each line
         # token by token, so a few shapes the classic splitter tolerated by

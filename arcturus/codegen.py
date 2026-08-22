@@ -958,15 +958,16 @@ _BUILTIN_GLOBALS = [
     "verb_trigger", "last_trigger",
 ]
 
-# The NPC engine's two slots (summon.npcengine), allocated after EVERY
-# other global, the game's own included, so that no existing number ever
-# moves and games without the engine stay byte-identical (the globals
-# region is fixed-size and these slots go unreferenced there). commanded
-# is the addressed character of the current line (MARSHAL, GO NORTH;
-# docs/01 chapter 12); __npcs__ is the roster table's base address, 0
-# with no roster. A future engine slot joins this tuple, never the list
-# above.
-_TAIL_GLOBALS = ("commanded", "__npcs__")
+# Slots allocated after EVERY other global, the game's own included, so
+# that no existing number ever moves and games without their feature stay
+# byte-identical (the globals region is fixed-size and these slots go
+# unreferenced there). commanded is the addressed character of the current
+# line (MARSHAL, GO NORTH; docs/01 chapter 12); __npcs__ is the roster
+# table's base address, 0 with no roster. two_swap flags the reversed
+# prepositional line this turn (`fill noun with noun reverse`, the pour
+# phrasing; written only behind the any_swap fold). A future slot joins
+# this tuple, never the list above.
+_TAIL_GLOBALS = ("commanded", "__npcs__", "two_swap")
 
 
 def _globals_map(world: wm.World) -> dict:

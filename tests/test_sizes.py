@@ -172,7 +172,7 @@ CEILINGS = {
     "features/vehicles.storyarc": 17896,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/ambience.storyarc": 19212,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/conversations.storyarc": 18924,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/extended-verbs.storyarc": 20180,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "granules/extended-verbs.storyarc": 20224,  # 2026-08-22 repriced: pour/spill bind fill through a reversed prepositional line, and the packs carry the role swap (+44; only games with such a line pay)
     "granules/infocom-interrogation.storyarc": 19104,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "granules/quotes.storyarc": 17372,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/take-all.storyarc": 19268,  # 2026-08-20 repriced: the bar paints its left side only when it changed

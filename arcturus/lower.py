@@ -113,6 +113,11 @@ INTRINSICS = frozenset({
     # guard on it, so a game whose verbs all fit the flag model folds the whole
     # table path away and its story file is byte-identical.
     "any_tables",
+    # any_swap is the compile-time flag for the reversed prepositional line
+    # (`fill noun with noun reverse`, the pour phrasing): 1 if any flag-model
+    # verb carries one. The packs guard the summary-bit decode and the
+    # post-split role swap on it, so a game without one is byte-identical.
+    "any_swap",
     # any_ambience_once is the compile-time shuffled-deal flag (1 if any
     # ambience block uses bare `once`): the granule's pulse guards its deal
     # logic on it, so an ambience game without a once-block stays
@@ -1461,6 +1466,8 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # the grammar-table matcher and the packs' tabled-verb branches fold
         # away in a game whose verbs all fit the flag model.
         _place(rt, Const(_any_tables(ctx)), dest)
+    elif name == "any_swap":
+        _place(rt, Const(_any_swap(ctx)), dest)
     elif name == "dir_name":
         # dir_name(d): speak the direction's word at runtime, wherever the
         # value came from (the answer to static typing ending at a block
@@ -2043,6 +2050,17 @@ def _any_tables(ctx) -> int:
     a table (worldmodel.needs_table), else 0. The matcher and the packs' tabled
     branches guard on this, so the whole path folds away when no verb tables."""
     return 1 if any(wm.needs_table(v) for v in ctx.world.verbs) else 0
+
+
+def _any_swap(ctx) -> int:
+    """The reversed-prepositional-line flag: 1 if any flag-model verb has a
+    `... noun with noun reverse` line (the pour phrasing). The packs guard
+    the summary-bit decode and the post-split role swap on it, so a game
+    without one compiles byte-identical."""
+    return 1 if any(
+        not wm.needs_table(v) and any(wm.prep_reversed(g) for g in v.grammar)
+        for v in ctx.world.verbs
+    ) else 0
 
 
 def _reads_action(body) -> bool:
@@ -3719,6 +3737,8 @@ def _static_value(ctx, expr):
         return _any_grains(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tables":
         return _any_tables(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_swap":
+        return _any_swap(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_images":
         return _any_images(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_dark":

@@ -1135,7 +1135,8 @@ class Parser:
         if reverse and sum(isinstance(g[0], ast.Slot) for g in alts) != 2:
             raise self._error(
                 "`reverse` needs exactly two noun slots, like `give noun noun "
-                "reverse` (it swaps the recipient and the thing)"
+                "reverse` (adjacent nouns, swapped) or `fill noun with noun "
+                "reverse` (the prepositional order, swapped)"
             )
         import itertools
         return [ast.GrammarLine(action, list(combo), line, reverse)

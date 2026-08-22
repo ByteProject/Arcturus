@@ -408,6 +408,12 @@ _BUILTINS = {
     # codegen slot is appended after every other global, so games without
     # the engine keep their numbering and stay byte-identical.
     "commanded": T_OBJECT,
+    # 1 while the parsed command came through a reversed prepositional line
+    # (`fill noun with noun reverse`, the pour phrasing): the packs bind the
+    # two slots swapped. Library-internal; written only behind the any_swap
+    # fold, and its codegen slot is appended after every other global, so
+    # games without such a verb keep their numbering and stay byte-identical.
+    "two_swap": T_NUMBER,
     # Set to 1 by a refusal path when a command could not be carried out, so a
     # chained line ("take lamp and go north") stops at the failed command. The
     # library's default refusals set it; a story handler can too (docs/01 chapter 14).

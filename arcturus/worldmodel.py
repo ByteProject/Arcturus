@@ -272,6 +272,16 @@ def line_shape(line: GrammarLine) -> tuple:
     return tuple(out)
 
 
+def prep_reversed(line: GrammarLine) -> bool:
+    """Is this a reversed PREPOSITIONAL two-noun line (`fill noun with noun
+    reverse`)? The typed order then binds swapped: pour X into Y fills Y.
+    Distinct from the adjacent-noun reverse (give noun noun reverse), which
+    has no literal word and rides the splitter's probe instead."""
+    return line.reverse and any(
+        isinstance(it, ast.Word) for it in line.items
+    )
+
+
 def needs_table(verb: Verb) -> bool:
     """Does this verb need the positional grammar table (docs/01 chapter 14)?
 

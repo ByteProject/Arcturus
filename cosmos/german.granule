@@ -251,6 +251,8 @@ block resolve_objects()
     change grain to 0
     change parse_fault to 0
     change two_reverse to 0
+    if any_swap is 1
+        change two_swap to 0
     if any_tables is 1
         change line_act to 0
     // The verb's requirement bits (the grammar byte): rq1 means no line
@@ -271,6 +273,12 @@ block resolve_objects()
         if peek_byte(d + 6) is 128 or peek_byte(d + 6) is 136
             let arity = peek_byte(d + 8)
             let va = peek_byte(d + 7)
+            // Bit 5: this verb's prepositional two-noun form binds swapped
+            // (GIESSE X IN Y fuellt Y); resolve_two_nouns does the swap.
+            if any_swap is 1
+                if arity >= 32
+                    change two_swap to 1
+                    change arity to arity - 32
             if arity >= 16
                 change rq2 to 1
                 change arity to arity - 16
@@ -612,6 +620,22 @@ block resolve_two_nouns(rq1, rq2)
                             return 1
                     change rw to rw + 1
             change incomplete to 1
+    // The reversed prepositional line (the summary byte's bit 5, decoded
+    // into two_swap): the typed order binds swapped, so the vessel lands
+    // in the noun slot. Only a fully bound pair swaps; folds away without
+    // a reversed prepositional verb (any_swap).
+    if any_swap is 1
+        if two_swap is 1
+            if noun is not nothing
+                if second is not nothing
+                    // b (the split boundary) is spent once both slots are
+                    // bound; reusing it keeps the routine's local count
+                    // unchanged, so games without the fold stay
+                    // byte-identical (a let would cost the slot even
+                    // inside the folded branch).
+                    change b to noun
+                    change noun to second
+                    change second to b
     return 1
 
 // Remember the command just parsed so a following "oops" can correct it.
