@@ -34,6 +34,11 @@ from arcturus.sema import analyze
 # 2026-08-24 (kinds are kinds): adjectives and trigger +284 each,
 # their chests and crates converted from the now-refused bare
 # container attribute to the real kind, the price of what they are.
+# 2026-08-24 (the German posture): beispiel-deutsch +284, German
+# games only: the put-to-enter redirect captures which reflexive
+# verb was typed and the boarding report conjugates it back (Du
+# setzt dich / legst dich / stellst dich; the climbing words keep
+# Du steigst), sitting not being the same as standing on top.
 EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
@@ -156,7 +161,7 @@ CEILINGS = {
     "granules/nautical.storyarc": 18136,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/npcengine.storyarc": 20180,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/maniacswap.storyarc": 18400,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "beispiel-deutsch.storyarc": 25652,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "beispiel-deutsch.storyarc": 25936,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "brass-lantern.storyarc": 18964,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "cloak-of-darkness.storyarc": 19744,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "ejemplo-espanol.storyarc": 22644,  # 2026-08-20 repriced: the bar paints its left side only when it changed

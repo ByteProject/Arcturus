@@ -12296,3 +12296,22 @@ sema suite. Two shipped examples paid +284 each to become honest
 kinds; the whole test suite's fixtures converted. English keeps
 understanding PUT ME ON BENCH as a put ("Sometimes a parser is about
 understanding even though no one would write it"). Suite 1560.
+
+## Sitting is not standing on top (Cosmos 1.16.7): the German report
+## conjugates the player's own verb back
+
+Stefan caught my draft reply claiming SETZ DICH answers "Du steigst
+auf die Bank.": climbing words. Sitting, lying, and standing on a
+thing are different acts in German, and the typed word says which one
+this was. The pack's put-to-enter redirect now captures the posture
+BEFORE the perform (which rightly clears verb_trigger: an enter
+nobody typed has no typed word), and the boarding reports conjugate
+it back: "Du setzt dich auf die Bank.", "Du legst dich...", "Du
+stellst dich..."; besteige and betrete keep "Du steigst...", and
+setze die Tasse still puts the cup. +284, German games only.
+
+FLAGGED, unruled: the exit side has the symmetric nuance (after
+sitting, "Du stehst von der Bank auf" would beat "Du steigst von der
+Bank herunter", which would need the posture remembered across
+turns), and the German verb set has no STEH AUF / AUFSTEHEN for
+getting up at all; both are Stefan's German to rule on.

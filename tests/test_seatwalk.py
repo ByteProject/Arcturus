@@ -99,3 +99,30 @@ def test_german_foresight_speaks_the_dative():
                 ["setz dich auf die bank", "gehe nach norden"])
     assert "(stehst zuerst von der Bank auf)" in out
     assert out.index("(stehst zuerst") < out.index("EXIT GEFEUERT")
+
+
+def test_german_reports_the_posture_typed():
+    """Sitting and being on top of something are not the same (Stefan,
+    2026-08-24): the German report conjugates the player's own verb
+    back. The posture is captured in the pack's put-to-enter redirect,
+    BEFORE the perform (which rightly clears verb_trigger: an enter
+    nobody typed has no typed word)."""
+    src = (
+        'game\n    title "DE"\n    start halle\nsummon.language "german"\n'
+        'room halle\n    name "Halle"\n    desc "Eine Halle."\n'
+        'thing bank of supporter in halle\n    die\n    name "Bank"\n'
+        '    words bank\n    fixed\n'
+        'thing kiste of container in halle\n    die\n    name "Kiste"\n'
+        '    words kiste\n    fixed\n    open\n'
+    )
+    out = _play(src, [
+        "setz dich auf die bank", "verlasse die bank",
+        "leg dich auf die bank", "verlasse die bank",
+        "stell dich auf die bank", "verlasse die bank",
+        "besteige die bank", "verlasse die bank",
+        "setz dich in die kiste"])
+    assert "Du setzt dich auf die Bank." in out
+    assert "Du legst dich auf die Bank." in out
+    assert "Du stellst dich auf die Bank." in out
+    assert "Du steigst auf die Bank." in out      # the climbing word keeps it
+    assert "Du setzt dich in die Kiste." in out

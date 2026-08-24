@@ -846,10 +846,33 @@ verb "leg", "lege", "stell", "stelle", "setz", "setze"
 // rule, not the library's: the English phrasing ("put yourself on the
 // bench") is not idiomatic and stays with put (Stefan's ruling,
 // 2026-08-24). An object's own on put still outranks this, as always.
+//
+// The POSTURE travels along (Stefan, same day: sitting and being on
+// top of something are not the same). The typed word says which act
+// this was, and perform clears verb_trigger (an enter nobody typed has
+// no typed word), so the posture is captured HERE, before the hop, and
+// board_report's messages conjugate it back: setzt dich, legst dich,
+// stellst dich; the climbing and entering words keep steigst.
+global posture = 0
+
 on put
     if noun is player
         if second is not nothing
+            change posture to 0
+            if verb_trigger is "setz"
+                change posture to 1
+            if verb_trigger is "setze"
+                change posture to 1
+            if verb_trigger is "leg"
+                change posture to 2
+            if verb_trigger is "lege"
+                change posture to 2
+            if verb_trigger is "stell"
+                change posture to 3
+            if verb_trigger is "stelle"
+                change posture to 3
             perform("enter", second)
+            change posture to 0
             stop
     continue
 
@@ -1729,10 +1752,33 @@ block msg_not_inside()
 
 // Auf-/Einsteigen und Ab-/Aussteigen (board_report / leave_report). auf/in mit
 // Bewegung fordern den Akkusativ, von/aus den Dativ. (Zur Durchsicht: Stefan.)
+//
+// The report conjugates the player's own verb back: sitting and being on
+// top of something are not the same (Stefan, 2026-08-24, the bench edge
+// case). SETZ DICH answers "Du setzt dich...", LEG DICH "Du legst
+// dich...", STELL DICH "Du stellst dich...", and only the climbing and
+// entering words keep "Du steigst...". verb_trigger is the word as
+// typed, so the same setz that puts a cup on a table still reports the
+// put; only the reflexive road through enter lands here.
 block msg_get_on()
+    if posture is 1
+        say "Du setzt dich auf ${the:acc noun}."
+        return 0
+    if posture is 2
+        say "Du legst dich auf ${the:acc noun}."
+        return 0
+    if posture is 3
+        say "Du stellst dich auf ${the:acc noun}."
+        return 0
     say "Du steigst auf ${the:acc noun}."
 
 block msg_get_in()
+    if posture is 1
+        say "Du setzt dich in ${the:acc noun}."
+        return 0
+    if posture is 2
+        say "Du legst dich in ${the:acc noun}."
+        return 0
     say "Du steigst in ${the:acc noun}."
 
 block msg_get_off()
