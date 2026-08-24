@@ -12209,3 +12209,34 @@ POUR CANISTER INTO TANK now answers "You pour the viscous blue
 fluid..." through the reservoir's own handler, and the invisiclues
 sentence stands as written. Suite 1554 green; the extended-verbs
 example repriced +44, the only games that pay.
+
+## The 2.0.0 field reports: the visibility wait that could miss its
+## event, and the silent death of a Python without tkinter (2.0.1)
+
+Two adopters hit 2.0.0 on its first weekend, and both reports were
+the same class: the boot depending on things macOS does not promise.
+
+THE HANG-THEN-TRACEBACK (a Tk 8.6 python.org build): run() waited for
+the map with wait_visibility, which listens for a VisibilityNotify
+EVENT, and aqua Tk delivers that event late, once, or not at all
+depending on its version. Tk 9 sends it on the first map, which is
+why every machine here was fine; 8.6 sends it on a withdraw/deiconify
+transition, which is why the reporter's bare-launch dialog path
+worked while his terminal launch sat dead on a window already on
+screen until he closed it, and the destroyed-application error the
+old code swallowed surfaced one call later as his traceback. The map
+is now POLLED as a state (winfo_viewable, bounded at five seconds,
+then the story starts anyway and the first real resize corrects the
+columns); a state poll cannot miss an event that already happened.
+
+THE POP-AND-CLOSE (Tahoe, Homebrew Python): the reporter installed
+Homebrew's tcl-tk, which is Tcl/Tk itself, not Python's bindings to
+it; his Python had no tkinter, and the 2.0.0 bare launch answered
+that by returning QUIETLY, which from the installed stub reads as
+the app popping up and closing with no message anywhere. The bare
+launch now says what is missing and names the remedy (python-tk),
+and under the stub it says so in an osascript alert, because stderr
+without a terminal is a message to nobody. docs/06's macOS note now
+separates the two Tk failures by the message each prints.
+
+Suite 1554 green; Actaea 2.0.1.

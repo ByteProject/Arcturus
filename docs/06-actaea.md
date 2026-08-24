@@ -44,11 +44,22 @@ get tkinter on that platform.
 
 ### Notes for macOS users
 
-Recent systems (Tahoe and later) deprecate the Tk that ships with the
-OS, and a Python still linked against it can open the Actaea window as
-a BLANK FORM, with "The system version of Tk is deprecated" in the
-terminal. The window is not broken, its toolkit is: give Python a
-current Tcl/Tk and the form fills in. With Homebrew:
+Two different Tk problems look alike on a Mac; the message Actaea
+prints tells you which one you have.
+
+If Actaea says **this Python has no tkinter**, install the Tk bindings
+for your Python. On a Homebrew Python that is
+
+    brew install python-tk
+
+(match your Python's version if Homebrew asks, e.g. `python-tk@3.14`).
+Homebrew's plain `tcl-tk` package is not enough: it installs Tcl/Tk
+itself, not Python's bindings to it.
+
+If the window opens as a **blank form** with "The system version of Tk
+is deprecated" in the terminal: recent systems (Tahoe and later)
+deprecate the Tk that ships with the OS, and a Python still linked
+against it draws nothing. Give Python a current Tcl/Tk:
 
     brew install tcl-tk
 
@@ -59,8 +70,8 @@ path carries it):
     export PATH=/opt/homebrew/Cellar/tcl-tk/9.0.4/bin:$PATH
 
 and restart the terminal (and your editor, if it launched Actaea).
-Until then, `actaea --console story.z5` plays fine: the terminal mode
-does not use Tk at all.
+Either way, `actaea --console story.z5` plays meanwhile: the terminal
+mode does not use Tk at all.
 
 ### Notes for Windows users
 

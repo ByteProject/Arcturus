@@ -30,6 +30,7 @@ is exact from day one."""
 import base64
 import json
 import os
+import time
 import tkinter as tk
 import webbrowser
 from math import gcd as _gcd
@@ -748,11 +749,13 @@ class ActaeaApp:
         interrupt exists; the console front-end behaves identically)."""
         if not hasattr(self, "text") or not hasattr(self, "vm"):
             return
-        if self._in_resize:
+        if self._in_resize or self._closed:
             return
         self._in_resize = True
         try:
             self._resize_body()
+        except tk.TclError:
+            pass  # the window died mid-measure: closing, nothing to lay out
         finally:
             self._in_resize = False
 
@@ -1846,12 +1849,31 @@ class ActaeaApp:
         columns while the window really held ninety-five, so the first
         status bar was painted for a screen that did not exist (Stefan's
         H2 screenshot: the score block adrift of the prose's right edge).
-        Waiting for visibility, then measuring once, makes the first
-        screen's geometry the real one."""
-        try:
-            self.root.wait_visibility(self.root)
-        except tk.TclError:
-            pass
+
+        The map is POLLED as a state, never awaited as an event:
+        wait_visibility listens for a VisibilityNotify, and aqua Tk
+        delivers that event late, once, or not at all depending on its
+        version (Tk 9 sends it on the first map; 8.6 on a
+        withdraw/deiconify transition but not dependably otherwise). On
+        an 8.6 Python the fresh-root launch waited forever on a window
+        already on screen, the player closed the dead window, and the
+        swallowed destroyed-application error surfaced one call later
+        (the 2.0.0 field reports, 2026-08-24). Polling winfo_viewable
+        cannot miss an event that already happened, and the deadline
+        starts the story anyway on a system that never reports the map
+        (the first real resize then corrects the columns)."""
+        deadline = 100          # x 50ms: five seconds, then start anyway
+        while deadline and not self._closed:
+            try:
+                self.root.update()
+                if self.root.winfo_viewable():
+                    break
+            except tk.TclError:
+                return          # closed during boot: nothing to run
+            deadline -= 1
+            time.sleep(0.05)
+        if self._closed:
+            return
         self._on_root_resize()
         self.root.after(20, self._run_vm)
         self.root.mainloop()

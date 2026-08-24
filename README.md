@@ -48,9 +48,7 @@ or later, which you almost certainly already have.
 | **arcimg**, the arc_image tool (optional, for graphics) | 2.0.0 | [build/arcimg](build/arcimg) |
 | **proteus**, the web story builder (optional, for the web) | 1.0.0 | [build/proteus](build/proteus) |
 
-Each is one self-contained file: download, `chmod +x`, done. Keeping them
-current is one command: `arcc --update` refreshes all of them in place (the
-only time arcc ever touches the network; there is no passive check).
+The setup is easy. Download, `chmod +x`, done. Keeping them current is one command: `arcc --update` refreshes all of them in place.
 
 Write a game, compile it, play it:
 
@@ -62,18 +60,11 @@ python3 proteus mygame.z5 -o mygame.html     # or publish it on the web:
                                               # one self-contained page
 ```
 
-The story file `mygame.z5` is a standard Z-machine v5 file: it also plays on
-Frotz, Ozmoo, and any other interpreter, old or new. Then read the docs and
-go: start with the [Arcturus Handbook](docs/01-arcturus-handbook.md) (the
-language, the runtime, and the granules in one book, with two complete worked
-games) and, when you want to play or debug,
-the [Actaea guide](docs/06-actaea.md). The full documentation index is
-[below](#the-language).
+The story file `mygame.z5` is a standard Z-machine v5 file: it also plays on Frotz, Ozmoo, and any other interpreter, old or new. The [Arcturus Handbook](docs/01-arcturus-handbook.md) will teach you everything (the language, the runtime, and the granules) in one book. And when you want to play or debug, the [Actaea guide](docs/06-actaea.md), will introduce you to the Arcturus reference interpreter. The full documentation index is [below](#the-language).
 
 ## The language
 
-The authoritative definition is the Arcturus Handbook, one book in three
-parts, enough to start writing Arcturus today:
+The whole language and the bundled tools are well documented, making it easy to start writing Arcturus today:
 
 - [docs/01-arcturus-handbook.md](docs/01-arcturus-handbook.md): the handbook.
   Twenty-six chapters, one topic each: the language, the world model, verbs
@@ -81,11 +72,10 @@ parts, enough to start writing Arcturus today:
   hacking Cosmos, and two complete worked example games, with a linked table
   of contents up front.
 - [docs/06-actaea.md](docs/06-actaea.md): Actaea, the reference interpreter.
-  The three ways to play, the tools, saves and transcripts, and conformance.
+  Play it through the GUI, in console mode or heaven headless like dumbfrotz. It is your goto tool for testing when developing Arcturus games, with or without the `arc_image` feature.
 - [docs/07-arc-image.md](docs/07-arc-image.md): pictures in your story. The
-  master art, the `arcimg` workflow from PNG to every machine, and what plays
-  where today.
-- [docs/09-proteus.md](docs/09-proteus.md): Proteus, the web interpreter.
+  master art, the `arcimg` workflow from PNG to every machine, and what interpreters out there currently support `arc_image`.
+- [docs/09-proteus.md](docs/09-proteus.md): Proteus is the web interpreter.
   One command turns a finished game into a single self-contained HTML page,
   pictures and all.
 
@@ -99,22 +89,8 @@ the compiler itself works:
   Arcturus constructs map to Z-machine opcodes and the story-file image, plus the
   size levers (dead-code elimination and abbreviation text compression).
 
-The documentation above is the complete reference; everything the language
-does is specified there. For a taste, the two worked games live under
-[examples/](examples/) - the Brass Lantern and the classic
-Cloak of Darkness. Small teaching showcases sit alongside them:
-[examples/features/](examples/features/) isolates core-language features (the
-container knowledge model, computed properties, kinds and inheritance, doors
-and locks, an object existing in several rooms (`in a, b`) beside multi-room
-scenery with `spans`, the `intro` first-look property,
-grains, positional grammar, the object catch-all, daemons and timers,
-Z-machine colors with the self-restoring colored say, and the player object
-with its standard self-words, pronouns, and Spanish clitic forms), and
-[examples/granules/](examples/granules/) shows the summonable granules (the
-NPC engine with its patrols and orders, maniacswap's multiple player
-characters, the Infocom-style and menu-driven
-conversation systems, the status line, verbose exits, the extended verbs,
-the nautical directions, and the quote box).
+For a taste, the two small games live under [examples/](examples/) - the Brass Lantern and the classic Cloak of Darkness. A plethora of teaching showcases sit alongside them: [examples/features/](examples/features/) isolates core-language features (the container knowledge model, computed properties, kinds and inheritance, doors and locks, an object existing in several rooms (`in a, b`) beside multi-room scenery with `spans`, the `intro` first-look property, grains, positional grammar, the object catch-all, daemons and timers, the usage of
+Z-machine colors, the player object with its standard self-words, pronouns, and Spanish clitic forms), and much more. [examples/granules/](examples/granules/) shows the summonable granules (for example the NPC engine with its patrols and orders, maniacswap's multiple player characters, the Infocom-style and menu-driven conversation systems, the status line, verbose exits, the extended verbs, the nautical directions, and the quote box to name a few).
 
 ## File extensions
 
@@ -204,8 +180,7 @@ whole regions of set dressing at zero object cost. Auto-scoring: mark a
 thing `scored` and the library pays its points exactly once, while the
 compiler sums `max_score` for you at compile time. Catalogs: ordered tables
 with list power and not a byte of heap behind them. Self-varying prose
-(`vary`) and reach modeling (`beyond`) round it out, the first shared with
-Inform 7 and Dialog, the second otherwise Dialog's alone. And where the
+(`vary`) and reach modeling (`beyond`) round it out. And where the
 classic libraries are monoliths you subtract from, Arcturus features arrive
 only when summoned: no status line unless you ask for one, and what you do
 not summon is simply not in the file.
@@ -220,14 +195,7 @@ inheriting the same shape. Dialog's compiler optimizes globally, but the
 language rides a runtime engine inside every story file; arcc emits direct
 Z-machine operations with no runtime layer at all.
 
-**Images, fully standard.** Arcturus pictures ride an extension opcode in
-the range a conformant interpreter must simply ignore, and a story only
-draws after an interpreter raises a capability flag that picture-aware
-interpreters alone set. So the same z5 or z8 file plays as pure text on
-Frotz or any classic interpreter, and shows its art where art is
-understood: no Blorb, no separate build. **Actaea**, the project's own
-interpreter, plays version 5 and 8 games with images today, and a dedicated
-set of interpreters for retro systems with arc_image support is in the
+**Images, fully standard.** Arcturus pictures ride an extension opcode in the range a conformant interpreter must simply ignore, and a story only draws after an interpreter raises a capability flag that picture-aware interpreters alone set. So the same z5 or z8 file plays as pure text on Frotz or any classic interpreter, and shows its art where art is understood. **Actaea**, the project's own interpreter, plays version 5 and 8 games with images today, and a dedicated set of interpreters for retro systems with arc_image support is in the
 making.
 
 ## Getting started

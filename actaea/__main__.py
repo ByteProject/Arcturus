@@ -274,6 +274,23 @@ class _Version(argparse.Action):
         parser.exit(0)
 
 
+def _alert(text: str) -> None:
+    """A Finder-visible message for stub launches: stderr goes nowhere
+    when there is no terminal, and a silent death reads as a broken app
+    (the 2.0.0 field report: the app "pops up and closes immediately").
+    osascript is macOS-only, which is exactly where the stub exists."""
+    if sys.platform != "darwin":
+        return
+    import subprocess
+    quoted = '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
+    try:
+        subprocess.run(
+            ["osascript", "-e", "display alert \"Actaea\" message " + quoted],
+            capture_output=True, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+
 def _startup_story():
     """A story for a bare GUI launch, per the window's On Launch setting:
     "last" reopens the previous story when it still exists, otherwise (and
@@ -443,6 +460,19 @@ def main(argv=None) -> int:
                 or args.record or args.replay or args.check
                 or not (sys.stdin.isatty() or bundle)):
             ap.error("the following arguments are required: story")
+        # A bare launch with no tkinter must SAY so, not vanish: the
+        # ImportError path used to return quietly, which from the stub
+        # reads as the app popping up and closing (the 2.0.0 field
+        # report; the reporter had Homebrew's tcl-tk but not python-tk).
+        try:
+            import tkinter  # noqa: F401
+        except ImportError:
+            msg = ("This Python has no tkinter, so the window cannot "
+                   "open. " + _tk_hint() + ".")
+            print(f"{banner()}\n\nactaea: {msg}\n", file=sys.stderr)
+            if bundle:
+                _alert(msg)
+            return 2
         # The identity is claimed before the FIRST Tk root anywhere: the
         # menu bar name is snapshotted when Tk brings NSApplication up,
         # and the startup dialog's root is that moment on a bare launch.
@@ -535,6 +565,9 @@ def main(argv=None) -> int:
                 gui_root.destroy()
             print("actaea: this Python has no tkinter, so the window "
                   "cannot open; " + _tk_hint() + ".", file=sys.stderr)
+            if bundle:
+                _alert("This Python has no tkinter, so the window cannot "
+                       "open. " + _tk_hint() + ".")
             if _play_terminal(story, os.path.basename(args.story), seed=args.seed):
                 return 0
             print("actaea: no curses here either (native Windows has "
