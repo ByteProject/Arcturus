@@ -60,16 +60,14 @@ thing sausage in parlor
 // The chest and the crate both answer to "box": the # trigger says which
 // one the word MEANS, and the > adjectives qualify without ever standing
 // in for the chest against a real noun elsewhere.
-thing chest in parlor
+thing chest of container in parlor
     name "wooden chest"
     words #chest, box, trunk, >wooden, >heavy
-    container
     openable
     desc "Wooden, heavy, and older than the room around it."
 
-thing crate in parlor
+thing crate of container in parlor
     name "packing crate"
     words #crate, box
-    container
     openable
     desc "Pine slats and stencilled letters."

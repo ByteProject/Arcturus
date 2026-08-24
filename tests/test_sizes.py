@@ -31,6 +31,9 @@ from arcturus.sema import analyze
 # moving, exactly as GET OFF runs them, silently by default; the
 # foresight example also carries the promise line ('(getting off
 # the bench first)'). Enterable-free games proven byte-identical.
+# 2026-08-24 (kinds are kinds): adjectives and trigger +284 each,
+# their chests and crates converted from the now-refused bare
+# container attribute to the real kind, the price of what they are.
 EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
@@ -148,8 +151,8 @@ CEILINGS = {
     "features/matrix.storyarc": 18536,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/direction-grammar.storyarc": 17648,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/scenery-contents.storyarc": 18196,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/trigger.storyarc": 16948,
-    "features/adjectives.storyarc": 17528,  # 2026-08-15 first pin: the adjective marker showcase (>red, the ZIL match classes; games without the marker stay byte-identical)  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
+    "features/trigger.storyarc": 17232,
+    "features/adjectives.storyarc": 17812,  # 2026-08-15 first pin: the adjective marker showcase (>red, the ZIL match classes; games without the marker stay byte-identical)  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
     "granules/nautical.storyarc": 18136,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/npcengine.storyarc": 20180,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/maniacswap.storyarc": 18400,  # 2026-08-20 repriced: the bar paints its left side only when it changed

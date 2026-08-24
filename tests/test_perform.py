@@ -128,7 +128,7 @@ ALTER_GAME = (
     'game\n    title "PA"\n    start yard\n'
     'room yard\n    name "Yard"\n    desc "Dusty."\n    up loft\n'
     'room loft\n    name "Loft"\n    desc "Straw."\n    down yard\n'
-    'thing barrel in yard\n    name "barrel"\n    supporter\n'
+    'thing barrel of supporter in yard\n    name "barrel"\n'
     'thing ladder in yard\n    name "ladder"\n    scenery\n'
     'verb "mount"\n    mount noun\n'
     'on mount\n    perform("enter", noun)\n'

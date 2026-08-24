@@ -610,6 +610,11 @@ does not override it (chapter 11). Your own kinds extend the same chain
 (`kind crate of container`), and an instance of a kind of room is a room
 in every respect, as this chapter said above.
 
+A standard kind is what a thing IS, never a property it acquires: a bare
+`supporter` line on a thing, or `now crate is container`, is a compile
+error naming the kind declaration as the cure. Testing membership stays
+ordinary.
+
 #### thing
 
 The base kind: every object that is not a room. Its properties are `name`

@@ -43,9 +43,9 @@ GAME = (
     'thing sausage in lounge\n    name "green sausage"\n'
     '    words sausage, >green\n'
     '    on examine\n        say "[SAUSAGE]"\n        stop\n'
-    'thing chest in lounge\n    name "wooden chest"\n'
+    'thing chest of container in lounge\n    name "wooden chest"\n'
     '    words #chest, box, trunk, >wooden, >heavy\n'
-    '    container\n    openable\n'
+    '    openable\n'
     '    on examine\n        say "[CHEST]"\n        stop\n'
 )
 

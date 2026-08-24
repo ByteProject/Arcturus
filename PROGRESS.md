@@ -12277,3 +12277,22 @@ which counts kinds only, folds away and took the nesting surface and
 the player-listing exclusion with it, the "(contains yourself)"
 screenshot). Recommendation on the table: make the bare attribute a
 compile error naming the kind, so wrong code is refused loudly.
+
+## Kinds are kinds (arcc 1.13.1): the grant that half-worked is now
+## refused with the cure in its hand
+
+Stefan's ruling closing the "(contains yourself)" investigation: a
+standard kind is what a thing IS, never an attribute it acquires. A
+bare `supporter` line on a thing, and `now crate is container`,
+compiled and half-worked (the any_enterable machinery counts kinds,
+so an attribute-only supporter kept the nesting titles and the
+player-listing exclusion folded away); both are compile errors now,
+each naming the kind declaration as the cure, and testing membership
+stays ordinary. Worth the record: the attribute form had a test of
+its own deliberately pinning it (the enter/exit report suite), so
+this ruling retires an earlier session's intent, not an accident;
+that test now guards the kind form, and the refusal is pinned in the
+sema suite. Two shipped examples paid +284 each to become honest
+kinds; the whole test suite's fixtures converted. English keeps
+understanding PUT ME ON BENCH as a put ("Sometimes a parser is about
+understanding even though no one would write it"). Suite 1560.

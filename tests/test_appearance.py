@@ -84,7 +84,7 @@ def test_computed_appearance_follows_state(tmp_path):
 OPT_OUT = (
     'game\n    title "O"\n    start dune\n'
     'room dune\n    name "Dune"\n    desc "Heat over the sand."\n'
-    'thing camel in dune\n    name "camel"\n    supporter\n'
+    'thing camel of supporter in dune\n    name "camel"\n'
     '    appearance block\n'
     '        if player is in self\n'
     '            return true\n'

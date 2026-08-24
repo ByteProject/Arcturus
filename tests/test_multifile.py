@@ -66,7 +66,7 @@ VERB_MAIN = (
     'summon grammar.storyarc\n'          # the chapter, summoned BEFORE ...
     'summon.extendedverbs\n'             # ... the granule that also defines STAND
     'room hall\n    name "Hall"\n    desc "A hall."\n'
-    'thing crate in hall\n    name "crate"\n    words crate\n    supporter\n'
+    'thing crate of supporter in hall\n    name "crate"\n    words crate\n'
 )
 
 VERB_CHAPTER = (

@@ -36,13 +36,13 @@ def _replies(src, cmds):
 GAME_SYN = (
     'game\n    title "T"\n    start cellar\n'
     'room cellar\n    name "Cellar"\n    desc "A cellar."\n'
-    'thing crate in cellar\n    name "packing crate"\n'
+    'thing crate of container in cellar\n    name "packing crate"\n'
     '    words #crate, packing\n'
-    '    container\n    openable\n'
+    '    openable\n'
     '    on open\n        say "[CRATE]"\n        stop\n'
-    'thing chest in cellar\n    name "oak chest"\n'
+    'thing chest of container in cellar\n    name "oak chest"\n'
     '    words #chest, oak, crate\n'
-    '    container\n    openable\n'
+    '    openable\n'
     '    on open\n        say "[CHEST]"\n        stop\n'
     'thing coin in cellar\n    name "gold coin"\n    words coin\n'
 )
@@ -78,13 +78,13 @@ def test_trigger_settles_the_second_slot_too():
 GAME_TWO = (
     'game\n    title "U"\n    start cellar\n'
     'room cellar\n    name "Cellar"\n    desc "A cellar."\n'
-    'thing crate in cellar\n    name "packing crate"\n'
+    'thing crate of container in cellar\n    name "packing crate"\n'
     '    words #crate, packing, box\n'
-    '    container\n    openable\n'
+    '    openable\n'
     '    on open\n        say "[CRATE]"\n        stop\n'
-    'thing chest in cellar\n    name "oak chest"\n'
+    'thing chest of container in cellar\n    name "oak chest"\n'
     '    words #chest, oak, box\n'
-    '    container\n    openable\n'
+    '    openable\n'
     '    on open\n        say "[CHEST]"\n        stop\n'
 )
 
@@ -111,13 +111,13 @@ GERMAN_SYN = (
     'summon.language "german"\n'
     'game\n    title "G"\n    start keller\n'
     'room keller\n    name "Keller"\n    desc "Ein Keller."\n'
-    'thing kiste in keller\n    name "große Kiste"\n'
+    'thing kiste of container in keller\n    name "große Kiste"\n'
     '    words #kiste, gross, grosse\n    die\n'
-    '    container\n    openable\n'
+    '    openable\n'
     '    on open\n        say "[KISTE]"\n        stop\n'
-    'thing truhe in keller\n    name "Truhe aus Eiche"\n'
+    'thing truhe of container in keller\n    name "Truhe aus Eiche"\n'
     '    words truhe, eiche, kiste\n    die\n'
-    '    container\n    openable\n'
+    '    openable\n'
     '    on open\n        say "[TRUHE]"\n        stop\n'
 )
 

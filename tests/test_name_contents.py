@@ -23,12 +23,12 @@ from actaea.vm import VM
 GAME = (
     'game\n    title "N"\n    start hall\n'
     'room hall\n    name "Hall"\n    desc "A hall."\n'
-    'thing rack in hall\n    name "weapon rack"\n    words rack, weapon\n'
-    '    supporter\n    fixed\n'
+    'thing rack of supporter in hall\n    name "weapon rack"\n    words rack, weapon\n'
+    '    fixed\n'
     'thing sabre in rack\n    name "sabre"\n    words sabre\n'
     'thing axe in rack\n    name "iron axe"\n    words axe, iron\n'
-    'thing chest in hall\n    name "sea chest"\n    words chest, sea\n'
-    '    container\n    openable\n    fixed\n'
+    'thing chest of container in hall\n    name "sea chest"\n    words chest, sea\n'
+    '    openable\n    fixed\n'
     'thing pearl in chest\n    name "pearl"\n    words pearl\n'
     'verb "arsenal"\n    arsenal\n'
     'on arsenal\n'
@@ -89,8 +89,8 @@ GERMAN_GAME = (
     'game\n    title "N"\n    start halle\n'
     'constant scenery_contents = 1\n'
     'room halle\n    name "Halle"\n    desc "Eine Halle."\n'
-    'thing tisch in halle\n    name "Tisch"\n    words tisch\n'
-    '    supporter\n    fixed\n    scenery\n    das\n'
+    'thing tisch of supporter in halle\n    name "Tisch"\n    words tisch\n'
+    '    fixed\n    scenery\n    das\n'
     'thing dolch in halle\n    name "Dolch"\n    words dolch\n    der\n'
 )
 

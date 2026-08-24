@@ -53,14 +53,14 @@ def test_exit_when_not_nested_still_refuses():
     assert "You're already standing up." in out
 
 
-def test_supporter_declared_as_a_bare_attribute_also_reports():
-    # A supporter set as a plain attribute (not the `of supporter` kind) is not
-    # seen by the any_enterable compile-time estimate, so the report path must
-    # not be gated on it: boarding still works and still reports.
+def test_a_kind_supporter_boards_and_reports():
+    # Once the home of the bare-attribute supporter, retired by Stefan's
+    # ruling (2026-08-24, kinds are kinds; the grant is a compile error
+    # now, pinned in test_sema): the kind form boards and reports.
     src = (
         'game\n    title "T"\n    start hall\n'
         'room hall\n    name "Hall"\n    desc "x."\n'
-        'thing crate in hall\n    name "crate"\n    words crate\n    supporter\n'
+        'thing crate of supporter in hall\n    name "crate"\n    words crate\n'
     )
     out = _run(src, ["enter crate", "exit"])
     assert "You get on the crate." in out

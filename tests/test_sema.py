@@ -219,3 +219,28 @@ def test_add_remove_require_list_property():
         "thing a\n    on examine\n        add \"x\" to a.name\n",
         "not a list property",
     )
+
+
+def test_standard_kinds_are_not_grantable_attributes():
+    """A standard kind is what a thing IS, never a bare attribute line or
+    a `now` grant (Stefan's ruling, 2026-08-24): the attribute form
+    compiled and half-worked, the any_enterable machinery counting kinds
+    only, which is how a bench came to list "(contains yourself)". The
+    error names the cure; membership TESTS stay ordinary."""
+    import pytest as _pytest
+    from arcturus import cosmos as _cosmos
+    from arcturus.errors import ArcError
+    base = ('game\n    title "T"\n    start r\n'
+            'room r\n    name "R"\n    desc "r."\n')
+    with _pytest.raises(ArcError, match="is a kind, not an attribute"):
+        analyze(_cosmos.combined_program(parse(
+            base + 'thing b in r\n    name "b"\n    words b\n'
+            '    supporter\n')))
+    with _pytest.raises(ArcError, match="is a kind, not an attribute"):
+        analyze(_cosmos.combined_program(parse(
+            base + 'thing b in r\n    name "b"\n    words b\n'
+            '    on push\n        now b is container\n        stop\n')))
+    # The kind form, and testing membership, stay ordinary.
+    analyze(_cosmos.combined_program(parse(
+        base + 'thing b of supporter in r\n    name "b"\n    words b\n'
+        '    on push\n        if b is supporter\n            stop\n')))

@@ -80,8 +80,8 @@ def test_plain_existence_object_joins_both_sentences():
 
 def test_subtree_follows_and_state_is_one():
     src = HEAD + (
-        'thing workbench in ledge, gully\n'
-        '    name "workbench"\n    words workbench\n    fixed\n    supporter\n'
+        'thing workbench of supporter in ledge, gully\n'
+        '    name "workbench"\n    words workbench\n    fixed\n'
         'thing jar in workbench\n    name "jar"\n    words jar\n'
     )
     out = _run(_build(src), ["down", "take jar", "look", "up", "look"])

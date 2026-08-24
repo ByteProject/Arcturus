@@ -36,6 +36,15 @@ from . import worldmodel as wm
 from .errors import ArcError
 
 
+# The standard kinds an object IS rather than has (Stefan's ruling,
+# 2026-08-24): never grantable as a bare attribute line or through `now`.
+# Testing membership (`if noun is supporter`) stays ordinary; only the
+# grant is refused, with the kind declaration named as the cure.
+_KIND_NOT_ATTRIBUTE = frozenset(
+    ("container", "supporter", "door", "character", "room", "thing")
+)
+
+
 class Analyzer:
     def __init__(
         self,
@@ -1588,6 +1597,19 @@ class Analyzer:
         w = self.world
         for m in members:
             if isinstance(m, ast.PropertyDecl):
+                # The standard kinds are KINDS, never bare attribute lines
+                # (Stefan's ruling, 2026-08-24): a `supporter` line on a
+                # thing compiled and half-worked, the any_enterable
+                # machinery counting kinds only, which is how "(contains
+                # yourself)" happened. Refuse loudly and name the cure.
+                if (m.form == ast.PROP_BOOL
+                        and m.name in _KIND_NOT_ATTRIBUTE):
+                    raise self._error(
+                        f"'{m.name}' on '{owner}' is a kind, not an "
+                        f"attribute: declare `{'kind ' if on_kind else 'thing '}"
+                        f"{owner} of {m.name} ...` instead",
+                        m.line,
+                    )
                 if m.name == "beyond" and m.form != ast.PROP_BOOL:
                     # `beyond "why"` / `beyond block` (the Charles request):
                     # the attribute plus its own explanation. Split into the
@@ -2073,6 +2095,19 @@ class Analyzer:
 
     def _check_now(self, s: ast.Now, locals_: set) -> None:
         self._check_expr(s.target, locals_)
+        # The standard kinds are KINDS, not grantable attributes (Stefan's
+        # ruling, 2026-08-24): being a supporter is what a thing IS, declared
+        # `of supporter`, never switched on. Testing `is supporter` stays
+        # ordinary; only setting it is refused. Half-working attribute
+        # grants were how "(contains yourself)" happened: the any_enterable
+        # machinery counts kinds, so an attribute-only supporter kept the
+        # nesting surface folded away.
+        if s.prop in _KIND_NOT_ATTRIBUTE:
+            raise self._error(
+                f"'{s.prop}' is a kind, not an attribute: an object is "
+                f"declared `of {s.prop}` and stays one",
+                s.line,
+            )
         prop = self.world.properties.get(s.prop)
         if prop is None:
             raise self._error(

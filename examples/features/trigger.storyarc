@@ -38,18 +38,16 @@ room hold
 
 // The crate's trigger is its own name: whoever types "crate" means this one,
 // however many other things answer to the word as a synonym.
-thing crate in hold
+thing crate of container in hold
     name "packing crate"
     words #crate, packing, box
-    container
     openable
 
 // The chest generously answers to "crate" and "box" too, as a real game
 // would declare it; its own trigger is "chest".
-thing chest in hold
+thing chest of container in hold
     name "sea chest"
     words #chest, sea, crate, box
-    container
     openable
 
 thing lens in hold

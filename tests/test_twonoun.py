@@ -150,8 +150,8 @@ def test_get_out_of_survives_the_stricter_matcher():
     src = (
         'game\n    title "B"\n    start hall\n'
         'room hall\n    name "Hall"\n    desc "A hall."\n'
-        'thing crate in hall\n    name "packing crate"\n    words crate, packing\n'
-        '    container\n    open\n    fixed\n'
+        'thing crate of container in hall\n    name "packing crate"\n    words crate, packing\n'
+        '    open\n    fixed\n'
     )
     out = _replies(src, ["get in crate", "get out of crate"])
     assert "You get out of the packing crate" in out or "out of" in out.lower()
