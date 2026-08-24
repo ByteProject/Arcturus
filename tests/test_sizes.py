@@ -25,6 +25,12 @@ from arcturus.codegen import generate
 from arcturus.parser import parse
 from arcturus.sema import analyze
 
+# 2026-08-24 (the walk exits the seat): +60 to +128 ONLY in games
+# with a supporter or container (any_enterable): a walk that starts
+# on or in something now runs the seat's own exit handlers before
+# moving, exactly as GET OFF runs them, silently by default; the
+# foresight example also carries the promise line ('(getting off
+# the bench first)'). Enterable-free games proven byte-identical.
 EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
@@ -135,24 +141,24 @@ CEILINGS = {
     "features/consult-about.storyarc": 18096,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/session-verbs.storyarc": 17696,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/vary.storyarc": 18876,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/foresight.storyarc": 19064,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/beyond.storyarc": 19596,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/alter.storyarc": 18276,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/foresight.storyarc": 19192,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/beyond.storyarc": 19656,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/alter.storyarc": 18348,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/catalogs.storyarc": 18224,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/matrix.storyarc": 18536,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/direction-grammar.storyarc": 17648,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/scenery-contents.storyarc": 18136,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/scenery-contents.storyarc": 18196,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/trigger.storyarc": 16948,
     "features/adjectives.storyarc": 17528,  # 2026-08-15 first pin: the adjective marker showcase (>red, the ZIL match classes; games without the marker stay byte-identical)  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
     "granules/nautical.storyarc": 18136,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/npcengine.storyarc": 20180,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/maniacswap.storyarc": 18400,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "beispiel-deutsch.storyarc": 25552,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "beispiel-deutsch.storyarc": 25652,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "brass-lantern.storyarc": 18964,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "cloak-of-darkness.storyarc": 19684,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "ejemplo-espanol.storyarc": 22580,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "cloak-of-darkness.storyarc": 19744,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "ejemplo-espanol.storyarc": 22644,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/computed-properties.storyarc": 17316,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/containers.storyarc": 17652,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "features/containers.storyarc": 17712,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/daemons-and-timers.storyarc": 18880,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/doors-and-locks.storyarc": 17464,  # 2026-08-17 repriced: the existence form (docs/01 chapter 3); a two-sided door is now present on both sides (~264 bytes of presence walk, the two language examples also pay the 1-byte both-forms marker)
     "features/appearance.storyarc": 18052,  # 2026-08-20 repriced: the bar paints its left side only when it changed
@@ -163,19 +169,19 @@ CEILINGS = {
     "features/grains.storyarc": 17144,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
     "features/handlers.storyarc": 18468,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/grammar.storyarc": 17356,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "features/introproperty.storyarc": 18564,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/introproperty.storyarc": 18624,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/kinds-and-inheritance.storyarc": 17284,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/on-other.storyarc": 17176,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/zcolor.storyarc": 17608,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/scoring.storyarc": 19484,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/spans.storyarc": 17400,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/vehicles.storyarc": 17896,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/vehicles.storyarc": 17956,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/ambience.storyarc": 19212,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/conversations.storyarc": 18924,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/extended-verbs.storyarc": 20224,  # 2026-08-22 repriced: pour/spill bind fill through a reversed prepositional line, and the packs carry the role swap (+44; only games with such a line pay)
+    "granules/extended-verbs.storyarc": 20284,  # 2026-08-22 repriced: pour/spill bind fill through a reversed prepositional line, and the packs carry the role swap (+44; only games with such a line pay)
     "granules/infocom-interrogation.storyarc": 19104,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "granules/quotes.storyarc": 17372,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/take-all.storyarc": 19268,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/take-all.storyarc": 19328,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/plurals.storyarc": 18204,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/statusline.storyarc": 17344,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/verbose-exits.storyarc": 17320,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
@@ -183,7 +189,7 @@ CEILINGS = {
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 20304  # 2026-08-20 repriced: the bar paints its left side only when it changed
+CLOAK_Z8_CEILING = 20376  # 2026-08-20 repriced: the bar paints its left side only when it changed
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

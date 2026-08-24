@@ -12240,3 +12240,40 @@ without a terminal is a message to nobody. docs/06's macOS note now
 separates the two Tk failures by the message each prints.
 
 Suite 1554 green; Actaea 2.0.1.
+
+## The bench reports (Cosmos 1.16.6): the walk exits the seat for
+## real, German sits down natively, and foresight learns to stand up
+
+An adopter running both the English and German versions of his game
+found the seam set in one afternoon. His German SETZ DICH AUF DIE
+BANK answered "Erledigt.": the reflexive sit arrives through the put
+family (setz and setze are stellen/legen words), and put moved the
+player like cargo, so the seat's on enter never fired. Stefan's
+ruling: the fix belongs to the German pack alone, because putting
+yourself somewhere is ordinary German and wrong English; the pack now
+forwards a put of the player to enter, and the seat answers.
+
+His English side surfaced the deeper one, with a second adopter
+narrowing it: a walk that started on the bench moved the player
+without running anything. Ruled: a walk that leaves a supporter or a
+container runs the seat's own on exit handlers exactly as GET OFF
+does, level by level when nested, and a handler that stops, stops
+the walk; only the report differs, silence by default, and with
+summon.foresight the promise line before the seat speaks
+(promise-then-run, the granule's own doctrine): "(getting off the
+bench first)", "(stehst zuerst von der Bank auf)", "(primero te
+bajas de la banca)", the German and Spanish lines awaiting Stefan's
+and the Pablo-side eye. Foresight was multilanguage already; the
+exit line simply joins the take and open lines in all three packs.
+
+Costs held to the folds: +60 to +128 only in games with something to
+climb into (any_enterable), enterable-free games proven
+byte-identical by compiling on both compilers and comparing bytes.
+The implicit_leave slot rides the tail globals; suite 1559.
+
+STILL OPEN FOR STEFAN: `supporter` as a bare attribute compiles and
+half-works today (put onto it works; the any_enterable machinery,
+which counts kinds only, folds away and took the nesting surface and
+the player-listing exclusion with it, the "(contains yourself)"
+screenshot). Recommendation on the table: make the bare attribute a
+compile error naming the kind, so wrong code is refused loudly.

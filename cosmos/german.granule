@@ -838,6 +838,21 @@ verb "leg", "lege", "stell", "stelle", "setz", "setze"
     put noun auf noun
     put noun in noun
 
+// SETZ DICH AUF DIE BANK arrives through the put family (setz and setze
+// are stellen/legen words), and putting YOURSELF somewhere is perfectly
+// ordinary German for sitting down, so the pack forwards it to enter:
+// the seat's own on enter fires and the enter contract applies. LEG
+// DICH AUF and STELL DICH AUF ride the same road. This is the pack's
+// rule, not the library's: the English phrasing ("put yourself on the
+// bench") is not idiomatic and stays with put (Stefan's ruling,
+// 2026-08-24). An object's own on put still outranks this, as always.
+on put
+    if noun is player
+        if second is not nothing
+            perform("enter", second)
+            stop
+    continue
+
 verb "steck", "stecke", "einstecken"
     insert noun in noun
 
@@ -1892,6 +1907,12 @@ block line_foresight_take()
 
 block line_foresight_open(obj)
     say "(öffnest zuerst ${the:acc obj})"
+
+block line_foresight_exit(seat)
+    if seat is supporter
+        say "(stehst zuerst von ${the:dat seat} auf)"
+    else
+        say "(steigst zuerst aus ${the:dat seat})"
 
 block msg_done()
     say "Erledigt."

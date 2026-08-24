@@ -967,7 +967,11 @@ _BUILTIN_GLOBALS = [
 # prepositional line this turn (`fill noun with noun reverse`, the pour
 # phrasing; written only behind the any_swap fold). A future slot joins
 # this tuple, never the list above.
-_TAIL_GLOBALS = ("commanded", "__npcs__", "two_swap")
+# implicit_leave carries the seat a walk is exiting through (nothing
+# otherwise): the exit pipeline runs for real, and leave_report answers
+# with silence or foresight's promise instead of the get-off line.
+# Written only behind the any_enterable fold.
+_TAIL_GLOBALS = ("commanded", "__npcs__", "two_swap", "implicit_leave")
 
 
 def _globals_map(world: wm.World) -> dict:

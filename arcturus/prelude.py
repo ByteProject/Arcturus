@@ -414,6 +414,12 @@ _BUILTINS = {
     # fold, and its codegen slot is appended after every other global, so
     # games without such a verb keep their numbering and stay byte-identical.
     "two_swap": T_NUMBER,
+    # The seat a walk is implicitly exiting (nothing otherwise): the go
+    # handler runs the real exit pipeline before moving, and leave_report
+    # answers with silence or foresight's promise instead of the get-off
+    # line. Library-internal; written only behind the any_enterable fold,
+    # and its codegen slot rides the tail so no number ever moves.
+    "implicit_leave": T_OBJECT,
     # Set to 1 by a refusal path when a command could not be carried out, so a
     # chained line ("take lamp and go north") stops at the failed command. The
     # library's default refusals set it; a story handler can too (docs/01 chapter 14).

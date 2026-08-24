@@ -164,3 +164,11 @@ block door_shut_refused(d)
     change refused to 1
     msg_door_shut(d)
     return 1
+
+// The seat repair's voice: a walk that begins on or in something already
+// exits it for real (the go handler runs the seat's own handlers either
+// way); foresight's part is only the promise line, spoken per unnested
+// level, in the pack's idiom.
+block seat_left_note(seat)
+    line_foresight_exit(seat)
+    return 0

@@ -1621,6 +1621,12 @@ block line_foresight_take()
 block line_foresight_open(obj)
     say "(primero abres ${the obj})"
 
+block line_foresight_exit(seat)
+    if seat is supporter
+        say "(primero te bajas de ${the seat})"
+    else
+        say "(primero sales de ${the seat})"
+
 block msg_done()
     say "Hecho."
 

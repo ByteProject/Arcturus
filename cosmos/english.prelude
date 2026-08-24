@@ -1661,6 +1661,12 @@ block line_foresight_take()
 block line_foresight_open(obj)
     say "(opening ${the obj} first)"
 
+block line_foresight_exit(seat)
+    if seat is supporter
+        say "(getting off ${the seat} first)"
+    else
+        say "(getting out of ${the seat} first)"
+
 block msg_done()
     say "Done."
 

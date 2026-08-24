@@ -130,6 +130,30 @@ on go
                 change refused to 1
                 msg_cant_go
                 stop
+    // A walk that starts on or in something leaves it FIRST, for real:
+    // each seat's own on exit handlers run and may stop the walk, exactly
+    // as GET OFF runs them (Stefan's ruling, 2026-08-24); only the report
+    // differs (leave_report's implicit branch: silence, or foresight's
+    // promise). The loop unnests level by level; a handler that consumed
+    // the exit without moving the player ends the walk, its own words
+    // standing as the answer. After the door checks on purpose: a walk
+    // refused at a locked door leaves the player seated. Folds away with
+    // nothing to climb into (any_enterable).
+    if any_enterable is 1
+        while parent_of(player) is not here
+            change implicit_leave to parent_of(player)
+            // The promise speaks BEFORE the exit runs (foresight's own
+            // probe rule: author handlers get promise-then-run, the
+            // honest residue); the default note is silence.
+            seat_left_note(implicit_leave)
+            perform("exit", parent_of(player))
+            if refused is 1
+                change implicit_leave to nothing
+                stop
+            if parent_of(player) is implicit_leave
+                change implicit_leave to nothing
+                stop
+        change implicit_leave to nothing
     move player to dest
     set_here(dest)
     fire_enter
@@ -822,6 +846,13 @@ block board_report()
         msg_get_in
 
 block leave_report()
+    // A walk's implicit exit keeps quiet, or speaks foresight's promise:
+    // the walk itself is the report (Stefan's ruling, 2026-08-24). The
+    // seat's handlers have already run by now, exactly as GET OFF runs
+    // them; only this report differs.
+    if any_enterable is 1
+        if implicit_leave is not nothing
+            return 0
     if any_alter is 1
         if altered is not 0
             run_alter
@@ -830,6 +861,12 @@ block leave_report()
         msg_get_off
     else
         msg_get_out
+
+// The implicit exit's report seam: silence by default (the walk speaks
+// for itself); summon.foresight overrides it with the promise line, the
+// packs' line_foresight_exit ("(getting off the bench first)").
+block seat_left_note(seat)
+    return 0
 
 on enter
     if any_beyond is 1
