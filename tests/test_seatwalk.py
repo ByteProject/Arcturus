@@ -78,7 +78,7 @@ def test_a_blocking_exit_handler_stops_the_walk():
 
 def test_foresight_promises_before_the_seat_speaks():
     out = _play(EN % "summon.foresight\n", ["sit on bench", "n"])
-    promise = out.index("(getting off the bench first)")
+    promise = out.index("(getting up from the bench first)")
     handler = out.index("You stretch as you rise.")
     assert promise < handler                       # promise-then-run
     assert "A yard." in out
@@ -97,8 +97,8 @@ def test_german_setz_dich_reaches_enter():
 def test_german_foresight_speaks_the_dative():
     out = _play(DE % "summon.foresight\n",
                 ["setz dich auf die bank", "gehe nach norden"])
-    assert "(stehst zuerst von der Bank auf)" in out
-    assert out.index("(stehst zuerst") < out.index("EXIT GEFEUERT")
+    assert "(zuerst stehst du von der Bank auf)" in out
+    assert out.index("(zuerst stehst du") < out.index("EXIT GEFEUERT")
 
 
 def test_german_reports_the_posture_typed():
@@ -126,3 +126,49 @@ def test_german_reports_the_posture_typed():
     assert "Du stellst dich auf die Bank." in out
     assert "Du steigst auf die Bank." in out      # the climbing word keeps it
     assert "Du setzt dich in die Kiste." in out
+
+
+def test_posture_speaks_in_every_language():
+    """Posture is a core concept (Stefan's ruling, 2026-08-25): each pack
+    maps its own sitting words in posture_note, the value lives while the
+    seat is occupied, and boarding, leaving, and foresight's exit promise
+    all word it. Sitting is not standing on top."""
+    en = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hallway"\n    desc "A hall."\n'
+        'thing bench of supporter in hall\n    name "bench"\n'
+        '    words bench\n    fixed\n'
+    )
+    out = _play(en, ["sit on bench", "get off bench", "mount bench",
+                     "get off bench"])
+    assert "You sit down on the bench." in out
+    assert "You get up from the bench." in out
+    assert "You get on the bench." in out          # mounting stays a climb
+    assert "You get off the bench." in out
+
+    es = (
+        'game\n    title "ES"\n    start sala\nsummon.language "spanish"\n'
+        'room sala\n    name "Sala"\n    desc "Una sala."\n'
+        'thing banca of supporter in sala\n    name "banca"\n'
+        '    words banca\n    fixed\n'
+    )
+    out = _play(es, ["siéntate en la banca", "sal de la banca",
+                     "entra en la banca", "sal de la banca"])
+    assert "Te sientas en la banca." in out
+    assert "Te levantas de la banca." in out
+    assert "Te subes a la banca." in out
+    assert "Te bajas de la banca." in out
+
+    de = (
+        'game\n    title "DE"\n    start halle\nsummon.language "german"\n'
+        'room halle\n    name "Halle"\n    desc "Eine Halle."\n'
+        'thing bank of supporter in halle\n    die\n    name "Bank"\n'
+        '    words bank\n    fixed\n'
+    )
+    out = _play(de, ["setz dich auf die bank", "verlasse die bank",
+                     "stell dich auf die bank", "verlasse die bank",
+                     "besteige die bank", "verlasse die bank"])
+    assert "Du stehst von der Bank auf." in out         # after sitting
+    assert "Du steigst von der Bank herunter." in out   # after standing
+    assert out.index("Du stehst von der Bank auf.") < out.index(
+        "Du stellst dich auf die Bank.")

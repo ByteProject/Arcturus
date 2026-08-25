@@ -971,7 +971,8 @@ _BUILTIN_GLOBALS = [
 # otherwise): the exit pipeline runs for real, and leave_report answers
 # with silence or foresight's promise instead of the get-off line.
 # Written only behind the any_enterable fold.
-_TAIL_GLOBALS = ("commanded", "__npcs__", "two_swap", "implicit_leave")
+_TAIL_GLOBALS = ("commanded", "__npcs__", "two_swap", "implicit_leave",
+                 "posture")
 
 
 def _globals_map(world: wm.World) -> dict:

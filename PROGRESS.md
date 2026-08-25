@@ -12332,3 +12332,24 @@ when the first cut printed "einen Apfel" lying on a bench); Spanish
 lines await Stefan's and the Pablo-side eye as always. Fifty-two
 ceilings repriced: every game with a holder pays a little for reading
 as what it is. Suite 1563.
+
+## The posture, everywhere (Cosmos 1.16.9): sitting is not standing
+## on top, in any language
+
+Stefan stopped the German-only build mid-edit: "If this is everything
+it is an issue in ALL languages not just in German." Ruled: posture
+is a core concept, and the universal verb_trigger bookkeeping is a
+sacrifice to make. The core carries the posture global (pending
+through the language layer's posture_note seam, claimed by
+board_report, alive for as long as the seat is occupied), and each
+pack maps its own words and speaks its own idiom: English SIT sits
+("You sit down on the bench." / "You get up from the bench."), STAND
+stands ("You stand on the stool."), MOUNT climbs; Spanish gains its
+sitting verb at last (SIÉNTATE: "Te sientas en la banca." / "Te
+levantas de la banca."); German keeps its full four-way with the
+reflexive redirect, and its inference lines lead with zuerst and keep
+the du ("(zuerst stehst du von der Bank auf)" after sitting,
+"(zuerst steigst du von der Bank herunter)" after standing), the
+clipped du-less form retired as uncanny. Foresight's exit promise
+follows the posture in all three languages. Fifty-two ceilings
+repriced; suite 1564.

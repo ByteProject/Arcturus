@@ -70,4 +70,5 @@ def test_every_way_on_matches_every_way_off(on, off):
     at = out.index(">" + off)
     tail = out[at:]
     assert "lost me" not in tail, (on, off, tail)
-    assert "get off" in tail or "get out" in tail, (on, off, tail)
+    assert ("get off" in tail or "get out" in tail
+            or "get up" in tail), (on, off, tail)

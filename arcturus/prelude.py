@@ -420,6 +420,13 @@ _BUILTINS = {
     # line. Library-internal; written only behind the any_enterable fold,
     # and its codegen slot rides the tail so no number ever moves.
     "implicit_leave": T_OBJECT,
+    # The typed posture while a seat is occupied (1 sat, 2 lay, 3 stood,
+    # 0 climbed; +8 while pending between the language layer's note and
+    # board_report's claim): every language pack maps its own words and
+    # words its reports and foresight's exit promise by it (Stefan's
+    # ruling, 2026-08-25). Library-internal; rides the tail so no global
+    # number ever moves.
+    "posture": T_NUMBER,
     # Set to 1 by a refusal path when a command could not be carried out, so a
     # chained line ("take lamp and go north") stops at the failed command. The
     # library's default refusals set it; a story handler can too (docs/01 chapter 14).

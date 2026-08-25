@@ -848,31 +848,29 @@ verb "leg", "lege", "stell", "stelle", "setz", "setze"
 // 2026-08-24). An object's own on put still outranks this, as always.
 //
 // The POSTURE travels along (Stefan, same day: sitting and being on
-// top of something are not the same). The typed word says which act
-// this was, and perform clears verb_trigger (an enter nobody typed has
-// no typed word), so the posture is captured HERE, before the hop, and
-// board_report's messages conjugate it back: setzt dich, legst dich,
-// stellst dich; the climbing and entering words keep steigst.
-global posture = 0
+// top of something are not the same; core-wide for every language since
+// 2026-08-25, see board_report in actions.prelude). German captures it
+// HERE, in the reflexive put redirect, before perform clears
+// verb_trigger (an enter nobody typed has no typed word); posture_note
+// below then preserves the pending value through the hop.
 
 on put
     if noun is player
         if second is not nothing
-            change posture to 0
+            change posture to 8
             if verb_trigger is "setz"
-                change posture to 1
+                change posture to 9
             if verb_trigger is "setze"
-                change posture to 1
+                change posture to 9
             if verb_trigger is "leg"
-                change posture to 2
+                change posture to 10
             if verb_trigger is "lege"
-                change posture to 2
+                change posture to 10
             if verb_trigger is "stell"
-                change posture to 3
+                change posture to 11
             if verb_trigger is "stelle"
-                change posture to 3
+                change posture to 11
             perform("enter", second)
-            change posture to 0
             stop
     continue
 
@@ -1780,6 +1778,15 @@ block msg_not_inside()
 // entering words keep "Du steigst...". verb_trigger is the word as
 // typed, so the same setz that puts a cup on a table still reports the
 // put; only the reflexive road through enter lands here.
+// The language layer's posture seam (core enter calls it): the redirect
+// already noted the pending value, keep it; any direct boarding
+// (betrete, besteige) is a climb, whatever an earlier seat left behind.
+block posture_note()
+    if posture >= 8
+        return 0
+    change posture to 8
+    return 0
+
 block msg_get_on()
     if posture is 1
         say "Du setzt dich auf ${the:acc noun}."
@@ -1801,7 +1808,15 @@ block msg_get_in()
         return 0
     say "Du steigst in ${the:acc noun}."
 
+// Leaving speaks the posture too (Stefan, 2026-08-25): whoever sat or
+// lay STANDS UP; only whoever stood or climbed climbs down.
 block msg_get_off()
+    if posture is 1
+        say "Du stehst von ${the:dat noun} auf."
+        return 0
+    if posture is 2
+        say "Du stehst von ${the:dat noun} auf."
+        return 0
     say "Du steigst von ${the:dat noun} herunter."
 
 block msg_get_out()
@@ -1968,17 +1983,28 @@ block msg_not_holding()
 block msg_not_holding_second()
     say "Du hast ${the:acc second} nicht bei dir."
 
+// The inference lines lead with zuerst and keep the du: the clipped
+// du-less form reads as if something was swallowed (Stefan's pattern,
+// 2026-08-25). The exit line follows the POSTURE, like the reports:
+// whoever sat or lay stands up first; whoever stood or climbed climbs
+// down first.
 block line_foresight_take()
-    say "(nimmst zuerst ${the:acc noun})"
+    say "(zuerst nimmst du ${the:acc noun})"
 
 block line_foresight_open(obj)
-    say "(öffnest zuerst ${the:acc obj})"
+    say "(zuerst öffnest du ${the:acc obj})"
 
 block line_foresight_exit(seat)
     if seat is supporter
-        say "(stehst zuerst von ${the:dat seat} auf)"
+        if posture is 1
+            say "(zuerst stehst du von ${the:dat seat} auf)"
+            return 0
+        if posture is 2
+            say "(zuerst stehst du von ${the:dat seat} auf)"
+            return 0
+        say "(zuerst steigst du von ${the:dat seat} herunter)"
     else
-        say "(steigst zuerst aus ${the:dat seat})"
+        say "(zuerst steigst du aus ${the:dat seat})"
 
 block msg_done()
     say "Erledigt."

@@ -44,6 +44,11 @@ from arcturus.sema import analyze
 # (contains ...), darauf liegt/liegen in the nominative against
 # enthaelt, encima hay against contiene; every game with a holder
 # pays a little for reading as what it is.
+# 2026-08-25 (the posture, everywhere): sitting, lying, standing
+# on, and climbing are different acts in every language, so every
+# game pays the verb_trigger bookkeeping and the posture seam
+# (Stefan: a sacrifice to make); each pack words its boardings,
+# leavings, and foresight exit promises by the posture taken.
 EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 
 # Byte ceilings per example, as of arcc 0.9.0 / Cosmos 0.13.2 (2026-07-04).
@@ -147,62 +152,62 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # fewer opcode per turn forever, and on a memory-mapped 8-bit screen a split
 # is not free the way it is on a modern terminal.
 CEILINGS = {
-    "features/yes-no.storyarc": 17308,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/press-any-key.storyarc": 18156,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/shiftable.storyarc": 17668,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/enhance-redefine.storyarc": 18032,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/consult-about.storyarc": 18148,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/session-verbs.storyarc": 17748,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/vary.storyarc": 18928,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/foresight.storyarc": 19244,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/beyond.storyarc": 19708,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/alter.storyarc": 18400,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/catalogs.storyarc": 18276,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/matrix.storyarc": 18588,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/direction-grammar.storyarc": 17700,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/scenery-contents.storyarc": 18248,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/trigger.storyarc": 17284,
-    "features/adjectives.storyarc": 17864,  # 2026-08-15 first pin: the adjective marker showcase (>red, the ZIL match classes; games without the marker stay byte-identical)  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "granules/nautical.storyarc": 18188,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/npcengine.storyarc": 20232,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/maniacswap.storyarc": 18452,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "beispiel-deutsch.storyarc": 26020,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "brass-lantern.storyarc": 19016,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "cloak-of-darkness.storyarc": 19796,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "ejemplo-espanol.storyarc": 22664,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/computed-properties.storyarc": 17368,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/containers.storyarc": 17764,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/daemons-and-timers.storyarc": 18932,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/doors-and-locks.storyarc": 17516,  # 2026-08-17 repriced: the existence form (docs/01 chapter 3); a two-sided door is now present on both sides (~264 bytes of presence walk, the two language examples also pay the 1-byte both-forms marker)
-    "features/appearance.storyarc": 18104,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/components.storyarc": 17584,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/whistle.storyarc": 17072,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/pathfinding.storyarc": 19972,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/perform.storyarc": 17376,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/grains.storyarc": 17196,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "features/handlers.storyarc": 18520,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/grammar.storyarc": 17408,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "features/introproperty.storyarc": 18676,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/kinds-and-inheritance.storyarc": 17336,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/on-other.storyarc": 17228,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/zcolor.storyarc": 17660,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/scoring.storyarc": 19536,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/spans.storyarc": 17452,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/vehicles.storyarc": 18008,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/ambience.storyarc": 19264,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/conversations.storyarc": 18976,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/extended-verbs.storyarc": 20336,  # 2026-08-22 repriced: pour/spill bind fill through a reversed prepositional line, and the packs carry the role swap (+44; only games with such a line pay)
-    "granules/infocom-interrogation.storyarc": 19156,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
-    "granules/quotes.storyarc": 17424,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/take-all.storyarc": 19380,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/plurals.storyarc": 18256,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/statusline.storyarc": 17396,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/verbose-exits.storyarc": 17372,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/yes-no.storyarc": 17532,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/press-any-key.storyarc": 18380,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/shiftable.storyarc": 17892,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/enhance-redefine.storyarc": 18212,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/consult-about.storyarc": 18368,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/session-verbs.storyarc": 17972,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/vary.storyarc": 19148,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/foresight.storyarc": 19500,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/beyond.storyarc": 19932,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/alter.storyarc": 18624,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/catalogs.storyarc": 18500,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/matrix.storyarc": 18812,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/direction-grammar.storyarc": 17924,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/scenery-contents.storyarc": 18472,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/trigger.storyarc": 17508,
+    "features/adjectives.storyarc": 18088,  # 2026-08-15 first pin: the adjective marker showcase (>red, the ZIL match classes; games without the marker stay byte-identical)  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
+    "granules/nautical.storyarc": 18412,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/npcengine.storyarc": 20460,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/maniacswap.storyarc": 18676,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "beispiel-deutsch.storyarc": 26116,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "brass-lantern.storyarc": 19236,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "cloak-of-darkness.storyarc": 20016,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "ejemplo-espanol.storyarc": 22864,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/computed-properties.storyarc": 17592,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "features/containers.storyarc": 17988,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "features/daemons-and-timers.storyarc": 19156,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "features/doors-and-locks.storyarc": 17740,  # 2026-08-17 repriced: the existence form (docs/01 chapter 3); a two-sided door is now present on both sides (~264 bytes of presence walk, the two language examples also pay the 1-byte both-forms marker)
+    "features/appearance.storyarc": 18328,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/components.storyarc": 17808,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/whistle.storyarc": 17296,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/pathfinding.storyarc": 20196,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/perform.storyarc": 17600,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/grains.storyarc": 17420,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
+    "features/handlers.storyarc": 18740,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/grammar.storyarc": 17632,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
+    "features/introproperty.storyarc": 18900,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/kinds-and-inheritance.storyarc": 17560,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "features/on-other.storyarc": 17452,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "features/zcolor.storyarc": 17884,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/scoring.storyarc": 19760,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/spans.storyarc": 17676,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
+    "features/vehicles.storyarc": 18232,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/ambience.storyarc": 19488,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/conversations.storyarc": 19196,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/extended-verbs.storyarc": 20560,  # 2026-08-22 repriced: pour/spill bind fill through a reversed prepositional line, and the packs carry the role swap (+44; only games with such a line pay)
+    "granules/infocom-interrogation.storyarc": 19376,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "granules/quotes.storyarc": 17648,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/take-all.storyarc": 19604,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/plurals.storyarc": 18476,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/statusline.storyarc": 17620,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/verbose-exits.storyarc": 17596,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 20424  # 2026-08-20 repriced: the bar paints its left side only when it changed
+CLOAK_Z8_CEILING = 20648  # 2026-08-20 repriced: the bar paints its left side only when it changed
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

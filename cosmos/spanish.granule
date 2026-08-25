@@ -855,7 +855,7 @@ verb "destrancar", "destranca"
     unlock noun con noun
     unlock noun
 
-verb "entrar", "entra", "subir", "sube"
+verb "entrar", "entra", "subir", "sube", "siéntate", "sientate"
     enter noun
 
 verb "salir", "sal", "abandonar"
@@ -1425,13 +1425,33 @@ block msg_not_inside()
 
 // Subir/bajar (soporte) y meterse/salir (contenedor), de board_report /
 // leave_report. (Para revisión de Pablo: la contracción de+el = del.)
+// La costura de postura (el enter del núcleo la llama con el verbo
+// tecleado aún en verb_trigger): sentarse se sienta; entrar y subir
+// trepan.
+block posture_note()
+    change posture to 8
+    if verb_trigger is "siéntate"
+        change posture to 9
+    if verb_trigger is "sientate"
+        change posture to 9
+    return 0
+
 block msg_get_on()
+    if posture is 1
+        say "Te sientas en ${the noun}."
+        return 0
     say "Te subes a ${the noun}."
 
 block msg_get_in()
+    if posture is 1
+        say "Te sientas en ${the noun}."
+        return 0
     say "Te metes en ${the noun}."
 
 block msg_get_off()
+    if posture is 1
+        say "Te levantas de ${the noun}."
+        return 0
     say "Te bajas de ${the noun}."
 
 block msg_get_out()
@@ -1628,6 +1648,9 @@ block line_foresight_open(obj)
 
 block line_foresight_exit(seat)
     if seat is supporter
+        if posture is 1
+            say "(primero te levantas de ${the seat})"
+            return 0
         say "(primero te bajas de ${the seat})"
     else
         say "(primero sales de ${the seat})"

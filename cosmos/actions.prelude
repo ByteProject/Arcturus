@@ -835,7 +835,25 @@ on unlock
 // in the language layer (msg_get_on / msg_get_in / msg_get_off / msg_get_out).
 // An `alter` report the object registered fires instead of the default, exactly
 // as the other action reports do. `noun` is the thing boarded or left.
+// THE POSTURE (Stefan's ruling, 2026-08-25, for every language):
+// sitting, lying, standing on, and climbing onto are different acts,
+// and the typed words say which one this was. Each language pack maps
+// its own words in posture_note (called as the enter default begins,
+// while verb_trigger still holds the word; German captures earlier, in
+// its reflexive put redirect, and its note preserves that). The value
+// arrives PENDING (8 plus 1 sat, 2 lay, 3 stood; plain 8 is a climb),
+// board_report claims it below, and it then lives for as long as the
+// seat is occupied: the leave reports and foresight's exit promise
+// read it too. No explicit clear: every boarding rewrites it.
+block posture_claim()
+    if posture >= 8
+        change posture to posture - 8
+    else
+        change posture to 0
+    return 0
+
 block board_report()
+    posture_claim
     if any_alter is 1
         if altered is not 0
             run_alter
@@ -875,6 +893,9 @@ on enter
     if player in noun
         msg_already_there
         stop
+    // The language layer notes the typed posture while the trigger still
+    // holds the word (see board_report above).
+    posture_note
     if noun is supporter
         move player to noun
         board_report

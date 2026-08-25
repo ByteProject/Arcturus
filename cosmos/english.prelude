@@ -1486,13 +1486,38 @@ block msg_not_inside()
 
 // Boarding and leaving, worded by the world model: on a supporter, in a
 // container (the choice is made in board_report / leave_report).
+// The language layer's posture seam (core enter calls it while
+// verb_trigger still holds the typed word): SIT and REST sit, STAND
+// stands; the enter, board, and mount words climb.
+block posture_note()
+    change posture to 8
+    if verb_trigger is "sit"
+        change posture to 9
+    if verb_trigger is "rest"
+        change posture to 9
+    if verb_trigger is "stand"
+        change posture to 11
+    return 0
+
 block msg_get_on()
+    if posture is 1
+        say "You sit down on ${the noun}."
+        return 0
+    if posture is 3
+        say "You stand on ${the noun}."
+        return 0
     say "You get on ${the noun}."
 
 block msg_get_in()
+    if posture is 1
+        say "You sit down in ${the noun}."
+        return 0
     say "You get into ${the noun}."
 
 block msg_get_off()
+    if posture is 1
+        say "You get up from ${the noun}."
+        return 0
     say "You get off ${the noun}."
 
 block msg_get_out()
@@ -1673,6 +1698,9 @@ block line_foresight_open(obj)
 
 block line_foresight_exit(seat)
     if seat is supporter
+        if posture is 1
+            say "(getting up from ${the seat} first)"
+            return 0
         say "(getting off ${the seat} first)"
     else
         say "(getting out of ${the seat} first)"

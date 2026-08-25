@@ -225,8 +225,10 @@ def test_sit_is_standard_and_means_enter():
         VM(load(story), io).run(max_steps=20_000_000)
     except IndexError:
         pass
-    assert io.text.count("You get on the chair.") == 2
-    assert "You get off the chair." in io.text
+    # SIT and REST sit (the posture, Stefan 2026-08-25), and the
+    # sitter gets up rather than off.
+    assert io.text.count("You sit down on the chair.") == 2
+    assert "You get up from the chair." in io.text
 
 
 def test_stand_is_standard_exit_and_boarding():
@@ -249,8 +251,12 @@ def test_stand_is_standard_exit_and_boarding():
     except IndexError:
         pass
     out = io.text
-    assert out.count("You get on the stool.") == 2
-    assert out.count("You get off the stool.") == 2
+    # STAND ON stands, SIT ON sits, and each leaves in its own
+    # words (the posture, Stefan 2026-08-25).
+    assert "You stand on the stool." in out
+    assert "You get off the stool." in out
+    assert "You sit down on the stool." in out
+    assert "You get up from the stool." in out
     assert "You're already standing up." in out
 
 
