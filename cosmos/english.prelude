@@ -1238,7 +1238,17 @@ block name_contents(holder)
 block list_contents_run(holder)
     if listable_count(holder) is 0
         return 0
-    show(" (contains ")
+    // A supporter is not a container and must not read like one
+    // (Stefan's ruling, 2026-08-25): things rest ON it, in the classic
+    // listing manner, "a bench (on which is a coin)"; contains belongs
+    // to containers alone.
+    if holder is supporter
+        if listable_count(holder) is 1
+            show(" (on which is ")
+        else
+            show(" (on which are ")
+    else
+        show(" (contains ")
     name_contents(holder)
     show(")")
     return 0

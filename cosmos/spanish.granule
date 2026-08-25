@@ -1186,7 +1186,12 @@ block list_contents(holder)
 block list_contents_run(holder)
     if listable_count(holder) is 0
         return 0
-    show(" (contiene ")
+    // A supporter is not a container (Stefan's ruling, 2026-08-25):
+    // contiene belongs to containers; what rests on top, hay encima.
+    if holder is supporter
+        show(" (encima hay ")
+    else
+        show(" (contiene ")
     name_contents(holder)
     show(")")
     return 0

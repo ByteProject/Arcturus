@@ -81,7 +81,7 @@ def test_the_knowledge_model_reaches_the_primitive():
 
 def test_the_framers_still_speak_through_the_shared_loop():
     out = _run(["look"])
-    assert "(contains a sabre and an iron axe)" in out
+    assert "(on which are a sabre and an iron axe)" in out
 
 
 GERMAN_GAME = (
@@ -102,3 +102,64 @@ def test_german_scenery_paragraph_says_the_accusative():
                game=GERMAN_GAME)
     assert "einen Dolch" in out
     assert "du ein Dolch" not in out
+
+
+# A supporter is not a container and must not read like one (Stefan's
+# ruling, 2026-08-25): things rest ON it, "(on which is a coin)" in the
+# classic manner with number agreement, and contains belongs to
+# containers alone. German says darauf liegt/liegen with the NOMINATIVE
+# (the list's case follows the governing verb, list_fall), keeping
+# enthaelt + accusative for containers. Driven on the Actaea core.
+
+def _play_actaea(src, cmds):
+    from actaea.io import CaptureIO
+    from actaea.loader import load as actaea_load
+    from actaea.vm import VM
+    story = generate(analyze(cosmos.combined_program(parse(src))))
+    io = CaptureIO(script=list(cmds))
+    try:
+        VM(actaea_load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+def test_a_supporter_lists_on_which_not_contains():
+    src = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hallway"\n    desc "A hall."\n'
+        'thing bench of supporter in hall\n    name "bench"\n'
+        '    words bench\n    fixed\n'
+        'thing box of container in hall\n    name "box"\n    words box\n'
+        '    fixed\n    open\n'
+        'thing apple in bench\n    name "apple"\n    words apple\n'
+        'thing pin in box\n    name "pin"\n    words pin\n'
+        'thing coin in hall\n    name "coin"\n    words coin\n'
+    )
+    out = _play_actaea(src, ["look", "take coin", "put coin on bench",
+                             "look"])
+    assert "a bench (on which is an apple)" in out       # singular agrees
+    assert "(on which are a coin and an apple)" in out   # plural agrees
+    assert "a box (contains a pin)" in out               # containers keep it
+    assert "bench (contains" not in out
+
+
+def test_german_supporter_lies_in_the_nominative():
+    src = (
+        'game\n    title "DE"\n    start halle\nsummon.language "german"\n'
+        'room halle\n    name "Halle"\n    desc "Eine Halle."\n'
+        'thing bank of supporter in halle\n    die\n    name "Bank"\n'
+        '    words bank\n    fixed\n'
+        'thing kiste of container in halle\n    die\n    name "Kiste"\n'
+        '    words kiste\n    fixed\n    open\n'
+        'thing apfel in bank\n    der\n    name "Apfel"\n    words apfel\n'
+        'thing stift in kiste\n    der\n    name "Stift"\n    words stift\n'
+        'thing muenze in halle\n    die\n    name "Münze"\n'
+        '    words muenze, münze\n'
+    )
+    out = _play_actaea(src, ["schau", "nimm die münze",
+                             "leg die münze auf die bank", "schau"])
+    assert "(darauf liegt ein Apfel)" in out             # nominative, singular
+    assert "(darauf liegen eine Münze und ein Apfel)" in out
+    assert "(enthält einen Stift)" in out                # accusative kept
+    assert "Bank (enthält" not in out

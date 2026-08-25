@@ -1496,6 +1496,12 @@ block scenery_holder_line(obj)
 // back (0 prints nothing at all). Accusative, because every sentence that
 // names things here governs it; a special case brings its own loop with
 // ${a:dat x}. One level deep.
+// The list's case follows the governing verb: enthaelt and "Darin
+// findest du" take the accusative (the default), darauf liegt/liegen
+// the nominative. The caller sets list_fall; name_contents reads and
+// keeps it (several callers share one listing).
+global list_fall = 0
+
 block name_contents(holder)
     let total = listable_count(holder)
     if total is 0
@@ -1508,7 +1514,10 @@ block name_contents(holder)
                     show(" und ")
                 else
                     show(", ")
-            show("${a:acc x}")
+            if list_fall is 1
+                show("${a x}")
+            else
+                show("${a:acc x}")
             now x is seen
             change shown to shown + 1
     return total
@@ -1526,8 +1535,19 @@ block list_contents(holder)
 block list_contents_run(holder)
     if listable_count(holder) is 0
         return 0
-    show(" (enthält ")
+    // A supporter is not a container (Stefan's ruling, 2026-08-25):
+    // enthaelt belongs to containers; what rests on top lies there, in
+    // the nominative (list_fall).
+    if holder is supporter
+        if listable_count(holder) is 1
+            show(" (darauf liegt ")
+        else
+            show(" (darauf liegen ")
+        change list_fall to 1
+    else
+        show(" (enthält ")
     name_contents(holder)
+    change list_fall to 0
     show(")")
     return 0
 

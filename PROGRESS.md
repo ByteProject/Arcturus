@@ -12315,3 +12315,20 @@ sitting, "Du stehst von der Bank auf" would beat "Du steigst von der
 Bank herunter", which would need the posture remembered across
 turns), and the German verb set has no STEH AUF / AUFSTEHEN for
 getting up at all; both are Stefan's German to rule on.
+
+## A supporter is not a container (Cosmos 1.16.8): the listing says
+## what the thing is
+
+Stefan's ruling from the bench thread: "(contains ...)" on a
+supporter falsely shows it as a container; contains means container,
+and the Infocom manner is right. The listing parenthetical now splits
+by kind in all three packs: "a bench (on which is an apple)", "(on
+which are a coin and an apple)" with number agreement, containers
+keeping "(contains ...)"; German says "(darauf liegt/liegen ...)" IN
+THE NOMINATIVE (the list's case now follows the governing verb,
+list_fall, keeping enthaelt + accusative for containers, caught live
+when the first cut printed "einen Apfel" lying on a bench); Spanish
+"(encima hay ...)" against "(contiene ...)". The German and Spanish
+lines await Stefan's and the Pablo-side eye as always. Fifty-two
+ceilings repriced: every game with a holder pays a little for reading
+as what it is. Suite 1563.

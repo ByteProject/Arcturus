@@ -89,8 +89,8 @@ def test_subtree_follows_and_state_is_one():
     # there, and once carried it is gone from BOTH rooms' sentences
     assert "You take the jar with you." in out
     head, _, tail = out.partition("You take the jar with you.")
-    assert head.count("(contains a jar)") == 2
-    assert "(contains a jar)" not in tail
+    assert head.count("(on which is a jar)") == 2
+    assert "(on which is a jar)" not in tail
 
 
 def test_sight_form_is_referable_never_presented():
