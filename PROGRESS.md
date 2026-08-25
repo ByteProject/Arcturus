@@ -12353,3 +12353,54 @@ the du ("(zuerst stehst du von der Bank auf)" after sitting,
 clipped du-less form retired as uncanny. Foresight's exit promise
 follows the posture in all three languages. Fifty-two ceilings
 repriced; suite 1564.
+
+## CHECKPOINT for pickup (2026-08-25): the seat saga complete, posture
+## shipped in three languages, support mode
+
+STANDING STATE. Everything is pushed; origin and local agree at the
+posture release. Versions: arcc 1.13.1, Cosmos 1.16.9, Actaea 2.0.1,
+arcimg 2.0.0, proteus 1.0.0; README table current; both standalones
+regenerated and committed; full suite 1564 green (one pytest run;
+needs a real TTY only for the curses test, which forks its own pty).
+Hibernated 2 rebuilt locally through every library change, walkthrough
+360 of 360 in 121 turns at each step.
+
+THE WEEK SINCE 2.0.0 SHIPPED, all field-driven. Actaea 2.0.1: the
+boot polls the window map instead of waiting for a visibility event
+aqua Tk may never send (the hang-then-traceback report), and a Python
+without tkinter says so, in an osascript dialog under the stub (the
+pop-and-close report). The pour round: reverse learned prepositional
+lines, pour/spill bind fill with swapped roles, selective summons
+keep them (Cosmos 1.16.5, after a reverted false start recorded in
+the same entry). The seat saga, one adopter thread end to end: the
+German reflexive sit redirects put-of-the-player to enter (pack rule,
+not library; English keeps put neutral by ruling); a walk exits the
+seat for real, handlers and all, silent by default, foresight
+promising first (1.16.6); kinds are kinds, the bare attribute grant
+is a compile error (arcc 1.13.1); a supporter is not a container in
+the listing, on which is/are against contains, darauf liegt in the
+nominative via list_fall (1.16.8); and POSTURE went core-wide
+(1.16.9): the posture_note seam per pack, pending +8 claimed by
+board_report, alive while seated, spoken by boardings, leavings, and
+foresight exits in all three languages. GET ON stays neutral by
+ruling (it spans mounting, reaching, and sitting; SIT is the
+sitter's word). The German inference pattern is zuerst-plus-du; the
+clipped du-less form is retired as uncanny.
+
+RULINGS AND WORKFLOW SINCE THE LAST CHECKPOINT, binding: American
+English in all project prose (colors; identifiers like set_colour
+stay); no Co-Authored-By trailer ever (set harness-wide); release
+notes and docs are feature-first at the reader's altitude, never bug
+obituaries (the docs/06 rewrite lesson); pack lines SHIP and the
+field reviews them (Jens for German, Pablo for Spanish; Pablo starts
+working actively with the system soon); WHATSNEW keeps five entries.
+
+OPEN, UNRULED: German has no STEH AUF / AUFSTEHEN verb for getting
+up (found probing; verlasse serves meanwhile); the German get_out
+line keeps "Du steigst aus" for all postures. Stefan has two Discord
+posts in hand: the seat-thread reply to Jens and EdwardianDuck, and
+the posture/foresight announcement (open about I7 extensions).
+
+NEXT: no chartered milestone in flight; support mode on the 2.0.x
+field, with the B11-B13 arc (arc_image already complete through
+Rabenstein groundwork) governed by docs/00 as ever.
