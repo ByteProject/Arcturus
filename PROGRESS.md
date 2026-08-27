@@ -12450,3 +12450,16 @@ same bytes but for its serial, date line and checksum, walkthrough 360
 of 360. A new test holds the invariant structurally: every draw_image
 in a built story sits at a 4-byte-aligned routine start behind its
 one-byte header, the routine's first instruction. Suite 1565 green.
+
+REPORTED AND ANSWERED (2026-08-28). Stefan posted the finding in the
+Arcturus thread, pinging both ZVM's author and Lectrote's. The answer
+came back the same day: ZVM will not start ignoring unknown opcodes
+(it would hide real code-generator bugs), and moving the call into its
+own routine is the right solution, safe from JIT quirks. One caveat
+came with it, now recorded in docs/08: a future ZVM code generator may
+pre-analyse whole functions, which walks call targets before anything
+runs and would meet the opcode again. The durable rule for such an
+engine is to fault only when execution reaches the instruction, never
+at analysis time, since the capability bit is a run-time value. Nothing
+to build today; the thing to test against early if that generator
+appears.

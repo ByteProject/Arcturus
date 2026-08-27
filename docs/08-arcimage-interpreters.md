@@ -71,6 +71,15 @@ arc_image plays it unchanged as text. Here is the whole contract.
    engine that halts on unknown extended opcodes still plays these
    stories.
 
+   That covers decoding a block at a time. It does not cover an engine
+   that pre-analyses whole functions, walking call targets before
+   anything runs: such an engine reaches the routine without the
+   capability bit ever being read, and the opcode is in front of it
+   again. If you build one, the rule that keeps every private-opcode
+   story playable is to raise nothing at analysis time and fault only
+   when execution actually arrives at the instruction. The capability
+   bit is the real gate, and it is a run-time value.
+
 2. THE OPCODE. EXT:0x80 (extended opcode 128, in the range the Standard
    reserves for private use), named `draw_image`, two operands, no store, no
    branch:
