@@ -58,6 +58,19 @@ arc_image plays it unchanged as text. Here is the whole contract.
    there are two layers of safety here, and you get the outer one for
    free by doing nothing.
 
+   A third layer covers the interpreters that decode ahead. An engine
+   that compiles a whole basic block to native or to JavaScript before
+   running any of it (the JIT-style web engines do this) meets every
+   instruction in the block, including the ones a runtime guard would
+   have skipped, so a guard alone does not hide a private opcode from
+   it. The library therefore issues `draw_image` from a routine that
+   holds nothing else, called only after the capability bit said yes. A
+   routine is decoded when it is called, so on a text-only interpreter
+   that routine is never entered, never decoded, and the opcode is never
+   seen at all. Nothing is asked of you here; it is simply why an
+   engine that halts on unknown extended opcodes still plays these
+   stories.
+
 2. THE OPCODE. EXT:0x80 (extended opcode 128, in the range the Standard
    reserves for private use), named `draw_image`, two operands, no store, no
    branch:

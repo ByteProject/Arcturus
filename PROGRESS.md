@@ -12404,3 +12404,49 @@ the posture/foresight announcement (open about I7 extensions).
 NEXT: no chartered milestone in flight; support mode on the 2.0.x
 field, with the B11-B13 arc (arc_image already complete through
 Rabenstein groundwork) governed by docs/00 as ever.
+
+## The opcode stands alone: a picture game boots on the web engines too
+## (Cosmos 1.16.10, 2026-08-27)
+
+Stefan tried an arc_image build in Lectrote and got "Unknown opcode
+#1128 at pc=12565" on a black screen. Two questions, both answered by
+measurement rather than opinion.
+
+Is it illegal? No. The Standards Document 1.1, section 14, hands
+EXT:128 to EXT:255 to game designers for private opcodes, which is
+exactly where draw_image lives (EXT:0x80; ZVM numbers extended opcodes
+1000 plus the code, so #1128 is ours), and it asks interpreters to
+ignore unknown extended opcodes in EXT:29 to EXT:255 rather than halt.
+Halting is the interpreter deviating from a "should"; the same section
+is honest that a game using private opcodes may need a modified
+interpreter to SHOW anything.
+
+Why did our runtime guard not save it? Because ZVM is a JIT. It
+disassembles a whole basic block into JavaScript before running any of
+it (zvm.js compiles at the current pc, keyed in a cache; the
+disassembler runs to a stopper and a conditional branch is not one), so
+the draw_image sitting after the pictures-available guard was decoded
+before the guard could skip it. Rebuilding the demo confirmed the
+address: 12565 was the second opcode site to the byte, in image_reset,
+called at boot, which is why the screen was still empty.
+
+STEFAN'S RULING: fix it on our side rather than wait on interpreter
+authors. "We cannot influence that the game crashes on an old Infocom
+interpreter. We rather have to take things in our own hands." Report
+the finding to intfiction later, with what works where and what we did.
+
+THE FIX. Cosmos issues the opcode from draw_band, a routine that holds
+nothing else, called from behind the guard in both places that draw
+(the room painter and the boot-time band clear). A routine is decoded
+when it is called, so on an interpreter that never advertises pictures
+the routine is never entered, never decoded, and the opcode is never
+seen. Three layers now: the capability bit, the runtime guard, and the
+routine that is never entered.
+
+MEASURED. Text-only games are byte-identical (Cloak and the Brass
+Lantern compare equal against the pre-change compiler); a picture game
+pays 8 bytes once and one call per draw; Hibernated 2 rebuilt to the
+same bytes but for its serial, date line and checksum, walkthrough 360
+of 360. A new test holds the invariant structurally: every draw_image
+in a built story sits at a 4-byte-aligned routine start behind its
+one-byte header, the routine's first instruction. Suite 1565 green.

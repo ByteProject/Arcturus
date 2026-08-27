@@ -953,6 +953,19 @@ block replay_muted()
             show_char(peek_byte(b + 2 + i))
             change i to i + 1
 
+// The opcode, alone in a block of its own. This is not decoration: an
+// interpreter that decodes a whole basic block before running any of it (the
+// JIT-style web engines do, ZVM among them) meets every instruction in a
+// routine, including the ones a runtime guard would have skipped. A private
+// extended opcode in such a block halts those interpreters at the first call,
+// before pictures_available is ever read. A routine, though, is only decoded
+// when it is actually called, so keeping the opcode alone behind the guard
+// hides it from a text-only interpreter completely: the guard fails, the call
+// never happens, and nothing in this block is ever looked at. The cost is one
+// call, and only in a game that has pictures at all.
+block draw_band(id, mode)
+    draw_image(id, mode)
+
 // Draw the current room's picture (arc_image, B11), or clear the band when the
 // room has none. Only reached behind `any_images` (compile-time) and only draws
 // on an interpreter that reports picture support (pictures_available, run time),
@@ -974,7 +987,7 @@ block draw_room_image()
             if is_lit is 0
                 change id to arc_image_dark
         if id is not shown_image
-            draw_image(id, arc_mode)
+            draw_band(id, arc_mode)
             change shown_image to id
             // The bar settles AFTER the band (Stefan's rule, the second
             // Shawn invariant): on an interpreter that releases rows when
@@ -993,7 +1006,7 @@ block draw_room_image()
 // drawn is a no-op by contract, so the boot call costs nothing visible.
 block image_reset()
     if pictures_available is 1
-        draw_image(0, arc_mode)
+        draw_band(0, arc_mode)
         change shown_image to 0
 
 // Describe the current room: its name, its description, and what it contains.

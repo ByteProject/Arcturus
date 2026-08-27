@@ -174,6 +174,12 @@ do not change as targets arrive: the same masters, the same ids, the
 same z5. Convert and ship for the targets that exist when you release,
 and a later interpreter picks the same files up.
 
+Everywhere else, your game plays as text. That includes the interpreters
+that know nothing of pictures and the ones that refuse opcodes they do
+not recognize (Lectrote, Parchment and Borogove share an engine that
+does): they open the story, show the prose, and never learn there was
+art. You ship one z5 and it is safe on all of them.
+
 ## 5. The commands, all of them
 
 ```

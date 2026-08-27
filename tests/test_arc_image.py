@@ -532,3 +532,25 @@ def test_every_erase_and_image_is_followed_by_a_bar_paint():
         for i, tag in enumerate(stream[:-1]):
             if i >= live and tag in ("IMAGE", "ERASE"):
                 assert stream[i + 1] == "BAR", (path, i, stream)
+
+
+def test_the_opcode_stands_alone_in_its_own_routine():
+    # The custom opcode is never in the same routine as the guard that decides
+    # whether to issue it. Interpreters that compile a whole basic block before
+    # running any of it (the JIT-style web engines: ZVM, and so Lectrote,
+    # Parchment and Borogove) decode every instruction in the block, including
+    # the ones the runtime guard would have skipped, and halt on an opcode they
+    # do not know. A routine, though, is decoded only when it is actually
+    # called, so the opcode lives alone in draw_band, reached only after
+    # pictures_available said yes. A text-only interpreter never decodes it.
+    story = _compile(IMG)
+    sites = [i for i in range(len(story) - 1) if story[i:i + 2] == DRAW_IMAGE]
+    assert sites, "the picture game carries no draw_image opcode"
+    for site in sites:
+        # The byte in front of it is the routine header (the local count), and
+        # a z5 routine begins on a 4-byte boundary (the packed-address unit):
+        # the opcode is the routine's FIRST instruction, nothing before it.
+        assert (site - 1) % 4 == 0, site
+        assert story[site - 1] <= 15, (site, story[site - 1])
+    # Both call sites share the one leaf routine, so the opcode appears once.
+    assert len(sites) == 1
