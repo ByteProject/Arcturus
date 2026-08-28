@@ -28,6 +28,11 @@ Commands:
       With --zblorb STORY the story rides inside as Exec 0: one file that
       carries the whole game, for Actaea, the Gargoyle family, and the
       proteus web builder alike. Stdlib only.
+      A source can also be a pack you already made: `arcimg pack
+      game.blorb --zblorb game.z5 -o game.zblorb` binds the new story to
+      the pictures you packed weeks ago, verbatim and without touching the
+      masters. Rebuilding a .zblorb the same way keeps its story unless
+      --zblorb names another; writing to a .blorb leaves the story out.
 
   arcimg prep SOURCE --id N --mode {infocom,daad} [-o DIR]
       Produce N.png sized to a mode. A PNG already at the exact mode size is
@@ -77,7 +82,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -5511,6 +5516,40 @@ def _collect_numbered(sources):
     return entries
 
 
+def _collect_pack_sources(sources):
+    """Map id -> master (a path, or the bytes lifted from an existing pack)
+    for the pack command, plus what a pack source brought with it: its
+    declared band mode and its story, if it had one.
+
+    The point is the everyday loop: the art is finished and packed long
+    before the story is, so a rebuild after a compile should bind the SAME
+    pictures to the new story rather than re-reading masters that have not
+    changed (and may not even be on this machine any more). A .blorb or
+    .zblorb given as a source contributes its pictures verbatim. Ordinary
+    numbered PNGs still work, and still win when a later source repeats an
+    id, so a pack plus a folder of corrections is a pack with corrections.
+    """
+    entries, mode, story = {}, None, None
+    for src in sources:
+        pack = _blorb_pictures(src) if os.path.isfile(src) else None
+        if pack is None:
+            entries.update(_collect_numbered([src]))
+            continue
+        pictures, pack_story, pack_mode = pack
+        if not pictures:
+            print(f"arcimg: note: {os.path.basename(src)} holds no pictures",
+                  file=sys.stderr)
+        entries.update(pictures)
+        # The pack's own declaration wins over deriving one from the picture
+        # shapes: a high-resolution master set can match a mode's aspect at
+        # any scale, and a rebuild must not quietly re-declare the band.
+        if pack_mode:
+            mode = pack_mode
+        if pack_story is not None:
+            story = pack_story
+    return entries, mode, story
+
+
 def _mode_aspect(dims) -> bool:
     """True when width:height matches a band mode's aspect at ANY scale:
     320x72 is 40:9 (mode 9) and 320x96 is 10:3 (mode 12). High-resolution
@@ -5531,19 +5570,45 @@ ARCI_CHUNK = b"ARCI"
 ARCI_VERSION = 1
 
 
+def _entry_bytes(entry) -> bytes:
+    """The PNG bytes of a pack entry. An entry is either a path on disk (a
+    master the author just painted) or the bytes themselves (a picture lifted
+    out of an existing pack, which travels verbatim, never re-encoded)."""
+    if isinstance(entry, (bytes, bytearray)):
+        return bytes(entry)
+    with open(entry, "rb") as fh:
+        return fh.read()
+
+
+def _entry_size(entry):
+    """(width, height) of a pack entry, whichever kind it is."""
+    if isinstance(entry, (bytes, bytearray)):
+        return _png_size_bytes(bytes(entry[:24]))
+    return _png_size(entry)
+
+
+def _entry_name(entry, iid: int) -> str:
+    """What to call a pack entry in a message: its filename on disk, or the
+    id it came in under when it arrived from an existing pack."""
+    if isinstance(entry, (bytes, bytearray)):
+        return f"picture {iid}"
+    return os.path.basename(entry)
+
+
 def _declared_mode(entries: dict) -> int:
     """The band mode to declare in the ARCI chunk: the first picture whose
     shape matches a standard mode. 0 when none does, meaning "not declared,
     read the opcode operand" (Part A keeps the operand authoritative, so a
     game that ever mixed modes still renders correctly)."""
     for iid in sorted(entries):
-        name = _mode_of(_png_size(entries[iid]))
+        name = _mode_of(_entry_size(entries[iid]))
         if name is not None:
             return MODES[name][1] // 8  # the band in text rows: 9 or 12
     return 0
 
 
-def build_blorb(entries: dict, story_path=None) -> bytes:
+def build_blorb(entries: dict, story_path=None, story_bytes=None,
+                mode=None) -> bytes:
     """A Blorb (IFF FORM/IFRS) holding the numbered pictures as 'Pict'
     resources, resource number = the arc_image id, each a 'PNG ' chunk with
     the master bytes verbatim. With story_path, the story rides along as
@@ -5554,14 +5619,22 @@ def build_blorb(entries: dict, story_path=None) -> bytes:
 
     Every Blorb written here carries the ARCI declaration chunk (above),
     which is mandatory by ruling: a Blorb without it makes no arc_image
-    promise."""
+    promise.
+
+    An entry is a path or the picture bytes, so a pack can be rebuilt from
+    an existing one without decoding and re-encoding anything. `story_bytes`
+    is the story already in memory (the one lifted out of a .zblorb being
+    rebuilt); `story_path` reads it from disk. `mode` fixes the declared
+    band mode instead of deriving it, which is how a re-pack keeps the mode
+    the original pack declared."""
     chunks = []  # (chunk type, payload, usage, resource number)
     if story_path is not None:
         with open(story_path, "rb") as fh:
             chunks.append((b"ZCOD", fh.read(), b"Exec", 0))
+    elif story_bytes is not None:
+        chunks.append((b"ZCOD", bytes(story_bytes), b"Exec", 0))
     for iid in sorted(entries):
-        with open(entries[iid], "rb") as fh:
-            chunks.append((b"PNG ", fh.read(), b"Pict", iid))
+        chunks.append((b"PNG ", _entry_bytes(entries[iid]), b"Pict", iid))
     n = len(chunks)
     ridx_len = 4 + n * 12
     # The declaration chunk sits between the index and the resources. Its
@@ -5569,7 +5642,8 @@ def build_blorb(entries: dict, story_path=None) -> bytes:
     # ABSOLUTE file positions, so anything inserted ahead of the resources
     # must be in this sum or every pointer is silently wrong.
     arci = ARCI_CHUNK + struct.pack(">I", 2) + bytes(
-        (ARCI_VERSION, _declared_mode(entries)))
+        (ARCI_VERSION,
+         _declared_mode(entries) if mode is None else mode))
     # Offsets are absolute file positions of each resource chunk's type
     # field: the 12-byte FORM header, the RIdx chunk (8 + payload, padded to
     # even), the ARCI chunk, then the resources in file order.
@@ -5588,21 +5662,23 @@ def build_blorb(entries: dict, story_path=None) -> bytes:
 
 
 def cmd_pack(args) -> int:
-    entries = _collect_numbered(args.sources)
+    entries, pack_mode, pack_story = _collect_pack_sources(args.sources)
     if not entries:
-        print("arcimg: no <number>.png files to pack", file=sys.stderr)
+        print("arcimg: no <number>.png files or Blorb pack to pack",
+              file=sys.stderr)
         return 2
 
     # Validate every entry is a real PNG. Any size at a band mode's aspect
     # ratio is fine (high-resolution masters scale on the interpreter side);
     # a shape that matches no mode gets a note (allowed, usually a mistake).
     for iid in sorted(entries):
-        dims = _png_size(entries[iid])
+        dims = _entry_size(entries[iid])
+        name = _entry_name(entries[iid], iid)
         if dims is None:
-            print(f"arcimg: {entries[iid]} is not a valid PNG", file=sys.stderr)
+            print(f"arcimg: {name} is not a valid PNG", file=sys.stderr)
             return 2
         if _mode_of(dims) is None and not _mode_aspect(dims):
-            print(f"arcimg: note: {os.path.basename(entries[iid])} is "
+            print(f"arcimg: note: {name} is "
                   f"{dims[0]}x{dims[1]}, neither a standard mode size "
                   f"({_modes_str()}) nor a band aspect (40:9 or 10:3)")
 
@@ -5617,7 +5693,8 @@ def cmd_pack(args) -> int:
         return 2
 
     zstory = getattr(args, "zblorb", None)
-    if zstory is None and args.out.lower().endswith(".zblorb"):
+    wants_zblorb = args.out.lower().endswith(".zblorb")
+    if zstory is None and wants_zblorb and pack_story is None:
         print("arcimg: a .zblorb embeds the story, so the story file is "
               "required: arcimg pack ... --zblorb STORY -o "
               f"{os.path.basename(args.out)}", file=sys.stderr)
@@ -5632,27 +5709,36 @@ def cmd_pack(args) -> int:
             print(f"arcimg: {zstory} is not a z5/z8 story file",
                   file=sys.stderr)
             return 2
+    # A story that came in with a .zblorb source rides along only into
+    # another .zblorb. Naming the output .blorb is then the way to drop it
+    # and keep the pictures alone; an explicit --zblorb always wins, as it
+    # is the author saying which story they mean.
+    carried = pack_story if (zstory is None and wants_zblorb) else None
     try:
         with open(args.out, "wb") as fh:
-            fh.write(build_blorb(entries, zstory))
+            fh.write(build_blorb(entries, zstory, story_bytes=carried,
+                                 mode=pack_mode))
     except OSError as exc:
         print(f"arcimg: cannot write {args.out}: {exc}", file=sys.stderr)
         return 2
     ids = ", ".join(str(i) for i in sorted(entries))
-    kind = "zblorb (story + pictures)" if zstory else "blorb (pictures)"
+    has_story = zstory is not None or carried is not None
+    kind = "zblorb (story + pictures)" if has_story else "blorb (pictures)"
     print(f"arcimg: wrote {args.out}, {kind}: {ids}")
     return 0
 
 
 def _blorb_pictures(path):
-    """Read a Blorb pack: ({id: png_bytes}, has_story, arci_mode) or None
-    when the file is not a Blorb. The mirror of build_blorb, kept beside
-    it so the two never drift."""
+    """Read a Blorb pack: ({id: png_bytes}, story_bytes, arci_mode) or None
+    when the file is not a Blorb. The story is the Exec 0 resource of a
+    .zblorb, None in a pictures-only pack (so the middle value still reads
+    as "has a story" wherever that is all the caller wants). The mirror of
+    build_blorb, kept beside it so the two never drift."""
     with open(path, "rb") as fh:
         data = fh.read()
     if len(data) < 12 or data[:4] != b"FORM" or data[8:12] != b"IFRS":
         return None
-    pictures, has_story, arci_mode = {}, False, None
+    pictures, story, arci_mode = {}, None, None
     ridx = {}
     pos = 12
     while pos + 8 <= len(data):
@@ -5673,9 +5759,9 @@ def _blorb_pictures(path):
             if usage == b"Pict":
                 pictures[number] = payload
             elif usage == b"Exec":
-                has_story = True
+                story = payload
         pos += 8 + length + (length & 1)
-    return pictures, has_story, arci_mode
+    return pictures, story, arci_mode
 
 
 def cmd_info(args) -> int:
@@ -5684,8 +5770,8 @@ def cmd_info(args) -> int:
     if os.path.isfile(src):
         blorb = _blorb_pictures(src)
     if blorb is not None:
-        pictures, has_story, arci_mode = blorb
-        kind = "zblorb (story + pictures)" if has_story else "blorb (pictures)"
+        pictures, story, arci_mode = blorb
+        kind = "zblorb (story + pictures)" if story else "blorb (pictures)"
         mode_tag = f", mode {arci_mode}" if arci_mode else ""
         print(f"{src}: {kind}, {len(pictures)} pictures{mode_tag}")
         for iid in sorted(pictures):
@@ -5992,7 +6078,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_pack = sub.add_parser(
         "pack", help="pack numbered PNGs into a Blorb")
     p_pack.add_argument("sources", nargs="+",
-                        help="directories and/or <number>.png files")
+                        help="directories, <number>.png files, and/or an "
+                        "existing .blorb/.zblorb whose pictures come "
+                        "through verbatim")
     p_pack.add_argument("-o", "--out", required=True,
                         help="the pack to write (.blorb, or .zblorb with "
                         "--zblorb)")

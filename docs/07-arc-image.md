@@ -59,7 +59,21 @@ arcimg pack art/ --zblorb mygame.z5 -o mygame.zblorb   story + pictures, ONE fil
 
 The `.zblorb` is the shape Blorb-aware interpreters (the Gargoyle
 family, and Actaea itself) open directly: your whole game, art
-included, in a single file. Actaea plays all of it: a `.zblorb` opened
+included, in a single file.
+
+The art usually settles long before the story does, so a pack you
+already made is itself a source:
+
+```
+arcimg pack mygame.blorb --zblorb mygame.z5 -o mygame.zblorb
+```
+
+The pictures come through exactly as they were packed, no reconversion,
+and the masters need not be on the machine at all. Hand it a `.zblorb`
+instead and it rebuilds: the story inside stays unless `--zblorb` names
+another one, and asking for a `.blorb` writes the pictures alone. A
+folder listed after the pack still wins, so a pack plus a couple of
+repainted pictures is the pack with those replaced. Actaea plays all of it: a `.zblorb` opened
 as the story, or a sibling `.blorb` found next to a plain `.z5`/`.z8`.
 Actaea's console and pipe modes, and every other standard interpreter,
 play the same story text-only. And the same finished artifacts feed the
@@ -185,6 +199,9 @@ art. You ship one z5 and it is safe on all of them.
 ```
 arcimg pack SOURCES... -o game.blorb       the modern pack (a Blorb)
 arcimg pack ... --zblorb game.z5 -o game.zblorb   story + pictures in one Blorb
+arcimg pack game.blorb --zblorb game.z5 -o game.zblorb
+                                           bind a finished pack to a new
+                                           story, pictures untouched
 arcimg prep SOURCE --id N --mode MODE      size and number a source
 arcimg info SOURCE                         a PNG's size / a pack's contents
 arcimg convert SOURCES... --target TAG     derive a machine's native art

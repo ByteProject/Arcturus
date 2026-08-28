@@ -12463,3 +12463,31 @@ engine is to fault only when execution reaches the instruction, never
 at analysis time, since the capability bit is a run-time value. Nothing
 to build today; the thing to test against early if that generator
 appears.
+
+## A finished pack is a source: arcimg binds art you already packed to a
+## new story (arcimg 2.1.0, 2026-08-28)
+
+An author's request, which Stefan endorsed from his own experience: the
+art settles long before the story does. Rabenstein's Blorbs have been
+sitting untouched for weeks while the story file is recompiled every
+day, and until now the only way to a .zblorb was a folder of masters
+plus the story, which re-reads pictures that have not changed and needs
+the masters to be on the machine at all.
+
+`arcimg pack` now takes a .blorb or .zblorb wherever it takes a folder:
+
+    arcimg pack mygame.blorb --zblorb mygame.z5 -o mygame.zblorb
+
+The pictures come through verbatim, never decoded and re-encoded, and
+the pack's own ARCI mode is carried rather than derived again, so a
+rebuild cannot quietly re-declare the band. Handed a .zblorb, the
+command rebuilds it: the story inside stays unless --zblorb names
+another, and asking for a .blorb output writes the pictures alone, which
+gives stripping a story for free. Ordinary sources still resolve in
+order, so a pack followed by a folder of repainted pictures is the pack
+with those replaced. Same shape Proteus already accepts on the web side.
+
+Measured: a rebuild of an unchanged .zblorb is byte-identical to its
+input; the pictures compare equal to the source pack's bytes; the
+standalone build/arcimg produces the same file as the package. Five new
+tests, suite 1569 green.

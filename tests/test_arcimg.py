@@ -465,3 +465,82 @@ def test_actaea_reads_the_arc_image_declaration(tmp_path):
     blob = ai.build_blorb({3: str(art / "3.png")})
     assert blorb_arc_image(blob) == (ai.ARCI_VERSION, 9)  # 320x72 is mode 9
     assert blorb_arc_image(b"not a blorb at all") is None
+
+
+def _pack_fixture(tmp_path):
+    """A finished pictures pack and a story, the everyday starting point: the
+    art was packed once, the story is recompiled all the time."""
+    art = tmp_path / "art"
+    art.mkdir()
+    _make_png(art / "1.png", 320, 72)
+    _make_png(art / "2.png", 320, 72, (90, 10, 10))
+    pack = tmp_path / "game.blorb"
+    assert arcimg.main(["pack", str(art), "-o", str(pack)]) == 0
+    story = tmp_path / "game.z5"
+    story.write_bytes(bytes([5]) + bytes(200))
+    return pack, story
+
+
+def test_pack_binds_a_finished_blorb_to_a_new_story(tmp_path):
+    # The author's loop: the pictures were packed weeks ago, the story file
+    # changes on every compile. Packing the .blorb with the story gives the
+    # .zblorb without going near the masters, which may not even be here.
+    pack, story = _pack_fixture(tmp_path)
+    out = tmp_path / "game.zblorb"
+    assert arcimg.main(["pack", str(pack), "--zblorb", str(story),
+                        "-o", str(out)]) == 0
+    pictures, carried, mode = arcimg._blorb_pictures(str(out))
+    assert sorted(pictures) == [1, 2]
+    assert carried == story.read_bytes()
+    assert mode == 9
+    # Verbatim: the pictures are the same bytes, not re-encoded on the way.
+    assert pictures == arcimg._blorb_pictures(str(pack))[0]
+
+
+def test_a_zblorb_rebuild_keeps_its_story_and_swaps_it_on_request(tmp_path):
+    pack, story = _pack_fixture(tmp_path)
+    first = tmp_path / "game.zblorb"
+    arcimg.main(["pack", str(pack), "--zblorb", str(story), "-o", str(first)])
+
+    # Packing a .zblorb with nothing else is a rebuild: same pictures, same
+    # story, so the file comes out as it went in.
+    again = tmp_path / "again.zblorb"
+    assert arcimg.main(["pack", str(first), "-o", str(again)]) == 0
+    assert again.read_bytes() == first.read_bytes()
+
+    # Naming another story replaces the one inside and keeps the pictures.
+    newer = tmp_path / "newer.z5"
+    newer.write_bytes(bytes([8]) + bytes(300))
+    swapped = tmp_path / "swapped.zblorb"
+    assert arcimg.main(["pack", str(first), "--zblorb", str(newer),
+                        "-o", str(swapped)]) == 0
+    pictures, carried, _mode = arcimg._blorb_pictures(str(swapped))
+    assert carried == newer.read_bytes()
+    assert sorted(pictures) == [1, 2]
+
+    # Asking for a .blorb drops the story: the pictures alone, on purpose.
+    stripped = tmp_path / "art-only.blorb"
+    assert arcimg.main(["pack", str(first), "-o", str(stripped)]) == 0
+    pictures, carried, _mode = arcimg._blorb_pictures(str(stripped))
+    assert carried is None and sorted(pictures) == [1, 2]
+
+
+def test_new_masters_correct_a_pack_they_follow(tmp_path):
+    # Sources still resolve in order, so a pack plus a folder of corrections
+    # is the pack with those pictures replaced.
+    pack, _story = _pack_fixture(tmp_path)
+    fixes = tmp_path / "fixes"
+    fixes.mkdir()
+    _make_png(fixes / "2.png", 320, 72, (7, 7, 7))
+    _make_png(fixes / "3.png", 320, 72)
+    out = tmp_path / "merged.blorb"
+    assert arcimg.main(["pack", str(pack), str(fixes), "-o", str(out)]) == 0
+    pictures, _carried, _mode = arcimg._blorb_pictures(str(out))
+    assert sorted(pictures) == [1, 2, 3]
+    assert pictures[2] == (fixes / "2.png").read_bytes()
+
+
+def test_a_zblorb_still_needs_a_story_from_somewhere(tmp_path):
+    pack, _story = _pack_fixture(tmp_path)
+    out = tmp_path / "game.zblorb"
+    assert arcimg.main(["pack", str(pack), "-o", str(out)]) == 2
