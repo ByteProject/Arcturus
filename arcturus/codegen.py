@@ -2166,21 +2166,34 @@ def generate(world: wm.World, version: int = 5, stats=None) -> bytes:
         saved_pool = lower_mod.POOLED_TEXTS
         lower_mod.POOLED_TEXTS = None
         assembler.TEXT_LOG = census = []
+        # A harvest (--make-abbreviations, tools/arcabbr.py) must see only
+        # the text the finished story carries. This census pass encodes
+        # every inline text once more with pooling off, and the cost model
+        # below encodes each pooling candidate again; recorded, those
+        # copies inflate the harvest pool (a thrice-said constant showed up
+        # five times for its one stored string), and the abbreviation
+        # optimizer then spends slots on text that repeats nowhere in the
+        # file. Pause the recorder for the whole of pass 1 and let pass 2,
+        # the build that ships, be the pool.
+        paused_harvest = zstring.pause_harvest()
         try:
-            _generate(world, version, None)
+            try:
+                _generate(world, version, None)
+            finally:
+                assembler.TEXT_LOG = saved_log
+            counts: dict = {}
+            for rname, text in census:
+                if rname in _LAST_LIVE_ROUTINES:
+                    counts[text] = counts.get(text, 0) + 1
+            pooled = set()
+            for text, n in counts.items():
+                if n < 2:
+                    continue
+                b = len(zstring.encode(text))
+                if n * ((1 + b) - 5) - (b + 2) > 0:
+                    pooled.add(text)
         finally:
-            assembler.TEXT_LOG = saved_log
-        counts: dict = {}
-        for rname, text in census:
-            if rname in _LAST_LIVE_ROUTINES:
-                counts[text] = counts.get(text, 0) + 1
-        pooled = set()
-        for text, n in counts.items():
-            if n < 2:
-                continue
-            b = len(zstring.encode(text))
-            if n * ((1 + b) - 5) - (b + 2) > 0:
-                pooled.add(text)
+            zstring.resume_harvest(paused_harvest)
         lower_mod.POOLED_TEXTS = pooled
         try:
             return _generate(world, version, stats)

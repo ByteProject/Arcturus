@@ -103,6 +103,28 @@ def end_harvest() -> list[str]:
     return out
 
 
+def pause_harvest():
+    """Suspend a running harvest and hand back its recorder (None when no
+    harvest is running). The census build encodes every inline text a second
+    time, and its cost model encodes candidates once more; none of that text
+    is what the finished story carries, and a harvest that records it hands
+    the abbreviation optimizer a pool where a pooled string counts five
+    times for its one stored copy (an adopter read exactly that out of his
+    generated granule). generate() pauses the harvest around pass 1 so the
+    pool mirrors the shipping file: pooled text once, inline text per live
+    site."""
+    global _HARVEST
+    paused = _HARVEST
+    _HARVEST = None
+    return paused
+
+
+def resume_harvest(paused) -> None:
+    """Put back the recorder pause_harvest() returned."""
+    global _HARVEST
+    _HARVEST = paused
+
+
 def _char_to_zchars(c: str) -> list[int]:
     if c == " ":
         return [0]

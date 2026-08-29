@@ -12491,3 +12491,41 @@ Measured: a rebuild of an unchanged .zblorb is byte-identical to its
 input; the pictures compare equal to the source pack's bytes; the
 standalone build/arcimg produces the same file as the package. Five new
 tests, suite 1569 green.
+
+## The tuner's corpus is the story, not the build process: the harvest
+## records only the pass that ships (arcc 1.13.2, 2026-08-29)
+
+EdwardianDuck read his generated abbreviations.granule and asked the
+right question: why is a constant said from three places, stored once,
+being covered by two maximum-length abbreviations, when its frequency
+should be one? Measured, he was right and the tuner was wrong.
+
+THE BUG. The compiler builds every story twice: a census pass with
+string pooling off (counting which inline texts print from two or more
+live sites, worth storing once behind print_paddr), then the real
+build with the pooling choices in force. The abbreviation harvest
+(--make-abbreviations, and tools/arcabbr.py for the baked default)
+wrapped BOTH passes, so a thrice-said constant entered the optimizer's
+pool five times for its one stored string (three census inlines, the
+census cost model's own encode, the shipped pool string), and every
+once-printed sentence entered twice. Doubling lifts unrepeated text
+over the two-occurrence prune, and a 40-character run of a "twice
+seen" sentence outscores any genuinely recurring short word, which is
+exactly the granule EdwardianDuck was looking at.
+
+THE FIX. generate() pauses the harvest recorder across the whole
+census pass; the pool is the pass that ships, pooled text once, inline
+text once per live site. Normal compiles are untouched (no harvest, no
+recorder), proven byte-identical against the pre-fix compiler.
+
+MEASURED. Hibernated 2's granule regenerated: a dozen phantom entries
+leave, the set exchanges long one-off fragments for recurring words,
+the story drops 24 bytes, walkthrough 360 of 360. The baked default
+was re-derived with the fixed harvest and MEASURED LARGER on the
+goldens (cloak +20, brass +12), so it stays as baked, per the
+adopt-only-if-it-wins rule: the 96-entry table is fixed layout, which
+makes a one-use long abbreviation nearly free, and the small corpus
+ranks short fragments too noisily to beat that. The fix pays where
+the pool is a real game. New test holds the mirror property (pooled
+once, inline per site, a single saying never clears the prune); suite
+1570 green.

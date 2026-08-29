@@ -97,3 +97,46 @@ def test_tuned_build_plays_and_is_no_larger(tmp_path):
     # The compressed text decodes back to exactly the room description (the
     # interpreter word-wraps, so compare with whitespace normalized).
     assert "running the length of the long wall" in " ".join(out.split())
+
+
+def test_harvest_pool_mirrors_the_shipping_file():
+    # The tuner's corpus is the story, not the build process. generate() runs
+    # twice (a census pass with pooling off, then the real build), and the
+    # census also encodes each pooling candidate while costing it; none of
+    # that text ships. Before the pause an adopter's thrice-said constant
+    # entered the pool five times for its one stored string, and every
+    # once-printed sentence entered twice, so max-length fragments of
+    # unrepeated text outscored the real recurring words. The pool must hold
+    # pooled text once and inline text once per live site, exactly what the
+    # file carries.
+    from arcturus.codegen import harvest_strings
+
+    sentence = ('He vanished in a puff of smoke. That laser gun is a lot '
+                'more powerful than you imagined.')
+
+    def world_with(handlers):
+        src = (f'constant puff = "{sentence}"\n' + GAME
+               + 'thing wand in cell\n    name "wand"\n    words wand\n'
+               + handlers)
+        return analyze(cosmos.combined_program(parse(src)))
+
+    # Long text said from three sites is pooled: stored once, harvested once.
+    pool = harvest_strings(world_with(
+        '    on examine\n        say puff\n'
+        '    on take\n        say puff\n'
+        '    on drop\n        say puff\n'))
+    assert sum(1 for s in pool if sentence in s) == 1
+
+    # Text too short to pool stays inline at each site: three copies ship,
+    # three copies harvested.
+    pool = harvest_strings(world_with(
+        '    on examine\n        say "Zut!"\n'
+        '    on take\n        say "Zut!"\n'
+        '    on drop\n        say "Zut!"\n'))
+    assert sum(1 for s in pool if s == "Zut!") == 3
+
+    # And a sentence said once appears once, so its fragments can never
+    # clear the tuner's two-occurrence prune on their own.
+    pool = harvest_strings(world_with(
+        '    on examine\n        say puff\n'))
+    assert sum(1 for s in pool if sentence in s) == 1
