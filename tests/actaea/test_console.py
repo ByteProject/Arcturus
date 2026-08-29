@@ -272,3 +272,36 @@ def test_a_cleared_screen_stays_cleared_across_a_resize(tmp_path):
             os.waitpid(pid, 0)
         except ChildProcessError:
             pass
+
+
+def test_up_arrow_recalls_the_previous_command(tmp_path):
+    # Pablo's request: the terminal front-end walks the command history on
+    # the arrow keys, the fizmo manner. TAKE COIN is typed once; Up at the
+    # next prompt brings it back and Enter runs it again, which the story
+    # answers differently the second time (already carried), proving the
+    # recalled line really went through the parser.
+    story = tmp_path / "t.z5"
+    story.write_bytes(generate(analyze(cosmos.combined_program(parse(GAME)))))
+    pid, fd = _spawn(story)
+    try:
+        _drain(fd, 1.5)
+        os.write(fd, b"take coin\r")
+        _drain(fd, 1.0)
+        os.write(fd, b"\x1bOA\r")  # Up (application mode), then Enter
+        out = _drain(fd, 1.0)
+        os.write(fd, b"quit\ry\r")
+        out += _drain(fd, 1.0)
+        os.write(fd, b" ")
+        _drain(fd, 0.5)
+    finally:
+        os.close(fd)
+        try:
+            os.waitpid(pid, 0)
+        except ChildProcessError:
+            pass
+    text = out.decode("utf-8", "replace")
+    plain = re.sub(r"\x1b\[[0-9;]*[A-Za-z]|\x1b[()][0B]|\x1b[=>]", "", text)
+    # The recalled TAKE COIN echoed at the second prompt and ran: the story
+    # says the coin is already in hand.
+    assert "take coin" in plain
+    assert "already" in plain

@@ -96,7 +96,9 @@ Actaea plays in a window, in the terminal, or as a plain text pipe.
 `actaea story.z5` opens the window, the way Actaea is normally played.
 It supports the full Z-machine screen model: colors, text styles, the
 game-drawn status bar, and timed input. Long passages page with
-`[MORE]`, and you can scroll back through everything printed.
+`[MORE]`, and you can scroll back through everything printed. The Up
+and Down arrows recall your earlier commands at the prompt, and one
+step past the newest brings back whatever you had half-typed.
 
 ![The Actaea window on macOS: an arc_image story with its picture band
 and status bar, and the About panel](../artworks/docs/actaea-window.png)
@@ -257,7 +259,10 @@ and the game flipping the Flags 2 bit directly).
 
 Everything Standard 1.1 asks of a v5/v8 interpreter's keyboard:
 
-- Line input with editing, echoed by the front-end that shows it.
+- Line input with editing, echoed by the front-end that shows it. The
+  window and the terminal both recall earlier commands on the arrow
+  keys; a story that claims the cursor keys as terminating characters
+  wins them, and the recall steps aside.
 - Preloaded input: a part-typed line the game hands back (Beyond Zork
   style, after an interrupted command) appears at the prompt, editable,
   never printed twice.

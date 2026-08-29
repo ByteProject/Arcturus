@@ -150,6 +150,7 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     assert classic_h / classic_w < modern_h / modern_w
 
     script = ["look", "recite", "quit", "y"]
+    hist_checks = []
     more_seen = []
     end_in_view = []
     first_line_seen = []
@@ -222,6 +223,25 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
             # screenshot, 2026-08-20).
             if not caret_checks:
                 check_caret_discipline()
+            if script and script[0] == "quit" and not hist_checks:
+                # HISTORY (Pablo's up-arrow): two commands are behind us, so
+                # the walk goes recite, look, holds at the oldest, comes back
+                # and hands the interrupted half-line over at the newest end.
+                import types
+                ev = lambda ks: types.SimpleNamespace(keysym=ks, char="")
+                typed = lambda: app.text.get("input_start", "end-1c")
+                app.text.insert("end-1c", "pa")  # a half-typed line
+                app._on_key(ev("Up"))
+                hist_checks.append(("newest first", typed() == "recite"))
+                app._on_key(ev("Up"))
+                hist_checks.append(("walks back", typed() == "look"))
+                app._on_key(ev("Up"))
+                hist_checks.append(("oldest holds", typed() == "look"))
+                app._on_key(ev("Down"))
+                hist_checks.append(("walks forward", typed() == "recite"))
+                app._on_key(ev("Down"))
+                hist_checks.append(("stash restored", typed() == "pa"))
+                app.text.delete("input_start", "end-1c")
             if script:
                 app.text.insert("end-1c", script.pop(0))
                 app._on_return(None)
@@ -258,6 +278,9 @@ def test_a_game_plays_in_the_window(tmp_path, monkeypatch):
     assert app._reading_lines() == app.text.winfo_height() // app.line_h
     assert app._page_height() == app._reading_lines() - 1
     assert caret_checks and all(ok for _, ok in caret_checks), caret_checks
+    # The history walk behaved at every step, and only submitted lines are
+    # in it: the recalled text came back exactly as typed.
+    assert hist_checks and all(ok for _, ok in hist_checks), hist_checks
     assert "Window Probe" in out
     assert "Observation Deck" in out
     assert out.count("Stars wheel past.") >= 2  # the boot look and the typed one

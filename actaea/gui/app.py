@@ -356,6 +356,9 @@ class ActaeaApp:
         self._key: tk.StringVar = tk.StringVar(value="")  # the wake signal
         self._key_code = 0            # the actual key, as a ZSCII/Unicode code
         self._reading_line = False
+        self._history: list[str] = []  # submitted lines, oldest first
+        self._hist_pos = None          # where the Up/Down walk stands
+        self._hist_stash = ""          # the half-typed line the walk paused
         self._reading_key = False
         self._closed = False
         # File > Open mid-session: the path to switch to. The waits treat a
@@ -1623,6 +1626,35 @@ class ActaeaApp:
         else:
             self.text.insert("end-1c", s)
 
+    def _replace_input(self, s: str) -> None:
+        """Swap the editable region for `s`, caret at the end."""
+        self.text.delete("input_start", "end-1c")
+        self._insert_input(s[: self._max_len])
+        self.text.mark_set("insert", "end-1c")
+        self.text.see("end")
+
+    def _history_step(self, step: int) -> None:
+        """Walk the command history into the input region: Up goes back,
+        Down forward, and one step past the newest restores the half-typed
+        line the walk interrupted (the Parchment and frotz manner). The
+        oldest entry holds under repeated Up; nothing persists across
+        sessions."""
+        if not self._reading_line or not self._history:
+            return
+        if self._hist_pos is None:
+            if step > 0:
+                return  # nothing newer than the line being typed
+            self._hist_stash = self.text.get("input_start", "end-1c")
+            pos = len(self._history) - 1
+        else:
+            pos = self._hist_pos + step
+        if pos >= len(self._history):
+            self._replace_input(self._hist_stash)
+            self._hist_pos = None
+            return
+        self._replace_input(self._history[max(0, pos)])
+        self._hist_pos = max(0, pos)
+
     # -- input: lines ----------------------------------------------------------
 
     def wait_for_line(self, max_len, preload="", terminators=frozenset(),
@@ -1662,6 +1694,13 @@ class ActaeaApp:
             # off the screen; the game owns it now.
             self.text.delete("input_start", "end-1c")
             return line, 0
+        # The submitted line joins the recall history: blanks and immediate
+        # repeats add nothing worth walking back to, and a hundred lines is
+        # more session than anyone replays.
+        if line.strip() and (not self._history or self._history[-1] != line):
+            self._history.append(line)
+            del self._history[:-100]
+        self._hist_pos = None
         # The typed line becomes story text, newline included.
         self.append_story("\n")
         self._start_page()
@@ -1743,6 +1782,7 @@ class ActaeaApp:
             return "break"
         if self.text.compare("insert", "<=", "input_start"):
             return "break"
+        self._hist_pos = None  # an edit ends a history walk, like typing
         return None
 
     def _on_key(self, event):
@@ -1769,8 +1809,11 @@ class ActaeaApp:
             # The caret never leaves the input line (the field report: arrow
             # keys walked it up into the transcript). Page keys scroll the
             # VIEW only; Home means the start of the INPUT; Left stops at
-            # the prompt. Up and Down do nothing until they mean history.
+            # the prompt. Up and Down mean history (Pablo's request); a
+            # story that claims the cursor keys as terminators was already
+            # served above, so the game always wins the arrows.
             if event.keysym in ("Up", "Down"):
+                self._history_step(-1 if event.keysym == "Up" else 1)
                 return "break"
             if event.keysym in ("Prior", "Next"):
                 self.text.yview_scroll(
@@ -1790,6 +1833,9 @@ class ActaeaApp:
         self.text.see("end")
         if len(self.text.get("input_start", "end-1c")) >= self._max_len:
             return "break"  # the buffer is full: the machine set the limit
+        # Typing ends a history walk: the next Up starts from the newest
+        # again, stashing whatever the edit produced.
+        self._hist_pos = None
         return None
 
     def _to_end(self):

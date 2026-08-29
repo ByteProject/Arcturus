@@ -99,6 +99,7 @@ class ConsoleApp:
     def __init__(self, story, stdscr, record_path=None, replay_commands=None,
                  seed=None):
         self.scr = stdscr
+        self._cmd_history: list[str] = []  # submitted lines, for Up/Down recall
         curses.raw()
         try:
             curses.start_color()
@@ -461,6 +462,8 @@ class ConsoleApp:
         self._flush_prompt()
         attr = self._look()
         buffer = list(preload)
+        hist_pos = None  # where the Up/Down recall walk stands, per prompt
+        hist_stash = ""  # the half-typed line the walk interrupted
         # The game printed the preload; input starts where it began, so
         # editing it redraws over the game's own characters.
         y, x = self.lower.getyx()
@@ -499,6 +502,30 @@ class ConsoleApp:
                     code = _KEY_ZSCII.get(key)
                     if code and (code in terminators or 255 in terminators):
                         return "".join(buffer), code
+                    # Up and Down walk the command history (fizmo manner);
+                    # a story that claims the cursor keys as terminators was
+                    # served above, so the game always wins the arrows. One
+                    # step past the newest restores the interrupted line.
+                    if key in (curses.KEY_UP, curses.KEY_DOWN) \
+                            and self._cmd_history:
+                        step = -1 if key == curses.KEY_UP else 1
+                        if hist_pos is None:
+                            if step > 0:
+                                continue
+                            hist_stash = "".join(buffer)
+                            hist_pos = len(self._cmd_history) - 1
+                        elif hist_pos + step >= len(self._cmd_history):
+                            buffer = list(hist_stash)
+                            hist_pos = None
+                            self._redraw_input(origin, buffer, attr)
+                            self._refresh()
+                            continue
+                        else:
+                            hist_pos = max(0, hist_pos + step)
+                        buffer = list(self._cmd_history[hist_pos][:max_len])
+                        self._redraw_input(origin, buffer, attr)
+                        self._refresh()
+                        continue
                     if key in (curses.KEY_BACKSPACE, curses.KEY_DC):
                         key = "\x7f"
                     else:
@@ -511,14 +538,23 @@ class ConsoleApp:
                     self._logical.extend((ch, attr) for ch in buffer)
                     self._close_logical()
                     self._since_input = 0
-                    return "".join(buffer), 13
+                    line = "".join(buffer)
+                    # The submitted line joins the recall history: blanks and
+                    # immediate repeats add nothing worth walking back to.
+                    if line.strip() and (not self._cmd_history
+                                         or self._cmd_history[-1] != line):
+                        self._cmd_history.append(line)
+                        del self._cmd_history[:-100]
+                    return line, 13
                 if key in ("\x7f", "\b", "\x08"):
                     if buffer:
                         buffer.pop()
+                        hist_pos = None  # an edit ends the walk
                         self._redraw_input(origin, buffer, attr)
                         self._refresh()
                     continue
                 if key.isprintable() and len(buffer) < max_len:
+                    hist_pos = None  # typing ends the walk
                     buffer.append(key)
                     try:
                         self.lower.addstr(key, attr)

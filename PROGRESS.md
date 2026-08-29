@@ -12529,3 +12529,30 @@ ranks short fragments too noisily to beat that. The fix pays where
 the pool is a real game. New test holds the mirror property (pooled
 once, inline per site, a single saying never clears the prune); suite
 1570 green.
+
+## The up arrow means history: Actaea recalls commands at the prompt
+## (Actaea 2.1.0, 2026-08-29)
+
+Pablo Martinez, newly an Arcturus dev for his Spanish-granule work,
+asked for the one thing every terminal player's fingers expect: Up for
+the previous command. The seam was already waiting; the GUI's key
+handler has said "Up and Down do nothing until they mean history" since
+the caret-discipline fix. Now they mean history.
+
+Both interactive front-ends walk a per-session command list: Up goes
+back, Down forward, one step past the newest restores whatever was
+half-typed when the walk began (the Parchment and frotz manner), the
+oldest holds under repeated Up, typing or erasing ends the walk.
+Submitted lines join the list unless blank or an immediate repeat;
+nothing persists across sessions. The game outranks the player's
+fingers: a story that names the cursor keys as terminating characters
+(codes 129 and 130, the Beyond Zork style) gets them terminated, and
+the recall steps aside; that guard sat above the history branch in the
+GUI already and is mirrored in the console. The pipe front-end is
+scripts and stays out.
+
+Proven end to end: the GUI test walks recite, look, holds at the
+oldest, returns, and gets its half-typed line back; the console test
+types TAKE COIN once, presses Up at the next prompt, and the story
+answers "already carried", so the recalled line went through the real
+parser over a pty. Suite 1571 green.
