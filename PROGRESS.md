@@ -12596,3 +12596,61 @@ character-with-more-arms case, real for the multi-PC branch), no decoy
 constant. Neither declared, the whole check folds away as ever, and the
 goldens prove it byte-identical. Handbook take row names the dynamic
 form. Two new tests; suite 1574 green; H2 360 of 360.
+
+## Carrying, three ways: the whole charter, from a Discord aside to a
+## release (arcc 1.14.0, Cosmos 1.17.0, 2026-08-30)
+
+EdwardianDuck asked in passing whether worn things should count toward
+the carry limit, and Stefan's answer grew into a design session on what
+adventure systems have always gotten wrong about carrying: the hands
+school (Colossal Cave) and the budget school (Inform, and Arcturus
+until today) both count items, both leak at containers (thirty things
+in a sack become one), and the worn question only exists because a
+count cannot say what wearing changes. STEFAN'S FRAME, the charter:
+three author camps. Those who want no limit (his own camp); those who
+want the familiar item count; those who go down the rabbit hole and
+build riddles on burden, the DAAD world's people, who get weight.
+
+RULINGS. Tier 1 is the default: declare nothing, carry everything.
+Tier 2 fixes the count: contents of carried containers count (the sack
+hole closed; only carryable things ever counted, fixed and scenery
+exempt), containers get their own `item_cap N` ceiling counted "in
+total" through nesting (undefined = uncapped, the Tardis rule), and
+the ceiling that overflows is the one that speaks. Tier 3 is the
+carryweight granule: 0.5 units per thing unless `weight 2.1` (tenths
+fixed-point; grams would overflow a signed word at 32.7 summed;
+`no_weight` is the readable zero), budget 10.0 unless `constant
+weight_cap` or the dynamic `global carry_weight`, count and weight
+enforcing independently (the beer-barrel ruling). The unit is a label,
+never a conversion: docs speak kilograms, one overridden block
+(msg_weight_unit) makes it pounds, the numbers stay the author's. The
+PAW school lineage is the story we tell, truer for Arcturus than
+Fallout.
+
+THE COMPUTED-DOT DOOR, the charter's language decision. Stefan wrote
+`mycontainer.totalweight` without thinking, then worried it demanded
+an Arcturus 2.0 dotted-syntax overhaul. The evaluation dissolved the
+fear: dotted DATA reads have existed since parse_postfix (obj.prop,
+obj.(expr), hall.in); the only new ground is a dot naming a COMPUTED
+value. Ruled and built: a small registry (x.item_count, x.totalweight),
+each backed by a library block, resolved only when no declared
+property shadows it, data before intrinsics as everywhere. No methods,
+no dotted assignment; the door opens exactly this far.
+
+BYTE-IDENTITY, defended three times in one build: seeding item_cap in
+the prelude registry renumbered every game's properties (55 shifted
+bytes in a golden; the property now registers on author use and the
+library reads it through the container_cap intrinsic); routine bodies
+lower before DCE prunes, so a missing property folds the intrinsic to
+0 instead of erroring; and the take gate keeps its exact local shape,
+two lets reused and the weight branch written let-free, because a let
+costs its slot even inside a folded branch (the pour lesson, applied
+twice). Goldens byte-identical at every step.
+
+ALSO: H2 carries no item cap any more (Stefan never wanted it; the
+route never exceeded twenty anyway), rebuilt and distributed fresh to
+the Eris, Ceres, Varuna, and Haumea test directories. The unread-prop
+lint learned intrinsic-read properties. Suite 1564 -> 1584; H2 360 of
+360 at every milestone; WHATSNEW leads with the feature at five
+entries; the handbook gains "Carrying, three ways" (chapter 6), the
+carryweight granule section (chapter 22), and the slimmed take row.

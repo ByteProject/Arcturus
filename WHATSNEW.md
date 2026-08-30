@@ -6,6 +6,20 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Carrying, three ways.** Declare nothing and the player carries
+  everything, as before. `constant item_cap = N` is the classic item
+  limit, now counted honestly: what is inside a carried sack counts,
+  a loaded box is priced as it is lifted, and rearranging what you
+  already carry is never refused; `global carry_limit = N` is the same
+  limit movable at run time, and containers can carry their own
+  ceiling (`item_cap 3` on a box, bottomless without it). And
+  `summon.carryweight` prices mass instead, the tradition of the PAW
+  school: things weigh (`weight 2.1`, half a unit if unsaid), the
+  player carries a budget (10.0 unless you set one), a count and a
+  budget enforce side by side, and the unit is a label an author can
+  turn into pounds with one overridden block. `box.item_count` and
+  `box.totalweight` read like properties and are computed on demand
+  (arcc 1.14.0, Cosmos 1.17.0).
 - **Actaea 2.0: a massive overhaul of the reference interpreter.**
   Three selectable looks, set in a selected serif, a clean, and a
   retro typeface. Long passages page with [MORE] instead of scrolling
@@ -62,22 +76,6 @@ lives in the commit log. The feature roadmap follows below.
   decoder's own four-dot window shows the painting, reaching hues
   between the machine's sixteen. Authors paint once; arcimg derives
   the rest (arcimg 2.0.0).
-- **One object, truly in two rooms: the existence form.** An adopter's
-  field report uncovered a design flattened in implementation, and the
-  recovered ruling now stands: `thing vine in ledge, gully` means the
-  vine EXISTS in both rooms, whole. It is described and listed in each,
-  its contents come along, and its state is one, so a door declared
-  `in hall, vault` stands open on both of its sides. A body-line
-  `spans a, b` remains the SIGHT form: scenery referable from every
-  room it spans and presented in none (the moon over three clearings;
-  room kinds keep working there). The compiler holds the boundary
-  loudly now: a movable, scenery, or kind target on the existence form
-  is a compile error with a pointer to the right tool, never a silent
-  drop. All three shipped languages speak the far side natively, the
-  handbook teaches the two forms apart, and games using neither
-  compile byte-identical. From the same report: a forked prelude in a
-  `-L` directory now really shadows the bundled one, as chapter 23 had
-  promised since B5 (arcc 1.11.0, Cosmos 1.14.0).
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus

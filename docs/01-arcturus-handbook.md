@@ -1002,6 +1002,38 @@ The in-versus-on distinction is carried by the parent's kind: a child of a
 Cosmos uses the parent's kind to choose the preposition when listing or
 describing contents and to decide scope.
 
+### Carrying, three ways
+
+How much can the player carry? Three answers, by author temperament, and
+the cheapest is the default: declare nothing and there is no limit, no
+check, no cost.
+
+The second answer counts items. `constant item_cap = 20` refuses a take
+past twenty carried things, counted honestly: what is inside a carried
+sack counts, what is worn counts, and a loaded box is priced with its
+contents the moment it is lifted. (Fixed and scenery things are outside
+every count, here and below.) Rearranging is always free: taking a coin
+out of your own sack changes nothing and is never refused. A limit the
+story moves at run time is `global carry_limit = 20` instead, and
+`change carry_limit to 6` whenever the world justifies it; declare
+neither and the check does not compile. Containers can carry the same
+ceiling: `item_cap 3` on a box refuses insertion past three things,
+counted all the way down its nesting, and when boxes nest, the ceiling
+that overflows is the one that speaks. A container without the property
+is bottomless, deliberately.
+
+The third answer weighs, and lives in its own granule (chapter 22,
+carryweight): things get weights, the player gets a budget in units, and
+TAKE refuses what would overload. A count and a budget enforce
+independently when both exist: six items OR twenty kilograms, whichever
+runs out first, which is how one beer barrel can fill two free hands.
+
+Two computed reads serve all of this. `box.item_count` is the number of
+carryable things inside, counted all the way down, and (with the granule)
+`box.totalweight` is its weight with everything it holds. They read like
+properties but are computed on demand; declare a real property of either
+name and yours wins, the same most-specific rule as everywhere.
+
 Two small services for a story describing the player's outfit (a custom
 `player.desc block`, say): `worn_count` is the number of things the player
 wears, and `list_worn` prints them as a punctuated list ("a hat, a cloak
@@ -2510,7 +2542,7 @@ The world verbs:
 | `look` | LOOK, L | `look`; describes `here`. LOOK AT X is `examine`; LOOK AROUND is a look. |
 | `examine` | EXAMINE, X, READ, LOOK THROUGH | `examine noun`; prints `desc`. Needs visibility. |
 | `look_under` | LOOK UNDER/UNDERNEATH/BENEATH | `look_under noun` (the under particle riding LOOK); "You find nothing of interest under..." unless handled. |
-| `take` | TAKE, GET, CARRY, PICK (UP), GRAB | `take noun`; "You take X with you", or "out" from a carried container; refused if fixed. A game with `constant item_cap = N` refuses past N carried things ("Your hands are full, and so are your pockets."); no constant, no check, no cost. Two forms, chosen by one question: does the limit ever change during play? A limit fixed for the whole game is `constant item_cap = N`, and the compiler bakes the number into the check, so it costs nothing beyond the check itself. A limit that moves with the story is `global carry_limit = N`: the check reads the global, and `change carry_limit to M` moves it at run time (a character with more arms carries more, a pack animal joins, a strength potion wears off), for the price of one global. Declare neither and the check does not exist. |
+| `take` | TAKE, GET, CARRY, PICK (UP), GRAB | `take noun`; "You take X with you", or "out" from a carried container; refused if fixed. A game with `constant item_cap = N` refuses past N carried things ("Your hands are full, and so are your pockets."), counted with the contents of carried containers; `global carry_limit = N` is the same limit movable at run time; `summon.carryweight` prices mass instead. The whole story, and when to use which, is chapter 6, "Carrying, three ways". Declare nothing and no check exists. |
 | `drop` | DROP | `drop noun`; move to `here`; a worn thing is refused until removed. |
 | `put` | PUT, PLACE | `put noun on noun`, `put noun in noun`. |
 | `insert` | INSERT | `insert noun in noun`. |
@@ -4585,6 +4617,7 @@ an author's own voice, which is why these stay untranslated.
 | takeall         | speaks all | all-words per language, wording in packs |
 | plurals         | speaks all* | group words are the author's own vocabulary, so the sweep works anywhere; only THEM is English, and a fork drops or renames it (see its section) |
 | foresight       | speaks all | wording from the packs                  |
+| carryweight     | speaks all | the refusal and the unit label from the packs |
 | verbose_exits   | english    | the exit frames are English-worded; fork to translate |
 | quotes          | neutral    | draws boxes, says nothing               |
 | ambience        | neutral    | timing machinery; your lines are yours  |
@@ -4666,6 +4699,55 @@ usual one: an object's own `on rub` wins ("on rub / say ..."), a top-level
 granule's default. The granule's own message blocks (msg_throw, msg_dig,
 ...) are granule-owned wording: override any of them from the story
 (most-specific-wins), or fork the granule to reshape the set wholesale (chapter 23) rather than overriding from the story.
+
+### carryweight
+
+```
+summon.carryweight
+```
+
+The weight budget, the tradition of the PAW school on the 8-bit machines:
+instead of counting items, price their mass. Summoned, every carryable
+thing weighs 0.5 units unless it says otherwise:
+
+```
+thing keg in cellar
+    name "beer keg"
+    words keg, beer
+    weight 8.5
+
+thing receipt in cellar
+    name "receipt"
+    words receipt
+    weight no_weight
+```
+
+Weights carry one decimal place (`2`, `2.0`, and `2.1` all read; `2.15`
+is refused, tenths are the resolution), and `no_weight` is the readable
+zero. The player carries at most the budget: 10.0 units by default,
+`constant weight_cap = 20` to fix another, or `global carry_weight = 20`
+for a budget the story moves (`change carry_weight to 35.0`; write the
+decimal point in running code, the property line alone forgives a bare
+integer). TAKE refuses what would overload ("That is too heavy to carry
+with everything else."), a container is priced with its contents, and a
+count limit (chapter 6) enforces independently beside the budget when
+both are declared.
+
+Reading and printing: `keg.weight` is the thing's own weight,
+`sack.totalweight` its weight with everything inside, and `say_weight(n)`
+prints a weight the way the author calibrated it ("8.5 kg"). The unit is
+a label, never a conversion: the documentation speaks kilograms, and a
+game that thinks in pounds overrides one block and keeps its own numbers,
+
+```
+block msg_weight_unit()
+    show "lb"
+```
+
+after which `weight 2.0` simply means two pounds everywhere that game
+weighs anything. Unsummoned, none of this exists: the property is inert,
+the checks fold away, and `totalweight` is a compile error that names the
+summon.
 
 ### infocom_talking
 
