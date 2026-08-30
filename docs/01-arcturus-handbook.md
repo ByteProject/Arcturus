@@ -1887,9 +1887,11 @@ you ask for it back. How the handler ENDS decides how much happens:
 
 3. `on after <verb>` is a separate handler for the third timing: your
    lines happen AFTER the action has really taken place. The player walks
-   west first, then "The door clicks shut behind you." If the walk never
-   happened (refused, or replaced by a handler that did not continue),
-   the after handler stays silent. And because the action has taken
+   west first, then "The door clicks shut behind you." If the turn was
+   REFUSED (by a library refusal, or by your handler setting `refused`
+   before it stops), the after handler stays silent; a handler that
+   REPLACES the action and ends without `continue` has still completed
+   it, so its afters run (the full rule below). And because the action has taken
    place, the after pass runs in the world the action MADE: for movement,
    `here` is already the destination, so a room's `on after go` belongs
    to the room the walk ARRIVES in, never the one it leaves (the example
