@@ -1008,31 +1008,71 @@ How much can the player carry? Three answers, by author temperament, and
 the cheapest is the default: declare nothing and there is no limit, no
 check, no cost.
 
-The second answer counts items. `constant item_cap = 20` refuses a take
-past twenty carried things, counted honestly: what is inside a carried
-sack counts, what is worn counts, and a loaded box is priced with its
-contents the moment it is lifted. (Fixed and scenery things are outside
-every count, here and below.) Rearranging is always free: taking a coin
-out of your own sack changes nothing and is never refused. A limit the
-story moves at run time is `global carry_limit = 20` instead, and
-`change carry_limit to 6` whenever the world justifies it; declare
-neither and the check does not compile. Containers can carry the same
-ceiling: `item_cap 3` on a box refuses insertion past three things,
-counted all the way down its nesting, and when boxes nest, the ceiling
-that overflows is the one that speaks. A container without the property
-is bottomless, deliberately.
+The second answer counts items. One game-level constant sets the
+player's ceiling:
+
+```
+constant item_cap = 20        // at most twenty carried things
+```
+
+and the take handler refuses past it ("Your hands are full, and so are
+your pockets."). The count is honest: what is inside a carried sack
+counts, what is worn counts, and a loaded box is priced with its
+contents the moment it is lifted, so a sack of thirty things can never
+sneak in as one. Fixed and scenery things are outside every count, here
+and everywhere below. Rearranging is always free: taking a coin out of
+your own sack changes nothing and is never refused. If the limit must
+move during play, declare a global of the reserved name instead of the
+constant, and change it like any global:
+
+```
+global carry_limit = 20       // the same ceiling, movable
+
+on drink                      // the strength potion
+    change carry_limit to 30
+    ...
+```
+
+A container can carry the same ceiling, as a property in its body:
+
+```
+thing box of container in cellar
+    name "pine box"
+    words box, pine
+    open
+    item_cap 3                // at most three things, counted all
+                              // the way down its nesting
+```
+
+Insertion past the ceiling refuses ("No more fits into the box."), the
+count includes nested contents, and when capped containers nest, the
+ceiling that overflows is the one that speaks: a pouch inside a full
+chest turns a pebble away in the chest's name. A container without the
+property is bottomless, deliberately.
 
 The third answer weighs, and lives in its own granule (chapter 22,
-carryweight): things get weights, the player gets a budget in units, and
-TAKE refuses what would overload. A count and a budget enforce
-independently when both exist: six items OR twenty kilograms, whichever
-runs out first, which is how one beer barrel can fill two free hands.
+carryweight): things get weights, the player gets a budget in
+kilograms, and TAKE refuses what would overload. A count and a budget
+enforce independently when both exist: six items OR twenty kilograms,
+whichever runs out first, which is how one beer barrel can fill two
+free hands.
 
-Two computed reads serve all of this. `box.item_count` is the number of
-carryable things inside, counted all the way down, and (with the granule)
-`box.totalweight` is its weight with everything it holds. They read like
-properties but are computed on demand; declare a real property of either
-name and yours wins, the same most-specific rule as everywhere.
+Two computed reads serve all of this, in the dotted property spelling:
+the part before the dot is the object, the part after names the value
+read from it, and the read works anywhere a value does:
+
+```
+say "The box holds ${box.item_count} things."
+if crate.item_count > 5
+    say "The crate is crammed."
+```
+
+`box.item_count` is the number of carryable things inside `box`, counted
+all the way down its nesting; with the carryweight granule summoned,
+`box.totalweight` is the box's weight with everything it holds. Neither
+is a stored slot: both are computed at the moment of the read. Declare a
+real property of either name and yours wins, the same most-specific rule
+as everywhere in the language.
 
 Two small services for a story describing the player's outfit (a custom
 `player.desc block`, say): `worn_count` is the number of things the player
@@ -4733,11 +4773,24 @@ with everything else."), a container is priced with its contents, and a
 count limit (chapter 6) enforces independently beside the budget when
 both are declared.
 
-Reading and printing: `keg.weight` is the thing's own weight,
-`sack.totalweight` its weight with everything inside, and `say_weight(n)`
-prints a weight the way the author calibrated it ("8.5 kg"). The unit is
-a label, never a conversion: the documentation speaks kilograms, and a
-game that thinks in pounds overrides one block and keeps its own numbers,
+Reading and printing, in the dotted spelling (the object before the
+dot, the value after): `keg.weight` is the keg's own declared weight,
+`sack.totalweight` the sack's weight with everything inside it, both in
+tenths, and `say_weight(n)` prints such a number the way the author
+calibrated it:
+
+```
+on weigh
+    show "All told, ${the noun} weighs "
+    say_weight(noun.totalweight)
+    say "."
+```
+
+prints "All told, the crate weighs 1.6 kg." **The library ships with
+kilograms as its standard unit**: every weight you declare is read as
+kilograms, and say_weight prints "kg", in all three languages, with
+nothing configured. The unit is a label, never a conversion, so a game
+that thinks in pounds overrides one block and keeps its own numbers,
 
 ```
 block msg_weight_unit()
@@ -4747,7 +4800,8 @@ block msg_weight_unit()
 after which `weight 2.0` simply means two pounds everywhere that game
 weighs anything. Unsummoned, none of this exists: the property is inert,
 the checks fold away, and `totalweight` is a compile error that names the
-summon.
+summon. Worked example:
+[examples/features/carryweight.storyarc](../examples/features/carryweight.storyarc).
 
 ### infocom_talking
 

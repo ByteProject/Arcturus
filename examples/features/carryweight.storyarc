@@ -1,0 +1,91 @@
+// carryweight.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for summon.carryweight (docs/01 chapters 6 and 22): the weight
+// budget. Everything carryable weighs 0.5 kg unless it declares `weight`,
+// the player carries at most `weight_cap` kilograms, and TAKE refuses what
+// would overload, pricing a container together with its contents. The unit
+// ships as kilograms; a game that thinks in pounds overrides one block
+// (msg_weight_unit) and keeps its own numbers. Compile and run:
+//
+//   arcc examples/features/carryweight.storyarc -o quarry.z5
+//   frotz quarry.z5
+//
+// TRY: weigh crate (totalweight prices the crate WITH the chisel inside) /
+//      take feather (no_weight: free) / take slab (2.9 kg, fits) /
+//      take crate (would overload: refused) / drop slab / take crate /
+//      i / drink tonic (the budget itself moves at run time) / take slab
+
+game
+    title "The Quarry Store"
+    headline "A carryweight showcase"
+    author "Stefan Vogt"
+    start store
+
+summon.statusline
+summon.carryweight
+
+// The budget, in kilograms, as a GLOBAL so the tonic can move it at run
+// time. A game whose budget never changes writes `constant weight_cap = 3`
+// instead and the number folds into the check.
+global carry_weight = 3
+
+room store
+    name "Quarry Store"
+    desc "A stone shed at the quarry's edge: a slab left on the bench, a
+          stevedore's crate on the floor, and small oddments everywhere."
+
+// 2.9 of the 3.0 budget on its own: takable, but it fills the arms.
+thing slab in store
+    name "marble slab"
+    words slab, marble
+    weight 2.9
+
+// A container is priced WITH what it holds: 0.4 for the crate, 1.2 for
+// the chisel inside, so the crate costs 1.6 to pick up.
+thing crate of container in store
+    name "stevedore's crate"
+    words crate
+    open
+    weight 0.4
+
+thing chisel in crate
+    name "iron chisel"
+    words chisel, iron
+    weight 1.2
+
+// Undeclared: the 0.5 kg default, the average pocketable thing.
+thing whetstone in store
+    name "whetstone"
+    words whetstone
+
+// no_weight: the readable zero, for things that should never burden.
+thing feather in store
+    name "gull feather"
+    words feather, gull
+    weight no_weight
+
+// The budget is a global, so the story can move it: quarry tonic, the
+// honest way to lift more. `change carry_weight to 5.0` is five
+// kilograms; in running code, write the decimal point.
+thing tonic in store
+    name "quarry tonic"
+    words tonic
+    weight no_weight
+    on drink
+        say "It tastes of iron and bravado. Your back straightens."
+        change carry_weight to 5.0
+        move tonic to nothing
+
+verb "weigh"
+    weigh noun
+
+on weigh
+    // The computed reads: `noun.totalweight` is the thing's weight with
+    // everything inside it; `noun.weight` would be the thing alone.
+    // say_weight prints the calibrated number with the unit, "1.6 kg".
+    show "All told, ${the noun} weighs "
+    say_weight(noun.totalweight)
+    say "."
