@@ -1053,9 +1053,12 @@ property is bottomless, deliberately.
 The third answer weighs, and lives in its own granule (chapter 22,
 carryweight): things get weights, the player gets a budget, and TAKE
 refuses what would overload. Weight is measured in a unit you can
-specify, with kilograms as the standard. A count and a budget enforce
-independently when both exist: six items OR twenty kilograms, whichever
-runs out first, which is how one beer barrel can fill two free hands.
+specify, with kilograms as the standard: every thing weighs 0.5 kg
+unless it says otherwise, and the budget is 10 kg unless you set one,
+which is the same twenty things the item count would allow, priced
+honestly. A count and a budget enforce independently when both exist:
+six items OR twenty kilograms, whichever runs out first, which is how
+one beer barrel can fill two free hands.
 
 Two computed reads serve all of this, in the dotted property spelling:
 the part before the dot is the object, the part after names the value
@@ -4764,7 +4767,8 @@ thing receipt in cellar
 
 Weights carry one decimal place (`2`, `2.0`, and `2.1` all read; `2.15`
 is refused, tenths are the resolution), and `no_weight` is the readable
-zero. The player carries at most the budget: 10.0 units by default,
+zero. The player carries at most the budget: 10 kilograms by default,
+the same twenty average things the item count would allow,
 `constant weight_cap = 20` to fix another, or `global carry_weight = 20`
 for a budget the story moves (`change carry_weight to 35.0`; write the
 decimal point in running code, the property line alone forgives a bare
