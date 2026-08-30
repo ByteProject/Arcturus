@@ -2067,6 +2067,9 @@ class Parser:
         if t.kind == T.NUMBER:
             self.advance()
             return ast.Number(t.value, t.line)
+        if t.kind == T.DECIMAL:
+            self.advance()
+            return ast.Number(t.value, t.line, tenths=True)
         if t.kind == T.STRING:
             self.advance()
             return self._build_string(t)

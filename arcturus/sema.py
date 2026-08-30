@@ -1658,6 +1658,26 @@ class Analyzer:
                 # so the slot holds exactly what the interpreter loads as a file
                 # (<id>.png) and a retro build loads as a slot. Record that the
                 # game uses pictures, so any_images folds to 1.
+                # weight <kg> (the carryweight granule, docs/01 chapter 6):
+                # the slot holds TENTHS of the unit. A pointed literal (2.1)
+                # arrives from the lexer already in tenths; a bare integer
+                # (weight 2) means whole units and scales by ten here, so 2,
+                # 2.0 and "2 kilograms" are the same fact. `weight no_weight`
+                # is the readable zero. Scaled only under summon.carryweight:
+                # without the granule the name is an ordinary property the
+                # game owns, untouched.
+                if m.name == "weight" and wm.has_summon(w, "carryweight"):
+                    vals = []
+                    for v in m.values:
+                        if isinstance(v, ast.Name) and v.ident == "no_weight":
+                            vals.append(ast.Number(0, m.line, tenths=True))
+                        elif isinstance(v, ast.Number) and not v.tenths:
+                            vals.append(ast.Number(v.value * 10, v.line,
+                                                   tenths=True))
+                        else:
+                            vals.append(v)
+                    m = ast.PropertyDecl(name="weight", form=m.form,
+                                         values=vals, line=m.line)
                 if m.name == "arc_image":
                     m = ast.PropertyDecl(
                         name="arc_image",

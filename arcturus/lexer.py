@@ -233,6 +233,22 @@ class Lexer:
         m = _NUMBER_RE.match(self.src, self.pos)
         text = m.group(0)
         self._consume(len(text))
+        # 2.1 is a DECIMAL literal, valued in tenths (21): the weight
+        # notation. One decimal place, because tenths of a kilogram are
+        # the granule's fixed-point resolution; 2.15 is refused rather
+        # than silently rounded. A dot NOT followed by a digit stays an
+        # operator (dotted access never follows a number anyway).
+        if self._peek() == "." and self._peek(1).isdigit():
+            self._advance()
+            f = _NUMBER_RE.match(self.src, self.pos)
+            frac = f.group(0)
+            self._consume(len(frac))
+            if len(frac) != 1:
+                raise self._error(
+                    "one decimal place is the weight resolution (tenths): "
+                    f"write {text}.{frac[0]}", line, col)
+            self._emit(T.DECIMAL, int(text) * 10 + int(frac), line, col)
+            return
         self._emit(T.NUMBER, int(text), line, col)
 
     def _read_name(self) -> None:

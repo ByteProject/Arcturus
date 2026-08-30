@@ -57,6 +57,10 @@ class Expr:
 class Number(Expr):
     value: int
     line: int = 0
+    # True when the author wrote a decimal point (2.1): the value is
+    # already in tenths. The weight property scales bare integers by ten
+    # to match; everywhere else the two kinds are just numbers.
+    tenths: bool = False
 
 
 @dataclass

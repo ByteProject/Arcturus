@@ -22,6 +22,11 @@ INDENT = "INDENT"
 DEDENT = "DEDENT"
 EOF = "EOF"
 NUMBER = "NUMBER"
+# A number written with a decimal point (2.1): the weight notation, one
+# decimal place, valued in TENTHS (21). The Z-machine has no floating
+# point; tenths of a kilogram are the fixed-point unit the carryweight
+# granule stores, and the pointed literal is how an author writes one.
+DECIMAL = "DECIMAL"
 STRING = "STRING"
 UUID = "UUID"
 NAME = "NAME"
