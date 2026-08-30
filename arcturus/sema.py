@@ -2370,6 +2370,14 @@ class Analyzer:
         # property, so the unread-lint has no business with either. presence
         # is the existence-form marker, synthesized and intrinsic-read too.
         skip = {"tag", "trigger", "adjective", "presence"}
+        # item_cap is read by the container ceiling through the
+        # container_cap intrinsic the moment any object declares it, and
+        # weight by the carryweight granule through weight_of: intrinsic
+        # get_props the dotted-read tracking never sees, so neither is
+        # ever a typo to flag.
+        skip.add("item_cap")
+        if wm.has_summon(self.world, "carryweight"):
+            skip.add("weight")
         if getattr(self.world, "npcs", None):
             # The engine's declaration surface (summon.npcengine) is read
             # through the route intrinsics and the roster walk, never as
@@ -2719,4 +2727,16 @@ def analyze(
     env: Optional[prelude.Environment] = None,
     filename: str = "<source>",
 ) -> wm.World:
-    return Analyzer(program, env, filename).analyze()
+    world = Analyzer(program, env, filename).analyze()
+    # The weight budget spells in units like the weight property does
+    # (docs/01 chapter 6): under summon.carryweight a bare-integer
+    # `constant weight_cap = 20` or `global carry_weight = 20` means
+    # twenty whole units, stored as tenths, exactly like `weight 2`.
+    # Pointed literals arrive as tenths already.
+    if wm.has_summon(world, "carryweight"):
+        for holder in (world.constants.get("weight_cap"),
+                       world.globals.get("carry_weight")):
+            v = getattr(holder, "value", None)
+            if isinstance(v, ast.Number) and not v.tenths:
+                holder.value = ast.Number(v.value * 10, v.line, tenths=True)
+    return world

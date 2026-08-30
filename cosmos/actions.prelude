@@ -344,6 +344,15 @@ on take
                 change refused to 1
                 msg_carry_limit
                 stop
+    // The weight budget (summon.carryweight): the same gate for mass. No
+    // lets in this branch, deliberately: the take routine's local shape
+    // is byte-identity for every game without the granule.
+    if any_carryweight is 1
+        if within(noun, player) is 0
+            if carried_weight_of(player) + total_weight_of(noun) > carry_weight
+                change refused to 1
+                msg_too_heavy
+                stop
     // Where it came from, before the move: lifting something out of a
     // container you carry reads "out", everything else "with you"
     // (Stefan's TakeSub, ported to the library).

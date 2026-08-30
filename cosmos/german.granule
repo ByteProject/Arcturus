@@ -1850,6 +1850,12 @@ block msg_carry_limit()
 block msg_container_full(c)
     say "In ${the:acc c} passt nichts mehr hinein."
 
+block msg_too_heavy()
+    say "Das ist zu schwer, mit allem, was du schon trägst."
+
+block msg_weight_unit()
+    show "kg"
+
 block msg_smell_air()
     say "Du schnupperst in die Luft und riechst nichts Überraschendes."
 

@@ -1488,6 +1488,12 @@ block msg_carry_limit()
 block msg_container_full(c)
     say "No cabe nada más en ${the c}."
 
+block msg_too_heavy()
+    say "Pesa demasiado con todo lo que ya llevas."
+
+block msg_weight_unit()
+    show "kg"
+
 block msg_smell_air()
     say "Olfateas el aire sin percibir nada que te sorprenda."
 

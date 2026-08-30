@@ -590,8 +590,17 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
     # its gender from the author's der/die/das, so spelling is never consulted.
     derive_gender = _spelling_gender_language(world)
 
-    # Property-defaults table: 63 words, all zero.
-    table += bytes(_NUM_DEFAULTS * 2)
+    # Property-defaults table: 63 words, all zero, with one exception: under
+    # summon.carryweight the `weight` property defaults to 5 tenths (0.5 of
+    # the unit, Stefan's average object), so get_prop on a thing that never
+    # declared a weight answers the default instead of 0 and the granule
+    # needs no per-object bookkeeping. no_weight stores an explicit 0.
+    defaults = bytearray(_NUM_DEFAULTS * 2)
+    wnum = layout.prop_number.get("weight")
+    if wnum is not None and wm.has_summon(world, "carryweight"):
+        defaults[(wnum - 1) * 2] = 0
+        defaults[(wnum - 1) * 2 + 1] = 5
+    table += bytes(defaults)
 
     # Reserve the object entries; property tables follow them.
     entries_at = len(table)

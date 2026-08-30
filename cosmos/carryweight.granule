@@ -1,0 +1,49 @@
+// carryweight.granule
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// summon.carryweight: the weight budget, the third way to limit carrying
+// (docs/01 chapters 6 and 12). Counting items is a proxy for mass; this
+// granule prices the mass itself, the tradition of the PAW school on the
+// 8-bits and of the modern RPGs: every carryable thing weighs 0.5 units
+// unless it says otherwise (`weight 2.1`, tenths resolution, `no_weight`
+// for zero), and the player carries at most the budget, 10.0 units unless
+// `constant weight_cap = N` fixes another or `global carry_weight = N`
+// makes it a value the story moves at run time. TAKE refuses what would
+// overload, pricing a container WITH its contents; a count limit
+// (item_cap) and the weight budget enforce independently when both exist:
+// six hands' worth OR twenty kilograms, whichever runs out first.
+//
+// The unit is a label, not a conversion: the numbers are the author's, the
+// docs speak kilograms, and a game that thinks in pounds overrides
+// msg_weight_unit ("lb") and calibrates its own numbers. Nothing here
+// converts anything.
+
+// The weight of a thing AND everything it carries, in tenths: the
+// `x.totalweight` computed read. Fixed and scenery things stay outside
+// every sum, like every count (the carryable-only ruling).
+block total_weight_of(obj)
+    let w = weight_of(obj)
+    for each x in obj
+        if x is not fixed
+            if x is not scenery
+                change w to w + total_weight_of(x)
+    return w
+
+// What the player is burdened with: the carried subtree's weight WITHOUT
+// the player's own body (a body is not cargo). The take gate reads this.
+block carried_weight_of(who)
+    let w = 0
+    for each x in who
+        if x is not fixed
+            if x is not scenery
+                change w to w + total_weight_of(x)
+    return w
+
+// Print a weight the way the author calibrated it: "2.1 kg" from 21.
+// The unit rides msg_weight_unit, one word, overridable per game or per
+// language pack; the number is tenths, shown with its one decimal place.
+block say_weight(w)
+    show "${w / 10}.${w - (w / 10) * 10} "
+    msg_weight_unit

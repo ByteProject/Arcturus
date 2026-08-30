@@ -1551,6 +1551,16 @@ block msg_carry_limit()
 block msg_container_full(c)
     say "No more fits into ${the c}."
 
+// The weight budget refusing (summon.carryweight), and the unit label its
+// say_weight prints. The unit is a word, not a conversion: a game that
+// thinks in pounds overrides msg_weight_unit with "lb" and calibrates its
+// own numbers.
+block msg_too_heavy()
+    say "That is too heavy to carry with everything else."
+
+block msg_weight_unit()
+    show "kg"
+
 // Push and pull part ways (Stefan's own voice, now the library's).
 block msg_push()
     say "You give ${the noun} a bit of a push."

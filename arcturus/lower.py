@@ -111,6 +111,12 @@ INTRINSICS = frozenset({
     # any_container_caps folds the container-ceiling gate away in a game
     # where no container declares `item_cap N` (the Tardis default).
     "any_container_caps", "container_cap",
+    # carryweight (the weight budget granule): any_carryweight folds the
+    # whole path with the summon; weight_of reads a thing's weight in
+    # tenths (declared, or the 0.5-unit default); carry_weight is the
+    # player's budget (constant weight_cap, or 10.0 units), shadowed by a
+    # game global of the same name for the dynamic form.
+    "any_carryweight", "weight_of", "carry_weight",
     # any_tables is the compile-time positional-grammar flag (1 if any verb's
     # grammar needs a table, docs/01 chapter 14): the packs and the matcher
     # guard on it, so a game whose verbs all fit the flag model folds the whole
@@ -1698,6 +1704,33 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_container_caps(): 1 when any object or kind declares the
         # item_cap property, so the insertion ceiling folds away unused.
         _place(rt, Const(_any_prop(ctx.world, "item_cap")), dest)
+    elif name == "any_carryweight":
+        _place(rt, Const(1 if wm.has_summon(ctx.world, "carryweight") else 0),
+               dest)
+    elif name == "weight_of":
+        # weight_of(obj): the thing's own weight in tenths. With the weight
+        # property registered, get_prop answers (the defaults table holds 5
+        # for things that never declared one, objects.py); with no weight
+        # declared anywhere, everything weighs the default and the read
+        # folds to the constant.
+        op, t = _operand(rt, ctx, args[0])
+        pnum = ctx.prop_number("weight")
+        if pnum is None:
+            _free(ctx, t)
+            _place(rt, Const(5), dest)
+        else:
+            rt.op("get_prop", op, Const(pnum), store=dest)
+            _free(ctx, t)
+    elif name == "carry_weight":
+        # The budget in tenths: constant weight_cap (sema scaled it), or
+        # 100 (10.0 units, twenty average things) when undeclared. A game
+        # global named carry_weight shadows this fold entirely (data before
+        # intrinsics), which is the dynamic budget.
+        c = ctx.world.constants.get("weight_cap")
+        if c is not None and isinstance(c.value, ast.Number):
+            _place(rt, Const(c.value.value), dest)
+        else:
+            _place(rt, Const(100), dest)
     elif name == "container_cap":
         # container_cap(obj): the object's item_cap property (0 uncapped).
         # An intrinsic read, not a dotted one, so the property is never
@@ -3842,6 +3875,8 @@ def _static_value(ctx, expr):
         return _any_carry(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_container_caps":
         return _any_prop(ctx.world, "item_cap")
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_carryweight":
+        return 1 if wm.has_summon(ctx.world, "carryweight") else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_duals":
         return _any_duals(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_thing_duals":
