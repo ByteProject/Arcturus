@@ -321,9 +321,11 @@ on take
     if player holds noun
         msg_have_it
         stop
-    // The carry limit (constant item_cap = N): counted against what the
-    // player directly holds or wears; folds away entirely when no limit is
-    // declared.
+    // The carry limit: counted against what the player directly holds or
+    // wears. `constant item_cap = N` is the fixed form; `global carry_limit
+    // = N` is the dynamic one (the game's global captures these reads and
+    // `change carry_limit to M` moves the limit at run time). With neither
+    // declared the whole check folds away.
     if any_carry_limit is 1
         let held_count = 0
         for each held_x in player
