@@ -447,3 +447,17 @@ def test_error_missing_expression():
 def test_error_unknown_toplevel():
     with pytest.raises(ArcError):
         parse("wibble foo\n")
+
+
+def test_decimal_literals_are_tenths():
+    # 2.1 lexes as one DECIMAL token valued in tenths (the weight notation);
+    # a second decimal place is refused with the cure named, never rounded.
+    import pytest
+    from arcturus.errors import ArcError
+    prog = parse('constant heavy = 2.1\n'
+                 'game\n    title "T"\n    start r\n'
+                 'room r\n    name "R"\n    desc "x"\n')
+    c = prog.decls[0]
+    assert c.value.value == 21 and c.value.tenths is True
+    with pytest.raises(ArcError, match="one decimal place"):
+        parse('constant heavy = 2.15\n')
