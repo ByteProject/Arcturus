@@ -2508,7 +2508,7 @@ The world verbs:
 | `look` | LOOK, L | `look`; describes `here`. LOOK AT X is `examine`; LOOK AROUND is a look. |
 | `examine` | EXAMINE, X, READ, LOOK THROUGH | `examine noun`; prints `desc`. Needs visibility. |
 | `look_under` | LOOK UNDER/UNDERNEATH/BENEATH | `look_under noun` (the under particle riding LOOK); "You find nothing of interest under..." unless handled. |
-| `take` | TAKE, GET, CARRY, PICK (UP), GRAB | `take noun`; "You take X with you", or "out" from a carried container; refused if fixed. A game with `constant item_cap = N` refuses past N carried things ("Your hands are full, and so are your pockets."); no constant, no check, no cost. |
+| `take` | TAKE, GET, CARRY, PICK (UP), GRAB | `take noun`; "You take X with you", or "out" from a carried container; refused if fixed. A game with `constant item_cap = N` refuses past N carried things ("Your hands are full, and so are your pockets."); no constant, no check, no cost. Declare `global carry_limit = N` instead and the limit is dynamic: `change carry_limit to M` moves it at run time (a character with more arms carries more). |
 | `drop` | DROP | `drop noun`; move to `here`; a worn thing is refused until removed. |
 | `put` | PUT, PLACE | `put noun on noun`, `put noun in noun`. |
 | `insert` | INSERT | `insert noun in noun`. |

@@ -1669,8 +1669,9 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # name where declared; this default covers its absence).
         _place(rt, Const(_scenery_contents(ctx)), dest)
     elif name == "any_carry_limit":
-        # any_carry_limit(): 1 when the game sets `constant item_cap = N`.
-        _place(rt, Const(1 if _carry_limit(ctx) else 0), dest)
+        # any_carry_limit(): 1 when the game has a limit, fixed constant or
+        # declared carry_limit global (_any_carry).
+        _place(rt, Const(_any_carry(ctx)), dest)
     elif name == "carry_limit":
         _place(rt, Const(_carry_limit(ctx)), dest)
     elif name == "any_scored":
@@ -2657,6 +2658,18 @@ def _carry_limit(ctx) -> int:
     if c is not None and isinstance(c.value, ast.Number):
         return max(0, c.value.value)
     return 0
+
+
+def _any_carry(ctx) -> int:
+    """1 when the game has a carry limit at all: the classic constant, or a
+    game-declared `global carry_limit` (the dynamic form: data names resolve
+    before intrinsics, so the library's carry_limit reads reach that global,
+    and `change carry_limit to N` moves the limit at run time; the arms-rich
+    character case). Either arms the take-handler check; neither folds it
+    away."""
+    if _carry_limit(ctx):
+        return 1
+    return 1 if "carry_limit" in ctx.world.globals else 0
 
 
 def _any_prop(world, prop: str) -> int:
@@ -3776,7 +3789,7 @@ def _static_value(ctx, expr):
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_restless":
         return 1 if (ctx.layout is not None and ctx.layout.has_restless) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_carry_limit":
-        return 1 if _carry_limit(ctx) else 0
+        return _any_carry(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_duals":
         return _any_duals(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_thing_duals":

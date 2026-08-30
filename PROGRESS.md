@@ -12575,3 +12575,24 @@ needed nothing: it already handled a colorless inline Say. The handbook
 now writes the bare form throughout its show passages. Byte-identity
 proven on the goldens (serial-only drift on brass, which stamps the
 build date); H2 360 of 360; suite 1572 green.
+
+## The carry limit goes dynamic: global carry_limit is the blessed form
+## (arcc 1.13.4, 2026-08-30)
+
+EdwardianDuck read the take handler, traced carry_limit into the
+compiler, and asked whether shadowing it with a game global was abuse
+or design. Neither, exactly: carry_limit is an intrinsic folding to
+constant item_cap, and data names resolve before intrinsics (the
+general rule, same doctrine as block overriding), so his global
+legitimately captured every read including the library's own. The wart
+was that arming the check still required the constant, whose value then
+sat dead in his source, a decoy.
+
+RULED AND BUILT: the check arms on either form. `constant item_cap = N`
+stays the classic fixed limit, a folded constant, zero cost. `global
+carry_limit = N` alone is now the dynamic form: the library reads the
+global, `change carry_limit to M` moves the limit mid-game (the
+character-with-more-arms case, real for the multi-PC branch), no decoy
+constant. Neither declared, the whole check folds away as ever, and the
+goldens prove it byte-identical. Handbook take row names the dynamic
+form. Two new tests; suite 1574 green; H2 360 of 360.

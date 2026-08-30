@@ -128,6 +128,33 @@ def test_max_carried_refuses_past_the_limit():
     assert out.count("You take the acorn with you.") == 1
 
 
+def test_a_carry_limit_global_is_the_dynamic_form():
+    # `global carry_limit = N` alone arms the check (no decoy item_cap
+    # needed, EdwardianDuck's find): data names resolve before intrinsics,
+    # so the library's carry_limit reads reach the global, and changing it
+    # moves the limit at run time (the character-with-more-arms case).
+    game = LIMIT_GAME.replace(
+        "constant item_cap = 2\n",
+        "global carry_limit = 2\n"
+        'verb "grow"\n    growing\n'
+        "on growing\n    change carry_limit to 3\n"
+        '    say "Roomier."\n')
+    out = _run(["take pebble", "take feather", "take acorn", "grow",
+                "take acorn"], game=game)
+    assert "Your hands are full, and so are your pockets." in out
+    assert "Roomier." in out
+    assert out.count("You take the acorn with you.") == 1
+
+
+def test_no_limit_means_no_check_at_all():
+    # Pay for use holds: with neither the constant nor the global, the
+    # whole carry check folds away and every take succeeds.
+    game = LIMIT_GAME.replace("constant item_cap = 2\n", "")
+    out = _run(["take pebble", "take feather", "take acorn"], game=game)
+    assert "Your hands are full" not in out
+    assert out.count(" with you.") == 3
+
+
 USE_GAME = (
     'summon.use\n'
     'game\n    title "U"\n    start hall\n'
