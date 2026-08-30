@@ -1051,11 +1051,11 @@ chest turns a pebble away in the chest's name. A container without the
 property is bottomless, deliberately.
 
 The third answer weighs, and lives in its own granule (chapter 22,
-carryweight): things get weights, the player gets a budget in
-kilograms, and TAKE refuses what would overload. A count and a budget
-enforce independently when both exist: six items OR twenty kilograms,
-whichever runs out first, which is how one beer barrel can fill two
-free hands.
+carryweight): things get weights, the player gets a budget, and TAKE
+refuses what would overload. Weight is measured in a unit you can
+specify, with kilograms as the standard. A count and a budget enforce
+independently when both exist: six items OR twenty kilograms, whichever
+runs out first, which is how one beer barrel can fill two free hands.
 
 Two computed reads serve all of this, in the dotted property spelling:
 the part before the dot is the object, the part after names the value
