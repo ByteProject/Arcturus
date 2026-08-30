@@ -108,6 +108,9 @@ INTRINSICS = frozenset({
     # bridge): any_carry_limit folds the take-handler check away when the
     # game sets no limit; carry_limit is the number itself.
     "any_carry_limit", "carry_limit",
+    # any_container_caps folds the container-ceiling gate away in a game
+    # where no container declares `item_cap N` (the Tardis default).
+    "any_container_caps", "container_cap",
     # any_tables is the compile-time positional-grammar flag (1 if any verb's
     # grammar needs a table, docs/01 chapter 14): the packs and the matcher
     # guard on it, so a game whose verbs all fit the flag model folds the whole
@@ -1674,6 +1677,27 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _place(rt, Const(_any_carry(ctx)), dest)
     elif name == "carry_limit":
         _place(rt, Const(_carry_limit(ctx)), dest)
+    elif name == "any_container_caps":
+        # any_container_caps(): 1 when any object or kind declares the
+        # item_cap property, so the insertion ceiling folds away unused.
+        _place(rt, Const(_any_prop(ctx.world, "item_cap")), dest)
+    elif name == "container_cap":
+        # container_cap(obj): the object's item_cap property (0 uncapped).
+        # An intrinsic read, not a dotted one, so the property is never
+        # seeded game-wide (seeding renumbers every game's properties);
+        # only reached behind any_container_caps, which guarantees some
+        # object declared it and the number exists.
+        op, t = _operand(rt, ctx, args[0])
+        pnum = ctx.prop_number("item_cap")
+        if pnum is None:
+            # No object declares item_cap: every routine still lowers before
+            # DCE prunes, so the read folds to 0 (uncapped) and the only
+            # caller, container_full, dies with its folded call sites.
+            _free(ctx, t)
+            _place(rt, Const(0), dest)
+        else:
+            rt.op("get_prop", op, Const(pnum), store=dest)
+            _free(ctx, t)
     elif name == "any_scored":
         # any_scored(): 1 when anything declares `scored`, so the award hooks
         # in take and go fold away in a scoreless game.
@@ -3790,6 +3814,8 @@ def _static_value(ctx, expr):
         return 1 if (ctx.layout is not None and ctx.layout.has_restless) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_carry_limit":
         return _any_carry(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_container_caps":
+        return _any_prop(ctx.world, "item_cap")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_duals":
         return _any_duals(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_thing_duals":

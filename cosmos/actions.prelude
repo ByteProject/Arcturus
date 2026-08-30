@@ -321,19 +321,29 @@ on take
     if player holds noun
         msg_have_it
         stop
-    // The carry limit: counted against what the player directly holds or
-    // wears. `constant item_cap = N` is the fixed form; `global carry_limit
-    // = N` is the dynamic one (the game's global captures these reads and
+    // The carry limit: counted against the whole carried subtree, worn
+    // included, contents of carried containers included (the sack hole is
+    // closed by ruling, 2026-08-30), fixed and scenery never counted.
+    // Taking a loaded box prices its load in the same breath: the box
+    // arrives with its contents, so they join the count as it enters.
+    // `constant item_cap = N` is the fixed form; `global carry_limit = N`
+    // is the dynamic one (the game's global captures these reads and
     // `change carry_limit to M` moves the limit at run time). With neither
     // declared the whole check folds away.
     if any_carry_limit is 1
-        let held_count = 0
-        for each held_x in player
-            change held_count to held_count + 1
-        if held_count >= carry_limit
-            change refused to 1
-            msg_carry_limit
-            stop
+        // Rearranging is free: lifting something out of your own sack
+        // changes nothing in the total, so the gate only prices things
+        // ENTERING the carried subtree. (The two lets keep the routine's
+        // old local shape, held_count and the walker's slot, so a game
+        // with no limit stays byte-identical: a let costs its slot even
+        // inside a folded branch, the pour lesson.)
+        if within(noun, player) is 0
+            let held_count = item_count_of(player)
+            let held_x = held_count + 1 + item_count_of(noun)
+            if held_x > carry_limit
+                change refused to 1
+                msg_carry_limit
+                stop
     // Where it came from, before the move: lifting something out of a
     // container you carry reads "out", everything else "with you"
     // (Stefan's TakeSub, ported to the library).
@@ -623,6 +633,9 @@ on put
         stop
     if second is container
         if second is open
+            if any_container_caps is 1
+                if container_full(second, noun) is 1
+                    stop
             move noun to second
             now noun is not worn
             if any_alter is 1
@@ -648,6 +661,9 @@ on insert
             stop
     if second is container
         if second is open
+            if any_container_caps is 1
+                if container_full(second, noun) is 1
+                    stop
             move noun to second
             now noun is not worn
             if any_alter is 1
@@ -1180,3 +1196,28 @@ on wait
 
 on sing
     msg_sing
+
+// Would putting `obj` into `c` overfill a ceiling? A container with
+// `item_cap N` holds at most N things counted all the way down (nested
+// contents included, the "in total" ruling), and the ceiling of every
+// capped container ABOVE the target holds too: dropping a pebble into a
+// pouch inside a capped chest raises the chest's total, so the chest
+// speaks if it is the one that overflows. Undeclared (0) means uncapped,
+// the Tardis rule. Returns 1 refused (message spoken, turn marked), 0
+// clear. Folds away with any_container_caps in a game that caps nothing.
+block container_full(c, obj)
+    let incoming = 1 + item_count_of(obj)
+    let t = c
+    while t is not nothing
+        if container_cap(t) is not 0
+            if within(obj, t) is 0
+                if item_count_of(t) + incoming > container_cap(t)
+                    change refused to 1
+                    msg_container_full(t)
+                    return 1
+        change t to parent_of(t)
+        if t is here
+            return 0
+        if t is player
+            return 0
+    return 0

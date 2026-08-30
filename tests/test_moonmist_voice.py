@@ -146,6 +146,44 @@ def test_a_carry_limit_global_is_the_dynamic_form():
     assert out.count("You take the acorn with you.") == 1
 
 
+def test_carry_limit_prices_a_loaded_container():
+    # The sack hole is closed (ruling 2026-08-30): the limit counts the whole
+    # carried subtree, so a container arrives with its contents priced, and
+    # rearranging at the limit stays free (taking out of your own sack).
+    game = LIMIT_GAME.replace("constant item_cap = 2\n",
+                              "constant item_cap = 3\n") \
+        .replace("thing acorn in hall",
+                 "thing sack of container in hall\n    name \"sack\"\n"
+                 "    words sack\n    open\nthing acorn in hall")
+    out = _run(["take pebble", "put pebble in sack", "take feather",
+                "put feather in sack", "take sack", "take acorn",
+                "take pebble", "drop pebble"], game=game)
+    # sack(1) + pebble + feather = 3 = cap: the sack lifts, the acorn not.
+    assert "You take the sack with you." in out
+    assert "Your hands are full, and so are your pockets." in out
+    # out of the carried sack at the limit: the total does not grow.
+    assert "You take the pebble out." in out
+
+
+def test_a_container_item_cap_refuses_in_total():
+    # `item_cap 3` on a chest already holding a pouch (the pouch itself
+    # counts): one more thing fits twice, then the ceiling holds, and under
+    # nesting the ceiling that overflows is the one that speaks (the chest
+    # refuses an acorn bound for the pouch inside it).
+    game = LIMIT_GAME.replace("constant item_cap = 2\n", "") \
+        .replace("thing acorn in hall",
+                 "thing chest of container in hall\n    name \"chest\"\n"
+                 "    words chest\n    open\n    item_cap 3\n"
+                 "thing pouch of container in chest\n    name \"pouch\"\n"
+                 "    words pouch\n    open\n"
+                 "thing acorn in hall")
+    out = _run(["take pebble", "put pebble in chest", "take feather",
+                "put feather in chest", "take acorn", "put acorn in pouch"],
+               game=game)
+    assert out.count("Done.") == 2
+    assert "No more fits into the chest." in out
+
+
 def test_no_limit_means_no_check_at_all():
     # Pay for use holds: with neither the constant nor the global, the
     # whole carry check folds away and every take succeeds.

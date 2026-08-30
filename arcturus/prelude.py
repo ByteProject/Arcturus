@@ -255,6 +255,11 @@ _STD_VALUE_PROPS = {
     # nothing where no words list carries the marker. Sema registers it on
     # first use instead (_collect_members).
     "capacity": T_NUMBER,
+    # NOTE: `item_cap` (a container's item ceiling, docs/01 chapter 6) is
+    # deliberately NOT seeded here, for the trigger reason above: seeding
+    # renumbers properties in every game (measured: 55 shifted bytes in a
+    # capless golden). It registers on first author use; the library reads
+    # it through the container_cap intrinsic behind any_container_caps.
     # The object that locks and unlocks a lockable thing (a door or chest). Named
     # `unseal_with` rather than `key` so the common vocabulary word "key" stays
     # free for a key object's own `words`.

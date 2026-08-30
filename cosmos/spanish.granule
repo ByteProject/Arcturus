@@ -1485,6 +1485,9 @@ block msg_taken_out()
 block msg_carry_limit()
     say "Tienes las manos llenas, y los bolsillos también."
 
+block msg_container_full(c)
+    say "No cabe nada más en ${the c}."
+
 block msg_smell_air()
     say "Olfateas el aire sin percibir nada que te sorprenda."
 

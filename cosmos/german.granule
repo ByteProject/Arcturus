@@ -1847,6 +1847,9 @@ block msg_touch()
 block msg_carry_limit()
     say "Deine Hände sind voll, und deine Taschen auch."
 
+block msg_container_full(c)
+    say "In ${the:acc c} passt nichts mehr hinein."
+
 block msg_smell_air()
     say "Du schnupperst in die Luft und riechst nichts Überraschendes."
 

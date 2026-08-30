@@ -1545,6 +1545,12 @@ block msg_look_under()
 block msg_carry_limit()
     say "Your hands are full, and so are your pockets."
 
+// A container's own ceiling refusing (item_cap, chapter 6). The argument is
+// the container that overflowed, which under nesting may sit ABOVE the one
+// the player named: the pouch fits the pebble, the chest around it does not.
+block msg_container_full(c)
+    say "No more fits into ${the c}."
+
 // Push and pull part ways (Stefan's own voice, now the library's).
 block msg_push()
     say "You give ${the noun} a bit of a push."

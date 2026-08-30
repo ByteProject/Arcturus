@@ -87,3 +87,20 @@ block position(l, val)
             return i
         change i to i + 1
     return 0
+
+// How many carryable things an object holds, counted all the way down
+// (docs/01 chapters 6 and 12): direct contents plus everything inside carried
+// containers and on carried trays, recursively. Fixed and scenery things are
+// outside every count by ruling (only what can be carried is ever counted),
+// and their contents with them. This one walk is the foundation under the
+// player's carry limit, a container's own item_cap ceiling, and the
+// `x.item_count` computed read; the three can never disagree because they
+// are the same number. DCE'd in a game that uses none of them.
+block item_count_of(obj)
+    let n = 0
+    for each x in obj
+        if x is not fixed
+            if x is not scenery
+                change n to n + 1
+                change n to n + item_count_of(x)
+    return n
