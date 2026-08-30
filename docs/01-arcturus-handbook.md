@@ -1449,10 +1449,11 @@ remove "old" from chest.synonyms
 `say` prints text or a value followed by a line break; printing a number prints
 digits, an object prints its `name`: `say "Score: ${score}."`. `show` prints the
 same way but without the trailing line break, for building one line from pieces:
-`show("You can only go ")` then more `show`/`say` calls finish the line, the last
+`show "You can only go "` then more `show`/`say` lines finish the line, the last
 one ending it. Both honor the library's paragraph spacing (a pending blank line
 is flushed before either prints). Use `say` to finish a line, `show` to build
-one.
+one. The two spell alike: `show "text"` beside `say "text"` (the call form
+`show("text")` also remains valid).
 
 `stop` ends the current handler or block immediately; in an action handler
 that also consumes the action (chapter 11). `continue` ends the current
@@ -3411,19 +3412,18 @@ on start
 
 `show.<color> "..."` is the inline sibling: the same one-shot color, but no
 trailing newline, so a single word or phrase can sit highlighted inside a
-sentence the surrounding `show(...)` calls build. A help text that names its
+sentence the surrounding `show` lines build. A help text that names its
 verbs in color reads like this, and the whole thing lands on one line:
 
 ```
 on help
-    show("Conversations are handled via ")
+    show "Conversations are handled via "
     show.yellow "[talk to NPC]"
     say "."
 ```
 
-A color is required after the dot (`show.yellow`, never a bare `show.par`):
-show is inline by definition, so the paragraph modifiers do not apply. The
-plain `show("...")` intrinsic is unchanged.
+The dot takes a color only (`show.yellow`, never a bare `show.par`): show is
+inline by definition, so the paragraph modifiers do not apply.
 
 Color support is handled for you, at both ends. The compiler marks the story
 as color-using in the header (Flags 2 bit 6, which interpreters require

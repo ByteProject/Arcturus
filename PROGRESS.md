@@ -12556,3 +12556,22 @@ oldest, returns, and gets its half-typed line back; the console test
 types TAKE COIN once, presses Up at the next prompt, and the story
 answers "already carried", so the recalled line went through the real
 parser over a pty. Suite 1571 green.
+
+## show spells like say: the bare inline statement (arcc 1.13.3,
+## 2026-08-30)
+
+Found while drafting a support reply about conditional descriptions:
+the inline print had no bare statement form. say "text" is a statement;
+its inline sibling had to be written show("text") or show.<color>
+"text", and the spelling every author tries first, show "text", was a
+parse error. Stefan's ruling: "we cannot leave it like this. show
+'blahblah' needs to work."
+
+The parser now takes bare show "text" (and show CONSTANT, like say) as
+the inline statement: one Say node, inline, no color. The dotted form
+still colors, the call form show("...") still works unchanged (a
+following parenthesis keeps the intrinsic reading), and the lowering
+needed nothing: it already handled a colorless inline Say. The handbook
+now writes the bare form throughout its show passages. Byte-identity
+proven on the goldens (serial-only drift on brass, which stamps the
+build date); H2 360 of 360; suite 1572 green.

@@ -42,7 +42,7 @@ or later, which you almost certainly already have.
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.13.2 | [build/arcc](build/arcc) |
+| **arcc**, the compiler (the Cosmos library is embedded inside it) | 1.13.3 | [build/arcc](build/arcc) |
 | **Cosmos**, the standard library | 1.16.10 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 2.1.0 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 2.1.0 | [build/arcimg](build/arcimg) |

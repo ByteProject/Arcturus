@@ -126,8 +126,40 @@ def test_show_colour_is_inline():
     assert "Try [push] instead." in io.text
 
 
-def test_show_requires_a_colour():
-    # Bare `show "text"` is not a statement; the dotted form needs a colour.
+def test_show_dot_requires_a_colour():
+    # The dot takes a colour only: show.velvet names no colour and is refused.
     bad = SHOW_GAME.replace('show.yellow "[push]"', 'show.velvet "[push]"')
     with pytest.raises(ArcError):
         parse(bad)
+
+
+def test_bare_show_is_says_inline_sibling():
+    # show "text" spells like say "text" (the spelling every author tries
+    # first, Stefan's ruling 2026-08-30): one Say node, inline, no colour.
+    # The call form show("text") stays an intrinsic and prints the same, and
+    # a constant operand works exactly as it does for say.
+    src = (
+        'constant TAIL = " and measured."\n'
+        'game\n    title "S"\n    start r\n'
+        "on start\n"
+        '    show "Bare"\n'
+        '    show(" and called")\n'
+        '    show TAIL\n'
+        '    say ""\n'
+        'room r\n    name "R"\n    desc "A room."\n'
+    )
+    prog = parse(src)
+    handler = next(d for d in prog.decls if isinstance(d, ast.Handler))
+    shows = [st for st in handler.body if isinstance(st, ast.Say) and st.inline]
+    assert [(st.colour, st.para, st.lead) for st in shows] == [(None, False, False)] * 2
+
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    story = generate(analyze(cosmos.combined_program(parse(src))))
+    io = CaptureIO(script=["quit", "y"])
+    try:
+        VM(load(story), io).run(max_steps=30_000_000)
+    except IndexError:
+        pass
+    assert "Bare and called and measured." in io.text

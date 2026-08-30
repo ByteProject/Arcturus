@@ -1315,14 +1315,16 @@ class Parser:
             # not a reserved word.
             if t.value == "zcolor":
                 return self._parse_zcolor()
-            # show.<colour> "...": inline coloured text, no trailing newline
-            # (a single highlighted word inside a sentence built from shows).
-            # Only the dotted form is a statement; plain show("...") stays an
-            # intrinsic call.
-            if (
-                t.value == "show"
-                and self._at(1).kind == T.OP
-                and self._at(1).value == "."
+            # show "..." / show.<colour> "...": inline text, no trailing
+            # newline; the dotted form colours it (a single highlighted word
+            # inside a sentence built from shows). The bare statement is
+            # say's inline sibling and reads like it (Stefan's ruling,
+            # 2026-08-30: the spelling every author tries first must work).
+            # A following `(` stays the show("...") intrinsic call, so the
+            # older form is untouched.
+            if t.value == "show" and (
+                (self._at(1).kind == T.OP and self._at(1).value == ".")
+                or self._at(1).kind not in (T.OP, T.NEWLINE)
             ):
                 return self._parse_show()
             # par.say "...": the paragraph comes first, then the text.
@@ -1669,18 +1671,21 @@ class Parser:
         return ast.Say(value, line, colour, para, lead)
 
     def _parse_show(self) -> ast.Say:
-        # show.<colour> "text": the inline sibling of say.<colour>. Sets the
-        # colour, prints WITHOUT a trailing newline, restores the base font
-        # colour. No par modifier: show is inline by definition.
+        # show "text" / show.<colour> "text": the inline sibling of say.
+        # Prints WITHOUT a trailing newline; the dotted form sets the colour
+        # first and restores the base font colour after. No par modifier:
+        # show is inline by definition.
         line = self.cur.line
         self.advance()  # the leading `show`
-        self.expect_op(".")
-        mod = self.expect_name("a colour name after 'show.'").value
-        if mod not in _ZCOLOURS:
-            raise self._error(
-                f"unknown colour '{mod}' (use default, black, red, green, "
-                f"yellow, blue, magenta, cyan, or white)"
-            )
+        mod = None
+        if self.check_op("."):
+            self.advance()
+            mod = self.expect_name("a colour name after 'show.'").value
+            if mod not in _ZCOLOURS:
+                raise self._error(
+                    f"unknown colour '{mod}' (use default, black, red, green, "
+                    f"yellow, blue, magenta, cyan, or white)"
+                )
         value = self.parse_expr()
         self.expect_newline()
         return ast.Say(value, line, mod, False, False, inline=True)
