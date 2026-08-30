@@ -597,6 +597,23 @@ def eval_expr(rt: Routine, ctx: Context, expr, dest=None) -> None:
 
     if isinstance(expr, ast.Dot):
         pnum = ctx.prop_number(expr.prop)
+        # The computed-dot door (Stefan's ruling, 2026-08-30): a short
+        # registry of dots that name a COMPUTED value, each backed by a
+        # library block, resolved only when no declared property shadows it
+        # (data wins, the same doctrine that lets a game global capture
+        # carry_limit). x.item_count walks the carryable contents;
+        # x.totalweight sums the carried weight (the carryweight granule).
+        # The door opens exactly this far: no methods, no dotted
+        # assignment sugar, and a game declaring a property of the same
+        # name keeps it.
+        if pnum is None and expr.prop in _COMPUTED_DOTS:
+            block = _COMPUTED_DOTS[expr.prop]
+            if block not in ctx.world.blocks:
+                raise LowerError(
+                    f".{expr.prop} needs summon.carryweight", expr.line
+                )
+            _call(rt, ctx, ast.Call(block, [expr.obj], expr.line), dest)
+            return
         if pnum is None:
             raise LowerError(
                 f"cannot read property '{expr.prop}' as a value", expr.line
@@ -3705,6 +3722,15 @@ def _say_with_article(rt, ctx, article, case, expr):
         rt.op("call_vn", RoutineRef(block), op, Const(cap), Const(num))
     if t is not None:
         ctx.free_temp(t)
+
+
+# The computed dotted reads: dot name -> the library block that computes it.
+# item_count rides core.prelude (always present); totalweight lives in the
+# carryweight granule, so its absence gets the summon-naming error above.
+_COMPUTED_DOTS = {
+    "item_count": "item_count_of",
+    "totalweight": "total_weight_of",
+}
 
 
 def _prop_truthy(decl) -> bool:

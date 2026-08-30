@@ -266,3 +266,43 @@ def test_shake_family():
     out = _run(["shake mat", "shake guard", "rattle mat"], game=game)
     assert "You give the straw mat a good shake. It survives the experience unchanged." in out
     assert "The tired guard is not a thing you shake." in out
+
+
+# --- the computed-dot door (2026-08-30) -------------------------------------
+
+DOT_GAME = (
+    'game\n    title "D"\n    start hall\n'
+    'room hall\n    name "Hall"\n    desc "A hall."\n'
+    'thing crate of container in hall\n    name "crate"\n    words crate\n'
+    '    open\n'
+    'thing pea in crate\n    name "pea"\n    words pea\n'
+    'thing bean in crate\n    name "bean"\n    words bean\n'
+    'verb "tally"\n    tallying\n'
+    'on tallying\n'
+    '    say "The crate holds ${crate.item_count} items."\n'
+)
+
+
+def test_item_count_is_a_computed_dot():
+    # x.item_count walks the carryable contents: no stored slot, a computed
+    # read backed by item_count_of, usable anywhere a value reads.
+    out = _run(["tally", "take pea", "tally"], game=DOT_GAME)
+    assert "The crate holds 2 items." in out
+    assert "The crate holds 1 items." in out
+
+
+def test_a_declared_property_shadows_the_computed_dot():
+    # Data wins, the carry_limit doctrine applied to dots: a game declaring
+    # its own item_count property keeps it, and the computed read steps
+    # aside for that game entirely.
+    game = DOT_GAME.replace("    open\n", "    open\n    item_count 99\n", 1)
+    out = _run(["tally"], game=game)
+    assert "The crate holds 99 items." in out
+
+
+def test_totalweight_names_its_granule_when_missing():
+    import pytest
+    from arcturus.errors import ArcError
+    game = DOT_GAME.replace("${crate.item_count}", "${crate.totalweight}")
+    with pytest.raises(ArcError, match="summon.carryweight"):
+        generate(analyze(cosmos.combined_program(parse(game))))
