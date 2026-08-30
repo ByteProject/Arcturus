@@ -10,7 +10,7 @@
 // ships as kilograms; a game that thinks in pounds overrides one block
 // (msg_weight_unit) and keeps its own numbers. Compile and run:
 //
-//   arcc examples/features/carryweight.storyarc -o quarry.z5
+//   arcc examples/granules/carryweight.storyarc -o quarry.z5
 //   frotz quarry.z5
 //
 // TRY: weigh crate (totalweight prices the crate WITH the chisel inside) /

@@ -193,8 +193,8 @@ CEILINGS = {
     "features/zcolor.storyarc": 17884,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/scoring.storyarc": 19760,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/spans.storyarc": 17676,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/vehicles.storyarc": 18232,
-    "features/carryweight.storyarc": 18232,  # 2026-08-30 new: the weight-budget showcase  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/vehicles.storyarc": 18232,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/carryweight.storyarc": 18232,  # 2026-08-30 new: the weight-budget showcase
     "granules/ambience.storyarc": 19488,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/conversations.storyarc": 19196,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/extended-verbs.storyarc": 20560,  # 2026-08-22 repriced: pour/spill bind fill through a reversed prepositional line, and the packs carry the role swap (+44; only games with such a line pay)

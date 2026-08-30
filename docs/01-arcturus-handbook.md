@@ -4805,7 +4805,7 @@ after which `weight 2.0` simply means two pounds everywhere that game
 weighs anything. Unsummoned, none of this exists: the property is inert,
 the checks fold away, and `totalweight` is a compile error that names the
 summon. Worked example:
-[examples/features/carryweight.storyarc](../examples/features/carryweight.storyarc).
+[examples/granules/carryweight.storyarc](../examples/granules/carryweight.storyarc).
 
 ### infocom_talking
 
