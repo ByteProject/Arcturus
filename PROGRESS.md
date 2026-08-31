@@ -12699,3 +12699,26 @@ blocks, the facts stated, the worked example linked); WHATSNEW rotates
 the typed surface in; examples/features/typed.storyarc compiled and
 played through its TRY script. Six new tests incl. German and Spanish;
 H2 360 of 360.
+
+## The readings wear plain names: text and number (arcc 1.14.2,
+## Cosmos 1.17.2, 2026-08-31)
+
+The reading surface shipped as `typed` and Stefan rejected the name
+twice, rightly: not everything set to a value is typed (SET DIAL TO
+RED is about the dial, not the keyboard), and the counter-candidates
+kept failing his brain-test, `text` alone because nobody calls a 3
+text, entry and subject because the language owns both words already.
+His resolution: two names, one per reading, each the honest one for
+its kind of input. `text` is the absorbed words (compared, echoed);
+`number` is the numeric reading. The slot keyword and the word reading
+share a name on purpose, the same symmetry noun already has between
+grammar line and handler.
+
+Renamed through compiler, skeleton blocks, tests, handbook, WHATSNEW,
+and the example (now examples/features/text-slot.storyarc), one
+release behind the first, hours old, field exposure near zero, no
+alias left behind. Also corrected on Stefan's catch: Hibernated 1
+types CODEWORDS, not numbers, and the docs and example had led with
+digits everywhere; the terminal now takes XANADU and OPEN SESAME, the
+dial keeps the numbers, which is where numbers belong. Goldens
+byte-identical; suite green; H2 360 of 360.

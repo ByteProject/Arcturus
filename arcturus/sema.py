@@ -2299,10 +2299,11 @@ class Analyzer:
         from .lower import INTRINSICS
         if name in INTRINSICS:
             return
-        # `typed`, the text slot's absorbed words (docs/01 chapter 14):
-        # legal in its three forms (compared, printed, typed_number);
-        # lower explains itself if it is misused as a plain value.
-        if name == "typed":
+        # `text`, the slot's absorbed words (docs/01 chapter 14): legal in
+        # its forms (compared, printed; `number` is the numeric reading, an
+        # ordinary block); lower explains itself if it is misused as a
+        # plain value.
+        if name == "text":
             return
         if name == "direction":
             raise self._error(

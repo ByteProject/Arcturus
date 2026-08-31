@@ -1,16 +1,16 @@
-// typed.storyarc
+// text-slot.storyarc
 // part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for the typed surface (docs/01 chapter 14): an author's own
-// verb line carries a `text` slot, and `typed` reads whatever the player
-// wrote there, dictionary word or not. Compared against a literal, printed
-// back verbatim, or read as a number: keypads, dials, passwords, and every
-// machine with an input surface ride the same three readings. Compile and
-// run:
+// A showcase for the text slot's readings (docs/01 chapter 14): an
+// author's own verb line carries a `text` slot, and whatever the player
+// wrote there reads back under two plain names, `text` (the words,
+// compared against a literal or echoed verbatim) and `number` (the same
+// input as a number). Keypads, dials, passwords, and every machine with
+// an input surface ride the same two readings. Compile and run:
 //
-//   arcc examples/features/typed.storyarc -o signals.z5
+//   arcc examples/features/text-slot.storyarc -o signals.z5
 //   frotz signals.z5
 //
 // TRY: type xanadu into terminal (a codeword no dictionary knows) /
@@ -22,7 +22,7 @@
 
 game
     title "The Signal Room"
-    headline "A typed showcase"
+    headline "A text-slot showcase"
     author "Stefan Vogt"
     start signals
 
@@ -61,28 +61,29 @@ verb "set", "adjust"
     set noun to text
 
 on type terminal
-    // `typed is "..."`: the absorbed words against a literal, one to three
+    // `text is "..."`: the absorbed words against a literal, one to three
     // words, raw text. The compiler puts the literal's words in the
     // dictionary itself; nothing to declare.
-    if typed is "xanadu"
+    if text is "xanadu"
         say "The terminal chirps. The airlock unbolts somewhere out of
              sight."
     else
-        if typed is "open sesame"
+        if text is "open sesame"
             say "Charming. The terminal is not amused, but a drawer under
                  it slides open."
         else
-            // ${typed} echoes the words exactly as the player wrote them.
-            say "The terminal rejects \"${typed}\" with a flat little
+            // ${text} echoes the words exactly as the player wrote them.
+            say "The terminal rejects \"${text}\" with a flat little
                  buzz."
 
 on set dial
-    // typed_number: the first absorbed word as a number (up to four
-    // digits); anything else reads 0, so one comparison covers both the
-    // wrong range and the not-a-number case.
-    if typed_number > 0
-        if typed_number < 5
-            change dial.reading to typed_number
-            say "The dial clicks to ${dial.reading}."
+    // `number`: the same input as a number (up to four digits); anything
+    // else reads 0, so one comparison covers both the wrong range and the
+    // not-a-number case. The refusal echoes through ${text}: an echo is
+    // words, whatever was typed.
+    if number > 0
+        if number < 5
+            change dial.reading to number
+            say "The dial clicks to ${number}."
             stop
-    say "The dial has no setting called \"${typed}\"."
+    say "The dial has no setting called \"${text}\"."

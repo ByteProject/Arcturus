@@ -185,10 +185,10 @@ def _walk_child(child, walk):
             _walk_child(c, walk)
 
 
-def typed_literal_words(world: wm.World) -> set:
-    """Every word of every string literal compared against `typed` (the text
-    slot's raw reading, docs/01 chapter 14): `if typed is "1451"` can only be
-    true if "1451" is a dictionary word the tokenizer recognizes, so the
+def text_literal_words(world: wm.World) -> set:
+    """Every word of every string literal compared against `text` (the
+    slot's raw reading, docs/01 chapter 14): `if text is "xanadu"` can only
+    be true if "xanadu" is a dictionary word the tokenizer recognizes, so the
     compiler adds the compared spellings itself. Only literals actually
     compared enter the dictionary: a game that never reads the slot pays no
     word."""
@@ -197,7 +197,7 @@ def typed_literal_words(world: wm.World) -> set:
     def walk(node):
         if isinstance(node, ast.IsTest) \
                 and isinstance(node.left, ast.Name) \
-                and node.left.ident == "typed" \
+                and node.left.ident == "text" \
                 and isinstance(node.right, ast.StringLit):
             lit = "".join(p.text for p in node.right.parts
                           if isinstance(p, ast.StringText))
@@ -335,7 +335,7 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
     words |= all_words
     noise_words = set(world.noise_words)
     words |= noise_words
-    words |= typed_literal_words(world)
+    words |= text_literal_words(world)
     encoded = {w: zstring.encode_dict_word(w) for w in words}
     # Map each distinct encoded entry to its three data bytes.
     enc_data: dict[bytes, bytes] = {}

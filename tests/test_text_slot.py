@@ -1,13 +1,14 @@
-# test_typed_slot.py
+# test_text_slot.py
 # part of Arcturus, a programming language and compiler for the Infocom Z-machine.
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""The typed surface (docs/01 chapter 14): an author's own verb line carries
-a `text` slot (TYPE 1451 INTO TERMINAL, the Hibernated 1 shape), and `typed`
-reads what it absorbed: compared against a literal (the compiler adds the
-literal's words to the dictionary itself), printed back verbatim in ${typed},
-or read as a number through typed_number. Every reading is raw text, so codes
+"""The text readings (docs/01 chapter 14): an author's own verb line
+carries a `text` slot (TYPE XANADU INTO TERMINAL, the Hibernated 1 codeword
+shape), and the slot reads back under two plain names: `text`, the absorbed
+words (compared against a literal, the compiler adding the literal's words
+to the dictionary itself, or printed back verbatim in ${text}), and
+`number`, the first word as a number. Every reading is raw, so codewords
 that are no dictionary word still compare and echo. A game that never reads
 the slot compiles byte-identical (the blocks are dead code)."""
 
@@ -30,20 +31,20 @@ GAME = (
     'verb "type"\n    type text into noun\n'
     'verb "set", "adjust"\n    set noun to text\n'
     'on type terminal\n'
-    '    if typed is "1451"\n'
+    '    if text is "1451"\n'
     '        say "Access granted."\n'
     '    else\n'
-    '        if typed is "open sesame"\n'
+    '        if text is "open sesame"\n'
     '            say "A drawer slides open."\n'
     '        else\n'
-    '            say "Rejected: ${typed}."\n'
+    '            say "Rejected: ${text}."\n'
     'on set dial\n'
-    '    if typed_number > 0\n'
-    '        if typed_number < 5\n'
-    '            change dial.reading to typed_number\n'
+    '    if number > 0\n'
+    '        if number < 5\n'
+    '            change dial.reading to number\n'
     '            say "The dial clicks to ${dial.reading}."\n'
     '            stop\n'
-    '    say "No setting called ${typed}."\n'
+    '    say "No setting called ${text}."\n'
 )
 
 
@@ -60,7 +61,7 @@ def _play(src, script):
     return io.text
 
 
-def test_typed_compares_prints_and_numbers():
+def test_text_compares_prints_and_numbers():
     out = _play(GAME, [
         "type 1451 into terminal",       # a code that is no dictionary word
         "type open sesame into terminal", # a two-word literal, in order
@@ -86,13 +87,13 @@ def test_unclaimed_set_falls_to_the_standard_refusal():
     assert "clicks" not in out and "No setting" not in out
 
 
-def test_typed_number_facts():
+def test_number_facts():
     # The documented facts: digits through and through, at most four of
     # them; anything else reads 0.
     game = GAME + (
         'verb "probe"\n    probe text into noun\n'
         'on probe terminal\n'
-        '    say "n=${typed_number}."\n'
+        '    say "n=${number}."\n'
     )
     out = _play(game, [
         "probe 9999 into terminal",
@@ -103,31 +104,31 @@ def test_typed_number_facts():
     assert out.count("n=0.") == 2
 
 
-def test_typed_misuse_and_length_are_compile_errors():
-    bad = GAME + 'on start\n    let x = typed\n'
-    with pytest.raises(ArcError, match="typed is text"):
+def test_text_misuse_and_length_are_compile_errors():
+    bad = GAME + 'on start\n    let x = text\n'
+    with pytest.raises(ArcError, match="holds the slot"):
         generate(analyze(cosmos.combined_program(parse(bad))))
     bad = GAME.replace('"open sesame"', '"one two three four"')
     with pytest.raises(ArcError, match="one to three words"):
         generate(analyze(cosmos.combined_program(parse(bad))))
 
 
-def test_a_story_global_named_typed_wins():
+def test_a_story_global_named_text_wins():
     # Data beats the reading, the rule everywhere: a game that declares its
-    # own `typed` global owns the name outright.
+    # own `text` global owns the name outright.
     game = (
-        'global typed = 7\n'
+        'global text = 7\n'
         'game\n    title "Shadow"\n    author "T"\n    start lab\n'
         'room lab\n    name "Lab"\n    desc "Bare."\n'
-        'on start\n    say "typed is ${typed}."\n'
+        'on start\n    say "text is ${text}."\n'
     )
     out = _play(game, [])
-    assert "typed is 7." in out
+    assert "text is 7." in out
 
 
 def test_the_slot_speaks_german_and_spanish():
     # The matcher lives in the agnostic skeleton, so a pack needs nothing:
-    # the same verb shape reads typed in every language.
+    # the same verb shape reads the slot in every language.
     de = (
         'summon.language "german"\n'
         'game\n    title "Tipp"\n    author "T"\n    start labor\n'
@@ -136,10 +137,10 @@ def test_the_slot_speaks_german_and_spanish():
         '    words terminal\n    fixed\n'
         'verb "tippe"\n    tippe text in noun\n'
         'on tippe terminal\n'
-        '    if typed is "1451"\n'
+        '    if text is "1451"\n'
         '        say "Zugang gewährt."\n'
         '    else\n'
-        '        say "Abgelehnt: ${typed}."\n'
+        '        say "Abgelehnt: ${text}."\n'
     )
     out = _play(de, ["tippe 1451 in terminal", "tippe unsinn in terminal"])
     assert "Zugang gewährt." in out and "Abgelehnt: unsinn." in out
@@ -152,10 +153,10 @@ def test_the_slot_speaks_german_and_spanish():
         '    words terminal\n    fixed\n'
         'verb "teclea"\n    teclea text en noun\n'
         'on teclea terminal\n'
-        '    if typed is "1451"\n'
+        '    if text is "1451"\n'
         '        say "Acceso concedido."\n'
         '    else\n'
-        '        say "Rechazado: ${typed}."\n'
+        '        say "Rechazado: ${text}."\n'
     )
     out = _play(es, ["teclea 1451 en terminal", "teclea tonteria en terminal"])
     assert "Acceso concedido." in out and "Rechazado: tonteria." in out

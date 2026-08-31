@@ -3270,7 +3270,7 @@ noun slots per line at most, a literal word between two noun slots (the
 adjacent-noun `reverse` form stays a flag-model feature), single-word verb
 synonyms, and at most one `direction` slot, closing its line.
 
-### Reading the text slot: typed
+### Reading the text slot: text and number
 
 The `text` slot is not only for ASK. Put it in your own verb's grammar and
 you have a machine with an input surface: a terminal that takes codewords,
@@ -3289,53 +3289,62 @@ verb "set", "adjust"
 The slot absorbs whatever the player wrote there WITHOUT resolving it
 against objects, so a codeword needs no thing, no vocabulary, no
 declaration anywhere: XANADU and 1451 are equally invisible to the
-dictionary and equally readable here. `typed` reads it back in the
-handler, three ways:
+dictionary and equally readable here. In the handler the slot reads back
+under two plain names, each the honest one for its kind of input. `text`
+is the absorbed words, exactly as written:
 
 ```
 on type terminal
-    if typed is "xanadu"
+    if text is "xanadu"
         say "The terminal chirps. The airlock unbolts."
     else
-        if typed is "open sesame"
+        if text is "open sesame"
             say "A drawer slides open."
         else
-            say "The terminal rejects \"${typed}\"."
-
-on set dial
-    if typed_number > 0
-        if typed_number < 5
-            change dial.reading to typed_number
-            say "The dial clicks to ${dial.reading}."
-            stop
-    say "The dial has no setting called \"${typed}\"."
+            say "The terminal rejects \"${text}\"."
 ```
 
-The facts, exactly:
+and `number` is the same input read as a number, for the machines that
+want one:
 
-- `typed is "..."` compares the absorbed words against the literal as raw
+```
+on set dial
+    if number > 0
+        if number < 5
+            change dial.reading to number
+            say "The dial clicks to ${number}."
+            stop
+    say "The dial has no setting called \"${text}\"."
+```
+
+The slot keyword and the reading share the name on purpose: a grammar
+line's `noun` reads back as `noun` in the handler, and its `text` reads
+back as `text`, the same symmetry. The facts, exactly:
+
+- `text is "..."` compares the absorbed words against the literal as raw
   typed text: one to three words, in order, case never matters. The
   compiler adds the literal's words to the dictionary itself, so the test
   costs a handful of bytes per distinct literal and nothing else. Both
   sides truncate the way all dictionary words do, so very long words
   compare by their significant length.
-- `${typed}` (and `say typed`) prints the absorbed words back exactly as
+- `${text}` (and `say text`) prints the absorbed words back exactly as
   the player wrote them, which is how a refusal echoes: TYPE SWORDFISH
   INTO TERMINAL answers with "swordfish" in your own sentence,
   dictionary or not.
-- `typed_number` is the first absorbed word as a number: up to four
-  digits (9999 is the honest ceiling of the Z-machine's word), and 0
-  whenever the word is not digits through and through, so one comparison
-  covers the wrong range and the not-a-number case together.
+- `number` is the first absorbed word as a number: up to four digits
+  (9999 is the honest ceiling of the Z-machine's word), and 0 whenever
+  the word is not digits through and through, so one comparison covers
+  the wrong range and the not-a-number case together.
 - An EMPTY slot never reaches your handler: TYPE INTO KEYPAD stops at the
   loop's central ask, like every incomplete command.
-- A story data name called `typed` wins over all of this, the same
-  most-specific rule as everywhere; and an object with no handler for
-  your verb falls through to the ordinary refusal chain, so SET STATUE
-  TO 1 answers without a line of your code.
+- A story data name called `text` or `number` (a global, a local) wins
+  over the reading in its scope, the same most-specific rule as
+  everywhere; and an object with no handler for your verb falls through
+  to the ordinary refusal chain, so SET STATUE TO 1 answers without a
+  line of your code.
 
 The worked showcase is
-[examples/features/typed.storyarc](../examples/features/typed.storyarc).
+[examples/features/text-slot.storyarc](../examples/features/text-slot.storyarc).
 
 Pay for use: the matcher and the packs' tabled-verb branches sit behind the
 `any_tables` compile-time flag, so a game whose verbs all fit the flag model
