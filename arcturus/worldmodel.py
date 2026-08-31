@@ -318,10 +318,13 @@ def needs_table(verb: Verb) -> bool:
                     break
                 return True  # a literal before any slot
     # A text slot exists only in the table: the flag model resolves nouns and
-    # has no way to absorb a subject range (consult noun about text).
+    # has no way to absorb a subject range (consult noun about text). The
+    # typed input slots (letters, number, anychar) are the same absorb with a
+    # class check, so they table their verb the same way.
     for line in verb.grammar:
         for it in line.items:
-            if isinstance(it, ast.Slot) and it.kind == "text":
+            if isinstance(it, ast.Slot) and it.kind in (
+                    "text", "letters", "number", "anychar"):
                 return True
     actions = {line.action for line in verb.grammar}
     shapes = {line_shape(line) for line in verb.grammar}

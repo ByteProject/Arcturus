@@ -45,7 +45,8 @@ _META_KEYS = frozenset(
     {"title", "headline", "author", "copyright", "release", "serial", "UUID", "start"}
 )
 
-_GRAMMAR_SLOTS = frozenset({"held", "multi", "text", "direction"})
+_GRAMMAR_SLOTS = frozenset({"held", "multi", "text", "direction",
+                            "letters", "number", "anychar"})
 
 
 class Parser:

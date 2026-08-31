@@ -12722,3 +12722,35 @@ types CODEWORDS, not numbers, and the docs and example had led with
 digits everywhere; the terminal now takes XANADU and OPEN SESAME, the
 dial keeps the numbers, which is where numbers belong. Goldens
 byte-identical; suite green; H2 360 of 360.
+
+## The grammar line says what the machine accepts: letters, number,
+## anychar (arcc 1.14.3, Cosmos 1.17.3, 2026-08-31)
+
+Stefan rejected the readers twice more and then named the actual
+assignment, which I had misread from the start: the readability
+belongs in the GRAMMAR LINE, not in the handler. His sketch became the
+design: three typed input slots, `speak letters to noun`, `set noun to
+number`, `type anychar into noun`, each line declaring what its
+machine accepts. The matcher ENFORCES the class, a wrong kind of input
+simply does not match the line, so one verb routes by input kind
+(dial number into noun beside whisper letters into noun, the wording-
+selects-action table at work), and the handler reads the input under
+the slot's own name, the noun symmetry: ${letters}, ${number},
+${anychar}. The bare text/number readers from the same day are
+retired outright, no alias; ASK keeps its classic `text` subject slot,
+which is conversation, not machine input (Stefan's boundary).
+
+Mechanics: three new table tokens behind an any_typed_slots fold; the
+noun-slot arm of try_line appears twice around a static if because the
+routine sits at the Z-machine's 15-local ceiling, so a game with no
+typed slot compiles the bare arm alone and every tabled game stays
+byte-identical (proven on cloak, which carries ASK's table). letters
+admits the accented range, so Spanish and German input passes. One
+absorbing slot per line is a compile error. Empty absorb marks the
+command incomplete; wrong class with no other line answers "You lost
+me after that." before any handler.
+
+The Signal Room is three machines now, one slot each; the handbook
+section is rewritten around the slots (grammar spec, matcher token
+list, and the compile-time rules updated with it); suite green; H2
+360 of 360.

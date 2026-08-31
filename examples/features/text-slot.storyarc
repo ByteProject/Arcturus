@@ -3,26 +3,29 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for the text slot's readings (docs/01 chapter 14): an
-// author's own verb line carries a `text` slot, and whatever the player
-// wrote there reads back under two plain names, `text` (the words,
-// compared against a literal or echoed verbatim) and `number` (the same
-// input as a number). Keypads, dials, passwords, and every machine with
-// an input surface ride the same two readings. Compile and run:
+// A showcase for the typed input slots (docs/01 chapter 14): a verb's own
+// grammar line declares WHAT a machine accepts. `letters` matches letter
+// words only, `number` one all-digit word, `anychar` anything, and the
+// matcher enforces the class, so a line only fires for its kind of input.
+// In the handler the input reads back under the slot's own name:
+// ${letters}, ${number}, ${anychar}. Three machines below, one slot each.
+// Compile and run:
 //
 //   arcc examples/features/text-slot.storyarc -o signals.z5
 //   frotz signals.z5
 //
-// TRY: type xanadu into terminal (a codeword no dictionary knows) /
-//      type open sesame into terminal (a two-word literal) /
-//      type swordfish into terminal (the echo refusal) /
-//      set dial to 3 / set dial to 9 (out of range) /
-//      set dial to fun (not a number) / set lamp to 2 (not settable:
-//      the ordinary refusal chain answers)
+// TRY: speak xanadu to terminal (the codeword) /
+//      speak open sesame to terminal (a two-word literal) /
+//      speak swordfish to terminal (the echo refusal) /
+//      speak k9 to terminal (not letters: the line does not match) /
+//      set dial to 3 / set dial to 9 (the author's range refuses) /
+//      set dial to red (not a number: no line fits) /
+//      type hello12323 into keypad (anychar takes it all) /
+//      set lamp to 2 (no handler: the ordinary refusal chain answers)
 
 game
     title "The Signal Room"
-    headline "A text-slot showcase"
+    headline "A typed-slots showcase"
     author "Stefan Vogt"
     start signals
 
@@ -31,11 +34,17 @@ summon.statusline
 room signals
     name "Signal Room"
     desc "Racks of dead receivers. Alive in the middle: a terminal by the
-          airlock and a bakelite dial numbered 1 to 4. A lamp hangs low."
+          airlock, a keypad under it, and a bakelite dial numbered 1 to 4.
+          A lamp hangs low."
 
 thing terminal in signals
     name "terminal"
     words terminal
+    fixed
+
+thing keypad in signals
+    name "keypad"
+    words keypad
     fixed
 
 thing dial in signals
@@ -51,39 +60,45 @@ thing lamp in signals
     words lamp
     fixed
 
-// The grammar is the author's: any verb, any line, `text` where the free
-// words go. The slot absorbs what was typed without resolving it against
-// objects, so a codeword needs no thing and no vocabulary.
+// Each line says what its machine accepts; the matcher holds it to that.
+verb "speak"
+    speak letters to noun
+
 verb "type"
-    type text into noun
+    type anychar into noun
 
 verb "set", "adjust"
-    set noun to text
+    set noun to number
 
-on type terminal
-    // `text is "..."`: the absorbed words against a literal, one to three
-    // words, raw text. The compiler puts the literal's words in the
+on speak terminal
+    // `letters is "..."`: the absorbed words against a literal, one to
+    // three words, raw text. The compiler puts the literal's words in the
     // dictionary itself; nothing to declare.
-    if text is "xanadu"
+    if letters is "xanadu"
         say "The terminal chirps. The airlock unbolts somewhere out of
              sight."
     else
-        if text is "open sesame"
+        if letters is "open sesame"
             say "Charming. The terminal is not amused, but a drawer under
                  it slides open."
         else
-            // ${text} echoes the words exactly as the player wrote them.
-            say "The terminal rejects \"${text}\" with a flat little
+            // ${letters} echoes the words exactly as the player wrote them.
+            say "The terminal rejects \"${letters}\" with a flat little
                  buzz."
 
 on set dial
-    // `number`: the same input as a number (up to four digits); anything
-    // else reads 0, so one comparison covers both the wrong range and the
-    // not-a-number case. The refusal echoes through ${text}: an echo is
-    // words, whatever was typed.
+    // `number` is the value itself: compare it, store it, print it. The
+    // matcher already guaranteed digits, so only the RANGE is yours to
+    // police.
     if number > 0
         if number < 5
             change dial.reading to number
             say "The dial clicks to ${number}."
             stop
-    say "The dial has no setting called \"${text}\"."
+    say "The dial only goes 1 to 4, not ${number}."
+
+on type keypad
+    // anychar takes codes the other classes refuse: letters, digits, or
+    // both in one word.
+    say "You key in \"${anychar}\". The keypad blinks twice, keeping its
+         opinion to itself."

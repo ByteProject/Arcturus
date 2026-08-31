@@ -3223,8 +3223,9 @@ Such a verb compiles to a GRAMMAR TABLE in static memory. Its dictionary
 entry is flagged as a tabled verb and its data bytes hold the table's address
 instead of an action and an arity. The table is the verb's lines in matcher
 order: per line an action byte, one byte per token (noun, held, multi, text,
-direction; a literal word carries its dictionary address), and a closing
-zero; a zero in action position ends the table. Matcher order is most literal words first, so
+direction, and the typed input slots letters, number, anychar; a literal
+word carries its dictionary address), and a closing zero; a zero in action
+position ends the table. Matcher order is most literal words first, so
 `dig in noun with held` is probed before `dig noun`, whose bare slot would
 absorb the literals; among literal-free lines, fewest tokens first, so a bare
 `dig` catches DIG before `dig noun` matches it with an empty slot. The sort
@@ -3268,80 +3269,102 @@ arity byte has no room for "and a direction word may stand here", and only
 The rules a positional verb must follow are checked at compile time: two
 noun slots per line at most, a literal word between two noun slots (the
 adjacent-noun `reverse` form stays a flag-model feature), single-word verb
-synonyms, and at most one `direction` slot, closing its line.
+synonyms, at most one `direction` slot, closing its line, and one
+absorbing slot per line (text, letters, number, or anychar).
 
-### Reading the text slot: text and number
+### Machines with input surfaces: letters, number, anychar
 
-The `text` slot is not only for ASK. Put it in your own verb's grammar and
-you have a machine with an input surface: a terminal that takes codewords,
-the Hibernated 1 shape (TYPE <codeword> INTO TERMINAL), a password door, a
-keypad, a dial. Declare the verb and the line yourself, `text` where the
-free words go:
+A machine the player talks values at, a terminal that takes codewords (the
+Hibernated 1 shape, TYPE <codeword> INTO TERMINAL), a password door, a
+keypad, a dial: declare your own verb, and put a TYPED INPUT SLOT on the
+grammar line where the free input goes. There are three, and the line
+itself says what the machine accepts:
 
 ```
-verb "type"
-    type text into noun
+verb "speak"
+    speak letters to noun     // letter words only: SPEAK FRIEND TO DOOR
 
 verb "set", "adjust"
-    set noun to text
+    set noun to number        // one all-digit word: SET DIAL TO 3
+
+verb "type"
+    type anychar into noun    // anything at all: TYPE HELLO12323 INTO TERMINAL
 ```
 
 The slot absorbs whatever the player wrote there WITHOUT resolving it
-against objects, so a codeword needs no thing, no vocabulary, no
-declaration anywhere: XANADU and 1451 are equally invisible to the
-dictionary and equally readable here. In the handler the slot reads back
-under two plain names, each the honest one for its kind of input. `text`
-is the absorbed words, exactly as written:
+against objects, so the input needs no thing, no vocabulary, no
+declaration anywhere. And the class is ENFORCED BY THE MATCHER: a line
+whose slot is `number` simply does not match SET DIAL TO RED, the same
+way a line whose literal is "with" does not match a command without it.
+Because a line's wording picks its action on the table model, one verb
+can route by input kind:
 
 ```
-on type terminal
-    if text is "xanadu"
+verb "dial"
+    dial number into noun     // DIAL 42 INTO SAFE -> the dial action
+    whisper letters into noun // DIAL SESAME INTO SAFE -> whisper
+```
+
+In the handler the input reads back UNDER THE SLOT'S OWN NAME, the same
+symmetry a grammar line's `noun` has always had:
+
+```
+on speak terminal
+    if letters is "xanadu"
         say "The terminal chirps. The airlock unbolts."
     else
-        if text is "open sesame"
+        if letters is "open sesame"
             say "A drawer slides open."
         else
-            say "The terminal rejects \"${text}\"."
-```
+            say "The terminal rejects \"${letters}\"."
 
-and `number` is the same input read as a number, for the machines that
-want one:
-
-```
 on set dial
     if number > 0
         if number < 5
             change dial.reading to number
             say "The dial clicks to ${number}."
             stop
-    say "The dial has no setting called \"${text}\"."
+    say "The dial only goes 1 to 4, not ${number}."
+
+on type keypad
+    say "You key in \"${anychar}\"."
 ```
 
-The slot keyword and the reading share the name on purpose: a grammar
-line's `noun` reads back as `noun` in the handler, and its `text` reads
-back as `text`, the same symmetry. The facts, exactly:
+The facts, exactly:
 
-- `text is "..."` compares the absorbed words against the literal as raw
-  typed text: one to three words, in order, case never matters. The
-  compiler adds the literal's words to the dictionary itself, so the test
-  costs a handful of bytes per distinct literal and nothing else. Both
-  sides truncate the way all dictionary words do, so very long words
-  compare by their significant length.
-- `${text}` (and `say text`) prints the absorbed words back exactly as
-  the player wrote them, which is how a refusal echoes: TYPE SWORDFISH
-  INTO TERMINAL answers with "swordfish" in your own sentence,
-  dictionary or not.
-- `number` is the first absorbed word as a number: up to four digits
-  (9999 is the honest ceiling of the Z-machine's word), and 0 whenever
-  the word is not digits through and through, so one comparison covers
-  the wrong range and the not-a-number case together.
-- An EMPTY slot never reaches your handler: TYPE INTO KEYPAD stops at the
-  loop's central ask, like every incomplete command.
-- A story data name called `text` or `number` (a global, a local) wins
-  over the reading in its scope, the same most-specific rule as
-  everywhere; and an object with no handler for your verb falls through
-  to the ordinary refusal chain, so SET STATUE TO 1 answers without a
-  line of your code.
+- `letters` accepts one or more words of letters through and through, the
+  accented range included, so Spanish and German input passes. `anychar`
+  accepts one or more words of anything. `number` accepts exactly one
+  word, digits through and through, up to four of them (9999 is the
+  honest ceiling of the Z-machine's word).
+- `letters is "..."` and `anychar is "..."` compare the absorbed words
+  against the literal as raw typed text: one to three words, in order,
+  case never matters. The compiler adds the literal's words to the
+  dictionary itself, so the test costs a handful of bytes per distinct
+  literal and nothing else. Both sides truncate the way all dictionary
+  words do, so very long words compare by their significant length.
+- `${letters}` and `${anychar}` (and the say forms) print the absorbed
+  words back exactly as the player wrote them, which is how a refusal
+  echoes: TYPE SWORDFISH INTO TERMINAL answers with "swordfish" in your
+  own sentence, dictionary or not.
+- `number` is the value itself, a plain number in comparisons,
+  arithmetic, and `${number}`.
+- Input of the wrong class means the LINE does not match: with no other
+  line to catch it, the parser answers "You lost me after that.", before
+  any handler. An EMPTY slot marks the command incomplete and the loop's
+  central ask answers. Either way your handler only ever sees input of
+  the declared class.
+- One absorbing slot per line (`text` included): two would fight over
+  the same input, and the compiler says so.
+- A story data name spelled `letters`, `number`, or `anychar` (a global,
+  a local) wins over the reading in its scope, the same most-specific
+  rule as everywhere; and an object with no handler for your verb falls
+  through to the ordinary refusal chain, so SET STATUE TO 1 answers
+  without a line of your code.
+
+(ASK's own grammar keeps its classic `text` slot: a conversation SUBJECT
+is matched against topics by the conversation layer, a different job than
+machine input. The typed slots are for machines.)
 
 The worked showcase is
 [examples/features/text-slot.storyarc](../examples/features/text-slot.storyarc).
@@ -6256,6 +6279,7 @@ grain          := verbs words ( "say" string | "do" id
 verb_decl      := "verb" string { "," string } INDENT { grammar } DEDENT
 grammar        := id { slot | word }
 slot           := "noun" | "held" | "multi" | "text"
+                | "letters" | "number" | "anychar"
 
 block_decl     := "block" id "(" [ params ] ")" INDENT { statement } DEDENT
 global_decl    := "global" id "=" expr

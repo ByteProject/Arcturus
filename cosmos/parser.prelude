@@ -484,13 +484,46 @@ block try_line(line, n)
                     change topic_lo to p
                     change topic_hi to edge
                 else
-                    change slots to slots + 1
-                    if slots is 1
-                        change s1lo to p
-                        change s1hi to edge
+                    // The noun-slot arm appears twice below, once on each
+                    // side of a STATIC if: any_typed_slots folds at compile
+                    // time, so a game with no typed slot compiles only the
+                    // bare arm and every tabled game stays byte-identical
+                    // (try_line sits at the 15-local ceiling, so no scratch
+                    // variable could carry the decision instead).
+                    if any_typed_slots is 1
+                        if t >= 7
+                            // A typed input slot (letters 7, number 8,
+                            // anychar 9): the same absorb as text, plus the
+                            // class the line declares. A wrong class means
+                            // this LINE does not match, so lines route by
+                            // input kind (SET DIAL TO 3 takes the number
+                            // line, TO RED falls past it). An empty absorb
+                            // marks the command incomplete: the loop's
+                            // central ask answers, and no handler ever sees
+                            // an empty slot.
+                            if p is edge
+                                change incomplete to 1
+                                return 1
+                            if slot_class_ok(t, p, edge) is 0
+                                return 0
+                            change topic_lo to p
+                            change topic_hi to edge
+                        else
+                            change slots to slots + 1
+                            if slots is 1
+                                change s1lo to p
+                                change s1hi to edge
+                            else
+                                change s2lo to p
+                                change s2hi to edge
                     else
-                        change s2lo to p
-                        change s2hi to edge
+                        change slots to slots + 1
+                        if slots is 1
+                            change s1lo to p
+                            change s1hi to edge
+                        else
+                            change s2lo to p
+                            change s2hi to edge
                 change p to edge
                 change tok to tok + 1
         change t to peek_byte(tok)
@@ -1194,6 +1227,41 @@ block show_dir_word(at, cap)
         change i to i + 1
     return 0
 
+
+// Does the absorbed range [lo, hi) satisfy a typed slot's class? letters
+// (7) wants letter words through and through, the accented ZSCII range
+// included, so Spanish and German input passes; number (8) wants exactly
+// one word, digits through and through; anychar (9) takes anything.
+block slot_class_ok(t, lo, hi)
+    if t is 9
+        return 1
+    if t is 8
+        let k = hi - lo
+        if k is not 1
+            return 0
+    let p = lo
+    while p < hi
+        let a = word_pos(p) - 2
+        let n = word_len(p)
+        let i = 0
+        while i < n
+            let c = text_char(a + i)
+            if t is 8
+                if c < 48
+                    return 0
+                if c > 57
+                    return 0
+            else
+                if c < 97
+                    return 0
+                if c > 122
+                    if c < 155
+                        return 0
+                    if c > 223
+                        return 0
+            change i to i + 1
+        change p to p + 1
+    return 1
 
 // ==========================================================================
 // The text readings (docs/01 chapter 14): friendly forms of the words a

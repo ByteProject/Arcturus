@@ -1143,7 +1143,11 @@ def build_story(
     grammar_fixups: list = []  # (absolute position, literal word)
     # 6 is a `direction` slot: it consumes one direction-flagged word (the
     # value rides `way`, which the parser binds before the tables run).
-    slot_codes = {"noun": 1, "held": 2, "multi": 3, "text": 4, "direction": 6}
+    # 7, 8, 9 are the typed input slots (docs/01 chapter 14): they absorb
+    # like text and then enforce a character class, so a line matches only
+    # the input kind it declares (letters, one all-digit token, anything).
+    slot_codes = {"noun": 1, "held": 2, "multi": 3, "text": 4, "direction": 6,
+                  "letters": 7, "number": 8, "anychar": 9}
     tabled = wm.tabled_verbs(world) if layout is not None else []
     if tabled:
         actions_map = _action_numbers(world)

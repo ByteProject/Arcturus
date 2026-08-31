@@ -943,6 +943,16 @@ class Analyzer:
                         f"slots",
                         verb.line,
                     )
+                absorbs = [it for it in slots
+                           if it.kind in ("text", "letters", "number",
+                                          "anychar")]
+                if len(absorbs) > 1:
+                    raise self._error(
+                        f"verb '{head}': one absorbing slot per line (text, "
+                        f"letters, number, or anychar); two would fight over "
+                        f"the same input",
+                        verb.line,
+                    )
                 if line.reverse:
                     raise self._error(
                         f"verb '{head}': `reverse` is not available on a verb "
@@ -2299,11 +2309,11 @@ class Analyzer:
         from .lower import INTRINSICS
         if name in INTRINSICS:
             return
-        # `text`, the slot's absorbed words (docs/01 chapter 14): legal in
-        # its forms (compared, printed; `number` is the numeric reading, an
-        # ordinary block); lower explains itself if it is misused as a
-        # plain value.
-        if name == "text":
+        # `letters` and `anychar`, a typed input slot's absorbed words
+        # (docs/01 chapter 14): legal in their forms (compared, printed;
+        # `number` is the numeric reading, an ordinary block); lower
+        # explains itself if one is misused as a plain value.
+        if name in ("letters", "anychar"):
             return
         if name == "direction":
             raise self._error(

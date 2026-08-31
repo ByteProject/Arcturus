@@ -194,7 +194,7 @@ CEILINGS = {
     "features/scoring.storyarc": 19760,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/spans.storyarc": 17676,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/vehicles.storyarc": 18232,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/text-slot.storyarc": 18160,  # 2026-08-31 new: the text-slot showcase (carries the unruled tail: its free rules are patterned)
+    "features/text-slot.storyarc": 18480,  # 2026-08-31 repriced: three machines, one typed slot each (letters/number/anychar)
     "granules/carryweight.storyarc": 18232,  # 2026-08-30 new: the weight-budget showcase
     "granules/ambience.storyarc": 19488,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/conversations.storyarc": 19196,  # 2026-08-20 repriced: the bar paints its left side only when it changed

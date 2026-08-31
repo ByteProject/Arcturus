@@ -6,16 +6,17 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
-- **Machines you can type at: text and number.** Put the `text` slot
-  in your own verb's grammar (`type text into noun`, `set noun to
-  text`) and the slot absorbs whatever the player wrote, no vocabulary
-  declared anywhere: TYPE XANADU INTO TERMINAL, the Hibernated 1
-  codeword shape, and SET DIAL TO 3, passwords, frequencies, codes.
-  In the handler the input reads back under two plain names: `text` is
-  the words (`if text is "xanadu"`, echoed verbatim by `${text}` in
-  your refusals) and `number` is the numeric reading (`if number > 0`),
-  so a dial is one handler and an if. Works in all three languages out
-  of the box (arcc 1.14.2, Cosmos 1.17.2).
+- **Machines you can type at: typed input slots.** A verb's own
+  grammar line now declares what a machine accepts: `speak letters to
+  noun` matches letter words only (SPEAK FRIEND TO DOOR, the
+  Hibernated 1 codeword shape), `set noun to number` one all-digit
+  word (SET DIAL TO 3), `type anychar into noun` anything at all, and
+  the matcher enforces the class, so one verb can route by input kind.
+  No vocabulary is declared anywhere, and the input reads back under
+  the slot's own name: `if letters is "xanadu"`, `${letters}` echoed
+  verbatim in your refusals, `number` as a plain value. A dial is one
+  handler and an if. Works in all three languages out of the box
+  (arcc 1.14.3, Cosmos 1.17.3).
 - **Carrying, three ways.** Declare nothing and the player carries
   everything, as before. `constant item_cap = N` is the classic item
   limit, now counted honestly: what is inside a carried sack counts,

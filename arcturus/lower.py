@@ -121,7 +121,7 @@ INTRINSICS = frozenset({
     # grammar needs a table, docs/01 chapter 14): the packs and the matcher
     # guard on it, so a game whose verbs all fit the flag model folds the whole
     # table path away and its story file is byte-identical.
-    "any_tables",
+    "any_tables", "any_typed_slots",
     # any_swap is the compile-time flag for the reversed prepositional line
     # (`fill noun with noun reverse`, the pour phrasing): 1 if any flag-model
     # verb carries one. The packs guard the summary-bit decode and the
@@ -548,13 +548,15 @@ def eval_expr(rt: Routine, ctx: Context, expr, dest=None) -> None:
         if c is not None:
             eval_expr(rt, ctx, c.value, dest)
             return
-        if expr.ident == "text" and expr.ident not in ctx.named \
+        if expr.ident in ("letters", "anychar") \
+                and expr.ident not in ctx.named \
                 and expr.ident not in ctx.globals \
                 and expr.ident not in ctx.world.blocks:
             raise LowerError(
-                'text holds the slot\'s words, not a value: compare it '
-                '(text is "word"), print it (${text}), or read the number '
-                'form (number)', expr.line)
+                f'{expr.ident} holds the slot\'s words, not a value: '
+                f'compare it ({expr.ident} is "word") or print it '
+                f'(${{{expr.ident}}}); a number slot reads through `number`',
+                expr.line)
 
     if isinstance(expr, ast.Binary):
         if expr.op in _ARITH:
@@ -1499,6 +1501,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # the grammar-table matcher and the packs' tabled-verb branches fold
         # away in a game whose verbs all fit the flag model.
         _place(rt, Const(_any_tables(ctx)), dest)
+    elif name == "any_typed_slots":
+        # any_typed_slots(): 1 when any verb grammar line carries a typed
+        # input slot (letters, number, anychar), so the matcher's class
+        # branch and slot_class_ok fold away in every other game and the
+        # story file does not grow by a byte.
+        _place(rt, Const(_any_typed_slots(ctx)), dest)
     elif name == "any_swap":
         _place(rt, Const(_any_swap(ctx)), dest)
     elif name == "dir_name":
@@ -2561,25 +2569,27 @@ def _emit_test(rt, ctx, expr, label, on_true):
                 rt.op("je", Variable(ctx.globals["verb_trigger"]),
                       DictWordRef(word), branch=(label, t))
                 return
-        # `if text is "xanadu"`: against text (the slot's absorbed words,
-        # docs/01 chapter 14), a string literal compares as the word
-        # sequence the player wrote. Each literal word is a dictionary entry
-        # this compiler added (text_literal_words), and the text_is_N
-        # block matches the absorbed range against them, so a codeword needs
-        # no object and no declared vocabulary. A story data name called
-        # text wins instead, as data does everywhere.
+        # `if letters is "xanadu"` / `if anychar is "k9"`: against a typed
+        # input slot's absorbed words (docs/01 chapter 14), a string literal
+        # compares as the word sequence the player wrote. Each literal word
+        # is a dictionary entry this compiler added (slot_literal_words),
+        # and the text_is_N block matches the absorbed range against them,
+        # so a codeword needs no object and no declared vocabulary. A story
+        # data name of the same spelling wins instead, as data does
+        # everywhere.
         left_is_text = (isinstance(expr.left, ast.Name)
-                        and expr.left.ident == "text"
-                        and "text" not in ctx.named
-                        and "text" not in ctx.globals)
+                        and expr.left.ident in ("letters", "anychar")
+                        and expr.left.ident not in ctx.named
+                        and expr.left.ident not in ctx.globals)
         if left_is_text and isinstance(right, ast.StringLit):
             phrase = _plain_string(right)
             if phrase is not None:
                 ws = phrase.strip().lower().split()
                 if not 1 <= len(ws) <= 3:
                     raise LowerError(
-                        f'text compares against one to three words, and '
-                        f'"{phrase}" is {len(ws) or "none"}', expr.line)
+                        f'{expr.left.ident} compares against one to three '
+                        f'words, and "{phrase}" is {len(ws) or "none"}',
+                        expr.line)
                 from .assembler import DictWordRef
                 ops = [RoutineRef(f"blk_text_is_{len(ws)}")]
                 ops += [DictWordRef(w) for w in ws]
@@ -2763,6 +2773,17 @@ def _any_duals(ctx) -> int:
     if not grain_words:
         return 0
     return 1 if grain_words & _command_words(world) else 0
+
+
+def _any_typed_slots(ctx) -> int:
+    """1 when any verb grammar line carries a typed input slot."""
+    for verb in ctx.world.verbs:
+        for line in verb.grammar:
+            for it in line.items:
+                if isinstance(it, ast.Slot) and it.kind in (
+                        "letters", "number", "anychar"):
+                    return 1
+    return 0
 
 
 def _carry_limit(ctx) -> int:
@@ -3644,10 +3665,10 @@ def _say_threshold(rt, ctx, expr):
 
 
 def _say_value(rt, ctx, expr):
-    # ${text} / say text: the slot's absorbed words, printed back exactly
-    # as the player wrote them (the echo half of a refusal). A story data
-    # name called text wins, as everywhere.
-    if isinstance(expr, ast.Name) and expr.ident == "text" \
+    # ${letters} / ${anychar}: a typed slot's absorbed words, printed back
+    # exactly as the player wrote them (the echo half of a refusal). A
+    # story data name of the same spelling wins, as everywhere.
+    if isinstance(expr, ast.Name) and expr.ident in ("letters", "anychar") \
             and expr.ident not in ctx.named and expr.ident not in ctx.globals:
         rt.op("call_1n", RoutineRef("blk_print_text"))
         return
@@ -3877,6 +3898,8 @@ def _static_value(ctx, expr):
         return _any_binary(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_grains":
         return _any_grains(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_typed_slots":
+        return _any_typed_slots(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tables":
         return _any_tables(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_swap":
