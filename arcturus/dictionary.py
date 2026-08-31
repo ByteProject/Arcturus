@@ -175,6 +175,51 @@ def collect_vocab(world: wm.World) -> set:
     return words
 
 
+def _walk_child(child, walk):
+    """Recurse into a node attribute: any AST-module object (statements,
+    expressions, and carriers like IfClause), or a list of them."""
+    if type(child).__module__ == ast.__name__:
+        walk(child)
+    elif isinstance(child, (list, tuple)):
+        for c in child:
+            _walk_child(c, walk)
+
+
+def typed_literal_words(world: wm.World) -> set:
+    """Every word of every string literal compared against `typed` (the text
+    slot's raw reading, docs/01 chapter 14): `if typed is "1451"` can only be
+    true if "1451" is a dictionary word the tokenizer recognizes, so the
+    compiler adds the compared spellings itself. Only literals actually
+    compared enter the dictionary: a game that never reads the slot pays no
+    word."""
+    words: set = set()
+
+    def walk(node):
+        if isinstance(node, ast.IsTest) \
+                and isinstance(node.left, ast.Name) \
+                and node.left.ident == "typed" \
+                and isinstance(node.right, ast.StringLit):
+            lit = "".join(p.text for p in node.right.parts
+                          if isinstance(p, ast.StringText))
+            for w in lit.strip().lower().split():
+                words.add(w)
+        for child in getattr(node, "__dict__", {}).values():
+            _walk_child(child, walk)
+
+    def walk_body(body):
+        for st in body or []:
+            walk(st)
+
+    for h in world.all_handlers():
+        walk_body(h.body)
+    for blk in world.blocks.values():
+        walk_body(getattr(blk, "body", None))
+    for obj in list(world.objects.values()) + list(world.kinds.values()):
+        for topic in obj.topics:
+            walk_body(getattr(topic, "body", None))
+    return words
+
+
 def _preposition_words(world: wm.World) -> set:
     """Literal preposition words in verb grammar (the "to" of give noun to noun),
     lowercased, so the parser can mark the boundary between two noun phrases."""
@@ -290,6 +335,7 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
     words |= all_words
     noise_words = set(world.noise_words)
     words |= noise_words
+    words |= typed_literal_words(world)
     encoded = {w: zstring.encode_dict_word(w) for w in words}
     # Map each distinct encoded entry to its three data bytes.
     enc_data: dict[bytes, bytes] = {}

@@ -1,0 +1,86 @@
+// typed.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the typed surface (docs/01 chapter 14): an author's own
+// verb line carries a `text` slot, and `typed` reads whatever the player
+// wrote there, dictionary word or not. Compared against a literal, printed
+// back verbatim, or read as a number: keypads, dials, passwords, and every
+// machine with an input surface ride the same three readings. Compile and
+// run:
+//
+//   arcc examples/features/typed.storyarc -o signals.z5
+//   frotz signals.z5
+//
+// TRY: type 1451 into keypad (a code no dictionary knows) /
+//      type open sesame into keypad (a two-word literal) /
+//      type swordfish into keypad (the echo refusal) /
+//      set dial to 3 / set dial to 9 (out of range) /
+//      set dial to fun (not a number) / set lamp to 2 (not settable:
+//      the ordinary refusal chain answers)
+
+game
+    title "The Signal Room"
+    headline "A typed showcase"
+    author "Stefan Vogt"
+    start signals
+
+summon.statusline
+
+room signals
+    name "Signal Room"
+    desc "Racks of dead receivers. Alive in the middle: a keypad by the
+          door and a bakelite dial numbered 1 to 4. A lamp hangs low."
+
+thing keypad in signals
+    name "keypad"
+    words keypad
+    fixed
+
+thing dial in signals
+    name "bakelite dial"
+    words dial, bakelite
+    fixed
+    reading 1
+    desc block
+        say "Numbered 1 to 4, standing at ${self.reading}."
+
+thing lamp in signals
+    name "lamp"
+    words lamp
+    fixed
+
+// The grammar is the author's: any verb, any line, `text` where the free
+// words go. The slot absorbs what was typed without resolving it against
+// objects, so 1451 needs no thing and no vocabulary.
+verb "type"
+    type text into noun
+
+verb "set", "adjust"
+    set noun to text
+
+on type keypad
+    // `typed is "..."`: the absorbed words against a literal, one to three
+    // words, raw text. The compiler puts the literal's words in the
+    // dictionary itself; nothing to declare.
+    if typed is "1451"
+        say "The keypad chirps. The door unbolts somewhere out of sight."
+    else
+        if typed is "open sesame"
+            say "Charming. The keypad is not amused, but a drawer under it
+                 slides open."
+        else
+            // ${typed} echoes the words exactly as the player wrote them.
+            say "The keypad rejects \"${typed}\" with a flat little buzz."
+
+on set dial
+    // typed_number: the first absorbed word as a number (up to four
+    // digits); anything else reads 0, so one comparison covers both the
+    // wrong range and the not-a-number case.
+    if typed_number > 0
+        if typed_number < 5
+            change dial.reading to typed_number
+            say "The dial clicks to ${dial.reading}."
+            stop
+    say "The dial has no setting called \"${typed}\"."

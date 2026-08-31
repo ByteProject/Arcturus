@@ -3270,6 +3270,70 @@ noun slots per line at most, a literal word between two noun slots (the
 adjacent-noun `reverse` form stays a flag-model feature), single-word verb
 synonyms, and at most one `direction` slot, closing its line.
 
+### Reading the text slot: typed
+
+The `text` slot is not only for ASK. Put it in your own verb's grammar and
+you have a machine with an input surface: a keypad, a dial, a password, a
+terminal that takes commands, the Hibernated 1 shape (TYPE 1451 INTO
+TERMINAL). Declare the verb and the line yourself, `text` where the free
+words go:
+
+```
+verb "type"
+    type text into noun
+
+verb "set", "adjust"
+    set noun to text
+```
+
+The slot absorbs whatever the player wrote there WITHOUT resolving it
+against objects, so 1451 needs no thing, no vocabulary, no declaration
+anywhere. `typed` reads it back in the handler, three ways:
+
+```
+on type keypad
+    if typed is "1451"
+        say "The keypad chirps. The door unbolts."
+    else
+        if typed is "open sesame"
+            say "A drawer slides open."
+        else
+            say "The keypad rejects \"${typed}\"."
+
+on set dial
+    if typed_number > 0
+        if typed_number < 5
+            change dial.reading to typed_number
+            say "The dial clicks to ${dial.reading}."
+            stop
+    say "The dial has no setting called \"${typed}\"."
+```
+
+The facts, exactly:
+
+- `typed is "..."` compares the absorbed words against the literal as raw
+  typed text: one to three words, in order, case never matters. The
+  compiler adds the literal's words to the dictionary itself, so the test
+  costs a handful of bytes per distinct literal and nothing else. Both
+  sides truncate the way all dictionary words do, so very long words
+  compare by their significant length.
+- `${typed}` (and `say typed`) prints the absorbed words back exactly as
+  the player wrote them, which is how a refusal echoes: SET DIAL TO FUN
+  answers with "fun" in your own sentence, dictionary or not.
+- `typed_number` is the first absorbed word as a number: up to four
+  digits (9999 is the honest ceiling of the Z-machine's word), and 0
+  whenever the word is not digits through and through, so one comparison
+  covers the wrong range and the not-a-number case together.
+- An EMPTY slot never reaches your handler: TYPE INTO KEYPAD stops at the
+  loop's central ask, like every incomplete command.
+- A story data name called `typed` wins over all of this, the same
+  most-specific rule as everywhere; and an object with no handler for
+  your verb falls through to the ordinary refusal chain, so SET STATUE
+  TO 1 answers without a line of your code.
+
+The worked showcase is
+[examples/features/typed.storyarc](../examples/features/typed.storyarc).
+
 Pay for use: the matcher and the packs' tabled-verb branches sit behind the
 `any_tables` compile-time flag, so a game whose verbs all fit the flag model
 folds the whole path away and its story file does not grow by a byte. A game

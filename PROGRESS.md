@@ -12654,3 +12654,48 @@ lint learned intrinsic-read properties. Suite 1564 -> 1584; H2 360 of
 360 at every milestone; WHATSNEW leads with the feature at five
 entries; the handbook gains "Carrying, three ways" (chapter 6), the
 carryweight granule section (chapter 22), and the slimmed take row.
+
+## Machines you can type at: the typed surface over the text slot
+## (arcc 1.14.1, Cosmos 1.17.1, 2026-08-31)
+
+EdwardianDuck wanted a dial (SET DIAL TO 3, TO TWO, a refusal naming
+the bad word) and built it the hard way: a phantom scenery object
+carrying the value words, msg_unknown_word overridden "in interesting
+ways". STEFAN'S RULING reshaped the answer twice: not a settable
+property ("you think too specific about SET. And you think too
+specific about numbers") but a general grammar the author writes,
+the Hibernated 1 shape (TYPE word INTO NOUN).
+
+THE RECON THAT SHRANK IT. The grammar already had the slot: `text` is
+author-usable in any verb's table line, the matcher and all three
+packs carry it (ASK's machinery), and a probe proved TYPE 1451 INTO
+TERMINAL compiles, matches, and dispatches today, "1451" in no
+dictionary. Only the reading surface was missing; the probe read the
+parse buffer by hand and got the offsets wrong, which is exactly the
+experience adopters were having.
+
+THE SURFACE. `typed`, after entry (the catalog read) and subject (the
+chapter 17 declaration) both collided. Three readings: `typed is
+"literal"` (one to three words, raw text, the compiler adds the
+literal's words to the dictionary itself), `${typed}` (the verbatim
+echo for refusals), and typed_number (up to four digits, else 0).
+Data wins: a story global named typed owns the name. The blocks live
+in the agnostic skeleton, dead code unless read; the goldens are
+byte-identical. Number words (TWO, ZWEI, DOS) are digits-only for
+now, ship-then-report.
+
+THE BUG THE EXAMPLE FLUSHED OUT. The Signal Room's TRY script ends
+with SET LAMP TO 2, and the turn was SILENT: any_unruled counted an
+object-filtered free handler (`on set dial`) as ruling its whole
+action, so the refusal tail folded away while SET LAMP fell through
+everything. Fixed: only an unconditional free rule (no object filter,
+no when guard) folds the tail. The example carries the tail now (+68
+bytes, priced in its ceiling) and answers "You can't do that to the
+lamp."
+
+Handbook chapter 14 gains "Reading the text slot: typed" (the
+four-point docs gate applied: declarations and handlers in full code
+blocks, the facts stated, the worked example linked); WHATSNEW rotates
+the typed surface in; examples/features/typed.storyarc compiled and
+played through its TRY script. Six new tests incl. German and Spanish;
+H2 360 of 360.

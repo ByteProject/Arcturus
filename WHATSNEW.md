@@ -6,6 +6,15 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Machines you can type at: the typed surface.** Put the `text` slot
+  in your own verb's grammar (`type text into noun`, `set noun to
+  text`) and the slot absorbs whatever the player wrote, no vocabulary
+  declared anywhere: TYPE 1451 INTO KEYPAD, SET DIAL TO 3, passwords,
+  frequencies, codes. `typed` compares it against your literals,
+  `${typed}` echoes it in your refusals exactly as typed, and
+  `typed_number` reads it as a number, so a dial is one handler and an
+  if. Works in all three languages out of the box (arcc 1.14.1,
+  Cosmos 1.17.1).
 - **Carrying, three ways.** Declare nothing and the player carries
   everything, as before. `constant item_cap = N` is the classic item
   limit, now counted honestly: what is inside a carried sack counts,
@@ -60,22 +69,6 @@ lives in the commit log. The feature roadmap follows below.
   character's own `on command`, which decides; the default politely
   refuses. Games that never summon it compile byte-identical, proven
   file by file (arcc 1.12.0, Cosmos 1.15.0).
-- **arc_image is finished: sixteen machines, every one proven on the
-  metal.** The retro graphics path is complete. One band-shaped master
-  painting converts to the native format of sixteen machines, from
-  the Amiga and the ST down to the C64 and C128, Spectrum, CPC,
-  Plus/4, MSX1 and 2, Atari 8-bit, TRS-80 Model 4, Apple II, Agon
-  Light, Spectrum Next and MEGA65, and every one of them carries a
-  reference loader verified pixel-perfect on accurate emulation. The
-  last round closed the hardest three: the Spectrum Next and the
-  MEGA65, where the conversion turns out to be the
-  IDENTITY (their palettes reach the master exactly, so the art
-  arrives untouched), and the Apple II, where color is not a palette
-  at all but an artifact of the NTSC signal, solved by a dynamic
-  program that chooses each of the 560 dots per scanline so the
-  decoder's own four-dot window shows the painting, reaching hues
-  between the machine's sixteen. Authors paint once; arcimg derives
-  the rest (arcimg 2.0.0).
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus

@@ -1194,3 +1194,87 @@ block show_dir_word(at, cap)
         change i to i + 1
     return 0
 
+
+// ==========================================================================
+// The typed surface (docs/01 chapter 14): friendly readings of the words a
+// grammar line's `text` slot absorbed (topic_lo/topic_hi, set by the
+// matcher above). `${typed}` prints them back verbatim; typed_number reads
+// the first as a number; the typed_is_* family answers the compiler's
+// `typed is "literal"` compare, each literal word a dictionary entry the
+// compiler added for exactly this test. All of it is dead code, pruned
+// whole, in a game that never reads the slot.
+// ==========================================================================
+
+// Print the absorbed words as typed, single spaces between them: the echo
+// half of a refusal ("The dial doesn't have a setting for ${typed}.").
+block print_typed()
+    let p = topic_lo
+    while p < topic_hi
+        if p > topic_lo
+            show_char(32)
+        let a = word_pos(p) - 2
+        let n = word_len(p)
+        let i = 0
+        while i < n
+            show_char(text_char(a + i))
+            change i to i + 1
+        change p to p + 1
+    return 0
+
+// The first absorbed word as a number: up to four digits (the Z-machine's
+// word is 16 bits; 9999 is the honest ceiling), 0 when the word is not
+// digits through and through, or nothing was absorbed at all.
+block typed_number()
+    let k = topic_hi - topic_lo
+    if k < 1
+        return 0
+    let a = word_pos(topic_lo) - 2
+    let n = word_len(topic_lo)
+    if n > 4
+        return 0
+    let v = 0
+    let i = 0
+    while i < n
+        let c = text_char(a + i)
+        if c < 48
+            return 0
+        if c > 57
+            return 0
+        change v to v * 10
+        change v to v + c
+        change v to v - 48
+        change i to i + 1
+    return v
+
+// typed is "word": exactly one absorbed word, and it is the one compared.
+// The dictionary truncates both sides the same way, so any length works.
+block typed_is_1(w)
+    let k = topic_hi - topic_lo
+    if k is not 1
+        return 0
+    if word_dict(topic_lo) is w
+        return 1
+    return 0
+
+// typed is "two words" / "up to three words": the phrase, in order.
+block typed_is_2(w1, w2)
+    let k = topic_hi - topic_lo
+    if k is not 2
+        return 0
+    if word_dict(topic_lo) is not w1
+        return 0
+    if word_dict(topic_lo + 1) is w2
+        return 1
+    return 0
+
+block typed_is_3(w1, w2, w3)
+    let k = topic_hi - topic_lo
+    if k is not 3
+        return 0
+    if word_dict(topic_lo) is not w1
+        return 0
+    if word_dict(topic_lo + 1) is not w2
+        return 0
+    if word_dict(topic_lo + 2) is w3
+        return 1
+    return 0

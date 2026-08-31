@@ -548,6 +548,13 @@ def eval_expr(rt: Routine, ctx: Context, expr, dest=None) -> None:
         if c is not None:
             eval_expr(rt, ctx, c.value, dest)
             return
+        if expr.ident == "typed" and expr.ident not in ctx.named \
+                and expr.ident not in ctx.globals \
+                and expr.ident not in ctx.world.blocks:
+            raise LowerError(
+                'typed is text, not a value: compare it (typed is "word"), '
+                'print it (${typed}), or read it as a number (typed_number)',
+                expr.line)
 
     if isinstance(expr, ast.Binary):
         if expr.op in _ARITH:
@@ -2554,6 +2561,31 @@ def _emit_test(rt, ctx, expr, label, on_true):
                 rt.op("je", Variable(ctx.globals["verb_trigger"]),
                       DictWordRef(word), branch=(label, t))
                 return
+        # `if typed is "1451"`: against typed (the text slot's absorbed
+        # words, docs/01 chapter 14), a string literal compares as the word
+        # sequence the player typed. Each literal word is a dictionary entry
+        # this compiler added (typed_literal_words), and the typed_is_N
+        # block matches the absorbed range against them, so "1451" needs no
+        # object and no declared vocabulary. A story data name called typed
+        # wins instead, as data does everywhere.
+        left_is_typed = (isinstance(expr.left, ast.Name)
+                         and expr.left.ident == "typed"
+                         and "typed" not in ctx.named
+                         and "typed" not in ctx.globals)
+        if left_is_typed and isinstance(right, ast.StringLit):
+            phrase = _plain_string(right)
+            if phrase is not None:
+                ws = phrase.strip().lower().split()
+                if not 1 <= len(ws) <= 3:
+                    raise LowerError(
+                        f'typed compares against one to three words, and '
+                        f'"{phrase}" is {len(ws) or "none"}', expr.line)
+                from .assembler import DictWordRef
+                ops = [RoutineRef(f"blk_typed_is_{len(ws)}")]
+                ops += [DictWordRef(w) for w in ws]
+                rt.op("call_vs", *ops, store=Variable(STACK))
+                rt.op("jz", Variable(STACK), branch=(label, not t))
+                return
         opa, opb, tmp = _two_operands(rt, ctx, expr.left, expr.right)
         # Equality against zero is the one-operand jz, a byte back per site
         # (the peephole exhaustion, 2026-07-30). Only plain constants: a
@@ -2654,6 +2686,13 @@ def _any_unruled(ctx) -> int:
     for h in world.free_handlers:
         if getattr(h, "after", False):
             continue  # an `on after X` answers the after pass, not X itself
+        # A free handler rules its action only when it answers EVERY arrival:
+        # one with an object filter (`on set dial`) or a when guard answers
+        # some commands and lets the rest fall through, so the tail must
+        # stay for them (SET LAMP was a silent turn, found by the typed
+        # example's own TRY script).
+        if getattr(h, "pattern", None) or getattr(h, "when", None):
+            continue
         ruled.update(h.events)
     if "other" in ruled:
         return 0
@@ -3605,6 +3644,13 @@ def _say_threshold(rt, ctx, expr):
 
 
 def _say_value(rt, ctx, expr):
+    # ${typed} / say typed: the text slot's absorbed words, printed back
+    # exactly as the player wrote them (the echo half of a refusal). A
+    # story data name called typed wins, as everywhere.
+    if isinstance(expr, ast.Name) and expr.ident == "typed" \
+            and expr.ident not in ctx.named and expr.ident not in ctx.globals:
+        rt.op("call_1n", RoutineRef("blk_print_typed"))
+        return
     # dir_name(d): the explicit runtime speak, for values whose direction
     # type static inference cannot see (read through a block parameter).
     if isinstance(expr, ast.Call) and expr.name == "dir_name" \
