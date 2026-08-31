@@ -2052,6 +2052,16 @@ block msg_no_verb()
 block msg_extra_words()
     say "You lost me after that."
 
+// A typed input slot refused the input's class (docs/01 chapter 14):
+// class_fault holds the slot that refused (8 number, else letters), and
+// the noun is resolved, so the machine can name what it takes. Overridable
+// like every message.
+block msg_wrong_class()
+    if class_fault is 8
+        say "${The noun} only accepts numbers."
+    else
+        say "${The noun} only accepts letters."
+
 // Read a yes/no answer; returns 1 for an answer that starts with y or Y. The
 // caller prints the question first, so this is shared by every confirmation. The
 // yes test (a leading 'y') is English, so it lives in the language layer.

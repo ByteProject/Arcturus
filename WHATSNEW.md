@@ -11,12 +11,14 @@ lives in the commit log. The feature roadmap follows below.
   noun` matches letter words only (SPEAK FRIEND TO DOOR, the
   Hibernated 1 codeword shape), `set noun to number` one all-digit
   word (SET DIAL TO 3), `type anychar into noun` anything at all, and
-  the matcher enforces the class, so one verb can route by input kind.
+  the matcher enforces the class, so one verb can route by input kind,
+  and wrong-kind input is refused in the machine's own name ("The dial
+  only accepts numbers.", overridable).
   No vocabulary is declared anywhere, and the input reads back under
   the slot's own name: `if letters is "xanadu"`, `${letters}` echoed
   verbatim in your refusals, `number` as a plain value. A dial is one
   handler and an if. Works in all three languages out of the box
-  (arcc 1.14.3, Cosmos 1.17.3).
+  (arcc 1.14.4, Cosmos 1.17.4).
 - **Carrying, three ways.** Declare nothing and the player carries
   everything, as before. `constant item_cap = N` is the classic item
   limit, now counted honestly: what is inside a carried sack counts,

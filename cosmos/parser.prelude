@@ -504,8 +504,16 @@ block try_line(line, n)
                             if p is edge
                                 change incomplete to 1
                                 return 1
-                            if slot_class_ok(t, p, edge) is 0
-                                return 0
+                            if class_fault < 16
+                                if slot_class_ok(t, p, edge) is 0
+                                    // Note the class for the refusal and
+                                    // fail the line: another line may
+                                    // still take this input (routing);
+                                    // only when none does will the
+                                    // relaxed pass (class_fault bit 16)
+                                    // and msg_wrong_class answer.
+                                    change class_fault to t
+                                    return 0
                             change topic_lo to p
                             change topic_hi to edge
                         else
@@ -585,10 +593,19 @@ block try_line(line, n)
 // the verb was understood but the rest was not (fault 2, "you lost me").
 block grammar_match(tbl)
     let n = word_count
+    let t0 = tbl
     let act = peek_byte(tbl)
     while act is not 0
         if try_line(tbl, n) is 1
             change line_act to act
+            if any_typed_slots is 1
+                // A strict match takes the input for real: an earlier
+                // line's class note is stale. A relaxed match (bit 16)
+                // keeps the note, normalized: it IS the refusal.
+                if class_fault >= 16
+                    change class_fault to class_fault - 16
+                else
+                    change class_fault to 0
             return 1
         // Step past this line's tokens to the next line's action byte.
         change tbl to tbl + 1
@@ -601,6 +618,19 @@ block grammar_match(tbl)
             change k to peek_byte(tbl)
         change tbl to tbl + 1
         change act to peek_byte(tbl)
+    if any_typed_slots is 1
+        // No line fits, and some line refused only the input's CLASS: run
+        // the table once more with classes ignored (bit 16 up), so the
+        // line matches and its noun resolves, and the loop can say WHICH
+        // machine accepts what (msg_wrong_class) instead of a bare
+        // lost-me. A relaxed pass that still fails falls through to the
+        // honest fault below, note cleared.
+        if class_fault is not 0
+            if class_fault < 16
+                change class_fault to class_fault + 16
+                if grammar_match(t0) is 1
+                    return 1
+                change class_fault to 0
     change parse_fault to 2
     return 0
 

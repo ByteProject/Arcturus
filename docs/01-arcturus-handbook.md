@@ -3349,9 +3349,12 @@ The facts, exactly:
   own sentence, dictionary or not.
 - `number` is the value itself, a plain number in comparisons,
   arithmetic, and `${number}`.
-- Input of the wrong class means the LINE does not match: with no other
-  line to catch it, the parser answers "You lost me after that.", before
-  any handler. An EMPTY slot marks the command incomplete and the loop's
+- Input of the wrong class means the LINE does not match, so another
+  line can still take it (the routing above). When no line does, the
+  parser resolves the machine anyway and answers in its name: "The dial
+  only accepts numbers." / "The terminal only accepts letters."
+  (msg_wrong_class, overridable like every message, in all three
+  languages). An EMPTY slot marks the command incomplete and the loop's
   central ask answers. Either way your handler only ever sees input of
   the declared class.
 - One absorbing slot per line (`text` included): two would fight over

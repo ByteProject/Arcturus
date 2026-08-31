@@ -2070,6 +2070,14 @@ block msg_no_verb()
 block msg_extra_words()
     say "Me he perdido a partir de ahí."
 
+// A typed input slot refused the input's class (docs/01 chapter 14); the
+// machine names what it takes.
+block msg_wrong_class()
+    if class_fault is 8
+        say "${The noun} solo acepta números."
+    else
+        say "${The noun} solo acepta letras."
+
 // Read a yes/no answer; returns 1 for an answer that starts with y or Y. The
 // caller prints the question first, so this is shared by every confirmation. The
 // yes test (a leading 'y') is English, so it lives in the language layer.

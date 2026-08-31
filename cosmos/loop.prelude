@@ -383,6 +383,16 @@ block run_chain(act)
                 change commanded to 0
                 change chain_pos to 0
                 return 0
+        // A typed slot refused the input's class and no other line took it
+        // (class_fault, set by the matcher's relaxed pass with the noun
+        // resolved): the machine names what it accepts, the turn is
+        // refused, and the chain stops here like any failed segment.
+        if any_typed_slots is 1
+            if class_fault is not 0
+                change refused to 1
+                msg_wrong_class
+                change class_fault to 0
+                return 0
         run_turn(act)
         if refused is not 0
             return 0

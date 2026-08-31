@@ -2358,6 +2358,14 @@ block msg_no_verb()
 block msg_extra_words()
     say "Nach dem Verb konnte ich nicht mehr folgen."
 
+// A typed input slot refused the input's class (docs/01 chapter 14); the
+// machine names what it takes. Nominative subject, so the plain the-form.
+block msg_wrong_class()
+    if class_fault is 8
+        say "${The noun} akzeptiert nur Zahlen."
+    else
+        say "${The noun} akzeptiert nur Buchstaben."
+
 // Read a yes/no answer; returns 1 for an answer that starts with j or J (ja). The
 // caller prints the question first, so this is shared by every confirmation.
 block yes_no()

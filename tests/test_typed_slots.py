@@ -86,9 +86,10 @@ def test_slots_compare_print_and_route_by_class():
     assert "The terminal warms to you." in out
     assert "The dial clicks to 3." in out
     assert "The dial only goes 1 to 4, not 9." in out
-    # The two class failures answer with the no-line-fits message, before
-    # any handler: the verb was understood, the input kind was not.
-    assert out.count("You lost me after that.") == 2
+    # The two class failures answer with the machine's own refusal, noun
+    # resolved by the matcher's relaxed pass, before any handler.
+    assert "The dial only accepts numbers." in out
+    assert "The terminal only accepts letters." in out
 
 
 def test_unclaimed_set_falls_to_the_standard_refusal():
@@ -163,7 +164,7 @@ def test_the_slot_speaks_german_and_spanish():
         'summon.language "german"\n'
         'game\n    title "Tipp"\n    author "T"\n    start labor\n'
         'room labor\n    name "Labor"\n    desc "Ein Terminal summt."\n'
-        'thing terminal in labor\n    name "Terminal"\n    neuter\n'
+        'thing terminal in labor\n    name "Terminal"\n    neutral\n'
         '    words terminal\n    fixed\n'
         'verb "tippe"\n    tippe anychar in noun\n'
         'on tippe terminal\n'
@@ -174,6 +175,10 @@ def test_the_slot_speaks_german_and_spanish():
     )
     out = _play(de, ["tippe 1451 in terminal", "tippe unsinn in terminal"])
     assert "Zugang gewährt." in out and "Abgelehnt: unsinn." in out
+    # The German class refusal names the machine.
+    de_num = de.replace("tippe anychar in noun", "tippe number in noun")
+    out = _play(de_num, ["tippe unsinn in terminal"])
+    assert "Das Terminal akzeptiert nur Zahlen." in out
 
     es = (
         'summon.language "spanish"\n'
@@ -190,3 +195,7 @@ def test_the_slot_speaks_german_and_spanish():
     )
     out = _play(es, ["teclea 1451 en terminal", "teclea tonteria en terminal"])
     assert "Acceso concedido." in out and "Rechazado: tonteria." in out
+    # The Spanish class refusal names the machine, accents intact.
+    es_num = es.replace("teclea anychar en noun", "teclea number en noun")
+    out = _play(es_num, ["teclea tonteria en terminal"])
+    assert "La terminal solo acepta números." in out

@@ -17,9 +17,11 @@
 // TRY: speak xanadu to terminal (the codeword) /
 //      speak open sesame to terminal (a two-word literal) /
 //      speak swordfish to terminal (the echo refusal) /
-//      speak k9 to terminal (not letters: the line does not match) /
+//      speak k9 to terminal (not letters: "The terminal only accepts
+//      letters.") /
 //      set dial to 3 / set dial to 9 (the author's range refuses) /
-//      set dial to red (not a number: no line fits) /
+//      set dial to red (not a number: "The bakelite dial only accepts
+//      numbers.") /
 //      type hello12323 into keypad (anychar takes it all) /
 //      set lamp to 2 (no handler: the ordinary refusal chain answers)
 

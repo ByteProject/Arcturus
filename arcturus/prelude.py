@@ -432,6 +432,13 @@ _BUILTINS = {
     # ruling, 2026-08-25). Library-internal; rides the tail so no global
     # number ever moves.
     "posture": T_NUMBER,
+    # The typed-slot class refusal (docs/01 chapter 14): when input of the
+    # wrong class matched no line, class_fault holds the slot token that
+    # refused (8 number, 7 letters) and the loop speaks msg_wrong_class
+    # with the resolved noun. Bit 16 marks the matcher's relaxed second
+    # pass (classes ignored, so the noun CAN resolve); one global carries
+    # both. Library-internal; rides the tail so no number ever moves.
+    "class_fault": T_NUMBER,
     # Set to 1 by a refusal path when a command could not be carried out, so a
     # chained line ("take lamp and go north") stops at the failed command. The
     # library's default refusals set it; a story handler can too (docs/01 chapter 14).

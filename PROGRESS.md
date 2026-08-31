@@ -12754,3 +12754,27 @@ The Signal Room is three machines now, one slot each; the handbook
 section is rewritten around the slots (grammar spec, matcher token
 list, and the compile-time rules updated with it); suite green; H2
 360 of 360.
+
+## Wrong-class input is refused in the machine's name (arcc 1.14.4,
+## Cosmos 1.17.4, 2026-08-31)
+
+Stefan asked what SET DIAL TO RED actually answers and rejected the
+answer: "You lost me after that." is no help when the machine knows
+exactly what it accepts. RULED: letters refuses with "{The object}
+only accepts letters.", number with "...only accepts numbers.",
+anychar gates nothing, and the messages are ordinary overridable pack
+blocks.
+
+The mechanics kept routing intact: wrong-class input still fails the
+LINE first, so another line can take it; only when none fits does the
+matcher run the table once more with classes ignored (bit 16 on the
+class_fault note, one global carrying both the note and the pass), the
+line then matches, the noun resolves, and the loop speaks
+msg_wrong_class with the machine named, refused set, the chain
+stopped. One new tail global costs every game 4 bytes (the word plus
+alignment), the posture precedent; 52 ceilings repriced, exactly +4
+each, the showcase +132 for the refusals it alone summons live. The
+German test had declared its terminal `neuter` and got Der; the pack's
+word is `neutral`, the test's fault, the pack was right. Messages in
+all three languages, accents intact (números). Suite green; H2 360 of
+360.
