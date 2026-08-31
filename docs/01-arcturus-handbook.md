@@ -3273,10 +3273,10 @@ synonyms, and at most one `direction` slot, closing its line.
 ### Reading the text slot: typed
 
 The `text` slot is not only for ASK. Put it in your own verb's grammar and
-you have a machine with an input surface: a keypad, a dial, a password, a
-terminal that takes commands, the Hibernated 1 shape (TYPE 1451 INTO
-TERMINAL). Declare the verb and the line yourself, `text` where the free
-words go:
+you have a machine with an input surface: a terminal that takes codewords,
+the Hibernated 1 shape (TYPE <codeword> INTO TERMINAL), a password door, a
+keypad, a dial. Declare the verb and the line yourself, `text` where the
+free words go:
 
 ```
 verb "type"
@@ -3287,18 +3287,20 @@ verb "set", "adjust"
 ```
 
 The slot absorbs whatever the player wrote there WITHOUT resolving it
-against objects, so 1451 needs no thing, no vocabulary, no declaration
-anywhere. `typed` reads it back in the handler, three ways:
+against objects, so a codeword needs no thing, no vocabulary, no
+declaration anywhere: XANADU and 1451 are equally invisible to the
+dictionary and equally readable here. `typed` reads it back in the
+handler, three ways:
 
 ```
-on type keypad
-    if typed is "1451"
-        say "The keypad chirps. The door unbolts."
+on type terminal
+    if typed is "xanadu"
+        say "The terminal chirps. The airlock unbolts."
     else
         if typed is "open sesame"
             say "A drawer slides open."
         else
-            say "The keypad rejects \"${typed}\"."
+            say "The terminal rejects \"${typed}\"."
 
 on set dial
     if typed_number > 0
@@ -3318,8 +3320,9 @@ The facts, exactly:
   sides truncate the way all dictionary words do, so very long words
   compare by their significant length.
 - `${typed}` (and `say typed`) prints the absorbed words back exactly as
-  the player wrote them, which is how a refusal echoes: SET DIAL TO FUN
-  answers with "fun" in your own sentence, dictionary or not.
+  the player wrote them, which is how a refusal echoes: TYPE SWORDFISH
+  INTO TERMINAL answers with "swordfish" in your own sentence,
+  dictionary or not.
 - `typed_number` is the first absorbed word as a number: up to four
   digits (9999 is the honest ceiling of the Z-machine's word), and 0
   whenever the word is not digits through and through, so one comparison

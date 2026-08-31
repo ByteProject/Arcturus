@@ -13,9 +13,9 @@
 //   arcc examples/features/typed.storyarc -o signals.z5
 //   frotz signals.z5
 //
-// TRY: type 1451 into keypad (a code no dictionary knows) /
-//      type open sesame into keypad (a two-word literal) /
-//      type swordfish into keypad (the echo refusal) /
+// TRY: type xanadu into terminal (a codeword no dictionary knows) /
+//      type open sesame into terminal (a two-word literal) /
+//      type swordfish into terminal (the echo refusal) /
 //      set dial to 3 / set dial to 9 (out of range) /
 //      set dial to fun (not a number) / set lamp to 2 (not settable:
 //      the ordinary refusal chain answers)
@@ -30,12 +30,12 @@ summon.statusline
 
 room signals
     name "Signal Room"
-    desc "Racks of dead receivers. Alive in the middle: a keypad by the
-          door and a bakelite dial numbered 1 to 4. A lamp hangs low."
+    desc "Racks of dead receivers. Alive in the middle: a terminal by the
+          airlock and a bakelite dial numbered 1 to 4. A lamp hangs low."
 
-thing keypad in signals
-    name "keypad"
-    words keypad
+thing terminal in signals
+    name "terminal"
+    words terminal
     fixed
 
 thing dial in signals
@@ -53,26 +53,28 @@ thing lamp in signals
 
 // The grammar is the author's: any verb, any line, `text` where the free
 // words go. The slot absorbs what was typed without resolving it against
-// objects, so 1451 needs no thing and no vocabulary.
+// objects, so a codeword needs no thing and no vocabulary.
 verb "type"
     type text into noun
 
 verb "set", "adjust"
     set noun to text
 
-on type keypad
+on type terminal
     // `typed is "..."`: the absorbed words against a literal, one to three
     // words, raw text. The compiler puts the literal's words in the
     // dictionary itself; nothing to declare.
-    if typed is "1451"
-        say "The keypad chirps. The door unbolts somewhere out of sight."
+    if typed is "xanadu"
+        say "The terminal chirps. The airlock unbolts somewhere out of
+             sight."
     else
         if typed is "open sesame"
-            say "Charming. The keypad is not amused, but a drawer under it
-                 slides open."
+            say "Charming. The terminal is not amused, but a drawer under
+                 it slides open."
         else
             // ${typed} echoes the words exactly as the player wrote them.
-            say "The keypad rejects \"${typed}\" with a flat little buzz."
+            say "The terminal rejects \"${typed}\" with a flat little
+                 buzz."
 
 on set dial
     // typed_number: the first absorbed word as a number (up to four

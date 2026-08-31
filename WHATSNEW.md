@@ -9,8 +9,9 @@ lives in the commit log. The feature roadmap follows below.
 - **Machines you can type at: the typed surface.** Put the `text` slot
   in your own verb's grammar (`type text into noun`, `set noun to
   text`) and the slot absorbs whatever the player wrote, no vocabulary
-  declared anywhere: TYPE 1451 INTO KEYPAD, SET DIAL TO 3, passwords,
-  frequencies, codes. `typed` compares it against your literals,
+  declared anywhere: TYPE XANADU INTO TERMINAL, the Hibernated 1
+  codeword shape, and SET DIAL TO 3, passwords, frequencies, codes.
+  `typed` compares it against your literals,
   `${typed}` echoes it in your refusals exactly as typed, and
   `typed_number` reads it as a number, so a dial is one handler and an
   if. Works in all three languages out of the box (arcc 1.14.1,
