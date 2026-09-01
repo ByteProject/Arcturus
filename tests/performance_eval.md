@@ -290,3 +290,40 @@ Section 4 (the cached-PC-page fetch path) remains open on the Varuna
 side and multiplies with all of the above. The re-run of THIS document's
 cycle-exact tables against the 2.0 build (distributed to the four test
 directories) is the next measurement.
+
+## 8. The cycle-exact re-run (2026-09-01, evening): measured, both builds,
+## one interpreter, one day
+
+Section 7's seconds were modeled; these are measured. Both stories
+through the SAME current interpreter build (the head of the tree, the
+zmem fix included), same harness, same ten commands, cycle-exact on the
+64K Atari model. The PunyInform artifact is the original serial-260603
+build, recovered from the interpreter repo's first-milestone commit; the
+Arcturus story is the shipping 2.0 build (serial 260901).
+
+  command            ARCTURUS 2.0         PUNYINFORM
+                     cycles      sec      cycles      sec
+  push grill         1,606,937   0.90s    3,030,157   1.69s
+  push grill         1,653,948   0.92s    2,856,996   1.60s
+  talk to vlad       3,476,560   1.94s    3,426,546   1.91s
+  [menu key 1]       2,115,220   1.18s    1,501,859   0.84s
+  n                  2,525,600   1.41s    3,626,271   2.03s
+  take spray oil     2,320,093   1.30s    4,377,921   2.45s
+  examine terminal   2,019,084   1.13s    2,969,702   1.66s
+  talk to vlad       3,330,257   1.86s    3,230,425   1.80s
+  [menu key 1]       2,126,603   1.19s    1,634,302   0.91s
+  e                  2,421,243   1.35s    3,930,120   2.20s
+  ------------------------------------------------------
+  ten commands            13.2s               17.1s
+  average per turn         1.3s                1.7s
+
+Two days ago this table read 29.9s against 15.7s. The average and every
+object-verb turn now belong to Arcturus (TAKE SPRAY OIL 1.30s against
+2.45s, the turn that opened this document at 5.68s); movement kept its
+lead. The conversation menus are the one place PunyInform still answers
+faster (its menu redraw is lighter), a separate, small question for a
+separate measurement. Memory, same builds: story 133,924 against
+137,728 bytes; dynamic memory 6,535 against 10,078 bytes, which on this
+interpreter is also 14 more cache slots for the pager. The section 4
+fetch-path lever remains unbuilt and would move both columns down
+together.
