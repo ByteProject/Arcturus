@@ -1514,13 +1514,6 @@ boarding via enter), or for re-dispatching the same action past a `when`
 guard or operand pattern the re-entry will fail. The compiler notes the
 unguarded self-perform shape at compile time.
 
-`add ... to ...` and `remove ... from ...` operate on list properties only:
-
-```
-add "ruby" to ruby.synonyms
-remove "old" from chest.synonyms
-```
-
 `say` prints text or a value followed by a line break; printing a number prints
 digits, an object prints its `name`: `say "Score: ${score}."`. `show` prints the
 same way but without the trailing line break, for building one line from pieces:
@@ -1606,7 +1599,7 @@ while count > 0
 
 ```
 for each item in player        // tree children of an object
-for each word in ruby.synonyms // list elements
+for each mood in moods         // a catalog's entries, in order
 for each door of room          // every instance of a kind
 ```
 

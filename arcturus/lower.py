@@ -3120,7 +3120,15 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
     elif isinstance(s, ast.Move):
         _move(rt, ctx, s)
     elif isinstance(s, (ast.Add, ast.Remove)):
-        raise LowerError("list properties need the dictionary stage (B4.4)", s.line)
+        # Vocabulary is FIXED at compile time, by design: the word lists
+        # feed the dictionary and the owner index (docs/04), and neither
+        # can grow at run time. Ruled 2026-09-01 (dynamic vocabulary is
+        # not needed); if it is ever built, the owner index needs its
+        # loose-object side list in the same change.
+        raise LowerError(
+            "an object's vocabulary is fixed at compile time (word lists "
+            "feed the dictionary and the owner index); add/remove work on "
+            "matrices", s.line)
     elif isinstance(s, ast.Continue):
         if not ctx.in_handler:
             if getattr(ctx, "in_alter_block", False):
