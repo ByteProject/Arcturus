@@ -357,3 +357,42 @@ the one remaining PunyInform win (its redraw is a fixed-slice repaint;
 ours re-lists and re-prints the reply below). The per-paint cost of the
 status bar itself (~515 instructions per paint, a third of a movement
 turn) is the recorded next question, measured before touched.
+
+## 10. For the interpreter instances: what changed in the stories, and
+## what to check (2026-09-01)
+
+Every Arcturus story compiled from 2.0 onward differs from what you have
+been testing against. What that means per project:
+
+- THE OWNER INDEX IS DATA, NOT BEHAVIOR. The new word-to-owners tables
+  live in static memory and are read with ordinary loadw; no interpreter
+  work exists here. You will simply see different z-code hot spots.
+- CONVERSATION MENUS NOW EMIT @erase_line (VAR:0x0E, operand 1, the
+  v4+ standard opcode). CHECK YOUR OPCODE TABLE. Varuna executes it
+  (verified by the section 9 run finishing with correct output); Actaea
+  implements it (the screen-model suite pins the redraw). Ceres, Eris,
+  Haumea/Triton, Ganymede: if @erase_line is unimplemented or a trap,
+  any game with summon.conversations now hits it the moment a talk menu
+  redraws. It is the only new opcode; everything else in 2.0 is
+  standard code the old builds already used, minus a great deal of it.
+- THE OLD PROFILE IS STALE. Sections 1-3 described the 1.x build:
+  $4C61/$6F91 (has_word/phrase_score) at three quarters of a verb turn.
+  In the 2.0 build those routines barely register; the remaining
+  per-turn weight, in order, is the status bar paint (~515 instructions
+  per paint, one per turn at the prompt), par_flush, and the ambience
+  tick. If you profile and see anything ELSE dominating, that is news:
+  report it.
+- RE-MEASURE AGAINST THE BUILD YOU HAVE. tests/hibernated2.z5 in each
+  project is the current 2.0 build (serial 260901+). The harness that
+  produced sections 8 and 9 is durable at Arcturus probes/cycle_eval.py
+  (run from the Arcturus root, Varuna checkout beside it, mads on
+  PATH); the instruction-count probe is probes/zi_count.py and runs on
+  Actaea alone. Comparable tables from Ganymede's SIM6502 adoption
+  would show immediately whether its cycles-per-instruction sits near
+  Varuna's ~1,100 (everything here transfers) or far above (the
+  interpreter is the first target there, not the game).
+- SECTION 4 STANDS. The cached-PC-page fetch path is now the dominant
+  remaining lever on every machine: with the game-side work done, the
+  interpreter's ~1,000-cycle instruction fetch floor is most of every
+  remaining second, both games, every machine. It multiplies with
+  everything above.
