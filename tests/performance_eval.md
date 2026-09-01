@@ -327,3 +327,33 @@ separate measurement. Memory, same builds: story 133,924 against
 interpreter is also 14 more cache slots for the pager. The section 4
 fetch-path lever remains unbuilt and would move both columns down
 together.
+
+## 9. The conversation round (2026-09-01, late): menus stop rewalking,
+## the bar stops repainting
+
+Section 8 left the talk menus as the one subsystem where the PunyInform
+build still answered faster. Profiled: the topic list was walked three
+times per redraw (count, draw, pick), every walk re-evaluating each
+topic's visibility guards and re-calling topics_count per iteration; and
+the status bar painted twice per exchange because the menu erased the
+whole upper window and repainted it. Shipped (Cosmos 1.18.1, arcc 2.0.2
+for the erase_line opcode): one visibility walk fills a bitmask the draw
+and the pick reuse; the menu opens WITHOUT erasing the window (the bar
+row stays exactly as the prompt painted it) and redraws row-surgically
+with erase_line, dead rows erased before the split shrinks. A screen-
+model test pins the surgical redraw; the Frotz menu test pins the
+renumbering.
+
+Cycle-exact, same harness as section 8:
+
+  command            ARCTURUS 2.0.2       (section 8)   PUNYINFORM
+  talk to vlad       2,879,115   1.61s    (1.94s)       1.91s
+  [menu key 1]       2,078,944   1.16s    (1.18s)       0.84s
+  talk to vlad       2,728,526   1.52s    (1.86s)       1.80s
+  ten commands            12.5s           (13.2s)           17.1s
+
+The talk turns now belong to Arcturus as well; the menu-answer turn is
+the one remaining PunyInform win (its redraw is a fixed-slice repaint;
+ours re-lists and re-prints the reply below). The per-paint cost of the
+status bar itself (~515 instructions per paint, a third of a movement
+turn) is the recorded next question, measured before touched.

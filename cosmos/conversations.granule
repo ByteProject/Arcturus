@@ -19,6 +19,15 @@
 // line_reply, line_end - lives in the prelude, not here, so that part stays
 // overridable from a story and translatable by a language pack.)
 
+// The menu's screen state, granule-owned (pay-for-use): the split height
+// while a menu stands (0 closed), and the visibility mask count_visible
+// filled on its last walk, one bit per topic for the first sixteen, so
+// draw_menu and run_pick reuse the when-guard answers instead of running
+// every topic's guards again per walk (the 8-bit cycle work, 2026-09-01;
+// topics beyond sixteen fall back to the live test, correct, just unclever).
+global menu_h = 0
+global menu_vis = 0
+
 // Override the base talk_to seam: talking to a person opens the topic menu.
 block talk_to(person)
     run_talk(person)
@@ -93,34 +102,60 @@ block draw_menu(person, count)
     let top = status_lines
     let h = top + count + 3
     set_window(1)
-    erase_window(1)
-    split_window(h)
-    // The bar's one-row reservation is gone while the taller menu window
-    // stands (the menu paints the bar itself, at the top of its own window).
-    bar_unseated
-    erase_window(1)
-    if top is 1
-        status_bar
-    set_cursor(top + 1, 1)
-    line_talk_header(person)
+    if menu_h is 0
+        // OPENING: split taller and keep the bar row exactly as the prompt
+        // painted it, so the bar is never repainted for a menu at all (the
+        // close's re-seat is the one legitimate repaint). No window erase:
+        // every row the menu owns is line-erased right before its print
+        // below, and together with the header they cover every freshly
+        // exposed row, gaplessly. The reservation bookkeeping still moves
+        // to the menu while it stands.
+        split_window(h)
+        bar_unseated
+        set_cursor(top + 1, 1)
+        erase_line
+        line_talk_header(person)
+    else
+        // REDRAW after a pick: the bar row and the header have not moved
+        // and are not touched, so the bar paints once per conversation,
+        // not once per exchange. A shrinking menu erases its dead rows
+        // while the window is still tall; every row below the header is
+        // then rewritten in place with a line erase, no window erase at
+        // all (the 8-bit cycle work, 2026-09-01).
+        if h < menu_h
+            let r = h + 1
+            while r <= menu_h
+                set_cursor(r, 1)
+                erase_line
+                change r to r + 1
+        split_window(h)
     let i = 0
     let n = 0
-    while i < topics_count(person)
-        if menu_visible(person, i)
+    let tc = topics_count(person)
+    let bit = 1
+    while i < tc
+        if vis_at(person, i, bit) is 1
             if n < count
                 change n to n + 1
+                set_cursor(top + 1 + n, 1)
+                erase_line
                 set_cursor(top + 1 + n, 2)
                 show(n)
                 show(". ")
                 topic_label(person, i)
+        if i < 16
+            change bit to bit * 2
         change i to i + 1
     set_cursor(h - 1, 1)
+    erase_line
     line_talk_prompt
     set_cursor(h, 1)
+    erase_line
     let d = 1
     while d < w
         show("-")
         change d to d + 1
+    change menu_h to h
     set_window(0)
     buffer_mode(1)
     change par_pending to held
@@ -151,28 +186,49 @@ block close_menu()
     // No upper window at all now: the next prompt's bar reserves its row again.
     bar_unseated
     set_window(0)
+    change menu_h to 0
 
 block count_visible(person)
+    let tc = topics_count(person)
     let i = 0
     let n = 0
-    while i < topics_count(person)
+    let bit = 1
+    change menu_vis to 0
+    while i < tc
         if menu_visible(person, i)
             change n to n + 1
+            if i < 16
+                change menu_vis to menu_vis + bit
+        if i < 16
+            change bit to bit * 2
         change i to i + 1
     return n
+
+// The cached visibility for topic i: the bit count_visible set, or the live
+// test beyond the mask's sixteen. Valid between a count and the draw or the
+// pick that follows it, which is exactly how run_talk sequences the three.
+block vis_at(person, i, bit)
+    if i < 16
+        let v = menu_vis / bit
+        return v mod 2
+    return menu_visible(person, i)
 
 // Run the pick-th visible topic (counting from 1, in declaration order, as
 // draw_menu numbered them), then retire it so it leaves the menu.
 block run_pick(person, pick)
+    let tc = topics_count(person)
     let i = 0
     let n = 0
-    while i < topics_count(person)
-        if menu_visible(person, i)
+    let bit = 1
+    while i < tc
+        if vis_at(person, i, bit) is 1
             change n to n + 1
             if n is pick
                 topic_run(person, i)
                 topic_retire(person, i)
                 return 0
+        if i < 16
+            change bit to bit * 2
         change i to i + 1
 
 // The conversation wording (line_talk_header, line_talk_prompt, msg_no_topics,

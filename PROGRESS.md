@@ -12876,3 +12876,33 @@ owner-index tests; H2 360 of 360 on the final amalgam and the fresh
 build distributed to Eris, Ceres, Varuna, and Haumea for the
 re-benchmark. docs/04 carries the format and the invariants;
 performance_eval.md remains untracked pending Stefan's placement call.
+
+## The menus stop rewalking and the bar stops repainting (Cosmos 1.18.1,
+## arcc 2.0.2, 2026-09-01)
+
+Stefan asked why TALK TO VLAD was the one turn PunyInform still took
+faster, and the profile answered: the conversation menu walked its topic
+list three times per redraw (count, draw, pick), re-running every
+topic's visibility guards each walk and calling topics_count once per
+loop iteration; and the status bar painted twice per exchange because
+draw_menu erased the whole upper window, wiping the bar the prompt had
+just painted. CHARTERED: the menu passes and the double paint.
+
+Shipped: count_visible walks ONCE and fills a visibility bitmask
+(granule-owned globals, pay-for-use) that draw_menu and run_pick reuse;
+the menu opens without any window erase, keeping the bar row exactly as
+the prompt painted it, and redraws row-surgically with the new
+erase_line opcode (standard VAR:0x0E, added to the assembler), dead
+rows line-erased before the split shrinks. The bar now paints once per
+conversation (the close's re-seat), not once per exchange. A screen-
+model test pins the surgical redraw (bar row untouched, dead row gone,
+no stale label anywhere); the Frotz test pins the renumbering.
+
+MEASURED: talk turns 5,203 to 4,171 z-instructions; the cycle-exact
+session 13.2s to 12.5s against PunyInform's 17.1s, and the talk turns
+themselves flipped (1.61s/1.52s against 1.91s/1.80s). The menu-answer
+turn remains PunyInform's one win; the bar's per-paint cost (~515
+instructions, a third of a movement turn) is the recorded next
+question, to be measured before touched. Non-conversation games are
+byte-identical; three ceilings repriced; suite 1600 green; H2 360 of
+360, distributed.

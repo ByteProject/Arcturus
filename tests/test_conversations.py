@@ -472,3 +472,57 @@ def test_the_subject_text_excludes_the_listener():
     # ...and asking about him by name still reaches the self topic.
     out2 = _ask_headless(game, ["ask captain about jack"])
     assert "I am Captain Jack." in out2
+
+
+def test_menu_redraw_is_row_surgical_on_the_screen_model():
+    """The erase-less redraw (the 8-bit cycle work): opening the menu keeps
+    the status bar row exactly as the prompt painted it (the bar is never
+    repainted for a menu), and a redraw after a pick rewrites only its own
+    rows: the dead bottom row is erased, the survivors renumber, and no
+    stale label lingers anywhere in the grid."""
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+
+    game = GAME.replace("summon.conversations",
+                        "summon.conversations\nsummon.statusline")
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+
+    snaps = []
+
+    class SnapIO(CaptureIO):
+        vm = None
+
+        def read_char(self, timeout=0.0, on_timeout=None):
+            if self.vm is not None:
+                g = self.vm.screen.grid
+                snaps.append(["".join(c.char for c in row).rstrip()
+                              for row in g])
+            return super().read_char(timeout, on_timeout)
+
+    io = SnapIO(script=["talk to pat", "2", "0", "quit", "y"])
+    vm = VM(load(story), io, seed=7)
+    SnapIO.vm = vm
+    try:
+        vm.run(max_steps=30_000_000)
+    finally:
+        SnapIO.vm = None
+
+    # Snapshot 1: the freshly opened menu. Bar on row 0, header, both
+    # starting topics (the secret is hidden), prompt, divider.
+    first = next(s for s in snaps if any("Talk to Pat" in r for r in s))
+    assert "Hall" in first[0]                    # the bar the prompt painted
+    assert any("1. the weather" in r for r in first)
+    assert any("2. the city" in r for r in first)
+    assert not any("secret" in r for r in first)
+
+    # Snapshot 2: after picking 2 (the city; no reveal), the menu shrank by
+    # one row and redrew in place: the bar row is still the prompt's paint,
+    # the weather renumbered to 1, and the city's label is gone from every
+    # row, not merely renumbered past.
+    second = next(s for s in snaps[snaps.index(first) + 1:]
+                  if any("Talk to Pat" in r for r in s)
+                  and not any("the city" in r for r in s))
+    assert "Hall" in second[0]
+    assert any("1. the weather" in r for r in second)
+    assert len(second) < len(first)              # the dead row went with the split

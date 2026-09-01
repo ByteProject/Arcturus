@@ -158,6 +158,10 @@ _OPCODES = {
     "split_window": ("VAR", 0x0A, False, False, False),
     "set_window": ("VAR", 0x0B, False, False, False),
     "erase_window": ("VAR", 0x0D, False, False, False),
+    # erase_line 1: clear from the cursor to the end of the current line
+    # (v4+, standard VAR:0x0E). The conversations menu redraws single rows
+    # with it instead of erasing the whole upper window per redraw.
+    "erase_line": ("VAR", 0x0E, False, False, False),
     # buffer_mode 0/1: suspend or resume the lower window's word-wrap buffering.
     # Upper-window drawing (the status line, the quote box) must run unbuffered,
     # or interpreters like Frotz reorder the writes around set_cursor.

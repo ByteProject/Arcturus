@@ -264,6 +264,9 @@ INTRINSICS = frozenset({
     # escape compiles it back for the both-ways conformance tests);
     # owners_table is the index base (the __owners__ global).
     "any_owner_index", "owners_table",
+    # erase_line(): clear from the cursor to the end of the line (v4+),
+    # the row-surgical sibling of erase_window.
+    "erase_line",
     # Thing-dual words (a command word that is also thing vocabulary: OIL the
     # verb and OIL the spray): any_thing_duals folds phrase_named's table walk
     # away without one; thing_duals_table is its base (__tduals__).
@@ -1508,6 +1511,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # the grammar-table matcher and the packs' tabled-verb branches fold
         # away in a game whose verbs all fit the flag model.
         _place(rt, Const(_any_tables(ctx)), dest)
+    elif name == "erase_line":
+        # erase_line(): the standard's operand 1 means "to the end of the
+        # current line"; other values are undefined, so it is not exposed.
+        rt.op("erase_line", Const(1))
+        _place(rt, Const(0), dest)
     elif name == "any_owner_index":
         _place(rt, Const(_any_owner_index(ctx)), dest)
     elif name == "owners_table":

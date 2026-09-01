@@ -171,10 +171,10 @@ CEILINGS = {
     "granules/nautical.storyarc": 18748,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/npcengine.storyarc": 20836,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/maniacswap.storyarc": 19076,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "beispiel-deutsch.storyarc": 26608,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "beispiel-deutsch.storyarc": 26756,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "brass-lantern.storyarc": 19652,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "cloak-of-darkness.storyarc": 20444,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "ejemplo-espanol.storyarc": 23276,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "ejemplo-espanol.storyarc": 23420,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/computed-properties.storyarc": 17960,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/containers.storyarc": 18452,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/daemons-and-timers.storyarc": 19604,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
@@ -197,7 +197,7 @@ CEILINGS = {
     "features/text-slot.storyarc": 18952,  # 2026-08-31 repriced: the class refusals (relaxed pass + msg_wrong_class)
     "granules/carryweight.storyarc": 18620,  # 2026-08-30 new: the weight-budget showcase
     "granules/ambience.storyarc": 19832,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/conversations.storyarc": 19560,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "granules/conversations.storyarc": 19708,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "granules/extended-verbs.storyarc": 20936,  # 2026-08-22 repriced: pour/spill bind fill through a reversed prepositional line, and the packs carry the role swap (+44; only games with such a line pay)
     "granules/infocom-interrogation.storyarc": 19736,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
     "granules/quotes.storyarc": 17976,  # 2026-08-20 repriced: the bar paints its left side only when it changed
