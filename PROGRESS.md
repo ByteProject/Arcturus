@@ -12778,3 +12778,50 @@ German test had declared its terminal `neuter` and got Der; the pack's
 word is `neutral`, the test's fault, the pack was right. Messages in
 all three languages, accents intact (números). Suite green; H2 360 of
 360.
+
+## The parser learns to look before it reads: levers 1 and 2 of the
+## Varuna finding (Cosmos 1.17.5, 2026-09-01)
+
+The Varuna entity's cycle-exact evaluation (performance_eval.md; SIM6502,
+ten commands, the same game built both ways through the same interpreter)
+landed the diagnosis of the year: Arcturus's codegen already beats
+PunyInform per instruction (1,084 cycles against 1,677), and the whole
+lost average sits in ONE loop, two small routines called ~700 times per
+verb turn. Mapped against the routine layout of the same build, the
+addresses resolve exactly: $4C61 is has_word, $6F91 is phrase_score,
+$73A5 is match_phrase. The noun matcher swept the WHOLE object table,
+scored every object's words against the typed phrase, and only then
+asked in_scope, discarding the scoring work on the ~110 objects that
+were elsewhere.
+
+STEFAN'S CHARTER: pull the obvious levers first, then re-benchmark, then
+decide between the scope enumerator (lever 3) and the compiler's
+word-to-owners index (lever 4), which subsumes it. Levers 1 and 2, both
+shipped here: the sweeps in match_phrase and probe_noun now test
+in_scope BEFORE scoring (the same AND, cheap side first), and
+phrase_score inlines the word walk with the words property fetched once
+per object instead of once per typed word through has_word (which stays
+for its one-word callers).
+
+MEASURED, seeded and reproducible (probes/zi_count.py, the new
+instruction counter on Actaea's VM; it validated against the Varuna
+tables to a tenth of a percent before any change, and a fixed RNG seed
+was the lesson of the first misread: an ambience shuffle made a movement
+turn look 300 instructions heavier until the seed pinned it):
+
+  command            before      after     delta
+  push grill          6,249      4,474      -28%
+  talk to vlad       10,135      8,367      -17%
+  take spray oil     10,272      5,197      -49%
+  examine terminal    6,445      4,779      -26%
+  n / e               1,716      1,716   identical
+  ten-command session 53,385     39,684     -26%
+
+At Varuna's measured cycles per instruction that is roughly 3.0s to
+~2.2s per average turn on the Atari; the worst turn halves. The residual
+profile is exactly the predicted ceiling: in_scope itself is now a third
+of a verb turn, the 126-object sweep paying the predicate per object.
+That is lever 3/4 territory, and the decision waits on the re-benchmark
+from the Varuna side with the fresh build (distributed to all four
+sibling test dirs). Costs: +48 bytes per game for the fused matcher, 53
+ceilings repriced; behavior identical, full suite green, H2 360 of 360.

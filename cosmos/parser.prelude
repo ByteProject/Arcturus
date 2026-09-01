@@ -292,12 +292,30 @@ block has_adjective(obj, target)
     return 0
 
 block phrase_score(obj, lo, hi)
+    // One point per typed word the object's vocabulary owns. The word walk
+    // is INLINE and the words property is fetched once per OBJECT, not once
+    // per typed word through has_word: this block and the sweeps that call
+    // it were three quarters of a verb turn on an 8-bit machine (the Varuna
+    // cycle evaluation, performance_eval.md), so it is written for the
+    // cycle counter. has_word stays for the callers that test one word.
     let s = 0
+    let addr = words_addr(obj)
+    let count = 0
+    if addr is not nothing
+        change count to words_count(obj)
     let i = lo
     while i < hi
         let d = word_dict(i)
         if d is not nothing
-            if has_word(obj, d)
+            let hit = 0
+            let j = 0
+            while j < count
+                if peek_word(addr, j) is d
+                    change hit to 1
+                    change j to count
+                else
+                    change j to j + 1
+            if hit is 1
                 change s to s + 1
             else
                 if any_plurals is 1
@@ -332,9 +350,14 @@ block probe_noun(lo, hi)
     let obj = 1
     while obj <= object_count
         if obj is not hidden
-            let s = phrase_score(obj, lo, hi)
-            if s > 0
-                if in_scope(obj)
+            // Scope BEFORE score (the Varuna finding, performance_eval.md):
+            // the two tests were one AND, and scoring walked every word of
+            // every object in the game only to discard the elsewhere ones
+            // here. in_scope's early-outs are a fraction of a words walk,
+            // so the cheap test now guards the dear one.
+            if in_scope(obj)
+                let s = phrase_score(obj, lo, hi)
+                if s > 0
                     if s > best_score
                         change best to obj
                         change best_score to s
@@ -788,9 +811,11 @@ block match_phrase(lo, hi, plural_ok)
     let obj = 1
     while obj <= object_count
         if obj is not hidden
-            let s = phrase_score(obj, lo, hi)
-            if s > 0
-                if in_scope(obj)
+            // Scope BEFORE score, as in probe_noun above: same AND, cheap
+            // side first (the Varuna finding, performance_eval.md).
+            if in_scope(obj)
+                let s = phrase_score(obj, lo, hi)
+                if s > 0
                     // The ZIL match class rides above the count
                     // (phrase_class, class * 64 + count): a noun match
                     // outranks any adjective-only match, and the composite
