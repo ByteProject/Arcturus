@@ -242,3 +242,51 @@ H2's opening on one interpreter. The shape (flat Puny profile, concentrated
 Arcturus profile, movement-vs-verb split) is robust; the exact ratios will
 wobble by game region. Re-run before and after any fix - the scaffolding
 exists and takes minutes.
+
+## 7. Addendum: the Cosmos/compiler levers landed (2026-09-01, same day)
+
+Measured with probes/zi_count.py (Actaea's VM as the instruction counter,
+seeded, validated against section 3's tables to a tenth of a percent
+before any change). Same ten commands, same game, three compiler states:
+
+  command            ARCTURUS 1.x   levers 1+2   ARCTURUS 2.0 (owner index)
+  push grill  (warm)     6,249         4,474         1,280
+  talk to vlad          10,135         8,367         5,203
+  n                      1,716         1,716         1,716
+  take spray oil        10,272         5,197         1,733
+  examine terminal       6,445         4,779         1,511
+  e                      1,880         1,880         1,880
+  ten-command session   53,385        39,684        20,110
+
+What shipped, in order:
+- LEVERS 1+2 (Cosmos 1.17.5): in_scope gates the score in both sweeps
+  (the same AND, cheap side first), and phrase_score inlines the word
+  walk with the words property fetched once per object. Movement turns
+  identical to the instruction; the hot pair roughly halves.
+- LEVER 4 (arcc 2.0.0, the owner index): the compiler emits, per
+  dictionary entry, the chain of objects owning it (words, plurals,
+  adjectives; keyed by ENTRY ADDRESS so nine-z-char prefix collapse
+  unions its owners); the matcher scores each typed word's few owners
+  instead of sweeping the object table. The index proposes, phrase_score
+  decides; one shared block holds the tie rules for the indexed and the
+  classic path, and the full behavioral suite runs green on both. The
+  110-turn walkthrough is transcript-identical, seeded, either way.
+
+Where that lands against section 1, using this document's measured
+cycles-per-instruction (the 2.0 instruction mix has fewer calls, so the
+true figure needs the cycle-exact re-run; treat seconds as the model):
+
+- Verb turns now run FEWER instructions than PunyInform's (push grill
+  1,280 vs 1,885; take ~1,733 vs ~2,400), on top of the cheaper
+  per-instruction mix. The average warm turn models at ~1.1-1.2s on the
+  Atari against Puny's ~1.6s, with movement/printing still ahead.
+- Story cost: the index adds a few hundred bytes to an example-sized
+  game and 2.9K to Hibernated 2 (now 133,924 bytes, still under the
+  PunyInform build's 137,728, dynamic memory still 6.4K vs 10.0K).
+- The talk turns' remaining weight is conversation machinery, not the
+  matcher; a separate question for a separate measurement.
+
+Section 4 (the cached-PC-page fetch path) remains open on the Varuna
+side and multiplies with all of the above. The re-run of THIS document's
+cycle-exact tables against the 2.0 build (distributed to the four test
+directories) is the next measurement.
