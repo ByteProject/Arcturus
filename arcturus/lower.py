@@ -257,6 +257,13 @@ INTRINSICS = frozenset({
     # any_duals folds find_scenery's side-table walk away without one;
     # duals_table is the table's base address (the __duals__ global).
     "any_duals", "duals_table",
+    # The word-to-owners index (lever 4 of the Varuna finding): the matcher
+    # scores each typed word's few owners instead of sweeping the object
+    # table. any_owner_index folds the classic sweep out (it stays in the
+    # source as the readable spec, and the internal ARCC_CLASSIC_MATCH
+    # escape compiles it back for the both-ways conformance tests);
+    # owners_table is the index base (the __owners__ global).
+    "any_owner_index", "owners_table",
     # Thing-dual words (a command word that is also thing vocabulary: OIL the
     # verb and OIL the spray): any_thing_duals folds phrase_named's table walk
     # away without one; thing_duals_table is its base (__tduals__).
@@ -1501,6 +1508,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # the grammar-table matcher and the packs' tabled-verb branches fold
         # away in a game whose verbs all fit the flag model.
         _place(rt, Const(_any_tables(ctx)), dest)
+    elif name == "any_owner_index":
+        _place(rt, Const(_any_owner_index(ctx)), dest)
+    elif name == "owners_table":
+        _place(rt, Variable(ctx.globals["__owners__"]), dest)
     elif name == "any_typed_slots":
         # any_typed_slots(): 1 when any verb grammar line carries a typed
         # input slot (letters, number, anychar), so the matcher's class
@@ -2775,6 +2786,14 @@ def _any_duals(ctx) -> int:
     return 1 if grain_words & _command_words(world) else 0
 
 
+def _any_owner_index(ctx) -> int:
+    """1, always, in a real build: the owner index ships with every game.
+    The internal ARCC_CLASSIC_MATCH escape (tests only) compiles the classic
+    sweep instead, so the two matchers can be played against each other."""
+    import os
+    return 0 if os.environ.get("ARCC_CLASSIC_MATCH") else 1
+
+
 def _any_typed_slots(ctx) -> int:
     """1 when any verb grammar line carries a typed input slot."""
     for verb in ctx.world.verbs:
@@ -3898,6 +3917,8 @@ def _static_value(ctx, expr):
         return _any_binary(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_grains":
         return _any_grains(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_owner_index":
+        return _any_owner_index(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_typed_slots":
         return _any_typed_slots(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_tables":

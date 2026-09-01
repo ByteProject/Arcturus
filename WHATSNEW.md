@@ -6,6 +6,17 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Arcturus 2.0: the parser stops searching and starts knowing.** The
+  compiler now ships a word-to-owners index in every story file: each
+  vocabulary word points at the few objects that own it, so the noun
+  matcher scores a handful of candidates instead of sweeping the whole
+  object table. Measured cycle-exact on 8-bit hardware profiles, verb
+  turns run 3 to 6 times fewer instructions (TAKE in Hibernated 2:
+  10,272 down to 1,733), landing below PunyInform's counts on the same
+  commands, with movement and printing already faster. Nothing changes
+  in your source and nothing is declared; games grow by a few hundred
+  bytes and answer like they mean it on a C64 (arcc 2.0.0,
+  Cosmos 1.18.0).
 - **Machines you can type at: typed input slots.** A verb's own
   grammar line now declares what a machine accepts: `speak letters to
   noun` matches letter words only (SPEAK FRIEND TO DOOR, the
@@ -56,23 +67,6 @@ lives in the commit log. The feature roadmap follows below.
   frozen PC nor the body you are riding. Games that never summon it
   compile byte-identical, and the proof of that hunted down a one-byte
   compiler subtlety along the way (arcc 1.13.0, Cosmos 1.16.0).
-- **The NPC engine: living characters, declared instead of hand-wired.**
-  `summon.npcengine` and a character can `patrol` a route of rooms
-  (opening doors on its way with `opens_doors`), wander a `territory`
-  (rooms, or a whole room kind), or be sent on an errand
-  (`send(verger, chapel)`) that walks the real room graph one honest
-  step per turn, doors and all. The player watches it happen: "The
-  watchman heads east.", "The watchman arrives from the west.", in all
-  three shipped languages. The controls make a large cast cheap on real
-  8-bit hardware: every character starts `hibernated`, inactive at zero
-  per-turn cost, until `resume(watchman)` wakes them; the same calls on
-  `npc_engine` itself are a master gate that freezes the whole town for
-  a cutscene and restores the exact mix after. Two events ride the
-  ordinary pipeline (`npc_arrives`, `npc_blocked`), and the classic
-  addressed imperative arrives with it: WATCHMAN, GO NORTH reaches the
-  character's own `on command`, which decides; the default politely
-  refuses. Games that never summon it compile byte-identical, proven
-  file by file (arcc 1.12.0, Cosmos 1.15.0).
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus

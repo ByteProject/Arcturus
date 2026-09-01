@@ -439,6 +439,16 @@ _BUILTINS = {
     # pass (classes ignored, so the noun CAN resolve); one global carries
     # both. Library-internal; rides the tail so no number ever moves.
     "class_fault": T_NUMBER,
+    # The noun matcher's per-phrase shared state (the owner index, lever 4
+    # of the Varuna finding): best candidate so far, its composite score,
+    # whether it was a full-name match, and the tie flag. Written by ONE
+    # block (consider_obj), read by match_phrase's tail, so the indexed and
+    # the classic enumeration share the identical decision logic.
+    # Library-internal; ride the tail so no global number ever moves.
+    "m_best": T_OBJECT,
+    "m_score": T_NUMBER,
+    "m_full": T_NUMBER,
+    "m_tied": T_NUMBER,
     # Set to 1 by a refusal path when a command could not be carried out, so a
     # chained line ("take lamp and go north") stops at the failed command. The
     # library's default refusals set it; a story handler can too (docs/01 chapter 14).

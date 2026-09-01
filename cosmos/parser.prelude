@@ -780,6 +780,96 @@ block phrase_named(lo, hi)
 // scope matches at all, the closed-container knowledge gets its chance
 // (shut_search), so naming the coin you know is in the shut chest still
 // answers "you'll have to open it first" rather than "you can't see it".
+// The owner index (lever 4 of the Varuna cycle finding,
+// performance_eval.md): the chain of objects owning this dictionary word,
+// or 0 when none does. Binary search over the (word address, chain
+// address) table build_story emits after the dictionary, sorted by word
+// address. Addresses live in static memory, far below the signed-compare
+// line, so the plain < is safe.
+block owner_chain(d)
+    let t = owners_table
+    let n = peek_word(t, 0)
+    let lo = 0
+    let hi = n
+    while lo < hi
+        let mid = lo + (hi - lo) / 2
+        let wa = peek_word(t + 2, mid * 2)
+        if wa is d
+            return peek_word(t + 2, mid * 2 + 1)
+        if wa < d
+            change lo to mid + 1
+        else
+            change hi to mid
+    return 0
+
+// Does the object's live vocabulary own this word, in ANY of the forms the
+// index tracks (words, adjectives, plural group words)? The dedup mirror
+// of the index: enumeration skips an object already visited via an earlier
+// typed word exactly when this answers 1 for that word.
+block owns_word(obj, d)
+    if has_word(obj, d)
+        return 1
+    if any_adjectives is 1
+        if has_adjective(obj, d) is 1
+            return 1
+    if any_plurals is 1
+        if has_plural(obj, d) is 1
+            return 1
+    return 0
+
+// Score one candidate and fold it into the phrase's running decision
+// (m_best, m_score, m_full, m_tied). ONE implementation serves both
+// enumerations, the indexed and the classic sweep, so the tie rules (the
+// ZIL match class, the exact-name tiebreak) can never drift between them.
+block consider_obj(obj, lo, hi)
+    if obj is hidden
+        return 0
+    if in_scope(obj) is 0
+        return 0
+    let s = phrase_score(obj, lo, hi)
+    if s is 0
+        return 0
+    // The ZIL match class rides above the count (phrase_class, class * 64
+    // + count): a noun match outranks any adjective-only match, and the
+    // composite flows through every comparison below and into ask_score.
+    // Folded away, s stays the plain count.
+    if any_adjectives is 1
+        change s to s + phrase_class(obj, lo, hi) * 64
+    if s > m_score
+        change m_best to obj
+        change m_score to s
+        change m_full to 0
+        if any_adjectives is 0
+            if s is words_count(obj)
+                change m_full to 1
+        if any_adjectives is 1
+            if s - (s / 64) * 64 is words_count(obj)
+                change m_full to 1
+        change m_tied to 0
+    else
+        if s is m_score
+            // The exact-name tie-break (Stefan's ruling, 2026-07-30): at
+            // equal score, a FULL match (every word the object owns was
+            // typed - "blue planet" for the blue planet) beats a partial
+            // one (the deep blue planet, one word shy). Partial against
+            // partial, and full against full, are genuine ambiguities and
+            // still ask.
+            let c_full = 0
+            if any_adjectives is 0
+                if s is words_count(obj)
+                    change c_full to 1
+            if any_adjectives is 1
+                if s - (s / 64) * 64 is words_count(obj)
+                    change c_full to 1
+            if c_full > m_full
+                change m_best to obj
+                change m_full to 1
+                change m_tied to 0
+            else
+                if c_full is m_full
+                    change m_tied to 1
+    return 0
+
 block match_phrase(lo, hi, plural_ok)
     let d = nothing
     let i = lo
@@ -804,63 +894,50 @@ block match_phrase(lo, hi, plural_ok)
                 change parse_fault to 5
                 return nothing
         change i to i + 1
-    let best = nothing
-    let best_score = 0
-    let best_full = 0
-    let tied = 0
-    let obj = 1
-    while obj <= object_count
-        if obj is not hidden
-            // Scope BEFORE score, as in probe_noun above: same AND, cheap
-            // side first (the Varuna finding, performance_eval.md).
-            if in_scope(obj)
-                let s = phrase_score(obj, lo, hi)
-                if s > 0
-                    // The ZIL match class rides above the count
-                    // (phrase_class, class * 64 + count): a noun match
-                    // outranks any adjective-only match, and the composite
-                    // flows through every comparison below and into
-                    // ask_score, so the ask machinery ties by class AND
-                    // count. Folded away, s stays the plain count and this
-                    // loop is byte-identical to the classless one.
-                    if any_adjectives is 1
-                        change s to s + phrase_class(obj, lo, hi) * 64
-                    if s > best_score
-                        change best to obj
-                        change best_score to s
-                        change best_full to 0
-                        if any_adjectives is 0
-                            if s is words_count(obj)
-                                change best_full to 1
-                        if any_adjectives is 1
-                            if s - (s / 64) * 64 is words_count(obj)
-                                change best_full to 1
-                        change tied to 0
-                    else
-                        if s is best_score
-                            // The exact-name tie-break (Stefan's ruling,
-                            // 2026-07-30): at equal score, a FULL match
-                            // (every word the object owns was typed - "blue
-                            // planet" for the blue planet) beats a partial
-                            // one (the deep blue planet, one word shy).
-                            // Partial against partial, and full against
-                            // full, are genuine ambiguities and still ask.
-                            let c_full = 0
-                            if any_adjectives is 0
-                                if s is words_count(obj)
-                                    change c_full to 1
-                            if any_adjectives is 1
-                                if s - (s / 64) * 64 is words_count(obj)
-                                    change c_full to 1
-                            if c_full > best_full
-                                change best to obj
-                                change best_full to 1
-                                change tied to 0
-                            else
-                                if c_full is best_full
-                                    change tied to 1
-        change obj to obj + 1
-    if best_score is 0
+    change m_best to nothing
+    change m_score to 0
+    change m_full to 0
+    change m_tied to 0
+    if any_owner_index is 1
+        // THE OWNER INDEX (lever 4 of the Varuna cycle finding): each typed
+        // word hands over the few objects that own it, so the cost of a
+        // phrase follows the words typed, never the size of the world. An
+        // object owning two typed words sits in both chains; the dedup
+        // skips it when any EARLIER typed word already owns it (owns_word,
+        // the live mirror of the index), so every candidate is considered
+        // exactly once and the tie logic stays honest.
+        change i to lo
+        while i < hi
+            change d to word_dict(i)
+            if d is not nothing
+                let ch = owner_chain(d)
+                if ch is not 0
+                    let cand = peek_word(ch, 0)
+                    while cand is not 0
+                        let seen = 0
+                        let j = lo
+                        while j < i
+                            if seen is 0
+                                let d2 = word_dict(j)
+                                if d2 is not nothing
+                                    if owns_word(cand, d2) is 1
+                                        change seen to 1
+                            change j to j + 1
+                        if seen is 0
+                            consider_obj(cand, lo, hi)
+                        change ch to ch + 2
+                        change cand to peek_word(ch, 0)
+            change i to i + 1
+    else
+        // The classic sweep, kept as the readable spec: every object,
+        // scope before score. Compiled only under the internal
+        // ARCC_CLASSIC_MATCH escape, which the conformance tests use to
+        // play the two enumerations against each other.
+        let obj = 1
+        while obj <= object_count
+            consider_obj(obj, lo, hi)
+            change obj to obj + 1
+    if m_score is 0
         change i to lo
         while i < hi
             change d to word_dict(i)
@@ -873,7 +950,7 @@ block match_phrase(lo, hi, plural_ok)
                         return known
             change i to i + 1
         return nothing
-    if tied is 1
+    if m_tied is 1
         // A tie made by a group word is not an ambiguity: "take coins" means
         // every coin, and the plurals granule sweeps them (noun slot only).
         if any_plurals is 1
@@ -889,7 +966,7 @@ block match_phrase(lo, hi, plural_ok)
         // an answer's narrowing words weave back in.
         change ask_lo to lo
         change ask_hi to hi
-        change ask_score to best_score
+        change ask_score to m_score
         change ask_at to word_pos(hi - 1) + word_len(hi - 1)
         // The author's trigger first (docs/01 chapter 14): a #word in a
         // words list marks what the thing IS. Exactly one tied candidate
@@ -914,7 +991,7 @@ block match_phrase(lo, hi, plural_ok)
     if unknown_at is not 0
         change parse_fault to 4
         return nothing
-    return best
+    return m_best
 
 // The first noun phrase after the verb, through the scoring matcher: from the
 // first non-preposition word up to the next grammar preposition (flag bit 3).

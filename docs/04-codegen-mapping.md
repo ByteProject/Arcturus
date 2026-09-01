@@ -369,3 +369,49 @@ that line, else uses it as the destination. `exit_dest` folds to a plain
 `get_prop` when the program has no computed exit, so a static-exit game is
 byte-identical, and `__routines__` claims a fixed global slot only. Cosmos reads
 every exit through `exit_dest`, in the go handler and the `verbose_exits` scan.
+
+## The word-to-owners index
+
+Noun resolution is the hottest code an 8-bit interpreter runs, and the
+compiler knows at build time which objects own which words. The story file
+therefore carries an index, emitted after the dictionary's side tables:
+
+- For every distinct DICTIONARY ENTRY that any object's vocabulary reaches
+  (its `words`, its `plural` group words, its `>`-marked adjectives), a
+  chain of the owning objects' numbers, two bytes each, zero-terminated.
+  The key is the entry's address, never the spelling: words sharing a
+  nine-z-char prefix collapse to one entry (extinguish / extinguisher),
+  and their owners union into one chain, because the matcher looks up by
+  the address the tokenizer produced.
+- Then the index proper: a count, then (word dictionary address, chain
+  address) pairs, sorted by address for the matcher's binary search. The
+  `__owners__` global holds the index address.
+
+The pairs are harvested at the property emitter itself, the same loop that
+writes each object's vocabulary properties, so the index can never drift
+from what the live `has_word` family can answer. The invariant that keeps
+it safe: THE INDEX ONLY PROPOSES CANDIDATES; `phrase_score` still decides.
+Over-proposal costs a few instructions; only a missing candidate would be
+a bug, and the emitter's coverage equals the emitted properties by
+construction. Dynamic vocabulary does not exist in the language (add and
+remove on word-list properties are refused at compile time); if that door
+ever opens, a loose-object side list must ship in the same change, holding
+every object whose vocabulary a running game can extend, swept classically
+per phrase.
+
+At run time the matcher walks each typed word's chain instead of the
+object table, visiting every candidate exactly once (an object in two
+chains is skipped on the later word when any earlier typed word already
+owns it, the `owns_word` mirror of the index), and one shared block
+(`consider_obj`, writing the m_* globals) holds the scoring and tie rules
+for both this and the classic sweep, which stays in the source as the
+readable spec. The internal ARCC_CLASSIC_MATCH environment escape compiles
+the classic sweep instead, and the conformance tests play the two matchers
+against each other on identical seeded scripts.
+
+Measured on Hibernated 2's opening ten commands (the Varuna cycle
+evaluation's session, probes/zi_count.py): the session fell from 53,385
+executed z-instructions to 20,110, the worst verb turn from 10,272 to
+1,733, with verb turns landing below the movement turns. The price is the
+index itself: a few hundred bytes on an example-sized game, 2.9K on
+Hibernated 2.

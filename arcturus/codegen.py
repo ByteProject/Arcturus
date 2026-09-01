@@ -18,6 +18,7 @@ construct-to-opcode mapping is recorded in docs/04-codegen-mapping.md.
 from __future__ import annotations
 
 import datetime
+import os
 
 from . import __version__
 from . import abbrev
@@ -914,6 +915,12 @@ _BUILTIN_GLOBALS = [
     # The thing-dual word table's base address (a command word that is also
     # thing vocabulary: OIL), 0 without one; phrase_named walks it.
     "__tduals__",
+    # The word-to-owners index (lever 4 of the Varuna finding, docs/04):
+    # a sorted table mapping each vocabulary word's dictionary address to
+    # a chain of the objects owning it, so the noun matcher scores the 1-3
+    # owners of each typed word instead of sweeping the object table. 0
+    # only under the internal classic-match escape (ARCC_CLASSIC_MATCH).
+    "__owners__",
     # The mute buffer's byte address (restless performers, stream 3).
     "__mutebuf__",
     # The path scratch base (way_toward): crumbs then fringe; 0 unallocated.
@@ -972,7 +979,8 @@ _BUILTIN_GLOBALS = [
 # with silence or foresight's promise instead of the get-off line.
 # Written only behind the any_enterable fold.
 _TAIL_GLOBALS = ("commanded", "__npcs__", "two_swap", "implicit_leave",
-                 "posture", "class_fault")
+                 "posture", "class_fault",
+                 "m_best", "m_score", "m_full", "m_tied")
 
 
 def _globals_map(world: wm.World) -> dict:
@@ -1200,6 +1208,48 @@ def build_story(
             wa = dict_addr + word_offsets[word]
             nt += bytes([(wa >> 8) & 0xFF, wa & 0xFF])
         named_addr = sf.append(bytes(nt))
+    # The word-to-owners index (lever 4 of the Varuna cycle finding): for
+    # every word any object owns (words, plural, adjective properties, the
+    # pairs harvested at the property emitter so the index can never drift
+    # from what the live score can answer), a chain of owner object numbers,
+    # then a table of (word dictionary address, chain address) pairs sorted
+    # by address for the matcher's binary search. The index only PROPOSES
+    # candidates; phrase_score still decides, so a stale over-proposal is
+    # a few instructions, never a wrong parse. Dynamic vocabulary does not
+    # exist in the language (add/remove on word lists is refused at compile
+    # time), so the static index is complete by construction; if that door
+    # ever opens, a loose-object side list must ship with it (docs/04).
+    owners_addr = 0
+    if layout is not None and layout.owner_pairs and not os.environ.get(
+            "ARCC_CLASSIC_MATCH"):
+        # Keyed by DICTIONARY ADDRESS, never by spelling: words sharing a
+        # nine-z-char prefix collapse to one dictionary entry (extinguish /
+        # extinguisher), and the runtime looks up by the entry's address,
+        # so owners of every collapsed spelling must union into one chain.
+        # Two spelling-keyed rows with one address split the chain and lose
+        # candidates (the EXTINGUISH pedestal, caught by the H2 route gate).
+        by_addr: dict = {}
+        for onum, word in layout.owner_pairs:
+            wa = dict_addr + word_offsets[word]
+            by_addr.setdefault(wa, [])
+            if onum not in by_addr[wa]:
+                by_addr[wa].append(onum)
+        chain_at: dict = {}
+        ob = bytearray()
+        obase = sf.here()
+        for wa in sorted(by_addr):
+            chain_at[wa] = obase + len(ob)
+            for onum in by_addr[wa]:
+                ob += bytes([(onum >> 8) & 0xFF, onum & 0xFF])
+            ob += b"\x00\x00"
+        ob_index_at = obase + len(ob)
+        ob += bytes([(len(by_addr) >> 8) & 0xFF, len(by_addr) & 0xFF])
+        for wa in sorted(by_addr):
+            ca = chain_at[wa]
+            ob += bytes([(wa >> 8) & 0xFF, wa & 0xFF,
+                         (ca >> 8) & 0xFF, ca & 0xFF])
+        sf.append(bytes(ob))
+        owners_addr = ob_index_at
 
     # High memory: the entry stub and routines, run from the initial PC.
     high_base = sf.here()
@@ -1362,6 +1412,11 @@ def build_story(
         sf.set_word(
             globals_addr + (gmap["__tduals__"] - 16) * 2,
             named_addr,
+        )
+    if owners_addr:
+        sf.set_word(
+            globals_addr + (gmap["__owners__"] - 16) * 2,
+            owners_addr,
         )
     if awards_addr:
         sf.set_word(globals_addr + (gmap["__awards__"] - 16) * 2, awards_addr)

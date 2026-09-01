@@ -95,6 +95,11 @@ def prop_routine_name(objname: str, pname: str) -> str:
 @dataclass
 class Layout:
     obj_number: dict[str, int] = field(default_factory=dict)
+    # The word-to-owners harvest (the owner index, docs/04): every
+    # (object number, word) pair emitted into a words/plural/adjective
+    # property, collected at the emission site so the index can never
+    # drift from what has_word/has_plural/has_adjective can answer.
+    owner_pairs: list = field(default_factory=list)
     attr_number: dict[str, int] = field(default_factory=dict)
     kind_attr: dict[str, int] = field(default_factory=dict)  # kind name -> attribute
     # Tested kinds that overflowed the attribute budget: their `obj is <kind>`
@@ -885,6 +890,8 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     )
     if words_prop is not None and vocab:
         items.append((words_prop, "words", vocab))
+        for w in vocab:
+            layout.owner_pairs.append((layout.obj_number[name], w))
     # The plural property (the plurals granule's group vocabulary) is an array
     # of dictionary addresses exactly like words.
     plural_prop = layout.prop_number.get("plural")
@@ -894,6 +901,8 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
             world.folds)
         if pvocab:
             items.append((plural_prop, "plural", pvocab))
+            for w in pvocab:
+                layout.owner_pairs.append((layout.obj_number[name], w))
     # The trigger property (the #-marked words, docs/01 chapter 14): an array
     # of dictionary addresses exactly like words. Sema only registers it when
     # a words list carries the marker, so a triggerless game emits nothing.
@@ -914,6 +923,8 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
             world.folds)
         if avocab:
             items.append((adjective_prop, "adjective", avocab))
+            for w in avocab:
+                layout.owner_pairs.append((layout.obj_number[name], w))
     # A person with `topic` declarations gets a `topics` property holding a
     # pointer to its topic table; the table itself is appended after all property
     # tables (the pointer is patched there, so only its site is reserved here).

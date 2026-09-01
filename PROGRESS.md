@@ -12825,3 +12825,54 @@ That is lever 3/4 territory, and the decision waits on the re-benchmark
 from the Varuna side with the fresh build (distributed to all four
 sibling test dirs). Costs: +48 bytes per game for the fused matcher, 53
 ceilings repriced; behavior identical, full suite green, H2 360 of 360.
+
+## Arcturus 2.0: the owner index. The parser stops searching and starts
+## knowing (arcc 2.0.0, Cosmos 1.18.0, 2026-09-01)
+
+STEFAN'S RULINGS, in order: lever 4 over lever 3 ("We are so below Puny
+in kilobytes, that this is a sacrifice worth making"), and the change is
+fundamental enough to shift the compiler to 2.0.
+
+THE DESIGN. The compiler knows at build time which objects own which
+words, so every story file now carries a word-to-owners index: per
+dictionary entry a chain of owner object numbers, then a sorted (word
+address, chain address) table the matcher binary-searches; __owners__
+holds its base. The pairs are harvested at the property emitter itself,
+so the index equals the emitted vocabulary by construction. The safety
+invariant: the index only PROPOSES candidates, phrase_score still
+DECIDES, so only a missing candidate could ever be a bug. And a happy
+discovery en route: dynamic vocabulary does not exist in the language
+(add/remove on word lists is a compile error, a B4.4 remnant), so no
+loose-set carve-out is needed; the handbook's add-to-synonyms example
+documents vapor and needs a ruling (flagged). The matcher enumerates
+each typed word's few owners, dedups via owns_word (the live mirror),
+and folds every candidate through ONE shared block (consider_obj,
+writing the m_* tail globals), so the tie rules cannot drift between
+the indexed path and the classic sweep, which stays in the source as
+the readable spec behind the internal ARCC_CLASSIC_MATCH escape.
+
+THE BUG THE ROUTE GATE CAUGHT: keyed by spelling, two words sharing a
+nine-z-char dictionary prefix (extinguish / extinguisher) emitted two
+index rows at one address with split chains; the binary search hit the
+wrong row, the dedup skipped the true owner, and a late-game command
+misresolved: 295 of 360. Keyed by ADDRESS with owners unioned, 360 of
+360, and the full 110-turn route is transcript-identical to the classic
+matcher, seeded. The collapse case is pinned in tests forever.
+
+MEASURED (probes/zi_count.py, seeded, the Varuna evaluation's ten
+commands): the session 53,385 to 20,110 executed z-instructions; PUSH
+GRILL 6,249 to 1,280; TAKE SPRAY OIL 10,272 to 1,733; verb turns now
+sit BELOW the movement turns and below PunyInform's counts on the same
+commands, while Arcturus keeps the cheaper per-instruction mix. On the
+Varuna cycle model that is roughly 3.0s per average turn down to about
+1.1s on the Atari, before the interpreter's own fetch-path lever. Cost:
+a few hundred bytes on example-sized games, 2.9K on H2; 53 ceilings and
+the z8 ceiling repriced; the 27K Puny benchmark still beaten with 6.5K
+to spare.
+
+GATES: both matchers run the entire behavioral suite green (the classic
+path via the escape, 1382 tests; the indexed full suite, 1599); six new
+owner-index tests; H2 360 of 360 on the final amalgam and the fresh
+build distributed to Eris, Ceres, Varuna, and Haumea for the
+re-benchmark. docs/04 carries the format and the invariants;
+performance_eval.md remains untracked pending Stefan's placement call.
