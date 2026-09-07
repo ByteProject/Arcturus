@@ -920,7 +920,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `an` | The indefinite article is "an", not "a". Derived from the name's first letter (a vowel -> `an`); set `an` or `an false` only for an exception (an hour, a unicorn). |
 | `feminine` | Grammatical gender. Drives the Spanish articles and agreement (la lampara, Cogida), the German article (declared there with `die`, which sets this), and the English "her" pronoun on a character. Spanish derives it from a head noun ending in -a or a reliably feminine suffix; declare it where spelling cannot reveal it (la llave; an English Ruth). Masculine is the unmarked default. |
 | `neutral` | The third German gender, declared there with `das` (das Buch, "es"). English and Spanish never read it. |
-| `beyond` | Visible but not touchable: in scope and examinable (a chandelier overhead, a jar one shelf too high), while every touching action refuses ("${The noun} is beyond your reach.", msg_beyond, overridable). Conversation crosses the gap (an animate beyond person still answers ASK), and throwing AT a beyond thing stays legal: the arm reaches where the hand cannot. It is STATE: `now jar is not beyond` when the stool is gained. The refusal can carry the WHY (a field request): `beyond "Without the ladder, the top shelf might as well be the moon."` speaks your line instead of the generic one, and `beyond block` opens a computed body (the desc-block shape) for wording by state; a bare `beyond` keeps the pack's message. The property points BOTH ways: `now player is beyond` puts the PLAYER out of everything's reach instead, the mounted-on-a-horse case. While the player is beyond, only the arm's bubble stays touchable: themself, what they hold, and the thing they are on or in with everything it carries (the mare, her saddlebag, the apple inside); un-nested it collapses to self and held alone (hands bound, tied to a chair). Sight and speech cross the gap exactly as above, and EXIT is never blocked, so dismounting always works. Set it in the after phase, once the boarding has really happened: `on after enter mare / now player is beyond`, and `on after exit mare / now player is not beyond`. The player's refusal can carry its own why, settable at RUNTIME: `change player.beyond_why to "You can't reach that from up here."` speaks your line, `change player.beyond_why to nothing` reverts to the pack default (the slot is allocated automatically for any game that writes it). Static faraway decoration needs no object at all, that is a grain's job (chapter 18); beyond is for distance that matters to the model. Costs nothing unused. Worked example: [examples/features/beyond.storyarc](../examples/features/beyond.storyarc). |
+| `beyond` | Visible but not touchable: in scope and examinable (a chandelier overhead, a jar one shelf too high), while every touching action refuses ("${The noun} is beyond your reach.", msg_beyond, overridable). Conversation crosses the gap (an animate beyond person still answers ASK), and throwing AT a beyond thing stays legal: the arm reaches where the hand cannot. It is STATE: `now jar is not beyond` when the stool is gained. The refusal can carry the WHY (a field request): `beyond "Without the ladder, the top shelf might as well be the moon."` speaks your line instead of the generic one, and `beyond block` opens a computed body (the desc-block shape) for wording by state; a bare `beyond` keeps the pack's message. The property points BOTH ways: `now player is beyond` puts the PLAYER out of everything's reach instead, the mounted-on-a-horse case. While the player is beyond, only the arm's bubble stays touchable: themself, what they hold, and the thing they are on or in with everything it carries (the mare, her saddlebag, the apple inside); un-nested it collapses to self and held alone (hands bound, tied to a chair). Sight and speech cross the gap exactly as above, and EXIT is never blocked, so dismounting always works. Set it in the after phase, once the boarding has really happened: `on after enter mare / now player is beyond`, and `on after exit mare / now player is not beyond`. The refusal is CENTRAL: the reach gate runs before any handler, for every touch action alike (a verb opts out with `reachagnostic`, chapter 12), so an object's own `on take when ...` override speaks only to things the player could actually reach. The player's refusal can carry its own why, settable at RUNTIME: `change player.beyond_why to "You can't reach that from up here."` speaks your line, `change player.beyond_why to nothing` reverts to the pack default (the slot is allocated automatically for any game that writes it). Static faraway decoration needs no object at all, that is a grain's job (chapter 18); beyond is for distance that matters to the model. Costs nothing unused. Worked example: [examples/features/beyond.storyarc](../examples/features/beyond.storyarc). |
 | `shiftable` | The thing can be pushed through an exit, the player following (PUSH CRATE NORTH). Chapter 12. |
 | `restless` | A background performer: its `on each_turn` fires EVERY turn, wherever the object is, not only in scope. Work follows the performer's nature; prose follows scope: what a restless object prints while out of scope is discarded by the system, so the handler writes its `say` unconditionally and the player hears it exactly when the performer shares their scene: present, arriving, or leaving before their eyes (in scope at either end of its turn); a turn taken wholly offstage is silence. It never fires twice. It is STATE: declare `restless` to be born performing, or arm and disarm at runtime (`now guard is restless`, `now guard is not restless`), with no declaration needed anywhere; a `when` guard on the handler still decides whether an armed performer acts this turn. A game with no restless object pays nothing (the walk, the mute buffer, everything folds away). Chapter 16; worked example: [examples/features/daemons-and-timers.storyarc](../examples/features/daemons-and-timers.storyarc). |
 | `pluribus` | Grammatical number: ONE object that is grammatically plural (the scissors, the boots; e pluribus unum, many speaking through one). The articles read it ("some scissors"; German's bare indefinite plural and die/die/den/der by case; Spanish los/las, unos/unas), `${is x}` agrees (is/are, ist/sind, está/están), and the core messages conjugate ("The scissors stay exactly where they are."). NOT the plurals granule, whose group words sweep several distinct singular objects ("take coins"). Costs nothing in a game that never sets it. |
@@ -2559,9 +2559,8 @@ containers join the repairs the same way (chapter 22).
 ### A new verb with the library's manners
 
 A verb you declare is a full citizen the moment it has a grammar line
-and a handler, but the library's manners, the reach refusal (`beyond`)
-and the author-overridable report (`alter`), live in each verb's
-handler, so a new verb carries them itself. The whole pattern:
+and a handler, and the library's manners come with it FROM HOUSE. The
+whole pattern:
 
 ```
 verb "putunder"
@@ -2571,21 +2570,43 @@ block msg_putunder_done()
     say "Tucked away."
 
 on putunder
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
-        if beyond_guard_second is 1
-            stop
     // ... your mechanics ...
     success msg_putunder_done
     stop
 ```
 
-The beyond gate refuses for a noun (or second) that is in sight but out
-of reach, exactly as TAKE would, and folds away in a game that never
-sets `beyond`. The `success` line speaks your default report unless a
-handler registered an alter, so any object can reword your verb the
-standard way:
+Reach is not your problem: TOUCH IS THE DEFAULT for every action, and
+the central reach gate refuses a beyond noun or second before any
+handler runs, in your verb exactly as in TAKE ("${The noun} is beyond
+your reach.", the same wording, the same per-object `beyond_why`
+override, the same player-beyond arm bubble). There is nothing to
+remember and nothing to copy; a verb cannot forget its manners.
+
+A verb whose MEANING works at any distance says so beside its grammar:
+
+```
+verb "signal", "flash"
+    reachagnostic         // sight crosses: signaling needs no touching
+    signal noun
+
+verb "show", "display", "present"
+    reachagnostic second  // the thing shown is in hand; the person
+    show noun to noun     // shown to may be across the chasm
+```
+
+Bare `reachagnostic` excuses every slot (the sense and speech verbs:
+examine, listen, ask, talk); `reachagnostic second` (or `noun`) excuses
+one, for the mixed verbs. The library's own declarations are the
+worked reference: examine, smell, listen, read, talk, ask, tell,
+answer, and exit cross; show and throw cross on their second slot;
+everything else is touch. The gate speaks BEFORE object handlers, so a
+`when`-guarded override never explains a thing the player could not
+have reached anyway; and it folds away whole in a game that never sets
+`beyond`.
+
+The `success` line speaks your default report unless a handler
+registered an alter, so any object can reword your verb the standard
+way:
 
 ```
 thing bed in bedroom
@@ -2594,12 +2615,9 @@ thing bed in bedroom
         continue
 ```
 
-Both gates are optional: leave the beyond gate out and your verb
-reaches across the room; end with a plain `say` instead of `success`
-and alters cannot touch your wording. The message block rather than an
-inline string is the translatable form: a language pack, or a story,
-overrides `msg_putunder_done` without touching the handler. The worked
-showcase is
+The message block rather than an inline string is the translatable
+form: a language pack, or a story, overrides `msg_putunder_done`
+without touching the handler. The worked showcase is
 [examples/features/success.storyarc](../examples/features/success.storyarc).
 
 ### Verbless actions: `action`

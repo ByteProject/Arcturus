@@ -249,6 +249,33 @@ block beyond_guard_second()
                 return beyond_refuse(second)
     return 0
 
+// THE CENTRAL REACH GATE (Stefan's ruling, 2026-09-07): touch is the
+// default for every action, checked here once, before any handler runs,
+// so no verb can forget its manners and no author has to remember them
+// (the audit that forced this found set, tie, kiss, climb, drink, dig,
+// and search all unguarded, each a copy someone forgot). A verb whose
+// meaning works at any distance declares `reachagnostic` beside its
+// grammar (bare, or per slot: SHOW's thing is touch, the person shown
+// to may be across the chasm), and reach_of hands the exemption bits
+// back (1 noun, 2 second). The guards themselves are unchanged, ONE
+// chain: the player-beyond arm bubble, per-object beyond_why, and the
+// refusal wording all live where they always did. Folds away whole
+// (any_beyond) in a game that never sets beyond. Returns 1 refused,
+// message spoken.
+block check_reach(act)
+    let ex = reach_of(act)
+    if ex is 3
+        return 0
+    if noun is not nothing
+        if ex mod 2 is 0
+            if beyond_guard is 1
+                return 1
+    if second is not nothing
+        if ex < 2
+            if beyond_guard_second is 1
+                return 1
+    return 0
+
 // Why the DEFAULT take would refuse this object, as a reason code, or 0 when
 // it would succeed. THE ONE GUARD CHAIN: the take handler itself refuses
 // through this probe, and foresight's repair asks the same probe before it
@@ -256,6 +283,10 @@ block beyond_guard_second()
 // Side-effect-free; speak_take_refusal turns a code into the exact message
 // the take always gave, in the exact order the guards always ran.
 block take_probe(obj)
+    // Why 1 (beyond) is unreachable from the take handler since the
+    // central reach gate (check_reach) refuses beyond before any handler
+    // runs; it stays for foresight, whose repairs ask this probe before
+    // promising and must still see an unreachable thing as untakeable.
     if any_beyond is 1
         if beyond_blocked(obj) is 1
             return 1
@@ -550,9 +581,6 @@ on inventory
         msg_empty_handed
 
 on switch_on
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     // The library owns the state (the binary model): flip, couple the
     // light where the thing glows, report. The already-on refusal
     // happened in the contract, before any handler; an author's own
@@ -570,9 +598,6 @@ on switch_on
     msg_no_switch
 
 on switch_off
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     if any_binary is 1
         if noun is binary
             now noun is not active
@@ -603,14 +628,9 @@ on take_off
     success msg_removed
 
 on put
-    // PUT moves the noun without a hold check, so it needs the noun guard
-    // too: a beyond chandelier must not ride into a sack, and a beyond
-    // player must not fish things off the ground into the saddlebag.
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
-        if beyond_guard_second is 1
-            stop
+    // The central reach gate already refused a beyond noun or second: a
+    // beyond chandelier never rides into a sack, and a beyond player never
+    // fishes things off the ground into the saddlebag (check_reach).
     if second is supporter
         move noun to second
         now noun is not worn
@@ -632,12 +652,7 @@ on put
     msg_cant_put
 
 on insert
-    // The same mover as put: both guards, same reason.
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
-        if beyond_guard_second is 1
-            stop
+    // The same mover as put; the central reach gate covered both slots.
     if second is container
         if second is open
             if any_container_caps is 1
@@ -669,9 +684,6 @@ block open_probe(obj)
     return 0
 
 on open
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     if open_probe(noun) is 1
         change refused to 1
         msg_cant_open
@@ -707,9 +719,6 @@ on open
         reveal_contents(noun)
 
 on close
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     if noun is not openable
         change refused to 1
         msg_cant_close
@@ -721,9 +730,6 @@ on close
     success msg_closed_it
 
 on lock
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     if noun is not lockable
         change refused to 1
         msg_cant_lock
@@ -756,9 +762,6 @@ on lock
     success msg_locked
 
 on unlock
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     // Nothing to unlock: the thing has no lock at all, so just open it.
     if noun is not lockable
         msg_cant_unlock
@@ -848,9 +851,6 @@ block seat_left_note(seat)
     return 0
 
 on enter
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     if player in noun
         msg_already_there
         stop
@@ -931,9 +931,6 @@ on show
     msg_show
 
 on touch
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     msg_touch
 
 on smell
@@ -962,9 +959,6 @@ on listen
     msg_listen
 
 on eat
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     change refused to 1
     msg_eat
 
@@ -973,9 +967,6 @@ on drink
     msg_drink
 
 on attack
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     change refused to 1
     msg_attack
 
@@ -990,9 +981,6 @@ on kiss
     msg_kiss_thing
 
 on push
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     // PUSH THE CRATE NORTH (the verbs overhaul, phase 6): a `shiftable`
     // thing rolls through the exit and the player follows, doors respected,
     // the same arrival a walk gets. The whole path folds away in a game
@@ -1036,16 +1024,10 @@ on push
     msg_push
 
 on pull
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     change refused to 1
     msg_pull
 
 on turn
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     change refused to 1
     msg_no_effect
 

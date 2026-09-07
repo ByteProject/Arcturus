@@ -739,6 +739,7 @@ verb "lass", "lasse", "fallenlassen", "wegwerfen", "weglegen"
 noise "fallen"
 
 verb "untersuch", "untersuche", "untersuchen", "betrachte", "prüfe", "x"
+    reachagnostic
     examine noun
     look_under noun
 
@@ -1156,6 +1157,7 @@ verb "betrete", "betreten", "besteige", "besteigen"
     enter noun
 
 verb "aussteigen", "raussteigen", "heraussteigen", "verlasse", "verlassen"
+    reachagnostic
     exit
     exit noun
 
@@ -1164,6 +1166,7 @@ verb "gib", "gebe", "geben", "reich", "reiche"
     give noun noun reverse
 
 verb "zeig", "zeige", "zeigen"
+    reachagnostic second
     show noun an noun
     show noun noun reverse
 
@@ -1171,6 +1174,7 @@ verb "berühre", "berühren", "fühl"
     touch noun
 
 verb "riech", "rieche", "riechen", "schnupper"
+    reachagnostic
     smell
     smell noun
 
@@ -1178,6 +1182,7 @@ verb "schmeck", "schmecke", "koste", "probier", "probiere"
     taste noun
 
 verb "hör", "höre", "lausche", "horch"
+    reachagnostic
     listen
     listen noun
 
@@ -1207,24 +1212,29 @@ verb "kletter", "klettere", "klettern", "erklimme"
     climb noun
 
 verb "lies", "lesen", "liest"
+    reachagnostic
     examine noun
 
 verb "sprich", "rede", "reden", "sprechen"
+    reachagnostic
     talk noun
 
 verb "frag", "frage", "befrage"
+    reachagnostic
     ask noun
     ask noun nach
     ask noun über
     ask noun ueber
 
 verb "erzähl", "erzähle", "sag", "sage"
+    reachagnostic
     tell noun
     tell noun von
     tell noun über
     tell noun ueber
 
 verb "antworte", "antworten"
+    reachagnostic
     answer noun
 
 verb "spring", "springe", "hüpf", "hüpfe"

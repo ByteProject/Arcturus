@@ -609,6 +609,11 @@ class VerbDecl:
     # existing verb), or "redefine" (replace it whole, words included, and
     # say so out loud). The verbs overhaul, phase 5; Stefan's spellings.
     mode: str = "declare"
+    # `reachagnostic` in the body (docs/01 chapter 12): this verb's meaning
+    # works at any distance, so the central reach gate skips the marked
+    # slots. Bits: 1 noun, 2 second; bare marks both. 0 (the default) means
+    # touch: the gate applies from house.
+    reachagnostic: int = 0
 
 
 @dataclass

@@ -735,6 +735,7 @@ verb "dejar", "deja", "soltar", "suelta"
     drop noun
 
 verb "examinar", "examina", "x", "inspeccionar", "inspecciona"
+    reachagnostic
     examine noun
     look_under noun
 
@@ -859,6 +860,7 @@ verb "entrar", "entra", "subir", "sube", "siéntate", "sientate"
     enter noun
 
 verb "salir", "sal", "abandonar"
+    reachagnostic
     exit
     exit noun
 
@@ -866,12 +868,14 @@ verb "dar", "da", "ofrecer", "ofrece", "entregar", "entrega"
     give noun a noun
 
 verb "mostrar", "muestra", "ensenar", "enseñar", "ensena", "enseña"
+    reachagnostic second
     show noun a noun
 
 verb "tocar", "toca", "palpar", "palpa"
     touch noun
 
 verb "oler", "huele", "olfatear"
+    reachagnostic
     smell
     smell noun
 
@@ -879,6 +883,7 @@ verb "probar", "prueba", "lamer", "lame", "saborear"
     taste noun
 
 verb "escuchar", "escucha", "oir", "oír", "oye"
+    reachagnostic
     listen
     listen noun
 
@@ -908,22 +913,27 @@ verb "escalar", "escala", "trepar", "trepa"
     climb noun
 
 verb "leer", "lee"
+    reachagnostic
     examine noun
 
 verb "hablar", "habla", "saludar", "saluda"
+    reachagnostic
     talk noun
 
 verb "pregunta", "preguntar", "pregúntale", "preguntale", "interroga"
+    reachagnostic
     ask noun
     ask noun sobre
     ask noun por
 
 verb "di", "dile", "cuéntale", "cuentale", "cuenta"
+    reachagnostic
     tell noun
     tell noun sobre
     tell noun de
 
 verb "responde", "contesta"
+    reachagnostic
     answer noun
 
 verb "saltar", "salta", "brincar", "brinca"

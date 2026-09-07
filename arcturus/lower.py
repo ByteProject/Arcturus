@@ -280,7 +280,7 @@ INTRINSICS = frozenset({
     # The dispatcher's after phase (docs/01 chapter 13 step 6): whether any
     # `on after` handler exists (folds the phase away when not), and the
     # action -> synthetic-after-action map behind it.
-    "any_after", "after_of", "any_requires", "requires_of",
+    "any_after", "after_of", "any_requires", "requires_of", "reach_of",
     # Per-bit requirement folds, so check_requires compiles only the branches
     # some action actually declares (library-internal, like any_topic_idle).
     "req_noun_carried", "req_noun_animate", "req_second_carried",
@@ -965,6 +965,16 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _free(ctx, t)
     elif name == "any_requires":
         _place(rt, Const(1 if ctx.world.requirements else 0), dest)
+    elif name == "reach_of":
+        # reach_of(action): the reachagnostic exemption bits (reach_map).
+        # With no exemptions declared anywhere the map does not exist and
+        # every action is touch: a constant 0.
+        if ctx.world.reach_exempt:
+            op, t = _operand(rt, ctx, args[0])
+            rt.op("call_vs", RoutineRef("reach_map"), op, store=dest)
+            _free(ctx, t)
+        else:
+            _place(rt, Const(0), dest)
     elif name in _REQ_BIT_NAMES:
         _place(rt, Const(_req_bit(ctx, name)), dest)
     elif name == "after_of":

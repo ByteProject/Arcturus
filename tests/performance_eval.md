@@ -396,3 +396,32 @@ been testing against. What that means per project:
   interpreter's ~1,000-cycle instruction fetch floor is most of every
   remaining second, both games, every machine. It multiplies with
   everything above.
+
+## 11. Varuna: section 4 is BUILT (2026-09-01, from the Varuna side)
+
+The cached-PC-page fetch path landed in Varuna (commit-level record in
+Varuna's PROGRESS.md): pc_fetch_byte dispatches through a vector - a fast
+(pcbase),y read where the LOW BYTE OF PC is the offset, for dynamic memory
+and main-RAM cache slots, with the executing page's slot PINNED against
+eviction and code faults steered into main slots (want_main); banked and
+130XE-extended pages keep the per-byte path. Map cost: one page of
+dynamic-memory ceiling (now 28.75K; Jigsaw still fits).
+
+Verified by golden transcripts - four configurations x the ten commands of
+section 1, byte-identical before and after - and measured on the 2.0 story:
+
+  dd (64K)          11.4s -> 8.3s   x1.37
+  thrash (8 slots)  11.2s -> 8.2s   x1.37   (the pin holds under eviction)
+  sd spanned        11.8s -> 8.9s   x1.32
+  sd + 130XE        15.9s -> 13.0s  x1.23   (extended pages stay per-byte)
+
+Honest correction to section 4's estimate: the instruction fetch was ~27%
+of a turn, not half, so the lever delivered x1.37, not x2. A warm 2.0-story
+turn now averages ~0.83s on the Atari (~1.5s on a C64 clock). Remaining
+interpreter weight, in rough order, each a separate measurable lever:
+operand gathering/decode, @call/@return frames, the string decoder's
+per-word reads, and the 130XE extended path. Siblings adopting the fetch
+path: take the three disciplines together (pin, recompute-after-every-
+PC-write including the inline-string skip in @print, code-fault placement)
+- the fast pointer without the pin is the fault-transparency bug one level
+up.

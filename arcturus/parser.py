@@ -847,6 +847,7 @@ class Parser:
         self.expect(T.INDENT, "an indented grammar body")
         grammar: list[ast.GrammarLine] = []
         requirements: list[ast.RequiresDecl] = []
+        reach_bits = 0
         while not self.check(T.DEDENT):
             if self.check(T.NEWLINE):
                 self.advance()
@@ -860,13 +861,36 @@ class Parser:
                 r.action = None
                 requirements.append(r)
                 continue
+            # `reachagnostic` in the body: this verb works at any distance,
+            # so the central reach gate skips it. Bare marks both slots;
+            # `reachagnostic second` (or noun) marks one, for the mixed
+            # verbs: SHOW's thing must be in hand, but the person shown to
+            # may be across the chasm.
+            if self.check(T.NAME) and self.cur.value == "reachagnostic":
+                self.advance()
+                bits = 0
+                while self.cur.kind in (T.NAME, T.KW) \
+                        and self.cur.value in ("noun", "second"):
+                    if self.cur.value == "noun":
+                        bits |= 1
+                    else:
+                        bits |= 2
+                    self.advance()
+                if not self.check(T.NEWLINE):
+                    raise self._error(
+                        "reachagnostic takes 'noun' and/or 'second', or "
+                        "stands bare for both")
+                self.expect_newline()
+                reach_bits |= bits if bits else 3
+                continue
             grammar.extend(self._parse_grammar_line())
         self.expect(T.DEDENT)
         if mode != "declare" and meta:
             raise self._error(
                 "meta rides the declaring verb; enhance and redefine leave "
                 "a verb's meta standing as declared")
-        return ast.VerbDecl(words, grammar, line, meta, requirements, mode)
+        return ast.VerbDecl(words, grammar, line, meta, requirements, mode,
+                            reachagnostic=reach_bits)
 
     def parse_requires(self, action=None) -> ast.RequiresDecl:
         # The declarative verb contract (the verbs overhaul, phase 2).

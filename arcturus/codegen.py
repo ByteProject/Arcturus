@@ -303,6 +303,28 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
             rmap.op("ret", Const(mask))
         out.append(rmap)
 
+    # reach_map(action) backs the reach_of intrinsic (the central reach
+    # gate, docs/01 chapter 12): the EXEMPTION bits an action's verbs
+    # declared with reachagnostic (1 noun, 2 second); 0, the default, means
+    # touch and the gate applies. Called only from check_reach, which only
+    # compiles under any_beyond, so a game without beyond drops the routine
+    # whole (DCE) and stays byte-identical.
+    if world.reach_exempt:
+        xmap = Routine("reach_map", nlocals=1)
+        xitems = sorted(world.reach_exempt.items())
+        for name, _bits in xitems:
+            if name not in actions:
+                continue
+            xmap.op("je", Variable(1), Const(actions[name]),
+                    branch=("rx_" + name, True))
+        xmap.op("ret", Const(0))
+        for name, bits in xitems:
+            if name not in actions:
+                continue
+            xmap.label("rx_" + name)
+            xmap.op("ret", Const(bits))
+        out.append(xmap)
+
     withafter = wm.actions_with_after(world)
     if withafter:
         # `on after other` gives the map a FALLBACK: any world action without

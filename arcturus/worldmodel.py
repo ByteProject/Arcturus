@@ -544,6 +544,10 @@ class World:
     # carried, 8 second animate). Emitted as requires_map; enforced by the
     # loop BEFORE dispatch, so a handler override owns only the response.
     requirements: dict = field(default_factory=dict)
+    # The reach exemptions (docs/01 chapter 12): action -> bits (1 noun,
+    # 2 second) from `reachagnostic` markers. Any action NOT here is touch:
+    # the central reach gate applies to its bound slots from house.
+    reach_exempt: dict = field(default_factory=dict)
     sets_shiftable: bool = False
     uses_notify: bool = False
 

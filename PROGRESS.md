@@ -12944,3 +12944,41 @@ manners", with the full pattern; examples/features/success.storyarc
 (The Box Room) plays alter, default, beyond refusal, and the inline
 form through its TRY script. Suite 1600 green; H2 360 of 360,
 redistributed.
+
+## Touch is the default: the reach gate moves into the house
+## (arcc 2.2.0, Cosmos 1.20.0, 2026-09-07)
+
+STEFAN'S RULING, correcting my scoping of the same conversation: the
+repetitive code he meant was the beyond stanza, copied into almost
+every verb, and copies cannot be relied on ("another instance of you,
+when implementing tie or set, forgot about the beyond guard. WE CANNOT
+RELY ON THIS"). The audit proved him right and worse: kiss ungated
+beside gated attack, drink beside eaten, climb beside enter, and the
+whole extendedverbs tail (set, tie, dig, search, swing, wave, buy)
+unprotected; author object-handlers were never protected at all. His
+target: a verb body of nothing but `success msg / stop`.
+
+BUILT. The reach check is CENTRAL: check_reach runs at the contract
+site beside requires and the switch validation, before any handler,
+touch the default for every action. The engine is the unchanged guard
+chain (beyond_guard, the player-beyond arm bubble, per-object
+beyond_why, the same wording), so nothing about the doctrine moved,
+only where it is enforced. The exemption is declarative, in the verb
+grammar, and Stefan named it: `reachagnostic` (over crosses, anyreach,
+remote: "Arcturus has always been a language that is to the point"),
+bare for both slots or per slot (show and throw cross on second). The
+25 hand-copied stanzas are deleted; the library's sense and speech
+verbs declare themselves in all three languages; TAKE joined the
+uniform order (its probe keeps the beyond code for foresight's
+promise-safety alone), so the reach refusal now precedes object
+handlers EVERYWHERE, which is exactly EdwardianDuck's high-shelf
+sequencing, resolved. reach_map rides the requires_map rails; the
+whole apparatus folds away (any_beyond) and beyond-free games are
+proven byte-identical.
+
+Gates: six new reach tests (house default on a custom verb, the
+crossing marker both forms, the ordering, the closed holes, the arm
+bubble); the full suite passed with ZERO expectation changes, 1607
+green; no size ceiling moved (the deleted stanzas paid for the map);
+H2 360 of 360, distributed to all six. The handbook's manners section
+now teaches three lines and the beyond row names the ordering.

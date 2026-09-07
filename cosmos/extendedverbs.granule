@@ -125,6 +125,9 @@ block search_lootable(x)
 // Acting on objects (futile by default; an object overrides for real effect).
 
 verb "throw", "chuck", "toss", "hurl"
+    // The arm reaches where the hand cannot (the beyond doctrine):
+    // throwing AT a beyond thing stays legal; the thrown thing is held.
+    reachagnostic second
     throw noun at noun
 
 on throw
@@ -136,9 +139,6 @@ verb "rub", "polish", "clean", "wipe", "scrub", "dust", "shine", "buff"
     rub noun
 
 on rub
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     success msg_rub
 
 
@@ -146,9 +146,6 @@ verb "shake", "rattle", "jiggle"
     shake noun
 
 on shake
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     if noun is animate
         change refused to 1
         msg_shake_animate
@@ -159,9 +156,6 @@ verb "squeeze", "crush"
     squeeze noun
 
 on squeeze
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     if noun is animate
         change refused to 1
         msg_squeeze_animate
@@ -181,9 +175,6 @@ verb "cut", "chop", "slice", "prune", "carve"
     cut noun
 
 on cut
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     change refused to 1
     success msg_cut
 
@@ -203,9 +194,6 @@ verb "pour", "spill"
     fill noun with noun reverse
 
 on fill
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     change refused to 1
     success msg_fill
 
@@ -215,9 +203,6 @@ verb "burn", "ignite", "torch", "kindle"
     burn noun with noun
 
 on burn
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     change refused to 1
     success msg_burn
 
@@ -226,9 +211,6 @@ verb "blow"
     blow noun
 
 on blow
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     success msg_blow
 
 
@@ -245,9 +227,6 @@ verb "empty", "drain"
     empty noun into noun
 
 on empty
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
     success msg_empty
 
 
@@ -267,6 +246,9 @@ on buy
 // summoned or neither. No topic matching (or no ABOUT at all) falls to the
 // granule's own messages; an alter rewords the miss as usual.
 verb "consult", "reference"
+    // Reading is sight: the gazetteer on its stand consults from where
+    // you are, exactly as EXAMINE reaches it.
+    reachagnostic
     consult noun
     consult noun about text
 

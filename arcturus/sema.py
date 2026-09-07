@@ -623,6 +623,15 @@ class Analyzer:
                         decl.checked, decl.line)
             elif isinstance(decl, ast.VerbDecl):
                 grammar = [wm.GrammarLine(g.action, g.items, g.reverse) for g in decl.grammar]
+                # reachagnostic: the marker exempts every action this verb
+                # declares, per slot, ORed across declarations (a pack's
+                # examine and a story's enhance both keep sight crossing).
+                if decl.reachagnostic:
+                    for g in decl.grammar:
+                        self.world.reach_exempt[g.action] = (
+                            self.world.reach_exempt.get(g.action, 0)
+                            | decl.reachagnostic
+                        )
                 if decl.mode == "enhance":
                     # `enhance verb "take", "snatch"`: append to the existing
                     # verb, new grammar lines and new synonym words alike; the

@@ -715,6 +715,8 @@ verb "drop"
     drop noun
 
 verb "examine", "x"
+    // Sight crosses the reach gap: the chandelier overhead examines.
+    reachagnostic
     examine noun
     // The look_under action's home line (never typed this way): it shares
     // examine's one-noun shape, so the verb stays on the flag model (the
@@ -905,6 +907,9 @@ verb "stand"
     exit noun
 
 verb "exit", "leave"
+    // EXIT is never blocked, wherever the player's reach ends
+    // (the beyond doctrine): dismounting always works.
+    reachagnostic
     exit
     exit noun
 
@@ -913,6 +918,9 @@ verb "give", "offer", "feed", "pay"
     give noun noun reverse
 
 verb "show", "display", "present"
+    // Sight crosses: the person shown to may be beyond; the thing
+    // shown is in hand (the verb contract requires it).
+    reachagnostic second
     show noun to noun
     show noun noun reverse
 
@@ -920,6 +928,7 @@ verb "touch", "feel", "pat"
     touch noun
 
 verb "smell", "sniff"
+    reachagnostic
     smell
     smell noun
 
@@ -936,6 +945,7 @@ verb "taste", "lick"
     taste noun
 
 verb "listen", "hear"
+    reachagnostic
     listen
     listen noun
 
@@ -970,9 +980,12 @@ verb "climb", "scale"
     climb noun
 
 verb "read"
+    reachagnostic
     examine noun
 
 verb "talk", "greet"
+    // Speech crosses the reach gap: a beyond person still answers.
+    reachagnostic
     talk noun
 
 // ASK <person> ABOUT <subject> and ASK <person> FOR <thing> are different
@@ -983,15 +996,18 @@ verb "talk", "greet"
 // cannot express: this is the one standard verb that rides the positional
 // grammar table (docs/01 chapter 14), and the reason the table exists.
 verb "ask", "interrogate", "query"
+    reachagnostic
     ask noun
     ask noun about text
     ask_for noun for text
 
 verb "tell", "inform"
+    reachagnostic
     tell noun
     tell noun about
 
 verb "answer", "respond"
+    reachagnostic
     answer noun
 
 verb "jump", "hop"

@@ -6,6 +6,18 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Touch is the default: the reach gate moves into the house.** Every
+  action now honors `beyond` centrally, before any handler runs: a new
+  verb refuses what is out of reach with zero gate code, an object's
+  own overrides never explain a thing the player could not have
+  reached, and the audit's forgotten holes (SET, TIE, KISS, CLIMB,
+  DRINK, DIG, SEARCH on unreachable things) are closed for good. A
+  verb whose meaning works at any distance declares it beside its
+  grammar: `reachagnostic`, bare or per slot (SHOW's far person,
+  THROW's target). With `success` speaking the report through the
+  alter gate, a complete verb with full library manners is now three
+  lines. Games that never set `beyond` compile byte-identical
+  (arcc 2.2.0, Cosmos 1.20.0).
 - **Arcturus 2.0: the parser stops searching and starts knowing.** The
   compiler now ships a word-to-owners index in every story file: each
   vocabulary word points at the few objects that own it, so the noun
@@ -54,19 +66,6 @@ lives in the commit log. The feature roadmap follows below.
   while it stays fully accessible from the command line, and
   `arcc --update` continues to update everything in place when the
   tools are kept together (Actaea 2.0.0, Cosmos 1.16.4).
-- **Multiple player characters: maniacswap.** `summon.maniacswap`, mark
-  each body `playable`, and BECOME swaps the keyboard between them,
-  Maniac Mansion style, from anywhere, even between maps that never
-  connect. The body you leave freezes exactly where and as it was,
-  holding its own inventory, listed in its room like anyone standing
-  there; the mind (score, turns, every global) travels. ME and MYSELF
-  follow the keyboard in all three shipped languages (WERDE and ENCARNA
-  come along), and the story gates every swap in fiction with an
-  ordinary handler on the body ("Not without the signal."). Beside the
-  NPC engine it composes on one shared word: the engine never drives a
-  frozen PC nor the body you are riding. Games that never summon it
-  compile byte-identical, and the proof of that hunted down a one-byte
-  compiler subtlety along the way (arcc 1.13.0, Cosmos 1.16.0).
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus

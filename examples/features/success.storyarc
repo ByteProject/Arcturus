@@ -4,9 +4,11 @@
 // https://github.com/ByteProject/Arcturus
 //
 // A showcase for `success` and the library's manners in a NEW verb (docs/01
-// chapters 11 and 12): PUTUNDER carries the beyond reach-gate and speaks
-// its report through the alter gate, so any object can reword it the
-// standard way, and things out of reach refuse honestly. Compile and run:
+// chapters 11 and 12): PUTUNDER speaks its report through the alter gate,
+// so any object can reword it the standard way, and the CENTRAL reach gate
+// refuses things out of reach with no gate code here at all (touch is the
+// default for every action; a sense verb would declare `reachagnostic`).
+// Compile and run:
 //
 //   arcc examples/features/success.storyarc -o bedroom.z5
 //   frotz bedroom.z5
@@ -54,10 +56,11 @@ thing sock in boxroom
     name "wool sock"
     words sock, wool
 
-// The new verb, with the library's manners: the beyond gate refuses what
-// is in sight but out of reach (for either noun), and `success` speaks
-// the default report unless an alter registered a replacement. The
-// message block, not an inline string, is the translatable form.
+// The new verb, with the library's manners FROM HOUSE: the central reach
+// gate refuses what is in sight but out of reach (either slot) before
+// this handler ever runs, and `success` speaks the default report unless
+// an alter registered a replacement. The message block, not an inline
+// string, is the translatable form.
 verb "putunder"
     putunder noun under noun
 
@@ -65,11 +68,6 @@ block msg_putunder_done()
     say "Tucked away."
 
 on putunder
-    if any_beyond is 1
-        if beyond_guard is 1
-            stop
-        if beyond_guard_second is 1
-            stop
     success msg_putunder_done
     stop
 
