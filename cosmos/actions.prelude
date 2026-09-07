@@ -385,13 +385,7 @@ on drop
     else
         move noun to here
     now noun is not worn
-    if any_alter is 1
-        if altered is 0
-            msg_dropped
-        else
-            run_alter
-    else
-        msg_dropped
+    success msg_dropped
 
 on examine
     // The cave rule (the modern approach; Inform 7 behaves the same,
@@ -599,26 +593,14 @@ on wear
         stop
     move noun to player
     now noun is worn
-    if any_alter is 1
-        if altered is 0
-            msg_worn
-        else
-            run_alter
-    else
-        msg_worn
+    success msg_worn
 
 on take_off
     if noun is not worn
         msg_not_worn
         stop
     now noun is not worn
-    if any_alter is 1
-        if altered is 0
-            msg_removed
-        else
-            run_alter
-    else
-        msg_removed
+    success msg_removed
 
 on put
     // PUT moves the noun without a hold check, so it needs the noun guard
@@ -632,13 +614,7 @@ on put
     if second is supporter
         move noun to second
         now noun is not worn
-        if any_alter is 1
-            if altered is 0
-                msg_done
-            else
-                run_alter
-        else
-            msg_done
+        success msg_done
         stop
     if second is container
         if second is open
@@ -647,13 +623,7 @@ on put
                     stop
             move noun to second
             now noun is not worn
-            if any_alter is 1
-                if altered is 0
-                    msg_done
-                else
-                    run_alter
-            else
-                msg_done
+            success msg_done
             stop
         change refused to 1
         msg_closed
@@ -675,13 +645,7 @@ on insert
                     stop
             move noun to second
             now noun is not worn
-            if any_alter is 1
-                if altered is 0
-                    msg_done
-                else
-                    run_alter
-            else
-                msg_done
+            success msg_done
             stop
         change refused to 1
         msg_closed
@@ -729,24 +693,12 @@ on open
             msg_no_key
             stop
         now noun is not locked
-        if any_alter is 1
-            if altered is 0
-                msg_unlocked
-            else
-                run_alter
-        else
-            msg_unlocked
+        success msg_unlocked
     if noun is open
         msg_already_open
         stop
     now noun is open
-    if any_alter is 1
-        if altered is 0
-            msg_opened
-        else
-            run_alter
-    else
-        msg_opened
+    success msg_opened
     // A clear container never hides its contents (the knowledge model
     // lists through the glass), so opening one reveals nothing: the
     // "Inside you find" line is for opaque containers only (a field
@@ -766,13 +718,7 @@ on close
         msg_already_shut
         stop
     now noun is not open
-    if any_alter is 1
-        if altered is 0
-            msg_closed_it
-        else
-            run_alter
-    else
-        msg_closed_it
+    success msg_closed_it
 
 on lock
     if any_beyond is 1
@@ -807,13 +753,7 @@ on lock
         msg_no_key
         stop
     now noun is locked
-    if any_alter is 1
-        if altered is 0
-            msg_locked
-        else
-            run_alter
-    else
-        msg_locked
+    success msg_locked
 
 on unlock
     if any_beyond is 1
@@ -849,13 +789,7 @@ on unlock
         msg_no_key
         stop
     now noun is not locked
-    if any_alter is 1
-        if altered is 0
-            msg_unlocked
-        else
-            run_alter
-    else
-        msg_unlocked
+    success msg_unlocked
 
 // The success report for boarding (enter) and leaving (exit). The WORLD-MODEL
 // choice, on a supporter versus in a container, is made here; the WORDING lives

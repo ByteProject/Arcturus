@@ -1,0 +1,83 @@
+// success.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for `success` and the library's manners in a NEW verb (docs/01
+// chapters 11 and 12): PUTUNDER carries the beyond reach-gate and speaks
+// its report through the alter gate, so any object can reword it the
+// standard way, and things out of reach refuse honestly. Compile and run:
+//
+//   arcc examples/features/success.storyarc -o bedroom.z5
+//   frotz bedroom.z5
+//
+// TRY: putunder sock under bed (the bed's alter rewords the report) /
+//      putunder sock under chest (the default report) /
+//      putunder sock under lamp (beyond: in sight, out of reach) /
+//      wave sock (the inline string form of success)
+
+game
+    title "The Box Room"
+    headline "A success showcase"
+    author "Stefan Vogt"
+    start boxroom
+
+summon.statusline
+
+room boxroom
+    name "Box Room"
+    desc "A brass bed, a cedar chest, and, hanging from the high ceiling,
+          an oil lamp well out of reach."
+
+thing bed in boxroom
+    name "brass bed"
+    words bed, brass
+    fixed
+    // The standard alter contract, on a verb this game invented: register
+    // the reworded report, continue, and the success line below speaks it.
+    on putunder
+        alter "You slide it under the brass bed, out of sight."
+        continue
+
+thing chest in boxroom
+    name "cedar chest"
+    words chest, cedar
+    fixed
+
+thing lamp in boxroom
+    name "oil lamp"
+    words lamp, oil
+    fixed
+    beyond
+
+thing sock in boxroom
+    name "wool sock"
+    words sock, wool
+
+// The new verb, with the library's manners: the beyond gate refuses what
+// is in sight but out of reach (for either noun), and `success` speaks
+// the default report unless an alter registered a replacement. The
+// message block, not an inline string, is the translatable form.
+verb "putunder"
+    putunder noun under noun
+
+block msg_putunder_done()
+    say "Tucked away."
+
+on putunder
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
+        if beyond_guard_second is 1
+            stop
+    success msg_putunder_done
+    stop
+
+// The inline form: a one-off verb whose report nothing will translate or
+// alter differently still gets the gate for free.
+verb "wave"
+    wave noun
+
+on wave
+    success "You wave it about, to no particular effect."
+    stop

@@ -12906,3 +12906,41 @@ instructions, a third of a movement turn) is the recorded next
 question, to be measured before touched. Non-conversation games are
 byte-identical; three ceilings repriced; suite 1600 green; H2 360 of
 360, distributed.
+
+## success: the alter gate becomes one word, and the manners get their
+## chapter (arcc 2.1.0, Cosmos 1.19.0, 2026-09-07)
+
+EdwardianDuck copied the alter/beyond gates into a custom PUTUNDER and
+reported the alter never firing, concluding the compiler only wires
+alter for built-in actions. MEASURED FIRST: his exact shape, built
+clean, works on the first try; the machinery is action-agnostic by
+construction (every handler's alters hoist, the gate reads a global).
+His fault is in his omitted code, and his own clue (hand-setting
+altered still did nothing) points at either an object handler that
+never runs or a re-dispatch between registration and gate. The support
+reply hands him the working minimal to diff against. The real finding:
+beyond_guard and the gate pattern appeared NOWHERE in the handbook;
+authors were reverse-engineering library source.
+
+STEFAN'S RULINGS: the gate becomes a statement, and its name is
+`success` (his pick over report/narrate/outcome: the word carries the
+doctrine, alters fire only when the action succeeds, so refusal paths
+must never use it). The idea to move the BEYOND gate into the grammar
+(a reach slot beside `held`) is deferred until Stefan rules on the
+ordering question it forces: a grammar-level reach check would refuse
+before object handlers run, which fixes the high-shelf sequencing edge
+EdwardianDuck raised but reverses today's most-specific-first refusal
+order for any migrated verb.
+
+BUILT: `success msg_block` (or `success "text"`) is pure parser sugar,
+desugared node for node into the hand-written if-chain, so the 34
+standard gates rewritten across actions.prelude and extendedverbs
+compile BYTE-IDENTICAL, proven on the goldens and H2 (which alters);
+five variant gates (go's stagger-then-arrive, take's two-message
+split, search's sweep) stay explicit, as they should. The handbook
+gains the success passage in the alter section and the chapter 12
+section that was missing outright, "A new verb with the library's
+manners", with the full pattern; examples/features/success.storyarc
+(The Box Room) plays alter, default, beyond refusal, and the inline
+form through its TRY script. Suite 1600 green; H2 360 of 360,
+redistributed.

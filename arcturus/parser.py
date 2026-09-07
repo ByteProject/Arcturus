@@ -1338,6 +1338,17 @@ class Parser:
                 self.advance()
                 self.advance()
                 return self._parse_say(lead=True)
+            # success <msg_block> / success "text": the action's success
+            # line, spoken through the alter gate (the author's registered
+            # alter report wins over the default; refusals never reach it).
+            # Sugar: parses to the exact if-chain the library wrote by hand
+            # (docs/01 chapter 11), so the compiled bytes are identical.
+            if t.value == "success" and (
+                    self._at(1).kind == T.STRING
+                    or (self._at(1).kind == T.NAME
+                        and not (self._at(2).kind == T.OP
+                                 and self._at(2).value == "("))):
+                return self._parse_success()
             if t.value == "award" and self._at(1).kind == T.NUMBER:
                 return self._parse_award()
             if t.value in ("clear", "load"):
@@ -1638,6 +1649,52 @@ class Parser:
         node = self._matrix_remove_tail(line)
         self.expect_newline()
         return node
+
+    def _parse_success(self) -> ast.If:
+        # Desugars to the hand-written alter gate, node for node:
+        #     if any_alter is 1
+        #         if altered is 0
+        #             <default>
+        #         else
+        #             run_alter
+        #     else
+        #         <default>
+        # so a library rewritten onto `success` compiles byte-identical to
+        # the pattern it replaces, and every fold (any_alter static-if, DCE)
+        # behaves exactly as before. The default is a message block name
+        # (called bare) or a string literal (an inline say).
+        line = self.cur.line
+        self.advance()  # the leading `success`
+        if self.check(T.STRING):
+            val = self.parse_expr()
+            default = [ast.Say(val, line)]
+        else:
+            name = self.expect_name("a message block or a string "
+                                    "after 'success'").value
+            default = [ast.ExprStmt(ast.Name(name, line), line)]
+        self.expect_newline()
+
+        def dflt():
+            if isinstance(default[0], ast.Say):
+                return [ast.Say(default[0].value, line)]
+            return [ast.ExprStmt(ast.Name(default[0].expr.ident, line), line)]
+
+        inner = ast.If([
+            ast.IfClause(
+                ast.IsTest(ast.Name("altered", line), ast.Number(0, line),
+                           False, line),
+                dflt(), line),
+            ast.IfClause(
+                None,
+                [ast.ExprStmt(ast.Name("run_alter", line), line)], line),
+        ], line)
+        return ast.If([
+            ast.IfClause(
+                ast.IsTest(ast.Name("any_alter", line), ast.Number(1, line),
+                           False, line),
+                [inner], line),
+            ast.IfClause(None, dflt(), line),
+        ], line)
 
     def _parse_say(self, lead=False) -> ast.Say:
         line = self.cur.line

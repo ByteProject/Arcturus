@@ -1541,6 +1541,21 @@ the attempt and the success between them. The registered body runs after
 the handler has returned: it reads globals, `noun`, and `self`, but not
 the handler's own `let` locals.
 
+The other half of the contract is the `success` statement, which is how
+a handler SPEAKS the success line so that a registered alter can win:
+
+```
+success msg_putunder_done     // a message block, called unless altered
+success "You wave it about."  // or an inline line, same gate
+```
+
+It prints the default, or runs the registered alter instead, and folds
+to a plain print in a game that never alters. Every standard verb ends
+its success path this way, and a verb of your own should too (the full
+pattern is in chapter 12, "A new verb with the library's manners").
+Refusal paths never use `success`: a refusal is not a success, and the
+alter must not fire for one.
+
 The `continue` is REQUIRED, not decoration: a handler that alters but
 never continues dies at the handler level (the general handler design,
 chapter 11), so it consumes the action, the library's success site never
@@ -2540,6 +2555,52 @@ same declaration: a repairable failure, the carried gift you merely have
 not picked up yet, becomes "(taking the pebble first)" instead of a
 refusal, and only when the take is certain to succeed; closed doors and
 containers join the repairs the same way (chapter 22).
+
+### A new verb with the library's manners
+
+A verb you declare is a full citizen the moment it has a grammar line
+and a handler, but the library's manners, the reach refusal (`beyond`)
+and the author-overridable report (`alter`), live in each verb's
+handler, so a new verb carries them itself. The whole pattern:
+
+```
+verb "putunder"
+    putunder noun under noun
+
+block msg_putunder_done()
+    say "Tucked away."
+
+on putunder
+    if any_beyond is 1
+        if beyond_guard is 1
+            stop
+        if beyond_guard_second is 1
+            stop
+    // ... your mechanics ...
+    success msg_putunder_done
+    stop
+```
+
+The beyond gate refuses for a noun (or second) that is in sight but out
+of reach, exactly as TAKE would, and folds away in a game that never
+sets `beyond`. The `success` line speaks your default report unless a
+handler registered an alter, so any object can reword your verb the
+standard way:
+
+```
+thing bed in bedroom
+    on putunder
+        alter "You slide it under the bed, out of sight."
+        continue
+```
+
+Both gates are optional: leave the beyond gate out and your verb
+reaches across the room; end with a plain `say` instead of `success`
+and alters cannot touch your wording. The message block rather than an
+inline string is the translatable form: a language pack, or a story,
+overrides `msg_putunder_done` without touching the handler. The worked
+showcase is
+[examples/features/success.storyarc](../examples/features/success.storyarc).
 
 ### Verbless actions: `action`
 

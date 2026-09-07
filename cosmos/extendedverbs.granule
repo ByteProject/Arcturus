@@ -129,13 +129,7 @@ verb "throw", "chuck", "toss", "hurl"
 
 on throw
     change refused to 1
-    if any_alter is 1
-        if altered is 0
-            msg_throw
-        else
-            run_alter
-    else
-        msg_throw
+    success msg_throw
 
 
 verb "rub", "polish", "clean", "wipe", "scrub", "dust", "shine", "buff"
@@ -145,13 +139,7 @@ on rub
     if any_beyond is 1
         if beyond_guard is 1
             stop
-    if any_alter is 1
-        if altered is 0
-            msg_rub
-        else
-            run_alter
-    else
-        msg_rub
+    success msg_rub
 
 
 verb "shake", "rattle", "jiggle"
@@ -165,13 +153,7 @@ on shake
         change refused to 1
         msg_shake_animate
         stop
-    if any_alter is 1
-        if altered is 0
-            msg_shake
-        else
-            run_alter
-    else
-        msg_shake
+    success msg_shake
 
 verb "squeeze", "crush"
     squeeze noun
@@ -184,13 +166,7 @@ on squeeze
         change refused to 1
         msg_squeeze_animate
         stop
-    if any_alter is 1
-        if altered is 0
-            msg_squeeze
-        else
-            run_alter
-    else
-        msg_squeeze
+    success msg_squeeze
 
 
 verb "tie", "attach", "fasten", "secure"
@@ -198,13 +174,7 @@ verb "tie", "attach", "fasten", "secure"
 
 on tie
     change refused to 1
-    if any_alter is 1
-        if altered is 0
-            msg_tie
-        else
-            run_alter
-    else
-        msg_tie
+    success msg_tie
 
 
 verb "cut", "chop", "slice", "prune", "carve"
@@ -215,13 +185,7 @@ on cut
         if beyond_guard is 1
             stop
     change refused to 1
-    if any_alter is 1
-        if altered is 0
-            msg_cut
-        else
-            run_alter
-    else
-        msg_cut
+    success msg_cut
 
 
 verb "fill"
@@ -243,13 +207,7 @@ on fill
         if beyond_guard is 1
             stop
     change refused to 1
-    if any_alter is 1
-        if altered is 0
-            msg_fill
-        else
-            run_alter
-    else
-        msg_fill
+    success msg_fill
 
 
 verb "burn", "ignite", "torch", "kindle"
@@ -261,13 +219,7 @@ on burn
         if beyond_guard is 1
             stop
     change refused to 1
-    if any_alter is 1
-        if altered is 0
-            msg_burn
-        else
-            run_alter
-    else
-        msg_burn
+    success msg_burn
 
 
 verb "blow"
@@ -277,13 +229,7 @@ on blow
     if any_beyond is 1
         if beyond_guard is 1
             stop
-    if any_alter is 1
-        if altered is 0
-            msg_blow
-        else
-            run_alter
-    else
-        msg_blow
+    success msg_blow
 
 
 verb "set", "adjust"
@@ -291,13 +237,7 @@ verb "set", "adjust"
 
 on set
     change refused to 1
-    if any_alter is 1
-        if altered is 0
-            msg_set
-        else
-            run_alter
-    else
-        msg_set
+    success msg_set
 
 
 verb "empty", "drain"
@@ -308,13 +248,7 @@ on empty
     if any_beyond is 1
         if beyond_guard is 1
             stop
-    if any_alter is 1
-        if altered is 0
-            msg_empty
-        else
-            run_alter
-    else
-        msg_empty
+    success msg_empty
 
 
 verb "buy", "purchase"
@@ -322,13 +256,7 @@ verb "buy", "purchase"
 
 on buy
     change refused to 1
-    if any_alter is 1
-        if altered is 0
-            msg_buy
-        else
-            run_alter
-    else
-        msg_buy
+    success msg_buy
 
 
 // CONSULT THE TOME ABOUT THE MINE: the subject rides a `text` slot (the ASK
@@ -357,13 +285,7 @@ on consult
                     topic_run(noun, i)
                     stop
             change i to i + 1
-    if any_alter is 1
-        if altered is 0
-            msg_consult
-        else
-            run_alter
-    else
-        msg_consult
+    success msg_consult
 
 // ---------------------------------------------------------------------------
 // Body and idle actions (intransitive; they just speak).
@@ -375,13 +297,7 @@ verb "damn", "hell", "shit", "fuck", "crap", "bugger"
     swear
 
 on swear
-    if any_alter is 1
-        if altered is 0
-            msg_swear
-        else
-            run_alter
-    else
-        msg_swear
+    success msg_swear
 
 verb "dig", "excavate"
     dig
@@ -389,13 +305,7 @@ verb "dig", "excavate"
     dig noun with noun
 
 on dig
-    if any_alter is 1
-        if altered is 0
-            msg_dig
-        else
-            run_alter
-    else
-        msg_dig
+    success msg_dig
 
 
 verb "wave", "brandish"
@@ -409,13 +319,7 @@ on wave
     if not (player holds noun)
         msg_not_holding
         stop
-    if any_alter is 1
-        if altered is 0
-            msg_wave
-        else
-            run_alter
-    else
-        msg_wave
+    success msg_wave
 
 
 verb "dance", "jive", "twirl", "spin"
@@ -423,25 +327,13 @@ verb "dance", "jive", "twirl", "spin"
     dance with noun
 
 on dance
-    if any_alter is 1
-        if altered is 0
-            msg_dance
-        else
-            run_alter
-    else
-        msg_dance
+    success msg_dance
 
 verb "sleep", "nap", "doze"
     sleep
 
 on sleep
-    if any_alter is 1
-        if altered is 0
-            msg_sleep
-        else
-            run_alter
-    else
-        msg_sleep
+    success msg_sleep
 
 
 verb "swim", "dive", "paddle"
@@ -449,13 +341,7 @@ verb "swim", "dive", "paddle"
 
 on swim
     change refused to 1
-    if any_alter is 1
-        if altered is 0
-            msg_swim
-        else
-            run_alter
-    else
-        msg_swim
+    success msg_swim
 
 
 verb "swing"
@@ -463,52 +349,28 @@ verb "swing"
 
 on swing
     change refused to 1
-    if any_alter is 1
-        if altered is 0
-            msg_swing
-        else
-            run_alter
-    else
-        msg_swing
+    success msg_swing
 
 
 verb "think", "ponder", "consider"
     think
 
 on think
-    if any_alter is 1
-        if altered is 0
-            msg_think
-        else
-            run_alter
-    else
-        msg_think
+    success msg_think
 
 
 verb "pray", "worship"
     pray
 
 on pray
-    if any_alter is 1
-        if altered is 0
-            msg_pray
-        else
-            run_alter
-    else
-        msg_pray
+    success msg_pray
 
 
 verb "shout", "yell", "scream", "holler"
     shout
 
 on shout
-    if any_alter is 1
-        if altered is 0
-            msg_shout
-        else
-            run_alter
-    else
-        msg_shout
+    success msg_shout
 
 // ---------------------------------------------------------------------------
 // The wording. Fork the granule to change any of these lines.

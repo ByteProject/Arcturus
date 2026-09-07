@@ -194,6 +194,7 @@ CEILINGS = {
     "features/scoring.storyarc": 20172,  # 2026-08-20 repriced: the bar paints its left side only when it changed
     "features/spans.storyarc": 18040,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
     "features/vehicles.storyarc": 18580,  # 2026-08-20 repriced: the bar paints its left side only when it changed
+    "features/success.storyarc": 18548,  # 2026-09-07 new: the success-statement showcase
     "features/text-slot.storyarc": 18952,  # 2026-08-31 repriced: the class refusals (relaxed pass + msg_wrong_class)
     "granules/carryweight.storyarc": 18620,  # 2026-08-30 new: the weight-budget showcase
     "granules/ambience.storyarc": 19832,  # 2026-08-20 repriced: the bar paints its left side only when it changed
