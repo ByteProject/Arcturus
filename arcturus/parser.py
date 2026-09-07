@@ -1543,7 +1543,29 @@ class Parser:
                             "each bare string stands alone, and statements "
                             "live after an `or` line")
                     tok = self.advance()
-                    variants.append([ast.Say(self._build_string(tok), tok.line)])
+                    lit = self._build_string(tok)
+                    if not any(isinstance(part, ast.StringInterp) or part.text
+                               for part in lit.parts):
+                        raise self._error(
+                            "an empty string variant would print only its "
+                            "line break; a variant that says nothing is "
+                            "`silence`")
+                    variants.append([ast.Say(lit, tok.line)])
+                    seg_strings += 1
+                    self.expect_newline()
+                    continue
+                # `silence`: the variant that says nothing at all, the
+                # natural end of a sequence ("say this once, then fall
+                # silent") and a legitimate draw under any policy. Stands
+                # alone like a bare string.
+                if self.check(T.NAME) and self.cur.value == "silence" \
+                        and self._at(1).kind == T.NEWLINE:
+                    if seg_stmts:
+                        raise self._error(
+                            "silence cannot join a statement variant; it "
+                            "stands alone, like a bare string")
+                    self.advance()
+                    variants.append([])
                     seg_strings += 1
                     self.expect_newline()
                     continue

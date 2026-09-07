@@ -3486,7 +3486,26 @@ vary dice            // the honest roll, repeats allowed (the catalogs'
 ```
 
 Each bare string line is its own variant, an implicit say: the text IS the
-content (the form catalogs taught). A variant that needs to DO something
+content (the form catalogs taught). A variant that should say NOTHING is
+the word `silence`, alone on its line: it emits nothing at all, not even
+a line break, so "say this once, then fall silent" is the natural end of
+a sequence, with no flag and no attribute anywhere:
+
+```
+desc block
+    vary sequence
+        "The alarms just went off, and the pandemonium will take a
+         while to get out of your lungs."
+        silence
+    say "The sealed chamber is immersed in darkness."
+```
+
+The first look carries the alarm line; every later look opens straight
+with the chamber, no gap where the silence stands. (An empty string
+variant is refused with exactly this advice: it could only print a stray
+line break, and blank lines are the library's business, never prose.)
+Under `mutate` or `dice`, a `silence` is a legitimate draw: ambience
+that sometimes holds its breath. A variant that needs to DO something
 opens with an `or` line at the vary's level and holds ordinary statements;
 the forms mix freely:
 

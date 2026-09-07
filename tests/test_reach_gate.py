@@ -130,3 +130,40 @@ def test_visited_marks_after_the_first_description():
     assert out.count("The sealed chamber waits.") == 3
     # The hall's first-visit payout fired once across two entries.
     assert "scored 5" in out
+
+
+def test_vary_silence_says_nothing_at_all():
+    # Marco's second find: "say this once, then fall silent" had no clean
+    # spelling (an empty string variant printed a stray blank line). The
+    # `silence` variant is the ruling: it emits nothing, not even a line
+    # break, and the sequence still advances through it.
+    game = (
+        'game\n    title "S"\n    author "T"\n    start airlock\n'
+        'room airlock\n    name "Airlock"\n    south hall\n'
+        '    desc block\n'
+        '        vary sequence\n'
+        '            "The alarms just went off."\n'
+        '            silence\n'
+        '        say "The sealed chamber waits."\n'
+        'room hall\n    name "Hall"\n    desc "Bare."\n    north airlock\n'
+    )
+    out = _play(game, ["s", "n"])
+    assert out.count("The alarms just went off.") == 1
+    # The return visit runs the room name straight into the prose: no
+    # blank line where the silent variant stood.
+    assert "Airlock\nThe sealed chamber waits." in out
+
+
+def test_an_empty_string_variant_teaches_silence():
+    import pytest
+    from arcturus.errors import ArcError
+    bad = (
+        'game\n    title "B"\n    start r\n'
+        'room r\n    name "R"\n'
+        '    desc block\n'
+        '        vary sequence\n'
+        '            "first"\n'
+        '            ""\n'
+    )
+    with pytest.raises(ArcError, match="silence"):
+        generate(analyze(cosmos.combined_program(parse(bad))))

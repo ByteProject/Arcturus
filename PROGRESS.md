@@ -13006,3 +13006,17 @@ Marco-shaped test pins it: first-visit prose exactly once, opening room
 included, return visits without it, the scored payout once across two
 entries. Suite 1608 green; no ceiling moved; H2 360 of 360,
 distributed.
+
+## silence: the variant that says nothing (arcc 2.3.0, 2026-09-07)
+
+Marco's second question, minutes after his first: "say this once, then
+fall silent" had no clean spelling; his empty-string variant printed a
+stray blank line on every later visit and he was hand-managing newlines
+to fight it. STEFAN'S RULING, countering my empty-string proposal as
+inelegant: silence is a legitimate vary feature and gets its own word.
+A bare `silence` line is a variant that emits nothing at all, not even
+a line break, under any policy (a sequence's natural end; a held breath
+under mutate or dice), and an empty string variant is now a compile
+error that names it. The handbook's vary passage carries the airlock
+idiom; byte-identity on the goldens (nothing existing uses it); two new
+tests; suite 1609; H2 360 of 360, distributed.
