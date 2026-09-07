@@ -644,6 +644,27 @@ on put
         if why is not 0
             speak_take_refusal(noun, why)
             stop
+    // Putting into or onto something CARRIED is entering the carried
+    // subtree, so it pays the same tolls a take pays: the item count and
+    // the weight budget (a floor boulder never sneaks into the sack the
+    // limit already refused to lift). Rearranging within the subtree
+    // stays free, and a destination on the ground prices nothing. No
+    // lets, deliberately, as in the take's weight branch: a game without
+    // either feature folds both checks away byte-free.
+    if any_carry_limit is 1
+        if within(second, player) is 1
+            if within(noun, player) is 0
+                if item_count_of(player) + 1 + item_count_of(noun) > carry_limit
+                    change refused to 1
+                    msg_carry_limit
+                    stop
+    if any_carryweight is 1
+        if within(second, player) is 1
+            if within(noun, player) is 0
+                if carried_weight_of(player) + total_weight_of(noun) > carry_weight
+                    change refused to 1
+                    msg_too_heavy
+                    stop
     if second is supporter
         move noun to second
         now noun is not worn
@@ -672,6 +693,22 @@ on insert
         if why is not 0
             speak_take_refusal(noun, why)
             stop
+    // The same carried-subtree tolls as put (see there): entering the
+    // sack pays what a take pays.
+    if any_carry_limit is 1
+        if within(second, player) is 1
+            if within(noun, player) is 0
+                if item_count_of(player) + 1 + item_count_of(noun) > carry_limit
+                    change refused to 1
+                    msg_carry_limit
+                    stop
+    if any_carryweight is 1
+        if within(second, player) is 1
+            if within(noun, player) is 0
+                if carried_weight_of(player) + total_weight_of(noun) > carry_weight
+                    change refused to 1
+                    msg_too_heavy
+                    stop
     if second is container
         if second is open
             if any_container_caps is 1

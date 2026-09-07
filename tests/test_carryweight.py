@@ -85,6 +85,38 @@ def test_count_and_weight_enforce_independently():
     assert out.count(" with you.") == 2
 
 
+def test_put_into_a_carried_sack_pays_the_tolls():
+    # The sack hole, put edition (2026-09-08): putting a floor thing into
+    # a carried container enters the carried subtree, so it pays what a
+    # take pays. Carrying the sack and its brick reads 2.0 of 3.0; the
+    # 2.5 keg never sneaks in from the floor, the weightless feather does.
+    out = _run(["take sack", "put keg in sack", "put feather in sack",
+                "weigh"])
+    assert "too heavy to carry" in out
+    assert "The sack: 2.0 kg" in out  # the keg stayed out, the feather is free
+    # The count enforces the same way: with item_cap 3 the carried sack,
+    # brick, and feather sit at the cap, a floor book is the fourth and
+    # refuses, while rearranging what is already carried stays free.
+    game = GAME.replace("summon.carryweight\n",
+                        "summon.carryweight\nconstant item_cap = 3\n")
+    out = _run(["take sack", "take feather", "put feather in sack",
+                "put book in sack", "look"], game=game)
+    assert "Your hands are full, and so are your pockets." in out
+    assert "You can see a keg and a book" in out  # the book never moved
+
+
+def test_a_destination_on_the_ground_prices_nothing():
+    # Hands at the cap, but the crate sits on the floor: floor-to-floor
+    # is not entering the carried subtree, so no toll speaks.
+    game = GAME.replace("summon.carryweight\n",
+                        "summon.carryweight\nconstant item_cap = 2\n")
+    game = game + ('thing crate of container in hall\n    name "crate"\n'
+                   '    words crate\n    open\n')
+    out = _run(["take sack", "put book in crate", "look"], game=game)
+    assert "full" not in out
+    assert "contains a book" in out
+
+
 def test_the_packs_speak_the_refusal():
     de = (
         'summon.language "german"\n'

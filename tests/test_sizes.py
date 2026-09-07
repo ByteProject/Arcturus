@@ -203,7 +203,7 @@ CEILINGS = {
     "features/vehicles.storyarc": 18636,  # 2026-09-08 repriced: put and insert refuse what a take refuses
     "features/success.storyarc": 18584,  # 2026-09-08 repriced: put and insert refuse what a take refuses
     "features/text-slot.storyarc": 19008,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "granules/carryweight.storyarc": 18676,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/carryweight.storyarc": 18784,  # 2026-09-08 repriced: put into a carried sack pays the take tolls
     "granules/ambience.storyarc": 19888,  # 2026-09-08 repriced: put and insert refuse what a take refuses
     "granules/conversations.storyarc": 19764,  # 2026-09-08 repriced: put and insert refuse what a take refuses
     "granules/extended-verbs.storyarc": 20992,  # 2026-09-08 repriced: put and insert refuse what a take refuses

@@ -1031,7 +1031,11 @@ counts, what is worn counts, and a loaded box is priced with its
 contents the moment it is lifted, so a sack of thirty things can never
 sneak in as one. Fixed and scenery things are outside every count, here
 and everywhere below. Rearranging is always free: taking a coin out of
-your own sack changes nothing and is never refused. If the limit must
+your own sack changes nothing and is never refused. The toll is charged
+at every entrance, not only at TAKE: putting a floor thing into a sack
+you carry enters the carried subtree too, and pays the same count (and,
+with the carryweight granule, the same weight) as lifting it would,
+while a chest on the ground prices nothing. If the limit must
 move during play, declare a global of the reserved name instead of the
 constant, and change it like any global:
 
