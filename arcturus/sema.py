@@ -1466,9 +1466,10 @@ class Analyzer:
         """With `scoring` in the game block, score just works: every room and
         every takeable thing gets the scored bit set automatically, except
         the start room, whatever the player starts holding, and anything
-        backstage; `scored false` on an object opts it out; kinds with
-        blocking attributes (scenery, fixed, animate) never pay. The compiler
-        sums all of it into max_score (docs/01, Scoring)."""
+        backstage; `scored false` on an object or on its kind opts it out,
+        rooms and things alike; kinds with blocking attributes (scenery,
+        fixed, animate) never pay. The compiler sums all of it into
+        max_score (docs/01, Scoring)."""
         w = self.world
         game = w.game
         if game is None or not any(
@@ -1477,6 +1478,13 @@ class Analyzer:
             return
         for name, obj in w.objects.items():
             if name in ("player", "scope") or "scored" in obj.props:
+                continue
+            # An author who said anything about scored, on the object or
+            # anywhere up its kind chain, has decided; the marker keeps
+            # its hands off (a `scored false` kind opts whole families out).
+            if any(
+                "scored" in w.kinds[k].props for k in obj.chain if k in w.kinds
+            ):
                 continue
             if obj.category == "room":
                 if name != w.start_room:

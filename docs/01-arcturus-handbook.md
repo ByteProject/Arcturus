@@ -933,7 +933,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `seen` | Set once the player has been shown an object (a content of an open container, something taken or examined). A closed opaque container still lists the contents the player has `seen`, so they are not forgotten when put away; contents never seen stay hidden until the box is opened. Cosmos manages this; you rarely set it. The full container knowledge model is in chapter 6. |
 | `lockable` | Can be locked and unlocked. LOCK / UNLOCK read the object's state: with the object's `unseal_with` opener held, they succeed; without it (or with no opener defined) they refuse ("you don't have whatever it wants"); UNLOCK on a thing that is not `locked`, or not `lockable` at all, simply opens it. |
 | `locked` | Currently locked; blocks `open` until unlocked. A `lockable` + `locked` thing with NO `unseal_with` is a keyless lock the player cannot open by the verb (no opener to hold): the story springs it itself with `now x is not locked` (a chest you pry open with a crowbar). |
-| `scored` | Managed by `scoring` (chapter 19): the compiler sets it on every room and takeable thing; write `scored false` to exempt one. Set it by hand only in a game without `scoring` that wants a single classic auto-payer. |
+| `scored` | Managed by `scoring` (chapter 19): the compiler sets it on every room and takeable thing; write `scored false` to exempt one, or on a kind to exempt every object of that kind. Set it by hand only in a game without `scoring` that wants a single classic auto-payer. |
 | `visited` | The room has been described before: Cosmos sets it AFTER the first description, the opening room included, so a `desc block` asking `if self is not visited` speaks its first-visit prose exactly once. Use it to vary a room's description on return. |
 | `moved` | Set the first time the player takes an object. While clear, the object shows its `intro` text in a room description instead of the plain listing. |
 | `animate` | An animate agent (a person, animal, robot, or AI). The conversation and give verbs apply only to the animate; the `character` kind sets it by default, and animate objects refuse being taken. |
@@ -4179,6 +4179,27 @@ should not score opts out with one line:
 ```
 room broom_closet
     scored false
+```
+
+The same line on a kind declares a whole family unscored, things and rooms
+alike: every object of that kind opts out at once, and a member added later
+needs no line of its own. A game whose corridors should not pay, or whose
+litter should not, writes it once:
+
+```
+kind passage of room
+    scored false
+
+kind debris of thing
+    scored false
+
+room tunnel of passage
+    name "Tunnel"
+    desc "A dripping tunnel."
+
+thing shard of debris in tunnel
+    name "pottery shard"
+    words shard
 ```
 
 Things a plain take refuses anyway (scenery, fixed, animate, doors) never

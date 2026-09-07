@@ -89,6 +89,32 @@ def test_auto_rooms_and_things_with_exclusions(tmp_path):
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_kind_scored_false_opts_out_families(tmp_path):
+    # `scored false` on a KIND opts out every room or thing of that kind:
+    # the two passage rooms and the shard never pay and never count toward
+    # max_score. Only the vault room (5) and the coin (5) remain: 10.
+    src = (
+        'game\n    title "K"\n    start hall\n    scoring\n'
+        "kind passage of room\n    scored false\n"
+        "kind debris of thing\n    scored false\n"
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        "    north tunnel\n"
+        'room tunnel of passage\n    name "Tunnel"\n    desc "A tunnel."\n'
+        "    south hall\n"
+        "    north crawl\n"
+        'room crawl of passage\n    name "Crawl"\n    desc "A crawl."\n'
+        "    south tunnel\n"
+        "    north vault\n"
+        'room vault\n    name "Vault"\n    desc "A vault."\n'
+        "    south crawl\n"
+        'thing coin in hall\n    name "coin"\n    words coin\n'
+        'thing shard of debris in hall\n    name "shard"\n    words shard\n'
+    )
+    out = _play(tmp_path, src, "take coin\ntake shard\nn\nn\nn\nscore\n")
+    assert "scored 10 of a possible 10" in out
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_award_pays_once(tmp_path):
     out = _play(tmp_path, GAME, "meditate\nmeditate\nscore\n")
     assert "scored 3 of" in out
