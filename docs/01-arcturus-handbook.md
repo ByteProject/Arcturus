@@ -1003,6 +1003,15 @@ The in-versus-on distinction is carried by the parent's kind: a child of a
 Cosmos uses the parent's kind to choose the preposition when listing or
 describing contents and to decide scope.
 
+PUT and INSERT move a thing the player is not even holding: "put the
+sausage in the chest" works straight from the floor, one command, with
+no "(first taking the sausage)" ceremony. The shortcut has manners: put
+and insert refuse everything a take would refuse (something fixed,
+scenery, a character, a thing shut behind glass), and they refuse in
+the take's own words, so the couch that "stays exactly where it is"
+answers the same whether the player tries to lift it or to stuff it
+into a chest.
+
 ### Carrying, three ways
 
 How much can the player carry? Three answers, by author temperament, and

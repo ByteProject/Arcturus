@@ -635,6 +635,15 @@ on put
     // The central reach gate already refused a beyond noun or second: a
     // beyond chandelier never rides into a sack, and a beyond player never
     // fishes things off the ground into the saddlebag (check_reach).
+    // A put of something not held is the floor-to-container shortcut, so
+    // it must refuse everything a take would refuse (a fixed couch never
+    // rides into a chest), in the take's exact words: the take_probe
+    // discipline, one guard chain for every mover.
+    if not (player holds noun)
+        let why = take_probe(noun)
+        if why is not 0
+            speak_take_refusal(noun, why)
+            stop
     if second is supporter
         move noun to second
         now noun is not worn
@@ -656,7 +665,13 @@ on put
     msg_cant_put
 
 on insert
-    // The same mover as put; the central reach gate covered both slots.
+    // The same mover as put; the central reach gate covered both slots,
+    // and the same take_probe gate covers a noun not held (see put).
+    if not (player holds noun)
+        let why = take_probe(noun)
+        if why is not 0
+            speak_take_refusal(noun, why)
+            stop
     if second is container
         if second is open
             if any_container_caps is 1

@@ -151,66 +151,73 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # screen), which is the bar_unseated seam in loop.prelude. The bytes buy one
 # fewer opcode per turn forever, and on a memory-mapped 8-bit screen a split
 # is not free the way it is on a modern terminal.
+# 2026-09-08 (put refuses what a take refuses): +36 to +56 everywhere.
+# auraes found the couch: put and insert moved a noun the player was not
+# holding unconditionally, so anything in scope rode into a chest, fixed,
+# scenery, and characters included. Both handlers now gate an unheld noun
+# through take_probe and refuse in the take's exact words (the one guard
+# chain); a held thing skips the probe, the floor-to-container shortcut
+# still moves takeable things in one command.
 CEILINGS = {
-    "features/yes-no.storyarc": 17856,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/press-any-key.storyarc": 18744,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/shiftable.storyarc": 18240,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/enhance-redefine.storyarc": 18596,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/consult-about.storyarc": 18712,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/session-verbs.storyarc": 18308,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/vary.storyarc": 19516,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/foresight.storyarc": 19928,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/beyond.storyarc": 20368,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/alter.storyarc": 18988,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/catalogs.storyarc": 18856,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/matrix.storyarc": 19192,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/direction-grammar.storyarc": 18268,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/scenery-contents.storyarc": 18912,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/trigger.storyarc": 17876,
-    "features/adjectives.storyarc": 18508,  # 2026-08-15 first pin: the adjective marker showcase (>red, the ZIL match classes; games without the marker stay byte-identical)  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "granules/nautical.storyarc": 18748,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/npcengine.storyarc": 20836,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/maniacswap.storyarc": 19076,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "beispiel-deutsch.storyarc": 26756,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "brass-lantern.storyarc": 19652,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "cloak-of-darkness.storyarc": 20444,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "ejemplo-espanol.storyarc": 23420,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/computed-properties.storyarc": 17960,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/containers.storyarc": 18452,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/daemons-and-timers.storyarc": 19604,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/doors-and-locks.storyarc": 18088,  # 2026-08-17 repriced: the existence form (docs/01 chapter 3); a two-sided door is now present on both sides (~264 bytes of presence walk, the two language examples also pay the 1-byte both-forms marker)
-    "features/appearance.storyarc": 18732,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/components.storyarc": 18176,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/whistle.storyarc": 17604,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/pathfinding.storyarc": 20596,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/perform.storyarc": 17920,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/grains.storyarc": 17724,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "features/handlers.storyarc": 19124,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/grammar.storyarc": 17968,  # 2026-08-14 repriced: the version banner grew a character (Cosmos 1.10)
-    "features/introproperty.storyarc": 19368,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/kinds-and-inheritance.storyarc": 17920,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/on-other.storyarc": 17804,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/zcolor.storyarc": 18240,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/scoring.storyarc": 20172,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/spans.storyarc": 18040,  # 2026-08-15 repriced: the adjective sweep (>markers arm the ZIL classes per example)
-    "features/vehicles.storyarc": 18580,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "features/success.storyarc": 18548,  # 2026-09-07 new: the success-statement showcase
-    "features/text-slot.storyarc": 18952,  # 2026-08-31 repriced: the class refusals (relaxed pass + msg_wrong_class)
-    "granules/carryweight.storyarc": 18620,  # 2026-08-30 new: the weight-budget showcase
-    "granules/ambience.storyarc": 19832,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/conversations.storyarc": 19708,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/extended-verbs.storyarc": 20936,  # 2026-08-22 repriced: pour/spill bind fill through a reversed prepositional line, and the packs carry the role swap (+44; only games with such a line pay)
-    "granules/infocom-interrogation.storyarc": 19736,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
-    "granules/quotes.storyarc": 17976,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/take-all.storyarc": 20044,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/plurals.storyarc": 18904,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/statusline.storyarc": 17956,  # 2026-08-20 repriced: the bar paints its left side only when it changed
-    "granules/verbose-exits.storyarc": 17900,  # 2026-08-11 repriced: the combined room listing (one sentence for plain items, Cosmos 1.5.0; the adopters' request)
+    "features/yes-no.storyarc": 17912,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/press-any-key.storyarc": 18800,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/shiftable.storyarc": 18296,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/enhance-redefine.storyarc": 18652,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/consult-about.storyarc": 18768,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/session-verbs.storyarc": 18364,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/vary.storyarc": 19572,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/foresight.storyarc": 19984,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/beyond.storyarc": 20420,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/alter.storyarc": 19044,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/catalogs.storyarc": 18912,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/matrix.storyarc": 19248,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/direction-grammar.storyarc": 18324,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/scenery-contents.storyarc": 18968,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/trigger.storyarc": 17932,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/adjectives.storyarc": 18564,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/nautical.storyarc": 18804,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/npcengine.storyarc": 20892,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/maniacswap.storyarc": 19132,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "beispiel-deutsch.storyarc": 26812,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "brass-lantern.storyarc": 19708,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "cloak-of-darkness.storyarc": 20500,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "ejemplo-espanol.storyarc": 23476,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/computed-properties.storyarc": 18016,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/containers.storyarc": 18508,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/daemons-and-timers.storyarc": 19660,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/doors-and-locks.storyarc": 18144,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/appearance.storyarc": 18788,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/components.storyarc": 18232,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/whistle.storyarc": 17660,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/pathfinding.storyarc": 20652,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/perform.storyarc": 17976,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/grains.storyarc": 17780,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/handlers.storyarc": 19180,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/grammar.storyarc": 18024,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/introproperty.storyarc": 19424,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/kinds-and-inheritance.storyarc": 17976,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/on-other.storyarc": 17860,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/zcolor.storyarc": 18296,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/scoring.storyarc": 20228,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/spans.storyarc": 18096,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/vehicles.storyarc": 18636,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/success.storyarc": 18584,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/text-slot.storyarc": 19008,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/carryweight.storyarc": 18676,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/ambience.storyarc": 19888,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/conversations.storyarc": 19764,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/extended-verbs.storyarc": 20992,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/infocom-interrogation.storyarc": 19792,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/quotes.storyarc": 18032,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/take-all.storyarc": 20100,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/plurals.storyarc": 18960,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/statusline.storyarc": 18012,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "granules/verbose-exits.storyarc": 17956,  # 2026-09-08 repriced: put and insert refuse what a take refuses
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 21088  # 2026-09-01 repriced: the owner index (lever 4; the parser buys 3-6x on 8-bits)
+CLOAK_Z8_CEILING = 21136  # 2026-09-08 repriced: put and insert refuse what a take refuses
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
