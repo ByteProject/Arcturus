@@ -27,11 +27,49 @@ from __future__ import annotations
 
 import os
 import re
+import ssl
 import sys
 import urllib.request
 
 RAW_BASE = "https://raw.githubusercontent.com/ByteProject/Arcturus/main/build/"
 SIBLINGS = ("actaea", "arcimg", "proteus")
+
+# CA bundles a zero-dependency Python can legitimately verify against when
+# its own store is empty (the python.org installer on macOS ships none until
+# its Install Certificates.command is run once; the field report was every
+# fetch dying with CERTIFICATE_VERIFY_FAILED). Verification is never
+# skipped: no bundle, no download.
+_CA_BUNDLES = (
+    "/etc/ssl/cert.pem",                                  # macOS, BSDs
+    "/etc/ssl/certs/ca-certificates.crt",                 # Debian family
+    "/etc/pki/tls/certs/ca-bundle.crt",                   # Fedora family
+)
+
+_CERT_ADVICE = (
+    "arcc: your Python has no usable certificate store, so secure "
+    "downloads cannot be verified. On macOS with a python.org install, "
+    "run 'Install Certificates.command' in your /Applications/Python "
+    "folder once; installing the 'certifi' package also works. arcc "
+    "never downloads unverified."
+)
+
+
+def _contexts():
+    """The verification contexts to try, in order: the platform default,
+    then certifi if it happens to be importable (never required), then the
+    known system bundles. All of them VERIFY; there is no insecure mode."""
+    yield None  # urllib's default context
+    try:
+        import certifi
+        yield ssl.create_default_context(cafile=certifi.where())
+    except Exception:
+        pass
+    for cafile in _CA_BUNDLES:
+        if os.path.isfile(cafile):
+            try:
+                yield ssl.create_default_context(cafile=cafile)
+            except Exception:
+                continue
 
 # The version constant every standalone carries in its embedded source, the
 # Cosmos version arcc embeds (a real update may be Cosmos-only: same arcc
@@ -43,8 +81,19 @@ _BUILD_RE = re.compile(r"_BUILD_ID\s*=\s*['\"]([0-9a-f]+)['\"]")
 
 
 def _fetch(name: str) -> bytes:
-    with urllib.request.urlopen(RAW_BASE + name, timeout=30) as r:
-        return r.read()
+    last = None
+    for ctx in _contexts():
+        try:
+            with urllib.request.urlopen(RAW_BASE + name, timeout=30,
+                                        context=ctx) as r:
+                return r.read()
+        except Exception as exc:
+            last = exc
+            # Only a certificate-verification failure moves to the next
+            # context; any other error (network down, 404) is final.
+            if "CERTIFICATE_VERIFY_FAILED" not in str(exc):
+                raise
+    raise last
 
 
 def _version_in(source: str) -> str:
@@ -137,6 +186,8 @@ def run_update(fetch=_fetch) -> int:
             data = fetch(name)
         except Exception as exc:
             print(f"arcc: fetching {name} failed: {exc}", file=sys.stderr)
+            if "CERTIFICATE_VERIFY_FAILED" in str(exc):
+                print(_CERT_ADVICE, file=sys.stderr)
             failures += 1
             continue
         err = _validate(name, data)

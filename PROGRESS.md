@@ -13020,3 +13020,20 @@ under mutate or dice), and an empty string variant is now a compile
 error that names it. The handbook's vary passage carries the airlock
 idiom; byte-identity on the goldens (nothing existing uses it); two new
 tests; suite 1609; H2 360 of 360, distributed.
+
+## The updater survives an empty certificate store (arcc 2.3.1,
+## 2026-09-07)
+
+Marco's arcc --update failed every fetch with CERTIFICATE_VERIFY_FAILED:
+the python.org installer on macOS ships a Python whose OpenSSL sees no
+certificate store until its Install Certificates.command is run once, a
+trap every fresh Mac adopter can hit. The fetch now tries a chain of
+VERIFYING contexts: the platform default, certifi if it happens to be
+importable (never required, zero-dependency holds), then the known
+system CA bundles (/etc/ssl/cert.pem on macOS, the Debian and Fedora
+paths); only a certificate failure advances the chain, any other error
+is final, and there is no insecure mode anywhere: no bundle, no
+download. When everything fails, the error now teaches the one-time
+cure instead of printing bare SSL guts. Pinned by test (cert failure
+falls through to a real CA context; a refused connection never
+retries); live-verified against the real repo on this machine.

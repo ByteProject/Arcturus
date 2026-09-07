@@ -119,3 +119,48 @@ def test_cosmos_only_update_is_visible(tmp_path, monkeypatch, capsys):
     out = capsys.readouterr().out
     assert rc == 0
     assert "arcc: updated  v0.11.23 (Cosmos 0.25.3) -> v0.11.23 (Cosmos 0.26.0)" in out
+
+
+def test_fetch_falls_through_cert_failure_to_the_next_context(monkeypatch):
+    """The macOS python.org field report: a Python with an empty certificate
+    store fails the default context with CERTIFICATE_VERIFY_FAILED; the
+    fetch then tries the platform CA bundles, still verifying. Any other
+    error is final (no pointless retries), and there is no insecure mode
+    anywhere in the chain."""
+    import urllib.request
+    from arcturus import updater
+
+    calls = []
+
+    def fake_urlopen(url, timeout=30, context=None):
+        calls.append(context)
+        if len(calls) == 1:
+            raise OSError("<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] "
+                          "certificate verify failed>")
+        class R:
+            def __enter__(self):
+                return self
+            def __exit__(self, *a):
+                return False
+            def read(self):
+                return b"#!payload"
+        return R()
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    assert updater._fetch("arcc") == b"#!payload"
+    assert len(calls) >= 2 and calls[0] is None    # default first
+    assert calls[1] is not None                    # then a real CA context
+
+    calls.clear()
+
+    def hard_fail(url, timeout=30, context=None):
+        calls.append(context)
+        raise OSError("connection refused")
+
+    monkeypatch.setattr(urllib.request, "urlopen", hard_fail)
+    try:
+        updater._fetch("arcc")
+        assert False, "should have raised"
+    except OSError as exc:
+        assert "refused" in str(exc)
+    assert len(calls) == 1  # a non-certificate error never retries
