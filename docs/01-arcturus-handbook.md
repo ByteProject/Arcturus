@@ -640,8 +640,9 @@ joins the one-sentence listing ("You can see a lantern here.") unless
 #### room
 
 A location. `lit` is true by default; a dark room declares `lit false`,
-and chapter 7 owns light and darkness. `visited` is set once the player
-has been there. The direction properties (`north`, `south`, `east`,
+and chapter 7 owns light and darkness. `visited` is set once the room
+has been described (after its first description, so first-visit prose in
+a `desc block` works, the opening room included). The direction properties (`north`, `south`, `east`,
 `west`, `northeast`, `northwest`, `southeast`, `southwest`, `up`, `down`,
 `in`, `out`, and the nautical `fore`, `aft`, `port`, `starboard`, whose
 player words come with the nautical granule) each name a room or a door,
@@ -933,7 +934,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `lockable` | Can be locked and unlocked. LOCK / UNLOCK read the object's state: with the object's `unseal_with` opener held, they succeed; without it (or with no opener defined) they refuse ("you don't have whatever it wants"); UNLOCK on a thing that is not `locked`, or not `lockable` at all, simply opens it. |
 | `locked` | Currently locked; blocks `open` until unlocked. A `lockable` + `locked` thing with NO `unseal_with` is a keyless lock the player cannot open by the verb (no opener to hold): the story springs it itself with `now x is not locked` (a chest you pry open with a crowbar). |
 | `scored` | Managed by `scoring` (chapter 19): the compiler sets it on every room and takeable thing; write `scored false` to exempt one. Set it by hand only in a game without `scoring` that wants a single classic auto-payer. |
-| `visited` | The room has been entered before (Cosmos sets it on entry). Use it to vary a room's description on return. |
+| `visited` | The room has been described before: Cosmos sets it AFTER the first description, the opening room included, so a `desc block` asking `if self is not visited` speaks its first-visit prose exactly once. Use it to vary a room's description on return. |
 | `moved` | Set the first time the player takes an object. While clear, the object shows its `intro` text in a room description instead of the plain listing. |
 | `animate` | An animate agent (a person, animal, robot, or AI). The conversation and give verbs apply only to the animate; the `character` kind sets it by default, and animate objects refuse being taken. |
 | `component` | This thing is PART OF the thing it sits `in` (a lever in a machine, a button on a panel; the equivalent of Dialog's `#partof`). The object tree carries the relation, so the part follows its whole wherever the whole moves; the attribute grants what a plain thing's insides never get: the part is in scope whenever the whole is, `take` answers that it is part of it (`msg_part_of`), and it never lists as the whole's contents. Make the part `on pull` / `on push` handlers do the machine's work. To detach one in play, clear the attribute and move it. A game with no components pays nothing (`any_components`). |
@@ -2796,7 +2797,7 @@ yourself)" never prints).
 A story moves the player without walking through `teleport(dest)`, the
 cutscene arrival (a crash landing, a transit pod, a trapdoor): it relocates
 the player, pays a scored room's points exactly once (the same `arrive`
-the go handler funnels through), marks the room visited, and describes it.
+the go handler funnels through), describes the room, then marks it visited.
 It does not fire the room's `on enter` (that event belongs to walking; a
 teleport's own prose sets the scene). Its sibling `gain(obj)` is the
 acquisition without TAKE (a cutscene handover): it pays a scored thing's

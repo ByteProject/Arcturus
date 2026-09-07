@@ -293,9 +293,6 @@ block bar_unseated()
 
 block run_game()
     move player to here
-    // The start room is visited by definition (and never scores: you did
-    // not earn arriving where you begin).
-    now here is visited
     // THE UNDO HANDSHAKE, static half: arcc sets Flags 2 bit 4 (the game
     // wants undo, S 11.1) and an interpreter that cannot undo clears it
     // back. Read the answer once, before the first prompt, so UNDO and
@@ -337,6 +334,12 @@ block run_game()
     if title_in_bar is 1
         change hide_title to 1
     describe_room
+    // The start room is marked AFTER its opening description (the visited
+    // reorder, 2026-09-07): a desc block's first-visit prose speaks in the
+    // opening room exactly as in any other. It still never scores: the boot
+    // path pays nothing, and the mark blocks the payout on any later
+    // re-entry, so "you did not earn arriving where you begin" holds.
+    now here is visited
     while true
         prompt
         run_chain(parse)

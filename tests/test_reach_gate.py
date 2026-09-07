@@ -104,3 +104,29 @@ def test_the_arm_bubble_survives_on_the_second_slot():
     assert "The box is beyond your reach." in out
     assert "beyond your reach" not in out.split("put coin in box")[1].split(">")[1] \
         or True  # show's own default reply varies; the box line is the assert
+
+
+def test_visited_marks_after_the_first_description():
+    # Marco's airlock (the visited reorder): first-visit prose in a desc
+    # block speaks exactly once, the OPENING room included, and the return
+    # visit drops it. The scored payout still fires exactly once.
+    game = (
+        'game\n    title "V"\n    author "T"\n    start airlock\n'
+        '    scoring\n'
+        'room airlock\n    name "Airlock"\n    south hall\n'
+        '    desc block\n'
+        '        if self is not visited\n'
+        '            say "The alarms just went off."\n'
+        '        say "The sealed chamber waits."\n'
+        '        if self is not visited\n'
+        '            say "A voice shrieks your name."\n'
+        'room hall\n    name "Hall"\n    desc "Bare."\n    north airlock\n'
+        '    scored\n'
+    )
+    out = _play(game, ["s", "n", "look", "s", "score"])
+    # Boot: both first-visit lines. Return (n) and re-LOOK: neither.
+    assert out.count("The alarms just went off.") == 1
+    assert out.count("A voice shrieks your name.") == 1
+    assert out.count("The sealed chamber waits.") == 3
+    # The hall's first-visit payout fired once across two entries.
+    assert "scored 5" in out

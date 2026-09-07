@@ -40,19 +40,23 @@ block arrive()
                 if here is scored
                     if here is not visited
                         change score to score + 5
-            now here is visited
             line_stride
+            now here is visited
             return 0
     if any_scored is 1
         if here is scored
             if here is not visited
                 change score to score + 5
-    now here is visited
+    // Describe FIRST, mark visited AFTER (the family semantic, and the
+    // handbook's stated purpose: vary a room's description on return). A
+    // desc block asking `if self is not visited` sees its own first visit;
+    // the score payout above still keys on the unmarked state.
     describe_room
+    now here is visited
 
 // Arrive in a room without walking: the story-facing teleport for cutscene
 // moves (a crash landing, a transit pod, a trapdoor). It pays the room's
-// auto-score exactly once, marks it visited, and describes it, so a scored
+// auto-score exactly once, describes it, then marks it visited, so a scored
 // game stays honest however the player got there. It does not fire the
 // room's `on enter` (the enter event belongs to walking; a teleport's own
 // prose sets the scene). Unused, it folds away.

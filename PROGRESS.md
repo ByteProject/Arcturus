@@ -12982,3 +12982,27 @@ bubble); the full suite passed with ZERO expectation changes, 1607
 green; no size ceiling moved (the deleted stanzas paid for the map);
 H2 360 of 360, distributed to all six. The handbook's manners section
 now teaches three lines and the beyond row names the ordering.
+
+## visited marks after the description, the opening room included
+## (Cosmos 1.21.0, 2026-09-07)
+
+Marco Innocenti's first question, and his instinct was right on both
+counts: a desc block asking `if self is not visited` could never see
+its own first visit, because arrive() marked the room BEFORE describing
+it. The handbook's own attribute row says "use it to vary a room's
+description on return", the exact pattern the ordering defeated, so by
+the doc-wins rule this was a bug, not a newcomer misunderstanding; the
+family semantic he carried in (visited means described-before) is also
+the one our book intended. Nothing in the field could have relied on
+the broken order, since the order made the check useless.
+
+FIXED: describe first, mark after, in arrive (teleport and convey
+inherit through it), in the pathfinding stride, and AT BOOT, where the
+start room was marked before its opening description; the never-scores
+ruling for the start room holds unchanged (the boot path pays nothing,
+and the post-description mark still blocks the payout on re-entry).
+The handbook's three passages now state the sharpened semantic. A
+Marco-shaped test pins it: first-visit prose exactly once, opening room
+included, return visits without it, the scored payout once across two
+entries. Suite 1608 green; no ceiling moved; H2 360 of 360,
+distributed.
