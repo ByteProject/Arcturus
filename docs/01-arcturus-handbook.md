@@ -6351,10 +6351,13 @@ grains_block   := "grains" INDENT { grain } DEDENT
 grain          := verbs words ( "say" string | "do" id
                               | INDENT { statement } DEDENT )
 
-verb_decl      := "verb" string { "," string } INDENT { grammar } DEDENT
+verb_decl      := "verb" string { "," string } [ "meta" ]
+                  INDENT { grammar | requires_line | reach_line } DEDENT
 grammar        := id { slot | word }
 slot           := "noun" | "held" | "multi" | "text"
                 | "letters" | "number" | "anychar"
+requires_line  := "requires" ( "noun" | "second" ) kind
+reach_line     := "reachagnostic" [ "noun" ] [ "second" ]
 
 block_decl     := "block" id "(" [ params ] ")" INDENT { statement } DEDENT
 global_decl    := "global" id "=" expr
@@ -6363,7 +6366,8 @@ counter_decl   := "counter" id [ "=" number ]
 constant_decl  := "constant" id "=" expr
 rule           := handler
 
-statement      := let | change | now | move | add | remove | say
+statement      := let | change | now | move | add | remove | say | show
+                | success | vary | award
                 | stop | continue | finish | death | alter | if | while | for | switch
                 | return | call | schedule | stop_timer
 schedule       := ( "after" | "every" ) expr "turns" "do" id
