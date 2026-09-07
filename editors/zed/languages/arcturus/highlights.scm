@@ -24,7 +24,8 @@
     "stop" "continue" "finish" "death" "alter" "do" "on" "after" "every"
     "append" "insert" "load" "swapping" "checked" "vary" "sequence"
     "mutate" "loop" "let" "change" "now" "move" "add" "remove" "say"
-    "show" "zcolor" "par" "to" "from" "award" "you" "reply" "reveal"
+    "show" "success" "requires" "reachagnostic" "reverse"
+    "zcolor" "par" "to" "from" "award" "you" "reply" "reveal"
     "hide" "grains" "ranks" "ambience" "matrix" "catalog" "game" "list"
     "start"
     "is" "not" "and" "or" "holds" "in" "within" "of" "mod"))
@@ -44,18 +45,18 @@
     "name" "desc" "intro" "appearance" "capacity" "unseal_with" "article"
     "indefinite" "tag" "arc_image" "title" "headline" "author" "copyright"
     "release" "serial" "UUID" "scoring" "banner" "once" "idle" "about"
-    "order" "at" "percent" "points" "meta" "timers"))
+    "order" "at" "percent" "points" "meta" "timers" "weight" "item_cap"))
 
 ; Builtin references (docs/01 chapter 2).
 ((identifier) @variable.special
   (#any-of? @variable.special
     "self" "player" "here" "noun" "second" "turns" "score" "max_score"
     "way" "grain" "refused" "ambience_rate" "action" "verb_trigger"
-    "meta_turn"))
+    "meta_turn" "carry_limit" "carry_weight"))
 
 ; Language constants.
 ((identifier) @constant
-  (#any-of? @constant "true" "false" "nothing"))
+  (#any-of? @constant "true" "false" "nothing" "no_weight"))
 
 ; The curated author-facing library services (the documented surface).
 ((identifier) @function
@@ -66,13 +67,13 @@
     "press_any_key" "action_id" "clear_screen" "screen_width"
     "screen_height" "print_banner" "status_bar" "confirm_quit" "do_quit"
     "do_restart" "do_save" "do_restore" "list_contents" "reveal_contents"
-    "content_listable" "quote_line" "quote_done"))
+    "content_listable" "quote_line" "quote_done" "say_weight"))
 
 ; Standard kinds and grammar-line slots.
 ((identifier) @type
   (#any-of? @type
     "thing" "room" "container" "supporter" "door" "character" "held"
-    "multi" "scope"))
+    "multi" "scope" "text" "direction" "letters" "number" "anychar"))
 
 ; The color words of the zcolor family (support constants in VS Code).
 ((identifier) @constant
