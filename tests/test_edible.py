@@ -42,7 +42,7 @@ def _run(cmds, game=GAME):
 
 def test_edible_is_consumed_held_or_from_the_floor():
     out = _run(["eat apple", "eat apple", "eat pear", "inventory"])
-    assert out.count("Compliments to the chef.") == 2
+    assert out.count("goes down smoothly") == 2
     # The eaten apple is gone from the world, not merely from the hand.
     assert "You see nothing of the sort here." in out
     assert "precisely nothing" in out
@@ -61,14 +61,14 @@ def test_a_story_on_eat_overrides_the_consume():
     )
     out = _run(["eat apple", "inventory"], game=game)
     assert "Not before dinner." in out
-    assert "Compliments" not in out
+    assert "goes down smoothly" not in out
     assert "apple" in out  # still carried
 
 
 def test_use_actually_eats_now():
     game = "summon.use\n" + GAME
     out = _run(["use apple"], game=game)
-    assert "Compliments to the chef." in out
+    assert "goes down smoothly" in out
 
 
 def test_the_packs_eat_in_their_own_words():
@@ -80,7 +80,8 @@ def test_the_packs_eat_in_their_own_words():
         '    der\n    edible\n'
     )
     out = _run(["iss apfel"], game=de)
-    assert "Du isst den Apfel. Ein Lob an die Küche." in out
+    assert "Der Apfel rutscht glatt hinunter." in out
+    assert "nimmt die Gabe aber an." in out
     es = (
         'summon.language "spanish"\n'
         'game\n    title "S"\n    start cocina\n'
@@ -89,4 +90,5 @@ def test_the_packs_eat_in_their_own_words():
         '    feminine\n    edible\n'
     )
     out = _run(["come manzana"], game=es)
-    assert "Te comes la manzana. Felicitaciones al chef." in out
+    assert "La manzana baja sin problemas." in out
+    assert "pero acepta la ofrenda." in out

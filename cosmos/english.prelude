@@ -1940,7 +1940,13 @@ block msg_attack()
 
 // The consume line, for a thing that IS on the menu (edible, chapter 5).
 block msg_eaten()
-    say "You eat ${the noun}. Compliments to the chef."
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} go down smoothly. Your stomach remains
+                 suspicious, but accepts the offering."
+            return 0
+    say "${The noun} goes down smoothly. Your stomach remains suspicious,
+         but accepts the offering."
 
 block msg_eat()
     if any_pluribus is 1

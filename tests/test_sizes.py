@@ -202,7 +202,7 @@ CEILINGS = {
     "features/spans.storyarc": 18096,  # 2026-09-08 repriced: put and insert refuse what a take refuses
     "features/vehicles.storyarc": 18636,  # 2026-09-08 repriced: put and insert refuse what a take refuses
     "features/success.storyarc": 18584,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/edible.storyarc": 18444,  # 2026-09-09 registered: the edible showcase (eat consumes)
+    "features/edible.storyarc": 18472,  # 2026-09-09 repriced: the consume line is the stomach's (Stefan's wording)
     "features/text-slot.storyarc": 19008,  # 2026-09-08 repriced: put and insert refuse what a take refuses
     "granules/carryweight.storyarc": 18784,  # 2026-09-08 repriced: put into a carried sack pays the take tolls
     "granules/ambience.storyarc": 19888,  # 2026-09-08 repriced: put and insert refuse what a take refuses
