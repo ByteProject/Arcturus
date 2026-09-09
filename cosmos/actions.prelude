@@ -1015,6 +1015,23 @@ on listen
     msg_listen
 
 on eat
+    // The edible contract (docs/01 chapter 5: the eat verb consumes it
+    // rather than refusing): a thing flagged edible is eaten and gone
+    // from the world; a story's own `on eat` overrides for consequences,
+    // ordinary handler resolution. Everything else, characters included,
+    // stays not on the menu (Stefan's ruling, 2026-09-09). A floor apple
+    // eats in one command through the same take_probe gate put and
+    // insert use; no lets, so a game with nothing edible folds the
+    // whole branch away byte-free.
+    if any_edible is 1
+        if noun is edible
+            if not (player holds noun)
+                if take_probe(noun) is not 0
+                    speak_take_refusal(noun, take_probe(noun))
+                    stop
+            move noun to nothing
+            success msg_eaten
+            stop
     change refused to 1
     msg_eat
 

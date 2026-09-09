@@ -1,0 +1,72 @@
+// edible.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for `edible` (docs/01 chapter 5): a thing flagged edible is
+// consumed by EAT, gone from the world, with the library's line; anything
+// else, characters included, is not on the menu. An edible thing on the
+// floor eats in one command (the same manners as put and insert: no
+// implicit-take ceremony, but a fixed or unreachable morsel refuses in
+// the take's words). For consequences, write `on eat` and it overrides
+// by ordinary handler resolution. Compile and run:
+//
+//   arcc examples/features/edible.storyarc -o pantry.z5
+//   frotz pantry.z5
+//
+// TRY: eat biscuit (held: eaten, and gone for good) /
+//      eat plum (straight from the shelf, one command) /
+//      eat wax pear (not flagged: not on the menu) /
+//      eat cook (also not on the menu, whatever you have heard) /
+//      eat pepper (an on eat handler: consequences beat the default)
+
+game
+    title "The Night Pantry"
+    headline "An edible showcase"
+    author "Stefan Vogt"
+    start pantry
+
+summon.statusline
+
+room pantry
+    name "Night Pantry"
+    desc "Cold shelves by candlelight: a plum, a wax pear nobody has ever
+          dared question, and a devil pepper on a saucer. The cook dozes
+          on a stool."
+
+// Carried from the start: the held case, eaten without ceremony.
+thing biscuit in player
+    name "ship's biscuit"
+    words biscuit
+    edible
+    desc "Hard enough to knock on."
+
+// On the shelf: the floor shortcut, eaten in one command.
+thing plum in pantry
+    name "purple plum"
+    words plum, >purple
+    edible
+    desc "Ripe to the point of scandal."
+
+// Looks edible, is not flagged: the library keeps it off the menu.
+thing waxpear in pantry
+    name "wax pear"
+    words pear, >wax
+    desc "A perfect pear, at a distance. Up close, wax."
+
+// Edible WITH consequences: the story's own on eat wins over the
+// default consume, ordinary handler resolution.
+thing pepper in pantry
+    name "devil pepper"
+    words pepper, >devil
+    edible
+    desc "Small, red, and radiating menace."
+    on eat
+        move pepper to nothing
+        say "You eat the devil pepper. For one long moment the pantry is
+             very, very warm."
+
+thing cook of character in pantry
+    name "cook"
+    words cook
+    desc "Asleep on the stool, ladle still in hand."

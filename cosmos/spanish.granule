@@ -1959,6 +1959,10 @@ block msg_cant_do()
 block msg_attack()
     say "Pegar a las cosas rara vez ayuda, y esta no va a ser la excepción."
 
+// The consume line, for a thing that IS on the menu (edible, chapter 5).
+block msg_eaten()
+    say "Te comes ${the noun}. Felicitaciones al chef."
+
 block msg_eat()
     say "${The noun} no está en el menú."
 

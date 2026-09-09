@@ -916,7 +916,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `wearable` | Can be worn; the `wear` verb accepts it. |
 | `worn` | Currently worn. Set by `wear`, cleared by `drop` / `take_off`. Inventory tags it "(worn)". |
 | `lit` | Gives light. On a `room`, the room is independently lit; on a thing, the thing glows and lights its location. Light is otherwise computed. |
-| `edible` | Can be eaten; the `eat` verb consumes it rather than refusing. |
+| `edible` | Can be eaten: the `eat` verb consumes it, gone from the world, with the library's line; anything else is "not on the menu". Write your own `on eat` for consequences (the potion, the poison); it overrides by ordinary handler resolution. The worked scene is [examples/features/edible.storyarc](../examples/features/edible.storyarc). |
 | `named` | A proper-named thing (Linda, Excalibur). Takes no article: `${the noun}` and `${a noun}` print just the name. |
 | `an` | The indefinite article is "an", not "a". Derived from the name's first letter (a vowel -> `an`); set `an` or `an false` only for an exception (an hour, a unicorn). |
 | `feminine` | Grammatical gender. Drives the Spanish articles and agreement (la lampara, Cogida), the German article (declared there with `die`, which sets this), and the English "her" pronoun on a character. Spanish derives it from a head noun ending in -a or a reliably feminine suffix; declare it where spelling cannot reveal it (la llave; an English Ruth). Masculine is the unmarked default. |

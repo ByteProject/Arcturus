@@ -111,6 +111,9 @@ INTRINSICS = frozenset({
     # any_container_caps folds the container-ceiling gate away in a game
     # where no container declares `item_cap N` (the Tardis default).
     "any_container_caps", "container_cap",
+    # any_edible folds the eat handler's consume branch away in a game
+    # where nothing is edible (everything is then simply not on the menu).
+    "any_edible",
     # carryweight (the weight budget granule): any_carryweight folds the
     # whole path with the summon; weight_of reads a thing's weight in
     # tenths (declared, or the 0.5-unit default); carry_weight is the
@@ -1748,6 +1751,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_container_caps(): 1 when any object or kind declares the
         # item_cap property, so the insertion ceiling folds away unused.
         _place(rt, Const(_any_prop(ctx.world, "item_cap")), dest)
+    elif name == "any_edible":
+        # any_edible(): 1 when any object or kind declares edible, so the
+        # eat handler's consume branch folds away in a game with no food.
+        _place(rt, Const(_any_prop(ctx.world, "edible")), dest)
     elif name == "any_carryweight":
         _place(rt, Const(1 if wm.has_summon(ctx.world, "carryweight") else 0),
                dest)
@@ -3991,6 +3998,8 @@ def _static_value(ctx, expr):
         return _any_carry(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_container_caps":
         return _any_prop(ctx.world, "item_cap")
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_edible":
+        return _any_prop(ctx.world, "edible")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_carryweight":
         return 1 if wm.has_summon(ctx.world, "carryweight") else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_duals":

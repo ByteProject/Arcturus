@@ -2218,6 +2218,10 @@ block msg_cant_do()
 block msg_attack()
     say "Auf Dinge einzuschlagen hilft selten, und daran wird sich auch jetzt nichts ändern."
 
+// The consume line, for a thing that IS on the menu (edible, chapter 5).
+block msg_eaten()
+    say "Du isst ${the:acc noun}. Ein Lob an die Küche."
+
 block msg_eat()
     if any_pluribus is 1
         if noun is pluribus

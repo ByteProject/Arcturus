@@ -1938,6 +1938,10 @@ block msg_cant_do()
 block msg_attack()
     say "Hitting things rarely helps, and it won't start now."
 
+// The consume line, for a thing that IS on the menu (edible, chapter 5).
+block msg_eaten()
+    say "You eat ${the noun}. Compliments to the chef."
+
 block msg_eat()
     if any_pluribus is 1
         say "${The noun} ${is noun} not on the menu."
