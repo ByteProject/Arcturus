@@ -80,8 +80,8 @@ def test_the_packs_eat_in_their_own_words():
         '    der\n    edible\n'
     )
     out = _run(["iss apfel"], game=de)
-    assert "Der Apfel rutscht glatt hinunter." in out
-    assert "nimmt die Gabe aber an." in out
+    assert "Du isst den Apfel." in out
+    assert "besser als verhungern." in out
     es = (
         'summon.language "spanish"\n'
         'game\n    title "S"\n    start cocina\n'
@@ -90,5 +90,5 @@ def test_the_packs_eat_in_their_own_words():
         '    feminine\n    edible\n'
     )
     out = _run(["come manzana"], game=es)
-    assert "La manzana baja sin problemas." in out
-    assert "pero acepta la ofrenda." in out
+    assert "Te comes la manzana." in out
+    assert "morirse de hambre." in out
