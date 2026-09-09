@@ -231,7 +231,7 @@ python3 build/arcc game.storyarc -o game.z5    # compile to a z5 story file
 python3 build/arcc game.storyarc --zversion 8 -o game.z8   # target z8 (larger games)
 python3 build/arcc game.storyarc -o game.z5 -q # script mode: no banner, no statistics
 python3 build/arcc game.storyarc --dump-ast    # show the parsed syntax tree
-python3 build/arcc -L /abs/path/cosmos game.storyarc   # use a forked library
+python3 build/arcc -L ~/cosmos game.storyarc   # use a forked library
 python3 build/arcc --make-abbreviations game.storyarc  # tune text compression (below)
 python3 build/arcc --version
 ```
@@ -252,8 +252,8 @@ is never locked away. To hack the library:
 ```
 python3 build/arcc --eject-granule statusline  # write one granule here, to fork it
 python3 build/arcc --eject-language .           # write english.prelude (the messages)
-python3 build/arcc --extract-library /abs/cosmos   # write the whole library out to edit
-python3 build/arcc -L /abs/cosmos game.storyarc    # compile against your edited copy
+python3 build/arcc --extract-library ~/cosmos   # write the whole library out to edit
+python3 build/arcc -L ~/cosmos game.storyarc    # compile against your edited copy
 python3 build/arcc --library-status .              # how current are the forks here?
 ```
 

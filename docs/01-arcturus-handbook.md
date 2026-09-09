@@ -5971,13 +5971,13 @@ To change a granule, take a copy and edit it.
 - The whole library, to fork several files or a prelude:
 
   ```
-  arcc --extract-library /abs/cosmos   // every prelude and granule
-  // edit files in /abs/cosmos, then:
-  arcc game.storyarc -L /abs/cosmos    // -L must be absolute
+  arcc --extract-library ~/cosmos   // every prelude and granule
+  // edit files in ~/cosmos, then:
+  arcc game.storyarc -L ~/cosmos    // -L must be absolute (~ expands to one)
   ```
 
-  With `-L /abs/cosmos`, a `summon statusline.granule` in the story finds your
-  edited `/abs/cosmos/statusline.granule` before the bundled one. A prelude can
+  With `-L ~/cosmos`, a `summon statusline.granule` in the story finds your
+  edited `~/cosmos/statusline.granule` before the bundled one. A prelude can
   only be forked this way: there is no single-prelude eject (except
   `--eject-language` for translation, chapter 22) - to hack a prelude you extract
   the whole library and point `-L` at it.
@@ -6015,7 +6015,7 @@ same thing again.
 
 ```
 arcc --library-status            // every fork here: current, AGED, unstamped
-arcc --library-status /abs/cosmos
+arcc --library-status ~/cosmos
 ```
 
 Two notes on the edges. A fork you took before stamps existed carries none, so
