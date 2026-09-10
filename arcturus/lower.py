@@ -117,6 +117,9 @@ INTRINSICS = frozenset({
     # any_wearable folds the worn gate in drop/put/insert away in a game
     # where nothing is wearable (or born worn), so it cannot be worn.
     "any_wearable",
+    # any_articles / any_indefinites fold the packs' hand-set-article
+    # branches away in a game that overrides no article.
+    "any_articles", "any_indefinites",
     # carryweight (the weight budget granule): any_carryweight folds the
     # whole path with the summon; weight_of reads a thing's weight in
     # tenths (declared, or the 0.5-unit default); carry_weight is the
@@ -1784,6 +1787,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # movers' worn gate folds away where nothing can be on the body.
         _place(rt, Const(1 if (_any_prop(ctx.world, "wearable")
                                or _any_prop(ctx.world, "worn")) else 0), dest)
+    elif name == "any_articles":
+        # any_articles(): 1 when anything hand-sets `article`, so the packs'
+        # override branch (and its capitalized twin) folds away otherwise.
+        _place(rt, Const(_any_prop(ctx.world, "article")), dest)
+    elif name == "any_indefinites":
+        _place(rt, Const(_any_prop(ctx.world, "indefinite")), dest)
     elif name == "any_carryweight":
         _place(rt, Const(1 if wm.has_summon(ctx.world, "carryweight") else 0),
                dest)
@@ -4082,6 +4091,10 @@ def _static_value(ctx, expr):
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_wearable":
         return 1 if (_any_prop(ctx.world, "wearable")
                      or _any_prop(ctx.world, "worn")) else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_articles":
+        return _any_prop(ctx.world, "article")
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_indefinites":
+        return _any_prop(ctx.world, "indefinite")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_carryweight":
         return 1 if wm.has_summon(ctx.world, "carryweight") else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_duals":

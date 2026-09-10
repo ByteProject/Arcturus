@@ -969,13 +969,18 @@ block art_the(obj, cap)
             print_name(obj)
             return
     // A hand-set article wins over derivation (docs/01 chapter 15): las
-    // tijeras, el agua. Printed as stored, so keep it lowercase and let such
-    // objects sit mid-sentence.
-    if article_addr(obj) is not 0
-        show("${obj.article}")
-        show(" ")
-        print_name(obj)
-        return
+    // tijeras, el agua. Stored lowercase; the compiler synthesizes the
+    // capitalized twin (article_cap), so such an object opens a sentence
+    // with its capital (auraes's swarm of bees).
+    if any_articles is 1
+        if article_addr(obj) is not 0
+            if cap is 1
+                show("${obj.article_cap}")
+            else
+                show("${obj.article}")
+            show(" ")
+            print_name(obj)
+            return
     // El plural (pluribus): los/las, por género. Se pliega sin objetos
     // marcados.
     if any_pluribus is 1
@@ -1015,12 +1020,17 @@ block art_a(obj, cap)
         if obj is named
             print_name(obj)
             return
-    // A hand-set indefinite wins over derivation: unas tijeras, some water.
-    if indefinite_addr(obj) is not 0
-        show("${obj.indefinite}")
-        show(" ")
-        print_name(obj)
-        return
+    // A hand-set indefinite wins over derivation: unas tijeras, some
+    // water. The capitalized twin serves the sentence-initial slot.
+    if any_indefinites is 1
+        if indefinite_addr(obj) is not 0
+            if cap is 1
+                show("${obj.indefinite_cap}")
+            else
+                show("${obj.indefinite}")
+            show(" ")
+            print_name(obj)
+            return
     // El plural indefinido: unos/unas (unas tijeras). Se pliega sin
     // objetos marcados.
     if any_pluribus is 1

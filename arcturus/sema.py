@@ -1778,6 +1778,27 @@ class Analyzer:
                 ty = self._declared_type(m)
                 self._unify_property(m.name, ty, m.line)
                 props_out[m.name] = m
+                # A hand-set article is stored lowercase for mid-sentence
+                # use, but a Z-string cannot be uppercased at print time,
+                # so the library's sentence-initial ${The obj} opened
+                # lowercase (auraes's swarm of bees, 2026-09-10). The
+                # compiler capitalizes at COMPILE time instead: a twin
+                # property carries the capitalized text, and the packs'
+                # art blocks pick it when cap is 1.
+                if m.name in ("article", "indefinite") \
+                        and m.form == ast.PROP_VALUE and m.values:
+                    v = m.values[0]
+                    if isinstance(v, ast.StringLit) and v.parts \
+                            and isinstance(v.parts[0], ast.StringText):
+                        text = v.parts[0].text
+                        twin = m.name + "_cap"
+                        self._unify_property(twin, prelude.T_TEXT, m.line)
+                        props_out[twin] = ast.PropertyDecl(
+                            name=twin, form=ast.PROP_VALUE,
+                            values=[ast.StringLit(
+                                [ast.StringText(text[:1].upper() + text[1:])],
+                                m.line)],
+                            line=m.line)
             elif isinstance(m, ast.Handler):
                 h = self._make_handler(m, owner, on_kind)
                 if on_kind:

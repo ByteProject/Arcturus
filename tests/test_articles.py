@@ -88,6 +88,45 @@ def test_the_vowel_class_covers_accents_and_ligatures():
     assert "a unicorn" in io.text
 
 
+def test_a_hand_set_article_opens_a_sentence_with_its_capital():
+    # auraes's swarm (2026-09-10): a stored article cannot be uppercased at
+    # print time, so the compiler synthesizes a capitalized twin and the
+    # art blocks pick it when the slot is sentence-initial. Mid-sentence
+    # stays lowercase, and the Spanish pack gets the same courtesy.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+
+    def run(game, cmds):
+        io = CaptureIO(script=list(cmds) + ["quit", "y"])
+        try:
+            VM(load(generate(analyze(cosmos.combined_program(parse(game))))),
+               io).run(max_steps=30_000_000)
+        except IndexError:
+            pass
+        return io.text
+
+    game = (
+        'game\n    title "B"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing bees in hall\n    name "large African bees"\n'
+        '    words >large, >african, bees\n'
+        '    article "a swarm of"\n'
+    )
+    out = run(game, ["eat bees", "take bees"])
+    assert "A swarm of large African bees is not on the menu." in out
+    assert "You take a swarm of large African bees with you." in out
+    es = (
+        'summon.language "spanish"\n'
+        'game\n    title "T"\n    start sala\n'
+        'room sala\n    name "Sala"\n    desc "Nada."\n'
+        'thing tijeras in sala\n    name "tijeras"\n    words tijeras\n'
+        '    article "las"\n'
+    )
+    out = run(es, ["come tijeras"])
+    assert "Las tijeras no está en el menú." in out
+
+
 # The article words live in the language layer (art_the / art_a blocks), so a game
 # (or a language pack) can override them, and the compiler derives `feminine` from
 # a name ending in -a for a gendered language to read.
