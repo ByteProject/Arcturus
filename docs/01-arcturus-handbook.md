@@ -1006,7 +1006,7 @@ describing contents and to decide scope.
 
 PUT and INSERT move a thing the player is not even holding: "put the
 sausage in the chest" works straight from the floor, one command, with
-no "(first taking the sausage)" ceremony. The shortcut has manners: put
+no "(first taking the sausage)" step. But put
 and insert refuse everything a take would refuse (something fixed,
 scenery, a character, a thing shut behind glass), and they refuse in
 the take's own words, so the couch that "stays exactly where it is"
@@ -1569,7 +1569,7 @@ success "You wave it about."  // or an inline line, same gate
 It prints the default, or runs the registered alter instead, and folds
 to a plain print in a game that never alters. Every standard verb ends
 its success path this way, and a verb of your own should too (the full
-pattern is in chapter 12, "A new verb with the library's manners").
+pattern is in chapter 12, "A new verb, complete").
 Refusal paths never use `success`: a refusal is not a success, and the
 alter must not fire for one.
 
@@ -2602,11 +2602,10 @@ not picked up yet, becomes "(taking the pebble first)" instead of a
 refusal, and only when the take is certain to succeed; closed doors and
 containers join the repairs the same way (chapter 22).
 
-### A new verb with the library's manners
+### A new verb, complete
 
-A verb you declare is a full citizen the moment it has a grammar line
-and a handler, and the library's manners come with it FROM HOUSE. The
-whole pattern:
+A new verb needs two things: a grammar line and a handler. Everything
+else the library does for its own verbs, it also does for yours.
 
 ```
 verb "putunder"
@@ -2621,38 +2620,36 @@ on putunder
     stop
 ```
 
-Reach is not your problem: TOUCH IS THE DEFAULT for every action, and
-the central reach gate refuses a beyond noun or second before any
-handler runs, in your verb exactly as in TAKE ("${The noun} is beyond
-your reach.", the same wording, the same per-object `beyond_why`
-override, the same player-beyond arm bubble). There is nothing to
-remember and nothing to copy; a verb cannot forget its manners.
+You do not write a reach check. Before any handler runs, the library
+tests whether the player can touch the objects in the command, and
+refuses if not, with the same message TAKE uses ("${The noun} is
+beyond your reach."). This applies to every verb, yours included. See
+the `beyond` attribute in chapter 5 for how objects are placed out of
+reach.
 
-A verb whose MEANING works at any distance says so beside its grammar:
+Some verbs do not need touch: you can examine or signal something on
+the far side of a chasm. Such a verb declares that next to its
+grammar:
 
 ```
 verb "signal", "flash"
-    reachagnostic         // sight crosses: signaling needs no touching
+    reachagnostic         // signaling works at any distance
     signal noun
 
 verb "show", "display", "present"
-    reachagnostic second  // the thing shown is in hand; the person
-    show noun to noun     // shown to may be across the chasm
+    reachagnostic second  // the shown thing is in hand; the person
+    show noun to noun     // shown to may be out of reach
 ```
 
-Bare `reachagnostic` excuses every slot (the sense and speech verbs:
-examine, listen, ask, talk); `reachagnostic second` (or `noun`) excuses
-one, for the mixed verbs. The library's own declarations are the
-worked reference: examine, smell, listen, read, talk, ask, tell,
-answer, and exit cross; show and throw cross on their second slot;
-everything else is touch. The gate speaks BEFORE object handlers, so a
-`when`-guarded override never explains a thing the player could not
-have reached anyway; and it folds away whole in a game that never sets
-`beyond`.
+Bare `reachagnostic` skips the check for both slots; `reachagnostic
+noun` or `reachagnostic second` skips it for one. In the standard
+library: examine, smell, listen, read, talk, ask, tell, answer, and
+exit skip the check; show and throw skip it on the second slot; every
+other verb requires touch. In a game where nothing is ever out of
+reach, the whole check compiles away.
 
-The `success` line speaks your default report unless a handler
-registered an alter, so any object can reword your verb the standard
-way:
+`success` prints your default report, unless an object rewrote it with
+`alter`:
 
 ```
 thing bed in bedroom
@@ -2661,9 +2658,10 @@ thing bed in bedroom
         continue
 ```
 
-The message block rather than an inline string is the translatable
-form: a language pack, or a story, overrides `msg_putunder_done`
-without touching the handler. The worked showcase is
+Put the report in a message block (as above) rather than an inline
+string when the wording should be overridable: a language pack, or a
+story, can then replace `msg_putunder_done` without touching the
+handler. A worked example is
 [examples/features/success.storyarc](../examples/features/success.storyarc).
 
 ### Verbless actions: `action`
@@ -5206,8 +5204,8 @@ the container and the command continues, and the two chain: GIVE PEARL TO
 BOB with the pearl visible in a sealed clear jar runs "(opening the clear
 jar first)", "(taking the pearl first)", and then the give, and the plain
 TAKE PEARL through the same glass opens the jar just as readily (the
-sealed-take seam; the direct take and the give-chain share one manners
-model). The same
+sealed-take seam; the direct take and the give-chain behave the
+same way). The same
 probe rule governs every step (open_probe is the default open's own guard
 chain), locked things stay honest refusals, since unlocking is a decision
 where opening is mechanics, and the knowledge model draws the other line:
