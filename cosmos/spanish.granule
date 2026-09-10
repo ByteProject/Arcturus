@@ -971,7 +971,7 @@ block art_the(obj, cap)
     // A hand-set article wins over derivation (docs/01 chapter 15): las
     // tijeras, el agua. Stored lowercase; the compiler synthesizes the
     // capitalized twin (article_cap), so such an object opens a sentence
-    // with its capital (auraes's swarm of bees).
+    // with its capital (auraes's report, 2026-09-10).
     if any_articles is 1
         if article_addr(obj) is not 0
             let c = obj.article_chars

@@ -89,10 +89,11 @@ def test_the_vowel_class_covers_accents_and_ligatures():
 
 
 def test_a_hand_set_article_opens_a_sentence_with_its_capital():
-    # auraes's swarm (2026-09-10): a stored article cannot be uppercased at
-    # print time, so the compiler synthesizes a capitalized twin and the
-    # art blocks pick it when the slot is sentence-initial. Mid-sentence
-    # stays lowercase, and the Spanish pack gets the same courtesy.
+    # A stored article cannot be uppercased at print time, so the compiler
+    # packs the first character's two ZSCII codes beside the shared tail
+    # and the art blocks print the right case. Doctrine (docs/01 chapter
+    # 5): measure phrases live in `indefinite`; `article` is for real
+    # definite articles (the Spanish las below).
     from actaea.io import CaptureIO
     from actaea.loader import load
     from actaea.vm import VM
@@ -107,15 +108,18 @@ def test_a_hand_set_article_opens_a_sentence_with_its_capital():
         return io.text
 
     game = (
-        'game\n    title "B"\n    start hall\n'
-        'room hall\n    name "Hall"\n    desc "A hall."\n'
-        'thing bees in hall\n    name "large African bees"\n'
-        '    words >large, >african, bees\n'
-        '    article "a swarm of"\n'
+        'game\n    title "G"\n    start cellar\n'
+        'room cellar\n    name "Cellar"\n    desc "A cellar."\n'
+        'thing gnats in cellar\n    name "restless gnats"\n    words gnats\n'
+        '    indefinite "a cloud of"\n    pluribus\n'
+        '    on examine\n        say "${A gnats} rise from the crate."\n'
+        '        stop\n'
     )
-    out = run(game, ["eat bees", "take bees"])
-    assert "A swarm of large African bees is not on the menu." in out
-    assert "You take a swarm of large African bees with you." in out
+    out = run(game, ["look", "x gnats"])
+    # Mid-sentence lowercase in the listing, the capital when the author's
+    # own sentence opens with the indefinite.
+    assert "You can see a cloud of restless gnats here." in out
+    assert "A cloud of restless gnats rise from the crate." in out
     es = (
         'summon.language "spanish"\n'
         'game\n    title "T"\n    start sala\n'

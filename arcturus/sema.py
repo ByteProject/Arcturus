@@ -1781,7 +1781,7 @@ class Analyzer:
                 # A hand-set article is stored lowercase for mid-sentence
                 # use, but a Z-string cannot be uppercased at print time,
                 # so the library's sentence-initial ${The obj} opened
-                # lowercase (auraes's swarm of bees, 2026-09-10). The
+                # lowercase (auraes's report, 2026-09-10). The
                 # compiler capitalizes at COMPILE time, without doubling
                 # the string: the property keeps the TAIL (the text minus
                 # its first character, pooled once), and a companion word
