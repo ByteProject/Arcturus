@@ -254,7 +254,10 @@ _STD_VALUE_PROPS = {
     # this table is numbered in every game, and the trigger must cost
     # nothing where no words list carries the marker. Sema registers it on
     # first use instead (_collect_members).
-    "capacity": T_NUMBER,
+    # NOTE: `capacity` was seeded here for months and read by NOTHING, a
+    # relic from before item_cap that the handbook still blessed (auraes
+    # walked into it, 2026-09-10). Removed: declaring it is an ordinary
+    # custom property, and sema says so with a note naming item_cap.
     # NOTE: `item_cap` (a container's item ceiling, docs/01 chapter 6) is
     # deliberately NOT seeded here, for the trigger reason above: seeding
     # renumbers properties in every game (measured: 55 shifted bytes in a

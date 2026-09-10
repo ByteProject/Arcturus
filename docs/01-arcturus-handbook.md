@@ -661,7 +661,8 @@ can see and reach into it when the container is `open`, is `clear`
 (see-through, a glass jar), or has no lid at all (not `openable`), like a
 bowl or a basket. Declare `openable` (and `open false`) for a box with a
 lid that must be opened; the kind itself sets nothing, by the bowl rule
-above. An optional `capacity` bounds what fits. The library answers OPEN,
+above. An optional `item_cap N` bounds what fits (chapter 6). The library
+answers OPEN,
 CLOSE, and PUT IN, lists a container inline with its state and visible
 contents ("a pine box (closed)", "an iron box (contains a gold ring)"),
 and keeps the knowledge model honest: a closed opaque box still lists the
@@ -671,9 +672,9 @@ contents the player has `seen`, and never the ones they have not (chapter
 #### supporter
 
 A thing whose children sit on top of it, always in scope: a table hides
-nothing. An optional `capacity` bounds what fits; the library answers PUT
-ON, and contents ride along in listings. Chapter 6 covers supporters
-beside containers.
+nothing. An optional `item_cap N` bounds what fits (chapter 6); the
+library answers PUT ON, and contents ride along in listings. Chapter 6
+covers supporters beside containers.
 
 #### door
 
@@ -979,7 +980,7 @@ feature, which declares a global boolean, not an object attribute.)
 | `plural` | list | The words that name this object AS PART OF A GROUP (`plural coins` on each coin): "take coins" acts on every match in scope. Only with `summon.plurals` (chapter 22); ignored otherwise. |
 | `intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). |
 | `appearance` | text | The paragraph the object ALWAYS owns in a room description, replacing its listing line and never expiring ("The keeper is trimming the wick."): Inform's describe, Dialog's `(appearance $)`. A computed block (`appearance block`) words it by state; checked before `intro`; `hidden`/`concealed` still suppress. Costs nothing in a game that never sets one. |
-| `capacity` | number | How many objects a container or supporter holds. |
+| `item_cap` | number | The holder's ceiling: how many things fit in a container or on a supporter, nested contents counted, refusing past it with the right preposition (chapter 6). On the game block's level, `constant item_cap = N` is the player's carry limit instead. Unset means bottomless, deliberately. |
 | `article` | text | The definite article, verbatim, when derivation cannot reach it: `article "las"` (las tijeras), `article "el"` (el agua). |
 | `indefinite` | text | The indefinite article, verbatim: `indefinite "unas"`, or an English mass noun with `indefinite "some"` ("You can see some water here."). |
 | `unseal_with` | object | The opener that locks and unlocks this one (for `lockable` things): a key, a keycard, a code object, whatever fits the fiction. It must be HELD to work. Omit it for a keyless lock only the story can spring. |
@@ -6494,7 +6495,7 @@ Standard boolean properties: `fixed`, `scenery`, `hidden`, `concealed`,
 `openable`, `open`, `lockable`, `locked`, `visited`, `moved`, `animate`. The full
 table with each one's usage is in chapter 5.
 
-Standard value properties: `name`, `words`, `desc`, `capacity`, `unseal_with`,
+Standard value properties: `name`, `words`, `desc`, `item_cap`, `unseal_with`,
 `score`, `max_score`, `turns`.
 
 Standard action names: `look`, `examine`, `search`, `take`, `drop`, `put`,

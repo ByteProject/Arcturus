@@ -1637,6 +1637,17 @@ class Analyzer:
                         f"{owner} of {m.name} ...` instead",
                         m.line,
                     )
+                if m.name == "capacity":
+                    # The relic (auraes, 2026-09-10): `capacity` was a
+                    # registered standard property that nothing ever read,
+                    # a doc-blessed trap. It is a plain custom property
+                    # now; the note names the real ceiling so a reader of
+                    # the old table is not left with a silent no-op.
+                    print(
+                        f"arcc: note: 'capacity' on '{owner}' is a custom "
+                        f"property the library never reads; the item "
+                        f"ceiling is `item_cap N` (docs/01 chapter 6)"
+                    )
                 if m.name == "beyond" and m.form != ast.PROP_BOOL:
                     # `beyond "why"` / `beyond block` (the Charles request):
                     # the attribute plus its own explanation. Split into the
