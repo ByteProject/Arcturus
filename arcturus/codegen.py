@@ -1176,7 +1176,9 @@ def build_story(
     # 7, 8, 9 are the typed input slots (docs/01 chapter 14): they absorb
     # like text and then enforce a character class, so a line matches only
     # the input kind it declares (letters, one all-digit token, anything).
-    slot_codes = {"noun": 1, "held": 2, "multi": 3, "text": 4, "direction": 6,
+    # Code 2 was `held`, a slot the matcher never enforced; retired 2026-09-09
+    # (the verb contract, `requires ... carried`, is the one held spelling).
+    slot_codes = {"noun": 1, "multi": 3, "text": 4, "direction": 6,
                   "letters": 7, "number": 8, "anychar": 9}
     tabled = wm.tabled_verbs(world) if layout is not None else []
     if tabled:

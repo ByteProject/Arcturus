@@ -914,7 +914,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `hidden` | Out of scope entirely until cleared: an undiscovered object, neither listed nor referable. Clear it when the object is revealed. |
 | `concealed` | In scope and actable, but omitted from the room's contents listing (present but not spelled out in the description). |
 | `wearable` | Can be worn; the `wear` verb accepts it. |
-| `worn` | Currently worn. Set by `wear`, cleared by `drop` / `take_off`. Inventory tags it "(worn)". |
+| `worn` | Currently worn. Set by `wear`, cleared by `take_off`, and take_off is the ONE door off the body: drop, put, and insert of a worn thing reject ("You would have to take the scarf off first."), so an `on take_off` gate (clothes that will not come off) rules every exit. The foresight granule (chapter 22) takes it off implicitly instead. Inventory tags it "(worn)". |
 | `lit` | Gives light. On a `room`, the room is independently lit; on a thing, the thing glows and lights its location. Light is otherwise computed. |
 | `edible` | Can be eaten: the `eat` verb consumes it, gone from the world, with the library's line; anything else is "not on the menu". Write your own `on eat` for consequences (the potion, the poison); it overrides by ordinary handler resolution. The worked scene is [examples/features/edible.storyarc](../examples/features/edible.storyarc). |
 | `named` | A proper-named thing (Linda, Excalibur). Takes no article: `${the noun}` and `${a noun}` print just the name. |
@@ -3308,11 +3308,11 @@ them apart, and the particle machinery already does.
 Such a verb compiles to a GRAMMAR TABLE in static memory. Its dictionary
 entry is flagged as a tabled verb and its data bytes hold the table's address
 instead of an action and an arity. The table is the verb's lines in matcher
-order: per line an action byte, one byte per token (noun, held, multi, text,
+order: per line an action byte, one byte per token (noun, multi, text,
 direction, and the typed input slots letters, number, anychar; a literal
 word carries its dictionary address), and a closing zero; a zero in action
 position ends the table. Matcher order is most literal words first, so
-`dig in noun with held` is probed before `dig noun`, whose bare slot would
+`dig in noun with noun` is probed before `dig noun`, whose bare slot would
 absorb the literals; among literal-free lines, fewest tokens first, so a bare
 `dig` catches DIG before `dig noun` matches it with an empty slot. The sort
 is stable; lines it does not separate keep their declared order.
@@ -5183,11 +5183,20 @@ contents you have never seen cannot even be named, so nothing is ever
 conjured. A container or door with its own `on open` handler gets
 promise-then-run, the same residue as the take.
 
+Clothing gets the courtesy too. DROP CLOAK while wearing it (or stowing
+it in a chest) becomes "(taking off the velvet cloak first)" and then the
+drop; without the granule the library rejects and points at the door
+("You would have to take the velvet cloak off first."). The repair runs
+the REAL take_off, so an object whose `on take_off` refuses (the cursed
+cloak that will not come off) still refuses: promise-then-run, the same
+residue as the take.
+
 Off unless summoned, deliberately: implicit actions are a matter of taste.
 The repaired take is silent (the bookkeeping runs, the points pay, no "Got
 it."), one UNDO takes back the whole exchange, and the parentheticals'
 wording is the language layer's (`line_foresight_take`,
-`line_foresight_open`), so each pack speaks its own idiom.
+`line_foresight_open`, `line_foresight_doff`), so each pack speaks its
+own idiom.
 
 ### quotes
 
@@ -6375,7 +6384,7 @@ before a policy word: sequence, loop, mutate, dice),
 `release`, `serial`, `UUID`, `start`, `mod`, `every`, `topic`, `you`, `reply`,
 `reveal`, `hide`.
 
-Grammar slot words (`held`, `multi`, `text`) and the standard direction and
+Grammar slot words (`multi`, `text`) and the standard direction and
 verb names are reserved by Cosmos rather than the core language; see appendix C.
 
 ## Appendix B: Grammar summary
@@ -6408,7 +6417,7 @@ grain          := verbs words ( "say" string | "do" id
 verb_decl      := "verb" string { "," string } [ "meta" ]
                   INDENT { grammar | requires_line | reach_line } DEDENT
 grammar        := id { slot | word }
-slot           := "noun" | "held" | "multi" | "text"
+slot           := "noun" | "multi" | "text"
                 | "letters" | "number" | "anychar"
 requires_line  := "requires" ( "noun" | "second" ) kind
 reach_line     := "reachagnostic" [ "noun" ] [ "second" ]

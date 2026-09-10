@@ -172,3 +172,35 @@ block door_shut_refused(d)
 block seat_left_note(seat)
     line_foresight_exit(seat)
     return 0
+
+// The worn seam override: DROP CLOAK while wearing it takes it off first,
+// with the parenthetical, instead of the house rejection. The take_off is
+// a gated door (an object's own `on take_off` may refuse), so author code
+// gets promise-then-run, the same honest residue the take repair carries:
+// the promise prints, the real take_off runs, and a refusal's own prose
+// lands between promise and outcome, exactly where it belongs. With no
+// author code near, the default take_off cannot fail: promise, then do
+// its one deed silently (the player asked for the drop, not a doff
+// report). Returns 1 refused, 0 when no longer worn and the mover goes on.
+block worn_refused(obj)
+    line_foresight_doff
+    par
+    let risky = 0
+    if handler_of(obj) is not nothing
+        change risky to 1
+    if handler_of(here) is not nothing
+        change risky to 1
+    if risky is 1
+        let ok = perform("take_off", obj)
+        if ok is 0
+            change refused to 1
+            return 1
+        if obj is worn
+            // The handler consumed the take_off without unwearing: the
+            // mover's precondition still fails, honestly.
+            change refused to 1
+            msg_take_off_first
+            return 1
+        return 0
+    now obj is not worn
+    return 0

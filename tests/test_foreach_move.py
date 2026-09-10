@@ -35,7 +35,7 @@ GAME = (
     'thing blue_marble in bucket\n'
     '    name "blue marble"\n    words blue, marble\n'
     'verb "empty"\n'
-    '    empty held\n'
+    '    empty noun\n'
 )
 
 

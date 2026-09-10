@@ -558,7 +558,7 @@ class KindDecl:
 
 @dataclass
 class Slot:
-    kind: str  # "noun", "held", "multi", "text", "direction"
+    kind: str  # "noun", "multi", "text", "direction", "letters", "number", "anychar"
 
 
 @dataclass

@@ -45,7 +45,7 @@ _META_KEYS = frozenset(
     {"title", "headline", "author", "copyright", "release", "serial", "UUID", "start"}
 )
 
-_GRAMMAR_SLOTS = frozenset({"held", "multi", "text", "direction",
+_GRAMMAR_SLOTS = frozenset({"multi", "text", "direction",
                             "letters", "number", "anychar"})
 
 
@@ -1176,6 +1176,16 @@ class Parser:
         if tok.kind == T.NAME and tok.value in _GRAMMAR_SLOTS:
             self.advance()
             return ast.Slot(tok.value)
+        # `held` was a slot word the matcher never enforced: two spellings
+        # for one concept, only one real. Retired (Stefan's ruling,
+        # 2026-09-09); the verb contract is the one way to demand holding.
+        if tok.kind == T.NAME and tok.value == "held":
+            raise self._error(
+                "'held' is not a grammar slot: use a `noun` slot and declare "
+                "`requires noun carried` on the verb (the library then "
+                "refuses an unheld noun; summon.foresight takes it "
+                "implicitly instead)", tok
+            )
         # A quoted literal is the same as a bare one; the quotes let a word that
         # is elsewhere a slot keyword ("noun" the word) appear as vocabulary.
         if tok.kind == T.STRING:

@@ -344,6 +344,18 @@ block take_sealed_refused(obj)
     speak_take_refusal(obj, 4)
     return 1
 
+// The worn seam: dropping or stowing something WORN needs the take_off
+// first, and the take_off is a gated door (an object's own `on take_off`
+// may refuse: the cursed cloak). The house rejects and points at the door;
+// summon.foresight overrides this block to take it off for the player,
+// with the parenthetical, running the REAL take_off so the object's gate
+// still rules. Returns 1 refused (message spoken), 0 when the thing is no
+// longer worn and the mover may continue.
+block worn_refused(obj)
+    change refused to 1
+    msg_take_off_first
+    return 1
+
 on take
     let why = take_probe(noun)
     if why is 4
@@ -411,6 +423,12 @@ on drop
     if not (player holds noun)
         msg_not_holding
         stop
+    // Something WORN is not dropped past its take_off gate: the house
+    // rejects, foresight takes it off first (the worn seam above).
+    if any_wearable is 1
+        if noun is worn
+            if worn_refused(noun) is 1
+                stop
     // A drop lands where the player IS: in the crate or on the altar when
     // nested, the room floor otherwise (parent_of(player) is `here` when
     // not nested, so the plain game pays nothing extra in behavior; the
@@ -419,7 +437,6 @@ on drop
         move noun to parent_of(player)
     else
         move noun to here
-    now noun is not worn
     success msg_dropped
 
 on examine
@@ -641,9 +658,20 @@ on put
     // discipline, one guard chain for every mover.
     if not (player holds noun)
         let why = take_probe(noun)
+        // The sealed case rides the same seam the take rides, so foresight
+        // opens the clear box for a put exactly as it does for a take.
+        if why is 4
+            if take_sealed_refused(noun) is 1
+                stop
+            change why to take_probe(noun)
         if why is not 0
             speak_take_refusal(noun, why)
             stop
+    // A WORN thing is not stowed past its take_off gate (the worn seam).
+    if any_wearable is 1
+        if noun is worn
+            if worn_refused(noun) is 1
+                stop
     // Putting into or onto something CARRIED is entering the carried
     // subtree, so it pays the same tolls a take pays: the item count and
     // the weight budget (a floor boulder never sneaks into the sack the
@@ -667,7 +695,6 @@ on put
                     stop
     if second is supporter
         move noun to second
-        now noun is not worn
         success msg_done
         stop
     if second is container
@@ -676,7 +703,6 @@ on put
                 if container_full(second, noun) is 1
                     stop
             move noun to second
-            now noun is not worn
             success msg_done
             stop
         change refused to 1
@@ -690,9 +716,19 @@ on insert
     // and the same take_probe gate covers a noun not held (see put).
     if not (player holds noun)
         let why = take_probe(noun)
+        // The sealed seam, as in put: foresight opens the clear box here too.
+        if why is 4
+            if take_sealed_refused(noun) is 1
+                stop
+            change why to take_probe(noun)
         if why is not 0
             speak_take_refusal(noun, why)
             stop
+    // A WORN thing is not stowed past its take_off gate (the worn seam).
+    if any_wearable is 1
+        if noun is worn
+            if worn_refused(noun) is 1
+                stop
     // The same carried-subtree tolls as put (see there): entering the
     // sack pays what a take pays.
     if any_carry_limit is 1
@@ -715,7 +751,6 @@ on insert
                 if container_full(second, noun) is 1
                     stop
             move noun to second
-            now noun is not worn
             success msg_done
             stop
         change refused to 1

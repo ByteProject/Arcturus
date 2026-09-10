@@ -151,6 +151,23 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # screen), which is the bar_unseated seam in loop.prelude. The bytes buy one
 # fewer opcode per turn forever, and on a memory-mapped 8-bit screen a split
 # is not free the way it is on a modern terminal.
+# 2026-09-10 (the worn seam, and the sealed-put parity): +32 to +72 in
+# most games, more where the change is bigger. Marco's cursed clothes:
+# drop, put, and insert of a WORN thing no longer bypass the take_off
+# gate; the house rejects ("You would have to take the scarf off
+# first."), summon.foresight takes it off implicitly, running the real
+# take_off so an object's own refusal still rules. The gate folds behind
+# any_wearable, so clothing-free games pay only the second half: put and
+# insert now route their sealed case (a thing behind closed clear glass)
+# through take_sealed_refused, the take's own seam, so foresight opens
+# the box for a put too; that parity is core, priced everywhere, the
+# same way the 2026-07-25 sealed-take seam was. The two Cloak of
+# Darkness examples additionally summon foresight now (the original
+# prints "(first taking the cloak off)" on HANG CLOAK ON HOOK, an
+# implicit take_off, so the faithful port needs the granule), which is
+# most of their larger growth. The `held` grammar slot is retired
+# (never enforced; the verb contract is the one held spelling): no
+# bytes, only the grammar.
 # 2026-09-08 (put refuses what a take refuses): +36 to +56 everywhere.
 # auraes found the couch: put and insert moved a noun the player was not
 # holding unconditionally, so anything in scope rode into a chest, fixed,
@@ -159,66 +176,66 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # chain); a held thing skips the probe, the floor-to-container shortcut
 # still moves takeable things in one command.
 CEILINGS = {
-    "features/yes-no.storyarc": 17912,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/press-any-key.storyarc": 18800,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/shiftable.storyarc": 18296,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/enhance-redefine.storyarc": 18652,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/consult-about.storyarc": 18768,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/session-verbs.storyarc": 18364,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/vary.storyarc": 19572,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/foresight.storyarc": 19984,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/beyond.storyarc": 20420,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/alter.storyarc": 19044,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/catalogs.storyarc": 18912,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/matrix.storyarc": 19248,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/direction-grammar.storyarc": 18324,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/scenery-contents.storyarc": 18968,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/trigger.storyarc": 17932,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/adjectives.storyarc": 18564,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "granules/nautical.storyarc": 18804,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "granules/npcengine.storyarc": 20892,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "granules/maniacswap.storyarc": 19132,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "beispiel-deutsch.storyarc": 26812,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "brass-lantern.storyarc": 19708,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "cloak-of-darkness.storyarc": 20500,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "ejemplo-espanol.storyarc": 23476,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/computed-properties.storyarc": 18016,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/containers.storyarc": 18508,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/daemons-and-timers.storyarc": 19660,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/doors-and-locks.storyarc": 18144,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/appearance.storyarc": 18788,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/components.storyarc": 18232,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "granules/whistle.storyarc": 17660,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/pathfinding.storyarc": 20652,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/perform.storyarc": 17976,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/grains.storyarc": 17780,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/handlers.storyarc": 19180,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/grammar.storyarc": 18024,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/introproperty.storyarc": 19424,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/kinds-and-inheritance.storyarc": 17976,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/on-other.storyarc": 17860,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/zcolor.storyarc": 18296,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/scoring.storyarc": 20228,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/spans.storyarc": 18096,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/vehicles.storyarc": 18636,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/success.storyarc": 18584,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "features/edible.storyarc": 18472,  # 2026-09-09 repriced: the consume line is the stomach's (Stefan's wording)
-    "features/text-slot.storyarc": 19008,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "granules/carryweight.storyarc": 18784,  # 2026-09-08 repriced: put into a carried sack pays the take tolls
-    "granules/ambience.storyarc": 19888,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "granules/conversations.storyarc": 19764,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "granules/extended-verbs.storyarc": 20992,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "granules/infocom-interrogation.storyarc": 19792,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "granules/quotes.storyarc": 18032,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "granules/take-all.storyarc": 20100,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "granules/plurals.storyarc": 18960,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "granules/statusline.storyarc": 18012,  # 2026-09-08 repriced: put and insert refuse what a take refuses
-    "granules/verbose-exits.storyarc": 17956,  # 2026-09-08 repriced: put and insert refuse what a take refuses
+    "features/yes-no.storyarc": 17944,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/press-any-key.storyarc": 18832,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/shiftable.storyarc": 18328,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/enhance-redefine.storyarc": 18684,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/consult-about.storyarc": 18800,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/session-verbs.storyarc": 18396,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/vary.storyarc": 19604,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/foresight.storyarc": 20016,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/beyond.storyarc": 20452,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/alter.storyarc": 19080,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/catalogs.storyarc": 18944,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/matrix.storyarc": 19280,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/direction-grammar.storyarc": 18356,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/scenery-contents.storyarc": 19000,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/trigger.storyarc": 17964,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/adjectives.storyarc": 18596,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "granules/nautical.storyarc": 18836,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "granules/npcengine.storyarc": 20924,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "granules/maniacswap.storyarc": 19164,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "beispiel-deutsch.storyarc": 26844,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "brass-lantern.storyarc": 19740,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "cloak-of-darkness.storyarc": 21156,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "ejemplo-espanol.storyarc": 23508,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/computed-properties.storyarc": 18048,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/containers.storyarc": 18540,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/daemons-and-timers.storyarc": 19692,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/doors-and-locks.storyarc": 18176,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/appearance.storyarc": 18920,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/components.storyarc": 18264,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "granules/whistle.storyarc": 17692,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/pathfinding.storyarc": 20684,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/perform.storyarc": 18008,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/grains.storyarc": 17812,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/handlers.storyarc": 19212,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/grammar.storyarc": 18116,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/introproperty.storyarc": 19456,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/kinds-and-inheritance.storyarc": 18008,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/on-other.storyarc": 17892,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/zcolor.storyarc": 18328,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/scoring.storyarc": 20260,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/spans.storyarc": 18128,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/vehicles.storyarc": 18668,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/success.storyarc": 18616,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/edible.storyarc": 18504,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "features/text-slot.storyarc": 19040,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "granules/carryweight.storyarc": 18820,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "granules/ambience.storyarc": 19920,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "granules/conversations.storyarc": 19796,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "granules/extended-verbs.storyarc": 21024,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "granules/infocom-interrogation.storyarc": 19824,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "granules/quotes.storyarc": 18064,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "granules/take-all.storyarc": 20228,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "granules/plurals.storyarc": 18992,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "granules/statusline.storyarc": 18044,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
+    "granules/verbose-exits.storyarc": 17988,  # 2026-09-10 repriced: the worn seam and the sealed-put parity
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 21136  # 2026-09-08 repriced: put and insert refuse what a take refuses
+CLOAK_Z8_CEILING = 21800  # 2026-09-10 repriced: the worn seam, sealed-put parity, and summon.foresight
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

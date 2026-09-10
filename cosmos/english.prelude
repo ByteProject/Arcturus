@@ -1715,6 +1715,11 @@ block msg_no()
 block msg_not_holding()
     say "You aren't carrying ${the noun}."
 
+// The worn seam's rejection (drop/put/insert of something worn; the
+// foresight granule takes it off implicitly instead).
+block msg_take_off_first()
+    say "You would have to take ${the noun} off first."
+
 // The requires check's second-slot twin (a two-noun verb whose SECOND must
 // be carried); the noun-slot failures speak msg_not_holding above.
 block msg_not_holding_second()
@@ -1724,6 +1729,9 @@ block msg_not_holding_second()
 // implicit take. Costs nothing unsummoned (only the granule calls it).
 block line_foresight_take()
     say "(taking ${the noun} first)"
+
+block line_foresight_doff()
+    say "(taking off ${the noun} first)"
 
 block line_foresight_open(obj)
     say "(opening ${the obj} first)"

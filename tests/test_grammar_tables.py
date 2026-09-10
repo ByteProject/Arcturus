@@ -9,7 +9,7 @@ wording that selects the action) is compiled to a grammar table and matched
 positionally; every other verb stays on the classic flag path, byte for byte.
 
 The anchor case is the one that triggered the overhaul: `dig in noun with
-held` used to split at the leading IN, leaving the first noun empty and the
+noun` used to split at the leading IN, leaving the first noun empty and the
 rest one ambiguous phrase. The capability case is a wording-selected action:
 LOOK UNDER and LOOK BEHIND reaching different actions, which the flag model
 (one action byte per verb word) cannot express at all."""
@@ -35,8 +35,8 @@ GAME = (
     'verb "dig", "excavate"\n'
     '    dig\n'
     '    dig noun\n'
-    '    dig noun with held\n'
-    '    dig in noun with held\n'
+    '    dig noun with noun\n'
+    '    dig in noun with noun\n'
     'on dig\n'
     '    if noun is nothing\n        say "DIG BARE."\n        stop\n'
     '    if second is nothing\n        say "DIG ${the noun}."\n        stop\n'
@@ -101,7 +101,7 @@ def test_no_line_fits_is_the_extra_words_fault():
 
 
 def test_empty_slot_asks_centrally():
-    # DIG WITH SHOVEL fits `dig noun with held` with an empty first slot: an
+    # DIG WITH SHOVEL fits `dig noun with noun` with an empty first slot: an
     # incomplete command, refused by the loop's central ask (the bare-command
     # ask, echoing the verb as typed) before any handler runs. The declared
     # bare `dig` line still reaches the handler's own DIG BARE branch.
@@ -145,7 +145,7 @@ def test_again_replays_a_tabled_command():
 
 def test_quoted_literal_is_the_same_word():
     # The quoted form used to crash the compiler; now it is the bare word.
-    game = GAME.replace("dig in noun with held", 'dig "in" noun with held')
+    game = GAME.replace("dig in noun with noun", 'dig "in" noun with noun')
     assert "DIG the sand USING the shovel." in _reply(
         "dig in sand with shovel", game=game, key="quoted"
     )
@@ -188,13 +188,13 @@ def test_needs_table_rule():
 
 
 def test_positional_verb_rejects_adjacent_slots():
-    game = GAME.replace("dig noun with held", "dig noun noun")
+    game = GAME.replace("dig noun with noun", "dig noun noun")
     with pytest.raises(ArcError, match="literal word between"):
         _world(game)
 
 
 def test_positional_verb_rejects_reverse():
-    game = GAME.replace("dig noun with held", "dig noun with held reverse")
+    game = GAME.replace("dig noun with noun", "dig noun with noun reverse")
     with pytest.raises(ArcError, match="reverse"):
         _world(game)
 

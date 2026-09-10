@@ -1999,6 +1999,11 @@ block msg_no()
 block msg_not_holding()
     say "Du hast ${the:acc noun} nicht bei dir."
 
+// The worn seam's rejection (drop/put/insert of something worn; the
+// foresight granule takes it off implicitly instead).
+block msg_take_off_first()
+    say "Dazu müsstest du ${the:acc noun} erst ausziehen."
+
 block msg_not_holding_second()
     say "Du hast ${the:acc second} nicht bei dir."
 
@@ -2009,6 +2014,9 @@ block msg_not_holding_second()
 // down first.
 block line_foresight_take()
     say "(zuerst nimmst du ${the:acc noun})"
+
+block line_foresight_doff()
+    say "(zuerst ziehst du ${the:acc noun} aus)"
 
 block line_foresight_open(obj)
     say "(zuerst öffnest du ${the:acc obj})"

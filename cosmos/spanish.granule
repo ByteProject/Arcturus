@@ -1656,11 +1656,19 @@ block msg_no()
 block msg_not_holding()
     say "No llevas ${the noun}."
 
+// The worn seam's rejection (drop/put/insert of something worn; the
+// foresight granule takes it off implicitly instead).
+block msg_take_off_first()
+    say "Tendrías que quitarte ${the noun} primero."
+
 block msg_not_holding_second()
     say "No llevas ${the second}."
 
 block line_foresight_take()
     say "(primero coges ${the noun})"
+
+block line_foresight_doff()
+    say "(primero te quitas ${the noun})"
 
 block line_foresight_open(obj)
     say "(primero abres ${the obj})"

@@ -88,9 +88,11 @@ def test_brass_lantern_parses_cleanly():
 
 def test_cloak_of_darkness_parses_cleanly():
     prog = load("cloak-of-darkness.storyarc")
-    # game, summon.statusline, global, on start, 4 rooms, 3 things, 1 verb =
-    # 11 (the read relic went when the standard set took read over).
-    assert len(prog.decls) == 11
+    # game, summon.statusline, summon.foresight, global, on start, 4 rooms,
+    # 3 things, 1 verb = 12 (the read relic went when the standard set took
+    # read over; foresight joined for the original's implicit take_off on
+    # HANG CLOAK ON HOOK, the worn seam).
+    assert len(prog.decls) == 12
     assert any(isinstance(d, ast.GlobalDecl) and d.name == "disturbed" for d in prog.decls)
 
     objs = objects(prog)

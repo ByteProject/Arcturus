@@ -15,6 +15,11 @@ game
 // aimed at something unseen in the dark ("x message") disturbs the sawdust
 // here, where the Inform parser rejected it before any rule could run.
 summon.statusline
+// The original prints "(first taking the cloak off)" when you hang the
+// cloak you are wearing: an implicit take_off. That is foresight's job
+// here (the worn seam, docs/01 chapter 22); without it the library
+// rejects and asks for the take_off, by doctrine.
+summon.foresight
 
 counter disturbed
 

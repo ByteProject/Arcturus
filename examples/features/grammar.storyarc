@@ -64,8 +64,9 @@ thing bench in pit
 verb "dig", "excavate"
     dig
     dig noun
-    dig noun with held
-    dig in noun with held
+    dig noun with noun
+    dig in noun with noun
+    requires second carried
 
 on dig
     if noun is nothing

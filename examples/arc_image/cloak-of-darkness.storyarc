@@ -45,6 +45,9 @@ game
 // aimed at something unseen in the dark ("x message") disturbs the sawdust
 // here, where the Inform parser rejected it before any rule could run.
 summon.statusline
+// Foresight for the original's implicit take_off on HANG CLOAK ON HOOK
+// (the worn seam, docs/01 chapter 22), as in the text example.
+summon.foresight
 
 // Infocom mode: the band is the upper third, 9 text rows, 320x72 art.
 constant arc_mode = 9
