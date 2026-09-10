@@ -1782,23 +1782,36 @@ class Analyzer:
                 # use, but a Z-string cannot be uppercased at print time,
                 # so the library's sentence-initial ${The obj} opened
                 # lowercase (auraes's swarm of bees, 2026-09-10). The
-                # compiler capitalizes at COMPILE time instead: a twin
-                # property carries the capitalized text, and the packs'
-                # art blocks pick it when cap is 1.
+                # compiler capitalizes at COMPILE time, without doubling
+                # the string: the property keeps the TAIL (the text minus
+                # its first character, pooled once), and a companion word
+                # packs the first character's two ZSCII codes (capital in
+                # the high byte, lowercase in the low), so the art blocks
+                # print the right first character and then the shared tail.
                 if m.name in ("article", "indefinite") \
                         and m.form == ast.PROP_VALUE and m.values:
                     v = m.values[0]
                     if isinstance(v, ast.StringLit) and v.parts \
-                            and isinstance(v.parts[0], ast.StringText):
+                            and isinstance(v.parts[0], ast.StringText) \
+                            and v.parts[0].text:
+                        from . import zstring
                         text = v.parts[0].text
-                        twin = m.name + "_cap"
-                        self._unify_property(twin, prelude.T_TEXT, m.line)
-                        props_out[twin] = ast.PropertyDecl(
-                            name=twin, form=ast.PROP_VALUE,
-                            values=[ast.StringLit(
-                                [ast.StringText(text[:1].upper() + text[1:])],
-                                m.line)],
-                            line=m.line)
+
+                        def _zcode(ch):
+                            if ord(ch) < 128:
+                                return ord(ch)
+                            return zstring._UNICODE_TO_ZSCII.get(ch)
+
+                        low = _zcode(text[0])
+                        cap = _zcode(text[0].upper()) or low
+                        if low is not None:
+                            v.parts[0].text = text[1:]
+                            twin = m.name + "_chars"
+                            self._unify_property(twin, prelude.T_NUMBER, m.line)
+                            props_out[twin] = ast.PropertyDecl(
+                                name=twin, form=ast.PROP_VALUE,
+                                values=[ast.Number(cap * 256 + low, m.line)],
+                                line=m.line)
             elif isinstance(m, ast.Handler):
                 h = self._make_handler(m, owner, on_kind)
                 if on_kind:

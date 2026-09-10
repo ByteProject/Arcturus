@@ -203,7 +203,7 @@ CEILINGS = {
     "features/containers.storyarc": 18464,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
     "features/daemons-and-timers.storyarc": 19616,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
     "features/doors-and-locks.storyarc": 18100,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/appearance.storyarc": 18908,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
+    "features/appearance.storyarc": 18928,  # 2026-09-10 repriced: the article capital is a char code plus a shared tail
     "features/components.storyarc": 18188,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
     "granules/whistle.storyarc": 17616,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
     "features/pathfinding.storyarc": 20608,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
