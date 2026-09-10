@@ -1565,6 +1565,9 @@ block msg_carry_limit()
 // the container that overflowed, which under nesting may sit ABOVE the one
 // the player named: the pouch fits the pebble, the chest around it does not.
 block msg_container_full(c)
+    if c is supporter
+        say "No more fits on ${the c}."
+        return 0
     say "No more fits into ${the c}."
 
 // The weight budget refusing (summon.carryweight), and the unit label its

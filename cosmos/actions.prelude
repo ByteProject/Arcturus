@@ -694,6 +694,12 @@ on put
                     msg_too_heavy
                     stop
     if second is supporter
+        // A supporter's edge is as real as a container's wall: the same
+        // item_cap ceiling binds on both surfaces (auraes's table,
+        // 2026-09-10), and the refusal speaks with the right preposition.
+        if any_container_caps is 1
+            if container_full(second, noun) is 1
+                stop
         move noun to second
         success msg_done
         stop

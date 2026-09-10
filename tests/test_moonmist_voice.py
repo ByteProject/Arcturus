@@ -184,6 +184,21 @@ def test_a_container_item_cap_refuses_in_total():
     assert "No more fits into the chest." in out
 
 
+def test_a_supporter_item_cap_refuses_on_the_edge():
+    # A supporter's edge is as real as a container's wall (auraes's table,
+    # 2026-09-10): the same item_cap binds, and the refusal says ON.
+    game = LIMIT_GAME.replace("constant item_cap = 2\n", "") \
+        .replace("thing acorn in hall",
+                 "thing table of supporter in hall\n    name \"table\"\n"
+                 "    words table\n    item_cap 2\n"
+                 "thing acorn in hall")
+    out = _run(["take pebble", "put pebble on table", "take feather",
+                "put feather on table", "take acorn", "put acorn on table"],
+               game=game)
+    assert out.count("Done.") == 2
+    assert "No more fits on the table." in out
+
+
 def test_no_limit_means_no_check_at_all():
     # Pay for use holds: with neither the constant nor the global, the
     # whole carry check folds away and every take succeeds.

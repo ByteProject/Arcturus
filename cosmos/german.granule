@@ -1858,6 +1858,9 @@ block msg_carry_limit()
     say "Deine Hände sind voll, und deine Taschen auch."
 
 block msg_container_full(c)
+    if c is supporter
+        say "Auf ${the:acc c} passt nichts mehr."
+        return 0
     say "In ${the:acc c} passt nichts mehr hinein."
 
 block msg_too_heavy()

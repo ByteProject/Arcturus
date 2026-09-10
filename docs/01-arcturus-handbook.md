@@ -1047,7 +1047,8 @@ on drink                      // the strength potion
     ...
 ```
 
-A container can carry the same ceiling, as a property in its body:
+A container or a supporter can carry the same ceiling, as a property in
+its body (an edge is as real as a wall):
 
 ```
 thing box of container in cellar
@@ -1058,11 +1059,12 @@ thing box of container in cellar
                               // the way down its nesting
 ```
 
-Insertion past the ceiling refuses ("No more fits into the box."), the
-count includes nested contents, and when capped containers nest, the
-ceiling that overflows is the one that speaks: a pouch inside a full
-chest turns a pebble away in the chest's name. A container without the
-property is bottomless, deliberately.
+Insertion past the ceiling refuses with the right preposition ("No more
+fits into the box.", "No more fits on the table."), the count includes
+nested contents, and when capped holders nest, the ceiling that
+overflows is the one that speaks: a pouch inside a full chest turns a
+pebble away in the chest's name. A holder without the property is
+bottomless, deliberately.
 
 The third answer weighs, and lives in its own granule (chapter 22,
 carryweight): things get weights, the player gets a budget, and TAKE
