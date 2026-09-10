@@ -365,7 +365,7 @@ it into a matrix only where you actually mutate it.
 
 A computed index that is a literal is bounds-checked at compile time
 (against the capacity); a computed index that is a variable is trusted at
-runtime and fast, the same contract catalogs keep. Underneath, a matrix
+runtime and fast, the same rule catalogs follow. Underneath, a matrix
 shares the catalog region and reads through the same base; its header holds
 the live count and the capacity, and every mutator is a short routine in the
 editable `cosmos/matrix.granule`, so there is still no heap and no
@@ -542,7 +542,7 @@ to tag its instances like this can be declared with no body at all.
 Roomness itself flows through the kind chain: an instance of a kind OF ROOM
 is a room in every respect (exits, spans, the start room), whether it was
 declared with the `room` keyword or with `thing`. The keyword is a reading
-aid; the chain is the truth.
+aid; the kind chain decides.
 
 A long span is not confined to one line. Every `spans` line on an object adds
 to its set, so a wide scenery object can list its rooms (or kinds) across as many
@@ -591,7 +591,7 @@ how matching ranks them (chapter 14).
 
 Six kinds ship with the system: `thing` and `room`, the two roots, and
 `container`, `supporter`, `door`, and `character`, each a kind of thing.
-This section is the contract of each one: what the kind means, what it
+This section describes each one: what the kind means, what it
 inherits, which attributes it sets, and what the library already does for
 it with no author code. Each entry ends where a chapter takes over.
 
@@ -665,7 +665,7 @@ above. An optional `item_cap N` bounds what fits (chapter 6). The library
 answers OPEN,
 CLOSE, and PUT IN, lists a container inline with its state and visible
 contents ("a pine box (closed)", "an iron box (contains a gold ring)"),
-and keeps the knowledge model honest: a closed opaque box still lists the
+and follows the knowledge model: a closed opaque box still lists the
 contents the player has `seen`, and never the ones they have not (chapter
 6, which owns the whole containment model).
 
@@ -711,7 +711,7 @@ keys on:
   scenery one.
 - The conversation verbs reach a character and only a character: TALK TO,
   ASK ABOUT, TELL ABOUT, ANSWER, and ASK FOR. With no conversation granule
-  summoned they share one honest brush-off ("Aggie doesn't seem up for a
+  summoned they share one polite brush-off ("Aggie doesn't seem up for a
   conversation."), so every game is safe by default; `topic` blocks,
   file-level subjects, and the two presentations, ask/tell and the menu,
   are the whole of chapter 17.
@@ -915,18 +915,18 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `hidden` | Out of scope entirely until cleared: an undiscovered object, neither listed nor referable. Clear it when the object is revealed. |
 | `concealed` | In scope and actable, but omitted from the room's contents listing (present but not spelled out in the description). |
 | `wearable` | Can be worn; the `wear` verb accepts it. |
-| `worn` | Currently worn. Set by `wear`, cleared by `take_off`, and take_off is the ONE door off the body: drop, put, and insert of a worn thing reject ("You would have to take the scarf off first."), so an `on take_off` gate (clothes that will not come off) rules every exit. The foresight granule (chapter 22) takes it off implicitly instead. Inventory tags it "(worn)". |
+| `worn` | Currently worn. Set by `wear`, cleared by `take_off`, and take_off is the only way to remove it: drop, put, and insert of a worn thing refuse ("You would have to take the scarf off first."), so an `on take_off` gate (clothes that will not come off) rules every exit. The foresight granule (chapter 22) takes it off implicitly instead. Inventory tags it "(worn)". |
 | `lit` | Gives light. On a `room`, the room is independently lit; on a thing, the thing glows and lights its location. Light is otherwise computed. |
 | `edible` | Can be eaten: the `eat` verb consumes it, gone from the world, with the library's line; anything else is "not on the menu". Write your own `on eat` for consequences (the potion, the poison); it overrides by ordinary handler resolution. The worked scene is [examples/features/edible.storyarc](../examples/features/edible.storyarc). |
 | `named` | A proper-named thing (Linda, Excalibur). Takes no article: `${the noun}` and `${a noun}` print just the name. |
 | `an` | The indefinite article is "an", not "a". Derived from the name's first letter, with the Latin vowels counted as a class: the five, their accented forms, and the ligatures œ/æ, so a translation's pack can read the bit for vowel-initial rules (French elision) with no per-object work. Set `an` or `an false` only for an exception (an hour, a unicorn). |
 | `feminine` | Grammatical gender. Drives the Spanish articles and agreement (la lampara, Cogida), the German article (declared there with `die`, which sets this), and the English "her" pronoun on a character. Spanish derives it from a head noun ending in -a or a reliably feminine suffix; declare it where spelling cannot reveal it (la llave; an English Ruth). Masculine is the unmarked default. |
 | `neutral` | The third German gender, declared there with `das` (das Buch, "es"). English and Spanish never read it. |
-| `beyond` | Visible but not touchable: in scope and examinable (a chandelier overhead, a jar one shelf too high), while every touching action refuses ("${The noun} is beyond your reach.", msg_beyond, overridable). Conversation crosses the gap (an animate beyond person still answers ASK), and throwing AT a beyond thing stays legal: the arm reaches where the hand cannot. It is STATE: `now jar is not beyond` when the stool is gained. The refusal can carry the WHY (a field request): `beyond "Without the ladder, the top shelf might as well be the moon."` speaks your line instead of the generic one, and `beyond block` opens a computed body (the desc-block shape) for wording by state; a bare `beyond` keeps the pack's message. The property points BOTH ways: `now player is beyond` puts the PLAYER out of everything's reach instead, the mounted-on-a-horse case. While the player is beyond, only the arm's bubble stays touchable: themself, what they hold, and the thing they are on or in with everything it carries (the mare, her saddlebag, the apple inside); un-nested it collapses to self and held alone (hands bound, tied to a chair). Sight and speech cross the gap exactly as above, and EXIT is never blocked, so dismounting always works. Set it in the after phase, once the boarding has really happened: `on after enter mare / now player is beyond`, and `on after exit mare / now player is not beyond`. The refusal is CENTRAL: the reach gate runs before any handler, for every touch action alike (a verb opts out with `reachagnostic`, chapter 12), so an object's own `on take when ...` override speaks only to things the player could actually reach. The player's refusal can carry its own why, settable at RUNTIME: `change player.beyond_why to "You can't reach that from up here."` speaks your line, `change player.beyond_why to nothing` reverts to the pack default (the slot is allocated automatically for any game that writes it). Static faraway decoration needs no object at all, that is a grain's job (chapter 18); beyond is for distance that matters to the model. Costs nothing unused. Worked example: [examples/features/beyond.storyarc](../examples/features/beyond.storyarc). |
+| `beyond` | Visible but not touchable: in scope and examinable (a chandelier overhead, a jar one shelf too high), while every touching action refuses ("${The noun} is beyond your reach.", msg_beyond, overridable). Conversation crosses the gap (an animate beyond person still answers ASK), and throwing AT a beyond thing stays legal: the arm reaches where the hand cannot. It is state: `now jar is not beyond` when the stool is gained. The refusal can carry the WHY (a field request): `beyond "Without the ladder, the top shelf might as well be the moon."` speaks your line instead of the generic one, and `beyond block` opens a computed body (the desc-block shape) for wording by state; a bare `beyond` keeps the pack's message. The property points both ways: `now player is beyond` puts the PLAYER out of everything's reach instead (riding a horse, say). While the player is beyond, only the near things stay touchable: themself, what they hold, and the thing they are on or in with everything it carries (the mare, her saddlebag, the apple inside); un-nested it collapses to self and held alone (hands bound, tied to a chair). Sight and speech cross the gap exactly as above, and EXIT is never blocked, so dismounting always works. Set it in the after phase, once the boarding has really happened: `on after enter mare / now player is beyond`, and `on after exit mare / now player is not beyond`. The refusal is central: the reach gate runs before any handler, for every touch action alike (a verb opts out with `reachagnostic`, chapter 12), so an object's own `on take when ...` override speaks only to things the player could actually reach. The player's refusal can carry its own why, settable at RUNTIME: `change player.beyond_why to "You can't reach that from up here."` speaks your line, `change player.beyond_why to nothing` reverts to the pack default (the slot is allocated automatically for any game that writes it). Static faraway decoration needs no object at all, that is a grain's job (chapter 18); beyond is for distance that matters to the model. Costs nothing unused. Worked example: [examples/features/beyond.storyarc](../examples/features/beyond.storyarc). |
 | `shiftable` | The thing can be pushed through an exit, the player following (PUSH CRATE NORTH). Chapter 12. |
 | `restless` | A background performer: its `on each_turn` fires EVERY turn, wherever the object is, not only in scope. Work follows the performer's nature; prose follows scope: what a restless object prints while out of scope is discarded by the system, so the handler writes its `say` unconditionally and the player hears it exactly when the performer shares their scene: present, arriving, or leaving before their eyes (in scope at either end of its turn); a turn taken wholly offstage is silence. It never fires twice. It is STATE: declare `restless` to be born performing, or arm and disarm at runtime (`now guard is restless`, `now guard is not restless`), with no declaration needed anywhere; a `when` guard on the handler still decides whether an armed performer acts this turn. A game with no restless object pays nothing (the walk, the mute buffer, everything folds away). Chapter 16; worked example: [examples/features/daemons-and-timers.storyarc](../examples/features/daemons-and-timers.storyarc). |
 | `pluribus` | Grammatical number: ONE object that is grammatically plural (the scissors, the boots; e pluribus unum, many speaking through one). The articles read it ("some scissors"; German's bare indefinite plural and die/die/den/der by case; Spanish los/las, unos/unas), `${is x}` agrees (is/are, ist/sind, está/están), and the core messages conjugate ("The scissors stay exactly where they are."). NOT the plurals granule, whose group words sweep several distinct singular objects ("take coins"). Costs nothing in a game that never sets it. |
-| `binary` | A two-state device: a lamp, a lever, a valve, a machine. The library owns the state the way it owns open/shut: switching it on sets `active` and reports; switching it off clears it; asking for the state it already holds is refused honestly ("is already on/off") in the verb contract, before any handler. A binary that also declares `lit` is a GLOW thing: the default flip carries the light with it, so a working lamp is these two lines and no code. An author's own `on switch_on` / `on switch_off` handler overrides the default for flavor and then owns the flip (`now self is active`, plus `now self is lit` on a glow thing): validation stays with the library, the response is yours, the same split as everywhere in the pipeline. `switchable` is accepted as a compatibility spelling of `binary`. |
+| `binary` | A two-state device: a lamp, a lever, a valve, a machine. The library owns the state the way it owns open/shut: switching it on sets `active` and reports; switching it off clears it; asking for the state it already holds is refused ("is already on/off") before any handler runs. A binary that also declares `lit` is a GLOW thing: the default flip carries the light with it, so a working lamp is these two lines and no code. An author's own `on switch_on` / `on switch_off` handler overrides the default for flavor and then owns the flip (`now self is active`, plus `now self is lit` on a glow thing): validation stays with the library, the response is yours, the same split as everywhere in the pipeline. `switchable` is accepted as a compatibility spelling of `binary`. |
 | `active` | The binary state, tested like any attribute (`if noun is active`) and flipped by the library's switch defaults, or by your flavor handlers. |
 | `openable` | Can be opened and closed; the `open` / `close` verbs apply. |
 | `open` | Currently open (a container or door). Set by `open`, cleared by `close`. A closed container hides its contents from scope. |
@@ -1027,7 +1027,7 @@ constant item_cap = 20        // at most twenty carried things
 ```
 
 and the take handler refuses past it ("Your hands are full, and so are
-your pockets."). The count is honest: what is inside a carried sack
+your pockets."). Everything is counted: what is inside a carried sack
 counts, what is worn counts, and a loaded box is priced with its
 contents the moment it is lifted, so a sack of thirty things can never
 sneak in as one. Fixed and scenery things are outside every count, here
@@ -1049,7 +1049,7 @@ on drink                      // the strength potion
 ```
 
 A container or a supporter can carry the same ceiling, as a property in
-its body (an edge is as real as a wall):
+its body:
 
 ```
 thing box of container in cellar
@@ -1072,8 +1072,8 @@ carryweight): things get weights, the player gets a budget, and TAKE
 refuses what would overload. Weight is measured in a unit you can
 specify, with kilograms as the standard: every thing weighs 0.5 kg
 unless it says otherwise, and the budget is 10 kg unless you set one,
-which is the same twenty things the item count would allow, priced
-honestly. A count and a budget enforce independently when both exist:
+which is the same twenty average things the item count would allow.
+A count and a budget enforce independently when both exist:
 six items OR twenty kilograms, whichever runs out first, which is how
 one beer barrel can fill two free hands.
 
@@ -1207,7 +1207,7 @@ handlers. The whole mechanism folds away in a game that stages nothing.
 Two predicates Cosmos provides for conditions: `<obj> is visible` (in scope
 and the location lit; examining needs this) and `<obj> is reachable` (visible
 and not behind a closed container; taking and most physical actions need
-this). The open-air case of the same doctrine is the `beyond` attribute
+this). The open-air version of the same idea is the `beyond` attribute
 (chapter 5): visible and examinable while every touching action refuses,
 toggled with `now` as the geometry changes. `hidden` removes an object from scope entirely until cleared.
 `scenery` keeps it referable for examining but omits it from contents
@@ -1558,7 +1558,7 @@ the attempt and the success between them. The registered body runs after
 the handler has returned: it reads globals, `noun`, and `self`, but not
 the handler's own `let` locals.
 
-The other half of the contract is the `success` statement, which is how
+The counterpart is the `success` statement, which is how
 a handler SPEAKS the success line so that a registered alter can win:
 
 ```
@@ -1636,8 +1636,8 @@ for each door of room          // every instance of a kind
 ```
 
 The tree walk is MOVE-SAFE for its own loop object: the next child is noted
-before the body runs, so emptying a container the obvious way just works,
-with no drain idiom to learn:
+before the body runs, so emptying a container the obvious way works in
+one plain loop, with no special idiom to learn:
 
 ```
 for each x in bucket
@@ -1826,8 +1826,8 @@ only after every data name (locals, globals, objects, constants,
 directions), so story names always win, and naming a block that does take
 values is a compile error pointing at the parenthesized form. Parens appear
 exactly where arguments do: `teleport(wreckage_site)`, `random(6)`,
-`quote(5, 29)`. The same doctrine prefers the English tests over call
-shapes: `if shard is not moved` (never `if not (shard is moved)`; the
+`quote(5, 29)`. The same preference holds for tests: write the English
+forms: `if shard is not moved` (never `if not (shard is moved)`; the
 grouped form is for genuinely compound conditions), and `if chip is in
 scope` or the short `chip in box` for the tree test, with `is not in` the
 negation.
@@ -1855,7 +1855,7 @@ looks speak the warning. A local assigned a literal speaks as text too
 (`let s = "a riddle"` then `say "It is ${s}."`), and comparing against
 the same literal is true (`if s is "a riddle"`): identical literals are
 laid out once and share one address, which is also why a string value
-costs only that shared string plus a reference. Two honest limits of the
+costs only that shared string plus a reference. Two limits of the
 machine: a literal WITH `${...}` inside is not a value (the Z-machine
 cannot build strings at runtime; say the interpolated string instead),
 and a block PARAMETER is untyped, so interpolating one speaks digits;
@@ -2284,7 +2284,7 @@ most specific first (most literal words, then, among literal-free lines,
 fewest slots), and the first line that fits the typed words wins. Everything
 else about the turn is unchanged: slots resolve through the same scoring
 matcher, ambiguity still asks, pronouns still bind, and a command no line
-accounts for is refused honestly. A quoted literal (`dig "in" noun`) is the
+accounts for is refused with a clear message. A quoted literal (`dig "in" noun`) is the
 same as the bare word.
 
 This costs bytes only where it is used: a verb whose lines are the plain
@@ -2344,7 +2344,7 @@ never guesses the missing role: "Throw what?" guesses wrong when the
 grammar wanted AT WHOM. This holds for every verb alike,
 the standard set, your own (`verb "wibble" / wib noun` asks the moment
 WIBBLE is typed bare), and partial commands too: PUT LAMP, with nowhere
-to put it, gets the same honest ask. Your grammar decides what counts as
+to put it, gets the same ask. Your grammar decides what counts as
 complete: DANCE never asks, because the standard grammar declares its
 bare line (a dance needs no object), while a verb whose every line wants
 a noun asks the moment it stands alone. A verb with a declared slotless
@@ -2530,7 +2530,7 @@ rusty nail: Done.
 
 The "and" chains instead, as it always did, when a verb follows it ("take
 gem and put coin in box") or when the verb takes one noun ("take gem and
-coin", the verb borrow). The verb contract guards every item: "give coin
+coin", the verb borrow). Each item is checked on its own: "give coin
 and gem to bob" stops at the gem you are not carrying.
 
 ### Growing and replacing verbs (enhance, redefine)
@@ -2553,7 +2553,7 @@ redefine verb "read"             // the family is replaced WHOLE:
 `enhance` appends: new grammar lines, new synonym words, or both (a body is
 optional when only synonyms join). `redefine` replaces the family whole,
 so a synonym the redefinition does not restate is gone from the dictionary;
-the action's contract (`requires`, 10a) is wording-independent and stands.
+the action's requirements (`requires`, 10a) are wording-independent and stand.
 Both anchor on the first quoted word, which must already be a verb; there
 is nothing to enhance or redefine otherwise, and the compiler says so.
 
@@ -2562,7 +2562,7 @@ word by word as it always did, but the compiler now notes what that means
 (the family's other synonyms keep their old grammar) and names these two
 forms, which say what they do.
 
-### The verb contract (requires)
+### What a verb requires
 
 A verb can state what it requires of its operands, and the library enforces
 it before any handler runs:
@@ -2577,18 +2577,18 @@ Two requirement words exist: `carried` (the object is on your person, worn
 included) and `animate`. Each applies to `noun` or `second`. The standard
 GIVE and SHOW declare a carried noun and an animate second, which is why an
 object's `on give` override answers real offers and never gibberish, unheld
-gifts, or donations to furniture: a turn that fails the contract is refused
+gifts, or donations to furniture: a turn that fails a requirement is refused
 by the library, with its own message, and no handler sees it. A slot the
 grammar requires but the player left empty is refused earlier still, by
 the library's bare-command ask ("The verb give requires you to be more
 specific.", see the verbs section above); a grammar-optional empty slot
-passes through for the action to interpret. `perform` bypasses the
-contract, since an author performing an action means it.
+passes through for the action to interpret. `perform` skips these
+checks, since an author performing an action means it.
 
 The in-body form above binds to the verb's own actions. The free-standing
 form names the action, which is how requirements stay language-neutral
 (actions.prelude declares the standard ones this way; a language pack
-redeclares a verb's words and grammar, never its contract):
+redeclares a verb's words and grammar, never its requirements):
 
 ```
 requires sacrifice noun carried
@@ -2772,7 +2772,7 @@ asking IS talking until a granule redefines it.
 The transcript. TRANSCRIPT (or SCRIPT) opens output stream 2, the transcript the interpreter
 records to a file of the player's choosing; TRANSCRIPT OFF (or UNSCRIPT, the
 Infocom word) closes it. The library reads the truth back from Flags 2 bit 0,
-so a player who cancels the interpreter's file prompt gets an honest "No
+so a player who cancels the interpreter's file prompt gets a truthful "No
 transcript was started" rather than a false confirmation, and the closing
 "Transcript off" is printed before the stream shuts so it lands in the file.
 German words it MITSCHRIFT/PROTOKOLL AN and AUS; Spanish TRANSCRIPCION and
@@ -2853,15 +2853,15 @@ Inform hands). Unused by stories, both fold to nothing extra.
 ### The action pipeline
 
 An action carries its verb, `noun`, and optional `second`. Before the chain
-runs at all, the VERB CONTRACT is enforced: what the action `requires` of
+runs at all, the action's requirements are checked: what it `requires` of
 its operands (a carried noun, an animate recipient; chapter 12). A turn
-whose operands fail the contract is refused by the library, message spoken,
+whose operands fail a requirement is refused by the library, message spoken,
 and no handler of any kind sees it, which is the point: an object's
 override owns the response to a valid turn, never the validation. A slot
 the grammar requires but the player left empty is refused earlier still,
 by the loop's central bare-command ask (chapter 14); a grammar-optional
 empty slot (unlock noun beside unlock noun with noun) passes through for
-the action to interpret. `perform` bypasses the contract entirely, since
+the action to interpret. `perform` skips the checks entirely, since
 an author performing an action means it. Then Cosmos dispatches the action as one chain of
 handlers, most specific first:
 
@@ -3056,7 +3056,7 @@ class. What this buys, precisely:
   EXAMINE RED GUITAR never asks about the red couch.
 - A UNIQUE adjective still finds its object (Infocom's sausage rule):
   EXAMINE GREEN binds the only green thing present.
-- A shared adjective asks the honest question, and the class filter keeps
+- A shared adjective asks the question, and the class filter keeps
   the candidate list clean: "Which do you mean, the red couch or the red
   guitar?", answerable with a noun as always.
 
@@ -3084,7 +3084,7 @@ and overridable.
 
 The refusals stay distinct, three situations, three answers: an INCOMPLETE
 COMMAND (a bare verb whose grammar wants a noun, a PUT with nowhere to put)
-gets the one honest ask, "The verb take requires you to be more specific."
+gets the one central ask, "The verb take requires you to be more specific."
 (msg_noun_missing), echoing the verb AS TYPED from the text buffer, full
 length and in the player's own word, so a synonym stays itself; the line
 never guesses the missing role the way "Take what?" did, because the grammar
@@ -3134,7 +3134,7 @@ block reach_unscoped()
     return nothing
 ```
 
-The contract has two sides. The parser's side: whatever the seam returns is
+The seam has two sides. The parser's side: whatever the seam returns is
 bound as the noun exactly as if it had been in scope, and AGAIN replays a
 reach-bound noun without the usual left-scope refusal. The author's side: a
 verb that reaches beyond scope owns its own validity, in its handler,
@@ -3231,7 +3231,7 @@ the lámpara. A referent that has left scope falls into the ordinary honest
 failure, and the plurals (-los, -las, -les) wait, like `them`, for a plural
 model.
 
-The roles are the compiler contract (like the particle roles); the slot ids
+The role numbers are fixed by the compiler (like the particle roles); the slot ids
 ride the pronoun words' dictionary entries where a pack declares words.
 
 ### Command chaining
@@ -5184,7 +5184,7 @@ with the apple at your feet becomes:
 You give the apple to Stacy.
 ```
 
-Built on the verb contract (chapter 12): a failed `requires noun
+Built on `requires` (chapter 12): a failed `requires noun
 carried` is repaired with an implicit take instead of refused. The
 parenthetical is a PROMISE, and it prints only when the promise is certain:
 the repair asks the default take's own factored guard chain (take_probe)
@@ -6561,7 +6561,7 @@ language pack speaks its own):
 - `content_listable(holder, x)`: the per-item filter behind all of them,
   the knowledge model in one place: not hidden or concealed, and either
   the holder shows its contents or the player has already seen the item.
-- `list_worn()` and `worn_count()`: the same composable contract for what
+- `list_worn()` and `worn_count()`: the same pair of calls for what
   the player wears: the bare punctuated list (returning the count), and
   the count alone.
 
