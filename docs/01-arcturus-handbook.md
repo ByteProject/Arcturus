@@ -1831,6 +1831,35 @@ grouped form is for genuinely compound conditions), and `if chip is in
 scope` or the short `chip in box` for the tree test, with `is not in` the
 negation.
 
+A PLAIN STRING LITERAL IS A VALUE like any other: a block may return one,
+a `let` may hold one, and a call may pass one. Interpolating a call to a
+string-returning block speaks the text, which is how a computed fragment
+lands inside one sentence:
+
+```
+block engraving()
+    if gem_examined
+        return "a warning in an older tongue"
+    return "something"
+
+thing ruby in study
+    name "ruby"
+    words ruby
+    desc block
+        say "There is ${engraving()} engraved on the ruby."
+```
+
+The first look says "There is something engraved on the ruby."; later
+looks speak the warning. A local assigned a literal speaks as text too
+(`let s = "a riddle"` then `say "It is ${s}."`), and comparing against
+the same literal is true (`if s is "a riddle"`): identical literals are
+laid out once and share one address, which is also why a string value
+costs only that shared string plus a reference. Two honest limits of the
+machine: a literal WITH `${...}` inside is not a value (the Z-machine
+cannot build strings at runtime; say the interpolated string instead),
+and a block PARAMETER is untyped, so interpolating one speaks digits;
+let the caller interpolate, or return the string.
+
 Blocks also serve as computed property values (chapter 5) and as grain
 responses (chapter 18). A block attached to a property or grain may be named
 and referenced, or written inline as an indented body.

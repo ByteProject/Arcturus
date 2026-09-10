@@ -557,6 +557,27 @@ def eval_expr(rt: Routine, ctx: Context, expr, dest=None) -> None:
         _place(rt, _leaf_operand(ctx, expr), dest)
         return
 
+    # A plain string literal is a VALUE: its pooled packed address, the same
+    # StringRef the global initializer, `change g to "..."`, and the property
+    # write have always stored. This makes `return "..."`, `let s = "..."`,
+    # and a string argument legal, and `${my_block()}` prints the returned
+    # string through the threshold printer (auraes's ruby, 2026-09-10). The
+    # pool dedupes by text, so `if s is "something"` compares true for the
+    # same literal. Interpolation cannot live in a value: the Z-machine
+    # cannot build strings at runtime.
+    if isinstance(expr, ast.StringLit):
+        if any(isinstance(p, ast.StringInterp) for p in expr.parts):
+            raise LowerError(
+                "interpolated text is not a value: only a plain string "
+                "literal can be returned, stored, or passed (say the "
+                "interpolated string instead)", expr.line)
+        if ctx.string_pool is None:
+            raise LowerError("no string pool available", expr.line)
+        text = "".join(
+            p.text for p in expr.parts if isinstance(p, ast.StringText))
+        _place(rt, StringRef(ctx.string_pool.add(text)), dest)
+        return
+
     # A constant whose value is not a leaf (a computed expression): evaluate the
     # value in its place.
     if isinstance(expr, ast.Name):
@@ -2046,6 +2067,12 @@ def _static_etype(ctx, expr):
     et = _catalog_etype(ctx, expr)
     if et is not None:
         return et
+    # A plain string literal is a text value (its pooled packed address), so
+    # `let s = "a riddle"` tags the local and `say "${s}"` speaks the text.
+    if isinstance(expr, ast.StringLit) and not any(
+        isinstance(p, ast.StringInterp) for p in expr.parts
+    ):
+        return "text"
     if isinstance(expr, ast.Name):
         et = getattr(ctx, "catalog_locals", {}).get(expr.ident)
         if et is not None:
@@ -2056,6 +2083,41 @@ def _static_etype(ctx, expr):
         if _is_direction_literal(ctx, expr.ident):
             return "direction"
     return None
+
+
+def _block_returns_text(ctx, name: str) -> bool:
+    """Does the named block return a plain string literal anywhere? Decides
+    whether `${my_block()}` prints through the string threshold (the value
+    may also be a number: a bare return, a fall-off-the-end 0, a mixed
+    block), rather than as digits. Cached per world; the walk is a generic
+    descent over the statement dataclasses."""
+    cache = getattr(ctx, "_text_return_blocks", None)
+    if cache is None:
+        cache = ctx._text_return_blocks = {}
+    hit = cache.get(name)
+    if hit is not None:
+        return hit
+
+    def walk(node) -> bool:
+        if isinstance(node, ast.Return):
+            v = node.value
+            if isinstance(v, ast.StringLit) and not any(
+                isinstance(p, ast.StringInterp) for p in v.parts
+            ):
+                return True
+        if isinstance(node, list):
+            return any(walk(n) for n in node)
+        if hasattr(node, "__dict__"):
+            return any(
+                walk(v) for v in vars(node).values()
+                if isinstance(v, (list, ast.Stmt))
+            )
+        return False
+
+    blk = ctx.world.blocks.get(name)
+    found = walk(blk.body) if blk is not None else False
+    cache[name] = found
+    return found
 
 
 def _note_local_etype(ctx, name: str, value) -> None:
@@ -3823,6 +3885,15 @@ def _say_value(rt, ctx, expr):
             # A text global holds a packed string address.
             rt.op("print_paddr", Variable(ctx.globals[expr.ident]))
             return
+    if isinstance(expr, ast.Call) and expr.name in ctx.world.blocks \
+            and _block_returns_text(ctx, expr.name):
+        # A block that returns a string somewhere: `${my_block()}` speaks
+        # the returned text (auraes's ruby). The threshold printer, not a
+        # bare print_paddr, because another path may return a number (a
+        # bare return, a fall off the end): text prints as text, a number
+        # as digits, told apart at runtime like a computed property.
+        _say_threshold(rt, ctx, expr)
+        return
     op, t = _operand(rt, ctx, expr)
     rt.op("print_num", op)
     if t is not None:
