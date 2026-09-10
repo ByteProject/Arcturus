@@ -494,6 +494,7 @@ def _load_granules(game: ast.Program, lib_dirs, story_dir):
             abbreviations = extract_abbreviations(src, srcname)
             continue
         prog = parse(src, srcname)
+        _stamp(prog.decls, srcname)
         if s.selection:
             prog = ast.Program(
                 _select_families(prog.decls, s.selection, srcname, s.line))
@@ -582,6 +583,20 @@ def _writes_notify(decls) -> bool:
     return found[0]
 
 
+def _stamp(ds, srcname):
+    """Stamp declarations (and their owned members, one level down) with the
+    file they were parsed from. The combined program is analyzed under ONE
+    filename, the story's, so without the stamp an error inside a granule
+    or prelude reported the story's name with the granule's line number
+    (EdwardianDuck's report, 2026-09-10): line right, file wrong. Sema and
+    codegen read the stamp to attribute errors to the true file."""
+    for d in ds:
+        d.srcfile = srcname
+        for m in getattr(d, "members", None) or ():
+            m.srcfile = srcname
+    return ds
+
+
 def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Program:
     """Combine the Cosmos library, any summoned granules, and the game into one
     program to analyze and compile. Order encodes precedence: library first
@@ -610,7 +625,7 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
                     src = fh.read()
                 fork_note(name, src, cand)
                 break
-        for d in _expand_language(parse(src, name).decls, language):
+        for d in _stamp(_expand_language(parse(src, name).decls, language), name):
             if isinstance(d, (ast.BlockDecl, ast.Handler, ast.DirectionDecl)):
                 d.origin = "library"
             decls.append(d)
@@ -627,7 +642,7 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
                 f"summon.language: '{srcname}' is not a language pack (it has no "
                 f'`language "..."` marker)', filename="<summon>",
             )
-        for d in _expand_language(lang_decls, language):
+        for d in _stamp(_expand_language(lang_decls, language), srcname):
             # The marker is a loader directive, not a runtime declaration; drop it
             # so semantic analysis never sees it.
             if isinstance(d, ast.LanguageDecl):

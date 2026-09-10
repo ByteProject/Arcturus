@@ -573,10 +573,18 @@ def main(argv: list[str] | None = None) -> int:
             print(exc.format(), file=sys.stderr)
             return 1
 
+    def _backfill(exc):
+        # A lowering error without provenance is the story's own: name the
+        # story file instead of the '<source>' placeholder (errors from a
+        # granule or prelude arrive already stamped with their true file).
+        if getattr(exc, "filename", None) == "<source>":
+            exc.filename = args.source
+        return exc
+
     try:
         world = analyze(program, filename=args.source)
     except ArcError as exc:
-        print(exc.format(), file=sys.stderr)
+        print(_backfill(exc).format(), file=sys.stderr)
         return 1
 
     if args.dump_ir:
@@ -591,7 +599,7 @@ def main(argv: list[str] | None = None) -> int:
         try:
             story = generate(world, version=args.zversion, stats=stats)
         except ArcError as exc:
-            print(exc.format(), file=sys.stderr)
+            print(_backfill(exc).format(), file=sys.stderr)
             return 1
         try:
             with open(args.output, "wb") as fh:

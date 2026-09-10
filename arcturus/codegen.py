@@ -1719,9 +1719,23 @@ def build_routines(world: wm.World, gmap: dict, layout, pool):
             main.nlocals = ctx.nlocals()
     main.op("rfalse")
 
+    # A lowering error names the file its entity was parsed from (the
+    # combiner's srcfile stamp; EdwardianDuck's report: a granule's error
+    # carried the story's filename with the granule's line number). An
+    # unstamped entity is the story's own and keeps the default.
+    def _attributed(entity, fn):
+        try:
+            return fn()
+        except ArcError as exc:
+            src = getattr(entity, "srcfile", None)
+            if src and exc.filename == "<source>":
+                exc.filename = src
+            raise
+
     routines = [banner_rt]
     for blk in world.blocks.values():
-        routines.append(_compile_block(world, gmap, layout, pool, blk))
+        routines.append(_attributed(
+            blk, lambda: _compile_block(world, gmap, layout, pool, blk)))
 
     # Every handler becomes a routine the dispatcher / turn loop can call; `start`
     # is no longer special (it runs through react_free via the loop).
@@ -1733,7 +1747,9 @@ def build_routines(world: wm.World, gmap: dict, layout, pool):
             continue  # compiled into main in the no-Cosmos fallback
         name = f"h{n}"
         n += 1
-        routines.extend(_compile_handler(world, gmap, layout, pool, handler, name))
+        routines.extend(_attributed(
+            handler,
+            lambda: _compile_handler(world, gmap, layout, pool, handler, name)))
         registry.append((handler, name))
 
     return main, routines, registry

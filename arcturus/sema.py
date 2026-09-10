@@ -68,6 +68,18 @@ class Analyzer:
     def _error(self, message: str, line: int) -> ArcError:
         return ArcError(message, line, None, self.filename)
 
+    def _enter_file(self, node) -> None:
+        """Point error attribution at the file a declaration came from (the
+        combiner's _stamp; EdwardianDuck's report: a granule's error carried
+        the story's filename). The story's own declarations carry no stamp
+        and fall back to the unit filename."""
+        if not hasattr(self, "_base_filename"):
+            self._base_filename = self.filename
+        self.filename = getattr(node, "srcfile", None) or self._base_filename
+
+    def _leave_file(self) -> None:
+        self.filename = getattr(self, "_base_filename", self.filename)
+
     # -- entry -------------------------------------------------------------
 
     def analyze(self) -> wm.World:
@@ -475,6 +487,7 @@ class Analyzer:
             w.objects["scope"] = wm.Obj("scope", "room", "room", line=0)
 
         for decl in self.program.decls:
+            self._enter_file(decl)
             if isinstance(decl, ast.GameBlock):
                 if w.game is not None:
                     raise self._error("more than one game block", decl.line)
@@ -871,6 +884,7 @@ class Analyzer:
                 # Attach grains to an existing object (resolved in pass 4).
                 pass
 
+        self._leave_file()
         # Actions: the standard set, every action a verb grammar names, and
         # the bare `action` declarations (verbless actions: reachable by
         # dispatch and remap, never from the keyboard directly).
@@ -982,7 +996,7 @@ class Analyzer:
     def _make_handler(
         self, decl: ast.Handler, owner: Optional[str], on_kind: bool
     ) -> wm.Handler:
-        return wm.Handler(
+        h = wm.Handler(
             decl.events,
             decl.after,
             decl.pattern,
@@ -993,6 +1007,11 @@ class Analyzer:
             decl.line,
             getattr(decl, "origin", None),
         )
+        # Error provenance rides along (the combiner's srcfile stamp), so a
+        # lowering error inside this handler names the granule or prelude it
+        # was written in, not the story (EdwardianDuck's report).
+        h.srcfile = getattr(decl, "srcfile", None)
+        return h
 
     # -- pass 2: kind chains -----------------------------------------------
 
@@ -1557,9 +1576,12 @@ class Analyzer:
         # Game property declarations on kinds and objects.
         for kind in w.kinds.values():
             if kind.decl is not None:
+                self._enter_file(kind.decl)
                 self._collect_members(kind.decl.members, kind.name, kind.props, True)
+        self._leave_file()
         for obj in w.objects.values():
             if obj.decl is not None:
+                self._enter_file(obj.decl)
                 self._collect_members(obj.decl.members, obj.name, obj.props, False)
             # The glow derivation (the binary model): a binary that also
             # declares `lit` is a light source whose light follows its
@@ -1569,6 +1591,7 @@ class Analyzer:
             if "binary" in obj.props and "lit" in obj.props                     and "glow" not in obj.props:
                 obj.props["glow"] = ast.PropertyDecl(
                     name="glow", form=ast.PROP_BOOL)
+        self._leave_file()
 
     def _image_id(self, m: ast.PropertyDecl) -> int:
         """The numeric image id from `arc_image <id>`: the id IS the resource
@@ -1877,18 +1900,25 @@ class Analyzer:
         # Computed property bodies, handler bodies, grains, on each owner.
         for kind in w.kinds.values():
             if kind.decl is not None:
+                self._enter_file(kind.decl)
                 self._resolve_owner(kind.decl.members, on_kind=True)
+        self._leave_file()
         for obj in w.objects.values():
             if obj.decl is not None:
+                self._enter_file(obj.decl)
                 self._resolve_owner(obj.decl.members, on_kind=False)
+        self._leave_file()
         # The player is SEEDED, not declared: its `player.<prop>`
         # augmentations live aside and must be resolved like any owner's
         # members, or an is-test in a player.desc block never resolves and
         # a typo there skips sema entirely (the worn field report).
         self._resolve_owner(self._player_decls, on_kind=False)
         for h in w.free_handlers:
+            self._enter_file(h)
             self._check_handler(h)
+        self._leave_file()
         for blk in w.blocks.values():
+            self._enter_file(blk)
             if len(blk.params) > 7:
                 # A Z-machine call fills at most 7 locals (even the long-call
                 # pair), so an eighth parameter could never receive a value.
@@ -1900,6 +1930,7 @@ class Analyzer:
                     blk.line,
                 )
             self._check_body(blk.body, set(blk.params))
+        self._leave_file()
         # Attached grains and game start. The outside-body form
         # (`foyer.grains`, docs/01 chapter 18) MERGES here: it was checked
         # but never added, so the whole form was silently dead (a field
