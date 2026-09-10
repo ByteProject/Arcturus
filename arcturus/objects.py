@@ -221,6 +221,14 @@ def _effective_props(world: wm.World, obj: wm.Obj) -> dict:
     return merged
 
 
+# The Latin vowels as a class, for the a/an derivation: the five, their
+# accented forms, and the ligatures (auraes's oeuf, 2026-09-10: the French
+# pack reads the derived bit for elision, l'oeuf against le/la, and "an
+# oeuvre" is right in English too). _name_first_letter lowercases, so the
+# capitals are covered.
+_VOWELS = frozenset("aeiou" "àáâäå" "èéêë" "ìíîï" "òóôö" "ùúûü" "œæ")
+
+
 def _name_first_letter(decl) -> str:
     """The first letter of a text property's literal value (the object's name),
     lowercased, or '' if it cannot be read. Used to derive the a/an article."""
@@ -636,7 +644,7 @@ def _emit_table(world: wm.World, layout: Layout) -> None:
         # "an apple" / "a coin" with no author work.
         an_num = layout.attr_number.get("an")
         if an_num is not None and "an" not in eff:
-            if _name_first_letter(eff.get("name")) in ("a", "e", "i", "o", "u"):
+            if _name_first_letter(eff.get("name")) in _VOWELS:
                 table[entry + an_num // 8] |= 0x80 >> (an_num % 8)
         # Grammatical gender: when the author did not set `feminine`, derive it from
         # the name (a name ending in -a is feminine), so a Spanish pack reads it for

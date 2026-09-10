@@ -62,6 +62,32 @@ def test_indefinite_a_an_on_frotz(tmp_path):
     assert "a iron" not in out and "an gold" not in out
 
 
+def test_the_vowel_class_covers_accents_and_ligatures():
+    # The Latin vowels as a class (auraes's oeuf, 2026-09-10): accented
+    # initials and the ligatures derive the `an` bit too, so a French pack
+    # reads it for elision; `an false` still overrides (a unicorn).
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    game = (
+        'game\n    title "V"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing oeuf in hall\n    name "œuf"\n    words oeuf\n'
+        'thing etoile in hall\n    name "étoile"\n    words etoile\n'
+        'thing unicorn in hall\n    name "unicorn"\n    words unicorn\n'
+        '    an false\n'
+    )
+    io = CaptureIO(script=["look", "quit", "y"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(game))))),
+           io).run(max_steps=30_000_000)
+    except IndexError:
+        pass
+    assert "an œuf" in io.text
+    assert "an étoile" in io.text
+    assert "a unicorn" in io.text
+
+
 # The article words live in the language layer (art_the / art_a blocks), so a game
 # (or a language pack) can override them, and the compiler derives `feminine` from
 # a name ending in -a for a gendered language to read.
