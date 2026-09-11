@@ -4287,9 +4287,46 @@ def _for_each(rt, ctx, s: ast.ForEach):
     objects out of the same parent mid-loop remains the author's risk, as
     everywhere since Infocom."""
     if s.relation == "of":
-        raise LowerError(
-            "'for each ... of <kind>' over instances is not supported yet", s.line
-        )
+        # `for each g of gem`: walk the kind's extent catalog (its instance
+        # list, laid out by objects.py for every looped kind), 1..count with
+        # a compile-time bound. The loop variable is object-typed, so `say`
+        # speaks names inside the body (Charles Moore Jr.'s request,
+        # 2026-09-11).
+        kname = s.source.ident if isinstance(s.source, ast.Name) else None
+        off = None
+        if kname is not None and ctx.layout is not None:
+            off = ctx.layout.kind_catalog.get(kname)
+        if off is None:
+            raise LowerError(
+                "'for each ... of' loops a KIND's instances; "
+                f"'{kname if kname else '?'}' is not a kind "
+                "(for the contents of an object or a catalog, use `in`)",
+                s.line)
+        count = ctx.layout.kind_extent_len[kname]
+        if count == 0:
+            return  # no instances: the loop body can never run
+        xslot = ctx.resolve_var(s.var, s.line)
+        i = ctx.alloc_temp()
+        rt.op("store", Const(i), Const(1))
+        top = ctx.new_label()
+        done = ctx.new_label()
+        rt.label(top)
+        rt.op("jg", Variable(i), Const(count), branch=(done, True))
+        idx = ctx.alloc_temp()
+        rt.op("add", Variable(i), Const(off + 1), store=Variable(idx))
+        rt.op("loadw", _catalog_base(ctx), Variable(idx), store=Variable(xslot))
+        ctx.free_temp(idx)
+        if not hasattr(ctx, "catalog_locals"):
+            ctx.catalog_locals = {}
+        ctx.catalog_locals[s.var] = "object"
+        for stmt in s.body:
+            compile_stmt(rt, ctx, stmt)
+        ctx.catalog_locals.pop(s.var, None)
+        rt.op("inc", Const(i))
+        rt.jump(top)
+        rt.label(done)
+        ctx.free_temp(i)
+        return
     if _is_list_source(ctx, s.source):
         raise LowerError("list iteration is not supported yet", s.line)
     off = _catalog_off(ctx, s.source)

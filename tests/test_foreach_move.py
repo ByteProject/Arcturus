@@ -65,3 +65,34 @@ def test_emptying_twice_is_calm():
     text = _play(["empty bucket", "empty bucket"])
     assert text.count("You pour out the contents of the bucket.") == 2
     assert text.count("OUT") == 2  # nothing left the second time
+
+
+def test_for_each_of_kind_walks_every_instance():
+    # `for each g of gem` (docs/01 chapter 13; Charles Moore Jr.'s report:
+    # documented but refused): the loop walks the kind's instance list in
+    # object order, the roots (room, thing) included, and the loop
+    # variable speaks as an object.
+    game = (
+        'game\n    title "K"\n    start hall\n'
+        'kind gem of thing\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'room attic\n    name "Attic"\n    desc "An attic."\n'
+        'thing ruby of gem in hall\n    name "ruby"\n    words ruby\n'
+        'thing topaz of gem in attic\n    name "topaz"\n    words topaz\n'
+        'thing pebble in hall\n    name "pebble"\n    words pebble\n'
+        'verb "census"\n    census\n'
+        'on census\n'
+        '    for each g of gem\n'
+        '        say "- ${the g}"\n'
+        '    for each r of room\n'
+        '        say "* ${the r}"\n'
+    )
+    io = CaptureIO(script=["census", "quit", "y"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(game))))),
+           io).run(max_steps=30_000_000)
+    except IndexError:
+        pass
+    assert "- the ruby" in io.text and "- the topaz" in io.text
+    assert "- the pebble" not in io.text
+    assert "* the Hall" in io.text and "* the Attic" in io.text

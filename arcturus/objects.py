@@ -27,6 +27,37 @@ from . import prelude
 from . import worldmodel as wm
 from . import zstring
 
+
+def _kinds_looped(world) -> set:
+    """Kind names a `for each ... of <kind>` loops over, anywhere in the
+    program (handlers, blocks, property bodies, topics): each gets an
+    extent catalog whatever its attribute status, so the loop can walk
+    the instance list directly (Charles Moore Jr.'s request)."""
+    found: set = set()
+
+    def walk(node):
+        if isinstance(node, ast.ForEach):
+            if node.relation == "of" and isinstance(node.source, ast.Name):
+                found.add(node.source.ident)
+        if isinstance(node, list):
+            for n in node:
+                walk(n)
+        elif hasattr(node, "__dict__"):
+            for v in vars(node).values():
+                if isinstance(v, (list, ast.Stmt)):
+                    walk(v)
+
+    for blk in world.blocks.values():
+        walk(blk.body)
+    for h in world.all_handlers():
+        walk(h.body)
+    for owner in list(world.objects.values()) + list(world.kinds.values()):
+        for p in owner.props.values():
+            walk(getattr(p, "body", []) or [])
+        for t in getattr(owner, "topics", []) or []:
+            walk(getattr(t, "body", []) or [])
+    return found
+
 _NUM_DEFAULTS = 63  # property-defaults table size in v4+
 _ENTRY_SIZE = 14  # object entry size in v4+
 _MAX_ATTRIBUTES = 48
@@ -106,6 +137,10 @@ class Layout:
     # is a catalog membership scan instead of a test_attr (Step 2). Empty
     # whenever the flags plus tested kinds fit in 48, which is nearly always.
     kind_spilled: list = field(default_factory=list)
+    # Compile-time instance counts of the kinds that carry an extent catalog
+    # (spilled kinds and looped kinds alike): the `for each ... of <kind>`
+    # loop's bound.
+    kind_extent_len: dict[str, int] = field(default_factory=dict)
     # kind name -> word offset of its synthesized extent catalog (the object
     # numbers of its transitive instances), for the spilled kinds only.
     kind_catalog: dict[str, int] = field(default_factory=dict)
@@ -465,10 +500,15 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
     # it), in ascending object-number order. `obj is <spilled_kind>` becomes a
     # membership scan of this list, so kinds are limitless past the attribute
     # budget. Computed here because the extents feed the catalog region below.
+    # A kind looped by `for each ... of` gets an extent catalog too, whatever
+    # its attribute status: the loop walks the list directly.
+    catalog_kinds = layout.kind_spilled + [
+        k for k in sorted(_kinds_looped(world))
+        if k not in layout.kind_spilled and k in world.kinds]
     kind_extents = {
         kname: [layout.obj_number[o] for o, obj in world.objects.items()
                 if kname in obj.chain]
-        for kname in layout.kind_spilled
+        for kname in catalog_kinds
     }
 
     # Catalog word offsets, BEFORE the table is emitted: a property can hold
@@ -482,8 +522,9 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
     for cname, cat in world.catalogs.items():
         layout.catalogs[cname] = woff
         woff += 2 + len(cat.values)
-    for kname in layout.kind_spilled:
+    for kname in catalog_kinds:
         layout.kind_catalog[kname] = woff
+        layout.kind_extent_len[kname] = len(kind_extents[kname])
         woff += 2 + len(kind_extents[kname])
     # Matrices continue in the same region after the catalogs and kind extents.
     # A matrix reserves its full CAPACITY of cells (not just the seed), because
@@ -539,7 +580,7 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
                 _append_word(layout.table, layout.obj_number.get(v.ident, 0))
     # The spilled kinds' extent catalogs, same [count, widest, e1..eN] shape,
     # widest 0 (object entries), in the same order their offsets were assigned.
-    for kname in layout.kind_spilled:
+    for kname in catalog_kinds:
         members = kind_extents[kname]
         _append_word(layout.table, len(members))
         _append_word(layout.table, 0)

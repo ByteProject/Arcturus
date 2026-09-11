@@ -1639,6 +1639,9 @@ for each mood in moods         // a catalog's entries, in order
 for each door of room          // every instance of a kind
 ```
 
+The `of` form walks every instance of the named kind, wherever it is in
+the world, in object order; the roots work too (`of thing`, `of room`).
+
 The tree walk is MOVE-SAFE for its own loop object: the next child is noted
 before the body runs, so emptying a container the obvious way works in
 one plain loop, with no special idiom to learn:
