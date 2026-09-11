@@ -176,66 +176,66 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # chain); a held thing skips the probe, the floor-to-container shortcut
 # still moves takeable things in one command.
 CEILINGS = {
-    "features/yes-no.storyarc": 17868,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/press-any-key.storyarc": 18756,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/shiftable.storyarc": 18252,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/enhance-redefine.storyarc": 18608,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/consult-about.storyarc": 18724,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/session-verbs.storyarc": 18320,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/vary.storyarc": 19528,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/foresight.storyarc": 19940,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/beyond.storyarc": 20376,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/alter.storyarc": 19004,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/catalogs.storyarc": 18868,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/matrix.storyarc": 19204,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/direction-grammar.storyarc": 18280,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/scenery-contents.storyarc": 18924,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/trigger.storyarc": 17888,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/adjectives.storyarc": 18520,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "granules/nautical.storyarc": 18760,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "granules/npcengine.storyarc": 20848,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "granules/maniacswap.storyarc": 19088,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "beispiel-deutsch.storyarc": 26772,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "brass-lantern.storyarc": 19664,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "cloak-of-darkness.storyarc": 21080,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "ejemplo-espanol.storyarc": 23432,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/computed-properties.storyarc": 17972,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/containers.storyarc": 18464,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/daemons-and-timers.storyarc": 19616,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/doors-and-locks.storyarc": 18100,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/appearance.storyarc": 18928,  # 2026-09-10 repriced: the article capital is a char code plus a shared tail
-    "features/components.storyarc": 18188,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "granules/whistle.storyarc": 17616,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/pathfinding.storyarc": 20608,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/perform.storyarc": 17932,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/grains.storyarc": 17736,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/handlers.storyarc": 19136,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/grammar.storyarc": 18040,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/introproperty.storyarc": 19380,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/kinds-and-inheritance.storyarc": 17932,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/on-other.storyarc": 17816,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/zcolor.storyarc": 18252,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/scoring.storyarc": 20184,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/spans.storyarc": 18052,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/vehicles.storyarc": 18592,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/success.storyarc": 18540,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/edible.storyarc": 18428,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "features/text-slot.storyarc": 18964,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "granules/carryweight.storyarc": 18744,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "granules/ambience.storyarc": 19844,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "granules/conversations.storyarc": 19720,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "granules/extended-verbs.storyarc": 20948,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "granules/infocom-interrogation.storyarc": 19748,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "granules/quotes.storyarc": 17988,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "granules/take-all.storyarc": 20152,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "granules/plurals.storyarc": 18916,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "granules/statusline.storyarc": 17968,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
-    "granules/verbose-exits.storyarc": 17912,  # 2026-09-10 repriced: hand-set articles open sentences with their capital
+    "features/yes-no.storyarc": 17876,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/press-any-key.storyarc": 18764,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/shiftable.storyarc": 18260,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/enhance-redefine.storyarc": 18616,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/consult-about.storyarc": 18732,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/session-verbs.storyarc": 18328,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/vary.storyarc": 19536,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/foresight.storyarc": 19948,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/beyond.storyarc": 20384,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/alter.storyarc": 19012,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/catalogs.storyarc": 18876,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/matrix.storyarc": 19212,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/direction-grammar.storyarc": 18288,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/scenery-contents.storyarc": 18932,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/trigger.storyarc": 17896,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/adjectives.storyarc": 18528,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/nautical.storyarc": 18768,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/npcengine.storyarc": 20856,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/maniacswap.storyarc": 19096,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "beispiel-deutsch.storyarc": 26780,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "brass-lantern.storyarc": 19672,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "cloak-of-darkness.storyarc": 21088,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "ejemplo-espanol.storyarc": 23440,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/computed-properties.storyarc": 17980,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/containers.storyarc": 18472,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/daemons-and-timers.storyarc": 19624,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/doors-and-locks.storyarc": 18108,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/appearance.storyarc": 18936,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/components.storyarc": 18196,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/whistle.storyarc": 17624,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/pathfinding.storyarc": 20616,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/perform.storyarc": 17940,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/grains.storyarc": 17744,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/handlers.storyarc": 19144,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/grammar.storyarc": 18048,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/introproperty.storyarc": 19388,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/kinds-and-inheritance.storyarc": 17940,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/on-other.storyarc": 17824,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/zcolor.storyarc": 18260,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/scoring.storyarc": 20192,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/spans.storyarc": 18060,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/vehicles.storyarc": 18600,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/success.storyarc": 18548,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/edible.storyarc": 18436,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/text-slot.storyarc": 18972,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/carryweight.storyarc": 18752,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/ambience.storyarc": 19852,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/conversations.storyarc": 19728,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/extended-verbs.storyarc": 20956,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/infocom-interrogation.storyarc": 19756,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/quotes.storyarc": 17996,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/take-all.storyarc": 20160,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/plurals.storyarc": 18924,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/statusline.storyarc": 17976,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/verbose-exits.storyarc": 17920,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 21720  # 2026-09-10 repriced: hand-set articles open sentences with their capital
+CLOAK_Z8_CEILING = 21736  # 2026-09-11 repriced: the per-item label is the language layer's
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

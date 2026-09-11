@@ -2027,6 +2027,12 @@ block msg_not_holding_second()
 // The inference lines lead with zuerst and keep the du: the clipped
 // du-less form reads as if something was swallowed (Stefan's pattern,
 // 2026-08-25). The exit line follows the POSTURE, like the reports:
+// The per-item label of a sweep or a noun list. Language-layer so a pack
+// owns the punctuation (French: a space before the colon).
+block line_item_label(obj)
+    print_name(obj)
+    show(": ")
+
 // whoever sat or lay stands up first; whoever stood or climbed climbs
 // down first.
 block line_foresight_take()

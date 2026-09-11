@@ -1670,6 +1670,12 @@ block msg_no()
 block msg_not_holding()
     say "No llevas ${the noun}."
 
+// The per-item label of a sweep or a noun list. Language-layer so a pack
+// owns the punctuation (French: a space before the colon).
+block line_item_label(obj)
+    print_name(obj)
+    show(": ")
+
 // The worn seam's rejection (drop/put/insert of something worn; the
 // foresight granule takes it off implicitly instead).
 block msg_take_off_first()

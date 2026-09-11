@@ -88,8 +88,9 @@ block run_plural(act, w)
 // already made its own paragraph. Dead code without either granule.
 block sweep_one(obj, act)
     change par_pending to 0
-    print_name(obj)
-    show(": ")
+    // The label's wording is the language layer's (line_item_label), so a
+    // pack owns the punctuation.
+    line_item_label(obj)
     change noun to obj
     // The verb contract holds inside a sweep too (each item is a full turn);
     // take and drop declare nothing today, so this is one no-op call per item.

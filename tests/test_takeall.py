@@ -229,3 +229,24 @@ def test_take_all_from_fires_on_the_source_object(tmp_path):
     out = _play(tmp_path, CHEST_HOOK, "open box\ntake all from box\n")
     assert "snaps shut protectively" in out
     assert "gold coin: " not in out
+
+
+def test_the_item_label_is_the_language_layers():
+    # The per-item "name: " label lives in line_item_label (the language
+    # layer), so a pack or a story restyles the punctuation; French wants
+    # a space before the colon (auraes's report, 2026-09-11).
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    game = GAME + (
+        'block line_item_label(obj)\n'
+        '    print_name(obj)\n'
+        '    show(" : ")\n'
+    )
+    io = CaptureIO(script=["take all", "quit", "y"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(game))))),
+           io).run(max_steps=30_000_000)
+    except IndexError:
+        pass
+    assert "felt hat : You take" in io.text

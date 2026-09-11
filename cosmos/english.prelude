@@ -1742,6 +1742,13 @@ block msg_take_off_first()
 block msg_not_holding_second()
     say "You aren't carrying ${the second}."
 
+// The per-item label of a sweep or a noun list ("gold coin: Taken.").
+// Language-layer so a pack restyles the punctuation (French puts a space
+// before the colon: "perle rouge : ..."). Dead code without a sweep.
+block line_item_label(obj)
+    print_name(obj)
+    show(": ")
+
 // Foresight's parenthetical (summon.foresight): the promise before the
 // implicit take. Costs nothing unsummoned (only the granule calls it).
 block line_foresight_take()
