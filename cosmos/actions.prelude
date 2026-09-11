@@ -61,6 +61,22 @@ block arrive()
 // room's `on enter` (the enter event belongs to walking; a teleport's own
 // prose sets the scene). Unused, it folds away.
 block teleport(dest)
+    // The destination may be a container or a supporter in any room
+    // (Charles Moore Jr.'s request, 2026-09-11): the player lands INSIDE
+    // it, `here` becomes its room, and the arrival runs once, no gap
+    // turn. Teleport is the author's word, so a closed lid does not
+    // refuse (the same way teleport skips on enter). The branch folds
+    // away in a game with nothing enterable.
+    if any_enterable is 1
+        if dest is not room
+            let r = parent_of(dest)
+            while r is not nothing
+                if r is room
+                    move player to dest
+                    set_here(r)
+                    arrive
+                    return 0
+                change r to parent_of(r)
     move player to dest
     set_here(dest)
     arrive

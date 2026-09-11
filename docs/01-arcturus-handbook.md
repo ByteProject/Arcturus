@@ -1479,6 +1479,10 @@ Three calls elevate `move` for the set pieces a silent tree operation
 would get wrong, each doing the bookkeeping its verb would have done
 (all three in chapter 13). `teleport(dest)` moves the player without
 walking (a crash landing, a transit pod) and describes the arrival.
+The destination may also be a container or a supporter in any room:
+the player lands inside or on it, `here` becomes its room, and the
+arrival runs once, in one turn. A closed lid does not refuse; teleport
+is your word, so it skips the checks the ENTER verb would make.
 `gain(obj)` hands the player an object without TAKE (a panel pried open,
 a mechanism yielding its prize); chapter 4 has the move-versus-gain
 warning, and with `scoring` on both pay exactly like their verbs

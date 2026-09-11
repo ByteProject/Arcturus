@@ -70,3 +70,37 @@ def test_the_default_enter_refusal_still_works():
     # A thing with no handler keeps the honest refusal.
     text = _play(["enter crate"])
     assert "You can't get inside the crate." in text
+
+
+def test_teleport_lands_inside_an_enterable_in_one_turn():
+    # teleport(dest) with a container or supporter destination (Charles
+    # Moore Jr.'s request, 2026-09-11): the player lands inside it, here
+    # becomes its room, and the arrival runs once, no gap turn. A closed
+    # lid does not refuse: teleport is the author's word.
+    from arcturus import cosmos as _c
+    from arcturus.codegen import generate as _g
+    from arcturus.parser import parse as _p
+    from arcturus.sema import analyze as _a
+    from actaea.loader import load as _l
+    from actaea.vm import VM as _VM
+    game = (
+        'game\n    title "W"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'room vault\n    name "Vault"\n    desc "A vault."\n'
+        'thing crate of container in vault\n    name "pine crate"\n'
+        '    words crate\n    openable\n    open false\n'
+        'thing bench of supporter in vault\n    name "bench"\n    words bench\n'
+        'verb "warpbox"\n    warpbox\n'
+        'on warpbox\n    teleport(crate)\n'
+        'verb "warpbench"\n    warpbench\n'
+        'on warpbench\n    teleport(bench)\n'
+    )
+    io = CaptureIO(script=["warpbox", "exit", "warpbench", "quit", "y"])
+    try:
+        _VM(_l(_g(_a(_c.combined_program(_p(game))))), io).run(
+            max_steps=30_000_000)
+    except IndexError:
+        pass
+    assert "Vault (in the pine crate)" in io.text
+    assert "You get out of the pine crate." in io.text
+    assert "Vault (on the bench)" in io.text
