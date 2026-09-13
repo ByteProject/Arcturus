@@ -172,7 +172,29 @@ Architecture: one shared front half, per-target back halves.
 
 - THE MASTER (ruled): a band-shaped PNG, 320x72 or 320x96, matching the
   game's arc_mode; the author provides the right shape, exactly what the
-  modern Blorb pack already holds. Master RICHNESS varies and the converter
+  modern Blorb pack already holds.
+- THE TWO MASTER CLASSES (ruled 2026-09-13; an adopter authoring
+  per-class masters the driving case): a portfolio may carry a second
+  master set in a `masters-broad/` subdirectory beside the numbered
+  masters, same numbers, authored for broad pixels (no dithering,
+  committed tones). The BROAD targets read a same-numbered override
+  from it, the FINE targets keep the base set, and an author with one
+  set changes nothing. The class ledger: BROAD is C64, P4, CPC, A8,
+  AP2, and TRSM4 (640-wide, but its route halftones from luminance,
+  and committed tones feed a clean halftone where pre-dithered speckle
+  moires); FINE is AMI, AST, DOS, MS1, MS2, ZX3, NXT, M65, AGN, and,
+  on paper, VDC.
+- THE SPECTRUM COLOUR SWITCH (`--zx-colour`, chartered 2026-09-13,
+  amending the 2026-08-13 mono ruling for one class of art): a master
+  that is already Spectrum-shaped, flat committed palette regions over
+  black with the texture authored per pixel, converts 1:1 through the
+  DIRECT route: every pixel kept where it stands, a lit pixel snapped
+  to the hue it names (hue first, never luminance: an azure is blue
+  however bright, where the luma-dominant metric handed it to
+  magenta), each cell's ink the color most of its lit pixels agree
+  on, over black paper, the bright bit by the cell's own tier. The
+  default without the switch stays the Canopus mono form; the author
+  polish loop (scr/unscr) outranks both, as ever. Master RICHNESS varies and the converter
   meets it where it is: the expected common denominator is ST-class art
   (16 colors, what Stefan himself will paint), while Amiga/DOS-class
   richer masters are welcome and convert downward with best effort. From
