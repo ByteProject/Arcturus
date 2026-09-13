@@ -172,7 +172,7 @@ def test_alter_on_the_receiving_container_fires_for_put():
         'thing coin in shrine\n    name "coin"\n    words coin\n'
         'thing bowl of container in shrine\n    name "offering bowl"\n'
         '    words bowl, offering\n    open\n    fixed\n'
-        '    on put noun in self\n'
+        '    on insert noun in self\n'
         '        alter "The coin rings against the brass."\n'
         '        continue\n'
     )
@@ -195,7 +195,7 @@ def test_alter_on_a_supporter_fires_for_put_on():
         'thing candle in shrine\n    name "candle"\n    words candle\n'
         'thing altar of supporter in shrine\n    name "altar"\n    words altar\n'
         '    fixed\n'
-        '    on put noun in self\n'
+        '    on put noun on self\n'
         '        alter "The candle takes its place among the wax ghosts."\n'
         '        continue\n'
     )

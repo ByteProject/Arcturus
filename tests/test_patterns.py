@@ -3,8 +3,8 @@
 # Copyright (c) 2026, Stefan Vogt.
 # https://github.com/ByteProject/Arcturus
 
-"""Operand patterns in handler headers (docs/01 chapter 11): `on put ruby in
-chest` fires for exactly that pairing, `or` lists alternatives, a failed
+"""Operand patterns in handler headers (docs/01 chapter 11): `on insert ruby
+in chest` fires for exactly that pairing, `or` lists alternatives, a failed
 pattern falls through to the next handler and the defaults, an all-guarded
 group still reaches the object's `on other`, and patterns compose with the
 after phase. Found documented-but-undispatched on 2026-07-04 (codegen
@@ -43,7 +43,7 @@ GAME = (
     'thing box of container in hall\n    name "tin box"\n    words tin, box\n'
     "    open\n    fixed\n"
     'thing ruby in hall\n    name "ruby"\n    words ruby\n'
-    "    on put ruby in chest\n"
+    "    on insert ruby in chest\n"
     '        say "The chest glows around the ruby."\n'
     'thing ring in hall\n    name "ring"\n    words ring\n'
     'thing idol in player\n    name "idol"\n    words idol\n'
@@ -115,7 +115,7 @@ def test_pattern_composes_with_after(tmp_path):
         'thing chest of container in hall\n    name "chest"\n    words chest\n'
         "    open\n    fixed\n"
         'thing ruby in hall\n    name "ruby"\n    words ruby\n'
-        "    on after put ruby in chest\n"
+        "    on after insert ruby in chest\n"
         '        say "The chest hums approvingly."\n'
         'thing coin in hall\n    name "coin"\n    words coin\n'
     )

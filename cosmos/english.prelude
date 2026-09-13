@@ -864,7 +864,13 @@ verb "remove", "doff", "disrobe", "shed"
 
 verb "put", "place"
     put noun on noun
-    put noun in noun
+    // Putting IN is the insert action whatever word the player typed:
+    // one intent, one action, so a container's `on insert` answers every
+    // phrasing (Marco Innocenti's gate, 2026-09-13). The into line spells
+    // the synonym out: a table line's literal is exact, so it cannot ride
+    // the flag path's any-separator-splits rule.
+    insert noun in noun
+    insert noun into noun
 
 verb "insert"
     insert noun in noun

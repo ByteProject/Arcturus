@@ -1909,7 +1909,7 @@ Action handlers match a verb and its objects:
 ```
 on switch_on lantern
 on take ruby
-on put ruby in chest
+on insert ruby in chest
 ```
 
 To handle a whole kind, match the kind in any slot and refer to the matched
@@ -1920,7 +1920,7 @@ specific object, a kind, or a mix:
 on take container
     say "${The noun} is too heavy to lift."
 
-on put thing in chest          // any thing put into the chest
+on insert thing in chest       // any thing put into the chest
     if noun is not ruby
         say "Only the ruby fits the slot."
         stop
@@ -1935,7 +1935,7 @@ A handler header may also list alternatives with `or`, so one handler covers
 several specific objects:
 
 ```
-on put ruby or ring in chest
+on insert ruby or ring in chest
     say "${The noun} settles into the velvet."
 ```
 
@@ -1949,7 +1949,7 @@ pattern:
 ```
 thing haystack of container in farm
     ...
-    on put noun in self       // anything put into THIS haystack
+    on insert noun in self    // anything put into THIS haystack
         move noun to nothing
         say "${The noun} vanishes into the hay."
 ```
@@ -2212,15 +2212,21 @@ verb "take", "get"
     take noun
 
 verb "put"
-    put noun in noun
     put noun on noun
+    insert noun in noun
 ```
+
+Putting IN is the `insert` action whatever word the player typed: PUT X IN
+Y and INSERT X IN Y are one intent, so a container's `on insert` answers
+every phrasing, and `on put` is the supporter surface (put ON). A verb
+whose lines raise different actions, as put does here, rides the
+positional grammar model automatically (chapter 14).
 
 A grammar line is an action name, then slots and literal words.
 Particle words chain with `or` on one line: `put noun in or into
 noun` accepts both wordings (the parser expands the alternatives
 into sibling lines, so it costs what writing them out costs). Slots:
-`noun` (one in-scope object), `held` (a held object), `multi` (several,
+`noun` (one in-scope object), `multi` (several,
 including "all"), `text` (free text), and `direction` (one direction word,
 below). Bare words such as `in`, `on`, `with` are literal prepositions.
 Two-object lines bind `noun` and `second`.
@@ -2710,8 +2716,8 @@ The world verbs:
 | `look_under` | LOOK UNDER/UNDERNEATH/BENEATH | `look_under noun` (the under particle riding LOOK); "You find nothing of interest under..." unless handled. |
 | `take` | TAKE, GET, CARRY, PICK (UP), GRAB | `take noun`; "You take X with you", or "out" from a carried container; refused if fixed. A game with `constant item_cap = N` refuses past N carried things ("Your hands are full, and so are your pockets."), counted with the contents of carried containers; `global carry_limit = N` is the same limit movable at run time; `summon.carryweight` prices mass instead. The whole story, and when to use which, is chapter 6, "Carrying, three ways". Declare nothing and no check exists. |
 | `drop` | DROP | `drop noun`; move to `here`; a worn thing is refused until removed. |
-| `put` | PUT, PLACE | `put noun on noun`, `put noun in noun`. |
-| `insert` | INSERT | `insert noun in noun`. |
+| `put` | PUT, PLACE | `put noun on noun`: putting ONTO a supporter. A typed "put X in Y" raises `insert` instead. |
+| `insert` | INSERT, PUT ... IN/INTO | `insert noun in noun`: putting IN, whatever verb was typed; one intent, one action, so a container's `on insert` answers every phrasing. |
 | `wear` | WEAR, DON | `wear noun`. |
 | `take_off` | REMOVE, DOFF, DISROBE, SHED, TAKE OFF | `take_off noun`; TAKE plus the off particle raises the same action. |
 | `inventory` | INVENTORY, I, INV | `inventory`. |

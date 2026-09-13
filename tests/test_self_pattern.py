@@ -30,7 +30,7 @@ GAME = (
     '    name "haystack"\n    words haystack\n    scenery\n    open\n'
     '    on enter self\n'
     '        say "PLUNGE."\n'
-    '    on put noun in self\n'
+    '    on insert noun in self\n'
     '        move noun to nothing\n'
     '        say "VANISH ${the noun}."\n'
     'kind hidey of container\n'

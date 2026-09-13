@@ -563,6 +563,32 @@ block try_line(line, n)
     // The shape fits: resolve the slots.
     if slots is 0
         return 1
+    // A chain word INSIDE the first slot of a two-slot line is a noun LIST
+    // ("put coin and nail in box"), the tabled twin of resolve_two_nouns's
+    // rule: bind the second now, hand the list range to the loop's runner,
+    // and leave the noun empty, so every item runs as its own full turn.
+    // (p and t are dead once the shape fit consumed the command; this
+    // routine sits at the 15-local ceiling, so they are reused here.)
+    if slots is 2
+        change p to s1lo
+        while p < s1hi
+            change t to word_dict(p)
+            if t is not 0
+                if peek_byte(t + 6) is 2
+                    if s2hi > s2lo
+                        change second to match_phrase(s2lo, s2hi, 0)
+                        if parse_fault is not 0
+                            return 1
+                        if second is nothing
+                            change parse_fault to noun_fault(s2lo, s2hi)
+                            return 1
+                    else
+                        change incomplete to 1
+                        return 1
+                    change list_pos to s1lo
+                    change list_end to s1hi
+                    return 1
+            change p to p + 1
     if s1hi > s1lo
         let pl = 0
         if slots is 1
@@ -1253,26 +1279,36 @@ block chain_here(i, n)
     let v = word_dict(0)
     if v is nothing
         return 1
-    if peek_byte(v + 6) is not 128
-        if peek_byte(v + 6) is not 136
-            return 1
-    let arity = peek_byte(v + 8)
-    // Strip the requirement bits (the grammar summary byte): only the
-    // slot count decides whether "and" can join a noun list here.
-    if arity >= 16
-        change arity to arity - 16
-    if arity >= 8
-        change arity to arity - 8
-    if arity is not 2
-        if arity is not 6
-            return 1
-    // The word after the chain run: a verb means a real chained command.
+    let vf = peek_byte(v + 6)
+    if vf is 128 or vf is 136
+        let arity = peek_byte(v + 8)
+        // Strip the requirement bits (the grammar summary byte): only the
+        // slot count decides whether "and" can join a noun list here.
+        if arity >= 16
+            change arity to arity - 16
+        if arity >= 8
+            change arity to arity - 8
+        if arity is not 2
+            if arity is not 6
+                return 1
+    else
+        // A tabled verb (the positional model) hosts a list the same way;
+        // whether the matched line really has two slots is the matcher's
+        // own business (try_line), so only the checks below decide here.
+        // A one-noun command has no separator ahead anyway.
+        if vf is not 144
+            if vf is not 152
+                return 1
+    // The word after the chain run: a verb means a real chained command
+    // (a tabled verb, 144/152, is as much a verb as a flagged one).
     let j = i + 1
     if j < n
         let nxt = word_dict(j)
         if nxt is not nothing
             let f = peek_byte(nxt + 6)
             if f is 128 or f is 136 or f is 64
+                return 1
+            if f is 144 or f is 152
                 return 1
     // A separator further on marks the second slot still to come: a list.
     while j < n

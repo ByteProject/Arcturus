@@ -18,14 +18,15 @@ from actaea.io import CaptureIO
 from actaea.loader import load
 from actaea.vm import VM
 
-# Bob reacts to give/show, and the box (a container) to put; each handler READS
+# Bob reacts to give/show, and the box (a container) to insert (what a typed
+# "put ... in" raises since Cosmos 1.30.0); each handler READS
 # the noun, so a nothing noun would crash if the handler ever ran wrongly.
 GAME = (
     'game\n    title "T"\n    start hall\n'
     'room hall\n    name "Hall"\n    desc "x"\n'
     'thing coin in hall\n    name "coin"\n    words coin\n'
     'thing box of container in hall\n    name "box"\n    words box\n    open\n'
-    '    on put\n        say "PUT ${the noun}. "\n'
+    '    on insert\n        say "PUT ${the noun}. "\n'
     'thing bob of character in hall\n    name "Bob"\n    words bob\n    named\n'
     '    on give\n        say "GIVE ${the noun}. "\n'
     '    on show\n        say "SHOW ${the noun}. "\n'

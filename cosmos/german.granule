@@ -267,6 +267,39 @@ block resolve_objects()
             // A tabled verb: the positional matcher takes over the whole
             // command (docs/01 chapter 14).
             if peek_byte(d + 6) is 144 or peek_byte(d + 6) is 152
+                // A da-word folds the second slot AND the line's literal
+                // into one typed word ("leg das buch darin"), so no table
+                // line can fit the remaining shape: bind the second here,
+                // resolve the rest as the one noun it is, and let the
+                // da-word pick the action its literal would have picked
+                // (darin/drin is the in line, insert; everything else the
+                // auf/an line, put). The put family is the only tabled
+                // verb the da pronouns serve.
+                let dw = bind_daword
+                if dw is not 0
+                    if parse_fault is not 0
+                        return 1
+                    if word_count < 2
+                        change incomplete to 1
+                        return 1
+                    change noun to match_phrase(1, word_count, 0)
+                    if parse_fault is not 0
+                        return 1
+                    // The noun turned out to BE the bound referent (leg
+                    // das buch darauf, the book the freshest mention):
+                    // repick, excluding it, so darauf means the table.
+                    if second is noun
+                        change second to da_referent(noun)
+                        if second is nothing
+                            change parse_fault to 5
+                            return 1
+                    if noun is nothing
+                        change parse_fault to noun_fault(1, word_count)
+                        return 1
+                    change line_act to action_id("put")
+                    if dw is "darin" or dw is "drin"
+                        change line_act to action_id("insert")
+                    return 1
                 let tbl = peek_word(d + 7, 0)
                 grammar_match(tbl)
                 return 1
@@ -294,7 +327,7 @@ block resolve_objects()
             if arity is 2
                 // A da-word pre-fills the second slot and satisfies the
                 // requirement ("leg das buch darauf" stops asking wohin).
-                if bind_daword is 1
+                if bind_daword is not 0
                     if parse_fault is not 0
                         return 1
                 resolve_two_nouns(rq1, rq2)
@@ -837,7 +870,9 @@ verb "ausziehen", "ablegen", "abnehmen"
 
 verb "leg", "lege", "stell", "stelle", "setz", "setze"
     put noun auf noun
-    put noun in noun
+    // Putting IN is the insert action whatever word the player typed
+    // (one intent, one action; see english.prelude).
+    insert noun in noun
 
 // SETZ DICH AUF DIE BANK arrives through the put family (setz and setze
 // are stellen/legen words), and putting YOURSELF somewhere is perfectly
@@ -853,9 +888,11 @@ verb "leg", "lege", "stell", "stelle", "setz", "setze"
 // 2026-08-25, see board_report in actions.prelude). German captures it
 // HERE, in the reflexive put redirect, before perform clears
 // verb_trigger (an enter nobody typed has no typed word); posture_note
-// below then preserves the pending value through the hop.
+// below then preserves the pending value through the hop. Both actions
+// of the put family pass here: SETZ DICH AUF the put, SETZ DICH IN the
+// insert (putting IN is the insert action, see the grammar above).
 
-on put
+on put, insert
     if noun is player
         if second is not nothing
             change posture to 8
@@ -1069,10 +1106,14 @@ block bind_daword()
                     change second to da_referent(nothing)
                     if second is nothing
                         change parse_fault to 5
-                        return 1
+                        return d
                     copy_bytes(parse_addr + 6 + 4 * i, parse_addr + 2 + 4 * i, 4 * (n - 1 - i))
                     poke_byte(parse_addr + 1, n - 1)
-                    return 1
+                    // The word itself comes back (nonzero, so the old
+                    // is-1 truth still reads through "is not 0"): the
+                    // tabled put family needs to know WHICH surface the
+                    // da-word folded away (darin means in, darauf auf).
+                    return d
         change i to i + 1
     return 0
 

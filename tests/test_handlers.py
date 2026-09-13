@@ -122,7 +122,7 @@ def test_driven_handler_runs_on_frotz(tmp_path):
 def test_kind_handler_self_is_the_dispatched_instance():
     # docs/01 chapter 9: `self` is the enclosing object. A KIND handler is shared
     # by every instance, so self must be the instance it runs FOR, even when that
-    # instance is the SECOND noun (a container's `on put`), not the noun. Before
+    # instance is the SECOND noun (a container's `on insert`), not the noun. Before
     # the self-argument convention, self read the noun (the thing put in), so
     # `if second is self` was false and the handler's branch never ran.
     from arcturus import cosmos
@@ -134,7 +134,7 @@ def test_kind_handler_self_is_the_dispatched_instance():
         'game\n    title "T"\n    start hall\n'
         'room hall\n    name "Hall"\n    desc "x"\n'
         'kind bin of container\n'
-        '    on put\n'
+        '    on insert\n'
         '        if second is self\n'
         '            say "INTO SELF. "\n'
         '        continue\n'

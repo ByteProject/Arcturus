@@ -158,17 +158,19 @@ def _world(game):
 
 
 def test_only_ask_tables_among_the_shipped_verbs():
-    # ONE standard verb rides the table, deliberately: English ASK. ASK
+    # TWO standard verbs ride the table, deliberately. English ASK: ASK
     # <person> ABOUT <subject> and ASK <person> FOR <thing> are different acts
     # chosen by wording, which a single per-verb action byte cannot express,
     # and both name a SUBJECT rather than an object (a `text` slot), which the
-    # flag model cannot express either. Every other verb in every pack still
-    # fits the flag model. German and Spanish are untouched here: their packs
-    # phrase a request with their own verb, so they table nothing.
+    # flag model cannot express either. And the PUT family in every pack:
+    # putting IN is the insert action, putting ON the put action (one intent,
+    # one action, Stefan's ruling 2026-09-13), two actions under one verb,
+    # which is exactly what the table model exists for. Every other verb in
+    # every pack still fits the flag model.
     expected = {
-        "examples/cloak-of-darkness.storyarc": {"ask"},
-        "examples/beispiel-deutsch.storyarc": set(),
-        "examples/ejemplo-espanol.storyarc": set(),
+        "examples/cloak-of-darkness.storyarc": {"ask", "put"},
+        "examples/beispiel-deutsch.storyarc": {"leg"},
+        "examples/ejemplo-espanol.storyarc": {"poner"},
     }
     for example, want in expected.items():
         with open(example, encoding="utf-8") as fh:
@@ -179,7 +181,7 @@ def test_only_ask_tables_among_the_shipped_verbs():
 def test_needs_table_rule():
     w = _world(GAME)
     tabled = {v.words[0] for v in wm.tabled_verbs(w)}
-    assert tabled == {"dig", "peek", "ask"}  # ask: see the note above
+    assert tabled == {"dig", "peek", "ask", "put"}  # ask, put: see above
     # look (leading AT on a one-noun verb) and switch (particle-decided
     # actions, identical shapes) stay on the flag path.
     for verb in w.verbs:

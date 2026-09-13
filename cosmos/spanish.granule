@@ -834,7 +834,9 @@ verb "quitarse", "quitate", "quítate", "quitar", "quita"
 
 verb "poner", "pon", "colocar", "coloca", "meter", "mete"
     put noun sobre noun
-    put noun en noun
+    // Putting IN is the insert action whatever word the player typed
+    // (one intent, one action; see english.prelude).
+    insert noun en noun
 
 verb "introducir", "introduce", "insertar"
     insert noun en noun
