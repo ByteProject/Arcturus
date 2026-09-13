@@ -122,6 +122,25 @@ block foresight_open(obj)
             now x is seen
     return 1
 
+// The lid on the way out (the exit seam, auraes's wardrobe): open it on
+// the player's behalf when an open would succeed, promise spoken; a
+// locked lid speaks the open's own refusal, the same words a typed OPEN
+// earns; an author-gated open runs for real and its message stands.
+block exit_shut_refused(obj)
+    let got = foresight_open(obj)
+    if got is 1
+        return 0
+    if got is 2
+        change refused to 1
+        return 1
+    change refused to 1
+    change noun to obj
+    if obj is locked
+        msg_open_locked
+        return 1
+    msg_exit_shut(obj)
+    return 1
+
 // The sealed-take seam override: a take aimed through closed glass (the
 // clear container, reachable to the eye through ordinary scope) opens the
 // container on the same promise discipline and lets the take continue.

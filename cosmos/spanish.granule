@@ -1854,6 +1854,19 @@ block msg_door_shut(d)
     else
         say "${The d} está cerrado. Primero tienes que abrir ${the d}."
 
+block msg_exit_shut(obj)
+    if any_pluribus is 1
+        if obj is pluribus
+            if obj is feminine
+                say "${The obj} están cerradas."
+            else
+                say "${The obj} están cerrados."
+            return 0
+    if obj is feminine
+        say "${The obj} está cerrada."
+    else
+        say "${The obj} está cerrado."
+
 block msg_closed_it()
     if any_pluribus is 1
         if noun is pluribus

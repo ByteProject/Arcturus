@@ -1883,6 +1883,12 @@ block msg_door_shut(d)
             return 0
     say "${The d} is shut. You open it first."
 
+block msg_exit_shut(obj)
+    if any_pluribus is 1
+        say "${The obj} ${is obj} shut."
+        return 0
+    say "${The obj} is shut."
+
 block msg_closed_it()
     say "Shut."
 

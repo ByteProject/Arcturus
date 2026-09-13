@@ -49,6 +49,13 @@ from arcturus.sema import analyze
 # game pays the verb_trigger bookkeeping and the posture seam
 # (Stefan: a sacrifice to make); each pack words its boardings,
 # leavings, and foresight exit promises by the posture taken.
+# 2026-09-13 (the lid gates the way out): +76 to +112 ONLY in games
+# with a container or supporter (any_enterable): exiting a closed
+# container now refuses through the exit_shut_refused seam on every
+# path (EXIT, GET OUT OF X, the walk's implicit exit), the mirror of
+# the enter side's gate; foresight opens on the promise discipline
+# and a locked lid speaks the open's refusal. Enterable-free games
+# stay byte-identical (the fold).
 # 2026-09-13 (them is core English vocabulary): +8 to +12 in every
 # English game, the dictionary entry alone; a pluribus mention now
 # files under the them slot (folded without one), and "them" never
@@ -188,24 +195,24 @@ CEILINGS = {
     "features/consult-about.storyarc": 18868,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/session-verbs.storyarc": 18464,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/vary.storyarc": 19668,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "features/foresight.storyarc": 20084,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "features/beyond.storyarc": 20520,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "features/alter.storyarc": 19148,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/foresight.storyarc": 20188,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/beyond.storyarc": 20596,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/alter.storyarc": 19224,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/catalogs.storyarc": 19012,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/matrix.storyarc": 19348,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/direction-grammar.storyarc": 18424,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "features/scenery-contents.storyarc": 19068,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "features/trigger.storyarc": 18032,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "features/adjectives.storyarc": 18664,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/scenery-contents.storyarc": 19144,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/trigger.storyarc": 18108,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/adjectives.storyarc": 18740,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "granules/nautical.storyarc": 18900,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "granules/npcengine.storyarc": 20992,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "granules/maniacswap.storyarc": 19232,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "beispiel-deutsch.storyarc": 27652,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "beispiel-deutsch.storyarc": 27732,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "brass-lantern.storyarc": 19804,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "cloak-of-darkness.storyarc": 21224,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "ejemplo-espanol.storyarc": 24248,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "cloak-of-darkness.storyarc": 21328,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "ejemplo-espanol.storyarc": 24348,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/computed-properties.storyarc": 18112,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "features/containers.storyarc": 18608,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/containers.storyarc": 18684,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/daemons-and-timers.storyarc": 19756,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/doors-and-locks.storyarc": 18244,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/appearance.storyarc": 19072,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
@@ -216,23 +223,23 @@ CEILINGS = {
     "features/grains.storyarc": 17880,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/handlers.storyarc": 19276,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/grammar.storyarc": 18184,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "features/introproperty.storyarc": 19524,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/introproperty.storyarc": 19600,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/kinds-and-inheritance.storyarc": 18076,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/on-other.storyarc": 17956,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/zcolor.storyarc": 18396,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/scoring.storyarc": 20328,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/spans.storyarc": 18196,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "features/vehicles.storyarc": 18736,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/vehicles.storyarc": 18812,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/success.storyarc": 18684,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/edible.storyarc": 18572,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/text-slot.storyarc": 19108,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "granules/carryweight.storyarc": 18888,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/carryweight.storyarc": 18964,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "granules/ambience.storyarc": 19984,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "granules/conversations.storyarc": 19864,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "granules/extended-verbs.storyarc": 21088,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/extended-verbs.storyarc": 21164,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "granules/infocom-interrogation.storyarc": 19892,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "granules/quotes.storyarc": 18132,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "granules/take-all.storyarc": 20296,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "granules/take-all.storyarc": 20372,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "granules/plurals.storyarc": 19052,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "granules/statusline.storyarc": 18108,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "granules/verbose-exits.storyarc": 18056,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
@@ -240,7 +247,7 @@ CEILINGS = {
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 21872  # 2026-09-11 repriced: the per-item label is the language layer's
+CLOAK_Z8_CEILING = 21984  # 2026-09-11 repriced: the per-item label is the language layer's
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

@@ -992,6 +992,18 @@ on enter
     change refused to 1
     msg_cant_enter
 
+// The shut lid on the way OUT (auraes's wardrobe, 2026-09-13): leaving a
+// container the player is inside is gated by its lid exactly as entering
+// was, on every path (EXIT, GET OUT OF X, a walk's implicit exit). The
+// house rejects and names the lid; summon.foresight overrides this block
+// to open it on the promise discipline, a locked lid speaking the open's
+// own refusal. Returns 1 refused (message spoken), 0 way clear.
+block exit_shut_refused(obj)
+    change refused to 1
+    change noun to obj
+    msg_exit_shut(obj)
+    return 1
+
 on exit
     // With a noun (the author's `exit noun` grammar, or GET OUT OF X): leave
     // that thing in particular, refusing when the player is not in it. The
@@ -1001,6 +1013,10 @@ on exit
     if any_enterable is 1
         if noun is not nothing
             if player in noun
+                if noun is container
+                    if noun is not open
+                        if exit_shut_refused(noun) is 1
+                            stop
                 move player to parent_of(noun)
                 leave_report
                 stop
@@ -1014,6 +1030,13 @@ on exit
     // move so the report can name it (get off the stool / out of the box);
     // `noun` was nothing, so point it at the thing left.
     let left = parent_of(player)
+    // The same lid gate, folded away with nothing enterable (a runtime
+    // supporter has no lid, so the fold loses no case that exists).
+    if any_enterable is 1
+        if left is container
+            if left is not open
+                if exit_shut_refused(left) is 1
+                    stop
     move player to here
     change noun to left
     leave_report

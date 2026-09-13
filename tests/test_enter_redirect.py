@@ -95,12 +95,16 @@ def test_teleport_lands_inside_an_enterable_in_one_turn():
         'verb "warpbench"\n    warpbench\n'
         'on warpbench\n    teleport(bench)\n'
     )
-    io = CaptureIO(script=["warpbox", "exit", "warpbench", "quit", "y"])
+    # The exit from the closed crate refuses since the lid gate (Cosmos
+    # 1.32.0, the way out mirrors the way in); opening frees the player.
+    io = CaptureIO(script=["warpbox", "exit", "open crate", "exit",
+                           "warpbench", "quit", "y"])
     try:
         _VM(_l(_g(_a(_c.combined_program(_p(game))))), io).run(
             max_steps=30_000_000)
     except IndexError:
         pass
     assert "Vault (in the pine crate)" in io.text
+    assert "The pine crate is shut." in io.text
     assert "You get out of the pine crate." in io.text
     assert "Vault (on the bench)" in io.text
