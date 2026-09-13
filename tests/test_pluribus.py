@@ -87,3 +87,15 @@ def test_spanish_agreement():
     assert "Las tijeras están aquí." in out
     assert "Ves unas tijeras." in out
     assert "Las tijeras se quedan justo donde están." in out
+
+
+def test_them_names_the_pluribus_thing():
+    # THEM is core English vocabulary (Cosmos 1.31.0, a field report: a
+    # plural-named thing answered "doesn't know the word") and a pluribus
+    # mention files under the them slot, never IT; a later singular
+    # mention leaves it there.
+    game = ENGLISH.replace("    pluribus\n    fixed\n", "    pluribus\n")
+    out = _run(["x scissors", "get them", "x lamp", "drop them"], game)
+    assert "You take the scissors with you." in out
+    assert "Down they go." in out
+    assert 'know the word "them"' not in out

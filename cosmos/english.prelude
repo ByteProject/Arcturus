@@ -836,6 +836,11 @@ player.named
 pronoun it  "it"
 pronoun him "him"
 pronoun her "her"
+// THEM is core vocabulary (every IF player types it; an unknown-word
+// answer reads broken): it names the last pluribus thing mentioned (the
+// scissors, the whales; Marco Innocenti's report, 2026-09-13), and the
+// plurals granule reuses the same word for its last swept group.
+pronoun them "them"
 
 // The multi-role pronoun seam (docs/01 chapter 14): a pack whose pronoun
 // words reach several slots (German "ihm", "sie") overrides this with its
@@ -854,6 +859,13 @@ block note_pronouns(obj)
         else
             change pron_him to obj
         return 0
+    // A pluribus thing is "they" in every sentence the pack writes, so
+    // THEM is its pronoun, never IT (the German rule, chapter 14's
+    // them-slot doctrine). Folds away without a pluribus object.
+    if any_pluribus is 1
+        if obj is pluribus
+            change pron_them to obj
+            return 0
     change pron_it to obj
 
 verb "wear", "don"
