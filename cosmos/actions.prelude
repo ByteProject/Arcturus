@@ -115,6 +115,13 @@ block gain(obj)
     move obj to player
     now obj is moved
     now obj is seen
+    // Concealment means "not yet noticed"; a thing the player has held
+    // has been noticed, so dropping it lists it like anything else
+    // (auraes's report, 2026-09-13: taken, dropped, and invisible again).
+    // An author who wants it unlisted after handling sets it back in
+    // their own handler. Folds away in a game with nothing concealed.
+    if any_concealed is 1
+        now obj is not concealed
 
 on go
     if way is nothing

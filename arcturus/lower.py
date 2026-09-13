@@ -121,6 +121,9 @@ INTRINSICS = frozenset({
     # any_wearable folds the worn gate in drop/put/insert away in a game
     # where nothing is wearable (or born worn), so it cannot be worn.
     "any_wearable",
+    # any_concealed folds gain's noticed-now clear away in a game where
+    # nothing is concealed, declared or set at runtime.
+    "any_concealed",
     # any_articles / any_indefinites fold the packs' hand-set-article
     # branches away in a game that overrides no article.
     "any_articles", "any_indefinites",
@@ -1810,6 +1813,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # movers' worn gate folds away where nothing can be on the body.
         _place(rt, Const(1 if (_any_prop(ctx.world, "wearable")
                                or _any_prop(ctx.world, "worn")) else 0), dest)
+    elif name == "any_concealed":
+        # any_concealed(): 1 when anything is ever concealed (declared or
+        # set in play), so gain's noticed-now clear folds away otherwise.
+        _place(rt, Const(_any_concealed(ctx.world)), dest)
     elif name == "any_articles":
         # any_articles(): 1 when anything hand-sets `article`, so the packs'
         # override branch (and its capitalized twin) folds away otherwise.
@@ -2960,6 +2967,44 @@ def _any_prop(world, prop: str) -> int:
     if any(prop in k.props for k in world.kinds.values()):
         return 1
     return 0
+
+
+def _any_concealed(world) -> int:
+    """1 when anything can ever be concealed: declared on an object or kind,
+    or set at runtime (`now x is concealed`) anywhere in the program. The
+    runtime scan matters because a game may conceal things only in play
+    (a reveal reversed); a declared-only check would fold gain's clear away
+    from under it."""
+    if _any_prop(world, "concealed"):
+        return 1
+
+    found = False
+
+    def walk(node):
+        nonlocal found
+        if found:
+            return
+        if isinstance(node, ast.Now) and node.prop == "concealed" \
+                and not node.negated:
+            found = True
+        if isinstance(node, list):
+            for n in node:
+                walk(n)
+        elif hasattr(node, "__dict__"):
+            for v in vars(node).values():
+                if isinstance(v, (list, ast.Stmt)):
+                    walk(v)
+
+    for blk in world.blocks.values():
+        walk(blk.body)
+    for h in world.all_handlers():
+        walk(h.body)
+    for owner in list(world.objects.values()) + list(world.kinds.values()):
+        for p in owner.props.values():
+            walk(getattr(p, "body", []) or [])
+        for t in getattr(owner, "topics", []) or []:
+            walk(getattr(t, "body", []) or [])
+    return 1 if found else 0
 
 
 def _any_components(world) -> int:
@@ -4114,6 +4159,8 @@ def _static_value(ctx, expr):
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_wearable":
         return 1 if (_any_prop(ctx.world, "wearable")
                      or _any_prop(ctx.world, "worn")) else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_concealed":
+        return _any_concealed(ctx.world)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_articles":
         return _any_prop(ctx.world, "article")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_indefinites":
