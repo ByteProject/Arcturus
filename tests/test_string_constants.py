@@ -83,3 +83,27 @@ def test_interpolation_in_plain_property_string_is_noted(capfd):
     err = capfd.readouterr().err
     assert "interpolation in a plain property string is dropped" in err
     assert "desc block" in err
+
+
+def test_number_constant_seeds_a_property():
+    # A number constant stands for its number in a property seed too
+    # (a field report, 2026-09-13: the slot typed as object, collided
+    # program-wide, and a KIND default emitted 0). The kind default, an
+    # instance override, and a runtime change through the constant all
+    # read back as the numbers they name.
+    game = (
+        'game\n    title "T"\n    start cellar\n'
+        'constant shine_dim = 50\n'
+        'constant shine_bright = 200\n'
+        'kind cave of room\n    shine shine_dim\n'
+        'room cellar of cave\n    name "Cellar"\n    desc "Stone."\n'
+        'room attic of cave\n    name "Attic"\n    desc "Dust."\n'
+        '    shine 75\n'
+        'on start\n'
+        '    say "cellar ${cellar.shine} attic ${attic.shine}"\n'
+        '    change attic.shine to shine_bright\n'
+        '    say "attic now ${attic.shine}"\n'
+    )
+    out = _run(["quit", "y"], game)
+    assert "cellar 50 attic 75" in out
+    assert "attic now 200" in out

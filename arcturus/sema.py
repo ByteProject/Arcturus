@@ -1633,13 +1633,16 @@ class Analyzer:
         return None
 
     def _const_text(self, v):
-        """A property value naming a STRING constant stands for its literal:
-        `desc DESC_OFFICE` reads exactly as the text written in place (the
-        field request: one wording shared between desc and say). Number and
-        object constants pass through untouched."""
+        """A property value naming a string or NUMBER constant stands for its
+        literal: `desc DESC_OFFICE` reads exactly as the text written in
+        place (the field request: one wording shared between desc and say),
+        and `lightlevel quite_dark` seeds the number the constant names
+        (EdwardianDuck's report, 2026-09-13: the slot typed as object and
+        conflicted, and a kind default emitted 0). Object constants pass
+        through untouched and resolve at layout."""
         if isinstance(v, ast.Name):
             c = self.world.constants.get(v.ident)
-            if c is not None and isinstance(c.value, ast.StringLit):
+            if c is not None and isinstance(c.value, (ast.StringLit, ast.Number)):
                 return c.value
         return v
 
@@ -1921,6 +1924,12 @@ class Analyzer:
             # place (a field report: the slot used to type as object, resolve
             # to nothing, and silently read as the FIRST catalog).
             return prelude.T_NUMBER
+        if isinstance(expr, ast.Name) and expr.ident in self.world.constants:
+            # A property seeded with a NAMED CONSTANT has the constant's
+            # type (EdwardianDuck's light levels, 2026-09-13: the slot used
+            # to type as object and conflict with every literal site).
+            # Constants are collected in pass 1, so pass 3 sees them all.
+            return self.world.constants[expr.ident].type
         if isinstance(expr, (ast.Nothing, ast.Name)):
             return prelude.T_OBJECT
         if isinstance(expr, ast.Binary) and expr.op in ("+", "-", "*", "/", "mod"):

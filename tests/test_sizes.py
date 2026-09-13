@@ -210,7 +210,7 @@ CEILINGS = {
     "beispiel-deutsch.storyarc": 27732,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "brass-lantern.storyarc": 19804,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "cloak-of-darkness.storyarc": 21328,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "ejemplo-espanol.storyarc": 24348,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "ejemplo-espanol.storyarc": 24352,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/computed-properties.storyarc": 18112,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/containers.storyarc": 18684,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/daemons-and-timers.storyarc": 19756,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
