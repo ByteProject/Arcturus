@@ -40,6 +40,37 @@ def test_all_intrinsics_compile():
     assert compile_z5(src)[0x00] == 5
 
 
+def test_scan_table_finds_and_misses():
+    # scan_table(value, addr, count): the interpreter's table search
+    # (auraes's ask, 2026-09-13). Poke three words into the text-buffer
+    # scratch, then scan for a middle value (its address back, here as a
+    # delta from the buffer base) and for an absent one (0).
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+
+    src = (
+        'on start\n'
+        '    poke_word(544, 5, 111)\n'
+        '    poke_word(544, 6, 222)\n'
+        '    poke_word(544, 7, 333)\n'
+        '    let hit = scan_table(222, 544 + 10, 3)\n'
+        '    say "delta:"\n'
+        '    say hit - 544\n'
+        '    say "miss:"\n'
+        '    say scan_table(999, 544 + 10, 3)\n'
+        'room r\n'
+        '    name "r"\n'
+    )
+    io = CaptureIO(script=[])
+    try:
+        VM(load(compile_z5(src)), io).run(max_steps=1_000_000)
+    except IndexError:
+        pass  # the script is exhausted at the first prompt
+    assert "delta:" in io.text and "12" in io.text
+    assert "miss:" in io.text and "0" in io.text
+
+
 def _frotz():
     return shutil.which("dfrotz") or shutil.which("frotz")
 

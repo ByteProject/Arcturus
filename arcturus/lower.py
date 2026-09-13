@@ -52,6 +52,10 @@ def exit_directions(layout):
 # handler_of reads an object's react routine address (for the dispatcher).
 INTRINSICS = frozenset({
     "read_line", "peek_byte", "peek_word", "poke_byte", "poke_word",
+    # scan_table(value, addr, count) searches count words from addr for the
+    # value, the interpreter's own table search (VAR:23): the address of the
+    # first match, 0 when absent. The raw-memory family's search primitive.
+    "scan_table",
     "word_count", "word_dict", "word_len", "word_pos", "call_handler",
     "handler_of", "parent_of", "words_addr", "words_count",
     "plural_addr", "plural_count", "any_plurals", "any_pronoun_sets",
@@ -1739,6 +1743,25 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         eval_expr(rt, ctx, args[0], Variable(STACK))
         rt.op("tokenise", Variable(STACK), Variable(STACK))
         _place(rt, Const(0), dest)
+    elif name == "scan_table":
+        # scan_table(value, addr, count): the interpreter's table search
+        # (VAR:23) over count words from addr, storing the address of the
+        # first entry equal to value, 0 when there is none. The opcode both
+        # stores and branches; the branch targets the very next instruction,
+        # so it falls through either way and the stored address is the whole
+        # answer (auraes's ask, 2026-09-13). Stack operands pop in reverse:
+        # push count first, addr second, value last.
+        if len(args) != 3:
+            raise LowerError(
+                "scan_table(value, addr, count) takes exactly 3 arguments",
+                call.line,
+            )
+        for a in reversed(args):
+            eval_expr(rt, ctx, a, Variable(STACK))
+        after = ctx.new_label()
+        rt.op("scan_table", Variable(STACK), Variable(STACK), Variable(STACK),
+              store=dest, branch=(after, True))
+        rt.label(after)
     elif name == "any_triggers":
         # any_triggers(): 1 when any words list carries the # trigger marker
         # (docs/01 chapter 14), so the matcher's trigger tiebreak folds away

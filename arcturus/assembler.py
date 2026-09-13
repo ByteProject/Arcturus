@@ -138,6 +138,12 @@ _OPCODES = {
     # code. The first operand is the input device, always 1 in v5. Used by the
     # conversations granule for press-a-number menu selection.
     "read_char": ("VAR", 0x16, True, False, False),
+    # scan_table x table len (v4+): search a table of len words for the value
+    # x, storing the address of the matching entry (0 when absent) and
+    # branching on a hit. The three-operand form defaults to word entries of
+    # length 2 (form byte 0x82); the scan_table intrinsic rides it with a
+    # fall-through branch, so the stored address is the whole answer.
+    "scan_table": ("VAR", 0x17, True, True, False),
     "call_vn": ("VAR", 0x19, False, False, False),
     # The long-call pair (v4+): the only opcodes in the instruction set with a
     # DOUBLE types byte, so a call can carry the routine plus up to SEVEN
