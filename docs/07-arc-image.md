@@ -44,6 +44,16 @@ Two authoring aids:
   the conversion promotes it to the brightest color instead of losing
   it. Seconds of work, and every target benefits.
 
+One master per picture serves every machine, but a style built on
+fine one-pixel texture can carry a SECOND set for the machines whose
+wide pixels would eat it. Put same-numbered alternates in a
+`masters-broad/` folder beside the masters, authored without
+dithering, in committed tones; the broad-pixel targets (C64, Plus/4,
+CPC, Atari 8-bit, Apple II, and the TRS-80 Model 4, whose halftone
+wants clean tones to work from) then read the alternate automatically,
+every other target keeps the base master, and nothing changes for a
+portfolio with one set. `arcimg convert` says so when it uses them.
+
 ## 2. Shipping for modern systems
 
 The pictures ship in a Blorb, the IF world's standard resource
@@ -133,6 +143,16 @@ deliberate way out: the automated conversion is a reasonable looking
 BLACK AND WHITE ARTWORK, a pattern-stipple rendition in bright white
 on black, in the manner of the machine's own classic art. It reads
 honestly, it never clashes, and it ships as-is.
+
+One style of art is the exception, and gets its own switch. If your
+masters are already Spectrum-shaped, flat committed palette regions
+over black, any texture placed pixel by pixel by your own hand, then
+`arcimg convert --target ZX3 --zx-colour` converts them 1:1 in color:
+every pixel kept where it stands, each snapped to the Spectrum hue it
+names, each cell's ink chosen by what most of its lit pixels agree
+on, over black paper. Where two colors truly share a cell the machine
+decides, as it always has; art in this style rarely lets it happen.
+`arcimg scr` accepts the same switch for the polish loop below.
 
 Color on the Spectrum belongs to authors, and an author can supply
 their own image for ANY picture, at ANY time; hand-drawn Spectrum art
