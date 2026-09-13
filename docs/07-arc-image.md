@@ -52,7 +52,14 @@ dithering, in committed tones; the broad-pixel targets (C64, Plus/4,
 CPC, Atari 8-bit, Apple II, and the TRS-80 Model 4, whose halftone
 wants clean tones to work from) then read the alternate automatically,
 every other target keeps the base master, and nothing changes for a
-portfolio with one set. `arcimg convert` says so when it uses them.
+portfolio with one set. No flag, no extra command: the same
+
+```
+arcimg convert masters/ --target C64 -o c64/
+```
+
+reports `25 of 25 masters from masters-broad/` when the alternates
+exist, and reads the base set when they do not.
 
 ## 2. Shipping for modern systems
 
@@ -147,7 +154,11 @@ honestly, it never clashes, and it ships as-is.
 One style of art is the exception, and gets its own switch. If your
 masters are already Spectrum-shaped, flat committed palette regions
 over black, any texture placed pixel by pixel by your own hand, then
-`arcimg convert --target ZX3 --zx-colour` converts them 1:1 in color:
+```
+arcimg convert masters/ --target ZX3 --zx-colour -o zx3/
+```
+
+converts them 1:1 in color:
 every pixel kept where it stands, each snapped to the Spectrum hue it
 names, each cell's ink chosen by what most of its lit pixels agree
 on, over black paper. Where two colors truly share a cell the machine
@@ -217,20 +228,27 @@ art. You ship one z5 and it is safe on all of them.
 ## 5. The commands, all of them
 
 ```
-arcimg pack SOURCES... -o game.blorb       the modern pack (a Blorb)
-arcimg pack ... --zblorb game.z5 -o game.zblorb   story + pictures in one Blorb
+arcimg pack SOURCES... -o game.blorb            the modern pack (a Blorb)
+arcimg pack SOURCES... --zblorb game.z5 -o game.zblorb
+                                                story + pictures in one Blorb
 arcimg pack game.blorb --zblorb game.z5 -o game.zblorb
-                                           bind a finished pack to a new
-                                           story, pictures untouched
-arcimg prep SOURCE --id N --mode MODE      size and number a source
-arcimg info SOURCE                         a PNG's size / a pack's contents
-arcimg convert SOURCES... --target TAG     derive a machine's native art
-arcimg targets                             the target list
-arcimg render FILE -o out.png              preview any converted picture
-arcimg slice9 FILE --id N -o out           a mode-9 picture as the top
-                                           slice of a mode-12 conversion
-                                           (same picture, same colors)
-arcimg scr / arcimg unscr                  the Spectrum polish loop
+                                                bind a finished pack to a new
+                                                story, pictures untouched
+arcimg prep SOURCE --id N --mode MODE           size and number a source
+arcimg info SOURCE                              a PNG's size / a pack's contents
+arcimg convert SOURCES... --target TAG -o out/  derive a machine's native art
+                                                (masters-broad/ read for the
+                                                broad-pixel targets, section 1)
+arcimg convert masters/ --target ZX3 --zx-colour -o zx3/
+                                                the Spectrum colour path for
+                                                committed-palette art
+arcimg targets                                  the target list
+arcimg render FILE -o out.png                   preview any converted picture
+arcimg slice9 FILE --id N -o out                a mode-9 picture as the top
+                                                slice of a mode-12 conversion
+                                                (same picture, same colors)
+arcimg scr / arcimg unscr                       the Spectrum polish loop
+                                                (scr takes --zx-colour too)
 ```
 
 `arcimg` ships like `arcc` and `actaea`: one self-contained file
