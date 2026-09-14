@@ -2878,17 +2878,17 @@ the action to interpret. `perform` skips the checks entirely, since
 an author performing an action means it. Then Cosmos dispatches the action as one chain of
 handlers, most specific first:
 
-0. (between 1 and 2) for a two-noun action, the `second` object's handlers:
-   the RECIPIENT of a give or show, the container of a put, answers for
-   itself ("give chip to vlad" runs Vlad's own `on give`), the way Inform
-   consults the second's life-routine.
-1. the `noun` object's own `on <verb>` handler,
-2. the `noun` object's own `on other` handler,
-3. its kind chain, nearest kind first, each kind's `on <verb>` before its
-   `on other`,
-4. the room's `on <verb>` handler, then the room's `on other`,
-5. any free-standing top-level `on <verb>` rule,
-6. the Cosmos default `on <verb>` handler.
+1. the `noun` object's whole chain: its own `on <verb>` handler, then its
+   `on other`, then its kind chain, nearest kind first, each kind's
+   `on <verb>` before its `on other`,
+2. for a two-noun action, the `second` object's same whole chain: the
+   RECIPIENT of a give or show, the container of a put, answers for
+   itself ("give chip to vlad" runs Vlad's own `on give`). The noun's
+   chain runs FIRST, catch-alls included: an object's own `on other`
+   outranks the other object's handlers,
+3. the room's `on <verb>` handler, then the room's `on other`,
+4. any free-standing top-level `on <verb>` rule,
+5. the Cosmos default `on <verb>` handler.
 
 When the whole chain declines, the dispatcher itself answers: the refusal
 (`msg_cant_do`, "You can't do that to the lever.", nounless "You can't do
