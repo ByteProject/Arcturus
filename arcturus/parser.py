@@ -1146,14 +1146,23 @@ class Parser:
                 break
             it = self._parse_grammar_item()
             group = [it]
-            while (isinstance(it, ast.Word) and self.check(T.NAME)
-                   and self.cur.value == "or"):
-                self.advance()  # `or`
+            # `or` chains particle alternatives; `/` is its synonym (the
+            # Inform muscle memory two adopters wrote independently:
+            # at/against). Before 2.11.0 the slash slipped through the
+            # catch-all as a fake LITERAL, which the flag model masked
+            # (any separator splits) and the table model exposed (exact
+            # literals never matched, auraes's launch).
+            while (isinstance(it, ast.Word)
+                   and ((self.check(T.NAME) and self.cur.value == "or")
+                        or (self.cur.kind == T.OP
+                            and self.cur.value == "/"))):
+                self.advance()  # `or` or `/`
                 alt = self._parse_grammar_item()
                 if not isinstance(alt, ast.Word):
                     raise self._error(
-                        "`or` in a grammar line joins particle words (in or "
-                        "into); a slot like noun cannot be an alternative")
+                        "`or` (or `/`) in a grammar line joins particle "
+                        "words (in or into); a slot like noun cannot be "
+                        "an alternative")
                 group.append(alt)
             alts.append(group)
         self.expect_newline()
@@ -1191,7 +1200,16 @@ class Parser:
         if tok.kind == T.STRING:
             self.advance()
             return ast.Word(self._plain_text(tok))
-        # A literal preposition word (in, on, with, to, ...).
+        # A literal preposition word (in, on, with, to, ...). Only a real
+        # word may stand here: an operator or stray punctuation used to
+        # slip through as a fake literal (the slash trap), entering the
+        # dictionary as junk and, on the table model, making the line
+        # unmatchable. Refuse loudly and name the cure.
+        if tok.kind not in (T.NAME, T.KW):
+            raise self._error(
+                f"'{tok.value}' is not a grammar word; a line holds slots "
+                f"and particle words, and alternatives chain with `or` or "
+                f"`/` (throw noun at or against noun)")
         self.advance()
         return ast.Word(tok.value)
 

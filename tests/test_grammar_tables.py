@@ -229,3 +229,36 @@ def test_german_tabled_verb():
     assert "GRABE der Sand MIT die Schaufel." in _reply(
         "grabe in dem sand mit der schaufel", game=GAME_DE, key="de"
     )
+
+
+def test_slash_chains_particle_alternatives():
+    # `/` is `or`'s synonym in a grammar line (two adopters wrote the
+    # Inform idiom independently, 2026-09-14). Before, the slash slipped
+    # through as a fake LITERAL: invisible on the flag model (any
+    # separator splits), fatal on the table model (exact literals never
+    # matched, and the bare one-noun line swallowed the whole command).
+    game = (
+        'game\n    title "T"\n    start flat\n'
+        'room flat\n    name "Flat"\n    desc "Flat."\n'
+        'thing ball in player\n    name "ball"\n    words ball\n'
+        'thing dummy of character in flat\n    name "dummy"\n    words dummy\n'
+        # two actions on one verb: the TABLE model, exact literals
+        'verb "launch"\n    throw noun at/against noun\n    burst noun\n'
+        'on throw\n    say "FLIES"\n    stop\n'
+        'on burst\n    say "BURSTS"\n    stop\n'
+    )
+    out = _run(["launch ball at dummy", "launch ball against dummy",
+                "launch ball"], game=game)
+    assert out.count("FLIES") == 2
+    assert out.count("BURSTS") == 1
+
+
+def test_operator_junk_in_a_grammar_line_is_refused():
+    game = (
+        'game\n    title "T"\n    start flat\n'
+        'room flat\n    name "Flat"\n    desc "Flat."\n'
+        'verb "launch"\n    throw noun at + against noun\n'
+        'on throw\n    say "x"\n'
+    )
+    with pytest.raises(ArcError, match="not a grammar word"):
+        _world(game)

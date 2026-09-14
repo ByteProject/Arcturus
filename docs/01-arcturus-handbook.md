@@ -2223,8 +2223,9 @@ whose lines raise different actions, as put does here, rides the
 positional grammar model automatically (chapter 14).
 
 A grammar line is an action name, then slots and literal words.
-Particle words chain with `or` on one line: `put noun in or into
-noun` accepts both wordings (the parser expands the alternatives
+Particle words chain with `or` on one line, or with `/` as its
+synonym: `put noun in or into noun` and `throw noun at/against noun`
+each accept both wordings (the parser expands the alternatives
 into sibling lines, so it costs what writing them out costs). Slots:
 `noun` (one in-scope object), `multi` (several,
 including "all"), `text` (free text), and `direction` (one direction word,
