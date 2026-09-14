@@ -1854,6 +1854,24 @@ block msg_door_shut(d)
     else
         say "${The d} está cerrado. Primero tienes que abrir ${the d}."
 
+block msg_get_out_first(obj)
+    if obj is supporter
+        say "Primero tendrías que bajarte de ${the obj}."
+        return 0
+    say "Primero tendrías que salir de ${the obj}."
+
+block msg_in_itself()
+    if second is supporter
+        if noun is feminine
+            say "No puedes poner ${the noun} encima de sí misma."
+        else
+            say "No puedes poner ${the noun} encima de sí mismo."
+        return 0
+    if noun is feminine
+        say "No puedes meter ${the noun} dentro de sí misma."
+    else
+        say "No puedes meter ${the noun} dentro de sí mismo."
+
 block msg_exit_shut(obj)
     if any_pluribus is 1
         if obj is pluribus

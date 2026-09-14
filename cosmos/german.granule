@@ -2186,6 +2186,18 @@ block msg_door_shut(d)
         return 0
     say "${The d} ist zu. Du musst ${the:acc d} erst öffnen."
 
+block msg_get_out_first(obj)
+    if obj is supporter
+        say "Dazu müsstest du erst von ${the:dat obj} steigen."
+        return 0
+    say "Dazu müsstest du erst aus ${the:dat obj} steigen."
+
+block msg_in_itself()
+    if second is supporter
+        say "Du kannst ${the:acc noun} nicht auf sich selbst stellen."
+        return 0
+    say "Du kannst ${the:acc noun} nicht in sich selbst stecken."
+
 block msg_exit_shut(obj)
     if any_pluribus is 1
         say "${The obj} ${is obj} geschlossen."

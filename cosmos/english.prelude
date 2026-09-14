@@ -1883,6 +1883,18 @@ block msg_door_shut(d)
             return 0
     say "${The d} is shut. You open it first."
 
+block msg_get_out_first(obj)
+    if obj is supporter
+        say "You would have to get off ${the obj} first."
+        return 0
+    say "You would have to get out of ${the obj} first."
+
+block msg_in_itself()
+    if second is supporter
+        say "You can't put ${the noun} on top of itself."
+        return 0
+    say "You can't put ${the noun} inside itself."
+
 block msg_exit_shut(obj)
     if any_pluribus is 1
         say "${The obj} ${is obj} shut."

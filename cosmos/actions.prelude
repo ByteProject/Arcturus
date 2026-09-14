@@ -330,6 +330,13 @@ block take_probe(obj)
         return 6
     if obj is animate
         return 7
+    // Why 8: the thing ENCLOSES the player (the hamper they sit in, the
+    // stool they stand on, however deeply nested): taking it would make
+    // the tree cycle (auraes's wardrobe, 2026-09-14). Folds away with
+    // nothing enterable.
+    if any_enterable is 1
+        if within(player, obj) is 1
+            return 8
     return 0
 
 block speak_take_refusal(obj, why)
@@ -350,6 +357,10 @@ block speak_take_refusal(obj, why)
     if why is 5
         msg_scenery
         return 0
+    if any_enterable is 1
+        if why is 8
+            msg_get_out_first(obj)
+            return 0
     if why is 6
         msg_fixed
         return 0
@@ -374,6 +385,15 @@ block take_sealed_refused(obj)
 // with the parenthetical, running the REAL take_off so the object's gate
 // still rules. Returns 1 refused (message spoken), 0 when the thing is no
 // longer worn and the mover may continue.
+// The perch seam: the player is IN or ON the thing they want to take
+// (why 8). The house rejects and points at the way out; summon.foresight
+// overrides this block to run the REAL exits first (seat gates, the lid
+// seam and its opening repair still rule) and lets the take continue.
+// Returns 1 refused (message spoken), 0 repaired (probe again).
+block take_perch_refused(obj)
+    speak_take_refusal(obj, 8)
+    return 1
+
 block worn_refused(obj)
     change refused to 1
     msg_take_off_first
@@ -385,6 +405,11 @@ on take
         if take_sealed_refused(noun) is 1
             stop
         change why to take_probe(noun)
+    if any_enterable is 1
+        if why is 8
+            if take_perch_refused(noun) is 1
+                stop
+            change why to take_probe(noun)
     if why is not 0
         speak_take_refusal(noun, why)
         stop
@@ -687,6 +712,11 @@ on put
             if take_sealed_refused(noun) is 1
                 stop
             change why to take_probe(noun)
+        if any_enterable is 1
+            if why is 8
+                if take_perch_refused(noun) is 1
+                    stop
+                change why to take_probe(noun)
         if why is not 0
             speak_take_refusal(noun, why)
             stop
@@ -695,6 +725,20 @@ on put
         if noun is worn
             if worn_refused(noun) is 1
                 stop
+    // The tree never cycles: a thing cannot enter itself or anything it
+    // contains ("put hamper in hamper", or into the box inside it):
+    // geometry, no repair possible; an interpreter halts or corrupts on
+    // the self-insert, so the guard is core (auraes's wardrobe round,
+    // 2026-09-14). Folds away with nothing enterable.
+    if any_enterable is 1
+        if second is noun
+            change refused to 1
+            msg_in_itself
+            stop
+        if within(second, noun) is 1
+            change refused to 1
+            msg_in_itself
+            stop
     // Putting into or onto something CARRIED is entering the carried
     // subtree, so it pays the same tolls a take pays: the item count and
     // the weight budget (a floor boulder never sneaks into the sack the
@@ -750,6 +794,11 @@ on insert
             if take_sealed_refused(noun) is 1
                 stop
             change why to take_probe(noun)
+        if any_enterable is 1
+            if why is 8
+                if take_perch_refused(noun) is 1
+                    stop
+                change why to take_probe(noun)
         if why is not 0
             speak_take_refusal(noun, why)
             stop
@@ -758,6 +807,20 @@ on insert
         if noun is worn
             if worn_refused(noun) is 1
                 stop
+    // The tree never cycles: a thing cannot enter itself or anything it
+    // contains ("put hamper in hamper", or into the box inside it):
+    // geometry, no repair possible; an interpreter halts or corrupts on
+    // the self-insert, so the guard is core (auraes's wardrobe round,
+    // 2026-09-14). Folds away with nothing enterable.
+    if any_enterable is 1
+        if second is noun
+            change refused to 1
+            msg_in_itself
+            stop
+        if within(second, noun) is 1
+            change refused to 1
+            msg_in_itself
+            stop
     // The same carried-subtree tolls as put (see there): entering the
     // sack pays what a take pays.
     if any_carry_limit is 1

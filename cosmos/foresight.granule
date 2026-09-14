@@ -122,6 +122,25 @@ block foresight_open(obj)
             now x is seen
     return 1
 
+// The perch seam (why 8): the player wants to take the thing they sit
+// in or stand on, so get them out FIRST, the real way: each level runs
+// the true exit (seat gates, the lid seam and its opening repair all
+// rule), with the promise line before it, exactly as a walk unnests.
+// A refusal anywhere ends it, its own words standing as the answer.
+block take_perch_refused(obj)
+    while within(player, obj) is 1
+        change implicit_leave to parent_of(player)
+        seat_left_note(implicit_leave)
+        perform("exit", parent_of(player))
+        if refused is 1
+            change implicit_leave to nothing
+            return 1
+        if parent_of(player) is implicit_leave
+            change implicit_leave to nothing
+            return 1
+        change implicit_leave to nothing
+    return 0
+
 // The lid on the way out (the exit seam, auraes's wardrobe): open it on
 // the player's behalf when an open would succeed, promise spoken; a
 // locked lid speaks the open's own refusal, the same words a typed OPEN
