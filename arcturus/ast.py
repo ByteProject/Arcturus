@@ -564,9 +564,25 @@ class Slot:
 @dataclass
 class Word:
     text: str  # a literal preposition word in a grammar line
+    # Quoted spelling ("noun" the word): always vocabulary, never an
+    # object binding, so a word that collides with an object id can be
+    # forced literal.
+    quoted: bool = False
 
 
-GrammarItem = Union[Slot, Word]
+@dataclass
+class Bind:
+    """A grammar slot the LINE ITSELF fills with a named object (the
+    spell-verb idiom, Charles Moore Jr.'s round, 2026-09-14): `cast
+    veznik_spell noun` binds the spell into the first slot at compile
+    time, no typed word consumed, so GNUSTO GATE is a plain cast from
+    the first instant. Sema converts a bare grammar word that names a
+    declared object into this; a quoted word stays vocabulary."""
+
+    target: str  # the object's identifier
+
+
+GrammarItem = Union[Slot, Word, Bind]
 
 
 @dataclass

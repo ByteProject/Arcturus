@@ -1194,6 +1194,12 @@ def build_story(
                 for it in gline.items:
                     if isinstance(it, ast.Slot):
                         tb.append(slot_codes.get(it.kind, 1))
+                    elif isinstance(it, ast.Bind):
+                        # Token 10: a bound slot; the object number rides
+                        # the next two bytes, no typed word consumed.
+                        tb.append(10)
+                        num = layout.obj_number[it.target]
+                        tb += bytes([(num >> 8) & 0xFF, num & 0xFF])
                     else:
                         tb.append(5)
                         grammar_fixups.append((tbase + len(tb), it.text.lower()))

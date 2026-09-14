@@ -452,93 +452,115 @@ block try_line(line, n)
     let s2hi = 0
     let t = peek_byte(tok)
     while t is not 0
-        if t is 5
-            // A literal: the typed word here must be exactly this word.
-            if p >= n
-                return 0
-            let lw = peek_word(tok + 1, 0)
-            if word_dict(p) is not lw
-                return 0
-            change p to p + 1
+        if t is 10
+            // A BOUND slot (token 10): the line itself names the object
+            // (the spell-verb idiom), so the slot fills without consuming
+            // a typed word; the two bytes after the token carry the
+            // object number. The compare costs a few bytes in every
+            // tabled game; the bookkeeping beyond it folds (any_binds).
+            change slots to slots + 1
+            if any_binds is 1
+                if slots is 1
+                    change noun to peek_word(tok + 1, 0)
+                else
+                    change second to peek_word(tok + 1, 0)
             change tok to tok + 3
         else
-            if t is 6
-                // A direction slot (swim direction, push noun direction):
-                // the typed word here must be a direction word. Its value
-                // needs no binding: the parser set `way` from the line
-                // before the tables ran, so consuming the word is the job.
-                // (dir_scan, not a local: this routine sits at the
-                // Z-machine's 15-slot ceiling already.)
+            if t is 5
+                // A literal: the typed word here must be exactly this word.
                 if p >= n
                     return 0
-                if dir_scan(p, p + 1) is 0
+                let lw = peek_word(tok + 1, 0)
+                if word_dict(p) is not lw
                     return 0
                 change p to p + 1
-                change tok to tok + 1
+                change tok to tok + 3
             else
-                // A slot: absorb up to this line's next literal, or, when a
-                // direction slot closes the line, up to the first typed
-                // direction word (PUSH CRATE WEST: the noun is "crate"),
-                // or to the end.
-                let edge = n
-                let litw = next_literal(tok + 1)
-                if litw is not 0
-                    change edge to p
-                    let found = 0
-                    while found is 0
-                        if edge >= n
-                            return 0
-                        if word_dict(edge) is litw
-                            change found to 1
-                        else
-                            change edge to edge + 1
+                if t is 6
+                    // A direction slot (swim direction, push noun direction):
+                    // the typed word here must be a direction word. Its value
+                    // needs no binding: the parser set `way` from the line
+                    // before the tables ran, so consuming the word is the job.
+                    // (dir_scan, not a local: this routine sits at the
+                    // Z-machine's 15-slot ceiling already.)
+                    if p >= n
+                        return 0
+                    if dir_scan(p, p + 1) is 0
+                        return 0
+                    change p to p + 1
+                    change tok to tok + 1
                 else
-                    if peek_byte(tok + 1) is 6
-                        change edge to dir_scan(p, n)
-                        if edge is 0
-                            return 0
-                if t is 4
-                    // A TEXT slot: the words are a SUBJECT, not an object, so
-                    // they are absorbed and handed on as a range rather than
-                    // resolved (ASK BARKEEPER ABOUT THE OLD MINE names no
-                    // object at all). The conversation layer reads the range.
-                    // Written straight to globals: this routine already sits
-                    // at the Z-machine's 15-local ceiling.
-                    change topic_lo to p
-                    change topic_hi to edge
-                else
-                    // The noun-slot arm appears twice below, once on each
-                    // side of a STATIC if: any_typed_slots folds at compile
-                    // time, so a game with no typed slot compiles only the
-                    // bare arm and every tabled game stays byte-identical
-                    // (try_line sits at the 15-local ceiling, so no scratch
-                    // variable could carry the decision instead).
-                    if any_typed_slots is 1
-                        if t >= 7
-                            // A typed input slot (letters 7, number 8,
-                            // anychar 9): the same absorb as text, plus the
-                            // class the line declares. A wrong class means
-                            // this LINE does not match, so lines route by
-                            // input kind (SET DIAL TO 3 takes the number
-                            // line, TO RED falls past it). An empty absorb
-                            // marks the command incomplete: the loop's
-                            // central ask answers, and no handler ever sees
-                            // an empty slot.
-                            if p is edge
-                                change incomplete to 1
-                                return 1
-                            if class_fault < 16
-                                if slot_class_ok(t, p, edge) is 0
-                                    // Note the class for the refusal and
-                                    // fail the line: another line may
-                                    // still take this input (routing);
-                                    // only when none does will the
-                                    // relaxed pass (class_fault bit 16)
-                                    // and msg_wrong_class answer.
-                                    change class_fault to t
-                                    return 0
-                            change topic_lo to p
-                            change topic_hi to edge
+                    // A slot: absorb up to this line's next literal, or, when a
+                    // direction slot closes the line, up to the first typed
+                    // direction word (PUSH CRATE WEST: the noun is "crate"),
+                    // or to the end.
+                    let edge = n
+                    let litw = next_literal(tok + 1)
+                    if litw is not 0
+                        change edge to p
+                        let found = 0
+                        while found is 0
+                            if edge >= n
+                                return 0
+                            if word_dict(edge) is litw
+                                change found to 1
+                            else
+                                change edge to edge + 1
+                    else
+                        if peek_byte(tok + 1) is 6
+                            change edge to dir_scan(p, n)
+                            if edge is 0
+                                return 0
+                    if t is 4
+                        // A TEXT slot: the words are a SUBJECT, not an object, so
+                        // they are absorbed and handed on as a range rather than
+                        // resolved (ASK BARKEEPER ABOUT THE OLD MINE names no
+                        // object at all). The conversation layer reads the range.
+                        // Written straight to globals: this routine already sits
+                        // at the Z-machine's 15-local ceiling.
+                        change topic_lo to p
+                        change topic_hi to edge
+                    else
+                        // The noun-slot arm appears twice below, once on each
+                        // side of a STATIC if: any_typed_slots folds at compile
+                        // time, so a game with no typed slot compiles only the
+                        // bare arm and every tabled game stays byte-identical
+                        // (try_line sits at the 15-local ceiling, so no scratch
+                        // variable could carry the decision instead).
+                        if any_typed_slots is 1
+                            if t >= 7
+                                // A typed input slot (letters 7, number 8,
+                                // anychar 9): the same absorb as text, plus the
+                                // class the line declares. A wrong class means
+                                // this LINE does not match, so lines route by
+                                // input kind (SET DIAL TO 3 takes the number
+                                // line, TO RED falls past it). An empty absorb
+                                // marks the command incomplete: the loop's
+                                // central ask answers, and no handler ever sees
+                                // an empty slot.
+                                if p is edge
+                                    change incomplete to 1
+                                    return 1
+                                if class_fault < 16
+                                    if slot_class_ok(t, p, edge) is 0
+                                        // Note the class for the refusal and
+                                        // fail the line: another line may
+                                        // still take this input (routing);
+                                        // only when none does will the
+                                        // relaxed pass (class_fault bit 16)
+                                        // and msg_wrong_class answer.
+                                        change class_fault to t
+                                        return 0
+                                change topic_lo to p
+                                change topic_hi to edge
+                            else
+                                change slots to slots + 1
+                                if slots is 1
+                                    change s1lo to p
+                                    change s1hi to edge
+                                else
+                                    change s2lo to p
+                                    change s2hi to edge
                         else
                             change slots to slots + 1
                             if slots is 1
@@ -547,16 +569,8 @@ block try_line(line, n)
                             else
                                 change s2lo to p
                                 change s2hi to edge
-                    else
-                        change slots to slots + 1
-                        if slots is 1
-                            change s1lo to p
-                            change s1hi to edge
-                        else
-                            change s2lo to p
-                            change s2hi to edge
-                change p to edge
-                change tok to tok + 1
+                    change p to edge
+                    change tok to tok + 1
         change t to peek_byte(tok)
     if p < n
         return 0
@@ -622,8 +636,16 @@ block try_line(line, n)
         // against `dig noun`, a bare LOOK UNDER): the command is incomplete,
         // and the loop asks before any handler runs. A table with a slotless
         // line never lands here bare: that line sorts first and matches.
-        change incomplete to 1
-        return 1
+        // A BOUND first slot arrived resolved (the line named the object;
+        // noun is set), so it falls through to the second slot; the guard
+        // folds away in a game with no bound line.
+        if any_binds is 1
+            if noun is nothing
+                change incomplete to 1
+                return 1
+        else
+            change incomplete to 1
+            return 1
     if slots is 2
         if s2hi > s2lo
             change second to match_phrase(s2lo, s2hi, 0)
@@ -633,7 +655,12 @@ block try_line(line, n)
                 change parse_fault to noun_fault(s2lo, s2hi)
         else
             // The second slot went empty ("frob lamp with"): incomplete too.
-            change incomplete to 1
+            // (Unless a bound line filled it; folds away without binds.)
+            if any_binds is 1
+                if second is nothing
+                    change incomplete to 1
+            else
+                change incomplete to 1
     return 1
 
 // Try a tabled verb's lines in table order (most literal words first, so a
@@ -657,13 +684,21 @@ block grammar_match(tbl)
                     change class_fault to 0
             return 1
         // Step past this line's tokens to the next line's action byte.
+        // A failed BOUND line wrote its object early; the next line starts
+        // clean (folds away without binds).
+        if any_binds is 1
+            change noun to nothing
+            change second to nothing
         change tbl to tbl + 1
         let k = peek_byte(tbl)
         while k is not 0
             if k is 5
                 change tbl to tbl + 3
             else
-                change tbl to tbl + 1
+                if k is 10
+                    change tbl to tbl + 3
+                else
+                    change tbl to tbl + 1
             change k to peek_byte(tbl)
         change tbl to tbl + 1
         change act to peek_byte(tbl)

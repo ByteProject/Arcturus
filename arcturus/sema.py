@@ -95,6 +95,7 @@ class Analyzer:
             if obj.category != "room" and self._rooted_in_room(obj.kind):
                 obj.category = "room"
         self._resolve_kinds()
+        self._bind_grammar()
         # Catalog object entries must name real objects (checked here, after
         # every object is collected, so declaration order never matters). A
         # name that is no object but IS a direction reclassifies the catalog
@@ -1524,6 +1525,44 @@ class Analyzer:
                         blocked = True
             if not blocked:
                 obj.props["scored"] = ast.PropertyDecl(name="scored", form=ast.PROP_BOOL)
+
+    def _bind_grammar(self) -> None:
+        """A bare grammar word that names a DECLARED OBJECT becomes a
+        bound slot (the spell-verb idiom): the line fills the slot with
+        that object itself, no typed word consumed, so `verb "veznik" /
+        cast veznik_spell noun` makes VEZNIK GATE a plain cast with the
+        spell as noun and the gate as second. A quoted word is always
+        vocabulary; a bind stands before any typed slot, one per line
+        (the matcher's contract). Runs after collection, so declaration
+        order never matters."""
+        w = self.world
+        for verb in w.verbs:
+            for line in verb.grammar:
+                for i, it in enumerate(line.items):
+                    if (isinstance(it, ast.Word) and not it.quoted
+                            and it.text in w.objects):
+                        line.items[i] = ast.Bind(it.text)
+                        w.uses_grammar_binds = True
+                binds = [i for i, it in enumerate(line.items)
+                         if isinstance(it, ast.Bind)]
+                if not binds:
+                    continue
+                if len(binds) > 1:
+                    raise self._error(
+                        f"a grammar line binds at most one object; this "
+                        f"line binds {len(binds)}",
+                        verb.line,
+                    )
+                first_slot = next(
+                    (i for i, it in enumerate(line.items)
+                     if isinstance(it, ast.Slot)), None)
+                if first_slot is not None and binds[0] > first_slot:
+                    raise self._error(
+                        "a bound object stands before the typed slot "
+                        "(cast veznik_spell noun); to use the word as "
+                        "plain vocabulary instead, quote it",
+                        verb.line,
+                    )
 
     def _build_properties(self) -> None:
         w = self.world

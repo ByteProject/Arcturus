@@ -2232,6 +2232,27 @@ including "all"), `text` (free text), and `direction` (one direction word,
 below). Bare words such as `in`, `on`, `with` are literal prepositions.
 Two-object lines bind `noun` and `second`.
 
+A grammar line may also BIND A DECLARED OBJECT into its first slot: a
+bare word that names an object fills the slot with that object itself,
+no typed word consumed, and the typed noun lands in the next slot. The
+classic use is the one-word spell verb:
+
+```
+verb "veznik"
+    cast veznik_spell noun    // VEZNIK GATE: cast, spell as noun, gate as second
+    cast veznik_spell         // bare VEZNIK: cast the spell alone
+```
+
+VEZNIK GATE is then a plain cast from the first instant, a full
+ordinary turn: the cast pre-checks, the second object's own handlers,
+and the after pass all see only cast; no redirect action exists to leak
+into an object's `on other`. One bound object per line, standing before
+the typed slot. To use a word that collides with an object id as plain
+vocabulary instead, quote it (`"veznik_spell"`). A bound line rides the
+positional grammar table (below); a game with no bound line pays
+nothing beyond the matcher itself. The worked showcase is
+`examples/features/grammar-bind.storyarc`.
+
 A two-noun line may end in `reverse`, for a verb whose two objects arrive in
 the other order. Without a preposition it is the classic dative: GIVE and
 SHOW take both `give noun to noun` ("give the coin to Bob") and `give noun

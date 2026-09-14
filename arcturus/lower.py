@@ -94,6 +94,9 @@ INTRINSICS = frozenset({
     "any_pluribus", "any_beyond", "any_death", "any_alter", "any_grains",
     "any_binary",
     "any_allwords", "any_tagged", "any_scored", "any_scoperoom", "scope_room",
+    # any_binds folds the table matcher's bound-slot bookkeeping away in
+    # a game whose grammar binds no object into a slot.
+    "any_binds",
     # any_enterable is 1 when any object is a supporter or a container (by
     # kind chain), so the nested-location suffix on the room title and the
     # status bar ("Crypt (on the altar)") folds away in a game the player
@@ -1817,6 +1820,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_concealed(): 1 when anything is ever concealed (declared or
         # set in play), so gain's noticed-now clear folds away otherwise.
         _place(rt, Const(_any_concealed(ctx.world)), dest)
+    elif name == "any_binds":
+        # any_binds(): 1 when any grammar line binds an object into a slot
+        # (the spell-verb idiom), so the matcher's bound bookkeeping folds.
+        _place(rt, Const(1 if ctx.world.uses_grammar_binds else 0), dest)
     elif name == "any_articles":
         # any_articles(): 1 when anything hand-sets `article`, so the packs'
         # override branch (and its capitalized twin) folds away otherwise.
@@ -4161,6 +4168,8 @@ def _static_value(ctx, expr):
                      or _any_prop(ctx.world, "worn")) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_concealed":
         return _any_concealed(ctx.world)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_binds":
+        return 1 if ctx.world.uses_grammar_binds else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_articles":
         return _any_prop(ctx.world, "article")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_indefinites":

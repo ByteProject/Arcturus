@@ -267,6 +267,8 @@ def line_shape(line: GrammarLine) -> tuple:
     for it in line.items:
         if isinstance(it, ast.Slot):
             out.append(("slot", it.kind))
+        elif isinstance(it, ast.Bind):
+            out.append(("bind", it.target))
         else:
             out.append(("word", it.text.lower()))
     return tuple(out)
@@ -307,6 +309,10 @@ def needs_table(verb: Verb) -> bool:
         for it in line.items:
             if isinstance(it, ast.Slot) and it.kind == "direction":
                 return True
+            # A bound slot is a per-line constant: only the table can
+            # carry it (the flag model has one arity byte per verb).
+            if isinstance(it, ast.Bind):
+                return True
     max_slots = max(
         (sum(1 for it in line.items if isinstance(it, ast.Slot)) for line in verb.grammar),
         default=0,
@@ -345,6 +351,10 @@ def table_line_order(grammar: list) -> list:
     an empty slot). The sort is stable, so lines the rule does not separate keep
     their declared order."""
     def lits(line):
+        # A Bind is NOT a literal here: it consumes no typed word, so
+        # for ordering it weighs nothing, and the fewest-tokens rule
+        # below puts a verb's bare bound line before its slotted one
+        # (VEZNIK alone must not match the noun line incompletely).
         return sum(1 for it in line.items if isinstance(it, ast.Word))
 
     def dirred(line):
@@ -469,6 +479,9 @@ class World:
     # away in a pack without any.
     pronoun_sets: dict[str, int] = field(default_factory=dict)
     uses_pronoun_sets: bool = False
+    # Any grammar line carries a Bind item (the spell-verb idiom): the
+    # any_binds fold keys on this.
+    uses_grammar_binds: bool = False
     # The words that chain commands on one line ("and", "then", the comma), from
     # the language layer's `chain` declarations. The dictionary flags them; the
     # parser splits the line at the first one and queues the rest (docs/01 chapter 14).

@@ -1,0 +1,94 @@
+// grammar-bind.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for GRAMMAR OBJECT BINDING (docs/01 chapter 12): a grammar
+// line may name a declared object in its first slot, and the line then
+// fills that slot with the object itself, no typed word consumed. The
+// classic use is the one-word spell verb: VEZNIK GATE is a plain cast
+// with the spell as the noun and the gate as the second, from the first
+// instant, a full ordinary turn; every handler (the cast pre-check, an
+// object's own reaction, the after pass) sees only cast. A quoted word
+// ("veznik_spell") would stay plain vocabulary instead. A bound line
+// rides the positional grammar table; a game with no bound line pays
+// nothing beyond the matcher's own bytes. Compile and run:
+//
+//   arcc examples/features/grammar-bind.storyarc -o grammar-bind.z5
+//   frotz grammar-bind.z5
+//
+// Try, in order:
+//   cast veznik on gate          the long spelling, the classic cast
+//   veznik gate                  the one-word spelling: the SAME turn
+//   veznik                      the bare bound line: the spell alone
+//   ozmir gate                   a second spell, its own one-word verb
+//   veznik bench                 no special reaction: the default after
+
+game
+    title  "The Practicum"
+    headline "A grammar-binding showcase"
+    author "Stefan Vogt"
+    start  yard
+
+summon.statusline
+
+room yard
+    name "Examination Yard"
+    desc "A walled yard for spell practica. The iron gate to the street is
+          shut fast, and a stone bench waits for candidates."
+
+kind spell of thing
+
+thing veznik_spell of spell in player
+    name "veznik spell"
+    words veznik, spell
+    desc "Veznik: the opener of small ways."
+
+thing ozmir_spell of spell in player
+    name "ozmir spell"
+    words ozmir, spell
+    desc "Ozmir: a light for dark corners."
+
+thing gate of door in yard
+    name "iron gate"
+    words iron, gate
+    on after cast veznik_spell on self
+        now self is open
+        say "The veznik takes hold: the iron gate swings wide."
+        stop
+
+thing bench of supporter in yard
+    name "stone bench"
+    words stone, bench
+    fixed
+
+// The cast verb, both spellings of the two-noun form.
+verb "cast"
+    cast noun
+    cast noun on/onto/at noun
+
+// The pre-check every cast passes through: only a spell casts.
+on cast
+    if noun is not spell
+        change refused to true
+        say "You can wave anything around, but only a spell casts."
+        stop
+    continue
+
+// The one-word spell verbs: each line binds its spell into the first
+// slot, so the typed noun lands in the second. The bare line casts the
+// spell with no target.
+verb "veznik"
+    cast veznik_spell noun
+    cast veznik_spell
+
+verb "ozmir"
+    cast ozmir_spell noun
+    cast ozmir_spell
+
+// The default outcome for any cast nothing more specific claimed.
+on after cast
+    if second is nothing
+        say "${The noun} fizzes and fades: it wants a target."
+        stop
+    say "${The noun} washes over ${the second} without effect."

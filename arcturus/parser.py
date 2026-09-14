@@ -1199,7 +1199,7 @@ class Parser:
         # is elsewhere a slot keyword ("noun" the word) appear as vocabulary.
         if tok.kind == T.STRING:
             self.advance()
-            return ast.Word(self._plain_text(tok))
+            return ast.Word(self._plain_text(tok), quoted=True)
         # A literal preposition word (in, on, with, to, ...). Only a real
         # word may stand here: an operator or stray punctuation used to
         # slip through as a fake literal (the slash trap), entering the
