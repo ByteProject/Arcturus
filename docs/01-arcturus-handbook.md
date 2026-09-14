@@ -5821,6 +5821,10 @@ familiar Inform synonyms:
 - `fetch` / `purloin` - pull any object into your hands.
 - `warp` / `gonear` - teleport to an object's room.
 - `inspect` / `showobj` - an object's location and the attributes it has set.
+
+The three noun verbs reach anything: out of scope by the granule's own
+matcher dispensation, and past the reach gate too (`reachagnostic`), so a
+`beyond` thing warps, purloins, and inspects like any other.
 - `unmute` - hear the background performers: offstage restless prose, muted
   for the player by design (chapter 16), is spoken anyway, each
   pulse tagged with the performer's name in brackets so you can tell who

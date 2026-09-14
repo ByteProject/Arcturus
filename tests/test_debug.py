@@ -120,3 +120,29 @@ def test_purloin_detaches_a_component():
         pass
     assert "Fetched peaked cap." in io.text
     assert "peaked cap" in io.text.split("carrying")[-1]  # now really carried
+
+
+def test_debug_verbs_ignore_the_reach_gate():
+    # A debug tool is reach-agnostic (a field suggestion, 2026-09-14):
+    # warping to, purloining, or inspecting a `beyond` thing is routine
+    # debugging, never a refusal.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    game = (
+        'game\n    title "T"\n    start yard\n'
+        'summon.debug\n'
+        'room yard\n    name "Yard"\n    desc "Open."\n'
+        'room loft\n    name "Loft"\n    desc "High."\n'
+        'thing lantern in loft\n    name "lantern"\n    words lantern\n'
+        '    beyond\n'
+    )
+    io = CaptureIO(script=["warp lantern", "fetch lantern"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(game))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "beyond your reach" not in io.text
+    assert "Loft" in io.text
+    assert "Fetched lantern." in io.text

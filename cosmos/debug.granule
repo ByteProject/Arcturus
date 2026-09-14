@@ -117,6 +117,9 @@ block scope_from(holder, depth)
 // fetch (Inform purloin): pull any object into your hands.
 
 verb "fetch", "purloin" meta
+    // A debug tool ignores the reach gate (Charles Moore Jr.'s
+    // suggestion, 2026-09-14): purloining a beyond thing is the point.
+    reachagnostic
     fetch noun
 
 on fetch
@@ -139,6 +142,8 @@ on fetch
 // warp (Inform gonear): teleport to wherever an object is.
 
 verb "warp", "gonear" meta
+    // Reach-agnostic like fetch: warping TO a beyond thing is routine.
+    reachagnostic
     warp noun
 
 on warp
@@ -223,6 +228,8 @@ block fire_restless()
 // inspect (Inform showobj): an object's location and the attributes it has set.
 
 verb "inspect", "showobj" meta
+    // Reach-agnostic like fetch: inspection is not touching.
+    reachagnostic
     inspect noun
 
 on inspect
