@@ -45,9 +45,17 @@ on use
     msg_use_with
 
 block msg_use_how()
+    if any_firstperson is 1
+        say "But how exactly do I want to use ${the noun}? I need to be more
+             specific, like [push], [pull], or [open]."
+        return 0
     say "How exactly do you want to use ${the noun}? Try to be more
          specific, like [push], [pull], or [open]."
 
 block msg_use_with()
+    if any_firstperson is 1
+        say "I'll have to be more specific about how I want to use
+             ${the noun} with ${the second}."
+        return 0
     say "You'll have to be more specific about how you want to use
          ${the noun} with ${the second}."

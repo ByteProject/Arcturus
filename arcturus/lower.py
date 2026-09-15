@@ -114,6 +114,11 @@ INTRINSICS = frozenset({
     # bridge): the room description then lists what sits on or in scenery
     # holders; 0 (the default) folds the pass away.
     "any_scenery_contents",
+    # any_firstperson is 1 when the game sets `constant first_person = 1`
+    # (the narration constant): the English layer speaks as I instead of
+    # you, every branch a static-if, so a second-person game is
+    # byte-identical and a first-person one pays only its own strings.
+    "any_firstperson",
     # The carry limit (constant item_cap = N, the PunyInform MAX_CARRIED
     # bridge): any_carry_limit folds the take-handler check away when the
     # game sets no limit; carry_limit is the number itself.
@@ -1839,6 +1844,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_appearance(): 1 when anything declares `appearance`, so the
         # room describer's check folds away otherwise.
         _place(rt, Const(_any_prop(ctx.world, "appearance")), dest)
+    elif name == "any_firstperson":
+        # any_firstperson(): 1 when the game narrates in the first person
+        # (constant first_person = 1); the language layer's person
+        # branches fold on it.
+        _place(rt, Const(_first_person(ctx)), dest)
     elif name == "any_scenery_contents":
         # any_scenery_contents(): 1 when the game opts in with `constant
         # scenery_contents = 1` (the arc_mode manner: the constant folds by
@@ -2888,6 +2898,15 @@ def _scenery_contents(ctx) -> int:
     """1 when the game sets `constant scenery_contents = 1`: the opt-in
     for listing scenery holders' contents in the room description."""
     c = ctx.world.constants.get("scenery_contents")
+    if c is not None and isinstance(c.value, ast.Number):
+        return 1 if c.value.value else 0
+    return 0
+
+
+def _first_person(ctx) -> int:
+    """1 when the game sets `constant first_person = 1`: the narration
+    speaks as I (the English layer's person branches fold on this)."""
+    c = ctx.world.constants.get("first_person")
     if c is not None and isinstance(c.value, ast.Number):
         return 1 if c.value.value else 0
     return 0
@@ -4268,6 +4287,8 @@ def _static_value(ctx, expr):
         return _any_components(ctx.world)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_appearance":
         return _any_prop(ctx.world, "appearance")
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_firstperson":
+        return _first_person(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scenery_contents":
         return _scenery_contents(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scored":

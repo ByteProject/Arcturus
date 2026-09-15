@@ -33,6 +33,40 @@
 // calls msg_cant_go whenever the chosen direction has no exit, so overriding this
 // one block is all it takes; no extra grammar or handlers are needed.
 block msg_cant_go()
+    if any_firstperson is 1
+        let n = exits_count
+        // First pass: count the open exits, so the list can read naturally, with
+        // commas between and an "or" before the last one.
+        let total = 0
+        let i = 0
+        while i < n
+            let p = exit_prop(i)
+            if exit_dest(here, p) is not nothing
+                change total to total + 1
+            change i to i + 1
+        if total is 0
+            msg_no_exits
+            return 0
+        // Second pass: print the exits, choosing the connector by position.
+        show("I can only go ")
+        let shown = 0
+        change i to 0
+        while i < n
+            let q = exit_prop(i)
+            if exit_dest(here, q) is not nothing
+                if shown is not 0
+                    if shown is total - 1
+                        show(" or ")
+                    else
+                        show(", ")
+                exit_name(i)
+                change shown to shown + 1
+            change i to i + 1
+        say " from here."
+        return 0
+
+    // A room with no exits at all (rare, but possible while a game is sealed off).
+        return 0
     let n = exits_count
     // First pass: count the open exits, so the list can read naturally, with
     // commas between and an "or" before the last one.

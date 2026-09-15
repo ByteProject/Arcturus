@@ -1227,6 +1227,25 @@ block content_listable(holder, x)
 // sits on or in it, the knowledge model deciding per item. Prints
 // nothing when the holder holds nothing tellable.
 block scenery_holder_line(obj)
+    if any_firstperson is 1
+        if obj is not container
+            if obj is not supporter
+                return 0
+        if listable_count(obj) is 0
+            return 0
+        par
+        if obj is supporter
+            show("On ")
+        else
+            show("In ")
+        art_the(obj, 0)
+        show(" I can see ")
+        name_contents(obj)
+        say "."
+
+    // the contents the player can see or remembers and marking each as seen. Prints
+    // nothing when there is nothing to show. One level deep, by design.
+        return 0
     if obj is not container
         if obj is not supporter
             return 0
@@ -1310,6 +1329,17 @@ block list_contents_run(holder)
 // After a container is opened, name what is revealed inside (marking it seen), so
 // opening a box shows its contents at once rather than only on the next look.
 block reveal_contents(holder)
+    if any_firstperson is 1
+        if listable_count(holder) is 0
+            return 0
+        show("Inside I find ")
+        name_contents(holder)
+        say "."
+
+    // One item as the room listing names it: article, the closed qualifier,
+    // its tag, its contents in passing. The single line and the combined
+    // sentence both speak through this, so they can never drift apart.
+        return 0
     if listable_count(holder) is 0
         return 0
     show("Inside you find ")
@@ -1332,6 +1362,18 @@ block name_room_item(obj)
 // One line of a room's contents listing, naming a container's or supporter's
 // contents in passing.
 block list_item(obj)
+    if any_firstperson is 1
+        show("I can see ")
+        name_room_item(obj)
+        say " here."
+
+    // The room's combined listing sentence (Cosmos 1.5.0, the adopters'
+    // request): every plain item in ONE sentence, "You can see a MRE, a
+    // lantern and a backpack here.", the classic idiom, instead of a line
+    // per item. Which items are plain is the loop's room_plain predicate,
+    // the same one that counted them. A single item keeps going through
+    // list_item, so a game that overrode list_item keeps its wording.
+        return 0
     show("You can see ")
     name_room_item(obj)
     say " here."
@@ -1343,6 +1385,33 @@ block list_item(obj)
 // the same one that counted them. A single item keeps going through
 // list_item, so a game that overrode list_item keeps its wording.
 block list_room(total)
+    if any_firstperson is 1
+        if total is 1
+            for each x in here
+                if room_plain(x) is 1
+                    list_item(x)
+            if any_presence is 1
+                list_presence_one
+            return 0
+        show("I can see ")
+        let shown = 0
+        for each x in here
+            if room_plain(x) is 1
+                if shown is not 0
+                    if shown is total - 1
+                        show(" and ")
+                    else
+                        show(", ")
+                name_room_item(x)
+                change shown to shown + 1
+        if any_presence is 1
+            list_presence_tail(shown, total)
+        say " here."
+
+    // The existence objects' tail of the combined sentence (docs/01 chapter
+    // 3): objects standing here beyond the tree join after the room's own
+    // children, with the same separators. Folds away without the form.
+        return 0
     if total is 1
         for each x in here
             if room_plain(x) is 1
@@ -1417,18 +1486,30 @@ block msg_noun_missing()
 // The beyond refusal (docs/01, beyond): visible, examinable, and the
 // hand does not get there. Takes the object (noun or second).
 block msg_beyond(obj)
+    if any_firstperson is 1
+        if any_pluribus is 1
+            say "${The obj} ${is obj} beyond my reach."
+            return 0
+        say "${The obj} is beyond my reach."
+        return 0
     if any_pluribus is 1
         say "${The obj} ${is obj} beyond your reach."
         return 0
     say "${The obj} is beyond your reach."
 
 block msg_cant_see()
+    if any_firstperson is 1
+        say "I see nothing of the sort here."
+        return 0
     say "You see nothing of the sort here."
 
 block msg_press_any_key()
     say "[...]"
 
 block msg_open_first()
+    if any_firstperson is 1
+        say "I'll have to open ${the shut_in} first."
+        return 0
     say "You'll have to open ${the shut_in} first."
 
 block msg_no_it()
@@ -1457,6 +1538,17 @@ block msg_nothing_again()
     say "There's nothing to repeat."
 
 block msg_only_animate()
+    if any_firstperson is 1
+        say "If I continue talking to objects, it might be time for another therapy session."
+
+    // Conversation lines. The `you` and `reply` topic sugar auto-quotes and
+    // attributes a line of dialogue; the compiler supplies the line's text and
+    // calls these for the framing. The speaker label, the separator, and the
+    // quotation marks all live here, so a story can restyle them and a language
+    // pack can translate them (German low-high quotes, French guillemets, a
+    // different speaker tag). line_reply receives the speaking person; ${The x}
+    // prints a named person bare (Linda) and others with the article (The guard).
+        return 0
     say "If you continue talking to objects, it might be time for another therapy session."
 
 // Conversation lines. The `you` and `reply` topic sugar auto-quotes and
@@ -1467,6 +1559,9 @@ block msg_only_animate()
 // different speaker tag). line_reply receives the speaking person; ${The x}
 // prints a named person bare (Linda) and others with the article (The guard).
 block line_you()
+    if any_firstperson is 1
+        show("Me: \"")
+        return 0
     show("You: \"")
 
 block line_reply(speaker)
@@ -1486,9 +1581,19 @@ block line_talk_prompt()
     show("Press a number to ask, or 0 to leave.")
 
 block msg_no_topics()
+    if any_firstperson is 1
+        say "I can't think of anything worth raising right now."
+        return 0
     say "You can't think of anything worth raising right now."
 
 block msg_talk_over()
+    if any_firstperson is 1
+        say "I let the conversation rest there."
+
+    // The status line's score side (the statusline granule): the score and the move
+    // count, right-aligned, in the language's own words and widths. status_digits is a
+    // core helper, so this compiles whether or not the granule is summoned.
+        return 0
     say "You let the conversation rest there."
 
 // The status line's score side (the statusline granule): the score and the move
@@ -1517,6 +1622,9 @@ block line_status_score(w)
 
 // Room and light.
 block msg_dark_room()
+    if any_firstperson is 1
+        say "Pitch black. Even my hands have gone missing."
+        return 0
     say "Pitch black. Even your hands have gone missing."
 
 block msg_too_dark()
@@ -1530,12 +1638,27 @@ block msg_no_direction()
     say "Which way?"
 
 block msg_cant_enter()
+    if any_firstperson is 1
+        say "I can't get inside ${the noun}."
+        return 0
     say "You can't get inside ${the noun}."
 
 block msg_already_there()
+    if any_firstperson is 1
+        say "I'm already there."
+        return 0
     say "You're already there."
 
 block msg_not_inside()
+    if any_firstperson is 1
+        say "I'm already standing up."
+
+    // Boarding and leaving, worded by the world model: on a supporter, in a
+    // container (the choice is made in board_report / leave_report).
+    // The language layer's posture seam (core enter calls it while
+    // verb_trigger still holds the typed word): SIT and REST sit, STAND
+    // stands; the enter, board, and mount words climb.
+        return 0
     say "You're already standing up."
 
 // Boarding and leaving, worded by the world model: on a supporter, in a
@@ -1554,6 +1677,15 @@ block posture_note()
     return 0
 
 block msg_get_on()
+    if any_firstperson is 1
+        if posture is 1
+            say "I sit down on ${the noun}."
+            return 0
+        if posture is 3
+            say "I stand on ${the noun}."
+            return 0
+        say "I get on ${the noun}."
+        return 0
     if posture is 1
         say "You sit down on ${the noun}."
         return 0
@@ -1563,18 +1695,33 @@ block msg_get_on()
     say "You get on ${the noun}."
 
 block msg_get_in()
+    if any_firstperson is 1
+        if posture is 1
+            say "I sit down in ${the noun}."
+            return 0
+        say "I get into ${the noun}."
+        return 0
     if posture is 1
         say "You sit down in ${the noun}."
         return 0
     say "You get into ${the noun}."
 
 block msg_get_off()
+    if any_firstperson is 1
+        if posture is 1
+            say "I get up from ${the noun}."
+            return 0
+        say "I get off ${the noun}."
+        return 0
     if posture is 1
         say "You get up from ${the noun}."
         return 0
     say "You get off ${the noun}."
 
 block msg_get_out()
+    if any_firstperson is 1
+        say "I get out of ${the noun}."
+        return 0
     say "You get out of ${the noun}."
 
 block msg_cant_climb()
@@ -1593,10 +1740,22 @@ block msg_examine_self()
 
 // LOOK UNDER: its own action, so a story can hide a key under the mat.
 block msg_look_under()
+    if any_firstperson is 1
+        say "I find nothing of interest under ${the noun}."
+
+    // The carry limit's refusal (constant max_carried = N).
+        return 0
     say "You find nothing of interest under ${the noun}."
 
 // The carry limit's refusal (constant max_carried = N).
 block msg_carry_limit()
+    if any_firstperson is 1
+        say "My hands are full, and so are my pockets."
+
+    // A container's own ceiling refusing (item_cap, chapter 6). The argument is
+    // the container that overflowed, which under nesting may sit ABOVE the one
+    // the player named: the pouch fits the pebble, the chest around it does not.
+        return 0
     say "Your hands are full, and so are your pockets."
 
 // A container's own ceiling refusing (item_cap, chapter 6). The argument is
@@ -1620,19 +1779,33 @@ block msg_weight_unit()
 
 // Push and pull part ways (Stefan's own voice, now the library's).
 block msg_push()
+    if any_firstperson is 1
+        say "I give ${the noun} a bit of a push."
+        return 0
     say "You give ${the noun} a bit of a push."
 
 block msg_pull()
+    if any_firstperson is 1
+        say "I yank at ${the noun} but nothing noteworthy happens."
+
+    // Talking to yourself.
+        return 0
     say "You yank at ${the noun} but nothing noteworthy happens."
 
 // Talking to yourself.
 block msg_talk_self()
+    if any_firstperson is 1
+        say "Nothing I hear surprises me."
+        return 0
     say "Nothing you hear surprises you."
 
 block msg_nothing_special()
     say "Nothing about ${the noun} rewards a closer look."
 
 block msg_touch()
+    if any_firstperson is 1
+        say "I touch ${the noun}. I feel nothing that my eyes didn't already see."
+        return 0
     say "You touch ${the noun}. You feel nothing that your eyes didn't already see."
 
 block msg_smell()
@@ -1643,15 +1816,28 @@ block msg_smell()
     say "${The noun} smells as expected."
 
 block msg_smell_air()
+    if any_firstperson is 1
+        say "I sniff at the air, perceiving nothing that surprises me."
+        return 0
     say "You sniff at the air, perceiving nothing that surprises you."
 
 block msg_smell_self()
+    if any_firstperson is 1
+        say "I smell as fine as usual."
+        return 0
     say "You smell as fine as usual."
 
 block msg_listen()
+    if any_firstperson is 1
+        say "I listen. Nothing answers."
+        return 0
     say "You listen. Nothing answers."
 
 block msg_listen_self()
+    if any_firstperson is 1
+        say "I can hear the familiar rumble of my blood stream and the
+             faint whine of my nervous system."
+        return 0
     say "You can hear the familiar rumble of your blood stream and the
          faint whine of your nervous system."
 
@@ -1659,6 +1845,9 @@ block msg_listen_animate()
     say "${The noun} is silent."
 
 block msg_listen_thing()
+    if any_firstperson is 1
+        say "I hear no unexpected sound coming from ${the noun}."
+        return 0
     say "You hear no unexpected sound coming from ${the noun}."
 
 block msg_taste()
@@ -1666,10 +1855,18 @@ block msg_taste()
 
 // Carrying and giving.
 block msg_taken()
+    if any_firstperson is 1
+        say "I take ${the noun} with me."
+
+    // Lifted out of a container the player carries (the take handler decides).
+        return 0
     say "You take ${the noun} with you."
 
 // Lifted out of a container the player carries (the take handler decides).
 block msg_taken_out()
+    if any_firstperson is 1
+        say "I take ${the noun} out."
+        return 0
     say "You take ${the noun} out."
 
 block msg_fixed()
@@ -1687,14 +1884,26 @@ block msg_animate_refuses()
     say "${The noun} has other ideas."
 
 block msg_have_it()
+    if any_firstperson is 1
+        say "I already have ${the noun}."
+        return 0
     say "You already have ${the noun}."
 
 block msg_take_self()
+    if any_firstperson is 1
+        say "I keep a firm grip on myself."
+
+    // Taking a component (a lever in a machine): the part stays on its whole.
+    // Leaving a named thing the player is not actually in (exit noun).
+        return 0
     say "You keep a firm grip on yourself."
 
 // Taking a component (a lever in a machine): the part stays on its whole.
 // Leaving a named thing the player is not actually in (exit noun).
 block msg_not_in_that()
+    if any_firstperson is 1
+        say "I'm not in that."
+        return 0
     say "You aren't in that."
 
 block msg_part_of()
@@ -1745,6 +1954,9 @@ block msg_wont_shift()
     say "${The noun} can't be pushed from place to place."
 
 block msg_shifted()
+    if any_firstperson is 1
+        say "I put my shoulder to ${the noun} and shove it along."
+        return 0
     say "You put your shoulder to ${the noun} and shove it along."
 
 block msg_yes()
@@ -1754,16 +1966,35 @@ block msg_no()
     say "Noted, though nothing was on the table."
 
 block msg_not_holding()
+    if any_firstperson is 1
+        say "I'm not carrying ${the noun}."
+
+    // The worn seam's rejection (drop/put/insert of something worn; the
+    // foresight granule takes it off implicitly instead).
+        return 0
     say "You aren't carrying ${the noun}."
 
 // The worn seam's rejection (drop/put/insert of something worn; the
 // foresight granule takes it off implicitly instead).
 block msg_take_off_first()
+    if any_firstperson is 1
+        say "I would have to take ${the noun} off first."
+
+    // The requires check's second-slot twin (a two-noun verb whose SECOND must
+    // be carried); the noun-slot failures speak msg_not_holding above.
+        return 0
     say "You would have to take ${the noun} off first."
 
 // The requires check's second-slot twin (a two-noun verb whose SECOND must
 // be carried); the noun-slot failures speak msg_not_holding above.
 block msg_not_holding_second()
+    if any_firstperson is 1
+        say "I'm not carrying ${the second}."
+
+    // The per-item label of a sweep or a noun list ("gold coin: Taken.").
+    // Language-layer so a pack restyles the punctuation (French puts a space
+    // before the colon: "perle rouge : ..."). Dead code without a sweep.
+        return 0
     say "You aren't carrying ${the second}."
 
 // The per-item label of a sweep or a noun list ("gold coin: Taken.").
@@ -1813,6 +2044,13 @@ block msg_give()
     say "${The second} doesn't want ${the noun}. Outrageous."
 
 block msg_ask_for()
+    if any_firstperson is 1
+        if any_pluribus is 1
+            if noun is pluribus
+                say "${The noun} have nothing like that for me."
+                return 0
+        say "${The noun} has nothing like that for me."
+        return 0
     if any_pluribus is 1
         if noun is pluribus
             say "${The noun} have nothing like that for you."
@@ -1834,6 +2072,9 @@ block msg_worn()
     say "On it goes."
 
 block msg_already_worn()
+    if any_firstperson is 1
+        say "I'm already wearing ${the noun}."
+        return 0
     say "You're already wearing ${the noun}."
 
 block msg_cant_wear()
@@ -1851,6 +2092,11 @@ block msg_removed()
     say "Off it comes."
 
 block msg_not_worn()
+    if any_firstperson is 1
+        say "I'm not wearing ${the noun}."
+
+    // Doors, containers, locks.
+        return 0
     say "You aren't wearing ${the noun}."
 
 // Doors, containers, locks.
@@ -1883,6 +2129,13 @@ block msg_door_locked(d)
     say "${The d} is locked."
 
 block msg_door_shut(d)
+    if any_firstperson is 1
+        if any_pluribus is 1
+            if d is pluribus
+                say "${The d} are shut. I open them first."
+                return 0
+        say "${The d} is shut. I open it first."
+        return 0
     if any_pluribus is 1
         if d is pluribus
             say "${The d} are shut. You open them first."
@@ -1890,12 +2143,24 @@ block msg_door_shut(d)
     say "${The d} is shut. You open it first."
 
 block msg_get_out_first(obj)
+    if any_firstperson is 1
+        if obj is supporter
+            say "I would have to get off ${the obj} first."
+            return 0
+        say "I would have to get out of ${the obj} first."
+        return 0
     if obj is supporter
         say "You would have to get off ${the obj} first."
         return 0
     say "You would have to get out of ${the obj} first."
 
 block msg_in_itself()
+    if any_firstperson is 1
+        if second is supporter
+            say "I can't put ${the noun} on top of itself."
+            return 0
+        say "I can't put ${the noun} inside itself."
+        return 0
     if second is supporter
         say "You can't put ${the noun} on top of itself."
         return 0
@@ -1938,11 +2203,20 @@ block msg_cant_lock()
     say "${The noun} doesn't lock, and shows no ambition to start."
 
 block msg_close_first()
+    if any_firstperson is 1
+        say "I'd have to close ${the noun} first; locking an open thing fools no one."
+
+    // Deliberately unnamed: a bare UNLOCK on an undiscovered lock must not spoil
+    // what opens it. Mechanism-agnostic: the opener may be a key, a card, a code.
+        return 0
     say "You'd have to close ${the noun} first; locking an open thing fools no one."
 
 // Deliberately unnamed: a bare UNLOCK on an undiscovered lock must not spoil
 // what opens it. Mechanism-agnostic: the opener may be a key, a card, a code.
 block msg_no_key()
+    if any_firstperson is 1
+        say "I don't have whatever ${the noun} wants, and looking hopeful isn't helping."
+        return 0
     say "You don't have whatever ${the noun} wants, and looking hopeful isn't helping."
 
 block msg_wrong_key()
@@ -1957,10 +2231,24 @@ block msg_unlocked()
 
 // A UNLOCK on something with no lock at all: the verb just opens it.
 block msg_cant_unlock()
+    if any_firstperson is 1
+        say "Nothing about ${the noun} needs unlocking, so I just open it."
+
+    // A UNLOCK on a lockable thing that is already unlocked: open it instead.
+        return 0
     say "Nothing about ${the noun} needs unlocking, so you just open it."
 
 // A UNLOCK on a lockable thing that is already unlocked: open it instead.
 block msg_not_locked()
+    if any_firstperson is 1
+        if any_pluribus is 1
+            if noun is pluribus
+                say "${The noun} are already unlocked, so I skip the suspense and open them."
+                return 0
+        say "${The noun} is already unlocked, so I skip the suspense and open it."
+
+    // Operating.
+        return 0
     if any_pluribus is 1
         if noun is pluribus
             say "${The noun} are already unlocked, so you skip the suspense and open them."
@@ -1976,9 +2264,15 @@ block msg_no_switch()
     say "${The noun} isn't the switching kind."
 
 block msg_switched_on()
+    if any_firstperson is 1
+        say "I switch ${the noun} on."
+        return 0
     say "You switch ${the noun} on."
 
 block msg_switched_off()
+    if any_firstperson is 1
+        say "I switch ${the noun} off."
+        return 0
     say "You switch ${the noun} off."
 
 block msg_already_on()
@@ -2003,6 +2297,14 @@ block msg_no_effect()
 // The dispatcher's refusal tail: a verb the game declared but nothing
 // claims (no object, no room, no free rule). Folds away with any_unruled.
 block msg_cant_do()
+    if any_firstperson is 1
+        if noun is nothing
+            say "I can't do that."
+            return 0
+        say "I can't do that to ${the noun}."
+
+    // Body, action, idle.
+        return 0
     if noun is nothing
         say "You can't do that."
         return 0
@@ -2014,6 +2316,15 @@ block msg_attack()
 
 // The consume line, for a thing that IS on the menu (edible, chapter 5).
 block msg_eaten()
+    if any_firstperson is 1
+        if any_pluribus is 1
+            if noun is pluribus
+                say "${The noun} go down smoothly. My stomach remains
+                     suspicious, but accepts the offering."
+                return 0
+        say "${The noun} goes down smoothly. My stomach remains suspicious,
+             but accepts the offering."
+        return 0
     if any_pluribus is 1
         if noun is pluribus
             say "${The noun} go down smoothly. Your stomach remains
@@ -2032,21 +2343,41 @@ block msg_drink()
     say "Nothing here is worth a sip."
 
 block msg_jump()
+    if any_firstperson is 1
+        say "I hop on the spot. Nothing comes of it, but it felt good."
+        return 0
     say "You hop on the spot. Nothing comes of it, but it felt good."
 
 block msg_wait()
     say "Time slips by."
 
 block msg_kiss()
+    if any_firstperson is 1
+        say "${The noun} is unmoved by my display of affection."
+        return 0
     say "${The noun} is unmoved by your display of affection."
 
 block msg_kiss_self()
+    if any_firstperson is 1
+        say "My feelings for myself are primarily of a platonic nature."
+        return 0
     say "Your feelings for yourself are primarily of a platonic nature."
 
 block msg_kiss_thing()
+    if any_firstperson is 1
+        say "I practice some objectophilia with ${the noun}."
+        return 0
     say "You practice some objectophilia with ${the noun}."
 
 block msg_sing()
+    if any_firstperson is 1
+        say "I hum a few notes."
+
+    // The NPC engine's presence prose (summon.npcengine, docs/01 chapter 22):
+    // spoken by the walk exactly where the player is; a game reskins any line
+    // by redefining its block. Unreferenced without the summon, so every
+    // other game sheds them whole.
+        return 0
     say "You hum a few notes."
 
 // The NPC engine's presence prose (summon.npcengine, docs/01 chapter 22):
@@ -2080,12 +2411,21 @@ block msg_npc_opens(x, dd)
 // `on command` handler anywhere).
 // maniacswap (summon.maniacswap, docs/01 chapter 22).
 block msg_become()
+    if any_firstperson is 1
+        say "I am now ${the noun}."
+        return 0
     say "You are now ${the noun}."
 
 block msg_not_playable()
+    if any_firstperson is 1
+        say "I can't be ${the noun}."
+        return 0
     say "You can't be ${the noun}."
 
 block msg_already_self()
+    if any_firstperson is 1
+        say "I already am."
+        return 0
     say "You already are."
 
 block msg_wont_obey()
@@ -2126,13 +2466,26 @@ block msg_tell()
     say "${The noun} receives the news with magnificent indifference."
 
 block msg_answer()
+    if any_firstperson is 1
+        say "My words go unanswered."
+
+    // Inventory.
+        return 0
     say "Your words go unanswered."
 
 // Inventory.
 block msg_carrying()
+    if any_firstperson is 1
+        say "I'm carrying:"
+        return 0
     say "You're carrying:"
 
 block msg_empty_handed()
+    if any_firstperson is 1
+        say "I'm carrying precisely nothing."
+
+    // Scenery default.
+        return 0
     say "You're carrying precisely nothing."
 
 // Scenery default.
@@ -2220,6 +2573,9 @@ block msg_confirm_restart()
     show("Start over from the very beginning? ")
 
 block msg_xyzzy()
+    if any_firstperson is 1
+        say "Nothing happens, but I feel briefly clever."
+        return 0
     say "Nothing happens, but you feel briefly clever."
 
 block msg_saved()
@@ -2324,12 +2680,21 @@ block line_seek_notice(r)
 
 
 block msg_no_way_known()
+    if any_firstperson is 1
+        say "I don't know the way there."
+        return 0
     say "You don't know the way there."
 
 block msg_unknown_place()
+    if any_firstperson is 1
+        say "I don't know that place."
+        return 0
     say "You don't know that place."
 
 block msg_seek_unknown()
+    if any_firstperson is 1
+        say "I don't know of any such thing."
+        return 0
     say "You don't know of any such thing."
 
 block msg_find_here(o)
@@ -2358,6 +2723,15 @@ block msg_way_lies(d)
     say " lies ${the d}."
 
 block msg_way_unknown()
+    if any_firstperson is 1
+        let at = dir_word_at
+        if at is 0
+            say "That way is open, but I haven't been to see."
+            return 0
+        show("The way ")
+        show_dir_word(at, 0)
+        say " is open, but I haven't been that way yet."
+        return 0
     let at = dir_word_at
     if at is 0
         say "That way is open, but you haven't been to see."

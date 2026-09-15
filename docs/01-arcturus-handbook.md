@@ -4695,6 +4695,33 @@ granule that is not a language pack is likewise an error; neither can silently
 leave English baked in beside the new language. The worked example is
 `examples/ejemplo-espanol.storyarc`.
 
+### First-person narration
+
+English can narrate in the first person: one constant, and the library
+speaks as I.
+
+```
+constant first_person = 1
+```
+
+Everything the narration says follows: "I can see a hurricane lamp
+here.", "I take the lamp with me.", "I'm carrying:", the refusals ("I
+would have to get out of the wardrobe first."), the reports, and the
+extended verbs. The SYSTEM voice deliberately stays second person: the
+parser's clarifying questions ("The verb take requires you to be more
+specific."), the quit, death, and score prompts, and bracketed notices
+address the player at the keyboard, not the narrator, in both
+narrations. A game's own prose is its author's, so write your desc and
+say lines in the person you narrate in; any single library line can
+still be overridden by declaring the block yourself, as ever.
+
+The default is second person, and it costs nothing to stay there:
+every person branch folds at compile time, so a game without the
+constant is byte-identical to one compiled before the feature existed.
+English only; the German and Spanish layers keep their own single
+voice. Worked example:
+[examples/features/first-person.storyarc](../examples/features/first-person.storyarc).
+
 ## Chapter 22: Summon: the granules
 
 `summon` brings an optional Cosmos feature, or your own granule, into the build.

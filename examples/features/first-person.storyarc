@@ -1,0 +1,49 @@
+// first-person.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for FIRST-PERSON NARRATION (docs/01 chapter 21): one
+// constant and the library speaks as I: listings, refusals, reports,
+// the extended verbs, all of it. The system voice stays second person
+// by design (the parser's clarifying questions, the quit and death
+// prompts, bracketed notices address the player at the keyboard, not
+// the narrator). Every person branch folds at compile time, so a
+// second-person game is byte-identical and this game pays only its own
+// strings. English only. Compile and run:
+//
+//   arcc examples/features/first-person.storyarc -o first-person.z5
+//   frotz first-person.z5
+//
+// Try, in order:
+//   look                         "I can see a hurricane lamp here."
+//   take lamp                    "I take the hurricane lamp with me."
+//   i                            "I'm carrying:"
+//   sit on bunk                  "I sit down on the bunk."
+//   take bunk                    "The bunk stays exactly where it is."
+//   take                         the parser still asks YOU (system voice)
+//   quit                         and still asks "Are you sure...?"
+
+game
+    title  "The Night Watch"
+    headline "A first-person showcase"
+    author "Stefan Vogt"
+    start  cabin
+
+constant first_person = 1
+
+summon.statusline
+
+room cabin
+    name "Watch Cabin"
+    desc "My cabin for the night watch: a bunk, a shelf, and the long
+          hours."
+
+thing lamp in cabin
+    name "hurricane lamp"
+    words hurricane, lamp
+
+thing bunk of supporter in cabin
+    name "bunk"
+    words bunk
+    fixed
