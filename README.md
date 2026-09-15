@@ -43,21 +43,25 @@ or later, which you almost certainly already have.
 | Component | Version | Download |
 |-----------|---------|----------|
 | **arcc**, the compiler (the Cosmos library is embedded inside it) | 2.16.0 | [build/arcc](build/arcc) |
-| **Cosmos**, the standard library | 1.28.0 | shipped inside `arcc` |
+| **Cosmos**, the standard library | 1.36.0 | shipped inside `arcc` |
 | **Actaea**, the reference interpreter | 2.1.0 | [build/actaea](build/actaea) |
-| **arcimg**, the arc_image tool (optional, for graphics) | 2.1.0 | [build/arcimg](build/arcimg) |
+| **arcimg**, the arc_image tool (optional, for graphics) | 2.3.1 | [build/arcimg](build/arcimg) |
 | **proteus**, the web story builder (optional, for the web) | 1.0.0 | [build/proteus](build/proteus) |
 
-The setup is easy. Download, `chmod +x`, done. Keeping them current is one command: `arcc --update` refreshes all of them in place.
+The setup is easy: download the files, `chmod +x` them, and put their
+folder on your PATH (or drop them into `/usr/local/bin`). From then on
+they run as plain commands, no `python3` prefix needed; each file names
+its own interpreter. Keeping them current is one command: `arcc
+--update` refreshes all of them in place.
 
 Write a game, compile it, play it:
 
 ```
-python3 arcc mygame.storyarc -o mygame.z5    # compile to a Z-machine story
-python3 actaea mygame.z5                      # play it in a window,
-python3 actaea --console mygame.z5            # or in the terminal
-python3 proteus mygame.z5 -o mygame.html     # or publish it on the web:
-                                              # one self-contained page
+arcc mygame.storyarc -o mygame.z5    # compile to a Z-machine story
+actaea mygame.z5                     # play it in a window,
+actaea --console mygame.z5           # or in the terminal
+proteus mygame.z5 -o mygame.html     # or publish it on the web:
+                                     # one self-contained page
 ```
 
 The story file `mygame.z5` is a standard Z-machine v5 file: it also plays on Frotz, Ozmoo, and any other interpreter, old or new. The [Arcturus Handbook](docs/01-arcturus-handbook.md) will teach you everything (the language, the runtime, and the granules) in one book. And when you want to play or debug, the [Actaea guide](docs/06-actaea.md), will introduce you to the Arcturus reference interpreter. The full documentation index is [below](#the-language).
