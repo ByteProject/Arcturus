@@ -479,6 +479,8 @@ class World:
     # away in a pack without any.
     pronoun_sets: dict[str, int] = field(default_factory=dict)
     uses_pronoun_sets: bool = False
+    # Free-standing static word lists (list <name> = ...): name -> ListDecl.
+    lists: dict = field(default_factory=dict)
     # Any grammar line carries a Bind item (the spell-verb idiom): the
     # any_binds fold keys on this.
     uses_grammar_binds: bool = False

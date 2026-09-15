@@ -235,6 +235,7 @@ CEILINGS = {
     "features/perform.storyarc": 18096,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/grains.storyarc": 17900,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/handlers.storyarc": 19296,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/word-lists.storyarc": 18528,  # 2026-09-15: the word-list showcase
     "features/grammar-bind.storyarc": 19312,  # 2026-09-14: the binding showcase
     "features/grammar.storyarc": 18204,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/introproperty.storyarc": 19952,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)

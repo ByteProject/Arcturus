@@ -643,9 +643,21 @@ class CatalogDecl:
     name: str
     values: list[Expr] = field(default_factory=list)
     line: int = 0
-    # `catalog <name> with words`: the entries are VOCABULARY, dictionary
-    # words rather than objects or text (a language pack's pronoun table).
-    words: bool = False
+
+
+@dataclass
+class ListDecl:
+    """list <name> = w1, w2, ...: a free-standing STATIC LIST of
+    dictionary words, the top-level form of the list type behind words
+    and plural (a language pack's pronoun table; Inform's static word
+    array). Entries, bare or quoted (an apostrophe form no identifier
+    can carry), enter the dictionary owned by nothing; the table lives
+    in static memory and is fixed at compile time, the vocabulary rule.
+    Read with words_addr(<name>) and words_count(<name>)."""
+
+    name: str
+    words: list[str] = field(default_factory=list)
+    line: int = 0
 
 
 @dataclass

@@ -40,6 +40,7 @@ class Operand:
     routine: Optional[str] = None  # set when this is an unresolved call target
     string: Optional[str] = None  # set when this is an unresolved packed-string ref
     dictword: Optional[str] = None  # set when this is an unresolved dictionary-entry ref
+    listname: Optional[str] = None  # set when this is an unresolved list-table ref
 
 
 def Const(v: int) -> Operand:
@@ -66,6 +67,13 @@ def StringRef(sid: str) -> Operand:
     """A reference to a packed string (by id): a large-constant placeholder,
     patched with the string's packed address at link time."""
     return Operand(LARGE, 0, string=sid)
+
+
+def ListTableRef(name: str) -> Operand:
+    """A reference to a free-standing list's static table (by list name):
+    a large-constant placeholder, patched with the table's absolute
+    address once the tables are laid out. words_addr(<list>) is this."""
+    return Operand(LARGE, 0, listname=name)
 
 
 def DictWordRef(word: str) -> Operand:
@@ -395,6 +403,8 @@ class Routine:
             self.fixups.append(_Fixup(offset_in_code, "strref", op.string))
         elif op.dictword is not None:
             self.fixups.append(_Fixup(offset_in_code, "dictref", op.dictword))
+        elif op.listname is not None:
+            self.fixups.append(_Fixup(offset_in_code, "listref", op.listname))
 
     def _emit_branch(self, label: str, on_true: bool) -> None:
         # Reserve two bytes for the wide form; relax() later rewrites the branch to
@@ -482,7 +492,7 @@ class Routine:
         for f in jumps:
             by_pos[f.offset - 1] = ("jump", f)
         for f in self.fixups:
-            if f.kind in ("call", "strref", "dictref"):
+            if f.kind in ("call", "strref", "dictref", "listref"):
                 by_pos[f.offset] = ("keep", f)
 
         new_code = bytearray()
@@ -590,6 +600,7 @@ def link(entry: Routine, routines: list[Routine], base_addr: int, scale: int = 4
     # references are collected for the caller, which knows those addresses.
     strrefs: list[tuple[int, str]] = []
     dictrefs: list[tuple[int, str]] = []
+    listrefs: list[tuple[int, str]] = []
     for r in [entry] + routines:
         cs = code_starts[r.name]
         for fx in r.fixups:
@@ -599,6 +610,9 @@ def link(entry: Routine, routines: list[Routine], base_addr: int, scale: int = 4
                 continue
             if fx.kind == "dictref":
                 dictrefs.append((pos, fx.target))
+                continue
+            if fx.kind == "listref":
+                listrefs.append((pos, fx.target))
                 continue
             if fx.kind == "call":
                 if fx.target not in packed:
@@ -629,4 +643,4 @@ def link(entry: Routine, routines: list[Routine], base_addr: int, scale: int = 4
                 blob[pos] = (offset >> 8) & 0xFF
                 blob[pos + 1] = offset & 0xFF
 
-    return bytes(blob), base_addr + entry_code_start, strrefs, packed, dictrefs
+    return bytes(blob), base_addr + entry_code_start, strrefs, packed, dictrefs, listrefs

@@ -1384,7 +1384,13 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("loadb", Variable(STACK), Const(0), store=dest)
         _free(ctx, t)
     elif name == "words_addr":
-        # words_addr(obj): the address of the object's words array (0 if none).
+        # words_addr(obj): the address of the object's words array (0 if
+        # none). words_addr(<list>): a free-standing list's static table,
+        # a link-time constant (chapter 5's list type at top level).
+        if isinstance(args[0], ast.Name) and args[0].ident in ctx.world.lists:
+            from .assembler import ListTableRef
+            _place(rt, ListTableRef(args[0].ident), dest)
+            return
         op, t = _operand(rt, ctx, args[0])
         rt.op("get_prop_addr", op, Const(_words_prop(ctx)), store=dest)
         _free(ctx, t)
@@ -1429,6 +1435,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
             _free(ctx, t)
     elif name == "words_count":
         # words_count(obj): how many words the object has (the array length / 2).
+        # words_count(<list>): a free-standing list's length, compile time.
+        if isinstance(args[0], ast.Name) and args[0].ident in ctx.world.lists:
+            _place(rt, Const(len(ctx.world.lists[args[0].ident].words)), dest)
+            return
         op, t = _operand(rt, ctx, args[0])
         rt.op("get_prop_addr", op, Const(_words_prop(ctx)), store=Variable(STACK))
         rt.op("get_prop_len", Variable(STACK), store=Variable(STACK))

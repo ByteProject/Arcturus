@@ -28,14 +28,6 @@ from . import worldmodel as wm
 from . import zstring
 
 
-def _word_spelling(v) -> str:
-    """A with-words catalog entry's spelling: a bare name's identifier or
-    a quoted literal's text, lowercased the way the dictionary stores it."""
-    if hasattr(v, "ident"):
-        return v.ident.lower()
-    return "".join(p.text for p in v.parts).lower()
-
-
 def _kinds_looped(world) -> set:
     """Kind names a `for each ... of <kind>` loops over, anywhere in the
     program (handlers, blocks, property bodies, topics): each gets an
@@ -576,13 +568,6 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
                 sid = f"cat_{cname}@{at}"
                 layout.strings[sid] = _plain(v)
                 layout.string_fixups.append((at, sid))
-                _append_word(layout.table, 0)
-            elif cat.etype == "word":
-                # a vocabulary entry: the word's absolute dictionary
-                # address, patched once the dictionary is placed (the
-                # words-property fixup list; dictionary.build collects
-                # these spellings, so the entry always exists)
-                layout.word_fixups.append((at, _word_spelling(v)))
                 _append_word(layout.table, 0)
             elif cat.etype == "number":
                 _append_word(layout.table, v.value & 0xFFFF)

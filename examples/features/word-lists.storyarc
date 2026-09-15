@@ -1,0 +1,69 @@
+// word-lists.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the FREE-STANDING WORD LIST (docs/01 chapter 5): the
+// list type behind `words` and `plural`, declared at top level. The
+// entries are dictionary words owned by nothing, so none of them names
+// an examinable object; the table is a bare static run of dictionary
+// addresses, read through the shared accessors words_addr and
+// words_count, searched with scan_table, and fixed at compile time.
+// A quoted entry carries a spelling no identifier can (sh'ka). Compile
+// and run:
+//
+//   arcc examples/features/word-lists.storyarc -o word-lists.z5
+//   frotz word-lists.z5
+//
+// Try, in order:
+//   drum veshka                  a known code, the wrong one
+//   drum morra                   another
+//   drum sh'ka                   the pass code: the gate opens
+//   north                        through it
+//   drum banana                  not a code at all
+//   x veshka                     a list word names no object
+//
+game
+    title  "The Drum Gate"
+    headline "A word-list showcase"
+    author "Stefan Vogt"
+    start  post
+
+summon.statusline
+
+room post
+    name "Sentry Post"
+    desc "A drum hangs at the sealed gate to the north. Three codes are
+          drummed here; only one is this month's."
+    north gate
+
+thing gate of door in post, beyond_post
+    name "sealed gate"
+    words sealed, gate
+    lockable
+    locked
+
+room beyond_post
+    name "Beyond the Gate"
+    desc "The road runs on."
+    south gate
+
+list drum_codes = veshka, morra, "sh'ka"
+
+verb "drum", "tap"
+    drum text
+
+on drum
+    let w = word_dict(1)
+    let hit = scan_table(w, words_addr(drum_codes), words_count(drum_codes))
+    if hit is 0
+        change refused to true
+        say "You drum it out. Nothing about it sounds like a code."
+        stop
+    let i = (hit - words_addr(drum_codes)) / 2 + 1
+    if i is 3
+        now gate is not locked
+        now gate is open
+        say "The third code. Bolts slide; the gate swings open."
+        stop
+    say "A real code, but not this month's. The gate stays shut."

@@ -200,8 +200,8 @@ the same constant interpolates as usual.
 
 A CATALOG is a fixed, ordered collection declared once, like a star
 catalog: one value per indented line, one TYPE of value per catalog
-(strings, numbers, objects, directions, or, `with words`, vocabulary),
-the compiler counting so no size is ever written:
+(strings, numbers, objects, or directions), the compiler counting so no
+size is ever written:
 
 ```
 catalog last_letter
@@ -253,21 +253,10 @@ catalog escape_route
     up
 ```
 
-A catalog `with words` holds VOCABULARY instead: each entry, bare or
-quoted (quotes carry a spelling no identifier can, an apostrophe form),
-is a dictionary word, and the entries enter the dictionary by
-declaration, owned by nothing, so none of them names an examinable
-object. The cells hold the words' dictionary addresses, exactly what
-`word_dict(i)` answers for a typed word, so membership, `position`,
-`entry`, and `for each` all work on typed input; a language pack's
-pronoun tables are the home case (chapter 23 shows the worked pair).
-
-```
-catalog pronoms with words
-    se
-    lui
-    leur
-```
+A table of VOCABULARY is not a catalog but a LIST, the same type
+behind `words` and `plural`, declared free-standing (chapter 5):
+`list pronoms = se, lui, leur`. A catalog holds values the game reads
+and rewrites; a list holds dictionary words, fixed at compile time.
 
 A catalog passes to a block as an ordinary value (`quote_catalog(letter)`,
 chapter 22), and entry/calculate work on the parameter inside; `for each` and
@@ -872,6 +861,15 @@ physical storage.
 
 The declared default's type fixes the property's type program-wide. Using one
 property as two types is a compile error naming both sites.
+
+The list type also stands free of any object: `list codes = veshka,
+morra, "sh'ka"` declares a STATIC LIST of dictionary words at top level
+(quotes carry a spelling no identifier can, an apostrophe form). The
+words enter the dictionary owned by nothing, the table is fixed at
+compile time (the vocabulary rule; `add` and `remove` refuse, as on
+every list), and it reads through the shared accessors, `words_addr`
+and `words_count` (chapter 23 shows the worked pair with `scan_table`).
+Worked example: [examples/features/word-lists.storyarc](../examples/features/word-lists.storyarc).
 
 Representation is chosen by the compiler in the same whole-program pass that
 performs dead-code elimination:
@@ -6653,28 +6651,30 @@ primitives Cosmos itself is written on. They are not secret (`arcc
 library's vocabulary rather than the author's, and the design records
 (03 and 04) are their reference.
 
-Vocabulary work (a language pack's pronoun tables, say) pairs two of
-them with a catalog form. A catalog declared `with words` holds
-VOCABULARY: each entry, bare or quoted, is a dictionary word, and the
-entries enter the dictionary by declaration, so a table of forms the
-pack rewrites INTO needs no object to own them (and nothing becomes
-examinable):
+Vocabulary work (a language pack's pronoun tables, say) pairs the
+substrate with the LIST, chapter 5's word-array type declared
+free-standing: `list pronoms = se, lui, leur`. The entries, bare or
+quoted (an apostrophe form no identifier can carry), enter the
+dictionary owned by nothing, and the table is a bare run of dictionary
+addresses in static memory, read through the accessors every word
+array shares: `words_addr(pronoms)` is the table (a link-time
+constant), `words_count(pronoms)` the length (a compile-time one), so
+`scan_table` searches it and paired lists read back by the same offset
+arithmetic Inform's static word arrays did:
 
 ```
-catalog pronoms with words
-    se
-    lui
-    leur
+list pronoms = se, lui, leur
+list replacements = soi, leur, sien
+
+let w = word_dict(1)
+let hit = scan_table(w, words_addr(pronoms), words_count(pronoms))
+if hit is not 0
+    let i = (hit - words_addr(pronoms)) / 2
+    // peek_word(words_addr(replacements), i) is the paired form
 ```
 
-Its cells hold the words' dictionary addresses, exactly what
-`word_dict(i)` answers for a typed word, so the whole catalog toolkit
-applies: `word_dict(1) in pronoms` is membership, `position` gives the
-index, and `entry(replacements, i)` reads the paired form back, the
-same offset arithmetic Inform's static word arrays did. The quoted
-entry form carries a spelling no identifier can (an apostrophe form,
-an accent). For a single comparison the substrate has `dict_entry("se")`,
-the literal twin of `word_dict`: the spelling's dictionary address at
+For a single comparison the substrate has `dict_entry("se")`, the
+literal twin of `word_dict`: the spelling's dictionary address at
 compile time (a plain string literal is a string VALUE, a different
 thing); the German pack's da-word branch is its worked use.
 

@@ -210,6 +210,8 @@ class Parser:
             return self.parse_ranks()
         if t.kind == T.NAME and t.value == "subject":
             return self.parse_subject()
+        if t.is_kw("list"):
+            return self.parse_list()
         if t.kind == T.NAME and t.value == "catalog":
             return self.parse_catalog()
         if t.kind == T.NAME and t.value == "matrix":
@@ -1215,24 +1217,37 @@ class Parser:
 
     # -- globals, constants, blocks ----------------------------------------
 
+    def parse_list(self) -> ast.ListDecl:
+        # list <name> = w1, w2, ...: the free-standing STATIC LIST of
+        # dictionary words (chapter 5's list type at top level). Entries
+        # are bare names, or quoted for a spelling no identifier can
+        # carry (an apostrophe form).
+        line = self.cur.line
+        self.advance()  # the leading `list`
+        name = self.expect_name("a list name").value
+        self.expect_op("=")
+        words: list[str] = []
+        while True:
+            if self.check(T.STRING):
+                words.append(self._plain_text(self.cur).strip().lower())
+                self.advance()
+            else:
+                words.append(self.expect_name("a word").value.lower())
+            if self.check_op(","):
+                self.advance()
+                continue
+            break
+        self.expect_newline()
+        if not words:
+            raise self._error(f"list '{name}' is empty", None)
+        return ast.ListDecl(name, words, line)
+
     def parse_catalog(self) -> ast.CatalogDecl:
         # catalog <name>, then one value per indented line: a string, a
         # number, or an object name. The compiler counts; no size is written.
         line = self.cur.line
         self.advance()  # the leading `catalog`
         name = self.expect_name("a catalog name").value
-        # `with words`: the entries are vocabulary (dictionary words), one
-        # per line, bare or quoted (a spelling no identifier can carry:
-        # an apostrophe form, an accent).
-        words = False
-        if self._at_word("with"):
-            self.advance()
-            marker = self.expect_name("the catalog content marker").value
-            if marker != "words":
-                raise self._error(
-                    f"'with {marker}' is not a catalog form; the one "
-                    f"marker is `with words` (vocabulary entries)")
-            words = True
         self.expect_newline()
         self.expect(T.INDENT, "an indented list of values, one per line")
         values: list[ast.Expr] = []
@@ -1245,7 +1260,7 @@ class Parser:
         self.expect(T.DEDENT)
         if not values:
             raise self._error(f"catalog '{name}' is empty", None)
-        return ast.CatalogDecl(name, values, line, words)
+        return ast.CatalogDecl(name, values, line)
 
     def _parse_matrix_cell_and_checked(self):
         # The shared `[of object|byte] [checked]` tail of a matrix head.

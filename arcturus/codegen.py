@@ -1180,6 +1180,21 @@ def build_story(
     # (the verb contract, `requires ... carried`, is the one held spelling).
     slot_codes = {"noun": 1, "multi": 3, "text": 4, "direction": 6,
                   "letters": 7, "number": 8, "anychar": 9}
+    # Free-standing static word LISTS (list <name> = ..., chapter 5's
+    # list type at top level): each is a bare run of dictionary-address
+    # words in static memory, no header (the count is compile time), the
+    # entries patched by the same fixup pass as grammar literals. The
+    # table addresses feed the listref code fixups (words_addr).
+    list_addrs: dict = {}
+    if world.lists:
+        lt = bytearray()
+        lbase = sf.here()
+        for lname, lst in world.lists.items():
+            list_addrs[lname] = lbase + len(lt)
+            for wword in lst.words:
+                grammar_fixups.append((lbase + len(lt), wword))
+                lt += b"\x00\x00"
+        sf.append(bytes(lt))
     tabled = wm.tabled_verbs(world) if layout is not None else []
     if tabled:
         actions_map = _action_numbers(world)
@@ -1283,7 +1298,7 @@ def build_story(
 
     # High memory: the entry stub and routines, run from the initial PC.
     high_base = sf.here()
-    blob, initial_pc, strrefs, packed_routines, dictrefs = link(
+    blob, initial_pc, strrefs, packed_routines, dictrefs, listrefs = link(
         entry, routines, high_base, scale)
     blob_start = sf.here()
     sf.append(blob)
@@ -1337,6 +1352,8 @@ def build_story(
     # Dictionary-entry references in code (`verb_trigger is "roll"`): the
     # word's absolute dictionary address, exactly what word_dict() returns at
     # run time, so the compare is address against address.
+    for pos, lname in listrefs:
+        sf.set_word(blob_start + pos, list_addrs[lname])
     for pos, word in dictrefs:
         if word not in word_offsets:
             raise CodegenError(
