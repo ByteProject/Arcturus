@@ -52,6 +52,33 @@ def _run(cmds, game=GAME):
     return io.text
 
 
+def test_in_and_position_search_a_list():
+    game = GAME.replace(
+        "    let hit = scan_table(w, words_addr(pronoms), words_count(pronoms))\n"
+        "    if hit is 0\n"
+        "        say \"not a pronoun\"\n"
+        "        stop\n"
+        "    let i = (hit - words_addr(pronoms)) / 2\n"
+        "    if peek_word(words_addr(replacements), i) is dict_entry(\"leur\")\n"
+        "        say \"slot ${i + 1}: pairs with leur\"\n"
+        "    else\n"
+        "        say \"slot ${i + 1}\"\n",
+        "    if not (w in pronoms)\n"
+        "        say \"not a pronoun\"\n"
+        "        stop\n"
+        "    let i = position(pronoms, w)\n"
+        "    if peek_word(words_addr(replacements), i - 1) is dict_entry(\"leur\")\n"
+        "        say \"slot ${i}: pairs with leur\"\n"
+        "    else\n"
+        "        say \"slot ${i}\"\n",
+    )
+    out = _run(["probe se", "probe lui", "probe s'", "probe hall"], game)
+    assert "slot 1" in out
+    assert "slot 2: pairs with leur" in out
+    assert "slot 3" in out
+    assert "not a pronoun" in out
+
+
 def test_word_list_scans_and_pairs():
     out = _run(["probe se", "probe lui", "probe s'", "probe hall"])
     assert "slot 1" in out

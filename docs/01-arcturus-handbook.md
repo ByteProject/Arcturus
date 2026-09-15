@@ -867,8 +867,10 @@ morra, "sh'ka"` declares a STATIC LIST of dictionary words at top level
 (quotes carry a spelling no identifier can, an apostrophe form). The
 words enter the dictionary owned by nothing, the table is fixed at
 compile time (the vocabulary rule; `add` and `remove` refuse, as on
-every list), and it reads through the shared accessors, `words_addr`
-and `words_count` (chapter 23 shows the worked pair with `scan_table`).
+every list), and it is searched with `in` and
+`position` exactly as a catalog is (one native `scan_table`
+underneath), the shared accessors `words_addr` and `words_count`
+beneath them (chapter 23 shows the worked pair).
 Worked example: [examples/features/word-lists.storyarc](../examples/features/word-lists.storyarc).
 
 Representation is chosen by the compiler in the same whole-program pass that
@@ -6658,8 +6660,10 @@ quoted (an apostrophe form no identifier can carry), enter the
 dictionary owned by nothing, and the table is a bare run of dictionary
 addresses in static memory, read through the accessors every word
 array shares: `words_addr(pronoms)` is the table (a link-time
-constant), `words_count(pronoms)` the length (a compile-time one), so
-`scan_table` searches it and paired lists read back by the same offset
+constant), `words_count(pronoms)` the length (a compile-time one).
+Search it with the words you already know: `w in pronoms` is
+membership and `position(pronoms, w)` the 1-based index, both riding
+one native `scan_table`; paired lists read back by the same offset
 arithmetic Inform's static word arrays did:
 
 ```
@@ -6667,10 +6671,9 @@ list pronoms = se, lui, leur
 list replacements = soi, leur, sien
 
 let w = word_dict(1)
-let hit = scan_table(w, words_addr(pronoms), words_count(pronoms))
-if hit is not 0
-    let i = (hit - words_addr(pronoms)) / 2
-    // peek_word(words_addr(replacements), i) is the paired form
+if w in pronoms
+    let i = position(pronoms, w)
+    // peek_word(words_addr(replacements), i - 1) is the paired form
 ```
 
 For a single comparison the substrate has `dict_entry("se")`, the

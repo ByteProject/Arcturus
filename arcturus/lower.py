@@ -768,6 +768,20 @@ def _call(rt, ctx, expr: ast.Call, dest):
     if expr.name in INTRINSICS:
         _intrinsic(rt, ctx, expr, dest)
         return
+    # position(<list>, w): the free-standing word list's search rides its
+    # own twin (list_position, one scan_table), the list's address and
+    # length as compile-time operands (docs/01 chapter 5).
+    if (expr.name == "position" and len(expr.args) == 2
+            and isinstance(expr.args[0], ast.Name)
+            and expr.args[0].ident in ctx.world.lists):
+        from .assembler import ListTableRef
+        lst = ctx.world.lists[expr.args[0].ident]
+        valop, tv = _operand(rt, ctx, expr.args[1])
+        rt.op("call_vs", RoutineRef("blk_list_position"),
+              ListTableRef(expr.args[0].ident), Const(len(lst.words)),
+              valop, store=dest)
+        _free(ctx, tv)
+        return
     if expr.name not in ctx.world.blocks:
         raise LowerError(f"call to unknown block '{expr.name}'", expr.line)
     if len(expr.args) > 7:
@@ -2797,6 +2811,20 @@ def _emit_test(rt, ctx, expr, label, on_true):
             rt.op("je", opa, opb, branch=(label, t))
         if tmp is not None:
             ctx.free_temp(tmp)
+        return
+    if isinstance(expr, ast.Binary) and expr.op == "in" \
+            and isinstance(expr.right, ast.Name) \
+            and expr.right.ident in ctx.world.lists:
+        # Membership in a free-standing word LIST: one scan_table via
+        # list_position (docs/01 chapter 5), branching on found > 0.
+        from .assembler import ListTableRef
+        lst = ctx.world.lists[expr.right.ident]
+        valop, tv = _operand(rt, ctx, expr.left)
+        rt.op("call_vs", RoutineRef("blk_list_position"),
+              ListTableRef(expr.right.ident), Const(len(lst.words)),
+              valop, store=Variable(STACK))
+        _free(ctx, tv)
+        rt.op("jg", Variable(STACK), Const(0), branch=(label, on_true))
         return
     if isinstance(expr, ast.Binary) and expr.op == "in" \
             and _catalog_off(ctx, expr.right) is not None:

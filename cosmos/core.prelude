@@ -79,6 +79,16 @@ block swap(old, new)
 // membership and position share one routine, present only when some game
 // asks (DCE). The region layout is [count, widest, e1..eN] per catalog,
 // reached through the __catalogs__ base; l is the catalog's word offset.
+// The LIST twin of position below: search a free-standing word list by
+// its table address and length (docs/01 chapter 5). scan_table is the
+// interpreter's own search, so this is the fast path; `w in <list>` and
+// `position(<list>, w)` both compile onto it. DCE drops it unused.
+block list_position(base, count, target)
+    let hit = scan_table(target, base, count)
+    if hit is 0
+        return 0
+    return (hit - base) / 2 + 1
+
 block position(l, val)
     let n = peek_word(catalogs_base, l)
     let i = 1

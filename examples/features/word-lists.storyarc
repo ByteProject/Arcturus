@@ -8,7 +8,8 @@
 // entries are dictionary words owned by nothing, so none of them names
 // an examinable object; the table is a bare static run of dictionary
 // addresses, read through the shared accessors words_addr and
-// words_count, searched with scan_table, and fixed at compile time.
+// words_count, searched with `in` and `position` (one native
+// scan_table underneath), and fixed at compile time.
 // A quoted entry carries a spelling no identifier can (sh'ka). Compile
 // and run:
 //
@@ -55,12 +56,11 @@ verb "drum", "tap"
 
 on drum
     let w = word_dict(1)
-    let hit = scan_table(w, words_addr(drum_codes), words_count(drum_codes))
-    if hit is 0
+    if not (w in drum_codes)
         change refused to true
         say "You drum it out. Nothing about it sounds like a code."
         stop
-    let i = (hit - words_addr(drum_codes)) / 2 + 1
+    let i = position(drum_codes, w)
     if i is 3
         now gate is not locked
         now gate is open
