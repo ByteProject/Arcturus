@@ -1019,6 +1019,12 @@ verb "ask", "interrogate", "query"
     ask noun about text
     ask_for noun for text
 
+// No `text` slot here, deliberately: TELL is one action, so it stays
+// on the compact flag model, which has no text slots; the trailing
+// `about` registers the separator word, and the shared subject scanner
+// (subject_typed) finds the subject past it by position. ASK spells
+// `ask noun about text` only because ask/ask_for put it on the
+// positional table anyway, where text slots live. Same behavior.
 verb "tell", "inform"
     reachagnostic
     tell noun
