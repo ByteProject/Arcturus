@@ -2777,7 +2777,7 @@ The world verbs:
 | `talk` | TALK TO, TALK, GREET | `talk noun`; the conversation action (below). Talking to yourself: "Nothing you hear surprises you." |
 | `ask` | ASK | `ask noun`, `ask noun about text`. |
 | `ask_for` | ASK ... FOR | `ask_for noun for text`; a request, distinct from asking about. |
-| `tell` | TELL, INFORM | `tell noun`, `tell noun about`. |
+| `tell` | TELL, INFORM | `tell noun`, `tell noun about`. No `text` slot, none needed: TELL is one action and keeps the compact flag grammar, and the subject after ABOUT is read by the same scanner ASK's text slot feeds; TELL X ABOUT Y behaves exactly like its ASK twin. |
 | `answer` | ANSWER, RESPOND | `answer noun`. |
 | `touch` | TOUCH, FEEL, PAT | `touch noun`. |
 | `smell` | SMELL, SNIFF | `smell`, `smell noun`; the air, yourself, and the thing each answer differently. |
