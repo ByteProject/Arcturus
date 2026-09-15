@@ -2761,7 +2761,7 @@ The world verbs:
 | `inventory` | INVENTORY, I, INV | `inventory`. |
 | `go` | GO, WALK, RUN, or a bare direction word | `go`, `go noun`; the noun slot is the direction and rides `way` (chapter 8). |
 | `enter` | ENTER, BOARD, MOUNT, SIT (ON/IN), REST | `enter noun`; sitting is boarding. |
-| `exit` | EXIT, LEAVE, OUT, STAND (UP) | `exit`, `exit noun`; STAND ON X boards instead. A closed container's lid gates the way out as it gates the way in, on every path (a walk's implicit exit included): "The trunk is shut." The foresight granule opens it first instead ("(opening the trunk first)"); a locked lid speaks the open's refusal. |
+| `exit` | EXIT, LEAVE, OUT, STAND (UP) | `exit`, `exit noun`; STAND ON X boards instead. A closed container's lid gates the way out as it gates the way in, on every path (a walk's implicit exit and boarding something else included; ENTER leaves the current seat first, for real, as a walk does): "The trunk is shut." The foresight granule opens it first instead ("(opening the trunk first)"); a locked lid speaks the open's refusal. |
 | `open` | OPEN, UNCOVER, UNWRAP | `open noun`, `open noun with noun`. |
 | `close` | CLOSE, SHUT, COVER | `close noun`. |
 | `lock` | LOCK | `lock noun with noun`, `lock noun`. |

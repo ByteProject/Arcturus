@@ -60,3 +60,24 @@ def test_foresight_opens_the_lid_and_locked_speaks_open():
     # the locked lid earns exactly the open's refusal
     assert "The steamer trunk is locked." in out
     assert "is shut." not in out
+
+
+def test_boarding_something_else_leaves_the_seat_first():
+    # ENTER tunneled through the lid (a field report, 2026-09-15: from a
+    # locked container onto a table, state untouched, no promises): now
+    # boarding unnests through the REAL exits, the walk's own rule, so
+    # the lid seam governs every way out of a seat.
+    game2 = GAME.replace('room hold', 'thing bench of supporter in hold\n'
+                         '    name "bench"\n    words bench\n    fixed\n'
+                         'room hold')
+    out = _run(["enter trunk", "close trunk", "sit on bench"], game=game2)
+    assert "The steamer trunk is shut." in out
+    assert "(on the bench)" not in out
+    game3 = "summon.foresight\n" + game2
+    out = _run(["enter trunk", "close trunk", "sit on bench",
+                "enter trunk"], game=game3)
+    assert "(getting out of the steamer trunk first)" in out
+    assert "(opening the steamer trunk first)" in out
+    assert "You sit down on the bench." in out
+    # and seat to seat hops with the promise
+    assert "(getting up from the bench first)" in out
