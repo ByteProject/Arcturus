@@ -6,6 +6,15 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **The whole machine park, one command.** `arcimg convert art/ --all
+  -o out/ --preview previews/` converts every master for every retro
+  machine at once: one folder per target (out/c64/, out/ami/,
+  out/zx3/, ...), a pixel-exact preview folder beside each, per-class
+  master selection (masters-broad/) and the Spectrum colour path
+  applying per target as ever, and machines whose converter is still
+  to come reported once and skipped. Preparing sources got simpler
+  too: a file named 1.png IS picture 1, and art already at a band
+  size keeps its shape (arcimg 2.3.1).
 - **Say I: first-person narration.** One constant in your game,
   `constant first_person = 1`, and the whole English library narrates
   as I: "I take the lamp with me.", "I'm carrying:", every listing,
@@ -51,21 +60,6 @@ lives in the commit log. The feature roadmap follows below.
   verbatim in your refusals, `number` as a plain value. A dial is one
   handler and an if. Works in all three languages out of the box
   (arcc 1.14.4, Cosmos 1.17.4).
-- **Carrying, three ways.** Declare nothing and the player carries
-  everything, as before. `constant item_cap = N` is the classic item
-  limit, now counted honestly: what is inside a carried sack counts,
-  a loaded box is priced as it is lifted, and rearranging what you
-  already carry is never refused; `global carry_limit = N` is the same
-  limit movable at run time, and containers can carry their own
-  ceiling (`item_cap 3` on a box, bottomless without it). And
-  `summon.carryweight` prices mass instead, the tradition of the PAW
-  school: things weigh (`weight 2.1`, half a unit if unsaid), the
-  player carries a budget (10.0 unless you set one), a count and a
-  budget enforce side by side, and the unit is a label an author can
-  turn into pounds with one overridden block. `box.item_count` and
-  `box.totalweight` read like properties and are computed on demand
-  (arcc 1.14.0, Cosmos 1.17.0).
-
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus
