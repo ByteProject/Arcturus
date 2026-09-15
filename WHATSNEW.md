@@ -6,6 +6,15 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Say I: first-person narration.** One constant in your game,
+  `constant first_person = 1`, and the whole English library narrates
+  as I: "I take the lamp with me.", "I'm carrying:", every listing,
+  report, and refusal, the extended verbs included. The system voice
+  deliberately stays second person (the parser's clarifying questions
+  and the quit and death prompts talk to the player at the keyboard,
+  not the narrator), any single line is still yours to override by
+  declaring its block, and a second-person game compiles byte for
+  byte as before (arcc 2.16.0, Cosmos 1.36.0).
 - **Touch is the default: the reach gate moves into the house.** Every
   action now honors `beyond` centrally, before any handler runs: a new
   verb refuses what is out of reach with zero gate code, an object's
@@ -56,16 +65,7 @@ lives in the commit log. The feature roadmap follows below.
   turn into pounds with one overridden block. `box.item_count` and
   `box.totalweight` read like properties and are computed on demand
   (arcc 1.14.0, Cosmos 1.17.0).
-- **Actaea 2.0: a massive overhaul of the reference interpreter.**
-  Three selectable looks, set in a selected serif, a clean, and a
-  retro typeface. Long passages page with [MORE] instead of scrolling
-  past unread. Two window shapes, the portrait Modern (4:5) and the
-  classic 4:3, and the window remembers its size, position, and
-  settings between sessions. `actaea --install-app` installs it as a
-  native application on the host system, macOS, Linux, or Windows,
-  while it stays fully accessible from the command line, and
-  `arcc --update` continues to update everything in place when the
-  tools are kept together (Actaea 2.0.0, Cosmos 1.16.4).
+
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus
