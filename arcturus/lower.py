@@ -52,6 +52,9 @@ def exit_directions(layout):
 # handler_of reads an object's react routine address (for the dispatcher).
 INTRINSICS = frozenset({
     "read_line", "peek_byte", "peek_word", "poke_byte", "poke_word",
+    # dict_word("se") is the word's dictionary address, a compile-time
+    # literal: what word_dict() answers for the typed spelling.
+    "dict_word",
     # scan_table(value, addr, count) searches count words from addr for the
     # value, the interpreter's own table search (VAR:23): the address of the
     # first match, 0 when absent. The raw-memory family's search primitive.
@@ -1749,6 +1752,26 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         eval_expr(rt, ctx, args[0], Variable(STACK))
         rt.op("tokenise", Variable(STACK), Variable(STACK))
         _place(rt, Const(0), dest)
+    elif name == "dict_word":
+        # dict_word("se"): the word's DICTIONARY address, a compile-time
+        # literal (the Inform 'se' idiom, auraes's ask, 2026-09-15): what
+        # word_dict() returns for the typed spelling, so parse-buffer
+        # words compare and scan against vocabulary directly. A plain
+        # string literal stays a pooled STRING address (string identity,
+        # the strings-as-values rule), a different thing; this is the one
+        # spelling for vocabulary. The word must be in the dictionary
+        # (codegen checks once it is built) or the test could never be
+        # true.
+        if len(args) != 1 or not isinstance(args[0], ast.StringLit):
+            raise LowerError(
+                'dict_word takes one quoted word: dict_word("se")',
+                call.line)
+        word = _plain_string(args[0])
+        if word is None or len(word.strip().split()) != 1:
+            raise LowerError(
+                "dict_word takes exactly one word", call.line)
+        from .assembler import DictWordRef
+        _place(rt, DictWordRef(word.strip().lower()), dest)
     elif name == "scan_table":
         # scan_table(value, addr, count): the interpreter's table search
         # (VAR:23) over count words from addr, storing the address of the

@@ -127,3 +127,47 @@ def test_read_line_and_parse_buffer_on_frotz(tmp_path):
     ).stdout
     # All four typed words are in the dictionary.
     assert "Known:" in out and "4" in out
+
+
+def test_dict_word_is_the_dictionary_address():
+    # dict_word("beacon"): the compile-time dictionary literal (the
+    # Inform 'word' idiom, 2026-09-15); a plain string literal stays a
+    # pooled STRING address, so only this form compares against
+    # word_dict()'s answers.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+
+    src = (
+        'game\n    start plaza\n'
+        'room plaza\n    name "Plaza"\n    desc "Broad."\n'
+        'thing beacon in plaza\n    name "beacon"\n    words beacon, lamp\n'
+        'verb "probe"\n    wprobe text\n'
+        'on wprobe\n'
+        '    if word_dict(1) is dict_word("lamp")\n'
+        '        say "THE LAMP WORD"\n'
+        '    else\n'
+        '        say "SOME OTHER WORD"\n'
+    )
+    from arcturus import cosmos
+    io = CaptureIO(script=["probe lamp", "probe beacon"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=5_000_000)
+    except IndexError:
+        pass
+    assert "THE LAMP WORD" in io.text
+    assert "SOME OTHER WORD" in io.text
+
+
+def test_dict_word_unknown_is_a_compile_error():
+    from arcturus import cosmos
+    from arcturus.errors import ArcError
+    src = (
+        'game\n    start plaza\n'
+        'room plaza\n    name "Plaza"\n    desc "x"\n'
+        'on start\n    if word_dict(0) is dict_word("xyzzyplugh")\n'
+        '        say "never"\n'
+    )
+    with pytest.raises(ArcError, match="vocabulary"):
+        generate(analyze(cosmos.combined_program(parse(src))))

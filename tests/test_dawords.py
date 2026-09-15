@@ -104,3 +104,21 @@ def test_the_chain_showcase():
     out = _replies(GAME, ["nimm den schluessel und schliess damit die tuer auf"])
     assert "Du nimmst den Schlüssel an dich." in out
     assert "Aufgeschlossen." in out
+
+
+def test_darin_raises_the_insert_action():
+    # darin picks the IN line's action, so a container's own `on insert`
+    # gate fires for "leg das buch darin" exactly as for "leg das buch in
+    # die truhe". (The first cut compared the da-word against a plain
+    # string literal, a pooled-string address, silently never true: the
+    # branch always chose put, indistinguishable in the free rules but
+    # not for an author's gate; caught 2026-09-15.)
+    game = GAME.replace(
+        "thing truhe of container in halle\n    name \"Truhe\"\n    words truhe\n"
+        "    die\n    openable\n",
+        "thing truhe of container in halle\n    name \"Truhe\"\n    words truhe\n"
+        "    die\n    openable\n    open\n"
+        "    on insert\n        say \"INSERT-TOR\"\n        stop\n",
+    )
+    out = _replies(game, ["oeffne truhe", "nimm buch", "leg das buch darin"])
+    assert "INSERT-TOR" in out

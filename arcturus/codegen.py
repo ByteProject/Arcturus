@@ -1339,8 +1339,11 @@ def build_story(
     # run time, so the compare is address against address.
     for pos, word in dictrefs:
         if word not in word_offsets:
-            raise AssertionError(
-                f'dictionary reference to unknown word "{word}"')
+            raise CodegenError(
+                f'dict_word("{word}"): the word is in no one\'s vocabulary, '
+                f'so the compare could never be true. A word enters the '
+                f'dictionary through an object\'s words list, a verb, or a '
+                f'grammar line.')
         sf.set_word(blob_start + pos, dict_addr + word_offsets[word])
 
     # Bootstrap the location globals so the turn loop starts in the right place:

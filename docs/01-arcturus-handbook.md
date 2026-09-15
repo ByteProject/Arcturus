@@ -6637,3 +6637,27 @@ primitives Cosmos itself is written on. They are not secret (`arcc
 library's vocabulary rather than the author's, and the design records
 (03 and 04) are their reference.
 
+Two of them pair up for vocabulary work (a language pack's pronoun
+tables, say). `dict_word("se")` is a typed word's DICTIONARY address as
+a compile-time literal, the same value `word_dict(i)` answers for the
+word at position i, so a parse-buffer word compares against a spelling
+directly; a plain string literal is a different thing (a string value,
+compared by identity), and a `dict_word` naming a word in no one's
+vocabulary is a compile error. For an ARRAY of vocabulary, no new form
+is needed: an object's `words` list is laid out as exactly that, a run
+of dictionary addresses at `words_addr(obj)`, `words_count(obj)` long,
+in declaration order, so a backstage object is a word table and
+`scan_table` searches it:
+
+```
+thing pronoun_row in scope
+    words se, lui, leur
+    scenery
+
+let hit = scan_table(word_dict(1), words_addr(pronoun_row),
+                     words_count(pronoun_row))
+```
+
+`hit` is the matching entry's address (0 when absent), so paired tables
+read back by the same offset arithmetic Inform's static arrays did.
+
