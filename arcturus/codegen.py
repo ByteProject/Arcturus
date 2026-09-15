@@ -1340,7 +1340,7 @@ def build_story(
     for pos, word in dictrefs:
         if word not in word_offsets:
             raise CodegenError(
-                f'dict_word("{word}"): the word is in no one\'s vocabulary, '
+                f'dict_entry("{word}"): the word is in no one\'s vocabulary, '
                 f'so the compare could never be true. A word enters the '
                 f'dictionary through an object\'s words list, a verb, or a '
                 f'grammar line.')

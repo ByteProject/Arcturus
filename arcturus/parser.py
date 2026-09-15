@@ -1221,6 +1221,18 @@ class Parser:
         line = self.cur.line
         self.advance()  # the leading `catalog`
         name = self.expect_name("a catalog name").value
+        # `with words`: the entries are vocabulary (dictionary words), one
+        # per line, bare or quoted (a spelling no identifier can carry:
+        # an apostrophe form, an accent).
+        words = False
+        if self._at_word("with"):
+            self.advance()
+            marker = self.expect_name("the catalog content marker").value
+            if marker != "words":
+                raise self._error(
+                    f"'with {marker}' is not a catalog form; the one "
+                    f"marker is `with words` (vocabulary entries)")
+            words = True
         self.expect_newline()
         self.expect(T.INDENT, "an indented list of values, one per line")
         values: list[ast.Expr] = []
@@ -1233,7 +1245,7 @@ class Parser:
         self.expect(T.DEDENT)
         if not values:
             raise self._error(f"catalog '{name}' is empty", None)
-        return ast.CatalogDecl(name, values, line)
+        return ast.CatalogDecl(name, values, line, words)
 
     def _parse_matrix_cell_and_checked(self):
         # The shared `[of object|byte] [checked]` tail of a matrix head.

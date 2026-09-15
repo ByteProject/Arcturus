@@ -643,6 +643,9 @@ class CatalogDecl:
     name: str
     values: list[Expr] = field(default_factory=list)
     line: int = 0
+    # `catalog <name> with words`: the entries are VOCABULARY, dictionary
+    # words rather than objects or text (a language pack's pronoun table).
+    words: bool = False
 
 
 @dataclass

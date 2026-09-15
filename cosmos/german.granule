@@ -297,11 +297,11 @@ block resolve_objects()
                         change parse_fault to noun_fault(1, word_count)
                         return 1
                     change line_act to action_id("put")
-                    // dict_word, not a plain string: a bare literal is a
+                    // dict_entry, not a plain string: a bare literal is a
                     // pooled STRING address and the compare would be
                     // silently false (the latent bug of 2026-09-13,
                     // caught by auraes's dictionary question).
-                    if dw is dict_word("darin") or dw is dict_word("drin")
+                    if dw is dict_entry("darin") or dw is dict_entry("drin")
                         change line_act to action_id("insert")
                     return 1
                 let tbl = peek_word(d + 7, 0)

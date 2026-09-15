@@ -141,6 +141,12 @@ def collect_vocab(world: wm.World) -> set:
             for it in line.items:
                 if isinstance(it, ast.Word):
                     words.add(it.text.lower())
+    # A `with words` catalog's entries are vocabulary by declaration: a
+    # table of forms a language pack rewrites INTO needs no object to own
+    # them (docs/01, catalogs).
+    for cat in world.catalogs.values():
+        if cat.etype == "word":
+            words.update(objects._word_spelling(v) for v in cat.values)
     _room_names = wm.has_summon(world, "pathfinding")
     _reserved = frozenset(objects.grammar_reserved_words(world))
     for obj in world.objects.values():

@@ -129,8 +129,8 @@ def test_read_line_and_parse_buffer_on_frotz(tmp_path):
     assert "Known:" in out and "4" in out
 
 
-def test_dict_word_is_the_dictionary_address():
-    # dict_word("beacon"): the compile-time dictionary literal (the
+def test_dict_entry_is_the_dictionary_address():
+    # dict_entry("beacon"): the compile-time dictionary literal (the
     # Inform 'word' idiom, 2026-09-15); a plain string literal stays a
     # pooled STRING address, so only this form compares against
     # word_dict()'s answers.
@@ -144,7 +144,7 @@ def test_dict_word_is_the_dictionary_address():
         'thing beacon in plaza\n    name "beacon"\n    words beacon, lamp\n'
         'verb "probe"\n    wprobe text\n'
         'on wprobe\n'
-        '    if word_dict(1) is dict_word("lamp")\n'
+        '    if word_dict(1) is dict_entry("lamp")\n'
         '        say "THE LAMP WORD"\n'
         '    else\n'
         '        say "SOME OTHER WORD"\n'
@@ -160,13 +160,13 @@ def test_dict_word_is_the_dictionary_address():
     assert "SOME OTHER WORD" in io.text
 
 
-def test_dict_word_unknown_is_a_compile_error():
+def test_dict_entry_unknown_is_a_compile_error():
     from arcturus import cosmos
     from arcturus.errors import ArcError
     src = (
         'game\n    start plaza\n'
         'room plaza\n    name "Plaza"\n    desc "x"\n'
-        'on start\n    if word_dict(0) is dict_word("xyzzyplugh")\n'
+        'on start\n    if word_dict(0) is dict_entry("xyzzyplugh")\n'
         '        say "never"\n'
     )
     with pytest.raises(ArcError, match="vocabulary"):

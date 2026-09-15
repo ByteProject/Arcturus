@@ -528,6 +528,28 @@ class Analyzer:
             elif isinstance(decl, ast.CatalogDecl):
                 self._seen(decl.name, decl.line)
                 values = [self._const_text(v) for v in decl.values]
+                if decl.words:
+                    # `with words`: every entry is a VOCABULARY word, bare
+                    # or quoted (the quoted form carries a spelling no
+                    # identifier can: an apostrophe, a leading digit). The
+                    # entries enter the dictionary, so a table of forms a
+                    # language pack rewrites INTO needs no object to own
+                    # them (auraes's pronoun table, 2026-09-15).
+                    for v in values:
+                        ok = isinstance(v, ast.Name) or (
+                            isinstance(v, ast.StringLit)
+                            and all(isinstance(pp, ast.StringText)
+                                    for pp in v.parts))
+                        if not ok:
+                            raise self._error(
+                                f"catalog '{decl.name}' is `with words`: "
+                                f"every entry is a word, bare or quoted",
+                                decl.line,
+                            )
+                    w.catalogs[decl.name] = wm.Catalog(
+                        decl.name, "word", values, decl.line
+                    )
+                    continue
                 etype = None
                 for v in values:
                     if isinstance(v, ast.StringLit):

@@ -351,3 +351,33 @@ def test_dir_name_is_not_a_value():
     with _pt.raises(Exception) as e:
         generate(analyze(cosmos.combined_program(parse(game))))
     assert "does not return a value" in str(e.value)
+
+
+def test_with_words_catalog_is_vocabulary():
+    # `catalog <name> with words` (auraes's pronoun table, 2026-09-15):
+    # each entry, bare or quoted (the apostrophe form), is a dictionary
+    # word owned by nothing, so membership/position/entry work on typed
+    # input and no entry names an examinable object.
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "Bare."\n'
+        'catalog pronoms with words\n    se\n    lui\n    "s\'"\n'
+        'catalog replacements with words\n    soi\n    leur\n    sien\n'
+        'verb "probe"\n    wprobe text\n'
+        'on wprobe\n'
+        '    let w = word_dict(1)\n'
+        '    if w in pronoms\n'
+        '        let i = position(pronoms, w)\n'
+        '        if entry(replacements, i) is dict_entry("leur")\n'
+        '            say "slot ${i}: the pair reads back"\n'
+        '        else\n'
+        '            say "slot ${i}"\n'
+        '    else\n'
+        '        say "not a pronoun"\n'
+    )
+    out = _run(["probe se", "probe lui", "probe hall", "x se"], game=game)
+    assert "slot 1" in out
+    assert "slot 2: the pair reads back" in out
+    assert "not a pronoun" in out
+    # a word entry names no object: the examine finds nothing to see
+    assert "requires you to be more specific" in out or "can't see" in out

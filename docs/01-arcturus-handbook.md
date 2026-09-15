@@ -200,8 +200,8 @@ the same constant interpolates as usual.
 
 A CATALOG is a fixed, ordered collection declared once, like a star
 catalog: one value per indented line, one TYPE of value per catalog
-(strings, numbers, objects, or directions), the compiler counting so no
-size is ever written:
+(strings, numbers, objects, directions, or, `with words`, vocabulary),
+the compiler counting so no size is ever written:
 
 ```
 catalog last_letter
@@ -251,6 +251,22 @@ catalog escape_route
     north
     east
     up
+```
+
+A catalog `with words` holds VOCABULARY instead: each entry, bare or
+quoted (quotes carry a spelling no identifier can, an apostrophe form),
+is a dictionary word, and the entries enter the dictionary by
+declaration, owned by nothing, so none of them names an examinable
+object. The cells hold the words' dictionary addresses, exactly what
+`word_dict(i)` answers for a typed word, so membership, `position`,
+`entry`, and `for each` all work on typed input; a language pack's
+pronoun tables are the home case (chapter 23 shows the worked pair).
+
+```
+catalog pronoms with words
+    se
+    lui
+    leur
 ```
 
 A catalog passes to a block as an ordinary value (`quote_catalog(letter)`,
@@ -6637,27 +6653,28 @@ primitives Cosmos itself is written on. They are not secret (`arcc
 library's vocabulary rather than the author's, and the design records
 (03 and 04) are their reference.
 
-Two of them pair up for vocabulary work (a language pack's pronoun
-tables, say). `dict_word("se")` is a typed word's DICTIONARY address as
-a compile-time literal, the same value `word_dict(i)` answers for the
-word at position i, so a parse-buffer word compares against a spelling
-directly; a plain string literal is a different thing (a string value,
-compared by identity), and a `dict_word` naming a word in no one's
-vocabulary is a compile error. For an ARRAY of vocabulary, no new form
-is needed: an object's `words` list is laid out as exactly that, a run
-of dictionary addresses at `words_addr(obj)`, `words_count(obj)` long,
-in declaration order, so a backstage object is a word table and
-`scan_table` searches it:
+Vocabulary work (a language pack's pronoun tables, say) pairs two of
+them with a catalog form. A catalog declared `with words` holds
+VOCABULARY: each entry, bare or quoted, is a dictionary word, and the
+entries enter the dictionary by declaration, so a table of forms the
+pack rewrites INTO needs no object to own them (and nothing becomes
+examinable):
 
 ```
-thing pronoun_row in scope
-    words se, lui, leur
-    scenery
-
-let hit = scan_table(word_dict(1), words_addr(pronoun_row),
-                     words_count(pronoun_row))
+catalog pronoms with words
+    se
+    lui
+    leur
 ```
 
-`hit` is the matching entry's address (0 when absent), so paired tables
-read back by the same offset arithmetic Inform's static arrays did.
+Its cells hold the words' dictionary addresses, exactly what
+`word_dict(i)` answers for a typed word, so the whole catalog toolkit
+applies: `word_dict(1) in pronoms` is membership, `position` gives the
+index, and `entry(replacements, i)` reads the paired form back, the
+same offset arithmetic Inform's static word arrays did. The quoted
+entry form carries a spelling no identifier can (an apostrophe form,
+an accent). For a single comparison the substrate has `dict_entry("se")`,
+the literal twin of `word_dict`: the spelling's dictionary address at
+compile time (a plain string literal is a string VALUE, a different
+thing); the German pack's da-word branch is its worked use.
 
