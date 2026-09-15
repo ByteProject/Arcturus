@@ -126,10 +126,19 @@ interpreter that matches that walkthrough renders arc_image correctly.
 ## 3. Converting for the retro machines
 
 ```
+arcimg convert art/ --all -o out/ --preview previews/
+```
+
+converts every master for EVERY machine at once: each target lands in
+its own folder (`out/c64/`, `out/ami/`, ...), with a matching preview
+folder per machine, and targets whose converter has not landed yet are
+reported once and skipped. One machine at a time is:
+
+```
 arcimg convert art/ --target C64 -o c64/ --preview previews/
 ```
 
-derives each master's native version for a target as `<id>.C64` (or
+which derives each master's native version for a target as `<id>.C64` (or
 `.AMI`, `.AST`, `.DOS`, `.ZX3`, `.CPC`, ...) beside the story, with PNG
 previews. One machine breaks the pattern by design: the TRS-80 Model 4
 ships `ARC<id>.TR4`, because TRSDOS caps a suffix at three characters
@@ -236,7 +245,9 @@ arcimg pack game.blorb --zblorb game.z5 -o game.zblorb
                                                 story, pictures untouched
 arcimg prep SOURCE --id N --mode MODE           size and number a source
 arcimg info SOURCE                              a PNG's size / a pack's contents
-arcimg convert SOURCES... --target TAG -o out/  derive a machine's native art
+arcimg convert SOURCES... --all -o out/         every machine at once, one
+                                                folder per target
+arcimg convert SOURCES... --target TAG -o out/  one machine's native art
                                                 (masters-broad/ read for the
                                                 broad-pixel targets, section 1)
 arcimg convert masters/ --target ZX3 --zx-colour -o zx3/

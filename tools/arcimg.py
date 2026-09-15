@@ -82,7 +82,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "2.2.0"
+__version__ = "2.3.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -5923,6 +5923,37 @@ def _convert_job(job):
 
 
 def cmd_convert(args) -> int:
+    # --all: one command, every machine (the design's own promise,
+    # section 4, delivered on a field request: no shell loop, no target
+    # list to know). Each target writes <out>/<tag>/<id>.<TAG>, with
+    # previews under <preview>/<tag>/ when asked; targets whose
+    # converter has not landed yet (the wave order) are reported once
+    # and skipped, never an error.
+    if not args.all and not args.target:
+        print("arcimg: convert needs --target TAG, or --all for every "
+              "machine at once", file=sys.stderr)
+        return 2
+    if args.all:
+        base_out, base_prev = args.out, args.preview
+        pending = [t.tag for t in TARGETS.values()
+                   if t.tag not in _CONVERTERS]
+        rc = 0
+        for tag in sorted(_CONVERTERS,
+                          key=lambda t: TARGETS[t].id if t in TARGETS else 99):
+            args.target = tag
+            args.out = os.path.join(base_out, tag.lower())
+            args.preview = (os.path.join(base_prev, tag.lower())
+                            if base_prev else None)
+            r = _convert_target(args)
+            rc = rc or r
+        if pending:
+            print(f"arcimg: not yet convertible (wave order): "
+                  f"{', '.join(sorted(pending))}")
+        return rc
+    return _convert_target(args)
+
+
+def _convert_target(args) -> int:
     tag = args.target.upper()
     entries = _collect_numbered(args.sources, broad=tag in _BROAD_TARGETS)
     if not entries:
@@ -6200,8 +6231,12 @@ def build_parser() -> argparse.ArgumentParser:
                "visible on palettes that would otherwise lose it.")
     p_conv.add_argument("sources", nargs="+",
                         help="directories and/or <number>.png masters")
-    p_conv.add_argument("--target", required=True,
+    p_conv.add_argument("--target",
                         help="the target tag (AMI, AST, DOS, ...)")
+    p_conv.add_argument("--all", action="store_true",
+                        help="convert for EVERY machine at once: each "
+                             "target lands in <out>/<tag>/, previews in "
+                             "<preview>/<tag>/")
     p_conv.add_argument("-o", "--out", required=True,
                         help="output directory for the <id>.<TAG> files")
     p_conv.add_argument("--preview",

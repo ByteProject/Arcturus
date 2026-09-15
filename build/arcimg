@@ -82,13 +82,13 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "2.1.0"
+__version__ = "2.3.0"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
 # into build/arcimg so `arcimg --version` names the exact build. None here means
 # the tool is running from source, not the standalone.
-__build__ = '2fa0685'
+__build__ = '426ee09'
 
 
 def build_id() -> str:
@@ -1798,6 +1798,19 @@ _ZXC_GAIN = 1.4
 _ZXC_WHITE = 0.90
 _ZXC_BLACK = 0.10
 
+# THE TWO MASTER CLASSES (Stefan's ruling, 2026-09-13, Marco Innocenti's
+# per-class masters the driving case): a portfolio may carry a second,
+# broad-pixel master set in a masters-broad/ subdirectory beside the
+# numbered masters. The BASE set serves the fine-pixel targets (dither
+# survives); the broad set (no dither, committed tones) serves these
+# targets, whose wide pixels or own halftone would eat the dither. A
+# same-numbered picture in masters-broad/ overrides per broad target;
+# an author with one set changes nothing. TRSM4 is broad although 640
+# wide: its route halftones from luminance, and committed tones feed a
+# clean halftone where pre-dithered speckle moires (same will hold for
+# VDC when its converter lands, though VDC is ruled fine on paper).
+_BROAD_TARGETS = frozenset({"C64", "P4", "CPC", "A8", "AP2", "TRSM4"})
+
 _ZX3_ROUTE = "canopus"
 
 
@@ -1999,6 +2012,50 @@ def _convert_zx3_canopus(rows, salient=None):
     # bright bit for free). The wash step retints per region, staying
     # on the bright plane.
     attrs = [0x47] * ((w // 8) * (h // 8))
+    return {"w": w, "h": h, "pixels": pixels, "attrs": attrs}
+
+
+def _convert_zx3_direct(rows, salient=None):
+    """THE DIRECT ROUTE (--zx-colour; chartered 2026-09-13, committed-
+    palette masters the driving case): art that is already Spectrum-
+    shaped (flat palette regions over black, per-pixel texture the
+    author placed himself) converts 1:1. Every master pixel lands where
+    it stands; a lit pixel snaps to the Spectrum hue it NAMES, hue
+    first and never luminance (an azure is blue however bright, where
+    the luma-dominant metric handed it to magenta); each cell's ink is
+    the color most of its lit pixels agree on, over black paper, the
+    bright bit following the cell's own tier. No budget, no region
+    coherence, no synthetic texture: the master is trusted whole."""
+    rows = [row[_MS1_CROP_X:_MS1_CROP_X + 256] for row in rows]
+    w, h = len(rows[0]), len(rows)
+    cells_x, cells_y = w // 8, h // 8
+
+    def snap(c):
+        m = max(c)
+        if m < 32:
+            return None                    # black is the paper
+        scaled = tuple(255 * v // m for v in c)
+        k = min(range(8, 15), key=lambda k: _dist(scaled, _ZX15[k]))
+        return k if m >= 160 else k - 7    # the dim tier is the basic color
+
+    pixels = [[0] * w for _ in range(h)]
+    attrs = []
+    for cy in range(cells_y):
+        for cx in range(cells_x):
+            votes = {}
+            for yy in range(8):
+                for xx in range(8):
+                    x, y = cx * 8 + xx, cy * 8 + yy
+                    k = snap(rows[y][x])
+                    if k is not None:
+                        pixels[y][x] = 1
+                        votes[k] = votes.get(k, 0) + 1
+            if not votes:
+                attrs.append(0x07)
+                continue
+            ink = max(votes, key=votes.get)
+            ink_n = ink if ink < 8 else ink - 7
+            attrs.append(ink_n | (0x40 if ink >= 8 else 0))
     return {"w": w, "h": h, "pixels": pixels, "attrs": attrs}
 
 
@@ -2237,6 +2294,7 @@ def _convert_zx3_inkline(rows, salient=None):
 
 
 _ZX3_ROUTES = {"canopus": _convert_zx3_canopus,
+               "direct": _convert_zx3_direct,
                "rabenstein": _convert_zx3_rabenstein,
                "inkline": _convert_zx3_inkline}
 
@@ -5492,17 +5550,24 @@ def cmd_prep(args) -> int:
     return 0
 
 
-def _collect_numbered(sources):
+def _collect_numbered(sources, broad=False):
     """Map id -> path for every <number>.png in the given files and directories.
     A later source with the same id wins, so a specific file can override a
-    directory listed before it."""
+    directory listed before it. With broad, a directory's masters-broad/
+    subdirectory overrides same-numbered pictures (the two master classes;
+    an explicit file source is always taken verbatim)."""
     entries = {}
     for src in sources:
         if os.path.isdir(src):
             for name in sorted(os.listdir(src)):
                 iid = _numbered_id(name)
                 if iid is not None:
-                    entries[iid] = os.path.join(src, name)
+                    path = os.path.join(src, name)
+                    if broad:
+                        alt = os.path.join(src, "masters-broad", name)
+                        if os.path.isfile(alt):
+                            path = alt
+                    entries[iid] = path
         elif os.path.isfile(src):
             iid = _numbered_id(src)
             if iid is None:
@@ -5834,8 +5899,14 @@ def _convert_stale(master, dest, preview):
 def _convert_job(job):
     """One picture, start to finish; module-level so worker processes can
     reach it. Returns (iid, dest, size, mode) or an error string."""
-    iid, path, tag, dest, preview, codec, c64src = job
+    iid, path, tag, dest, preview, codec, c64src = job[:7]
+    zx_route = job[7] if len(job) > 7 else None
     try:
+        if zx_route:
+            # The route rides the job so it survives a spawn-started
+            # worker (a parent-set global would not).
+            global _ZX3_ROUTE
+            _ZX3_ROUTE = zx_route
         # c64src is accepted for call compatibility and ignored: the A8
         # converts DIRECT from the master (Stefan's ruling and corpus
         # approval, 2026-07-24); the hand-polish loop for the A8 is a
@@ -5852,8 +5923,39 @@ def _convert_job(job):
 
 
 def cmd_convert(args) -> int:
+    # --all: one command, every machine (the design's own promise,
+    # section 4, delivered on a field request: no shell loop, no target
+    # list to know). Each target writes <out>/<tag>/<id>.<TAG>, with
+    # previews under <preview>/<tag>/ when asked; targets whose
+    # converter has not landed yet (the wave order) are reported once
+    # and skipped, never an error.
+    if not args.all and not args.target:
+        print("arcimg: convert needs --target TAG, or --all for every "
+              "machine at once", file=sys.stderr)
+        return 2
+    if args.all:
+        base_out, base_prev = args.out, args.preview
+        pending = [t.tag for t in TARGETS.values()
+                   if t.tag not in _CONVERTERS]
+        rc = 0
+        for tag in sorted(_CONVERTERS,
+                          key=lambda t: TARGETS[t].id if t in TARGETS else 99):
+            args.target = tag
+            args.out = os.path.join(base_out, tag.lower())
+            args.preview = (os.path.join(base_prev, tag.lower())
+                            if base_prev else None)
+            r = _convert_target(args)
+            rc = rc or r
+        if pending:
+            print(f"arcimg: not yet convertible (wave order): "
+                  f"{', '.join(sorted(pending))}")
+        return rc
+    return _convert_target(args)
+
+
+def _convert_target(args) -> int:
     tag = args.target.upper()
-    entries = _collect_numbered(args.sources)
+    entries = _collect_numbered(args.sources, broad=tag in _BROAD_TARGETS)
     if not entries:
         print("arcimg: no <number>.png masters to convert", file=sys.stderr)
         return 2
@@ -5861,6 +5963,12 @@ def cmd_convert(args) -> int:
     if args.preview:
         os.makedirs(args.preview, exist_ok=True)
     codec = _CODEC_NAMES[args.codec] if args.codec else None
+    zx_route = "direct" if getattr(args, "zx_colour", False) else None
+    broad_used = sum(1 for p in entries.values()
+                     if os.path.basename(os.path.dirname(p)) == "masters-broad")
+    if broad_used:
+        print(f"arcimg: {broad_used} of {len(entries)} masters from "
+              f"masters-broad/ (the broad-pixel set)")
     jobs = []
     skipped = 0
     for iid in sorted(entries):
@@ -5889,7 +5997,8 @@ def cmd_convert(args) -> int:
             if _is_hand_authored(cand):
                 c64src = cand
                 print(f"arcimg: {dest} inherits the hand-authored {cand}")
-        jobs.append((iid, entries[iid], tag, dest, preview, codec, c64src))
+        jobs.append((iid, entries[iid], tag, dest, preview, codec, c64src,
+                     zx_route))
     if len(jobs) > 1 and not args.serial:
         # The packers dominate the wall clock (ZX0's optimal parse above
         # all); pictures are independent, so they convert in parallel.
@@ -5915,6 +6024,9 @@ def cmd_scr(args) -> int:
     src = args.source
     if src.lower().endswith(".png"):
         try:
+            if getattr(args, "zx_colour", False):
+                global _ZX3_ROUTE
+                _ZX3_ROUTE = "direct"
             _mode, native = convert_master(src, "ZX3")
         except ValueError as exc:
             print(f"arcimg: {exc}", file=sys.stderr)
@@ -6119,8 +6231,12 @@ def build_parser() -> argparse.ArgumentParser:
                "visible on palettes that would otherwise lose it.")
     p_conv.add_argument("sources", nargs="+",
                         help="directories and/or <number>.png masters")
-    p_conv.add_argument("--target", required=True,
+    p_conv.add_argument("--target",
                         help="the target tag (AMI, AST, DOS, ...)")
+    p_conv.add_argument("--all", action="store_true",
+                        help="convert for EVERY machine at once: each "
+                             "target lands in <out>/<tag>/, previews in "
+                             "<preview>/<tag>/")
     p_conv.add_argument("-o", "--out", required=True,
                         help="output directory for the <id>.<TAG> files")
     p_conv.add_argument("--preview",
@@ -6132,6 +6248,12 @@ def build_parser() -> argparse.ArgumentParser:
                         help="directory holding <id>.C64 files; a "
                              "hand-authored one becomes the A8's source "
                              "(default: the c64 directory beside --out)")
+    p_conv.add_argument("--zx-colour", action="store_true",
+                        help="ZX3 only: the colour conversion path (the "
+                             "direct route: pixels 1:1, hue-first snap, "
+                             "ink over black paper) instead of the mono "
+                             "Canopus form, for art that is committed "
+                             "palette regions already")
     p_conv.add_argument("--force", action="store_true",
                         help="reconvert even when outputs are current")
     p_conv.add_argument("--serial", action="store_true",
@@ -6163,6 +6285,9 @@ def build_parser() -> argparse.ArgumentParser:
                        help="a <id>.ZX3 file, or a master PNG to convert")
     p_scr.add_argument("-o", "--out", required=True,
                        help="the .scr to write (6912 bytes)")
+    p_scr.add_argument("--zx-colour", action="store_true",
+                       help="convert a master PNG through the colour path "
+                            "(the Rabenstein route), as convert --zx-colour")
     p_scr.set_defaults(func=cmd_scr)
 
     p_unscr = sub.add_parser(

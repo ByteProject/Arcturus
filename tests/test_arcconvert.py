@@ -767,3 +767,27 @@ def test_ap2_render_is_the_signal_model():
     assert len(rows) == 192 and len(rows[0]) == 560
     assert rows[0] == rows[1]                      # doubled, not resampled
     assert all(c in arcimg._AP2_PAL for row in rows for c in row)
+
+
+def test_convert_all_lands_every_target(tmp_path):
+    # `arcimg convert --all` (the design's own section-4 promise,
+    # delivered 2026-09-15): one command, every available machine, one
+    # folder per target, previews beside, the pending targets reported
+    # once and skipped, never an error.
+    import subprocess
+    out = tmp_path / "out"
+    prev = tmp_path / "prev"
+    r = subprocess.run(
+        [sys.executable, os.path.join(os.path.dirname(__file__), "..",
+                                      "tools", "arcimg.py"),
+         "convert", os.path.join(MASTERS, ALL[0]), "--all",
+         "-o", str(out), "--preview", str(prev)],
+        capture_output=True, text=True, timeout=600)
+    assert r.returncode == 0, r.stderr
+    made = sorted(p.name for p in out.iterdir())
+    assert "c64" in made and "ami" in made and "zx3" in made
+    assert len(made) >= 15
+    iid = ALL[0].split(".")[0]
+    assert (out / "c64" / f"{iid}.C64").exists()
+    assert (prev / "c64" / f"{iid}-C64.png").exists()
+    assert "not yet convertible" in r.stdout and "VDC" in r.stdout

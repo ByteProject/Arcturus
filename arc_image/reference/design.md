@@ -164,7 +164,7 @@ the addendum defines `IMG8 C64`-style names there). Open decision 3.
 The tool grows from three commands (prep, pack, info) into the pipeline:
 
     arcimg convert --target c64 masters/ out/     one target
-    arcimg convert --all masters/ out/            every target
+    arcimg convert --all masters/ -o out/         every target at once (one folder per machine; delivered 2026-09-15)
     arcimg targets                                the ledger, as a command
     arcimg lint --target zx3 hand/8.png           check a hand-painted native
 
