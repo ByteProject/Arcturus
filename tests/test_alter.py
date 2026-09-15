@@ -208,3 +208,26 @@ def test_alter_on_a_supporter_fires_for_put_on():
         pass
     out = io.text.split(">put")[-1]
     assert "wax ghosts" in out
+
+
+def test_alter_speaks_for_the_switch():
+    # switch_on/off run through the alter gate like every success path
+    # (a field report, 2026-09-15: the alter was spoken over).
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "Bare."\n'
+        'thing beacon in hall\n    name "signal beacon"\n    words beacon\n'
+        '    binary\n    fixed\n'
+        '    on switch_on\n'
+        '        alter "The beacon wakes with a hum."\n'
+        '        continue\n'
+    )
+    from arcturus import cosmos as _c
+    story = generate(analyze(_c.combined_program(parse(game))))
+    io = CaptureIO(script=["turn on beacon"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "The beacon wakes with a hum." in io.text
+    assert "You switch the signal beacon on." not in io.text

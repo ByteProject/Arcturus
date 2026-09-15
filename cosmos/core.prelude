@@ -111,6 +111,15 @@ block item_count_of(obj)
     for each x in obj
         if x is not fixed
             if x is not scenery
-                change n to n + 1
-                change n to n + item_count_of(x)
+                // A component is part of its whole, not cargo: a pass
+                // built from a blob and a pin is ONE carried item
+                // (EdwardianDuck's report, 2026-09-15). Folds away in a
+                // game without components.
+                if any_components is 1
+                    if x is not component
+                        change n to n + 1
+                        change n to n + item_count_of(x)
+                else
+                    change n to n + 1
+                    change n to n + item_count_of(x)
     return n

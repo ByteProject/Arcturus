@@ -158,3 +158,33 @@ def test_components_on_characters_and_the_player(tmp_path):
     assert "Leather." in out
     assert "part of yourself" in out
     assert "precisely nothing" in out            # a body part is not luggage
+
+
+def test_a_component_never_counts_as_cargo():
+    # A pass built from parts is ONE carried item (a field report,
+    # 2026-09-15: two components made it count as three against the
+    # carry limit).
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'constant item_cap = 2\n'
+        'room hall\n    name "Hall"\n    desc "Bare."\n'
+        'thing pass_card in hall\n    name "security pass"\n'
+        '    words security, pass\n'
+        'thing blob in pass_card\n    name "resin blob"\n    words resin, blob\n'
+        '    component\n'
+        'thing pin in pass_card\n    name "safety pin"\n    words safety, pin\n'
+        '    component\n'
+        'thing apple in hall\n    name "apple"\n    words apple\n'
+    )
+    io = CaptureIO(script=["take pass", "take apple", "i"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(game))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    # the pass is one item, so the apple still fits under the cap of 2
+    assert "You take the apple with you." in io.text
+    assert "hands are full" not in io.text

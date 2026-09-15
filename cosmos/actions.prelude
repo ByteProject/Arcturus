@@ -661,7 +661,9 @@ on switch_on
             now noun is active
             if noun is glow
                 now noun is lit
-            msg_switched_on
+            // Through the alter gate like every success path (a field
+            // report: an alter on the switch was spoken over).
+            success msg_switched_on
             stop
     change refused to 1
     msg_no_switch
@@ -672,7 +674,7 @@ on switch_off
             now noun is not active
             if noun is glow
                 now noun is not lit
-            msg_switched_off
+            success msg_switched_off
             stop
     change refused to 1
     msg_no_switch
