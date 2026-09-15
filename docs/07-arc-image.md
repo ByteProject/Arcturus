@@ -34,9 +34,11 @@ there. Name the files by id: `8.png` is picture 8.
 
 Two authoring aids:
 
-- `arcimg prep SOURCE --id N --mode {infocom,daad}` sizes any source
-  image to the band shape and numbers it (a PNG already at the exact
-  size is just copied).
+- `arcimg prep SOURCE` sizes any source image to the band shape. A
+  source named by its number (1.png) needs no --id; one already at a
+  band size keeps its own shape and is just copied; anything else
+  crops and resizes to 320x96 (or pass `--mode infocom` for 320x72,
+  `--id N` for an unnumbered filename).
 - A picture with a bright celestial disc (a moon, a sun) can carry a
   hint sidecar, `8.hint` beside `8.png`, one line of JSON:
   `{"salient": [[cx, cy, r]]}` naming the disc in pixel coordinates.
@@ -243,7 +245,8 @@ arcimg pack SOURCES... --zblorb game.z5 -o game.zblorb
 arcimg pack game.blorb --zblorb game.z5 -o game.zblorb
                                                 bind a finished pack to a new
                                                 story, pictures untouched
-arcimg prep SOURCE --id N --mode MODE           size and number a source
+arcimg prep SOURCE [--id N] [--mode MODE]       size and number a source
+                                                (a 1.png names itself)
 arcimg info SOURCE                              a PNG's size / a pack's contents
 arcimg convert SOURCES... --all -o out/         every machine at once, one
                                                 folder per target

@@ -82,7 +82,7 @@ import sys
 import zipfile
 import zlib
 
-__version__ = "2.3.0"
+__version__ = "2.3.1"
 
 # The build fingerprint, in the manner of arcc and actaea: __version__ names the
 # intended release, and __build__ is a short content hash the amalgamator bakes
@@ -5522,6 +5522,24 @@ def render_arc(blob: bytes, out_png: str) -> None:
 # -- commands ------------------------------------------------------------------
 
 def cmd_prep(args) -> int:
+    # The id is the filename when the filename already says it (a source
+    # named 1.png IS picture 1; Stefan's ruling, 2026-09-15: a normal
+    # person names the picture, they don't declare an id twice).
+    if args.id is None:
+        stem = os.path.splitext(os.path.basename(args.source))[0]
+        if stem.isdigit():
+            args.id = int(stem)
+        else:
+            print(f"arcimg: '{os.path.basename(args.source)}' does not say "
+                  f"which picture this is; name the file by its number "
+                  f"(1.png) or pass --id N", file=sys.stderr)
+            return 2
+    # A source already at a band size keeps its own shape (no silent
+    # stretch from 72 to 96 rows by a default); an explicit --mode still
+    # rules, and everything else defaults to daad.
+    if args.mode is None:
+        size = _png_size(args.source)
+        args.mode = next((m for m, wh in MODES.items() if wh == size), "daad")
     w, h = MODES[args.mode]
     out_dir = args.out or "."
     os.makedirs(out_dir, exist_ok=True)
@@ -6205,11 +6223,14 @@ def build_parser() -> argparse.ArgumentParser:
         "prep", help="size a source image to a mode and number it")
     p_prep.add_argument("source", help="the source image (PNG, or any format "
                         "Pillow reads)")
-    p_prep.add_argument("--id", type=int, required=True,
+    p_prep.add_argument("--id", type=int,
                         help="the picture id (the resource slot); output is "
-                        "<id>.png")
-    p_prep.add_argument("--mode", choices=sorted(MODES), default="daad",
-                        help="the picture shape (default: daad)")
+                        "<id>.png. A source already named by its number "
+                        "(1.png) needs no --id")
+    p_prep.add_argument("--mode", choices=sorted(MODES),
+                        help="the picture shape. A source already at a band "
+                             "size keeps its own shape; anything else "
+                             "defaults to daad")
     p_prep.add_argument("-o", "--out", help="output directory (default: .)")
     p_prep.set_defaults(func=cmd_prep)
 
