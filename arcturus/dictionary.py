@@ -64,6 +64,14 @@ _ALL_FLAG = 0x01
 # library check compares flag bytes for exact equality, so 0x03 collides with
 # nothing. is_separator exempts it, like the pronoun flag.
 _NOISE_FLAG = 0x03
+# The COMBINED roles (a pack's article that is also a boundary: the
+# French du/des class, 2026-09-17). A word declared noise AND standing
+# as a grammar preposition carries 0x0B (noise|prep); declared noise AND
+# a particle, 0x23 (noise|particle, the particle id kept in data byte 1).
+# Exact-equality checks everywhere, so both values collide with nothing;
+# the packs' separator and particle tests accept them in both roles.
+_NOISE_PREP_FLAG = 0x0B
+_NOISE_PARTICLE_FLAG = 0x23
 # flags bit 3 marks a grammar preposition (the "to"/"with" joining two noun
 # slots), so the parser knows where the first noun phrase ends and the second
 # begins. Words already flagged otherwise (on/in are a particle/direction) are
@@ -361,7 +369,13 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
     for word in all_words:
         enc_data[encoded[word]] = bytes([_ALL_FLAG, 0, 0])
     for word in noise_words:
-        enc_data[encoded[word]] = bytes([_NOISE_FLAG, 0, 0])
+        prior = enc_data.get(encoded[word])
+        if prior is not None and prior[0] == _PARTICLE_FLAG:
+            # noise + particle: both roles, the particle id kept
+            enc_data[encoded[word]] = bytes(
+                [_NOISE_PARTICLE_FLAG, prior[1], 0])
+        else:
+            enc_data[encoded[word]] = bytes([_NOISE_FLAG, 0, 0])
     duals: list = []
     if scenery:
         for word, chain_addr in scenery.items():
@@ -398,6 +412,9 @@ def build(world: wm.World, action_numbers=None, direction_props=None, scenery=No
             enc_data[enc] = bytes(
                 [enc_data[enc][0] | _PREPOSITION_FLAG, enc_data[enc][1], enc_data[enc][2]]
             )
+        elif enc_data[enc][0] == _NOISE_FLAG:
+            # noise + grammar preposition: both roles (the du class)
+            enc_data[enc] = bytes([_NOISE_PREP_FLAG, 0, 0])
     # The crossword folds (docs/01 chapter 21): for every word containing a
     # fold source ("ä"), register the folded sibling ("ae") as its own entry
     # with the SAME data bytes, so the player can type the spelling an 8-bit

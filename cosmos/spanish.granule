@@ -167,6 +167,11 @@ block find_particle()
         if d is not nothing
             if peek_byte(d + 6) is 32
                 return peek_byte(d + 7)
+            // the combined noise+particle flag (the du class) keeps the
+            // particle id in the same byte; folds away without one
+            if any_noiseprep is 1
+                if peek_byte(d + 6) is 35
+                    return peek_byte(d + 7)
         change i to i + 1
     return nothing
 
@@ -504,6 +509,10 @@ block has_extra_words(act)
             if peek_byte(d + 6) is 32
                 if compound(act, peek_byte(d + 7)) is not nothing
                     change keep to 1
+            if any_noiseprep is 1
+                if peek_byte(d + 6) is 35
+                    if compound(act, peek_byte(d + 7)) is not nothing
+                        change keep to 1
         if keep is 0
             return 1
         change i to i + 1
@@ -562,6 +571,14 @@ block is_separator(target)
         return 1
     if peek_byte(target + 6) is 32
         return 1
+    // The combined roles (a noise word doubling as a boundary: the
+    // French du class, docs/01 chapter 21): both split. Folds away in a
+    // game whose noise words stay plain noise.
+    if any_noiseprep is 1
+        if peek_byte(target + 6) is 11
+            return 1
+        if peek_byte(target + 6) is 35
+            return 1
     return 0
 
 // Bind the two noun slots by position, the way the grammar reads them: the words

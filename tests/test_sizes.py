@@ -49,6 +49,12 @@ from arcturus.sema import analyze
 # game pays the verb_trigger bookkeeping and the posture seam
 # (Stefan: a sacrifice to make); each pack words its boardings,
 # leavings, and foresight exit promises by the posture taken.
+# 2026-09-17 (a word in two roles): beispiel-deutsch +112, German
+# games only: "ein" is the ON-particle AND the indefinite article, so
+# the combined noise+particle flag (the French du class, a
+# translator's report) is live there and the packs' combined-flag
+# arms compile; English and Spanish noise words stay plain and those
+# games are byte-identical (any_noiseprep).
 # 2026-09-14 (grammar object binding): +20 to +24 everywhere: a
 # grammar line can bind a declared object into its first slot (the
 # spell-verb idiom, `cast veznik_spell noun`), and since the put verb's
@@ -225,7 +231,7 @@ CEILINGS = {
     "granules/nautical.storyarc": 18920,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "granules/npcengine.storyarc": 21012,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "granules/maniacswap.storyarc": 19252,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "beispiel-deutsch.storyarc": 28172,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "beispiel-deutsch.storyarc": 28284,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "brass-lantern.storyarc": 19824,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "cloak-of-darkness.storyarc": 21788,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "ejemplo-espanol.storyarc": 24880,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)

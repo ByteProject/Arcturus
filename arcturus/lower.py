@@ -100,6 +100,9 @@ INTRINSICS = frozenset({
     # any_binds folds the table matcher's bound-slot bookkeeping away in
     # a game whose grammar binds no object into a slot.
     "any_binds",
+    # any_noiseprep folds the combined noise+boundary flag tests away in
+    # a game whose noise words never double as prepositions or particles.
+    "any_noiseprep",
     # any_enterable is 1 when any object is a supporter or a container (by
     # kind chain), so the nested-location suffix on the room title and the
     # status bar ("Crypt (on the altar)") folds away in a game the player
@@ -1844,6 +1847,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_appearance(): 1 when anything declares `appearance`, so the
         # room describer's check folds away otherwise.
         _place(rt, Const(_any_prop(ctx.world, "appearance")), dest)
+    elif name == "any_noiseprep":
+        # any_noiseprep(): 1 when a noise word doubles as a grammar
+        # preposition or particle (the du class), so the packs' combined
+        # flag arms fold away otherwise.
+        _place(rt, Const(_any_noiseprep(ctx.world)), dest)
     elif name == "any_firstperson":
         # any_firstperson(): 1 when the game narrates in the first person
         # (constant first_person = 1); the language layer's person
@@ -2900,6 +2908,21 @@ def _scenery_contents(ctx) -> int:
     c = ctx.world.constants.get("scenery_contents")
     if c is not None and isinstance(c.value, ast.Number):
         return 1 if c.value.value else 0
+    return 0
+
+
+def _any_noiseprep(world) -> int:
+    """1 when any noise word is also a grammar preposition or particle."""
+    noise = set(world.noise_words)
+    if not noise:
+        return 0
+    if noise & set(world.particles):
+        return 1
+    for verb in world.verbs:
+        for line in verb.grammar:
+            for it in line.items:
+                if isinstance(it, ast.Word) and it.text.lower() in noise:
+                    return 1
     return 0
 
 
@@ -4287,6 +4310,8 @@ def _static_value(ctx, expr):
         return _any_components(ctx.world)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_appearance":
         return _any_prop(ctx.world, "appearance")
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_noiseprep":
+        return _any_noiseprep(ctx.world)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_firstperson":
         return _first_person(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scenery_contents":

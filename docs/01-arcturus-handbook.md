@@ -4695,6 +4695,21 @@ granule that is not a language pack is likewise an error; neither can silently
 leave English baked in beside the new language. The worked example is
 `examples/ejemplo-espanol.storyarc`.
 
+### A word in two roles: articles that are also boundaries
+
+Some languages fuse an article and a preposition into one word (French
+du, des), so the same typed word must be SKIPPED inside a noun phrase
+(la carte du navire) and SPLIT two noun phrases elsewhere. Declare it
+in both roles and the dictionary carries both: list it in `noise` and
+use it as a grammar preposition (or declare it a `particle`), and the
+word gets a combined flag the packs' separator and particle tests
+read. Inside a phrase it stays skippable like any article; between two
+noun slots it is a boundary. When your language needs a subtler rule
+than "any boundary splits", override `is_separator` in your pack, the
+seam the German layer already uses; the combined flag values are in
+chapter 23. A game whose noise words stay plain articles compiles
+byte-identical.
+
 ### First-person narration
 
 English can narrate in the first person: one constant, and the library
