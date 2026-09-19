@@ -52,6 +52,11 @@ def exit_directions(layout):
 # handler_of reads an object's react routine address (for the dispatcher).
 INTRINSICS = frozenset({
     "read_line", "peek_byte", "peek_word", "poke_byte", "poke_word",
+    # band/bor: bitwise and/or, one opcode each (auraes's ask: masking a
+    # dictionary flag byte, band(f, 8), instead of enumerating combined
+    # values). The library never calls them; shifts stay out until a real
+    # need lands (they would need the assembler's EXT form).
+    "band", "bor",
     # dict_entry("se") is the word's dictionary address, a compile-time
     # literal: what word_dict() answers for the typed spelling.
     "dict_entry",
@@ -1784,6 +1789,15 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         eval_expr(rt, ctx, args[0], Variable(STACK))
         rt.op("tokenise", Variable(STACK), Variable(STACK))
         _place(rt, Const(0), dest)
+    elif name in ("band", "bor"):
+        # band(a, b) / bor(a, b): bitwise and/or, the Z-machine's own
+        # opcodes, one instruction; games that never call them pay nothing.
+        if len(args) != 2:
+            raise LowerError(f"{name}(a, b) takes exactly 2 arguments",
+                             call.line)
+        opa, opb, t = _two_operands(rt, ctx, args[0], args[1])
+        rt.op("and" if name == "band" else "or", opa, opb, store=dest)
+        _free(ctx, t)
     elif name == "dict_entry":
         # dict_entry("se"): the word's DICTIONARY address, a compile-time
         # literal (the Inform 'se' idiom, auraes's ask, 2026-09-15): what

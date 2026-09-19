@@ -171,3 +171,26 @@ def test_dict_entry_unknown_is_a_compile_error():
     )
     with pytest.raises(ArcError, match="vocabulary"):
         generate(analyze(cosmos.combined_program(parse(src))))
+
+
+def test_band_and_bor_are_single_opcodes():
+    # bitwise and/or (a translator's ask, 2026-09-19: masking a
+    # dictionary flag byte instead of enumerating combined values); the
+    # library never calls them, games that don't pay nothing.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    from arcturus import cosmos
+    src = (
+        'game\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "x"\n'
+        'on start\n'
+        '    say "${band(12, 10)} ${bor(12, 10)} ${band(136, 8)}"\n'
+    )
+    io = CaptureIO(script=[])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=5_000_000)
+    except IndexError:
+        pass
+    assert "8 14 8" in io.text

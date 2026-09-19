@@ -6681,9 +6681,12 @@ The screen and the session:
 Beneath all of this sits the library's substrate: the parse-buffer
 readers (`read_line`, `word_count`, `word_dict`, `word_len`, `word_pos`,
 `retokenize`), raw memory (`peek_byte`, `peek_word`, `poke_byte`,
-`poke_word`, and `scan_table(value, addr, count)`, the interpreter's own
+`poke_word`, `scan_table(value, addr, count)`, the interpreter's own
 search over count words from addr: the address of the first match, 0 when
-absent), dispatch (`call_handler`, `handler_of`, the `ev_*` event
+absent, and `band(a, b)` / `bor(a, b)`, bitwise and and or, one opcode
+each: masking a dictionary flag byte, `band(f, 8)`, is their home case;
+there are no shifts, multiply and divide by powers of two serve),
+dispatch (`call_handler`, `handler_of`, the `ev_*` event
 ids, `run_free`, `run_grain`, `run_alter`, `tick_timers`), the property
 accessors (`desc_addr` and its `*_addr` kin), the mute buffer
 (`mute_begin`, `mute_end`, `mute_buf`), the conversation machinery
