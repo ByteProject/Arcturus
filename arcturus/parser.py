@@ -640,6 +640,19 @@ class Parser:
         while self.check_op(","):
             self.advance()
             events.append(self._parse_event_name())
+        # `on each_turn first`: the daemon fires at the TOP of the turn,
+        # before the command parses, instead of the end (docs/01 chapter 16).
+        # Unambiguous here because each_turn takes no operand pattern; the
+        # marker belongs to the clock, so any other event refuses it.
+        if self.cur.kind == T.NAME and self.cur.value == "first":
+            if events != ["each_turn"]:
+                raise self._error(
+                    "'first' marks the turn clock only: it goes on "
+                    "`on each_turn` (and on `after`/`every ... turns`), "
+                    "not on an action handler"
+                )
+            self.advance()
+            events = ["each_turn_first"]
         pattern = self._parse_pattern()
         when = None
         if self.accept_kw("when"):
@@ -1905,6 +1918,11 @@ class Parser:
             if unit.value != "turns":
                 raise self._error(
                     "expected 'turns' in a stop-timer statement", unit)
+            # `first` is accepted here for symmetry with the arming spelling
+            # and ignored: the timer's identity is the (kind, interval,
+            # block) triple, and a block has one placement program-wide.
+            if self.cur.kind == T.NAME and self.cur.value == "first":
+                self.advance()
             self.expect_kw("do")
             event = self.expect_name("a block name").value
             self.expect_newline()
@@ -2058,10 +2076,16 @@ class Parser:
         unit = self.expect_name("the word 'turns'")
         if unit.value != "turns":
             raise self._error("expected 'turns' in a scheduling statement", unit)
+        # `after 6 turns first do X`: the block fires at the TOP of the turn,
+        # before the action, instead of the end (docs/01 chapter 16).
+        first = False
+        if self.cur.kind == T.NAME and self.cur.value == "first":
+            self.advance()
+            first = True
         self.expect_kw("do")
         event = self.expect_name("an event name").value
         self.expect_newline()
-        return ast.Schedule(every, count, event, line)
+        return ast.Schedule(every, count, event, line, first)
 
     def _parse_expr_statement(self) -> ast.ExprStmt:
         line = self.cur.line

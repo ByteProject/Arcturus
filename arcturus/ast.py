@@ -312,12 +312,16 @@ class ExprStmt(Stmt):
 
 @dataclass
 class Schedule(Stmt):
-    """after <n> turns do <event> / every <n> turns do <event> (docs/01 chapter 16)."""
+    """after <n> turns do <event> / every <n> turns do <event> (docs/01 chapter 16).
+    The optional `first` (after N turns first do X) moves the block's firing
+    to the top of the turn, before the action dispatches, instead of the end;
+    a block keeps ONE placement program-wide (mixing is a compile error)."""
 
     every: bool
     count: Expr
     event: str
     line: int = 0
+    first: bool = False
 
 
 @dataclass

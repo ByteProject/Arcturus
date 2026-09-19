@@ -81,7 +81,11 @@ def action_numbers(world: "World") -> dict:
     actions sort past those (meta_floor), so a single compare identifies each
     band at run time."""
     metas = meta_actions(world)
-    names = sorted(set(world.actions) | {"other"} | EVENT_NAMES)
+    # each_turn_first joins the numbering ONLY in a game that declares such
+    # a handler: the numbering is sorted, so an unconditional entry would
+    # renumber every existing story file.
+    extra = {"each_turn_first"} if world.uses_turnfirst else set()
+    names = sorted(set(world.actions) | {"other"} | EVENT_NAMES | extra)
     world_names = [n for n in names if n not in metas]
     after_names = [after_key(n) for n in actions_with_after(world)]
     meta_names = [n for n in names if n in metas]
@@ -523,6 +527,14 @@ class World:
     # event block name -> timer slot, for `after`/`every` scheduling (docs/01 chapter 16);
     # codegen assigns the slots and lower reads them to arm a timer.
     schedule_index: dict = field(default_factory=dict)
+    # The `first` placement (docs/01 chapter 16): a handler wrote
+    # `on each_turn first` (uses_turnfirst; the event each_turn_first then
+    # joins the numbering), and the block names armed with `after/every N
+    # turns first do X` (schedule_first, filled by sema). Both drive the
+    # any_turnfirst/any_timerfirst folds; a game using neither is
+    # byte-identical.
+    uses_turnfirst: bool = False
+    schedule_first: set = field(default_factory=set)
     # Names of text properties computed on some object (`<name> block`), so a read
     # of one lowers to "print or run" rather than a plain string print (docs/01 chapter 5).
     computed_text_props: set = field(default_factory=set)

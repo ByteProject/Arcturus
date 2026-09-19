@@ -2151,15 +2151,26 @@ def _collect_schedules(world: wm.World) -> dict:
     return out
 
 
-def gen_schedule_tick(world: wm.World, gmap: dict) -> Routine:
+def gen_schedule_tick(world: wm.World, gmap: dict,
+                      first: bool = False) -> Routine:
     """schedule_tick(): once per turn, count down each armed timer and fire the
     ones that reach zero, reloading the recurring ones. The table base is in the
     __timers__ global; slot i holds its countdown at word 2i and its reload at word
     2i+1. Always emitted (empty when nothing is scheduled) so the turn loop can call
-    it unconditionally; the `after`/`every` statement arms a slot (lower.py)."""
+    it unconditionally; the `after`/`every` statement arms a slot (lower.py).
+
+    With first=True this builds schedule_tick_first instead: the SAME sweep
+    over only the first-marked slots (armed `... turns first do X`), called
+    at the top of the turn before the action dispatches; the plain routine
+    then skips those slots, so each slot ticks at exactly one point of the
+    turn. Both share the one timer table, so `stop all timers` (the scene
+    break) clears both placements at once."""
     tg = gmap["__timers__"]
-    rt = Routine("schedule_tick", nlocals=1)  # local 1 = a slot's countdown, then reload
+    rt = Routine("schedule_tick_first" if first else "schedule_tick",
+                 nlocals=1)  # local 1 = a slot's countdown, then reload
     for name, i in world.schedule_index.items():
+        if (name in world.schedule_first) != first:
+            continue
         skip, fire = f"skip{i}", f"fire{i}"
         rt.op("loadw", Variable(tg), Const(2 * i), store=Variable(1))
         rt.op("jz", Variable(1), branch=(skip, True))  # disarmed
@@ -2420,10 +2431,13 @@ def _generate(world: wm.World, version: int = 5, stats=None) -> bytes:
     # The per-turn timer sweep for after/every (always emitted, empty when nothing
     # is scheduled; the turn loop calls it through the tick_timers intrinsic).
     schedule_tick = gen_schedule_tick(world, gmap)
+    # Its top-of-turn twin sweeps the first-marked slots; DCE drops it in a
+    # game whose any_timerfirst fold never calls it.
+    schedule_tick_first = gen_schedule_tick(world, gmap, first=True)
     # One routine per computed (`<name> block`) property; the property table stores
     # each one's packed address.
     computed_routines = gen_computed_prop_routines(world, layout, gmap, pool)
-    all_routines = [main] + routines + react_routines + topic_routines + [schedule_tick] + computed_routines
+    all_routines = [main] + routines + react_routines + topic_routines + [schedule_tick, schedule_tick_first] + computed_routines
 
     # Emit the exit-enumeration backing routines only if something calls the
     # exit_prop / exit_name intrinsics (the verbose_exits granule). Unsummoned,

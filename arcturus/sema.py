@@ -57,6 +57,10 @@ class Analyzer:
         self._expired_lets: set = set()
         self.filename = filename
         self.world = wm.World()
+        # Block names armed WITHOUT `first`, the counterpart of
+        # world.schedule_first: the two must never share a name (one
+        # placement per block).
+        self._schedule_plain: set = set()
         # Every property name the story's code READS (a dot access, or the
         # right side of an is-test): the unread-property note compares the
         # set props against it (see _lint_unread_props).
@@ -2041,6 +2045,21 @@ class Analyzer:
     def _resolve_owner(self, members, on_kind: bool) -> None:
         for m in members:
             if isinstance(m, ast.PropertyDecl) and m.form == ast.PROP_BLOCK:
+                # A computed block on an ATTRIBUTE is refused loudly: a bool
+                # property lives as an attribute bit and every test of it is
+                # a single-opcode bit test, so the block could never be
+                # consulted and used to be accepted and silently ignored
+                # (EdwardianDuck's `hidden block`, 2026-09-19). Derived
+                # attributes are driven from a handler instead.
+                prop = self.world.properties.get(m.name)
+                if prop is not None and prop.storage == wm.STORE_ATTRIBUTE:
+                    raise self._error(
+                        f"'{m.name}' is an attribute (a yes/no flag), and an "
+                        f"attribute cannot be computed by a block; set it "
+                        f"from a handler instead (a free `on each_turn "
+                        f"first` rule recomputes derived state before each "
+                        f"command parses)", m.line
+                    )
                 self._check_body(m.body, set())
             elif isinstance(m, ast.TopicDecl):
                 # Topic bodies are ordinary statement blocks (docs/01) and
@@ -2075,12 +2094,18 @@ class Analyzer:
         body = h.body
         when = h.when
         line = h.line
-        valid = self.world.actions | {"start", "enter", "each_turn", "other"}
+        valid = self.world.actions | {
+            "start", "enter", "each_turn", "each_turn_first", "other"}
         for ev in events:
             if ev not in valid:
                 raise self._error(
                     f"unknown verb or action '{ev}' in handler header", line
                 )
+            if ev == "each_turn_first":
+                # The event joins the action numbering only in a game that
+                # declares it (worldmodel.action_numbers), and the fold
+                # any_turnfirst summons the top-of-turn pulse.
+                self.world.uses_turnfirst = True
         for item in pattern:
             if isinstance(item, ast.Operand):
                 for name in item.names:
@@ -2192,6 +2217,20 @@ class Analyzer:
                 raise self._error(
                     f"'{word} ... do {s.event}' names no block '{s.event}'", s.line
                 )
+            # A block keeps ONE placement program-wide: its timer slot ticks
+            # either at the top of the turn (first) or at the end, never
+            # both, so mixed arming is refused at the second spelling seen.
+            other = (self._schedule_plain if s.first
+                     else self.world.schedule_first)
+            mine = (self.world.schedule_first if s.first
+                    else self._schedule_plain)
+            if s.event in other:
+                raise self._error(
+                    f"block '{s.event}' is scheduled both with and without "
+                    f"'first'; a block fires at one point of the turn, "
+                    f"pick one placement for every arming of it", s.line
+                )
+            mine.add(s.event)
         elif isinstance(s, ast.StopSchedule):
             self._check_expr(s.count, locals_)
             if s.event not in self.world.blocks:

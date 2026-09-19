@@ -29,6 +29,14 @@
 //   and you meet it coming and going; wait in the parlour and it passes
 //   through your room too, but its offstage steps are taken in silence, no
 //   guard needed, the system mutes what you are not there to see.
+// - The FIRST placement. `on each_turn first` fires at the TOP of the turn,
+//   before your command is even parsed, so it refreshes derived state in
+//   time for the parser to see it: here it keeps the maker's mark on the
+//   clock face referable only while the candle burns (EXAMINE MARK works by
+//   candlelight; once the candle dies, the mark is too faint to make out
+//   and its words stop answering). And a timer armed `after 8 turns first
+//   do draught_stirs` fires at the top of its turn, before the action
+//   dispatches, so the draught stirs ahead of whatever you were doing.
 //
 // Try, in order:
 //   wait                     (a few times) the chimes, the candle, the
@@ -37,6 +45,7 @@
 //   turn off clock           the recurring timer stops, mid-story
 //   west, then wait          the apprentice's other room: its rounds never
 //                            paused while you were away
+//   examine mark             readable while the candle burns; gone with it
 
 game
     title  "The Clockmaker's Parlour"
@@ -49,6 +58,7 @@ game
 on start
     after 6 turns do candle_gutters
     every 4 turns do clock_chimes
+    after 8 turns first do draught_stirs
 
 // The one-shot's block. The guard keeps it a no-op if the candle is already out,
 // so re-arming or an odd order never double-fires the description.
@@ -60,6 +70,20 @@ block candle_gutters()
 // The recurring block. It simply speaks; `every` brings it back on schedule.
 block clock_chimes()
     say "The tall clock chimes the quarter, and a dozen smaller clocks answer."
+
+// The first-placed one-shot: due at the top of turn 8, it speaks BEFORE
+// that turn's action does.
+block draught_stirs()
+    say "A draught stirs through the parlour, and every pendulum shivers."
+
+// The top-of-turn daemon: derived state, recomputed before each command
+// parses. The mark is referable exactly while the candle burns; no verb
+// handler anywhere special-cases the light.
+on each_turn first
+    if candle is lit
+        now mark is not hidden
+    else
+        now mark is hidden
 
 room parlour
     name "The Clockmaker's Parlour"
@@ -97,6 +121,14 @@ thing clock in parlour
         stop every 4 turns do clock_chimes
         say "You still the pendulum with one finger. The quarters will
              pass unannounced now."
+
+// The maker's mark, hidden and revealed by the daemon above.
+thing mark in parlour
+    name "maker's mark"
+    words mark, signature, >makers
+    scenery
+    fixed
+    desc "Scratched into the clock face in a fine hand: EZEKIEL TORN, 1788."
 
 thing fish in parlour
     name "dried fish"

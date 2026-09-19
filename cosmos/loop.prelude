@@ -342,6 +342,12 @@ block run_game()
     // re-entry, so "you did not earn arriving where you begin" holds.
     now here is visited
     while true
+        // The top-of-turn pulse (the `first` placement): derived state is
+        // refreshed before the prompt, so the parse of what the player
+        // types next reads the world as it stands, the opening command
+        // included. Folds away without an `on each_turn first` anywhere.
+        if any_turnfirst is 1
+            fire_turn_first
         prompt
         run_chain(parse)
         // Snapshot the line's unrecognized word (verb or noun, if any) so a
@@ -410,6 +416,12 @@ block run_chain(act)
         change chain_prev to act
         // Each chained command's response is its own paragraph.
         par
+        // A chained segment is a fresh turn: the top-of-turn pulse runs
+        // before its parse exactly as it runs before a typed line, so
+        // "turn off lamp then read sign" parses the sign under the new
+        // light, not the old.
+        if any_turnfirst is 1
+            fire_turn_first
         change act to chain_next
 
 // Run an action as part of the CURRENT turn, the way the player's own
@@ -703,6 +715,16 @@ block run_turn(act)
         change refused to 1
         msg_noun_missing
         return 0
+    // The first half of the schedule (docs/01 chapter 16, the `first`
+    // placement): timers armed `after/every N turns first do X` count down
+    // and fire HERE, before the action dispatches, so what falls due this
+    // turn happens before the player acts on the old state. An out-of-world
+    // command burns no fuse (the same meta band the end-of-turn tick honors
+    // through meta_turn, known here by the action number alone), and the
+    // whole site folds away in a game with no first-marked timer.
+    if any_timerfirst is 1
+        if act < meta_floor
+            tick_timers_first
     let r = do_save_undo
     // The dynamic half of the undo handshake: -1 (0xFFFF) is the opcode's
     // own "unable to provide this feature" (S 15). Latch it, so a terp
@@ -959,6 +981,89 @@ block fire_restless()
                     if heard is 1
                         replay_muted
         change obj to obj + 1
+
+// The top-of-turn pulse (docs/01 chapter 16, the `first` placement): the
+// same reach as fire_turn - the room's `on each_turn first`, every
+// in-scope object's, the restless performers', then the free rules - but
+// fired BEFORE the command is read and parsed, so a rule here refreshes
+// derived state (a hidden flag computed from the room's light, say) in
+// time for the parser itself to see it. It runs before every command,
+// the chained ones included and the very first of the game, and it
+// cannot know what the player is about to type, so it runs ahead of
+// out-of-world commands too: state refresh belongs here, prose daemons
+// at the end of the turn. The walkers are spelled as twins of the
+// end-of-turn ones rather than parameterized, so a game without the
+// placement stays byte-identical (the any_turnfirst fold).
+block fire_turn_first()
+    // The whole body sits behind the fold, not only the call sites: the
+    // block itself lowers before dead-code elimination runs, and
+    // ev_each_turn_first only joins the action numbering in a game that
+    // declares such a handler.
+    if any_turnfirst is 1
+        if here is not nothing
+            let r = handler_of(here)
+            if r is not nothing
+                par
+                call_handler(r, ev_each_turn_first)
+        fire_object_turns_first(here)
+        fire_object_turns_first(player)
+        if any_restless is 1
+            fire_restless_first
+        par
+        run_free(ev_each_turn_first)
+
+// fire_object_turns' twin for the top-of-turn pulse: same scope walk,
+// same restless skip, the first event. Reached only behind any_turnfirst.
+block fire_object_turns_first(holder)
+    if any_turnfirst is 1
+        for each obj in holder
+            if obj is not hidden
+                if any_restless is 1
+                    if obj is not restless
+                        let r = handler_of(obj)
+                        if r is not nothing
+                            par
+                            call_handler(r, ev_each_turn_first)
+                else
+                    let r2 = handler_of(obj)
+                    if r2 is not nothing
+                        par
+                        call_handler(r2, ev_each_turn_first)
+                if see_into(obj)
+                    fire_object_turns_first(obj)
+
+// fire_restless' twin for the top-of-turn pulse: the same buffered firing
+// and audibility rule, the first event. Reached only behind any_restless
+// AND any_turnfirst.
+block fire_restless_first()
+    if any_turnfirst is 1
+        fire_restless_first_walk
+
+// The walk itself, one indent in (the fold above owns the body; see
+// fire_turn_first for why the guard is inside the block).
+block fire_restless_first_walk()
+    if any_turnfirst is 1
+        let obj = 1
+        while obj <= object_count
+            if obj is restless
+                if obj is not here
+                    let r = handler_of(obj)
+                    if r is not nothing
+                        let heard = 0
+                        if in_scope(obj)
+                            change heard to 1
+                        let pp = par_pending
+                        mute_begin
+                        change par_pending to 0
+                        call_handler(r, ev_each_turn_first)
+                        mute_end
+                        change par_pending to pp
+                        if heard is 0
+                            if in_scope(obj)
+                                change heard to 1
+                        if heard is 1
+                            replay_muted
+            change obj to obj + 1
 
 // Speak what the last buffered firing printed: the mute buffer is a
 // stream-3 table, a length word then the text bytes.

@@ -2869,6 +2869,13 @@ Each turn Cosmos runs:
    continue with the next from step 4.
 10. Loop.
 
+A game using the `first` placement (chapter 16) adds the top-of-turn
+pulse ahead of step 2: `on each_turn first` handlers fire before the
+prompt (and again before each chained command's parse in step 9), and
+timers armed `... turns first` tick just before step 5's dispatch, so
+both see to their business before the command they precede. Games
+without `first` carry none of this.
+
 The room is described once on entry. The status line (the room name, plus
 the score and move count in a scored game, the move count alone otherwise)
 is repainted before every prompt. At game start, with the
@@ -3984,6 +3991,50 @@ performers), `after`/`every`, and their stops cover the whole range: a
 condition-gated daemon, an offstage agenda, a one-shot fuse, a
 fixed-period timer, and the silence after, all written in ordinary
 Arcturus with no timer objects and no hand-kept turn counters.
+
+### The first placement: the top of the turn
+
+Everything above fires at the END of the turn, after the action. The
+clock has a second position: `first` moves a daemon or a timer to the
+TOP of the turn.
+
+```
+on each_turn first
+    if here.lightlevel is 0
+        now graffito is hidden
+    else
+        now graffito is not hidden
+
+after 2 turns first do fuse_pops
+every 5 turns first do generator_coughs
+```
+
+`on each_turn first` fires before the command is read and parsed, so a
+rule here refreshes derived state, a hidden flag computed from the
+room's light, a description keyed to a machine's charge, in time for
+the parser itself to see it: the graffito above stops answering to its
+words the moment the light fails, with no per-room, per-lamp special
+cases anywhere. The pulse runs before every command, the very first of
+the game and each segment of a chained line included ("turn off the
+lamp then read the wall" reads the wall in the dark), and it has the
+same reach as the end-of-turn pulse: the room's handler, the in-scope
+objects', the restless performers', the free rules, `when` guards
+honored throughout. Because it runs before the parse, it cannot know
+what the player is about to type, so it runs ahead of out-of-world
+commands too: state refresh belongs here; a daemon that narrates
+belongs at the end of the turn, where meta turns are excluded.
+
+A timer armed with `first` counts down and fires at the top of the
+turn instead, BEFORE the action dispatches: what falls due this turn
+happens before the player acts on the old state, so the fuse above
+pops ahead of the command's own report. Out-of-world commands burn no
+fuse, exactly as they take no end-of-turn tick. `stop` accepts the
+same spelling (`stop every 5 turns first do generator_coughs`); the
+identity is the usual triple, and a block keeps one placement
+program-wide: arming the same block with and without `first` is a
+compile error, and `stop all timers` clears both placements at once.
+
+A game that never writes `first` compiles byte for byte as before.
 
 ## Chapter 17: Topics and conversation
 

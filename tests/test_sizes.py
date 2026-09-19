@@ -241,7 +241,7 @@ CEILINGS = {
     "ejemplo-espanol.storyarc": 24920,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/computed-properties.storyarc": 18160,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/containers.storyarc": 19128,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
-    "features/daemons-and-timers.storyarc": 19804,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/daemons-and-timers.storyarc": 20392,  # 2026-09-19 repriced: the example now shows the `first` placement (top-of-turn daemon + first timer); games without `first` are byte-identical (every other ceiling untouched)
     "features/doors-and-locks.storyarc": 18292,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/appearance.storyarc": 19120,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/components.storyarc": 18380,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)

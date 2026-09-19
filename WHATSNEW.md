@@ -6,6 +6,17 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **The clock's second hand: the `first` placement.** Daemons and
+  timers can now fire at the TOP of the turn: `on each_turn first`
+  runs before your command is even parsed, so a rule there refreshes
+  derived state (a hidden flag computed from the room's light) in
+  time for the parser itself to see it, the pipeline position
+  PunyInform authors abused InScope for. `after`/`every N turns first
+  do X` fires a timer before the action dispatches; out-of-world
+  commands burn no fuse. Alongside it, a computed block on an
+  attribute (`hidden block`) is now refused with a clear cure instead
+  of being silently ignored. Games using neither compile byte for
+  byte as before (arcc 2.20.0, Cosmos 1.38.0).
 - **Italic and bold, one dot.** `say.italic "..."` and `say.bold "..."`
   print one passage in that style and restore roman by themselves,
   exactly like the color dots, with `show.italic` / `show.bold` as the
@@ -44,17 +55,6 @@ lives in the commit log. The feature roadmap follows below.
   alter gate, a complete verb with full library manners is now three
   lines. Games that never set `beyond` compile byte-identical
   (arcc 2.2.0, Cosmos 1.20.0).
-- **Arcturus 2.0: the parser stops searching and starts knowing.** The
-  compiler now ships a word-to-owners index in every story file: each
-  vocabulary word points at the few objects that own it, so the noun
-  matcher scores a handful of candidates instead of sweeping the whole
-  object table. Measured cycle-exact on 8-bit hardware profiles, verb
-  turns run 3 to 6 times fewer instructions (TAKE in Hibernated 2:
-  10,272 down to 1,733), landing below PunyInform's counts on the same
-  commands, with movement and printing already faster. Nothing changes
-  in your source and nothing is declared; games grow by a few hundred
-  bytes and answer like they mean it on a C64 (arcc 2.0.0,
-  Cosmos 1.18.0).
 
 ## Feature roadmap
 

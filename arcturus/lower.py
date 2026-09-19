@@ -204,6 +204,12 @@ INTRINSICS = frozenset({
     # tick_timers counts down the after/every schedule once per turn.
     "run_free", "ev_start", "ev_enter", "ev_each_turn", "action_id", "run_grain",
     "tick_timers",
+    # The `first` placement (docs/01 chapter 16): any_turnfirst folds the
+    # top-of-turn daemon pulse (an `on each_turn first` anywhere),
+    # any_timerfirst the pre-action tick of first-marked timers, and
+    # ev_each_turn_first/tick_timers_first are their firing primitives.
+    "any_turnfirst", "any_timerfirst", "ev_each_turn_first",
+    "tick_timers_first",
     # perform("take", book) runs an action as part of the current turn, the
     # way the player's own command would dispatch it (Inform's <<take book>>,
     # Dialog's (try ...)); the library block it calls saves and restores the
@@ -1065,7 +1071,14 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # due (schedule_tick, emitted by codegen; empty when nothing is scheduled).
         rt.op("call_vn", RoutineRef("schedule_tick"))
         _place(rt, Const(0), dest)
-    elif name in ("ev_start", "ev_enter", "ev_each_turn"):
+    elif name == "tick_timers_first":
+        # tick_timers_first(): the same countdown for the first-marked slots
+        # (armed `after/every N turns first do X`), called at the top of the
+        # turn before the action dispatches. Reached only behind
+        # any_timerfirst, so a game without the placement never calls it.
+        rt.op("call_vn", RoutineRef("schedule_tick_first"))
+        _place(rt, Const(0), dest)
+    elif name in ("ev_start", "ev_enter", "ev_each_turn", "ev_each_turn_first"):
         # The event's action number, so the loop can fire it through react.
         evname = name[3:]
         _place(rt, Const(wm.action_numbers(ctx.world)[evname]), dest)
@@ -1666,6 +1679,12 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _place(rt, Const(
             1 if (ctx.layout is not None and ctx.layout.has_restless) else 0),
             dest)
+    elif name == "any_turnfirst":
+        # any_turnfirst(): 1 if any handler is `on each_turn first`.
+        _place(rt, Const(1 if ctx.world.uses_turnfirst else 0), dest)
+    elif name == "any_timerfirst":
+        # any_timerfirst(): 1 if any timer is armed `... turns first do X`.
+        _place(rt, Const(1 if ctx.world.schedule_first else 0), dest)
     elif name == "mute_begin":
         # mute_begin(): select z-machine output stream 3 into the mute
         # buffer (seeded in __mutebuf__), so everything a background
@@ -4281,6 +4300,10 @@ def _static_value(ctx, expr):
         return 1 if wm.has_summon(ctx.world, "debug") else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_restless":
         return 1 if (ctx.layout is not None and ctx.layout.has_restless) else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_turnfirst":
+        return 1 if ctx.world.uses_turnfirst else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_timerfirst":
+        return 1 if ctx.world.schedule_first else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_carry_limit":
         return _any_carry(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_container_caps":
