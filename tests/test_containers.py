@@ -32,3 +32,31 @@ def test_opening_a_clear_container_reveals_nothing():
     crate_part = io.text.split(">open crate")[-1].split(">")[0]
     assert "Inside you find" not in jar_part
     assert "Inside you find a chisel" in crate_part
+
+
+def test_inventory_keeps_the_closed_qualifier():
+    # The chest that lost its "(closed)" on pickup (a field report,
+    # 2026-09-19): the inventory line speaks the same qualifier the room
+    # listing does, and an open chest drops it in both.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    game = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "Bare."\n'
+        'thing chest of container in hall\n    name "chest"\n    words chest\n'
+        '    openable\n'
+    )
+    io = CaptureIO(script=["get chest", "i", "open chest", "i"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(game))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    first, second = io.text.split(">open chest")
+    assert "a chest (closed)" in first
+    assert "a chest (closed)" not in second

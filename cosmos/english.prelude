@@ -2670,6 +2670,12 @@ block list_held(obj)
     show("${a obj}")
     if obj is worn
         show(" (worn)")
+    // The closed qualifier, exactly as the room listing speaks it (a
+    // field report, 2026-09-19: the chest lost its "(closed)" the moment
+    // it was picked up).
+    if obj is openable
+        if obj is not open
+            show(" (closed)")
     show_tag(obj)
     list_contents(obj)
     say ""

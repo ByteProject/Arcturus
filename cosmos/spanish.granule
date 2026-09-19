@@ -2296,6 +2296,13 @@ block list_held(obj)
     show("${a obj}")
     if obj is worn
         show(" (puesto)")
+    // El mismo indicador de cerrado que usa el listado de la sala.
+    if obj is openable
+        if obj is not open
+            if obj is feminine
+                show(" (que está cerrada)")
+            else
+                show(" (que está cerrado)")
     show_tag(obj)
     list_contents(obj)
     say ""
