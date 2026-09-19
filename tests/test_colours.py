@@ -163,3 +163,66 @@ def test_bare_show_is_says_inline_sibling():
     except IndexError:
         pass
     assert "Bare and called and measured." in io.text
+
+# Text styles (Pablo Martinez's ask, 2026-09-19): say.italic and say.bold,
+# the one-shot style dots riding the colour rails. set_text_style needs no
+# support guard (the Standard has an interpreter substitute a style it
+# cannot draw), so the emission is two bare opcodes around the print; a
+# game that never styles is byte-identical (the untouched ceilings).
+STYLE_GAME = (
+    'game\n    title "S"\n    start r\n'
+    "on start\n"
+    '    say.italic "The Kraken Wakes"\n'
+    '    say.bold "Do not open the cabinet."\n'
+    '    say.yellow.italic "colour and style"\n'
+    '    say.italic.yellow "either order"\n'
+    '    show "He signed it "\n'
+    '    show.italic "with regret"\n'
+    '    say "."\n'
+    'room r\n    name "R"\n    desc "A room."\n'
+)
+
+
+def test_style_parse_shapes():
+    prog = parse(STYLE_GAME)
+    handler = next(d for d in prog.decls if isinstance(d, ast.Handler))
+    says = [s for s in handler.body if isinstance(s, ast.Say)]
+    assert [(s.style, s.colour) for s in says] == [
+        ("italic", None), ("bold", None), ("italic", "yellow"),
+        ("italic", "yellow"), (None, None), ("italic", None), (None, None),
+    ]
+
+
+def test_style_modifier_errors():
+    with pytest.raises(ArcError) as e:
+        parse('game\n    title "S"\n    start r\non start\n'
+              '    say.italic.bold "x"\n')
+    assert "one style per say" in str(e.value)
+    with pytest.raises(ArcError) as e:
+        parse('game\n    title "S"\n    start r\non start\n'
+              '    show.italic.bold "x"\n')
+    assert "unknown show modifier" in str(e.value)
+
+
+def test_styles_reach_the_screen_and_restore():
+    # The screen model sees each style bit set for its text and roman (0)
+    # restored after; the words themselves are untouched.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    story = generate(analyze(cosmos.combined_program(parse(STYLE_GAME))))
+    io = CaptureIO(script=[])
+    vm = VM(load(story), io)
+    seen = []
+    orig = vm.screen.set_style
+    vm.screen.set_style = lambda s: (seen.append(s), orig(s))[1]
+    try:
+        vm.run(max_steps=30_000_000)
+    except IndexError:
+        pass
+    # The first eight calls are the first four author sites (the fifth and
+    # Cosmos's own banner and room-title bolds follow them).
+    assert seen[:8] == [4, 0, 2, 0, 4, 0, 4, 0]
+    assert seen.count(0) * 2 == len(seen)  # every style restored
+    assert "He signed it with regret." in io.text
+    assert "colour and style" in io.text

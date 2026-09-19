@@ -6,6 +6,14 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Italic and bold, one dot.** `say.italic "..."` and `say.bold "..."`
+  print one passage in that style and restore roman by themselves,
+  exactly like the color dots, with `show.italic` / `show.bold` as the
+  inline siblings and free composition with colors and paragraph
+  modifiers (`say.yellow.italic.par`). No guard needed, on any
+  interpreter: the Standard substitutes a style a machine cannot draw.
+  A game that never styles compiles byte for byte as before
+  (arcc 2.19.0).
 - **The whole machine park, one command.** `arcimg convert art/ --all
   -o out/ --preview previews/` converts every master for every retro
   machine at once: one folder per target (out/c64/, out/ami/,
@@ -47,19 +55,7 @@ lives in the commit log. The feature roadmap follows below.
   in your source and nothing is declared; games grow by a few hundred
   bytes and answer like they mean it on a C64 (arcc 2.0.0,
   Cosmos 1.18.0).
-- **Machines you can type at: typed input slots.** A verb's own
-  grammar line now declares what a machine accepts: `speak letters to
-  noun` matches letter words only (SPEAK FRIEND TO DOOR, the
-  Hibernated 1 codeword shape), `set noun to number` one all-digit
-  word (SET DIAL TO 3), `type anychar into noun` anything at all, and
-  the matcher enforces the class, so one verb can route by input kind,
-  and wrong-kind input is refused in the machine's own name ("The dial
-  only accepts numbers.", overridable).
-  No vocabulary is declared anywhere, and the input reads back under
-  the slot's own name: `if letters is "xanadu"`, `${letters}` echoed
-  verbatim in your refusals, `number` as a plain value. A dial is one
-  handler and an if. Works in all three languages out of the box
-  (arcc 1.14.4, Cosmos 1.17.4).
+
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus

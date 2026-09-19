@@ -1,0 +1,71 @@
+// text-styles.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+//
+// A showcase for text styles (docs/01 chapter 15): `say.italic` and
+// `say.bold` print one passage in that style and restore plain roman by
+// themselves, exactly like the colour dots. `show.italic` and `show.bold`
+// are the inline siblings, for a styled word inside a sentence the
+// surrounding shows build. A style composes with a colour in either order
+// (`say.yellow.italic`). Compile and run:
+//
+//   arcc examples/features/text-styles.storyarc -o text-styles.z5
+//   frotz text-styles.z5
+//
+// An interpreter that cannot draw a style substitutes one (italic often
+// renders as underline, per the Z-Machine Standard), so no guard is ever
+// needed and the same file plays everywhere.
+//
+// Try:
+//   examine book        the title arrives in italics, mid-sentence
+//   read note           a bold warning line, then roman resumes
+//   examine shelf       italic and bold in one composed sentence
+
+game
+    title  "The Reading Room"
+    headline "A text-styles showcase"
+    author "Stefan Vogt"
+    start  reading_room
+
+summon.statusline
+
+room reading_room
+    name "Reading Room"
+    desc "Lamplight and leather. A single book lies on the shelf, and a
+          handwritten note is pinned beside it."
+
+thing shelf in reading_room
+    name "shelf"
+    words shelf, shelves
+    fixed
+
+    on examine
+        // The inline dots: styled words inside one built sentence.
+        show "The spines range from "
+        show.italic "Optics"
+        show " to a battered "
+        show.bold "DO NOT LEND"
+        say " box of pamphlets."
+        stop
+
+thing book in reading_room
+    name "book"
+    words book, volume
+    fixed
+
+    on examine
+        // One line, one style, and roman resumes by itself.
+        show "A first edition of "
+        show.italic "The Kraken Wakes"
+        say ", its cloth faded to grey."
+        stop
+
+thing note in reading_room
+    name "handwritten note"
+    words note, handwriting
+    fixed
+
+    on examine
+        say "The librarian's hand, pressed hard enough to tear:"
+        say.bold "Return the book by nightfall."
+        stop

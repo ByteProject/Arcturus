@@ -31,7 +31,7 @@ from . import worldmodel as wm
 from .assembler import Const, Routine, Variable, RoutineRef, StringRef, STACK, VAR
 from .errors import ArcError
 from .objects import REACT_PROP
-from .prelude import _DIRECTIONS, _ZCOLOURS
+from .prelude import _DIRECTIONS, _ZCOLOURS, _ZSTYLES
 
 
 def exit_directions(layout):
@@ -3254,6 +3254,11 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
             slot = ctx.globals.get("par_pending")
             if slot is not None:
                 rt.op("store", Const(slot), Const(1))
+        if s.style is not None:
+            # say.italic / say.bold: one-shot style, roman restored after.
+            # No support guard: the Standard has the interpreter substitute a
+            # style it cannot draw, so the opcode is safe everywhere.
+            rt.op("set_text_style", Const(_ZSTYLES[s.style]))
         if s.colour is not None:
             ctx.world.uses_colours = True
             # say.<colour>: set the foreground, print, restore the base font
@@ -3271,6 +3276,8 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
             rt.label(skip)
         else:
             _say(rt, ctx, s.value, newline=not s.inline)
+        if s.style is not None:
+            rt.op("set_text_style", Const(0))
         if s.para:
             # say.par: the text is followed by a paragraph break (the same
             # pending-break the par() intrinsic marks; the print layer

@@ -217,6 +217,13 @@ _ZCOLOURS = {
     "blue": 6, "magenta": 7, "cyan": 8, "white": 9,
 }
 
+# Text styles for the say/show dot (say.italic, show.bold): the
+# set_text_style bit each one carries. One-shot, like the colours: the
+# style is set, the text printed, and plain roman restored. No support
+# guard is needed; the Standard lets an interpreter substitute a style
+# it cannot draw (italic commonly renders as underline).
+_ZSTYLES = {"bold": 2, "italic": 4}
+
 # Standard value properties and their types.
 _STD_VALUE_PROPS = {
     "name": T_TEXT,

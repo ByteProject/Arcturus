@@ -23,7 +23,7 @@ from . import ast
 from . import tokens as T
 from .errors import ArcError
 from .lexer import RawInterp, tokenize
-from .prelude import _ZCOLOURS
+from .prelude import _ZCOLOURS, _ZSTYLES
 
 # Articles recognized at the start of an interpolation (docs/01 chapter 15),
 # plus the number-agreeing copula `is` (${is x} prints is/are by the object's
@@ -1802,13 +1802,16 @@ class Parser:
         self.expect_kw("say")
         # say takes a dot-chain of modifiers, in any order: a colour
         # (say.yellow "...", one-shot; the base font colour is restored
-        # afterwards) and/or `par` (say.par "...", the text is followed by a
-        # paragraph break). say.yellow.par and say.par.yellow both read.
+        # afterwards), a style (say.italic "...", one-shot; roman restored),
+        # and/or `par` (say.par "...", the text is followed by a paragraph
+        # break). say.yellow.par, say.par.yellow, say.yellow.italic all read.
         colour = None
+        style = None
         para = False
         while self.check_op("."):
             self.advance()
-            mod = self.expect_name("a colour name or 'par' after 'say.'").value
+            mod = self.expect_name(
+                "a colour name, a style, or 'par' after 'say.'").value
             if mod == "par":
                 if para:
                     raise self._error("duplicate 'par' modifier on say")
@@ -1820,34 +1823,49 @@ class Parser:
                         f"per say"
                     )
                 colour = mod
+            elif mod in _ZSTYLES:
+                if style is not None:
+                    raise self._error(
+                        f"say already has the style '{style}'; one style "
+                        f"per say"
+                    )
+                style = mod
             else:
                 raise self._error(
                     f"unknown say modifier '{mod}' (a colour - default, black, "
-                    f"red, green, yellow, blue, magenta, cyan, white - or par)"
+                    f"red, green, yellow, blue, magenta, cyan, white - a "
+                    f"style - italic, bold - or par)"
                 )
         value = self.parse_expr()
         self.expect_newline()
-        return ast.Say(value, line, colour, para, lead)
+        return ast.Say(value, line, colour, para, lead, style=style)
 
     def _parse_show(self) -> ast.Say:
-        # show "text" / show.<colour> "text": the inline sibling of say.
-        # Prints WITHOUT a trailing newline; the dotted form sets the colour
-        # first and restores the base font colour after. No par modifier:
-        # show is inline by definition.
+        # show "text" / show.<colour> "text" / show.<style> "text": the inline
+        # sibling of say. Prints WITHOUT a trailing newline; the dotted forms
+        # set the colour or style first and restore after, and the two compose
+        # (show.yellow.bold). No par modifier: show is inline by definition.
         line = self.cur.line
         self.advance()  # the leading `show`
-        mod = None
-        if self.check_op("."):
+        colour = None
+        style = None
+        while self.check_op("."):
             self.advance()
-            mod = self.expect_name("a colour name after 'show.'").value
-            if mod not in _ZCOLOURS:
+            mod = self.expect_name("a colour or style name after 'show.'").value
+            if mod in _ZCOLOURS and colour is None:
+                colour = mod
+            elif mod in _ZSTYLES and style is None:
+                style = mod
+            else:
                 raise self._error(
-                    f"unknown colour '{mod}' (use default, black, red, green, "
-                    f"yellow, blue, magenta, cyan, or white)"
+                    f"unknown show modifier '{mod}' (a colour - default, "
+                    f"black, red, green, yellow, blue, magenta, cyan, white - "
+                    f"or a style - italic, bold - one of each)"
                 )
         value = self.parse_expr()
         self.expect_newline()
-        return ast.Say(value, line, mod, False, False, inline=True)
+        return ast.Say(value, line, colour, False, False, inline=True,
+                       style=style)
 
     def _parse_zcolor(self) -> ast.ZColor:
         # `zcolor.font white` / `zcolor.background black`: set a base screen

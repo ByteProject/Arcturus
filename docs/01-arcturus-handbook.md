@@ -3787,8 +3787,33 @@ on help
     say "."
 ```
 
-The dot takes a color only (`show.yellow`, never a bare `show.par`): show is
-inline by definition, so the paragraph modifiers do not apply.
+The dot takes a color or a style only (`show.yellow`, never a bare
+`show.par`): show is inline by definition, so the paragraph modifiers do
+not apply.
+
+### Text styles
+
+Italic and bold ride the same dot: `say.italic "..."` and `say.bold "..."`
+print one text in that style and restore plain roman by themselves, the
+same one-shot shape as a color, and `show.italic` / `show.bold` are the
+inline siblings for a styled word inside a built sentence. A style
+composes with a color in either order (`say.yellow.italic`) and with the
+paragraph modifiers on say (`say.italic.par`); one style per line, as one
+color per line.
+
+```
+show "A first edition of "
+show.italic "The Kraken Wakes"
+say ", its cloth faded to grey."
+
+say.bold "Return the book by nightfall."
+```
+
+No guard is needed at either end: the Z-Machine Standard has an
+interpreter substitute a style it cannot draw (italic commonly renders as
+underline on terminals), so the same file plays everywhere, down to the
+8-bit machines. A game that never styles pays nothing. Worked example:
+[examples/features/text-styles.storyarc](../examples/features/text-styles.storyarc).
 
 Color support is handled for you, at both ends. The compiler marks the story
 as color-using in the header (Flags 2 bit 6, which interpreters require

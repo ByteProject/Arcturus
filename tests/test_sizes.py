@@ -258,6 +258,7 @@ CEILINGS = {
     "features/kinds-and-inheritance.storyarc": 18124,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/on-other.storyarc": 18004,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/zcolor.storyarc": 18444,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
+    "features/text-styles.storyarc": 18248,  # 2026-09-19: the say.italic/say.bold showcase
     "features/scoring.storyarc": 20376,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/spans.storyarc": 18244,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)
     "features/vehicles.storyarc": 19256,  # 2026-09-11 repriced: the per-item label is the language layer's (line_item_label)

@@ -229,6 +229,10 @@ class Say(Stmt):
     # (a help text naming its verbs in emphasis colour). Colour is required there; par
     # and lead never apply.
     inline: bool = False
+    # say.italic / say.bold "...": print in that text style, then restore
+    # roman. One-shot like a colour, and the two compose (say.yellow.italic).
+    # Names are validated against prelude._ZSTYLES at parse time.
+    style: Optional[str] = None
 
 
 @dataclass
