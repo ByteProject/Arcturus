@@ -2164,6 +2164,17 @@ class Analyzer:
                 raise self._error("award takes 1 to 250 points", s.line)
         elif isinstance(s, ast.Say):
             self._check_expr(s.value, locals_)
+        elif isinstance(s, ast.Alter):
+            # The alter's report body is checked like any other body, so
+            # its `is` tests resolve (a field report, 2026-09-19: `if
+            # jack is raised` inside `alter block` fell to the raw-value
+            # path and answered "unknown name"). Handler locals cannot
+            # cross into the deferred routine (no closures on the
+            # Z-machine), so the body is checked WITHOUT them: reading
+            # one is the compile error it always should have been.
+            if s.value is not None:
+                self._check_expr(s.value, locals_)
+            self._check_body(s.body, set())
         elif isinstance(s, (ast.Stop, ast.Continue, ast.ZColor)):
             pass
         elif isinstance(s, ast.Finish):

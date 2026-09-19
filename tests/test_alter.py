@@ -231,3 +231,35 @@ def test_alter_speaks_for_the_switch():
         pass
     assert "The beacon wakes with a hum." in io.text
     assert "You switch the signal beacon on." not in io.text
+
+
+def test_alter_block_reads_world_state():
+    # The alter body is checked like any body, so its `is` tests resolve
+    # (a field report, 2026-09-19: `if crane is raised` inside `alter
+    # block` answered "unknown name 'raised'"; the sema walk skipped
+    # alter bodies entirely).
+    game = (
+        'game\n    title "T"\n    start bay\n'
+        'room bay\n    name "Bay"\n    desc "Quiet."\n'
+        'thing crane in bay\n    name "cargo crane"\n    words crane\n'
+        '    fixed\n    raised true\n'
+        'thing valve_x in crane\n    name "bypass valve"\n    words valve\n'
+        '    component\n    openable\n'
+        '    on open\n'
+        '        alter block\n'
+        '            say "You crack the valve wide."\n'
+        '            if crane is raised\n'
+        '                now crane is not raised\n'
+        '                say "The crane sinks with a hiss."\n'
+        '        continue\n'
+    )
+    from arcturus import cosmos as _c
+    story = generate(analyze(_c.combined_program(parse(game))))
+    io = CaptureIO(script=["open valve", "close valve", "open valve"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert out.count("You crack the valve wide.") == 2
+    assert out.count("The crane sinks with a hiss.") == 1  # state read live
