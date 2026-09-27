@@ -104,8 +104,11 @@ block quote_done()
     if status_lines > 0
         split_window(status_lines)
     buffer_mode(1)
-    // The screen is fresh; no break is owed to it.
+    // The screen is fresh; no break is owed to it, and nothing printed
+    // before the box stands on it any more (the statusline's opening rule
+    // reads `spoke`: a room title directly under the bar is skipped).
     change par_pending to 0
+    change spoke to 0
 
 // The one-call form (docs/01, catalogs): draw the whole box from a text
 // catalog. The line count and the width of the longest line are read from

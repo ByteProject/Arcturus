@@ -160,11 +160,19 @@ block draw_status()
 block status_lines()
     return 1
 
-// The bar names the room, so the opening description skips its title line
-// and the prose scrolls straight under the bar (loop.prelude; Stefan's
-// start-screen design, not Puny's, whose Look always prints the name).
+// The bar names the room, so an opening description that would sit
+// DIRECTLY under it skips its title line: the same name twice, one line
+// apart, is the repetition this prevents (the Frotz manner). That is only
+// the case on a silent opening, no banner and no `on start` text. Once
+// anything was printed between the bar and the description, the title is
+// far from the bar and prints as in any other room. `spoke` is the print
+// layer's own record (par_flush raises it on every print, and nothing has
+// consumed it before the first prompt), so the banner, an intro, and a
+// staged print_banner all count without being named here.
 block title_in_bar()
-    return 1
+    if spoke is 0
+        return 1
+    return 0
 
 // Paint the bar into row 1 of whatever upper window is current: reverse video
 // across the width, the room name at the left, the score and moves at the right.

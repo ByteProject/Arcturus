@@ -2879,9 +2879,15 @@ without `first` carry none of this.
 The room is described once on entry. The status line (the room name, plus
 the score and move count in a scored game, the move count alone otherwise)
 is repainted before every prompt. At game start, with the
-statusline summoned, the opening description skips its title line: the bar
-already names the room, and the opening prose scrolls straight under it;
-every later look prints the title as usual.
+statusline summoned, an opening description that would sit directly
+under the bar skips its title line, so the room is not named twice one
+line apart: that is the silent opening, with `banner false` and no text
+from `on start`. As soon as anything stands between the bar and the
+description (the banner, an intro, a staged `print_banner`), the title
+prints as in any other room. A full-screen erase (`clear_screen`, a
+`zcolor.background` repaint, a quote box) wipes what was printed, so an
+intro that was cleared away no longer counts. Every later look prints
+the title as usual.
 
 When the player stands on a supporter or inside a container, the room
 title and the status bar both say where: "Crypt (on the altar)", "Cellar

@@ -108,13 +108,64 @@ def test_tag_qualifier_in_listing_and_inventory(tmp_path):
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_start_title_skipped_under_status_bar(tmp_path):
-    # With the statusline summoned, the opening description omits the room
-    # title (the bar names it); an explicit LOOK prints it as usual.
-    out = _play(tmp_path, GAME, "look\n")
+    # With the statusline summoned, an opening description that would sit
+    # DIRECTLY under the bar omits the room title (the bar names it, the
+    # Frotz manner): the silent opening, no banner and no `on start` text.
+    # An explicit LOOK prints it as usual.
+    silent = GAME.replace('    title "W"\n', '    title "W"\n    banner false\n')
+    out = _play(tmp_path, silent, "look\n")
     head = out.split(">")[0]
     assert "Hall\nA hall." not in head
     assert "A hall." in head
     assert "Hall\nA hall." in out.split(">")[1]
+
+
+@pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
+def test_start_title_kept_below_a_banner(tmp_path):
+    # The field report (2026-09-27: three adopters asked): once anything
+    # was printed between the bar and the description, a banner here, the
+    # title is nowhere near the bar and prints as in any other room.
+    out = _play(tmp_path, GAME, "look\n")
+    assert "Hall\nA hall." in out.split(">")[0]
+
+
+def _opening(on_start, banner=True):
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        "summon.statusline\n"
+        'game\n    title "W"\n'
+        + ("" if banner else "    banner false\n")
+        + "    start hall\n"
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        + on_start
+    )
+    io = CaptureIO(script=[""])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+def test_opening_title_follows_what_stands_above_it():
+    # An intro counts, a staged print_banner counts, and an intro that was
+    # cleared away does not: the erase put the description back directly
+    # under the bar (clear_screen and the background repaint both forget
+    # what was printed).
+    intro = 'on start\n    say "The storm has passed."\n'
+    assert "Hall\nA hall." in _opening(intro, banner=False)
+    staged = ('on start\n    say "The storm has passed."\n'
+              "    print_banner\n")
+    assert "Hall\nA hall." in _opening(staged, banner=False)
+    cleared = ('on start\n    say "The storm has passed."\n'
+               "    clear_screen\n")
+    assert "Hall\nA hall." not in _opening(cleared, banner=False)
+    recolored = "on start\n    zcolor.background black\n"
+    assert "Hall\nA hall." not in _opening(recolored, banner=False)
+    assert "Hall\nA hall." in _opening(recolored, banner=True)
 
 
 NO_BAR = GAME.replace("summon.statusline\n", "")

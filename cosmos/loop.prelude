@@ -22,11 +22,12 @@ block status_bar()
 block status_lines()
     return 0
 
-// Is the room name already on screen in a status bar? 0 by default; the
-// statusline granule overrides it to 1, and the opening room description
-// then skips its title line (the bar says where you are), so the opening
-// prose scrolls straight under the bar: Stefan's start-screen design.
-// Later looks print the title as usual.
+// Would the opening room title repeat a status bar directly above it? 0
+// by default; the statusline granule answers 1 on a silent opening (no
+// banner, no `on start` text), and the opening room description then
+// skips its title line, so the prose scrolls straight under the bar
+// instead of naming the room twice one line apart. With anything printed
+// in between, the title prints as usual, as it does on every later look.
 block title_in_bar()
     return 0
 

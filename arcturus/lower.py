@@ -1386,6 +1386,7 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
             rt.op("store", Const(slot), Const(0))
         blk = ctx.world.blocks.get("screen_ready")
         if blk is not None and blk.body:
+            _forget_spoken(rt, ctx)
             rt.op("call_vn", RoutineRef("blk_screen_ready"))
         _place(rt, Const(0), dest)
     elif name == "erase_window":
@@ -3331,6 +3332,7 @@ def compile_stmt(rt: Routine, ctx: Context, s) -> bool:
             rt.op("erase_window", Const(-1))
             blk = ctx.world.blocks.get("screen_ready")
             if blk is not None and blk.body:
+                _forget_spoken(rt, ctx)
                 rt.op("call_vn", RoutineRef("blk_screen_ready"))
             rt.label(skip)
         else:
@@ -3808,6 +3810,19 @@ def _move(rt, ctx, s: ast.Move):
     rt.op("insert_obj", opa, opb)
     if tmp is not None:
         ctx.free_temp(tmp)
+
+
+def _forget_spoken(rt, ctx):
+    """A full-screen erase wiped whatever was printed, so the print layer's
+    `spoke` record is void: the next text starts on a blank screen. The
+    statusline granule's opening rule reads it (a room title directly under
+    the bar is skipped, one below a banner or an intro is not), and an intro
+    that was cleared away no longer stands between the two. Emitted only
+    where a granule claimed the screen seam, so a bar-less game is
+    byte-identical."""
+    slot = ctx.globals.get("spoke")
+    if slot is not None:
+        rt.op("store", Const(slot), Const(0))
 
 
 def _flush_par(rt, ctx):
