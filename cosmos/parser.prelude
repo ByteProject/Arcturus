@@ -218,10 +218,17 @@ block parse_line()
     if parse_fault is not 0
         return 0
     // A tabled verb's matched grammar line may have chosen its own action
-    // (look_under under noun); the flag path leaves line_act at 0.
+    // (look_under under noun); the flag path leaves line_act at 0. The
+    // line's action then meets a typed particle exactly as a flag verb's
+    // does in resolve_verb (TURN ON X is a switch_on whether turn is on
+    // the flag model or, by one typed slot in its grammar, on the table):
+    // the same words give the same action in either model. A line that
+    // spelled the particle as a literal is unchanged by this (switch_on
+    // plus on is switch_on), and a base no compound claims keeps its
+    // action (PUT X ON Y stays a put), as on the flag path.
     if any_tables is 1
         if line_act is not 0
-            change act to line_act
+            change act to line_particle(line_act)
     // Remember what the pronouns now mean: the language layer decides which
     // slot each noun fills (English by animacy, German by grammatical gender).
     // Both nouns are noticed, so after "show coin to bob" IT is the coin and
@@ -241,6 +248,18 @@ block parse_line()
     // A language may remap the action now the nouns are known (English turns
     // LOOK <noun> into an examine); the seam lives in the language layer.
     return remap_action(act)
+
+// The table path's particle combination (see the call above): the picked
+// line's action, combined with a typed particle by the language layer's
+// compound, or unchanged. Its own block so the busy parse routine spends
+// no locals; reached only behind any_tables.
+block line_particle(act)
+    let p = find_particle
+    if p is not nothing
+        let c = compound(act, p)
+        if c is not nothing
+            return c
+    return act
 
 // ==========================================================================
 // The noun matcher (docs/01 chapter 14). Language-agnostic: the packs' thin

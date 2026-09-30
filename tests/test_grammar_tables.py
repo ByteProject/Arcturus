@@ -262,3 +262,37 @@ def test_operator_junk_in_a_grammar_line_is_refused():
     )
     with pytest.raises(ArcError, match="not a grammar word"):
         _world(game)
+
+
+def test_tabled_verb_keeps_its_particles():
+    # EdwardianDuck's field report (2026-09-27): a typed slot in turn's
+    # grammar moved the verb onto the table, and TURN ON TORCH then matched
+    # the bare `turn noun` line with the particle skipped, because only the
+    # flag path ran find_particle/compound. The table path now combines the
+    # picked line's action with the particle the same way, so the words
+    # mean the same thing in either model.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "Bare."\n'
+        'thing torch in hall\n    name "electric torch"\n    words torch\n'
+        '    binary\n'
+        '    on turn\n        say "The electric torch holds firm."\n'
+        'redefine verb "turn"\n'
+        '    turn noun\n    switch_on noun\n    switch_off noun\n'
+        '    setnumber noun to number\n'
+    )
+    story = generate(analyze(cosmos.combined_program(parse(src))))
+    io = CaptureIO(script=["turn torch", "turn on torch", "turn torch off",
+                           "turn torch to 3"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert "holds firm" in out.split(">turn torch\n")[1]
+    assert "You switch the electric torch on." in out
+    assert "You switch the electric torch off." in out
+    assert out.count("holds firm") == 1

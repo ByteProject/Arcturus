@@ -4658,7 +4658,10 @@ after different verbs. German uses all four:
   keys on the base verb, so "ab" means off after schalt and lock after schliess.
 
 The parser finds the particle wherever it falls (both orders work for a one-noun
-verb), and a word may be both a particle and a preposition (English "on" in "put X
+verb), on either grammar model: a verb moved onto the positional table by a
+typed slot or a binding (chapter 14) combines with a particle exactly as a
+flag-model verb does, so `turn noun` beside `setnumber noun to number` still
+makes TURN ON X a switch_on. A word may be both a particle and a preposition (English "on" in "put X
 on Y", German "an" in "gib X an Y", "auf" in "leg X auf Y"): the parser treats any
 tagged word as a phrase boundary, so the double duty just works. A boundary word
 can also sit inside ONE object's name (a Tür aus Eiche, and "öffne tür aus eiche"
