@@ -155,3 +155,32 @@ def test_hidden_block_is_refused_loudly():
         analyze(parse(src))
     assert "attribute" in str(e.value)
     assert "each_turn" in str(e.value)
+
+
+def test_first_pulse_never_falls_into_on_other():
+    # The field report (EdwardianDuck, 2026-09-21): a scenery kind with an
+    # `on other` refusal answered the top-of-turn pulse with it, once per
+    # item, because the react routine's catch-all knew only the fixed
+    # events. each_turn_first is an event wherever events are told from
+    # verbs: object catch-alls and free `on other` rules alike stay silent.
+    src = (
+        'game\n    title "T"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "Bare."\n'
+        'kind mute_scenery of thing\n    scenery\n'
+        '    on examine\n        continue\n'
+        '    on other\n        say "LEAK: ${the noun}."\n'
+        'thing pillar of mute_scenery in hall\n    name "pillar"\n'
+        '    words pillar\n    desc "Stone."\n'
+        'global ticks = 0\n'
+        'on each_turn first\n    change ticks to ticks + 1\n'
+        'on other\n    say "FREE LEAK."\n    continue\n'
+    )
+    story = generate(analyze(cosmos.combined_program(parse(src))))
+    io = CaptureIO(script=["wait", "wait", "push pillar"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "LEAK: " not in io.text.split(">push")[0]
+    assert "FREE LEAK." not in io.text.split(">push")[0]
+    assert "LEAK: the pillar." in io.text.split(">push")[1]  # on other still works

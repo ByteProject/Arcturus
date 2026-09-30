@@ -2999,7 +2999,7 @@ def _any_unruled(ctx) -> int:
     for verb in world.verbs:
         for g in verb.grammar:
             a = g.action
-            if a in wm.EVENT_NAMES or a in specials:
+            if a in wm.event_names(world) or a in specials:
                 continue
             if a not in ruled:
                 return 1

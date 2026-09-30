@@ -34,6 +34,19 @@ STORE_SLOT = "slot"  # a number, text, object, list, or block: a property slot
 EVENT_NAMES = frozenset({"start", "enter", "each_turn"})
 
 
+def event_names(world: "World") -> frozenset:
+    """The life-cycle events THIS program fires: the fixed three, plus
+    each_turn_first once a handler declares the `first` placement (docs/01
+    chapter 16). Every site that tells events from verb actions (the react
+    routines' catch-all exclusion, the free rules' merged event step) reads
+    this rather than EVENT_NAMES, so the top-of-turn pulse is an event
+    there too and never falls into an `on other` (EdwardianDuck's field
+    report, 2026-09-21: scenery answering the pulse with its refusal)."""
+    if world.uses_turnfirst:
+        return EVENT_NAMES | {"each_turn_first"}
+    return EVENT_NAMES
+
+
 # The out-of-world actions (Inform's meta verbs, Puny's `Verb meta`): they
 # report on or manage the session rather than act in the world, so no object
 # or room handler ever sees them. Numbered LAST so the dispatcher's guard is

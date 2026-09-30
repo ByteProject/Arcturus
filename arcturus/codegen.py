@@ -239,7 +239,7 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
         # shack's `on enter` teleport must consume, docs/01 chapter 9). The
         # object's category picks the semantic; room kinds and thing kinds
         # follow their instances here.
-        events = wm.EVENT_NAMES if obj.category == "room" else wm.EVENT_NAMES - {"enter"}
+        events = wm.event_names(world) if obj.category == "room" else wm.event_names(world) - {"enter"}
         # OWNER BANDS (docs/01 chapter 11): the object's own handlers with
         # its own `on other` at their tail, then each kind's the same way,
         # nearest first. Life-cycle events stay a single merged step (every
@@ -486,11 +486,11 @@ def gen_react_free(world: wm.World, actions: dict, registry, layout=None, gmap=N
     # only the room's own react. So the verb semantics apply here too, and the
     # most specific consuming rule wins like any other verb.
     event_groups = {a: hs for a, hs in groups.items()
-                    if a in (wm.EVENT_NAMES - {"enter"})}
+                    if a in (wm.event_names(world) - {"enter"})}
     main_groups = {a: hs for a, hs in groups.items() if a not in event_groups}
     return _gen_react(
         "free", [(main_groups, others, after_others)], actions, layout, gmap,
-        afloor, dirnames, wm.EVENT_NAMES - {"enter"},
+        afloor, dirnames, wm.event_names(world) - {"enter"},
         mfloor=wm.meta_floor(world), event_groups=event_groups,
     )
 
