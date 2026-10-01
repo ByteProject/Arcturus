@@ -64,3 +64,41 @@ def test_plain_noise_games_are_byte_identical():
     # a plain noise word adds only its dictionary entry, none of the
     # combined-flag arms (the fold)
     assert abs(len(b) - len(a)) <= 16
+
+
+def test_noise_preposition_ends_the_first_phrase():
+    # auraes's report (2026-09-21): `tell noun zu` with "zu" declared noise
+    # too. The combined flag split two-noun lines already, but the
+    # first-phrase matcher ended a phrase only at a plain preposition, so
+    # the topic words joined the troll's phrase and an unknown word there
+    # was refused ("doesn't know the word") instead of reaching the flat
+    # default, as it does after "about".
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'summon.infocom_talking\n'
+        'game\n    start cave\n'
+        'room cave\n    name "Cave"\n    desc "Echoes."\n'
+        'noise "zu"\n'
+        'thing troll of character in cave\n    name "troll"\n    words troll\n'
+        '    topic bridge "the bridge" words bridge, toll\n'
+        '        say "MY BRIDGE"\n'
+        'verb "announce"\n    reachagnostic\n    tell noun\n    tell noun zu\n'
+    )
+    io = CaptureIO(script=["announce troll zu bridge",
+                           "announce troll zu blablabla",
+                           "tell troll about blablabla"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert "MY BRIDGE" in out
+    assert "doesn't know the word" not in out
+    assert out.count("magnificent indifference") == 2

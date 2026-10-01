@@ -802,6 +802,17 @@ block first_unknown(lo, hi)
     while i < hi
         if word_dict(i) is nothing
             return i
+        // A noise word doubling as a grammar preposition (the combined
+        // flag, docs/01 chapter 21) is a boundary even inside a phrase
+        // kept whole: what follows it is the next phrase or a topic
+        // (`tell noun zu`), never this noun's words, so an unknown word
+        // there is not spelled back, exactly as after a plain
+        // preposition (auraes's report, 2026-09-21). The phrase itself
+        // stays whole, because the takeall granule's "de"/"from" rely on
+        // the source resolving inside it. Folds away without the flag.
+        if any_noiseprep is 1
+            if peek_byte(word_dict(i) + 6) is 11
+                return 0
         change i to i + 1
     return 0
 

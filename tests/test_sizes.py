@@ -235,7 +235,7 @@ CEILINGS = {
     "granules/nautical.storyarc": 18980,  # 2026-10-01 repriced (+28): tabled verbs combine a typed particle like flag verbs (line_particle)
     "granules/npcengine.storyarc": 21076,  # 2026-10-02 repriced (+4): the shut-door line is an instruction (You'll have to open it first)
     "granules/maniacswap.storyarc": 19312,  # 2026-10-01 repriced (+28): tabled verbs combine a typed particle like flag verbs (line_particle)
-    "beispiel-deutsch.storyarc": 28344,  # 2026-10-01 repriced (+28): tabled verbs combine a typed particle like flag verbs (line_particle)
+    "beispiel-deutsch.storyarc": 28368,  # 2026-10-02 repriced (+24): the combined noise+preposition flag bounds the unknown-word check (first_unknown); only noiseprep games move
     "brass-lantern.storyarc": 19880,  # 2026-10-01 repriced (+28): tabled verbs combine a typed particle like flag verbs (line_particle)
     "cloak-of-darkness.storyarc": 21848,  # 2026-10-01 repriced (+28): tabled verbs combine a typed particle like flag verbs (line_particle)
     "ejemplo-espanol.storyarc": 24952,  # 2026-10-01 repriced (+28): tabled verbs combine a typed particle like flag verbs (line_particle)
