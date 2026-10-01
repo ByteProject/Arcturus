@@ -100,3 +100,32 @@ def test_two_noun_binds_by_position_on_frotz(tmp_path):
     ).stdout
     assert "You'll have to open the iron chest first." in out  # the coin is shut away
     assert "doesn't want" not in out  # the guard was never treated as the noun
+
+
+def test_shut_door_line_is_an_instruction_not_a_report():
+    # auraes's field report (2026-09-20): "The oak door is shut. You open it
+    # first." read as the library opening the door, which it does not do
+    # without foresight. The line now matches its container sibling and
+    # the other packs: an instruction.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'game\n    title "D"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "Bare."\n    east oak\n'
+        'room yard\n    name "Yard"\n    desc "Open."\n    west oak\n'
+        'thing oak of door in hall, yard\n    name "oak door"\n    words door, oak\n'
+    )
+    io = CaptureIO(script=["east", "look"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "The oak door is shut. You'll have to open it first." in io.text
+    assert "You open it first" not in io.text
+    assert "(closed)" in io.text.split(">look")[1]   # and it stayed shut

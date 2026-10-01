@@ -2153,15 +2153,15 @@ block msg_door_shut(d)
     if any_firstperson is 1
         if any_pluribus is 1
             if d is pluribus
-                say "${The d} are shut. I open them first."
+                say "${The d} are shut. I'll have to open them first."
                 return 0
-        say "${The d} is shut. I open it first."
+        say "${The d} is shut. I'll have to open it first."
         return 0
     if any_pluribus is 1
         if d is pluribus
-            say "${The d} are shut. You open them first."
+            say "${The d} are shut. You'll have to open them first."
             return 0
-    say "${The d} is shut. You open it first."
+    say "${The d} is shut. You'll have to open it first."
 
 block msg_get_out_first(obj)
     if any_firstperson is 1
