@@ -191,6 +191,9 @@ INTRINSICS = frozenset({
     # says while out of scope: work follows the performer's nature, prose
     # follows scope.
     "any_restless", "mute_begin", "mute_end", "mute_buf",
+    # any_lighttopology folds the light-level visibility seam (light_dims)
+    # the lighttopology granule overrides.
+    "any_lighttopology",
     # any_topics is the compile-time conversation flag (1 if anything declares
     # a `topic`). The turn loop guards its replay bookkeeping on it, so a game
     # with no conversation carries none of it.
@@ -1695,6 +1698,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _place(rt, Const(0), dest)
     elif name == "any_pathfinding":
         _place(rt, Const(1 if wm.has_summon(ctx.world, "pathfinding") else 0), dest)
+    elif name == "any_lighttopology":
+        # any_lighttopology(): 1 when the light-level granule is summoned; the
+        # core's visibility seams (light_dims) fold away otherwise.
+        _place(rt, Const(1 if wm.has_summon(ctx.world, "lighttopology") else 0), dest)
     elif name == "path_buf":
         # path_buf(): the path scratch's byte address (crumbs, then fringe;
         # codegen sizes and seeds it only when way_toward is called).
@@ -4311,6 +4318,8 @@ def _static_value(ctx, expr):
         return 1 if wm.has_summon(ctx.world, "npcengine") else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_maniacswap":
         return 1 if wm.has_summon(ctx.world, "maniacswap") else 0
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_lighttopology":
+        return 1 if wm.has_summon(ctx.world, "lighttopology") else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_debug":
         return 1 if wm.has_summon(ctx.world, "debug") else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_restless":

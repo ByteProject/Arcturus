@@ -246,6 +246,7 @@ CEILINGS = {
     "features/appearance.storyarc": 19152,  # 2026-10-01 repriced (+28): tabled verbs combine a typed particle like flag verbs (line_particle)
     "features/components.storyarc": 18412,  # 2026-10-01 repriced (+28): tabled verbs combine a typed particle like flag verbs (line_particle)
     "granules/whistle.storyarc": 17840,  # 2026-10-01 repriced (+28): tabled verbs combine a typed particle like flag verbs (line_particle)
+    "granules/lighttopology.storyarc": 20028,  # 2026-10-01: the light-level showcase
     "features/pathfinding.storyarc": 20828,  # 2026-10-01 repriced (+28): tabled verbs combine a typed particle like flag verbs (line_particle)
     "features/perform.storyarc": 18156,  # 2026-10-01 repriced (+28): tabled verbs combine a typed particle like flag verbs (line_particle)
     "features/grains.storyarc": 17956,  # 2026-10-01 repriced (+28): tabled verbs combine a typed particle like flag verbs (line_particle)

@@ -202,6 +202,8 @@ class Analyzer:
         self.world.uses_darkness = (
             dark_room is not None
             or self._sets_attr("lit", negated=True, skip_library=True)
+            # Light levels (summon.lighttopology) can leave any room dark.
+            or self._has_summon("lighttopology")
         )
         if (
             self.world.uses_images
@@ -211,7 +213,9 @@ class Analyzer:
             where = (
                 f"room '{dark_room.name}' can be dark"
                 if dark_room is not None
-                else "a handler clears `lit` at runtime"
+                else ("light levels can darken a room"
+                      if self._has_summon("lighttopology")
+                      else "a handler clears `lit` at runtime")
             )
             raise self._error(
                 f"this game has pictures and darkness ({where}). Darkness is "
@@ -502,6 +506,14 @@ class Analyzer:
                         w.start_room = m.value
             elif isinstance(decl, ast.Summon):
                 w.summons.append(decl)
+                if decl.form == "feature" and decl.target == "lighttopology":
+                    # The light-level granule claims its two numbers outright
+                    # (docs/01 chapter 22): its own code reads `light` and
+                    # `needs_light` on any object, so both need a property
+                    # number whether or not the game declares them.
+                    self._unify_property("light", prelude.T_NUMBER, decl.line)
+                    self._unify_property(
+                        "needs_light", prelude.T_NUMBER, decl.line)
             elif isinstance(decl, ast.KindDecl):
                 self._seen(decl.name, decl.line)
                 w.kinds[decl.name] = wm.Kind(

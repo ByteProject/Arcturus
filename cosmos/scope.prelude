@@ -47,6 +47,9 @@ block spans_match(target)
     while i <= object_count
         if spans_here(i)
             if i is not hidden
+                if any_lighttopology is 1
+                    if light_dims(i) is 1
+                        change i to i + 1
                 if has_word(i, target)
                     return i
         change i to i + 1
@@ -169,6 +172,13 @@ block way_toward(a, b)
             change i to i + 1
     return no_way
 
+// The light-level seam (docs/01 chapter 22, lighttopology): does the
+// level of light where the player stands hide this thing? Never, by
+// default; the granule overrides it with the needs_light test. The stub
+// exists so the folded calls above resolve; unsummoned, nothing calls it.
+block light_dims(obj)
+    return 0
+
 // Is obj in scope right now?
 block in_scope(obj)
     if obj is player
@@ -187,6 +197,12 @@ block in_scope(obj)
         if obj in player
             return 1
         return 0
+    // Too dim to see (summon.lighttopology, a thing's needs_light above
+    // the room's level): out of scope like a hidden thing. Folds away
+    // unsummoned; the stub below is then dead and DCE reclaims it.
+    if any_lighttopology is 1
+        if light_dims(obj) is 1
+            return 0
     if obj is here
         return 1
     // Spanning objects are checked only in a game that has any; the guard folds

@@ -1544,6 +1544,10 @@ block content_listable(holder, x)
         return 0
     if x is concealed
         return 0
+    // Too dim to see (summon.lighttopology); folds away unsummoned.
+    if any_lighttopology is 1
+        if light_dims(x) is 1
+            return 0
     if see_into(holder)
         return 1
     if x is seen

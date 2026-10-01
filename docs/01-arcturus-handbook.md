@@ -1301,6 +1301,59 @@ on inventory when is_lit is false
     stop
 ```
 
+### Light as a level: lighttopology
+
+Light is a yes or no by default, and for most games that is right. A game
+that wants dim rooms, light reaching through a doorway, or things that
+need good light to be seen summons the lighttopology granule (chapter 22):
+
+```
+summon.lighttopology
+```
+
+Light is then a level, 0 dark, 1 dim, 2 lit, 3 bright. Nothing already
+written changes meaning: a room's `lit` still says whether it shines by
+itself, a thing's `lit` whether it glows, switch_on and switch_off still
+couple the glow, and a lit room or glowing thing with no `light` declared
+is level 2, so a game that summons the granule and declares nothing plays
+exactly as before. `light N` sets the strength where it should differ:
+
+```
+room crypt
+    lit false
+    down ossuary
+
+thing candle in chapel
+    binary
+    glow
+    light 1              // a weak glow
+
+thing inscription in crypt
+    scenery
+    fixed
+    needs_light 2        // unseen below level 2
+    desc "HERE LIES ONE WHO FEARED THE DARK."
+```
+
+The level of the room the player stands in is the highest of its own
+light, the glow of anything in it or carried, and what arrives from next
+door: each exit leading straight to a room, or through a door that stands
+open, brings that room's own level less one. A closed door brings nothing.
+Levels combine by maximum, never by sum (two candles are candlelight), and
+light travels one hop only: a neighbor's own sources count, what it merely
+borrows does not. So the crypt above, unlit, is dim (level 1) while the
+chapel's light comes down the stair, dark if a door on the stair is shut,
+and lit once a lantern comes down.
+
+A thing with `needs_light N` is unseen in a room below level N, not
+listed, not referable, not in scope, exactly as if hidden, until the light
+rises; nothing in the game toggles it. What the player carries is never
+dimmed (the cave rule above: hands know their contents), and examining
+anything still needs the room lit at all, as it always did. `light_level`
+reads the current level in a handler (`if light_level < 2`), and the room
+description, the status bar, the darkness picture, and the light watch all
+follow the level through the one `is_lit` question they already ask.
+
 ## Chapter 8: Movement and directions
 
 The player moves by typing a direction, bare (NORTH, N) or with GO, and a
@@ -5105,6 +5158,28 @@ an author's own voice, which is why these stay untranslated.
 | use             | english    | one verb and two lines; fork to translate |
 | extendedverbs   | english    | the big verb set; fork and translate the slice you summon |
 | debug           | english    | a developer tool, deliberately          |
+| lighttopology   | neutral    | light levels and spill; no words, no lines |
+
+### lighttopology
+
+`summon.lighttopology` makes light a level that travels (chapter 7 has the
+author's view): 0 dark, 1 dim, 2 lit, 3 bright. `light N` on a room is its
+level when lit, on a thing its glow when lit, 2 when absent; levels combine
+by maximum; an exit to a room, or through an open door, brings that room's
+own level less one, a closed door nothing, one hop only; `needs_light N` on
+a thing takes it out of scope and out of every listing below level N,
+carried things excepted; `light_level` is the current level. The granule
+overrides `is_lit`, the one question the core asks about light, from a
+level cached once per turn and once more after the action (the turn-start
+pulse and the after phase mark it stale, a room change refreshes it), and
+answers `light_dims`, the visibility seam the core consults behind the
+`any_lighttopology` fold in scope, in the spanning match, and in the
+listing predicate of every pack. It declares no words and prints nothing
+of its own, so it speaks every language; a dark room still says what the
+pack's darkness line says. Summoning it marks darkness as reachable, so an
+images game declares its `arc_image_dark` as usual. Games that never
+summon it are byte-identical. Worked example:
+[examples/granules/lighttopology.storyarc](../examples/granules/lighttopology.storyarc).
 
 ### extendedverbs
 

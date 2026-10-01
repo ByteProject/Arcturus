@@ -1231,6 +1231,10 @@ block content_listable(holder, x)
         return 0
     if x is concealed
         return 0
+    // Too dim to see (summon.lighttopology); folds away unsummoned.
+    if any_lighttopology is 1
+        if light_dims(x) is 1
+            return 0
     // Anything the player can see into (a supporter, or an open, clear, or
     // lidless container) lists all its contents; a closed opaque container lists
     // only what the player already knows is inside (the knowledge model).

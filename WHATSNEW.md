@@ -6,6 +6,16 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Light that travels: summon.lighttopology.** Light becomes a level
+  (0 dark, 1 dim, 2 lit, 3 bright) and moves through the map: a lit room
+  spills light one level less through an open doorway, a closed door
+  seals it off, and a thing can declare `needs_light 2` to stay unseen
+  (not listed, not referable) until the light is good enough. Levels
+  combine by maximum, so two candles are candlelight; `light N` sets a
+  room's or a lamp's strength and the existing `lit` stays the switch,
+  so a game that summons the granule and declares nothing plays exactly
+  as before. One granule, three languages, and a game that never summons
+  it compiles byte for byte as before (arcc 2.21.0, Cosmos 1.39.0).
 - **The clock's second hand: the `first` placement.** Daemons and
   timers can now fire at the TOP of the turn: `on each_turn first`
   runs before your command is even parsed, so a rule there refreshes
@@ -43,27 +53,12 @@ lives in the commit log. The feature roadmap follows below.
   not the narrator), any single line is still yours to override by
   declaring its block, and a second-person game compiles byte for
   byte as before (arcc 2.16.0, Cosmos 1.36.0).
-- **Touch is the default: the reach gate moves into the house.** Every
-  action now honors `beyond` centrally, before any handler runs: a new
-  verb refuses what is out of reach with zero gate code, an object's
-  own overrides never explain a thing the player could not have
-  reached, and the audit's forgotten holes (SET, TIE, KISS, CLIMB,
-  DRINK, DIG, SEARCH on unreachable things) are closed for good. A
-  verb whose meaning works at any distance declares it beside its
-  grammar: `reachagnostic`, bare or per slot (SHOW's far person,
-  THROW's target). With `success` speaking the report through the
-  alter gate, a complete verb with full library manners is now three
-  lines. Games that never set `beyond` compile byte-identical
-  (arcc 2.2.0, Cosmos 1.20.0).
 
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus
 way, designed on its own terms, pay-for-use as always.
 
-- **Light topology.** Doors and openings that block or pass light, so a
-  lit room can spill light through an open doorway and a closed door can
-  seal it off.
 - **Darkness furniture.** Darkness as a referable thing (EXAMINE
   DARKNESS answers) and EXITS refusing without light. (The status bar
   already shows darkness instead of the room name; the rest of the

@@ -1,0 +1,92 @@
+// lighttopology.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for summon.lighttopology (docs/01 chapters 7 and 22): light as
+// a LEVEL that travels. The chapel is lit (level 2, every ordinary room).
+// The crypt below is unlit, but light spills down the open stair at one
+// level less, so the crypt is dim (level 1): you can move and see the
+// coffin, but the inscription on it needs level 2 and stays unseen until
+// you bring a lantern down. The vestry is unlit too, behind an oak door:
+// closed, the door seals it and the vestry is pitch dark; open it and the
+// chapel's light reaches in. A candle glows at level 1 only, so it never
+// reveals the inscription; levels combine by maximum, not by sum.
+// Compile and run:
+//
+//   arcc examples/granules/lighttopology.storyarc -o lt.z5
+//   frotz lt.z5
+//
+// Try, in order:
+//   down                     the crypt is dim, not dark; no inscription
+//   examine inscription      "nothing of the sort": too dim to see it
+//   up, take candle, light candle, down
+//                            still dim: a candle is level 1, same as the spill
+//   up, take lantern, light lantern, down
+//                            level 2: the inscription can be read
+//   up, east                 the vestry door is shut; open it, then east
+//                            the chapel's light spills in at level 1
+
+game
+    title  "The Crypt Stair"
+    headline "A lighttopology showcase"
+    author "Stefan Vogt"
+    start  chapel
+
+summon.statusline
+summon.lighttopology
+
+room chapel
+    name "Chapel"
+    desc "Whitewashed and plain. A stair goes down into the crypt, and an
+          oak door leads east to the vestry."
+    down crypt
+    east oak_door
+
+room crypt
+    name "Crypt"
+    desc "A low vault under the chapel. A stone coffin fills the middle
+          of it."
+    lit false
+    up chapel
+
+room vestry
+    name "Vestry"
+    desc "Robes on pegs, a locked cupboard, dust."
+    lit false
+    west oak_door
+
+thing oak_door of door in chapel, vestry
+    name "oak door"
+    words door, oak
+
+thing coffin in crypt
+    name "stone coffin"
+    words coffin, >stone, lid
+    scenery
+    fixed
+    desc "Grey stone, the lid carved with a worn inscription."
+
+// Readable only at level 2: not referable, not listed, not in scope below.
+thing inscription in crypt
+    name "inscription"
+    words inscription, carving, letters
+    scenery
+    fixed
+    needs_light 2
+    desc "HERE LIES ONE WHO FEARED THE DARK, AND WAS RIGHT TO."
+
+// A weak source: lit, it glows at level 1.
+thing candle in chapel
+    name "candle"
+    words candle
+    binary
+    glow
+    light 1
+
+// An ordinary source: no `light` declared, so it glows at level 2.
+thing lantern in chapel
+    name "lantern"
+    words lantern
+    binary
+    glow
