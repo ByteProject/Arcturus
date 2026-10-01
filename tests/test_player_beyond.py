@@ -69,7 +69,7 @@ def test_the_bubble_holds_mount_and_its_cargo():
     assert "You touch the grey mare" in out
     tail = out.split(">take apple")[-1]
     assert "You take the" in tail
-    assert "Done." in out.split(">put")[-1]
+    assert "You put " in out.split(">put")[-1]
 
 
 def test_put_cannot_fish_the_ground():
@@ -77,7 +77,7 @@ def test_put_cannot_fish_the_ground():
     # it: no lifting things off the ground into the saddlebag while mounted.
     out = _run(GAME, ["enter mare", "put key in saddlebag"]).split(">put")[-1]
     assert "beyond your reach" in out
-    assert "Done." not in out
+    assert "You put " not in out
 
 
 def test_dismount_restores_reach():

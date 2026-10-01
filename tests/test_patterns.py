@@ -64,14 +64,14 @@ def test_patterns_compile():
 def test_pattern_matches_exact_pairing(tmp_path):
     out = _play(tmp_path, GAME, "take ruby\nput ruby in chest\n")
     assert "The chest glows around the ruby." in out
-    assert "Done." not in out  # the handler replaced the default put
+    assert "You put " not in out  # the handler replaced the default put
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")
 def test_pattern_mismatch_falls_to_the_default(tmp_path):
     # Same noun, other container: the guard fails, the default put runs.
     out = _play(tmp_path, GAME, "take ruby\nput ruby in box\n")
-    assert "Done." in out
+    assert "You put " in out
     assert "glows" not in out
 
 
@@ -124,9 +124,9 @@ def test_pattern_composes_with_after(tmp_path):
         "take ruby\nput ruby in chest\ntake coin\nput coin in chest\n",
     )
     # The default put runs both times; only the matching pair hums, after.
-    assert out.count("Done.") == 2
+    assert out.count("You put ") == 2
     assert out.count("hums approvingly") == 1
-    assert out.index("Done.") < out.index("hums approvingly")
+    assert out.index("You put ") < out.index("hums approvingly")
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")

@@ -5,7 +5,7 @@
 
 """Noun lists in two-noun actions (the verbs overhaul, phase 6): "put coin
 and nail in box" binds the second once and runs each listed item as its own
-full turn, reported the sweep way ("gold coin: Done."), stopping at the
+full turn, reported the sweep way ("gold coin: You put the gold coin"), stopping at the
 first refusal, the chain rule. The "and" inside a two-noun verb's first
 slot is a LIST, not a chain, exactly when no verb follows it and the
 separator still lies ahead; everything else chains as it always did, and
@@ -46,20 +46,20 @@ def _run(cmds):
 
 def test_two_items_land_and_each_is_reported():
     out = _run(["put coin and nail in box", "take nail", "i"])
-    assert "gold coin: Done." in out
-    assert "rusty nail: Done." in out
+    assert "gold coin: You put the gold coin" in out
+    assert "rusty nail: You put the rusty nail" in out
     # ...and the nail really moved: takeable back out of the box.
     assert "You take the" in out.split("take nail")[-1]
 
 
 def test_three_items_with_comma_and():
     out = _run(["put coin, nail and bolt in box"])
-    assert out.count("Done.") == 3
+    assert out.count("You put ") == 3
 
 
 def test_a_list_still_chains_afterwards():
     out = _run(["put coin and nail in box then go north"])
-    assert "rusty nail: Done." in out
+    assert "rusty nail: You put the rusty nail" in out
     assert "Yard" in out
 
 
@@ -71,9 +71,9 @@ def test_single_noun_lists_ride_the_chain_untouched():
 
 def test_an_unresolvable_item_stops_the_list():
     out = _run(["put coin and ghost in box"])
-    assert "gold coin: Done." in out
+    assert "gold coin: You put the gold coin" in out
     assert "nothing of the sort" in out
-    assert "rusty nail" not in out.split("Done.")[-1]
+    assert "rusty nail" not in out.split("You put ")[-1]
 
 
 def test_the_contract_guards_each_item():
@@ -87,4 +87,4 @@ def test_the_contract_guards_each_item():
 def test_a_verb_after_and_still_chains():
     out = _run(["take gem and put coin in box"])
     assert "You take the" in out
-    assert "Done." in out
+    assert "You put " in out

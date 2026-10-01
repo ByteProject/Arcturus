@@ -2929,6 +2929,19 @@ timers armed `... turns first` tick just before step 5's dispatch, so
 both see to their business before the command they precede. Games
 without `first` carry none of this.
 
+A room description is its own paragraph: one blank line stands above its
+title, after LOOK as after a move. On a 25-row retro screen that line is
+real estate, so a game may fold it away:
+
+```
+constant compact_rooms = 1
+```
+
+The title then follows the command line directly, everywhere a room is
+described; nothing else about the spacing changes, and the opening
+description under a status bar keeps its breathing line. Off by
+default, and a game without the constant compiles byte-identical.
+
 The room is described once on entry. The status line (the room name, plus
 the score and move count in a scored game, the move count alone otherwise)
 is repainted before every prompt. At game start, with the

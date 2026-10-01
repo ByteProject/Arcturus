@@ -241,7 +241,7 @@ def test_english_pronouns_on_frotz(tmp_path):
     ).stdout
     assert out.count("A small brass lamp.") == 1  # x it after take lamp
     assert out.count("She watches you evenly.") == 2  # x marta, then x her
-    assert "Done." in out  # put coin in it: the pronoun bound as second noun
+    assert "You put " in out  # put coin in it: the pronoun bound as second noun
 
 
 def test_the_second_noun_binds_a_pronoun():

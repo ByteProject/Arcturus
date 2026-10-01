@@ -2127,7 +2127,10 @@ block line_foresight_exit(seat)
         say "(zuerst steigst du aus ${the:dat seat})"
 
 block msg_done()
-    say "Erledigt."
+    if second is supporter
+        say "Du legst ${the:acc noun} auf ${the:acc second}."
+        return 0
+    say "Du legst ${the:acc noun} in ${the:acc second}."
 
 block msg_cant_put()
     if any_pluribus is 1

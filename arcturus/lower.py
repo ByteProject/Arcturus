@@ -194,6 +194,9 @@ INTRINSICS = frozenset({
     # any_lighttopology folds the light-level visibility seam (light_dims)
     # the lighttopology granule overrides.
     "any_lighttopology",
+    # any_compactrooms folds the blank line above a room title away when
+    # the game sets `constant compact_rooms = 1`.
+    "any_compactrooms",
     # any_topics is the compile-time conversation flag (1 if anything declares
     # a `topic`). The turn loop guards its replay bookkeeping on it, so a game
     # with no conversation carries none of it.
@@ -1678,6 +1681,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_verb_read(): 1 if any author code reads verb_trigger, so the
         # parser's store and the AGAIN/perform plumbing fold away otherwise.
         _place(rt, Const(_any_verb_read(ctx)), dest)
+    elif name == "any_compactrooms":
+        # any_compactrooms(): 1 when `constant compact_rooms = 1` drops the
+        # blank line above a room title.
+        _place(rt, Const(_compact_rooms(ctx)), dest)
     elif name == "any_restless":
         # any_restless(): 1 if any object is (or can become) restless.
         _place(rt, Const(
@@ -2964,6 +2971,16 @@ def _any_noiseprep(world) -> int:
             for it in line.items:
                 if isinstance(it, ast.Word) and it.text.lower() in noise:
                     return 1
+    return 0
+
+
+def _compact_rooms(ctx) -> int:
+    """1 when the game sets `constant compact_rooms = 1`: a room description
+    starts without the blank line above its title (docs/01 chapter 13), a
+    line back on a 25-row retro screen. Off by default; folds."""
+    c = ctx.world.constants.get("compact_rooms")
+    if c is not None and isinstance(c.value, ast.Number):
+        return 1 if c.value.value else 0
     return 0
 
 
@@ -4382,6 +4399,8 @@ def _static_value(ctx, expr):
         return _any_noiseprep(ctx.world)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_firstperson":
         return _first_person(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_compactrooms":
+        return _compact_rooms(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scenery_contents":
         return _scenery_contents(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scored":

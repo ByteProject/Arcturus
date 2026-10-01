@@ -6,6 +6,13 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Put says what it did, and a line back for retro screens.** PUT and
+  INSERT now report like every other success: "You put the coin in the
+  box.", "You put the candle on the altar." (German and Spanish in their
+  own words), in place of the flat "Done.". And a game on a 25-row
+  screen can reclaim the blank line above every room title with
+  `constant compact_rooms = 1`; off by default, byte-identical without
+  it (arcc 2.22.0, Cosmos 1.40.0).
 - **Light that travels: summon.lighttopology.** Light becomes a level
   (0 dark, 1 dim, 2 lit, 3 bright) and moves through the map: a lit room
   spills light one level less through an open doorway, a closed door
@@ -44,15 +51,6 @@ lives in the commit log. The feature roadmap follows below.
   to come reported once and skipped. Preparing sources got simpler
   too: a file named 1.png IS picture 1, and art already at a band
   size keeps its shape (arcimg 2.3.1).
-- **Say I: first-person narration.** One constant in your game,
-  `constant first_person = 1`, and the whole English library narrates
-  as I: "I take the lamp with me.", "I'm carrying:", every listing,
-  report, and refusal, the extended verbs included. The system voice
-  deliberately stays second person (the parser's clarifying questions
-  and the quit and death prompts talk to the player at the keyboard,
-  not the narrator), any single line is still yours to override by
-  declaring its block, and a second-person game compiles byte for
-  byte as before (arcc 2.16.0, Cosmos 1.36.0).
 
 ## Feature roadmap
 

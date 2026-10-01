@@ -86,7 +86,7 @@ def test_get_off_a_worn_thing_stays_take_off():
 
 
 def test_put_into_splits_the_nouns():
-    assert "Done." in _reply(["put lamp into box"])
+    assert "You put " in _reply(["put lamp into box"])
 
 
 def test_bare_get_out_while_nested_is_exit():

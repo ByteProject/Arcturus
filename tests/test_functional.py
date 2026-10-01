@@ -65,7 +65,7 @@ def test_functional_verbs_on_frotz(tmp_path):
     assert "The iron chest is locked." in out  # open while locked
     assert "Unlocked." in out  # unlock with the right key
     assert "Open." in out  # then open
-    assert "Done." in out  # insert / close steps confirm
+    assert "You put " in out  # insert / close steps confirm
     assert "Locked." in out  # relock
     assert "doesn't want" in out  # give to the guard (animate)
     assert "not really into that" in out  # show to the guard

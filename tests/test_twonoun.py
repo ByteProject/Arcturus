@@ -57,7 +57,7 @@ def test_put_on_supporter_on_frotz(tmp_path):
         capture_output=True, text=True, timeout=15,
     ).stdout
     assert "A bare oak table." in out  # before: nothing on it
-    assert "Done." in out  # put book on table
+    assert "You put " in out  # put book on table
     assert "The book rests on the table." in out  # after: the book moved onto it
 
 

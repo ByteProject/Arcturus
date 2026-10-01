@@ -1235,7 +1235,12 @@ block list_presence_one()
 
 
 block describe_room()
-    par
+    // A room description is its own paragraph: one blank line above the
+    // title. `constant compact_rooms = 1` folds that line away for games
+    // on 25-row screens, where a line back is a real feature (auraes's
+    // ask, 2026-09-21); the default keeps the classic look, byte-same.
+    if any_compactrooms is 0
+        par
     // The picture draws BEFORE the darkness gate: a dark room shows its
     // darkness picture over the darkness message, not the previous room's
     // scene (draw_room_image chooses the dark id itself).

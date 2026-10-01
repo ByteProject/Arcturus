@@ -65,13 +65,13 @@ def test_darauf_satisfies_the_wohin_and_skips_the_acted_on():
     # The book is the freshest mention (just taken), but darauf must never
     # mean the book itself: the repick reaches the table.
     out = _replies(GAME, ["untersuche tisch", "nimm buch", "leg das buch darauf"])
-    assert "Erledigt." in out
+    assert "Du legst " in out
     assert "verlangt eine genauere Angabe" not in out
 
 
 def test_darin_reaches_the_container():
     out = _replies(GAME, ["oeffne truhe", "nimm buch", "leg das buch darin"])
-    assert "Erledigt." in out
+    assert "Du legst " in out
 
 
 def test_animate_referents_are_skipped():

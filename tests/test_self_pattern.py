@@ -59,7 +59,7 @@ def test_self_in_the_second_slot_guards_the_owner():
 def test_self_pattern_does_not_catch_other_containers():
     text = _play(["put coin in box"])
     assert "VANISH" not in text
-    assert "Done." in text
+    assert "You put " in text
 
 
 def test_self_as_the_noun_slot():

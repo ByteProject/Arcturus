@@ -83,7 +83,7 @@ def test_two_noun_slot_ambiguity(tmp_path):
         "open chest\nput gold coin in chest\nput coin in chest\n"
         "put silver coin in chest\n",
     )
-    assert out.count("Done.") == 2  # the two adjective forms; the bare one asked
+    assert out.count("You put ") == 2  # the two adjective forms; the bare one asked
 
 
 @pytest.mark.skipif(_frotz() is None, reason="no Frotz interpreter on PATH")

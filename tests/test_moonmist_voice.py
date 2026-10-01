@@ -180,7 +180,7 @@ def test_a_container_item_cap_refuses_in_total():
     out = _run(["take pebble", "put pebble in chest", "take feather",
                 "put feather in chest", "take acorn", "put acorn in pouch"],
                game=game)
-    assert out.count("Done.") == 2
+    assert out.count("You put ") == 2
     assert "No more fits into the chest." in out
 
 
@@ -195,7 +195,7 @@ def test_a_supporter_item_cap_refuses_on_the_edge():
     out = _run(["take pebble", "put pebble on table", "take feather",
                 "put feather on table", "take acorn", "put acorn on table"],
                game=game)
-    assert out.count("Done.") == 2
+    assert out.count("You put ") == 2
     assert "No more fits on the table." in out
 
 

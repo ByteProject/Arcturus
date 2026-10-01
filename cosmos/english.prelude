@@ -2046,7 +2046,16 @@ block line_foresight_exit(seat)
         say "(getting out of ${the seat} first)"
 
 block msg_done()
-    say "Done."
+    if any_firstperson is 1
+        if second is supporter
+            say "I put ${the noun} on ${the second}."
+            return 0
+        say "I put ${the noun} in ${the second}."
+        return 0
+    if second is supporter
+        say "You put ${the noun} on ${the second}."
+        return 0
+    say "You put ${the noun} in ${the second}."
 
 block msg_cant_put()
     say "${The second} won't hold it."

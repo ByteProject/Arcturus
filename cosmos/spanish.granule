@@ -1726,7 +1726,10 @@ block line_foresight_exit(seat)
         say "(primero sales de ${the seat})"
 
 block msg_done()
-    say "Hecho."
+    if second is supporter
+        say "Pones ${the noun} sobre ${the second}."
+        return 0
+    say "Pones ${the noun} en ${the second}."
 
 block msg_cant_put()
     if any_pluribus is 1
