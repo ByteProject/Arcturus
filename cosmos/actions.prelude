@@ -469,6 +469,14 @@ on take
 
 on drop
     if not (player holds noun)
+        // A real refusal, marked like every other: the thing is not in
+        // hand, so the after phase never runs and a chained line stops
+        // (Charles Moore Jr.'s report, 2026-09-26: on after drop fired on
+        // a thing not held). The "already" no-ops around the library
+        // (already open, already have it) stay UNmarked on purpose: an
+        // outcome that already holds is not a refusal, and a chained line
+        // goes on (docs/01 chapter 14).
+        change refused to 1
         msg_not_holding
         stop
     // Something WORN is not dropped past its take_off gate: the house
