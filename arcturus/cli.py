@@ -250,8 +250,12 @@ def _extract_library(target_dir: str) -> int:
     names = list(_all_library_sources())
     rc = _write_library_files(target_dir, names)
     if rc == 0:
-        print(f"arcc: wrote {len(names)} Cosmos library files to {target_dir}/ "
-              f"(compile against them with -L {target_dir})")
+        # The hint names the directory in full: the relative path an author
+        # typed here was echoed back as the -L to use, and -L then wanted it
+        # absolute (improvmonster's report, 2026-09-26).
+        where = os.path.abspath(target_dir)
+        print(f"arcc: wrote {len(names)} Cosmos library files to {where}/ "
+              f"(compile against them with -L {where})")
     return rc
 
 
@@ -523,12 +527,21 @@ def main(argv: list[str] | None = None) -> int:
             print()
         return rc
 
-    # -L directories must be absolute, so the library is deliberately placed and
-    # there is no ambiguity about what a story summons by name (docs/01 chapter 22).
-    for d in args.lib or ():
-        if not os.path.isabs(d):
-            print(f"arcc: error: -L path must be absolute: {d}", file=sys.stderr)
-            return 2
+    # -L directories are resolved to absolute paths against the working
+    # directory, so the library is deliberately placed and there is no
+    # ambiguity about what a story summons by name (docs/01 chapter 22); a
+    # relative spelling is accepted the way --extract-library accepts one,
+    # and a directory that is not there is refused by name.
+    if args.lib:
+        resolved = []
+        for d in args.lib:
+            full = os.path.abspath(d)
+            if not os.path.isdir(full):
+                print(f"arcc: error: -L directory not found: {d} ({full})",
+                      file=sys.stderr)
+                return 2
+            resolved.append(full)
+        args.lib = resolved
 
     if args.make_abbreviations:
         return _make_abbreviations(args)

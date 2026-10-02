@@ -108,7 +108,7 @@ Options:
   `--zversion 8` for a version 8 target, which raises the story-file ceiling to
   512KB (from the z5 256KB) for a large, modern-only release. The story source is
   identical for both.
-- `-L DIR`, `--lib DIR`: add an absolute directory to the search path for granule
+- `-L DIR`, `--lib DIR`: add a directory (resolved to its absolute path) to the search path for granule
   (`.granule`) files a story summons by name; repeatable. Used to compile against
   a forked library (docs/01 chapter 23). A relative `-L` is rejected.
 - `-q`, `--quiet`: script mode. By default every invocation prints the arcc
@@ -188,7 +188,8 @@ first:
 - `arcc --eject-language` writes `english.prelude` to edit the messages or start
   a translation.
 - `arcc --extract-library DIR` writes the whole library (preludes and granules)
-  to fork wholesale, compiled with `-L DIR` (absolute).
+  to fork wholesale, compiled with `-L DIR` (the hint it prints names the
+  absolute path).
 
 A story summons a granule in one of three forms (docs/01 chapter 22):
 `summon.statusline` always uses the bundled copy; `summon statusline.granule`

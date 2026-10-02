@@ -192,3 +192,24 @@ def test_without_L_the_bundled_prelude_still_loads(tmp_path):
     except SystemExit:
         pass
     assert "You take the coin with you." in io.text
+
+
+# --- -L and the extraction hint -------------------------------------------
+
+def test_relative_lib_dir_is_resolved_and_the_hint_is_absolute(tmp_path, monkeypatch, capsys):
+    # improvmonster's report (2026-09-26): --extract-library took a relative
+    # path and echoed it back as the -L to use, and -L then refused it as
+    # not absolute. The hint now names the absolute path, -L resolves a
+    # relative spelling against the working directory, and a directory
+    # that is not there is refused by name.
+    monkeypatch.chdir(tmp_path)
+    assert cli.main(["--extract-library", "cosmos"]) == 0
+    hint = capsys.readouterr().out
+    assert f"-L {tmp_path / 'cosmos'}" in hint
+    (tmp_path / "g.storyarc").write_text(
+        'game\n    title "L"\n    start r\nroom r\n    name "R"\n    desc "x"\n',
+        encoding="utf-8")
+    assert cli.main(["-L", "cosmos", "g.storyarc", "-o", "g.z5"]) == 0
+    assert (tmp_path / "g.z5").exists()
+    assert cli.main(["-L", "nowhere", "g.storyarc", "-o", "g2.z5"]) == 2
+    assert "-L directory not found: nowhere" in capsys.readouterr().err

@@ -5150,8 +5150,10 @@ summon "/path/to/fork.granule"  // exactly this file
   written, or for a bare quoted name the story directory and then the working
   directory. There is no bundled fallback; a missing file is an error.
 
-`-L` directories must be absolute paths, so the library a story compiles against
-is deliberate and unambiguous.
+An `-L` directory is resolved to its absolute path against the working
+directory (a relative spelling is accepted, as `--extract-library` accepts
+one), so the library a story compiles against is deliberate and unambiguous;
+a directory that is not there is refused by name.
 
 ### when language: granules that speak
 
@@ -6323,7 +6325,7 @@ To change a granule, take a copy and edit it.
   ```
   arcc --extract-library ~/cosmos   // every prelude and granule
   // edit files in ~/cosmos, then:
-  arcc game.storyarc -L ~/cosmos    // -L must be absolute (~ expands to one)
+  arcc game.storyarc -L ~/cosmos    // relative paths resolve against the working directory
   ```
 
   With `-L ~/cosmos`, a `summon statusline.granule` in the story finds your
