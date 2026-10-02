@@ -1254,6 +1254,10 @@ block scenery_holder_line(obj)
                 return 0
         if listable_count(obj) is 0
             return 0
+        if obj is container
+            if shut_holds(obj)
+                scenery_closed_line(obj)
+                return 0
         par
         if obj is supporter
             show("On ")
@@ -1272,6 +1276,10 @@ block scenery_holder_line(obj)
             return 0
     if listable_count(obj) is 0
         return 0
+    if obj is container
+        if shut_holds(obj)
+            scenery_closed_line(obj)
+            return 0
     par
     if obj is supporter
         show("On ")
@@ -1279,6 +1287,24 @@ block scenery_holder_line(obj)
         show("In ")
     art_the(obj, 0)
     show(" you can see ")
+    name_contents(obj)
+    say "."
+
+// The closed holder's paragraph: a shut opaque scenery container whose
+// contents the player remembers speaks as memory, in the inline listing's
+// own words ("a cupboard (closed) (contains a bell)"), never as sight
+// (Charles Moore Jr.'s report, 2026-09-24: "In the cupboard you can see a
+// bell." after CLOSE CUPBOARD). Reached only when something is known.
+block scenery_closed_line(obj)
+    par
+    art_the(obj, 1)
+    if any_pluribus is 1
+        if obj is pluribus
+            show(" (closed) contain ")
+            name_contents(obj)
+            say "."
+            return 0
+    show(" (closed) contains ")
     name_contents(obj)
     say "."
 

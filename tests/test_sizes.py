@@ -229,7 +229,7 @@ CEILINGS = {
     "features/catalogs.storyarc": 19148,  # 2026-10-02 repriced (+52): the put report names thing and place (msg_done)
     "features/matrix.storyarc": 19480,  # 2026-10-02 repriced (+52): the put report names thing and place (msg_done)
     "features/direction-grammar.storyarc": 18556,  # 2026-10-02 repriced (+52): the put report names thing and place (msg_done)
-    "features/scenery-contents.storyarc": 19672,  # 2026-10-02 repriced (+52): the put report names thing and place (msg_done)
+    "features/scenery-contents.storyarc": 19740,  # 2026-10-02 repriced (+68): a closed scenery holder speaks as memory (scenery_closed_line)
     "features/trigger.storyarc": 18632,  # 2026-10-02 repriced (+52): the put report names thing and place (msg_done)
     "features/adjectives.storyarc": 19264,  # 2026-10-02 repriced (+52): the put report names thing and place (msg_done)
     "granules/nautical.storyarc": 19032,  # 2026-10-02 repriced (+52): the put report names thing and place (msg_done)

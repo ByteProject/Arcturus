@@ -67,3 +67,38 @@ def test_off_by_default(tmp_path):
     assert "you can see a bell" not in out
     # and the opt-out build is smaller: the pass folded away
     assert len(_build(OFF)) < len(_build(ON))
+
+
+def test_closed_scenery_holder_speaks_as_memory():
+    # Charles Moore Jr.'s report (2026-09-24): with the constant on, a
+    # scenery cupboard closed again kept "In the cupboard you can see a
+    # bell." The knowledge model is right to remember the bell (the inline
+    # listing says "a cupboard (closed) (contains a bell)"); the paragraph
+    # now says the same honest thing, never a sight the player lacks.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'constant scenery_contents = 1\n'
+        'game\n    title "SC"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing cupboard of container in hall\n    name "cupboard"\n'
+        '    words cupboard\n    scenery\n    openable\n'
+        'thing bell in cupboard\n    name "bell"\n    words bell\n'
+    )
+    io = CaptureIO(script=["look", "open cupboard", "look", "close cupboard",
+                           "look"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    looks = io.text.split(">look")
+    assert "bell" not in looks[1].split(">open")[0]             # secret until opened
+    assert "In the cupboard you can see a bell." in looks[2]    # open: sight
+    assert "The cupboard (closed) contains a bell." in looks[3]  # closed: memory
+    assert "you can see a bell" not in looks[3]

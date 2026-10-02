@@ -1189,6 +1189,10 @@ block scenery_holder_line(obj)
             return 0
     if listable_count(obj) is 0
         return 0
+    if obj is container
+        if shut_holds(obj)
+            scenery_closed_line(obj)
+            return 0
     par
     if obj is supporter
         show("Sobre ")
@@ -1196,6 +1200,25 @@ block scenery_holder_line(obj)
         show("En ")
     art_the(obj, 0)
     show(" puedes ver ")
+    name_contents(obj)
+    say "."
+
+// The closed holder's paragraph: remembered contents of a shut opaque
+// scenery container, spoken as memory in the inline listing's words.
+block scenery_closed_line(obj)
+    par
+    art_the(obj, 1)
+    if obj is feminine
+        show(" (cerrada)")
+    else
+        show(" (cerrado)")
+    if any_pluribus is 1
+        if obj is pluribus
+            show(" contienen ")
+            name_contents(obj)
+            say "."
+            return 0
+    show(" contiene ")
     name_contents(obj)
     say "."
 

@@ -1571,6 +1571,10 @@ block scenery_holder_line(obj)
             return 0
     if listable_count(obj) is 0
         return 0
+    if obj is container
+        if shut_holds(obj)
+            scenery_closed_line(obj)
+            return 0
     par
     if obj is supporter
         show("Auf ")
@@ -1580,6 +1584,21 @@ block scenery_holder_line(obj)
     // "siehst du" governs the accusative, like every enumeration here:
     // the shared loop (name_contents) speaks it throughout.
     show(" siehst du ")
+    name_contents(obj)
+    say "."
+
+// The closed holder's paragraph: remembered contents of a shut opaque
+// scenery container, spoken as memory in the inline listing's words.
+block scenery_closed_line(obj)
+    par
+    art_the(obj, 1, 0)
+    if any_pluribus is 1
+        if obj is pluribus
+            show(" (geschlossen) enthalten ")
+            name_contents(obj)
+            say "."
+            return 0
+    show(" (geschlossen) enthält ")
     name_contents(obj)
     say "."
 
