@@ -859,6 +859,22 @@ physical storage.
 <name> block         // a computed property; the indented block follows
 ```
 
+#### Name words are vocabulary
+
+A thing's vocabulary is its `words` line plus the significant words of
+its printed `name`, always and additively. `name "rusted lever"` with no
+`words` line answers to LEVER and RUSTED; `name "brass lantern"` with
+`words lantern` still answers to BRASS. Articles and other short words of
+the name are left out. Rooms are the exception: a room's name is never a
+noun the player can take or examine (the pathfinding granule turns room
+names into destinations, chapter 22). The rule means no object is ever
+unreferable and a name is never typed twice; its cost is that a printed
+name is always typeable, so a name chosen for prose alone ("something
+small") answers to its words too, and each distinct name word is a
+dictionary entry. This is the model Dialog uses for its name words; Inform
+and PunyInform parse only the declared word list and treat the printed
+name as print-only.
+
 A computed `name block` is the one computed property with a special seat:
 the short name lives in the object header, so the block's routine rides a
 hidden slot and every place a name prints (the room listing, the
@@ -1012,7 +1028,7 @@ feature, which declares a global boolean, not an object attribute.)
 |---|---|---|
 | `name` | text | The printed short name ("brass lantern"). Distinct from the object's id and from `words`. Fixed in the story file: it is never `change`d at runtime; a name that changes is declared computed, `name block` (below). |
 | `desc` | text | The description shown by `examine` (and on first look at a room). |
-| `words` | list | The vocabulary the parser matches: the object's nouns and adjectives, as equal entries. Typed but not printed. |
+| `words` | list | The vocabulary the parser matches: the object's nouns and adjectives, as equal entries. Typed but not printed. The significant words of the `name` count as vocabulary too, always, so a thing is never unreferable (see "Name words are vocabulary" below). |
 | `tag` | text | A short state qualifier appended to the object in listings and the inventory: "a fluid canister (full)". Usually computed (`tag block`); print with `show`, not `say`, so it stays inline. The parentheses come from the listing. |
 | `plural` | list | The words that name this object AS PART OF A GROUP (`plural coins` on each coin): "take coins" acts on every match in scope. Only with `summon.plurals` (chapter 22); ignored otherwise. |
 | `intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). |
