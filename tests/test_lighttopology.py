@@ -42,7 +42,10 @@ WORLD = (
 
 
 def _run(start, cmds):
-    src = f'game\n    title "LT"\n    start {start}\n' + WORLD
+    return _run_src(f'game\n    title "LT"\n    start {start}\n' + WORLD, cmds)
+
+
+def _run_src(src, cmds):
     story = generate(analyze(cosmos.combined_program(parse(src))))
     io = CaptureIO(script=list(cmds))
     try:
@@ -101,3 +104,26 @@ def test_carried_things_are_never_dimmed():
     except IndexError:
         pass
     assert "coin" in io.text.split(">inventory")[1]
+
+
+def test_light_default_moves_the_ambient_at_runtime():
+    # EdwardianDuck's suggestion (2026-10-02): the strength of a lit room
+    # or source that declares no `light` is a global, so night can fall.
+    src = WORLD + (
+        'verb "nightfall"\n    vnight\n'
+        'on vnight\n    change light_default to 1\n    say "Night falls."\n'
+    )
+    out = _run_src('game\n    title "LT"\n    start hall\n' + src,
+                   ["level", "nightfall", "level", "north", "level"])
+    parts = out.split(">level")
+    assert "Level 2." in parts[1]
+    assert "Level 1." in parts[2]                 # the hall's own light, now 1
+    assert "Level 0." in parts[3]                 # 1 less one spills nothing
+    assert "Pitch black" in out.split(">north")[1]
+
+
+def test_a_clear_door_passes_light():
+    src = WORLD.replace('    words door, oak\n', '    words door, oak\n    clear\n')
+    out = _run_src('game\n    title "LT"\n    start study\n' + src, ["level"])
+    assert "Books." in out.split(">level")[0]     # lit through the glass
+    assert "Level 1." in out

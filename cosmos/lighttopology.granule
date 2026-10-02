@@ -15,15 +15,15 @@
 // `lit` whether it glows, and the standard library couples the glow to
 // switch_on/switch_off exactly as before. `light N` sets the strength, on a
 // room its own level when lit, on a thing its glow when lit; absent, both
-// are 2, so a game that declares nothing but summons the granule plays
-// exactly as it did.
+// are light_default (2 unless the game moves it), so a game that declares
+// nothing but summons the granule plays exactly as it did.
 //
 // Levels COMBINE BY MAXIMUM, never by sum: two candles in a crypt are
 // candlelight, not daylight. The level of a room is the highest of its own
 // light, the glow of anything in it (carried or lying there), and the light
 // arriving from next door: each exit that leads to a room directly, or
-// through a door that stands open, brings that room's own level less one.
-// A closed door brings nothing. Spill travels ONE hop: the neighbor's own
+// through a door that stands open (or is clear, a glass door), brings that
+// room's own level less one. A shut opaque door brings nothing. Spill travels ONE hop: the neighbor's own
 // sources count, what the neighbor itself only borrows does not, so light
 // never creeps down a whole corridor of open doors.
 //
@@ -42,6 +42,13 @@
 // phase mark it so) or the player has changed rooms. The core's visibility
 // tests ask light_dims, the one seam this granule exists for, behind a
 // compile-time fold, so a game that never summons it is byte-identical.
+
+// The default strength: what a lit room or a glowing thing with no `light`
+// of its own gives. A global, not a constant, because a game may move the
+// ambient at runtime: night falls over an outdoor map (`change
+// light_default to 1`), a station drops to emergency lighting, the power
+// comes back (EdwardianDuck's suggestion, 2026-10-02).
+global light_default = 2
 
 // The cached level of the room the player is in, the room it was computed
 // for, and the stale mark (1: recompute before the next answer).
@@ -86,11 +93,11 @@ block light_refresh()
     change light_room to here
     change light_now to light_level_of(here, 1)
 
-// The strength of a lit source or lit room: its `light`, or 2 by default.
+// The strength of a lit source or lit room: its `light`, or light_default.
 block light_strength(obj)
     let s = obj.light
     if s is 0
-        return 2
+        return light_default
     return s
 
 // The level in rm: its own light, its sources, and (with spill set)
@@ -117,7 +124,13 @@ block light_level_of(rm, spill)
             if d is not nothing
                 if any_doors is 1
                     if d is door
-                        if d is open
+                        // An open door passes light, and so does a shut
+                        // one made of glass: `clear` means see-through
+                        // everywhere in the library (a clear container
+                        // shows its contents), so a clear door is a
+                        // window to the light next door (EdwardianDuck's
+                        // suggestion, 2026-10-02).
+                        if d is open or d is clear
                             change d to door_far_side(d, rm)
                         else
                             change d to nothing

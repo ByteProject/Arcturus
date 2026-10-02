@@ -1348,12 +1348,14 @@ need good light to be seen summons the lighttopology granule (chapter 22):
 summon.lighttopology
 ```
 
-Light is then a level, 0 dark, 1 dim, 2 lit, 3 bright. Nothing already
-written changes meaning: a room's `lit` still says whether it shines by
-itself, a thing's `lit` whether it glows, switch_on and switch_off still
-couple the glow, and a lit room or glowing thing with no `light` declared
-is level 2, so a game that summons the granule and declares nothing plays
-exactly as before. `light N` sets the strength where it should differ:
+Light is then a level, 0 dark, 1 dim, 2 lit, 3 bright (a guide, not a
+ceiling: a game may count higher). Nothing already written changes
+meaning: a room's `lit` still says whether it shines by itself, a thing's
+`lit` whether it glows, switch_on and switch_off still couple the glow,
+and a lit room or glowing thing with no `light` declared is level
+`light_default`, 2 unless the game moves it, so a game that summons the
+granule and declares nothing plays exactly as before. `light N` sets the
+strength where it should differ:
 
 ```
 room crypt
@@ -1375,7 +1377,8 @@ thing inscription in crypt
 The level of the room the player stands in is the highest of its own
 light, the glow of anything in it or carried, and what arrives from next
 door: each exit leading straight to a room, or through a door that stands
-open, brings that room's own level less one. A closed door brings nothing.
+open or is `clear` (a glass door is a window to the light beyond), brings
+that room's own level less one. A shut opaque door brings nothing.
 Levels combine by maximum, never by sum (two candles are candlelight), and
 light travels one hop only: a neighbor's own sources count, what it merely
 borrows does not. So the crypt above, unlit, is dim (level 1) while the
@@ -1387,7 +1390,10 @@ listed, not referable, not in scope, exactly as if hidden, until the light
 rises; nothing in the game toggles it. What the player carries is never
 dimmed (the cave rule above: hands know their contents), and examining
 anything still needs the room lit at all, as it always did. `light_level`
-reads the current level in a handler (`if light_level < 2`), and the room
+reads the current level in a handler (`if light_level < 2`), and
+`light_default` is the ambient a game may move at runtime: night falling
+over an outdoor map (`change light_default to 1`), a station dropping to
+emergency lighting, the power coming back. The room
 description, the status bar, the darkness picture, and the light watch all
 follow the level through the one `is_lit` question they already ask.
 
@@ -5220,9 +5226,10 @@ an author's own voice, which is why these stay untranslated.
 
 `summon.lighttopology` makes light a level that travels (chapter 7 has the
 author's view): 0 dark, 1 dim, 2 lit, 3 bright. `light N` on a room is its
-level when lit, on a thing its glow when lit, 2 when absent; levels combine
-by maximum; an exit to a room, or through an open door, brings that room's
-own level less one, a closed door nothing, one hop only; `needs_light N` on
+level when lit, on a thing its glow when lit, `light_default` (a global,
+2) when absent; levels combine by maximum; an exit to a room, or through an
+open or clear door, brings that room's own level less one, a shut opaque
+door nothing, one hop only; `needs_light N` on
 a thing takes it out of scope and out of every listing below level N,
 carried things excepted; `light_level` is the current level. The granule
 overrides `is_lit`, the one question the core asks about light, from a

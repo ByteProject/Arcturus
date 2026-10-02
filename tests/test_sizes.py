@@ -246,7 +246,7 @@ CEILINGS = {
     "features/appearance.storyarc": 19204,  # 2026-10-02 repriced (+52): the put report names thing and place (msg_done)
     "features/components.storyarc": 18468,  # 2026-10-02 repriced (+4): dropping what is not held is a marked refusal (no after phase, the chain stops)
     "granules/whistle.storyarc": 17896,  # 2026-10-02 repriced (+4): dropping what is not held is a marked refusal (no after phase, the chain stops)
-    "granules/lighttopology.storyarc": 20088,  # 2026-10-02 repriced (+4): dropping what is not held is a marked refusal (no after phase, the chain stops)
+    "granules/lighttopology.storyarc": 20092,  # 2026-10-02 repriced (+4): light_default is a runtime global; clear doors pass light
     "features/pathfinding.storyarc": 20888,  # 2026-10-02 repriced (+4): dropping what is not held is a marked refusal (no after phase, the chain stops)
     "features/perform.storyarc": 18212,  # 2026-10-02 repriced (+4): dropping what is not held is a marked refusal (no after phase, the chain stops)
     "features/grains.storyarc": 18012,  # 2026-10-02 repriced (+4): dropping what is not held is a marked refusal (no after phase, the chain stops)
