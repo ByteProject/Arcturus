@@ -548,6 +548,11 @@ class World:
     # byte-identical.
     uses_turnfirst: bool = False
     schedule_first: set = field(default_factory=set)
+    # Some object declares `name block` (docs/01 chapter 5): its short name is
+    # computed at print time. The hidden name_block property holds the block
+    # routine, and every object-name print goes through cosmos_print_name;
+    # a game with only literal names keeps the bare print_obj (byte-identical).
+    uses_computed_names: bool = False
     # Names of text properties computed on some object (`<name> block`), so a read
     # of one lowers to "print or run" rather than a plain string print (docs/01 chapter 5).
     computed_text_props: set = field(default_factory=set)

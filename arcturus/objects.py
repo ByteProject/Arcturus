@@ -926,6 +926,11 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
         pnum = layout.prop_number.get(pname)
         if pnum is not None:
             items.append((pnum, pname, decl))
+    # A computed short name (`name block`): the header name above stayed
+    # empty, and the block's routine rides the hidden name_block slot.
+    nb = layout.prop_number.get("name_block")
+    if nb is not None and "name" in eff and eff["name"].form == ast.PROP_BLOCK:
+        items.append((nb, "name_block", eff["name"]))
     # The words property is the object's matchable vocabulary: its explicit
     # `words` plus the significant words of its `name`. It is emitted for every
     # object that has any, so a thing named but lacking `words` is still parsable.
@@ -1019,6 +1024,12 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
         if pname == "topics":
             if topic_sites is not None:
                 topic_sites[name] = data_at  # patched in _emit_topic_tables
+            continue
+        if pname == "name_block":
+            # The computed short name's routine, compiled as the text block
+            # prop_<obj>_name (it says the name); cosmos_print_name runs it.
+            layout.routine_fixups.append((data_at, prop_routine_name(name, "name")))
+            layout.computed_props.append((name, "name", True, decl))
             continue
         if decl is not None and decl.form == ast.PROP_BLOCK:
             # A computed property: store the packed address of its block routine

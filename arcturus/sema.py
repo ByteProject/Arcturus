@@ -2064,6 +2064,13 @@ class Analyzer:
                 # (EdwardianDuck's `hidden block`, 2026-09-19). Derived
                 # attributes are driven from a handler instead.
                 prop = self.world.properties.get(m.name)
+                if m.name == "name":
+                    # A computed short name (Inform's short_name, in the
+                    # block idiom): the object header's name stays empty and
+                    # the block's routine rides a hidden property every
+                    # object-name print consults (cosmos_print_name).
+                    self.world.uses_computed_names = True
+                    self._unify_property("name_block", prelude.T_NUMBER, m.line)
                 if prop is not None and prop.storage == wm.STORE_ATTRIBUTE:
                     raise self._error(
                         f"'{m.name}' is an attribute (a yes/no flag), and an "

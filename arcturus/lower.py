@@ -226,6 +226,9 @@ INTRINSICS = frozenset({
     # new_line prints a bare newline (the library's own line control, e.g.
     # stepping the start banner below a summoned status bar).
     "show", "print_name", "new_line",
+    # first_in / next_in: the object tree's child and sibling links as
+    # values (get_child / get_sibling), nothing at the end.
+    "first_in", "next_in",
     # show_char prints one ZSCII character (the unknown-word report spells the
     # typed word back from the text buffer, char by char).
     "show_char",
@@ -1155,9 +1158,26 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # upper-window HOLD zeroes the flag, so bar drawing is unaffected).
         _flush_par(rt, ctx)
         op, t = _operand(rt, ctx, args[0])
-        rt.op("print_obj", op)
+        _print_obj(rt, ctx, op)
         _free(ctx, t)
         _place(rt, Const(0), dest)
+    elif name == "first_in":
+        # first_in(obj): the first object inside obj (get_child), nothing
+        # when empty: "is the box empty" without a loop (auraes's ask,
+        # 2026-09-23). next_in walks on from there.
+        op, t = _operand(rt, ctx, args[0])
+        lbl = ctx.new_label()
+        rt.op("get_child", op, store=dest, branch=(lbl, True))
+        rt.label(lbl)
+        _free(ctx, t)
+    elif name == "next_in":
+        # next_in(obj): the next object beside obj in its holder
+        # (get_sibling), nothing at the end.
+        op, t = _operand(rt, ctx, args[0])
+        lbl = ctx.new_label()
+        rt.op("get_sibling", op, store=dest, branch=(lbl, True))
+        rt.label(lbl)
+        _free(ctx, t)
     elif name == "tick":
         # tick(): advance the turn counter (the loop owns turns).
         slot = Variable(ctx.globals["turns"])
@@ -3770,6 +3790,17 @@ def _change(rt, ctx, s: ast.Change):
     if isinstance(s.target, ast.Dot):
         pnum = ctx.prop_number(s.target.prop)
         if pnum is None:
+            if s.target.prop == "name":
+                # The short name lives in the object header, fixed in the
+                # story file; a name that changes is a computed one
+                # (auraes's report, 2026-09-23: the attribute message
+                # below misled here).
+                raise LowerError(
+                    "'name' is the object's short name, fixed in the story "
+                    "file and never changed at runtime; for a name that "
+                    "changes, declare it computed: `name block` with the "
+                    "wording in its body (docs/01 chapter 5)",
+                    s.line)
             # A declared property with no slot is a boolean packed as an
             # attribute bit: the field report wrote `change self.was_read
             # to true` and the old message ("cannot change property") gave
@@ -4085,7 +4116,7 @@ def _say_value(rt, ctx, expr):
             return
         if et == "object":
             op, t = _operand(rt, ctx, expr)
-            rt.op("print_obj", op)
+            _print_obj(rt, ctx, op)
             _free(ctx, t)
             return
         if et == "direction":
@@ -4121,7 +4152,7 @@ def _say_value(rt, ctx, expr):
             return
         if et == "object":
             op, t = _operand(rt, ctx, expr)
-            rt.op("print_obj", op)
+            _print_obj(rt, ctx, op)
             _free(ctx, t)
             return
         if et == "direction":
@@ -4166,9 +4197,21 @@ def _say_value(rt, ctx, expr):
         ctx.free_temp(t)
 
 
+def _print_obj(rt, ctx, op):
+    """Print an object's short name. With a computed name anywhere in the
+    game (`name block`, docs/01 chapter 5) every name print goes through
+    cosmos_print_name, which runs the object's block or falls back to the
+    header name; otherwise the bare opcode, so literal-name games are
+    byte-identical."""
+    if ctx.world.uses_computed_names:
+        rt.op("call_vn", RoutineRef("cosmos_print_name"), op)
+    else:
+        rt.op("print_obj", op)
+
+
 def _say_object(rt, ctx, expr):
     op, t = _operand(rt, ctx, expr)
-    rt.op("print_obj", op)
+    _print_obj(rt, ctx, op)
     if t is not None:
         ctx.free_temp(t)
 

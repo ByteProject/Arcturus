@@ -859,6 +859,27 @@ physical storage.
 <name> block         // a computed property; the indented block follows
 ```
 
+A computed `name block` is the one computed property with a special seat:
+the short name lives in the object header, so the block's routine rides a
+hidden slot and every place a name prints (the room listing, the
+inventory, the reports, `${the noun}`, the status bar) runs the block:
+
+```
+thing coin in shrine
+    name block
+        if polished is true
+            show("gleaming relic")
+        else
+            show("dull coin")
+    words coin, relic
+```
+
+The vocabulary stays the `words` line, so the player may use either name
+throughout. The indefinite article is derived from a literal name's first
+letter; a computed name that wants "an" declares `indefinite "an"`. A game
+whose names are all literal pays nothing for the seat. Worked example:
+[examples/features/computed-name.storyarc](../examples/features/computed-name.storyarc).
+
 The declared default's type fixes the property's type program-wide. Using one
 property as two types is a compile error naming both sites.
 
@@ -989,7 +1010,7 @@ feature, which declares a global boolean, not an object attribute.)
 
 | Property | Type | Meaning and usage |
 |---|---|---|
-| `name` | text | The printed short name ("brass lantern"). Distinct from the object's id and from `words`. |
+| `name` | text | The printed short name ("brass lantern"). Distinct from the object's id and from `words`. Fixed in the story file: it is never `change`d at runtime; a name that changes is declared computed, `name block` (below). |
 | `desc` | text | The description shown by `examine` (and on first look at a room). |
 | `words` | list | The vocabulary the parser matches: the object's nouns and adjectives, as equal entries. Typed but not printed. |
 | `tag` | text | A short state qualifier appended to the object in listings and the inventory: "a fluid canister (full)". Usually computed (`tag block`); print with `show`, not `say`, so it stays inline. The parentheses come from the listing. |
@@ -6809,6 +6830,11 @@ language pack speaks its own):
 - `print_name(obj)`: the bare short name, no article. The article family
   is interpolation: `${a obj}`, `${the obj}`, capitalized `${A obj}` and
   `${The obj}`.
+- `first_in(obj)` and `next_in(obj)`: the object tree's links as values,
+  the first thing inside obj and the next thing beside obj in its holder,
+  `nothing` at the end (the get_child and get_sibling opcodes). "Is the
+  box empty" is `if first_in(box) is nothing`, no loop; `for each` remains
+  the way to visit everything.
 - `name_contents(holder)`: the composable bare list, "a sabre, a dagger
   and an iron axe": the holder's listable contents with their articles,
   commas, and a final "and", each marked seen, one level deep. Returns

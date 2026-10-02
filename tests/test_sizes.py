@@ -260,6 +260,7 @@ CEILINGS = {
     "features/on-other.storyarc": 18084,  # 2026-10-02 repriced (+52): the put report names thing and place (msg_done)
     "features/zcolor.storyarc": 18532,  # 2026-10-02 repriced (+52): the put report names thing and place (msg_done)
     "features/text-styles.storyarc": 18332,  # 2026-10-02 repriced (+52): the put report names thing and place (msg_done)
+    "features/computed-name.storyarc": 18228,  # 2026-10-02: the name-block showcase
     "features/scoring.storyarc": 20460,  # 2026-10-02 repriced (+52): the put report names thing and place (msg_done)
     "features/spans.storyarc": 18324,  # 2026-10-02 repriced (+52): the put report names thing and place (msg_done)
     "features/vehicles.storyarc": 19340,  # 2026-10-02 repriced (+52): the put report names thing and place (msg_done)

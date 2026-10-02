@@ -1,0 +1,63 @@
+// computed-name.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the computed short name (docs/01 chapter 5): `name block`
+// words the object's name at print time, so one thing can be "a dull coin"
+// until the player polishes it and "a gleaming relic" after, in every
+// place a name appears: the room listing, the inventory, the reports, and
+// your own ${the noun}. The vocabulary is the `words` line as ever, so the
+// player can call it by either name throughout. Compile and run:
+//
+//   arcc examples/features/computed-name.storyarc -o cn.z5
+//   frotz cn.z5
+//
+// Try:
+//   look, take coin, inventory      a dull coin
+//   polish coin                     the name changes with the state
+//   inventory, drop relic, look     a gleaming relic, everywhere
+
+game
+    title  "The Dull Coin"
+    headline "A computed-name showcase"
+    author "Stefan Vogt"
+    start  shrine
+
+summon.statusline
+
+global polished = false
+
+room shrine
+    name "Shrine"
+    desc "A low room of blackened stone. Something small lies on the step."
+
+// The name is a block: it prints the name, and reads whatever state it
+// likes. The indefinite article is derived from a literal name's first
+// letter, so a computed name that needs "an" declares `indefinite "an"`.
+thing coin in shrine
+    name block
+        if polished is true
+            show("gleaming relic")
+        else
+            show("dull coin")
+    words coin, relic, disc
+    desc block
+        if polished is true
+            say "Gold, after all: a sun-disc with a face worn almost smooth."
+        else
+            say "A disc of dull metal, black with age."
+
+verb "polish", "rub", "clean"
+    vpolish noun
+
+on vpolish
+    if noun is not coin
+        say "Nothing comes of that."
+        stop
+    if polished is true
+        say "${The noun} cannot shine any brighter."
+        stop
+    change polished to true
+    say "You rub the grime away, and gold comes up under your thumb. ${The
+         noun} catches the light."

@@ -6,6 +6,15 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **A name that changes: `name block`.** An object's short name can
+  now be computed at print time, Inform's short_name in Arcturus's own
+  block idiom: "a dull coin" until it is polished, "a gleaming relic"
+  after, in the room listing, the inventory, every report and your own
+  `${the noun}`. The spelling always existed on paper and printed
+  garbage; now it works, and `change obj.name` explains itself. With
+  it, `first_in(obj)` and `next_in(obj)` read the object tree's links
+  directly, so "is the box empty" is one test. Games with literal
+  names compile byte for byte as before (arcc 2.23.0).
 - **Put says what it did, and a line back for retro screens.** PUT and
   INSERT now report like every other success: "You put the coin in the
   box.", "You put the candle on the altar." (German and Spanish in their
@@ -42,15 +51,6 @@ lives in the commit log. The feature roadmap follows below.
   interpreter: the Standard substitutes a style a machine cannot draw.
   A game that never styles compiles byte for byte as before
   (arcc 2.19.0).
-- **The whole machine park, one command.** `arcimg convert art/ --all
-  -o out/ --preview previews/` converts every master for every retro
-  machine at once: one folder per target (out/c64/, out/ami/,
-  out/zx3/, ...), a pixel-exact preview folder beside each, per-class
-  master selection (masters-broad/) and the Spectrum colour path
-  applying per target as ever, and machines whose converter is still
-  to come reported once and skipped. Preparing sources got simpler
-  too: a file named 1.png IS picture 1, and art already at a band
-  size keeps its shape (arcimg 2.3.1).
 
 ## Feature roadmap
 

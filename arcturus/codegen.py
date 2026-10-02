@@ -1781,6 +1781,24 @@ def build_routines(world: wm.World, gmap: dict, layout, pool):
     return main, routines, registry
 
 
+def gen_print_name_routine(layout) -> Routine:
+    """cosmos_print_name(obj): the object's name block if it has one (the
+    hidden name_block property holds the routine's packed address), else
+    the header short name. Emitted only in a game with a computed name
+    (world.uses_computed_names); every object-name print site calls it
+    then (lower._print_obj)."""
+    pn = layout.prop_number["name_block"]
+    rt = Routine("cosmos_print_name", nlocals=2)  # 1 = obj, 2 = its block
+    rt.op("get_prop", Variable(1), Const(pn), store=Variable(2))
+    rt.op("jz", Variable(2), branch=("plain", True))
+    rt.op("call_vn", Variable(2))
+    rt.op("rtrue")
+    rt.label("plain")
+    rt.op("print_obj", Variable(1))
+    rt.op("rtrue")
+    return rt
+
+
 def gen_exit_routines(layout) -> list:
     """The backing routines for the exit_prop / exit_name intrinsics: je-chains
     over this program's direction properties, indexed in the same order as
@@ -2438,6 +2456,8 @@ def _generate(world: wm.World, version: int = 5, stats=None) -> bytes:
     # each one's packed address.
     computed_routines = gen_computed_prop_routines(world, layout, gmap, pool)
     all_routines = [main] + routines + react_routines + topic_routines + [schedule_tick, schedule_tick_first] + computed_routines
+    if world.uses_computed_names:
+        all_routines.append(gen_print_name_routine(layout))
 
     # Emit the exit-enumeration backing routines only if something calls the
     # exit_prop / exit_name intrinsics (the verbose_exits granule). Unsummoned,
