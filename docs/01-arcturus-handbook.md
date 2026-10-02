@@ -3796,6 +3796,10 @@ story code reads like Inform new_lines, something is being done wrong.
 Interpolation embeds an expression with `${ }`; printing an object prints its
 `name`. Article helpers: `${the ruby}`, `${a ruby}`, and the capitalized
 `${The ruby}`, `${A ruby}`; an object with `named` set takes no article.
+Write a named thing's name as it should read mid-sentence ("the cat",
+"old Tom"): the capitalized forms open a sentence with its first letter
+raised, the compiler keeping a capitalized twin for exactly the lowercase
+ones, so "the cat is beyond your reach" never happens.
 Their full behavior is later in this chapter. Escapes: `\"`, `\\`, `\$`, and `\n`.
 
 An object may override its articles outright with the `article` (definite) and

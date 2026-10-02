@@ -1082,6 +1082,14 @@ block art_the(obj, cap)
 
     if any_named is 1
         if obj is named
+            // A lowercase proper name opening a sentence: the compiler's
+            // capitalized twin (name_cap) serves the cap slot. Folds away
+            // in a game whose named things are all capitalized.
+            if any_named_lower is 1
+                if cap is 1
+                    if name_cap_addr(obj) is not 0
+                        show("${obj.name_cap}")
+                        return
             print_name(obj)
             return
     // A hand-set article wins over derivation (docs/01 chapter 15): las
@@ -1114,6 +1122,14 @@ block art_a(obj, cap)
 
     if any_named is 1
         if obj is named
+            // A lowercase proper name opening a sentence: the compiler's
+            // capitalized twin (name_cap) serves the cap slot. Folds away
+            // in a game whose named things are all capitalized.
+            if any_named_lower is 1
+                if cap is 1
+                    if name_cap_addr(obj) is not 0
+                        show("${obj.name_cap}")
+                        return
             print_name(obj)
             return
     // A hand-set indefinite wins over derivation: unas tijeras, some

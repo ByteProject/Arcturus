@@ -338,6 +338,10 @@ INTRINSICS = frozenset({
     # desc_addr / intro_addr give the address of an object's desc / intro
     # property (0 if absent), so the room describer can test for one.
     "desc_addr", "intro_addr", "article_addr", "indefinite_addr", "tag_addr",
+    # name_cap_addr / any_named_lower: the capitalized twin a lowercase
+    # named object's name gets (sema), read by the art blocks' sentence-
+    # initial path; folds away without such an object.
+    "name_cap_addr", "any_named_lower",
     "appearance_addr",
     "beyond_why_addr",
     # any_appearance is 1 when anything declares `appearance`, so the room
@@ -1462,7 +1466,8 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         rt.op("get_prop_addr", op, Const(_words_prop(ctx)), store=dest)
         _free(ctx, t)
     elif name in ("desc_addr", "intro_addr", "article_addr", "indefinite_addr",
-                  "tag_addr", "appearance_addr", "beyond_why_addr"):
+                  "tag_addr", "appearance_addr", "beyond_why_addr",
+                  "name_cap_addr"):
         # <prop>_addr(obj): the address of the object's desc, intro, article,
         # or indefinite property (0 if it has none), so the room describer and
         # the article blocks can test for one before printing it.
@@ -1701,6 +1706,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_verb_read(): 1 if any author code reads verb_trigger, so the
         # parser's store and the AGAIN/perform plumbing fold away otherwise.
         _place(rt, Const(_any_verb_read(ctx)), dest)
+    elif name == "any_named_lower":
+        # any_named_lower(): 1 when some named object carries a
+        # capitalized name twin (a lowercase literal name).
+        _place(rt, Const(_any_prop(ctx.world, "name_cap")), dest)
     elif name == "any_compactrooms":
         # any_compactrooms(): 1 when `constant compact_rooms = 1` drops the
         # blank line above a room title.
@@ -4442,6 +4451,8 @@ def _static_value(ctx, expr):
         return _any_noiseprep(ctx.world)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_firstperson":
         return _first_person(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_named_lower":
+        return _any_prop(ctx.world, "name_cap")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_compactrooms":
         return _compact_rooms(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scenery_contents":

@@ -1919,6 +1919,38 @@ class Analyzer:
                 else:
                     w.objects[owner].topics.append(m)
 
+        # A named object's name is written as it should read mid-sentence
+        # ("the cat", "old Tom"), and ${The obj} prints it as is, since a
+        # named thing takes no article: so a lowercase name opened a
+        # sentence lowercase (Charles Moore Jr.'s report, 2026-09-24: "the
+        # cat is beyond your reach."). A Z-string cannot be uppercased at
+        # print time and a short name cannot be split like an article, so
+        # the compiler synthesizes the capitalized twin as a text property
+        # (name_cap) for exactly these objects; the art blocks read it
+        # behind any_named_lower, and every other game is byte-identical.
+        nm = props_out.get("name")
+        nd = props_out.get("named")
+        is_named = nd is not None and (
+            nd.form == ast.PROP_BOOL
+            or (nd.form == ast.PROP_VALUE and nd.values
+                and ((isinstance(nd.values[0], ast.Bool) and nd.values[0].value)
+                     or (isinstance(nd.values[0], ast.Number)
+                         and nd.values[0].value))))
+        if is_named and nm is not None \
+                and nm.form == ast.PROP_VALUE and nm.values:
+            v = nm.values[0]
+            if isinstance(v, ast.StringLit) and len(v.parts) == 1 \
+                    and isinstance(v.parts[0], ast.StringText):
+                text = v.parts[0].text
+                if text and text[0].islower():
+                    self._unify_property("name_cap", prelude.T_TEXT, nm.line)
+                    props_out["name_cap"] = ast.PropertyDecl(
+                        name="name_cap", form=ast.PROP_VALUE,
+                        values=[ast.StringLit(
+                            [ast.StringText(text[0].upper() + text[1:])],
+                            nm.line)],
+                        line=nm.line)
+
     def _add_grain(self, g: ast.Grain, owner: str, on_kind: bool) -> None:
         grain = wm.Grain(g.verbs, g.words, owner, g.say, g.do, g.body, g.line)
         if on_kind:
