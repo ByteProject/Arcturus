@@ -108,3 +108,38 @@ def test_beyond_speaks_its_own_why():
     assert "might as well be the moon." in out
     assert "It hangs a clear 3 feet above your reach." in out
     assert "beyond your reach" in out          # the generic fallback, hook
+
+
+def test_contents_of_a_beyond_holder_are_beyond_too():
+    # Charles Moore Jr.'s report (2026-10-03): TAKE reached into a beyond
+    # container. What sits on or in a thing beyond reach is beyond reach,
+    # nested or not; the refusal names the holder (its why text speaks),
+    # and sight still crosses the gap.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'game\n    title "BC"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing shelf of supporter in hall\n    name "high shelf"\n    words shelf\n'
+        '    fixed\n    beyond "The shelf is a ladder too high."\n'
+        'thing jar of container in shelf\n    name "jar"\n    words jar\n    open\n'
+        'thing coin in jar\n    name "coin"\n    words coin\n    desc "Gold."\n'
+        'thing book in shelf\n    name "book"\n    words book\n'
+    )
+    io = CaptureIO(script=["take book", "take jar", "take coin",
+                           "examine coin", "inventory"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert out.count("The shelf is a ladder too high.") == 3
+    assert "Gold." in out                            # examine still crosses
+    assert "book" not in out.split(">inventory")[1]
+    assert "coin" not in out.split(">inventory")[1]

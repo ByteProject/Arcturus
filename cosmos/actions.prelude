@@ -257,23 +257,42 @@ block beyond_blocked(obj)
     if any_beyond is 1
         if obj is beyond
             return 1
+        // What sits on or in a thing beyond reach is beyond reach too: the
+        // coin in the jar on the high shelf (Charles Moore Jr.'s report,
+        // 2026-10-03: TAKE reached into a beyond container). The walk
+        // stops at the room and at the player, whose own contents are
+        // the near things.
+        let h = parent_of(obj)
+        while h is not nothing and h is not here and h is not player
+            if h is beyond
+                return 1
+            change h to parent_of(h)
         if player is beyond
             if at_hand(obj) is 0
                 return 1
     return 0
 
+// The thing to name in the refusal: the object itself when it is beyond,
+// else the beyond holder it sits in or on (its why text speaks: "Without
+// the ladder, the top shelf might as well be the moon."), else the object.
+block beyond_culprit(obj)
+    if obj is beyond
+        return obj
+    let h = parent_of(obj)
+    while h is not nothing and h is not here and h is not player
+        if h is beyond
+            return h
+        change h to parent_of(h)
+    return obj
+
 block beyond_guard()
     if beyond_blocked(noun) is 1
-        return beyond_refuse(noun)
+        return beyond_refuse(beyond_culprit(noun))
     return 0
 
 block beyond_guard_second()
-    if any_beyond is 1
-        if second is beyond
-            return beyond_refuse(second)
-        if player is beyond
-            if at_hand(second) is 0
-                return beyond_refuse(second)
+    if beyond_blocked(second) is 1
+        return beyond_refuse(beyond_culprit(second))
     return 0
 
 // THE CENTRAL REACH GATE (Stefan's ruling, 2026-09-07): touch is the
