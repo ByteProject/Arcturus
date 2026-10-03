@@ -6,6 +6,12 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Scoring, one half at a time.** Auto-scoring stays what it is (five
+  points on a room's first visit, five on a thing's first take, once
+  each, the maximum and the ranks summed by the compiler), and now
+  either half switches off game-wide: `constant score_rooms = false`
+  or `constant score_things = false`, with `reward` and `scored false`
+  working on top as ever (arcc 2.25.0).
 - **What a character shows: `exposed`.** A character's belongings are
   private on purpose (not Inform's everything-in-scope), and now the
   visible ones are declared per item: `exposed` on the hat someone
@@ -35,16 +41,6 @@ lives in the commit log. The feature roadmap follows below.
   screen can reclaim the blank line above every room title with
   `constant compact_rooms = true`; off by default, byte-identical without
   it (arcc 2.22.0, Cosmos 1.40.0).
-- **Light that travels: summon.lighttopology.** Light becomes a level
-  (0 dark, 1 dim, 2 lit, 3 bright) and moves through the map: a lit room
-  spills light one level less through an open doorway, a closed door
-  seals it off, and a thing can declare `needs_light 2` to stay unseen
-  (not listed, not referable) until the light is good enough. Levels
-  combine by maximum, so two candles are candlelight; `light N` sets a
-  room's or a lamp's strength and the existing `lit` stays the switch,
-  so a game that summons the granule and declares nothing plays exactly
-  as before. One granule, three languages, and a game that never summons
-  it compiles byte for byte as before (arcc 2.21.0, Cosmos 1.39.0).
 
 ## Feature roadmap
 

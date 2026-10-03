@@ -211,3 +211,35 @@ def test_stats_carry_the_plan(tmp_path):
     assert stats["award_pools"] == 1
     assert stats["award_sites"] == 1
     assert stats["ranks"] == 3
+
+
+# --- The two halves (docs/01 chapter 19) ------------------------------------
+
+_HALVES = (
+    'room hall\n    name "Hall"\n    desc "A hall."\n    north yard\n'
+    'room yard\n    name "Yard"\n    desc "A yard."\n    south hall\n'
+    'thing coin in yard\n    name "coin"\n    words coin\n'
+    'thing rock in yard\n    name "rock"\n    words rock\n'
+)
+
+
+def _scored(head):
+    w = analyze(cosmos.combined_program(parse(head + _HALVES)))
+    return {n for n, o in w.objects.items() if "scored" in o.props}
+
+
+def test_score_rooms_false_keeps_things_paying():
+    # Stefan's ruling on the field feedback (2026-10-03): auto-scoring
+    # stays opt-out, and either half switches off game-wide while scoring
+    # stays on. Constants, so max_score and the ranks stay truthful.
+    both = _scored('game\n    title "S"\n    start hall\n    scoring\n')
+    assert {"yard", "coin", "rock"} <= both
+    rooms_off = _scored('constant score_rooms = false\n'
+                        'game\n    title "S"\n    start hall\n    scoring\n')
+    assert "yard" not in rooms_off and {"coin", "rock"} <= rooms_off
+    things_off = _scored('constant score_things = false\n'
+                         'game\n    title "S"\n    start hall\n    scoring\n')
+    assert "yard" in things_off and not {"coin", "rock"} & things_off
+    neither = _scored('constant score_rooms = false\nconstant score_things = false\n'
+                      'game\n    title "S"\n    start hall\n    scoring\n')
+    assert not {"yard", "coin", "rock"} & neither

@@ -1520,8 +1520,27 @@ class Analyzer:
             m.key == "scoring" and m.value is True for m in game.meta
         ):
             return
+        # The two halves switch off game-wide while scoring stays on
+        # (docs/01 chapter 19): `constant score_rooms = false` keeps rooms
+        # from paying on first visit, `constant score_things = false` keeps
+        # takeable things from paying on first take. Both default to on;
+        # `scored false` and `reward` work on top as ever.
+        def _switch(name):
+            c = w.constants.get(name)
+            if c is None:
+                return True
+            v = c.value
+            if isinstance(v, (ast.Bool, ast.Number)):
+                return bool(v.value)
+            return True
+        score_rooms = _switch("score_rooms")
+        score_things = _switch("score_things")
         for name, obj in w.objects.items():
             if name in ("player", "scope") or "scored" in obj.props:
+                continue
+            if obj.category == "room" and not score_rooms:
+                continue
+            if obj.category != "room" and not score_things:
                 continue
             # An author who said anything about scored, on the object or
             # anywhere up its kind chain, has decided; the marker keeps

@@ -4542,6 +4542,19 @@ thing shard of debris in tunnel
     words shard
 ```
 
+Either half can be switched off for the whole game while scoring stays
+on, for a story whose points should come from its things alone, or from
+its rooms alone, with `reward` and `scored false` working on top as ever:
+
+```
+constant score_rooms = false      // rooms no longer pay on first visit
+constant score_things = false     // takeable things no longer pay on first take
+```
+
+Both are on by default. They are constants, not runtime values, because
+`max_score` and the rank ladder are summed from the scored bits at
+compile time.
+
 Things a plain take refuses anyway (scenery, fixed, animate, doors) never
 pay and never count.
 
