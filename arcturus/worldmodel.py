@@ -593,6 +593,9 @@ class World:
     # 2 second) from `reachagnostic` markers. Any action NOT here is touch:
     # the central reach gate applies to its bound slots from house.
     reach_exempt: dict = field(default_factory=dict)
+    # The actions of verbs declared `anywhere` (docs/01 chapter 12): the
+    # parser binds a far noun for them (anywhere_map, the any_anywhere fold).
+    anywhere: set = field(default_factory=set)
     sets_shiftable: bool = False
     uses_notify: bool = False
 

@@ -2795,6 +2795,29 @@ exit skip the check; show and throw skip it on the second slot; every
 other verb requires touch. In a game where nothing is ever out of
 reach, the whole check compiles away.
 
+Scope is the other axis: not whether the player can touch a thing, but
+whether they can see it at all. A verb that must name what has left the
+room declares `anywhere` beside its grammar:
+
+```
+verb "follow", "pursue"
+    anywhere
+    follow noun
+
+verb "shout", "yell"
+    anywhere
+    shout noun
+```
+
+When the noun names a real thing that is not here, the parser matches
+the typed words against every object in the game and binds the best one,
+and AGAIN replays the reach. The verb's handler owns validity, because
+only the verb knows what reachable means for it: the next room, anywhere
+at all, only while the tracks are fresh. A verb that needs a computed
+answer instead (only the drover, and only this turn) uses the
+`reach_unscoped` seam (chapter 14), which `anywhere` is the declarative
+face of. A game with no `anywhere` verb compiles byte-identical.
+
 `success` prints your default report, unless an object rewrote it with
 `alter`:
 
@@ -3291,10 +3314,12 @@ makes no English-specific assumption about word order, articles, or inflection.
 Ordinary matching resolves against scope, and for almost every verb that is
 right: what the player cannot see, they cannot act on. A few verbs are
 exceptions by nature, FOLLOW the classic among them: the one moment the
-command makes sense is the moment its object has just left. The escape
-hatch is the `reach_unscoped` seam, a block the parser calls only after
-ordinary matching has failed, answering with an object to bind or `nothing`
-to let the honest refusal stand:
+command makes sense is the moment its object has just left. The simple
+form is the `anywhere` marker on the verb (chapter 12): the parser then
+matches the typed words against every object and binds the best. The
+escape hatch for a computed answer is the `reach_unscoped` seam, a block
+the parser calls only after ordinary matching has failed, answering with
+an object to bind or `nothing` to let the honest refusal stand:
 
 ```
 verb "follow"
@@ -6771,6 +6796,7 @@ slot           := "noun" | "multi" | "text"
                 | "letters" | "number" | "anychar"
 requires_line  := "requires" ( "noun" | "second" ) kind
 reach_line     := "reachagnostic" [ "noun" ] [ "second" ]
+                | "anywhere"
 
 block_decl     := "block" id "(" [ params ] ")" INDENT { statement } DEDENT
 global_decl    := "global" id "=" expr

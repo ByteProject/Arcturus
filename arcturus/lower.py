@@ -184,6 +184,9 @@ INTRINSICS = frozenset({
     # any_reach folds the reach-bound AGAIN plumbing: 1 only when a game or
     # granule overrides the reach_unscoped seam beyond its trivial default.
     "any_reach",
+    # any_anywhere folds the parser's far match for verbs declared
+    # `anywhere`; anywhere_of(action) answers 1 for such a verb's actions.
+    "any_anywhere", "anywhere_of",
     # any_restless folds the background-performer walk (the restless
     # attribute): 1 when any object declares restless or a `now ... is
     # restless` exists. mute_begin/mute_end redirect output to the mute
@@ -1054,6 +1057,17 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _free(ctx, t)
     elif name == "any_requires":
         _place(rt, Const(1 if ctx.world.requirements else 0), dest)
+    elif name == "any_anywhere":
+        _place(rt, Const(1 if ctx.world.anywhere else 0), dest)
+    elif name == "anywhere_of":
+        # anywhere_of(action): 1 when the action's verb declared `anywhere`
+        # (anywhere_map); with no such verb, a constant 0.
+        if ctx.world.anywhere:
+            op, t = _operand(rt, ctx, args[0])
+            rt.op("call_vs", RoutineRef("anywhere_map"), op, store=dest)
+            _free(ctx, t)
+        else:
+            _place(rt, Const(0), dest)
     elif name == "reach_of":
         # reach_of(action): the reachagnostic exemption bits (reach_map).
         # With no exemptions declared anywhere the map does not exist and
@@ -2567,6 +2581,10 @@ def _any_reach(ctx) -> int:
     as dead as a lone `return nothing` and must count as such. The
     reach-bound AGAIN replay plumbing guards on this flag, so a game that
     leaves the seam alone stays byte-identical."""
+    # A verb declared `anywhere` reaches beyond scope by the parser's own
+    # far match, which rides the same AGAIN replay plumbing as the seam.
+    if ctx.world.anywhere:
+        return 1
     blk = ctx.world.blocks.get("reach_unscoped")
     if blk is None or not blk.body:
         return 0
@@ -4377,6 +4395,8 @@ def _static_value(ctx, expr):
         return _any_action_read(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_verb_read":
         return _any_verb_read(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_anywhere":
+        return 1 if ctx.world.anywhere else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_reach":
         return _any_reach(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_pathfinding":

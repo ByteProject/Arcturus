@@ -863,6 +863,7 @@ class Parser:
         grammar: list[ast.GrammarLine] = []
         requirements: list[ast.RequiresDecl] = []
         reach_bits = 0
+        anywhere = False
         while not self.check(T.DEDENT):
             if self.check(T.NEWLINE):
                 self.advance()
@@ -881,6 +882,16 @@ class Parser:
             # `reachagnostic second` (or noun) marks one, for the mixed
             # verbs: SHOW's thing must be in hand, but the person shown to
             # may be across the chasm.
+            # `anywhere` in the body: the verb reaches beyond scope (docs/01
+            # chapter 12): a noun naming a real thing that is not here is
+            # matched against every object in the game and bound.
+            if self.check(T.NAME) and self.cur.value == "anywhere":
+                self.advance()
+                if not self.check(T.NEWLINE):
+                    raise self._error("anywhere stands alone on its line")
+                self.expect_newline()
+                anywhere = True
+                continue
             if self.check(T.NAME) and self.cur.value == "reachagnostic":
                 self.advance()
                 bits = 0
@@ -905,7 +916,7 @@ class Parser:
                 "meta rides the declaring verb; enhance and redefine leave "
                 "a verb's meta standing as declared")
         return ast.VerbDecl(words, grammar, line, meta, requirements, mode,
-                            reachagnostic=reach_bits)
+                            reachagnostic=reach_bits, anywhere=anywhere)
 
     def parse_requires(self, action=None) -> ast.RequiresDecl:
         # The declarative verb contract (the verbs overhaul, phase 2).

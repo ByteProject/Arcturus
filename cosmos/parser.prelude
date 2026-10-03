@@ -211,6 +211,16 @@ block parse_line()
         change tie_want to 0
     change way to find_direction
     resolve_objects
+    // A verb declared `anywhere` (docs/01 chapter 12) reaches beyond scope
+    // by declaration: when the noun named a real thing that is not here
+    // (fault 1), the typed words are matched against every object in the
+    // game and the best is bound; the handler owns validity, and AGAIN
+    // replays the reach exactly as a seam-bound noun. Folds away without
+    // such a verb.
+    if any_anywhere is 1
+        if parse_fault is 1
+            if anywhere_of(act) is 1
+                reach_anywhere
     // An ambiguous noun phrase asks rather than refuses: "Which do you
     // mean, the gold coin or the silver coin?" (docs/01 chapter 14).
     if parse_fault is 3
@@ -791,6 +801,40 @@ block verb_fallback()
     if named is 1
         return chain_prev
     return 0
+
+// The far match behind `anywhere` (docs/01 chapter 12): the object, in
+// scope or not, that carries the most of the typed words after the verb;
+// nothing when none carries any. Hidden things stay unreachable. Its own
+// block so parse spends no locals; reached only behind any_anywhere.
+block match_anywhere(lo, hi)
+    let best = nothing
+    let best_n = 0
+    let obj = 1
+    while obj <= object_count
+        if obj is not hidden
+            let n = 0
+            let i = lo
+            while i < hi
+                let d = word_dict(i)
+                if d is not nothing
+                    if has_word(obj, d)
+                        change n to n + 1
+                change i to i + 1
+            if n > best_n
+                change best_n to n
+                change best to obj
+        change obj to obj + 1
+    return best
+
+// Bind the far match as the noun and clear the can't-see fault; the
+// reach mark lets AGAIN replay it without the left-scope refusal.
+block reach_anywhere()
+    let far = match_anywhere(1, word_count)
+    if far is not nothing
+        change noun to far
+        change parse_fault to 0
+        if any_reach is 1
+            change reached to 1
 
 // The index of the first typed word in [lo, hi) the dictionary does not
 // know at all, or 0 when every word is known. An unknown word can never

@@ -325,6 +325,22 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
             xmap.op("ret", Const(bits))
         out.append(xmap)
 
+    # anywhere_map(action) backs the anywhere_of intrinsic: 1 for an action
+    # whose verb declared `anywhere` (docs/01 chapter 12), 0 otherwise.
+    # Called only behind any_anywhere, so a game without the marker drops
+    # it whole (DCE) and stays byte-identical.
+    if world.anywhere:
+        amap = Routine("anywhere_map", nlocals=1)
+        anames = sorted(a for a in world.anywhere if a in actions)
+        for name in anames:
+            amap.op("je", Variable(1), Const(actions[name]),
+                    branch=("aw_" + name, True))
+        amap.op("ret", Const(0))
+        for name in anames:
+            amap.label("aw_" + name)
+            amap.op("ret", Const(1))
+        out.append(amap)
+
     withafter = wm.actions_with_after(world)
     if withafter:
         # `on after other` gives the map a FALLBACK: any world action without

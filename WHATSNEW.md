@@ -6,6 +6,12 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Verbs that reach beyond the room: `anywhere`.** A verb whose object
+  has just left (FOLLOW, SHOUT) declares `anywhere` beside its grammar,
+  and the parser binds the thing the player named wherever it is; the
+  handler decides what reachable means. The declarative face of the
+  reach_unscoped seam, Inform's scope token in one word; games without
+  it compile byte for byte as before (arcc 2.24.0, Cosmos 1.41.0).
 - **A name that changes: `name block`.** An object's short name can
   now be computed at print time, Inform's short_name in Arcturus's own
   block idiom: "a dull coin" until it is polished, "a gleaming relic"
@@ -32,25 +38,6 @@ lives in the commit log. The feature roadmap follows below.
   so a game that summons the granule and declares nothing plays exactly
   as before. One granule, three languages, and a game that never summons
   it compiles byte for byte as before (arcc 2.21.0, Cosmos 1.39.0).
-- **The clock's second hand: the `first` placement.** Daemons and
-  timers can now fire at the TOP of the turn: `on each_turn first`
-  runs before your command is even parsed, so a rule there refreshes
-  derived state (a hidden flag computed from the room's light) in
-  time for the parser itself to see it, the pipeline position
-  PunyInform authors abused InScope for. `after`/`every N turns first
-  do X` fires a timer before the action dispatches; out-of-world
-  commands burn no fuse. Alongside it, a computed block on an
-  attribute (`hidden block`) is now refused with a clear cure instead
-  of being silently ignored. Games using neither compile byte for
-  byte as before (arcc 2.20.0, Cosmos 1.38.0).
-- **Italic and bold, one dot.** `say.italic "..."` and `say.bold "..."`
-  print one passage in that style and restore roman by themselves,
-  exactly like the color dots, with `show.italic` / `show.bold` as the
-  inline siblings and free composition with colors and paragraph
-  modifiers (`say.yellow.italic.par`). No guard needed, on any
-  interpreter: the Standard substitutes a style a machine cannot draw.
-  A game that never styles compiles byte for byte as before
-  (arcc 2.19.0).
 
 ## Feature roadmap
 

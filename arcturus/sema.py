@@ -665,6 +665,11 @@ class Analyzer:
                             self.world.reach_exempt.get(g.action, 0)
                             | decl.reachagnostic
                         )
+                # anywhere: every action this verb declares reaches beyond
+                # scope (the parser's far match binds for them).
+                if decl.anywhere:
+                    for g in decl.grammar:
+                        self.world.anywhere.add(g.action)
                 if decl.mode == "enhance":
                     # `enhance verb "take", "snatch"`: append to the existing
                     # verb, new grammar lines and new synonym words alike; the

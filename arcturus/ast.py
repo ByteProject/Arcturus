@@ -638,6 +638,12 @@ class VerbDecl:
     # slots. Bits: 1 noun, 2 second; bare marks both. 0 (the default) means
     # touch: the gate applies from house.
     reachagnostic: int = 0
+    # `anywhere` in the body (docs/01 chapter 12): this verb reaches beyond
+    # scope by declaration. When the noun names a real thing that is not
+    # here, the parser matches the typed words against every object in the
+    # game and binds the best; the handler owns validity (Inform's scope
+    # token, Charles Moore Jr.'s ask, 2026-09-26).
+    anywhere: bool = False
 
 
 @dataclass
