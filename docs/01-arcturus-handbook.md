@@ -584,6 +584,9 @@ A vocabulary word is normally a bare identifier. When the word itself is not
 one, quote it: `words shuttle, obsidian, "obsidian-black"` admits the
 hyphenated compound the player may type, since a hyphen does not split words
 at the prompt. A quoted entry is one word; spaces are not allowed in it.
+A number is a word like any other: `words club, iron, 3` lets the player
+say TAKE 3 IRON, and `words button, 1` answers PUSH 1 (bare or quoted,
+`"1"`, both read).
 An entry with a leading `#` (`words #lantern, brass, lamp`) is that AND the
 object's trigger, the word that settles a matching tie in this object's
 favor when the player typed it (chapter 14). An entry with a leading `>`

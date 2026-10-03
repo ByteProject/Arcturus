@@ -471,6 +471,13 @@ class Parser:
         if t.kind in (T.NAME, T.KW):
             self.advance()
             return ast.Name(t.value, t.line)
+        # A bare number is a vocabulary word too (a 3 iron, the button
+        # marked 1; improvmonster's ask, 2026-10-03): in a words list a
+        # digit can mean nothing else, so it needs no quotes. The dictionary
+        # carries it like any word, and the player types it as typed.
+        if t.kind == T.NUMBER:
+            self.advance()
+            return ast.Name(str(t.value), t.line)
         # A quoted vocabulary word: the escape hatch for words the lexer
         # cannot carry bare, chiefly hyphenated compounds (words
         # "obsidian-black"). One word only; the dictionary encodes the

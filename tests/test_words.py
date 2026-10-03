@@ -51,3 +51,32 @@ def test_words_property_holds_dictionary_addresses():
     addrs = _words_array(data, layout.obj_number["lamp"], layout.prop_number["words"])
     decoded = [zstring.decode(bytes(data[a : a + 6])) for a in addrs]
     assert decoded == ["brass", "lamp", "lantern"]
+
+
+def test_a_number_is_a_vocabulary_word():
+    # improvmonster's ask (2026-10-03): a 3 iron, a button marked 1. Bare
+    # or quoted, a digit in a words list is a dictionary word the player
+    # types as typed; a bare one used to be refused by the lexer's number.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'game\n    title "N"\n    start lift\n'
+        'room lift\n    name "Lift"\n    desc "A lift car."\n'
+        'thing button in lift\n    name "button marked 1"\n'
+        '    words button, 1\n    fixed\n'
+        'thing iron in lift\n    name "3 iron"\n    words iron, club, "3"\n'
+    )
+    io = CaptureIO(script=["push 1", "take 3 iron", "take 3"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "button marked 1 a bit of a push" in io.text
+    assert "You take the 3 iron with you." in io.text
+    assert "already have the 3 iron" in io.text
