@@ -989,7 +989,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | Attribute | Meaning and usage |
 |---|---|
 | `fixed` | The object cannot be taken; it stays where it is. `take` refuses it. |
-| `scenery` | Background detail: still referable for `examine`, but left out of the room's contents listing and not takeable (gives the scenery line). A game that wants what sits ON or IN scenery holders told anyway opts in once with `constant scenery_contents = 1`: each such holder then gets its own paragraph ("On the counter you can see a bell and a candle."), the knowledge model deciding per item (PunyInform's OPTIONAL_PRINT_SCENERY_CONTENTS, as a fold: off by default, zero bytes unused). Worked example: [examples/features/scenery-contents.storyarc](../examples/features/scenery-contents.storyarc). |
+| `scenery` | Background detail: still referable for `examine`, but left out of the room's contents listing and not takeable (gives the scenery line). A game that wants what sits ON or IN scenery holders told anyway opts in once with `constant scenery_contents = true`: each such holder then gets its own paragraph ("On the counter you can see a bell and a candle."), the knowledge model deciding per item (PunyInform's OPTIONAL_PRINT_SCENERY_CONTENTS, as a fold: off by default, zero bytes unused). Worked example: [examples/features/scenery-contents.storyarc](../examples/features/scenery-contents.storyarc). |
 | `hidden` | Out of scope entirely until cleared: an undiscovered object, neither listed nor referable. Clear it when the object is revealed. |
 | `concealed` | In scope and actable, but omitted from the room's contents listing (present but not spelled out in the description). Taking it clears the flag: concealment means "not yet noticed", and a thing the player has held has been noticed, so it lists normally once dropped. Set it back in your own handler to keep something unlisted after handling. |
 | `wearable` | Can be worn; the `wear` verb accepts it. |
@@ -1315,7 +1315,7 @@ sentence in every room it exists in, its home room and the others alike,
 by the same predicate.
 
 Scenery holders can join the room description too: with
-`constant scenery_contents = 1` declared once, every scenery container or
+`constant scenery_contents = true` declared once, every scenery container or
 supporter in the room gets its own paragraph after the listing pass
 ("On the counter you can see a bell and a candle."), worded by
 `scenery_holder_line` in the language layer, the knowledge model deciding
@@ -3026,7 +3026,7 @@ title, after LOOK as after a move. On a 25-row retro screen that line is
 real estate, so a game may fold it away:
 
 ```
-constant compact_rooms = 1
+constant compact_rooms = true
 ```
 
 The title then follows the command line directly, everywhere a room is
@@ -4965,7 +4965,7 @@ English can narrate in the first person: one constant, and the library
 speaks as I.
 
 ```
-constant first_person = 1
+constant first_person = true
 ```
 
 Everything the narration says follows: "I can see a hurricane lamp

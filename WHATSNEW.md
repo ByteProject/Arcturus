@@ -33,7 +33,7 @@ lives in the commit log. The feature roadmap follows below.
   box.", "You put the candle on the altar." (German and Spanish in their
   own words), in place of the flat "Done.". And a game on a 25-row
   screen can reclaim the blank line above every room title with
-  `constant compact_rooms = 1`; off by default, byte-identical without
+  `constant compact_rooms = true`; off by default, byte-identical without
   it (arcc 2.22.0, Cosmos 1.40.0).
 - **Light that travels: summon.lighttopology.** Light becomes a level
   (0 dark, 1 dim, 2 lit, 3 bright) and moves through the map: a lit room

@@ -3002,13 +3002,25 @@ def _emit_test(rt, ctx, expr, label, on_true):
         ctx.free_temp(t)
 
 
-def _scenery_contents(ctx) -> int:
-    """1 when the game sets `constant scenery_contents = 1`: the opt-in
-    for listing scenery holders' contents in the room description."""
-    c = ctx.world.constants.get("scenery_contents")
-    if c is not None and isinstance(c.value, ast.Number):
-        return 1 if c.value.value else 0
+def _switch_constant(ctx, name: str) -> int:
+    """A game-wide switch written `constant <name> = true` (or false): 1 or
+    0, and 0 when undeclared. A number is accepted too (the older spelling),
+    but the handbook writes the switches with the language's own literals."""
+    c = ctx.world.constants.get(name)
+    if c is None:
+        return 0
+    v = c.value
+    if isinstance(v, ast.Bool):
+        return 1 if v.value else 0
+    if isinstance(v, ast.Number):
+        return 1 if v.value else 0
     return 0
+
+
+def _scenery_contents(ctx) -> int:
+    """1 when the game sets `constant scenery_contents = true`: the opt-in
+    for listing scenery holders' contents in the room description."""
+    return _switch_constant(ctx, "scenery_contents")
 
 
 def _any_noiseprep(world) -> int:
@@ -3027,22 +3039,16 @@ def _any_noiseprep(world) -> int:
 
 
 def _compact_rooms(ctx) -> int:
-    """1 when the game sets `constant compact_rooms = 1`: a room description
+    """1 when the game sets `constant compact_rooms = true`: a room description
     starts without the blank line above its title (docs/01 chapter 13), a
     line back on a 25-row retro screen. Off by default; folds."""
-    c = ctx.world.constants.get("compact_rooms")
-    if c is not None and isinstance(c.value, ast.Number):
-        return 1 if c.value.value else 0
-    return 0
+    return _switch_constant(ctx, "compact_rooms")
 
 
 def _first_person(ctx) -> int:
-    """1 when the game sets `constant first_person = 1`: the narration
+    """1 when the game sets `constant first_person = true`: the narration
     speaks as I (the English layer's person branches fold on this)."""
-    c = ctx.world.constants.get("first_person")
-    if c is not None and isinstance(c.value, ast.Number):
-        return 1 if c.value.value else 0
-    return 0
+    return _switch_constant(ctx, "first_person")
 
 
 def _any_unruled(ctx) -> int:

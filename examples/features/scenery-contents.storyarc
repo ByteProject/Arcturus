@@ -3,7 +3,7 @@
 // Copyright (c) 2026, Stefan Vogt.
 // https://github.com/ByteProject/Arcturus
 //
-// A showcase for `constant scenery_contents = 1` (docs/01, the scenery row).
+// A showcase for `constant scenery_contents = true` (docs/01, the scenery row).
 // Scenery stays out of the room's contents listing; this constant opts in,
 // once for the whole game, to have what sits ON or IN a scenery holder told
 // anyway, each holder in its own paragraph ("On the counter you can see a
@@ -27,7 +27,7 @@ game
 
 summon.statusline
 
-constant scenery_contents = 1
+constant scenery_contents = true
 
 room shop
     name "The Chandlery"

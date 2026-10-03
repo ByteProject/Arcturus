@@ -56,3 +56,14 @@ def test_put_reports_name_the_thing_and_the_place():
     assert "You put the coin in the box." in out
     assert "You put the coin on the altar." in out
     assert "Done." not in out
+
+
+def test_switch_constants_take_true_and_false():
+    # The language's own literals (Stefan's rule, 2026-10-03): a switch
+    # written `constant compact_rooms = true` is on, `= false` is off, and
+    # both fold exactly as the older numeric spelling did. The readers
+    # used to accept a Number only, so `= true` compiled and did nothing.
+    on = _run('constant compact_rooms = true\ngame\n    title "C"\n    start hall\n', ["look"])
+    assert ">look\nHall\n" in on
+    off = _run('constant compact_rooms = false\ngame\n    title "C"\n    start hall\n', ["look"])
+    assert ">look\n\nHall\n" in off

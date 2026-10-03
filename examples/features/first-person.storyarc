@@ -30,7 +30,7 @@ game
     author "Stefan Vogt"
     start  cabin
 
-constant first_person = 1
+constant first_person = true
 
 summon.statusline
 
