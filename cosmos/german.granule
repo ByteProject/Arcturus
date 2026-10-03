@@ -2060,6 +2060,60 @@ block msg_fixed()
         return 0
     say "${The noun} bleibt ziemlich genau, wo er ist."
 
+// A character's exposed belongings, after its description (docs/01
+// chapter 3). Reached only behind any_exposed.
+block line_exposed(person)
+    let worn_n = exposed_count(person, 1)
+    let held_n = exposed_count(person, 0)
+    if worn_n + held_n is 0
+        return 0
+    if worn_n > 0
+        show("${The person} trägt ")
+        exposed_list(person, 1, worn_n)
+        if held_n > 0
+            show(" und hat ")
+            exposed_list(person, 0, held_n)
+            show(" dabei")
+    else
+        show("${The person} hat ")
+        exposed_list(person, 0, held_n)
+        show(" dabei")
+    say "."
+
+block exposed_count(person, want_worn)
+    let n = 0
+    for each x in person
+        if x is exposed
+            let w = 0
+            if x is worn
+                change w to 1
+            if w is want_worn
+                change n to n + 1
+    return n
+
+block exposed_list(person, want_worn, total)
+    let i = 0
+    for each x in person
+        if x is exposed
+            let w = 0
+            if x is worn
+                change w to 1
+            if w is want_worn
+                if i > 0
+                    if i is total - 1
+                        show(" und ")
+                    else
+                        show(", ")
+                art_a(x, 0, 1)
+                change i to i + 1
+
+block msg_held_by(obj)
+    let holder = parent_of(obj)
+    if obj is worn
+        say "${The holder} trägt ${the:acc obj}."
+        return 0
+    say "${The holder} hält ${the:acc obj} fest."
+
 block msg_animate_refuses()
     if any_pluribus is 1
         if noun is pluribus

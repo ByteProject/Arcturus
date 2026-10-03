@@ -6,6 +6,13 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **What a character shows: `exposed`.** A character's belongings are
+  private on purpose (not Inform's everything-in-scope), and now the
+  visible ones are declared per item: `exposed` on the hat someone
+  wears or the passport they wave puts it in scope, EXAMINE on the
+  character says "Testy is wearing a felt hat and carrying a
+  passport.", and TAKE refuses in the holder's name. Games that expose
+  nothing compile byte for byte as before (arcc 2.24.1, Cosmos 1.42.0).
 - **Verbs that reach beyond the room: `anywhere`.** A verb whose object
   has just left (FOLLOW, SHOUT) declares `anywhere` beside its grammar,
   and the parser binds the thing the player named wherever it is; the

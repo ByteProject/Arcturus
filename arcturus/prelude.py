@@ -85,6 +85,11 @@ _STD_KINDS = [
 _STD_BOOL_PROPS = [
     "fixed", "scenery", "hidden", "concealed", "wearable", "worn", "lit",
     "edible", "named", "openable", "open", "lockable", "locked",
+    # A character's belonging the player can see (docs/01 chapter 3): in
+    # scope while its holder is, examinable and referable, never takeable
+    # past the holder's refusal; EXAMINE on the character names it. The
+    # belongings stay private by default; this is the per-item opt-in.
+    "exposed",
     # A two-state device: a lamp, a lever, a valve, a machine. The state is
     # `active` (never "on": that word belongs to handlers), flipped by the
     # library's switch defaults with honest already-on/already-off refusals

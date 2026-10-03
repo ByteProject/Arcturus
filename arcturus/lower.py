@@ -197,6 +197,9 @@ INTRINSICS = frozenset({
     # any_lighttopology folds the light-level visibility seam (light_dims)
     # the lighttopology granule overrides.
     "any_lighttopology",
+    # any_exposed folds the exposed-belonging rules (scope, the take
+    # refusal, the examine line) away in a game that exposes nothing.
+    "any_exposed",
     # any_compactrooms folds the blank line above a room title away when
     # the game sets `constant compact_rooms = 1`.
     "any_compactrooms",
@@ -1724,6 +1727,8 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_named_lower(): 1 when some named object carries a
         # capitalized name twin (a lowercase literal name).
         _place(rt, Const(_any_prop(ctx.world, "name_cap")), dest)
+    elif name == "any_exposed":
+        _place(rt, Const(_any_prop(ctx.world, "exposed")), dest)
     elif name == "any_compactrooms":
         # any_compactrooms(): 1 when `constant compact_rooms = 1` drops the
         # blank line above a room title.
@@ -4473,6 +4478,8 @@ def _static_value(ctx, expr):
         return _first_person(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_named_lower":
         return _any_prop(ctx.world, "name_cap")
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_exposed":
+        return _any_prop(ctx.world, "exposed")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_compactrooms":
         return _compact_rooms(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scenery_contents":

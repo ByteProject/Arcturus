@@ -349,6 +349,14 @@ block take_probe(obj)
         return 6
     if obj is animate
         return 7
+    // Why 9: a character's exposed belonging (docs/01 chapter 3): seen,
+    // referable, and firmly in its holder's hands. Folds away with
+    // nothing exposed.
+    if any_exposed is 1
+        if obj is exposed
+            if parent_of(obj) is animate
+                if parent_of(obj) is not player
+                    return 9
     // Why 8: the thing ENCLOSES the player (the hamper they sit in, the
     // stool they stand on, however deeply nested): taking it would make
     // the tree cycle (auraes's wardrobe, 2026-09-14). Folds away with
@@ -383,6 +391,10 @@ block speak_take_refusal(obj, why)
     if why is 6
         msg_fixed
         return 0
+    if any_exposed is 1
+        if why is 9
+            msg_held_by(obj)
+            return 0
     msg_animate_refuses
     return 0
 
@@ -534,8 +546,16 @@ on examine
             msg_examine_self
             stop
         msg_nothing_special
+        if any_exposed is 1
+            if noun is animate
+                line_exposed(noun)
         stop
     say noun.desc
+    // A character's exposed belongings follow its description (docs/01
+    // chapter 3): "Testy is wearing a felt hat and carrying a passport."
+    if any_exposed is 1
+        if noun is animate
+            line_exposed(noun)
 
 on quit
     change meta_turn to 1

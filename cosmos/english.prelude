@@ -1939,6 +1939,71 @@ block msg_fixed()
             return 0
     say "${The noun} stays exactly where it is."
 
+// A character's exposed belongings, after its description (docs/01
+// chapter 3): what it wears, then what it carries. Silent when nothing is
+// exposed. Reached only behind any_exposed.
+block line_exposed(person)
+    let worn_n = exposed_count(person, 1)
+    let held_n = exposed_count(person, 0)
+    if worn_n + held_n is 0
+        return 0
+    show("${The person} ${is person} ")
+    if worn_n > 0
+        show("wearing ")
+        exposed_list(person, 1, worn_n)
+        if held_n > 0
+            show(" and carrying ")
+            exposed_list(person, 0, held_n)
+    else
+        show("carrying ")
+        exposed_list(person, 0, held_n)
+    say "."
+
+// The exposed things a character wears (want_worn 1) or carries (0).
+block exposed_count(person, want_worn)
+    let n = 0
+    for each x in person
+        if x is exposed
+            let w = 0
+            if x is worn
+                change w to 1
+            if w is want_worn
+                change n to n + 1
+    return n
+
+// Name them, "a hat, a scarf and a coat".
+block exposed_list(person, want_worn, total)
+    let i = 0
+    for each x in person
+        if x is exposed
+            let w = 0
+            if x is worn
+                change w to 1
+            if w is want_worn
+                if i > 0
+                    if i is total - 1
+                        show(" and ")
+                    else
+                        show(", ")
+                art_a(x, 0)
+                change i to i + 1
+
+// The take refusal for an exposed belonging: it stays with its holder.
+block msg_held_by(obj)
+    let holder = parent_of(obj)
+    if obj is worn
+        if any_pluribus is 1
+            if obj is pluribus
+                say "${The holder} is wearing them."
+                return 0
+        say "${The holder} is wearing it."
+        return 0
+    if any_pluribus is 1
+        if obj is pluribus
+            say "${The holder} is holding them."
+            return 0
+    say "${The holder} is holding it."
+
 block msg_animate_refuses()
     if any_pluribus is 1
         if noun is pluribus

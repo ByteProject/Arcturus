@@ -222,6 +222,14 @@ block in_scope(obj)
         if any_components is 1
             if obj is component
                 return in_scope(p)
+        // A character's exposed belonging (docs/01 chapter 3): the hat
+        // someone wears, the passport they wave. In scope while its holder
+        // is; the take probe keeps it in the holder's hands. A character's
+        // other belongings stay private, the house rule.
+        if any_exposed is 1
+            if obj is exposed
+                if p is animate
+                    return in_scope(p)
         // On a supporter, or inside a container the player can see into (open,
         // clear, or lidless), that is itself in scope. see_into is the single
         // rule both this and the noun matcher share.
