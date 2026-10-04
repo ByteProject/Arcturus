@@ -7059,7 +7059,9 @@ plumbing (`draw_image`, `image_of`, `pictures_available`). These are the
 primitives Cosmos itself is written on. They are not secret (`arcc
 --extract` hands you every use of them, commented), but they are the
 library's vocabulary rather than the author's, and the design records
-(03 and 04) are their reference.
+(03 and 04) are their reference: docs/04 ends with the intrinsic
+reference, every intrinsic the compiler exposes with a line each,
+generated from the compiler itself so it never drifts.
 
 Vocabulary work (a language pack's pronoun tables, say) pairs the
 substrate with the LIST, chapter 5's word-array type declared
