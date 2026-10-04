@@ -1166,7 +1166,12 @@ block match_first_phrase()
     let going = 1
     while going is 1
         change going to 0
-        if lo < n
+        // A leading preposition is skipped ("look AT coin") only when a
+        // word follows it: the LAST word cannot lead anything, so it is
+        // content, and a self word that doubles as a grammar literal
+        // (auraes's French "soi", in `enter soi sur noun` and in
+        // player.words, 2026-10-04) still names the player in PRENDRE SOI.
+        if lo + 1 < n
             let d = word_dict(lo)
             if d is not nothing
                 if peek_byte(d + 6) is 8 or peek_byte(d + 6) is 136
