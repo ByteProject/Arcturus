@@ -773,7 +773,23 @@ thing testy of character in hall
 Mark the character when its whole load is in plain sight, mark items when
 only some are; `hidden` and `concealed` still hide an item either way.
 What the player carries is never a belonging on show: it is the
-inventory. A game that exposes nothing pays nothing. To make
+inventory. The sentence after EXAMINE is the library's; a game whose
+prose should own it writes `constant exposed_line = false`, which keeps
+the automatic sentence out of every examine, and calls `line_exposed(self)`
+from a character's `desc block` wherever the load should be told:
+
+```
+constant exposed_line = false
+
+thing testy of character in hall
+    exposed
+    desc block
+        say "He likes to travel, and has never once unpacked."
+        line_exposed(self)
+```
+
+Scope, the words, and the TAKE refusal are untouched by the constant. A
+game that exposes nothing pays nothing. To make
 a character act, `on each_turn` is its pulse (chapter 16), `way_toward`
 walks it one step toward a goal through the real room graph (chapter 8),
 and `restless` keeps it acting offstage (chapter 5); the NPC engine

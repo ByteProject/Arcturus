@@ -459,6 +459,7 @@ movement), and `arcc --extract` shows every use of the rest.
 | `any_edible` | any_edible(): 1 when any object or kind declares edible, so the eat handler's consume branch folds away in a game with no food. |
 | `any_enterable` | any_enterable(): 1 when any object is a supporter or container by kind, so the nested-location suffix folds away otherwise. |
 | `any_exposed` | any_exposed(): 1 when a thing is `exposed`. |
+| `any_exposed_line` | any_exposed_line(): 1 unless the game writes constant exposed_line = false (the automatic belongings sentence after EXAMINE on a character). |
 | `any_firstperson` | any_firstperson(): 1 when the game narrates in the first person (constant first_person = 1); the language layer's person branches fold on it. |
 | `any_grains` | any_grains(): the compile-time grains flag (1 or 0), so find_scenery folds its chain walker away in a game with no grains. |
 | `any_images` | any_images(): the compile-time image flag (1 or 0), so describe_room folds its whole picture path away in a game with no arc_image. |

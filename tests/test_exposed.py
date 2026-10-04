@@ -96,3 +96,25 @@ def test_exposed_on_the_character_shows_everything_it_holds():
     assert "Testy is holding it." in out
     # concealed means in scope but unlisted (chapter 4): examinable by name
     assert "rewards a closer look" in out.split(">examine knife")[1]
+
+
+def test_exposed_line_false_hands_the_sentence_to_the_desc():
+    # A field request (improvmonster, 2026-10-05): the automatic sentence
+    # off game-wide, and line_exposed(self) called from a desc block where
+    # the prose wants the load told.
+    src = (
+        'constant exposed_line = false\n'
+        'game\n    title "X"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing testy of character in hall\n    name "Testy"\n    named\n'
+        '    words testy\n    exposed\n'
+        '    desc block\n        say "He likes to travel."\n        line_exposed(self)\n'
+        'thing bob of character in hall\n    name "Bob"\n    named\n'
+        '    words bob\n    exposed\n    desc "He likes to stay."\n'
+        'thing hat in testy\n    name "felt hat"\n    words hat\n    wearable\n    worn\n'
+        'thing cap in bob\n    name "cap"\n    words cap\n    wearable\n    worn\n'
+    )
+    out = _run(["examine testy", "examine bob", "take cap"], src)
+    assert "Testy is wearing a felt hat." in out            # told by the desc block
+    assert "wearing" not in out.split(">examine bob")[1].split(">")[0]   # the automatic sentence is off
+    assert "Bob is wearing it." in out                       # scope and the refusal stay

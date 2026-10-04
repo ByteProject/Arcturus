@@ -546,19 +546,24 @@ on examine
             stop
         msg_nothing_special
         if any_exposed is 1
-            if noun is animate
-                if noun is not player
-                    line_exposed(noun)
+            if any_exposed_line is 1
+                if noun is animate
+                    if noun is not player
+                        line_exposed(noun)
         stop
     say noun.desc
     // A character's exposed belongings follow its description (docs/01
     // chapter 3): "Testy is wearing a felt hat and carrying a passport."
+    // `constant exposed_line = false` keeps this sentence out of every
+    // examine; the story then calls line_exposed(self) from a desc block
+    // where its prose wants the load told (a field request, 2026-10-05).
     if any_exposed is 1
-        if noun is animate
-            // Never the player: their belongings are the inventory (a field
-            // report: EXAMINE ME ended "yourself is carrying ...").
-            if noun is not player
-                line_exposed(noun)
+        if any_exposed_line is 1
+            if noun is animate
+                // Never the player: their belongings are the inventory (a field
+                // report: EXAMINE ME ended "yourself is carrying ...").
+                if noun is not player
+                    line_exposed(noun)
 
 on quit
     change meta_turn to 1

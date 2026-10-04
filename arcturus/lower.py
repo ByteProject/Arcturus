@@ -200,6 +200,10 @@ INTRINSICS = frozenset({
     # any_exposed folds the exposed-belonging rules (scope, the take
     # refusal, the examine line) away in a game that exposes nothing.
     "any_exposed",
+    # any_exposed_line: the automatic belongings sentence after EXAMINE on
+    # a character, on unless `constant exposed_line = false`; the story
+    # then calls line_exposed(self) where it wants the sentence.
+    "any_exposed_line",
     # any_compactrooms folds the blank line above a room title away when
     # the game sets `constant compact_rooms = 1`.
     "any_compactrooms",
@@ -1733,6 +1737,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _place(rt, Const(_any_prop(ctx.world, "name_cap")), dest)
     elif name == "any_exposed":
         _place(rt, Const(_any_prop(ctx.world, "exposed")), dest)
+    elif name == "any_exposed_line":
+        # any_exposed_line(): 1 unless the game writes constant exposed_line = false
+        # (the automatic belongings sentence after EXAMINE on a character).
+        _place(rt, Const(_switch_constant_on(ctx, "exposed_line")), dest)
     elif name == "any_compactrooms":
         # any_compactrooms(): 1 when `constant compact_rooms = 1` drops the
         # blank line above a room title.
@@ -3017,6 +3025,18 @@ def _emit_test(rt, ctx, expr, label, on_true):
     rt.op("jz", op, branch=(label, not on_true))
     if t is not None:
         ctx.free_temp(t)
+
+
+def _switch_constant_on(ctx, name: str) -> int:
+    """A game-wide switch that is ON unless the game writes
+    `constant <name> = false`: 1 when undeclared or true, 0 when false."""
+    c = ctx.world.constants.get(name)
+    if c is None:
+        return 1
+    v = c.value
+    if isinstance(v, (ast.Bool, ast.Number)):
+        return 1 if v.value else 0
+    return 1
 
 
 def _switch_constant(ctx, name: str) -> int:
@@ -4503,6 +4523,8 @@ def _static_value(ctx, expr):
         return _any_prop(ctx.world, "name_cap")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_exposed":
         return _any_prop(ctx.world, "exposed")
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_exposed_line":
+        return _switch_constant_on(ctx, "exposed_line")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_compactrooms":
         return _compact_rooms(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_scenery_contents":
