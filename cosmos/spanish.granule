@@ -1243,6 +1243,13 @@ block scenery_closed_line(obj)
 // visto; devuelve cuántos nombró (0 no imprime nada). El modelo de
 // conocimiento filtra como en todas partes; un nivel de profundidad.
 block name_contents(holder)
+    return name_contents_level(holder, 1)
+
+// El bucle. Con deep, un contenedor o soporte entre el contenido dice lo
+// que lleva, en prosa (la forma de Stefan, 2026-10-04): "una caja con una
+// manzana y un anillo dentro", "un taburete con un pañuelo encima", y
+// nunca un tercer nivel.
+block name_contents_level(holder, deep)
     let total = listable_count(holder)
     if total is 0
         return 0
@@ -1256,11 +1263,32 @@ block name_contents(holder)
                     show(", ")
             show("${a x}")
             now x is seen
+            if deep is 1
+                name_within(x)
             change shown to shown + 1
     return total
 
+// La cola del segundo nivel: " con <contenido> dentro" para un
+// contenedor, " encima" para un soporte.
+block name_within(x)
+    let is_holder = 0
+    if x is supporter
+        change is_holder to 1
+    if x is container
+        change is_holder to 1
+    if is_holder is 0
+        return 0
+    if listable_count(x) is 0
+        return 0
+    show(" con ")
+    name_contents_level(x, 0)
+    if x is supporter
+        show(" encima")
+    else
+        show(" dentro")
+
 // the contents the player can see or remembers and marking each as seen. Prints
-// nothing when there is nothing to show. One level deep, by design.
+// nothing when there is nothing to show. Two levels deep (name_within).
 block list_contents(holder)
     if holder is supporter
         list_contents_run(holder)

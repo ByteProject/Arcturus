@@ -1630,6 +1630,15 @@ block scenery_closed_line(obj)
 global list_fall = 0
 
 block name_contents(holder)
+    return name_contents_level(holder, 1, 0)
+
+// The loop itself (fall 0: list_fall decides nominative or accusative,
+// as ever; fall 2: dative, for the second-level tail after "mit"). With
+// deep set, a holder among the contents says what it holds in prose
+// (Stefan's shape, 2026-10-04): "eine Kiste mit einem Apfel und einem
+// Ring darin", "ein Hocker mit einem Taschentuch darauf", never a third
+// level down.
+block name_contents_level(holder, deep, fall)
     let total = listable_count(holder)
     if total is 0
         return 0
@@ -1641,13 +1650,37 @@ block name_contents(holder)
                     show(" und ")
                 else
                     show(", ")
-            if list_fall is 1
-                show("${a x}")
+            if fall is 2
+                show("${a:dat x}")
             else
-                show("${a:acc x}")
+                if list_fall is 1
+                    show("${a x}")
+                else
+                    show("${a:acc x}")
             now x is seen
+            if deep is 1
+                name_within(x)
             change shown to shown + 1
     return total
+
+// The second-level tail: " mit <Inhalt im Dativ> darin" for a container,
+// " darauf" for a supporter.
+block name_within(x)
+    let is_holder = 0
+    if x is supporter
+        change is_holder to 1
+    if x is container
+        change is_holder to 1
+    if is_holder is 0
+        return 0
+    if listable_count(x) is 0
+        return 0
+    show(" mit ")
+    name_contents_level(x, 0, 2)
+    if x is supporter
+        show(" darauf")
+    else
+        show(" darin")
 
 // Append " (enthaelt ...)" to a container or supporter just named. "enthaelt"
 // takes the accusative, so the contents are listed with ${a:acc x}.

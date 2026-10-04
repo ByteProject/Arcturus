@@ -60,3 +60,39 @@ def test_inventory_keeps_the_closed_qualifier():
     first, second = io.text.split(">open chest")
     assert "a chest (closed)" in first
     assert "a chest (closed)" not in second
+
+
+def test_listing_goes_two_levels_in_prose():
+    # auraes's report (2026-09-27): a box put on a table lost its apple
+    # from the listing (one level deep). Now a holder among the contents
+    # says what it holds in prose, Stefan's shape (2026-10-04), and never
+    # a third level: the pea in the tin in the box stays unnamed.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'game\n    title "N"\n    start r\n'
+        'room r\n    name "Somewhere"\n    desc "x"\n'
+        'thing table of supporter in r\n    name "table"\n    words table\n    fixed\n'
+        'thing box of container in table\n    name "box"\n    words box\n    open\n'
+        'thing apple in box\n    name "apple"\n    words apple\n'
+        'thing salt in box\n    name "salt"\n    words salt\n    indefinite "some"\n'
+        'thing tin of container in box\n    name "tin"\n    words tin\n    open\n'
+        'thing pea in tin\n    name "pea"\n    words pea\n'
+        'thing stool of supporter in table\n    name "stool"\n    words stool\n'
+        'thing hanky in stool\n    name "handkerchief"\n    words handkerchief\n'
+    )
+    io = CaptureIO(script=["look"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert ("a table (on which are a box with an apple, some salt and a tin in it "
+            "and a stool with a handkerchief on it)") in out
+    assert "pea" not in out

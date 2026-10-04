@@ -1231,6 +1231,12 @@ there, the room keeps listing it, even with the lid shut:
 > look
 You can see an iron box (contains a gold ring) here.
 ```
+A holder among the contents says what it holds in turn, in prose rather
+than a second pair of parentheses: "a table (on which is a box with an
+apple, a ring and some salt in it)", "a table (on which is a stool with a
+handkerchief on it)". That is where it stops: a box inside a box on a
+table is named, what is in it is not, until the player looks closer.
+
 
 Knowledge sharpens the parser's answers too. Once the player has seen the ring,
 naming it while the box is shut earns a reminder to open the box, not a flat
@@ -6934,7 +6940,8 @@ language pack speaks its own):
   the way to visit everything.
 - `name_contents(holder)`: the composable bare list, "a sabre, a dagger
   and an iron axe": the holder's listable contents with their articles,
-  commas, and a final "and", each marked seen, one level deep. Returns
+  commas, and a final "and", each marked seen, two levels deep (a holder
+  among them says what it holds, "a box with an apple in it"). Returns
   how many it named, and zero prints nothing at all, so your sentence
   decides what emptiness deserves:
 

@@ -1285,7 +1285,7 @@ block scenery_holder_line(obj)
         say "."
 
     // the contents the player can see or remembers and marking each as seen. Prints
-    // nothing when there is nothing to show. One level deep, by design.
+    // nothing when there is nothing to show. Two levels deep (name_within).
         return 0
     if obj is not container
         if obj is not supporter
@@ -1325,7 +1325,7 @@ block scenery_closed_line(obj)
     say "."
 
 // the contents the player can see or remembers and marking each as seen. Prints
-// nothing when there is nothing to show. One level deep, by design.
+// nothing when there is nothing to show. Two levels deep (name_within).
 block list_contents(holder)
     if holder is supporter
         list_contents_run(holder)
@@ -1347,7 +1347,8 @@ block listable_count(holder)
 // marking each as seen, and return how many were named. Zero prints
 // nothing at all, so the caller decides what an empty holder deserves.
 // The knowledge model filters as everywhere (a closed opaque container
-// names only what the player has seen); one level deep, by design. The
+// names only what the player has seen); two levels deep, the second in
+// prose (name_within), never a third. The
 // framers below all speak through this one loop, and an author composes
 // it into their own prose the same way:
 //
@@ -1355,6 +1356,15 @@ block listable_count(holder)
 //     name_contents(rack)
 //     say "."
 block name_contents(holder)
+    return name_contents_level(holder, 1)
+
+// The loop itself. With deep set, a holder among the contents says what
+// it holds in passing, in prose rather than Inform's nested parentheses
+// (Stefan's shape, 2026-10-04): "a box with an apple, a ring and some
+// salt in it", "a stool with a handkerchief on it". That tail names its
+// own contents flat, so the listing never goes a third level down: a box
+// in a box on a table is named, its contents are not, by design.
+block name_contents_level(holder, deep)
     let total = listable_count(holder)
     if total is 0
         return 0
@@ -1368,8 +1378,34 @@ block name_contents(holder)
                     show(", ")
             show("${a x}")
             now x is seen
+            if deep is 1
+                name_within(x)
             change shown to shown + 1
     return total
+
+// The second-level tail: " with <contents> in it" for a container, " on
+// it" for a supporter, nothing for an empty or unseen-into holder.
+block name_within(x)
+    let is_holder = 0
+    if x is supporter
+        change is_holder to 1
+    if x is container
+        change is_holder to 1
+    if is_holder is 0
+        return 0
+    if listable_count(x) is 0
+        return 0
+    show(" with ")
+    name_contents_level(x, 0)
+    if x is supporter
+        show(" on ")
+    else
+        show(" in ")
+    if any_pluribus is 1
+        if x is pluribus
+            show("them")
+            return 0
+    show("it")
 
 block list_contents_run(holder)
     if listable_count(holder) is 0
