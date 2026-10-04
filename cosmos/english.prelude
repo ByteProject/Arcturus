@@ -1448,15 +1448,36 @@ block reveal_contents(holder)
 // One item as the room listing names it: article, the closed qualifier,
 // its tag, its contents in passing. The single line and the combined
 // sentence both speak through this, so they can never drift apart.
+// Did the item just named end in a parenthesis (a closed qualifier, a tag,
+// a contents list)? The sentence's " here." stumbles after one ("... with
+// a handkerchief on it) here."), so the frame ends with "." instead
+// (Stefan's ruling, 2026-10-04). The plain sentence keeps its anchor.
+global qualified = 0
+
 block name_room_item(obj)
+    change qualified to 0
     show("${a obj}")
     // A closed openable says so (Pablo Martinez's suggestion, the PunyInform
     // qualifier): the one state a player cannot read off the listing.
     if obj is openable
         if obj is not open
             show(" (closed)")
+            change qualified to 1
+    if any_tagged is 1
+        if tag_addr(obj) is not 0
+            change qualified to 1
     show_tag(obj)
+    if obj is container or obj is supporter
+        if listable_count(obj) > 0
+            change qualified to 1
     list_contents(obj)
+
+// The end of a listing sentence: " here.", or "." after a parenthesis.
+block line_here_end()
+    if qualified is 1
+        say "."
+        return 0
+    say " here."
 
 // One line of a room's contents listing, naming a container's or supporter's
 // contents in passing.
@@ -1464,7 +1485,7 @@ block list_item(obj)
     if any_firstperson is 1
         show("I can see ")
         name_room_item(obj)
-        say " here."
+        line_here_end
 
     // The room's combined listing sentence (Cosmos 1.5.0, the adopters'
     // request): every plain item in ONE sentence, "You can see a MRE, a
@@ -1475,7 +1496,7 @@ block list_item(obj)
         return 0
     show("You can see ")
     name_room_item(obj)
-    say " here."
+    line_here_end
 
 // The room's combined listing sentence (Cosmos 1.5.0, the adopters'
 // request): every plain item in ONE sentence, "You can see a MRE, a
@@ -1505,7 +1526,7 @@ block list_room(total)
                 change shown to shown + 1
         if any_presence is 1
             list_presence_tail(shown, total)
-        say " here."
+        line_here_end
 
     // The existence objects' tail of the combined sentence (docs/01 chapter
     // 3): objects standing here beyond the tree join after the room's own
@@ -1531,7 +1552,7 @@ block list_room(total)
             change shown to shown + 1
     if any_presence is 1
         list_presence_tail(shown, total)
-    say " here."
+    line_here_end
 
 // The existence objects' tail of the combined sentence (docs/01 chapter
 // 3): objects standing here beyond the tree join after the room's own

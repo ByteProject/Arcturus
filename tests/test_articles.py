@@ -227,5 +227,5 @@ def test_article_override_and_closed_qualifier_on_frotz(tmp_path):
         capture_output=True, text=True, timeout=15,
     ).stdout
     # The combined sentence carries the override and the qualifier inline.
-    assert "You can see some water and a pine box (closed) here." in out
+    assert "You can see some water and a pine box (closed)." in out
     assert "You can see some water and a pine box here." in out  # after: gone

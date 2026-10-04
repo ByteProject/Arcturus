@@ -96,3 +96,39 @@ def test_listing_goes_two_levels_in_prose():
     assert ("a table (on which are a box with an apple, some salt and a tin in it "
             "and a stool with a handkerchief on it)") in out
     assert "pea" not in out
+
+
+def test_listing_sentence_ends_cleanly_after_a_parenthesis():
+    # Stefan's ruling (2026-10-04): "... with a handkerchief on it) here."
+    # stumbles, so the frame ends with a period after a parenthesis; the
+    # plain sentence keeps its " here." anchor.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'game\n    title "N"\n    start r\n'
+        'room r\n    name "Somewhere"\n    desc "x"\n'
+        'thing lamp in r\n    name "lamp"\n    words lamp\n'
+        'thing stool of supporter in r\n    name "stool"\n    words stool\n'
+        'thing hanky in stool\n    name "handkerchief"\n    words handkerchief\n'
+        'thing box of container in r\n    name "box"\n    words box\n'
+        '    openable\n'
+    )
+    io = CaptureIO(script=["look", "take stool", "take box", "look",
+                           "drop stool", "look"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert "a stool (on which is a handkerchief) and a box (closed)." in out
+    assert "You can see a lamp here." in out                      # plain: anchored
+    # The dropped stool lists first; the last item is the plain lamp, so
+    # the anchor stays: only the final item decides the ending.
+    assert "You can see a stool (on which is a handkerchief) and a lamp here." in out
+    assert ") here." not in out
