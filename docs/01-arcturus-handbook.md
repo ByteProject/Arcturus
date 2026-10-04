@@ -4311,7 +4311,9 @@ The header parts, with the modifiers in any order:
   brush-off) work on it. A person may have several; the first in view answers.
   Idle topics belong to the ask/tell presentation only; the conversations menu
   ignores them (a menu has no unmatched-subject case), so one declared in a
-  menu game is silently unused.
+  menu game is silently unused. Without one, the library's flat line
+  answers (`msg_ask` / `msg_tell`, redefinable in the story); chapter 22's
+  infocom_talking section shows an idle topic with `vary`.
 
 By default a topic is repeatable and never leaves on its own: the player can
 raise it as often as they like. Nothing is needed to keep a topic around; every
@@ -5504,7 +5506,30 @@ matched, in place of the flat library line. It is an ordinary topic with a
 full exchange, `once` and `when` and all, that matches on "nothing else did"
 rather than on words; several are allowed, and the first in view answers.
 This is the ask/tell counterpart of the flat default; the conversations menu
-has no unmatched case and ignores idle topics entirely.
+has no unmatched case and ignores idle topics entirely. An idle topic is
+an ordinary topic body, so `vary` gives a different brush-off each time:
+
+```
+thing ferryman of character in dock
+    name "ferryman"
+    words ferryman, man
+
+    topic fare "the fare" words fare, price, coin
+        say "\"Two coppers, paid before we cast off.\""
+
+    topic shrug "a shrug" idle
+        vary mutate
+            "The ferryman spits into the water. \"Not my business, that.\""
+            "\"Ask the harbor master,\" the ferryman grunts."
+            "The ferryman pretends not to hear."
+```
+
+ASK FERRYMAN ABOUT WEATHER and TELL FERRYMAN ABOUT WAR both land on the
+shrug. The flat library lines themselves are the blocks `msg_ask` and
+`msg_tell` ("${The noun} stays mum on the subject." and its TELL
+sibling): declare either in the story to reword the fall-through for
+every character at once; an idle topic always wins over them for its
+own person.
 
 With no list to exhaust, a plain topic here is REPEATABLE: the player may raise
 it again and again (asking about the weather twice answers twice), and `once` is

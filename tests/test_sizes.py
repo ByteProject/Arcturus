@@ -271,7 +271,7 @@ CEILINGS = {
     "granules/ambience.storyarc": 20276,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
     "granules/conversations.storyarc": 20156,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
     "granules/extended-verbs.storyarc": 21848,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/infocom-interrogation.storyarc": 20180,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
+    "granules/infocom-interrogation.storyarc": 20548,  # 2026-10-04 repriced (+368): the example shows two idle topics, a guarded plain one and a varied one (the fall-through)
     "granules/quotes.storyarc": 18428,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
     "granules/take-all.storyarc": 21052,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
     "granules/plurals.storyarc": 19344,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)

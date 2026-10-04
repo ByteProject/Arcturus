@@ -25,6 +25,10 @@
 //       once    - the ticket contradiction and the confession land a single time
 //       when    - the weapon can only be raised while you are holding the opener
 //       you / reply / say - the question, the auto-quoted answer, the narration
+//       idle    - the fall-through: a subject no topic answers to gets the
+//                 suspect's own line, not the library's; two of them, a plain
+//                 one guarded by `when` (after the confession) standing first,
+//                 and a varied stonewall before that
 //
 //  The suspect's own `on tell` is the manual escape hatch: ASK runs topics, TELL
 //  he answers himself.
@@ -42,6 +46,9 @@ game
     start cell
 
 summon.infocom_talking
+
+// Set by the confession: the plain idle topic below stands guard on it.
+global confessed = false
 
 // The opening beat is pure inner monologue, before the room is even described:
 // it tells the player where to start. There is no menu and no list; the detective
@@ -104,7 +111,25 @@ thing suspect of character in cell
         say "Crale stares at his hands for a long moment. Then his shoulders fall."
         reply "He was going to ruin me. I only went there to talk. The blade was
                just lying there, and he laughed, and then it was done."
+        change confessed to true
         say "There it is. Signed and sealed. You've got him."
+
+    // The fall-through. A subject none of the topics above answers to (ASK
+    // CRALE ABOUT THE WEATHER) lands on an `idle` topic, the per-character
+    // default, instead of the library's flat "stays mum" line. A person may
+    // have several, and the first in view answers: this plain one stands
+    // first and is in view only once he has broken, so after the
+    // confession there is nothing left to stonewall.
+    topic spent "nothing more" idle when confessed is true
+        say "Crale shakes his head. \"You have what you came for, Detective.\""
+
+    // Before that, the stonewalling. An idle topic is an ordinary topic
+    // body, so `vary` keeps it fresh across repeated asking.
+    topic stonewall "a stone wall" idle
+        vary mutate
+            "Crale examines his cuffs. \"Is that a question, Detective?\""
+            "\"I don't see what that has to do with anything,\" Crale says."
+            "Crale gives you the flat, patient look of a man who has all night."
 
     // The manual escape hatch. The suspect handles TELL himself, so it overrides
     // the granule's topic dispatch for this verb: ASK runs topics, TELL does not.
