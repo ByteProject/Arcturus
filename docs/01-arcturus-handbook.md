@@ -97,7 +97,9 @@ between the comma and the continuation are ignored.
 ### Values and types
 
 - number: a 16-bit signed integer, -32768 to 32767, wrapping arithmetic. No
-  floats.
+  floats. A
+  literal may be written in hexadecimal, `0xFF`, `0x0B`, the same number as
+  its decimal twin; masks and dictionary flag bytes read better that way.
 - text: a string, ZSCII encoded at compile time, with `${ }` interpolation.
 - boolean: `true` or `false`.
 - object: a reference to a declared object; the literal `nothing` is null.

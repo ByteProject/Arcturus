@@ -243,7 +243,7 @@ CEILINGS = {
     "features/containers.storyarc": 19368,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
     "features/daemons-and-timers.storyarc": 20628,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
     "features/doors-and-locks.storyarc": 18540,  # 2026-10-04 repriced (+48): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/appearance.storyarc": 19360,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
+    "features/appearance.storyarc": 19348,  # 2026-10-04 repriced (-12): the article twin reads its low byte with one band (auraes)
     "features/components.storyarc": 18624,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
     "granules/whistle.storyarc": 18052,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
     "granules/lighttopology.storyarc": 20252,  # 2026-10-04 repriced (+48): the listing sentence ends with a period after a parenthesis (line_here_end)

@@ -1005,7 +1005,7 @@ block art_the(obj, cap)
             if cap is 1
                 show_char(c / 256)
             else
-                show_char(c - (c / 256) * 256)
+                show_char(band(c, 255))
             show("${obj.article}")
             show(" ")
             print_name(obj)
@@ -1065,7 +1065,7 @@ block art_a(obj, cap)
             if cap is 1
                 show_char(c / 256)
             else
-                show_char(c - (c / 256) * 256)
+                show_char(band(c, 255))
             show("${obj.indefinite}")
             show(" ")
             print_name(obj)

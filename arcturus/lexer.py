@@ -40,6 +40,7 @@ _UUID_RE = re.compile(
 # matches the dispatch in _scan_token, which enters a name on any c.isalpha().
 _NAME_RE = re.compile(r"[^\W\d_]\w*")
 _NUMBER_RE = re.compile(r"[0-9]+")
+_HEX_RE = re.compile(r"[0-9a-fA-F]+")
 
 # Escape character -> the literal character it produces.
 _ESCAPES = {'"': '"', "\\": "\\", "$": "$", "n": "\n"}
@@ -230,6 +231,22 @@ class Lexer:
 
     def _read_number(self) -> None:
         line, col = self.line, self.col
+        # 0xFF is a hexadecimal literal (auraes's ask, 2026-09-28: masks and
+        # flag bytes read better that way), the same 16-bit number as its
+        # decimal twin; 0x alone, or a digit past f, is refused.
+        if self._peek() == "0" and self._peek(1) in ("x", "X"):
+            self._consume(2)
+            h = _HEX_RE.match(self.src, self.pos)
+            if h is None:
+                raise self._error("0x needs hexadecimal digits after it", line, col)
+            digits = h.group(0)
+            self._consume(len(digits))
+            value = int(digits, 16)
+            if value > 0xFFFF:
+                raise self._error(
+                    f"0x{digits} does not fit a 16-bit number", line, col)
+            self._emit(T.NUMBER, value, line, col)
+            return
         m = _NUMBER_RE.match(self.src, self.pos)
         text = m.group(0)
         self._consume(len(text))
