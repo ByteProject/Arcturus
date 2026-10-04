@@ -1280,13 +1280,18 @@ class ActaeaApp:
         return self.font_prose
 
     def _fixed_now(self, style: int) -> bool:
-        """Must this text be fixed-pitch? Two doors, both the Standard's:
-        the FIXED text style (set_text_style bit 8), and Flags 2 bit 1,
-        which a game may set and clear at run time to force the whole
-        lower window fixed (S 8.1); it is read per print, as asked."""
+        """Must this text be fixed-pitch? Three doors, all the Standard's:
+        the FIXED text style (set_text_style bit 8); Flags 2 bit 1, which a
+        game may set and clear at run time to force the whole lower window
+        fixed (S 8.1, Inform's `font off`), read per print, as asked; and
+        font 4, the fixed-pitch font a game selects with set_font (S 8.1.3),
+        which the VM accepts and this window must then show (auraes's
+        report, 2026-09-28: Inform games switching to fixed pitch)."""
         if style & FIXED:
             return True
         try:
+            if getattr(self.vm, "font", 1) == 4:
+                return True
             return bool(self.vm.mem.word(0x10) & 2)
         except Exception:
             return False

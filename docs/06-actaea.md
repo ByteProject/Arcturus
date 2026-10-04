@@ -95,7 +95,12 @@ Actaea plays in a window, in the terminal, or as a plain text pipe.
 
 `actaea story.z5` opens the window, the way Actaea is normally played.
 It supports the full Z-machine screen model: colors, text styles, the
-game-drawn status bar, and timed input. Long passages page with
+game-drawn status bar, and timed input. Story text is set in the look's
+prose face and switches to the monospace face whenever the game asks for
+fixed pitch by any of the Standard's three doors: the fixed-pitch text
+style, the Flags 2 bit a game sets at run time (Inform's `font off`), or
+font 4 chosen with set_font; the Retro look sets everything in one face,
+so there the switch is invisible by design, as it is in the terminal. Long passages page with
 `[MORE]`, and you can scroll back through everything printed. The Up
 and Down arrows recall your earlier commands at the prompt, and one
 step past the newest brings back whatever you had half-typed.
