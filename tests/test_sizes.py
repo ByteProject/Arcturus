@@ -216,72 +216,72 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # chain); a held thing skips the probe, the floor-to-container shortcut
 # still moves takeable things in one command.
 CEILINGS = {
-    "features/yes-no.storyarc": 18300,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/press-any-key.storyarc": 19192,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/shiftable.storyarc": 18688,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/enhance-redefine.storyarc": 19044,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/consult-about.storyarc": 19204,  # 2026-10-04 repriced (+44): shared topic words resolve (the question, the umbrella; topic games only)
-    "features/session-verbs.storyarc": 18756,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/vary.storyarc": 20632,  # 2026-10-04 repriced (+672): shared topic words resolve (the question, the umbrella; topic games only)
-    "features/foresight.storyarc": 20936,  # 2026-10-04 repriced (+48): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/beyond.storyarc": 22016,  # 2026-10-04 repriced (+672): shared topic words resolve (the question, the umbrella; topic games only)
-    "features/alter.storyarc": 19916,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/catalogs.storyarc": 19308,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/matrix.storyarc": 19640,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/direction-grammar.storyarc": 18716,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/scenery-contents.storyarc": 19900,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/trigger.storyarc": 18792,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/adjectives.storyarc": 19424,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/nautical.storyarc": 19192,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/npcengine.storyarc": 21292,  # 2026-10-04 repriced (+48): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/maniacswap.storyarc": 19536,  # 2026-10-04 repriced: the example declares its boot body (body henrik); the granule freezes it at start
-    "beispiel-deutsch.storyarc": 28604,  # 2026-10-04 repriced (+44): shared topic words resolve (the question, the umbrella; topic games only)
-    "brass-lantern.storyarc": 20092,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "cloak-of-darkness.storyarc": 22060,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "ejemplo-espanol.storyarc": 25172,  # 2026-10-04 repriced (+44): shared topic words resolve (the question, the umbrella; topic games only)
-    "features/computed-properties.storyarc": 18400,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/containers.storyarc": 19368,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/daemons-and-timers.storyarc": 20628,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/doors-and-locks.storyarc": 18540,  # 2026-10-04 repriced (+48): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/appearance.storyarc": 19348,  # 2026-10-04 repriced (-12): the article twin reads its low byte with one band (auraes)
-    "features/components.storyarc": 18624,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/whistle.storyarc": 18052,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/lighttopology.storyarc": 20252,  # 2026-10-04 repriced (+48): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/pathfinding.storyarc": 21048,  # 2026-10-04 repriced (+48): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/perform.storyarc": 18368,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/grains.storyarc": 18168,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/handlers.storyarc": 19568,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/first-person.storyarc": 19036,  # 2026-10-04 repriced (+40): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/word-lists.storyarc": 18832,  # 2026-10-04 repriced (+48): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/grammar-bind.storyarc": 19652,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/grammar.storyarc": 18472,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/introproperty.storyarc": 20288,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/kinds-and-inheritance.storyarc": 18364,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/on-other.storyarc": 18244,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/zcolor.storyarc": 18692,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/text-styles.storyarc": 18492,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/computed-name.storyarc": 18388,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/scoring.storyarc": 20620,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/spans.storyarc": 18484,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/vehicles.storyarc": 19500,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/success.storyarc": 19032,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/edible.storyarc": 18864,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "features/text-slot.storyarc": 19404,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/carryweight.storyarc": 19616,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/ambience.storyarc": 20276,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/conversations.storyarc": 20200,  # 2026-10-04 repriced (+44): shared topic words resolve (the question, the umbrella; topic games only)
-    "granules/extended-verbs.storyarc": 21848,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/infocom-interrogation.storyarc": 21620,  # 2026-10-04 repriced (+8): shared topic words resolve (the question, the umbrella; topic games only)
-    "granules/quotes.storyarc": 18428,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/take-all.storyarc": 21052,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/plurals.storyarc": 19344,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/statusline.storyarc": 18400,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/verbose-exits.storyarc": 18344,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
+    "features/yes-no.storyarc": 18352,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/press-any-key.storyarc": 19244,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/shiftable.storyarc": 18740,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/enhance-redefine.storyarc": 19096,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/consult-about.storyarc": 19256,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/session-verbs.storyarc": 18808,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/vary.storyarc": 20684,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/foresight.storyarc": 20988,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/beyond.storyarc": 22068,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/alter.storyarc": 19980,  # 2026-10-04 repriced (+64): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/catalogs.storyarc": 19360,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/matrix.storyarc": 19692,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/direction-grammar.storyarc": 18768,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/scenery-contents.storyarc": 19952,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/trigger.storyarc": 18844,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/adjectives.storyarc": 19476,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/nautical.storyarc": 19244,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/npcengine.storyarc": 21344,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/maniacswap.storyarc": 19588,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "beispiel-deutsch.storyarc": 28620,  # 2026-10-04 repriced (+16): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "brass-lantern.storyarc": 20144,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "cloak-of-darkness.storyarc": 22112,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "ejemplo-espanol.storyarc": 25188,  # 2026-10-04 repriced (+16): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/computed-properties.storyarc": 18452,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/containers.storyarc": 19420,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/daemons-and-timers.storyarc": 20680,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/doors-and-locks.storyarc": 18592,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/appearance.storyarc": 19400,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/components.storyarc": 18676,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/whistle.storyarc": 18104,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/lighttopology.storyarc": 20304,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/pathfinding.storyarc": 21108,  # 2026-10-04 repriced (+60): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/perform.storyarc": 18420,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/grains.storyarc": 18220,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/handlers.storyarc": 19620,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/first-person.storyarc": 19088,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/word-lists.storyarc": 18884,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/grammar-bind.storyarc": 19704,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/grammar.storyarc": 18524,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/introproperty.storyarc": 20340,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/kinds-and-inheritance.storyarc": 18416,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/on-other.storyarc": 18296,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/zcolor.storyarc": 18744,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/text-styles.storyarc": 18544,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/computed-name.storyarc": 18440,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/scoring.storyarc": 20672,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/spans.storyarc": 18536,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/vehicles.storyarc": 19552,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/success.storyarc": 19096,  # 2026-10-04 repriced (+64): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/edible.storyarc": 18916,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/text-slot.storyarc": 19456,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/carryweight.storyarc": 19668,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/ambience.storyarc": 20328,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/conversations.storyarc": 20252,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/extended-verbs.storyarc": 21872,  # 2026-10-04 repriced (+24): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/infocom-interrogation.storyarc": 21672,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/quotes.storyarc": 18480,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/take-all.storyarc": 21104,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/plurals.storyarc": 19396,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/statusline.storyarc": 18452,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "granules/verbose-exits.storyarc": 18396,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 22728  # 2026-10-04 repriced (+40): the listing sentence ends with a period after a parenthesis (line_here_end)
+CLOAK_Z8_CEILING = 22784  # 2026-10-04 repriced (+56): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

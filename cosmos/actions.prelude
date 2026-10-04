@@ -997,6 +997,13 @@ on lock
     success msg_locked
 
 on unlock
+    // Already open: nothing to unlock and nothing to open, so the open
+    // action's own already-open line speaks alone (auraes's report,
+    // 2026-10-03: "already unlocked, so you open it" followed by "already
+    // open").
+    if noun is open
+        perform("open", noun)
+        stop
     // Nothing to unlock: the thing has no lock at all, so just open it.
     if noun is not lockable
         msg_cant_unlock

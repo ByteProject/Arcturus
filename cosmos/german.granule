@@ -2042,6 +2042,10 @@ block msg_listen_self()
          leise Sirren deiner Nerven."
 
 block msg_listen_animate()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} schweigen."
+            return 0
     say "${The noun} schweigt."
 
 block msg_listen_thing()
@@ -2805,7 +2809,7 @@ block msg_seek_unknown()
     say "Davon weißt du nichts."
 
 block msg_find_here(o)
-    say "${The o} ist doch genau hier."
+    say "${The o} ${is o} doch genau hier."
 
 block msg_seek_near(o)
     say "${The o} müsste hier irgendwo sein."

@@ -1972,7 +1972,7 @@ block msg_listen_self()
          faint whine of your nervous system."
 
 block msg_listen_animate()
-    say "${The noun} is silent."
+    say "${The noun} ${is noun} silent."
 
 block msg_listen_thing()
     if any_firstperson is 1
@@ -2913,7 +2913,7 @@ block msg_seek_unknown()
     say "You don't know of any such thing."
 
 block msg_find_here(o)
-    say "${The o} is right here."
+    say "${The o} ${is o} right here."
 
 block msg_seek_near(o)
     say "${The o} should be somewhere close by."

@@ -1630,6 +1630,10 @@ block msg_listen_self()
          de tus nervios."
 
 block msg_listen_animate()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} guardan silencio."
+            return 0
     say "${The noun} guarda silencio."
 
 block msg_listen_thing()
@@ -2480,7 +2484,7 @@ block msg_seek_unknown()
     say "No sabes de nada parecido."
 
 block msg_find_here(o)
-    say "${The o} está aquí mismo."
+    say "${The o} ${is o} aquí mismo."
 
 block msg_seek_near(o)
     say "${The o} debería andar por aquí."
