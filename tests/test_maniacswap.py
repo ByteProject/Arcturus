@@ -192,3 +192,63 @@ def test_spanish_swap_speaks_natively():
                tail=("fin", "s"))
     assert "Ahora eres Olivia." in out
     assert "Olivia, la ingeniera jefa." in out
+
+
+# --- body: the boot body has a name (docs/01 chapter 22) ------------------
+
+DEMON = (
+    'summon.maniacswap\n'
+    'game\n    title "P"\n    start cellar\n    body demon\n'
+    'room cellar\n    name "Cellar"\n    desc "Damp stone."\n    north kitchen\n'
+    'room kitchen\n    name "Kitchen"\n    desc "Copper pans."\n    south cellar\n'
+    'thing demon of character in cellar\n    name "the demon"\n    named\n'
+    '    words demon\n    desc "A shape that is mostly appetite."\n'
+    'thing jane of character in kitchen\n    name "Jane"\n    named\n    feminine\n'
+    '    words jane\n    playable\n    desc "A cook."\n'
+    '    on become\n        say "You pour yourself into Jane."\n'
+    '        move demon to nothing\n        continue\n'
+    'thing ladle in jane\n    name "ladle"\n    words ladle\n'
+    'thing horn in player\n    name "horn"\n    words horn\n'
+    'verb "leave"\n    vleave\n'
+    'on vleave\n'
+    '    if player is demon\n        say "You are already yourself."\n        stop\n'
+    '    move demon to here\n    say "You slip out."\n    become(demon)\n'
+    'on start\n    say "You wake in the dark, hungry."\n'
+)
+
+
+def test_body_names_the_boot_body():
+    # The field thread (improvmonster and EdwardianDuck, 2026-09-28): once
+    # you left the seeded player there was no name for it. With `body` the
+    # boot body is an ordinary character: start in it by declaration (no
+    # arrival before the intro), test it, lose it, return to it from code.
+    out = _run(_build(DEMON), ["examine me", "inventory", "become jane",
+                               "examine me", "inventory", "leave",
+                               "examine me", "look"])
+    head = out.split(">examine me")[0]
+    assert head.index("You wake in the dark") < head.index("Cellar")   # intro first
+    assert out.count("Cellar\nDamp stone.") == 1                     # no second arrival
+    assert "A shape that is mostly appetite." in out.split(">examine me")[1]
+    assert " a horn" in out.split(">inventory")[1]                    # `in player` = in the body
+    assert "You pour yourself into Jane." in out
+    assert "A cook." in out.split(">examine me")[2]                   # ME followed the keyboard
+    assert " a ladle" in out.split(">inventory")[2]
+    assert "You slip out." in out
+    assert "A shape that is mostly appetite." in out.split(">examine me")[3]
+    assert "You can see Jane here." in out.split(">look")[1]
+
+
+def test_body_needs_the_granule_and_a_character():
+    with pytest.raises(ArcError, match="maniacswap"):
+        _build('game\n    title "P"\n    start r\n    body bob\n'
+               'room r\n    name "R"\n    desc "x"\n'
+               'thing bob of character in r\n    name "Bob"\n    words bob\n')
+    with pytest.raises(ArcError, match="character"):
+        _build('summon.maniacswap\ngame\n    title "P"\n    start r\n    body rock\n'
+               'room r\n    name "R"\n    desc "x"\n'
+               'thing rock in r\n    name "rock"\n    words rock\n')
+    with pytest.raises(ArcError, match="player.<property>"):
+        _build('summon.maniacswap\ngame\n    title "P"\n    start r\n    body bob\n'
+               'player.name "Henrik"\n'
+               'room r\n    name "R"\n    desc "x"\n'
+               'thing bob of character in r\n    name "Bob"\n    words bob\n')

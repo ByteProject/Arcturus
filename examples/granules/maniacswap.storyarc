@@ -29,11 +29,17 @@ game
     headline "A maniacswap showcase"
     author "Stefan Vogt"
     start lamproom
+    body henrik
 
-player.name "Henrik"
-player.named
-player.words henrik, keeper
-player.desc "Henrik, keeper of the west light. Salt in every seam."
+// The body the game begins in is a character like any other, named by
+// `body` above: the player is a pointer, bodies are characters, and this
+// one can be tested (`if player is henrik`), moved, and returned to from
+// code (`become(henrik)`) exactly like Maren.
+thing henrik of character in lamproom
+    name "Henrik"
+    named
+    words henrik, keeper
+    desc "Henrik, keeper of the west light. Salt in every seam."
 
 room lamproom
     name "Lamp Room"
@@ -54,7 +60,7 @@ thing signal_lamp in lamproom
     binary
     desc "A stout paraffin lamp, aimed across the strait."
 
-thing matches in player
+thing matches in henrik
     name "box of matches"
     words box, matches
     desc "Damp around the edges, dry enough inside."

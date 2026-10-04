@@ -43,6 +43,12 @@ when language "spanish"
     verb "encarna"
         become noun
 
+// The boot body is frozen from the first turn, so a summoned NPC engine
+// never drives the body the keyboard holds; the swap marks the later
+// bodies the same way as they are claimed.
+on start
+    now player is hibernated
+
 // The swap itself, callable from any handler for authored beats
 // (an ending that forces the change of view, a cutscene). The left body
 // freezes; the claimed body is marked the same way, so a summoned NPC

@@ -6,6 +6,14 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **The body you begin in has a name: `body`.** In a maniacswap game
+  the player was always a pointer and the bodies characters, except the
+  one you started in, seeded under the name `player` and nameless the
+  moment you left it. Now the game block says `body henrik` (or `body
+  demon`), the boot body is a character you declared, and everything a
+  story needs follows: `if player is henrik`, `move henrik to nothing`,
+  `become(henrik)`, starting as any body by declaration. The old form
+  keeps compiling (arcc 2.27.0, Cosmos 1.45.0).
 - **Which Smith? Topics that share a word.** ASK ABOUT SMITH with a John
   and a Mary no longer runs whichever was declared first. The words
   decide where they can (JOHN SMITH is John), an umbrella topic for the
@@ -33,15 +41,6 @@ lives in the commit log. The feature roadmap follows below.
   handler decides what reachable means. The declarative face of the
   reach_unscoped seam, Inform's scope token in one word; games without
   it compile byte for byte as before (arcc 2.24.0, Cosmos 1.41.0).
-- **A name that changes: `name block`.** An object's short name can
-  now be computed at print time, Inform's short_name in Arcturus's own
-  block idiom: "a dull coin" until it is polished, "a gleaming relic"
-  after, in the room listing, the inventory, every report and your own
-  `${the noun}`. The spelling always existed on paper and printed
-  garbage; now it works, and `change obj.name` explains itself. With
-  it, `first_in(obj)` and `next_in(obj)` read the object tree's links
-  directly, so "is the box empty" is one test. Games with literal
-  names compile byte for byte as before (arcc 2.23.0).
 
 ## Feature roadmap
 

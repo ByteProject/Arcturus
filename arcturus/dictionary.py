@@ -106,7 +106,9 @@ def _pronoun_words(world: wm.World) -> dict:
     # body's vocabulary. The game's own appended player words stay ordinary
     # vocabulary, third-person names for the boot body.
     if wm.has_summon(world, "maniacswap"):
-        player = world.objects.get("player")
+        # With `body`, the boot body carries the marked self words (sema
+        # moved them onto it); without it they sit on the seeded player.
+        player = world.objects.get(world.boot_body or "player")
         decl = player.props.get("words") if player is not None else None
         if decl is not None:
             from . import ast as _ast

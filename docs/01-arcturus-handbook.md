@@ -5980,14 +5980,22 @@ example: [examples/granules/npcengine.storyarc](../examples/granules/npcengine.s
 summon.maniacswap
 ```
 
-Multiple player characters, Maniac Mansion style. Mark each body the
-keyboard may claim with `playable` (a character; the starting body is
-playable by default), and BECOME swaps between them:
+Multiple player characters, Maniac Mansion style. The model is simple
+to state: the player is a pointer, and bodies are characters. Mark each
+body the keyboard may claim with `playable`, name the body the game
+begins in with `body` in the game block, and BECOME swaps between them:
 
 ```
-player.name "Henrik"
-player.named
-player.words henrik, keeper
+game
+    title "The Two Shores"
+    start lamproom
+    body henrik
+
+thing henrik of character in lamproom
+    name "Henrik"
+    named
+    words henrik, keeper
+    desc "Henrik, keeper of the west light."
 
 thing maren of character in sheds
     name "Maren"
@@ -5996,6 +6004,19 @@ thing maren of character in sheds
     words maren, sister
     playable
 ```
+
+With `body`, the boot body is an ordinary object the story can name:
+`if player is henrik` asks who you are, `become(henrik)` returns from a
+handler, `move henrik to nothing` loses the body you left (a demon that
+possesses people and must vanish while it rides one), and starting as
+any body is a declaration, never a swap at `on start`. The pack's self
+words (ME, MYSELF) move onto the boot body, and `thing matches in
+player` places things in it. The older form, `player.name "Henrik"` and
+`player.words henrik` with no `body`, keeps working: BECOME HENRIK still
+finds the boot body by its words, but your code has no name for it once
+you have left it, which is why `body` is the form to write. The two forms
+do not mix: with `body`, a `player.<property>` line in the game is an
+error that says where the property belongs.
 
 BECOME MAREN works from anywhere, even between maps that never connect:
 the verb reaches every playable body by its words, scope or none, which
@@ -6027,10 +6048,9 @@ gates.
 ME FOLLOWS THE KEYBOARD. The standard self words (ME, MYSELF, MICH,
 examinate's -te, and each language's own) resolve to whoever you are
 right now, however far away the boot body stands. Give every body its
-own third-person words, the boot body included (`player.words henrik`),
-so the others stay nameable; name the boot body (`player.name`,
-`player.named`) so its abandoned self lists honestly ("You can see
-Henrik here.").
+own third-person words, the boot body included, so the others stay
+nameable, and name it, so its abandoned self lists honestly ("You can
+see Henrik here.").
 
 SHARED VOCABULARY WITH THE NPC ENGINE: the frozen state is `hibernated`
 (the engine's controls, above). Alone it simply marks the bodies you

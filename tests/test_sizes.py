@@ -234,7 +234,7 @@ CEILINGS = {
     "features/adjectives.storyarc": 19424,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
     "granules/nautical.storyarc": 19192,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
     "granules/npcengine.storyarc": 21292,  # 2026-10-04 repriced (+48): the listing sentence ends with a period after a parenthesis (line_here_end)
-    "granules/maniacswap.storyarc": 19524,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
+    "granules/maniacswap.storyarc": 19536,  # 2026-10-04 repriced: the example declares its boot body (body henrik); the granule freezes it at start
     "beispiel-deutsch.storyarc": 28604,  # 2026-10-04 repriced (+44): shared topic words resolve (the question, the umbrella; topic games only)
     "brass-lantern.storyarc": 20092,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)
     "cloak-of-darkness.storyarc": 22060,  # 2026-10-04 repriced (+44): the listing sentence ends with a period after a parenthesis (line_here_end)

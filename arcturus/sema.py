@@ -68,6 +68,7 @@ class Analyzer:
         # player.<prop> augmentations, applied to the seeded player object in
         # the properties pass.
         self._player_decls: list = []
+        self._player_decl_files: list = []
 
     def _error(self, message: str, line: int) -> ArcError:
         return ArcError(message, line, None, self.filename)
@@ -153,6 +154,7 @@ class Analyzer:
                             f"direction",
                             mx.line)
         self._build_properties()
+        self._apply_body()
         # Exits are validated once the members are on their objects (the
         # properties pass just filled obj.props) and the kind chains are
         # resolved (door detection).
@@ -747,8 +749,11 @@ class Analyzer:
                         w.direction_names[decl.prop] = decl.words[0].lower()
             elif isinstance(decl, ast.PlayerDecl):
                 # Collected now, applied in the properties pass (below), where
-                # types unify and the words lists merge.
+                # types unify and the words lists merge. The source rides
+                # along: `body` refuses the GAME's player lines, never the
+                # language pack's standard self-words.
                 self._player_decls.append(decl.prop)
+                self._player_decl_files.append(getattr(decl, "srcfile", None))
             elif isinstance(decl, ast.PronounDecl):
                 for role in decl.roles:
                     if role not in prelude._PRONOUN_ROLES:
@@ -1350,6 +1355,65 @@ class Analyzer:
                     "npc_cursor", ast.PROP_VALUE,
                     values=[ast.Number(0, obj.line)], line=obj.line)
 
+    def _apply_body(self) -> None:
+        """`body <character>` (docs/01 chapter 22, maniacswap): the named
+        character is the boot body. The seeded player object goes away,
+        its standard self-words (ME, MYSELF, the pack's own) and any seeded
+        slot move onto the body, everything placed `in player` is placed in
+        the body, and the player global starts pointing at it (codegen).
+        So the body the keyboard begins in is an ordinary object the story
+        can name: `if player is henrik`, `move henrik to nothing`,
+        `become(henrik)`. Without the key nothing changes."""
+        w = self.world
+        game = w.game
+        if game is None:
+            return
+        who = None
+        line = 0
+        for m in game.meta:
+            if m.key == "body":
+                who = m.value
+                line = m.line
+        if who is None:
+            return
+        if not self._has_summon("maniacswap"):
+            raise self._error(
+                "body names the boot body for summon.maniacswap; without "
+                "the granule there is one body, the player", line)
+        if who not in w.objects or who == "player":
+            raise self._error(f"body '{who}' is not a declared character", line)
+        body = w.objects[who]
+        if "character" not in self._chain(body.kind, body.line):
+            raise self._error(
+                f"body '{who}' must be a character (declare it `of character`)",
+                line)
+        from . import cosmos as cosmos_lib
+        import os
+        bundled = set(cosmos_lib.granule_sources())
+        for pdecl, src in zip(self._player_decls, self._player_decl_files):
+            is_library = src is not None and (
+                src.endswith(".prelude") or os.path.basename(src) in bundled)
+            if not is_library:
+                raise self._error(
+                    "with `body`, the boot body carries its own name, words "
+                    "and desc: the player.<property> lines have nothing to "
+                    "attach to (move them onto the body's declaration)",
+                    getattr(pdecl, "line", line) or line)
+        seeded = w.objects.pop("player", None)
+        if seeded is not None:
+            for pname, decl in seeded.props.items():
+                mine = body.props.get(pname)
+                if pname == "words" and mine is not None \
+                        and mine.form == ast.PROP_VALUE and decl.form == ast.PROP_VALUE:
+                    # The pack's self-words join the body's own words.
+                    mine.values = list(mine.values) + list(decl.values)
+                elif mine is None:
+                    body.props[pname] = decl
+        for obj in w.objects.values():
+            if obj.location == "player":
+                obj.location = who
+        w.boot_body = who
+
     def _check_maniacswap(self) -> None:
         """maniacswap (summon.maniacswap, docs/01 chapter 22): multiple
         player characters, BECOME to swap. Recognized only when summoned:
@@ -1364,17 +1428,18 @@ class Analyzer:
             return
         self._unify_property("playable", prelude.T_BOOL, 0)
         self._unify_property("hibernated", prelude.T_BOOL, 0)
+        boot = w.boot_body or "player"
         for obj in w.objects.values():
             if "playable" not in obj.props:
                 continue
-            if obj.name == "player":
+            if obj.name == boot:
                 continue
             if "character" not in self._chain(obj.kind, obj.line):
                 raise self._error(
                     f"'{obj.name}' is declared playable but is not a "
                     f"character; the keyboard drives things `of character`",
                     obj.line)
-        player = w.objects.get("player")
+        player = w.objects.get(boot)
         if player is not None and "playable" not in player.props:
             player.props["playable"] = ast.PropertyDecl(
                 "playable", ast.PROP_BOOL, line=0)
@@ -1535,8 +1600,9 @@ class Analyzer:
             return True
         score_rooms = _switch("score_rooms")
         score_things = _switch("score_things")
+        boot = w.boot_body or "player"
         for name, obj in w.objects.items():
-            if name in ("player", "scope") or "scored" in obj.props:
+            if name in (boot, "scope") or "scored" in obj.props:
                 continue
             if obj.category == "room" and not score_rooms:
                 continue
@@ -1553,7 +1619,7 @@ class Analyzer:
                 if name != w.start_room:
                     obj.props["scored"] = ast.PropertyDecl(name="scored", form=ast.PROP_BOOL)
                 continue
-            if obj.location in ("player", "scope"):
+            if obj.location in (boot, "scope"):
                 continue
             # A thing a plain take would refuse never pays, so it never
             # counts: its own attributes and its kind chain's decide (a door

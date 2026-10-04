@@ -297,6 +297,14 @@ class Parser:
             self.advance()
             self.expect_newline()
             return ast.MetaLine("scoring", True, tok.line)
+        if tok.kind == T.NAME and tok.value == "body":
+            # `body <character>`: the boot body is a declared character,
+            # and `player` is only ever the pointer (summon.maniacswap,
+            # docs/01 chapter 22).
+            self.advance()
+            who = self.expect_name("a character's name after 'body'").value
+            self.expect_newline()
+            return ast.MetaLine("body", who, tok.line)
         if tok.kind == T.NAME and tok.value == "banner":
             self.advance()
             if not (self.cur.kind == T.KW and self.cur.value == "false"):

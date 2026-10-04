@@ -553,6 +553,10 @@ class World:
     # routine, and every object-name print goes through cosmos_print_name;
     # a game with only literal names keeps the bare print_obj (byte-identical).
     uses_computed_names: bool = False
+    # `body <character>` in the game block (summon.maniacswap): the named
+    # character IS the boot body, no player object is seeded, and the
+    # player global starts pointing at it. None without the key.
+    boot_body: Optional[str] = None
     # Names of text properties computed on some object (`<name> block`), so a read
     # of one lowers to "print or run" rather than a plain string print (docs/01 chapter 5).
     computed_text_props: set = field(default_factory=set)

@@ -1388,8 +1388,9 @@ def build_story(
         start = world.start_room
         if start and start in layout.obj_number:
             sf.set_word(globals_addr + (gmap["here"] - 16) * 2, layout.obj_number[start])
-        if "player" in layout.obj_number:
-            sf.set_word(globals_addr + (gmap["player"] - 16) * 2, layout.obj_number["player"])
+        boot = world.boot_body or "player"
+        if boot in layout.obj_number:
+            sf.set_word(globals_addr + (gmap["player"] - 16) * 2, layout.obj_number[boot])
         # The scheduling table base, so after/every can reach it at run time.
         sf.set_word(globals_addr + (gmap["__timers__"] - 16) * 2, timers_addr)
         # The mute buffer's address (restless performers); 0 when absent.
