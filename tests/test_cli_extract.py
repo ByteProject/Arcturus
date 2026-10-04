@@ -213,3 +213,22 @@ def test_relative_lib_dir_is_resolved_and_the_hint_is_absolute(tmp_path, monkeyp
     assert (tmp_path / "g.z5").exists()
     assert cli.main(["-L", "nowhere", "g.storyarc", "-o", "g2.z5"]) == 2
     assert "-L directory not found: nowhere" in capsys.readouterr().err
+
+
+def test_dump_ast_shows_the_authors_summoned_files_only(tmp_path, monkeypatch, capsys):
+    # EdwardianDuck's question (2026-09-27): --dump-ast named the summoned
+    # files but showed only the story. It now prints everything the author
+    # wrote, the story and their own granules under their filenames, and
+    # keeps bundled Cosmos out.
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "mine.granule").write_text(
+        'block my_own_helper()\n    say "mine"\n', encoding="utf-8")
+    (tmp_path / "g.storyarc").write_text(
+        'summon mine.granule\n'
+        'game\n    title "D"\n    start r\nroom r\n    name "R"\n    desc "x"\n'
+        'on start\n    my_own_helper\n', encoding="utf-8")
+    assert cli.main(["--dump-ast", "g.storyarc"]) == 0
+    out = capsys.readouterr().out
+    assert "my_own_helper" in out
+    assert "mine.granule" in out
+    assert "msg_taken" not in out          # bundled Cosmos stays out

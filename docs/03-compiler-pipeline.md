@@ -133,7 +133,7 @@ Options:
     story     16956/262144 bytes (z5); 245188 free
   ```
 - `--check`: parse and analyze only, no code generation.
-- `--dump-ast`: print the parsed syntax tree and stop.
+- `--dump-ast`: print the parsed syntax tree of everything the author wrote (the story and the granules or chapters it summons, each under its filename; bundled Cosmos stays out) and stop.
 - `--dump-ir`: print the analyzed world-model IR and stop.
 - `--no-cosmos`: compile the game alone, without the bundled Cosmos library
   (used by the compiler's own unit tests).

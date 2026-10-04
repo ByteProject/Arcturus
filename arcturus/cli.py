@@ -568,7 +568,35 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     if args.dump_ast:
-        print(dump(program))
+        # The tree of everything the AUTHOR wrote: the story, and every file
+        # it summons that is not bundled Cosmos (a granule or chapter of
+        # their own), each under its filename. The merge stamps declarations
+        # with their source; the story's own carry no stamp, bundled files
+        # carry bare names. Cosmos itself stays out (--dump-ir has the whole
+        # merged world). EdwardianDuck's question, 2026-09-27.
+        if args.no_cosmos:
+            print(dump(program))
+            return 0
+        story_dir = os.path.dirname(os.path.abspath(args.source))
+        try:
+            merged = cosmos_lib.combined_program(
+                program, lib_dirs=args.lib or (), story_dir=story_dir
+            )
+        except ArcError as exc:
+            print(exc.format(), file=sys.stderr)
+            return 1
+        bundled = set(cosmos_lib.prelude_sources()) | set(cosmos_lib.granule_sources())
+        groups: dict = {}
+        for d in merged.decls:
+            src_name = getattr(d, "srcfile", None)
+            if src_name is None:
+                src_name = args.source
+            elif src_name in bundled:
+                continue
+            groups.setdefault(src_name, []).append(d)
+        for src_name, decls in groups.items():
+            print(f"# {src_name}")
+            print(dump(ast.Program(decls)))
         return 0
 
     # Compile the game together with the bundled Cosmos library and any granules
