@@ -179,6 +179,23 @@ block way_toward(a, b)
 block light_dims(obj)
     return 0
 
+// Is this belonging on show (docs/01 chapter 3)? Either the thing itself
+// is `exposed`, or the character holding it is: an exposed character
+// shows everything it carries and wears, and the player never counts
+// (their belongings are the inventory). Reached only behind any_exposed.
+block exposed_now(obj)
+    let p = parent_of(obj)
+    if p is player
+        return 0
+    if obj is exposed
+        return 1
+    if p is nothing
+        return 0
+    if p is animate
+        if p is exposed
+            return 1
+    return 0
+
 // Is obj in scope right now?
 block in_scope(obj)
     if obj is player
@@ -227,8 +244,8 @@ block in_scope(obj)
         // is; the take probe keeps it in the holder's hands. A character's
         // other belongings stay private, the house rule.
         if any_exposed is 1
-            if obj is exposed
-                if p is animate
+            if p is animate
+                if exposed_now(obj) is 1
                     return in_scope(p)
         // On a supporter, or inside a container the player can see into (open,
         // clear, or lidless), that is itself in scope. see_into is the single

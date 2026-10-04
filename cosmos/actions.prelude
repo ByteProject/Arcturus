@@ -353,10 +353,9 @@ block take_probe(obj)
     // referable, and firmly in its holder's hands. Folds away with
     // nothing exposed.
     if any_exposed is 1
-        if obj is exposed
-            if parent_of(obj) is animate
-                if parent_of(obj) is not player
-                    return 9
+        if parent_of(obj) is animate
+            if exposed_now(obj) is 1
+                return 9
     // Why 8: the thing ENCLOSES the player (the hamper they sit in, the
     // stool they stand on, however deeply nested): taking it would make
     // the tree cycle (auraes's wardrobe, 2026-09-14). Folds away with
@@ -548,14 +547,18 @@ on examine
         msg_nothing_special
         if any_exposed is 1
             if noun is animate
-                line_exposed(noun)
+                if noun is not player
+                    line_exposed(noun)
         stop
     say noun.desc
     // A character's exposed belongings follow its description (docs/01
     // chapter 3): "Testy is wearing a felt hat and carrying a passport."
     if any_exposed is 1
         if noun is animate
-            line_exposed(noun)
+            // Never the player: their belongings are the inventory (a field
+            // report: EXAMINE ME ended "yourself is carrying ...").
+            if noun is not player
+                line_exposed(noun)
 
 on quit
     change meta_turn to 1

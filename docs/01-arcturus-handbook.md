@@ -758,8 +758,20 @@ An exposed belonging is in scope while its holder is, so the player can
 examine it and name it, and EXAMINE on the character ends with "Testy is
 wearing a felt hat and carrying a passport." TAKE refuses in the holder's
 name ("Testy is holding it.", "Testy is wearing it."), and your own
-handler decides when it changes hands. A game that exposes nothing pays
-nothing. To make
+handler decides when it changes hands. The same word on the character
+itself shows everything it carries and wears, no item marked:
+
+```
+thing testy of character in hall
+    name "Testy"
+    named
+    exposed
+```
+
+Mark the character when its whole load is in plain sight, mark items when
+only some are; `hidden` and `concealed` still hide an item either way.
+What the player carries is never a belonging on show: it is the
+inventory. A game that exposes nothing pays nothing. To make
 a character act, `on each_turn` is its pulse (chapter 16), `way_toward`
 walks it one step toward a goal through the real room graph (chapter 8),
 and `restless` keeps it acting offstage (chapter 5); the NPC engine
@@ -1003,7 +1015,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `an` | The indefinite article is "an", not "a". Derived from the name's first letter, with the Latin vowels counted as a class: the five, their accented forms, and the ligatures œ/æ, so a translation's pack can read the bit for vowel-initial rules (French elision) with no per-object work. Set `an` or `an false` only for an exception (an hour, a unicorn). |
 | `feminine` | Grammatical gender. Drives the Spanish articles and agreement (la lampara, Cogida), the German article (declared there with `die`, which sets this), and the English "her" pronoun on a character. Spanish derives it from a head noun ending in -a or a reliably feminine suffix; declare it where spelling cannot reveal it (la llave; an English Ruth). Masculine is the unmarked default. |
 | `neutral` | The third German gender, declared there with `das` (das Buch, "es"). English and Spanish never read it. |
-| `exposed` | A character's belonging the player can see (chapter 3): in scope while its holder is, examinable and referable, EXAMINE on the character names it ("Testy is wearing a felt hat and carrying a passport."), and TAKE refuses in the holder's name. A character's other belongings stay private, the house rule. Costs nothing unused. |
+| `exposed` | A character's belonging the player can see (chapter 3): in scope while its holder is, examinable and referable, EXAMINE on the character names it ("Testy is wearing a felt hat and carrying a passport."), and TAKE refuses in the holder's name. On the character itself, everything it carries and wears is on show. A character's other belongings stay private, the house rule. Costs nothing unused. |
 | `beyond` | Visible but not touchable: in scope and examinable (a chandelier overhead, a jar one shelf too high), while every touching action refuses ("${The noun} is beyond your reach.", msg_beyond, overridable). Conversation crosses the gap (an animate beyond person still answers ASK), and throwing AT a beyond thing stays legal: the arm reaches where the hand cannot. It is state: `now jar is not beyond` when the stool is gained. The refusal can carry the WHY (a field request): `beyond "Without the ladder, the top shelf might as well be the moon."` speaks your line instead of the generic one, and `beyond block` opens a computed body (the desc-block shape) for wording by state; a bare `beyond` keeps the pack's message. The property points both ways: `now player is beyond` puts the PLAYER out of everything's reach instead (riding a horse, say). While the player is beyond, only the near things stay touchable: themself, what they hold, and the thing they are on or in with everything it carries (the mare, her saddlebag, the apple inside); un-nested it collapses to self and held alone (hands bound, tied to a chair). Sight and speech cross the gap exactly as above, and EXIT is never blocked, so dismounting always works. Set it in the after phase, once the boarding has really happened: `on after enter mare / now player is beyond`, and `on after exit mare / now player is not beyond`. The refusal is central: the reach gate runs before any handler, for every touch action alike (a verb opts out with `reachagnostic`, chapter 12), so an object's own `on take when ...` override speaks only to things the player could actually reach. The player's refusal can carry its own why, settable at RUNTIME: `change player.beyond_why to "You can't reach that from up here."` speaks your line, `change player.beyond_why to nothing` reverts to the pack default (the slot is allocated automatically for any game that writes it). Static faraway decoration needs no object at all, that is a grain's job (chapter 18); beyond is for distance that matters to the model. Costs nothing unused. Worked example: [examples/features/beyond.storyarc](../examples/features/beyond.storyarc). |
 | `shiftable` | The thing can be pushed through an exit, the player following (PUSH CRATE NORTH). Chapter 12. |
 | `restless` | A background performer: its `on each_turn` fires EVERY turn, wherever the object is, not only in scope. Work follows the performer's nature; prose follows scope: what a restless object prints while out of scope is discarded by the system, so the handler writes its `say` unconditionally and the player hears it exactly when the performer shares their scene: present, arriving, or leaving before their eyes (in scope at either end of its turn); a turn taken wholly offstage is silence. It never fires twice. It is STATE: declare `restless` to be born performing, or arm and disarm at runtime (`now guard is restless`, `now guard is not restless`), with no declaration needed anywhere; a `when` guard on the handler still decides whether an armed performer acts this turn. A game with no restless object pays nothing (the walk, the mute buffer, everything folds away). Chapter 16; worked example: [examples/features/daemons-and-timers.storyarc](../examples/features/daemons-and-timers.storyarc). |

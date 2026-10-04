@@ -2126,21 +2126,26 @@ block line_exposed(person)
 block exposed_count(person, want_worn)
     let n = 0
     for each x in person
-        if x is exposed
-            let w = 0
-            if x is worn
-                change w to 1
-            if w is want_worn
-                change n to n + 1
+        if exposed_now(x) is 1
+            if x is not hidden
+                if x is not concealed
+                    let w = 0
+                    if x is worn
+                        change w to 1
+                    if w is want_worn
+                        change n to n + 1
     return n
 
 block exposed_list(person, want_worn, total)
     let i = 0
     for each x in person
-        if x is exposed
-            let w = 0
-            if x is worn
-                change w to 1
+        if exposed_now(x) is 1
+            let w = 2
+            if x is not hidden
+                if x is not concealed
+                    change w to 0
+                    if x is worn
+                        change w to 1
             if w is want_worn
                 if i > 0
                     if i is total - 1

@@ -65,3 +65,34 @@ def test_exposed_leaves_scope_with_its_holder():
     )
     out = _run(["north", "examine passport"], src)
     assert "nothing of the sort" in out.split(">examine passport")[1]
+
+
+def test_examine_me_never_lists_the_players_belongings():
+    # A field report (2026-10-04): taking an exposed thing and examining
+    # yourself ended "yourself is carrying a passport". The player's
+    # belongings are the inventory, never a belonging on show.
+    src = GAME.replace('thing passport in testy', 'thing passport in player')
+    out = _run(["examine me", "inventory"], src)
+    assert "carrying a passport" not in out.split(">inventory")[0]
+    assert "passport" in out.split(">inventory")[1]
+
+
+def test_exposed_on_the_character_shows_everything_it_holds():
+    # Stefan's ruling (2026-10-04): the word on the character itself shows
+    # its whole load, no item marked; hidden and concealed stay out.
+    src = (
+        'game\n    title "X"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing testy of character in hall\n    name "Testy"\n    named\n'
+        '    desc "He likes to travel."\n    words testy\n    exposed\n'
+        'thing passport in testy\n    name "passport"\n    words passport\n'
+        'thing hat in testy\n    name "felt hat"\n    words hat\n'
+        '    wearable\n    worn\n'
+        'thing knife in testy\n    name "knife"\n    words knife\n    concealed\n'
+    )
+    out = _run(["examine testy", "take passport", "examine knife"], src)
+    assert "Testy is wearing a felt hat and carrying a passport." in out
+    assert "knife" not in out.split(">examine testy")[1].split(">take")[0]
+    assert "Testy is holding it." in out
+    # concealed means in scope but unlisted (chapter 4): examinable by name
+    assert "rewards a closer look" in out.split(">examine knife")[1]
