@@ -60,14 +60,55 @@ block converse(person)
     let prev = last_topic
     change last_topic to 0
     let count = topics_count(person)
+    // The subject words the player typed, as a range (subj_lo, subj_hi).
+    subject_span
+    // Pass one (docs/01 chapter 17, shared words): score every worded topic
+    // in view by how many typed subject words it carries. The highest wins;
+    // ASK ABOUT JOHN SMITH goes to John over Mary by two words to one.
+    let best = 0
+    let pick = 0
+    let ties = 0
     let i = 0
     while i < count
         if topic_visible(person, i)
-            if subject_typed(person, i)
-                change last_topic to i + 1
-                topic_run(person, i)
-                return 1
+            let sc = subject_score(person, i)
+            if sc > best
+                change best to sc
+                change pick to i + 1
+                change ties to 1
+            else
+                if sc > 0
+                    if sc is best
+                        change ties to ties + 1
         change i to i + 1
+    if best > 0
+        if ties > 1
+            // A tie on the words. Coverage decides next: the topic whose
+            // every word was typed (the author's umbrella for the shared
+            // word, `topic smiths "the Smiths" words smith`) beats the ones
+            // only half named, so the author's own answer to the bare word
+            // wins without a question.
+            let full = 0
+            let full_n = 0
+            change i to 0
+            while i < count
+                if topic_visible(person, i)
+                    if subject_score(person, i) is best
+                        if topic_covered(person, i)
+                            change full to i + 1
+                            change full_n to full_n + 1
+                change i to i + 1
+            if full_n is 1
+                change pick to full
+                change ties to 1
+        if ties > 1
+            // Still tied: the character asks, naming only the topics in
+            // view (a Smith the player has not met is hidden until
+            // revealed, so the question can never spoil one).
+            return ask_topic(person, best, ties)
+        change last_topic to pick
+        topic_run(person, pick - 1)
+        return 1
     // A replay: the words say "again", so answer what this person answered
     // last time. Cleared above when the last exchange matched nothing, so a
     // stale topic can never be replayed onto a different person.
@@ -91,3 +132,116 @@ block converse(person)
                     return 1
             change j to j + 1
     return 0
+
+// The typed subject's word range, into subj_lo and subj_hi: the `text`
+// slot's range when the grammar handed one over (English ASK/TELL), else
+// the words after the first separator (a pack on the flag model). Empty
+// when there is no subject at all.
+global subj_lo = 0
+global subj_hi = 0
+
+block subject_span()
+    change subj_lo to 0
+    change subj_hi to 0
+    if topic_hi > topic_lo
+        change subj_lo to topic_lo
+        change subj_hi to topic_hi
+        return 0
+    let n = word_count
+    let w = 1
+    while w < n
+        let d = word_dict(w)
+        if d is not nothing
+            if is_separator(d)
+                change subj_lo to w + 1
+                change subj_hi to n
+                return 0
+        change w to w + 1
+
+// How many typed subject words topic i carries.
+block subject_score(person, i)
+    let sc = 0
+    let s = subj_lo
+    while s < subj_hi
+        let target = word_dict(s)
+        if target is not nothing
+            if topic_matches(person, i, target)
+                change sc to sc + 1
+        change s to s + 1
+    return sc
+
+// Was every one of topic i's own words typed? The umbrella's test.
+block topic_covered(person, i)
+    let n = topic_words(person, i)
+    if n is 0
+        return 0
+    let k = 1
+    while k <= n
+        let w = topic_word(person, i, k)
+        let found = 0
+        let s = subj_lo
+        while s < subj_hi
+            if word_dict(s) is w
+                change found to 1
+            change s to s + 1
+        if found is 0
+            return 0
+        change k to k + 1
+    return 1
+
+// The question, as dialogue (docs/01 chapter 17): the person offers the
+// tied topics by their labels in the reply frame, "John Smith, or Mary
+// Smith?", and the next line answers it. An answer carrying a tied topic's
+// word runs that topic; anything else is a change of mind and runs as
+// the next command (replay_line, the loop), the question costing no turn.
+block ask_topic(person, best, ties)
+    par
+    line_reply(person)
+    line_topic_ask_open
+    let count = topics_count(person)
+    let shown = 0
+    let i = 0
+    while i < count
+        if topic_visible(person, i)
+            if subject_score(person, i) is best
+                if shown is not 0
+                    if shown is ties - 1
+                        line_topic_or
+                    else
+                        show(", ")
+                topic_label(person, i)
+                change shown to shown + 1
+        change i to i + 1
+    show("?")
+    line_end
+    let term = read_input
+    if word_count is 0
+        change meta_turn to 1
+        return 1
+    // The answer's words against the tied topics only.
+    let pick = 0
+    let pick_sc = 0
+    change i to 0
+    while i < count
+        if topic_visible(person, i)
+            if subject_score(person, i) is best
+                let sc = 0
+                let a = 0
+                while a < word_count
+                    let d = word_dict(a)
+                    if d is not nothing
+                        if topic_matches(person, i, d)
+                            change sc to sc + 1
+                    change a to a + 1
+                if sc > pick_sc
+                    change pick_sc to sc
+                    change pick to i + 1
+        change i to i + 1
+    if pick is not 0
+        change last_topic to pick
+        topic_run(person, pick - 1)
+        return 1
+    // A change of mind: the typed line runs as the next command.
+    change meta_turn to 1
+    change replay_line to 1
+    return 1

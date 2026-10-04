@@ -1645,6 +1645,16 @@ block msg_be_specific()
 block line_which_open()
     show("Which do you mean, ")
 
+// The opening of a character's question in the reply frame (the shared-
+// word ask of infocom_talking): empty unless the language opens a
+// question with a mark of its own.
+// The connector before the last of the offered topics (the shared-word
+// ask): the language's own punctuation around its "or".
+block line_topic_or()
+    show(", or ")
+
+block line_topic_ask_open()
+
 block line_which_or()
     show(" or ")
 

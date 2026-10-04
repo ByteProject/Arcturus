@@ -349,8 +349,19 @@ block run_game()
         // included. Folds away without an `on each_turn first` anywhere.
         if any_turnfirst is 1
             fire_turn_first
-        prompt
-        run_chain(parse)
+        // A conversation's question answered with a change of mind: the
+        // line the player typed is already in the buffer, so run it now
+        // instead of prompting again (infocom_talking; folds with any_topics).
+        if any_topics is 1
+            if replay_line is 1
+                change replay_line to 0
+                run_chain(parse_typed)
+            else
+                prompt
+                run_chain(parse)
+        else
+            prompt
+            run_chain(parse)
         // Snapshot the line's unrecognized word (verb or noun, if any) so a
         // following "oops" can correct it. Done here, after both the understood
         // and the unknown-verb paths, so a mistyped verb is correctable too.

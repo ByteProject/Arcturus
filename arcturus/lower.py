@@ -372,6 +372,10 @@ INTRINSICS = frozenset({
     # codegen emits only when one of these is used.
     "topics_count", "topic_visible", "topic_label", "topic_matches", "topic_run",
     "topic_retire", "topic_idle",
+    # topic_words(person, i): how many match-words topic i lists; topic_word
+    # (person, i, k): the k-th of them (1-based), a dictionary address. The
+    # infocom_talking granule's shared-word resolution reads both.
+    "topic_words", "topic_word",
 })
 
 _ARITH = {"+": "add", "-": "sub", "*": "mul", "/": "div", "mod": "mod"}
@@ -2071,6 +2075,19 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         eval_expr(rt, ctx, args[1], Variable(STACK))
         eval_expr(rt, ctx, args[0], Variable(STACK))
         rt.op("call_vs", RoutineRef("cosmos_topic_matches"),
+              Variable(STACK), Variable(STACK), Variable(STACK), store=dest)
+    elif name == "topic_words":
+        # topic_words(person, i): the count of topic i's match-words (0 if none).
+        eval_expr(rt, ctx, args[1], Variable(STACK))
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("call_vs", RoutineRef("cosmos_topic_words"),
+              Variable(STACK), Variable(STACK), store=dest)
+    elif name == "topic_word":
+        # topic_word(person, i, k): topic i's k-th match-word (1-based).
+        eval_expr(rt, ctx, args[2], Variable(STACK))
+        eval_expr(rt, ctx, args[1], Variable(STACK))
+        eval_expr(rt, ctx, args[0], Variable(STACK))
+        rt.op("call_vs", RoutineRef("cosmos_topic_word"),
               Variable(STACK), Variable(STACK), Variable(STACK), store=dest)
     elif name == "topic_run":
         # topic_run(person, i): run topic i's exchange (retires it if `once`).

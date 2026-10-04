@@ -4315,6 +4315,39 @@ The header parts, with the modifiers in any order:
   answers (`msg_ask` / `msg_tell`, redefinable in the story); chapter 22's
   infocom_talking section shows an idle topic with `vary`.
 
+#### Shared words: which Smith?
+
+Two topics may answer to the same word (`john "John Smith" words john,
+smith` beside `mary "Mary Smith" words mary, smith`), and ASK ABOUT SMITH
+must still mean something. Three things decide, in order:
+
+1. The words. The topic carrying the most of the typed subject words
+   wins: JOHN SMITH is John, MARY SMITH is Mary.
+2. The author. On a tie, a topic whose every word was typed beats the
+   ones only half named, so an umbrella topic for the shared word answers
+   the bare SMITH in the character's own voice, with no question asked:
+
+   ```
+       topic smiths "the Smiths" words smith
+           reply "Which Smith? This valley is full of them."
+   ```
+
+   This is the tool for a world with four Smiths in it: the author who
+   built them says what their characters make of the bare name.
+3. The character. With no umbrella and the words still tied, the person
+   asks, as dialogue in the reply frame, offering the tied topics by their
+   labels: `The troll: "John Smith, or Mary Smith?"`. The next line answers
+   it (MARY, or the full name), and the topic runs; any other line is a
+   change of mind and runs as the next command, the question having cost
+   no turn. Only topics in view are ever offered: a Smith the player has
+   not met is a `hidden` topic until something `reveal`s it, so the
+   question can never name one they do not know. That visibility rule is
+   the knowledge model for topics; keep it, and the question keeps your
+   secrets.
+
+The conversations menu never meets any of this: its topics are picked by
+number.
+
 By default a topic is repeatable and never leaves on its own: the player can
 raise it as often as they like. Nothing is needed to keep a topic around; every
 control below only ever takes one OUT of view. (How often a topic can be raised
@@ -5525,7 +5558,9 @@ thing ferryman of character in dock
 ```
 
 ASK FERRYMAN ABOUT WEATHER and TELL FERRYMAN ABOUT WAR both land on the
-shrug. The flat library lines themselves are the blocks `msg_ask` and
+shrug. Topics sharing a word (two Smiths) resolve by the typed words, by
+an umbrella topic for the bare word, or by the character asking in the
+reply frame (chapter 17, "Shared words"). The flat library lines themselves are the blocks `msg_ask` and
 `msg_tell` ("${The noun} stays mum on the subject." and its TELL
 sibling): declare either in the story to reword the fall-through for
 every character at once; an idle topic always wins over them for its

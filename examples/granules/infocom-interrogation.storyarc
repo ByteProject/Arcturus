@@ -25,6 +25,9 @@
 //       once    - the ticket contradiction and the confession land a single time
 //       when    - the weapon can only be raised while you are holding the opener
 //       you / reply / say - the question, the auto-quoted answer, the narration
+//       shared words - two witnesses named Smith: the words resolve the full
+//                 names, and an umbrella topic answers the bare surname in
+//                 Crale's own voice (without it, the library asks for him)
 //       idle    - the fall-through: a subject no topic answers to gets the
 //                 suspect's own line, not the library's; two of them, a plain
 //                 one guarded by `when` (after the confession) standing first,
@@ -94,6 +97,24 @@ thing suspect of character in cell
         reply "I... must have picked up the wrong one on my way out."
         say "He's rattled now. The letter opener is right there on the table, his
              initials on the handle. Pick it up and ask him about it."
+
+    // Two witnesses who share a surname, and the author's answer to the
+    // bare name. ASK ABOUT WALTER SMITH and ASK ABOUT EDNA SMITH resolve by
+    // the words; ASK ABOUT SMITH lands on the umbrella topic below, whose
+    // every word was typed, so Crale answers the bare name himself. Drop
+    // the umbrella and the library asks for him instead, in the reply
+    // frame: Victor Crale: "Walter Smith, or Edna Smith?"
+    topic walter "Walter Smith" words walter, smith, doorman
+        you "Walter Smith, the doorman. He says you left before the late show."
+        reply "Walter drinks. Ask him what night it is and see what you get."
+
+    topic edna "Edna Smith" words edna, smith, usher
+        you "Edna Smith, the usher. She remembers every face."
+        reply "Then she remembers mine. The Orpheum, the late show."
+
+    topic smiths "the Smiths" words smith
+        reply "Which Smith? The doorman or the usher? Pick one, Detective,
+               they tell different stories."
 
     topic reed "the victim" words reed, harlan, victim, partner
         you "Tell me about Harlan Reed."

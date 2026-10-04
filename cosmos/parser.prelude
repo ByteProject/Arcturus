@@ -115,6 +115,21 @@ block parse()
     change chain_max to peek_byte(text_addr + 1)
     return parse_line
 
+// A line already in the buffer, parsed as if just typed (the same resets
+// parse makes after reading): the loop runs it when a conversation's
+// question was answered with a change of mind (replay_line, the
+// infocom_talking granule), so the player's new command is not lost.
+// Spelled out beside parse rather than factored from it, so a game
+// without topics keeps parse's exact bytes; DCE drops this unreferenced.
+global replay_line = 0
+
+block parse_typed()
+    change chain_prev to 0
+    if any_commanding is 1
+        change commanded to 0
+    change chain_max to peek_byte(text_addr + 1)
+    return parse_line
+
 // Parse the command now in the buffers: the whole typed line on the first
 // call, or the re-tokenized tail of a chained line when chain_next re-enters.
 // Walk one scenery grain chain ((grain id, owner) pairs, zero-ended) and

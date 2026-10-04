@@ -6,6 +6,14 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Which Smith? Topics that share a word.** ASK ABOUT SMITH with a John
+  and a Mary no longer runs whichever was declared first. The words
+  decide where they can (JOHN SMITH is John), an umbrella topic for the
+  bare word answers in the character's own voice (the author's tool),
+  and a cold tie is asked as dialogue, `The troll: "John Smith, or Mary
+  Smith?"`, offering only the topics the player has been told about; the
+  next line answers it or simply runs as the next command (arcc 2.26.0,
+  Cosmos 1.44.0).
 - **Scoring, one half at a time.** Auto-scoring stays what it is (five
   points on a room's first visit, five on a thing's first take, once
   each, the maximum and the ranks summed by the compiler), and now
@@ -34,13 +42,6 @@ lives in the commit log. The feature roadmap follows below.
   it, `first_in(obj)` and `next_in(obj)` read the object tree's links
   directly, so "is the box empty" is one test. Games with literal
   names compile byte for byte as before (arcc 2.23.0).
-- **Put says what it did, and a line back for retro screens.** PUT and
-  INSERT now report like every other success: "You put the coin in the
-  box.", "You put the candle on the altar." (German and Spanish in their
-  own words), in place of the flat "Done.". And a game on a 25-row
-  screen can reclaim the blank line above every room title with
-  `constant compact_rooms = true`; off by default, byte-identical without
-  it (arcc 2.22.0, Cosmos 1.40.0).
 
 ## Feature roadmap
 

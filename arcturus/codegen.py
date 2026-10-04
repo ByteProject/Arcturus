@@ -2104,12 +2104,34 @@ def gen_topic_helpers(layout) -> list:
     idle.label("no")
     idle.op("rfalse")
 
-    return [count, recrt, label, vis, run, match, retire, idle]
+    # cosmos_topic_words(person, i): the match-word count of topic i (0 with no
+    # words); cosmos_topic_word(person, i, k): its k-th word, 1-based. The
+    # shared-word resolution in infocom_talking (docs/01 chapter 17) reads
+    # a topic's own words to tell a fully typed subject from a partial one.
+    nwords = Routine("cosmos_topic_words", nlocals=3)  # 1=person,2=i,3=arr
+    nwords.op("call_vs", RoutineRef("cosmos_topic_rec"), Variable(1), Variable(2), store=Variable(3))
+    nwords.op("loadw", Variable(3), Const(3), store=Variable(3))
+    nwords.op("jz", Variable(3), branch=("no", True))
+    nwords.op("loadw", Variable(3), Const(0), store=Variable(STACK))
+    nwords.op("ret", Variable(STACK))
+    nwords.label("no")
+    nwords.op("rfalse")
+    kword = Routine("cosmos_topic_word", nlocals=4)  # 1=person,2=i,3=k,4=arr
+    kword.op("call_vs", RoutineRef("cosmos_topic_rec"), Variable(1), Variable(2), store=Variable(4))
+    kword.op("loadw", Variable(4), Const(3), store=Variable(4))
+    kword.op("jz", Variable(4), branch=("no", True))
+    kword.op("loadw", Variable(4), Variable(3), store=Variable(STACK))
+    kword.op("ret", Variable(STACK))
+    kword.label("no")
+    kword.op("rfalse")
+
+    return [count, recrt, label, vis, run, match, retire, idle, nwords, kword]
 
 
 _TOPIC_HELPER_NAMES = (
     "cosmos_topics_count", "cosmos_topic_label", "cosmos_topic_visible",
     "cosmos_topic_run", "cosmos_topic_matches", "cosmos_topic_retire",
+    "cosmos_topic_words", "cosmos_topic_word",
     "cosmos_topic_idle",
 )
 
