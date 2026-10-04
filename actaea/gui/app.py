@@ -31,6 +31,7 @@ import base64
 import json
 import os
 import time
+import sys
 import tkinter as tk
 import webbrowser
 from math import gcd as _gcd
@@ -373,6 +374,14 @@ class ActaeaApp:
         self._timed_out = False
 
         self.text.bind("<Key>", self._on_key)
+        # Copy and Select All as explicit chords: a more specific binding
+        # fires instead of the <Key> catch-all, so copying works whether
+        # the story is reading a line, waiting for a key, or thinking
+        # (auraes's request, 2026-09-28: translators lifting the text).
+        for seq in ("<Command-c>", "<Control-c>"):
+            self.text.bind(seq, lambda e: self._copy_selection())
+        for seq in ("<Command-a>", "<Control-a>"):
+            self.text.bind(seq, lambda e: self._select_all())
         self.text.bind("<KeyRelease>", self._on_key_release)
         self.text.bind("<Return>", self._on_return)
         self.text.bind("<BackSpace>", self._on_backspace)
@@ -425,10 +434,18 @@ class ActaeaApp:
             appmenu.add_separator()
             menubar.add_cascade(menu=appmenu)
         # File: the door. A story can open mid-session without quitting.
+        editm = tk.Menu(menubar, tearoff=0)
+        mod = "Cmd" if sys.platform == "darwin" else "Ctrl"
+        editm.add_command(label="Copy", accelerator=f"{mod}+C",
+                          command=self._copy_selection)
+        editm.add_command(label="Select All", accelerator=f"{mod}+A",
+                          command=self._select_all)
+        editm.add_command(label="Copy All Text", command=self._copy_all)
         filem = tk.Menu(menubar, tearoff=0)
         filem.add_command(label="Open...", accelerator="Cmd+O",
                           command=self._open_dialog)
         menubar.add_cascade(label="File", menu=filem)
+        menubar.add_cascade(label="Edit", menu=editm)
         self.root.bind("<Command-o>", lambda e: self._open_dialog())
         self.root.bind("<Control-o>", lambda e: self._open_dialog())
 
@@ -1842,6 +1859,30 @@ class ActaeaApp:
         # again, stashing whatever the edit produced.
         self._hist_pos = None
         return None
+
+    # -- the clipboard ----------------------------------------------------------
+    # The story is read-only, so there is no cut; copy serves the player
+    # keeping a passage and the translator lifting the whole run of text.
+
+    def _copy_selection(self):
+        try:
+            text = self.text.get("sel.first", "sel.last")
+        except tk.TclError:
+            return "break"
+        if text:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(text)
+        return "break"
+
+    def _select_all(self):
+        self.text.tag_add("sel", "1.0", "end-1c")
+        return "break"
+
+    def _copy_all(self):
+        text = self.text.get("1.0", "end-1c")
+        self.root.clipboard_clear()
+        self.root.clipboard_append(text)
+        return "break"
 
     def _to_end(self):
         if self._reading_line:

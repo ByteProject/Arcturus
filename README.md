@@ -44,7 +44,7 @@ or later, which you almost certainly already have.
 |-----------|---------|----------|
 | **arcc**, the compiler (the Cosmos library is embedded inside it) | 2.26.0 | [build/arcc](build/arcc) |
 | **Cosmos**, the standard library | 1.44.0 | shipped inside `arcc` |
-| **Actaea**, the reference interpreter | 2.1.1 | [build/actaea](build/actaea) |
+| **Actaea**, the reference interpreter | 2.2.0 | [build/actaea](build/actaea) |
 | **arcimg**, the arc_image tool (optional, for graphics) | 2.3.1 | [build/arcimg](build/arcimg) |
 | **proteus**, the web story builder (optional, for the web) | 1.0.0 | [build/proteus](build/proteus) |
 

@@ -101,7 +101,11 @@ fixed pitch by any of the Standard's three doors: the fixed-pitch text
 style, the Flags 2 bit a game sets at run time (Inform's `font off`), or
 font 4 chosen with set_font; the Retro look sets everything in one face,
 so there the switch is invisible by design, as it is in the terminal. Long passages page with
-`[MORE]`, and you can scroll back through everything printed. The Up
+`[MORE]`, and you can scroll back through everything printed. The Edit
+menu copies: Copy takes the selection (Cmd+C, Ctrl+C elsewhere), Select
+All marks the whole run of text, and Copy All Text lifts everything
+printed so far to the clipboard at once, the translator's case; the story
+is read-only, so there is no cut. The Up
 and Down arrows recall your earlier commands at the prompt, and one
 step past the newest brings back whatever you had half-typed.
 
