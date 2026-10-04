@@ -1707,6 +1707,7 @@ class Analyzer:
                         for v in m.values:
                             v.self_word = True
                     player.props[m.name] = m
+            self._cap_twin(player.props)
             # `change player.beyond_why to "..."` (the player-beyond refusal's
             # custom wording, docs/01 beyond) allocates the slot invisibly: a
             # property must exist at compile time to be writable at runtime,
@@ -2018,6 +2019,14 @@ class Analyzer:
         # the compiler synthesizes the capitalized twin as a text property
         # (name_cap) for exactly these objects; the art blocks read it
         # behind any_named_lower, and every other game is byte-identical.
+        self._cap_twin(props_out)
+
+    def _cap_twin(self, props_out: dict) -> None:
+        """The capitalized name twin (name_cap) for a named thing whose
+        literal name starts lowercase; see the note at its first call site.
+        Shared by declared objects and the seeded player (the packs name the
+        player lowercase, \"yourself\", so EAT ME opened \"yourself is not on
+        the menu.\", auraes's note, 2026-10-04)."""
         nm = props_out.get("name")
         nd = props_out.get("named")
         is_named = nd is not None and (

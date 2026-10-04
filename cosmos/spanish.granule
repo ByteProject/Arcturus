@@ -2189,6 +2189,10 @@ block msg_eaten()
          exactamente. Pero es mejor que morirse de hambre."
 
 block msg_eat()
+    // The player as the subject: "ti mismo" is the object form.
+    if noun is player
+        say "Tú mismo no estás en el menú."
+        return 0
     say "${The noun} no está en el menú."
 
 block msg_drink()

@@ -47,3 +47,24 @@ def test_lowercase_named_opens_a_sentence_capitalized():
     assert "the cat is beyond" not in out
     assert "Bob is beyond your reach." in out
     assert "The cat looks up. You nod at the cat." in out   # mid-sentence stays lowercase
+
+
+def test_the_player_opens_a_sentence_capitalized():
+    # auraes's note (2026-10-04): "yourself is not on the menu." The packs
+    # name the player lowercase; the seeded player gets the twin too.
+    src = (
+        'game\n    title "E"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+    )
+    out = _run(src, ["eat me"])
+    assert "Yourself is not on the menu." in out
+
+
+def test_german_spells_the_player_subject_out():
+    src = (
+        'summon.language "german"\n'
+        'game\n    title "E"\n    start hall\n'
+        'room hall\n    name "Halle"\n    desc "x"\n'
+    )
+    out = _run(src, ["iss mich"])
+    assert "Du selbst stehst nicht auf der Speisekarte." in out

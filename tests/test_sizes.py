@@ -216,72 +216,72 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # chain); a held thing skips the probe, the floor-to-container shortcut
 # still moves takeable things in one command.
 CEILINGS = {
-    "features/yes-no.storyarc": 18352,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/press-any-key.storyarc": 19244,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/shiftable.storyarc": 18740,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/enhance-redefine.storyarc": 19096,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/consult-about.storyarc": 19256,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/session-verbs.storyarc": 18808,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/vary.storyarc": 20684,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/foresight.storyarc": 20988,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/beyond.storyarc": 22068,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/alter.storyarc": 19980,  # 2026-10-04 repriced (+64): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/catalogs.storyarc": 19360,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/matrix.storyarc": 19692,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/direction-grammar.storyarc": 18768,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/scenery-contents.storyarc": 19952,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/trigger.storyarc": 18844,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/adjectives.storyarc": 19476,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/nautical.storyarc": 19244,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/npcengine.storyarc": 21344,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/maniacswap.storyarc": 19588,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "beispiel-deutsch.storyarc": 28620,  # 2026-10-04 repriced (+16): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "brass-lantern.storyarc": 20144,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "cloak-of-darkness.storyarc": 22112,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "ejemplo-espanol.storyarc": 25188,  # 2026-10-04 repriced (+16): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/computed-properties.storyarc": 18452,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/containers.storyarc": 19420,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/daemons-and-timers.storyarc": 20680,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/doors-and-locks.storyarc": 18592,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/appearance.storyarc": 19400,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/components.storyarc": 18676,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/whistle.storyarc": 18104,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/lighttopology.storyarc": 20304,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/pathfinding.storyarc": 21108,  # 2026-10-04 repriced (+60): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/perform.storyarc": 18420,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/grains.storyarc": 18220,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/handlers.storyarc": 19620,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/first-person.storyarc": 19088,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/word-lists.storyarc": 18884,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/grammar-bind.storyarc": 19704,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/grammar.storyarc": 18524,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/introproperty.storyarc": 20340,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/kinds-and-inheritance.storyarc": 18416,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/on-other.storyarc": 18296,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/zcolor.storyarc": 18744,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/text-styles.storyarc": 18544,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/computed-name.storyarc": 18440,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/scoring.storyarc": 20672,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/spans.storyarc": 18536,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/vehicles.storyarc": 19552,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/success.storyarc": 19096,  # 2026-10-04 repriced (+64): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/edible.storyarc": 18916,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "features/text-slot.storyarc": 19456,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/carryweight.storyarc": 19668,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/ambience.storyarc": 20328,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/conversations.storyarc": 20252,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/extended-verbs.storyarc": 21872,  # 2026-10-04 repriced (+24): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/infocom-interrogation.storyarc": 21672,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/quotes.storyarc": 18480,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/take-all.storyarc": 21104,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/plurals.storyarc": 19396,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/statusline.storyarc": 18452,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
-    "granules/verbose-exits.storyarc": 18396,  # 2026-10-04 repriced (+52): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+    "features/yes-no.storyarc": 18412,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/press-any-key.storyarc": 19300,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/shiftable.storyarc": 18796,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/enhance-redefine.storyarc": 19152,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/consult-about.storyarc": 19312,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/session-verbs.storyarc": 18868,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/vary.storyarc": 20744,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/foresight.storyarc": 21048,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/beyond.storyarc": 22128,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/alter.storyarc": 20040,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/catalogs.storyarc": 19416,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/matrix.storyarc": 19752,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/direction-grammar.storyarc": 18828,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/scenery-contents.storyarc": 20012,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/trigger.storyarc": 18900,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/adjectives.storyarc": 19536,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/nautical.storyarc": 19304,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/npcengine.storyarc": 21404,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/maniacswap.storyarc": 19648,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "beispiel-deutsch.storyarc": 28720,  # 2026-10-05 repriced (+100): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "brass-lantern.storyarc": 20204,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "cloak-of-darkness.storyarc": 22172,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "ejemplo-espanol.storyarc": 25288,  # 2026-10-05 repriced (+100): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/computed-properties.storyarc": 18512,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/containers.storyarc": 19480,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/daemons-and-timers.storyarc": 20740,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/doors-and-locks.storyarc": 18648,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/appearance.storyarc": 19464,  # 2026-10-05 repriced (+64): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/components.storyarc": 18732,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/whistle.storyarc": 18160,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/lighttopology.storyarc": 20360,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/pathfinding.storyarc": 21168,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/perform.storyarc": 18480,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/grains.storyarc": 18276,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/handlers.storyarc": 19680,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/first-person.storyarc": 19144,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/word-lists.storyarc": 18944,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/grammar-bind.storyarc": 19764,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/grammar.storyarc": 18584,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/introproperty.storyarc": 20400,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/kinds-and-inheritance.storyarc": 18476,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/on-other.storyarc": 18356,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/zcolor.storyarc": 18804,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/text-styles.storyarc": 18604,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/computed-name.storyarc": 18496,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/scoring.storyarc": 20732,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/spans.storyarc": 18596,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/vehicles.storyarc": 19612,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/success.storyarc": 19156,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/edible.storyarc": 18972,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "features/text-slot.storyarc": 19516,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/carryweight.storyarc": 19724,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/ambience.storyarc": 20388,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/conversations.storyarc": 20312,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/extended-verbs.storyarc": 21932,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/infocom-interrogation.storyarc": 21732,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/quotes.storyarc": 18540,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/take-all.storyarc": 21160,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/plurals.storyarc": 19456,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/statusline.storyarc": 18512,  # 2026-10-05 repriced (+60): the player's name gets its capitalized twin (Yourself at a sentence start)
+    "granules/verbose-exits.storyarc": 18452,  # 2026-10-05 repriced (+56): the player's name gets its capitalized twin (Yourself at a sentence start)
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 22784  # 2026-10-04 repriced (+56): UNLOCK on an open thing speaks once; plural forms for the listen and find lines
+CLOAK_Z8_CEILING = 22856  # 2026-10-05 repriced (+72): the player's name gets its capitalized twin (Yourself at a sentence start)
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

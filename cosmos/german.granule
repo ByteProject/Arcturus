@@ -2487,6 +2487,11 @@ block msg_eaten()
          Lebens? Nicht wirklich. Aber immer noch besser als verhungern."
 
 block msg_eat()
+    // The player as the subject: "dich selbst" is the object form, so the
+    // sentence is spelled out (Stefan's wording, 2026-10-05).
+    if noun is player
+        say "Du selbst stehst nicht auf der Speisekarte."
+        return 0
     if any_pluribus is 1
         if noun is pluribus
             say "${The noun} stehen nicht auf dem Speiseplan."
