@@ -334,6 +334,16 @@ def needs_table(verb: Verb) -> bool:
         (sum(1 for it in line.items if isinstance(it, ast.Slot)) for line in verb.grammar),
         default=0,
     )
+    # A line of literals and no slot beside a slotted line (auraes's French
+    # `exit soi` beside `exit soi de noun`, 2026-10-05): the arity byte has
+    # no way to say "this literal alone is a complete command", so the
+    # flag path saw the literal as a noun phrase and bound the player.
+    if max_slots >= 1:
+        for line in verb.grammar:
+            has_literal = any(isinstance(it, ast.Word) for it in line.items)
+            has_slot = any(isinstance(it, ast.Slot) for it in line.items)
+            if has_literal and not has_slot:
+                return True
     if max_slots >= 2:
         for line in verb.grammar:
             for it in line.items:

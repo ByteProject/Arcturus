@@ -3586,7 +3586,11 @@ MODEL takes over for a verb whose grammar the flags cannot express:
   for the boundary between the nouns); or
 - lines with different shapes naming different actions (`look_under under
   noun` next to `look_behind behind noun`: one verb word, and the wording
-  picks the action, where the flag model has a single action byte).
+  picks the action, where the flag model has a single action byte); or
+- a line of literals with no slot beside a slotted line (`exit soi` next to
+  `exit soi de noun`, a French reflexive): the arity byte cannot say that
+  the literal alone is a complete command, so the flag path would read the
+  literal as a noun phrase.
 
 ONE STANDARD VERB rides the table: English ASK. `ask noun about text` and
 `ask_for noun for text` are different acts chosen by wording, and both name

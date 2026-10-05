@@ -46,3 +46,21 @@ def test_a_last_word_literal_is_content():
     assert "requires you to be more specific" not in out
     assert "You get on the fauteuil." in out                    # the literal line
     assert "Velvet." in out.split(">look at fauteuil")[1]       # AT still leads
+
+
+def test_a_literal_only_line_is_a_complete_command():
+    # auraes (2026-10-05): `exit soi` beside `exit soi de noun`. The flag
+    # model cannot say "the literal alone is a whole command", so LEVER
+    # SOI bound the player as the noun; the verb now takes the table, and
+    # the bare line leaves the noun empty.
+    src = GAME + 'verb "lever"\n    exit soi\n    exit soi de/du noun\n'
+    io = CaptureIO(script=["asseoir soi sur fauteuil", "lever soi",
+                           "asseoir soi sur fauteuil", "lever soi du fauteuil"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert out.count("You get off the fauteuil.") == 2
+    assert "aren't in that" not in out
