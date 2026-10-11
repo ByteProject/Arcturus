@@ -475,6 +475,7 @@ movement), and `arcc --extract` shows every use of the rest.
 | `any_pathfinding` | any_pathfinding(): 1 when the pathfinding granule is summoned. |
 | `any_plurals` | any_plurals(): 1 when the plurals granule is summoned, so the plural hooks fold away without it. |
 | `any_pluribus` | any_pluribus(): the compile-time grammatical-plural flag (1 or 0); the number-agreement machinery folds away in an unmarked game. |
+| `any_prefer` | any_prefer(): 1 when the game overrides the prefer seam (docs/01 chapter 14), so the matcher's preference tiebreak folds away in a game that leaves it alone. |
 | `any_presence` | any_presence(): 1 if any object uses the existence form (`in a, b`); the describer's presence pass folds on it (docs/01 chapter 3). |
 | `any_pronoun_sets` | any_pronoun_sets(): 1 when the pack declares a multi-role pronoun word (German "ihm", "sie"), so the recency walk folds away in every other language. |
 | `any_ranks` | any_ranks(): 1 when the game declares a rank ladder, so msg_score's rank clause folds away otherwise. |

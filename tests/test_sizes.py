@@ -230,6 +230,7 @@ CEILINGS = {
     "features/matrix.storyarc": 19940,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
     "features/direction-grammar.storyarc": 19016,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
     "features/scenery-contents.storyarc": 20084,  # 2026-10-11 repriced (+68): EXAMINE names a holder's contents (holder_line), two levels
+    "features/prefer.storyarc": 18448,  # 2026-10-11 new: the prefer seam showcase
     "features/trigger.storyarc": 19088,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
     "features/adjectives.storyarc": 19724,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
     "granules/nautical.storyarc": 19492,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels

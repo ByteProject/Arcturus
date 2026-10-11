@@ -1,0 +1,71 @@
+// prefer.storyarc
+// part of Arcturus, a programming language and compiler for the Infocom Z-machine.
+// Copyright (c) 2026, Stefan Vogt.
+// https://github.com/ByteProject/Arcturus
+//
+// A showcase for the prefer seam (docs/01 chapter 14): the game's own say
+// when a noun phrase ties between several things. Three coins in your purse
+// all answer to "coin", so EXAMINE COIN is a genuine question and the
+// parser asks it. But the ferry fare is a florin, and PAY COIN TO FERRYMAN
+// should not ask what the story already knows: the game overrides `prefer`
+// with a block that answers true for the florin while the action is give
+// (the library's pay is a word of give). The matcher asks the block once
+// per tied candidate, after a typed trigger and before the held tiebreak;
+// exactly one preferred candidate wins silently, and in every other case
+// the question happens as always. A game that never overrides the seam
+// carries none of this. Compile and run:
+//
+//   arcc examples/features/prefer.storyarc -o prefer.z5
+//   frotz prefer.z5
+//
+// Try, in order:
+//   examine coin            three tie, nothing is preferred for examine: it asks
+//   florin                  and the answer narrows, as always
+//   pay coin to ferryman    the same three tie, and the florin is paid silently
+//   pay coin to ferryman    two tie and neither is preferred: the honest question
+//   sovereign               and the ferryman wants his florin
+
+game
+    title  "The Ferry"
+    headline "A prefer showcase"
+    author "Stefan Vogt"
+    start  jetty
+
+room jetty
+    name "Jetty"
+    desc "A weathered jetty over grey water. The ferry waits, and the
+          ferryman holds out a hand. Your purse holds three coins."
+
+thing ferryman of character in jetty
+    name "ferryman"
+    words ferryman, man
+
+thing sovereign in player
+    name "gold sovereign"
+    words sovereign, gold, coin
+
+thing florin in player
+    name "silver florin"
+    words florin, silver, coin
+
+thing farthing in player
+    name "copper farthing"
+    words farthing, copper, coin
+
+// The game's say in a tie: while paying (giving), the florin is the coin
+// meant. Any other action leaves the tie to the parser's own rules.
+block prefer(obj)
+    if action is give
+        if obj is florin
+            return true
+    return false
+
+on give
+    if second is ferryman
+        if noun is florin
+            move florin to ferryman
+            say "The ferryman pockets the florin and waves you aboard."
+        else
+            say "The ferryman shakes his head. The fare is a florin."
+    else
+        continue

@@ -224,6 +224,12 @@ block parse_line()
     change tie_want to 1
     if act is action_id("take")
         change tie_want to 0
+    // The prefer seam reads `action` while the nouns are still being
+    // resolved, so the verb's action is published before resolving (the
+    // dispatcher publishes it again for the handlers, where a tabled
+    // line's own action may differ). Folds away with the seam.
+    if any_prefer is 1
+        change cur_action to act
     change way to find_direction
     resolve_objects
     // A verb declared `anywhere` (docs/01 chapter 12) reaches beyond scope
@@ -1126,6 +1132,15 @@ block match_phrase(lo, hi, plural_ok)
         if any_triggers is 1
             if trigger_break is not nothing
                 return trigger_break
+        // The game's own say next (docs/01 chapter 14): the prefer seam,
+        // asked per tied candidate with the verb's action already
+        // published (parse_line). Exactly one preferred candidate wins
+        // silently; none, or two or more, leave the tie to the held
+        // tiebreak and the ask. Folds away in a game that leaves the
+        // seam alone.
+        if any_prefer is 1
+            if prefer_break is not nothing
+                return prefer_break
         if which_tiebreak(tie_want) is not nothing
             return which_tiebreak(tie_want)
         change parse_fault to 3
@@ -1336,6 +1351,41 @@ block trigger_break()
                 if phrase_score(obj, ask_lo, ask_hi) + phrase_class(obj, ask_lo, ask_hi) * 64 is ask_score
                     if in_scope(obj)
                         if trigger_typed(obj) is 1
+                            if pick is not nothing
+                                return nothing
+                            change pick to obj
+        change obj to obj + 1
+    return pick
+
+// The prefer seam (docs/01 chapter 14): the game's own say in a tie. The
+// matcher asks it once per tied candidate, with `action` already the
+// verb's action, and a game overrides it with a block of the same name
+// that answers true for the candidate the story means ("when paying, the
+// silver coin"). The default prefers nothing, and a game that leaves it
+// alone compiles byte for byte as before (any_prefer).
+block prefer(obj)
+    return false
+
+// The preference tiebreak: among the tied candidates (the same set the ask
+// would list), the single one the game prefers. Nothing when none is
+// preferred, and nothing when two or more are: like the trigger, a
+// preference is a tiebreaker, never a gag order.
+block prefer_break()
+    let pick = nothing
+    let obj = 1
+    while obj <= object_count
+        if obj is not hidden
+            if any_adjectives is 0
+                if phrase_score(obj, ask_lo, ask_hi) is ask_score
+                    if in_scope(obj)
+                        if prefer(obj) is true
+                            if pick is not nothing
+                                return nothing
+                            change pick to obj
+            if any_adjectives is 1
+                if phrase_score(obj, ask_lo, ask_hi) + phrase_class(obj, ask_lo, ask_hi) * 64 is ask_score
+                    if in_scope(obj)
+                        if prefer(obj) is true
                             if pick is not nothing
                                 return nothing
                             change pick to obj

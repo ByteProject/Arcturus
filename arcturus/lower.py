@@ -184,6 +184,9 @@ INTRINSICS = frozenset({
     # any_reach folds the reach-bound AGAIN plumbing: 1 only when a game or
     # granule overrides the reach_unscoped seam beyond its trivial default.
     "any_reach",
+    # any_prefer folds the matcher's preference tiebreak: 1 only when a game
+    # overrides the prefer seam beyond its trivial default.
+    "any_prefer",
     # any_anywhere folds the parser's far match for verbs declared
     # `anywhere`; anywhere_of(action) answers 1 for such a verb's actions.
     "any_anywhere", "anywhere_of",
@@ -1727,6 +1730,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _place(rt, Const(_any_action_read(ctx)), dest)
     elif name == "any_reach":
         _place(rt, Const(_any_reach(ctx)), dest)
+    elif name == "any_prefer":
+        # any_prefer(): 1 when the game overrides the prefer seam (docs/01
+        # chapter 14), so the matcher's preference tiebreak folds away in a
+        # game that leaves it alone.
+        _place(rt, Const(_any_prefer(ctx)), dest)
     elif name == "any_verb_read":
         # any_verb_read(): 1 if any author code reads verb_trigger, so the
         # parser's store and the AGAIN/perform plumbing fold away otherwise.
@@ -2642,6 +2650,29 @@ def _any_reach(ctx) -> int:
             return 1
         if isinstance(s, ast.Return) and isinstance(s.value, ast.Nothing):
             continue
+        return 1
+    return 0
+
+
+def _any_prefer(ctx) -> int:
+    """The compile-time flag behind the prefer seam: 1 when the winning
+    block of that name does more than the trivial default (a lone
+    `return false`, or nothing, or 0), i.e. the game genuinely states a
+    preference. The matcher's preference tiebreak and the early publish of
+    the action guard on this flag, so a game that leaves the seam alone
+    stays byte-identical."""
+    blk = ctx.world.blocks.get("prefer")
+    if blk is None or not blk.body:
+        return 0
+    for s in blk.body:
+        if isinstance(s, ast.Return):
+            v = s.value
+            if isinstance(v, ast.Nothing):
+                continue
+            if isinstance(v, ast.Bool) and v.value is False:
+                continue
+            if isinstance(v, ast.Number) and v.value == 0:
+                continue
         return 1
     return 0
 
@@ -4482,6 +4513,8 @@ def _static_value(ctx, expr):
         return 1 if ctx.world.anywhere else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_reach":
         return _any_reach(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_prefer":
+        return _any_prefer(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_pathfinding":
         return 1 if wm.has_summon(ctx.world, "pathfinding") else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_npcengine":

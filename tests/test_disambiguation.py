@@ -186,3 +186,84 @@ def test_shut_away_knowledge_survives(tmp_path):
         "take gold\n",
     )
     assert "You'll have to open the oak chest first." in out
+
+
+PREFER_GAME = (
+    'game\n    title "P"\n    start jetty\n'
+    'room jetty\n    name "Jetty"\n    desc "A jetty."\n'
+    'thing ferryman of character in jetty\n    name "ferryman"\n    words ferryman\n'
+    'thing sovereign in player\n    name "gold sovereign"\n    words sovereign, gold, coin\n'
+    'thing florin in player\n    name "silver florin"\n    words florin, silver, coin\n'
+    'thing farthing in player\n    name "copper farthing"\n    words farthing, copper, coin\n'
+    'on give\n    if second is ferryman\n        say "Paid with ${noun}."\n    else\n        continue\n'
+)
+
+
+def _headless(source, commands):
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    story = generate(analyze(cosmos.combined_program(parse(source))))
+    io = CaptureIO(script=list(commands))
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+def test_prefer_settles_a_tie_silently():
+    # auraes's question (2026-10-11): a game that knows which coin is meant
+    # says so through the prefer seam, and the ask never happens.
+    src = PREFER_GAME + (
+        'block prefer(obj)\n    if action is give\n        if obj is florin\n'
+        '            return true\n    return false\n'
+    )
+    out = _headless(src, ["pay coin to ferryman"])
+    part = out.split(">pay coin to ferryman")[-1]
+    assert "Which do you mean" not in part
+    assert "Paid with silver florin." in part
+
+
+def test_prefer_is_per_action_and_two_preferred_still_ask():
+    # The seam sees the action: EXAMINE COIN is not a give, so it asks as
+    # always. And a preference is a tiebreaker, never a gag order: two
+    # preferred candidates keep the question.
+    src = PREFER_GAME + (
+        'block prefer(obj)\n    if action is give\n        if obj is florin\n'
+        '            return true\n        if obj is farthing\n            return true\n'
+        '    return false\n'
+    )
+    out = _headless(src, ["examine coin", "florin", "pay coin to ferryman", "farthing"])
+    ex = out.split(">examine coin")[-1].split(">pay")[0]
+    assert "Which do you mean" in ex
+    pay = out.split(">pay coin to ferryman")[-1]
+    assert "Which do you mean" in pay
+    assert "Paid with copper farthing." in pay
+
+
+def test_prefer_outranks_the_held_tiebreak_and_yields_to_a_trigger():
+    # Author knowledge beats the generic held heuristic: with only the
+    # sovereign on the planks (held side: two coins), prefer still picks
+    # the florin. A typed trigger beats both: the player said what it is.
+    src = PREFER_GAME.replace("thing sovereign in player", "thing sovereign in jetty") + (
+        'block prefer(obj)\n    if action is give\n        if obj is florin\n'
+        '            return true\n    return false\n'
+    )
+    out = _headless(src, ["pay coin to ferryman"])
+    assert "Paid with silver florin." in out.split(">pay coin to ferryman")[-1]
+    trig = PREFER_GAME.replace("words farthing, copper, coin", "words #farthing, copper, coin") + (
+        'block prefer(obj)\n    if action is give\n        if obj is florin\n'
+        '            return true\n    return false\n'
+    )
+    out = _headless(trig, ["pay farthing coin to ferryman"])
+    assert "Paid with copper farthing." in out.split(">pay farthing coin")[-1]
+
+
+def test_a_trivial_prefer_seam_folds_away():
+    # The default seam and a game's own `return false` cost nothing: the
+    # story file is byte-identical to one without the block.
+    plain = generate(analyze(cosmos.combined_program(parse(PREFER_GAME))))
+    trivial = generate(analyze(cosmos.combined_program(parse(
+        PREFER_GAME + "block prefer(obj)\n    return false\n"))))
+    assert plain == trivial

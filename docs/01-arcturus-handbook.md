@@ -3240,7 +3240,9 @@ typed words its `words` contain, then takes the single best:
 - One object scores best: it fills the slot.
 - Several tie at the best score: first the TRIGGER (the # marker, below):
   if exactly one tied candidate's trigger word was typed, it wins
-  silently, declared intent before any guess. Then the HELD TIEBREAK. A
+  silently, declared intent before any guess. Then the game's own
+  PREFERENCE (the `prefer` seam, below): exactly one candidate the game
+  prefers for this action wins silently. Then the HELD TIEBREAK. A
   tie where exactly one candidate is in the player's hands is not an
   ambiguity worth a question: EXAMINE MIRROR with your own in hand and
   the guard's on the guard means yours, silently. TAKE runs the tiebreak
@@ -3303,6 +3305,34 @@ identical behavior. A game with no marker anywhere carries none of this
 machinery, and its story file is byte-identical. Worked example:
 [examples/features/trigger.storyarc](../examples/features/trigger.storyarc).
 
+The prefer seam. A trigger is the player's word; `prefer` is the game's.
+When a tie stands after the trigger, the matcher asks the block `prefer`
+once per tied candidate, and a game overrides it with a block of the same
+name that answers true for the candidate the story means:
+
+    block prefer(obj)
+        if action is give
+            if obj is florin
+                return true
+        return false
+
+Three coins in the purse answer to "coin"; PAY COIN TO FERRYMAN is a give,
+the fare is a florin, and the florin is bound without a question. `action`
+is already the verb's action when the block runs, and `noun` is not yet
+bound (the block is deciding it), so a preference reads the action, the
+candidate, and the world: which key fits the door you stand at, which coin
+pays the fare, which lamp is lit. The rules match the trigger's: exactly
+one preferred candidate wins silently; none preferred, or two or more,
+leave the tie to the held tiebreak and then the question, so a preference
+is a tiebreaker, never a gag order, and it never hides a candidate from
+the list the question prints. It runs after a typed trigger (the player
+said what the thing is) and before the held tiebreak (the game's knowledge
+outranks a heuristic), in every slot the matcher resolves. The default
+seam prefers nothing, and a game that leaves it alone, or overrides it
+with a block that only returns false, compiles byte for byte as before.
+Worked example:
+[examples/features/prefer.storyarc](../examples/features/prefer.storyarc).
+
 The adjective marker, and the match classes. A `words` entry with a leading
 `>` is the object's ADJECTIVE:
 
@@ -3314,8 +3344,8 @@ With any adjective marked anywhere, matching scores in Infocom's ZIL match
 classes: a candidate whose adjective AND noun both matched ranks above one
 matching a noun alone, which ranks above one matching only an adjective,
 and only the highest class present survives. The count, the full-match
-tiebreak, the trigger, and the held tiebreak all still apply, but within a
-class. What this buys, precisely:
+tiebreak, the trigger, the prefer seam, and the held tiebreak all still
+apply, but within a class. What this buys, precisely:
 
 - One noun match silently outranks every adjective-only match in scope:
   EXAMINE RED GUITAR never asks about the red couch.

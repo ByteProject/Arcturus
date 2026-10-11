@@ -6,6 +6,14 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **The game's own say in a tie: `prefer`.** Three coins answer to
+  "coin", and PAY COIN asked which although the story knew the fare
+  was the florin. A game now overrides the `prefer` seam, a block the
+  matcher asks once per tied candidate with `action` already set:
+  answer true for the one the story means and it is bound silently,
+  after a typed trigger and before the held tiebreak. None or several
+  preferred leave the question as it was. Games that leave the seam
+  alone compile byte for byte as before (arcc 2.28.0, Cosmos 1.47.0).
 - **The body you begin in has a name: `body`.** In a maniacswap game
   the player was always a pointer and the bodies characters, except the
   one you started in, seeded under the name `player` and nameless the
@@ -35,12 +43,6 @@ lives in the commit log. The feature roadmap follows below.
   character says "Testy is wearing a felt hat and carrying a
   passport.", and TAKE refuses in the holder's name. Games that expose
   nothing compile byte for byte as before (arcc 2.24.1, Cosmos 1.42.0).
-- **Verbs that reach beyond the room: `anywhere`.** A verb whose object
-  has just left (FOLLOW, SHOUT) declares `anywhere` beside its grammar,
-  and the parser binds the thing the player named wherever it is; the
-  handler decides what reachable means. The declarative face of the
-  reach_unscoped seam, Inform's scope token in one word; games without
-  it compile byte for byte as before (arcc 2.24.0, Cosmos 1.41.0).
 
 ## Feature roadmap
 
@@ -53,9 +55,7 @@ way, designed on its own terms, pay-for-use as always.
   furniture is still to come.)
 - **Question preservation.** A disambiguation question survives an
   interposed command: asked "which coin?", the player may take inventory
-  first and then answer. In the same breath: likelihood hints, letting a
-  verb or object mark an interpretation as unlikely so disambiguation
-  picks well before it has to ask at all.
+  first and then answer.
 - **Local spill.** A Z-machine routine holds at most 15 locals, parameters
   and `let`s together; today the compiler refuses an over-full block with a
   clear error and the cure (move part of the work into a helper block).
