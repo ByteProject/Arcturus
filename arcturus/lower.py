@@ -4150,6 +4150,11 @@ def _is_object_expr(ctx, expr) -> bool:
             or expr.ident in _OBJECT_BUILTINS
             or expr.ident in ctx.object_locals
         )
+    # The tree reads answer objects, so `${parent_of(x)}` and
+    # `${first_in(box)}` speak the name directly, as a let of them does.
+    if isinstance(expr, ast.Call) and expr.name not in ctx.world.blocks \
+            and expr.name in ("parent_of", "first_in", "next_in"):
+        return True
     return False
 
 
@@ -4300,6 +4305,21 @@ def _print_obj(rt, ctx, op):
 
 
 def _say_object(rt, ctx, expr):
+    # A value that may be nothing (a tree read, a local) prints nothing
+    # rather than asking the interpreter for object 0: it lands in a
+    # temporary (read twice, once by the test, once by the print). A bare
+    # object name can never be nothing and keeps its exact bytes.
+    guarded = isinstance(expr, ast.Call) or (
+        isinstance(expr, ast.Name) and expr.ident in ctx.named)
+    if guarded:
+        tmp = ctx.alloc_temp()
+        eval_expr(rt, ctx, expr, Variable(tmp))
+        done = ctx.new_label()
+        rt.op("jz", Variable(tmp), branch=(done, True))
+        _print_obj(rt, ctx, Variable(tmp))
+        rt.label(done)
+        ctx.free_temp(tmp)
+        return
     op, t = _operand(rt, ctx, expr)
     _print_obj(rt, ctx, op)
     if t is not None:
