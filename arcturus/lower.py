@@ -2314,6 +2314,21 @@ def _static_etype(ctx, expr):
             return "direction"
         if _is_direction_literal(ctx, expr.ident):
             return "direction"
+        # An object by name, a builtin that holds one (here, noun, player),
+        # or a local already known to hold one: `let d = bedroom` makes
+        # `say "${d}"` speak the name, not the object number
+        # (EdwardianDuck's note, 2026-10-05).
+        if expr.ident not in ctx.named and expr.ident not in ctx.globals \
+                and ctx.is_object_name(expr.ident):
+            return "object"
+        if expr.ident in _OBJECT_BUILTINS and expr.ident not in ctx.named:
+            return "object"
+        if expr.ident in ctx.object_locals:
+            return "object"
+    # The tree reads answer objects (or nothing, which prints as nothing).
+    if isinstance(expr, ast.Call) and expr.name not in ctx.world.blocks \
+            and expr.name in ("parent_of", "first_in", "next_in"):
+        return "object"
     return None
 
 

@@ -91,5 +91,7 @@ def test_first_in_and_next_in_walk_the_tree():
     )
     out = _run(src, [])
     head = out.split("F\n")[0]
-    assert "first 4" in head and "second 5" in head and "end 0" in head
+    # A local holding an object speaks its name (2026-10-11); the end of
+    # the walk is nothing, which prints as nothing.
+    assert "first coin" in head and "second nail" in head and "end \n" in head
     assert "coin empty" in head and "box full" in head
