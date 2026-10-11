@@ -101,6 +101,13 @@ block reach_debug()
 block reach_swap()
     return nothing
 
+// The debug granule's rebind (parse_line calls it after the nouns resolve):
+// a debug verb reaches every object by declaration, so its noun is matched
+// over the whole game, scope or not, in place of whatever the scope match
+// found. Replaced by the granule; folds away without it.
+block debug_rebind(act)
+    return nothing
+
 block parse()
     let term = read_input
     // A fresh line borrows no verb from the last one (noun lists, 8b).
@@ -232,6 +239,12 @@ block parse_line()
         change cur_action to act
     change way to find_direction
     resolve_objects
+    // A debug verb's noun is matched over every object in the game, not
+    // only after the scope match failed: a partial match in hand (the black
+    // wool, once fetched) must not pre-empt the full match out of sight
+    // (EdwardianDuck's report, 2026-10-08). Folds away without the granule.
+    if any_debug is 1
+        debug_rebind(act)
     // A verb declared `anywhere` (docs/01 chapter 12) reaches beyond scope
     // by declaration: when the noun named a real thing that is not here
     // (fault 1), the typed words are matched against every object in the

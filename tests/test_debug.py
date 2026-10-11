@@ -146,3 +146,31 @@ def test_debug_verbs_ignore_the_reach_gate():
     assert "beyond your reach" not in io.text
     assert "Loft" in io.text
     assert "Fetched lantern." in io.text
+
+
+def test_fetch_scores_every_typed_word():
+    # EdwardianDuck (2026-10-08): PURLOIN BLACK WOOL fetched the black blob,
+    # the first object carrying the first typed word. The debug reach now
+    # scores every object by all the typed words, as the real matcher does.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    game = (
+        'game\n    title "T"\n    start hall\nsummon.debug\n'
+        'room hall\n    name "Hall"\n    desc "Bare."\n    north attic\n'
+        'room attic\n    name "Attic"\n    desc "Dusty."\n'
+        'thing blob in attic\n    name "black blob"\n    words blob, black\n'
+        'thing hat in attic\n    name "black hat"\n    words hat, black\n'
+        'thing bwool in attic\n    name "black wool"\n    words wool, ball, black\n'
+        'thing wwool in attic\n    name "white wool"\n    words wool, ball, white\n'
+    )
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+    io = CaptureIO(script=["purloin black wool", "purloin black hat", "purloin white wool"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "Fetched black wool." in io.text
+    assert "Fetched black hat." in io.text
+    assert "Fetched white wool." in io.text
+    assert "Fetched black blob." not in io.text

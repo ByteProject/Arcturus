@@ -18,45 +18,54 @@
 // Actaea records, replays, and checks a session with `actaea --record`,
 // `--replay`, and `--check` (docs/06 section 3).
 
-// The parser seam (the reach_debug stub, dispatched from reach_unscoped).
-// For a debug verb only, match the
-// typed word against every object so the verb can reach out of scope; other verbs
-// fall through and still answer "you can't see that".
-block reach_debug()
-    let d = word_dict(0)
-    if d is nothing
-        return nothing
-    let act = peek_byte(d + 7)
+// The parser's rebind (the debug_rebind stub, called from parse_line once
+// the nouns have resolved). For a debug verb only, the typed words are
+// matched against every object in the game and the best replaces whatever
+// the scope match found: the scope match alone would bind a partial match
+// in hand before the far one was ever looked for. Other verbs fall through
+// and still answer "you can't see that".
+block debug_rebind(act)
     if act is action_id("fetch")
-        return match_any
+        rebind_any
     if act is action_id("warp")
-        return match_any
+        rebind_any
     if act is action_id("inspect")
-        return match_any
-    return nothing
+        rebind_any
 
-// The first typed word (after the verb) that names any object at all.
+block rebind_any()
+    let far = match_any
+    if far is not nothing
+        change noun to far
+        change parse_fault to 0
+        if any_reach is 1
+            change reached to 1
+
+// The object the typed words (after the verb) name best: every object in
+// the game, hidden ones included, scored by how many of the typed words
+// its vocabulary carries, the way the real matcher scores scope. The best
+// count wins; an exact tie (two balls of wool, PURLOIN WOOL) goes to the
+// one declared first, so a distinguishing word settles it (PURLOIN WHITE
+// WOOL). Before this, the first typed word that named anything took the
+// first object carrying it, so PURLOIN BLACK WOOL fetched the black blob
+// (EdwardianDuck's report, 2026-10-08).
 block match_any()
-    let n = word_count
-    let i = 1
-    while i < n
-        let target = word_dict(i)
-        if target is not nothing
-            let found = find_any(target)
-            if found is not nothing
-                return found
-        change i to i + 1
-    return nothing
-
-// Scan every object by number for one whose words include this dictionary word.
-// The parser reaches only objects in scope; debug reaches all of them.
-block find_any(target)
-    let i = 1
-    while i <= object_count
-        if has_word(i, target)
-            return i
-        change i to i + 1
-    return nothing
+    let best = nothing
+    let best_n = 0
+    let obj = 1
+    while obj <= object_count
+        let n = 0
+        let i = 1
+        while i < word_count
+            let d = word_dict(i)
+            if d is not nothing
+                if has_word(obj, d)
+                    change n to n + 1
+            change i to i + 1
+        if n > best_n
+            change best_n to n
+            change best to obj
+        change obj to obj + 1
+    return best
 
 // The room an object ultimately sits in: walk up the tree to the top parent.
 block room_of(obj)
