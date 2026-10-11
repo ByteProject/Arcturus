@@ -1265,7 +1265,11 @@ A holder among the contents says what it holds in turn, in prose rather
 than a second pair of parentheses: "a table (on which is a box with an
 apple, a ring and some salt in it)", "a table (on which is a stool with a
 handkerchief on it)". That is where it stops: a box inside a box on a
-table is named, what is in it is not, until the player looks closer.
+table is named, what is in it is not, until the player looks closer, and
+EXAMINE on any holder names what is on or in it the same way, two levels
+down from there ("In the box you can see a cheeseboard with a cheese on
+it."; a closed holder names what the player remembers inside), so a
+closer look always reaches the next pair of levels.
 
 
 Knowledge sharpens the parser's answers too. Once the player has seen the ring,

@@ -216,72 +216,72 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # chain); a held thing skips the probe, the floor-to-container shortcut
 # still moves takeable things in one command.
 CEILINGS = {
-    "features/yes-no.storyarc": 18416,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/press-any-key.storyarc": 19304,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/shiftable.storyarc": 18800,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/enhance-redefine.storyarc": 19156,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/consult-about.storyarc": 19316,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/session-verbs.storyarc": 18872,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/vary.storyarc": 20748,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/foresight.storyarc": 21052,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/beyond.storyarc": 22132,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/alter.storyarc": 20044,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/catalogs.storyarc": 19420,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/matrix.storyarc": 19756,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/direction-grammar.storyarc": 18832,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/scenery-contents.storyarc": 20016,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/trigger.storyarc": 18904,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/adjectives.storyarc": 19540,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/nautical.storyarc": 19308,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/npcengine.storyarc": 21428,  # 2026-10-11 repriced (+20): a door that is not openable bars an opens_doors walker
-    "granules/maniacswap.storyarc": 19652,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "beispiel-deutsch.storyarc": 28724,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "brass-lantern.storyarc": 20208,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "cloak-of-darkness.storyarc": 22176,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "ejemplo-espanol.storyarc": 25292,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/computed-properties.storyarc": 18516,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/containers.storyarc": 19484,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/daemons-and-timers.storyarc": 20744,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/doors-and-locks.storyarc": 18652,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/appearance.storyarc": 19468,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/components.storyarc": 18736,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/whistle.storyarc": 18164,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/lighttopology.storyarc": 20364,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/pathfinding.storyarc": 21172,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/perform.storyarc": 18484,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/grains.storyarc": 18280,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/handlers.storyarc": 19684,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/first-person.storyarc": 19148,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/word-lists.storyarc": 18948,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/grammar-bind.storyarc": 19768,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/grammar.storyarc": 18588,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/introproperty.storyarc": 20404,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/kinds-and-inheritance.storyarc": 18480,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/on-other.storyarc": 18360,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/zcolor.storyarc": 18808,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/text-styles.storyarc": 18608,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/computed-name.storyarc": 18500,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/scoring.storyarc": 20736,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/spans.storyarc": 18600,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/vehicles.storyarc": 19616,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/success.storyarc": 19160,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/edible.storyarc": 18976,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "features/text-slot.storyarc": 19520,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/carryweight.storyarc": 19728,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/ambience.storyarc": 20392,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/conversations.storyarc": 20316,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/extended-verbs.storyarc": 21936,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/infocom-interrogation.storyarc": 21736,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/quotes.storyarc": 18544,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/take-all.storyarc": 21164,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/plurals.storyarc": 19460,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/statusline.storyarc": 18516,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/verbose-exits.storyarc": 18456,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
+    "features/yes-no.storyarc": 18600,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/press-any-key.storyarc": 19488,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/shiftable.storyarc": 18984,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/enhance-redefine.storyarc": 19340,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/consult-about.storyarc": 19500,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/session-verbs.storyarc": 19056,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/vary.storyarc": 20932,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/foresight.storyarc": 21236,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/beyond.storyarc": 22316,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/alter.storyarc": 20228,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/catalogs.storyarc": 19604,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/matrix.storyarc": 19940,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/direction-grammar.storyarc": 19016,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/scenery-contents.storyarc": 20084,  # 2026-10-11 repriced (+68): EXAMINE names a holder's contents (holder_line), two levels
+    "features/trigger.storyarc": 19088,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/adjectives.storyarc": 19724,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/nautical.storyarc": 19492,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/npcengine.storyarc": 21612,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/maniacswap.storyarc": 19836,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "beispiel-deutsch.storyarc": 28920,  # 2026-10-11 repriced (+196): EXAMINE names a holder's contents (holder_line), two levels
+    "brass-lantern.storyarc": 20392,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "cloak-of-darkness.storyarc": 22360,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "ejemplo-espanol.storyarc": 25516,  # 2026-10-11 repriced (+224): EXAMINE names a holder's contents (holder_line), two levels
+    "features/computed-properties.storyarc": 18700,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/containers.storyarc": 19668,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/daemons-and-timers.storyarc": 20928,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/doors-and-locks.storyarc": 18836,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/appearance.storyarc": 19652,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/components.storyarc": 18920,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/whistle.storyarc": 18348,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/lighttopology.storyarc": 20548,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/pathfinding.storyarc": 21356,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/perform.storyarc": 18668,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/grains.storyarc": 18464,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/handlers.storyarc": 19868,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/first-person.storyarc": 19336,  # 2026-10-11 repriced (+188): EXAMINE names a holder's contents (holder_line), two levels
+    "features/word-lists.storyarc": 19132,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/grammar-bind.storyarc": 19952,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/grammar.storyarc": 18772,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/introproperty.storyarc": 20588,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/kinds-and-inheritance.storyarc": 18664,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/on-other.storyarc": 18544,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/zcolor.storyarc": 18992,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/text-styles.storyarc": 18792,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/computed-name.storyarc": 18684,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/scoring.storyarc": 20920,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/spans.storyarc": 18784,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/vehicles.storyarc": 19800,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/success.storyarc": 19344,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/edible.storyarc": 19160,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/text-slot.storyarc": 19704,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/carryweight.storyarc": 19912,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/ambience.storyarc": 20576,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/conversations.storyarc": 20500,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/extended-verbs.storyarc": 22120,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/infocom-interrogation.storyarc": 21920,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/quotes.storyarc": 18728,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/take-all.storyarc": 21348,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/plurals.storyarc": 19644,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/statusline.storyarc": 18700,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "granules/verbose-exits.storyarc": 18640,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 22864  # 2026-10-05 repriced (+8): a last-word preposition is phrase content (a self word doubling as a literal)
+CLOAK_Z8_CEILING = 23056  # 2026-10-11 repriced (+192): EXAMINE names a holder's contents (holder_line), two levels
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

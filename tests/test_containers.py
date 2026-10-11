@@ -132,3 +132,49 @@ def test_listing_sentence_ends_cleanly_after_a_parenthesis():
     # the anchor stays: only the final item decides the ending.
     assert "You can see a stool (on which is a handkerchief) and a lamp here." in out
     assert ") here." not in out
+
+
+def test_examine_names_a_holders_contents():
+    # auraes's cheese (2026-10-06): the room listing stops at two levels
+    # by design, and a closer look must reach the next two. EXAMINE on a
+    # holder names its contents under the description; a holder with no
+    # desc but contents names them alone; a closed one names memory.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'game\n    title "C"\n    start r\n'
+        'room r\n    name "Somewhere"\n    desc "x"\n'
+        'thing fridge of container in r\n    name "fridge"\n    words fridge\n'
+        '    open\n    fixed\n    openable\n'
+        'thing box of container in fridge\n    name "box"\n    words box\n    open\n'
+        '    desc "A plain box."\n'
+        'thing board of supporter in box\n    name "cheeseboard"\n    words cheeseboard\n'
+        'thing cheese in board\n    name "cheese"\n    words cheese\n'
+        'thing crate of container in r\n    name "crate"\n    words crate\n    open\n'
+    )
+    io = CaptureIO(script=["look", "examine fridge", "examine box",
+                           "examine cheeseboard", "close fridge",
+                           "examine fridge", "examine crate"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert "a fridge (contains a box with a cheeseboard in it)" in out
+    assert "a cheese on it" not in out.split(">examine fridge")[0]   # the third level, unnamed
+    f1 = out.split(">examine fridge")[1].split(">")[0]
+    assert "In the fridge you can see a box with a cheeseboard in it." in f1
+    assert "rewards a closer look" not in f1
+    b = out.split(">examine box")[1].split(">")[0]
+    assert "A plain box." in b
+    assert "In the box you can see a cheeseboard with a cheese on it." in b
+    assert "On the cheeseboard you can see a cheese." in out.split(">examine cheeseboard")[1]
+    f2 = out.split(">examine fridge")[2].split(">")[0]
+    assert "The fridge (closed) contains a box with a cheeseboard in it." in f2
+    assert "rewards a closer look" in out.split(">examine crate")[1]

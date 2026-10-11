@@ -1264,6 +1264,16 @@ block content_listable(holder, x)
 // sits on or in it, the knowledge model deciding per item. Prints
 // nothing when the holder holds nothing tellable.
 block scenery_holder_line(obj)
+    if obj is container or obj is supporter
+        if listable_count(obj) > 0
+            par
+            holder_line(obj)
+
+// A holder's contents as EXAMINE names them, directly under the
+// description (auraes's cheese, 2026-10-06: the room names two levels,
+// a closer look names the next two). The scenery pass speaks the same
+// line after a paragraph break.
+block holder_line(obj)
     if any_firstperson is 1
         if obj is not container
             if obj is not supporter
@@ -1274,7 +1284,6 @@ block scenery_holder_line(obj)
             if shut_holds(obj)
                 scenery_closed_line(obj)
                 return 0
-        par
         if obj is supporter
             show("On ")
         else
@@ -1296,7 +1305,6 @@ block scenery_holder_line(obj)
         if shut_holds(obj)
             scenery_closed_line(obj)
             return 0
-    par
     if obj is supporter
         show("On ")
     else
