@@ -5915,7 +5915,8 @@ pursued CHARACTER is followed for as long as the pursuit stands
 outranks wandering, so a send interrupts a route and the route resumes
 when the errand is done. `opens_doors` lets the character open a closed
 door in its way, visibly, on both of the door's sides; a locked door
-still bars, and `door_bars` (chapter 8) stays the seam for doors with
+still bars, and so does a door that is not `openable` (a grate, a
+bricked arch: nobody opens what cannot be opened), and `door_bars` (chapter 8) stays the seam for doors with
 their own rules. `npc` alone joins the roster with no standing behavior,
 ready for send() and orders.
 

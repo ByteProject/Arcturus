@@ -190,8 +190,12 @@ block door_bars(d)
     if d is open
         return 0
     if npc_opening is 1
-        if d is not locked
-            return 0
+        // Only a door that CAN be opened: a sealed one (openable false, a
+        // grate, a bricked arch) bars the walker like a locked one
+        // (Charles Moore Jr.'s report, 2026-10-11).
+        if d is openable
+            if d is not locked
+                return 0
     return 1
 
 // A pursuit walks toward the goal through the live graph, one searched
@@ -268,6 +272,10 @@ block npc_move_toward(x, dest, seek)
                     npc_event(x, action_id("npc_blocked"))
                     return 0
                 if dd is locked
+                    npc_event(x, action_id("npc_blocked"))
+                    return 0
+                // A door that is not openable cannot be opened by anyone.
+                if dd is not openable
                     npc_event(x, action_id("npc_blocked"))
                     return 0
                 now dd is open

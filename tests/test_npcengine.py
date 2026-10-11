@@ -327,3 +327,43 @@ def test_orders_work_with_an_empty_roster():
     )
     out = _run(_build(src), ["smith, go north"])
     assert '"Aye," says the smith.' in out
+
+
+def test_an_opens_doors_walker_cannot_open_a_sealed_door():
+    # Charles Moore Jr.'s report (2026-10-11): a patrol passed through a
+    # door declared openable false. Only a door that can be opened is
+    # opened by an opens_doors character; a sealed one bars like a locked
+    # one, and the open archway still passes.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'summon.npcengine\n'
+        'game\n    title "D"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n    east grate\n    north arch\n'
+        'room vault\n    name "Vault"\n    desc "A vault."\n    west grate\n'
+        'room garden\n    name "Garden"\n    desc "A garden."\n    south arch\n'
+        'thing grate of door in hall, vault\n    name "iron grate"\n    words grate\n'
+        '    openable false\n'
+        'thing arch of door in hall, garden\n    name "archway"\n    words arch\n'
+        '    openable false\n    open\n'
+        'thing guard of character in hall\n    name "guard"\n    words guard\n'
+        '    opens_doors\n    patrol hall, vault\n'
+        'thing dog of character in hall\n    name "dog"\n    words dog\n'
+        '    patrol hall, garden\n'
+        'on start\n    resume(guard)\n    resume(dog)\n'
+    )
+    io = CaptureIO(script=["wait", "wait", "wait", "north"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert "opens the iron grate" not in out
+    assert "guard heads east" not in out                 # barred: the guard stays
+    assert "dog heads north" in out                      # the open arch still passes

@@ -233,7 +233,7 @@ CEILINGS = {
     "features/trigger.storyarc": 18904,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
     "features/adjectives.storyarc": 19540,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
     "granules/nautical.storyarc": 19308,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
-    "granules/npcengine.storyarc": 21408,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
+    "granules/npcengine.storyarc": 21428,  # 2026-10-11 repriced (+20): a door that is not openable bars an opens_doors walker
     "granules/maniacswap.storyarc": 19652,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
     "beispiel-deutsch.storyarc": 28724,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
     "brass-lantern.storyarc": 20208,  # 2026-10-05 repriced (+4): a last-word preposition is phrase content (a self word doubling as a literal)
