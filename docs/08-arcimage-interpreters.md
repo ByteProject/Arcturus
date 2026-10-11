@@ -46,10 +46,23 @@ itself emits versions 5 and 8 only. A game that uses pictures is still
 an ordinary story file, and an interpreter that knows nothing about
 arc_image plays it unchanged as text. Here is the whole contract.
 
-1. CAPABILITY. If your interpreter can show pictures, set Flags 1 bit 1
-   (the Standard's "picture displaying available" bit) at boot, and set
-   it again after restart and restore, since the Z-machine rewrites the
-   header on both. A text-only build simply leaves the bit alone.
+1. CAPABILITY. If your interpreter can show pictures AND has pictures
+   for the story being played, set Flags 1 bit 1 (the Standard's
+   "picture displaying available" bit) at boot, and set it again after
+   restart and restore, since the Z-machine rewrites the header on both.
+   A text-only build, or a story that comes without pictures, leaves
+   the bit alone.
+
+   Advertise per story, not per interpreter. An interpreter with a text
+   mode plays old games too, and games compiled with Inform 6.10 (the
+   mid-1990s releases; Balances is one) carry a status-line routine
+   that reads this same bit with its version 3 meaning, "the status
+   line is a clock", and prints the score and turn counters as a time
+   of day when it is set. Those games never draw and never need the
+   bit, so decide at load time, from the presence of the story's
+   picture set, the way the shipped interpreters do: Haumea arms
+   pictures from the disk's picture index and a text-only disk leaves
+   the bit clear; Varuna sets it only when an image band exists.
 
    The game reads that bit while it runs and never draws when it is
    clear, so on an interpreter that does not advertise pictures the draw
