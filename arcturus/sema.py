@@ -159,6 +159,7 @@ class Analyzer:
         # properties pass just filled obj.props) and the kind chains are
         # resolved (door detection).
         self._check_exits()
+        self._check_object_values()
         self._check_locations()
         self._check_presence()
         self._check_npcengine()
@@ -1443,6 +1444,38 @@ class Analyzer:
         if player is not None and "playable" not in player.props:
             player.props["playable"] = ast.PropertyDecl(
                 "playable", ast.PROP_BOOL, line=0)
+
+    def _check_object_values(self) -> None:
+        """An object-valued property (unseal_with, and any author property
+        of that type) written as a bare name must name a declared object, or
+        `nothing`. A misspelt opener compiled silently into a lock no key
+        ever fits (auraes's report, 2026-10-12): the object table stored 0
+        for the unknown name, exactly the keyless lock, so the typo read as
+        a design choice. Exits have their own check with their own
+        wording."""
+        w = self.world
+        dprops = set(self.env.directions)
+        for obj in w.objects.values():
+            for pname, decl in obj.props.items():
+                if pname in dprops:
+                    continue
+                std = self.env.properties.get(pname)
+                if std is None or std.type != prelude.T_OBJECT:
+                    continue
+                if getattr(decl, "form", None) != ast.PROP_VALUE:
+                    continue
+                if not decl.values or not isinstance(decl.values[0], ast.Name):
+                    continue
+                ident = decl.values[0].ident
+                if ident == "nothing" or ident in w.objects:
+                    continue
+                line = getattr(decl, "line", 0) or obj.line
+                what = "a kind" if ident in w.kinds else "not declared"
+                raise self._error(
+                    f"'{obj.name}': property '{pname}' names '{ident}', "
+                    f"which is {what}; it needs a declared object or "
+                    f"`nothing`", line
+                )
 
     def _check_exits(self) -> None:
         """Every named exit target must exist and be walkable (a field report:

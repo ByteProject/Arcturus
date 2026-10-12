@@ -244,3 +244,14 @@ def test_standard_kinds_are_not_grantable_attributes():
     analyze(_cosmos.combined_program(parse(
         base + 'thing b of supporter in r\n    name "b"\n    words b\n'
         '    on push\n        if b is supporter\n            stop\n')))
+
+
+def test_object_property_must_name_a_declared_object():
+    # auraes (2026-10-12): `unseal_with whatever` compiled silently into a
+    # keyless lock (the unknown name stored as 0).
+    expect_error(
+        'room hall\n    name "Hall"\n'
+        'thing door_x of door in hall\n    name "door"\n    lockable\n'
+        '    locked\n    unseal_with whatever\n',
+        "property 'unseal_with' names 'whatever', which is not declared",
+    )
