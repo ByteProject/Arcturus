@@ -480,6 +480,7 @@ movement), and `arcc --extract` shows every use of the rest.
 | `any_pronoun_sets` | any_pronoun_sets(): 1 when the pack declares a multi-role pronoun word (German "ihm", "sie"), so the recency walk folds away in every other language. |
 | `any_ranks` | any_ranks(): 1 when the game declares a rank ladder, so msg_score's rank clause folds away otherwise. |
 | `any_reach` | any_reach(): 1 when something reaches beyond scope (the reach_unscoped seam or `anywhere`). |
+| `any_remember` | any_remember(): 1 unless the game writes constant remember_contents = false (a closed opaque holder then lists nothing, seen or not). |
 | `any_requires` | any_requires(): 1 when a verb declares `requires`. |
 | `any_restless` | any_restless(): 1 if any object is (or can become) restless. |
 | `any_scenery_contents` | any_scenery_contents(): 1 when the game opts in with `constant scenery_contents = 1` (the arc_mode manner: the constant folds by name where declared; this default covers its absence). |

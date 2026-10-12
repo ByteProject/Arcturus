@@ -1289,6 +1289,19 @@ related attributes are `open` (the lid), `clear` (see-through, always shown),
 `concealed` (present but left out of a listing), and `hidden` (out of scope
 entirely until revealed).
 
+The memory is the designed default. A story that wants a shut box to tell
+nothing until it is opened again, whatever the player has seen inside it,
+switches the memory off once, game-wide:
+
+```
+constant remember_contents = false
+```
+
+A closed opaque holder then lists nothing anywhere (the room, the
+inventory, EXAMINE, the scenery pass); open and `clear` holders are
+unchanged, and so is `seen` itself, which the parser still reads. The
+default costs nothing to keep and the switch folds the memory away.
+
 ## Chapter 7: Scope, light, and darkness
 
 Scope is the set of objects the parser considers when resolving a noun, and

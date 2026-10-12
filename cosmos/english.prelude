@@ -1256,8 +1256,12 @@ block content_listable(holder, x)
     // only what the player already knows is inside (the knowledge model).
     if see_into(holder)
         return 1
-    if x is seen
-        return 1
+    // The memory itself, the designed default. A game that wants a shut
+    // box to tell nothing until it is opened again writes `constant
+    // remember_contents = false` once; the branch then folds away.
+    if any_remember is 1
+        if x is seen
+            return 1
     return 0
 
 // One scenery holder's paragraph (constant scenery_contents = 1): what

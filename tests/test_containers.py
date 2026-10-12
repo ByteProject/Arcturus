@@ -178,3 +178,40 @@ def test_examine_names_a_holders_contents():
     f2 = out.split(">examine fridge")[2].split(">")[0]
     assert "The fridge (closed) contains a box with a cheeseboard in it." in f2
     assert "rewards a closer look" in out.split(">examine crate")[1]
+
+
+def test_remember_contents_false_forgets_a_shut_box():
+    # auraes (2026-10-12): the closed-holder memory is the designed default,
+    # and `constant remember_contents = false` switches it off game-wide.
+    # The default build is byte-identical with or without the constant on.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    base = (
+        'game\n    title "M"\n    start r\n'
+        'room r\n    name "Somewhere"\n    desc "x"\n'
+        'thing box of container in r\n    name "box"\n    words box\n'
+        '    openable\n    open\n    fixed\n'
+        'thing ring in box\n    name "ring"\n    words ring\n'
+    )
+    def play(src):
+        io = CaptureIO(script=["look", "close box", "look", "examine box"])
+        try:
+            VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+               io).run(max_steps=20_000_000)
+        except IndexError:
+            pass
+        return io.text
+    remembered = play(base)
+    assert "a box (closed) (contains a ring)" in remembered or "contains a ring" in remembered.split(">close box")[1]
+    forgot = play(base + "constant remember_contents = false\n")
+    after = forgot.split(">close box")[1]
+    assert "ring" not in after
+    assert "box (closed)" in after
+    plain = generate(analyze(cosmos.combined_program(parse(base))))
+    on = generate(analyze(cosmos.combined_program(parse(base + "constant remember_contents = true\n"))))
+    assert plain == on
