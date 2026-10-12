@@ -64,6 +64,23 @@ arc_image plays it unchanged as text. Here is the whole contract.
    pictures from the disk's picture index and a text-only disk leaves
    the bit clear; Varuna sets it only when an image band exists.
 
+   OPTIONAL, for an interpreter that cannot know. Where pictures are
+   loose files beside the story and nothing indexes them (a FAT32 card,
+   a TRSDOS disk), the interpreter has no picture set to consult before
+   the first draw. For that case only, the story itself says whether it
+   draws: arcc sets Flags 2 bit 3 (the Standard's "game wants to use
+   pictures" request bit) in every story that uses draw_image, and
+   leaves it clear otherwise, as every non-Arcturus version 5 game
+   does. Such an interpreter sets Flags 1 bit 1 only when Flags 2 bit 3
+   is set in the story as loaded, one header read at boot and again
+   after restart and restore. An interpreter that already knows from
+   its own picture index needs none of this and keeps its rule; the
+   game never reads Flags 2 bit 3 itself, and clearing it, as the
+   Standard allows for a request an interpreter cannot honor, changes
+   nothing. Stories compiled before arcc 2.28.3 carry the bit clear and
+   play as text on an interpreter that reads it; recompile to restore
+   their pictures there.
+
    The game reads that bit while it runs and never draws when it is
    clear, so on an interpreter that does not advertise pictures the draw
    opcode is never even reached. And if it somehow were, the Standard

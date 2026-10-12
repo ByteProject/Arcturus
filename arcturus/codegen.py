@@ -1515,6 +1515,13 @@ def build_story(
     flags2 = 1 << 4
     if world.uses_colours:
         flags2 |= 1 << 6
+    # Bit 3: the game wants to use pictures (the Standard's request bit).
+    # Set when the story draws, so an interpreter that cannot otherwise
+    # tell whether a story has pictures (loose picture files beside it, no
+    # index) can decide the Flags 1 capability bit from the header alone
+    # and never offer pictures to an old Inform game (docs/08 part 1).
+    if world.uses_images:
+        flags2 |= 1 << 3
     sf.set_word(storyfile.H_FLAGS2, flags2)
     sf.set_word(storyfile.H_RELEASE, m.get("release", 1))
     sf.set_word(storyfile.H_HIGH_BASE, high_base)

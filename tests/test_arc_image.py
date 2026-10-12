@@ -554,3 +554,13 @@ def test_the_opcode_stands_alone_in_its_own_routine():
         assert story[site - 1] <= 15, (site, story[site - 1])
     # Both call sites share the one leaf routine, so the opcode appears once.
     assert len(sites) == 1
+
+
+def test_story_requests_pictures_in_flags2_only_when_it_draws():
+    # Sijnstra's Balances (2026-10-06): an interpreter whose pictures are
+    # loose files beside the story cannot know whether a story has any, and
+    # setting Flags 1 bit 1 for every game trips Inform 6.10's clock veneer.
+    # The story says it itself: Flags 2 bit 3 (the Standard's "game wants to
+    # use pictures") is set exactly when the story uses draw_image.
+    assert _compile(IMG)[0x11] & 0x08
+    assert not _compile(NO_IMG)[0x11] & 0x08
