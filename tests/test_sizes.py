@@ -216,73 +216,73 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # chain); a held thing skips the probe, the floor-to-container shortcut
 # still moves takeable things in one command.
 CEILINGS = {
-    "features/yes-no.storyarc": 18600,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/press-any-key.storyarc": 19488,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/shiftable.storyarc": 18984,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/enhance-redefine.storyarc": 19340,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/consult-about.storyarc": 19500,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/session-verbs.storyarc": 19056,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/vary.storyarc": 20932,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/yes-no.storyarc": 18632,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/press-any-key.storyarc": 19520,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/shiftable.storyarc": 19016,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/enhance-redefine.storyarc": 19372,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/consult-about.storyarc": 19532,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/session-verbs.storyarc": 19088,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/vary.storyarc": 20964,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
     "features/foresight.storyarc": 21236,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/beyond.storyarc": 22316,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/alter.storyarc": 20228,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/catalogs.storyarc": 19604,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/matrix.storyarc": 19940,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/direction-grammar.storyarc": 19016,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/scenery-contents.storyarc": 20084,  # 2026-10-11 repriced (+68): EXAMINE names a holder's contents (holder_line), two levels
-    "features/prefer.storyarc": 18448,  # 2026-10-11 new: the prefer seam showcase
-    "features/trigger.storyarc": 19088,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/adjectives.storyarc": 19724,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/nautical.storyarc": 19492,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/npcengine.storyarc": 21612,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/maniacswap.storyarc": 19836,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/beyond.storyarc": 22344,  # 2026-10-12 repriced (+28): ENTER on a shut container speaks the shut-lid line
+    "features/alter.storyarc": 20256,  # 2026-10-12 repriced (+28): ENTER on a shut container speaks the shut-lid line
+    "features/catalogs.storyarc": 19636,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/matrix.storyarc": 19972,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/direction-grammar.storyarc": 19048,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/scenery-contents.storyarc": 20112,  # 2026-10-12 repriced (+28): ENTER on a shut container speaks the shut-lid line
+    "features/prefer.storyarc": 18480,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/trigger.storyarc": 19116,  # 2026-10-12 repriced (+28): ENTER on a shut container speaks the shut-lid line
+    "features/adjectives.storyarc": 19752,  # 2026-10-12 repriced (+28): ENTER on a shut container speaks the shut-lid line
+    "granules/nautical.storyarc": 19524,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "granules/npcengine.storyarc": 21616,  # 2026-10-12 repriced (+4): ENTER on a shut container speaks the shut-lid line
+    "granules/maniacswap.storyarc": 19868,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
     "beispiel-deutsch.storyarc": 28920,  # 2026-10-11 repriced (+196): EXAMINE names a holder's contents (holder_line), two levels
-    "brass-lantern.storyarc": 20392,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "cloak-of-darkness.storyarc": 22360,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "brass-lantern.storyarc": 20424,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "cloak-of-darkness.storyarc": 22388,  # 2026-10-12 repriced (+28): ENTER on a shut container speaks the shut-lid line
     "ejemplo-espanol.storyarc": 25516,  # 2026-10-11 repriced (+224): EXAMINE names a holder's contents (holder_line), two levels
-    "features/computed-properties.storyarc": 18700,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/containers.storyarc": 19668,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/daemons-and-timers.storyarc": 20928,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/doors-and-locks.storyarc": 18836,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/appearance.storyarc": 19652,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/components.storyarc": 18920,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/whistle.storyarc": 18348,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/lighttopology.storyarc": 20548,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/pathfinding.storyarc": 21356,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/perform.storyarc": 18668,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/grains.storyarc": 18464,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/handlers.storyarc": 19868,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/first-person.storyarc": 19336,  # 2026-10-11 repriced (+188): EXAMINE names a holder's contents (holder_line), two levels
-    "features/word-lists.storyarc": 19132,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/computed-properties.storyarc": 18732,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/containers.storyarc": 19696,  # 2026-10-12 repriced (+28): ENTER on a shut container speaks the shut-lid line
+    "features/daemons-and-timers.storyarc": 20960,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/doors-and-locks.storyarc": 18840,  # 2026-10-12 repriced (+4): ENTER on a shut container speaks the shut-lid line
+    "features/appearance.storyarc": 19684,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/components.storyarc": 18952,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "granules/whistle.storyarc": 18380,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "granules/lighttopology.storyarc": 20552,  # 2026-10-12 repriced (+4): ENTER on a shut container speaks the shut-lid line
+    "features/pathfinding.storyarc": 21360,  # 2026-10-12 repriced (+4): ENTER on a shut container speaks the shut-lid line
+    "features/perform.storyarc": 18700,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/grains.storyarc": 18496,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/handlers.storyarc": 19900,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/first-person.storyarc": 19368,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/word-lists.storyarc": 19136,  # 2026-10-12 repriced (+4): ENTER on a shut container speaks the shut-lid line
     "features/grammar-bind.storyarc": 19952,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/grammar.storyarc": 18772,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/introproperty.storyarc": 20588,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/kinds-and-inheritance.storyarc": 18664,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/on-other.storyarc": 18544,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/zcolor.storyarc": 18992,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/text-styles.storyarc": 18792,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/computed-name.storyarc": 18684,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/scoring.storyarc": 20920,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/spans.storyarc": 18784,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/vehicles.storyarc": 19800,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/success.storyarc": 19344,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/edible.storyarc": 19160,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "features/text-slot.storyarc": 19704,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/carryweight.storyarc": 19912,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/ambience.storyarc": 20576,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/conversations.storyarc": 20500,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/extended-verbs.storyarc": 22120,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/infocom-interrogation.storyarc": 21920,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/quotes.storyarc": 18728,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/take-all.storyarc": 21348,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/plurals.storyarc": 19644,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/statusline.storyarc": 18700,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
-    "granules/verbose-exits.storyarc": 18640,  # 2026-10-11 repriced (+184): EXAMINE names a holder's contents (holder_line), two levels
+    "features/grammar.storyarc": 18804,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/introproperty.storyarc": 20616,  # 2026-10-12 repriced (+28): ENTER on a shut container speaks the shut-lid line
+    "features/kinds-and-inheritance.storyarc": 18696,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/on-other.storyarc": 18576,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/zcolor.storyarc": 19024,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/text-styles.storyarc": 18824,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/computed-name.storyarc": 18716,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/scoring.storyarc": 20952,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/spans.storyarc": 18816,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/vehicles.storyarc": 19828,  # 2026-10-12 repriced (+28): ENTER on a shut container speaks the shut-lid line
+    "features/success.storyarc": 19376,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/edible.storyarc": 19192,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "features/text-slot.storyarc": 19736,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "granules/carryweight.storyarc": 19940,  # 2026-10-12 repriced (+28): ENTER on a shut container speaks the shut-lid line
+    "granules/ambience.storyarc": 20608,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "granules/conversations.storyarc": 20532,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "granules/extended-verbs.storyarc": 22148,  # 2026-10-12 repriced (+28): ENTER on a shut container speaks the shut-lid line
+    "granules/infocom-interrogation.storyarc": 21952,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "granules/quotes.storyarc": 18760,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "granules/take-all.storyarc": 21376,  # 2026-10-12 repriced (+28): ENTER on a shut container speaks the shut-lid line
+    "granules/plurals.storyarc": 19676,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "granules/statusline.storyarc": 18732,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
+    "granules/verbose-exits.storyarc": 18672,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 23056  # 2026-10-11 repriced (+192): EXAMINE names a holder's contents (holder_line), two levels
+CLOAK_Z8_CEILING = 23088  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

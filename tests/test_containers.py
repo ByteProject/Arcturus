@@ -215,3 +215,30 @@ def test_remember_contents_false_forgets_a_shut_box():
     plain = generate(analyze(cosmos.combined_program(parse(base))))
     on = generate(analyze(cosmos.combined_program(parse(base + "constant remember_contents = true\n"))))
     assert plain == on
+
+
+def test_entering_a_shut_container_names_the_lid():
+    # auraes (2026-10-12): ENTER on a closed container spoke the flat
+    # "can't get inside"; the lid is the reason, so it speaks the shut line.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'game\n    title "E"\n    start r\n'
+        'room r\n    name "Somewhere"\n    desc "x"\n'
+        'thing crate of container in r\n    name "crate"\n    words crate\n'
+        '    openable\n    open false\n    fixed\n'
+        'thing rock in r\n    name "rock"\n    words rock\n'
+    )
+    io = CaptureIO(script=["enter crate", "enter rock"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "The crate is shut. You'll have to open it first." in io.text.split(">enter crate")[1]
+    assert "You can't get inside the rock." in io.text.split(">enter rock")[1]

@@ -1142,8 +1142,11 @@ on enter
         stop
     if noun is container
         if noun is not open
+            // A shut lid is the reason, and the line says so (auraes,
+            // 2026-10-12): the same sentence a shut door speaks, not the
+            // flat "can't get inside" of a thing nobody could enter.
             change refused to 1
-            msg_cant_enter
+            msg_door_shut(noun)
             stop
         move player to noun
         board_report
