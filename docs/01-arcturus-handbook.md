@@ -2638,20 +2638,43 @@ verb "peruse"
     examine noun
 ```
 
-A richer shape for a standard verb redeclares it. List the verb's words and
-every line you want, the standard ones you keep plus your own; for the words
-it declares, the later declaration wins, so your version replaces the Cosmos
-one wholesale:
+An existing verb, standard or your own, is grown or replaced with the
+intent stated out loud:
 
 ```
-verb "attack", "hit", "break", "kill", "fight", "smash"
-    attack noun
-    attack noun with held
+enhance verb "look"              // the family keeps everything it had
+    look_under under noun        // ...and these lines join it
+
+enhance verb "push", "roll"      // roll joins as a synonym
+    push noun direction          // and pushing gains a direction line
+
+redefine verb "read"             // the family is replaced WHOLE:
+    read_it noun                 // new grammar, and only the words
+                                 // restated here survive
 ```
+
+`enhance` appends: new grammar lines, new synonym words, or both (a body is
+optional when only synonyms join). The standard lines stay, and a typed
+command they already match still runs them, so `enhance verb "score"` with
+a line of your own does not redirect SCORE: the standard line is tried
+first and scores. To make a verb do something else, `redefine` it.
+`redefine` replaces the family whole, so a synonym the redefinition does
+not restate is gone from the dictionary; the action's requirements
+(`requires`, below) are wording-independent and stand. Both anchor on the
+first quoted word, which must already be a verb; there is nothing to
+enhance or redefine otherwise, and the compiler says so.
+
+A plain redeclaration of an existing verb word still compiles, shadowing
+word by word as it always did (the later declaration wins for the words it
+lists), but the compiler notes what that means, that the family's other
+synonyms keep their old grammar, and names these two forms, which say what
+they do.
 
 The showcase for all of this, including the LOOK extension with its two
 wording-selected actions, is `examples/features/grammar.storyarc`; compile it
-and type along. The same patterns hold in any language, because a language
+and type along, and
+[examples/features/enhance-redefine.storyarc](../examples/features/enhance-redefine.storyarc)
+shows the two forms side by side. The same patterns hold in any language, because a language
 pack's verbs are ordinary declarations too: a German game redeclares `grabe`
 with `dig in noun mit noun` and the same matcher serves it (chapter 14).
 When several of your lines could fit the same typed command, remember the
@@ -2761,35 +2784,6 @@ The "and" chains instead, as it always did, when a verb follows it ("take
 gem and put coin in box") or when the verb takes one noun ("take gem and
 coin", the verb borrow). Each item is checked on its own: "give coin
 and gem to bob" stops at the gem you are not carrying.
-
-### Growing and replacing verbs (enhance, redefine)
-
-An existing verb, standard or your own, is grown or replaced with intent
-stated out loud:
-
-```
-enhance verb "look"              // the family keeps everything it had
-    look_under under noun        // ...and these lines join it
-
-enhance verb "push", "roll"      // roll joins as a synonym
-    push noun direction          // and pushing gains a direction line
-
-redefine verb "read"             // the family is replaced WHOLE:
-    read_it noun                 // new grammar, and only the words
-                                 // restated here survive
-```
-
-`enhance` appends: new grammar lines, new synonym words, or both (a body is
-optional when only synonyms join). `redefine` replaces the family whole,
-so a synonym the redefinition does not restate is gone from the dictionary;
-the action's requirements (`requires`, 10a) are wording-independent and stand.
-Both anchor on the first quoted word, which must already be a verb; there
-is nothing to enhance or redefine otherwise, and the compiler says so.
-
-A plain redeclaration of an existing verb word still compiles, shadowing
-word by word as it always did, but the compiler now notes what that means
-(the family's other synonyms keep their old grammar) and names these two
-forms, which say what they do.
 
 ### What a verb requires
 
