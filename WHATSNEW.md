@@ -6,6 +6,15 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **A performed direction rides `way` for any action.** The vehicle
+  redirect, "while aboard, a bare direction means driving", is one
+  handler: `on go` with `perform("drive", cart, way)`. The direction
+  used to ride `way` only for go and was cleared for every other
+  action; now a direction-typed argument reaches `way` whatever the
+  action, the object staying the noun, so a verb with a `direction`
+  grammar line receives a performed direction exactly as a typed one.
+  Games without such a perform compile byte for byte as before (arcc
+  2.29.0, Cosmos 1.48.0).
 - **The game's own say in a tie: `prefer`.** Three coins answer to
   "coin", and PAY COIN asked which although the story knew the fare
   was the florin. A game now overrides the `prefer` seam, a block the
@@ -36,13 +45,6 @@ lives in the commit log. The feature roadmap follows below.
   either half switches off game-wide: `constant score_rooms = false`
   or `constant score_things = false`, with `reward` and `scored false`
   working on top as ever (arcc 2.25.0).
-- **What a character shows: `exposed`.** A character's belongings are
-  private on purpose (not Inform's everything-in-scope), and now the
-  visible ones are declared per item: `exposed` on the hat someone
-  wears or the passport they wave puts it in scope, EXAMINE on the
-  character says "Testy is wearing a felt hat and carrying a
-  passport.", and TAKE refuses in the holder's name. Games that expose
-  nothing compile byte for byte as before (arcc 2.24.1, Cosmos 1.42.0).
 
 ## Feature roadmap
 

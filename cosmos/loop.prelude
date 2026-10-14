@@ -487,6 +487,48 @@ block cosmos_perform(act, obj, other)
         change verb_trigger to sv
     return ok
 
+// The twin for a direction handed to any OTHER action: perform("drive",
+// cart, way) from an `on go` while aboard (the vehicle redirect,
+// improvmonster's report, 2026-10-04). The compiler routes a
+// direction-typed argument here, so the direction rides `way` exactly as
+// it does for go and the object stays the noun; the handler of a verb
+// with a `direction` slot then reads what a typed DRIVE CART WEST would
+// have given it. A copy rather than a shared helper so cosmos_perform
+// keeps its bytes; a game without such a perform never references this
+// twin and the pruner drops it.
+block cosmos_perform_dir(act, obj, dir)
+    let sn = noun
+    let ss = second
+    let sw = way
+    let sg = grain
+    let sr = refused
+    let sv = 0
+    if any_verb_read is 1
+        change sv to verb_trigger
+        change verb_trigger to 0
+    change refused to 0
+    change grain to 0
+    change noun to obj
+    change way to dir
+    change second to nothing
+    dispatch(act)
+    if any_after is 1
+        if refused is 0
+            let aft = after_of(act)
+            if aft is not 0
+                dispatch(aft)
+    let ok = 1
+    if refused is not 0
+        change ok to 0
+    change noun to sn
+    change second to ss
+    change way to sw
+    change grain to sg
+    change refused to sr
+    if any_verb_read is 1
+        change verb_trigger to sv
+    return ok
+
 // The declarative verb contract (the verbs overhaul, phase 2): enforce what
 // this action requires of its operands BEFORE any handler runs, so an object's
 // override owns the response and never the validation. The bits come from

@@ -264,7 +264,7 @@ CEILINGS = {
     "features/computed-name.storyarc": 18716,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
     "features/scoring.storyarc": 20952,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
     "features/spans.storyarc": 18816,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
-    "features/vehicles.storyarc": 19828,  # 2026-10-12 repriced (+28): ENTER on a shut container speaks the shut-lid line
+    "features/vehicles.storyarc": 20248,  # 2026-10-14 repriced (+420): the example gains the row verb and the vehicle redirect
     "features/success.storyarc": 19376,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
     "features/edible.storyarc": 19192,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line
     "features/text-slot.storyarc": 19736,  # 2026-10-12 repriced (+32): ENTER on a shut container speaks the shut-lid line

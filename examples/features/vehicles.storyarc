@@ -13,7 +13,13 @@
 //   arcc examples/features/vehicles.storyarc -o vehicles.z5
 //   frotz vehicles.z5
 //
-// TRY: enter boat / x oar / launch / z / z / (drift to the sea)
+// While aboard, a bare direction means rowing: the top-level `on go`
+// hands the typed direction to the ROW action, perform("row", boat, way),
+// and the direction rides `way` for the row handler exactly as a typed
+// ROW SOUTH would (the vehicle redirect). Rowing works only on still
+// water; once adrift, the current has the boat.
+//
+// TRY: enter boat / x oar / south / launch / z / z / (drift to the sea)
 
 game
     title "Vehicles"
@@ -51,6 +57,34 @@ thing oar in boat
 
 verb "launch", "depart", "sail"
     launch
+
+verb "row", "paddle"
+    row
+    row direction
+
+// A bare direction while aboard is a stroke of the oar.
+on go
+    if player in boat
+        perform("row", boat, way)
+    else
+        continue
+
+on row
+    if player is not in boat
+        say "You would want to be in the boat first."
+        stop
+    if way is nothing
+        say "Row which way?"
+        stop
+    let dest = exit_dest(here, way)
+    if dest is nothing
+        say "There is no water that way."
+        stop
+    if adrift is true
+        say "The current has you; the oar only turns the boat."
+        stop
+    say "You row ${way}."
+    convey(boat, dest)
 
 on launch
     if player is not in boat

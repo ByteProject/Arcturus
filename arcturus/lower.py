@@ -1153,9 +1153,29 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         num = wm.action_numbers(ctx.world).get(text)
         if num is None:
             raise LowerError(f"perform: unknown action '{text}'")
-        for i in (2, 1):
-            if len(args) > i:
-                eval_expr(rt, ctx, args[i], Variable(STACK))
+        # A direction argument rides `way` for ANY action, not only go
+        # (the vehicle redirect: perform("drive", cart, way) from an `on
+        # go`). The argument's type is known here (way, last_way, a
+        # direction literal), so the routing is decided at compile time:
+        # such a perform on a non-go action calls the library's twin,
+        # which stores the direction into way and the object as the
+        # noun. go keeps its own path (its one operand IS the way), and a
+        # perform without a direction is lowered exactly as before.
+        routine = "blk_cosmos_perform"
+        operands = args[1:]
+        if text != "go" and any(_static_etype(ctx, a) == "direction"
+                                for a in operands):
+            dirs = [a for a in operands if _static_etype(ctx, a) == "direction"]
+            objs = [a for a in operands if _static_etype(ctx, a) != "direction"]
+            if len(dirs) > 1:
+                raise LowerError(
+                    "perform: two directions; an action takes one `way`",
+                    expr.line)
+            routine = "blk_cosmos_perform_dir"
+            operands = [objs[0] if objs else ast.Nothing(expr.line), dirs[0]]
+        for i in (1, 0):
+            if len(operands) > i:
+                eval_expr(rt, ctx, operands[i], Variable(STACK))
             else:
                 rt.op("push", Const(0))
         # A nested action must not consume the enclosing handler's alter
@@ -1172,7 +1192,7 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
             asave = ctx.alloc_temp()
             rt.op("store", Const(asave), Variable(aslot))
             rt.op("store", Const(aslot), Const(0))
-        rt.op("call_vs", RoutineRef("blk_cosmos_perform"), Const(num),
+        rt.op("call_vs", RoutineRef(routine), Const(num),
               Variable(STACK), Variable(STACK), store=dest)
         if asave is not None:
             rt.op("store", Const(ctx.globals["altered"]), Variable(asave))

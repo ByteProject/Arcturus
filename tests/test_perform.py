@@ -157,3 +157,38 @@ def test_perform_keeps_its_noun_with_alter_in_the_game():
     out = _vm_run(story, ["climb ladder"]).split(">climb")[-1]
     assert "Loft" in out and "Straw." in out    # the move actually happened
     assert "which way" not in out.lower()
+
+
+def test_perform_routes_a_direction_into_way_for_any_action():
+    # improvmonster (2026-10-04): the vehicle redirect. perform("drive",
+    # cart, way) from an `on go` while aboard lost the direction (way was
+    # cleared for every action but go); a direction-typed argument now
+    # rides way for any action, the object staying the noun.
+    src = (
+        'game\n    title "V"\n    start road\n'
+        'room road\n    name "Road"\n    desc "A road."\n    east field\n'
+        'room field\n    name "Field"\n    desc "A field."\n    west road\n'
+        'thing cart of container in road\n    name "cart"\n    words cart\n'
+        '    open\n    fixed\n'
+        'verb "drive"\n    drive noun\n    drive noun direction\n'
+        'on go\n    if player in cart\n        perform("drive", cart, way)\n'
+        '    else\n        continue\n'
+        'on drive\n    if way is nothing\n        say "Drive which way?"\n'
+        '        stop\n    say "Driving ${noun} ${way}."\n'
+        '    convey(cart, exit_dest(here, way))\n'
+    )
+    io = CaptureIO(script=["enter cart", "east", "look"])
+    try:
+        VM(load(_build(src)), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    after = io.text.split(">east")[1]
+    assert "Driving cart east." in after
+    assert "Field" in after
+
+
+def test_perform_without_a_direction_is_byte_identical():
+    # The direction twin is referenced only by a perform that needs it.
+    plain = _build(GAME)
+    again = _build(GAME)
+    assert plain == again

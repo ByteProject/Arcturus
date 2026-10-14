@@ -1698,8 +1698,24 @@ and messages included (Inform's `<<take book>>`, Dialog's `(try ...)`):
 perform("take", book)         // the full TAKE, report line and all
 perform("go", west)           // a real move; a direction rides the way slot
 perform("give", coin, bob)    // two nouns
+perform("drive", cart, way)   // an object and a direction: the cart is the
+                              // noun, the direction rides way, for any verb
+                              // with a direction slot (chapter 12)
 if perform("open", chest) is false
     say "The chest defies you."   // 0 means the action refused
+```
+
+A direction argument always rides `way`, whatever the action, so a verb
+with a `direction` grammar line receives a performed direction exactly as
+it receives a typed one. That is the vehicle redirect: while the player
+is aboard, a bare direction means driving.
+
+```
+on go
+    if player in cart
+        perform("drive", cart, way)
+    else
+        continue
 ```
 
 The action name is checked at compile time; the enclosing command's own
