@@ -87,7 +87,7 @@ def test_reachable_differs_from_visible_through_glass(tmp_path):
         'thing jar of container in lab\n    name "jar"\n    clear\n'
         '    openable\n    fixed\n'
         'thing coin in jar\n    name "coin"\n'
-        'verb "probe"\n    probe noun\n'
+        'verb "probe"\n    reachagnostic\n    probe noun\n'
         'on probe\n'
         '    if noun is visible\n'
         '        if noun is not reachable\n'

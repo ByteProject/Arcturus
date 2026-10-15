@@ -1230,7 +1230,12 @@ lid:
 
 - An **open** container lists everything inside, and marks each content `seen`.
 - A **`clear`** container (a glass jar) lists everything, open or shut, since its
-  contents are always in view.
+  contents are always in view. In view is not in reach: shut, it stops every
+  touching action at the lid ("You'll have to open the jar first."), and so
+  does a closed opaque box whose remembered contents are named. EXAMINE
+  still looks, as any `reachagnostic` verb does. This sealed gate runs
+  before any handler, beside the `beyond` reach gate, and costs nothing in
+  a game without an openable container.
 - A **closed, opaque** container lists only the contents the player has already
   `seen`. A content the player has never seen is not listed at all, and is not
   referable: there is no x-raying a shut box.
@@ -2796,10 +2801,23 @@ gold coin: Done.
 rusty nail: Done.
 ```
 
+A one-noun command takes a list the same way, swept and labeled alike,
+with no paragraph break between the items:
+
+```
+> take apple and key
+apple: You take the apple with you.
+key: You take the key with you.
+
+> drop apple and key
+apple: Down it goes.
+key: Down it goes.
+```
+
 The "and" chains instead, as it always did, when a verb follows it ("take
-gem and put coin in box") or when the verb takes one noun ("take gem and
-coin", the verb borrow). Each item is checked on its own: "give coin
-and gem to bob" stops at the gem you are not carrying.
+gem and put coin in box"). Each item is checked on its own: "give coin
+and gem to bob" stops at the gem you are not carrying, and so does a
+one-noun list at its first refusal.
 
 ### What a verb requires
 
@@ -3618,15 +3636,15 @@ the buffer's length byte at the first chain word (the tail stays where it was
 typed), runs the command, then blanks the consumed part, restores the length,
 and re-tokenizes. Nothing is copied and no second buffer exists.
 
-NOUN LISTS ride the same machinery: a chained segment with no verb of its
-own borrows the previous command's verb, so "take lamp and box" runs as take
-lamp, take box, one full turn each, and "drop the sword and the shield" works
-the way a player expects. Only a segment that starts with something noun-like
-borrows; anything else keeps the honest "those words don't add up to
-anything", and a bare noun typed on its own line is still no command. Since
-the list words are the chain words, a language pack localizes noun lists
-automatically. Lists distribute over ONE-noun verbs; "give x and y to z"
-stays out (v1).
+NOUN LISTS are told apart here: a chain word followed by a plain noun
+word (an article skipped) is not a boundary, so "take lamp and box" and
+"drop the sword and the shield" reach the resolver whole and run as a
+list, each item its own full turn in the labeled sweep manner (chapter 12,
+noun lists). A segment that starts with anything else still chains, and
+a verb-less one borrows the previous command's verb; a truly unknown word
+keeps the honest "those words don't add up to anything", and a bare noun
+typed on its own line is still no command. Since the list words are the
+chain words, a language pack localizes noun lists automatically.
 
 ### Positional grammar
 

@@ -308,6 +308,37 @@ block beyond_guard_second()
 // refusal wording all live where they always did. Folds away whole
 // (any_beyond) in a game that never sets beyond. Returns 1 refused,
 // message spoken.
+// THE SEALED GATE, the reach gate's twin for the shut lid (auraes's
+// vitrine, 2026-10-13): a closed clear container shows its lantern and a
+// remembered one still names it, and either way the hand must not pass
+// the lid. Sight and touch were already split in reach_blocker, which only
+// TAKE consulted; now every touching action meets it here, before any
+// handler, with take's own line ("You'll have to open the vitrine
+// first."). TAKE keeps its own probe path, where foresight's repair opens
+// the lid before refusing; reachagnostic verbs pass as they do the reach
+// gate. Folds away whole (any_sealed) in a game with no openable
+// container.
+block check_sealed(act)
+    if act is action_id("take")
+        return 0
+    let ex = reach_of(act)
+    if ex is 3
+        return 0
+    // Through the sealed seam, so foresight's repair (open the lid on a
+    // certain promise, then carry on) runs here exactly as it does for
+    // the take; the default seam refuses with take's line.
+    if noun is not nothing
+        if ex mod 2 is 0
+            if reach_blocker(noun) is not nothing
+                if take_sealed_refused(noun) is 1
+                    return 1
+    if second is not nothing
+        if ex < 2
+            if reach_blocker(second) is not nothing
+                if take_sealed_refused(second) is 1
+                    return 1
+    return 0
+
 block check_reach(act)
     let ex = reach_of(act)
     if ex is 3

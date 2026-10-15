@@ -486,6 +486,7 @@ movement), and `arcc --extract` shows every use of the rest.
 | `any_scenery_contents` | any_scenery_contents(): 1 when the game opts in with `constant scenery_contents = 1` (the arc_mode manner: the constant folds by name where declared; this default covers its absence). |
 | `any_scoperoom` | any_scoperoom(): 1 when the backstage scope room was seeded (some object is placed `in scope`), so the scope hook folds away otherwise. |
 | `any_scored` | any_scored(): 1 when anything declares `scored`, so the award hooks in take and go fold away in a scoreless game. |
+| `any_sealed` | any_sealed(): 1 if any openable container exists, so the sealed gate (a shut lid between the hand and the thing) folds away otherwise. |
 | `any_shiftable` | any_shiftable(): 1 if anything can be pushed between rooms, so the push-travel path folds away otherwise. |
 | `any_sight` | any_sight(): 1 if any non-movable object uses the sight form (`spans`); with it 0, is_presence needs no marker read. |
 | `any_spans` | any_spans(): the compile-time spans flag (1 or 0). |

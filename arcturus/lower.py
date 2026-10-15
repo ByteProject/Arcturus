@@ -99,7 +99,7 @@ INTRINSICS = frozenset({
     "any_maniacswap", "any_debug",
     "patrol_addr", "patrol_count", "territory_addr", "territory_count",
     "spans_addr", "spans_count", "any_spans", "any_doors", "any_named",
-    "any_pluribus", "any_beyond", "any_death", "any_alter", "any_grains",
+    "any_pluribus", "any_beyond", "any_sealed", "any_death", "any_alter", "any_grains",
     "any_binary",
     "any_allwords", "any_tagged", "any_scored", "any_scoperoom", "scope_room",
     # any_binds folds the table matcher's bound-slot bookkeeping away in
@@ -1675,6 +1675,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
     elif name == "any_beyond":
         # any_beyond(): 1 if any object is beyond; the touch guards fold.
         _place(rt, Const(_any_beyond(ctx)), dest)
+    elif name == "any_sealed":
+        # any_sealed(): 1 if any openable container exists, so the sealed
+        # gate (a shut lid between the hand and the thing) folds away otherwise.
+        _place(rt, Const(_any_sealed(ctx)), dest)
     elif name == "any_binary":
         # any_binary(): 1 if any object is binary (or its alias switchable),
         # so the switch contract folds away in a game with nothing to flip.
@@ -2501,6 +2505,18 @@ def _any_binary(ctx) -> int:
     the switchable alias, the same property). The switch contract and the
     default flip handlers fold away otherwise."""
     return 1 if any("binary" in o.props for o in ctx.world.objects.values()) else 0
+
+
+def _any_sealed(ctx) -> int:
+    """The compile-time flag behind the sealed gate: 1 when some object or
+    kind is an openable container, the only thing reach_blocker can ever
+    answer with."""
+    w = ctx.world
+    for o in list(w.objects.values()) + list(w.kinds.values()):
+        chain = getattr(o, "chain", ())
+        if "container" in chain and "openable" in o.props:
+            return 1
+    return 0
 
 
 def _any_beyond(ctx) -> int:
@@ -4502,6 +4518,8 @@ def _static_value(ctx, expr):
         return _any_alter(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_beyond":
         return _any_beyond(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_sealed":
+        return _any_sealed(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_binary":
         return _any_binary(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_grains":

@@ -63,10 +63,23 @@ def test_a_list_still_chains_afterwards():
     assert "Yard" in out
 
 
-def test_single_noun_lists_ride_the_chain_untouched():
+def test_single_noun_lists_sweep_like_two_noun_ones():
+    # Stefan's ruling (2026-10-15, auraes's transcript): a one-noun verb
+    # takes a list too, swept and labeled exactly like the two-noun list,
+    # no paragraph break between the items.
     out = _run(["take gem and coin"])
-    assert "You take the" in out                       # the gem, via take
-    assert "already have the gold coin" in out    # the borrowed verb
+    assert "gem: You take the" in out
+    assert "gold coin: You already have the gold coin" in out
+    assert "\n\ngold coin:" not in out
+
+
+def test_one_noun_list_stops_at_a_refusal_and_a_verb_still_chains():
+    out = _run(["take gem and box and coin", "drop gem and go north"])
+    assert "gem: You take the" in out
+    assert "box:" in out
+    assert "coin:" not in out.split("box:")[1].split(">")[0]
+    assert "gem: Down it goes." not in out      # a verb after and is a chain, not a list
+    assert "Down it goes." in out and "Yard" in out
 
 
 def test_an_unresolvable_item_stops_the_list():

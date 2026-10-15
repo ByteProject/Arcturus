@@ -242,3 +242,38 @@ def test_entering_a_shut_container_names_the_lid():
         pass
     assert "The crate is shut. You'll have to open it first." in io.text.split(">enter crate")[1]
     assert "You can't get inside the rock." in io.text.split(">enter rock")[1]
+
+
+def test_the_sealed_gate_stops_every_touch_through_a_shut_lid():
+    # auraes's vitrine (2026-10-13): a closed clear container showed its
+    # lantern and let SWITCH ON and PUSH reach through the glass; only TAKE
+    # consulted the blocker. The sealed gate now refuses every touching
+    # action with take's line; EXAMINE (reachagnostic) still looks.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'game\n    title "G"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "x"\n    north yard\n'
+        'room yard\n    name "Yard"\n    desc "y"\n'
+        'thing vitrine of container in hall\n    name "vitrine"\n    words vitrine\n'
+        '    clear\n    openable\n    open false\n    fixed\n'
+        'thing lantern in vitrine\n    name "lantern"\n    words lantern\n'
+        '    binary\n    shiftable\n    desc "Brass."\n'
+    )
+    io = CaptureIO(script=["turn lantern on", "push lantern north",
+                           "examine lantern", "open vitrine", "turn lantern on"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert "open the vitrine first" in out.split(">turn lantern on")[1]
+    assert "open the vitrine first" in out.split(">push lantern north")[1]
+    assert "Brass." in out.split(">examine lantern")[1]
+    assert "You switch the lantern on." in out.split(">turn lantern on")[2]

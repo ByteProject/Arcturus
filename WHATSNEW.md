@@ -6,6 +6,15 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Lists for every verb, and the lid stops the hand.** TAKE APPLE AND
+  KEY is now one command with two items, swept and labeled exactly like
+  PUT KEY AND APPLE IN VITRINE ("apple: You take the apple with you."),
+  no paragraph break between them, stopping at the first refusal; a
+  verb after "and" still chains. And a shut lid now stops every touching
+  action, not only TAKE: a closed clear vitrine shows its lantern and
+  SWITCH ON answers "You'll have to open the vitrine first."; EXAMINE
+  still looks. Container games reprice; games without an openable
+  container are byte-identical on the gate (arcc 2.30.0, Cosmos 1.49.0).
 - **A performed direction rides `way` for any action.** The vehicle
   redirect, "while aboard, a bare direction means driving", is one
   handler: `on go` with `perform("drive", cart, way)`. The direction
@@ -39,13 +48,6 @@ lives in the commit log. The feature roadmap follows below.
   Smith?"`, offering only the topics the player has been told about; the
   next line answers it or simply runs as the next command (arcc 2.26.0,
   Cosmos 1.44.0).
-- **Scoring, one half at a time.** Auto-scoring stays what it is (five
-  points on a room's first visit, five on a thing's first take, once
-  each, the maximum and the ranks summed by the compiler), and now
-  either half switches off game-wide: `constant score_rooms = false`
-  or `constant score_things = false`, with `reward` and `scored false`
-  working on top as ever (arcc 2.25.0).
-
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus

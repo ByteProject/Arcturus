@@ -320,6 +320,11 @@ block resolve_objects()
                     if has_extra_words(va) is 1
                         change parse_fault to 2
                 return 1
+    // A chain word inside the phrase: a noun list for a one-noun verb,
+    // swept item by item by the loop (list_in, the agnostic skeleton).
+    if word_count > 1
+        if list_in(1, word_count) is 1
+            return 1
     change noun to match_noun
     // An ambiguity fault (3) stands: falling through to the grain and
     // unseen checks would overwrite the honest "which do you mean".
