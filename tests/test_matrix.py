@@ -462,3 +462,41 @@ def test_direction_matrix_seed_compiles_and_runs():
     words = [w for w in io.text.split(">probe")[-1].split()
              if w in ("north", "south", "east", "west")]
     assert len(words) == 5
+
+
+def test_mutators_take_a_local_holding_a_matrix():
+    # improvmonster (2026-10-14): a kind whose members each own a matrix in
+    # a property, mutated from a shared handler through `let m = self.prop`.
+    # The granule's blocks always took a runtime offset; the compiler now
+    # hands them a local or parameter as readily as a name.
+    src = (
+        'summon.matrix\n'
+        'game\n    title "O"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "x"\n'
+        'matrix doug_notes capacity 2 of object\n'
+        'matrix ann_notes capacity 2 of object\n'
+        'thing pebble in hall\n    name "pebble"\n    words pebble\n'
+        'thing shell in hall\n    name "shell"\n    words shell\n'
+        'kind collector of character\n'
+        '    on examine\n'
+        '        let m = self.notes\n'
+        '        if append pebble to m is false\n'
+        '            say "Full."\n'
+        '        else\n'
+        '            say "Noted ${calculate(m)}."\n'
+        '    on attack\n'
+        '        let m = self.notes\n'
+        '        remove pebble from m\n'
+        '        clear m\n'
+        '        say "Wiped ${calculate(m)}."\n'
+        'thing doug of collector in hall\n    name "Doug"\n    named\n'
+        '    words doug\n    notes doug_notes\n'
+        'thing ann of collector in hall\n    name "Ann"\n    named\n'
+        '    words ann\n    notes ann_notes\n'
+    )
+    out = _run(_build(src), ["x doug", "x doug", "x doug", "x ann", "attack doug", "x doug"])
+    parts = out.split(">x doug")
+    assert "Noted 1." in parts[1] and "Noted 2." in parts[2] and "Full." in parts[3]
+    assert "Noted 1." in out.split(">x ann")[1]        # Ann's own matrix, not Doug's
+    assert "Wiped 0." in out.split(">attack doug")[1]
+    assert "Noted 1." in parts[4]

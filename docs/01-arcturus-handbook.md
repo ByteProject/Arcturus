@@ -333,7 +333,26 @@ from zeros` (a catalog of zeros) to prefill; then `change entry`
 mutates them.
 
 Like a catalog, a matrix passes to a block as an ordinary value, and
-`calculate`, `entry`, `last`, and `dice` all work on the parameter inside.
+`calculate`, `entry`, `last`, and `dice` all work on the parameter inside,
+as do the mutators below: `append v to m` takes a local or parameter
+holding a matrix as readily as a declared name. So a kind can give each of
+its members a matrix of its own in a property and mutate "mine" from a
+shared handler:
+
+```
+matrix doug_notes capacity 10 of object
+
+kind collector of character
+    on examine
+        let m = self.notes
+        append pebble to m
+
+thing doug of collector in hall
+    name "Doug"
+    named
+    notes doug_notes
+```
+
 `for each` is the one read that needs the matrix NAMED IN PLACE: over a
 block parameter the compiler cannot tell a matrix from an object, and the
 loop would walk the object tree instead (on an interpreter that checks,

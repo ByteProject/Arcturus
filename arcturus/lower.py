@@ -3766,14 +3766,29 @@ def _matrix_op(rt, ctx, s, dest):
     name = s.target
     off = ctx.layout.matrices.get(name) if ctx.layout is not None else None
     mx = ctx.world.matrices.get(name)
-    if off is None or mx is None:
+    mop = None      # the matrix operand: a folded constant, or a value read
+    tm = None
+    if off is not None and mx is not None:
+        mop = Const(off)
+    elif name in ctx.named or name in ctx.globals:
+        # A matrix held in a local, a block parameter, or a global
+        # (improvmonster's owner kind, 2026-10-14: `let m =
+        # self.owns_matrix` then `append x to m`). The granule's blocks
+        # take the matrix as a runtime word offset anyway, the capacity
+        # riding its header, so a value is as good as a name here; only
+        # the compile-time checks a name affords (the load fit) are left
+        # to the granule's own runtime guard.
+        mop, tm = _operand(rt, ctx, ast.Name(name, s.line))
+    else:
         raise LowerError(
             f"'{name}' is not a matrix (append / remove / insert / clear / "
-            f"load need a matrix; declare one with summon.matrix)", s.line)
+            f"load need a matrix, or a local or parameter holding one; "
+            f"declare one with summon.matrix)", s.line)
     base = _catalog_base(ctx)
     if s.op == "clear":
         # count := 0; the cells are simply left as dead spare.
-        rt.op("storew", base, Const(off), Const(0))
+        rt.op("storew", base, mop, Const(0))
+        _free(ctx, tm)
         if dest is not None:
             _place(rt, Const(0), dest)
         return
@@ -3781,25 +3796,25 @@ def _matrix_op(rt, ctx, s, dest):
     if s.op == "append":
         vop, tv = _operand(rt, ctx, s.value)
         _matrix_call(rt, ctx, "blk_matrix_append",
-                     [Const(off), vop], dest)
+                     [mop, vop], dest)
         _free(ctx, tv)
     elif s.op == "insert":
         iop, ti = _operand(rt, ctx, s.index)
         vop, tv = _operand(rt, ctx, s.value)
         _matrix_call(rt, ctx, "blk_matrix_insert",
-                     [Const(off), iop, vop], dest)
+                     [mop, iop, vop], dest)
         _free(ctx, tv)
         _free(ctx, ti)
     elif s.op == "remove":
         if s.index is not None:
             iop, ti = _operand(rt, ctx, s.index)
             _matrix_call(rt, ctx, "blk_matrix_remove_at",
-                         [Const(off), iop, swap], dest)
+                         [mop, iop, swap], dest)
             _free(ctx, ti)
         else:
             vop, tv = _operand(rt, ctx, s.value)
             _matrix_call(rt, ctx, "blk_matrix_remove_val",
-                         [Const(off), vop, swap], dest)
+                         [mop, vop, swap], dest)
             _free(ctx, tv)
     elif s.op == "load":
         src = ctx.layout.catalogs.get(s.value.ident) if ctx.layout is not None else None
@@ -3808,15 +3823,16 @@ def _matrix_op(rt, ctx, s, dest):
                 f"load {name} from {s.value.ident}: '{s.value.ident}' is not a "
                 f"catalog", s.line)
         cat = ctx.world.catalogs.get(s.value.ident)
-        if cat is not None and len(cat.values) > mx.capacity:
+        if mx is not None and cat is not None and len(cat.values) > mx.capacity:
             raise LowerError(
                 f"load {name} from {s.value.ident}: the catalog has "
                 f"{len(cat.values)} entries but the matrix capacity is "
                 f"{mx.capacity}", s.line)
         _matrix_call(rt, ctx, "blk_matrix_load",
-                     [Const(off), Const(src)], dest)
+                     [mop, Const(src)], dest)
     else:
         raise LowerError(f"unknown matrix op '{s.op}'", s.line)
+    _free(ctx, tm)
 
 
 def _matrix_2d_index(rt, ctx, margs):
