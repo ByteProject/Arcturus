@@ -255,10 +255,12 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
                         key = wm.after_key(ev) if h.after else ev
                         band_groups.setdefault(key, []).append((hname[id(h)], h))
             for lst in band_groups.values():
-                # The movement fallback yields to every specific handler
-                # (docs/01 chapter 8: genuine overrides always win), whatever
-                # the declaration order; the sort is stable for the rest.
-                lst.sort(key=lambda p: 1 if _pattern_other(p[1]) else 0)
+                # Most specific first within the band too (Stefan's ruling,
+                # 2026-10-17): a patterned or `when`-guarded handler runs
+                # before its plain sibling whatever the declaration order,
+                # and the movement fallback yields to everything (docs/01
+                # chapter 8); the sort is stable for the rest.
+                lst.sort(key=lambda p: _specificity(p[1]))
             band_others = [(hname[id(h)], h) for h in owner_handlers
                            if "other" in h.events and not h.pattern and not h.after]
             band_after = [(hname[id(h)], h) for h in owner_handlers
@@ -492,6 +494,11 @@ def gen_react_free(world: wm.World, actions: dict, registry, layout=None, gmap=N
         # registered; skip any free handler without a routine.
         if id(h) in hname:
             groups.setdefault(action, []).append((hname[id(h)], h))
+    for lst in groups.values():
+        # Origin first (the game before a granule before the library), then
+        # most specific within an origin, as in the object bands.
+        lst.sort(key=lambda p: (_ORIGIN_RANK.get(getattr(p[1], "origin", None), 0),)
+                 + _specificity(p[1]))
     others = [(hname[id(h)], h) for h in _free_other_handlers(world) if id(h) in hname]
     after_others = [(hname[id(h)], h)
                     for h in _free_after_other_handlers(world) if id(h) in hname]
@@ -515,6 +522,20 @@ def _pattern_other(h: wm.Handler) -> bool:
     """Does this handler's pattern name the reserved `other` operand (the
     per-room movement fallback, docs/01 chapter 8)?"""
     return any("other" in getattr(item, "names", ()) for item in h.pattern)
+
+
+def _specificity(h: wm.Handler) -> tuple:
+    """The order of handlers for ONE action at one level (an object's own,
+    a kind's, the free rules): a lower key runs first. The movement fallback
+    (`on go other`) last of all; a handler with an operand pattern before a
+    plain one; a `when`-guarded handler before an unguarded sibling, so the
+    general case may be written first and its exception after it (fos13's
+    question and EdwardianDuck's finding, 2026-10-16). Stable among equals,
+    so declaration order still decides between two guarded handlers."""
+    other = _pattern_other(h)
+    return (1 if other else 0,
+            0 if (h.pattern and not other) else 1,
+            0 if h.when is not None else 1)
 
 
 def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None, afloor=None, dirnames=frozenset(), event_names=wm.EVENT_NAMES, mfloor=None, event_groups=None) -> Routine:

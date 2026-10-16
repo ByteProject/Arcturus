@@ -848,7 +848,11 @@ chain. Re-declaring a property overrides the inherited default. For handlers,
 the most specific runs first: the instance's own, then its kind's, then each
 parent, then the Cosmos default. Each handler either ends, which consumes the
 action so no more general handler or default runs, or ends with `continue` to
-pass control to the next handler up the chain.
+pass control to the next handler up the chain. The same rule orders two
+handlers for one action at the same level: one with an operand pattern
+(`on go east`) runs before the plain one, and one with a `when` guard runs
+before its unguarded sibling, whichever was written first; between two
+guarded ones, declaration order decides.
 
 Multiple-parent composition (a thing that is both a container and a
 supporter) is a deliberate non-goal for v1; model it as a kind chain, or say
@@ -2243,7 +2247,11 @@ on push, pull lever
 ```
 
 A `when` guard restricts a handler to a condition: it applies only while the
-condition holds, and otherwise defers to the next handler up the chain.
+condition holds, and otherwise defers to the next handler up the chain. A
+guarded handler is the more specific one, so it runs before an unguarded
+handler for the same action at the same level, in whichever order the two
+are written: a free `on dig` and, below it, `on dig when here is not
+beach` with a refusal, limit digging to the beach.
 
 ```
 on push slab when player holds crowbar

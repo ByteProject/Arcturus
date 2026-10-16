@@ -86,3 +86,41 @@ def test_dispatcher_routes_to_noun_handler(tmp_path):
     # The dispatcher read each noun's react routine and fired its own handler.
     assert "Red pulled." in out
     assert "Blue pulled." in out
+
+
+def test_a_guarded_sibling_runs_first_whatever_the_order():
+    # fos13's question and EdwardianDuck's finding (2026-10-16): two free
+    # rules for one action ran in declaration order, so a `when`-guarded
+    # refusal written after the plain rule never ran. Most specific wins at
+    # the same level too, for free rules and for an object's own handlers.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'game\n    title "W"\n    start yard\n'
+        'room yard\n    name "Yard"\n    desc "y"\n    north sheds\n'
+        'room sheds\n    name "Sheds"\n    desc "s"\n    south yard\n'
+        'thing spade in yard\n    name "spade"\n    words spade\n'
+        '    on examine\n        say "A spade."\n'
+        '    on examine when here is sheds\n        say "A spade, in the dark."\n'
+        'verb "fnorkle"\n    fnorkle\n'
+        'on fnorkle\n    say "FNORKLE!"\n'
+        'on fnorkle when here is not sheds\n    say "Only in sheds."\n'
+    )
+    io = CaptureIO(script=["fnorkle", "take spade", "x spade", "north", "fnorkle", "x spade"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    f = out.split(">fnorkle")
+    assert "Only in sheds." in f[1] and "FNORKLE!" not in f[1].split(">")[0]
+    assert "FNORKLE!" in f[2]
+    x = out.split(">x spade")
+    assert "A spade." in x[1] and "in the dark" not in x[1].split(">")[0]
+    assert "A spade, in the dark." in x[2]
