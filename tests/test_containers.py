@@ -277,3 +277,49 @@ def test_the_sealed_gate_stops_every_touch_through_a_shut_lid():
     assert "open the vitrine first" in out.split(">push lantern north")[1]
     assert "Brass." in out.split(">examine lantern")[1]
     assert "You switch the lantern on." in out.split(">turn lantern on")[2]
+
+
+def test_contents_line_false_keeps_examine_to_the_description():
+    # improvmonster (2026-10-14), the opposite of auraes's cheese: a story
+    # whose descriptions own the contents sentence switches it off game-wide
+    # and composes name_contents where it wants it. The default build is
+    # byte-identical with the constant on.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    base = (
+        'game\n    title "H"\n    start r\n'
+        'room r\n    name "Somewhere"\n    desc "x"\n'
+        'thing box of container in r\n    name "box"\n    words box\n'
+        '    open\n    fixed\n    desc "A plain box."\n'
+        'thing crate of container in r\n    name "crate"\n    words crate\n    open\n'
+        'thing ring in box\n    name "ring"\n    words ring\n'
+        'thing nail in crate\n    name "nail"\n    words nail\n'
+    )
+    def play(src):
+        io = CaptureIO(script=["examine box", "examine crate"])
+        try:
+            VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+               io).run(max_steps=20_000_000)
+        except IndexError:
+            pass
+        return io.text
+    on = play(base)
+    assert "In the box you can see a ring." in on.split(">examine box")[1]
+    off = play(base + "constant contents_line = false\n")
+    b = off.split(">examine box")[1].split(">")[0]
+    assert "A plain box." in b and "you can see" not in b
+    c = off.split(">examine crate")[1]
+    assert "rewards a closer look" in c and "nail" not in c
+    composed = play(base.replace('    desc "A plain box."\n',
+                                 '    desc block\n        show("A plain box, holding ")\n'
+                                 '        name_contents(self)\n        say "."\n')
+                    + "constant contents_line = false\n")
+    assert "A plain box, holding a ring." in composed.split(">examine box")[1]
+    plain = generate(analyze(cosmos.combined_program(parse(base))))
+    same = generate(analyze(cosmos.combined_program(parse(base + "constant contents_line = true\n"))))
+    assert plain == same

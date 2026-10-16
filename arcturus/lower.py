@@ -210,6 +210,9 @@ INTRINSICS = frozenset({
     # any_remember: the closed-holder memory of the knowledge model, on
     # unless `constant remember_contents = false`.
     "any_remember",
+    # any_contents_line: the contents sentence EXAMINE adds under a holder's
+    # description, on unless `constant contents_line = false`.
+    "any_contents_line",
     # any_compactrooms folds the blank line above a room title away when
     # the game sets `constant compact_rooms = 1`.
     "any_compactrooms",
@@ -1776,6 +1779,10 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # any_exposed_line(): 1 unless the game writes constant exposed_line = false
         # (the automatic belongings sentence after EXAMINE on a character).
         _place(rt, Const(_switch_constant_on(ctx, "exposed_line")), dest)
+    elif name == "any_contents_line":
+        # any_contents_line(): 1 unless the game writes constant contents_line = false
+        # (EXAMINE on a container or supporter then prints its description alone).
+        _place(rt, Const(_switch_constant_on(ctx, "contents_line")), dest)
     elif name == "any_remember":
         # any_remember(): 1 unless the game writes constant remember_contents = false
         # (a closed opaque holder then lists nothing, seen or not).
@@ -4654,6 +4661,8 @@ def _static_value(ctx, expr):
         return _any_prop(ctx.world, "exposed")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_exposed_line":
         return _switch_constant_on(ctx, "exposed_line")
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_contents_line":
+        return _switch_constant_on(ctx, "contents_line")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_remember":
         return _switch_constant_on(ctx, "remember_contents")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_compactrooms":

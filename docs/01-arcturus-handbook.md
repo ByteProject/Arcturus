@@ -1293,7 +1293,13 @@ table is named, what is in it is not, until the player looks closer, and
 EXAMINE on any holder names what is on or in it the same way, two levels
 down from there ("In the box you can see a cheeseboard with a cheese on
 it."; a closed holder names what the player remembers inside), so a
-closer look always reaches the next pair of levels.
+closer look always reaches the next pair of levels. A story whose
+descriptions should own that sentence writes `constant contents_line =
+false`, which keeps it out of every EXAMINE; the prose then composes
+`name_contents(self)` where it wants the contents told ("Rusting on the
+rack you find ", the list, the period), and the knowledge model, scope
+and the room listing are untouched. The scenery pass (`scenery_contents`)
+is its own switch either way.
 
 
 Knowledge sharpens the parser's answers too. Once the player has seen the ring,

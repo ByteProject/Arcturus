@@ -451,6 +451,7 @@ movement), and `arcc --extract` shows every use of the rest.
 | `any_components` | any_components(): 1 when anything declares `component` (object or kind default), so the part-of hooks fold away otherwise. |
 | `any_concealed` | any_concealed(): 1 when anything is ever concealed (declared or set in play), so gain's noticed-now clear folds away otherwise. |
 | `any_container_caps` | any_container_caps(): 1 when any object or kind declares the item_cap property, so the insertion ceiling folds away unused. |
+| `any_contents_line` | any_contents_line(): 1 unless the game writes constant contents_line = false (EXAMINE on a container or supporter then prints its description alone). |
 | `any_dark` | any_dark(): 1 when darkness can happen in this game (a room without `lit`, or a statement that clears `lit` at run time), else 0, so the darkness branch of the draw path folds away in an always-lit game. |
 | `any_death` | any_death(): 1 if any `death` statement exists; the post-mortem's UNDO machinery folds away in a game whose endings all `finish`. |
 | `any_debug` | any_debug(): 1 when the debug granule is summoned (its reach fold). |

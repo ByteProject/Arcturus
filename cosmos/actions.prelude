@@ -577,10 +577,11 @@ on examine
             stop
         // A holder with nothing to say for itself but something in it
         // names the contents alone, no "nothing special" first.
-        if noun is container or noun is supporter
-            if listable_count(noun) > 0
-                holder_line(noun)
-                stop
+        if any_contents_line is 1
+            if noun is container or noun is supporter
+                if listable_count(noun) > 0
+                    holder_line(noun)
+                    stop
         msg_nothing_special
         if any_exposed is 1
             if any_exposed_line is 1
@@ -592,9 +593,13 @@ on examine
     // A closer look names what is on or in a holder, two levels like the
     // room listing, so what the listing left unnamed is found here (docs/01
     // chapter 6): "In the box you can see a cheeseboard with a cheese on
-    // it.", or the closed holder's remembered contents.
-    if noun is container or noun is supporter
-        holder_line(noun)
+    // it.", or the closed holder's remembered contents. `constant
+    // contents_line = false` keeps the sentence out of every examine (a
+    // field request, 2026-10-14); the story then composes name_contents
+    // into its own prose where it wants the contents told.
+    if any_contents_line is 1
+        if noun is container or noun is supporter
+            holder_line(noun)
     // A character's exposed belongings follow its description (docs/01
     // chapter 3): "Testy is wearing a felt hat and carrying a passport."
     // `constant exposed_line = false` keeps this sentence out of every
