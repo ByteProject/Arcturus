@@ -2297,7 +2297,16 @@ class Analyzer:
                         owned or getattr(h, "owner", None) is not None)
         if when is not None:
             self._check_condition(when, set(), line)
-        self._check_body(body, set())
+        # A `return` in a story's action handler is refused (fos13, 2026-10-16):
+        # the handler's value is the dispatcher's consumed flag, so `return
+        # nothing` read as "hand the action on" and a blocked exit silently
+        # let the player through. Library and granule handlers keep their
+        # own idiom by origin (none uses it today).
+        self._in_game_handler = getattr(h, "origin", None) is None
+        try:
+            self._check_body(body, set())
+        finally:
+            self._in_game_handler = False
 
     def _check_operand(self, name: str, line: int, owned: bool = False) -> None:
         w = self.world
@@ -2389,6 +2398,14 @@ class Analyzer:
             if s.message is not None:
                 self._check_expr(s.message, locals_)
         elif isinstance(s, ast.Return):
+            if getattr(self, "_in_game_handler", False):
+                raise self._error(
+                    "a handler ends with `stop` (your lines are all that "
+                    "happens) or `continue` (then the normal action runs), "
+                    "not `return`: a handler's return value is the "
+                    "dispatcher's own flag, and `return nothing` hands the "
+                    "action on as if you had written `continue`. `return` "
+                    "belongs in blocks", s.line)
             if s.value is not None:
                 self._check_expr(s.value, locals_)
         elif isinstance(s, ast.ExprStmt):

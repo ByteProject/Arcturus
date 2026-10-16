@@ -153,6 +153,23 @@ class Parser:
     def expect_newline(self) -> None:
         self.expect(T.NEWLINE, "end of line")
 
+    def expect_condition_end(self) -> None:
+        """The end of an `if`/`while` condition. A name or `not` standing
+        where the line should end is almost always a state test missing its
+        `is` (`if house not visited`, `if door open`; fos13's report,
+        2026-10-16), so the error names the spelling instead of the bare
+        "expected end of line"."""
+        if self.cur.kind == T.NEWLINE:
+            self.advance()
+            return
+        if self.cur.kind == T.NAME or self.cur.is_kw("not"):
+            raise self._error(
+                f"expected end of line after the condition, got "
+                f"{self._describe(self.cur)}: a state test spells it with "
+                f"`is`, as in `if house is visited` or `if house is not "
+                f"visited`")
+        self.expect(T.NEWLINE, "end of line")
+
     # -- entry -------------------------------------------------------------
 
     def parse(self) -> ast.Program:
@@ -2020,7 +2037,7 @@ class Parser:
         line = self.cur.line
         self.expect_kw("if")
         cond = self.parse_expr()
-        self.expect_newline()
+        self.expect_condition_end()
         body = self.parse_stmt_block()
         clauses = [ast.IfClause(cond, body, line)]
         while self.check_kw("else"):
@@ -2028,7 +2045,7 @@ class Parser:
             self.advance()
             if self.accept_kw("if"):
                 econd = self.parse_expr()
-                self.expect_newline()
+                self.expect_condition_end()
                 ebody = self.parse_stmt_block()
                 clauses.append(ast.IfClause(econd, ebody, eline))
             else:
@@ -2042,7 +2059,7 @@ class Parser:
         line = self.cur.line
         self.expect_kw("while")
         cond = self.parse_expr()
-        self.expect_newline()
+        self.expect_condition_end()
         body = self.parse_stmt_block()
         return ast.While(cond, body, line)
 

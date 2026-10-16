@@ -1762,6 +1762,11 @@ one. The two spell alike: `show "text"` beside `say "text"` (the call form
 `stop` ends the current handler or block immediately; in an action handler
 that also consumes the action (chapter 11). `continue` ends the current
 handler and passes the action to the next, more general handler (chapter 11).
+`return` belongs in blocks, never in a handler: a handler's value is the
+dispatcher's own flag, so the compiler refuses it there and names the two
+words above. A state test is always spelled with `is` (`if house is not
+visited`); a name or `not` where the condition should end is reported as
+exactly that.
 
 `alter` REGISTERS an action's report in your own words, keeping the
 default MECHANICS: give your line (or compose one under `alter block`,

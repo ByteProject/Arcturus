@@ -461,3 +461,14 @@ def test_decimal_literals_are_tenths():
     assert c.value.value == 21 and c.value.tenths is True
     with pytest.raises(ArcError, match="one decimal place"):
         parse('constant heavy = 2.15\n')
+
+
+def test_condition_missing_is_names_the_spelling():
+    # fos13 (2026-10-16): `if house not visited` is a state test missing its
+    # `is`; the error says so instead of the bare "expected end of line".
+    with pytest.raises(ArcError) as exc:
+        parse("on go east\n    if house not visited\n        stop\n")
+    assert "spells it with `is`" in str(exc.value)
+    with pytest.raises(ArcError) as exc:
+        parse("on go east\n    if house visited\n        stop\n")
+    assert "spells it with `is`" in str(exc.value)

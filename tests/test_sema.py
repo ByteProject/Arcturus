@@ -255,3 +255,19 @@ def test_object_property_must_name_a_declared_object():
         '    locked\n    unseal_with whatever\n',
         "property 'unseal_with' names 'whatever', which is not declared",
     )
+
+
+def test_return_in_a_game_handler_is_refused():
+    # fos13 (2026-10-16): `return nothing` in `on go east` read as "not
+    # consumed" and the blocked exit let the player through.
+    expect_error(
+        'room camp\n    name "Camp"\n    east camp\n'
+        'on go east\n    if camp is not visited\n        return nothing\n'
+        '    continue\n',
+        "a handler ends with `stop`",
+    )
+    expect_error(
+        'room camp\n    name "Camp"\n'
+        'thing rock in camp\n    name "rock"\n    on take\n        return\n',
+        "a handler ends with `stop`",
+    )
