@@ -108,3 +108,24 @@ def test_custom_and_nautical_coexist():
     out = _run(["fore", "aft", "widdershins", "port"], game=TRUE_GAME)
     assert "Prow" in out
     assert "You can only go turnwise from here." in out
+
+
+def test_a_direction_word_shared_with_a_thing_still_reads_as_the_way_after_go():
+    # improvmonster (2026-10-16): GO BUZZING answered "You see nothing of
+    # the sort here." while bare BUZZING walked. The word was also a thing's
+    # vocabulary, and the thing-dual rule read it as naming that thing once
+    # the walk found no exit; after GO the word is the way, consumed, so the
+    # no-exit line answers. EXAMINE BUZZ still names the absent thing.
+    game = (
+        'direction buzzing "buzzing", "buzz"\n'
+        'game\n    title "B"\n    start hub\n'
+        'room hub\n    name "Hub"\n    desc "The hub."\n    buzzing hive\n'
+        'room hive\n    name "Hive"\n    desc "The hive."\n'
+        'thing bee in hub\n    name "bee"\n    words bee, buzz\n'
+    )
+    out = _run(["go buzz", "go buzz", "buzz", "x buzz"], game=game)
+    assert "Hive" in out.split(">go buzz")[1]
+    assert "no exit in that direction" in out.split(">go buzz")[2]
+    assert "nothing of the sort" not in out.split(">go buzz")[2].split(">")[0]
+    assert "no exit in that direction" in out.split(">buzz")[1]
+    assert "nothing of the sort" in out.split(">x buzz")[1]

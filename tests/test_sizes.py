@@ -223,7 +223,7 @@ CEILINGS = {
     "features/consult-about.storyarc": 19732,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/session-verbs.storyarc": 19288,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/vary.storyarc": 21164,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/foresight.storyarc": 21620,  # 2026-10-15 repriced: one-noun lists sweep (chain_here, list_in) and the sealed gate
+    "features/foresight.storyarc": 21668,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
     "features/beyond.storyarc": 22544,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/alter.storyarc": 20456,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/catalogs.storyarc": 19836,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
@@ -241,11 +241,11 @@ CEILINGS = {
     "cloak-of-darkness.storyarc": 22588,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "ejemplo-espanol.storyarc": 25860,  # 2026-10-15 repriced: one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/computed-properties.storyarc": 18932,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/containers.storyarc": 20080,  # 2026-10-15 repriced: one-noun lists sweep (chain_here, list_in) and the sealed gate
+    "features/containers.storyarc": 20128,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
     "features/daemons-and-timers.storyarc": 21160,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/doors-and-locks.storyarc": 19040,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/appearance.storyarc": 19884,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/components.storyarc": 19152,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
+    "features/appearance.storyarc": 19932,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
+    "features/components.storyarc": 19200,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
     "granules/whistle.storyarc": 18580,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "granules/lighttopology.storyarc": 20752,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/pathfinding.storyarc": 21560,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
@@ -254,7 +254,7 @@ CEILINGS = {
     "features/handlers.storyarc": 20100,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/first-person.storyarc": 19568,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/word-lists.storyarc": 19336,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/grammar-bind.storyarc": 20152,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
+    "features/grammar-bind.storyarc": 20200,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
     "features/grammar.storyarc": 19004,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/introproperty.storyarc": 20816,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/kinds-and-inheritance.storyarc": 18896,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
@@ -262,8 +262,8 @@ CEILINGS = {
     "features/zcolor.storyarc": 19224,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/text-styles.storyarc": 19024,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/computed-name.storyarc": 18916,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/scoring.storyarc": 21152,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/spans.storyarc": 19016,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
+    "features/scoring.storyarc": 21200,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
+    "features/spans.storyarc": 19064,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
     "features/vehicles.storyarc": 20448,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/success.storyarc": 19576,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/edible.storyarc": 19392,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate

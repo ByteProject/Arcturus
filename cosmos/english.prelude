@@ -343,6 +343,19 @@ block resolve_objects()
         change grain to find_scenery
         if grain is 0
             change parse_fault to named_unseen
+            // A direction word that is also thing vocabulary (BUZZ the way
+            // and the bee's buzz) is a thing-dual, and out of scope it reads
+            // as naming the thing; after GO it is the way, already consumed,
+            // so the room's missing exit answers, exactly as for the bare
+            // word (improvmonster's report, 2026-10-16). Folds away without
+            // a dual.
+            if any_thing_duals is 1
+                if parse_fault is 1
+                    if way is not nothing
+                        if word_count is 2
+                            if d is not nothing
+                                if peek_byte(d + 7) is action_id("go")
+                                    change parse_fault to 0
             if parse_fault is 0
                 change unknown_at to first_unknown(1, word_count)
                 if unknown_at is not 0
