@@ -1386,7 +1386,22 @@ The room description paragraphs an object can own, in the order checked:
 `appearance` (always, never expiring, computed by state if a block),
 `intro` (until the object is first taken), and the plain listing
 ("You can see a broom here."). `hidden` and `concealed` suppress all
-three. The appearance check folds away in a game that sets none
+three. One object owns one paragraph: with both set, the `appearance`
+is the one that prints and the `intro` never shows. A first-sight
+paragraph that gives way to a standing one is a single `appearance
+block` reading `moved`:
+
+```
+thing key in cellar
+    name "brass key"
+    appearance block
+        if self is not moved
+            say "A brass key glints in the dust, untouched for years."
+        else
+            say "The brass key lies where you left it."
+```
+
+The appearance check folds away in a game that sets none
 (`any_appearance`).
 
 Every plain-listed object shares one combined sentence, the classic
