@@ -3956,6 +3956,26 @@ or
     now fridge is suspect
 ```
 
+A bare string variant ends its line, as `say` does. To vary a word or a
+phrase INSIDE a sentence, write `show` after the policy: every bare string
+variant is then an implicit `show`, printed without a line break, and the
+sentence is built around the vary with `show` and `say` as usual:
+
+```
+block john_movement()
+    vary mutate show
+        "walks"
+        "plods"
+        "trudges"
+
+show "John "
+john_movement
+say " to the west."
+```
+
+`silence` and `or` groups work under `show` exactly as before; the policy
+and the site's state are the same.
+
 vary is a statement, and in Arcturus all dynamic prose flows through
 statement contexts, so it plugs in anywhere text is made, tied to nothing:
 computed descriptions, handlers, grains, and conversation `topic` bodies

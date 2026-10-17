@@ -199,3 +199,18 @@ def test_vary_replies_in_a_topic():
     assert "Ask the hives" in io.text
     # loop wraps: the first line returns on the third ask
     assert io.text.count("swarmed twice") == 2
+
+
+def test_vary_show_varies_inside_a_sentence():
+    # improvmonster (2026-10-17): a bare string variant ended its line, so
+    # a varying verb could not sit inside a sentence. `vary <policy> show`
+    # makes every bare string an inline show.
+    src = _game(
+        '    show "John "\n'
+        '    vary mutate show\n        "walks"\n        "plods"\n        "trudges"\n'
+        '    say " to the west."\n'
+    )
+    out = _replies(_build(src), ["v", "v", "v", "v"])
+    for r in out[:4]:
+        assert r.startswith("John ") and r.endswith(" to the west.")
+        assert r.split()[1] in ("walks", "plods", "trudges")

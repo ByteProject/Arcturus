@@ -23,6 +23,8 @@
 //   listen                   mutate: random, never twice in a row
 //   listen                   (again and again; no line repeats back to back)
 //   touch flour              dice: the honest roll, repeats allowed
+//   examine ansel            `vary mutate show`: a varying word INSIDE a
+//                            sentence, no line break (humming, muttering)
 //   ask ansel about weather  loop again, this time as varied REPLIES in a
 //                            conversation topic: each variant is a reply
 //                            in an `or` group, attributed and quoted
@@ -79,7 +81,13 @@ thing miller of character in millroom
     name "Miller Ansel"
     words miller, ansel
     named
-    desc "White to the elbows, patient as his wheel."
+    desc block
+        show "White to the elbows, "
+        vary mutate show
+            "humming"
+            "muttering"
+            "sighing"
+        say " at his wheel."
 
     topic weather "the weather" words weather, rain
         you "What do you make of the weather?"

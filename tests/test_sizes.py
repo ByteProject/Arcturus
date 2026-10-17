@@ -222,7 +222,7 @@ CEILINGS = {
     "features/enhance-redefine.storyarc": 19572,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/consult-about.storyarc": 19732,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/session-verbs.storyarc": 19288,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/vary.storyarc": 21164,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
+    "features/vary.storyarc": 21244,  # 2026-10-17 repriced: the example gains a vary mutate show site (the miller)
     "features/foresight.storyarc": 21668,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
     "features/beyond.storyarc": 22544,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
     "features/alter.storyarc": 20456,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate

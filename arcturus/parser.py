@@ -1637,6 +1637,15 @@ class Parser:
         line = self.cur.line
         self.advance()  # `vary`
         policy = self.advance().value  # validated by the dispatch guard
+        # `vary mutate show`: every bare string variant is an implicit SHOW
+        # (no line break) instead of a say, so a varying word drops into a
+        # sentence built around the vary (improvmonster's request,
+        # 2026-10-17: "John " + a varying verb + " to the west."). Nothing
+        # else changes: the policies, `silence` and `or` groups are as ever.
+        inline = False
+        if self.check(T.NAME) and self.cur.value == "show":
+            self.advance()
+            inline = True
         self.expect_newline()
         variants: list = []
         while True:
@@ -1661,7 +1670,8 @@ class Parser:
                             "an empty string variant would print only its "
                             "line break; a variant that says nothing is "
                             "`silence`")
-                    variants.append([ast.Say(lit, tok.line)])
+                    variants.append([ast.Say(lit, tok.line, None, False, False,
+                                             inline=inline)])
                     seg_strings += 1
                     self.expect_newline()
                     continue
