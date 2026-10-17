@@ -500,3 +500,37 @@ def test_mutators_take_a_local_holding_a_matrix():
     assert "Noted 1." in out.split(">x ann")[1]        # Ann's own matrix, not Doug's
     assert "Wiped 0." in out.split(">attack doug")[1]
     assert "Noted 1." in parts[4]
+
+
+def test_membership_and_for_each_on_a_local_holding_a_matrix():
+    # improvmonster (2026-10-18): `let m = char.has_matrix` then `obj in m`
+    # always failed (it read as containment) and `for each x in m` walked
+    # the object tree (the get_child warning on an empty matrix). A local
+    # assigned a catalog or matrix, by name or from a property, now takes
+    # the catalog path for both, the loop variable in the element type.
+    src = (
+        'summon.matrix\n'
+        'game\n    title "S"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "x"\n'
+        'matrix seen_by_doug capacity 6 of object\n'
+        'thing pebble in player\n    name "pebble"\n    words pebble\n'
+        'thing shell in player\n    name "shell"\n    words shell\n'
+        'block note_shown(char, obj)\n'
+        '    let m = char.memory\n'
+        '    if obj in m\n        return true\n'
+        '    append obj to m\n'
+        '    for each x in m\n        say "remembers ${the x}"\n'
+        '    return false\n'
+        'thing doug of character in hall\n    name "Doug"\n    named\n'
+        '    words doug\n    memory seen_by_doug\n'
+        '    on show\n        if note_shown(self, noun) is true\n'
+        '            say "Seen it."\n            stop\n        continue\n'
+    )
+    out = _run(_build(src), ["show pebble to doug", "show shell to doug", "show pebble to doug"])
+    first = out.split(">show pebble to doug")[1].split(">")[0]
+    assert "remembers the pebble" in first and "Seen it." not in first
+    second = out.split(">show shell to doug")[1].split(">")[0]
+    assert "remembers the pebble" in second and "remembers the shell" in second
+    third = out.split(">show pebble to doug")[2]
+    assert "Seen it." in third
+    assert "object 0" not in out

@@ -2375,6 +2375,50 @@ def _static_etype(ctx, expr):
     if isinstance(expr, ast.Call) and expr.name not in ctx.world.blocks \
             and expr.name in ("parent_of", "first_in", "next_in"):
         return "object"
+    # A catalog or matrix as a VALUE: its name, or a property every
+    # declaration of which holds one (improvmonster's owner, 2026-10-18:
+    # `let m = char.has_matrix`). The tag lets `in` and `for each` on the
+    # local take the catalog path instead of the object tree.
+    if _collection_elem(ctx, expr) is not None:
+        return "catalog"
+    return None
+
+
+def _collection_elem(ctx, expr):
+    """The element type ("object", "text", "direction", "number") of the
+    catalog or matrix an expression statically holds, or None when it holds
+    none: a catalog/matrix name, or a property read whose every declared
+    value (over objects and kinds) names a catalog or matrix of one type."""
+    w = ctx.world
+    if isinstance(expr, ast.Name) and expr.ident not in ctx.named:
+        mx = w.matrices.get(expr.ident)
+        if mx is not None:
+            return mx.etype or "number"
+        cat = w.catalogs.get(expr.ident)
+        if cat is not None:
+            return cat.etype or "number"
+        return None
+    if isinstance(expr, ast.Dot):
+        etypes = set()
+        seen = False
+        for owner in list(w.objects.values()) + list(w.kinds.values()):
+            decl = getattr(owner, "props", {}).get(expr.prop)
+            if decl is None or getattr(decl, "form", None) != ast.PROP_VALUE:
+                continue
+            if not decl.values or not isinstance(decl.values[0], ast.Name):
+                return None
+            seen = True
+            ident = decl.values[0].ident
+            mx = w.matrices.get(ident)
+            cat = w.catalogs.get(ident)
+            if mx is not None:
+                etypes.add(mx.etype or "number")
+            elif cat is not None:
+                etypes.add(cat.etype or "number")
+            else:
+                return None
+        if seen and len(etypes) == 1:
+            return etypes.pop()
     return None
 
 
@@ -2429,6 +2473,14 @@ def _note_local_etype(ctx, name: str, value) -> None:
         ctx.catalog_locals[name] = et
     else:
         ctx.catalog_locals.pop(name, None)
+    # A local holding a catalog or matrix remembers its element type too,
+    # so `for each x in m` speaks x in the right voice.
+    if not hasattr(ctx, "collection_elem"):
+        ctx.collection_elem = {}
+    if et == "catalog":
+        ctx.collection_elem[name] = _collection_elem(ctx, value)
+    else:
+        ctx.collection_elem.pop(name, None)
 
 
 def _catalog_base(ctx):
@@ -3077,6 +3129,20 @@ def _emit_test(rt, ctx, expr, label, on_true):
             store=Variable(STACK),
         )
         _free(ctx, tv)
+        rt.op("jg", Variable(STACK), Const(0), branch=(label, on_true))
+        return
+    if isinstance(expr, ast.Binary) and expr.op == "in" \
+            and isinstance(expr.right, ast.Name) \
+            and getattr(ctx, "catalog_locals", {}).get(expr.right.ident) == "catalog":
+        # Membership in a catalog or matrix held in a LOCAL (`let m =
+        # char.has_matrix`, then `obj in m`): the same position scan, the
+        # offset read from the local instead of folded.
+        valop, tv = _operand(rt, ctx, expr.left)
+        mop, tm = _operand(rt, ctx, expr.right)
+        rt.op("call_vs", RoutineRef("blk_position"), mop, valop,
+              store=Variable(STACK))
+        _free(ctx, tv)
+        _free(ctx, tm)
         rt.op("jg", Variable(STACK), Const(0), branch=(label, on_true))
         return
     if isinstance(expr, ast.Binary) and expr.op in ("holds", "in"):
@@ -4868,6 +4934,41 @@ def _for_each(rt, ctx, s: ast.ForEach):
         return
     if _is_list_source(ctx, s.source):
         raise LowerError("list iteration is not supported yet", s.line)
+    if isinstance(s.source, ast.Name) \
+            and getattr(ctx, "catalog_locals", {}).get(s.source.ident) == "catalog":
+        # for each x in m, m a LOCAL holding a catalog or matrix: the same
+        # indexed walk, the offset and the live count read at runtime. x
+        # carries the element type the local remembered (collection_elem),
+        # so an object matrix speaks names inside the body.
+        etype = getattr(ctx, "collection_elem", {}).get(s.source.ident)
+        xslot = ctx.resolve_var(s.var, s.line)
+        mslot = ctx.resolve_var(s.source.ident, s.line)
+        i = ctx.alloc_temp()
+        rt.op("store", Const(i), Const(1))
+        bound = ctx.alloc_temp()
+        rt.op("loadw", _catalog_base(ctx), Variable(mslot), store=Variable(bound))
+        top = ctx.new_label()
+        done = ctx.new_label()
+        rt.label(top)
+        rt.op("jg", Variable(i), Variable(bound), branch=(done, True))
+        idx = ctx.alloc_temp()
+        rt.op("add", Variable(i), Variable(mslot), store=Variable(idx))
+        rt.op("add", Variable(idx), Const(1), store=Variable(idx))
+        rt.op("loadw", _catalog_base(ctx), Variable(idx), store=Variable(xslot))
+        ctx.free_temp(idx)
+        if not hasattr(ctx, "catalog_locals"):
+            ctx.catalog_locals = {}
+        if etype is not None:
+            ctx.catalog_locals[s.var] = etype
+        for stmt in s.body:
+            compile_stmt(rt, ctx, stmt)
+        ctx.catalog_locals.pop(s.var, None)
+        rt.op("inc", Const(i))
+        rt.jump(top)
+        rt.label(done)
+        ctx.free_temp(bound)
+        ctx.free_temp(i)
+        return
     off = _catalog_off(ctx, s.source)
     if off is not None:
         # for each x in <catalog or matrix>: an indexed walk, 1..count, four

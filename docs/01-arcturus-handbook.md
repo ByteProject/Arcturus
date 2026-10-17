@@ -353,11 +353,15 @@ thing doug of collector in hall
     notes doug_notes
 ```
 
-`for each` is the one read that needs the matrix NAMED IN PLACE: over a
-block parameter the compiler cannot tell a matrix from an object, and the
-loop would walk the object tree instead (on an interpreter that checks,
-that surfaces as a warning about object 0). Inside a block, walk a matrix
-parameter by index; every shared helper wants this shape anyway:
+`in` (membership) and `for each` need to KNOW they face a matrix, since
+the same words test and walk an object's contents: they do on a declared
+name, and on a local assigned from a name or from a property that holds
+one (`let m = char.notes`, then `if obj in m` and `for each x in m`, x
+speaking in the matrix's element type). A bare block PARAMETER is the one
+place the compiler cannot tell a matrix from an object, so `for each`
+over it would walk the object tree (on an interpreter that checks, a
+warning about object 0): inside a block, assign the parameter to a local
+first, or walk it by index; every shared helper wants this shape anyway:
 
 ```
 block read_route(m)
