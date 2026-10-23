@@ -720,6 +720,16 @@ side, with no author code. Declare `lockable`, `locked`, and
 `unseal_with <key>` to make it lock. The library answers OPEN, CLOSE,
 LOCK, UNLOCK, and the movement gate; movement itself is chapter 8.
 
+A bare LOCK DOOR or UNLOCK DOOR reaches for the door's own `unseal_with`
+key, which must be held, and names it before the report, "(with the brass
+key)"; a key the player typed needs no telling. `second` stays what the
+player typed throughout, nothing on the bare command, so a door's own
+`on unlock` or its `alter` can tell the two apart; the key that worked is
+always `self.unseal_with`. OPEN DOOR WITH KEY is the everyday one-liner:
+it runs the real UNLOCK first, the door's own handler, alter and `on
+after unlock` included, then opens. Worked example:
+[examples/features/doors-and-locks.storyarc](../examples/features/doors-and-locks.storyarc).
+
 #### character
 
 The kind for the people of your game, and for anything else that is
@@ -1071,7 +1081,7 @@ clear it with `false` (`fixed false`), test it with `is`.
 | `open` | Currently open (a container or door). Set by `open`, cleared by `close`. A closed container hides its contents from scope. |
 | `clear` | A see-through container (a glass jar): its contents are in scope and referable even when closed. An open or `clear` container exposes its contents; a closed opaque one shields them. |
 | `seen` | Set once the player has been shown an object (a content of an open container, something taken or examined). A closed opaque container still lists the contents the player has `seen`, so they are not forgotten when put away; contents never seen stay hidden until the box is opened. Cosmos manages this; you rarely set it. The full container knowledge model is in chapter 6. |
-| `lockable` | Can be locked and unlocked. LOCK / UNLOCK read the object's state: with the object's `unseal_with` opener held, they succeed; without it (or with no opener defined) they refuse ("you don't have whatever it wants"); UNLOCK on a thing that is not `locked`, or not `lockable` at all, simply opens it. |
+| `lockable` | Can be locked and unlocked. LOCK / UNLOCK read the object's state: with the object's `unseal_with` opener held, they succeed; without it (or with no opener defined) they refuse ("you don't have whatever it wants"); UNLOCK on a thing that is not `locked`, or not `lockable` at all, simply opens it. A bare LOCK or UNLOCK names the opener it reached for, "(with the brass key)"; `second` stays what the player typed. OPEN X WITH KEY runs the real UNLOCK first, then the open. |
 | `locked` | Currently locked; blocks `open` until unlocked. A `lockable` + `locked` thing with NO `unseal_with` is a keyless lock the player cannot open by the verb (no opener to hold): the story springs it itself with `now x is not locked` (a chest you pry open with a crowbar). |
 | `scored` | Managed by `scoring` (chapter 19): the compiler sets it on every room and takeable thing; write `scored false` to exempt one, or on a kind to exempt every object of that kind. Set it by hand only in a game without `scoring` that wants a single classic auto-payer. |
 | `visited` | The room has been described before: Cosmos sets it AFTER the first description, the opening room included, so a `desc block` asking `if self is not visited` speaks its first-visit prose exactly once. Use it to vary a room's description on return. |

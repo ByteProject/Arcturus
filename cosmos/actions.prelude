@@ -977,23 +977,24 @@ on open
         msg_cant_open
         stop
     if noun is locked
-        // "open X with KEY": if the player named a key (second), unlock the thing
-        // first, then fall through to open it. A locked thing with no key named is
-        // still refused. This is the common one-line "open the door with the key".
+        // "open X with KEY": the player named a key (second), so the REAL
+        // unlock runs first, then the open (auraes's report, 2026-10-24):
+        // the thing's own `on unlock`, its alter and `on after unlock` all
+        // answer, the refusals are unlock's own lines, and perform shields
+        // this open's alter from the unlock's success line. A locked thing
+        // with no key named is still refused. Should the unlock leave it
+        // locked (a story handler that refused without saying so), the
+        // open stops there too: it never swings a locked door.
         if second is nothing
             change refused to 1
             msg_open_locked
             stop
-        if second is not noun.unseal_with
+        if perform("unlock", noun, second) is false
             change refused to 1
-            msg_wrong_key
             stop
-        if not (player holds second)
+        if noun is locked
             change refused to 1
-            msg_no_key
             stop
-        now noun is not locked
-        success msg_unlocked
     if noun is open
         msg_already_open
         stop
@@ -1031,21 +1032,27 @@ on lock
         stop
     // The opener (unseal_with) must be HELD to lock it too. A keyless bolt
     // has no opener to hold, so the player cannot lock it; its locked state
-    // is the story's to set (`now box is locked`).
-    if second is nothing
-        change second to noun.unseal_with
-    if second is nothing
+    // is the story's to set (`now box is locked`). The opener lives in a
+    // local: `second` stays what the player typed, through the handlers,
+    // an alter and the after phase (auraes's report, 2026-10-24), and a
+    // bare LOCK says which key it reached for.
+    let key = second
+    if key is nothing
+        change key to noun.unseal_with
+    if key is nothing
         change refused to 1
         msg_no_key
         stop
-    if second is not noun.unseal_with
+    if key is not noun.unseal_with
         change refused to 1
         msg_wrong_key
         stop
-    if not (player holds second)
+    if not (player holds key)
         change refused to 1
         msg_no_key
         stop
+    if second is nothing
+        line_with_key(key)
     now noun is locked
     success msg_locked
 
@@ -1072,20 +1079,25 @@ on unlock
     // (no unseal_with) has no opener to hold, so it refuses here rather than
     // springing open for free (the field report); the story opens it itself,
     // `now box is not locked`, when the crowbar comes down.
-    if second is nothing
-        change second to noun.unseal_with
-    if second is nothing
+    // The opener lives in a local, as in lock: `second` stays what the
+    // player typed, and a bare UNLOCK says which key it reached for.
+    let key = second
+    if key is nothing
+        change key to noun.unseal_with
+    if key is nothing
         change refused to 1
         msg_no_key
         stop
-    if second is not noun.unseal_with
+    if key is not noun.unseal_with
         change refused to 1
         msg_wrong_key
         stop
-    if not (player holds second)
+    if not (player holds key)
         change refused to 1
         msg_no_key
         stop
+    if second is nothing
+        line_with_key(key)
     now noun is not locked
     success msg_unlocked
 

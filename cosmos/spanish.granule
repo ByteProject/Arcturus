@@ -2123,6 +2123,9 @@ block msg_wrong_key()
             return 0
     say "${The second} no encaja."
 
+block line_with_key(key)
+    say "(con ${the key})"
+
 block msg_unlocked()
     say "Abres con llave."
 

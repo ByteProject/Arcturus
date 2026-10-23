@@ -2435,6 +2435,9 @@ block msg_wrong_key()
             return 0
     say "${The second} passt nicht."
 
+block line_with_key(key)
+    say "(mit ${the:dat key})"
+
 block msg_unlocked()
     say "Aufgeschlossen."
 

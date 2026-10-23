@@ -2468,6 +2468,11 @@ block msg_wrong_key()
 block msg_unlocked()
     say "Unlocked."
 
+// The key a bare LOCK or UNLOCK reached for, named before the report so
+// the player learns what turned the lock: "(with the brass key)".
+block line_with_key(key)
+    say "(with ${the key})"
+
 // A UNLOCK on something with no lock at all: the verb just opens it.
 block msg_cant_unlock()
     if any_firstperson is 1

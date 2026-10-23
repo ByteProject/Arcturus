@@ -111,3 +111,61 @@ def test_crowbar_springs_a_keyless_lock():
     out = _run(["pry bolt", "open bolt"], game=game)
     assert "gives with a screech" in out
     assert "Open." in out.split("open bolt")[-1]   # now openable
+
+
+ALTERED = GAME.replace(
+    "    lockable\n    locked\n    unseal_with key\n",
+    "    lockable\n    locked\n    unseal_with key\n"
+    "    on unlock\n        alter block\n            show \"The gate gives\"\n"
+    "            if second is nothing\n                show \" (bare)\"\n"
+    "            say \".\"\n        continue\n"
+    "    on open\n        alter \"The gate swings wide.\"\n        continue\n",
+    1)
+
+
+def test_a_bare_lock_or_unlock_names_the_key_it_reached_for():
+    # auraes (2026-10-24): the player who typed no key learns which one
+    # turned the lock; a typed key needs no telling.
+    out = _run(["take key", "unlock gate", "lock gate", "unlock gate with key"])
+    assert "(with the brass key)\nUnlocked." in out.split(">unlock gate")[1]
+    assert "(with the brass key)\nLocked." in out.split(">lock gate")[1]
+    assert "(with" not in out.split(">unlock gate with key")[1]
+
+
+def test_second_stays_what_the_player_typed():
+    # The library no longer rewrites `second`: an alter at report time
+    # still sees `second is nothing` after a bare UNLOCK.
+    out = _run(["take key", "unlock gate"], game=ALTERED)
+    assert "The gate gives (bare)." in out
+
+
+def test_open_with_key_runs_the_real_unlock_and_keeps_the_open_alter():
+    # The thing's own `on unlock` and its alter answer for OPEN X WITH KEY,
+    # and the open's alter lands on the open, not on the unlock line.
+    out = _run(["take key", "open gate with key"], game=ALTERED)
+    part = out.split(">open gate with key")[1]
+    assert "The gate gives." in part
+    assert "The gate swings wide." in part
+    assert part.index("The gate gives.") < part.index("The gate swings wide.")
+    assert "Unlocked." not in part and "Open." not in part
+
+
+def test_the_key_line_in_german_and_spanish():
+    de = (
+        'summon.language "german"\n'
+        'game\n    title "T"\n    start halle\n'
+        'room halle\n    name "Halle"\n    desc "Eine Halle."\n'
+        'thing truhe of container in halle\n    name "Truhe"\n    words truhe\n'
+        '    feminine\n    openable\n    fixed\n    lockable\n    locked\n    unseal_with schluessel\n'
+        'thing schluessel in player\n    name "Messingschlüssel"\n    words schlüssel\n'
+    )
+    assert "(mit dem Messingschlüssel)" in _run(["entriegele truhe"], game=de)
+    es = (
+        'summon.language "spanish"\n'
+        'game\n    title "T"\n    start sala\n'
+        'room sala\n    name "Sala"\n    desc "Una sala."\n'
+        'thing cofre of container in sala\n    name "cofre"\n    words cofre\n'
+        '    openable\n    fixed\n    lockable\n    locked\n    unseal_with llave\n'
+        'thing llave in player\n    name "llave de latón"\n    words llave\n    feminine\n'
+    )
+    assert "(con la llave de latón)" in _run(["destranca cofre"], game=es)

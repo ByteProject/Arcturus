@@ -216,73 +216,73 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # chain); a held thing skips the probe, the floor-to-container shortcut
 # still moves takeable things in one command.
 CEILINGS = {
-    "features/yes-no.storyarc": 18832,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/press-any-key.storyarc": 19720,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/shiftable.storyarc": 19216,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/enhance-redefine.storyarc": 19572,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/consult-about.storyarc": 19732,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/session-verbs.storyarc": 19288,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/vary.storyarc": 21244,  # 2026-10-17 repriced: the example gains a vary mutate show site (the miller)
-    "features/foresight.storyarc": 21668,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
-    "features/beyond.storyarc": 22544,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/alter.storyarc": 20456,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/catalogs.storyarc": 19836,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/matrix.storyarc": 20172,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/direction-grammar.storyarc": 19248,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/scenery-contents.storyarc": 20496,  # 2026-10-15 repriced: one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/prefer.storyarc": 18680,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/trigger.storyarc": 19500,  # 2026-10-15 repriced: one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/adjectives.storyarc": 20136,  # 2026-10-15 repriced: one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "granules/nautical.storyarc": 19724,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "granules/npcengine.storyarc": 21816,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "granules/maniacswap.storyarc": 20068,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "beispiel-deutsch.storyarc": 29268,  # 2026-10-15 repriced: one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "brass-lantern.storyarc": 20624,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "cloak-of-darkness.storyarc": 22588,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "ejemplo-espanol.storyarc": 25860,  # 2026-10-15 repriced: one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/computed-properties.storyarc": 18932,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/containers.storyarc": 20128,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
-    "features/daemons-and-timers.storyarc": 21160,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/doors-and-locks.storyarc": 19040,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/appearance.storyarc": 19932,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
-    "features/components.storyarc": 19200,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
-    "granules/whistle.storyarc": 18580,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "granules/lighttopology.storyarc": 20752,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/pathfinding.storyarc": 21560,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/perform.storyarc": 18900,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/grains.storyarc": 18696,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/handlers.storyarc": 20100,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/first-person.storyarc": 19568,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/word-lists.storyarc": 19336,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/grammar-bind.storyarc": 20200,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
-    "features/grammar.storyarc": 19004,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/introproperty.storyarc": 20816,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/kinds-and-inheritance.storyarc": 18896,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/on-other.storyarc": 18776,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/zcolor.storyarc": 19224,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/text-styles.storyarc": 19024,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/computed-name.storyarc": 18916,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/scoring.storyarc": 21200,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
-    "features/spans.storyarc": 19064,  # 2026-10-16 repriced (+48): a thing-dual direction word after GO falls to the no-exit line
-    "features/vehicles.storyarc": 20448,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/success.storyarc": 19576,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/edible.storyarc": 19392,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "features/text-slot.storyarc": 19936,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "granules/carryweight.storyarc": 20140,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "granules/ambience.storyarc": 20808,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "granules/conversations.storyarc": 20732,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "granules/extended-verbs.storyarc": 22348,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "granules/infocom-interrogation.storyarc": 22152,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "granules/quotes.storyarc": 18960,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "granules/take-all.storyarc": 21752,  # 2026-10-15 repriced: one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "granules/plurals.storyarc": 19876,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "granules/statusline.storyarc": 18932,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
-    "granules/verbose-exits.storyarc": 18872,  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
+    "features/yes-no.storyarc": 18872,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/press-any-key.storyarc": 19760,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/shiftable.storyarc": 19256,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/enhance-redefine.storyarc": 19612,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/consult-about.storyarc": 19772,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/session-verbs.storyarc": 19328,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/vary.storyarc": 21284,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/foresight.storyarc": 21708,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/beyond.storyarc": 22584,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/alter.storyarc": 20480,  # 2026-10-24 repriced (+24): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/catalogs.storyarc": 19876,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/matrix.storyarc": 20212,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/direction-grammar.storyarc": 19288,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/scenery-contents.storyarc": 20536,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/prefer.storyarc": 18720,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/trigger.storyarc": 19540,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/adjectives.storyarc": 20176,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/nautical.storyarc": 19764,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/npcengine.storyarc": 21856,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/maniacswap.storyarc": 20108,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "beispiel-deutsch.storyarc": 29308,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "brass-lantern.storyarc": 20664,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "cloak-of-darkness.storyarc": 22628,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "ejemplo-espanol.storyarc": 25900,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/computed-properties.storyarc": 18972,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/containers.storyarc": 20168,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/daemons-and-timers.storyarc": 21200,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/doors-and-locks.storyarc": 19428,  # 2026-10-24 repriced (+388): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/appearance.storyarc": 19972,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/components.storyarc": 19240,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/whistle.storyarc": 18620,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/lighttopology.storyarc": 20792,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/pathfinding.storyarc": 21600,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/perform.storyarc": 18940,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/grains.storyarc": 18736,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/handlers.storyarc": 20140,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/first-person.storyarc": 19608,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/word-lists.storyarc": 19376,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/grammar-bind.storyarc": 20240,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/grammar.storyarc": 19044,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/introproperty.storyarc": 20856,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/kinds-and-inheritance.storyarc": 18936,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/on-other.storyarc": 18816,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/zcolor.storyarc": 19264,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/text-styles.storyarc": 19064,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/computed-name.storyarc": 18956,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/scoring.storyarc": 21240,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/spans.storyarc": 19104,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/vehicles.storyarc": 20488,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/success.storyarc": 19600,  # 2026-10-24 repriced (+24): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/edible.storyarc": 19432,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/text-slot.storyarc": 19976,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/carryweight.storyarc": 20180,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/ambience.storyarc": 20848,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/conversations.storyarc": 20772,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/extended-verbs.storyarc": 22388,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/infocom-interrogation.storyarc": 22192,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/quotes.storyarc": 19000,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/take-all.storyarc": 21792,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/plurals.storyarc": 19916,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/statusline.storyarc": 18972,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "granules/verbose-exits.storyarc": 18912,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 23288  # 2026-10-15 repriced (+200): one-noun lists sweep (chain_here, list_in) and the sealed gate
+CLOAK_Z8_CEILING = 23328  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.
