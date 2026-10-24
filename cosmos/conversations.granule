@@ -48,12 +48,20 @@ block run_talk(person)
         msg_no_topics
         return 0
     let going = 1
+    // Every exchange is its own paragraph, as every other answer in Cosmos
+    // is: menu picks happen inside one TALK TO, so without a break the
+    // pairs stacked line on line (fos13's report, 2026-10-23). The first
+    // sits directly under the command like any reply; each later one, and
+    // the closing line after any exchange, opens a new paragraph.
+    let spoke = 0
     while going is 1
         let count = count_visible(person)
         if count > 9
             change count to 9
         if count is 0
             close_menu
+            if spoke is 1
+                par
             msg_talk_over
             change going to 0
         else
@@ -61,10 +69,15 @@ block run_talk(person)
             let pick = menu_choice(count)
             if pick is 0
                 close_menu
+                if spoke is 1
+                    par
                 msg_talk_over
                 change going to 0
             else
                 set_window(0)
+                if spoke is 1
+                    par
+                change spoke to 1
                 run_pick(person, pick)
 
 // Paint the numbered menu in the upper window and hold it static there, sized to

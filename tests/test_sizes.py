@@ -236,10 +236,10 @@ CEILINGS = {
     "granules/nautical.storyarc": 19892,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "granules/npcengine.storyarc": 21984,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "granules/maniacswap.storyarc": 20400,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "beispiel-deutsch.storyarc": 29452,  # 2026-10-24 repriced (+72): tester's notes: a line opening with * is Noted, never parsed
+    "beispiel-deutsch.storyarc": 29492,  # 2026-10-24 repriced (+40): the conversations menu breaks a paragraph between exchanges
     "brass-lantern.storyarc": 20792,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "cloak-of-darkness.storyarc": 22756,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "ejemplo-espanol.storyarc": 26032,  # 2026-10-24 repriced (+72): tester's notes: a line opening with * is Noted, never parsed
+    "ejemplo-espanol.storyarc": 26072,  # 2026-10-24 repriced (+40): the conversations menu breaks a paragraph between exchanges
     "features/computed-properties.storyarc": 19100,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/containers.storyarc": 20296,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/daemons-and-timers.storyarc": 21328,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
@@ -270,7 +270,7 @@ CEILINGS = {
     "features/text-slot.storyarc": 20104,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "granules/carryweight.storyarc": 20308,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "granules/ambience.storyarc": 20976,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/conversations.storyarc": 20900,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
+    "granules/conversations.storyarc": 20940,  # 2026-10-24 repriced (+40): the conversations menu breaks a paragraph between exchanges
     "granules/extended-verbs.storyarc": 22516,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "granules/infocom-interrogation.storyarc": 22320,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "granules/quotes.storyarc": 19128,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
