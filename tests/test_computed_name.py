@@ -95,3 +95,41 @@ def test_first_in_and_next_in_walk_the_tree():
     # the walk is nothing, which prints as nothing.
     assert "first coin" in head and "second nail" in head and "end \n" in head
     assert "coin empty" in head and "box full" in head
+
+
+def test_x_name_prints_the_object_and_a_kind_name_block_compiles():
+    # EdwardianDuck (2026-10-18): a kind's `name block` doing show(p.name)
+    # crashed the compiler (Const(None)) once an instance existed. `x.name`
+    # in a print position is the object's printed name; as a value it is a
+    # clear error.
+    import pytest
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.errors import ArcError
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'game\n    title "N"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'kind lid_of of container\n'
+        '    name block\n        let p = parent_of(self)\n'
+        '        show(p.name)\n        show(" lid")\n'
+        'thing chest in hall\n    name "chest"\n    words chest\n'
+        'thing lid of lid_of in chest\n    words lid\n'
+        'verb "probe"\n    probe\n'
+        'on probe\n    say "${lid} / ${the chest.name} / " \n    say chest.name\n'
+    )
+    io = CaptureIO(script=["probe"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "chest lid / the chest /" in io.text
+    bad = src.replace('    say chest.name\n', '    if chest.name is "x"\n        say "no"\n')
+    with pytest.raises(ArcError) as exc:
+        generate(analyze(cosmos.combined_program(parse(bad))))
+    assert "printed name, not a value" in str(exc.value)

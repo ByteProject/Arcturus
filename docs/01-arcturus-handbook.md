@@ -975,7 +975,10 @@ name as print-only.
 A computed `name block` is the one computed property with a special seat:
 the short name lives in the object header, so the block's routine rides a
 hidden slot and every place a name prints (the room listing, the
-inventory, the reports, `${the noun}`, the status bar) runs the block:
+inventory, the reports, `${the noun}`, `say x.name`, the status bar) runs
+the block. `x.name` is a print, never a value: `say p.name`, `${p.name}`
+and `${the p.name}` print the object's name as `${p}` does, and to test
+which object it is, compare the object itself (`if p is chest`):
 
 ```
 thing coin in shrine

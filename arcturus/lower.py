@@ -738,6 +738,12 @@ def eval_expr(rt: Routine, ctx: Context, expr, dest=None) -> None:
             _call(rt, ctx, ast.Call(block, [expr.obj], expr.line), dest)
             return
         if pnum is None:
+            if expr.prop == "name":
+                raise LowerError(
+                    "`name` is the object's printed name, not a value to "
+                    "compare or store: print it with `say x.name` or "
+                    "`${x}` (`${the x}` with its article), and test the "
+                    "object itself (`if p is chest`)", expr.line)
             raise LowerError(
                 f"cannot read property '{expr.prop}' as a value", expr.line
             )
@@ -4192,6 +4198,18 @@ def _emit_prop_print_or_run(rt, ctx, dot, add_newline):
     ctx.free_temp(v)
 
 
+def _name_read(expr):
+    """`x.name` in a PRINT position is the object's printed name: `name` is
+    the Z-machine short name, not a property, so it has no slot to read;
+    printing it means printing the object (its `name block` included). The
+    read used to crash the compiler inside a kind's computed name
+    (EdwardianDuck's report, 2026-10-18). Returns the object expression, or
+    the expression unchanged."""
+    if isinstance(expr, ast.Dot) and expr.prop == "name":
+        return expr.obj
+    return expr
+
+
 def _is_computed_text(ctx, expr) -> bool:
     return isinstance(expr, ast.Dot) and expr.prop in ctx.world.computed_text_props
 
@@ -4205,6 +4223,7 @@ def _say(rt, ctx, value, newline=True):
     # blank line for text that never came. The block's own say/show/print_name each
     # flush the break when they actually print, so real output still gets its
     # paragraph; a silent block leaves the break pending for the next object.
+    value = _name_read(value)
     if _is_computed_text(ctx, value):
         _emit_prop_print_or_run(rt, ctx, value, newline)
         return
@@ -4348,6 +4367,7 @@ def _say_threshold(rt, ctx, expr):
 
 
 def _say_value(rt, ctx, expr):
+    expr = _name_read(expr)
     # ${letters} / ${anychar}: a typed slot's absorbed words, printed back
     # exactly as the player wrote them (the echo half of a refusal). A
     # story data name of the same spelling wins, as everywhere.
@@ -4513,6 +4533,7 @@ def _say_with_article(rt, ctx, article, case, expr):
     grammatical case, for a language that inflects the article by case; when no tag
     is written we pass only two, so the third local of a case-aware art_the defaults
     to 0 (nominative) and an uninflected art_the is called exactly as before."""
+    expr = _name_read(expr)
     op, t = _operand(rt, ctx, expr)
     cap = 1 if article[0].isupper() else 0
     low = article.lower()
