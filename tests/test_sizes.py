@@ -225,7 +225,7 @@ CEILINGS = {
     "features/vary.storyarc": 21412,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/foresight.storyarc": 21836,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/beyond.storyarc": 22712,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/alter.storyarc": 20640,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
+    "features/alter.storyarc": 20816,  # 2026-10-24 repriced (+176): the plain reports speak through success (alter replaces them)
     "features/catalogs.storyarc": 20004,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/matrix.storyarc": 20340,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/direction-grammar.storyarc": 19416,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
@@ -243,7 +243,7 @@ CEILINGS = {
     "features/computed-properties.storyarc": 19100,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/containers.storyarc": 20296,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/daemons-and-timers.storyarc": 21328,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/doors-and-locks.storyarc": 19608,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
+    "features/doors-and-locks.storyarc": 19784,  # 2026-10-24 repriced (+176): the plain reports speak through success (alter replaces them)
     "features/appearance.storyarc": 20100,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/components.storyarc": 19368,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "granules/whistle.storyarc": 18748,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
@@ -265,7 +265,7 @@ CEILINGS = {
     "features/scoring.storyarc": 21368,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/spans.storyarc": 19232,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/vehicles.storyarc": 20616,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/success.storyarc": 19760,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
+    "features/success.storyarc": 19936,  # 2026-10-24 repriced (+176): the plain reports speak through success (alter replaces them)
     "features/edible.storyarc": 19560,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/text-slot.storyarc": 20108,  # 2026-10-24 repriced (+4): the can't-do refusal sets refused (no after pass follows it)
     "granules/carryweight.storyarc": 20308,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed

@@ -42,7 +42,7 @@ _DEFAULT_LANGUAGE = "english"
 # The Cosmos library version. It is independent of the compiler version: the
 # bundled library can move ahead of (or behind) arcc, and since the embedded
 # library is not visible on disk, the banner reports it alongside arcc's version.
-COSMOS_VERSION = "1.52.2"
+COSMOS_VERSION = "1.52.3"
 
 # Set by the amalgamated build to a dict of {filename: source}.
 _EMBEDDED = None
@@ -675,3 +675,26 @@ def combined_program(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Prog
     out = ast.Program(decls, abbreviations=abbreviations)
     out.uses_notify = uses_notify
     return out
+
+
+def chapters_only(game: ast.Program, lib_dirs=(), story_dir=None) -> ast.Program:
+    """--no-cosmos: the game WITHOUT the library, but still the whole game.
+    The story's own .storyarc chapters merge exactly as with Cosmos (chapters
+    first, the main file last); a summoned granule cannot, since granules are
+    library code, so it is refused by name rather than dropped. Before this,
+    every summon was skipped and a chapter's declarations silently vanished
+    (auraes's report, 2026-10-23)."""
+    granule_decls, chapter_decls, abbreviations = _load_granules(
+        game, lib_dirs, story_dir)
+    if granule_decls:
+        names = sorted({getattr(d, "srcfile", None) or "a granule"
+                        for d in granule_decls})
+        line = next((s.line for s in game.decls
+                     if isinstance(s, ast.Summon) and s.form != "file"), 0)
+        raise ArcError(
+            "--no-cosmos compiles the game without the library, so it cannot "
+            f"summon a granule ({', '.join(names)}); the game's own .storyarc "
+            "chapters are fine", line, filename="<summon>")
+    return ast.Program(list(chapter_decls) + list(game.decls),
+                       abbreviations=abbreviations)
+

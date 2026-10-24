@@ -574,14 +574,15 @@ def main(argv: list[str] | None = None) -> int:
         # with their source; the story's own carry no stamp, bundled files
         # carry bare names. Cosmos itself stays out (--dump-ir has the whole
         # merged world). EdwardianDuck's question, 2026-09-27.
-        if args.no_cosmos:
-            print(dump(program))
-            return 0
         story_dir = os.path.dirname(os.path.abspath(args.source))
         try:
-            merged = cosmos_lib.combined_program(
-                program, lib_dirs=args.lib or (), story_dir=story_dir
-            )
+            if args.no_cosmos:
+                merged = cosmos_lib.chapters_only(
+                    program, lib_dirs=args.lib or (), story_dir=story_dir)
+            else:
+                merged = cosmos_lib.combined_program(
+                    program, lib_dirs=args.lib or (), story_dir=story_dir
+                )
         except ArcError as exc:
             print(exc.format(), file=sys.stderr)
             return 1
@@ -604,15 +605,20 @@ def main(argv: list[str] | None = None) -> int:
     # directory first, then the -L search path. A summon that cannot resolve (or
     # resolves to something unusable, a bad selection, a clashing granule pair) is
     # the author's error like any other: report it in one line, never a traceback.
-    if not args.no_cosmos:
-        story_dir = os.path.dirname(os.path.abspath(args.source))
-        try:
+    # --no-cosmos leaves the library out, never the game: the story's own
+    # .storyarc chapters still merge, and a granule summon is refused by name.
+    story_dir = os.path.dirname(os.path.abspath(args.source))
+    try:
+        if args.no_cosmos:
+            program = cosmos_lib.chapters_only(
+                program, lib_dirs=args.lib or (), story_dir=story_dir)
+        else:
             program = cosmos_lib.combined_program(
                 program, lib_dirs=args.lib or (), story_dir=story_dir
             )
-        except ArcError as exc:
-            print(exc.format(), file=sys.stderr)
-            return 1
+    except ArcError as exc:
+        print(exc.format(), file=sys.stderr)
+        return 1
 
     def _backfill(exc):
         # A lowering error without provenance is the story's own: name the

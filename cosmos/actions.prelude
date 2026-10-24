@@ -627,11 +627,14 @@ on score
 // Typed YES and NO: in-world speech, not meta, so a game reads them with
 // `on yes` / `on no` (a `when` guard scopes the question); untended they
 // get the flat flavor line.
+// The plain reports below speak through `success`, so an object's `alter`
+// replaces them (auraes's report, 2026-10-23: an alter on PUSH did
+// nothing); in a game that never alters, `success` is a plain call.
 on yes
-    msg_yes
+    success msg_yes
 
 on no
-    msg_no
+    success msg_no
 
 // The shut-door refusal's default (docs/01 chapter 22, foresight): refuse and stop.
 // Returns 1 refused (message spoken), 0 repaired (the door is open now and
@@ -1287,16 +1290,16 @@ on show
     msg_show
 
 on touch
-    msg_touch
+    success msg_touch
 
 on smell
     if noun is nothing
-        msg_smell_air
+        success msg_smell_air
         stop
     if noun is player
-        msg_smell_self
+        success msg_smell_self
         stop
-    msg_smell
+    success msg_smell
 
 on taste
     change refused to 1
@@ -1305,14 +1308,14 @@ on taste
 on listen
     if noun is not nothing
         if noun is player
-            msg_listen_self
+            success msg_listen_self
             stop
         if noun is animate
-            msg_listen_animate
+            success msg_listen_animate
             stop
-        msg_listen_thing
+        success msg_listen_thing
         stop
-    msg_listen
+    success msg_listen
 
 on eat
     // The edible contract (docs/01 chapter 5: the eat verb consumes it
@@ -1386,7 +1389,7 @@ on push
                         msg_cant_go
                         stop
             move noun to dest
-            msg_shifted
+            success msg_shifted
             move player to dest
             set_here(dest)
             fire_enter
@@ -1487,13 +1490,13 @@ block talk_to(person)
     msg_no_talk
 
 on jump
-    msg_jump
+    success msg_jump
 
 on wait
-    msg_wait
+    success msg_wait
 
 on sing
-    msg_sing
+    success msg_sing
 
 // Would putting `obj` into `c` overfill a ceiling? A container with
 // `item_cap N` holds at most N things counted all the way down (nested

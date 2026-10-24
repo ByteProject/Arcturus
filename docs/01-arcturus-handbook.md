@@ -1886,7 +1886,11 @@ to a plain print in a game that never alters. Every standard verb ends
 its success path this way, and a verb of your own should too (the full
 pattern is in chapter 12, "A new verb, complete").
 Refusal paths never use `success`: a refusal is not a success, and the
-alter must not fire for one.
+alter must not fire for one. That includes the verbs whose default does
+nothing at all: PUSH, PULL, and TURN on an ordinary thing answer "nothing
+comes of it" as a refusal, so a button that clicks is an `on push` with
+its own `say`, not an alter (a `shiftable` thing's push succeeds, and
+alters).
 
 The `continue` is REQUIRED, not decoration: a handler that alters but
 never continues dies at the handler level (the general handler design,

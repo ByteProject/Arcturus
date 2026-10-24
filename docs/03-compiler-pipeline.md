@@ -135,8 +135,10 @@ Options:
 - `--check`: parse and analyze only, no code generation.
 - `--dump-ast`: print the parsed syntax tree of everything the author wrote (the story and the granules or chapters it summons, each under its filename; bundled Cosmos stays out) and stop.
 - `--dump-ir`: print the analyzed world-model IR and stop.
-- `--no-cosmos`: compile the game alone, without the bundled Cosmos library
-  (used by the compiler's own unit tests).
+- `--no-cosmos`: compile the game without the bundled Cosmos library
+  (used by the compiler's own unit tests). The game's own `.storyarc`
+  chapters still merge; summoning a granule is an error, since granules
+  are library code.
 - `--extract-library DIR`: write the whole bundled library (`.prelude` and
   `.granule`) into DIR for wholesale forking, then exit (section 5).
 - `--eject-language [DIR]`: write just `english.prelude`, the language layer that
@@ -166,7 +168,8 @@ generation.
 
 By default the game is compiled together with the bundled Cosmos library
 (docs/01 chapter 23): `cosmos.combined_program` prepends the library declarations to the
-game's. `--no-cosmos` opts out.
+game's. `--no-cosmos` opts out of the library (`cosmos.chapters_only` still
+merges the game's own chapters).
 
 Overriding works against the prelude. A block defined in the game (or in a
 summoned granule) overrides a Cosmos *prelude* block of the same name: redefine
