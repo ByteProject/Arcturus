@@ -216,73 +216,73 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # chain); a held thing skips the probe, the floor-to-container shortcut
 # still moves takeable things in one command.
 CEILINGS = {
-    "features/yes-no.storyarc": 18912,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/press-any-key.storyarc": 19800,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/shiftable.storyarc": 19296,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/enhance-redefine.storyarc": 19652,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/consult-about.storyarc": 19812,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/session-verbs.storyarc": 19368,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/vary.storyarc": 21324,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/foresight.storyarc": 21748,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/beyond.storyarc": 22624,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/alter.storyarc": 20552,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/catalogs.storyarc": 19916,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/matrix.storyarc": 20252,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/direction-grammar.storyarc": 19328,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/scenery-contents.storyarc": 20576,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/prefer.storyarc": 18760,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/trigger.storyarc": 19580,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/adjectives.storyarc": 20216,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/nautical.storyarc": 19804,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/npcengine.storyarc": 21896,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/maniacswap.storyarc": 20148,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "beispiel-deutsch.storyarc": 29360,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "brass-lantern.storyarc": 20704,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "cloak-of-darkness.storyarc": 22668,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "ejemplo-espanol.storyarc": 25940,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/computed-properties.storyarc": 19012,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/containers.storyarc": 20208,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/daemons-and-timers.storyarc": 21240,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/doors-and-locks.storyarc": 19520,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/appearance.storyarc": 20012,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/components.storyarc": 19280,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/whistle.storyarc": 18660,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/lighttopology.storyarc": 20832,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/pathfinding.storyarc": 21640,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/perform.storyarc": 18980,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/grains.storyarc": 18776,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/handlers.storyarc": 20180,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/first-person.storyarc": 19652,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/word-lists.storyarc": 19416,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/grammar-bind.storyarc": 20280,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/grammar.storyarc": 19084,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/introproperty.storyarc": 20896,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/kinds-and-inheritance.storyarc": 18976,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/on-other.storyarc": 18856,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/zcolor.storyarc": 19304,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/text-styles.storyarc": 19104,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/computed-name.storyarc": 18996,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/scoring.storyarc": 21280,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/spans.storyarc": 19144,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/vehicles.storyarc": 20528,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/success.storyarc": 19672,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/edible.storyarc": 19472,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "features/text-slot.storyarc": 20016,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/carryweight.storyarc": 20220,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/ambience.storyarc": 20888,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/conversations.storyarc": 20812,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/extended-verbs.storyarc": 22428,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/infocom-interrogation.storyarc": 22232,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/quotes.storyarc": 19040,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/take-all.storyarc": 21832,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/plurals.storyarc": 19956,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/statusline.storyarc": 19012,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
-    "granules/verbose-exits.storyarc": 18952,  # 2026-10-24 repriced (-4): the disambiguation question sits under the command (no par)
+    "features/yes-no.storyarc": 18932,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/press-any-key.storyarc": 19820,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/shiftable.storyarc": 19316,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/enhance-redefine.storyarc": 19672,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/consult-about.storyarc": 19832,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/session-verbs.storyarc": 19388,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/vary.storyarc": 21344,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/foresight.storyarc": 21768,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/beyond.storyarc": 22644,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/alter.storyarc": 20572,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/catalogs.storyarc": 19936,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/matrix.storyarc": 20272,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/direction-grammar.storyarc": 19348,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/scenery-contents.storyarc": 20596,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/prefer.storyarc": 18780,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/trigger.storyarc": 19600,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/adjectives.storyarc": 20236,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/nautical.storyarc": 19824,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/npcengine.storyarc": 21916,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/maniacswap.storyarc": 20168,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "beispiel-deutsch.storyarc": 29380,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "brass-lantern.storyarc": 20724,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "cloak-of-darkness.storyarc": 22688,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "ejemplo-espanol.storyarc": 25960,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/computed-properties.storyarc": 19032,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/containers.storyarc": 20228,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/daemons-and-timers.storyarc": 21260,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/doors-and-locks.storyarc": 19540,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/appearance.storyarc": 20032,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/components.storyarc": 19300,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/whistle.storyarc": 18680,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/lighttopology.storyarc": 20852,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/pathfinding.storyarc": 21660,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/perform.storyarc": 19000,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/grains.storyarc": 18796,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/handlers.storyarc": 20200,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/first-person.storyarc": 19672,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/word-lists.storyarc": 19436,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/grammar-bind.storyarc": 20300,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/grammar.storyarc": 19104,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/introproperty.storyarc": 20916,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/kinds-and-inheritance.storyarc": 18996,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/on-other.storyarc": 18876,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/zcolor.storyarc": 19324,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/text-styles.storyarc": 19124,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/computed-name.storyarc": 19016,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/scoring.storyarc": 21300,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/spans.storyarc": 19164,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/vehicles.storyarc": 20548,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/success.storyarc": 19692,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/edible.storyarc": 19492,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "features/text-slot.storyarc": 20036,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/carryweight.storyarc": 20240,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/ambience.storyarc": 20908,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/conversations.storyarc": 20832,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/extended-verbs.storyarc": 22448,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/infocom-interrogation.storyarc": 22252,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/quotes.storyarc": 19060,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/take-all.storyarc": 21852,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/plurals.storyarc": 19976,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/statusline.storyarc": 19032,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/verbose-exits.storyarc": 18972,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 23376  # 2026-10-24 repriced (-8): the disambiguation question sits under the command (no par)
+CLOAK_Z8_CEILING = 23400  # 2026-10-24 repriced (+24): a noun-less ENTER from a particle compound is an incomplete command
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

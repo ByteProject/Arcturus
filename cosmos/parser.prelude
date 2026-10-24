@@ -291,7 +291,17 @@ block parse_line()
             change incomplete to 0
     // A language may remap the action now the nouns are known (English turns
     // LOOK <noun> into an examine); the seam lives in the language layer.
-    return remap_action(act)
+    change act to remap_action(act)
+    // A particle compound can turn a verb that stands alone (STAND, GO) into
+    // an ENTER, which needs its noun: the bare-command mark is decided from
+    // the TYPED verb's grammar, so STAND ON with nothing named reached the
+    // enter default with object 0 (auraes's report, 2026-10-24). It is an
+    // incomplete command, asked like a bare SIT ON.
+    if act is action_id("enter")
+        if noun is nothing
+            if grain is 0
+                change incomplete to 1
+    return act
 
 // The table path's particle combination (see the call above): the picked
 // line's action, combined with a typed particle by the language layer's

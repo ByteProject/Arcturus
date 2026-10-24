@@ -108,3 +108,34 @@ def test_teleport_lands_inside_an_enterable_in_one_turn():
     assert "The pine crate is shut." in io.text
     assert "You get out of the pine crate." in io.text
     assert "Vault (on the bench)" in io.text
+
+
+def test_a_bare_stand_on_or_go_on_is_an_incomplete_command():
+    # auraes (2026-10-24): STAND ON with nothing named reached the enter
+    # default with object 0 ("@test_attr called with object 0", then "You
+    # can't get inside nothing."). STAND and GO stand alone, so the bare-
+    # command mark missed the ENTER their particle compounds into; it is now
+    # asked like a bare SIT ON.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'game\n    title "S"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n'
+        'thing stool of supporter in hall\n    name "stool"\n    words stool\n    enterable\n'
+    )
+    io = CaptureIO(script=["stand on", "go on", "stand on stool"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert "The verb stand requires you to be more specific." in out
+    assert "The verb go requires you to be more specific." in out
+    assert "inside nothing" not in out
+    assert "You stand on the stool." in out
