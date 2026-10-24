@@ -6,6 +6,14 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Computed values: a number or an object can be a block.** A property
+  that was text-only when computed now takes a block returning a number
+  or an object, decided when it is read: `reading block` with `return 3`
+  in a storm, `return 9` otherwise, while every other gauge keeps its
+  plain `reading 7`. Once any object declares a property as a block, that
+  property is computed everywhere, at about 3 bytes per read site; every
+  other property costs nothing. A property declared only as a block takes
+  its type from its returns (arcc 2.35.0).
 - **Lists for every verb, and the lid stops the hand.** TAKE APPLE AND
   KEY is now one command with two items, swept and labeled exactly like
   PUT KEY AND APPLE IN VITRINE ("apple: You take the apple with you."),
@@ -40,14 +48,6 @@ lives in the commit log. The feature roadmap follows below.
   story needs follows: `if player is henrik`, `move henrik to nothing`,
   `become(henrik)`, starting as any body by declaration. The old form
   keeps compiling (arcc 2.27.0, Cosmos 1.45.0).
-- **Which Smith? Topics that share a word.** ASK ABOUT SMITH with a John
-  and a Mary no longer runs whichever was declared first. The words
-  decide where they can (JOHN SMITH is John), an umbrella topic for the
-  bare word answers in the character's own voice (the author's tool),
-  and a cold tie is asked as dialogue, `The troll: "John Smith, or Mary
-  Smith?"`, offering only the topics the player has been told about; the
-  next line answers it or simply runs as the next command (arcc 2.26.0,
-  Cosmos 1.44.0).
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus

@@ -116,6 +116,12 @@ def topic_when_name(objname: str, idx: int) -> str:
     return f"topicwhen_{objname}_{idx}"
 
 
+def computed_literal_name(value: int) -> str:
+    """The shared routine returning one literal value of a computed value
+    property (`weight 5` where some other object's weight is a block)."""
+    return f"cval_{value & 0xFFFF}"
+
+
 def prop_routine_name(objname: str, pname: str) -> str:
     """The routine that computes property `pname` of `objname` (a `<name> block`
     property). Named deterministically so the property table (here) and the routine
@@ -156,6 +162,9 @@ class Layout:
     # (offset within `table`, routine name) to patch with a routine's packed
     # address - used for the react property (B4.5b).
     routine_fixups: list[tuple[int, str]] = field(default_factory=list)
+    # The distinct literal values of computed value properties, one shared
+    # cval_<n> routine each (codegen.gen_computed_value_literals).
+    computed_literals: set = field(default_factory=set)
     # (offset within `table`, word) to patch with the word's dictionary address,
     # for each entry of an object's words property (B4.5d).
     word_fixups: list[tuple[int, str]] = field(default_factory=list)
@@ -1049,6 +1058,14 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
             is_text = world.properties[pname].type == prelude.T_TEXT
             layout.computed_props.append((name, pname, is_text, decl))
             continue
+        if pname in getattr(world, "computed_value_props", ()):
+            # A literal declaration of a property that is a block elsewhere:
+            # every read calls, so the slot holds a routine returning the
+            # value (shared per value), never the bare value.
+            value = _literal_word(world, layout, pname, decl)
+            layout.computed_literals.add(value)
+            layout.routine_fixups.append((data_at, computed_literal_name(value)))
+            continue
         _fill_property(world, layout, pname, decl, data_at)
     # A property list is terminated by a size byte of zero (standard 1.1, section
     # 12.4.1). Without it, get_prop_addr for an absent property walks past this
@@ -1159,6 +1176,24 @@ def _emit_spans(layout: Layout, pnum: int, room_names: list) -> None:
         num = layout.obj_number.get(rname, 0)
         layout.table.append((num >> 8) & 0xFF)
         layout.table.append(num & 0xFF)
+
+
+def _literal_word(world, layout, pname, decl) -> int:
+    """The word a literal value declaration stands for (a number, an object,
+    a catalog offset), as _fill_property would store it."""
+    if decl is None or decl.form != ast.PROP_VALUE or not decl.values:
+        return 0
+    v = decl.values[0]
+    if isinstance(v, ast.Number):
+        return v.value & 0xFFFF
+    if isinstance(v, ast.Bool):
+        return 1 if v.value else 0
+    if isinstance(v, ast.Name):
+        if v.ident in layout.obj_number:
+            return layout.obj_number[v.ident]
+        if v.ident in layout.catalogs:
+            return layout.catalogs[v.ident] & 0xFFFF
+    return 0
 
 
 def _fill_property(world, layout, pname, decl, data_at) -> None:

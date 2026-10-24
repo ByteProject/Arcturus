@@ -30,6 +30,7 @@ from . import objects as objmod
 from . import storyfile
 from . import worldmodel as wm
 from .prelude import _DIRECTIONS as _PRELUDE_DIRECTIONS
+from . import prelude
 from . import zstring
 from .assembler import Const, Routine, RoutineRef, STACK, Variable, link
 from .errors import ArcError
@@ -2165,6 +2166,46 @@ _TOPIC_HELPER_NAMES = (
 )
 
 
+def _computed_value_props(world: wm.World) -> set:
+    """The VALUE properties (number or object, never text, never a direction
+    or the name) that some object or kind declares as a block. A read of a
+    plain value property cannot tell a routine address from a value, so such
+    a property is computed EVERYWHERE: each literal declaration compiles to a
+    tiny shared routine returning it, and every read calls (Stefan's ruling,
+    2026-10-24, on EdwardianDuck's report). A property that never takes a
+    block is untouched."""
+    out = set()
+    owners = list(world.objects.values()) + list(world.kinds.values())
+    for owner in owners:
+        for pname, decl in getattr(owner, "props", {}).items():
+            if getattr(decl, "form", None) != ast.PROP_BLOCK:
+                continue
+            if pname in world.direction_props or pname in ("name", "name_block"):
+                continue
+            prop = world.properties.get(pname)
+            if prop is None or prop.type == prelude.T_TEXT:
+                continue
+            out.add(pname)
+    return out
+
+
+def gen_computed_value_literals(layout) -> list:
+    """One routine per distinct literal value of a computed value property
+    (cval_<n>): `weight 5` on one object and `weight 5` on another share it.
+    0 and 1 are the one-byte rfalse/rtrue."""
+    routines = []
+    for value in sorted(layout.computed_literals):
+        rt = Routine(objmod.computed_literal_name(value), nlocals=0)
+        if value == 0:
+            rt.op("rfalse")
+        elif value == 1:
+            rt.op("rtrue")
+        else:
+            rt.op("ret", Const(value))
+        routines.append(rt)
+    return routines
+
+
 def gen_computed_prop_routines(world: wm.World, layout, gmap: dict, pool) -> list:
     """A prop_<obj>_<pname>() routine for every computed (`<name> block`) property,
     running its block with `self` bound to the object. A text property's block says
@@ -2172,19 +2213,11 @@ def gen_computed_prop_routines(world: wm.World, layout, gmap: dict, pool) -> lis
     value. The property table stores each routine's packed address (objects.py)."""
     routines = []
     for objname, pname, is_text, decl in layout.computed_props:
-        if not is_text and pname not in world.direction_props:
-            # A read of a value property cannot tell a routine address from a plain
-            # value, so a general computed value property is unsupported. The one
-            # exception is a computed EXIT (a direction property that is a block):
-            # its value is a room object NUMBER, always small, so an exit read can
-            # tell it from the block routine's large packed address (exit_dest,
-            # docs/01 chapter 8).
-            raise CodegenError(
-                f"computed property '{pname}' must be a text property, or a "
-                f"direction (a computed exit); a general computed value "
-                f"property is not supported",
-                getattr(decl, "line", None),
-            )
+        # A value property's block returns its value; a computed exit's
+        # returns a room (its value is a small object number, so an exit
+        # read tells it from the routine's address, exit_dest, chapter 8);
+        # any other value property is computed everywhere (every read
+        # calls, _computed_value_props), so no ambiguity remains.
         owner_num = layout.obj_number.get(objname, 0)
         rt = Routine(objmod.prop_routine_name(objname, pname), nlocals=0)
         ctx = Context(
@@ -2193,7 +2226,9 @@ def gen_computed_prop_routines(world: wm.World, layout, gmap: dict, pool) -> lis
         )
         ctx.prescan(decl.body)
         if not compile_block(rt, ctx, decl.body):
-            rt.op("rtrue")
+            # A text block said its text (true); a value block that falls
+            # off its end is worth 0, like an object without the property.
+            rt.op("rfalse" if pname in world.computed_value_props else "rtrue")
         rt.nlocals = ctx.nlocals()
         routines.append(rt)
     return routines
@@ -2495,6 +2530,7 @@ def _generate(world: wm.World, version: int = 5, stats=None) -> bytes:
     # the `after`/`every` statements can arm their slot by index (docs/01 chapter 16).
     world.schedule_index = _collect_schedules(world)
     actions = _action_numbers(world)
+    world.computed_value_props = _computed_value_props(world)
     layout = objmod.build_layout(world, react_objects=_react_objects(world, actions))
     # Text properties computed by a block: a read of one is "print or run" (below).
     world.computed_text_props = {p for _o, p, is_text, _d in layout.computed_props if is_text}
@@ -2522,6 +2558,7 @@ def _generate(world: wm.World, version: int = 5, stats=None) -> bytes:
     # One routine per computed (`<name> block`) property; the property table stores
     # each one's packed address.
     computed_routines = gen_computed_prop_routines(world, layout, gmap, pool)
+    computed_routines += gen_computed_value_literals(layout)
     all_routines = [main] + routines + react_routines + topic_routines + [schedule_tick, schedule_tick_first] + computed_routines
     if world.uses_computed_names:
         all_routines.append(gen_print_name_routine(layout))

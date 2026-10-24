@@ -1023,16 +1023,38 @@ You write the same `change ... to ...` and `is` either way; the bit-or-slot
 choice is invisible.
 
 Computed properties. A property whose value is a `block` is evaluated by
-running the block when the property is read. The block `say`s its own text;
-reading the property (for example when Cosmos prints a room `desc`) runs the
-block, and whatever it says is what the property prints. This is text only,
-with one exception: a computed `desc` is the headline use, and a general
-computed value property (a number decided at run time) is reported as a
-compile error, because a read cannot tell a small value apart from the
-block's address. The exception is a computed EXIT (a direction property that
-is a block; chapter 8), where the value is a room and so is always
-small enough to distinguish; there the block returns a room to allow the move
-or `nothing` to refuse it.
+running the block when the property is read. A text property's block `say`s
+its own text; reading the property (for example when Cosmos prints a room
+`desc`) runs the block, and whatever it says is what the property prints.
+A value property's block `return`s its value, a number or an object, decided
+at the moment of reading:
+
+```
+kind gauge of thing
+    reading 7                      // the kind's plain default
+
+thing barometer of gauge in hall
+    reading block
+        if stormy is true
+            return 3
+        return 9
+```
+
+`barometer.reading` runs the block; every other gauge reads 7; an object
+without the property reads 0. Once any object or kind declares a property
+as a block, that property is computed everywhere: each plain value becomes a
+tiny shared routine, and every read is a call. That costs about 3 bytes per
+place the property is read and about 4 per distinct plain value, nothing for
+properties that never take a block. A computed property is read, never
+changed (`change x.reading to 5` is refused): keep the changing state in a
+property or flag of its own and let the block read it. A property declared
+ONLY as a block takes its type from its returns: none at all is text the
+block says, every return an object makes an object property (`${x.prop}`
+speaks the name), anything else a number. A computed `weight` returns
+the same units a plain one is written in: `return 5` weighs what `weight
+5` weighs. A computed EXIT (a direction
+property that is a block; chapter 8) returns a room to allow the move or
+`nothing` to refuse it.
 
 ```
 room cellar

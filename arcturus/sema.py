@@ -179,9 +179,10 @@ class Analyzer:
         # A summoned abbreviations.granule (B6) is compile-time data, not runtime
         # blocks, so it rides on the program straight through to codegen.
         self.world.abbreviations = getattr(self.program, "abbreviations", None)
-        # The direction property names (the standard set plus any declared), so
-        # codegen may allow a COMPUTED exit (a direction property that is a
-        # block) while a general computed value property stays unsupported.
+        # The direction property names (the standard set plus any declared):
+        # a COMPUTED exit (a direction property that is a block) reads as a
+        # room, while any other value property with a block is computed
+        # everywhere (codegen._computed_value_props).
         self.world.direction_props = set(self.env.directions)
         # The same set in declaration order (standard first, then customs as
         # declared), for everything that emits per-direction rows.
@@ -1921,7 +1922,13 @@ class Analyzer:
                 # is the readable zero. Scaled only under summon.carryweight:
                 # without the granule the name is an ordinary property the
                 # game owns, untouched.
-                if m.name == "weight" and wm.has_summon(w, "carryweight"):
+                if m.name == "weight" and wm.has_summon(w, "carryweight") \
+                        and m.form == ast.PROP_BLOCK:
+                    # A computed weight speaks the same units as a plain
+                    # one: `return 5` is five, scaled to tenths like
+                    # `weight 5`; `return 0.5` and no_weight as written.
+                    self._scale_weight_returns(m.body)
+                elif m.name == "weight" and wm.has_summon(w, "carryweight"):
                     vals = []
                     for v in m.values:
                         if isinstance(v, ast.Name) and v.ident == "no_weight":
@@ -2099,6 +2106,65 @@ class Analyzer:
         else:
             self.world.objects[owner].grains.append(grain)
 
+    def _scale_weight_returns(self, body) -> None:
+        """Scale the bare integer literals a computed weight returns to tenths,
+        in place, exactly as a plain `weight 5` declaration is scaled."""
+        def visit(node):
+            if isinstance(node, ast.Return):
+                v = node.value
+                if isinstance(v, ast.Number) and not v.tenths:
+                    node.value = ast.Number(v.value * 10, v.line, tenths=True)
+                elif isinstance(v, ast.Name) and v.ident == "no_weight":
+                    node.value = ast.Number(0, v.line, tenths=True)
+                return
+            if isinstance(node, list):
+                for n in node:
+                    visit(n)
+                return
+            if not dataclasses.is_dataclass(node):
+                return
+            for f in dataclasses.fields(node):
+                val = getattr(node, f.name)
+                if isinstance(val, list) or dataclasses.is_dataclass(val):
+                    visit(val)
+        visit(body)
+
+    def _block_yield_type(self, body) -> str:
+        """The type a property declared ONLY as a block yields, read from its
+        `return` values (EdwardianDuck's report, 2026-10-18): none at all is a
+        text block that says its words; every return an object (or nothing)
+        is an object property, so `${x.prop}` speaks the name; anything else
+        is a number."""
+        rets = []
+
+        def visit(node):
+            if isinstance(node, ast.Return):
+                if node.value is not None:
+                    rets.append(node.value)
+                return
+            if isinstance(node, list):
+                for n in node:
+                    visit(n)
+                return
+            if not dataclasses.is_dataclass(node):
+                return
+            for f in dataclasses.fields(node):
+                v = getattr(node, f.name)
+                if isinstance(v, list) or dataclasses.is_dataclass(v):
+                    visit(v)
+
+        visit(body)
+        if not rets:
+            return prelude.T_TEXT
+        kinds = set()
+        for v in rets:
+            if isinstance(v, ast.Nothing):
+                continue
+            kinds.add(self._value_type(v))
+        if kinds == {prelude.T_OBJECT}:
+            return prelude.T_OBJECT
+        return prelude.T_NUMBER
+
     def _declared_type(self, m: ast.PropertyDecl) -> Optional[str]:
         if m.form == ast.PROP_BOOL:
             return prelude.T_BOOL
@@ -2109,7 +2175,9 @@ class Analyzer:
             # already has a value type, the block computes that type and does
             # not redefine it. Only an otherwise-unknown property types as block.
             existing = self.world.properties.get(m.name)
-            return existing.type if existing is not None else prelude.T_BLOCK
+            if existing is not None:
+                return existing.type
+            return self._block_yield_type(m.body)
         # PROP_VALUE: several values are a list literal; one value takes its type.
         existing = self.world.properties.get(m.name)
         if existing is not None and existing.type == prelude.T_LIST:

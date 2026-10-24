@@ -748,7 +748,15 @@ def eval_expr(rt: Routine, ctx: Context, expr, dest=None) -> None:
                 f"cannot read property '{expr.prop}' as a value", expr.line
             )
         objop, t = _operand(rt, ctx, expr.obj)
-        rt.op("get_prop", objop, Const(pnum), store=dest)
+        if expr.prop in getattr(ctx.world, "computed_value_props", ()):
+            # A computed value property (some declaration is a block): the
+            # slot always holds a routine, so the read calls it. An object
+            # without the property reads the default 0, and a call to
+            # address 0 returns false: still 0.
+            rt.op("get_prop", objop, Const(pnum), store=Variable(STACK))
+            rt.op("call_1s", Variable(STACK), store=dest)
+        else:
+            rt.op("get_prop", objop, Const(pnum), store=dest)
         if t is not None:
             ctx.free_temp(t)
         return
@@ -4054,6 +4062,12 @@ def _change(rt, ctx, s: ast.Change):
         return
     if isinstance(s.target, ast.Dot):
         pnum = ctx.prop_number(s.target.prop)
+        if s.target.prop in getattr(ctx.world, "computed_value_props", ()):
+            raise LowerError(
+                f"'{s.target.prop}' is computed (some object declares it as a "
+                f"block), so it is read, never changed: keep the changing "
+                f"state in a property or global of its own and let the block "
+                f"read it", s.line)
         if pnum is None:
             if s.target.prop == "name":
                 # The short name lives in the object header, fixed in the
@@ -4343,6 +4357,14 @@ def _is_object_expr(ctx, expr) -> bool:
     if isinstance(expr, ast.Call) and expr.name not in ctx.world.blocks \
             and expr.name in ("parent_of", "first_in", "next_in"):
         return True
+    # An object-typed property read speaks its name too: `${x.best_key}`
+    # printed the object's number (found beside EdwardianDuck's computed
+    # property report, 2026-10-24), computed or literal alike.
+    if isinstance(expr, ast.Dot):
+        prop = ctx.world.properties.get(expr.prop)
+        if prop is not None and prop.type == "object" \
+                and expr.prop not in ctx.world.direction_props:
+            return True
     return False
 
 

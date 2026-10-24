@@ -75,18 +75,31 @@ def test_static_exits_still_work_alongside_a_computed_one():
     assert out.rstrip().endswith(">") or "Cave Mouth" in out.split("south")[-1]
 
 
-def test_a_general_computed_value_property_is_still_an_error():
-    # A non-direction value property that is a block remains unsupported: the
-    # read cannot tell a routine address from an arbitrary value.
+def test_a_computed_weight_speaks_the_units_of_a_plain_one():
+    # Value properties may be blocks since arcc 2.35.0 (Stefan's ruling,
+    # 2026-10-24); the restriction this test once pinned is lifted. A
+    # computed weight returns whole units like a plain `weight 5`: the
+    # carryweight granule's tenths scaling reaches its returns.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
     src = (
+        'summon.carryweight\n'
         'game\n    title "V"\n    start hall\n'
         'room hall\n    name "Hall"\n    desc "x."\n'
-        'thing rock in hall\n    name "rock"\n'
+        'thing rock in hall\n    name "rock"\n    words rock\n'
         '    weight block\n'
         '        return 5\n'
+        'thing pebble in hall\n    name "pebble"\n    words pebble\n    weight 5\n'
+        'verb "probe"\n    probe\n'
+        'on probe\n    say "${rock.weight} ${pebble.weight}"\n'
     )
-    with pytest.raises(Exception, match="computed value property is not supported"):
-        _build(src)
+    io = CaptureIO(script=["probe"])
+    try:
+        VM(load(_build(src)), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    assert "50 50" in io.text
 
 
 def test_static_exit_game_is_byte_identical_without_the_machinery():

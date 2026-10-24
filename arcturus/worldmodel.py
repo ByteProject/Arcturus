@@ -570,6 +570,10 @@ class World:
     # Names of text properties computed on some object (`<name> block`), so a read
     # of one lowers to "print or run" rather than a plain string print (docs/01 chapter 5).
     computed_text_props: set = field(default_factory=set)
+    # Author value properties (number, object) that some object or kind
+    # declares as a block: every declaration of such a property compiles to
+    # a routine and every read calls it (docs/01 chapter 5, computed values).
+    computed_value_props: set = field(default_factory=set)
     # Resolution of every `is` test, keyed by the node's identity.
     is_resolutions: dict[int, str] = field(default_factory=dict)
     # How many `obj is <kind>` test SITES name each kind (static count, not a
