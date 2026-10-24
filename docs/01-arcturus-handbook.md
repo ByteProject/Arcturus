@@ -52,6 +52,7 @@ mapping](04-codegen-mapping.md).
 - [Appendix B: Grammar summary](#appendix-b-grammar-summary)
 - [Appendix C: Cosmos-reserved names](#appendix-c-cosmos-reserved-names)
 - [Appendix D: The author's toolkit](#appendix-d-the-authors-toolkit)
+- [Appendix E: Index](#appendix-e-index)
 
 ## Chapter 1: Reading Arcturus
 
@@ -98,7 +99,7 @@ between the comma and the continuation are ignored.
 
 - number: a 16-bit signed integer, -32768 to 32767, wrapping arithmetic. No
   floats. A
-  literal may be written in hexadecimal, `0xFF`, `0x0B`, the same number as
+  <a id="ix-hexadecimal-numbers"></a>literal may be written in hexadecimal, `0xFF`, `0x0B`, the same number as
   its decimal twin; masks and dictionary flag bytes read better that way.
 - text: a string, ZSCII encoded at compile time, with `${ }` interpolation.
 - boolean: `true` or `false`.
@@ -147,7 +148,7 @@ later with `print_banner` (after a quote box, say), or never.
 The banner also names the compiler (Arcturus) and the library
 (Cosmos) with their versions; the banner section later in this chapter has the details.
 
-Story state comes in three declarations, and the head tells the reader what
+<a id="ix-global"></a>Story state comes in three declarations, and the head tells the reader what
 they are holding:
 
 ```
@@ -180,7 +181,7 @@ the compiler, which checks the promise each head makes, and is free to pack
 flags into bits later without any source change. The Z-machine offers 240;
 the compiler allocates them and errors only if a program exceeds that.
 
-A CONSTANT costs no global at all: it inlines to its value at every use. A
+<a id="ix-constant"></a>A CONSTANT costs no global at all: it inlines to its value at every use. A
 STRING constant stands for its text anywhere text stands, so one wording is
 written once and shared:
 
@@ -201,7 +202,7 @@ notes it and names the cure, a computed `desc block`); in `say` and `show`
 the same constant interpolates as usual.
 
 A CATALOG is a fixed, ordered collection declared once, like a star
-catalog: one value per indented line, one TYPE of value per catalog
+<a id="ix-catalog"></a>catalog: one value per indented line, one TYPE of value per catalog
 (strings, numbers, objects, or directions), the compiler counting so no
 size is ever written:
 
@@ -373,7 +374,7 @@ block read_route(m)
         change i to i + 1
 ```
 
-The mutators are what a catalog lacks. `append v to m` grows the length by
+<a id="ix-append-insert-remove-matrix"></a>The mutators are what a catalog lacks. `append v to m` grows the length by
 one, returning 1 or 0 when the matrix is full, so the policy is yours:
 
 ```
@@ -809,7 +810,7 @@ Mark the character when its whole load is in plain sight, mark items when
 only some are; `hidden` and `concealed` still hide an item either way.
 What the player carries is never a belonging on show: it is the
 inventory. The sentence after EXAMINE is the library's; a game whose
-prose should own it writes `constant exposed_line = false`, which keeps
+<a id="ix-exposed-line"></a>prose should own it writes `constant exposed_line = false`, which keeps
 the automatic sentence out of every examine, and calls `line_exposed(self)`
 from a character's `desc block` wherever the load should be told:
 
@@ -859,7 +860,7 @@ A kind roots at `thing` or `room`. Inheritance is single parent in v1: a kind
 names one parent with `of`, forming a chain (`small_box of container of
 thing`).
 
-Resolution order. An instance inherits every property and handler of its kind
+<a id="ix-resolution-order"></a>Resolution order. An instance inherits every property and handler of its kind
 chain. Re-declaring a property overrides the inherited default. For handlers,
 the most specific runs first: the instance's own, then its kind's, then each
 parent, then the Cosmos default. Each handler either ends, which consumes the
@@ -935,8 +936,8 @@ acquisition the player should be credited for) is the Cosmos block
 `gain(lamp)`: it pays a scored thing's points exactly once and marks it
 `moved` and `seen` before moving it, the bookkeeping TAKE would have done
 (chapter 13). A bare `move lamp to player` leaves auto-scored points
-unreachable and the object's `intro` un-retired. Rule of thumb: `gain` when
-the player RECEIVES something, `teleport` when the player ARRIVES somewhere,
+<a id="ix-gain"></a>unreachable and the object's `intro` un-retired. Rule of thumb: `gain` when
+<a id="ix-teleport"></a>the player RECEIVES something, `teleport` when the player ARRIVES somewhere,
 `move` for silent stage management behind the scenes.
 
 Directions are object-valued properties on a room whose value is another
@@ -972,7 +973,7 @@ dictionary entry. This is the model Dialog uses for its name words; Inform
 and PunyInform parse only the declared word list and treat the printed
 name as print-only.
 
-A computed `name block` is the one computed property with a special seat:
+<a id="ix-name-block"></a>A computed `name block` is the one computed property with a special seat:
 the short name lives in the object header, so the block's routine rides a
 hidden slot and every place a name prints (the room listing, the
 inventory, the reports, `${the noun}`, `say x.name`, the status bar) runs
@@ -999,7 +1000,7 @@ whose names are all literal pays nothing for the seat. Worked example:
 The declared default's type fixes the property's type program-wide. Using one
 property as two types is a compile error naming both sites.
 
-The list type also stands free of any object: `list codes = veshka,
+<a id="ix-list"></a>The list type also stands free of any object: `list codes = veshka,
 morra, "sh'ka"` declares a STATIC LIST of dictionary words at top level
 (quotes carry a spelling no identifier can, an apostrophe form). The
 words enter the dictionary owned by nothing, the table is fixed at
@@ -1022,7 +1023,7 @@ performs dead-code elimination:
 You write the same `change ... to ...` and `is` either way; the bit-or-slot
 choice is invisible.
 
-Computed properties. A property whose value is a `block` is evaluated by
+<a id="ix-computed-properties"></a>Computed properties. A property whose value is a `block` is evaluated by
 running the block when the property is read. A text property's block `say`s
 its own text; reading the property (for example when Cosmos prints a room
 `desc`) runs the block, and whatever it says is what the property prints.
@@ -1080,7 +1081,7 @@ Unused declared properties are removed by dead-code elimination.
 
 ### Standard attributes
 
-Cosmos predefines these boolean attributes. Set one by naming it (`fixed`),
+<a id="ix-attribute-folds"></a>Cosmos predefines these boolean attributes. Set one by naming it (`fixed`),
 clear it with `false` (`fixed false`), test it with `is`. The machinery
 behind an attribute is compiled in when the game uses it: when any object
 declares it at all, `true` or `false`, or when any code sets it in play
@@ -1090,36 +1091,36 @@ touches an attribute pays nothing for it.
 
 | Attribute | Meaning and usage |
 |---|---|
-| `fixed` | The object cannot be taken; it stays where it is. `take` refuses it. |
-| `scenery` | Background detail: still referable for `examine`, but left out of the room's contents listing and not takeable (gives the scenery line). A game that wants what sits ON or IN scenery holders told anyway opts in once with `constant scenery_contents = true`: each such holder then gets its own paragraph ("On the counter you can see a bell and a candle."), the knowledge model deciding per item (PunyInform's OPTIONAL_PRINT_SCENERY_CONTENTS, as a fold: off by default, zero bytes unused). Worked example: [examples/features/scenery-contents.storyarc](../examples/features/scenery-contents.storyarc). |
-| `hidden` | Out of scope entirely until cleared: an undiscovered object, neither listed nor referable. Clear it when the object is revealed. |
-| `concealed` | In scope and actable, but omitted from the room's contents listing (present but not spelled out in the description). Taking it clears the flag: concealment means "not yet noticed", and a thing the player has held has been noticed, so it lists normally once dropped. Set it back in your own handler to keep something unlisted after handling. |
-| `wearable` | Can be worn; the `wear` verb accepts it. |
-| `worn` | Currently worn. Set by `wear`, cleared by `take_off`, and take_off is the only way to remove it: drop, put, and insert of a worn thing refuse ("You would have to take the scarf off first."), so an `on take_off` gate (clothes that will not come off) rules every exit. The foresight granule (chapter 22) takes it off implicitly instead. Inventory tags it "(worn)". |
-| `lit` | Gives light. On a `room`, the room is independently lit; on a thing, the thing glows and lights its location. Light is otherwise computed. |
-| `edible` | Can be eaten: the `eat` verb consumes it, gone from the world, with the library's line; anything else is "not on the menu". Write your own `on eat` for consequences (the potion, the poison); it overrides by ordinary handler resolution. The worked scene is [examples/features/edible.storyarc](../examples/features/edible.storyarc). |
-| `named` | A proper-named thing (Linda, Excalibur). Takes no article: `${the noun}` and `${a noun}` print just the name. |
-| `an` | The indefinite article is "an", not "a". Derived from the name's first letter, with the Latin vowels counted as a class: the five, their accented forms, and the ligatures œ/æ, so a translation's pack can read the bit for vowel-initial rules (French elision) with no per-object work. Set `an` or `an false` only for an exception (an hour, a unicorn). |
-| `feminine` | Grammatical gender. Drives the Spanish articles and agreement (la lampara, Cogida), the German article (declared there with `die`, which sets this), and the English "her" pronoun on a character. Spanish derives it from a head noun ending in -a or a reliably feminine suffix; declare it where spelling cannot reveal it (la llave; an English Ruth). Masculine is the unmarked default. |
-| `neutral` | The third German gender, declared there with `das` (das Buch, "es"). English and Spanish never read it. |
-| `exposed` | A character's belonging the player can see (chapter 3): in scope while its holder is, examinable and referable, EXAMINE on the character names it ("Testy is wearing a felt hat and carrying a passport."), and TAKE refuses in the holder's name. On the character itself, everything it carries and wears is on show. A character's other belongings stay private, the house rule. Costs nothing unused. |
-| `beyond` | Visible but not touchable: in scope and examinable (a chandelier overhead, a jar one shelf too high), while every touching action refuses ("${The noun} is beyond your reach.", msg_beyond, overridable). Conversation crosses the gap (an animate beyond person still answers ASK), and throwing AT a beyond thing stays legal: the arm reaches where the hand cannot. It is state: `now jar is not beyond` when the stool is gained. The refusal can carry the WHY (a field request): `beyond "Without the ladder, the top shelf might as well be the moon."` speaks your line instead of the generic one, and `beyond block` opens a computed body (the desc-block shape) for wording by state; a bare `beyond` keeps the pack's message. The property points both ways: `now player is beyond` puts the PLAYER out of everything's reach instead (riding a horse, say). While the player is beyond, only the near things stay touchable: themself, what they hold, and the thing they are on or in with everything it carries (the mare, her saddlebag, the apple inside); un-nested it collapses to self and held alone (hands bound, tied to a chair). Sight and speech cross the gap exactly as above, and EXIT is never blocked, so dismounting always works. Set it in the after phase, once the boarding has really happened: `on after enter mare / now player is beyond`, and `on after exit mare / now player is not beyond`. The refusal is central: the reach gate runs before any handler, for every touch action alike (a verb opts out with `reachagnostic`, chapter 12), so an object's own `on take when ...` override speaks only to things the player could actually reach. The player's refusal can carry its own why, settable at RUNTIME: `change player.beyond_why to "You can't reach that from up here."` speaks your line, `change player.beyond_why to nothing` reverts to the pack default (the slot is allocated automatically for any game that writes it). Static faraway decoration needs no object at all, that is a grain's job (chapter 18); beyond is for distance that matters to the model. Costs nothing unused. Worked example: [examples/features/beyond.storyarc](../examples/features/beyond.storyarc). |
-| `shiftable` | The thing can be pushed through an exit, the player following (PUSH CRATE NORTH). Chapter 12. |
-| `restless` | A background performer: its `on each_turn` fires EVERY turn, wherever the object is, not only in scope. Work follows the performer's nature; prose follows scope: what a restless object prints while out of scope is discarded by the system, so the handler writes its `say` unconditionally and the player hears it exactly when the performer shares their scene: present, arriving, or leaving before their eyes (in scope at either end of its turn); a turn taken wholly offstage is silence. It never fires twice. It is STATE: declare `restless` to be born performing, or arm and disarm at runtime (`now guard is restless`, `now guard is not restless`), with no declaration needed anywhere; a `when` guard on the handler still decides whether an armed performer acts this turn. A game with no restless object pays nothing (the walk, the mute buffer, everything folds away). Chapter 16; worked example: [examples/features/daemons-and-timers.storyarc](../examples/features/daemons-and-timers.storyarc). |
-| `pluribus` | Grammatical number: ONE object that is grammatically plural (the scissors, the boots; e pluribus unum, many speaking through one). The articles read it ("some scissors"; German's bare indefinite plural and die/die/den/der by case; Spanish los/las, unos/unas), `${is x}` agrees (is/are, ist/sind, está/están), and the core messages conjugate ("The scissors stay exactly where they are."). A typed THEM names the last pluribus thing mentioned, in every language (English files it under the them slot as German always did). NOT the plurals granule, whose group words sweep several distinct singular objects ("take coins"). Costs nothing in a game that never sets it. |
-| `binary` | A two-state device: a lamp, a lever, a valve, a machine. The library owns the state the way it owns open/shut: switching it on sets `active` and reports; switching it off clears it; asking for the state it already holds is refused ("is already on/off") before any handler runs. A binary that also declares `lit` is a GLOW thing: the default flip carries the light with it, so a working lamp is these two lines and no code. An author's own `on switch_on` / `on switch_off` handler overrides the default for flavor and then owns the flip (`now self is active`, plus `now self is lit` on a glow thing): validation stays with the library, the response is yours, the same split as everywhere in the pipeline. `switchable` is accepted as a compatibility spelling of `binary`. |
-| `active` | The binary state, tested like any attribute (`if noun is active`) and flipped by the library's switch defaults, or by your flavor handlers. |
-| `openable` | Can be opened and closed; the `open` / `close` verbs apply. |
-| `open` | Currently open (a container or door). Set by `open`, cleared by `close`. A closed container hides its contents from scope. |
-| `clear` | A see-through container (a glass jar): its contents are in scope and referable even when closed. An open or `clear` container exposes its contents; a closed opaque one shields them. |
-| `seen` | Set once the player has been shown an object (a content of an open container, something taken or examined). A closed opaque container still lists the contents the player has `seen`, so they are not forgotten when put away; contents never seen stay hidden until the box is opened. Cosmos manages this; you rarely set it. The full container knowledge model is in chapter 6. |
-| `lockable` | Can be locked and unlocked. LOCK / UNLOCK read the object's state: with the object's `unseal_with` opener held, they succeed; without it (or with no opener defined) they refuse ("you don't have whatever it wants"); UNLOCK on a thing that is not `locked`, or not `lockable` at all, simply opens it. A bare LOCK or UNLOCK reports the opener it reached for ("You unlock the oak door with the brass key."); `second` stays what the player typed. OPEN X WITH KEY runs the real UNLOCK first, then the open. |
-| `locked` | Currently locked; blocks `open` until unlocked. A `lockable` + `locked` thing with NO `unseal_with` is a keyless lock the player cannot open by the verb (no opener to hold): the story springs it itself with `now x is not locked` (a chest you pry open with a crowbar). |
-| `scored` | Managed by `scoring` (chapter 19): the compiler sets it on every room and takeable thing; write `scored false` to exempt one, or on a kind to exempt every object of that kind. Set it by hand only in a game without `scoring` that wants a single classic auto-payer. |
-| `visited` | The room has been described before: Cosmos sets it AFTER the first description, the opening room included, so a `desc block` asking `if self is not visited` speaks its first-visit prose exactly once. Use it to vary a room's description on return. |
-| `moved` | Set the first time the player takes an object. While clear, the object shows its `intro` text in a room description instead of the plain listing. |
-| `animate` | An animate agent (a person, animal, robot, or AI). The conversation and give verbs apply only to the animate; the `character` kind sets it by default, and animate objects refuse being taken. |
-| `component` | This thing is PART OF the thing it sits `in` (a lever in a machine, a button on a panel; the equivalent of Dialog's `#partof`). The object tree carries the relation, so the part follows its whole wherever the whole moves; the attribute grants what a plain thing's insides never get: the part is in scope whenever the whole is, `take` answers that it is part of it (`msg_part_of`), and it never lists as the whole's contents. Make the part `on pull` / `on push` handlers do the machine's work. To detach one in play, clear the attribute and move it. A game with no components pays nothing (`any_components`). |
+| <a id="ix-fixed"></a>`fixed` | The object cannot be taken; it stays where it is. `take` refuses it. |
+| <a id="ix-scenery"></a>`scenery` | Background detail: still referable for `examine`, but left out of the room's contents listing and not takeable (gives the scenery line). A game that wants what sits ON or IN scenery holders told anyway opts in once with `constant scenery_contents = true`: each such holder then gets its own paragraph ("On the counter you can see a bell and a candle."), the knowledge model deciding per item (PunyInform's OPTIONAL_PRINT_SCENERY_CONTENTS, as a fold: off by default, zero bytes unused). Worked example: [examples/features/scenery-contents.storyarc](../examples/features/scenery-contents.storyarc). |
+| <a id="ix-hidden"></a>`hidden` | Out of scope entirely until cleared: an undiscovered object, neither listed nor referable. Clear it when the object is revealed. |
+| <a id="ix-concealed"></a>`concealed` | In scope and actable, but omitted from the room's contents listing (present but not spelled out in the description). Taking it clears the flag: concealment means "not yet noticed", and a thing the player has held has been noticed, so it lists normally once dropped. Set it back in your own handler to keep something unlisted after handling. |
+| <a id="ix-wearable"></a>`wearable` | Can be worn; the `wear` verb accepts it. |
+| <a id="ix-worn"></a>`worn` | Currently worn. Set by `wear`, cleared by `take_off`, and take_off is the only way to remove it: drop, put, and insert of a worn thing refuse ("You would have to take the scarf off first."), so an `on take_off` gate (clothes that will not come off) rules every exit. The foresight granule (chapter 22) takes it off implicitly instead. Inventory tags it "(worn)". |
+| <a id="ix-lit"></a>`lit` | Gives light. On a `room`, the room is independently lit; on a thing, the thing glows and lights its location. Light is otherwise computed. |
+| <a id="ix-edible"></a>`edible` | Can be eaten: the `eat` verb consumes it, gone from the world, with the library's line; anything else is "not on the menu". Write your own `on eat` for consequences (the potion, the poison); it overrides by ordinary handler resolution. The worked scene is [examples/features/edible.storyarc](../examples/features/edible.storyarc). |
+| <a id="ix-named"></a>`named` | A proper-named thing (Linda, Excalibur). Takes no article: `${the noun}` and `${a noun}` print just the name. |
+| <a id="ix-an"></a>`an` | The indefinite article is "an", not "a". Derived from the name's first letter, with the Latin vowels counted as a class: the five, their accented forms, and the ligatures œ/æ, so a translation's pack can read the bit for vowel-initial rules (French elision) with no per-object work. Set `an` or `an false` only for an exception (an hour, a unicorn). |
+| <a id="ix-feminine"></a>`feminine` | Grammatical gender. Drives the Spanish articles and agreement (la lampara, Cogida), the German article (declared there with `die`, which sets this), and the English "her" pronoun on a character. Spanish derives it from a head noun ending in -a or a reliably feminine suffix; declare it where spelling cannot reveal it (la llave; an English Ruth). Masculine is the unmarked default. |
+| <a id="ix-neutral"></a>`neutral` | The third German gender, declared there with `das` (das Buch, "es"). English and Spanish never read it. |
+| <a id="ix-exposed"></a>`exposed` | A character's belonging the player can see (chapter 3): in scope while its holder is, examinable and referable, EXAMINE on the character names it ("Testy is wearing a felt hat and carrying a passport."), and TAKE refuses in the holder's name. On the character itself, everything it carries and wears is on show. A character's other belongings stay private, the house rule. Costs nothing unused. |
+| <a id="ix-beyond"></a>`beyond` | Visible but not touchable: in scope and examinable (a chandelier overhead, a jar one shelf too high), while every touching action refuses ("${The noun} is beyond your reach.", msg_beyond, overridable). Conversation crosses the gap (an animate beyond person still answers ASK), and throwing AT a beyond thing stays legal: the arm reaches where the hand cannot. It is state: `now jar is not beyond` when the stool is gained. The refusal can carry the WHY (a field request): `beyond "Without the ladder, the top shelf might as well be the moon."` speaks your line instead of the generic one, and `beyond block` opens a computed body (the desc-block shape) for wording by state; a bare `beyond` keeps the pack's message. The property points both ways: `now player is beyond` puts the PLAYER out of everything's reach instead (riding a horse, say). While the player is beyond, only the near things stay touchable: themself, what they hold, and the thing they are on or in with everything it carries (the mare, her saddlebag, the apple inside); un-nested it collapses to self and held alone (hands bound, tied to a chair). Sight and speech cross the gap exactly as above, and EXIT is never blocked, so dismounting always works. Set it in the after phase, once the boarding has really happened: `on after enter mare / now player is beyond`, and `on after exit mare / now player is not beyond`. The refusal is central: the reach gate runs before any handler, for every touch action alike (a verb opts out with `reachagnostic`, chapter 12), so an object's own `on take when ...` override speaks only to things the player could actually reach. The player's refusal can carry its own why, settable at RUNTIME: `change player.beyond_why to "You can't reach that from up here."` speaks your line, `change player.beyond_why to nothing` reverts to the pack default (the slot is allocated automatically for any game that writes it). Static faraway decoration needs no object at all, that is a grain's job (chapter 18); beyond is for distance that matters to the model. Costs nothing unused. Worked example: [examples/features/beyond.storyarc](../examples/features/beyond.storyarc). |
+| <a id="ix-shiftable"></a>`shiftable` | The thing can be pushed through an exit, the player following (PUSH CRATE NORTH). Chapter 12. |
+| <a id="ix-restless"></a>`restless` | A background performer: its `on each_turn` fires EVERY turn, wherever the object is, not only in scope. Work follows the performer's nature; prose follows scope: what a restless object prints while out of scope is discarded by the system, so the handler writes its `say` unconditionally and the player hears it exactly when the performer shares their scene: present, arriving, or leaving before their eyes (in scope at either end of its turn); a turn taken wholly offstage is silence. It never fires twice. It is STATE: declare `restless` to be born performing, or arm and disarm at runtime (`now guard is restless`, `now guard is not restless`), with no declaration needed anywhere; a `when` guard on the handler still decides whether an armed performer acts this turn. A game with no restless object pays nothing (the walk, the mute buffer, everything folds away). Chapter 16; worked example: [examples/features/daemons-and-timers.storyarc](../examples/features/daemons-and-timers.storyarc). |
+| <a id="ix-pluribus"></a>`pluribus` | Grammatical number: ONE object that is grammatically plural (the scissors, the boots; e pluribus unum, many speaking through one). The articles read it ("some scissors"; German's bare indefinite plural and die/die/den/der by case; Spanish los/las, unos/unas), `${is x}` agrees (is/are, ist/sind, está/están), and the core messages conjugate ("The scissors stay exactly where they are."). A typed THEM names the last pluribus thing mentioned, in every language (English files it under the them slot as German always did). NOT the plurals granule, whose group words sweep several distinct singular objects ("take coins"). Costs nothing in a game that never sets it. |
+| <a id="ix-binary"></a>`binary` | A two-state device: a lamp, a lever, a valve, a machine. The library owns the state the way it owns open/shut: switching it on sets `active` and reports; switching it off clears it; asking for the state it already holds is refused ("is already on/off") before any handler runs. A binary that also declares `lit` is a GLOW thing: the default flip carries the light with it, so a working lamp is these two lines and no code. An author's own `on switch_on` / `on switch_off` handler overrides the default for flavor and then owns the flip (`now self is active`, plus `now self is lit` on a glow thing): validation stays with the library, the response is yours, the same split as everywhere in the pipeline. `switchable` is accepted as a compatibility spelling of `binary`. |
+| <a id="ix-active"></a>`active` | The binary state, tested like any attribute (`if noun is active`) and flipped by the library's switch defaults, or by your flavor handlers. |
+| <a id="ix-openable"></a>`openable` | Can be opened and closed; the `open` / `close` verbs apply. |
+| <a id="ix-open"></a>`open` | Currently open (a container or door). Set by `open`, cleared by `close`. A closed container hides its contents from scope. |
+| <a id="ix-clear"></a>`clear` | A see-through container (a glass jar): its contents are in scope and referable even when closed. An open or `clear` container exposes its contents; a closed opaque one shields them. |
+| <a id="ix-seen"></a>`seen` | Set once the player has been shown an object (a content of an open container, something taken or examined). A closed opaque container still lists the contents the player has `seen`, so they are not forgotten when put away; contents never seen stay hidden until the box is opened. Cosmos manages this; you rarely set it. The full container knowledge model is in chapter 6. |
+| <a id="ix-lockable"></a>`lockable` | Can be locked and unlocked. LOCK / UNLOCK read the object's state: with the object's `unseal_with` opener held, they succeed; without it (or with no opener defined) they refuse ("you don't have whatever it wants"); UNLOCK on a thing that is not `locked`, or not `lockable` at all, simply opens it. A bare LOCK or UNLOCK reports the opener it reached for ("You unlock the oak door with the brass key."); `second` stays what the player typed. OPEN X WITH KEY runs the real UNLOCK first, then the open. |
+| <a id="ix-locked"></a>`locked` | Currently locked; blocks `open` until unlocked. A `lockable` + `locked` thing with NO `unseal_with` is a keyless lock the player cannot open by the verb (no opener to hold): the story springs it itself with `now x is not locked` (a chest you pry open with a crowbar). |
+| <a id="ix-scored"></a>`scored` | Managed by `scoring` (chapter 19): the compiler sets it on every room and takeable thing; write `scored false` to exempt one, or on a kind to exempt every object of that kind. Set it by hand only in a game without `scoring` that wants a single classic auto-payer. |
+| <a id="ix-visited"></a>`visited` | The room has been described before: Cosmos sets it AFTER the first description, the opening room included, so a `desc block` asking `if self is not visited` speaks its first-visit prose exactly once. Use it to vary a room's description on return. |
+| <a id="ix-moved"></a>`moved` | Set the first time the player takes an object. While clear, the object shows its `intro` text in a room description instead of the plain listing. |
+| <a id="ix-animate"></a>`animate` | An animate agent (a person, animal, robot, or AI). The conversation and give verbs apply only to the animate; the `character` kind sets it by default, and animate objects refuse being taken. |
+| <a id="ix-component"></a>`component` | This thing is PART OF the thing it sits `in` (a lever in a machine, a button on a panel; the equivalent of Dialog's `#partof`). The object tree carries the relation, so the part follows its whole wherever the whole moves; the attribute grants what a plain thing's insides never get: the part is in scope whenever the whole is, `take` answers that it is part of it (`msg_part_of`), and it never lists as the whole's contents. Make the part `on pull` / `on push` handlers do the machine's work. To detach one in play, clear the attribute and move it. A game with no components pays nothing (`any_components`). |
 
 The standard kinds are set by `of <kind>` and tested with `is <kind>`: `thing`,
 `room`, `container`, `supporter`, `door`, `character`.
@@ -1154,18 +1155,18 @@ feature, which declares a global boolean, not an object attribute.)
 
 | Property | Type | Meaning and usage |
 |---|---|---|
-| `name` | text | The printed short name ("brass lantern"). Distinct from the object's id and from `words`. Fixed in the story file: it is never `change`d at runtime; a name that changes is declared computed, `name block` (below). |
-| `desc` | text | The description shown by `examine` (and on first look at a room). |
-| `words` | list | The vocabulary the parser matches: the object's nouns and adjectives, as equal entries. Typed but not printed. The significant words of the `name` count as vocabulary too, always, so a thing is never unreferable (see "Name words are vocabulary" below). |
-| `tag` | text | A short state qualifier appended to the object in listings and the inventory: "a fluid canister (full)". Usually computed (`tag block`); print with `show`, not `say`, so it stays inline. The parentheses come from the listing. |
-| `plural` | list | The words that name this object AS PART OF A GROUP (`plural coins` on each coin): "take coins" acts on every match in scope. Only with `summon.plurals` (chapter 22); ignored otherwise. |
-| `intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). |
-| `appearance` | text | The paragraph the object ALWAYS owns in a room description, replacing its listing line and never expiring ("The keeper is trimming the wick."): Inform's describe, Dialog's `(appearance $)`. A computed block (`appearance block`) words it by state; checked before `intro`; `hidden`/`concealed` still suppress. Costs nothing in a game that never sets one. |
-| `item_cap` | number | The holder's ceiling: how many things fit in a container or on a supporter, nested contents counted, refusing past it with the right preposition (chapter 6). On the game block's level, `constant item_cap = N` is the player's carry limit instead. Unset means bottomless, deliberately. |
-| `article` | text | The DEFINITE article, verbatim, when derivation cannot reach it: `article "las"` (las tijeras), `article "el"` (el agua). Real definite articles only; a measure phrase belongs in `indefinite`, because the definite of a cloud of gnats is still "the gnats". Store it lowercase; the compiler bakes the capital, so the object opens a sentence correctly ("Las tijeras no está en el menú."). |
-| `indefinite` | text | The INDEFINITE article, verbatim: `indefinite "unas"`, an English mass noun with `indefinite "some"` ("You can see some water here."), or a measure phrase (`indefinite "a cloud of"` on gnats). Listings and first sightings use it; the definite slots ("The gnats are...") stay derived and correct. Lowercase, with the capital baked for sentence starts. |
-| `unseal_with` | object | The opener that locks and unlocks this one (for `lockable` things): a key, a keycard, a code object, whatever fits the fiction. It must be HELD to work. Omit it for a keyless lock only the story can spring. |
-| `arc_image` | number | Optional. A room's picture, named by its resource id (`arc_image 8`, or a constant that folds to one). Shown on an aware interpreter, ignored on a standard one. Chapter 20. |
+| <a id="ix-name"></a>`name` | text | The printed short name ("brass lantern"). Distinct from the object's id and from `words`. Fixed in the story file: it is never `change`d at runtime; a name that changes is declared computed, `name block` (below). |
+| <a id="ix-desc"></a>`desc` | text | The description shown by `examine` (and on first look at a room). |
+| <a id="ix-words"></a>`words` | list | The vocabulary the parser matches: the object's nouns and adjectives, as equal entries. Typed but not printed. The significant words of the `name` count as vocabulary too, always, so a thing is never unreferable (see "Name words are vocabulary" below). |
+| <a id="ix-tag"></a>`tag` | text | A short state qualifier appended to the object in listings and the inventory: "a fluid canister (full)". Usually computed (`tag block`); print with `show`, not `say`, so it stays inline. The parentheses come from the listing. |
+| <a id="ix-plural"></a>`plural` | list | The words that name this object AS PART OF A GROUP (`plural coins` on each coin): "take coins" acts on every match in scope. Only with `summon.plurals` (chapter 22); ignored otherwise. |
+| <a id="ix-intro"></a>`intro` | text | An object's initial appearance in a room, shown as its own paragraph while the object is untouched (`moved` clear). |
+| <a id="ix-appearance"></a>`appearance` | text | The paragraph the object ALWAYS owns in a room description, replacing its listing line and never expiring ("The keeper is trimming the wick."): Inform's describe, Dialog's `(appearance $)`. A computed block (`appearance block`) words it by state; checked before `intro`; `hidden`/`concealed` still suppress. Costs nothing in a game that never sets one. |
+| <a id="ix-item-cap"></a>`item_cap` | number | The holder's ceiling: how many things fit in a container or on a supporter, nested contents counted, refusing past it with the right preposition (chapter 6). On the game block's level, `constant item_cap = N` is the player's carry limit instead. Unset means bottomless, deliberately. |
+| <a id="ix-article"></a>`article` | text | The DEFINITE article, verbatim, when derivation cannot reach it: `article "las"` (las tijeras), `article "el"` (el agua). Real definite articles only; a measure phrase belongs in `indefinite`, because the definite of a cloud of gnats is still "the gnats". Store it lowercase; the compiler bakes the capital, so the object opens a sentence correctly ("Las tijeras no está en el menú."). |
+| <a id="ix-indefinite"></a>`indefinite` | text | The INDEFINITE article, verbatim: `indefinite "unas"`, an English mass noun with `indefinite "some"` ("You can see some water here."), or a measure phrase (`indefinite "a cloud of"` on gnats). Listings and first sightings use it; the definite slots ("The gnats are...") stay derived and correct. Lowercase, with the capital baked for sentence starts. |
+| <a id="ix-unseal-with"></a>`unseal_with` | object | The opener that locks and unlocks this one (for `lockable` things): a key, a keycard, a code object, whatever fits the fiction. It must be HELD to work. Omit it for a keyless lock only the story can spring. |
+| <a id="ix-arc-image"></a>`arc_image` | number | Optional. A room's picture, named by its resource id (`arc_image 8`, or a constant that folds to one). Shown on an aware interpreter, ignored on a standard one. Chapter 20. |
 
 `score`, `max_score`, and `turns` are runtime globals, not object properties
 (chapter 2).
@@ -1344,7 +1345,7 @@ EXAMINE on any holder names what is on or in it the same way, two levels
 down from there ("In the box you can see a cheeseboard with a cheese on
 it."; a closed holder names what the player remembers inside), so a
 closer look always reaches the next pair of levels. A story whose
-descriptions should own that sentence writes `constant contents_line =
+<a id="ix-contents-line"></a>descriptions should own that sentence writes `constant contents_line =
 false`, which keeps it out of every EXAMINE; the prose then composes
 `name_contents(self)` where it wants the contents told ("Rusting on the
 rack you find ", the list, the period), and the knowledge model, scope
@@ -1369,7 +1370,7 @@ related attributes are `open` (the lid), `clear` (see-through, always shown),
 `concealed` (present but left out of a listing), and `hidden` (out of scope
 entirely until revealed).
 
-The memory is the designed default. A story that wants a shut box to tell
+<a id="ix-remember-contents"></a>The memory is the designed default. A story that wants a shut box to tell
 nothing until it is opened again, whatever the player has seen inside it,
 switches the memory off once, game-wide:
 
@@ -1419,7 +1420,7 @@ parser should always answer for. Backstage contents are never listed, since
 their room is never entered, so they defend themselves in their own
 handlers. The whole mechanism folds away in a game that stages nothing.
 
-Two predicates Cosmos provides for conditions: `<obj> is visible` (in scope
+<a id="ix-visible-reachable"></a>Two predicates Cosmos provides for conditions: `<obj> is visible` (in scope
 and the location lit; examining needs this) and `<obj> is reachable` (visible
 and not behind a closed container; taking and most physical actions need
 this). The open-air version of the same idea is the `beyond` attribute
@@ -1599,7 +1600,7 @@ set. A game rarely writes these; it summons a language, or uses the default
 English. Selecting a language is one summon: `summon.language "spanish"` compiles
 that language layer in place of English (chapter 14).
 
-CUSTOM DIRECTIONS. When a game needs directions of its own (the compass
+<a id="ix-custom-directions"></a>CUSTOM DIRECTIONS. When a game needs directions of its own (the compass
 fails on a ringworld as surely as on a ship), it declares them, right in
 the story, and the declaration CREATES the direction:
 
@@ -1645,7 +1646,7 @@ moves the player to the room it names. The model has four tiers, from most
 specific to least, with no per-room boilerplate required:
 
 1. A static exit: `north cellar` names the destination room directly.
-2. A computed exit: a direction property may be a `block` (chapter 5), so
+2. <a id="ix-computed-exits"></a>A computed exit: a direction property may be a `block` (chapter 5), so
    an exit can depend on world state. The block returns a room to allow the
    move or `nothing` to refuse it:
 
@@ -1664,14 +1665,14 @@ specific to least, with no per-room boilerplate required:
    effects: reading an exit may happen more than once per turn.
 
    A story reads an exit the same total way Cosmos does, with
-   `exit_dest(room, direction)`: it returns the destination, running a
+   <a id="ix-exit-dest"></a>`exit_dest(room, direction)`: it returns the destination, running a
    computed exit's block when one stands there, and folds to a plain
    property read (`here.(way)`, chapter 9) in a game with none.
 3. A per-direction override: `on go <direction>` runs custom logic or a custom
    message for one direction, as the Cloak of Darkness foyer does for north.
    Ending the handler consumes the action; `continue` falls through to the
    normal move.
-4. A per-room fallback: `on go other` fires for any direction that has no exit
+4. <a id="ix-on-go-other"></a>A per-room fallback: `on go other` fires for any direction that has no exit
    and no specific `on go <direction>` handler. It is the room-wide
    "you cannot go that way here" hook, replacing Inform's `cant_go` without a
    new property:
@@ -1739,13 +1740,13 @@ overrides (the statusline granule claims `screen_ready` to raise its bar
 before `on start` prints). A statement-call to a block whose final body
 is empty emits no code at all, so an unclaimed seam costs zero bytes.
 
-`let` introduces a local: `let n = 0`. A local lives to the end of the
+<a id="ix-let"></a>`let` introduces a local: `let n = 0`. A local lives to the end of the
 BLOCK that declared it: a `let` inside an if branch or a loop body ends
 with that branch. To set a value differently per branch, declare it
 before the if (`let z = 0`) and `change z to ...` inside the branches
 (the compile error teaches this shape when it sees the pattern).
 
-`change ... to ...` is the universal setter, for a local, a global, or a
+<a id="ix-change"></a>`change ... to ...` is the universal setter, for a local, a global, or a
 property:
 
 ```
@@ -1754,10 +1755,10 @@ change score to score + 10
 change ruby.desc to "The ruby sits exposed."
 ```
 
-`now ... is / is not ...` is boolean-set sugar: `now ruby is lit`,
+<a id="ix-now"></a>`now ... is / is not ...` is boolean-set sugar: `now ruby is lit`,
 `now door is not locked`.
 
-`move ... to ...` is the only tree operation; `nothing` detaches:
+<a id="ix-move"></a>`move ... to ...` is the only tree operation; `nothing` detaches:
 
 ```
 move knife to player
@@ -1775,7 +1776,7 @@ is your word, so it skips the checks the ENTER verb would make.
 `gain(obj)` hands the player an object without TAKE (a panel pried open,
 a mechanism yielding its prize); chapter 4 has the move-versus-gain
 warning, and with `scoring` on both pay exactly like their verbs
-(chapter 19). `convey(vehicle, dest)` moves a VEHICLE the player rides
+<a id="ix-convey"></a>(chapter 19). `convey(vehicle, dest)` moves a VEHICLE the player rides
 (a boat, a lift, a mine cart): the player sits inside the vehicle in the
 object tree, so moving the vehicle carries them, but what a plain `move`
 cannot do is refresh `here`, the player's cached room, and scope then
@@ -1785,7 +1786,7 @@ describes the arrival, so a self-driving boat is one line in
 `on each_turn`: `convey(boat, here.south)`. See
 [examples/features/vehicles.storyarc](../examples/features/vehicles.storyarc).
 
-The general form is `perform`: run any action as part of the current turn,
+<a id="ix-perform"></a>The general form is `perform`: run any action as part of the current turn,
 exactly as the player's own command would dispatch it, refusals, handlers,
 and messages included (Inform's `<<take book>>`, Dialog's `(try ...)`):
 
@@ -1845,20 +1846,20 @@ digits, an object prints its `name`: `say "Score: ${score}."`. `show` prints the
 same way but without the trailing line break, for building one line from pieces:
 `show "You can only go "` then more `show`/`say` lines finish the line, the last
 one ending it. Both honor the library's paragraph spacing (a pending blank line
-is flushed before either prints). Use `say` to finish a line, `show` to build
+<a id="ix-say-show"></a>is flushed before either prints). Use `say` to finish a line, `show` to build
 one. The two spell alike: `show "text"` beside `say "text"` (the call form
 `show("text")` also remains valid).
 
-`stop` ends the current handler or block immediately; in an action handler
+<a id="ix-stop"></a>`stop` ends the current handler or block immediately; in an action handler
 that also consumes the action (chapter 11). `continue` ends the current
 handler and passes the action to the next, more general handler (chapter 11).
-`return` belongs in blocks, never in a handler: a handler's value is the
+<a id="ix-return"></a>`return` belongs in blocks, never in a handler: a handler's value is the
 dispatcher's own flag, so the compiler refuses it there and names the two
 words above. A state test is always spelled with `is` (`if house is not
 visited`); a name or `not` where the condition should end is reported as
 exactly that.
 
-`alter` REGISTERS an action's report in your own words, keeping the
+<a id="ix-alter"></a>`alter` REGISTERS an action's report in your own words, keeping the
 default MECHANICS: give your line (or compose one under `alter block`,
 the same shape a computed property takes; a bare `alter` on its own line
 opens the same body), then `continue`. The line prints at REPORT TIME,
@@ -1872,7 +1873,7 @@ the attempt and the success between them. The registered body runs after
 the handler has returned: it reads globals, `noun`, and `self`, but not
 the handler's own `let` locals.
 
-The counterpart is the `success` statement, which is how
+<a id="ix-success"></a>The counterpart is the `success` statement, which is how
 a handler SPEAKS the success line so that a registered alter can win:
 
 ```
@@ -1912,7 +1913,7 @@ on drop
 Costs nothing in a game that never alters (any_alter). Worked example:
 [examples/features/alter.storyarc](../examples/features/alter.storyarc).
 
-`finish` ends the game, printing its final message; Cosmos then reports the
+<a id="ix-finish-death"></a>`finish` ends the game, printing its final message; Cosmos then reports the
 final score (the same line SCORE prints) and offers the classic RESTART,
 RESTORE, QUIT prompt, answered in the pack's own words (chapter 13).
 `death` is the same statement for an ending the player may take back: its
@@ -2045,7 +2046,7 @@ The name after the dot is fixed at compile time; to read a property CHOSEN
 AT RUN TIME, parenthesize an expression that yields it: `here.(way)` reads
 the exit in the direction the player chose. (A bare `here.way` does not
 work, and the reason teaches the form: it would look up a property
-literally named "way", and no such property exists. `way` is the global
+<a id="ix-way"></a>literally named "way", and no such property exists. `way` is the global
 holding the chosen direction, a direction IS its property, and the
 parentheses say "evaluate this, then read the property it names".) The form
 takes any property-valued expression, so a block can receive a direction as
@@ -2307,7 +2308,7 @@ on push, pull lever
     say "The lever does not budge."
 ```
 
-A `when` guard restricts a handler to a condition: it applies only while the
+<a id="ix-when"></a>A `when` guard restricts a handler to a condition: it applies only while the
 condition holds, and otherwise defers to the next handler up the chain. A
 guarded handler is the more specific one, so it runs before an unguarded
 handler for the same action at the same level, in whichever order the two
@@ -2319,7 +2320,7 @@ on push slab when player holds crowbar
     say "You lever the slab aside."
 ```
 
-Default versus override. A matching handler replaces the verb's default
+<a id="ix-default-versus-override"></a>Default versus override. A matching handler replaces the verb's default
 behavior, with the most specific winning (the chapter 3 resolution order).
 Writing the handler switches the built-in behavior off: when the action
 fires, your lines run instead of it, and the built-in part only happens if
@@ -2410,7 +2411,7 @@ timing; the hook that speaks BEFORE the description is the destination's
 Within the after pass, handlers resolve exactly like the main ones: most
 specific first, and `continue` passes to the next (the kind's after, the
 room's, a free-standing one). The two catch-alls keep to their own bands:
-`on other` never answers the after pass (it is for the player's verbs, not
+<a id="ix-on-other"></a>`on other` never answers the after pass (it is for the player's verbs, not
 for bookkeeping), and `on after other` is the after pass's OWN catch-all,
 firing after any completed action that has no specific `on after` here, and
 shadowed by one that does, exactly as `on other` is shadowed in the main
@@ -2466,7 +2467,7 @@ the chosen direction and a bare direction name is comparable against it
 reach (chapter 9, the run-time property read). The full dispatch chain is
 defined in chapter 13.
 
-Free-standing rules. A handler at file level belongs to no object: it joins
+<a id="ix-free-standing-rules"></a>Free-standing rules. A handler at file level belongs to no object: it joins
 the chain after the rooms and before the library defaults, so it is the
 game-wide layer, the place for behavior that is about the STORY rather than
 any one thing. `on sing / say "Every clock loses a beat."` answers SING
@@ -2475,7 +2476,7 @@ its condition holds. A free rule consumes and continues like any other, and
 a free `on <verb>` is also how a story overrides a library default wholesale
 (the library's own defaults are just the last free rules in the chain).
 
-Life-cycle events. Besides the action events named by verbs, Cosmos fires three
+<a id="ix-life-cycle-events"></a>Life-cycle events. Besides the action events named by verbs, Cosmos fires three
 events as the game runs, handled with the same `on` syntax:
 
 - `on start` runs once at the very beginning, BEFORE the banner: this is where
@@ -2661,11 +2662,11 @@ handler asks `if way is nothing` (declare the bare line too, so a plain SWIM
 can ask "which way?"), compares `if way is south`, or hands the move to the
 walking machinery whole with `perform("go", way)`. A noun slot before it
 ends its phrase at the direction word, so in PUSH CRATE WEST the noun is the
-crate. One `direction` slot per line, always last; a verb with such a line
+<a id="ix-direction-grammar-slot"></a>crate. One `direction` slot per line, always last; a verb with such a line
 compiles to the positional table. The worked showcase is
 [examples/features/direction-grammar.storyarc](../examples/features/direction-grammar.storyarc).
 
-A verb whose actions are OUT-OF-WORLD takes a trailing `meta`:
+<a id="ix-meta"></a>A verb whose actions are OUT-OF-WORLD takes a trailing `meta`:
 
 ```
 verb "about", "credits" meta
@@ -2730,7 +2731,7 @@ verb_trigger pays nothing for any of this. The worked showcase for both
 seams is
 [examples/features/enhance-redefine.storyarc](../examples/features/enhance-redefine.storyarc).
 
-EXTENDING THE STANDARD GRAMMAR. The grammar is not a fixed table you write
+<a id="ix-grammar"></a>EXTENDING THE STANDARD GRAMMAR. The grammar is not a fixed table you write
 additions into; it is the sum of every `verb` declaration in the compile,
 Cosmos's and yours alike, and your game is expected to add its own. Three
 patterns cover what a game wants:
@@ -2997,7 +2998,7 @@ verb "show", "display", "present"
     show noun to noun     // shown to may be out of reach
 ```
 
-Bare `reachagnostic` skips the check for both slots; `reachagnostic
+<a id="ix-reachagnostic"></a>Bare `reachagnostic` skips the check for both slots; `reachagnostic
 noun` or `reachagnostic second` skips it for one. In the standard
 library: examine, smell, listen, read, talk, ask, tell, answer, and
 exit skip the check; show and throw skip it on the second slot; every
@@ -3006,7 +3007,7 @@ reach, the whole check compiles away.
 
 Scope is the other axis: not whether the player can touch a thing, but
 whether they can see it at all. A verb that must name what has left the
-room declares `anywhere` beside its grammar:
+<a id="ix-anywhere"></a>room declares `anywhere` beside its grammar:
 
 ```
 verb "follow", "pursue"
@@ -3204,7 +3205,7 @@ timers armed `... turns first` tick just before step 5's dispatch, so
 both see to their business before the command they precede. Games
 without `first` carry none of this.
 
-A room description is its own paragraph: one blank line stands above its
+<a id="ix-compact-rooms"></a>A room description is its own paragraph: one blank line stands above its
 title, after LOOK as after a move. On a 25-row retro screen that line is
 real estate, so a game may fold it away:
 
@@ -3319,7 +3320,7 @@ action and stops the chain; `continue` passes to the next handler. If the
 chain reaches the Cosmos default and it ends, the action took its standard
 effect.
 
-After phase. If the action completed, Cosmos runs `on after <verb>` handlers
+<a id="ix-on-after"></a>After phase. If the action completed, Cosmos runs `on after <verb>` handlers
 in the same specificity order. A `when` guard that does not hold makes a
 handler skipped, and the chain continues as if it were absent.
 
@@ -3344,7 +3345,7 @@ and after without further machinery.
 
 The parser turns input into an action with bound objects.
 
-Tokenizing. Input is lowercased and split on spaces and punctuation. Noise
+<a id="ix-tokenizing"></a>Tokenizing. Input is lowercased and split on spaces and punctuation. Noise
 words ("the", "a", "an", "my"; each pack declares its own with `noise`) are
 known to the dictionary and ignored: being known is what lets a noun-list
 segment carry them while a truly unknown word refuses the borrowed verb
@@ -3378,7 +3379,7 @@ typed words its `words` contain, then takes the single best:
   dispatched: a handler that sees `noun is nothing` can trust it means
   the player typed the bare verb, never an unresolved phrase.
 - One object scores best: it fills the slot.
-- Several tie at the best score: first the TRIGGER (the # marker, below):
+- <a id="ix-disambiguation"></a>Several tie at the best score: first the TRIGGER (the # marker, below):
   if exactly one tied candidate's trigger word was typed, it wins
   silently, declared intent before any guess. Then the game's own
   PREFERENCE (the `prefer` seam, below): exactly one candidate the game
@@ -3410,7 +3411,7 @@ word in `name` is printed but not matched, a word in `words` is matched but
 not printed, and a word you want both printed and typed appears in each.
 There is no "the brass one" anaphora in v1; that is deferred.
 
-The trigger marker. A `words` entry may carry a leading `#`:
+<a id="ix-trigger-marker"></a>The trigger marker. A `words` entry may carry a leading `#`:
 
     thing crate in cellar
         name "packing crate"
@@ -3445,7 +3446,7 @@ identical behavior. A game with no marker anywhere carries none of this
 machinery, and its story file is byte-identical. Worked example:
 [examples/features/trigger.storyarc](../examples/features/trigger.storyarc).
 
-The prefer seam. A trigger is the player's word; `prefer` is the game's.
+<a id="ix-prefer"></a>The prefer seam. A trigger is the player's word; `prefer` is the game's.
 When a tie stands after the trigger, the matcher asks the block `prefer`
 once per tied candidate, and a game overrides it with a block of the same
 name that answers true for the candidate the story means:
@@ -3473,7 +3474,7 @@ with a block that only returns false, compiles byte for byte as before.
 Worked example:
 [examples/features/prefer.storyarc](../examples/features/prefer.storyarc).
 
-The adjective marker, and the match classes. A `words` entry with a leading
+<a id="ix-adjective-marker"></a>The adjective marker, and the match classes. A `words` entry with a leading
 `>` is the object's ADJECTIVE:
 
     thing chest in parlor
@@ -3709,7 +3710,7 @@ nothing:
   does not stop the line: the command's goal is met, so the rest still makes
   sense. "open door and go north" walks through a door that was already open.
 
-The signal is the `refused` global: every library refusal sets it to 1 before
+<a id="ix-refused"></a>The signal is the `refused` global: every library refusal sets it to 1 before
 its message, and the turn loop reads it after each chained command. A story
 handler that refuses something should set it the same way, so a chain stops at
 its refusal too:
@@ -3794,7 +3795,7 @@ literal token must BE the typed word at its position; a slot absorbs the
 words up to the line's next literal, or to the end; the whole command must be
 consumed.
 
-A `text` slot is the exception to resolution: it absorbs its words the same
+<a id="ix-text-slot"></a>A `text` slot is the exception to resolution: it absorbs its words the same
 way, but they are never matched against objects. The range is handed on
 (`topic_lo`, `topic_hi`) for the conversation layer to match against topics,
 because what it names is a SUBJECT: you ask ABOUT the old mine, which is no
@@ -3808,7 +3809,7 @@ and an EMPTY slot marks the command incomplete, so the loop's central ask
 answers before any handler runs ("The verb dig requires you to be more
 specific."); a verb with a declared slotless line never lands there bare,
 that line sorts first and matches. When no line fits at all, the verb was
-understood but the rest was not: "You lost me after that." Disambiguation answers, pronouns, chaining,
+<a id="ix-oops-again"></a>understood but the rest was not: "You lost me after that." Disambiguation answers, pronouns, chaining,
 AGAIN, and OOPS all work on tabled verbs unchanged.
 
 The `direction` slot (SWIM SOUTH, PUSH CRATE WEST) lives on this model: a
@@ -3971,7 +3972,7 @@ vary dice            // the honest roll, repeats allowed (the catalogs'
 
 Each bare string line is its own variant, an implicit say: the text IS the
 content (the form catalogs taught). A variant that should say NOTHING is
-the word `silence`, alone on its line: it emits nothing at all, not even
+<a id="ix-silence"></a>the word `silence`, alone on its line: it emits nothing at all, not even
 a line break, so "say this once, then fall silent" is the natural end of
 a sequence, with no flag and no attribute anywhere:
 
@@ -4002,7 +4003,7 @@ or
     now fridge is suspect
 ```
 
-A bare string variant ends its line, as `say` does. To vary a word or a
+<a id="ix-vary-show"></a>A bare string variant ends its line, as `say` does. To vary a word or a
 phrase INSIDE a sentence, write `show` after the policy: every bare string
 variant is then an implicit `show`, printed without a line break, and the
 sentence is built around the vary with `show` and `say` as usual:
@@ -4072,7 +4073,9 @@ operations, no library involved. A game that never varies is
 byte-identical. Each site is independent, and the state rides ordinary
 dynamic memory, so narrative continuity survives saves and undo for free.
 
-A string is written in double quotes and may span physical lines; runs of
+### Strings, line breaks, and interpolation
+
+<a id="ix-whitespace-in-strings"></a>A string is written in double quotes and may span physical lines; runs of
 whitespace, including line breaks, collapse to a single space, so
 continuation lines may be indented:
 
@@ -4081,7 +4084,7 @@ desc "A damp cellar of black stone. A squat pedestal stands at its
       centre, a rusted lever set into the base."
 ```
 
-Because a real line break collapses to a space, a forced line break is written
+<a id="ix-line-breaks-n"></a>Because a real line break collapses to a space, a forced line break is written
 `\n` (Arcturus's spelling of Inform's `^`); `\n\n` leaves a blank line, a
 paragraph break. A `say` already ends its line, so `\n` is only for breaks
 within a line of text:
@@ -4090,7 +4093,11 @@ within a line of text:
 say "Hey\n\nThis is two lines below.\n\n\nAnd this three."
 ```
 
-To follow a say with a paragraph break, say it with the `par` modifier:
+Keep the text that follows a `\n` on the same source line. A line break
+in the source is a space like any other, so text continued on the next
+source line after `\n` starts its new line with that space.
+
+<a id="ix-par"></a>To follow a say with a paragraph break, say it with the `par` modifier:
 `say.par "..."` prints the text and marks the library's pending break, which
 the next output flushes as a single blank line (repeats collapse, chapter 15).
 Consecutive prose paragraphs are each a `say.par` line, no bookkeeping
@@ -4103,7 +4110,7 @@ way (a trailing pending break; under a status bar the title sits directly
 below the bar), so a story never calls the bare `par` for routine prose. If
 story code reads like Inform new_lines, something is being done wrong.
 
-Interpolation embeds an expression with `${ }`; printing an object prints its
+<a id="ix-interpolation"></a>Interpolation embeds an expression with `${ }`; printing an object prints its
 `name`. Article helpers: `${the ruby}`, `${a ruby}`, and the capitalized
 `${The ruby}`, `${A ruby}`; an object with `named` set takes no article.
 Write a named thing's name as it should read mid-sentence ("the cat",
@@ -4248,7 +4255,7 @@ closed container, "${The noun} is closed."; darkness, "It is pitch dark, and
 you can see nothing."; an unhandled push, pull, or turn, "Nothing obvious
 happens."
 
-The pacing gate belongs here too: `press_any_key` (core) prints
+<a id="ix-press-any-key"></a>The pacing gate belongs here too: `press_any_key` (core) prints
 `msg_press_any_key`, waits for exactly one key (no echo, no Enter), and
 returns its ZSCII code for whoever cares which key fell. The prompt
 defaults to "[...]" in every language layer: convenient, understood
@@ -4259,7 +4266,7 @@ gate, the custom prompt, and the specific-key catch side by side.
 
 ### Naming, articles, daemons, and timers
 
-Naming. `name` is the printed short name; the object identifier is never
+<a id="ix-articles"></a>Naming. `name` is the printed short name; the object identifier is never
 printed. Article helpers: `${a noun}` chooses a or an by sound, `${the
 noun}`, and capitalized `${A noun}` and `${The noun}` for sentence starts. An
 object with `named` set takes no article. When Cosmos lists several objects
@@ -4814,7 +4821,7 @@ thing shard of debris in tunnel
     words shard
 ```
 
-Either half can be switched off for the whole game while scoring stays
+<a id="ix-score-rooms-score-things"></a>Either half can be switched off for the whole game while scoring stays
 on, for a story whose points should come from its things alone, or from
 its rooms alone, with `reward` and `scored false` working on top as ever:
 
@@ -4980,7 +4987,7 @@ that, what you set is what the band shows. (Behind the scenes the library
 checks one property per turn and only draws on a change, so a quiet turn
 costs a comparison and a noisy one costs one draw.)
 
-DARKNESS IS A SCENE TOO. In a game where darkness can happen (a room with
+<a id="ix-arc-image-dark"></a>DARKNESS IS A SCENE TOO. In a game where darkness can happen (a room with
 `lit false`, or a handler that clears `lit`), an images game must declare
 the picture the band shows in the dark, and the compiler refuses to build
 without it:
@@ -5003,7 +5010,7 @@ Art is authored once as PNGs in one of two shapes, each a whole number of
 | Infocom | 320x72 | 9 | `9` | The upper third, the classic Arthur style. |
 | DAAD | 320x96 | 12 | `12` | The upper half, the Rabenstein style. |
 
-You declare the mode once, game-wide, with a constant named `arc_mode`, whose
+<a id="ix-arc-mode"></a>You declare the mode once, game-wide, with a constant named `arc_mode`, whose
 value is the band height in text rows:
 
 ```
@@ -5055,7 +5062,7 @@ alongside Cosmos: Spanish (`cosmos/spanish.granule`, informal tuteo) and German
 native review. Others are the same shape of work. This section gathers what a foreign-language author needs; the mechanics
 each live in their own place, cross-referenced here.
 
-Selecting a language. `summon.language "spanish"` compiles the Spanish layer in
+<a id="ix-german-spanish"></a>Selecting a language. `summon.language "spanish"` compiles the Spanish layer in
 place of English. English is the default, exactly one language is built into a
 story, and a plain English game pays nothing for the others. That directive is the
 only way to select a language, because only it does the swap (drops
@@ -5085,7 +5092,7 @@ read well with, and a game's own `player.words` ADD on top (chapter 4).
 So are the chain words (chapter 14): `chain ",", "and", "then"` in English,
 `chain ",", "y", "luego"` in Spanish, `chain ",", "und", "dann"` in German.
 The splitting itself is the agnostic skeleton's; the pack only names the
-words. And so are the noise words (`noise "the", "a", ...`; el/la/los...;
+<a id="ix-noise"></a>words. And so are the noise words (`noise "the", "a", ...`; el/la/los...;
 der/die/den...), the articles the parser knows but ignores, which noun lists
 depend on (chapter 14).
 
@@ -6200,7 +6207,7 @@ summon.maniacswap
 Multiple player characters, Maniac Mansion style. The model is simple
 to state: the player is a pointer, and bodies are characters. Mark each
 body the keyboard may claim with `playable`, name the body the game
-begins in with `body` in the game block, and BECOME swaps between them:
+<a id="ix-body"></a>begins in with `body` in the game block, and BECOME swaps between them:
 
 ```
 game
@@ -6340,7 +6347,7 @@ there."). A person with nothing to raise answers msg_no_topics ("You can't
 think of anything worth raising right now."). Every framing line is in the
 language layer, so packs translate it.
 
-ASK AND TELL. The standard ask lands in the menu (asking IS talking:
+<a id="ix-ask-and-tell"></a>ASK AND TELL. The standard ask lands in the menu (asking IS talking:
 `ask vlad`, and even `ask vlad about the vines`, opens Vlad's menu, the
 subject words riding along), and the standard tell answers with the
 use-TALK hint (msg_use_talk, a language-layer line): the granule overrides
@@ -7247,7 +7254,7 @@ language pack speaks its own):
   `nothing` at the end (the get_child and get_sibling opcodes). "Is the
   box empty" is `if first_in(box) is nothing`, no loop; `for each` remains
   the way to visit everything.
-- `name_contents(holder)`: the composable bare list, "a sabre, a dagger
+- <a id="ix-name-contents"></a>`name_contents(holder)`: the composable bare list, "a sabre, a dagger
   and an iron axe": the holder's listable contents with their articles,
   commas, and a final "and", each marked seen, two levels deep (a holder
   among them says what it holds, "a box with an apple in it"). Returns
@@ -7340,3 +7347,335 @@ literal twin of `word_dict`: the spelling's dictionary address at
 compile time (a plain string literal is a string VALUE, a different
 thing); the German pack's da-word branch is its worked use.
 
+<!-- index:begin -->
+## Appendix E: Index
+
+Every term links to the place this book defines it. The index is
+generated from the book itself (tools/handbook_index.py), so the
+links follow the text wherever it moves.
+
+**A**
+
+- abbreviations: [chapter 24, The tuned abbreviation set](#the-tuned-abbreviation-set)
+- `action`: [chapter 12, Verbless actions: action](#verbless-actions-action)
+- action pipeline: [chapter 13, The action pipeline](#the-action-pipeline)
+- actions, standard: see standard verbs
+- `active`: [chapter 5, Standard attributes](#ix-active)
+- addressing a character: [chapter 17, The five ways to address a character](#the-five-ways-to-address-a-character)
+- adjective marker (`>`): [chapter 14](#ix-adjective-marker)
+- `after`, `every`: [chapter 16](#chapter-16-daemons-timers-and-background-performers)
+- `alter`: [chapter 9](#ix-alter)
+- `ambience`: [chapter 22, ambience](#ambience)
+- `an`: [chapter 5, Standard attributes](#ix-an)
+- `animate`: [chapter 5, Standard attributes](#ix-animate)
+- `anywhere`: [chapter 12, A new verb, complete](#ix-anywhere)
+- `appearance`: [chapter 5, Standard value properties](#ix-appearance)
+- `append`, `insert`, `remove` (matrix): [chapter 2, 4a. matrix: a catalog you can grow (summon.matrix)](#ix-append-insert-remove-matrix)
+- `arc_image`: [chapter 5, Standard value properties](#ix-arc-image), [chapter 20](#chapter-20-pictures-arc_image)
+- `arc_image_dark`: [chapter 20](#ix-arc-image-dark)
+- `arc_mode`: [chapter 20](#ix-arc-mode)
+- `article`: [chapter 5, Standard value properties](#ix-article)
+- articles: [chapter 15, Strings, line breaks, and interpolation](#ix-interpolation), [chapter 15, Naming, articles, daemons, and timers](#ix-articles)
+- ask and tell: [chapter 22, conversations](#ix-ask-and-tell)
+- attribute folds: [chapter 5, Standard attributes](#ix-attribute-folds)
+- attributes, standard: [chapter 5, Standard attributes](#standard-attributes)
+- `award`, `reward`: [chapter 19](#chapter-19-scoring)
+
+**B**
+
+- banner: [chapter 2, The banner](#the-banner)
+- `beyond`: [chapter 5, Standard attributes](#ix-beyond)
+- `binary`: [chapter 5, Standard attributes](#ix-binary)
+- `block`: [chapter 10](#chapter-10-blocks)
+- blocked directions: [chapter 8, Movement and blocked directions](#movement-and-blocked-directions)
+- blocks: [chapter 10](#chapter-10-blocks)
+- `body`: [chapter 22, maniacswap](#ix-body)
+
+**C**
+
+- carrying: [chapter 6, Carrying, three ways](#carrying-three-ways)
+- `carryweight`: [chapter 22, carryweight](#carryweight)
+- `catalog`: [chapter 2](#ix-catalog)
+- chain words: [chapter 14, Command chaining](#command-chaining)
+- `change`: [chapter 9](#ix-change)
+- `character`: [chapter 3, character](#character)
+- `clear`: [chapter 5, Standard attributes](#ix-clear)
+- Cloak of Darkness: [chapter 26](#chapter-26-worked-example-cloak-of-darkness)
+- colors (`zcolor`): [chapter 15, Screen colors (zcolor)](#screen-colors-zcolor)
+- command chaining: [chapter 14, Command chaining](#command-chaining)
+- command line (`arcc`): [chapter 24](#chapter-24-the-compiler-diagnostics-and-the-abbreviation-set)
+- commanding characters: [chapter 12, Commanding characters: the addressed imperative](#commanding-characters-the-addressed-imperative)
+- comments: [chapter 1, Lexical structure](#lexical-structure)
+- `compact_rooms`: [chapter 13](#ix-compact-rooms)
+- compiler: [chapter 24](#chapter-24-the-compiler-diagnostics-and-the-abbreviation-set)
+- `component`: [chapter 5, Standard attributes](#ix-component)
+- computed exits: [chapter 8, Movement and blocked directions](#ix-computed-exits)
+- computed properties: [chapter 5, Name words are vocabulary](#ix-computed-properties)
+- `concealed`: [chapter 5, Standard attributes](#ix-concealed)
+- `constant`: [chapter 2](#ix-constant)
+- `container`: [chapter 3, container](#container)
+- `contents_line`: [chapter 6, The container knowledge model](#ix-contents-line)
+- `continue`: [chapter 9](#ix-stop)
+- control flow: [chapter 9, Control flow](#control-flow)
+- `conversations`: [chapter 22, conversations](#conversations)
+- `convey`: [chapter 9](#ix-convey)
+- Cosmos-reserved names: [appendix C](#appendix-c-cosmos-reserved-names)
+- `counter`: [chapter 2](#ix-global)
+- custom directions: [chapter 8](#ix-custom-directions)
+
+**D**
+
+- daemons and timers: [chapter 16](#chapter-16-daemons-timers-and-background-performers)
+- darkness: see light and darkness
+- `debug`: [chapter 22, debug](#debug)
+- debug verbs (`purloin`, `warp`, `tree`): [chapter 22, debug](#debug)
+- decimal numbers: [chapter 1, Values and types](#values-and-types)
+- default versus override: [chapter 11](#ix-default-versus-override)
+- `desc`: [chapter 5, Standard value properties](#ix-desc)
+- `desc block`: [chapter 5, Name words are vocabulary](#ix-computed-properties)
+- diagnostics: [chapter 24](#chapter-24-the-compiler-diagnostics-and-the-abbreviation-set)
+- `direction`: [chapter 8](#ix-custom-directions)
+- `direction` grammar slot: [chapter 12](#ix-direction-grammar-slot)
+- directions: [chapter 8](#chapter-8-movement-and-directions)
+- disambiguation: [chapter 14](#ix-disambiguation)
+- `door`: [chapter 3, door](#door)
+- dual-role words: [chapter 18, Dual-role words](#dual-role-words)
+
+**E**
+
+- `edible`: [chapter 5, Standard attributes](#ix-edible)
+- `enhance`, `redefine`: [chapter 12](#ix-grammar)
+- `exit_dest`: [chapter 8, Movement and blocked directions](#ix-exit-dest)
+- `exposed`: [chapter 5, Standard attributes](#ix-exposed)
+- `exposed_line`: [chapter 3, character](#ix-exposed-line)
+- expressions and operators: [chapter 9, Expressions and operators](#expressions-and-operators)
+- `extendedverbs`: [chapter 22, extendedverbs](#extendedverbs)
+
+**F**
+
+- `feminine`: [chapter 5, Standard attributes](#ix-feminine)
+- `finish`, `death`: [chapter 9](#ix-finish-death)
+- `first`: [chapter 16, The first placement: the top of the turn](#the-first-placement-the-top-of-the-turn)
+- `first_person`: [chapter 21, First-person narration](#first-person-narration)
+- first-person narration: [chapter 21, First-person narration](#first-person-narration)
+- `fixed`: [chapter 5, Standard attributes](#ix-fixed)
+- `flag`: [chapter 2](#ix-global)
+- `for each`: [chapter 9, Control flow](#control-flow)
+- `foresight`: [chapter 22, foresight](#foresight)
+- forking a granule: [chapter 23, Forking a granule](#forking-a-granule)
+- free-standing rules: [chapter 11](#ix-free-standing-rules)
+
+**G**
+
+- `gain`: [chapter 4](#ix-gain)
+- `game`: [chapter 2](#chapter-2-a-game-and-its-program)
+- German, Spanish: [chapter 21](#ix-german-spanish)
+- `global`: [chapter 2](#ix-global)
+- grains: [chapter 18](#chapter-18-grains)
+- grammar: [chapter 12](#ix-grammar)
+- grammar summary: [appendix B](#appendix-b-grammar-summary)
+- granules: [chapter 22](#chapter-22-summon-the-granules)
+
+**H**
+
+- hacking Cosmos: [chapter 23](#chapter-23-hacking-cosmos)
+- handlers: [chapter 11](#chapter-11-handlers-and-events)
+- hexadecimal numbers: [chapter 1, Values and types](#ix-hexadecimal-numbers)
+- `hidden`: [chapter 5, Standard attributes](#ix-hidden)
+- `holds`: [chapter 9, Expressions and operators](#expressions-and-operators)
+
+**I**
+
+- `if`, `else`: [chapter 9, Control flow](#control-flow)
+- `indefinite`: [chapter 5, Standard value properties](#ix-indefinite)
+- `infocom_talking`: [chapter 22, infocom_talking](#infocom_talking)
+- inheritance: see resolution order
+- interpolation (`${...}`): [chapter 15, Strings, line breaks, and interpolation](#ix-interpolation)
+- intrinsics: see toolkit (intrinsics)
+- `intro`: [chapter 5, Standard value properties](#ix-intro)
+- `is`, `is not`: [chapter 9, Expressions and operators](#expressions-and-operators)
+- `item_cap`: [chapter 5, Standard value properties](#ix-item-cap)
+
+**K**
+
+- keys and locks: see `lockable`
+- `kind`: [chapter 3, Kinds of your own](#kinds-of-your-own)
+- kinds, standard: [chapter 3, Standard kinds](#standard-kinds)
+- knowledge model: [chapter 6, The container knowledge model](#the-container-knowledge-model)
+
+**L**
+
+- languages: [chapter 21](#chapter-21-writing-in-another-language)
+- `let`: [chapter 9](#ix-let)
+- `letters`, `number`, `anychar`: [chapter 14, Machines with input surfaces: letters, number, anychar](#machines-with-input-surfaces-letters-number-anychar)
+- lexical structure: [chapter 1, Lexical structure](#lexical-structure)
+- life-cycle events: [chapter 11](#ix-life-cycle-events)
+- light and darkness: [chapter 7, Light and darkness](#light-and-darkness)
+- `lighttopology`: [chapter 7, Light as a level: lighttopology](#light-as-a-level-lighttopology), [chapter 22, lighttopology](#lighttopology)
+- line breaks (`\n`): [chapter 15, Strings, line breaks, and interpolation](#ix-line-breaks-n)
+- `list`: [chapter 5, Name words are vocabulary](#ix-list)
+- `lit`: [chapter 5, Standard attributes](#ix-lit)
+- `lockable`: [chapter 5, Standard attributes](#ix-lockable)
+- `locked`: [chapter 5, Standard attributes](#ix-locked)
+
+**M**
+
+- `maniacswap`: [chapter 22, maniacswap](#maniacswap)
+- `matrix`: [chapter 2, 4a. matrix: a catalog you can grow (summon.matrix)](#4a-matrix-a-catalog-you-can-grow-summonmatrix), [chapter 22, matrix](#matrix)
+- messages, library: see standard responses
+- `meta`: [chapter 12](#ix-meta)
+- `mod`: [chapter 9, Expressions and operators](#expressions-and-operators)
+- `move`: [chapter 9](#ix-move)
+- `moved`: [chapter 5, Standard attributes](#ix-moved)
+- movement: [chapter 8](#chapter-8-movement-and-directions)
+
+**N**
+
+- `name`: [chapter 5, Standard value properties](#ix-name)
+- `name block`: [chapter 5, Name words are vocabulary](#ix-name-block)
+- name words: [chapter 5, Name words are vocabulary](#name-words-are-vocabulary)
+- `name_contents`: [appendix D](#ix-name-contents)
+- `named`: [chapter 5, Standard attributes](#ix-named)
+- `nautical`: [chapter 22, nautical](#nautical)
+- `neutral`: [chapter 5, Standard attributes](#ix-neutral)
+- new verbs: [chapter 12, A new verb, complete](#a-new-verb-complete)
+- `noise`: [chapter 21](#ix-noise)
+- `notify`: [chapter 12, Score notification (notify), and VERSION](#score-notification-notify-and-version)
+- noun lists: [chapter 12, Noun lists](#noun-lists)
+- `now`: [chapter 9](#ix-now)
+- NPC: see `character`
+- `npcengine`: [chapter 22, npcengine](#npcengine)
+
+**O**
+
+- object tree: [chapter 6](#chapter-6-containers-supporters-and-the-object-tree)
+- `on`: [chapter 11](#chapter-11-handlers-and-events)
+- `on after`: [chapter 13, The action pipeline](#ix-on-after)
+- `on each_turn`: [chapter 11](#ix-life-cycle-events)
+- `on go other`: [chapter 8, Movement and blocked directions](#ix-on-go-other)
+- `on other`: [chapter 11](#ix-on-other)
+- `on start`: [chapter 11](#ix-life-cycle-events)
+- OOPS, AGAIN: [chapter 14, Positional grammar](#ix-oops-again)
+- `open`: [chapter 5, Standard attributes](#ix-open)
+- `openable`: [chapter 5, Standard attributes](#ix-openable)
+- output: [chapter 15](#chapter-15-output-and-text)
+- overriding Cosmos: [chapter 23, Overriding Cosmos in practice](#overriding-cosmos-in-practice)
+
+**P**
+
+- `par`: [chapter 15, Strings, line breaks, and interpolation](#ix-par)
+- paragraph breaks: [chapter 15, Strings, line breaks, and interpolation](#ix-par)
+- parser: [chapter 14](#chapter-14-the-parser)
+- `pathfinding`: [chapter 22, pathfinding](#pathfinding)
+- `perform`: [chapter 9](#ix-perform)
+- person: see `character`
+- pictures: [chapter 20](#chapter-20-pictures-arc_image)
+- `player`: [chapter 4](#chapter-4-the-player)
+- `plural`: [chapter 5, Standard value properties](#ix-plural)
+- `plurals`: [chapter 22, plurals](#plurals)
+- `pluribus`: [chapter 5, Standard attributes](#ix-pluribus)
+- positional grammar: [chapter 14, Positional grammar](#positional-grammar)
+- `prefer`: [chapter 14](#ix-prefer)
+- `press_any_key`: [chapter 15, Standard responses](#ix-press-any-key)
+- pronouns: [chapter 14, Pronouns](#pronouns)
+- properties: [chapter 5](#chapter-5-properties)
+
+**Q**
+
+- `quotes`: [chapter 22, quotes](#quotes)
+
+**R**
+
+- `reachagnostic`: [chapter 12, A new verb, complete](#ix-reachagnostic)
+- `reach_unscoped`: [chapter 14, Reaching beyond scope (the reach_unscoped seam)](#reaching-beyond-scope-the-reach_unscoped-seam)
+- `refused`: [chapter 14, Command chaining](#ix-refused)
+- `release`, `serial`, `UUID`: [chapter 2, Runtime globals and story metadata](#runtime-globals-and-story-metadata)
+- `remember_contents`: [chapter 6, The container knowledge model](#ix-remember-contents)
+- `requires`: [chapter 12, What a verb requires](#what-a-verb-requires)
+- reserved words: [appendix A](#appendix-a-reserved-words)
+- resolution order: [chapter 3, Kinds of your own](#ix-resolution-order)
+- `restless`: [chapter 5, Standard attributes](#ix-restless)
+- `return`: [chapter 9](#ix-return)
+- `room`: [chapter 3, room](#room)
+
+**S**
+
+- `say`, `show`: [chapter 9](#ix-say-show)
+- `scenery`: [chapter 5, Standard attributes](#ix-scenery)
+- `scenery_contents`: [chapter 5, Standard attributes](#ix-scenery)
+- scope: [chapter 7](#chapter-7-scope-light-and-darkness)
+- `scored`: [chapter 5, Standard attributes](#ix-scored)
+- `score_rooms`, `score_things`: [chapter 19](#ix-score-rooms-score-things)
+- scoring: [chapter 19](#chapter-19-scoring)
+- `seen`: [chapter 5, Standard attributes](#ix-seen)
+- shared subjects: [chapter 17, Shared subjects](#shared-subjects)
+- `shiftable`: [chapter 5, Standard attributes](#ix-shiftable), [chapter 12, Pushing things between rooms (shiftable)](#pushing-things-between-rooms-shiftable)
+- shipped granules: [chapter 22, The shipped granules](#the-shipped-granules)
+- `silence`: [chapter 15, vary: prose that varies by itself](#ix-silence)
+- standard responses: [chapter 15, Standard responses](#standard-responses)
+- standard verbs: [chapter 12, The standard verbs, action by action](#the-standard-verbs-action-by-action)
+- `start`: [chapter 2, Runtime globals and story metadata](#runtime-globals-and-story-metadata)
+- statements: [chapter 9](#chapter-9-statements-control-flow-and-expressions)
+- `statusline`: [chapter 22, statusline](#statusline)
+- `stop`: [chapter 9](#ix-stop)
+- strings: [chapter 15, Strings, line breaks, and interpolation](#ix-whitespace-in-strings)
+- `success`: [chapter 9](#ix-success)
+- `summon`: [chapter 22, Summoning a granule](#summoning-a-granule)
+- `summon.language`: [chapter 21](#ix-german-spanish)
+- `supporter`: [chapter 3, supporter](#supporter)
+- `switch`, `case`: [chapter 9, Control flow](#control-flow)
+- `switchable`: see `binary`
+
+**T**
+
+- `tag`: [chapter 5, Standard value properties](#ix-tag)
+- `takeall`: [chapter 22, takeall](#takeall)
+- `teleport`: [chapter 4](#ix-teleport)
+- `text` slot: [chapter 14, Positional grammar](#ix-text-slot)
+- text styles (bold, italic): [chapter 15, Text styles](#text-styles)
+- The Brass Lantern: [chapter 25](#chapter-25-worked-example-the-brass-lantern)
+- `thing`: [chapter 3, thing](#thing)
+- `title`, `headline`, `author`: [chapter 2, Runtime globals and story metadata](#runtime-globals-and-story-metadata)
+- tokenizing: [chapter 14](#ix-tokenizing)
+- toolkit (intrinsics): [appendix D](#appendix-d-the-authors-toolkit)
+- `topic`: [chapter 17](#chapter-17-topics-and-conversation)
+- topics and conversation: [chapter 17](#chapter-17-topics-and-conversation)
+- trigger marker (`#`): [chapter 14](#ix-trigger-marker)
+- turn loop: [chapter 13](#chapter-13-the-turn-loop-and-the-action-pipeline)
+
+**U**
+
+- `unseal_with`: [chapter 5, Standard value properties](#ix-unseal-with)
+- `use`: [chapter 22, use](#use)
+
+**V**
+
+- value properties, standard: [chapter 5, Standard value properties](#standard-value-properties)
+- values and types: [chapter 1, Values and types](#values-and-types)
+- `vary`: [chapter 15, vary: prose that varies by itself](#vary-prose-that-varies-by-itself)
+- `vary ... show`: [chapter 15, vary: prose that varies by itself](#ix-vary-show)
+- vehicles: see `convey`
+- `verb`: [chapter 12](#chapter-12-verbs-grammar-and-the-standard-actions)
+- `verbose_exits`: [chapter 22, verbose_exits](#verbose_exits)
+- verbs: [chapter 12](#chapter-12-verbs-grammar-and-the-standard-actions)
+- `visible`, `reachable`: [chapter 7](#ix-visible-reachable)
+- `visited`: [chapter 5, Standard attributes](#ix-visited)
+
+**W**
+
+- `way`: [chapter 9, Expressions and operators](#ix-way)
+- way family: [chapter 8, The way family: querying the room graph](#the-way-family-querying-the-room-graph)
+- `wearable`: [chapter 5, Standard attributes](#ix-wearable)
+- `weight`: [chapter 22, carryweight](#carryweight)
+- `when`: [chapter 11](#ix-when)
+- `while`: [chapter 9, Control flow](#control-flow)
+- whitespace in strings: [chapter 15, Strings, line breaks, and interpolation](#ix-whitespace-in-strings)
+- `words`: [chapter 5, Standard value properties](#ix-words)
+- `worn`: [chapter 5, Standard attributes](#ix-worn)
+- writing a granule: [chapter 23, Writing your own granule](#writing-your-own-granule)
+
+**Y**
+
+- yes and no: [chapter 12, Typed answers, and lighting things](#typed-answers-and-lighting-things)
+- `you`, `reply`: [chapter 17](#chapter-17-topics-and-conversation)
+<!-- index:end -->
