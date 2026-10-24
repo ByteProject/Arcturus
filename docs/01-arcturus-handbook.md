@@ -4593,10 +4593,13 @@ must still mean something. Three things decide, in order:
 The conversations menu never meets any of this: its topics are picked by
 number.
 
-By default a topic is repeatable and never leaves on its own: the player can
-raise it as often as they like. Nothing is needed to keep a topic around; every
-control below only ever takes one OUT of view. (How often a topic can be raised
-also depends on the presentation, and the two differ: see the note below.)
+How often a topic can be raised depends on the presentation. On the
+ask/tell path a topic is repeatable by default and never leaves on its own:
+the player can raise it as often as they like. In the conversations MENU a
+picked topic leaves the list, so the menu shrinks as the character is drawn
+out; a topic that should stay in the menu reveals itself as its last line
+(`reveal weather` in the weather topic, chapter 22). Beyond that, every
+control below only ever takes a topic OUT of view.
 
 Three ways out of view, and when to use which. They differ in who is in control
 and whether the topic can come back:
