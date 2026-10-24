@@ -58,11 +58,28 @@ block become(x)
     if x is player
         return 0
     now player is hibernated
+    if any_asplayer is 1
+        change swapped to 1
     change player to x
     now x is hibernated
     set_here(parent_of(x))
     arrive
     return 0
+
+// The body step, swap-aware (`as player`, docs/01 chapter 22). A main
+// action clears the mark; the after pass of the action that performed a
+// swap skips the step, so the body just taken over never answers for the
+// swap with its `on after other as player` (an action-specific after
+// handler never sees it either: the swap was the previous body's doing).
+global swapped = 0
+
+block asplayer_step(action)
+    if action < after_floor
+        change swapped to 0
+    else
+        if swapped is 1
+            return 0
+    return asplayer_react(action)
 
 // The player-typed form. The body's own `on become` runs first (the
 // story's gate: veto with `stop`); this free rule is the default that

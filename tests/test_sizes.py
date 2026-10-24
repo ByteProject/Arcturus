@@ -219,7 +219,7 @@ CEILINGS = {
     "features/yes-no.storyarc": 19000,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/press-any-key.storyarc": 19888,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/shiftable.storyarc": 19384,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/enhance-redefine.storyarc": 19740,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
+    "features/enhance-redefine.storyarc": 19744,  # 2026-10-24 repriced (+4): the can't-do refusal sets refused (no after pass follows it)
     "features/consult-about.storyarc": 19900,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/session-verbs.storyarc": 19456,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/vary.storyarc": 21412,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
@@ -234,8 +234,8 @@ CEILINGS = {
     "features/trigger.storyarc": 19668,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/adjectives.storyarc": 20304,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "granules/nautical.storyarc": 19892,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/npcengine.storyarc": 21984,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/maniacswap.storyarc": 20400,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
+    "granules/npcengine.storyarc": 21988,  # 2026-10-24 repriced (+4): the can't-do refusal sets refused (no after pass follows it)
+    "granules/maniacswap.storyarc": 20428,  # 2026-10-24 repriced (+28): the swap-aware body step (the example uses as player)
     "beispiel-deutsch.storyarc": 29492,  # 2026-10-24 repriced (+40): the conversations menu breaks a paragraph between exchanges
     "brass-lantern.storyarc": 20792,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "cloak-of-darkness.storyarc": 22756,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
@@ -267,7 +267,7 @@ CEILINGS = {
     "features/vehicles.storyarc": 20616,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/success.storyarc": 19760,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/edible.storyarc": 19560,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/text-slot.storyarc": 20104,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
+    "features/text-slot.storyarc": 20108,  # 2026-10-24 repriced (+4): the can't-do refusal sets refused (no after pass follows it)
     "granules/carryweight.storyarc": 20308,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "granules/ambience.storyarc": 20976,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "granules/conversations.storyarc": 20940,  # 2026-10-24 repriced (+40): the conversations menu breaks a paragraph between exchanges

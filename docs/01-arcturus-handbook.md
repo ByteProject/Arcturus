@@ -6301,7 +6301,8 @@ the body's catch-all, everything it does that no specific `as player`
 handler answers (a ghost whose hand passes through everything), with one
 exception: it never swallows BECOME, so no catch-all can trap the player
 in a body. A story that means to lock a body in says so with its own
-`on become as player`. Inside it `self` is the
+`on become as player`. The swap's after pass belongs to no body either:
+the body just taken over starts answering with the next command. Inside it `self` is the
 body, which is the player, so its text addresses the player ("You").
 `as player` needs this granule (without it no character is ever the
 player) and belongs on a character or a kind of character; a free rule

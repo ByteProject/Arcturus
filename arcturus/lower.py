@@ -1784,9 +1784,15 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
     elif name == "asplayer_react":
         # asplayer_react(action): run the current body's `as player` handlers
         # for the action (cosmos_asplayer); 1 when one consumed it.
-        op, t = _operand(rt, ctx, args[0])
-        rt.op("call_vs", RoutineRef("cosmos_asplayer"), op, store=dest)
-        _free(ctx, t)
+        # With no such handler in the game the dispatcher routine does not
+        # exist, and the answer is a plain 0 (the seam block is compiled
+        # wherever every library block is, folded call site or not).
+        if not getattr(ctx.world, "uses_as_player", False):
+            _place(rt, Const(0), dest)
+        else:
+            op, t = _operand(rt, ctx, args[0])
+            rt.op("call_vs", RoutineRef("cosmos_asplayer"), op, store=dest)
+            _free(ctx, t)
     elif name == "any_prefer":
         # any_prefer(): 1 when the game overrides the prefer seam (docs/01
         # chapter 14), so the matcher's preference tiebreak folds away in a

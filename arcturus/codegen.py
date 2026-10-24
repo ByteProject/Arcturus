@@ -284,7 +284,7 @@ def _gen_object_reacts(world, actions, hname, layout, gmap, afloor, dirnames,
             objname, bands, actions, layout, gmap, afloor, dirnames,
             events, mfloor=wm.meta_floor(world), event_groups=event_groups,
             rname=(prefix + objname) if prefix else None,
-            other_skip=("become",) if prefix else ()))
+            other_skip=("become", wm.after_key("become")) if prefix else ()))
     return out
 
 
@@ -749,7 +749,8 @@ def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None,
             # other_skip: actions a catch-all must never swallow, beyond the
             # events (a body's `on other as player` lets BECOME through, so
             # a catch-all cannot trap the player in a body; Stefan's ruling,
-            # 2026-10-24). A specific handler for them still answers.
+            # 2026-10-24), its after pass included: the swap is no action of
+            # the new body's. A specific handler for them still answers.
             for ev in sorted(set(event_names) | set(other_skip)):
                 if ev in actions:
                     rt.op("je", Variable(1), Const(actions[ev]), branch=(nxt, True))

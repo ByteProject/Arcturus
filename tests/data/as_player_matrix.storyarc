@@ -1,0 +1,66 @@
+summon.maniacswap
+game
+    title "M"
+    start hall
+    body henrik
+flag lit_mood = true
+room hall
+    name "Hall"
+    desc "A hall."
+    north yard
+room yard
+    name "Yard"
+    desc "A yard."
+    south hall
+kind walker of character
+    on sing as player
+        say "[K-SING]"
+    on after sing as player
+        say "[K-AFTER-SING]"
+    on other as player
+        say "[K-OTHER]"
+        continue
+    on after other as player
+        say "[K-AFTER-OTHER]"
+thing henrik of character in hall
+    name "Henrik"
+    named
+    words henrik
+    playable
+    on jump as player
+        say "[H-JUMP]"
+    on after jump as player
+        say "[H-AFTER-JUMP]"
+    on take lamp as player
+        say "[H-TAKE-LAMP]"
+        continue
+    on after take as player
+        say "[H-AFTER-TAKE]"
+    on wave, clap as player
+        say "[H-WAVE-CLAP]"
+    on smell as player when lit_mood is true
+        say "[H-SMELL-WHEN]"
+    on go north as player
+        say "[H-GO-NORTH]"
+        continue
+    on after go as player
+        say "[H-AFTER-GO]"
+thing greta of walker in hall
+    name "Greta"
+    named
+    words greta
+    playable
+thing lamp in hall
+    name "lamp"
+    words lamp
+thing key in hall
+    name "key"
+    words key
+verb "wave"
+    wave
+verb "clap"
+    clap
+verb "probe"
+    probe
+on probe
+    perform("jump")

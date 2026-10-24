@@ -19,6 +19,14 @@
 // in a game whose code never asks, so it costs nothing unused.
 global cur_action = 0
 
+// The body step's seam: run the current body's `as player` handlers. The
+// maniacswap granule replaces it to keep a swap's own after pass from
+// being answered by the body just taken over (the swap is no action of
+// that body's). Referenced only behind any_asplayer, so DCE drops it in
+// every game without such a handler.
+block asplayer_step(action)
+    return asplayer_react(action)
+
 block dispatch(action)
     if any_action_read is 1
         change cur_action to action
@@ -47,7 +55,7 @@ block dispatch(action)
     // is done to the thing acted on, so a body's limits gate everything
     // after them. Folds away in a game with no such handler.
     if any_asplayer is 1
-        if asplayer_react(action) is 1
+        if asplayer_step(action) is 1
             return
     if noun is not nothing
         let r = handler_of(noun)
@@ -82,6 +90,10 @@ block dispatch(action)
         let f = run_free(action)
         if f is 0
             if action < after_floor
+                // A refusal like any other: no after pass follows "You
+                // can't do that." (found with the as-player matrix,
+                // 2026-10-24), and a chained line stops here.
+                change refused to 1
                 msg_cant_do
         return
     run_free(action)
