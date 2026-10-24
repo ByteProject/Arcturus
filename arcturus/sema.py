@@ -1060,8 +1060,9 @@ class Analyzer:
         """`on <verb> as player` (docs/01 chapter 22, maniacswap): a handler
         about what a character DOES while it is the player's body. It needs
         the granule (without it no character is ever the player), belongs on
-        a character or a kind of character, and answers actions only: the
-        life-cycle events have no one doing them."""
+        a character or a kind of character, and answers actions only (its
+        `on other` catch-all included): the life-cycle events have no one
+        doing them."""
         w = self.world
         found = False
         owners = [(o.name, o, False) for o in w.objects.values()] + \
@@ -1076,8 +1077,11 @@ class Analyzer:
                     raise self._error(
                         f"'{name}': `as player` is for a character that can be "
                         f"the player's body; '{name}' is not a character", h.line)
+                # `on other as player` is the body's catch-all (whatever it
+                # does that no specific `as player` handler answers); only
+                # the life-cycle events, which no one does, are refused.
                 for ev in h.events:
-                    if ev in ("start", "each_turn", "each_turn_first", "other"):
+                    if ev in ("start", "each_turn", "each_turn_first"):
                         raise self._error(
                             f"`as player` answers an action the body does; "
                             f"`on {ev}` is not one", h.line)

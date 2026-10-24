@@ -283,7 +283,8 @@ def _gen_object_reacts(world, actions, hname, layout, gmap, afloor, dirnames,
         out.append(_gen_react(
             objname, bands, actions, layout, gmap, afloor, dirnames,
             events, mfloor=wm.meta_floor(world), event_groups=event_groups,
-            rname=(prefix + objname) if prefix else None))
+            rname=(prefix + objname) if prefix else None,
+            other_skip=("become",) if prefix else ()))
     return out
 
 
@@ -591,7 +592,7 @@ def _specificity(h: wm.Handler) -> tuple:
             0 if h.when is not None else 1)
 
 
-def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None, afloor=None, dirnames=frozenset(), event_names=wm.EVENT_NAMES, mfloor=None, event_groups=None, rname=None) -> Routine:
+def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None, afloor=None, dirnames=frozenset(), event_names=wm.EVENT_NAMES, mfloor=None, event_groups=None, rname=None, other_skip=()) -> Routine:
     """react_<obj>(action), OWNER-BANDED (docs/01 chapter 11): the object's
     own handlers form band 0 with its own `on other` at the band's tail, then
     each kind's handlers band by band up the chain, each with ITS `on other`
@@ -745,7 +746,11 @@ def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None,
             # emitted guard order (and so the story file) vary run to run
             # with Python's hash seed. Reproducible builds are part of the
             # size charter: same source, same bytes.
-            for ev in sorted(event_names):
+            # other_skip: actions a catch-all must never swallow, beyond the
+            # events (a body's `on other as player` lets BECOME through, so
+            # a catch-all cannot trap the player in a body; Stefan's ruling,
+            # 2026-10-24). A specific handler for them still answers.
+            for ev in sorted(set(event_names) | set(other_skip)):
                 if ev in actions:
                     rt.op("je", Variable(1), Const(actions[ev]), branch=(nxt, True))
             if afloor is not None:

@@ -310,6 +310,8 @@ def test_as_player_handlers_follow_the_body():
      "a free rule for one body"),
     (('    on jump as player\n        say "Greta jumps like a cat."\n',
       '    on each_turn as player\n        say "x"\n'), "`on each_turn` is not one"),
+    (('    on jump as player\n        say "Greta jumps like a cat."\n',
+      '    on start as player\n        say "x"\n'), "`on start` is not one"),
 ])
 def test_as_player_refuses_what_it_cannot_mean(change, message):
     src = AS_PLAYER.replace(*change)
@@ -318,3 +320,19 @@ def test_as_player_refuses_what_it_cannot_mean(change, message):
     with pytest.raises(ArcError) as exc:
         _build(src)
     assert message in str(exc.value)
+
+
+def test_other_as_player_is_the_bodys_catch_all_and_never_traps_it():
+    # improvmonster (2026-10-24): `on other as player` was refused at compile
+    # time. It is the body's catch-all, a specific `as player` handler wins
+    # over it, and it lets BECOME through, so no catch-all traps the player.
+    src = AS_PLAYER.replace(
+        '    on jump as player\n        say "Greta jumps like a cat."\n',
+        '    on jump as player\n        say "Greta jumps like a cat."\n'
+        '    on other as player\n        say "Your hand passes through it."\n')
+    out = _play(src, ["become greta", "take lamp", "jump", "become henrik", "jump"])
+    part = out.split(">")
+    assert "Your hand passes through it." in part[2]
+    assert "Greta jumps like a cat." in part[3]
+    assert "Your hand passes through it." not in part[4]
+    assert "Henrik's knees have retired." in part[5]          # BECOME went through

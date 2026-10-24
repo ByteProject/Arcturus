@@ -6296,7 +6296,12 @@ switches the behavior with the body, and a kind's `as player` handler
 serves every body of the kind. It runs FIRST, before the thing acted on
 and the room, so a body's limits gate everything after them; `stop` and
 `continue` work as everywhere, `when` guards combine, and `on after
-<verb> as player` follows a completed action. Inside it `self` is the
+<verb> as player` follows a completed action. `on other as player` is
+the body's catch-all, everything it does that no specific `as player`
+handler answers (a ghost whose hand passes through everything), with one
+exception: it never swallows BECOME, so no catch-all can trap the player
+in a body. A story that means to lock a body in says so with its own
+`on become as player`. Inside it `self` is the
 body, which is the player, so its text addresses the player ("You").
 `as player` needs this granule (without it no character is ever the
 player) and belongs on a character or a kind of character; a free rule
