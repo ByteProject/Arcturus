@@ -58,7 +58,7 @@ def test_bare_unlock_needs_the_key_in_hand():
 def test_bare_unlock_with_the_key_in_hand_works():
     out = _run(["take key", "unlock gate", "open gate"])
     assert "You don't have the right key." not in out
-    assert "Unlocked." in out
+    assert "You unlock the oak gate with the brass key." in out
     assert "Open." in out
 
 
@@ -125,11 +125,11 @@ ALTERED = GAME.replace(
 
 def test_a_bare_lock_or_unlock_names_the_key_it_reached_for():
     # auraes (2026-10-24): the player who typed no key learns which one
-    # turned the lock; a typed key needs no telling.
+    # turned the lock, in the report itself; a typed key keeps the short line.
     out = _run(["take key", "unlock gate", "lock gate", "unlock gate with key"])
-    assert "(with the brass key)\nUnlocked." in out.split(">unlock gate")[1]
-    assert "(with the brass key)\nLocked." in out.split(">lock gate")[1]
-    assert "(with" not in out.split(">unlock gate with key")[1]
+    assert "You unlock the oak gate with the brass key." in out.split(">unlock gate")[1]
+    assert "You lock the oak gate with the brass key." in out.split(">lock gate")[1]
+    assert "Unlocked." in out.split(">unlock gate with key")[1]
 
 
 def test_second_stays_what_the_player_typed():
@@ -159,7 +159,7 @@ def test_the_key_line_in_german_and_spanish():
         '    feminine\n    openable\n    fixed\n    lockable\n    locked\n    unseal_with schluessel\n'
         'thing schluessel in player\n    name "Messingschlüssel"\n    words schlüssel\n'
     )
-    assert "(mit dem Messingschlüssel)" in _run(["entriegele truhe"], game=de)
+    assert "Du schließt die Truhe mit dem Messingschlüssel auf." in _run(["entriegele truhe"], game=de)
     es = (
         'summon.language "spanish"\n'
         'game\n    title "T"\n    start sala\n'
@@ -168,4 +168,4 @@ def test_the_key_line_in_german_and_spanish():
         '    openable\n    fixed\n    lockable\n    locked\n    unseal_with llave\n'
         'thing llave in player\n    name "llave de latón"\n    words llave\n    feminine\n'
     )
-    assert "(con la llave de latón)" in _run(["destranca cofre"], game=es)
+    assert "Abres el cofre con la llave de latón." in _run(["destranca cofre"], game=es)

@@ -1034,8 +1034,9 @@ on lock
     // has no opener to hold, so the player cannot lock it; its locked state
     // is the story's to set (`now box is locked`). The opener lives in a
     // local: `second` stays what the player typed, through the handlers,
-    // an alter and the after phase (auraes's report, 2026-10-24), and a
-    // bare LOCK says which key it reached for.
+    // an alter and the after phase (auraes's report, 2026-10-24). A bare
+    // LOCK reports in a sentence that names the key it reached for; a
+    // typed key keeps the short line, the player already knows it.
     let key = second
     if key is nothing
         change key to noun.unseal_with
@@ -1051,10 +1052,11 @@ on lock
         change refused to 1
         msg_no_key
         stop
-    if second is nothing
-        line_with_key(key)
     now noun is locked
-    success msg_locked
+    if second is nothing
+        success msg_locked_with
+    else
+        success msg_locked
 
 on unlock
     // Already open: nothing to unlock and nothing to open, so the open
@@ -1080,7 +1082,7 @@ on unlock
     // springing open for free (the field report); the story opens it itself,
     // `now box is not locked`, when the crowbar comes down.
     // The opener lives in a local, as in lock: `second` stays what the
-    // player typed, and a bare UNLOCK says which key it reached for.
+    // player typed, and a bare UNLOCK's report names the key it used.
     let key = second
     if key is nothing
         change key to noun.unseal_with
@@ -1096,10 +1098,11 @@ on unlock
         change refused to 1
         msg_no_key
         stop
-    if second is nothing
-        line_with_key(key)
     now noun is not locked
-    success msg_unlocked
+    if second is nothing
+        success msg_unlocked_with
+    else
+        success msg_unlocked
 
 // The success report for boarding (enter) and leaving (exit). The WORLD-MODEL
 // choice, on a supporter versus in a container, is made here; the WORDING lives

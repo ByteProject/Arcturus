@@ -2468,10 +2468,20 @@ block msg_wrong_key()
 block msg_unlocked()
     say "Unlocked."
 
-// The key a bare LOCK or UNLOCK reached for, named before the report so
-// the player learns what turned the lock: "(with the brass key)".
-block line_with_key(key)
-    say "(with ${the key})"
+// The report for a bare UNLOCK or LOCK: the player named no key, so the
+// sentence says which one turned the lock (on success it is always the
+// thing's own unseal_with). A typed key keeps the short lines above.
+block msg_unlocked_with()
+    if any_firstperson is 1
+        say "I unlock ${the noun} with ${the noun.unseal_with}."
+        return 0
+    say "You unlock ${the noun} with ${the noun.unseal_with}."
+
+block msg_locked_with()
+    if any_firstperson is 1
+        say "I lock ${the noun} with ${the noun.unseal_with}."
+        return 0
+    say "You lock ${the noun} with ${the noun.unseal_with}."
 
 // A UNLOCK on something with no lock at all: the verb just opens it.
 block msg_cant_unlock()

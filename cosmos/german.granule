@@ -2435,8 +2435,11 @@ block msg_wrong_key()
             return 0
     say "${The second} passt nicht."
 
-block line_with_key(key)
-    say "(mit ${the:dat key})"
+block msg_unlocked_with()
+    say "Du schließt ${the:acc noun} mit ${the:dat noun.unseal_with} auf."
+
+block msg_locked_with()
+    say "Du schließt ${the:acc noun} mit ${the:dat noun.unseal_with} ab."
 
 block msg_unlocked()
     say "Aufgeschlossen."

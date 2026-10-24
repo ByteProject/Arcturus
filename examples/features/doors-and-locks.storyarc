@@ -18,15 +18,16 @@
 //   east                      barred: the door is locked, so you do not move
 //   open door                 refused: you cannot open a locked door
 //   unlock door               no key named: the library reaches for the door's
-//                             own key and says so, "(with the brass key)",
-//                             then the door's own unlock line (its alter)
-//   lock door                 the same reach, the other way
+//                             own key, and the door's own unlock line (its
+//                             alter) names it
+//   lock door                 the same reach, the other way: "You lock the
+//                             oak door with the brass key."
 //   open door with key        one line: the REAL unlock runs first (the
 //                             door's own unlock line again), then the open
 //   east                      the way is clear; you step through to the vault
 //   west                      and back again, through the same door
-//   close door / lock door with key / unlock door with key
-//                             a named key needs no telling: no parenthetical
+//   close door / lock door with key
+//                             a named key needs no telling: "Locked."
 //
 // The door is a single object shared by both rooms (`in hall, vault`), reachable
 // and operable from either side, and Cosmos handles the lock logic, the open
@@ -60,12 +61,12 @@ thing oak_door of door in hall, vault
     // The door's own report for UNLOCK, in its own words, the default
     // mechanics kept (alter, docs/01 chapter 11). It answers for OPEN DOOR
     // WITH KEY too, since that runs the real unlock first. `second` is
-    // what the player typed: nothing on a bare UNLOCK, when the library
-    // has already said which key it used.
+    // what the player typed: nothing on a bare UNLOCK, so the line names
+    // the key the library reached for, as the library's own report does.
     on unlock
         alter block
             if second is nothing
-                say "The old lock turns over with a heavy clunk."
+                say "You fit ${the self.unseal_with}, and the old lock turns over with a heavy clunk."
             else
                 say "You turn ${the second}, and the old lock gives."
         continue

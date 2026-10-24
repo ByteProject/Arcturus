@@ -216,73 +216,73 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # chain); a held thing skips the probe, the floor-to-container shortcut
 # still moves takeable things in one command.
 CEILINGS = {
-    "features/yes-no.storyarc": 18872,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/press-any-key.storyarc": 19760,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/shiftable.storyarc": 19256,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/enhance-redefine.storyarc": 19612,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/consult-about.storyarc": 19772,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/session-verbs.storyarc": 19328,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/vary.storyarc": 21284,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/foresight.storyarc": 21708,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/beyond.storyarc": 22584,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/alter.storyarc": 20480,  # 2026-10-24 repriced (+24): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/catalogs.storyarc": 19876,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/matrix.storyarc": 20212,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/direction-grammar.storyarc": 19288,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/scenery-contents.storyarc": 20536,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/prefer.storyarc": 18720,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/trigger.storyarc": 19540,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/adjectives.storyarc": 20176,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/nautical.storyarc": 19764,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/npcengine.storyarc": 21856,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/maniacswap.storyarc": 20108,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "beispiel-deutsch.storyarc": 29308,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "brass-lantern.storyarc": 20664,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "cloak-of-darkness.storyarc": 22628,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "ejemplo-espanol.storyarc": 25900,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/computed-properties.storyarc": 18972,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/containers.storyarc": 20168,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/daemons-and-timers.storyarc": 21200,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/doors-and-locks.storyarc": 19428,  # 2026-10-24 repriced (+388): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/appearance.storyarc": 19972,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/components.storyarc": 19240,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/whistle.storyarc": 18620,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/lighttopology.storyarc": 20792,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/pathfinding.storyarc": 21600,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/perform.storyarc": 18940,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/grains.storyarc": 18736,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/handlers.storyarc": 20140,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/first-person.storyarc": 19608,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/word-lists.storyarc": 19376,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/grammar-bind.storyarc": 20240,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/grammar.storyarc": 19044,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/introproperty.storyarc": 20856,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/kinds-and-inheritance.storyarc": 18936,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/on-other.storyarc": 18816,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/zcolor.storyarc": 19264,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/text-styles.storyarc": 19064,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/computed-name.storyarc": 18956,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/scoring.storyarc": 21240,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/spans.storyarc": 19104,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/vehicles.storyarc": 20488,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/success.storyarc": 19600,  # 2026-10-24 repriced (+24): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/edible.storyarc": 19432,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "features/text-slot.storyarc": 19976,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/carryweight.storyarc": 20180,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/ambience.storyarc": 20848,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/conversations.storyarc": 20772,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/extended-verbs.storyarc": 22388,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/infocom-interrogation.storyarc": 22192,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/quotes.storyarc": 19000,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/take-all.storyarc": 21792,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/plurals.storyarc": 19916,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/statusline.storyarc": 18972,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
-    "granules/verbose-exits.storyarc": 18912,  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+    "features/yes-no.storyarc": 18916,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/press-any-key.storyarc": 19804,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/shiftable.storyarc": 19300,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/enhance-redefine.storyarc": 19656,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/consult-about.storyarc": 19816,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/session-verbs.storyarc": 19372,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/vary.storyarc": 21328,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/foresight.storyarc": 21752,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/beyond.storyarc": 22628,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/alter.storyarc": 20556,  # 2026-10-24 repriced (+76): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/catalogs.storyarc": 19920,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/matrix.storyarc": 20256,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/direction-grammar.storyarc": 19332,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/scenery-contents.storyarc": 20580,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/prefer.storyarc": 18764,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/trigger.storyarc": 19584,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/adjectives.storyarc": 20220,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/nautical.storyarc": 19808,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/npcengine.storyarc": 21900,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/maniacswap.storyarc": 20152,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "beispiel-deutsch.storyarc": 29364,  # 2026-10-24 repriced (+56): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "brass-lantern.storyarc": 20708,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "cloak-of-darkness.storyarc": 22672,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "ejemplo-espanol.storyarc": 25944,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/computed-properties.storyarc": 19016,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/containers.storyarc": 20212,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/daemons-and-timers.storyarc": 21244,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/doors-and-locks.storyarc": 19524,  # 2026-10-24 repriced (+96): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/appearance.storyarc": 20016,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/components.storyarc": 19284,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/whistle.storyarc": 18664,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/lighttopology.storyarc": 20836,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/pathfinding.storyarc": 21644,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/perform.storyarc": 18984,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/grains.storyarc": 18780,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/handlers.storyarc": 20184,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/first-person.storyarc": 19656,  # 2026-10-24 repriced (+48): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/word-lists.storyarc": 19420,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/grammar-bind.storyarc": 20284,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/grammar.storyarc": 19088,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/introproperty.storyarc": 20900,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/kinds-and-inheritance.storyarc": 18980,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/on-other.storyarc": 18860,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/zcolor.storyarc": 19308,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/text-styles.storyarc": 19108,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/computed-name.storyarc": 19000,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/scoring.storyarc": 21284,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/spans.storyarc": 19148,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/vehicles.storyarc": 20532,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/success.storyarc": 19676,  # 2026-10-24 repriced (+76): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/edible.storyarc": 19476,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "features/text-slot.storyarc": 20020,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/carryweight.storyarc": 20224,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/ambience.storyarc": 20892,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/conversations.storyarc": 20816,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/extended-verbs.storyarc": 22432,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/infocom-interrogation.storyarc": 22236,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/quotes.storyarc": 19044,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/take-all.storyarc": 21836,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/plurals.storyarc": 19960,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/statusline.storyarc": 19016,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
+    "granules/verbose-exits.storyarc": 18956,  # 2026-10-24 repriced (+44): a bare lock/unlock reports the key in one sentence (no parenthetical)
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 23328  # 2026-10-24 repriced (+40): lock/unlock keep second, name the reached-for key; OPEN WITH KEY performs the real unlock
+CLOAK_Z8_CEILING = 23384  # 2026-10-24 repriced (+56): a bare lock/unlock reports the key in one sentence (no parenthetical)
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

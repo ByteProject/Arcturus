@@ -2123,8 +2123,11 @@ block msg_wrong_key()
             return 0
     say "${The second} no encaja."
 
-block line_with_key(key)
-    say "(con ${the key})"
+block msg_unlocked_with()
+    say "Abres ${the noun} con ${the noun.unseal_with}."
+
+block msg_locked_with()
+    say "Cierras ${the noun} con ${the noun.unseal_with}."
 
 block msg_unlocked()
     say "Abres con llave."
