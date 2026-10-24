@@ -1774,7 +1774,7 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # capitalized name twin (a lowercase literal name).
         _place(rt, Const(_any_prop(ctx.world, "name_cap")), dest)
     elif name == "any_exposed":
-        _place(rt, Const(_any_prop(ctx.world, "exposed")), dest)
+        _place(rt, Const(_any_attr(ctx.world, "exposed")), dest)
     elif name == "any_exposed_line":
         # any_exposed_line(): 1 unless the game writes constant exposed_line = false
         # (the automatic belongings sentence after EXAMINE on a character).
@@ -2029,11 +2029,11 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
     elif name == "any_edible":
         # any_edible(): 1 when any object or kind declares edible, so the
         # eat handler's consume branch folds away in a game with no food.
-        _place(rt, Const(_any_prop(ctx.world, "edible")), dest)
+        _place(rt, Const(_any_attr(ctx.world, "edible")), dest)
     elif name == "any_wearable":
         # any_wearable(): 1 when anything declares wearable or worn, so the
         # movers' worn gate folds away where nothing can be on the body.
-        _place(rt, Const(1 if (_any_prop(ctx.world, "wearable")
+        _place(rt, Const(1 if (_any_attr(ctx.world, "wearable")
                                or _any_prop(ctx.world, "worn")) else 0), dest)
     elif name == "any_concealed":
         # any_concealed(): 1 when anything is ever concealed (declared or
@@ -3433,15 +3433,21 @@ def _any_concealed(world) -> int:
 
 
 def _any_components(world) -> int:
-    """1 when any object or kind declares `component` truthy: the part-of
-    hooks (scope, take, listings) fold on this."""
-    if any(_prop_truthy(o.props.get("component"))
-           for o in world.objects.values()):
+    """1 when any object or kind declares `component` at all, or a `now
+    ... is component` sets it in play: the part-of hooks (scope, take,
+    listings) fold on this (_any_attr's rule)."""
+    return _any_attr(world, "component")
+
+
+def _any_attr(world, attr: str) -> int:
+    """THE attribute-fold rule: 1 when any object or kind declares the
+    attribute at all, true OR false (`component false` is a declaration of
+    intent: this game uses it), or any code sets it in play with `now ...
+    is <attr>` (sema's sets_attrs). A game doing neither keeps the
+    machinery folded away."""
+    if _any_prop(world, attr):
         return 1
-    if any(_prop_truthy(k.props.get("component"))
-           for k in world.kinds.values()):
-        return 1
-    return 0
+    return 1 if attr in getattr(world, "sets_attrs", ()) else 0
 
 
 def _kind_test(rt, ctx, expr: ast.IsTest, label, on_true):
@@ -4672,9 +4678,9 @@ def _static_value(ctx, expr):
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_container_caps":
         return _any_prop(ctx.world, "item_cap")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_edible":
-        return _any_prop(ctx.world, "edible")
+        return _any_attr(ctx.world, "edible")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_wearable":
-        return 1 if (_any_prop(ctx.world, "wearable")
+        return 1 if (_any_attr(ctx.world, "wearable")
                      or _any_prop(ctx.world, "worn")) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_concealed":
         return _any_concealed(ctx.world)
@@ -4724,7 +4730,7 @@ def _static_value(ctx, expr):
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_named_lower":
         return _any_prop(ctx.world, "name_cap")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_exposed":
-        return _any_prop(ctx.world, "exposed")
+        return _any_attr(ctx.world, "exposed")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_exposed_line":
         return _switch_constant_on(ctx, "exposed_line")
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_contents_line":

@@ -193,6 +193,15 @@ class Analyzer:
         self.world.sets_beyond = self._sets_attr("beyond")
         self.world.sets_shiftable = self._sets_attr("shiftable")
         self.world.sets_restless = self._sets_attr("restless")
+        # The same for every other attribute whose machinery folds on its
+        # declaration (auraes's lever, 2026-10-18: `now lever is component`
+        # in play, never declared, did nothing, the part-of hooks compiled
+        # out). One rule for all of them: declared at all, true or false,
+        # or set by a `now` anywhere, and the fold is on.
+        self.world.sets_attrs = {
+            a for a in ("component", "exposed", "edible", "wearable",
+                        "named", "pluribus")
+            if self._sets_attr(a)}
         self.world.uses_notify = getattr(self.program, "uses_notify", False)
         # Darkness reachability (arc_image_dark, B11): darkness can happen when
         # any room resolves `lit` to false at compile time (its own `lit false`

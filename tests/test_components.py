@@ -188,3 +188,42 @@ def test_a_component_never_counts_as_cargo():
     # the pass is one item, so the apple still fits under the cap of 2
     assert "You take the apple with you." in io.text
     assert "hands are full" not in io.text
+
+
+def _headless(src, cmds):
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    io = CaptureIO(script=list(cmds))
+    try:
+        VM(load(_build(src)), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+WELD = (
+    'game\n    title "W"\n    start hall\n'
+    'room hall\n    name "Hall"\n    desc "A hall."\n'
+    'thing machine in hall\n    name "machine"\n    words machine\n    fixed\n'
+    'thing lever in machine\n    name "lever"\n    words lever\n'
+    'verb "weld"\n    weld\n'
+    'on weld\n    now lever is component\n    say "Welded."\n'
+)
+
+
+def test_a_component_set_only_in_play_is_part_of_its_holder():
+    # auraes's lever (2026-10-18): `now lever is component` in play, never
+    # declared, did nothing; the part-of hooks were compiled out. A runtime
+    # `now` keeps the fold on, as for beyond, shiftable and restless.
+    out = _headless(WELD, ["x lever", "weld", "take lever"])
+    assert "nothing of the sort" in out.split(">x lever")[1]
+    assert "part of the machine" in out.split(">take lever")[1]
+
+
+def test_declaring_component_false_counts_as_using_it():
+    # `component false` is a declaration of intent, the same rule exposed,
+    # edible and wearable already followed.
+    src = WELD.replace('    words lever\n', '    words lever\n    component false\n')
+    out = _headless(src, ["weld", "take lever"])
+    assert "part of the machine" in out

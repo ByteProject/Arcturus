@@ -374,6 +374,12 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
     # this to skip its runtime named-check entirely in a game with no named
     # objects, so the common case costs nothing.
     if "named" in layout.attr_number:
+        # Declared at all, true or false, or set in play: the attribute-fold
+        # rule (lower._any_attr).
+        if "named" in getattr(world, "sets_attrs", ()) or any(
+                "named" in _effective_props(world, o)
+                for o in world.objects.values()):
+            layout.has_named = True
         for name in world.objects:
             decl = _effective_props(world, world.objects[name]).get("named")
             if decl is not None and _bool_value(decl):
@@ -383,6 +389,10 @@ def build_layout(world: wm.World, react_objects=None) -> Layout:
     # Does any object resolve to `pluribus` (grammatical plural)? Same folding
     # role as has_named, for the number-agreement machinery.
     if "pluribus" in layout.attr_number:
+        if "pluribus" in getattr(world, "sets_attrs", ()) or any(
+                "pluribus" in _effective_props(world, o)
+                for o in world.objects.values()):
+            layout.has_pluribus = True
         for name in world.objects:
             decl = _effective_props(world, world.objects[name]).get("pluribus")
             if decl is not None and _bool_value(decl):

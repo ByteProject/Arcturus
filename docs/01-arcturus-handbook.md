@@ -1056,7 +1056,12 @@ Unused declared properties are removed by dead-code elimination.
 ### Standard attributes
 
 Cosmos predefines these boolean attributes. Set one by naming it (`fixed`),
-clear it with `false` (`fixed false`), test it with `is`.
+clear it with `false` (`fixed false`), test it with `is`. The machinery
+behind an attribute is compiled in when the game uses it: when any object
+declares it at all, `true` or `false`, or when any code sets it in play
+with `now ... is <attribute>`. A lever that only becomes a `component`
+when it is welded on needs nothing more than the `now`; a game that never
+touches an attribute pays nothing for it.
 
 | Attribute | Meaning and usage |
 |---|---|
