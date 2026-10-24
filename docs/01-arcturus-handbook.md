@@ -5380,7 +5380,16 @@ plain topic is REPEATABLE, the player may raise it again and again, and `once` i
 what marks the one that should answer only the first time (the confession, not
 the weather). Either way `once` stops only the PLAYER: a `reveal` in the author's
 code brings a spent or `once` topic back for another turn, after which it is
-spent again.
+spent again. A topic may reveal ITSELF: its body runs after it is retired,
+so `reveal weather` as the last line of the weather topic keeps it in the
+menu for as long as the player likes to ask:
+
+```
+topic weather "the weather"
+    you "How's the weather?"
+    reply "Grey, as always."
+    reveal weather          // stays in the menu
+```
 
 The two granules are two presentations of one model and are mutually exclusive
 BY THE COMPILER:

@@ -2139,18 +2139,21 @@ def gen_topic_helpers(layout) -> list:
     vis.label("shown")
     vis.op("rtrue")
 
-    # cosmos_topic_run(person, i): run topic i's body, then retire it if `once`.
+    # cosmos_topic_run(person, i): retire topic i if `once`, then run its body.
+    # Retire FIRST, so a body's own `reveal <subject>` sticks: a topic that
+    # reveals itself stays available (fos13's question, 2026-10-24; the run-
+    # then-retire order undid it).
     run = Routine("cosmos_topic_run", nlocals=3)  # 1=person,2=i,3=rec
     run.op("call_vs", RoutineRef("cosmos_topic_rec"), Variable(1), Variable(2), store=Variable(3))
-    run.op("loadw", Variable(3), Const(0), store=Variable(STACK))  # body routine addr
-    run.op("call_vs", Variable(STACK), store=Variable(STACK))
     run.op("loadb", Variable(3), Const(8), store=Variable(STACK))  # flags byte
     run.op("and", Variable(STACK), Const(objmod.TOPIC_ONCE), store=Variable(STACK))
-    run.op("jz", Variable(STACK), branch=("done", True))
+    run.op("jz", Variable(STACK), branch=("body", True))
     run.op("loadb", Variable(3), Const(9), store=Variable(STACK))  # state byte
     run.op("or", Variable(STACK), Const(objmod.TOPIC_RETIRED), store=Variable(STACK))
     run.op("storeb", Variable(3), Const(9), Variable(STACK))
-    run.label("done")
+    run.label("body")
+    run.op("loadw", Variable(3), Const(0), store=Variable(STACK))  # body routine addr
+    run.op("call_vs", Variable(STACK), store=Variable(STACK))
     run.op("rtrue")
 
     # cosmos_topic_matches(person, i, word): 1 if topic i's match-word array holds
