@@ -184,6 +184,9 @@ INTRINSICS = frozenset({
     # any_reach folds the reach-bound AGAIN plumbing: 1 only when a game or
     # granule overrides the reach_unscoped seam beyond its trivial default.
     "any_reach",
+    # any_asplayer folds the dispatcher's body step (`on <verb> as player`,
+    # maniacswap); asplayer_react(action) runs the current body's handlers.
+    "any_asplayer", "asplayer_react",
     # any_prefer folds the matcher's preference tiebreak: 1 only when a game
     # overrides the prefer seam beyond its trivial default.
     "any_prefer",
@@ -1774,6 +1777,16 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         _place(rt, Const(_any_action_read(ctx)), dest)
     elif name == "any_reach":
         _place(rt, Const(_any_reach(ctx)), dest)
+    elif name == "any_asplayer":
+        # any_asplayer(): 1 when any character has an `on <verb> as player`
+        # handler, so the dispatcher's body step folds away otherwise.
+        _place(rt, Const(1 if getattr(ctx.world, "uses_as_player", False) else 0), dest)
+    elif name == "asplayer_react":
+        # asplayer_react(action): run the current body's `as player` handlers
+        # for the action (cosmos_asplayer); 1 when one consumed it.
+        op, t = _operand(rt, ctx, args[0])
+        rt.op("call_vs", RoutineRef("cosmos_asplayer"), op, store=dest)
+        _free(ctx, t)
     elif name == "any_prefer":
         # any_prefer(): 1 when the game overrides the prefer seam (docs/01
         # chapter 14), so the matcher's preference tiebreak folds away in a
@@ -4696,6 +4709,8 @@ def _static_value(ctx, expr):
         return 1 if ctx.world.anywhere else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_reach":
         return _any_reach(ctx)
+    if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_asplayer":
+        return 1 if getattr(ctx.world, "uses_as_player", False) else 0
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_prefer":
         return _any_prefer(ctx)
     if isinstance(expr, ast.Call) and not expr.args and expr.name == "any_pathfinding":

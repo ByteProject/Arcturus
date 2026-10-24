@@ -19,7 +19,8 @@
 // Try: BECOME MAREN (refused; the lamp is dark). LIGHT LAMP, then
 // BECOME MAREN: the island appears, X ME is Maren, INVENTORY is her
 // knife. TAKE THE HOOK, BECOME HENRIK: he still holds his matches, the
-// hook stayed with her. X MAREN answers only where she stands.
+// hook stayed with her. X MAREN answers only where she stands. SING as
+// each of them: every body sings its own way (`on sing as player`).
 
 summon.maniacswap
 summon.statusline
@@ -40,6 +41,10 @@ thing henrik of character in lamproom
     named
     words henrik, keeper
     desc "Henrik, keeper of the west light. Salt in every seam."
+    // What Henrik DOES while he is you: `as player` answers for the body
+    // the keyboard drives, not for someone acting on him.
+    on sing as player
+        say "You hum the keeper's song, the one that has no words."
 
 room lamproom
     name "Lamp Room"
@@ -94,6 +99,8 @@ thing maren of character in sheds
                 when the light asks."
             stop
         continue
+    on sing as player
+        say "You sing the gutting song, three verses, all of them rude."
 
 thing knife in maren
     name "gutting knife"

@@ -58,6 +58,7 @@ TERMS = [
     ("person", ["see `character`"]),
     ("`player`", ["h:Chapter 4: The player"]),
     ("`body`", ["t:begins in with `body` in the game block"]),
+    ("`as player`", ["p:EACH BODY ITS OWN WAYS: `as player`."]),
     ("resolution order", ["p:Resolution order."]),
     ("inheritance", ["see resolution order"]),
     ("`global`", ["p:Story state comes in three declarations"]),

@@ -6,6 +6,14 @@ lives in the commit log. The feature roadmap follows below.
 
 ## What's new
 
+- **Each body its own ways: `as player`.** In a maniacswap game, a
+  handler on a character answers for what is done to it; what a body
+  does while you drive it is now written on the body: `on jump as
+  player`, `on take as player`. It runs only while that character is
+  you, so BECOME switches the behavior with the body, and it runs
+  first, so a body's limits ("you won't lift anything that heavy") gate
+  everything after them. Games without it compile byte for byte as
+  before (arcc 2.36.0, Cosmos 1.51.0).
 - **Computed values: a number or an object can be a block.** A property
   that was text-only when computed now takes a block returning a number
   or an object, decided when it is read: `reading block` with `return 3`
@@ -40,14 +48,6 @@ lives in the commit log. The feature roadmap follows below.
   after a typed trigger and before the held tiebreak. None or several
   preferred leave the question as it was. Games that leave the seam
   alone compile byte for byte as before (arcc 2.28.0, Cosmos 1.47.0).
-- **The body you begin in has a name: `body`.** In a maniacswap game
-  the player was always a pointer and the bodies characters, except the
-  one you started in, seeded under the name `player` and nameless the
-  moment you left it. Now the game block says `body henrik` (or `body
-  demon`), the boot body is a character you declared, and everything a
-  story needs follows: `if player is henrik`, `move henrik to nothing`,
-  `become(henrik)`, starting as any body by declaration. The old form
-  keeps compiling (arcc 2.27.0, Cosmos 1.45.0).
 ## Feature roadmap
 
 Considered and coming, in no particular order; each lands the Arcturus

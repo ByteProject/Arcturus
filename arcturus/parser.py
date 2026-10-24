@@ -686,12 +686,26 @@ class Parser:
             self.advance()
             events = ["each_turn_first"]
         pattern = self._parse_pattern()
+        # `as player`: the handler answers when this character, as the
+        # player's body, does the action (summon.maniacswap; docs/01
+        # chapter 22). It closes the pattern and comes before `when`.
+        as_player = False
+        if self._at_as_player():
+            self.advance()
+            self.advance()
+            as_player = True
         when = None
         if self.accept_kw("when"):
             when = self.parse_expr()
         self.expect_newline()
         body = self.parse_stmt_block()
-        return ast.Handler(events, after, pattern, when, body, line)
+        h = ast.Handler(events, after, pattern, when, body, line)
+        h.as_player = as_player
+        return h
+
+    def _at_as_player(self) -> bool:
+        return (self.cur.kind == T.NAME and self.cur.value == "as"
+                and self._at(1).value == "player")
 
     def _parse_event_name(self) -> str:
         # Most event names are ordinary identifiers; `start` is also a core
@@ -706,12 +720,14 @@ class Parser:
 
     def _parse_pattern(self) -> list[ast.PatternItem]:
         items: list[ast.PatternItem] = []
-        while not (self.check(T.NEWLINE) or self.check_kw("when")):
+        while not (self.check(T.NEWLINE) or self.check_kw("when")
+                   or self._at_as_player()):
             names = [self._parse_operand_name()]
             while self.accept_kw("or"):
                 names.append(self._parse_operand_name())
             items.append(ast.Operand(names))
-            if not (self.check(T.NEWLINE) or self.check_kw("when")):
+            if not (self.check(T.NEWLINE) or self.check_kw("when")
+                    or self._at_as_player()):
                 # A literal preposition word joining operands (in, on, with).
                 word = self.advance().value
                 items.append(ast.Prep(word))

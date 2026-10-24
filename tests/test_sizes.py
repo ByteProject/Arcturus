@@ -235,7 +235,7 @@ CEILINGS = {
     "features/adjectives.storyarc": 20236,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
     "granules/nautical.storyarc": 19824,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
     "granules/npcengine.storyarc": 21916,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
-    "granules/maniacswap.storyarc": 20168,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
+    "granules/maniacswap.storyarc": 20332,  # 2026-10-24 repriced (+164): the example gains `on sing as player` on both bodies
     "beispiel-deutsch.storyarc": 29380,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
     "brass-lantern.storyarc": 20724,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command
     "cloak-of-darkness.storyarc": 22688,  # 2026-10-24 repriced (+20): a noun-less ENTER from a particle compound is an incomplete command

@@ -440,6 +440,7 @@ movement), and `arcc --extract` shows every use of the rest.
 | `any_anywhere` | any_anywhere(): 1 when a verb declares `anywhere`. |
 | `any_appearance` | any_appearance(): 1 when anything declares `appearance`, so the room describer's check folds away otherwise. |
 | `any_articles` | any_articles(): 1 when anything hand-sets `article`, so the packs' override branch (and its capitalized twin) folds away otherwise. |
+| `any_asplayer` | any_asplayer(): 1 when any character has an `on <verb> as player` handler, so the dispatcher's body step folds away otherwise. |
 | `any_awards` | any_awards(): 1 when the game scores at all (any award site, pool, or auto-scored object), so score plumbing folds away otherwise. |
 | `any_beyond` | any_beyond(): 1 if any object is beyond; the touch guards fold. |
 | `any_binary` | any_binary(): 1 if any object is binary (or its alias switchable), so the switch contract folds away in a game with nothing to flip. |
@@ -697,6 +698,7 @@ movement), and `arcc --extract` shows every use of the rest.
 |---|---|
 | `action` | action: the action being dispatched this turn, read from the global the dispatcher sets. |
 | `ambience_table` | ambience_table(): the ambience table's base address (0 when no block exists), from the __ambience__ global build_story seeds. |
+| `asplayer_react` | asplayer_react(action): run the current body's `as player` handlers for the action (cosmos_asplayer); 1 when one consumed it. |
 | `calculate` | calculate(cat): the entry count. |
 | `columns` | rows(m) / columns(m): a 2D matrix's dimensions, compile-time constants. |
 | `dice` | dice(cat): one entry at random (1..count rides random's contract). |

@@ -42,6 +42,13 @@ block dispatch(action)
             return
         run_free(action)
         return
+    // The body first (`on <verb> as player`, summon.maniacswap; docs/01
+    // chapter 22): what the character the player is now does, before what
+    // is done to the thing acted on, so a body's limits gate everything
+    // after them. Folds away in a game with no such handler.
+    if any_asplayer is 1
+        if asplayer_react(action) is 1
+            return
     if noun is not nothing
         let r = handler_of(noun)
         if r is not nothing

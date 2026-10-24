@@ -166,6 +166,9 @@ class Handler:
     # None for the game, "granule", or "library": free rules for one action
     # run most-specific-origin first (codegen._ORIGIN_RANK).
     origin: Optional[str] = None
+    # `as player`: answers when the owner, as the player's body, does the
+    # action; kept out of the owner's ordinary react routine (codegen).
+    as_player: bool = False
 
 
 @dataclass
@@ -563,6 +566,9 @@ class World:
     # routine, and every object-name print goes through cosmos_print_name;
     # a game with only literal names keeps the bare print_obj (byte-identical).
     uses_computed_names: bool = False
+    # Any `on <verb> as player` handler (maniacswap bodies; codegen emits
+    # the body dispatcher cosmos_asplayer only then).
+    uses_as_player: bool = False
     # `body <character>` in the game block (summon.maniacswap): the named
     # character IS the boot body, no player object is seeded, and the
     # player global starts pointing at it. None without the key.

@@ -164,6 +164,7 @@ class Analyzer:
         self._check_presence()
         self._check_npcengine()
         self._check_maniacswap()
+        self._check_as_player()
         # After the members are collected: the automatic scored bits need
         # the real attributes (fixed blocks a thing, `scored false` opts
         # out), and the award scan feeds the compiler-summed max_score.
@@ -1052,7 +1053,47 @@ class Analyzer:
         # lowering error inside this handler names the granule or prelude it
         # was written in, not the story (EdwardianDuck's report).
         h.srcfile = getattr(decl, "srcfile", None)
+        h.as_player = getattr(decl, "as_player", False)
         return h
+
+    def _check_as_player(self) -> None:
+        """`on <verb> as player` (docs/01 chapter 22, maniacswap): a handler
+        about what a character DOES while it is the player's body. It needs
+        the granule (without it no character is ever the player), belongs on
+        a character or a kind of character, and answers actions only: the
+        life-cycle events have no one doing them."""
+        w = self.world
+        found = False
+        owners = [(o.name, o, False) for o in w.objects.values()] + \
+                 [(k.name, k, True) for k in w.kinds.values()]
+        for name, owner, is_kind in owners:
+            for h in owner.handlers:
+                if not getattr(h, "as_player", False):
+                    continue
+                found = True
+                chain = [name] + list(getattr(owner, "chain", []))
+                if "character" not in chain:
+                    raise self._error(
+                        f"'{name}': `as player` is for a character that can be "
+                        f"the player's body; '{name}' is not a character", h.line)
+                for ev in h.events:
+                    if ev in ("start", "each_turn", "each_turn_first", "other"):
+                        raise self._error(
+                            f"`as player` answers an action the body does; "
+                            f"`on {ev}` is not one", h.line)
+        for h in w.free_handlers:
+            if getattr(h, "as_player", False):
+                raise self._error(
+                    "`as player` belongs on a character's own handler; a free "
+                    "rule for one body is `on <verb> when player is <name>`",
+                    h.line)
+        if found and not wm.has_summon(w, "maniacswap"):
+            line = next(h.line for _n, o, _k in owners for h in o.handlers
+                        if getattr(h, "as_player", False))
+            raise self._error(
+                "`as player` is for a body: summon.maniacswap makes a character "
+                "playable; without it no character is ever the player", line)
+        w.uses_as_player = found
 
     # -- pass 2: kind chains -----------------------------------------------
 

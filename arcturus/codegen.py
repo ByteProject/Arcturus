@@ -141,17 +141,28 @@ def _guard_plan(h: wm.Handler, layout, gmap, dirnames=frozenset(), self_num=None
     return plan or None
 
 
+# Which handlers the react machinery sees: the ordinary ones (what is done to
+# the object), or, while the body routines are generated, only the `as
+# player` ones (what the object does as the player's body). One switch, so
+# both routine families come from the same, proven generator.
+_AS_PLAYER_VIEW = False
+
+
+def _in_view(h) -> bool:
+    return bool(getattr(h, "as_player", False)) == _AS_PLAYER_VIEW
+
+
 def _resolved_handlers(world: wm.World, obj: wm.Obj):
     """The object's handlers in resolution order: its own first (most specific),
     then each kind up its inheritance chain, nearest first (docs/01 chapter 3).
     An instance inherits every handler of its kind chain; put in one list here,
     the react routine runs them in order and a non-consuming handler (one that
     ends with `continue`) falls through to the next, exactly as documented."""
-    handlers = list(obj.handlers)
+    handlers = [h for h in obj.handlers if _in_view(h)]
     for kindname in obj.chain:
         kind = world.kinds.get(kindname)
         if kind is not None:
-            handlers.extend(kind.handlers)
+            handlers.extend(h for h in kind.handlers if _in_view(h))
     return handlers
 
 
@@ -162,11 +173,11 @@ def _owner_bands(world: wm.World, obj: wm.Obj):
     the END of ITS OWN band: the object's default runs before the action
     climbs to the kind (docs/01 chapter 11, the contract a field report
     held us to), and a kind's default before the next kind up."""
-    bands = [list(obj.handlers)]
+    bands = [[h for h in obj.handlers if _in_view(h)]]
     for kindname in obj.chain:
         kind = world.kinds.get(kindname)
         if kind is not None and kind.handlers:
-            bands.append(list(kind.handlers))
+            bands.append([h for h in kind.handlers if _in_view(h)])
     return [b for b in bands if b]
 
 
@@ -219,14 +230,11 @@ def _react_objects(world: wm.World, actions: dict) -> set:
     }
 
 
-def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gmap=None, pool=None) -> list:
-    """A react_<obj> routine for every object that has react handlers, calling
-    the per-handler routines by their registry names. layout/gmap are needed only
-    to guard `on go <direction>` overrides on the chosen direction. Also emits
-    react_free and the grain routines so the dispatcher can call them all."""
-    hname = {id(h): nm for h, nm in registry}
-    afloor = wm.after_floor(world) if wm.actions_with_after(world) else None
-    dirnames = frozenset(world.directions.values())
+
+def _gen_object_reacts(world, actions, hname, layout, gmap, afloor, dirnames,
+                       prefix=None):
+    """One react routine per object with handlers in the current view
+    (_AS_PLAYER_VIEW); prefix names them react_as_<obj> for the bodies."""
     out = []
     for objname, obj in world.objects.items():
         pairs = _react_handlers(world, obj, actions)
@@ -274,7 +282,51 @@ def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gm
                 event_groups.setdefault(action, []).append((hname[id(h)], h))
         out.append(_gen_react(
             objname, bands, actions, layout, gmap, afloor, dirnames,
-            events, mfloor=wm.meta_floor(world), event_groups=event_groups))
+            events, mfloor=wm.meta_floor(world), event_groups=event_groups,
+            rname=(prefix + objname) if prefix else None))
+    return out
+
+
+def _gen_asplayer_dispatch(names, layout, gmap) -> Routine:
+    """cosmos_asplayer(action): run the `as player` handlers of whichever
+    body is the player now (maniacswap's player pointer), returning what its
+    routine returned (1 consumed), or 0 when the current body has none. The
+    dispatcher calls it first, before the thing acted on (docs/01 chapter 22)."""
+    rt = Routine("cosmos_asplayer", nlocals=1)
+    for name in names:
+        num = layout.obj_number[name]
+        skip = "asp_" + name
+        rt.op("je", Variable(gmap["player"]), Const(num), branch=(skip, False))
+        rt.op("call_vs", RoutineRef("react_as_" + name), Variable(1),
+              store=Variable(STACK))
+        rt.op("ret", Variable(STACK))
+        rt.label(skip)
+    rt.op("rfalse")
+    return rt
+
+def gen_react_routines(world: wm.World, actions: dict, registry, layout=None, gmap=None, pool=None) -> list:
+    """A react_<obj> routine for every object that has react handlers, calling
+    the per-handler routines by their registry names. layout/gmap are needed only
+    to guard `on go <direction>` overrides on the chosen direction. Also emits
+    react_free and the grain routines so the dispatcher can call them all."""
+    hname = {id(h): nm for h, nm in registry}
+    afloor = wm.after_floor(world) if wm.actions_with_after(world) else None
+    dirnames = frozenset(world.directions.values())
+    out = _gen_object_reacts(world, actions, hname, layout, gmap, afloor, dirnames)
+    # The bodies' own routines (`on <verb> as player`, maniacswap): the same
+    # generator over the other view, named react_as_<obj>, and one dispatcher
+    # that runs the routine of whichever body is the player now.
+    if getattr(world, "uses_as_player", False):
+        global _AS_PLAYER_VIEW
+        _AS_PLAYER_VIEW = True
+        try:
+            bodies = _gen_object_reacts(world, actions, hname, layout, gmap,
+                                        afloor, dirnames, prefix="react_as_")
+        finally:
+            _AS_PLAYER_VIEW = False
+        out.extend(bodies)
+        out.append(_gen_asplayer_dispatch(
+            [r.name[len("react_as_"):] for r in bodies], layout, gmap))
     # react_free and grain_dispatch are always present (even empty) so the turn
     # loop and dispatcher can call them unconditionally.
     out.append(gen_react_free(world, actions, registry, layout, gmap))
@@ -539,7 +591,7 @@ def _specificity(h: wm.Handler) -> tuple:
             0 if h.when is not None else 1)
 
 
-def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None, afloor=None, dirnames=frozenset(), event_names=wm.EVENT_NAMES, mfloor=None, event_groups=None) -> Routine:
+def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None, afloor=None, dirnames=frozenset(), event_names=wm.EVENT_NAMES, mfloor=None, event_groups=None, rname=None) -> Routine:
     """react_<obj>(action), OWNER-BANDED (docs/01 chapter 11): the object's
     own handlers form band 0 with its own `on other` at the band's tail, then
     each kind's handlers band by band up the chain, each with ITS `on other`
@@ -565,7 +617,7 @@ def _gen_react(objname: str, bands: list, actions: dict, layout=None, gmap=None,
     )
     # 1 = action, 2 = a guard ran; 3 = the go-other guard's exit scratch,
     # present only where that guard is (the count byte costs the same).
-    rt = Routine("react_" + objname, nlocals=3 if needs_exit_local else 2)
+    rt = Routine(rname or ("react_" + objname), nlocals=3 if needs_exit_local else 2)
     # An owned handler is called with this react routine's own object as its
     # self argument (docs/01 chapter 9); free rules are called with none.
     self_num = layout.obj_number.get(objname) if layout is not None else None

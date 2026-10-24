@@ -252,3 +252,69 @@ def test_body_needs_the_granule_and_a_character():
                'player.name "Henrik"\n'
                'room r\n    name "R"\n    desc "x"\n'
                'thing bob of character in r\n    name "Bob"\n    words bob\n')
+
+
+AS_PLAYER = (
+    'summon.maniacswap\n'
+    'game\n    title "S"\n    start hall\n    body henrik\n'
+    'room hall\n    name "Hall"\n    desc "A hall."\n'
+    'kind lifter of character\n'
+    '    on take as player\n        if noun is anvil\n'
+    '            say "You won\'t lift anything that heavy."\n            stop\n'
+    '        continue\n'
+    'thing henrik of lifter in hall\n    name "Henrik"\n    named\n    words henrik\n'
+    '    playable\n'
+    '    on jump as player\n        say "Henrik\'s knees have retired."\n'
+    '    on examine\n        say "HENRIK, EXAMINED."\n'
+    'thing greta of character in hall\n    name "Greta"\n    named\n    words greta\n'
+    '    playable\n'
+    '    on jump as player\n        say "Greta jumps like a cat."\n'
+    'thing anvil in hall\n    name "anvil"\n    words anvil\n'
+    '    on take\n        say "The anvil\'s own line."\n'
+    'thing lamp in hall\n    name "lamp"\n    words lamp\n'
+)
+
+
+def _play(src, cmds):
+    io = CaptureIO(script=list(cmds))
+    try:
+        VM(load(_build(src)), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    return io.text
+
+
+def test_as_player_handlers_follow_the_body():
+    # A field report (2026-10-24): handlers on a body for what it DOES were
+    # never reached; the dispatch chain asked the thing acted on, the room
+    # and the defaults, never the actor. `as player` handlers run for the
+    # current body, first, and BECOME switches them with the body.
+    out = _play(AS_PLAYER, ["jump", "take anvil", "examine lamp", "examine me",
+                            "become greta", "jump", "take anvil"])
+    part = out.split(">")
+    assert "Henrik's knees have retired." in part[1]
+    assert "You won't lift anything that heavy." in part[2]   # the kind gates first
+    assert "The anvil's own line." not in part[2]
+    assert "HENRIK, EXAMINED." not in part[3]                  # a plain handler is not an actor's
+    assert "HENRIK, EXAMINED." in part[4]                      # EXAMINE ME: Henrik is the noun
+    assert "Greta jumps like a cat." in part[6]
+    assert "The anvil's own line." in part[7]
+
+
+@pytest.mark.parametrize("change, message", [
+    (("summon.maniacswap\n", ""), "summon.maniacswap makes a character playable"),
+    (('thing lamp in hall\n    name "lamp"\n    words lamp\n',
+      'thing lamp in hall\n    name "lamp"\n    words lamp\n'
+      '    on jump as player\n        say "x"\n'), "'lamp' is not a character"),
+    (('thing lamp in hall\n', 'on jump as player\n    say "x"\nthing lamp in hall\n'),
+     "a free rule for one body"),
+    (('    on jump as player\n        say "Greta jumps like a cat."\n',
+      '    on each_turn as player\n        say "x"\n'), "`on each_turn` is not one"),
+])
+def test_as_player_refuses_what_it_cannot_mean(change, message):
+    src = AS_PLAYER.replace(*change)
+    if change[0] == "summon.maniacswap\n":
+        src = src.replace("    body henrik\n", "")
+    with pytest.raises(ArcError) as exc:
+        _build(src)
+    assert message in str(exc.value)

@@ -483,6 +483,9 @@ class Handler:
     # Free rules for one action run most-specific-origin first, so a story's
     # `on xyzzy` overrides the Cosmos default and `continue` defers to it.
     origin: Optional[str] = None
+    # `on <verb> as player`: a handler about what this character DOES while
+    # it is the player's body (summon.maniacswap), not what is done to it.
+    as_player: bool = False
 
 
 @dataclass

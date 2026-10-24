@@ -6269,6 +6269,34 @@ For authored beats (an ending that forces the change of view), call
 `become(x)` directly from any handler; it swaps without the verb's
 gates.
 
+<a id="ix-as-player"></a>EACH BODY ITS OWN WAYS: `as player`. A handler on a character answers
+for what is done TO that character (EXAMINE HENRIK, GIVE ROPE TO MAREN).
+What a body DOES while the keyboard drives it is written on the body
+with `as player`:
+
+```
+thing henrik of character in lamproom
+    on sing as player
+        say "You hum the keeper's song, the one that has no words."
+    on take as player
+        if noun is anvil
+            say "You won't lift anything that heavy."
+            stop
+        continue
+```
+
+The handler answers only while that character is the player, so BECOME
+switches the behavior with the body, and a kind's `as player` handler
+serves every body of the kind. It runs FIRST, before the thing acted on
+and the room, so a body's limits gate everything after them; `stop` and
+`continue` work as everywhere, `when` guards combine, and `on after
+<verb> as player` follows a completed action. Inside it `self` is the
+body, which is the player, so its text addresses the player ("You").
+`as player` needs this granule (without it no character is ever the
+player) and belongs on a character or a kind of character; a free rule
+for one body is written `on <verb> when player is henrik`. A game with no
+such handler pays nothing for it.
+
 ME FOLLOWS THE KEYBOARD. The standard self words (ME, MYSELF, MICH,
 examinate's -te, and each language's own) resolve to whoever you are
 right now, however far away the boot body stands. Give every body its
@@ -7376,6 +7404,7 @@ links follow the text wherever it moves.
 - `arc_mode`: [chapter 20](#ix-arc-mode)
 - `article`: [chapter 5, Standard value properties](#ix-article)
 - articles: [chapter 15, Strings, line breaks, and interpolation](#ix-interpolation), [chapter 15, Naming, articles, daemons, and timers](#ix-articles)
+- `as player`: [chapter 22, maniacswap](#ix-as-player)
 - ask and tell: [chapter 22, conversations](#ix-ask-and-tell)
 - attribute folds: [chapter 5, Standard attributes](#ix-attribute-folds)
 - attributes, standard: [chapter 5, Standard attributes](#standard-attributes)
