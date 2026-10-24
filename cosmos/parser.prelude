@@ -1418,7 +1418,9 @@ block prefer_break()
 // exactly like "brass hook" typed whole). An empty answer, or one the line
 // has no room for, gives up with the be-specific refusal.
 block ask_which()
-    par
+    // The question is a reply like any other: it sits directly under the
+    // command (auraes, 2026-10-18; no paragraph break above it). In a
+    // chained line the loop's own break between commands separates it.
     list_which
     // Save the command; the answer claims the live buffer.
     copy_bytes(text_addr, ask_addr, peek_byte(text_addr + 1) + 2)
