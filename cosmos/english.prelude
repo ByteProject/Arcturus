@@ -2747,6 +2747,10 @@ block msg_scenery()
     say "Just some scenery. Don't worry about it."
 
 // Printed when the player types nothing at all.
+// A tester's note (a line opening with *): acknowledged, never parsed.
+block msg_noted()
+    say "Noted."
+
 block msg_no_input()
     say "Silence is not a command."
 

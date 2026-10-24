@@ -213,6 +213,8 @@ TERMS = [
     # -- the parser ------------------------------------------------------------
     ("parser", ["h:Chapter 14: The parser"]),
     ("tokenizing", ["p:Tokenizing."]),
+    ("tester's notes (`*`)", ["p:Tester's notes."]),
+    ("playtesting", ["see tester's notes (`*`)"]),
     ("disambiguation", ["t:Several tie at the best score"]),
     ("trigger marker (`#`)", ["p:The trigger marker."]),
     ("adjective marker (`>`)", ["p:The adjective marker, and the match classes."]),

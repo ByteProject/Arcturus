@@ -2646,6 +2646,9 @@ block msg_scenery()
     say "Das gehört nur zur Kulisse. Kümmere dich nicht darum."
 
 // Printed when the first word names no verb or direction.
+block msg_noted()
+    say "Notiert."
+
 block msg_no_input()
     say "Schweigen ist kein Befehl."
 

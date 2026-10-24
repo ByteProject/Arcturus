@@ -3357,6 +3357,12 @@ small and under the author's control. Dictionary entries are truncated to the
 Z-machine word resolution, so long words collide on their prefix; this is a
 property of the format.
 
+<a id="ix-tester-s-notes"></a>Tester's notes. A line that opens with `*` is a comment for the author,
+the playtesting convention that keeps a transcript readable: `* the hook
+needs a better description` is answered "Noted." and never parsed. It
+takes no turn, makes no undo point, and AGAIN still repeats the last real
+command. Each pack words the answer (Notiert., Anotado.).
+
 Verb resolution. The first verb word selects a `verb` declaration. Most
 verbs compile to the flag model: the word's dictionary entry carries the
 action and the noun arity, a two-noun command splits at its preposition, and
@@ -7600,6 +7606,7 @@ links follow the text wherever it moves.
 - person: see `character`
 - pictures: [chapter 20](#chapter-20-pictures-arc_image)
 - `player`: [chapter 4](#chapter-4-the-player)
+- playtesting: see tester's notes (`*`)
 - `plural`: [chapter 5, Standard value properties](#ix-plural)
 - `plurals`: [chapter 22, plurals](#plurals)
 - `pluribus`: [chapter 5, Standard attributes](#ix-pluribus)
@@ -7660,6 +7667,7 @@ links follow the text wherever it moves.
 - `tag`: [chapter 5, Standard value properties](#ix-tag)
 - `takeall`: [chapter 22, takeall](#takeall)
 - `teleport`: [chapter 4](#ix-teleport)
+- tester's notes (`*`): [chapter 14](#ix-tester-s-notes)
 - `text` slot: [chapter 14, Positional grammar](#ix-text-slot)
 - text styles (bold, italic): [chapter 15, Text styles](#text-styles)
 - The Brass Lantern: [chapter 25](#chapter-25-worked-example-the-brass-lantern)

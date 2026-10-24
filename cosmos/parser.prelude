@@ -110,6 +110,16 @@ block debug_rebind(act)
 
 block parse()
     let term = read_input
+    // A tester's note: a line that opens with `*` is a comment for the
+    // author in a playtest transcript (the Inform 7 convention, and
+    // Dialog's). It is answered "Noted." and never parsed: no turn, no undo
+    // point, AGAIN still repeats the last real command. The parsed words
+    // are emptied so the failed-parse path stays silent after the answer.
+    if peek_byte(text_addr + 1) > 0
+        if peek_byte(text_addr + 2) is 42
+            msg_noted
+            poke_byte(parse_addr + 1, 0)
+            return 0
     // A fresh line borrows no verb from the last one (noun lists, 8b).
     change chain_prev to 0
     // ...and addresses nobody until its own pre-pass says so. Zeroed HERE,
