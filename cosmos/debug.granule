@@ -26,14 +26,14 @@
 // and still answer "you can't see that".
 block debug_rebind(act)
     if act is action_id("fetch")
-        rebind_any
+        rebind_any(0)
     if act is action_id("warp")
-        rebind_any
+        rebind_any(1)
     if act is action_id("inspect")
-        rebind_any
+        rebind_any(0)
 
-block rebind_any()
-    let far = match_any
+block rebind_any(rooms_first)
+    let far = match_any(rooms_first)
     if far is not nothing
         change noun to far
         change parse_fault to 0
@@ -47,8 +47,12 @@ block rebind_any()
 // one declared first, so a distinguishing word settles it (PURLOIN WHITE
 // WOOL). Before this, the first typed word that named anything took the
 // first object carrying it, so PURLOIN BLACK WOOL fetched the black blob
-// (EdwardianDuck's report, 2026-10-08).
-block match_any()
+// (EdwardianDuck's report, 2026-10-08). With rooms_first (GONEAR), a
+// room wins a tie: GONEAR GARDEN means the Garden, not a garden gnome
+// standing somewhere (auraes's report, 2026-10-25). Room names are
+// vocabulary while this granule is summoned (the compiler's
+// room_names_are_words), so a room is reachable by its name at all.
+block match_any(rooms_first)
     let best = nothing
     let best_n = 0
     let obj = 1
@@ -64,6 +68,13 @@ block match_any()
         if n > best_n
             change best_n to n
             change best to obj
+        else
+            if rooms_first is 1
+                if n > 0
+                    if n is best_n
+                        if obj is room
+                            if best is not room
+                                change best to obj
         change obj to obj + 1
     return best
 

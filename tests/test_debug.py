@@ -174,3 +174,31 @@ def test_fetch_scores_every_typed_word():
     assert "Fetched black hat." in io.text
     assert "Fetched white wool." in io.text
     assert "Fetched black blob." not in io.text
+
+
+def test_gonear_reaches_a_room_by_its_name():
+    # auraes (2026-10-25): GONEAR GARDEN went to the shed where the garden
+    # gnome stands, and GONEAR HALL was an unknown word: a room's name is
+    # no vocabulary in play. With the debug granule it is, and on an equal
+    # match warp prefers the room.
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    game = (
+        'game\n    title "G"\n    start hall\nsummon.debug\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n    north garden\n'
+        'room garden\n    name "Garden"\n    desc "A garden."\n    south hall\n    north shed\n'
+        'room shed\n    name "Shed"\n    desc "A shed."\n    south garden\n'
+        'thing gnome in shed\n    name "garden gnome"\n'
+    )
+    story = generate(analyze(cosmos.combined_program(parse(game))))
+    io = CaptureIO(script=["gonear garden", "gonear hall", "gonear gnome", "purloin gnome"])
+    try:
+        VM(load(story), io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    out = io.text
+    assert "A garden." in out.split(">gonear garden")[1].split(">")[0]
+    assert "A hall." in out.split(">gonear hall")[1].split(">")[0]
+    assert "A shed." in out.split(">gonear gnome")[1].split(">")[0]
+    assert "Fetched garden gnome." in out

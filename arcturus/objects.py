@@ -957,7 +957,7 @@ def _emit_property_table(world, layout, name, eff, topic_sites=None) -> None:
     vocab = object_words(
         eff,
         world.objects[name].category == "room",
-        room_names=wm.has_summon(world, "pathfinding"),
+        room_names=wm.room_names_are_words(world),
         reserved=frozenset(grammar_reserved_words(world)),
         folds=world.folds,
     )

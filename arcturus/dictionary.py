@@ -156,7 +156,7 @@ def collect_vocab(world: wm.World) -> set:
     # own them (docs/01, chapter 5's list type at top level).
     for lst in world.lists.values():
         words.update(lst.words)
-    _room_names = wm.has_summon(world, "pathfinding")
+    _room_names = wm.room_names_are_words(world)
     _reserved = frozenset(objects.grammar_reserved_words(world))
     for obj in world.objects.values():
         # An object's matchable vocabulary (explicit words plus its name words),

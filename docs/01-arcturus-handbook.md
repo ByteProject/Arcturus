@@ -6571,7 +6571,12 @@ familiar Inform synonyms:
 
 The three noun verbs reach anything: out of scope by the granule's own
 matcher dispensation, and past the reach gate too (`reachagnostic`), so a
-`beyond` thing warps, purloins, and inspects like any other.
+`beyond` thing warps, purloins, and inspects like any other. They match
+the typed words against every object in the game, the best match winning,
+and with the granule summoned a room answers to its name as well (in play
+a room's name is never a noun): GONEAR GARDEN goes to the Garden, and on
+an equal match `warp` prefers the room over a thing that shares the word
+(the garden gnome).
 - `unmute` - hear the background performers: offstage restless prose, muted
   for the player by design (chapter 16), is spoken anyway, each
   pulse tagged with the performer's name in brackets so you can tell who

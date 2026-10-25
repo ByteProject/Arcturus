@@ -629,3 +629,11 @@ class World:
         for kind in self.kinds.values():
             yield from kind.handlers
         yield from self.free_handlers
+
+
+def room_names_are_words(world) -> bool:
+    """Room names become vocabulary only where a verb must reach a room by
+    its name: GO TO in the pathfinding granule, and the debug verbs (GONEAR
+    GARDEN; auraes's report, 2026-10-25). Elsewhere a room's name is never a
+    noun. Rooms stay out of scope either way, so ordinary play is unchanged."""
+    return has_summon(world, "pathfinding") or has_summon(world, "debug")
