@@ -68,3 +68,7 @@ actaea/conformance/
 arc_image/reference/ppolizei/
 arc_image/puny/
 arc_image/scratchpad/
+
+# Private working notes (recipes, rulings for internal procedures such as the
+# Discord-only interpreter preview packs). Never committed.
+/notes/
