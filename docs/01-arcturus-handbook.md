@@ -1671,7 +1671,10 @@ specific to least, with no per-room boilerplate required:
 3. A per-direction override: `on go <direction>` runs custom logic or a custom
    message for one direction, as the Cloak of Darkness foyer does for north.
    Ending the handler consumes the action; `continue` falls through to the
-   normal move.
+   normal move. Beside a plain `on go` on the same room it runs first,
+   whichever is written first: the direction makes it the more specific
+   handler (chapter 3, resolution order), and its `continue` passes the
+   action on to `on go`.
 4. <a id="ix-on-go-other"></a>A per-room fallback: `on go other` fires for any direction that has no exit
    and no specific `on go <direction>` handler. It is the room-wide
    "you cannot go that way here" hook, replacing Inform's `cant_go` without a
