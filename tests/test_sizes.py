@@ -234,7 +234,7 @@ CEILINGS = {
     "features/trigger.storyarc": 19668,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "features/adjectives.storyarc": 20304,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
     "granules/nautical.storyarc": 19892,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/npcengine.storyarc": 21988,  # 2026-10-24 repriced (+4): the can't-do refusal sets refused (no after pass follows it)
+    "granules/npcengine.storyarc": 22188,  # 2026-11-08 repriced (+200): an order to an absent character answers can't-see
     "granules/maniacswap.storyarc": 20428,  # 2026-10-24 repriced (+28): the swap-aware body step (the example uses as player)
     "beispiel-deutsch.storyarc": 29492,  # 2026-10-24 repriced (+40): the conversations menu breaks a paragraph between exchanges
     "brass-lantern.storyarc": 20792,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed

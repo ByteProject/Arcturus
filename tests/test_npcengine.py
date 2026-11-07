@@ -367,3 +367,35 @@ def test_an_opens_doors_walker_cannot_open_a_sealed_door():
     assert "opens the iron grate" not in out
     assert "guard heads east" not in out                 # barred: the guard stays
     assert "dog heads north" in out                      # the open arch still passes
+
+
+def test_an_order_to_someone_not_here_is_cant_see():
+    # improvmonster (2026-10-27): MARSHAL, GO SOUTH with the marshal in
+    # another room was answered as an unknown verb. The address names a
+    # character who exists but is not in view: the can't-see answer, and
+    # the order behind the comma is dropped. Present, he takes the order.
+    from arcturus import cosmos
+    from arcturus.codegen import generate
+    from arcturus.parser import parse
+    from arcturus.sema import analyze
+    from actaea.io import CaptureIO
+    from actaea.loader import load
+    from actaea.vm import VM
+    src = (
+        'summon.npcengine\n'
+        'game\n    title "C"\n    start hall\n'
+        'room hall\n    name "Hall"\n    desc "A hall."\n    north yard\n'
+        'room yard\n    name "Yard"\n    desc "A yard."\n    south hall\n'
+        'thing marshal of character in yard\n    name "marshal"\n    words marshal\n'
+        'thing lamp in hall\n    name "lamp"\n    words lamp\n'
+    )
+    io = CaptureIO(script=["marshal, go south", "lamp, jump", "north", "marshal, go south"])
+    try:
+        VM(load(generate(analyze(cosmos.combined_program(parse(src))))),
+           io).run(max_steps=20_000_000)
+    except IndexError:
+        pass
+    parts = io.text.split(">")
+    assert "You see nothing of the sort here." in parts[1]
+    assert "add up to anything" in parts[2]                  # not a character: unchanged
+    assert "better things to do" in parts[4]                 # in view: the order arrives

@@ -191,6 +191,28 @@ block address_of()
         return nothing
     return who
 
+// An address to someone who is not here: the words before the comma name
+// a character that exists, but not in view (MARSHAL, GO SOUTH from the
+// next room). Answered as EXAMINE MARSHAL would be from there, never as
+// an unknown verb (improvmonster's report, 2026-10-27). Word 0 must not
+// be a verb or a direction, exactly as for address_of.
+block address_absent()
+    let vd = word_dict(0)
+    if vd is not nothing
+        let vf = peek_byte(vd + 6)
+        if vf is 128 or vf is 136 or vf is 144 or vf is 152 or vf is 64
+            return 0
+    let far = match_anywhere(0, word_count)
+    if far is nothing
+        return 0
+    if far is not animate
+        return 0
+    if far is player
+        return 0
+    if in_scope(far)
+        return 0
+    return 1
+
 block parse_line()
     change parse_fault to 0
     // No incomplete-command mark until a resolver finds an empty noun slot.
@@ -221,6 +243,12 @@ block parse_line()
                 change commanded to address_of
                 if commanded is not 0
                     return chain_next
+                // Someone named who is not here: the honest can't-see,
+                // and the order behind the comma is dropped with it.
+                if address_absent is 1
+                    change parse_fault to 1
+                    change chain_pos to 0
+                    return 0
     let act = resolve_verb
     if act is not 0
         // Remember WHICH word resolved the verb, so author code can branch on
