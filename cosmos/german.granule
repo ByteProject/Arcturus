@@ -2302,6 +2302,12 @@ block msg_ask_for()
             return 0
     say "${The noun} hat nichts dergleichen für dich."
 
+block msg_give_self()
+    say "Du hast ${the:acc noun} doch schon."
+
+block msg_show_self()
+    say "Du kennst ${the:acc noun} schon zur Genüge."
+
 block msg_give()
     if any_pluribus is 1
         if second is pluribus

@@ -764,7 +764,10 @@ keys on:
 - GIVE and SHOW validate on the action itself (the gift must be carried,
   the receiver animate) and politely decline by default; the character's
   own `on give` and `on show` own the response, the acceptance pattern
-  chapter 6 works through.
+  chapter 6 works through. GIVE or SHOW to yourself is refused before
+  any handler runs ("You already have the lamp."), so no `on give`,
+  a character's or a kind's, ever sees the player as the receiver, the
+  maniacswap body you drive included.
 - The pronouns HIM and HER resolve to characters by animacy and the
   `feminine` attribute (chapter 14).
 

@@ -216,73 +216,73 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # chain); a held thing skips the probe, the floor-to-container shortcut
 # still moves takeable things in one command.
 CEILINGS = {
-    "features/yes-no.storyarc": 19000,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/press-any-key.storyarc": 19888,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/shiftable.storyarc": 19384,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/enhance-redefine.storyarc": 19744,  # 2026-10-24 repriced (+4): the can't-do refusal sets refused (no after pass follows it)
-    "features/consult-about.storyarc": 19900,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/session-verbs.storyarc": 19456,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/vary.storyarc": 21412,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/foresight.storyarc": 21836,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/beyond.storyarc": 22712,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/alter.storyarc": 20816,  # 2026-10-24 repriced (+176): the plain reports speak through success (alter replaces them)
-    "features/catalogs.storyarc": 20004,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/matrix.storyarc": 20340,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/direction-grammar.storyarc": 19416,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/scenery-contents.storyarc": 20664,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/prefer.storyarc": 18848,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/trigger.storyarc": 19668,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/adjectives.storyarc": 20304,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/nautical.storyarc": 19892,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/npcengine.storyarc": 22188,  # 2026-11-08 repriced (+200): an order to an absent character answers can't-see
-    "granules/maniacswap.storyarc": 20428,  # 2026-10-24 repriced (+28): the swap-aware body step (the example uses as player)
-    "beispiel-deutsch.storyarc": 29492,  # 2026-10-24 repriced (+40): the conversations menu breaks a paragraph between exchanges
-    "brass-lantern.storyarc": 20792,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "cloak-of-darkness.storyarc": 22756,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "ejemplo-espanol.storyarc": 26072,  # 2026-10-24 repriced (+40): the conversations menu breaks a paragraph between exchanges
-    "features/computed-properties.storyarc": 19100,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/containers.storyarc": 20296,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/daemons-and-timers.storyarc": 21328,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/doors-and-locks.storyarc": 19784,  # 2026-10-24 repriced (+176): the plain reports speak through success (alter replaces them)
-    "features/appearance.storyarc": 20100,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/components.storyarc": 19368,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/whistle.storyarc": 18748,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/lighttopology.storyarc": 20920,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/pathfinding.storyarc": 21728,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/perform.storyarc": 19068,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/grains.storyarc": 18864,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/handlers.storyarc": 20268,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/first-person.storyarc": 19740,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/word-lists.storyarc": 19504,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/grammar-bind.storyarc": 20368,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/grammar.storyarc": 19172,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/introproperty.storyarc": 20984,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/kinds-and-inheritance.storyarc": 19064,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/on-other.storyarc": 18944,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/zcolor.storyarc": 19392,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/text-styles.storyarc": 19192,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/computed-name.storyarc": 19084,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/scoring.storyarc": 21368,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/spans.storyarc": 19232,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/vehicles.storyarc": 20616,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/success.storyarc": 19936,  # 2026-10-24 repriced (+176): the plain reports speak through success (alter replaces them)
-    "features/edible.storyarc": 19560,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "features/text-slot.storyarc": 20108,  # 2026-10-24 repriced (+4): the can't-do refusal sets refused (no after pass follows it)
-    "granules/carryweight.storyarc": 20308,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/ambience.storyarc": 20976,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/conversations.storyarc": 20940,  # 2026-10-24 repriced (+40): the conversations menu breaks a paragraph between exchanges
-    "granules/extended-verbs.storyarc": 22516,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/infocom-interrogation.storyarc": 22320,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/quotes.storyarc": 19128,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/take-all.storyarc": 21920,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/plurals.storyarc": 20044,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/statusline.storyarc": 19100,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
-    "granules/verbose-exits.storyarc": 19040,  # 2026-10-24 repriced (+68): tester's notes: a line opening with * is Noted, never parsed
+    "features/yes-no.storyarc": 19120,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/press-any-key.storyarc": 20008,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/shiftable.storyarc": 19504,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/enhance-redefine.storyarc": 19864,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/consult-about.storyarc": 20020,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/session-verbs.storyarc": 19576,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/vary.storyarc": 21532,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/foresight.storyarc": 21948,  # 2026-11-08 repriced (+112): GIVE or SHOW to yourself is refused before any handler
+    "features/beyond.storyarc": 22828,  # 2026-11-08 repriced (+116): GIVE or SHOW to yourself is refused before any handler
+    "features/alter.storyarc": 20936,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/catalogs.storyarc": 20124,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/matrix.storyarc": 20460,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/direction-grammar.storyarc": 19536,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/scenery-contents.storyarc": 20776,  # 2026-11-08 repriced (+112): GIVE or SHOW to yourself is refused before any handler
+    "features/prefer.storyarc": 18968,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/trigger.storyarc": 19780,  # 2026-11-08 repriced (+112): GIVE or SHOW to yourself is refused before any handler
+    "features/adjectives.storyarc": 20416,  # 2026-11-08 repriced (+112): GIVE or SHOW to yourself is refused before any handler
+    "granules/nautical.storyarc": 20012,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "granules/npcengine.storyarc": 22308,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "granules/maniacswap.storyarc": 20544,  # 2026-11-08 repriced (+116): GIVE or SHOW to yourself is refused before any handler
+    "beispiel-deutsch.storyarc": 29624,  # 2026-11-08 repriced (+132): GIVE or SHOW to yourself is refused before any handler
+    "brass-lantern.storyarc": 20912,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "cloak-of-darkness.storyarc": 22876,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "ejemplo-espanol.storyarc": 26188,  # 2026-11-08 repriced (+116): GIVE or SHOW to yourself is refused before any handler
+    "features/computed-properties.storyarc": 19220,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/containers.storyarc": 20408,  # 2026-11-08 repriced (+112): GIVE or SHOW to yourself is refused before any handler
+    "features/daemons-and-timers.storyarc": 21448,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/doors-and-locks.storyarc": 19904,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/appearance.storyarc": 20220,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/components.storyarc": 19488,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "granules/whistle.storyarc": 18868,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "granules/lighttopology.storyarc": 21040,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/pathfinding.storyarc": 21848,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/perform.storyarc": 19188,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/grains.storyarc": 18976,  # 2026-11-08 repriced (+112): GIVE or SHOW to yourself is refused before any handler
+    "features/handlers.storyarc": 20388,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/first-person.storyarc": 19860,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/word-lists.storyarc": 19624,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/grammar-bind.storyarc": 20488,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/grammar.storyarc": 19292,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/introproperty.storyarc": 21104,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/kinds-and-inheritance.storyarc": 19184,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/on-other.storyarc": 19064,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/zcolor.storyarc": 19512,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/text-styles.storyarc": 19312,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/computed-name.storyarc": 19204,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/scoring.storyarc": 21480,  # 2026-11-08 repriced (+112): GIVE or SHOW to yourself is refused before any handler
+    "features/spans.storyarc": 19352,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/vehicles.storyarc": 20736,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/success.storyarc": 20048,  # 2026-11-08 repriced (+112): GIVE or SHOW to yourself is refused before any handler
+    "features/edible.storyarc": 19680,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/text-slot.storyarc": 20228,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "granules/carryweight.storyarc": 20428,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "granules/ambience.storyarc": 21096,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "granules/conversations.storyarc": 21060,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "granules/extended-verbs.storyarc": 22636,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "granules/infocom-interrogation.storyarc": 22440,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "granules/quotes.storyarc": 19248,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "granules/take-all.storyarc": 22040,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "granules/plurals.storyarc": 20160,  # 2026-11-08 repriced (+116): GIVE or SHOW to yourself is refused before any handler
+    "granules/statusline.storyarc": 19220,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "granules/verbose-exits.storyarc": 19160,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 23472  # 2026-10-24 repriced (+72): tester's notes: a line opening with * is Noted, never parsed
+CLOAK_Z8_CEILING = 23592  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

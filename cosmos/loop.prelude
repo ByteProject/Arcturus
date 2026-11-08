@@ -104,6 +104,8 @@ block sweep_one(obj, act)
     if any_beyond is 1
         if vetoed is 0
             change vetoed to check_reach(act)
+    if vetoed is 0
+        change vetoed to check_self_recipient(act)
     if any_sealed is 1
         if vetoed is 0
             change vetoed to check_sealed(act)
@@ -854,6 +856,8 @@ block run_turn(act)
     if any_beyond is 1
         if check_reach(act) is 1
             return 0
+    if check_self_recipient(act) is 1
+        return 0
     if any_sealed is 1
         if check_sealed(act) is 1
             return 0

@@ -308,6 +308,22 @@ block beyond_guard_second()
 // refusal wording all live where they always did. Folds away whole
 // (any_beyond) in a game that never sets beyond. Returns 1 refused,
 // message spoken.
+// GIVE or SHOW to yourself (improvmonster's report, 2026-10-30): refused
+// before any handler runs, so no character's `on give` can accept a gift
+// from the player to the player (a maniacswap body is a character like
+// any other). Returns 1 refused, message spoken.
+block check_self_recipient(act)
+    if second is player
+        if act is action_id("give")
+            change refused to 1
+            msg_give_self
+            return 1
+        if act is action_id("show")
+            change refused to 1
+            msg_show_self
+            return 1
+    return 0
+
 // THE SEALED GATE, the reach gate's twin for the shut lid (auraes's
 // vitrine, 2026-10-13): a closed clear container shows its lantern and a
 // remembered one still names it, and either way the hand must not pass

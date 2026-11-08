@@ -1906,6 +1906,12 @@ block msg_ask_for()
             return 0
     say "${The noun} no tiene nada de eso para ti."
 
+block msg_give_self()
+    say "Ya tienes ${the noun}."
+
+block msg_show_self()
+    say "Ya conoces ${the noun} de sobra."
+
 block msg_give()
     if any_pluribus is 1
         if second is pluribus

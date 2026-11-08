@@ -2275,6 +2275,12 @@ block msg_closed()
         return 0
     say "${The second} is shut."
 
+block msg_give_self()
+    say "You already have ${the noun}."
+
+block msg_show_self()
+    say "You know ${the noun} well enough already."
+
 block msg_give()
     if any_pluribus is 1
         if second is pluribus
