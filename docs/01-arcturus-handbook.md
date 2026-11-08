@@ -2693,6 +2693,29 @@ ABOUT and HELP verbs, and what keeps the debug granule's GONEAR from firing
 story code on the way past. A meta handler that should not cost a turn sets
 `meta_turn`, as the standard session verbs do (chapter 13).
 
+A standard verb turns out-of-world the same way, restated with `redefine`
+(below), which replaces the verb whole and takes `meta` with it:
+
+```
+redefine verb "xyzzy", "plugh" meta
+    credits
+
+on credits
+    change meta_turn to 1
+    say "Written in Arcturus."
+```
+
+`enhance` takes no `meta`: it adds lines to a verb as that verb was
+declared, and lines added to a meta verb are meta with it. A redefine
+without `meta` leaves a meta verb meta.
+
+`meta` marks the verb's ACTIONS, not its words, so an action is either in
+the world or out of it, for every verb that names it. A meta verb whose
+lines name an action an in-world verb also names (`verb "peek" meta` with
+`examine noun`) would take EXAMINE out of the world everywhere, and the
+compiler refuses it, naming both verbs: give the meta verb its own action,
+or mark the other verb meta too.
+
 THE BARE-COMMAND ASK. A verb typed without a noun its grammar wants is an
 incomplete command, and the library answers it centrally, before any
 handler runs and without costing a move:
@@ -7228,7 +7251,8 @@ grains_block   := "grains" INDENT { grain } DEDENT
 grain          := verbs words ( "say" string | "do" id
                               | INDENT { statement } DEDENT )
 
-verb_decl      := "verb" string { "," string } [ "meta" ]
+verb_decl      := [ "enhance" | "redefine" ] "verb" string { "," string }
+                  [ "meta" ]
                   INDENT { grammar | requires_line | reach_line } DEDENT
 grammar        := id { slot | word }
 slot           := "noun" | "multi" | "text"

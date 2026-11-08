@@ -165,6 +165,7 @@ class Analyzer:
         self._check_npcengine()
         self._check_maniacswap()
         self._check_as_player()
+        self._check_meta_verbs()
         # After the members are collected: the automatic scored bits need
         # the real attributes (fixed blocks a thing, `scored false` opts
         # out), and the award scan feeds the compiler-summed max_score.
@@ -694,6 +695,7 @@ class Analyzer:
                             target.words.append(word)
                     target.grammar.extend(grammar)
                     bind_to = {g.action for g in target.grammar}
+                    verb_meta = target.meta
                 elif decl.mode == "redefine":
                     # `redefine verb "give"`: replace the existing verb WHOLE,
                     # words included, and say so out loud. The old synonyms go
@@ -711,6 +713,13 @@ class Analyzer:
                     target.words = list(decl.words)
                     target.grammar = grammar
                     bind_to = {g.action for g in grammar}
+                    # The band is restated with the verb: `redefine verb
+                    # "help" meta` puts its actions out of the world; a
+                    # redefine without it leaves a meta verb meta.
+                    target.meta = target.meta or decl.meta
+                    target.srcfile = getattr(decl, "srcfile", None)
+                    target.line = decl.line
+                    verb_meta = target.meta
                 else:
                     # A plain redeclaration of an existing verb word shadows
                     # word by word, silently and confusingly (the old verb's
@@ -729,11 +738,14 @@ class Analyzer:
                             f"says so; `enhance verb` adds to it.",
                             file=sys.stderr,
                         )
-                    w.verbs.append(wm.Verb(decl.words, grammar, decl.line))
+                    w.verbs.append(wm.Verb(decl.words, grammar, decl.line,
+                                           decl.meta,
+                                           getattr(decl, "srcfile", None)))
                     bind_to = {g.action for g in decl.grammar}
+                    verb_meta = decl.meta
                 # `verb ... meta`: its actions join the out-of-world band
                 # (dispatched past every object handler, `on other` included).
-                if decl.meta:
+                if verb_meta:
                     for g in decl.grammar:
                         w.meta_actions.add(g.action)
                 # In-body `requires noun carried` binds to this verb's own
@@ -1055,6 +1067,39 @@ class Analyzer:
         h.srcfile = getattr(decl, "srcfile", None)
         h.as_player = getattr(decl, "as_player", False)
         return h
+
+    def _check_meta_verbs(self) -> None:
+        """An action is either in the world or out of it, never both. `meta`
+        marks a verb's ACTIONS, so a meta verb naming an action an in-world
+        verb also names would silently take that action out of the world for
+        every verb (`verb "peek" meta / examine noun` and X STATUE skipping
+        the statue's own handlers). Refuse it, naming both verbs; blame the
+        story's side of the pair when one side is the library."""
+        w = self.world
+        if not w.meta_actions:
+            return
+        owner = {}
+        for v in w.verbs:
+            if v.meta:
+                for g in v.grammar:
+                    owner.setdefault(g.action, v)
+        lib = lambda v: (v.srcfile or "").endswith((".prelude", ".granule"))
+        for v in w.verbs:
+            if v.meta:
+                continue
+            for g in v.grammar:
+                m = owner.get(g.action)
+                if m is None:
+                    continue
+                blame = v if lib(m) and not lib(v) else m
+                self.filename = blame.srcfile or getattr(
+                    self, "_base_filename", self.filename)
+                raise self._error(
+                    f'verb "{m.words[0]}" is meta, so its action '
+                    f'{g.action} is out of the world for every verb that '
+                    f'names it, but verb "{v.words[0]}" names {g.action} '
+                    f'in the world. Give the meta verb its own action, or '
+                    f'mark verb "{v.words[0]}" meta too.', blame.line)
 
     def _check_as_player(self) -> None:
         """`on <verb> as player` (docs/01 chapter 22, maniacswap): a handler

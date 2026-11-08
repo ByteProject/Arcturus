@@ -959,10 +959,14 @@ class Parser:
                 continue
             grammar.extend(self._parse_grammar_line())
         self.expect(T.DEDENT)
-        if mode != "declare" and meta:
+        # `redefine verb "help" meta` restates the verb whole, band included;
+        # enhance only adds lines to a verb whose band is already declared
+        # (lines added to a meta verb are meta with it).
+        if mode == "enhance" and meta:
             raise self._error(
-                "meta rides the declaring verb; enhance and redefine leave "
-                "a verb's meta standing as declared")
+                "enhance adds lines to a verb as it was declared, meta or "
+                "not; to change that, restate the verb with `redefine verb "
+                "... meta`")
         return ast.VerbDecl(words, grammar, line, meta, requirements, mode,
                             reachagnostic=reach_bits, anywhere=anywhere)
 

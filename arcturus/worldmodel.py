@@ -268,6 +268,11 @@ class Verb:
     words: list[str]
     grammar: list[GrammarLine]
     line: int = 0
+    # Declared `meta` (or redefined so): its actions are out-of-world, and
+    # every line naming one of them must sit on a meta verb (sema's
+    # _check_meta_verbs). srcfile is the declaring file, for the error.
+    meta: bool = False
+    srcfile: Optional[str] = None
 
 
 def has_summon(world: "World", target: str) -> bool:
