@@ -271,7 +271,7 @@ CEILINGS = {
     "granules/carryweight.storyarc": 20428,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
     "granules/ambience.storyarc": 21096,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
     "granules/conversations.storyarc": 21060,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
-    "granules/extended-verbs.storyarc": 22636,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "granules/extended-verbs.storyarc": 22784,  # 2026-11-08 repriced (+148): WAKE joins extendedverbs
     "granules/infocom-interrogation.storyarc": 22440,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
     "granules/quotes.storyarc": 19248,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
     "granules/take-all.storyarc": 22040,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler

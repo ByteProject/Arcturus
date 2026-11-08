@@ -318,6 +318,27 @@ on sleep
     success msg_sleep
 
 
+verb "wake", "awake", "awaken"
+    wake
+    wake up
+    wake noun
+    wake up noun
+    wake noun up
+
+// WAKE on its own, or on yourself, is the idle report; on anyone or
+// anything else it declines, and a character's own `on wake` (a sleeping
+// guard) is where waking someone becomes real.
+on wake
+    if noun is nothing
+        success msg_wake
+        stop
+    if noun is player
+        success msg_wake
+        stop
+    change refused to 1
+    success msg_wake_other
+
+
 verb "swim", "dive", "paddle"
     swim
 
@@ -495,6 +516,15 @@ block msg_sleep()
         say "I consider curling up into a ball and ignoring the plot, but my sense of duty rudely keeps me awake."
         return 0
     say "You consider curling up into a ball and ignoring the plot, but your sense of duty rudely keeps you awake."
+
+block msg_wake()
+    if any_firstperson is 1
+        say "I am as awake as I am going to get."
+        return 0
+    say "You are as awake as you are going to get."
+
+block msg_wake_other()
+    say "${The noun} doesn't need waking."
 
 block msg_swim()
     say "There's nowhere here to swim."

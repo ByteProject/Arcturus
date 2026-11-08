@@ -5668,8 +5668,11 @@ with every synonym, and each default line, is the granule source itself
   MINE with its matching topic, with either conversation granule summoned
   or neither. No match: "has nothing to say on the matter"; no subject:
   "Consult it about what?"; both granule-owned messages, reskinnable.
-- BODY AND IDLE: `dig`, `wave`, `sleep`, `swim`, `swing`, `think`,
-  `pray`, `shout`. And `swear`, the oldest Easter egg in the medium: a
+- BODY AND IDLE: `dig`, `wave`, `sleep`, `wake`, `swim`, `swing`,
+  `think`, `pray`, `shout`. WAKE (AWAKE, AWAKEN, WAKE UP) on its own or
+  on yourself is the idle report; WAKE GRETA or WAKE GRETA UP declines
+  ("Greta doesn't need waking.") until a character's own `on wake` makes
+  waking real, a sleeping guard being the usual case. And `swear`, the oldest Easter egg in the medium: a
   player who curses gets a dry line back instead of "unknown word"
   (reskin msg_swear for your own tone; select it or leave it out like
   any family). (`sit`/`rest` and `stand` are STANDARD verbs riding
