@@ -31,17 +31,25 @@
 // A left body stays frozen by design; resume(x) wakes an engine agenda
 // again if your story wants the character to walk off without you.
 
+// BECOME is a swap from anywhere, not a touch: reachagnostic keeps the
+// central reach and sealed gates out of it (improvmonster's report,
+// 2026-11-01: a beyond player, a body in a beyond holder, or a body in a
+// shut container refused the swap). The story's own `on become` stays
+// the gate.
 when language "english"
     verb "become"
         become noun
+        reachagnostic
 
 when language "german"
     verb "werde"
         become noun
+        reachagnostic
 
 when language "spanish"
     verb "encarna"
         become noun
+        reachagnostic
 
 // The boot body is frozen from the first turn, so a summoned NPC engine
 // never drives the body the keyboard holds; the swap marks the later
@@ -62,7 +70,13 @@ block become(x)
         change swapped to 1
     change player to x
     now x is hibernated
-    set_here(parent_of(x))
+    // here is the ROOM, never the sofa or the wardrobe the body sits on or
+    // in (improvmonster's report, 2026-11-01): walk up to it; the body
+    // stays seated where it was.
+    let r = parent_of(x)
+    while r is not nothing and r is not room
+        change r to parent_of(r)
+    set_here(r)
     arrive
     return 0
 

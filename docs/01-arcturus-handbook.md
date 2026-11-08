@@ -6304,8 +6304,12 @@ error that says where the property belongs.
 BECOME MAREN works from anywhere, even between maps that never connect:
 the verb reaches every playable body by its words, scope or none, which
 is the whole point (two castaways on two shores swap as a thought, not
-as a walk). The swap re-points the player: scope, light, inventory, and
-the self words all follow. The body you LEAVE freezes exactly where and
+as a walk). Nor is it a touch: the reach and sealed gates never refuse
+it, so a player who is `beyond` (on horseback) still swaps, and so does a
+body inside a shut wardrobe or a beyond holder. The swap re-points the
+player: scope, light, inventory, and the self words all follow. A body
+sitting on the sofa or standing in the wardrobe is taken over right
+there, still seated, in its room. The body you LEAVE freezes exactly where and
 as it was, holding what it held, wearing what it wore, listed in its
 room like anyone standing there, examinable in third person, until you
 take it over again. The mind travels: score, turns, and every global are
