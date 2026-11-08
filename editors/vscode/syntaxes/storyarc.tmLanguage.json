@@ -386,7 +386,7 @@
         {
           "comment": "Grammar slot words inside a verb declaration's lines (docs/01 chapter 12).",
           "name": "support.type.slot.storyarc",
-          "match": "\\b(held|multi|text|direction|letters|number|anychar|reverse|requires|reachagnostic)\\b"
+          "match": "\\b(multi|text|direction|letters|number|anychar|reverse|requires|reachagnostic)\\b"
         }
       ]
     },

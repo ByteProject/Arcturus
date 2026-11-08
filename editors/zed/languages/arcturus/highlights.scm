@@ -72,7 +72,7 @@
 ; Standard kinds and grammar-line slots.
 ((identifier) @type
   (#any-of? @type
-    "thing" "room" "container" "supporter" "door" "character" "held"
+    "thing" "room" "container" "supporter" "door" "character"
     "multi" "scope" "text" "direction" "letters" "number" "anychar"))
 
 ; The color words of the zcolor family (support constants in VS Code).

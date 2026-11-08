@@ -2555,7 +2555,10 @@ into sibling lines, so it costs what writing them out costs). Slots:
 `noun` (one in-scope object), `multi` (several,
 including "all"), `text` (free text), and `direction` (one direction word,
 below). Bare words such as `in`, `on`, `with` are literal prepositions.
-Two-object lines bind `noun` and `second`.
+Two-object lines bind `noun` and `second`. What the player must be holding
+is not a slot: the slot stays `noun`, and the verb declares
+`requires noun carried` or `requires second carried` (What a verb
+requires, below), which the library enforces before any handler runs.
 
 A grammar line may also BIND A DECLARED OBJECT into its first slot: a
 bare word that names an object fills the slot with that object itself,
@@ -2625,8 +2628,9 @@ be the same on every line, so a verb's wording can say more than "one noun" or
 verb "dig", "excavate"
     dig
     dig noun
-    dig noun with held
-    dig in noun with held
+    dig noun with noun
+    dig in noun with noun
+    requires second carried
 
 verb "look", "l"
     look
@@ -2636,7 +2640,7 @@ verb "look", "l"
     look_behind behind noun
 ```
 
-A literal may open a line (`dig in noun with held`), and a leading word may
+A literal may open a line (`dig in noun with noun`), and a leading word may
 select the line's own action, so LOOK UNDER BED and LOOK BEHIND BED reach
 `look_under` and `look_behind`, two ordinary actions with ordinary handlers.
 The compiler notices such a verb and matches it positionally: lines are tried
@@ -2753,8 +2757,9 @@ invent; naming it in a grammar line is what creates it:
 verb "dig", "excavate"
     dig
     dig noun
-    dig noun with held
-    dig in noun with held
+    dig noun with noun
+    dig in noun with noun
+    requires second carried
 
 on dig
     ...noun and second are bound as usual...
@@ -3773,7 +3778,7 @@ verb exactly and costs nothing beyond the dictionary entry. The POSITIONAL
 MODEL takes over for a verb whose grammar the flags cannot express:
 
 - a literal word before the first slot of a verb that takes two nouns
-  somewhere (`dig in noun with held`: the splitter would take the leading IN
+  somewhere (`dig in noun with noun`: the splitter would take the leading IN
   for the boundary between the nouns); or
 - lines with different shapes naming different actions (`look_under under
   noun` next to `look_behind behind noun`: one verb word, and the wording

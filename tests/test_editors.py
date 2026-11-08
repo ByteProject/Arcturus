@@ -89,7 +89,7 @@ def test_zed_covers_the_keyword_lists():
         "points", "meta", "timers",  # the modifier set lives in @property
         "title", "headline", "author", "copyright", "release", "serial",
         "UUID", "scoring", "banner",  # metadata, likewise @property
-        "held", "multi",  # grammar slots live in @type
+        "multi",          # grammar slots live in @type
         "award",          # the statement is in @keyword; captured below
         "font", "background", "statusline", "input",  # dotted-chain tails,
         # coloured structurally by the dotted_name rule
