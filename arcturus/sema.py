@@ -1476,6 +1476,12 @@ class Analyzer:
                 who = m.value
                 line = m.line
         if who is None:
+            # maniacswap requires the boot body to be declared (Stefan's
+            # ruling, 2026-11-08): without it the keyboard starts in the
+            # library's anonymous self, which, once left, stands in the room
+            # under the pack's name ("You can see yourself here.").
+            if self._has_summon("maniacswap"):
+                raise self._missing_body(game)
             return
         if not self._has_summon("maniacswap"):
             raise self._error(
@@ -1521,6 +1527,69 @@ class Analyzer:
             if obj.location == "player":
                 obj.location = who
         w.boot_body = who
+
+    def _missing_body(self, game) -> "ArcError":
+        """The error for a maniacswap game without `body`. An older game
+        that names its boot body through player.<property> lines gets its
+        own declaration back, written out from those lines, so the fix is a
+        copy and paste; a game with none gets the shape to fill in."""
+        from . import cosmos as cosmos_lib
+        import os
+        import re
+        bundled = set(cosmos_lib.granule_sources())
+        mine = []
+        for pdecl, src in zip(self._player_decls, self._player_decl_files):
+            if src is not None and (src.endswith(".prelude")
+                                    or os.path.basename(src) in bundled):
+                continue
+            mine.append(pdecl)
+        start = "<room>"
+        for m in game.meta:
+            if m.key == "start":
+                start = getattr(m.value, "ident", None) or str(m.value)
+
+        def render(e):
+            if isinstance(e, ast.StringLit):
+                text = "".join(getattr(p, "text", "${...}") for p in e.parts)
+                return '"' + text + '"'
+            if isinstance(e, ast.Name):
+                return e.ident
+            if isinstance(e, ast.Number):
+                return str(e.value)
+            if isinstance(e, ast.Bool):
+                return "true" if e.value else "false"
+            return "..."
+
+        ident = "hero"
+        lines = []
+        for pdecl in mine:
+            if pdecl.name == "name" and pdecl.values:
+                raw = render(pdecl.values[0]).strip('"')
+                cand = re.sub(r"[^a-z0-9_]+", "_", raw.lower()).strip("_")
+                if cand and cand[0].isalpha():
+                    ident = cand
+            if pdecl.form == ast.PROP_BOOL:
+                lines.append(f"    {pdecl.name}")
+            elif pdecl.form == ast.PROP_BLOCK:
+                lines.append(f"    {pdecl.name} block")
+                lines.append("        ...its body, moved as it is...")
+            elif pdecl.form == ast.PROP_LIST:
+                lines.append(f"    {pdecl.name} list {pdecl.capacity}")
+            else:
+                vals = ", ".join(render(v) for v in pdecl.values)
+                lines.append(f"    {pdecl.name} {vals}")
+        if not lines:
+            lines = ['    name "..."', "    named", "    words ..."]
+        snippet = "\n".join(
+            [f"    body {ident}        // in the game block", "",
+             f"thing {ident} of character in {start}"] + lines)
+        what = ("its player.<property> lines move onto it and are deleted"
+                if mine else "the character the keyboard starts in")
+        line = getattr(mine[0], "line", 0) if mine else game.line
+        return self._error(
+            "summon.maniacswap needs the starting character declared with "
+            f"`body` ({what}):\n\n{snippet}\n",
+            line or game.line)
 
     def _check_maniacswap(self) -> None:
         """maniacswap (summon.maniacswap, docs/01 chapter 22): multiple

@@ -39,13 +39,12 @@ def _run(story, cmds, tail=("quit", "y")):
 
 
 HEAD = (
-    'game\n    title "M"\n    start lab\n'
+    'game\n    title "M"\n    start lab\n    body werner\n'
     'summon.maniacswap\n'
-    'player.name "Werner"\n'
-    'player.named\n'
-    'player.desc "Werner, chief of the station."\n'
-    'player.words werner\n'
     'room lab\n    name "Lab"\n    desc "The lab."\n'
+    'thing werner of character in lab\n'
+    '    name "Werner"\n    named\n    words werner\n    playable\n'
+    '    desc "Werner, chief of the station."\n'
     'room dock\n    name "Dock"\n    desc "The dock."\n'
     'thing olivia of character in dock\n'
     '    name "Olivia"\n    named\n    feminine\n    words olivia\n'
@@ -111,13 +110,12 @@ def test_the_story_gates_the_swap():
 
 def test_left_body_freezes_under_the_npc_engine():
     src = (
-        'game\n    title "MB"\n    start yard\n'
+        'game\n    title "MB"\n    start yard\n    body werner\n'
         'summon.maniacswap\n'
         'summon.npcengine\n'
-        'player.name "Werner"\n'
-        'player.named\n'
-        'player.words werner\n'
         'room yard\n    name "Yard"\n    desc "A yard."\n    north gate\n'
+        'thing werner of character in yard\n'
+        '    name "Werner"\n    named\n    words werner\n    playable\n'
         'room gate\n    name "Gatehouse"\n    desc "The gatehouse."\n'
         '    south yard\n'
         'thing rounds_man of character in yard\n'
@@ -145,7 +143,12 @@ def test_playable_needs_a_character():
 
 
 def test_unsummoned_playable_stays_an_ordinary_property():
-    src = HEAD.replace("summon.maniacswap\n", "")
+    src = (HEAD.replace("summon.maniacswap\n", "")
+           .replace("    body werner\n", "")
+           .replace('thing werner of character in lab\n'
+                    '    name "Werner"\n    named\n    words werner\n    playable\n'
+                    '    desc "Werner, chief of the station."\n',
+                    'player.desc "Werner, chief of the station."\n'))
     out = _run(_build(src), ["become olivia", "x me"])
     # no BECOME verb without the summon; the self words stay the library's
     assert "You are now" not in out
@@ -154,13 +157,12 @@ def test_unsummoned_playable_stays_an_ordinary_property():
 
 def test_german_swap_speaks_natively():
     src = (
-        'game\n    title "D"\n    start labor\n'
+        'game\n    title "D"\n    start labor\n    body werner\n'
         'summon.language "german"\n'
         'summon.maniacswap\n'
-        'player.name "Werner"\n'
-        'player.named\n'
-        'player.words werner\n'
         'room labor\n    name "Labor"\n    desc "Das Labor."\n'
+        'thing werner of character in labor\n'
+        '    name "Werner"\n    named\n    words werner\n    playable\n'
         'room dock\n    name "Dock"\n    desc "Das Dock."\n'
         'thing olivia of character in dock\n'
         '    name "Olivia"\n    named\n    feminine\n    words olivia\n'
@@ -175,13 +177,12 @@ def test_german_swap_speaks_natively():
 
 def test_spanish_swap_speaks_natively():
     src = (
-        'game\n    title "E"\n    start sala\n'
+        'game\n    title "E"\n    start sala\n    body werner\n'
         'summon.language "spanish"\n'
         'summon.maniacswap\n'
-        'player.name "Werner"\n'
-        'player.named\n'
-        'player.words werner\n'
         'room sala\n    name "Sala"\n    desc "La sala."\n'
+        'thing werner of character in sala\n'
+        '    name "Werner"\n    named\n    words werner\n    playable\n'
         'room muelle\n    name "Muelle"\n    desc "El muelle."\n'
         'thing olivia of character in muelle\n'
         '    name "Olivia"\n    named\n    feminine\n    words olivia\n'
@@ -336,3 +337,28 @@ def test_other_as_player_is_the_bodys_catch_all_and_never_traps_it():
     assert "Greta jumps like a cat." in part[3]
     assert "Your hand passes through it." not in part[4]
     assert "Henrik's knees have retired." in part[5]          # BECOME went through
+
+
+def test_maniacswap_requires_the_body():
+    # Stefan's ruling (2026-11-08): without `body` the keyboard starts in the
+    # library's anonymous self, which, once left, stood in the room as
+    # "yourself". The granule now requires the boot body declared.
+    # An older game gets its own declaration back, written from its
+    # player.<property> lines, ready to paste.
+    with pytest.raises(ArcError) as e:
+        _build('summon.maniacswap\ngame\n    title "P"\n    start r\n'
+               'room r\n    name "R"\n    desc "x"\n'
+               'player.name "Henrik"\nplayer.named\nplayer.words henrik\n'
+               'thing greta of character in r\n    name "Greta"\n    named\n'
+               '    words greta\n    playable\n')
+    msg = str(e.value)
+    assert "needs the starting character declared with `body`" in msg
+    assert "    body henrik" in msg
+    assert ('thing henrik of character in r\n    name "Henrik"\n    named\n'
+            '    words henrik') in msg
+    # a game with no player lines gets the shape to fill in
+    with pytest.raises(ArcError, match="thing hero of character in r"):
+        _build('summon.maniacswap\ngame\n    title "P"\n    start r\n'
+               'room r\n    name "R"\n    desc "x"\n'
+               'thing greta of character in r\n    name "Greta"\n    named\n'
+               '    words greta\n    playable\n')

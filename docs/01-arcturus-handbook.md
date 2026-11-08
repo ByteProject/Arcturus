@@ -6266,7 +6266,7 @@ summon.maniacswap
 Multiple player characters, Maniac Mansion style. The model is simple
 to state: the player is a pointer, and bodies are characters. Mark each
 body the keyboard may claim with `playable`, name the body the game
-<a id="ix-body"></a>begins in with `body` in the game block, and BECOME swaps between them:
+<a id="ix-body"></a>begins in with `body` in the game block (required), and BECOME swaps between them:
 
 ```
 game
@@ -6295,12 +6295,30 @@ possesses people and must vanish while it rides one), and starting as
 any body is a declaration, never a swap at `on start`. The pack's self
 words (ME, MYSELF) move onto the boot body, while its name and article
 stay its own (left behind, it lists as "a guard", never as "yourself"), and
-`thing matches in player` places things in it. The older form, `player.name "Henrik"` and
-`player.words henrik` with no `body`, keeps working: BECOME HENRIK still
-finds the boot body by its words, but your code has no name for it once
-you have left it, which is why `body` is the form to write. The two forms
-do not mix: with `body`, a `player.<property>` line in the game is an
-error that says where the property belongs.
+`thing matches in player` places things in it.
+
+`body` is required: a maniacswap game without it does not compile, since
+the library's anonymous player object, once left, would stand in the room
+with no name of its own. A game that named the player with
+`player.<property>` lines (`player.name "Henrik"`, `player.words henrik`)
+gets its body back from the error, written out from those lines, ready to
+paste:
+
+```
+story.storyarc:8: error: summon.maniacswap needs the starting character
+declared with `body` (its player.<property> lines move onto it and are
+deleted):
+
+    body henrik        // in the game block
+
+thing henrik of character in lab
+    name "Henrik"
+    named
+    words henrik
+```
+
+With `body` in place, a `player.<property>` line in the game is an error
+that says where the property belongs.
 
 BECOME MAREN works from anywhere, even between maps that never connect:
 the verb reaches every playable body by its words, scope or none, which

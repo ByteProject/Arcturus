@@ -5,7 +5,8 @@
 //
 // MANIACSWAP: summon it with `summon.maniacswap` (docs/01 chapter 22).
 // Multiple player characters, Maniac Mansion style: mark each body the
-// keyboard may claim with `playable` (the starting body is playable by
+// keyboard may claim with `playable` (the starting body, declared with
+// the required `body` in the game block, is playable by
 // default), and BECOME swaps between them, from anywhere on the map,
 // even between maps that never connect. The body you leave FREEZES in
 // place, exactly as you left it, holding what it held and wearing what
