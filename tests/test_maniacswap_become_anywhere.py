@@ -68,3 +68,20 @@ def test_a_seated_body_arrives_in_its_room(where, heading, getoff):
     assert "You take the lamp with you." in parts[1]
     assert getoff in parts[2]
     assert "Hall" in parts[3] and "no exit" not in parts[3]
+
+
+@pytest.mark.parametrize("pack, here, word", [
+    ("", "You can see a guard here.", "guard"),
+    ('summon.language "german"\n', "einen Wächter", "wächter"),
+])
+def test_the_boot_body_keeps_its_own_name_and_article(pack, here, word):
+    gender = "    der\n" if pack else ""
+    name = "Wächter" if pack else "guard"
+    src = (pack + 'summon.maniacswap\n'
+           'game\n    title "G"\n    start hall\n    body guard\n'
+           'room hall\n    name "Hall"\n    desc "A hall."\n'
+           f'thing guard of character in hall\n    name "{name}"\n    words {word}\n{gender}    playable\n'
+           'thing hero of character in hall\n    name "Hero"\n    named\n    words hero\n    playable\n')
+    verb = "werde" if pack else "become"
+    out = _run(src, [f"{verb} hero"])
+    assert here in out

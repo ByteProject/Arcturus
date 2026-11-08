@@ -1503,6 +1503,13 @@ class Analyzer:
         seeded = w.objects.pop("player", None)
         if seeded is not None:
             for pname, decl in seeded.props.items():
+                # The pack's identity of the anonymous self (name "yourself",
+                # its capitalized form, the proper-name flag) stays behind:
+                # the body is a character with its own name and article,
+                # and the left body must list as "a test", never "test"
+                # (the article report, 2026-11-08). Only the self WORDS move.
+                if pname in ("name", "name_cap", "named"):
+                    continue
                 mine = body.props.get(pname)
                 if pname == "words" and mine is not None \
                         and mine.form == ast.PROP_VALUE and decl.form == ast.PROP_VALUE:

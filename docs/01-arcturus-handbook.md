@@ -6293,8 +6293,9 @@ With `body`, the boot body is an ordinary object the story can name:
 handler, `move henrik to nothing` loses the body you left (a demon that
 possesses people and must vanish while it rides one), and starting as
 any body is a declaration, never a swap at `on start`. The pack's self
-words (ME, MYSELF) move onto the boot body, and `thing matches in
-player` places things in it. The older form, `player.name "Henrik"` and
+words (ME, MYSELF) move onto the boot body, while its name and article
+stay its own (left behind, it lists as "a guard", never as "yourself"), and
+`thing matches in player` places things in it. The older form, `player.name "Henrik"` and
 `player.words henrik` with no `body`, keeps working: BECOME HENRIK still
 finds the boot body by its words, but your code has no name for it once
 you have left it, which is why `body` is the form to write. The two forms

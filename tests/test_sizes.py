@@ -235,7 +235,7 @@ CEILINGS = {
     "features/adjectives.storyarc": 20416,  # 2026-11-08 repriced (+112): GIVE or SHOW to yourself is refused before any handler
     "granules/nautical.storyarc": 20012,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
     "granules/npcengine.storyarc": 22308,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
-    "granules/maniacswap.storyarc": 20560,  # 2026-11-08 repriced (+16): BECOME is reachagnostic and arrives in the body's room
+    "granules/maniacswap.storyarc": 20500,  # 2026-11-08 repriced (-60): the boot body keeps its own name and article
     "beispiel-deutsch.storyarc": 29624,  # 2026-11-08 repriced (+132): GIVE or SHOW to yourself is refused before any handler
     "brass-lantern.storyarc": 20912,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
     "cloak-of-darkness.storyarc": 22876,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
