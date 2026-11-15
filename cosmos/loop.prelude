@@ -106,6 +106,9 @@ block sweep_one(obj, act)
             change vetoed to check_reach(act)
     if vetoed is 0
         change vetoed to check_self_recipient(act)
+    if any_enterable is 1
+        if vetoed is 0
+            change vetoed to check_cycle(act)
     if any_sealed is 1
         if vetoed is 0
             change vetoed to check_sealed(act)
@@ -474,12 +477,18 @@ block cosmos_perform(act, obj, other)
         change noun to obj
         change way to nothing
     change second to other
-    dispatch(act)
-    if any_after is 1
-        if refused is 0
-            let aft = after_of(act)
-            if aft is not 0
-                dispatch(aft)
+    // The cycle gate holds for a performed put or insert too (check_cycle):
+    // geometry, not a verb contract, and a self-insert halts the machine.
+    let blocked = 0
+    if any_enterable is 1
+        change blocked to check_cycle(act)
+    if blocked is 0
+        dispatch(act)
+        if any_after is 1
+            if refused is 0
+                let aft = after_of(act)
+                if aft is not 0
+                    dispatch(aft)
     let ok = 1
     if refused is not 0
         change ok to 0
@@ -858,6 +867,11 @@ block run_turn(act)
             return 0
     if check_self_recipient(act) is 1
         return 0
+    // The cycle gate (check_cycle, actions.prelude): a thing never enters
+    // itself, refused before any handler can speak or move it.
+    if any_enterable is 1
+        if check_cycle(act) is 1
+            return 0
     if any_sealed is 1
         if check_sealed(act) is 1
             return 0

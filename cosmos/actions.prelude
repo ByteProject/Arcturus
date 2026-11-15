@@ -312,6 +312,31 @@ block beyond_guard_second()
 // before any handler runs, so no character's `on give` can accept a gift
 // from the player to the player (a maniacswap body is a character like
 // any other). Returns 1 refused, message spoken.
+// THE CYCLE GATE: the tree never cycles. A thing cannot enter itself or
+// anything it contains ("put hamper in hamper", or into the box inside
+// it): geometry, no repair possible; an interpreter halts on the
+// self-insert, so the guard is core (auraes's wardrobe round, 2026-09-14).
+// It runs before any handler (improvmonster's report, 2026-11-10: a
+// supporter kind's own `on put` capacity check spoke first, and a handler
+// that moved the thing itself halted the interpreter). perform() meets it
+// too: the verb contracts are the ones perform skips, and this is
+// geometry, not a contract. Returns 1 refused, message spoken.
+block check_cycle(act)
+    if act is not action_id("put")
+        if act is not action_id("insert")
+            return 0
+    if second is nothing
+        return 0
+    if second is noun
+        change refused to 1
+        msg_in_itself
+        return 1
+    if within(second, noun) is 1
+        change refused to 1
+        msg_in_itself
+        return 1
+    return 0
+
 block check_self_recipient(act)
     if second is player
         if act is action_id("give")
@@ -849,20 +874,8 @@ on put
         if noun is worn
             if worn_refused(noun) is 1
                 stop
-    // The tree never cycles: a thing cannot enter itself or anything it
-    // contains ("put hamper in hamper", or into the box inside it):
-    // geometry, no repair possible; an interpreter halts or corrupts on
-    // the self-insert, so the guard is core (auraes's wardrobe round,
-    // 2026-09-14). Folds away with nothing enterable.
-    if any_enterable is 1
-        if second is noun
-            change refused to 1
-            msg_in_itself
-            stop
-        if within(second, noun) is 1
-            change refused to 1
-            msg_in_itself
-            stop
+    // The tree never cycles: check_cycle refused a self-put before any
+    // handler ran, in the turn loop and in perform() alike.
     // Putting into or onto something CARRIED is entering the carried
     // subtree, so it pays the same tolls a take pays: the item count and
     // the weight budget (a floor boulder never sneaks into the sack the
@@ -931,20 +944,8 @@ on insert
         if noun is worn
             if worn_refused(noun) is 1
                 stop
-    // The tree never cycles: a thing cannot enter itself or anything it
-    // contains ("put hamper in hamper", or into the box inside it):
-    // geometry, no repair possible; an interpreter halts or corrupts on
-    // the self-insert, so the guard is core (auraes's wardrobe round,
-    // 2026-09-14). Folds away with nothing enterable.
-    if any_enterable is 1
-        if second is noun
-            change refused to 1
-            msg_in_itself
-            stop
-        if within(second, noun) is 1
-            change refused to 1
-            msg_in_itself
-            stop
+    // The tree never cycles: check_cycle refused a self-insert before any
+    // handler ran, in the turn loop and in perform() alike.
     // The same carried-subtree tolls as put (see there): entering the
     // sack pays what a take pays.
     if any_carry_limit is 1
