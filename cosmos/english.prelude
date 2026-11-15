@@ -182,6 +182,15 @@ block remap_action(act)
         if noun is not nothing
             if player in noun
                 return action_id("exit")
+        // A bare GET OFF while on something leaves it, as a bare GET OUT or
+        // GET DOWN does (improvmonster's report, 2026-11-15); the bare take_off
+        // was marked incomplete, and the remap unmarks it. Folds away with
+        // nothing to be on (any_enterable).
+        if noun is nothing
+            if any_enterable is 1
+                if parent_of(player) is not here
+                    change incomplete to 0
+                    return action_id("exit")
     if act is action_id("go")
         // GO IN THE CRATE, GO INTO: the in-direction plus a named thing is
         // boarding, the same reading the GET family gets above.
@@ -695,9 +704,7 @@ block fix_oops()
         return 0
     if any_verb_read is 1
         change verb_trigger to word_dict(0)
-    change tie_want to 1
-    if act is action_id("take")
-        change tie_want to 0
+    set_tie_want(act)
     change way to find_direction
     resolve_objects
     if parse_fault is 1

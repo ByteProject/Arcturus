@@ -266,9 +266,7 @@ block parse_line()
     // The held tiebreak's direction for this command (the matcher applies
     // it where a tie is found): most verbs mean the thing in hand, TAKE
     // means the one not yet there.
-    change tie_want to 1
-    if act is action_id("take")
-        change tie_want to 0
+    set_tie_want(act)
     // The prefer seam reads `action` while the nouns are still being
     // resolved, so the verb's action is published before resolving (the
     // dispatcher publishes it again for the handlers, where a tabled
@@ -1362,6 +1360,40 @@ block list_which()
         change obj to obj + 1
     line_which_end
 
+// Which side of a tie this verb wants (which_tiebreak): 1 in hand for most
+// verbs, 0 out of hand for TAKE, 2 the thing the player is in or on for
+// EXIT ("get off mat" on the left of two mats leaves the left one;
+// improvmonster's report, 2026-11-15). Shared by the parse and every
+// pack's OOPS replay.
+block set_tie_want(act)
+    change tie_want to 1
+    if act is action_id("take")
+        change tie_want to 0
+    if act is action_id("exit")
+        change tie_want to 2
+    // GET OFF X arrives as take_off and turns into EXIT only once the noun
+    // is known (remap_action), so its tie takes either side: the worn hat
+    // or the mat underfoot.
+    if act is action_id("take_off")
+        change tie_want to 3
+    return 0
+
+// The tie side of one candidate for the verb's want: 2 when EXIT wants the
+// player's own perch and this is it (or holds it), 3 when take_off takes a
+// held thing or the perch alike, 1 held, 0 otherwise.
+block tie_side(obj, want)
+    if want >= 2
+        if within(player, obj) is 1
+            return want
+        if want is 2
+            return 0
+        if player holds obj
+            return 3
+        return 0
+    if player holds obj
+        return 1
+    return 0
+
 // The held tiebreak (docs/01 chapter 14, a field rule): a tie where exactly
 // one candidate answers for the player's hands is not an ambiguity worth a
 // question. EXAMINE MIRROR with one in hand and one on the guard means the
@@ -1377,20 +1409,14 @@ block which_tiebreak(want_held)
             if any_adjectives is 0
                 if phrase_score(obj, ask_lo, ask_hi) is ask_score
                     if in_scope(obj)
-                        let h = 0
-                        if player holds obj
-                            change h to 1
-                        if h is want_held
+                        if tie_side(obj, want_held) is want_held
                             if pick is not nothing
                                 return nothing
                             change pick to obj
             if any_adjectives is 1
                 if phrase_score(obj, ask_lo, ask_hi) + phrase_class(obj, ask_lo, ask_hi) * 64 is ask_score
                     if in_scope(obj)
-                        let h = 0
-                        if player holds obj
-                            change h to 1
-                        if h is want_held
+                        if tie_side(obj, want_held) is want_held
                             if pick is not nothing
                                 return nothing
                             change pick to obj

@@ -737,9 +737,7 @@ block fix_oops()
         return 0
     if any_verb_read is 1
         change verb_trigger to word_dict(0)
-    change tie_want to 1
-    if act is action_id("take")
-        change tie_want to 0
+    set_tie_want(act)
     change way to find_direction
     resolve_objects
     if parse_fault is 1

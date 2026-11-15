@@ -3147,7 +3147,7 @@ The world verbs:
 | `inventory` | INVENTORY, I, INV | `inventory`. |
 | `go` | GO, WALK, RUN, or a bare direction word | `go`, `go noun`; the noun slot is the direction and rides `way` (chapter 8). |
 | `enter` | ENTER, BOARD, MOUNT, SIT (ON/IN), REST | `enter noun`; sitting is boarding. |
-| `exit` | EXIT, LEAVE, OUT, STAND (UP) | `exit`, `exit noun`; STAND ON X boards instead. A closed container's lid gates the way out as it gates the way in, on every path (a walk's implicit exit and boarding something else included; ENTER leaves the current seat first, for real, as a walk does): "The trunk is shut." The foresight granule opens it first instead ("(opening the trunk first)"); a locked lid speaks the open's refusal. |
+| `exit` | EXIT, LEAVE, OUT, STAND (UP) | `exit`, `exit noun`; STAND ON X boards instead. In English a bare GET OUT, GET DOWN or GET OFF while in or on something is an exit too, and GET OFF X leaves X when the player is on it. Of two alike things, EXIT X means the one the player is in or on (chapter 14). A closed container's lid gates the way out as it gates the way in, on every path (a walk's implicit exit and boarding something else included; ENTER leaves the current seat first, for real, as a walk does): "The trunk is shut." The foresight granule opens it first instead ("(opening the trunk first)"); a locked lid speaks the open's refusal. |
 | `open` | OPEN, UNCOVER, UNWRAP | `open noun`, `open noun with noun`. |
 | `close` | CLOSE, SHUT, COVER | `close noun`. |
 | `lock` | LOCK | `lock noun with noun`, `lock noun`. |
@@ -3452,6 +3452,10 @@ typed words its `words` contain, then takes the single best:
   the guard's on the guard means yours, silently. TAKE runs the tiebreak
   the other way (exactly one candidate NOT held wins, since taking wants
   the takeable one), so a held thing never shadows the one on the table.
+  EXIT wants the thing the player is in or on: standing on the left of
+  two mats, EXIT MAT and GET OFF MAT leave the left one. GET OFF also
+  takes off a worn thing, so its tie accepts either a held thing or the
+  one underfoot.
   A tie with nobody on the wanted side, or two candidates there, stands.
 - The tie survives: a genuine ambiguity. The parser asks
   "Which do you mean, the gold coin or the silver coin?", printing each
