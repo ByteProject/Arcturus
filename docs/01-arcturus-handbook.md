@@ -1286,10 +1286,13 @@ read from it, and the read works anywhere a value does:
 say "The box holds ${box.item_count} things."
 if crate.item_count > 5
     say "The crate is crammed."
+if table.item_count > 2
+    say "The table is getting crowded."
 ```
 
-`box.item_count` is the number of carryable things inside `box`, counted
-all the way down its nesting; with the carryweight granule summoned,
+`x.item_count` is the number of carryable things in or on `x`, whatever
+it is: a container, a supporter, a character, or the player. It is
+counted all the way down the nesting; with the carryweight granule summoned,
 `box.totalweight` is the box's weight with everything it holds. Neither
 is a stored slot: both are computed at the moment of the read. Declare a
 real property of either name and yours wins, the same most-specific rule
