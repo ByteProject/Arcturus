@@ -1165,14 +1165,25 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # optional operands default to nothing. Lowers to the library's
         # cosmos_perform, which dispatches within the current turn and
         # restores the enclosing command's operands.
-        if not args or not isinstance(args[0], ast.StringLit):
+        # The action is a quoted name, resolved here, or the running action
+        # (`perform(action, statue)`: redirect whatever the player did onto
+        # another object, its own handlers included), passed as its number at
+        # run time; cosmos_perform takes the number either way. sema has
+        # already refused any other first argument.
+        line = getattr(call, "line", None)
+        if not args:
             raise LowerError(
-                'perform needs a quoted action name: perform("take", book)',
-                expr.line)
-        text = "".join(p.text for p in args[0].parts if isinstance(p, ast.StringText))
-        num = wm.action_numbers(ctx.world).get(text)
-        if num is None:
-            raise LowerError(f"perform: unknown action '{text}'")
+                'perform needs an action: perform("take", book), or '
+                'perform(action, statue) for the running one', line)
+        dynamic = not isinstance(args[0], ast.StringLit)
+        if dynamic:
+            text = None
+            num = None
+        else:
+            text = "".join(p.text for p in args[0].parts if isinstance(p, ast.StringText))
+            num = wm.action_numbers(ctx.world).get(text)
+            if num is None:
+                raise LowerError(f"perform: unknown action '{text}'", line)
         # A direction argument rides `way` for ANY action, not only go
         # (the vehicle redirect: perform("drive", cart, way) from an `on
         # go`). The argument's type is known here (way, last_way, a
@@ -1181,7 +1192,7 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
         # which stores the direction into way and the object as the
         # noun. go keeps its own path (its one operand IS the way), and a
         # perform without a direction is lowered exactly as before.
-        routine = "blk_cosmos_perform"
+        routine = "blk_cosmos_perform_running" if dynamic else "blk_cosmos_perform"
         operands = args[1:]
         if text != "go" and any(_static_etype(ctx, a) == "direction"
                                 for a in operands):
@@ -1190,7 +1201,7 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
             if len(dirs) > 1:
                 raise LowerError(
                     "perform: two directions; an action takes one `way`",
-                    expr.line)
+                    line)
             routine = "blk_cosmos_perform_dir"
             operands = [objs[0] if objs else ast.Nothing(expr.line), dirs[0]]
         for i in (1, 0):
@@ -1212,8 +1223,14 @@ def _intrinsic(rt, ctx, call: ast.Call, dest):
             asave = ctx.alloc_temp()
             rt.op("store", Const(asave), Variable(aslot))
             rt.op("store", Const(aslot), Const(0))
-        rt.op("call_vs", RoutineRef(routine), Const(num),
-              Variable(STACK), Variable(STACK), store=dest)
+        if dynamic:
+            # Pushed last, so it is popped first: the routine's first argument.
+            eval_expr(rt, ctx, args[0], Variable(STACK))
+            rt.op("call_vs", RoutineRef(routine), Variable(STACK),
+                  Variable(STACK), Variable(STACK), store=dest)
+        else:
+            rt.op("call_vs", RoutineRef(routine), Const(num),
+                  Variable(STACK), Variable(STACK), store=dest)
         if asave is not None:
             rt.op("store", Const(ctx.globals["altered"]), Variable(asave))
             ctx.free_temp(asave)

@@ -510,6 +510,20 @@ block cosmos_perform(act, obj, other)
 // have given it. A copy rather than a shared helper so cosmos_perform
 // keeps its bytes; a game without such a perform never references this
 // twin and the pruner drops it.
+// perform(action, statue): the RUNNING action redirected onto another
+// object, its own handlers included (lower.py routes every perform whose
+// action is not a quoted name here). Performing exactly the running
+// command again, same action and same nouns, can only re-enter the handler
+// that asked (a shadow's `on other` meets itself again as the second noun
+// of PUT KEY ON SHADOW), so it is refused rather than recursing until the
+// machine dies. Unreferenced, and so dropped, in a game without the form.
+block cosmos_perform_running(act, obj, other)
+    if act is cur_action
+        if obj is noun
+            if other is second
+                return 0
+    return cosmos_perform(act, obj, other)
+
 block cosmos_perform_dir(act, obj, dir)
     let sn = noun
     let ss = second

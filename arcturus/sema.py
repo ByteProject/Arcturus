@@ -2836,6 +2836,8 @@ class Analyzer:
         if isinstance(expr, ast.Call):
             for a in expr.args:
                 self._check_expr(a, locals_)
+            if expr.name == "perform" and expr.args:
+                self._check_perform_action(expr.args[0], locals_, expr.line)
             return
         if isinstance(expr, ast.Unary):
             self._check_expr(expr.operand, locals_)
@@ -2847,6 +2849,33 @@ class Analyzer:
         if isinstance(expr, ast.IsTest):
             self._resolve_is(expr, locals_)
             return
+
+    def _check_perform_action(self, first, locals_: set, line: int) -> None:
+        """perform's first argument is an ACTION: a quoted name, resolved at
+        compile time, or a number holding one, the running `action` above
+        all (`perform(action, statue)` redirects whatever the player did onto
+        the statue, its own handlers included). The word the player typed
+        and any other value are refused here, by name, rather than
+        dispatching garbage at run time."""
+        if isinstance(first, ast.StringLit):
+            return
+        if isinstance(first, ast.Name) and first.ident == "verb_trigger" \
+                and "verb_trigger" not in locals_:
+            raise self._error(
+                "perform needs an action, and verb_trigger is the word the "
+                "player typed; perform(action, statue) redirects the running "
+                "action onto the statue", line)
+        if isinstance(first, ast.Name) and first.ident == "action" \
+                and "action" not in locals_:
+            return
+        # A local or a call is untyped here (None) and may hold an action
+        # number (let a = action_id("push")); a value of any known non-number
+        # type cannot.
+        ty = self._infer_type(first, locals_)
+        if ty is not None and ty != prelude.T_NUMBER:
+            raise self._error(
+                'perform needs an action: a quoted name, perform("take", '
+                'book), or the running one, perform(action, statue)', line)
 
     def _resolve_is(self, expr: ast.IsTest, locals_: set) -> None:
         self._check_expr(expr.left, locals_)

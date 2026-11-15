@@ -1866,6 +1866,34 @@ boarding via enter), or for re-dispatching the same action past a `when`
 guard or operand pattern the re-entry will fail. The compiler notes the
 unguarded self-perform shape at compile time.
 
+The action can also be the running one: `perform(action, statue)` sends
+whatever the player just did on to another object, the statue's own
+handlers included. That is the way to make one object stand in for
+another across most verbs. A stand-in can be either noun of the command
+(PUT KEY ON SHADOW names the shadow second), so the redirect swaps
+whichever slot it fills:
+
+```
+thing shadow in hall
+    name "shadow"
+    words shadow
+    scenery
+    on smell                  // its own verbs still answer first
+        say "The shadow smells of nothing."
+    on other                  // every other verb goes to the statue
+        if second is self
+            perform(action, noun, statue)
+        else
+            perform(action, statue, second)
+```
+
+The first argument must be an action: a quoted name, `action`, or a
+local holding one (`let a = action_id("push")`). `verb_trigger` is the
+word the player typed, not an action, and the compiler refuses it by
+name. Performing exactly the running command again, with the same nouns,
+is refused rather than run, since it could only re-enter the handler that
+asked.
+
 `say` prints text or a value followed by a line break; printing a number prints
 digits, an object prints its `name`: `say "Score: ${score}."`. `show` prints the
 same way but without the trailing line break, for building one line from pieces:
@@ -6663,7 +6691,7 @@ to strip them from; not summoning them leaves them out). Arcturus-named with the
 familiar Inform synonyms:
 
 - `tree` / `objects` - the whole object tree.
-- `scope` - what is reachable from here.
+- `scope` - what is in scope here: the room's and your own contents as a tree, then, under "Also in scope:", everything else the parser can see from here (backstage things, a character's exposed belongings).
 - `fetch` / `purloin` - pull any object into your hands.
 - `warp` / `gonear` - teleport to an object's room.
 - `inspect` / `showobj` - an object's location and the attributes it has set.

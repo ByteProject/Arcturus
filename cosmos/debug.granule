@@ -116,6 +116,10 @@ block tree_from(obj, depth)
 // ---------------------------------------------------------------------------
 // scope: what is reachable from here - the room and what you carry, on into open
 // or clear containers and onto supporters, the way the noun matcher sees it.
+// Then everything else the parser's own in_scope answers for, which no tree
+// walk from here can find: backstage things (`move x to scope`), spans
+// backdrops, a character's exposed belongings (improvmonster's report,
+// 2026-11-12).
 
 verb "scope" meta
     scope
@@ -124,6 +128,34 @@ on scope
     say "In scope:"
     scope_from(here, 1)
     scope_from(player, 1)
+    let headed = 0
+    let obj = 1
+    while obj <= object_count
+        if obj is not here
+            if obj is not player
+                if in_scope(obj)
+                    if scope_walked(obj) is 0
+                        if headed is 0
+                            say "Also in scope:"
+                            change headed to 1
+                        indent(1)
+                        print_name(obj)
+                        say ""
+        change obj to obj + 1
+
+// Did scope_from above already list this object? The same descent: up the
+// parents to the room or the player, through holders the player sees into.
+block scope_walked(obj)
+    let p = parent_of(obj)
+    while p is not nothing
+        if p is here
+            return 1
+        if p is player
+            return 1
+        if see_into(p) is 0
+            return 0
+        change p to parent_of(p)
+    return 0
 
 block scope_from(holder, depth)
     for each x in holder
