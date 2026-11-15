@@ -1079,6 +1079,19 @@ on lock
         success msg_locked
 
 on unlock
+    // Nothing to open: the convenience open below is for things that open
+    // (a chest, a door). A phone or a rock that needs no unlocking just
+    // says so, with no open promised and refused after it (improvmonster's
+    // report, 2026-11-15). A LOCKED one still takes its key below.
+    if noun is not openable
+        if noun is not lockable
+            change refused to 1
+            msg_no_lock
+            stop
+        if noun is not locked
+            change refused to 1
+            msg_already_unlocked
+            stop
     // Already open: nothing to unlock and nothing to open, so the open
     // action's own already-open line speaks alone (auraes's report,
     // 2026-10-03: "already unlocked, so you open it" followed by "already

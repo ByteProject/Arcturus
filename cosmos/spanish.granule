@@ -2109,6 +2109,25 @@ block msg_locked()
 block msg_already_locked()
     say "Ya está cerrado con llave."
 
+// UNLOCK sobre algo que ni se cierra con llave ni se abre: el
+// msg_cant_unlock de siempre ya lo dice.
+block msg_no_lock()
+    msg_cant_unlock
+
+// UNLOCK sobre algo con cerradura, sin echar y que no se abre.
+block msg_already_unlocked()
+    if any_pluribus is 1
+        if noun is pluribus
+            if noun is feminine
+                say "${The noun} no están cerradas con llave."
+            else
+                say "${The noun} no están cerrados con llave."
+            return 0
+    if noun is feminine
+        say "${The noun} no está cerrada con llave."
+    else
+        say "${The noun} no está cerrado con llave."
+
 block msg_not_locked()
     say "${The noun} no está cerrado con llave, así que abres ${the noun}."
 

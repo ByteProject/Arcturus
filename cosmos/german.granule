@@ -2430,6 +2430,19 @@ block msg_locked()
 block msg_already_locked()
     say "Schon abgeschlossen."
 
+// UNLOCK on something that neither locks nor opens: the existing
+// msg_cant_unlock already says so.
+block msg_no_lock()
+    msg_cant_unlock
+
+// UNLOCK on a lockable thing that is already unlocked and does not open.
+block msg_already_unlocked()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} sind gar nicht abgeschlossen."
+            return 0
+    say "${The noun} ist gar nicht abgeschlossen."
+
 block msg_not_locked()
     say "${The noun} ist gar nicht abgeschlossen; du öffnest ${the:acc noun}."
 

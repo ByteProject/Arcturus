@@ -216,73 +216,73 @@ EXAMPLES = os.path.join(os.path.dirname(__file__), "..", "examples")
 # chain); a held thing skips the probe, the floor-to-container shortcut
 # still moves takeable things in one command.
 CEILINGS = {
-    "features/yes-no.storyarc": 19128,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/press-any-key.storyarc": 20016,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/shiftable.storyarc": 19512,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/enhance-redefine.storyarc": 19872,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/consult-about.storyarc": 20028,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/session-verbs.storyarc": 19584,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/vary.storyarc": 21540,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/foresight.storyarc": 21980,  # 2026-11-15 repriced (+32): a thing put on or in itself is refused before any handler
-    "features/beyond.storyarc": 22860,  # 2026-11-15 repriced (+32): a thing put on or in itself is refused before any handler
-    "features/alter.storyarc": 20960,  # 2026-11-15 repriced (+24): a thing put on or in itself is refused before any handler
-    "features/catalogs.storyarc": 20132,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/matrix.storyarc": 20468,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/direction-grammar.storyarc": 19544,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/scenery-contents.storyarc": 20808,  # 2026-11-15 repriced (+32): a thing put on or in itself is refused before any handler
-    "features/prefer.storyarc": 18976,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/trigger.storyarc": 19812,  # 2026-11-15 repriced (+32): a thing put on or in itself is refused before any handler
-    "features/adjectives.storyarc": 20448,  # 2026-11-15 repriced (+32): a thing put on or in itself is refused before any handler
-    "granules/nautical.storyarc": 20020,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "granules/npcengine.storyarc": 22316,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "granules/maniacswap.storyarc": 20508,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "beispiel-deutsch.storyarc": 29656,  # 2026-11-15 repriced (+32): a thing put on or in itself is refused before any handler
-    "brass-lantern.storyarc": 20920,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "cloak-of-darkness.storyarc": 22916,  # 2026-11-15 repriced (+40): a thing put on or in itself is refused before any handler
-    "ejemplo-espanol.storyarc": 26216,  # 2026-11-15 repriced (+28): a thing put on or in itself is refused before any handler
-    "features/computed-properties.storyarc": 19228,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/containers.storyarc": 20440,  # 2026-11-15 repriced (+32): a thing put on or in itself is refused before any handler
-    "features/daemons-and-timers.storyarc": 21456,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/doors-and-locks.storyarc": 19912,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/appearance.storyarc": 20228,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/components.storyarc": 19496,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "granules/whistle.storyarc": 18876,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "granules/lighttopology.storyarc": 21048,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/pathfinding.storyarc": 21856,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/perform.storyarc": 19196,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/grains.storyarc": 18984,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/handlers.storyarc": 20396,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/first-person.storyarc": 19888,  # 2026-11-15 repriced (+24): a thing put on or in itself is refused before any handler
-    "features/word-lists.storyarc": 19632,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/grammar-bind.storyarc": 20520,  # 2026-11-15 repriced (+32): a thing put on or in itself is refused before any handler
-    "features/grammar.storyarc": 19300,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/introproperty.storyarc": 21128,  # 2026-11-15 repriced (+24): a thing put on or in itself is refused before any handler
-    "features/kinds-and-inheritance.storyarc": 19192,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/on-other.storyarc": 19072,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/zcolor.storyarc": 19520,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/text-styles.storyarc": 19320,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/computed-name.storyarc": 19212,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/scoring.storyarc": 21488,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/spans.storyarc": 19360,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/vehicles.storyarc": 20760,  # 2026-11-15 repriced (+24): a thing put on or in itself is refused before any handler
-    "features/success.storyarc": 20056,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/edible.storyarc": 19688,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "features/text-slot.storyarc": 20236,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "granules/carryweight.storyarc": 20460,  # 2026-11-15 repriced (+32): a thing put on or in itself is refused before any handler
-    "granules/ambience.storyarc": 21104,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "granules/conversations.storyarc": 21068,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "granules/extended-verbs.storyarc": 22808,  # 2026-11-15 repriced (+24): a thing put on or in itself is refused before any handler
-    "granules/infocom-interrogation.storyarc": 22448,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "granules/quotes.storyarc": 19256,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "granules/take-all.storyarc": 22464,  # 2026-11-15 repriced (+384): PUT ALL ON or IN a holder sweeps, and an ALL in a two-noun command reaches the sweep
-    "granules/plurals.storyarc": 20168,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "granules/statusline.storyarc": 19228,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
-    "granules/verbose-exits.storyarc": 19168,  # 2026-11-15 repriced (+8): a thing put on or in itself is refused before any handler
+    "features/yes-no.storyarc": 19208,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/press-any-key.storyarc": 20096,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/shiftable.storyarc": 19592,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/enhance-redefine.storyarc": 19952,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/consult-about.storyarc": 20108,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/session-verbs.storyarc": 19664,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/vary.storyarc": 21620,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/foresight.storyarc": 22060,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/beyond.storyarc": 22940,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/alter.storyarc": 21040,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/catalogs.storyarc": 20212,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/matrix.storyarc": 20548,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/direction-grammar.storyarc": 19624,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/scenery-contents.storyarc": 20888,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/prefer.storyarc": 19056,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/trigger.storyarc": 19892,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/adjectives.storyarc": 20528,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/nautical.storyarc": 20100,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/npcengine.storyarc": 22396,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/maniacswap.storyarc": 20588,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "beispiel-deutsch.storyarc": 29728,  # 2026-11-15 repriced (+72): UNLOCK on a thing that does not open says so instead of promising the open
+    "brass-lantern.storyarc": 21000,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "cloak-of-darkness.storyarc": 22996,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "ejemplo-espanol.storyarc": 26332,  # 2026-11-15 repriced (+116): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/computed-properties.storyarc": 19308,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/containers.storyarc": 20520,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/daemons-and-timers.storyarc": 21536,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/doors-and-locks.storyarc": 19992,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/appearance.storyarc": 20308,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/components.storyarc": 19576,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/whistle.storyarc": 18956,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/lighttopology.storyarc": 21128,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/pathfinding.storyarc": 21936,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/perform.storyarc": 19276,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/grains.storyarc": 19064,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/handlers.storyarc": 20476,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/first-person.storyarc": 19968,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/word-lists.storyarc": 19712,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/grammar-bind.storyarc": 20600,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/grammar.storyarc": 19380,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/introproperty.storyarc": 21208,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/kinds-and-inheritance.storyarc": 19272,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/on-other.storyarc": 19152,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/zcolor.storyarc": 19600,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/text-styles.storyarc": 19400,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/computed-name.storyarc": 19292,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/scoring.storyarc": 21568,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/spans.storyarc": 19440,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/vehicles.storyarc": 20840,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/success.storyarc": 20136,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/edible.storyarc": 19768,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "features/text-slot.storyarc": 20316,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/carryweight.storyarc": 20540,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/ambience.storyarc": 21184,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/conversations.storyarc": 21148,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/extended-verbs.storyarc": 22888,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/infocom-interrogation.storyarc": 22528,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/quotes.storyarc": 19336,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/take-all.storyarc": 22544,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/plurals.storyarc": 20248,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/statusline.storyarc": 19308,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
+    "granules/verbose-exits.storyarc": 19248,  # 2026-11-15 repriced (+80): UNLOCK on a thing that does not open says so instead of promising the open
 }
 
 # The z8 build of the same game: only the header version byte, the file-length
 # scale, and the packed-address unit differ, so its size moves with the z5 one.
-CLOAK_Z8_CEILING = 23640  # 2026-11-15 repriced (+48): a thing put on or in itself is refused before any handler
+CLOAK_Z8_CEILING = 23728  # 2026-11-15 repriced (+88): UNLOCK on a thing that does not open says so instead of promising the open
 
 # The PunyInform-equivalent Cloak of Darkness build (standard verb set only) is
 # about 27K; staying strictly under it is the charter's fairness benchmark.

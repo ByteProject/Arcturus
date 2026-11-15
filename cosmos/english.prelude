@@ -2500,6 +2500,18 @@ block msg_locked_with()
         return 0
     say "You lock ${the noun} with ${the noun.unseal_with}."
 
+// A UNLOCK on something that neither locks nor opens: nothing to do.
+block msg_no_lock()
+    say "Nothing about ${the noun} needs unlocking."
+
+// A UNLOCK on a lockable thing that is already unlocked and does not open.
+block msg_already_unlocked()
+    if any_pluribus is 1
+        if noun is pluribus
+            say "${The noun} are already unlocked."
+            return 0
+    say "${The noun} is already unlocked."
+
 // A UNLOCK on something with no lock at all: the verb just opens it.
 block msg_cant_unlock()
     if any_firstperson is 1
