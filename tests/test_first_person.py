@@ -59,6 +59,14 @@ def test_the_narration_speaks_as_i():
     assert "You take" not in out and "You can see" not in out
 
 
+def test_giving_or_showing_to_myself_speaks_as_i():
+    # auraes, 2026-11-09: the self-recipient refusals had no I branch.
+    out = _run(["take lamp", "give lamp to me", "show lamp to me"])
+    assert "I already have the brass lamp." in out
+    assert "I know the brass lamp well enough already." in out
+    assert "You already have" not in out and "You know" not in out
+
+
 def test_the_system_voice_stays_second_person():
     out = _run(["take", "score", "quit", "y"])
     # the parser's ask and the meta verbs address the PLAYER, not the

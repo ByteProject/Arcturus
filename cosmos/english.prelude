@@ -2276,9 +2276,15 @@ block msg_closed()
     say "${The second} is shut."
 
 block msg_give_self()
+    if any_firstperson is 1
+        say "I already have ${the noun}."
+        return 0
     say "You already have ${the noun}."
 
 block msg_show_self()
+    if any_firstperson is 1
+        say "I know ${the noun} well enough already."
+        return 0
     say "You know ${the noun} well enough already."
 
 block msg_give()

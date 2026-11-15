@@ -252,7 +252,7 @@ CEILINGS = {
     "features/perform.storyarc": 19188,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
     "features/grains.storyarc": 18976,  # 2026-11-08 repriced (+112): GIVE or SHOW to yourself is refused before any handler
     "features/handlers.storyarc": 20388,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
-    "features/first-person.storyarc": 19860,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
+    "features/first-person.storyarc": 19864,  # 2026-11-15 repriced (+4): GIVE or SHOW to yourself speaks as I
     "features/word-lists.storyarc": 19624,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
     "features/grammar-bind.storyarc": 20488,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
     "features/grammar.storyarc": 19292,  # 2026-11-08 repriced (+120): GIVE or SHOW to yourself is refused before any handler
