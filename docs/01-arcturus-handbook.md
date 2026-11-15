@@ -859,6 +859,22 @@ thing brass_lantern of lamp_kind in hallway
     lit  false              // overrides the inherited default
 ```
 
+When the kind supplies everything, name and words included, the instance
+needs no body at all, only its kind and its place:
+
+```
+kind crate of thing
+    name "crate"
+    words crate
+    desc "A wooden crate, nailed shut."
+
+thing crate_one of crate in warehouse
+thing crate_two of crate in warehouse
+```
+
+An object without a kind always has a body, since nothing else would give
+it a name or words.
+
 A kind roots at `thing` or `room`. Inheritance is single parent in v1: a kind
 names one parent with `of`, forming a chain (`small_box of container of
 thing`).
@@ -7260,7 +7276,7 @@ game_block     := "game" INDENT { meta_line } DEDENT
 summon         := "summon" ( string | id )
                 | "summon" "." id [ string ]
 object_decl    := ("room" | "thing") id [ "of" id ] [ "in" id ]
-                  INDENT { member } DEDENT
+                  [ INDENT { member } DEDENT ]   // optional only with "of"
 kind_decl      := "kind" id [ "of" id ] INDENT { member } DEDENT
 member         := property_decl | handler | grains_block
 property_decl  := id [ value ] | id "list" number | id "block"

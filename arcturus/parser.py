@@ -426,7 +426,19 @@ class Parser:
                 self.advance()
                 presence.append(self._object_ref_name("a room name"))
         self.expect_newline()
-        members = self.parse_members()
+        # An instance of a kind may have no body: everything it needs, name
+        # included, comes from the kind (EdwardianDuck's request, 2026-11-01:
+        # `thing crate2 of crate in hall`). An object without a kind still
+        # needs one, since it would have no name and no words.
+        if parent is not None and not self.check(T.INDENT):
+            members = []
+        elif not self.check(T.INDENT):
+            raise self._error(
+                f"'{name}' needs an indented body: an object without a kind "
+                f"has nothing to give it a name or words (an instance `of` a "
+                f"kind may leave the body out)")
+        else:
+            members = self.parse_members()
         # A `spans a, b, c` member is the SIGHT form (and not a real property):
         # pull it out of the members here.
         kept: list[ast.Member] = []
